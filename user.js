@@ -6,8 +6,8 @@
 // @match        https://www.openstreetmap.org/changeset/*
 // @license      WTFPL
 // @namespace    https://github.com/deevroman/better-osm-org
-// @updateURL    https://raw.githubusercontent.com/deevroman/better-osm-org@master/user.js
-// @downloadURL  https://raw.githubusercontent.com/deevroman/better-osm-org@master/.user.js
+// @updateURL    https://github.com/deevroman/better-osm-org/raw/master/user.js
+// @downloadURL  https://github.com/deevroman/better-osm-org/raw/master/user.js
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=openstreetmap.org
 // @grant        none
 // ==/UserScript==
