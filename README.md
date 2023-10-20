@@ -9,3 +9,4 @@
 - [ ] Node deletion
 - [ ] Integrate https://github.com/Zverik/osmtags-editor
 - [ ] Edit tags in Overpass Turbo
+- [ ] Template responses when closing notes
