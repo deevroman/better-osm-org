@@ -33,7 +33,7 @@ function addRevertButton(){
             if (!url.includes("/changeset")) return;
             let timerId = setInterval(() => {
                 addRevertButton();
-            }, 300);
+            }, 100);
             setTimeout(() => { clearInterval(timerId); console.log('stop try add revert button'); }, 3000);
         }
     }).observe(document, {subtree: true, childList: true});
