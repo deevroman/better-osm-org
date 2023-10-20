@@ -7,7 +7,6 @@
 // @license      WTFPL
 // @namespace    https://github.com/deevroman/better-osm-org
 // @updateURL    https://raw.githubusercontent.com/deevroman/better-osm-org@master/user.js
-// @installURL   https://raw.githubusercontent.com/deevroman/better-osm-org@master/user.js
 // @downloadURL  https://raw.githubusercontent.com/deevroman/better-osm-org@master/.user.js
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=openstreetmap.org
 // @grant        none
@@ -30,8 +29,8 @@ function addRevertButton(){
         const url = location.href;
         if (url !== lastUrl) {
             lastUrl = url;
+            if (!url.includes("/changeset")) return;
             let timerId = setInterval(() => {
-                if (!url.includes("/changeset")) return;
                 addRevertButton();
             }, 300);
             setTimeout(() => { clearInterval(timerId); console.log('stop try add revert button'); }, 3000);
