@@ -11,3 +11,5 @@
 - [ ] Edit tags in Overpass Turbo
 - [ ] Template responses when closing notes
 - [ ] Tags diff in object history
+- [ ] Changesets filter
+- [ ] Compact changesets history
