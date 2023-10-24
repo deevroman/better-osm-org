@@ -15,3 +15,4 @@
 - [ ] Compact changesets history
 - [ ] Jump to overpass from tags
 - [ ] Show deleted
+- [ ] Hide resolved
