@@ -16,3 +16,4 @@
 - [ ] Jump to overpass from tags
 - [ ] Show deleted
 - [ ] Hide resolved
+- [ ] Show satelite layer
