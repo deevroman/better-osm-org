@@ -13,3 +13,4 @@
 - [ ] Tags diff in object history
 - [ ] Changesets filter
 - [ ] Compact changesets history
+- [ ] Jump to overpass from tags
