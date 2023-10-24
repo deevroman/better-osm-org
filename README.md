@@ -19,3 +19,5 @@
 - [ ] Show satelite layer
 - [ ] Stat HDYC in profile
 - [ ] Enable/disable note/data buttons
+- [ ] User id everywhere
+- [ ] Profile for deleted users
