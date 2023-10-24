@@ -17,3 +17,4 @@
 - [ ] Show deleted
 - [ ] Hide resolved
 - [ ] Show satelite layer
+- [ ] Stat HDYC in profile
