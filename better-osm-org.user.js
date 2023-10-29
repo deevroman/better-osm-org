@@ -3,7 +3,7 @@
 // @version      0.1
 // @description  Several improvements for advanced users of osm.org
 // @author       deevroman
-// @match        https://www.openstreetmap.org/changeset/*
+// @match        https://www.openstreetmap.org/*
 // @license      WTFPL
 // @namespace    https://github.com/deevroman/better-osm-org
 // @updateURL    https://github.com/deevroman/better-osm-org/raw/master/better-osm-org.user.js
