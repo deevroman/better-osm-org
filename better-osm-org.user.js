@@ -79,7 +79,9 @@ function setupRevertButton(){
             setTimeout(() => { clearInterval(timerId); console.log('stop try add revert button'); }, 3000);
         }
     }).observe(document, {subtree: true, childList: true});
-    addRevertButton();
+    if (url.includes("/changeset")){
+        addRevertButton();
+    }
 }
 
 function setup() {
