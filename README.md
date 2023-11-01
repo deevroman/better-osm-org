@@ -5,7 +5,7 @@
 - [x] Revert button
 - [x] Settings
 - [x] Compact changesets history
-- + [ ] Copy changeset id
+- + [x] Copy changeset id
 - [ ] Exact time instead of a verbal description
 - [ ] Revert from osmcha.org
 - [ ] Template responses when closing notes
