@@ -6,12 +6,8 @@
 - [x] Settings
 - [x] Compact changesets history
 - + [ ] Copy changeset id
-- [ ] Mass revert
 - [ ] Exact time instead of a verbal description
 - [ ] Revert from osmcha.org
-- [ ] Node deletion
-- [ ] Integrate https://github.com/Zverik/osmtags-editor
-- [ ] Edit tags in Overpass Turbo
 - [ ] Template responses when closing notes
 - [ ] Tags diff in object history
 - [ ] Changesets filter
@@ -23,3 +19,9 @@
 - [ ] Enable/disable note/data buttons
 - [ ] User id everywhere
 - [ ] Profile for deleted users
+- [ ] Integrate https://github.com/Zverik/osmtags-editor
+- + [ ] Edit tags in Overpass Turbo
+- + [ ] Node deletion
+
+Maybe
+- [ ] Mass revert (via JOSM?)
