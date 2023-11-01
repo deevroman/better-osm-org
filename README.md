@@ -4,6 +4,8 @@
 
 - [x] Revert button
 - [x] Settings
+- [x] Compact changesets history
+- + [ ] Copy changeset id
 - [ ] Mass revert
 - [ ] Exact time instead of a verbal description
 - [ ] Revert from osmcha.org
@@ -13,7 +15,6 @@
 - [ ] Template responses when closing notes
 - [ ] Tags diff in object history
 - [ ] Changesets filter
-- [ ] Compact changesets history
 - [ ] Jump to overpass from tags
 - [ ] Show deleted
 - [ ] Hide resolved
