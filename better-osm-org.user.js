@@ -35,6 +35,12 @@ GM_config.init(
             'type': 'checkbox',
             'default': 'checked'
         },
+        'CompactChangesetsHistory':
+        {
+            'label': 'Compact changesets history',
+            'type': 'checkbox',
+            'default': 'checked'
+        },
     },
     frameStyle: [
       'bottom: auto; border: 1px solid #000; display: none; height: 75%;',
@@ -79,13 +85,84 @@ function setupRevertButton(){
             setTimeout(() => { clearInterval(timerId); console.log('stop try add revert button'); }, 3000);
         }
     }).observe(document, {subtree: true, childList: true});
-    if (url.includes("/changeset")){
+    if (location.href.includes("/changeset")){
         addRevertButton();
     }
 }
 
+function setupCompactChangesetsHistory(){
+    if (!GM_config.get('CompactChangesetsHistory')) {
+        return;
+    }
+    if (!location.href.includes("/history")){
+        return;
+    }
+
+    var style = document.createElement('style');
+    style.type = 'text/css';
+
+    var styleText = `
+    .changesets p {
+      margin-bottom: 0;
+      font-weight: 788;
+    }
+    .map-layout #sidebar {
+      width: 450px;
+    }
+    /* for id copied */
+    .copied {
+      background-color: red;
+      transition:all 0.3s;
+    }
+    .was-copied {
+      background-color: none;
+      transition:all 0.3s;
+    }
+    `
+    if (style.styleSheet) {
+        style.styleSheet.cssText=styleText;
+    } else {
+        style.appendChild(document.createTextNode(styleText));
+    }
+    document.getElementsByTagName('head')[0].appendChild(style);
+
+    new MutationObserver(() => {
+        // remove useless
+        document.querySelectorAll("#sidebar .changesets .col").forEach((e) => {e.childNodes[0].textContent = ""})
+        // copying id
+        document.querySelectorAll('#sidebar .col .changeset_id').forEach((item) => {
+            item.onclick = (e) => {
+                e.preventDefault();
+                let id = e.target.innerText.slice(1);
+                navigator.clipboard.writeText(id).then(function() {
+                    console.log(`Copying ${id} to clipboard was successful!`);
+                    e.target.classList.add("copied");
+                    setTimeout(() => {
+                        e.target.classList.remove("copied");
+                        e.target.classList.add("was-copied");
+                        setTimeout(() => e.target.classList.remove("was-copied"), 300);
+                    }, 300);
+                });
+            }
+        });
+    }).observe(document, {subtree: true, childList: true});
+}
+
+function setupChangesetIdCopy() {
+
+}
+
 function setup() {
-    setupRevertButton();
+    try {
+        setupRevertButton();
+    } catch {
+
+    }
+    try {
+        setupCompactChangesetsHistory();
+    } catch {
+
+    }
 }
 
 function main() {
