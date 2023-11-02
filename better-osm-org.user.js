@@ -4,6 +4,7 @@
 // @description  Several improvements for advanced users of osm.org
 // @author       deevroman
 // @match        https://www.openstreetmap.org/*
+// @match        https://master.apis.dev.openstreetmap.org/*
 // @match        https://osmcha.org/*
 // @license      WTFPL
 // @namespace    https://github.com/deevroman/better-osm-org
@@ -38,6 +39,12 @@ GM_config.init(
         'CompactChangesetsHistory':
         {
             'label': 'Compact changesets history',
+            'type': 'checkbox',
+            'default': 'checked'
+        },
+        'ResolveNotesButtons':
+        {
+            'label': 'Show addition resolve buttons',
             'type': 'checkbox',
             'default': 'checked'
         },
@@ -148,8 +155,15 @@ function setupCompactChangesetsHistory(){
     }).observe(document, {subtree: true, childList: true});
 }
 
-function setupChangesetIdCopy() {
-
+function setupResolveNotesButtons() {
+    var b = document.querySelectorAll(".btn-wrapper .btn")[0].cloneNode();
+    b.classList.add("resolve-note-done");
+    b.value = "👌";
+    document.querySelectorAll(".btn-wrapper .btn")[0].before(b);
+    document.querySelectorAll(".btn-wrapper .btn")[0].after(document.createTextNode("\xA0"));
+    document.querySelector(".resolve-note-done").onclick = (e) => {
+        document.querySelector("form.mb-3 textarea").value = "👌";
+    }
 }
 
 function setup() {
@@ -160,6 +174,11 @@ function setup() {
     }
     try {
         setupCompactChangesetsHistory();
+    } catch {
+
+    }
+    try {
+        setupResolveNotesButtons();
     } catch {
 
     }
