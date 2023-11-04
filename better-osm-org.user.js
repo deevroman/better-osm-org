@@ -156,6 +156,9 @@ function setupCompactChangesetsHistory(){
 }
 
 function setupResolveNotesButtons() {
+    if (!GM_config.get('ResolveNotesButtons')) {
+        return;
+    }
     var b = document.querySelectorAll(".btn-wrapper .btn")[0].cloneNode();
     b.classList.add("resolve-note-done");
     b.value = "👌";
