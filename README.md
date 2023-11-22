@@ -17,6 +17,7 @@
 - [ ] Show satelite layer
 - [ ] Stat HDYC in profile
 - [ ] Enable/disable note/data buttons
+- + [ ] Hide ways
 - [ ] User id everywhere
 - [ ] Profile for deleted users
 - [ ] Integrate https://github.com/Zverik/osmtags-editor
