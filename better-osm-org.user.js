@@ -57,6 +57,12 @@ GM_config.init(
                 'type': 'checkbox',
                 'default': 'checked'
             },
+            'HideNoteHighlight':
+            {
+                'label': 'Hide note highlight',
+                'type': 'checkbox',
+                'default': 'checked'
+            },
         },
         frameStyle: [
             'bottom: auto; border: 1px solid #000; display: none; height: 75%;',
@@ -215,7 +221,7 @@ function addDeleteButton() {
     link.text = "Выпилить!";
     link.href = "";
     link.classList.add("delete_object_button_class");
-    if(document.querySelector(".browse-section .latitude") === null){
+    if(document.querySelectorAll(".browse-section h4").length < 2 && document.querySelector(".browse-section .latitude") === null){
         link.setAttribute("hidden", true);
         return;
     }
@@ -297,8 +303,41 @@ function setupDeletor(){
             setTimeout(() => { clearInterval(timerId); console.log('stop try add delete button'); }, 3000);
         }
     }).observe(document, {subtree: true, childList: true});
-    if (location.href.includes("/node/") || url.includes("/way/")){
+    if (location.href.includes("/node/") || location.href.includes("/way/")){
         addDeleteButton();
+    }
+}
+
+function hideNoteHighlight(){
+    let g = document.querySelector("g");
+    if (g.childElementCount == 0) return;
+    if(g.childNodes[g.childElementCount-1].getAttribute("stroke") == "#FF6200" 
+       && g.childNodes[g.childElementCount-1].getAttribute("d").includes("a20,20 0 1,0 -40,0 ")){
+        g.childNodes[g.childElementCount-1].remove();
+    }
+}
+
+function setupHideNoteHighlight(){
+    if (!GM_config.get('HideNoteHighlight')) {
+        return;
+    }
+    if (!location.href.includes("/note/")){
+        return;
+    }
+    let lastUrl = location.href;
+    new MutationObserver(() => {
+        const url = location.href;
+        if (url !== lastUrl) {
+            lastUrl = url;
+            if (!url.includes("/note/")) return;
+            let timerId = setInterval(() => {
+                hideNoteHighlight();
+            }, 1000);
+            setTimeout(() => { clearInterval(timerId); console.log('stop removing note highlight'); }, 5000);
+        }
+    }).observe(document, {subtree: true, childList: true});
+    if (location.href.includes("/note/")){
+        hideNoteHighlight();
     }
 }
 
@@ -320,6 +359,11 @@ function setup() {
     }
     try {
         setupDeletor();
+    } finally {
+
+    }
+    try {
+        setupHideNoteHighlight();
     } finally {
 
     }
