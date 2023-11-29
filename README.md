@@ -17,7 +17,7 @@
 - [ ] Show satelite layer
 - [ ] Stat HDYC in profile
 - [ ] Enable/disable note/data buttons
-- [ ] Hide active note highlight
+- [x] Hide active note highlight
 - + [ ] Hide ways
 - [ ] User id everywhere
 - [ ] Profile for deleted users
