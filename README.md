@@ -17,12 +17,13 @@
 - [ ] Show satelite layer
 - [ ] Stat HDYC in profile
 - [ ] Enable/disable note/data buttons
+- [ ] Hide active note highlight
 - + [ ] Hide ways
 - [ ] User id everywhere
 - [ ] Profile for deleted users
 - [ ] Integrate https://github.com/Zverik/osmtags-editor
 - + [ ] Edit tags in Overpass Turbo
-- + [ ] Node deletion
+- + [x] Node deletion
 
 Maybe
 - [ ] Mass revert (via JOSM?)
