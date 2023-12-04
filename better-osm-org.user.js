@@ -63,6 +63,12 @@ GM_config.init(
                 'type': 'checkbox',
                 'default': 'checked'
             },
+            'SateliteLayers':
+            {
+                'label': 'Add satelite layers for main page',
+                'type': 'checkbox',
+                'default': 'checked'
+            },
         },
         frameStyle: [
             'bottom: auto; border: 1px solid #000; display: none; height: 75%;',
@@ -80,7 +86,7 @@ let onInit = config => new Promise(resolve => {
 
 let init = onInit(GM_config);
 
-let apiBase = "https://master.apis.dev.openstreetmap.org/api/0.6/"; // TODO
+let apiBase = "https://api.openstreetmap.org/api/0.6/"; // TODO
 
 function tagsToXml(doc, node, tags) {
     for (const [k, v] of Object.entries(tags)) {
@@ -93,8 +99,8 @@ function tagsToXml(doc, node, tags) {
 
 function makeAuth() {
     return osmAuth.osmAuth({
-        apiUrl: "https://master.apis.dev.openstreetmap.org/api/0.6",
-        url: "https://master.apis.dev.openstreetmap.org",
+        apiUrl: "https://api.openstreetmap.org/api/0.6",
+        url: "https://openstreetmap.org",
         // Put your own credentials here.
         client_id: "FwA",
         client_secret: "ZUq",
@@ -311,7 +317,7 @@ function setupDeletor(){
 function hideNoteHighlight(){
     let g = document.querySelector("g");
     if (g.childElementCount == 0) return;
-    if(g.childNodes[g.childElementCount-1].getAttribute("stroke") == "#FF6200" 
+    if(g.childNodes[g.childElementCount-1].getAttribute("stroke") == "#FF6200"
        && g.childNodes[g.childElementCount-1].getAttribute("d").includes("a20,20 0 1,0 -40,0 ")){
         g.childNodes[g.childElementCount-1].remove();
     }
@@ -341,6 +347,13 @@ function setupHideNoteHighlight(){
     }
 }
 
+function setupSateliteLayers() {
+    if (!GM_config.get('SateliteLayers')) {
+        return;
+    }
+    
+}
+
 function setup() {
     try {
         setupRevertButton();
@@ -366,6 +379,11 @@ function setup() {
         setupHideNoteHighlight();
     } finally {
 
+    }
+    try {
+        setupSateliteLayers();
+    } finally {
+        
     }
 }
 
