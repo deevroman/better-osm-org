@@ -86,7 +86,7 @@ let onInit = config => new Promise(resolve => {
 
 let init = onInit(GM_config);
 
-let apiBase = "https://www.openstreetmap.org/api/0.6/"; // TODO
+let apiBase = "https://api.openstreetmap.org/api/0.6/"; // TODO
 
 function tagsToXml(doc, node, tags) {
     for (const [k, v] of Object.entries(tags)) {
@@ -99,7 +99,7 @@ function tagsToXml(doc, node, tags) {
 
 function makeAuth() {
     return osmAuth.osmAuth({
-        apiUrl: "https://www.openstreetmap.org/api/0.6",
+        apiUrl: "https://api.openstreetmap.org/api/0.6",
         url: "https://www.openstreetmap.org",
         // Put your own credentials here.
         client_id: "FwA",
@@ -234,6 +234,8 @@ function addDeleteButton() {
 
     if (!document.querySelector(".secondary-actions")) return;
     document.querySelector(".secondary-actions").appendChild(link);
+    link.after(document.createTextNode("\xA0"));
+    link.before(document.createTextNode("\xA0"));
     link.onclick = (e) => {
         e.preventDefault();
         const changesetTags = {
