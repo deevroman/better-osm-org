@@ -86,7 +86,7 @@ let onInit = config => new Promise(resolve => {
 
 let init = onInit(GM_config);
 
-let apiBase = "https://api.openstreetmap.org/api/0.6/"; // TODO
+let apiBase = "https://www.openstreetmap.org/api/0.6/"; // TODO
 
 function tagsToXml(doc, node, tags) {
     for (const [k, v] of Object.entries(tags)) {
@@ -99,8 +99,8 @@ function tagsToXml(doc, node, tags) {
 
 function makeAuth() {
     return osmAuth.osmAuth({
-        apiUrl: "https://api.openstreetmap.org/api/0.6",
-        url: "https://openstreetmap.org",
+        apiUrl: "https://www.openstreetmap.org/api/0.6",
+        url: "https://www.openstreetmap.org",
         // Put your own credentials here.
         client_id: "FwA",
         client_secret: "ZUq",
@@ -351,7 +351,7 @@ function setupSateliteLayers() {
     if (!GM_config.get('SateliteLayers')) {
         return;
     }
-    
+
 }
 
 function setup() {
@@ -383,7 +383,7 @@ function setup() {
     try {
         setupSateliteLayers();
     } finally {
-        
+
     }
 }
 
