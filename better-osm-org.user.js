@@ -296,7 +296,10 @@ function setupDeletor(){
     if (!GM_config.get('Deletor')) {
         return;
     }
-    if (!location.href.includes("/node/") && !location.href.includes("/way/")){
+    if (!location.href.includes("/node/") &&
+        !location.href.includes("/way/") &&
+        !location.href.includes("/note/")
+       ){
         return;
     }
     let lastUrl = location.href;
