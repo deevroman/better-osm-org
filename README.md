@@ -24,6 +24,7 @@
 - [ ] Integrate https://github.com/Zverik/osmtags-editor
 - + [ ] Edit tags in Overpass Turbo
 - + [x] Node deletion
+- [ ] Fast tags copy from wiki
 
 Maybe
 - [ ] Mass revert (via JOSM?)
