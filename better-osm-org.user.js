@@ -298,7 +298,8 @@ function setupDeletor(){
     }
     if (!location.href.includes("/node/") &&
         !location.href.includes("/way/") &&
-        !location.href.includes("/note/")
+        !location.href.includes("/note/") &&
+        !location.href.includes("/changeset/")
        ){
         return;
     }
