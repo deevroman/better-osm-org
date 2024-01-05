@@ -25,6 +25,7 @@
 - + [ ] Edit tags in Overpass Turbo
 - + [x] Node deletion
 - [ ] Fast tags copy from wiki
+- [ ] Object age
 
 Maybe
 - [ ] Mass revert (via JOSM?)
