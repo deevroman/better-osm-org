@@ -27,6 +27,7 @@
 - [ ] Fast tags copy from wiki
 - [ ] Object age
 - [ ] Collapse changeset cooment form
+- [ ] Player button for history
 
 Maybe
 - [ ] Mass revert (via JOSM?)
