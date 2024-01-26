@@ -26,6 +26,7 @@
 - + [x] Node deletion
 - [ ] Fast tags copy from wiki
 - [ ] Object age
+- [ ] Collapse changeset cooment form
 
 Maybe
 - [ ] Mass revert (via JOSM?)
