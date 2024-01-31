@@ -6,6 +6,7 @@
 // @match        https://www.openstreetmap.org/*
 // @match        https://master.apis.dev.openstreetmap.org/*
 // @match        https://osmcha.org/*
+// @match        http://localhost:3000/*
 // @license      WTFPL
 // @namespace    https://github.com/deevroman/better-osm-org
 // @updateURL    https://github.com/deevroman/better-osm-org/raw/master/better-osm-org.user.js
@@ -26,50 +27,50 @@ GM_config.init(
         'id': 'Config',
         'title': 'Better osm.org settings',
         'fields':
-        {
-            'RevertButton':
             {
-                'label': 'Revert button',
-                'type': 'checkbox',
-                'default': 'checked'
+                'RevertButton':
+                    {
+                        'label': 'Revert button',
+                        'type': 'checkbox',
+                        'default': 'checked'
+                    },
+                'MassRevert':
+                    {
+                        'label': 'Mass revert selectors',
+                        'type': 'checkbox',
+                        'default': 'checked'
+                    },
+                'CompactChangesetsHistory':
+                    {
+                        'label': 'Compact changesets history',
+                        'type': 'checkbox',
+                        'default': 'checked'
+                    },
+                'ResolveNotesButtons':
+                    {
+                        'label': 'Show addition resolve buttons',
+                        'type': 'checkbox',
+                        'default': 'checked'
+                    },
+                'Deletor':
+                    {
+                        'label': 'Show buttons for object deletion',
+                        'type': 'checkbox',
+                        'default': 'checked'
+                    },
+                'HideNoteHighlight':
+                    {
+                        'label': 'Hide note highlight',
+                        'type': 'checkbox',
+                        'default': 'checked'
+                    },
+                'SateliteLayers':
+                    {
+                        'label': 'Add satelite layers for main page',
+                        'type': 'checkbox',
+                        'default': 'checked'
+                    },
             },
-            'MassRevert':
-            {
-                'label': 'Mass revert selectors',
-                'type': 'checkbox',
-                'default': 'checked'
-            },
-            'CompactChangesetsHistory':
-            {
-                'label': 'Compact changesets history',
-                'type': 'checkbox',
-                'default': 'checked'
-            },
-            'ResolveNotesButtons':
-            {
-                'label': 'Show addition resolve buttons',
-                'type': 'checkbox',
-                'default': 'unchecked'
-            },
-            'Deletor':
-            {
-                'label': 'Show buttons for object deletion',
-                'type': 'checkbox',
-                'default': 'checked'
-            },
-            'HideNoteHighlight':
-            {
-                'label': 'Hide note highlight',
-                'type': 'checkbox',
-                'default': 'checked'
-            },
-            'SateliteLayers':
-            {
-                'label': 'Add satelite layers for main page',
-                'type': 'checkbox',
-                'default': 'checked'
-            },
-        },
         frameStyle: [
             'bottom: auto; border: 1px solid #000; display: none; height: 75%;',
             'left: 0; margin: 0; max-height: 95%; max-width: 95%; opacity: 0;',
@@ -80,13 +81,31 @@ GM_config.init(
 
 let onInit = config => new Promise(resolve => {
     let isInit = () => setTimeout(() =>
-                                  config.isInit ? resolve() : isInit(), 0);
+        config.isInit ? resolve() : isInit(), 0);
     isInit();
 });
 
 let init = onInit(GM_config);
 
-let apiBase = "https://www.openstreetmap.org/api/0.6/"; // TODO
+const prod_server = {
+    apiBase: "https://api.openstreetmap.org/api/0.6/",
+    apiUrl: "https://api.openstreetmap.org/api/0.6",
+    url: "https://www.openstreetmap.org",
+}
+
+const dev_server = {
+    apiBase: "https://master.apis.dev.openstreetmap.org/api/0.6/",
+    apiUrl: "https://master.apis.dev.openstreetmap.org/api/0.6",
+    url: "https://master.apis.dev.openstreetmap.org",
+}
+
+const local_server = {
+    apiBase: "http://localhost:3000/api/0.6/",
+    apiUrl: "http://localhost:3000/api/0.6",
+    url: "http://localhost:3000",
+}
+
+var osm_server = dev_server;
 
 function tagsToXml(doc, node, tags) {
     for (const [k, v] of Object.entries(tags)) {
@@ -99,8 +118,8 @@ function tagsToXml(doc, node, tags) {
 
 function makeAuth() {
     return osmAuth.osmAuth({
-        apiUrl: "https://www.openstreetmap.org/api/0.6",
-        url: "https://www.openstreetmap.org",
+        apiUrl: osm_server.apiUrl,
+        url: osm_server.url,
         // Put your own credentials here.
         client_id: "FwA",
         client_secret: "ZUq",
@@ -204,13 +223,31 @@ function setupResolveNotesButtons() {
     if (!GM_config.get('ResolveNotesButtons')) {
         return;
     }
-    var b = document.querySelectorAll(".btn-wrapper .btn")[0].cloneNode();
-    b.classList.add("resolve-note-done");
-    b.value = "👌";
+    if (!location.href.includes("/note")){
+        return;
+    }
+    if (!document.querySelector("#sidebar_content textarea.form-control")){
+        return;
+    }
+    let note_id = location.href.match(/note\/(\d+)/)[1];
+    let b = document.createElement("button");
+    b.classList.add("resolve-note-done", "btn", "btn-primary");
+    b.textContent = "👌";
     document.querySelectorAll(".btn-wrapper .btn")[0].before(b);
     document.querySelectorAll(".btn-wrapper .btn")[0].after(document.createTextNode("\xA0"));
     document.querySelector(".resolve-note-done").onclick = (e) => {
-        document.querySelector("form.mb-3 textarea").value = "👌";
+        const auth = makeAuth();
+        auth.xhr({
+                method: 'POST',
+                path: osm_server.apiBase + 'notes/' + note_id + "/close?text=" + encodeURI("👌"),
+                prefix: false,
+            }, (err, result) =>{
+                if (err) {
+                    alert(err);
+                }
+                location.reload();
+            }
+        );
     }
 }
 
@@ -252,7 +289,7 @@ function addDeleteButton() {
 
         auth.xhr({
             method: 'GET',
-            path: apiBase + object_type + '/' + object_id,
+            path: osm_server.apiBase + object_type + '/' + object_id,
             prefix: false,
         }, function(err, objectInfo) {
             if (err) {
@@ -261,7 +298,7 @@ function addDeleteButton() {
             }
             auth.xhr({
                 method: 'PUT',
-                path: apiBase + 'changeset/create',
+                path: osm_server.apiBase + 'changeset/create',
                 prefix: false,
                 content: chPayloadStr
             }, function(err1, result) {
@@ -270,7 +307,7 @@ function addDeleteButton() {
                 objectInfo.children[0].children[0].setAttribute('changeset', changesetId);
                 auth.xhr({
                     method: 'DELETE',
-                    path: apiBase + object_type +'/' + object_id,
+                    path: osm_server.apiBase + object_type +'/' + object_id,
                     prefix: false,
                     content: objectInfo
                 }, function(err2, result) {
@@ -279,7 +316,7 @@ function addDeleteButton() {
                     }
                     auth.xhr({
                         method: 'PUT',
-                        path: apiBase + 'changeset/' + changesetId + '/close',
+                        path: osm_server.apiBase + 'changeset/' + changesetId + '/close',
                         prefix: false
                     }, function(err3, result) {
                         if (!err3) {
@@ -308,14 +345,14 @@ function setupDeletor(){
         const url = location.href;
         if (url !== lastUrl) {
             lastUrl = url;
-            if (!url.includes("/node/") && !url.includes("/way/")) return;
+            if (!url.includes("/node/") /*&& !url.includes("/way/")*/) return;
             let timerId = setInterval(() => {
                 addDeleteButton();
             }, 100);
             setTimeout(() => { clearInterval(timerId); console.log('stop try add delete button'); }, 3000);
         }
     }).observe(document, {subtree: true, childList: true});
-    if (location.href.includes("/node/") || location.href.includes("/way/")){
+    if (location.href.includes("/node/") /*|| location.href.includes("/way/")*/){
         addDeleteButton();
     }
 }
@@ -324,7 +361,7 @@ function hideNoteHighlight(){
     let g = document.querySelector("g");
     if (g.childElementCount == 0) return;
     if(g.childNodes[g.childElementCount-1].getAttribute("stroke") == "#FF6200"
-       && g.childNodes[g.childElementCount-1].getAttribute("d").includes("a20,20 0 1,0 -40,0 ")){
+        && g.childNodes[g.childElementCount-1].getAttribute("d").includes("a20,20 0 1,0 -40,0 ")){
         g.childNodes[g.childElementCount-1].remove();
     }
 }
@@ -361,6 +398,14 @@ function setupSateliteLayers() {
 }
 
 function setup() {
+    if (location.href.startsWith(prod_server.url)){
+        osm_server = prod_server;
+    } else if (location.href.startsWith(dev_server.url)) {
+        osm_server = dev_server;
+    } else {
+        osm_server = local_server;
+    }
+    console.log(osm_server);
     try {
         setupRevertButton();
     } catch {
