@@ -324,8 +324,13 @@ function addDeleteButton() {
     link.text = "Выпилить!";
     link.href = "";
     link.classList.add("delete_object_button_class");
+    // skip deleted
     if (document.querySelectorAll(".browse-section h4").length < 2 && document.querySelector(".browse-section .latitude") === null) {
         link.setAttribute("hidden", true);
+        return;
+    }
+    // skip having a parent
+    if (document.querySelectorAll(".browse-section details").length !== 0) {
         return;
     }
 
