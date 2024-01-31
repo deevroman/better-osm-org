@@ -133,7 +133,7 @@ function makeAuth() {
     });
 }
 
-function addRevertButton(){
+function addRevertButton() {
     if (document.querySelector('.revert_button_class')) return true;
 
     let sidebar = document.querySelector("#sidebar_content h2");
@@ -143,7 +143,7 @@ function addRevertButton(){
     }
 }
 
-function setupRevertButton(){
+function setupRevertButton() {
     if (!GM_config.get('RevertButton')) {
         return;
     }
@@ -156,19 +156,22 @@ function setupRevertButton(){
             let timerId = setInterval(() => {
                 addRevertButton();
             }, 100);
-            setTimeout(() => { clearInterval(timerId); console.log('stop try add revert button'); }, 3000);
+            setTimeout(() => {
+                clearInterval(timerId);
+                console.log('stop try add revert button');
+            }, 3000);
         }
     }).observe(document, {subtree: true, childList: true});
-    if (location.href.includes("/changeset")){
+    if (location.href.includes("/changeset")) {
         addRevertButton();
     }
 }
 
-function setupCompactChangesetsHistory(){
+function setupCompactChangesetsHistory() {
     if (!GM_config.get('CompactChangesetsHistory')) {
         return;
     }
-    if (!location.href.includes("/history")){
+    if (!location.href.includes("/history")) {
         return;
     }
 
@@ -194,7 +197,7 @@ function setupCompactChangesetsHistory(){
     }
     `
     if (style.styleSheet) {
-        style.styleSheet.cssText=styleText;
+        style.styleSheet.cssText = styleText;
     } else {
         style.appendChild(document.createTextNode(styleText));
     }
@@ -202,13 +205,15 @@ function setupCompactChangesetsHistory(){
 
     new MutationObserver(() => {
         // remove useless
-        document.querySelectorAll("#sidebar .changesets .col").forEach((e) => {e.childNodes[0].textContent = ""})
+        document.querySelectorAll("#sidebar .changesets .col").forEach((e) => {
+            e.childNodes[0].textContent = ""
+        })
         // copying id
         document.querySelectorAll('#sidebar .col .changeset_id').forEach((item) => {
             item.onclick = (e) => {
                 e.preventDefault();
                 let id = e.target.innerText.slice(1);
-                navigator.clipboard.writeText(id).then(function() {
+                navigator.clipboard.writeText(id).then(function () {
                     console.log(`Copying ${id} to clipboard was successful!`);
                     e.target.classList.add("copied");
                     setTimeout(() => {
@@ -222,35 +227,87 @@ function setupCompactChangesetsHistory(){
     }).observe(document, {subtree: true, childList: true});
 }
 
-function setupResolveNotesButtons() {
-    if (!GM_config.get('ResolveNotesButtons')) {
+function addResolveNotesButtons() {
+    if (document.querySelector('.resolve-note-done')) return true;
+    if (!document.querySelector("#sidebar_content textarea.form-control")) {
         return;
     }
-    if (!location.href.includes("/note")){
-        return;
-    }
-    if (!document.querySelector("#sidebar_content textarea.form-control")){
-        return;
-    }
+    const auth = makeAuth();
     let note_id = location.href.match(/note\/(\d+)/)[1];
     let b = document.createElement("button");
     b.classList.add("resolve-note-done", "btn", "btn-primary");
     b.textContent = "👌";
-    document.querySelectorAll(".btn-wrapper .btn")[0].before(b);
-    document.querySelectorAll(".btn-wrapper .btn")[0].after(document.createTextNode("\xA0"));
+    document.querySelectorAll("form.mb-3")[0].before(b);
+    document.querySelectorAll("form.mb-3")[0].before(document.createElement("p"));
+    document.querySelector("form.mb-3 .form-control").rows = 3;
     document.querySelector(".resolve-note-done").onclick = (e) => {
-        const auth = makeAuth();
         auth.xhr({
                 method: 'POST',
-                path: osm_server.apiBase + 'notes/' + note_id + "/close?text=" + encodeURI("👌"),
+                path: osm_server.apiBase + 'notes/' + note_id + "/close.json?text=" + encodeURI("👌"),
                 prefix: false,
-            }, (err, result) =>{
+            }, (err, result) => {
                 if (err) {
                     alert(err);
                 }
-                location.reload();
+                window.location.reload();
             }
         );
+    }
+
+    // timeback
+    let timestamp = document.querySelector("#sidebar_content time").dateTime;
+    const mapsmeDate = document.querySelector(".note-description p").textContent.match(/OSM data version\: ([\d]{4}-[\d]{2}-[\d]{2}T[\d]{2}\:[\d]{2}\:[\d]{2}\Z)/);
+    if (mapsmeDate) {
+        timestamp = mapsmeDate[1];
+    }
+    const lat = document.querySelector("#sidebar_content .latitude").textContent;
+    const lon = document.querySelector("#sidebar_content .longitude").textContent;
+    const zoom = 18;
+    const query =
+        `[date:"${timestamp}"];
+(
+  node({{bbox}});
+  way({{bbox}});
+  //relation({{bbox}});
+);
+(._;>;);
+out meta;
+`;
+    let btn = document.createElement("a")
+    btn.textContent = " 🕰";
+    document.querySelector("#sidebar_content time").after(btn);
+    btn.onclick = () => {
+        window.open(`https://overpass-turbo.eu/?Q=${encodeURI(query)}&C=${lat};${lon};${zoom}&R`)
+    }
+}
+
+function setupResolveNotesButtons() {
+    if (!GM_config.get('ResolveNotesButtons')) {
+        return;
+    }
+    if (!location.href.includes("/note")
+        && !location.href.includes("/query/")
+        && !location.href.includes("/node/")
+        && !location.href.includes("/way/")) {
+        return;
+    }
+    let lastUrl = location.href;
+    new MutationObserver(() => {
+        const url = location.href;
+        if (url !== lastUrl) {
+            lastUrl = url;
+            if (!url.includes("/note")) return;
+            let timerId = setInterval(() => {
+                addResolveNotesButtons();
+            }, 100);
+            setTimeout(() => {
+                clearInterval(timerId);
+                console.log('stop try add resolve note button');
+            }, 3000);
+        }
+    }).observe(document, {subtree: true, childList: true});
+    if (location.href.includes("/note")) {
+        addResolveNotesButtons();
     }
 }
 
@@ -267,7 +324,7 @@ function addDeleteButton() {
     link.text = "Выпилить!";
     link.href = "";
     link.classList.add("delete_object_button_class");
-    if(document.querySelectorAll(".browse-section h4").length < 2 && document.querySelector(".browse-section .latitude") === null){
+    if (document.querySelectorAll(".browse-section h4").length < 2 && document.querySelector(".browse-section .latitude") === null) {
         link.setAttribute("hidden", true);
         return;
     }
@@ -294,7 +351,7 @@ function addDeleteButton() {
             method: 'GET',
             path: osm_server.apiBase + object_type + '/' + object_id,
             prefix: false,
-        }, function(err, objectInfo) {
+        }, function (err, objectInfo) {
             if (err) {
                 console.log(err);
                 return;
@@ -304,16 +361,16 @@ function addDeleteButton() {
                 path: osm_server.apiBase + 'changeset/create',
                 prefix: false,
                 content: chPayloadStr
-            }, function(err1, result) {
+            }, function (err1, result) {
                 const changesetId = result;
                 console.log(changesetId);
                 objectInfo.children[0].children[0].setAttribute('changeset', changesetId);
                 auth.xhr({
                     method: 'DELETE',
-                    path: osm_server.apiBase + object_type +'/' + object_id,
+                    path: osm_server.apiBase + object_type + '/' + object_id,
                     prefix: false,
                     content: objectInfo
-                }, function(err2, result) {
+                }, function (err2, result) {
                     if (err2) {
                         console.log({changesetError: err2});
                     }
@@ -321,7 +378,7 @@ function addDeleteButton() {
                         method: 'PUT',
                         path: osm_server.apiBase + 'changeset/' + changesetId + '/close',
                         prefix: false
-                    }, function(err3, result) {
+                    }, function (err3, result) {
                         if (!err3) {
                             window.location.reload();
                         }
@@ -332,15 +389,16 @@ function addDeleteButton() {
     };
 }
 
-function setupDeletor(){
+function setupDeletor() {
     if (!GM_config.get('Deletor')) {
         return;
     }
     if (!location.href.includes("/node/") &&
         !location.href.includes("/way/") &&
         !location.href.includes("/note/") &&
-        !location.href.includes("/changeset/")
-    ){
+        !location.href.includes("/changeset/") &&
+        !location.href.includes("/query/")
+    ) {
         return;
     }
     let lastUrl = location.href;
@@ -352,28 +410,31 @@ function setupDeletor(){
             let timerId = setInterval(() => {
                 addDeleteButton();
             }, 100);
-            setTimeout(() => { clearInterval(timerId); console.log('stop try add delete button'); }, 3000);
+            setTimeout(() => {
+                clearInterval(timerId);
+                console.log('stop try add delete button');
+            }, 3000);
         }
     }).observe(document, {subtree: true, childList: true});
-    if (location.href.includes("/node/") /*|| location.href.includes("/way/")*/){
+    if (location.href.includes("/node/") /*|| location.href.includes("/way/")*/) {
         addDeleteButton();
     }
 }
 
-function hideNoteHighlight(){
+function hideNoteHighlight() {
     let g = document.querySelector("g");
     if (g.childElementCount == 0) return;
-    if(g.childNodes[g.childElementCount-1].getAttribute("stroke") == "#FF6200"
-        && g.childNodes[g.childElementCount-1].getAttribute("d").includes("a20,20 0 1,0 -40,0 ")){
-        g.childNodes[g.childElementCount-1].remove();
+    if (g.childNodes[g.childElementCount - 1].getAttribute("stroke") == "#FF6200"
+        && g.childNodes[g.childElementCount - 1].getAttribute("d").includes("a20,20 0 1,0 -40,0 ")) {
+        g.childNodes[g.childElementCount - 1].remove();
     }
 }
 
-function setupHideNoteHighlight(){
+function setupHideNoteHighlight() {
     if (!GM_config.get('HideNoteHighlight')) {
         return;
     }
-    if (!location.href.includes("/note/")){
+    if (!location.href.includes("/note/")) {
         return;
     }
     let lastUrl = location.href;
@@ -385,10 +446,13 @@ function setupHideNoteHighlight(){
             let timerId = setInterval(() => {
                 hideNoteHighlight();
             }, 1000);
-            setTimeout(() => { clearInterval(timerId); console.log('stop removing note highlight'); }, 5000);
+            setTimeout(() => {
+                clearInterval(timerId);
+                console.log('stop removing note highlight');
+            }, 5000);
         }
     }).observe(document, {subtree: true, childList: true});
-    if (location.href.includes("/note/")){
+    if (location.href.includes("/note/")) {
         hideNoteHighlight();
     }
 }
@@ -401,14 +465,13 @@ function setupSateliteLayers() {
 }
 
 function setup() {
-    if (location.href.startsWith(prod_server.origin)){
+    if (location.href.startsWith(prod_server.origin)) {
         osm_server = prod_server;
     } else if (location.href.startsWith(dev_server.origin)) {
         osm_server = dev_server;
     } else {
         osm_server = local_server;
     }
-    console.log(osm_server);
     try {
         setupRevertButton();
     } catch {
@@ -444,7 +507,7 @@ function setup() {
 function main() {
     'use strict';
 
-    GM.registerMenuCommand("Settings", function() {
+    GM.registerMenuCommand("Settings", function () {
         GM_config.open();
     });
     setup();
