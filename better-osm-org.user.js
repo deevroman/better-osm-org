@@ -90,7 +90,7 @@ let init = onInit(GM_config);
 const prod_server = {
     apiBase: "https://api.openstreetmap.org/api/0.6/",
     apiUrl: "https://api.openstreetmap.org/api/0.6",
-    url: "https://openstreetmap.org",
+    url: "https://www.openstreetmap.org",
     origin: "https://www.openstreetmap.org"
 }
 
