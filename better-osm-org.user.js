@@ -90,19 +90,22 @@ let init = onInit(GM_config);
 const prod_server = {
     apiBase: "https://api.openstreetmap.org/api/0.6/",
     apiUrl: "https://api.openstreetmap.org/api/0.6",
-    url: "https://www.openstreetmap.org",
+    url: "https://openstreetmap.org",
+    origin: "https://www.openstreetmap.org"
 }
 
 const dev_server = {
     apiBase: "https://master.apis.dev.openstreetmap.org/api/0.6/",
     apiUrl: "https://master.apis.dev.openstreetmap.org/api/0.6",
     url: "https://master.apis.dev.openstreetmap.org",
+    origin: "https://master.apis.dev.openstreetmap.org",
 }
 
 const local_server = {
     apiBase: "http://localhost:3000/api/0.6/",
     apiUrl: "http://localhost:3000/api/0.6",
     url: "http://localhost:3000",
+    origin: "http://localhost:3000",
 }
 
 var osm_server = dev_server;
@@ -398,9 +401,9 @@ function setupSateliteLayers() {
 }
 
 function setup() {
-    if (location.href.startsWith(prod_server.url)){
+    if (location.href.startsWith(prod_server.origin)){
         osm_server = prod_server;
-    } else if (location.href.startsWith(dev_server.url)) {
+    } else if (location.href.startsWith(dev_server.origin)) {
         osm_server = dev_server;
     } else {
         osm_server = local_server;
