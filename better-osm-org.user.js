@@ -88,8 +88,8 @@ let onInit = config => new Promise(resolve => {
 let init = onInit(GM_config);
 
 const prod_server = {
-    apiBase: "https://api.openstreetmap.org/api/0.6/",
-    apiUrl: "https://api.openstreetmap.org/api/0.6",
+    apiBase: "https://www.openstreetmap.org/api/0.6/",
+    apiUrl: "https://www.openstreetmap.org/api/0.6",
     url: "https://www.openstreetmap.org",
     origin: "https://www.openstreetmap.org"
 }
@@ -340,7 +340,7 @@ function setupDeletor(){
         !location.href.includes("/way/") &&
         !location.href.includes("/note/") &&
         !location.href.includes("/changeset/")
-       ){
+    ){
         return;
     }
     let lastUrl = location.href;
