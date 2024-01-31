@@ -6,14 +6,14 @@
 - [x] Settings
 - [x] Compact changesets history
 - + [x] Copy changeset id
+- [ ] Template responses when closing notes
 - [ ] Exact time instead of a verbal description
 - [ ] Revert from osmcha.org
-- [ ] Template responses when closing notes
 - [ ] Tags diff in object history
 - [ ] Changesets filter
 - [ ] Jump to overpass from tags
 - [ ] Show deleted
-- [ ] Hide resolved
+- [ ] Hide resolved notes
 - [ ] Show satelite layer
 - [ ] Stat HDYC in profile
 - [ ] Enable/disable note/data buttons
