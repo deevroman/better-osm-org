@@ -34,12 +34,12 @@ GM_config.init(
                         'type': 'checkbox',
                         'default': 'checked'
                     },
-                'MassRevert':
-                    {
-                        'label': 'Mass revert selectors',
-                        'type': 'checkbox',
-                        'default': 'checked'
-                    },
+                // 'MassRevert':
+                //     {
+                //         'label': 'Mass revert selectors',
+                //         'type': 'checkbox',
+                //         'default': 'checked'
+                //     },
                 'CompactChangesetsHistory':
                     {
                         'label': 'Compact changesets history',

@@ -1,6 +1,6 @@
 # better-osm-org
 
-[Tampermonkey](https://www.tampermonkey.net) userscript for openstreetmap.org
+[Tampermonkey](https://www.tampermonkey.net) userscript adding several improvements for experienced osm.org users
 
 [install](https://raw.githubusercontent.com/deevroman/better-osm-org/master/better-osm-org.user.js)
 
