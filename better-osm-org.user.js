@@ -260,8 +260,8 @@ function addResolveNotesButtons() {
     if (mapsmeDate) {
         timestamp = mapsmeDate[1];
     }
-    const lat = document.querySelector("#sidebar_content .latitude").textContent;
-    const lon = document.querySelector("#sidebar_content .longitude").textContent;
+    const lat = document.querySelector("#sidebar_content .latitude").textContent.replace(",", ".");
+    const lon = document.querySelector("#sidebar_content .longitude").textContent.replace(",", ".");
     const zoom = 18;
     const query =
         `[date:"${timestamp}"];
