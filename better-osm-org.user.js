@@ -64,12 +64,12 @@ GM_config.init(
                         'type': 'checkbox',
                         'default': 'checked'
                     },
-                'SateliteLayers':
-                    {
-                        'label': 'Add satelite layers for main page',
-                        'type': 'checkbox',
-                        'default': 'checked'
-                    },
+                // 'SateliteLayers':
+                //     {
+                //         'label': 'Add satelite layers for main page',
+                //         'type': 'checkbox',
+                //         'default': 'checked'
+                //     },
             },
         frameStyle: [
             'bottom: auto; border: 1px solid #000; display: none; height: 75%;',
