@@ -1,5 +1,7 @@
 # better-osm-org
 
+[Tampermonkey](https://www.tampermonkey.net) userscript for openstreetmap.org
+
 [install](https://raw.githubusercontent.com/deevroman/better-osm-org/master/better-osm-org.user.js)
 
 - [x] Revert button
@@ -28,6 +30,7 @@
 - [ ] Object age
 - [ ] Collapse changeset cooment form
 - [ ] Player button for history
+- [ ] Documentation
 
 Maybe
 - [ ] Mass revert (via JOSM?)
