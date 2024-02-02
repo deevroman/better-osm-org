@@ -260,6 +260,10 @@ function addResolveNotesButtons() {
     if (mapsmeDate) {
         timestamp = mapsmeDate[1];
     }
+    const organicmapsDate = document.querySelector(".note-description p").textContent.match(/OSM snapshot date\: ([\d]{4}-[\d]{2}-[\d]{2}T[\d]{2}\:[\d]{2}\:[\d]{2}\Z)/);
+    if (organicmapsDate) {
+        timestamp = organicmapsDate[1];
+    }
     const lat = document.querySelector("#sidebar_content .latitude").textContent.replace(",", ".");
     const lon = document.querySelector("#sidebar_content .longitude").textContent.replace(",", ".");
     const zoom = 18;
