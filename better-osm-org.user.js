@@ -64,12 +64,18 @@ GM_config.init(
                         'type': 'checkbox',
                         'default': 'checked'
                     },
-                // 'SateliteLayers':
-                //     {
-                //         'label': 'Add satelite layers for main page',
-                //         'type': 'checkbox',
-                //         'default': 'checked'
-                //     },
+                'SateliteLayers':
+                    {
+                        'label': 'Add satelite layers for main page',
+                        'type': 'checkbox',
+                        'default': 'unchecked'
+                    },
+                'VersionsDiff':
+                    {
+                        'label': 'Add tags diff in history',
+                        'type': 'checkbox',
+                        'default': 'checked'
+                    },
             },
         frameStyle: [
             'bottom: auto; border: 1px solid #000; display: none; height: 75%;',
@@ -473,6 +479,21 @@ function setupSateliteLayers() {
 
 }
 
+function setupVersionsDiff() {
+
+}
+
+let modules = [
+    setupRevertButton,
+    setupCompactChangesetsHistory,
+    setupResolveNotesButtons,
+    setupDeletor,
+    setupHideNoteHighlight,
+    setupSateliteLayers,
+    setupVersionsDiff
+];
+
+
 function setup() {
     if (location.href.startsWith(prod_server.origin)) {
         osm_server = prod_server;
@@ -481,35 +502,15 @@ function setup() {
     } else {
         osm_server = local_server;
     }
-    try {
-        setupRevertButton();
-    } catch {
+    for (const module of modules) {
+        if (!GM_config.get(module.name.slice('setup'.length))) {
+            continue;
+        }
+        try {
+            module()
+        } catch {
 
-    }
-    try {
-        setupCompactChangesetsHistory();
-    } catch {
-
-    }
-    try {
-        setupResolveNotesButtons();
-    } catch {
-
-    }
-    try {
-        setupDeletor();
-    } finally {
-
-    }
-    try {
-        setupHideNoteHighlight();
-    } finally {
-
-    }
-    try {
-        setupSateliteLayers();
-    } finally {
-
+        }
     }
 }
 
