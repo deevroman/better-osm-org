@@ -31,6 +31,7 @@
 - [ ] Collapse changeset cooment form
 - [ ] Player button for history
 - [ ] Documentation
+- [ ] Collapse name tags
 
 Maybe
 - [ ] Mass revert (via JOSM?)
