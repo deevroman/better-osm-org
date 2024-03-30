@@ -76,6 +76,12 @@ GM_config.init(
                         'type': 'checkbox',
                         'default': 'checked'
                     },
+                'ChangesetQuickLook':
+                    {
+                        'label': 'Add QuickLook for small changesets ',
+                        'type': 'checkbox',
+                        'default': 'checked'
+                    },
             },
         frameStyle: [
             'bottom: auto; border: 1px solid #000; display: none; height: 75%;',
@@ -150,9 +156,6 @@ function addRevertButton() {
 }
 
 function setupRevertButton() {
-    if (!GM_config.get('RevertButton')) {
-        return;
-    }
     let lastUrl = location.href;
     new MutationObserver(() => {
         const url = location.href;
@@ -174,9 +177,6 @@ function setupRevertButton() {
 }
 
 function setupCompactChangesetsHistory() {
-    if (!GM_config.get('CompactChangesetsHistory')) {
-        return;
-    }
     if (!location.href.includes("/history")) {
         return;
     }
@@ -292,9 +292,6 @@ out meta;
 }
 
 function setupResolveNotesButtons() {
-    if (!GM_config.get('ResolveNotesButtons')) {
-        return;
-    }
     if (!location.href.includes("/note")
         && !location.href.includes("/query/")
         && !location.href.includes("/node/")
@@ -405,9 +402,6 @@ function addDeleteButton() {
 }
 
 function setupDeletor() {
-    if (!GM_config.get('Deletor')) {
-        return;
-    }
     if (!location.href.includes("/node/") &&
         !location.href.includes("/way/") &&
         !location.href.includes("/note/") &&
@@ -446,9 +440,6 @@ function hideNoteHighlight() {
 }
 
 function setupHideNoteHighlight() {
-    if (!GM_config.get('HideNoteHighlight')) {
-        return;
-    }
     if (!location.href.includes("/note/")) {
         return;
     }
@@ -473,13 +464,14 @@ function setupHideNoteHighlight() {
 }
 
 function setupSateliteLayers() {
-    if (!GM_config.get('SateliteLayers')) {
-        return;
-    }
 
 }
 
 function setupVersionsDiff() {
+
+}
+
+function setupChangesetQuickLook() {
 
 }
 
@@ -490,7 +482,8 @@ let modules = [
     setupDeletor,
     setupHideNoteHighlight,
     setupSateliteLayers,
-    setupVersionsDiff
+    setupVersionsDiff,
+    setupChangesetQuickLook
 ];
 
 

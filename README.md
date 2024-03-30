@@ -32,6 +32,8 @@
 - [ ] Player button for history
 - [ ] Documentation
 - [ ] Collapse name tags
+- [ ] QuickLook for small changesets
+
 
 Maybe
 - [ ] Mass revert (via JOSM?)
