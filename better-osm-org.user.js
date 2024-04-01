@@ -20,6 +20,7 @@
 // @grant        GM.getValue
 // @grant        GM.setValue
 // @grant        GM_getResourceURL
+// @grant        GM_addElement
 // @resource     OAUTH_HTML https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html
 // ==/UserScript==
 GM_config.init(
@@ -68,7 +69,7 @@ GM_config.init(
                     {
                         'label': 'Add satelite layers for main page',
                         'type': 'checkbox',
-                        'default': 'unchecked'
+                        'default': 'checked'
                     },
                 'VersionsDiff':
                     {
@@ -181,10 +182,7 @@ function setupCompactChangesetsHistory() {
         return;
     }
 
-    var style = document.createElement('style');
-    style.type = 'text/css';
-
-    var styleText = `
+    let styleText = `
     .changesets p {
       margin-bottom: 0;
       font-weight: 788;
@@ -201,13 +199,10 @@ function setupCompactChangesetsHistory() {
       background-color: none;
       transition:all 0.3s;
     }
-    `
-    if (style.styleSheet) {
-        style.styleSheet.cssText = styleText;
-    } else {
-        style.appendChild(document.createTextNode(styleText));
-    }
-    document.getElementsByTagName('head')[0].appendChild(style);
+    `;
+    GM_addElement(document.head, "style", {
+        textContent: styleText,
+    });
 
     new MutationObserver(() => {
         // remove useless
@@ -467,8 +462,37 @@ function setupSateliteLayers() {
 
 }
 
-function setupVersionsDiff() {
+function addDiffInHistory() {
 
+}
+
+function setupVersionsDiff() {
+    if (!location.href.includes("/history")) {
+        return;
+    }
+
+    const styleText = `
+    .historydiff-new-tag {
+      background: #008000ab;
+    }
+    `;
+    GM_addElement(document.head, "style", {
+        textContent: styleText,
+    });
+
+    for (let x of Array.from(document.getElementsByClassName("browse-section browse-node"))){
+        x.children[0].childNodes[1].href.match(/\/(\d+)$/)[1]
+        var kv = x.querySelector("tbody").querySelectorAll("tr")
+        var tags = [];
+        kv.forEach(
+            (i)=> {
+                var k = i.querySelector("th > a").text ?? i.querySelector("th").text;
+                var v = i.querySelector("td > a").text ?? i.querySelector("td").text;
+                tags.push([k, v])
+            }
+        )
+        console.log(tags)
+    }
 }
 
 function setupChangesetQuickLook() {
