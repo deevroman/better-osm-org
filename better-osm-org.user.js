@@ -23,7 +23,7 @@
 // @grant        GM_addElement
 // @sandbox      JavaScript
 // @resource     OAUTH_HTML https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html
-// ==/UserScript==\
+// ==/UserScript==
 GM_config.init(
     {
         'id': 'Config',
