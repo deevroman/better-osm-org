@@ -11,7 +11,7 @@
 - [ ] Template responses when closing notes
 - [ ] Exact time instead of a verbal description
 - [ ] Revert from osmcha.org
-- [ ] Tags diff in object history
+- [x] Tags diff in object history
 - [ ] Changesets filter
 - [ ] Jump to overpass from tags
 - [ ] Show deleted
