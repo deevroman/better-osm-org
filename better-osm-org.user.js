@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Better osm.org
-// @version      0.1
+// @version      0.2
 // @description  Several improvements for advanced users of osm.org
 // @author       deevroman
 // @match        https://www.openstreetmap.org/*
@@ -21,8 +21,9 @@
 // @grant        GM.setValue
 // @grant        GM_getResourceURL
 // @grant        GM_addElement
+// @sandbox      JavaScript
 // @resource     OAUTH_HTML https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html
-// ==/UserScript==
+// ==/UserScript==\
 GM_config.init(
     {
         'id': 'Config',
@@ -33,7 +34,7 @@ GM_config.init(
                     {
                         'label': 'Revert button',
                         'type': 'checkbox',
-                        'default': 'checked'
+                        'default': 'unchecked'
                     },
                 // 'MassRevert':
                 //     {
@@ -65,31 +66,31 @@ GM_config.init(
                         'type': 'checkbox',
                         'default': 'checked'
                     },
-                'SateliteLayers':
-                    {
-                        'label': 'Add satelite layers for main page',
-                        'type': 'checkbox',
-                        'default': 'checked'
-                    },
+                // 'SateliteLayers':
+                //     {
+                //         'label': 'Add satelite layers for main page',
+                //         'type': 'checkbox',
+                //         'default': 'unchecked'
+                //     },
                 'VersionsDiff':
                     {
                         'label': 'Add tags diff in history',
                         'type': 'checkbox',
                         'default': 'checked'
                     },
-                'ChangesetQuickLook':
-                    {
-                        'label': 'Add QuickLook for small changesets ',
-                        'type': 'checkbox',
-                        'default': 'checked'
-                    },
+                // 'ChangesetQuickLook':
+                //     {
+                //         'label': 'Add QuickLook for small changesets ',
+                //         'type': 'checkbox',
+                //         'default': 'unchecked'
+                //     },
             },
-        frameStyle: [
-            'bottom: auto; border: 1px solid #000; display: none; height: 75%;',
-            'left: 0; margin: 0; max-height: 95%; max-width: 95%; opacity: 0;',
-            'overflow: auto; padding: 0; position: fixed; right: auto; top: 0;',
-            'width: 20%; z-index: 9999;'
-        ].join(' '),
+        frameStyle: `
+            bottom: auto; border: 1px solid #000; display: none; height: 75%;
+            left: 0; margin: 0; max-height: 95%; max-width: 95%; opacity: 0;
+            overflow: auto; padding: 0; position: fixed; right: auto; top: 0;
+            width: 25%; z-index: 9999;
+        `
     });
 
 let onInit = config => new Promise(resolve => {
@@ -187,10 +188,12 @@ function setupCompactChangesetsHistory() {
       margin-bottom: 0;
       font-weight: 788;
     }
-    .map-layout #sidebar {
-      width: 450px;
-    }
-    /* for id copied */
+    /*@document regexp(".*!history") {*/
+        .map-layout #sidebar {
+          width: 450px;
+        }
+    /*}
+    /*for id copied*/
     .copied {
       background-color: red;
       transition:all 0.3s;
@@ -200,6 +203,7 @@ function setupCompactChangesetsHistory() {
       transition:all 0.3s;
     }
     `;
+
     GM_addElement(document.head, "style", {
         textContent: styleText,
     });
@@ -462,36 +466,211 @@ function setupSateliteLayers() {
 
 }
 
-function addDiffInHistory() {
-
+function makeHistoryCompact() {
+    // todo -> toogleAttribute
+    if (document.querySelector(".compact-toggle-btn").textContent === "><") {
+        document.querySelectorAll(".non-modified-tag").forEach((el) => {
+            el.classList.replace("non-modified-tag", "hidden-non-modified-tag")
+        })
+        document.querySelectorAll(".empty-version").forEach((el) => {
+            el.classList.replace("empty-version", "hidden-empty-version")
+        })
+        document.querySelector(".compact-toggle-btn").textContent = "<>"
+    } else {
+        document.querySelectorAll(".hidden-non-modified-tag").forEach((el) => {
+            el.classList.replace("hidden-non-modified-tag", "non-modified-tag")
+        })
+        document.querySelectorAll(".hidden-empty-version").forEach((el) => {
+            el.classList.replace("hidden-empty-version", "empty-version")
+        })
+        document.querySelector(".compact-toggle-btn").textContent = "><"
+    }
 }
 
-function setupVersionsDiff() {
-    if (!location.href.includes("/history")) {
+function addDiffInHistory() {
+    if (!location.href.includes("/history") || location.href.includes("/history/")) return;
+    if (document.querySelector(".compact-toggle-btn")) {
         return;
     }
+    let compactToggle = document.createElement("button")
+    compactToggle.textContent = "><"
+    compactToggle.classList.add("compact-toggle-btn")
+    compactToggle.onclick = makeHistoryCompact
+    let sidebar = document.querySelector("#sidebar_content h2")
+    if (!sidebar) {
+        return
+    }
+    sidebar.appendChild(compactToggle)
 
     const styleText = `
-    .historydiff-new-tag {
-      background: #008000ab;
+    .history-diff-new-tag {
+      background: rgba(17,238,9,0.6) !important;
+    }
+    .history-diff-modified-tag {
+      background: rgba(223,238,9,0.6) !important;
+    }
+    .history-diff-deleted-tag {
+      background: rgba(238,51,9,0.6) !important;
+    }
+    .non-modified-tag .empty-version {
+        
+    }
+    .hidden-non-modified-tag, .hidden-empty-version {
+        display: none;
+    }
+    .hidden-version, .hidden-h4 {
+        display: none;
+    }
+    h2, h4 {
+    font-size: 1rem;
     }
     `;
     GM_addElement(document.head, "style", {
         textContent: styleText,
     });
+    let versions = [{tags: [], coordinates: "", wasModified: false, nodes: [], members: []}];
+    // add and modification
+    let versionsHTML = Array.from(document.querySelectorAll(".browse-section.browse-node, .browse-section.browse-way, .browse-section.browse-relation"))
+    for (let ver of versionsHTML.toReversed()) {
+        let wasModifiedObject = false;
+        let version = ver.children[0].childNodes[1].href.match(/\/(\d+)$/)[1]
+        let kv = ver.querySelectorAll("tbody > tr") ?? [];
+        let tags = [];
 
-    for (let x of Array.from(document.getElementsByClassName("browse-section browse-node"))){
-        x.children[0].childNodes[1].href.match(/\/(\d+)$/)[1]
-        var kv = x.querySelector("tbody").querySelectorAll("tr")
-        var tags = [];
+        let changesetHTML = ver.querySelector('ul:nth-child(3) > li:nth-child(2)');
+        let changesetA = ver.querySelector('ul:nth-child(3) > li:nth-child(2) > a');
+        changesetHTML.innerHTML = '#'
+        changesetHTML.appendChild(changesetA)
+
+        let coordinates = null
+        if (location.href.includes("/node")) {
+            coordinates = ver.querySelector("li:nth-child(3) > a")
+            let locationHTML = ver.querySelector('ul:nth-child(3) > li:nth-child(3)');
+            let locationA = ver.querySelector('ul:nth-child(3) > li:nth-child(3) > a');
+            locationHTML.innerHTML = ''
+            locationHTML.appendChild(locationA)
+        }
         kv.forEach(
-            (i)=> {
-                var k = i.querySelector("th > a").text ?? i.querySelector("th").text;
-                var v = i.querySelector("td > a").text ?? i.querySelector("td").text;
+            (i) => {
+                let k = i.querySelector("th > a")?.textContent ?? i.querySelector("th").textContent;
+                let v = i.querySelector("td > a")?.textContent ?? i.querySelector("td").textContent;
                 tags.push([k, v])
+
+                let lastTags = versions.slice(-1)[0].tags
+                let lastCoordinates = versions.slice(-1)[0].coordinates
+                let tagWasModified = false
+                if (!lastTags.some((elem) => elem[0] === k)) {
+                    i.querySelector("th").classList.add("history-diff-new-tag")
+                    i.querySelector("td").classList.add("history-diff-new-tag")
+                    wasModifiedObject = tagWasModified = true
+                } else if (lastTags.some((elem) => elem[0] === k)) {
+                    lastTags.forEach((el) => {
+                        if (el[0] === k && el[1] !== v) {
+                            i.querySelector("th").classList.add("history-diff-modified-key")
+                            i.querySelector("td").classList.add("history-diff-modified-tag")
+                            wasModifiedObject = tagWasModified = true
+                        }
+                    })
+                }
+                if (!tagWasModified) {
+                    i.querySelector("th").classList.add("non-modified-tag")
+                    i.querySelector("td").classList.add("non-modified-tag")
+                }
+                if (coordinates && versions.length > 1 && coordinates.href !== lastCoordinates) {
+                    coordinates.classList.add("history-diff-modified-tag")
+                    wasModifiedObject = true
+                }
             }
         )
-        console.log(tags)
+        let childNodes = null
+        if (location.href.includes("/way") || location.href.includes("/relation")) {
+            childNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li a:first-child")).map((el) => el.href)
+            let lastChildNodes = versions.slice(-1)[0].nodes
+            if (version > 1 &&
+                (childNodes.length !== lastChildNodes.length
+                    || childNodes.some((el, index) => lastChildNodes[index] !== childNodes[index]))) {
+                ver.querySelector("details > summary")?.classList.add("history-diff-modified-tag")
+                wasModifiedObject = true
+            }
+            ver.querySelector("details")?.removeAttribute("open")
+        }
+        versions.push({
+            tags: tags,
+            coordinates: coordinates?.href,
+            wasModified: wasModifiedObject,
+            nodes: childNodes,
+            members: []
+        })
+        ver.querySelectorAll("h4").forEach((el, index) => (index !== 0) ? el.classList.add("hidden-h4") : null)
+    }
+    // deletion
+    Array.from(versionsHTML).forEach((x, index) => {
+        if (versionsHTML.length <= index + 1) return;
+        versions.toReversed()[index + 1].tags.forEach((tag) => {
+            let k = tag[0]
+            let v = tag[1]
+            if (!versions.toReversed()[index].tags.some((elem) => elem[0] === k)) {
+                let tr = document.createElement("tr")
+                let th = document.createElement("th")
+                th.textContent = k
+                th.classList.add("history-diff-deleted-tag", "py-1", "border-grey", "table-light", "fw-normal")
+                let td = document.createElement("td")
+                td.textContent = v
+                td.classList.add("history-diff-deleted-tag", "py-1", "border-grey", "table-light", "fw-normal")
+                tr.appendChild(th)
+                tr.appendChild(td)
+                x.querySelector("tbody").prepend(tr)
+                versions[versions.length - index - 1].wasModified = true
+            }
+        })
+        if (!versions[versions.length - index - 1].wasModified) {
+            let spoiler = document.createElement("details")
+            let summary = document.createElement("summary")
+            summary.textContent = x.querySelector("a").textContent
+            spoiler.innerHTML = x.innerHTML
+            spoiler.prepend(summary)
+            spoiler.classList.add("empty-version")
+            x.replaceWith(spoiler)
+        }
+    })
+    Array.from(document.getElementsByClassName("browse-section browse-redacted")).forEach(
+        (elem) => {
+            elem.classList.add("hidden-version")
+        }
+    )
+    makeHistoryCompact();
+}
+
+function setupVersionsDiff() {
+    if (!location.href.includes("/history")
+        && !location.href.includes("/node")
+        && !location.href.includes("/way")
+        && !location.href.includes("/relation")) {
+        return;
+    }
+    let lastUrl = location.href;
+    new MutationObserver(() => {
+        const url = location.href;
+        if (url !== lastUrl) {
+            lastUrl = url;
+            if (!url.includes("/history")
+                && !url.includes("/node")
+                && !url.includes("/way")
+                && !url.includes("/relation")) return;
+            let timerId = setInterval(() => {
+                addDiffInHistory();
+            }, 1000);
+            setTimeout(() => {
+                clearInterval(timerId);
+                console.log('stop adding diff in history');
+            }, 20000);
+        }
+    }).observe(document, {subtree: true, childList: true});
+    if (location.href.includes("/history")
+        && !location.href.includes("/node")
+        && !location.href.includes("/way")
+        && !location.href.includes("/relation")) {
+        addDiffInHistory();
     }
 }
 
@@ -505,9 +684,9 @@ let modules = [
     setupResolveNotesButtons,
     setupDeletor,
     setupHideNoteHighlight,
-    setupSateliteLayers,
+    // setupSateliteLayers,
     setupVersionsDiff,
-    setupChangesetQuickLook
+    // setupChangesetQuickLook
 ];
 
 
@@ -520,10 +699,10 @@ function setup() {
         osm_server = local_server;
     }
     for (const module of modules) {
-        if (!GM_config.get(module.name.slice('setup'.length))) {
-            continue;
-        }
         try {
+            if (!GM_config.get(module.name.slice('setup'.length))) {
+                continue;
+            }
             module()
         } catch {
 
