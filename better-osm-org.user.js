@@ -554,6 +554,10 @@ function addDiffInHistory() {
             (i) => {
                 let k = i.querySelector("th > a")?.textContent ?? i.querySelector("th").textContent;
                 let v = i.querySelector("td > a")?.textContent ?? i.querySelector("td").textContent;
+                if (!k) {
+                    // Human-readable Wikidata extension compatibility
+                    return
+                }
                 tags.push([k, v])
 
                 let lastTags = versions.slice(-1)[0].tags
@@ -667,9 +671,9 @@ function setupVersionsDiff() {
         }
     }).observe(document, {subtree: true, childList: true});
     if (location.href.includes("/history")
-        && !location.href.includes("/node")
-        && !location.href.includes("/way")
-        && !location.href.includes("/relation")) {
+        || location.href.includes("/node")
+        || location.href.includes("/way")
+        || location.href.includes("/relation")) {
         addDiffInHistory();
     }
 }
