@@ -17,18 +17,20 @@
 - [ ] Show deleted
 - [ ] Hide resolved notes
 - [ ] Show satelite layer
-- [ ] Stat HDYC in profile
+- [x] Stat HDYC in profile
+- + [ ] Bypass tracking protection
 - [ ] Enable/disable note/data buttons
 - [x] Hide active note highlight
 - + [ ] Hide ways
 - [ ] User id everywhere
 - [ ] Profile for deleted users
+- + [x] Search in diffs
 - [ ] Integrate https://github.com/Zverik/osmtags-editor
 - + [ ] Edit tags in Overpass Turbo
 - + [x] Node deletion
 - [ ] Fast tags copy from wiki
 - [ ] Object age
-- [ ] Collapse changeset cooment form
+- [x] Collapse changeset comment form
 - [ ] Player button for history
 - [ ] Documentation
 - [ ] Collapse name tags
