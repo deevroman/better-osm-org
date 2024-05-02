@@ -478,6 +478,7 @@ let mode = "🛰";
 let tilesObserver = undefined;
 
 function addSatelliteLayers() {
+    if (!location.pathname.includes("/note")) return;
     if (document.querySelector('.turn-on-satellite')) return true;
     if (!document.querySelector("#sidebar_content h4")) {
         return;
