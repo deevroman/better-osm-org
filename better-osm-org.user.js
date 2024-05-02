@@ -169,6 +169,7 @@ function makeAuth() {
 }
 
 function addRevertButton() {
+    if (!location.pathname.includes("/changeset")) return
     if (document.querySelector('.revert_button_class')) return true;
 
     let sidebar = document.querySelector("#sidebar_content h2");
@@ -201,7 +202,20 @@ function addRevertButton() {
         }
     }
     let textarea = document.querySelector("#sidebar_content textarea")
-    if (textarea) textarea.rows = 2;
+    if (textarea) {
+        textarea.rows = 2;
+        let comment = document.querySelector("#sidebar_content button[name=comment]")
+        if (comment) {
+            comment.hidden = true
+            textarea.oninput = () => {
+                comment.hidden = false
+            }
+        }
+    }
+    let tagsHeader = document.querySelector("#sidebar_content h4");
+    if (tagsHeader) {
+        tagsHeader.remove()
+    }
 }
 
 function setupRevertButton(path) {
@@ -474,7 +488,10 @@ function setupHideNoteHighlight(path) {
 
 const OSMPrefix = "https://tile.openstreetmap.org/"
 const ESRIPrefix = "https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
-let mode = "🛰";
+// const ESRIPrefix = "https://clarity.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
+let SAT_MODE = "🛰"
+let MAPNIK_MODE = "🗺️"
+let mode = SAT_MODE;
 let tilesObserver = undefined;
 
 function addSatelliteLayers() {
@@ -484,7 +501,11 @@ function addSatelliteLayers() {
         return;
     }
     let b = document.createElement("span");
-    b.textContent = "🛰";
+    if (!tilesObserver) {
+        b.textContent = "🛰";
+    } else {
+        b.textContent = (mode === SAT_MODE) ? MAPNIK_MODE : SAT_MODE;
+    }
     b.style.cursor = "pointer";
     b.classList.add("turn-on-satellite");
     document.querySelectorAll("h4")[0].appendChild(document.createTextNode("\xA0"));
@@ -781,13 +802,22 @@ function addHistoryLink() {
         return
     }
     let a = document.createElement("a")
-    a.href = document.querySelector("#sidebar_content h4 a").href.match(/(.*)\/\d+$/)[1]
+    let curHref = document.querySelector("#sidebar_content h4 a").href.match(/(.*)\/(\d+)$/)
+    a.href = curHref[1]
     a.textContent = "🕒"
     a.classList.add("history_button_class")
-    versionInSidebar.after(a)
-    versionInSidebar.after(document.createTextNode("\xA0"))
+    if (curHref[2] !== "1") {
+        versionInSidebar.after(a)
+        versionInSidebar.after(document.createTextNode("\xA0"))
+    }
 }
 
+
+// hard cases:
+// https://www.openstreetmap.org/node/1/history
+// https://www.openstreetmap.org/node/2/history
+// https://www.openstreetmap.org/node/9286365017/history
+// https://www.openstreetmap.org/relation/72639/history
 function addDiffInHistory() {
     addHistoryLink();
     if (!location.pathname.includes("/history")
@@ -854,7 +884,7 @@ function addDiffInHistory() {
     GM_addElement(document.head, "style", {
         textContent: styleText,
     });
-    let versions = [{tags: [], coordinates: "", wasModified: false, nodes: [], members: []}];
+    let versions = [{tags: [], coordinates: "", wasModified: false, nodes: [], members: [], visible: true}];
     // add/modification
     let versionsHTML = Array.from(document.querySelectorAll(".browse-section.browse-node, .browse-section.browse-way, .browse-section.browse-relation"))
     for (let ver of versionsHTML.toReversed()) {
@@ -893,17 +923,24 @@ function addDiffInHistory() {
         let hashtag = document.createTextNode("#")
         metainfoHTML.appendChild(hashtag)
         metainfoHTML.appendChild(changesetA)
+        let visible = true
 
         let coordinates = null
         if (location.pathname.includes("/node")) {
             coordinates = ver.querySelector("li:nth-child(3) > a")
-            let locationHTML = ver.querySelector('ul:nth-child(3) > li:nth-child(3)');
-            let locationA = ver.querySelector('ul:nth-child(3) > li:nth-child(3) > a');
-            locationHTML.innerHTML = ''
-            locationHTML.appendChild(locationA)
+            if (coordinates) {
+                let locationHTML = ver.querySelector('ul:nth-child(3) > li:nth-child(3)');
+                let locationA = ver.querySelector('ul:nth-child(3) > li:nth-child(3) > a');
+                locationHTML.innerHTML = ''
+                locationHTML.appendChild(locationA)
+            } else {
+                visible = false
+                wasModifiedObject = true // because sometimes deleted object has tags
+                time.before(document.createTextNode("🗑 "))
+            }
         }
         kv.forEach(
-            (i, index) => {
+            (i) => {
                 let k = i.querySelector("th > a")?.textContent ?? i.querySelector("th").textContent;
                 let v = i.querySelector("td > a")?.textContent ?? i.querySelector("td").textContent;
                 if (!k) {
@@ -913,7 +950,6 @@ function addDiffInHistory() {
                 tags.push([k, v])
 
                 let lastTags = versions.slice(-1)[0].tags
-                let lastCoordinates = versions.slice(-1)[0].coordinates
                 let tagWasModified = false
                 if (!lastTags.some((elem) => elem[0] === k)) {
                     i.querySelector("th").classList.add("history-diff-new-tag")
@@ -924,6 +960,7 @@ function addDiffInHistory() {
                         if (el[0] === k && el[1] !== v) {
                             i.querySelector("th").classList.add("history-diff-modified-key")
                             i.querySelector("td").classList.add("history-diff-modified-tag")
+                            i.title = `was: "${el[1]}"`;
                             wasModifiedObject = tagWasModified = true
                         }
                     })
@@ -932,27 +969,31 @@ function addDiffInHistory() {
                     i.querySelector("th").classList.add("non-modified-tag")
                     i.querySelector("td").classList.add("non-modified-tag")
                 }
-                if (index === 0 && coordinates && versions.length > 1 && coordinates.href !== lastCoordinates) {
-                    const curLat = coordinates.querySelector(".latitude").textContent.replace(",", ".");
-                    const curLon = coordinates.querySelector(".longitude").textContent.replace(",", ".");
-                    const lastLat = lastCoordinates.match(/#map=.+\/(.+)\/(.+)$/)[1];
-                    const lastLon = lastCoordinates.match(/#map=.+\/(.+)\/(.+)$/)[2];
-                    const distInMeters = getDistanceFromLatLonInKm(
-                        Number.parseFloat(lastLat),
-                        Number.parseFloat(lastLon),
-                        Number.parseFloat(curLat),
-                        Number.parseFloat(curLon)
-                    ) * 1000;
-                    debugger
-                    const distTxt = document.createElement("span")
-                    distTxt.textContent = `${distInMeters.toFixed(1)}m`
-                    distTxt.classList.add("history-diff-modified-tag")
-                    coordinates.after(distTxt);
-                    coordinates.after(document.createTextNode(" "));
-                    wasModifiedObject = true
-                }
+
             }
         )
+        let lastCoordinates = versions.slice(-1)[0].coordinates
+        if (visible && coordinates && versions.length > 1 && coordinates.href !== lastCoordinates) {
+            if(lastCoordinates) {
+                const curLat = coordinates.querySelector(".latitude").textContent.replace(",", ".");
+                const curLon = coordinates.querySelector(".longitude").textContent.replace(",", ".");
+                const lastLat = lastCoordinates.match(/#map=.+\/(.+)\/(.+)$/)[1];
+                const lastLon = lastCoordinates.match(/#map=.+\/(.+)\/(.+)$/)[2];
+                const distInMeters = getDistanceFromLatLonInKm(
+                    Number.parseFloat(lastLat),
+                    Number.parseFloat(lastLon),
+                    Number.parseFloat(curLat),
+                    Number.parseFloat(curLon)
+                ) * 1000;
+                debugger
+                const distTxt = document.createElement("span")
+                distTxt.textContent = `${distInMeters.toFixed(1)}m`
+                distTxt.classList.add("history-diff-modified-tag")
+                coordinates.after(distTxt);
+                coordinates.after(document.createTextNode(" "));
+            }
+            wasModifiedObject = true
+        }
         let childNodes = null
         if (location.pathname.includes("/way") || location.pathname.includes("/relation")) {
             childNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li a:first-child")).map((el) => el.href)
@@ -967,10 +1008,11 @@ function addDiffInHistory() {
         }
         versions.push({
             tags: tags,
-            coordinates: coordinates?.href,
+            coordinates: coordinates?.href ?? lastCoordinates,
             wasModified: wasModifiedObject,
             nodes: childNodes,
-            members: []
+            members: [],
+            visible: visible
         })
         ver.querySelectorAll("h4").forEach((el, index) => (index !== 0) ? el.classList.add("hidden-h4") : null)
     }
@@ -990,6 +1032,16 @@ function addDiffInHistory() {
                 td.classList.add("history-diff-deleted-tag", "py-1", "border-grey", "table-light", "fw-normal")
                 tr.appendChild(th)
                 tr.appendChild(td)
+                if (!x.querySelector("tbody")) {
+                    let tableDiv = document.createElement("table")
+                    tableDiv.classList.add("mb-3", "border", "border-secondary-subtle", "rounded", "overflow-hidden")
+                    let table = document.createElement("table")
+                    table.classList.add("mb-0", "browse-tag-list", "table", "align-middle")
+                    let tbody = document.createElement("tbody")
+                    table.appendChild(tbody)
+                    tableDiv.appendChild(table)
+                    x.appendChild(tableDiv)
+                }
                 x.querySelector("tbody").prepend(tr)
                 versions[versions.length - index - 1].wasModified = true
             }
@@ -1013,10 +1065,6 @@ function addDiffInHistory() {
 }
 
 
-function checkPath(path, pred) {
-    return typeof pred === "string" ? path.includes(pred) : path.match(pred)
-}
-
 function setupVersionsDiff(path) {
     if (!path.includes("/history")
         && !path.includes("/node")
@@ -1028,7 +1076,7 @@ function setupVersionsDiff(path) {
     setTimeout(() => {
         clearInterval(timerId);
         console.debug('stop adding diff in history');
-    }, 20000);
+    }, 25000);
     addDiffInHistory();
 }
 
