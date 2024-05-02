@@ -81,12 +81,12 @@ GM_config.init(
                         'type': 'checkbox',
                         'default': 'checked'
                     },
-                // 'SateliteLayers':
-                //     {
-                //         'label': 'Add satelite layers for main page',
-                //         'type': 'checkbox',
-                //         'default': 'unchecked'
-                //     },
+                'SatelliteLayers':
+                    {
+                        'label': 'Add satellite layers for notes page',
+                        'type': 'checkbox',
+                        'default': 'checked'
+                    },
                 'VersionsDiff':
                     {
                         'label': 'Add tags diff in history',
@@ -209,7 +209,7 @@ function setupRevertButton(path) {
     let timerId = setInterval(addRevertButton, 100);
     setTimeout(() => {
         clearInterval(timerId);
-        console.log('stop try add revert button');
+        console.debug('stop try add revert button');
     }, 3000);
     addRevertButton();
 }
@@ -324,6 +324,7 @@ out meta;
 `;
     let btn = document.createElement("a")
     btn.textContent = " 🕰";
+    btn.style.cursor = "pointer"
     document.querySelector("#sidebar_content time").after(btn);
     btn.onclick = () => {
         window.open(`https://overpass-turbo.eu/?Q=${encodeURI(query)}&C=${lat};${lon};${zoom}&R`)
@@ -335,7 +336,7 @@ function setupResolveNotesButtons(path) {
     let timerId = setInterval(addResolveNotesButtons, 100);
     setTimeout(() => {
         clearInterval(timerId);
-        console.log('stop try add resolve note button');
+        console.debug('stop try add resolve note button');
     }, 3000);
     addResolveNotesButtons();
 }
@@ -447,14 +448,14 @@ function setupDeletor(path) {
     let timerId = setInterval(addDeleteButton, 100);
     setTimeout(() => {
         clearInterval(timerId);
-        console.log('stop try add delete button');
+        console.debug('stop try add delete button');
     }, 3000);
     addDeleteButton();
 }
 
 function hideNoteHighlight() {
     let g = document.querySelector("g");
-    if (g.childElementCount === 0) return;
+    if (!g || g.childElementCount === 0) return;
     if (g.childNodes[g.childElementCount - 1].getAttribute("stroke") === "#FF6200"
         && g.childNodes[g.childElementCount - 1].getAttribute("d").includes("a20,20 0 1,0 -40,0 ")) {
         g.childNodes[g.childElementCount - 1].remove();
@@ -466,13 +467,110 @@ function setupHideNoteHighlight(path) {
     let timerId = setInterval(hideNoteHighlight, 1000);
     setTimeout(() => {
         clearInterval(timerId);
-        console.log('stop removing note highlight');
+        console.debug('stop removing note highlight');
     }, 5000);
     hideNoteHighlight();
 }
 
-function setupSateliteLayers() {
+const OSMPrefix = "https://tile.openstreetmap.org/"
+const ESRIPrefix = "https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
+let mode = "🛰";
+let tilesObserver = undefined;
 
+function addSatelliteLayers() {
+    if (document.querySelector('.turn-on-satellite')) return true;
+    if (!document.querySelector("#sidebar_content h4")) {
+        return;
+    }
+    let b = document.createElement("span");
+    b.textContent = "🛰";
+    b.style.cursor = "pointer";
+    b.classList.add("turn-on-satellite");
+    document.querySelectorAll("h4")[0].appendChild(document.createTextNode("\xA0"));
+    document.querySelectorAll("h4")[0].appendChild(b);
+
+    function parseOSMTileURL(url) {
+        let match = url.match(new RegExp(`${OSMPrefix}(\\d+)\\/(\\d+)\\/(\\d+)\\.png`))
+        if (!match) {
+            return false
+        }
+        return {
+            x: match[2],
+            y: match[3],
+            z: match[1],
+        }
+    }
+
+    function parseESRITileURL(url) {
+        let match = url.match(new RegExp(`${ESRIPrefix}(\\d+)\\/(\\d+)\\/(\\d+)`))
+        if (!match) {
+            return false
+        }
+        return {
+            x: match[3],
+            y: match[2],
+            z: match[1],
+        }
+    }
+
+    function switchTiles(e) {
+        if (tilesObserver) {
+            tilesObserver.disconnect();
+        }
+        mode = e.target.textContent;
+        document.querySelectorAll(".leaflet-tile").forEach(i => {
+            if (i.nodeName !== 'IMG') {
+                return;
+            }
+            if (mode === "🛰") {
+                let xyz = parseOSMTileURL(i.src)
+                if (!xyz) return
+                i.src = ESRIPrefix + xyz.z + "/" + xyz.y + "/" + xyz.x;
+            } else {
+                debugger
+                let xyz = parseESRITileURL(i.src)
+                if (!xyz) return
+                i.src = OSMPrefix + xyz.z + "/" + xyz.x + "/" + xyz.y + ".png";
+            }
+        })
+        const observer = new MutationObserver(mutations => {
+            mutations.forEach(mutation => {
+                mutation.addedNodes.forEach(node => {
+                    if (node.nodeName !== 'IMG') {
+                        return;
+                    }
+                    if (mode === "🛰") {
+                        let xyz = parseOSMTileURL(node.src);
+                        if (!xyz) return
+                        node.src = ESRIPrefix + xyz.z + "/" + xyz.y + "/" + xyz.x;
+                    } else {
+                        let xyz = parseESRITileURL(node.src)
+                        if (!xyz) return
+                        node.src = OSMPrefix + xyz.z + "/" + xyz.x + "/" + xyz.y + ".png";
+                    }
+                });
+            });
+        });
+        tilesObserver = observer;
+        observer.observe(document.body, {childList: true, subtree: true});
+        if (e.target.textContent === "🛰") {
+            e.target.textContent = "🗺️"
+        } else {
+            e.target.textContent = "🛰"
+        }
+    }
+
+    b.onclick = switchTiles;
+}
+
+function setupSatelliteLayers(path) {
+    if (!path.includes("/note")) return;
+    let timerId = setInterval(addSatelliteLayers, 100);
+    setTimeout(() => {
+        clearInterval(timerId);
+        console.debug('stop try add resolve note button');
+    }, 3000);
+    addSatelliteLayers();
 }
 
 function makeHistoryCompact() {
@@ -928,7 +1026,7 @@ function setupVersionsDiff(path) {
     let timerId = setInterval(addDiffInHistory, 500);
     setTimeout(() => {
         clearInterval(timerId);
-        console.log('stop adding diff in history');
+        console.debug('stop adding diff in history');
     }, 20000);
     addDiffInHistory();
 }
@@ -943,6 +1041,7 @@ async function setupHDYCInProfile(path) {
         return;
     }
     const user = match[1];
+    if (user === "forgot-password" || user === "new") return;
     document.querySelector(".content-body > .content-inner").style.paddingBottom = "0px";
     let iframe = GM_addElement(document.querySelector("#content"), "iframe", {
         src: "https://www.hdyc.neis-one.org/?" + user,
@@ -1008,7 +1107,7 @@ let modules = [
     setupResolveNotesButtons,
     setupDeletor,
     setupHideNoteHighlight,
-    // setupSateliteLayers,
+    setupSatelliteLayers,
     setupVersionsDiff,
     // setupChangesetQuickLook
 ];

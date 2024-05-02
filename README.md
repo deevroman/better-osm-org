@@ -17,6 +17,7 @@
 - [ ] Show deleted
 - [ ] Hide resolved notes
 - [ ] Show satelite layer
+- + [x] For notes
 - [x] Stat HDYC in profile
 - + [ ] Bypass tracking protection
 - [ ] Enable/disable note/data buttons
