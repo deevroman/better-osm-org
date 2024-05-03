@@ -8,34 +8,35 @@
 - [x] Settings
 - [x] Compact changesets history
 - + [x] Copy changeset id
-- [ ] Template responses when closing notes
-- [ ] Exact time instead of a verbal description
-- [ ] Revert from osmcha.org
+- [ ] Integrate https://github.com/Zverik/osmtags-editor
+- + [ ] Edit tags in Overpass Turbo
+- + [x] Node deletion
 - [x] Tags diff in object history
+- [ ] Show satelite layer (Firefox only)
+- + [x] For notes
+- [x] Stat HDYC in profile
+- + [ ] Bypass tracking protection
+- [x] Hide active note highlight
+- + [ ] Hide ways
+- [ ] Profile for deleted users
+- + [x] Search in diffs
+- [x] Collapse changeset comment form
+- [ ] Template responses when closing notes
+- + [x] 👌
+- [ ] QuickLook for small changesets
+- [ ] Exact time instead of a verbal description
+- [ ] Compact osmcha.org
 - [ ] Changesets filter
 - [ ] Jump to overpass from tags
 - [ ] Show deleted
 - [ ] Hide resolved notes
-- [ ] Show satelite layer
-- + [x] For notes
-- [x] Stat HDYC in profile
-- + [ ] Bypass tracking protection
 - [ ] Enable/disable note/data buttons
-- [x] Hide active note highlight
-- + [ ] Hide ways
 - [ ] User id everywhere
-- [ ] Profile for deleted users
-- + [x] Search in diffs
-- [ ] Integrate https://github.com/Zverik/osmtags-editor
-- + [ ] Edit tags in Overpass Turbo
-- + [x] Node deletion
 - [ ] Fast tags copy from wiki
 - [ ] Object age
-- [x] Collapse changeset comment form
 - [ ] Player button for history
 - [ ] Documentation
 - [ ] Collapse name tags
-- [ ] QuickLook for small changesets
 
 
 Maybe

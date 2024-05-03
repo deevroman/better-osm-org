@@ -43,14 +43,8 @@ GM_config.init(
                     {
                         'label': 'Revert button',
                         'type': 'checkbox',
-                        'default': 'unchecked'
+                        'default': 'checked'
                     },
-                // 'MassRevert':
-                //     {
-                //         'label': 'Mass revert selectors',
-                //         'type': 'checkbox',
-                //         'default': 'checked'
-                //     },
                 'CompactChangesetsHistory':
                     {
                         'label': 'Compact changesets history',
@@ -73,7 +67,7 @@ GM_config.init(
                     {
                         'label': 'Delete object without confirmation',
                         'type': 'checkbox',
-                        'default': 'unchecked'
+                        // 'default': 'unchecked'
                     },
                 'HideNoteHighlight':
                     {
@@ -83,7 +77,7 @@ GM_config.init(
                     },
                 'SatelliteLayers':
                     {
-                        'label': 'Add satellite layers for notes page',
+                        'label': 'Add satellite layers for notes page (Firefox only)',
                         'type': 'checkbox',
                         'default': 'checked'
                     },
@@ -104,10 +98,16 @@ GM_config.init(
                         'label': 'Add HDYC in history',
                         'type': 'checkbox',
                         'default': 'checked'
+                    },
+                'HideLinesForDataView':
+                    {
+                        'label': 'Hide lines in Data View (experimental)',
+                        'type': 'checkbox',
+                        // 'default': 'unchecked'
                     }
             },
         frameStyle: `
-            bottom: auto; border: 1px solid #000; display: none; height: 75%;
+            bottom: auto; border: 1px solid #000; display: none; height: min(75%, 400px);
             left: 0; margin: 0; max-height: 95%; max-width: 95%; opacity: 0;
             overflow: auto; padding: 0; position: fixed; right: auto; top: 0;
             width: 25%; z-index: 9999;
@@ -495,6 +495,7 @@ let mode = SAT_MODE;
 let tilesObserver = undefined;
 
 function addSatelliteLayers() {
+    if (!navigator.userAgent.includes("Firefox")) return
     if (!location.pathname.includes("/note")) return;
     if (document.querySelector('.turn-on-satellite')) return true;
     if (!document.querySelector("#sidebar_content h4")) {
@@ -974,7 +975,7 @@ function addDiffInHistory() {
         )
         let lastCoordinates = versions.slice(-1)[0].coordinates
         if (visible && coordinates && versions.length > 1 && coordinates.href !== lastCoordinates) {
-            if(lastCoordinates) {
+            if (lastCoordinates) {
                 const curLat = coordinates.querySelector(".latitude").textContent.replace(",", ".");
                 const curLon = coordinates.querySelector(".longitude").textContent.replace(",", ".");
                 const lastLat = lastCoordinates.match(/#map=.+\/(.+)\/(.+)$/)[1];
@@ -1080,6 +1081,39 @@ function setupVersionsDiff(path) {
     addDiffInHistory();
 }
 
+let HIDE_WAYS = true
+
+function addHideLinesForDataView() {
+    if (!location.hash.includes("D")) {
+        return;
+    }
+    let g = document.querySelector("g");
+    if (g && HIDE_WAYS) {
+        document.querySelector("g").querySelectorAll("path:not([fill-rule=evenodd])").forEach(i => {
+            i.remove()
+        })
+        let obs = new MutationObserver(() => {
+            document.querySelector("g").querySelectorAll("path:not([fill-rule=evenodd])").forEach(i => {
+                i.remove()
+            })
+        })
+        obs.observe(g, {subtree: true, childList: true})
+    }
+    debugger
+}
+
+function setupHideLinesForDataView(path) {
+    if (!location.hash.includes("D")) {
+        return;
+    }
+    let timerId = setInterval(addHideLinesForDataView, 500);
+    setTimeout(() => {
+        clearInterval(timerId);
+        console.debug('stop try hide lines for data view');
+    }, 5000);
+    addHideLinesForDataView();
+}
+
 function setupChangesetQuickLook(path) {
 
 }
@@ -1159,6 +1193,7 @@ let modules = [
     setupSatelliteLayers,
     setupVersionsDiff,
     // setupChangesetQuickLook
+    setupHideLinesForDataView
 ];
 
 
@@ -1189,6 +1224,7 @@ function main() {
     if (location.origin === "https://www.hdyc.neis-one.org" || location.origin === "https://hdyc.neis-one.org") {
         simplifyHDCYIframe();
     } else {
+        // TODO write custom settings
         GM.registerMenuCommand("Settings", function () {
             GM_config.open();
         });
