@@ -14,7 +14,7 @@
 - [x] Tags diff in object history
 - [ ] Show satelite layer (Firefox only)
 - + [x] For notes
-- [x] Stat HDYC in profile
+- [x] Stat HDYC in profile (Firefox only)
 - + [ ] Bypass tracking protection
 - [x] Hide active note highlight
 - + [ ] Hide ways

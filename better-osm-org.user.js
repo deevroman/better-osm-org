@@ -1193,7 +1193,7 @@ let modules = [
     setupSatelliteLayers,
     setupVersionsDiff,
     // setupChangesetQuickLook
-    setupHideLinesForDataView
+    // setupHideLinesForDataView
 ];
 
 
