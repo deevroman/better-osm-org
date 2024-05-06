@@ -8,14 +8,46 @@
 - [x] Settings
 - [x] Compact changesets history
 - + [x] Copy changeset id
+
+<table>
+
+<tr>
+
+<td>
+
+<img src="img/compact-changeset.jpg">
+
+</td>
+
+<td>
+<img src="img/compact-history.jpg">
+</td>
+
+</tr>
+
+</table>
+
+
 - [ ] Integrate https://github.com/Zverik/osmtags-editor
 - + [ ] Edit tags in Overpass Turbo
 - + [x] Node deletion
+
+    <img src="img/delete.png" width="50%">
+ 
 - [x] Tags diff in object history
+
+  <img src="img/diff.png" width="50%">
+  
 - [ ] Show satelite layer (Firefox only)
 - + [x] For notes
+    
+  <img src="img/notes-sat.jpg" width="50%">
+
 - [x] Stat HDYC in profile (Firefox only)
 - + [ ] Bypass tracking protection
+
++ <img src="img/hdyc.jpg" width="50%">
+
 - [x] Hide active note highlight
 - + [ ] Hide ways
 - [ ] Profile for deleted users
