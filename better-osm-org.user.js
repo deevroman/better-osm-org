@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Better osm.org
-// @version      0.3
+// @version      0.3.1
 // @description  Several improvements for advanced users of osm.org
 // @author       deevroman
 // @match        https://www.openstreetmap.org/*
@@ -942,8 +942,8 @@ function addDiffInHistory() {
         }
         kv.forEach(
             (i) => {
-                let k = i.querySelector("th > a")?.textContent ?? i.querySelector("th").textContent;
-                let v = i.querySelector("td > a")?.textContent ?? i.querySelector("td").textContent;
+                let k = i.querySelector("th > a")?.textContent ?? i.querySelector("th")?.textContent;
+                let v = i.querySelector("td .wdplugin")?.textContent ?? i.querySelector("td > a")?.textContent ?? i.querySelector("td")?.textContent;
                 if (!k) {
                     // Human-readable Wikidata extension compatibility
                     return
