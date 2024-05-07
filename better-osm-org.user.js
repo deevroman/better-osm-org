@@ -474,6 +474,7 @@ function hideNoteHighlight() {
         && g.childNodes[g.childElementCount - 1].getAttribute("d").includes("a20,20 0 1,0 -40,0 ")) {
         g.childNodes[g.childElementCount - 1].remove();
     }
+    debugger
 }
 
 function setupHideNoteHighlight(path) {
@@ -487,12 +488,51 @@ function setupHideNoteHighlight(path) {
 }
 
 const OSMPrefix = "https://tile.openstreetmap.org/"
+const OSMGPXPrefix = "https://gps.tile.openstreetmap.org/lines/"
+const OSMGPXPrefixEditor = "https://gps-tile.openstreetmap.org/lines/"
+const OSMGPXPrefixEditorRegex = "https://[abc].gps-tile.openstreetmap.org/lines/"
 const ESRIPrefix = "https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
+const geoscribblePrefix = "https://geoscribble.osmz.ru/wms?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.1.1&SERVICE=WMS&REQUEST=GetMap&LAYERS=scribbles&STYLES=&SRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX="
 // const ESRIPrefix = "https://clarity.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
 let SAT_MODE = "🛰"
 let MAPNIK_MODE = "🗺️"
 let mode = SAT_MODE;
+let GPX_MODE = "🛣";
+let GEOSCRIBBLE_MODE = "🛣";
+let overlay_mode = "👨‍🎨";
 let tilesObserver = undefined;
+let geoscribbleObserver = undefined;
+
+const d2r = Math.PI / 180, r2d = 180 / Math.PI;
+
+function tile2lon(x, z) {
+    return x / Math.pow(2, z) * 360 - 180;
+}
+
+function tile2lat(y, z) {
+    const n = Math.PI - 2 * Math.PI * y / Math.pow(2, z);
+    return r2d * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
+}
+
+function tileToBBOX(tile) {
+    const e = tile2lon(tile[0] + 1, tile[2]);
+    const w = tile2lon(tile[0], tile[2]);
+    const s = tile2lat(tile[1] + 1, tile[2]);
+    const n = tile2lat(tile[1], tile[2]);
+    return [w, s, e, n];
+}
+
+function coord4326To3857(lon, lat) {
+    const X = 20037508.34;
+    let long3857 = (lon * X) / 180;
+    let lat3857 = parseFloat(lat) + 90;
+    lat3857 = lat3857 * (Math.PI / 360);
+    lat3857 = Math.tan(lat3857);
+    lat3857 = Math.log(lat3857);
+    lat3857 = lat3857 / (Math.PI / 180);
+    lat3857 = (lat3857 * X) / 180;
+    return [long3857, lat3857];
+}
 
 function addSatelliteLayers() {
     if (!navigator.userAgent.includes("Firefox")) return
@@ -586,14 +626,107 @@ function addSatelliteLayers() {
     b.onclick = switchTiles;
 }
 
+function addGeoscribbleOverlay() {
+    if (!navigator.userAgent.includes("Firefox")) return
+    if (!location.pathname.includes("/edit")) return;
+    if (document.querySelector('.turn-on-geoscribble')) return true;
+    let b2 = document.createElement("span");
+    if (!geoscribbleObserver) {
+        b2.textContent = "👨‍🎨";
+    } else {
+        b2.textContent = (overlay_mode === GEOSCRIBBLE_MODE) ? GPX_MODE : GEOSCRIBBLE_MODE;
+    }
+    b2.style.cursor = "pointer";
+    b2.classList.add("turn-on-geoscribble");
+    document.querySelectorAll("#export_tab")[0].parentElement.after(document.createTextNode("\xA0"));
+    document.querySelectorAll("#export_tab")[0].parentElement.after(b2);
+
+    function parseOSMGPXTileURL(url) {
+        let match = url.match(new RegExp(`${OSMGPXPrefixEditorRegex}(\\d+)\\/(\\d+)\\/(\\d+)\\.png`))
+        if (!match) {
+            return false
+        }
+        return {
+            x: match[2],
+            y: match[3],
+            z: match[1],
+        }
+    }
+
+    function switchOverlay(e) {
+        debugger
+        if (geoscribbleObserver) {
+            geoscribbleObserver.disconnect();
+        }
+        overlay_mode = e.target.textContent;
+        document.querySelector("#id-embed").contentDocument.querySelectorAll(".tile").forEach(i => {
+            if (i.nodeName !== 'IMG') {
+                return;
+            }
+            if (overlay_mode === "👨‍🎨") {
+                let xyz = parseOSMGPXTileURL(i.src)
+                if (!xyz) return
+
+                let bbox = tileToBBOX([parseInt(xyz.x), parseInt(xyz.y), parseInt(xyz.z)])
+                let a = coord4326To3857(bbox[0], bbox[1])
+                let b = coord4326To3857(bbox[2], bbox[3])
+                i.setAttribute("osm-gpx-src", i.src)
+                i.src = geoscribblePrefix + [...a, ...b].join(",")
+            } else {
+                debugger
+                if (!i.getAttribute("osm-gpx-src")) return
+                i.src = i.getAttribute("osm-gpx-src");
+            }
+        })
+        const observer = new MutationObserver(mutations => {
+            mutations.forEach(mutation => {
+                mutation.addedNodes.forEach(node => {
+                    if (node.nodeName !== 'IMG') {
+                        return;
+                    }
+                    if (overlay_mode === "👨‍🎨") {
+                        let xyz = parseOSMGPXTileURL(node.src)
+                        if (!xyz) return
+
+                        let bbox = tileToBBOX([parseInt(xyz.x), parseInt(xyz.y), parseInt(xyz.z)])
+                        let a = coord4326To3857(bbox[0], bbox[1])
+                        let b = coord4326To3857(bbox[2], bbox[3])
+                        node.setAttribute("osm-gpx-src", node.src)
+                        node.src = geoscribblePrefix + [...a, ...b].join(",")
+                    } else {
+                        debugger
+                        if (!node.getAttribute("osm-gpx-src")) return
+                        node.src = node.getAttribute("osm-gpx-src");
+                    }
+                });
+            });
+        });
+        geoscribbleObserver = observer;
+        observer.observe(document.querySelector("#id-embed").contentDocument, {childList: true, subtree: true});
+        if (e.target.textContent === "👨‍🎨") {
+            e.target.textContent = "🛣"
+        } else {
+            e.target.textContent = "👨‍🎨"
+        }
+    }
+    b2.onclick = switchOverlay;
+}
+
 function setupSatelliteLayers(path) {
-    if (!path.includes("/note")) return;
+    if (!path.includes("/note") && !path.includes("/edit")) return;
     let timerId = setInterval(addSatelliteLayers, 100);
     setTimeout(() => {
         clearInterval(timerId);
-        console.debug('stop try add resolve note button');
+        console.debug('stop try add satellite switch');
     }, 3000);
     addSatelliteLayers();
+
+    let timerId2 = setInterval(addGeoscribbleOverlay, 100);
+    setTimeout(() => {
+        clearInterval(timerId2);
+        console.debug('stop try add resolve note button');
+    }, 3000);
+    addGeoscribbleOverlay();
 }
 
 function makeHistoryCompact() {
