@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Better osm.org
-// @version      0.3.1
+// @version      0.3.2
 // @description  Several improvements for advanced users of osm.org
 // @author       deevroman
 // @match        https://www.openstreetmap.org/*
@@ -207,9 +207,10 @@ function addRevertButton() {
         let comment = document.querySelector("#sidebar_content button[name=comment]")
         if (comment) {
             comment.hidden = true
-            textarea.oninput = () => {
-                comment.hidden = false
-            }
+            textarea.addEventListener("input", () => {
+                    comment.hidden = false
+                }
+            )
         }
     }
     let tagsHeader = document.querySelector("#sidebar_content h4");

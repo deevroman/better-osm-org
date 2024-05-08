@@ -2,10 +2,13 @@
 
 [Tampermonkey](https://www.tampermonkey.net) userscript adding several improvements for experienced osm.org users
 
-[install](https://raw.githubusercontent.com/deevroman/better-osm-org/master/better-osm-org.user.js)
+[Install](https://raw.githubusercontent.com/deevroman/better-osm-org/master/better-osm-org.user.js)
 
+- [x] Tags diff in object history
+
+  <img src="img/diff.png" width="50%">
+  
 - [x] Revert button
-- [x] Settings
 - [x] Compact changesets history
 - + [x] Copy changeset id
 
@@ -33,10 +36,7 @@
 - + [x] Node deletion
 
     <img src="img/delete.png" width="50%">
- 
-- [x] Tags diff in object history
-
-  <img src="img/diff.png" width="50%">
+    
   
 - [ ] Show satelite layer (Firefox only)
 - + [x] For notes
@@ -55,6 +55,7 @@
 - [x] Collapse changeset comment form
 - [ ] Template responses when closing notes
 - + [x] 👌
+- [x] Settings
 - [ ] QuickLook for small changesets
 - [ ] Exact time instead of a verbal description
 - [ ] Compact osmcha.org
