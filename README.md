@@ -55,7 +55,8 @@
 - [x] Collapse changeset comment form
 - [ ] Template responses when closing notes
 - + [x] 👌
-- [x] Settings
++ [x] Add Rapid & geo: links into Edit menu 
+- [x] Settings (Firefox only)
 - [ ] QuickLook for small changesets
 - [ ] Exact time instead of a verbal description
 - [ ] Compact osmcha.org
