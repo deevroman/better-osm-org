@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Better osm.org
-// @version      0.3.2
+// @version      0.3.3
 // @description  Several improvements for advanced users of osm.org
 // @author       deevroman
 // @match        https://www.openstreetmap.org/*
@@ -104,6 +104,12 @@ GM_config.init(
                         'label': 'Hide lines in Data View (experimental)',
                         'type': 'checkbox',
                         // 'default': 'unchecked'
+                    },
+                'NewEditorsLinks':
+                    {
+                        'label': 'Add new editors (Rapid, geo:, ... ?)',
+                        'type': 'checkbox',
+                        'default': 'checked'
                     }
             },
         frameStyle: `
@@ -1119,6 +1125,62 @@ function setupChangesetQuickLook(path) {
 
 }
 
+const rapidLink = "https://mapwith.ai/rapid#background=fb-mapwithai-maxar&disable_features=boundaries&map="
+let coordinatesObserver = null;
+
+function setupNewEditorsLinks() {
+    const firstRun = document.getElementsByClassName("custom_editors").length === 0
+    let editorsList = document.querySelector("#edit_tab ul");
+    if (!editorsList) {
+        return;
+    }
+    const curURL = editorsList.querySelector("li a").href
+    const match = curURL.match(/map=(\d+)\/([\d.]+)\/([\d.]+)(&|$)/)
+    debugger
+    if (!match) {
+        return
+    }
+    try {
+        coordinatesObserver?.disconnect()
+        const zoom = match[1]
+        const lat = match[2]
+        const lon = match[3]
+        {
+            // Rapid
+            let newElem;
+            if (firstRun) {
+                newElem = editorsList.querySelector("li").cloneNode(true);
+                newElem.classList.add("custom_editors", "rapid_btn")
+                newElem.querySelector("a").textContent = "Edit with Rapid"
+            } else {
+                newElem = document.querySelector(".rapid_btn")
+            }
+            newElem.querySelector("a").href = `${rapidLink}${zoom}/${lat}/${lon}`
+            if (firstRun) {
+                editorsList.appendChild(newElem)
+            }
+        }
+        {
+            // geo:
+            let newElem;
+            if (firstRun) {
+                newElem = editorsList.querySelector("li").cloneNode(true);
+                newElem.classList.add("custom_editors", "geo_btn")
+                newElem.querySelector("a").textContent = "Open geo:"
+            } else {
+                newElem = document.querySelector(".geo_btn")
+            }
+            newElem.querySelector("a").href = `geo:${lat},${lon}?z=${zoom}`
+            if (firstRun) {
+                editorsList.appendChild(newElem)
+            }
+        }
+    } finally {
+        coordinatesObserver = new MutationObserver(setupNewEditorsLinks);
+        coordinatesObserver.observe(editorsList, {subtree: true, childList: true, attributes: true});
+    }
+}
+
 async function setupHDYCInProfile(path) {
     let match = path.match(/^\/user\/([^\/]+)$/);
     if (!match) {
@@ -1195,6 +1257,7 @@ let modules = [
     setupVersionsDiff,
     // setupChangesetQuickLook
     // setupHideLinesForDataView
+    setupNewEditorsLinks
 ];
 
 
