@@ -107,7 +107,7 @@ GM_config.init(
                     },
                 'NewEditorsLinks':
                     {
-                        'label': 'Add new editors (Rapid, geo:, ... ?)',
+                        'label': 'Add new editors (Rapid, ... ?)',
                         'type': 'checkbox',
                         'default': 'checked'
                     }
@@ -1160,6 +1160,7 @@ function setupNewEditorsLinks() {
                 editorsList.appendChild(newElem)
             }
         }
+        /*
         {
             // geo:
             let newElem;
@@ -1175,6 +1176,7 @@ function setupNewEditorsLinks() {
                 editorsList.appendChild(newElem)
             }
         }
+        */
     } finally {
         coordinatesObserver = new MutationObserver(setupNewEditorsLinks);
         coordinatesObserver.observe(editorsList, {subtree: true, childList: true, attributes: true});
