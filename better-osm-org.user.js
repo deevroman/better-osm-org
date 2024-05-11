@@ -33,6 +33,11 @@
 // @sandbox      JavaScript
 // @resource     OAUTH_HTML https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html
 // ==/UserScript==
+/*global osmAuth*/
+/*global GM*/
+/*global GM_config*/
+/*global GM_addElement*/
+/*global GM_getResourceURL*/
 GM_config.init(
     {
         'id': 'Config',
@@ -306,12 +311,12 @@ function addResolveNotesButtons() {
     document.querySelectorAll("form.mb-3")[0].before(b);
     document.querySelectorAll("form.mb-3")[0].before(document.createElement("p"));
     document.querySelector("form.mb-3 .form-control").rows = 3;
-    document.querySelector(".resolve-note-done").onclick = (e) => {
+    document.querySelector(".resolve-note-done").onclick = () => {
         auth.xhr({
                 method: 'POST',
                 path: osm_server.apiBase + 'notes/' + note_id + "/close.json?text=" + encodeURI("👌"),
                 prefix: false,
-            }, (err, result) => {
+            }, (err) => {
                 if (err) {
                     alert(err);
                 }
@@ -322,11 +327,11 @@ function addResolveNotesButtons() {
 
     // timeback
     let timestamp = document.querySelector("#sidebar_content time").dateTime;
-    const mapsmeDate = document.querySelector(".note-description p").textContent.match(/OSM data version\: ([\d]{4}-[\d]{2}-[\d]{2}T[\d]{2}\:[\d]{2}\:[\d]{2}\Z)/);
+    const mapsmeDate = document.querySelector(".note-description p").textContent.match(/OSM data version: ([\d]{4}-[\d]{2}-[\d]{2}T[\d]{2}:[\d]{2}:[\d]{2}Z)/);
     if (mapsmeDate) {
         timestamp = mapsmeDate[1];
     }
-    const organicmapsDate = document.querySelector(".note-description p").textContent.match(/OSM snapshot date\: ([\d]{4}-[\d]{2}-[\d]{2}T[\d]{2}\:[\d]{2}\:[\d]{2}\Z)/);
+    const organicmapsDate = document.querySelector(".note-description p").textContent.match(/OSM snapshot date: ([\d]{4}-[\d]{2}-[\d]{2}T[\d]{2}:[\d]{2}:[\d]{2}Z)/);
     if (organicmapsDate) {
         timestamp = organicmapsDate[1];
     }
@@ -431,7 +436,7 @@ function addDeleteButton() {
                     path: osm_server.apiBase + object_type + '/' + object_id,
                     prefix: false,
                     content: objectInfo
-                }, function (err2, result) {
+                }, function (err2) {
                     if (err2) {
                         console.log({changesetError: err2});
                     }
@@ -439,7 +444,7 @@ function addDeleteButton() {
                         method: 'PUT',
                         path: osm_server.apiBase + 'changeset/' + changesetId + '/close',
                         prefix: false
-                    }, function (err3, result) {
+                    }, function (err3) {
                         if (!err3) {
                             window.location.reload();
                         }
@@ -557,7 +562,6 @@ function addSatelliteLayers() {
                 if (!xyz) return
                 i.src = ESRIPrefix + xyz.z + "/" + xyz.y + "/" + xyz.x;
             } else {
-                debugger
                 let xyz = parseESRITileURL(i.src)
                 if (!xyz) return
                 i.src = OSMPrefix + xyz.z + "/" + xyz.x + "/" + xyz.y + ".png";
@@ -993,7 +997,6 @@ function addDiffInHistory() {
                     Number.parseFloat(curLat),
                     Number.parseFloat(curLon)
                 ) * 1000;
-                debugger
                 const distTxt = document.createElement("span")
                 distTxt.textContent = `${distInMeters.toFixed(1)}m`
                 distTxt.classList.add("history-diff-modified-tag")
@@ -1106,7 +1109,6 @@ function addHideLinesForDataView() {
         })
         obs.observe(g, {subtree: true, childList: true})
     }
-    debugger
 }
 
 function setupHideLinesForDataView(path) {
@@ -1136,7 +1138,6 @@ function setupNewEditorsLinks() {
     }
     const curURL = editorsList.querySelector("li a").href
     const match = curURL.match(/map=(\d+)\/([\d.]+)\/([\d.]+)(&|$)/)
-    debugger
     if (!match) {
         return
     }
@@ -1184,20 +1185,20 @@ function setupNewEditorsLinks() {
 }
 
 async function setupHDYCInProfile(path) {
-    let match = path.match(/^\/user\/([^\/]+)$/);
+    let match = path.match(/^\/user\/([^/]+)$/);
     if (!match) {
         return;
     }
     const user = match[1];
     if (user === "forgot-password" || user === "new") return;
     document.querySelector(".content-body > .content-inner").style.paddingBottom = "0px";
-    let iframe = GM_addElement(document.querySelector("#content"), "iframe", {
+    GM_addElement(document.querySelector("#content"), "iframe", {
         src: "https://www.hdyc.neis-one.org/?" + user,
         width: "100%",
         height: "2500px",
         id: "hdyc-iframe",
         scrolling: "no",
-    })
+    });
 }
 
 async function simplifyHDCYIframe() {
