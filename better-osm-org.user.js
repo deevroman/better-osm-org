@@ -298,34 +298,10 @@ function setupCompactChangesetsHistory(path) {
 
 function addResolveNotesButtons() {
     if (!location.pathname.includes("/note")) return
-
     if (document.querySelector('.resolve-note-done')) return true;
-    if (!document.querySelector("#sidebar_content textarea.form-control")) {
-        return;
-    }
-    const auth = makeAuth();
-    let note_id = location.pathname.match(/note\/(\d+)/)[1];
-    let b = document.createElement("button");
-    b.classList.add("resolve-note-done", "btn", "btn-primary");
-    b.textContent = "👌";
-    document.querySelectorAll("form.mb-3")[0].before(b);
-    document.querySelectorAll("form.mb-3")[0].before(document.createElement("p"));
-    document.querySelector("form.mb-3 .form-control").rows = 3;
-    document.querySelector(".resolve-note-done").onclick = () => {
-        auth.xhr({
-                method: 'POST',
-                path: osm_server.apiBase + 'notes/' + note_id + "/close.json?text=" + encodeURI("👌"),
-                prefix: false,
-            }, (err) => {
-                if (err) {
-                    alert(err);
-                }
-                window.location.reload();
-            }
-        );
-    }
+    if (document.querySelector('#timeback-btn')) return true;
 
-    // timeback
+    // timeback button
     let timestamp = document.querySelector("#sidebar_content time").dateTime;
     const mapsmeDate = document.querySelector(".note-description p").textContent.match(/OSM data version: ([\d]{4}-[\d]{2}-[\d]{2}T[\d]{2}:[\d]{2}:[\d]{2}Z)/);
     if (mapsmeDate) {
@@ -349,11 +325,37 @@ function addResolveNotesButtons() {
 out meta;
 `;
     let btn = document.createElement("a")
+    btn.id = "timeback-btn";
     btn.textContent = " 🕰";
     btn.style.cursor = "pointer"
     document.querySelector("#sidebar_content time").after(btn);
     btn.onclick = () => {
         window.open(`https://overpass-turbo.eu/?Q=${encodeURI(query)}&C=${lat};${lon};${zoom}&R`)
+    }
+
+    if (!document.querySelector("#sidebar_content textarea.form-control")) {
+        return;
+    }
+    const auth = makeAuth();
+    let note_id = location.pathname.match(/note\/(\d+)/)[1];
+    let b = document.createElement("button");
+    b.classList.add("resolve-note-done", "btn", "btn-primary");
+    b.textContent = "👌";
+    document.querySelectorAll("form.mb-3")[0].before(b);
+    document.querySelectorAll("form.mb-3")[0].before(document.createElement("p"));
+    document.querySelector("form.mb-3 .form-control").rows = 3;
+    document.querySelector(".resolve-note-done").onclick = () => {
+        auth.xhr({
+                method: 'POST',
+                path: osm_server.apiBase + 'notes/' + note_id + "/close.json?text=" + encodeURI("👌"),
+                prefix: false,
+            }, (err) => {
+                if (err) {
+                    alert(err);
+                }
+                window.location.reload();
+            }
+        );
     }
 }
 
