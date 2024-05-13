@@ -382,7 +382,7 @@ function addDeleteButton() {
 
     const auth = makeAuth();
     let link = document.createElement('a');
-    link.text = ['ru-RU', 'ru'].includes(navigator.language) ? "Выпилить!" : "Delete!";
+    link.text = ['ru-RU', 'ru'].includes(navigator.language) ? "Выпилить!" : "Delete";
     link.href = "";
     link.classList.add("delete_object_button_class");
     // skip deleted
