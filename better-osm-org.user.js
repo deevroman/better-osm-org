@@ -187,7 +187,7 @@ function addRevertButton() {
     if (sidebar) {
         // sidebar.classList.add("changeset-header")
         let changeset_id = sidebar.innerHTML.match(/(\d+)/)[0];
-        sidebar.innerHTML += ` [<a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank class=revert_button_class>🔙</a>]`;
+        sidebar.innerHTML += ` [<a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank class=revert_button_class>↩️</a>]`;
         // find deleted user
         // todo extract
         let metainfoHTML = document.querySelector(".browse-section > .details")
