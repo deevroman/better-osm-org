@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Better osm.org
-// @version      0.3.3
+// @version      0.3.4
 // @description  Several improvements for advanced users of osm.org
 // @author       deevroman
 // @match        https://www.openstreetmap.org/*
@@ -187,7 +187,7 @@ function addRevertButton() {
     if (sidebar) {
         // sidebar.classList.add("changeset-header")
         let changeset_id = sidebar.innerHTML.match(/(\d+)/)[0];
-        sidebar.innerHTML += ` [<a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank class=revert_button_class>↩️</a>]`;
+        sidebar.innerHTML += ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank class=revert_button_class>↩️</a>`;
         // find deleted user
         // todo extract
         let metainfoHTML = document.querySelector(".browse-section > .details")
@@ -301,36 +301,41 @@ function addResolveNotesButtons() {
     if (document.querySelector('.resolve-note-done')) return true;
     if (document.querySelector('#timeback-btn')) return true;
 
-    // timeback button
-    let timestamp = document.querySelector("#sidebar_content time").dateTime;
-    const mapsmeDate = document.querySelector(".note-description p").textContent.match(/OSM data version: ([\d]{4}-[\d]{2}-[\d]{2}T[\d]{2}:[\d]{2}:[\d]{2}Z)/);
-    if (mapsmeDate) {
-        timestamp = mapsmeDate[1];
-    }
-    const organicmapsDate = document.querySelector(".note-description p").textContent.match(/OSM snapshot date: ([\d]{4}-[\d]{2}-[\d]{2}T[\d]{2}:[\d]{2}:[\d]{2}Z)/);
-    if (organicmapsDate) {
-        timestamp = organicmapsDate[1];
-    }
-    const lat = document.querySelector("#sidebar_content .latitude").textContent.replace(",", ".");
-    const lon = document.querySelector("#sidebar_content .longitude").textContent.replace(",", ".");
-    const zoom = 18;
-    const query =
-        `[date:"${timestamp}"];
-(
-  node({{bbox}});
-  way({{bbox}});
-  //relation({{bbox}});
-);
-(._;>;);
-out meta;
-`;
-    let btn = document.createElement("a")
-    btn.id = "timeback-btn";
-    btn.textContent = " 🕰";
-    btn.style.cursor = "pointer"
-    document.querySelector("#sidebar_content time").after(btn);
-    btn.onclick = () => {
-        window.open(`https://overpass-turbo.eu/?Q=${encodeURI(query)}&C=${lat};${lon};${zoom}&R`)
+    try {
+        // timeback button
+        let timestamp = document.querySelector("#sidebar_content time").dateTime;
+        const mapsmeDate = document.querySelector(".note-description p")?.textContent?.match(/OSM data version: ([\d]{4}-[\d]{2}-[\d]{2}T[\d]{2}:[\d]{2}:[\d]{2}Z)/);
+        if (mapsmeDate) {
+            timestamp = mapsmeDate[1];
+        }
+        const organicmapsDate = document.querySelector(".note-description p")?.textContent?.match(/OSM snapshot date: ([\d]{4}-[\d]{2}-[\d]{2}T[\d]{2}:[\d]{2}:[\d]{2}Z)/);
+        if (organicmapsDate) {
+            timestamp = organicmapsDate[1];
+        }
+        const lat = document.querySelector("#sidebar_content .latitude").textContent.replace(",", ".");
+        const lon = document.querySelector("#sidebar_content .longitude").textContent.replace(",", ".");
+        const zoom = 18;
+        const query =
+            `[date:"${timestamp}"];
+    (
+      node({{bbox}});
+      way({{bbox}});
+      //relation({{bbox}});
+    );
+    (._;>;);
+    out meta;
+    `;
+        let btn = document.createElement("a")
+        btn.id = "timeback-btn";
+        btn.textContent = " 🕰";
+        btn.style.cursor = "pointer"
+        document.querySelector("#sidebar_content time").after(btn);
+        btn.onclick = () => {
+            window.open(`https://overpass-turbo.eu/?Q=${encodeURI(query)}&C=${lat};${lon};${zoom}&R`)
+        }
+    } catch (e) {
+        console.error("setup timebeck button fail");
+        console.error(e);
     }
 
     if (!document.querySelector("#sidebar_content textarea.form-control")) {
