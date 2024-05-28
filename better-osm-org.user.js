@@ -240,7 +240,7 @@ function setupRevertButton(path) {
     addRevertButton();
 }
 
-function setupCompactChangesetsHistory(path) {
+function setupCompactChangesetsHistory() {
     if (!location.pathname.includes("/history") && !location.pathname.includes("/changeset")) {
         return;
     }
@@ -635,93 +635,7 @@ function makeHistoryCompact() {
     }
 }
 
-async function findChangesetInDiff(e) {
-    const response = await GM.xmlHttpRequest({
-        method: "GET",
-        url: planetOrigin + "/replication/changesets/",
-    });
-    const parser = new DOMParser();
-    const AAAHTML = parser.parseFromString(response.responseText, "text/html");
-    let target = new Date(e.target.datetime)
-    target.setSeconds(0)
-
-
-    let a = Array.from(AAAHTML.querySelector("pre").childNodes).slice(2).slice(0, -4)
-    a.push(...a.slice(-2))
-    let x = 0;
-    for (x; x < a.length - 2; x += 2) {
-        let d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim())
-        if (target < d) break
-    }
-    let AAAs;
-    if (x === 0) {
-        AAAs = [a[x].getAttribute("href"), a[x].getAttribute("href")]
-    } else {
-        AAAs = [a[x - 2].getAttribute("href"), a[x].getAttribute("href")]
-    }
-
-    async function parseBBB(target, url) {
-        const response = await GM.xmlHttpRequest({
-            method: "GET",
-            url: planetOrigin + "/replication/changesets/" + url,
-        });
-        const parser = new DOMParser();
-        const BBBHTML = parser.parseFromString(response.responseText, "text/html");
-
-        let a = Array.from(BBBHTML.querySelector("pre").childNodes).slice(2)
-        let x = 0;
-        let found = false;
-        for (x; x < a.length; x += 2) {
-            let d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim())
-            if (target < d) {
-                found = true;
-                break
-            }
-        }
-        return found ? a[x].getAttribute("href") : false
-    }
-
-    async function parseCCC(target, url) {
-        const response = await GM.xmlHttpRequest({
-            method: "GET",
-            url: planetOrigin + "/replication/changesets/" + url,
-        });
-        const parser = new DOMParser();
-        const CCCHTML = parser.parseFromString(response.responseText, "text/html");
-
-        let a = Array.from(CCCHTML.querySelector("pre").childNodes).slice(2)
-        let x = 0;
-        let found = false;
-        for (x; x < a.length; x += 2) {
-            if (!a[x].textContent.match(/^\d+\.osm\.gz$/)) {
-                x += 2 // bypass .tmp files
-            }
-            let d = new Date(a[x + 1].textContent
-                .trim().slice(0, -1).trim()
-                .split(" ").slice(0, -1).join(" ").trim() + ' UTC')
-            if (target <= d) {
-                found = true;
-                break
-            }
-        }
-        return found ? [a[x].getAttribute("href"), a[x + 4].getAttribute("href")] : false
-    }
-
-    let BBB1 = await parseBBB(target, AAAs[1])
-    let CCC = await parseCCC(target, AAAs[1] + BBB1);
-    let gzURL = ""
-    if (CCC) {
-        gzURL = planetOrigin + "/replication/changesets/" + AAAs[1] + BBB1;
-    } else {
-        let BBB0 = await parseBBB(target, AAAs[0])
-        if (BBB0) {
-            CCC = await parseCCC(target, AAAs[0] + BBB1);
-            gzURL = planetOrigin + "/replication/changesets/" + AAAs[0] + BBB0;
-        } else {
-            alert(":(")
-        }
-    }
-
+async function tryFindChangesetInDiffGZ(gzURL, changesetId) {
     async function decompressBlob(blob) {
         let ds = new DecompressionStream("gzip");
         let decompressedStream = blob.stream().pipeThrough(ds);
@@ -730,7 +644,7 @@ async function findChangesetInDiff(e) {
 
     const diffGZ = await GM.xmlHttpRequest({
         method: "GET",
-        url: gzURL + CCC[0],
+        url: gzURL,
         responseType: "blob"
     });
     let blob = await decompressBlob(diffGZ.response);
@@ -738,23 +652,141 @@ async function findChangesetInDiff(e) {
 
     const diffParser = new DOMParser();
     const doc = diffParser.parseFromString(diffXML, "application/xml");
-    let foundedChangeset = doc.querySelector(`osm changeset[id='${e.target.value}']`)
-    if (!foundedChangeset) {
-        const diffGZ = await GM.xmlHttpRequest({
-            method: "GET",
-            url: gzURL + CCC[1],
-            responseType: "blob"
-        });
-        let blob = await decompressBlob(diffGZ.response);
-        let diffXML = await blob.text()
+    return doc.querySelector(`osm changeset[id='${changesetId}']`)
+}
 
-        const diffParser = new DOMParser();
-        const doc = diffParser.parseFromString(diffXML, "application/xml");
-        foundedChangeset = doc.querySelector(`osm changeset[id='${e.target.value}']`)
-        if (!foundedChangeset) {
-            alert(":(")
-            return
+async function parseBBB(target, url) {
+    const response = await GM.xmlHttpRequest({
+        method: "GET",
+        url: planetOrigin + "/replication/changesets/" + url,
+    });
+    const parser = new DOMParser();
+    const BBBHTML = parser.parseFromString(response.responseText, "text/html");
+
+    let a = Array.from(BBBHTML.querySelector("pre").childNodes).slice(2)
+    let x = 0;
+    let found = false;
+    for (x; x < a.length; x += 2) {
+        let d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim())
+        if (target < d) {
+            found = true;
+            break
         }
+    }
+    if (x === 0) {
+        return found ? [a[x].getAttribute("href"), a[x].getAttribute("href")] : false
+    } else {
+        return found ? [a[x].getAttribute("href"), a[x - 2].getAttribute("href")] : false
+    }
+}
+
+async function parseCCC(target, url) {
+    const response = await GM.xmlHttpRequest({
+        method: "GET",
+        url: planetOrigin + "/replication/changesets/" + url,
+    });
+    const parser = new DOMParser();
+    const CCCHTML = parser.parseFromString(response.responseText, "text/html");
+
+    let a = Array.from(CCCHTML.querySelector("pre").childNodes).slice(2)
+    let x = 0;
+    let found = false;
+    for (x; x < a.length; x += 2) {
+        if (!a[x].textContent.match(/^\d+\.osm\.gz$/)) {
+            x += 2 // bypass .tmp files
+        }
+        let d = new Date(a[x + 1].textContent
+            .trim().slice(0, -1).trim()
+            .split(" ").slice(0, -1).join(" ").trim() + ' UTC')
+        if (target <= d) {
+            found = true;
+            break
+        }
+    }
+    if (!found) {
+        return false
+    }
+    if (x + 2 >= a.length) {
+        return [a[x].getAttribute("href"), a[x].getAttribute("href")]
+    }
+    try {
+        // state files are missing in old diffs folders
+        if (a[x + 2].getAttribute("href")?.match(/^\d+\.osm\.gz$/)) {
+            return [a[x].getAttribute("href"), a[x + 2].getAttribute("href")]
+        }
+    } catch { /* empty */ }
+    if (x + 4 >= a.length) {
+        return [a[x].getAttribute("href"), a[x].getAttribute("href")]
+    }
+    return [a[x].getAttribute("href"), a[x + 4].getAttribute("href")]
+}
+
+
+async function checkBBB(AAA, BBB, targetTime, targetChangesetID) {
+    let CCC = await parseCCC(targetTime, AAA + BBB);
+    if (!CCC) {
+        return;
+    }
+    let gzURL = planetOrigin + "/replication/changesets/" + AAA + BBB;
+
+    let foundedChangeset = await tryFindChangesetInDiffGZ(gzURL + CCC[0], targetChangesetID)
+    if (!foundedChangeset) {
+        foundedChangeset = await tryFindChangesetInDiffGZ(gzURL + CCC[1], targetChangesetID)
+    }
+    return foundedChangeset
+}
+
+async function checkAAA(AAA, targetTime, targetChangesetID) {
+    let BBBs = await parseBBB(targetTime, AAA)
+    if (!BBBs) {
+        return
+    }
+
+    let foundedChangeset = await checkBBB(AAA, BBBs[0], targetTime, targetChangesetID);
+    if (!foundedChangeset) {
+        foundedChangeset = await checkBBB(AAA, BBBs[1], targetTime, targetChangesetID);
+    }
+    return foundedChangeset
+}
+
+
+// tests
+// https://osm.org/way/488322838/history
+// https://osm.org/way/74034517/history
+// https://osm.org/relation/17425783/history
+// https://osm.org/node/2/history (very hard)
+async function findChangesetInDiff(e) {
+    const response = await GM.xmlHttpRequest({
+        method: "GET",
+        url: planetOrigin + "/replication/changesets/",
+    });
+    const parser = new DOMParser();
+    const AAAHTML = parser.parseFromString(response.responseText, "text/html");
+    const targetTime = new Date(e.target.datetime)
+    targetTime.setSeconds(0)
+    const targetChangesetID = e.target.value;
+
+    let a = Array.from(AAAHTML.querySelector("pre").childNodes).slice(2).slice(0, -4)
+    a.push(...a.slice(-2))
+    let x = 0;
+    for (x; x < a.length - 2; x += 2) {
+        let d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim())
+        if (targetTime < d) break
+    }
+    let AAAs;
+    if (x === 0) {
+        AAAs = [a[x].getAttribute("href"), a[x].getAttribute("href")]
+    } else {
+        AAAs = [a[x - 2].getAttribute("href"), a[x].getAttribute("href")]
+    }
+
+    let foundedChangeset = await checkAAA(AAAs[0], targetTime, targetChangesetID);
+    if (!foundedChangeset) {
+        foundedChangeset = await checkAAA(AAAs[1], targetTime, targetChangesetID);
+    }
+    if (!foundedChangeset) {
+        alert(":(")
+        return
     }
 
 
@@ -1098,6 +1130,7 @@ function setupVersionsDiff(path) {
     addDiffInHistory();
 }
 
+/*
 let HIDE_WAYS = true
 
 function addHideLinesForDataView() {
@@ -1117,7 +1150,8 @@ function addHideLinesForDataView() {
         obs.observe(g, {subtree: true, childList: true})
     }
 }
-
+*/
+/*
 function setupHideLinesForDataView(path) {
     if (!location.hash.includes("D")) {
         return;
@@ -1133,6 +1167,7 @@ function setupHideLinesForDataView(path) {
 function setupChangesetQuickLook(path) {
 
 }
+ */
 
 const rapidLink = "https://mapwith.ai/rapid#background=fb-mapwithai-maxar&disable_features=boundaries&map="
 let coordinatesObserver = null;
