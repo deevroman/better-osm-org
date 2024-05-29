@@ -1182,11 +1182,14 @@ function setupNewEditorsLinks() {
     }
     const curURL = editorsList.querySelector("li a").href
     const match = curURL.match(/map=(\d+)\/([\d.]+)\/([\d.]+)(&|$)/)
-    if (!match) {
+    if (!match && !curURL.includes("edit?editor=id")) {
         return
     }
     try {
         coordinatesObserver?.disconnect()
+        if (!curURL.includes("edit?editor=id#")) {
+            return;
+        }
         const zoom = match[1]
         const lat = match[2]
         const lon = match[3]
