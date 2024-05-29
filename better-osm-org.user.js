@@ -240,6 +240,8 @@ function setupRevertButton(path) {
     addRevertButton();
 }
 
+var sidebarObserver = null
+
 function setupCompactChangesetsHistory() {
     if (!location.pathname.includes("/history") && !location.pathname.includes("/changeset")) {
         return;
@@ -273,27 +275,31 @@ function setupCompactChangesetsHistory() {
         textContent: styleText,
     });
 
-    // remove useless
-    document.querySelectorAll("#sidebar .changesets .col").forEach((e) => {
-        e.childNodes[0].textContent = ""
+    sidebarObserver?.disconnect()
+    sidebarObserver = new MutationObserver(() => {
+        // remove useless
+        document.querySelectorAll("#sidebar .changesets .col").forEach((e) => {
+            e.childNodes[0].textContent = ""
+        })
+        // document.querySelector(".search_forms").remove() // make custom search via changesets
+        // copying id
+        document.querySelectorAll('#sidebar .col .changeset_id').forEach((item) => {
+            item.onclick = (e) => {
+                e.preventDefault();
+                let id = e.target.innerText.slice(1);
+                navigator.clipboard.writeText(id).then(() => {
+                    console.log(`Copying ${id} to clipboard was successful!`);
+                    e.target.classList.add("copied");
+                    setTimeout(() => {
+                        e.target.classList.remove("copied");
+                        e.target.classList.add("was-copied");
+                        setTimeout(() => e.target.classList.remove("was-copied"), 300);
+                    }, 300);
+                });
+            }
+        });
     })
-    // document.querySelector(".search_forms").remove() // make custom search via changesets
-    // copying id
-    document.querySelectorAll('#sidebar .col .changeset_id').forEach((item) => {
-        item.onclick = (e) => {
-            e.preventDefault();
-            let id = e.target.innerText.slice(1);
-            navigator.clipboard.writeText(id).then(() => {
-                console.log(`Copying ${id} to clipboard was successful!`);
-                e.target.classList.add("copied");
-                setTimeout(() => {
-                    e.target.classList.remove("copied");
-                    e.target.classList.add("was-copied");
-                    setTimeout(() => e.target.classList.remove("was-copied"), 300);
-                }, 300);
-            });
-        }
-    });
+    sidebarObserver.observe(document.body, {childList: true, subtree: true});
 }
 
 function addResolveNotesButtons() {
