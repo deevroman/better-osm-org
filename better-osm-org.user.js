@@ -869,6 +869,8 @@ function addHistoryLink() {
 // https://www.openstreetmap.org/node/2/history
 // https://www.openstreetmap.org/node/9286365017/history
 // https://www.openstreetmap.org/relation/72639/history
+// https://www.openstreetmap.org/node/10173297169/history
+// https://www.openstreetmap.org/relation/16022751/history
 function addDiffInHistory() {
     addHistoryLink();
     if (!location.pathname.includes("/history")
@@ -993,8 +995,8 @@ function addDiffInHistory() {
         kv.forEach(
             (i) => {
                 let k = i.querySelector("th > a")?.textContent ?? i.querySelector("th")?.textContent;
-                let v = i.querySelector("td .wdplugin")?.textContent ?? i.querySelector("td > a")?.textContent ?? i.querySelector("td")?.textContent;
-                if (!k) {
+                let v = i.querySelector("td .wdplugin")?.textContent ?? i.querySelector("td")?.textContent;
+                if (k === undefined) {
                     // Human-readable Wikidata extension compatibility
                     return
                 }
@@ -1046,7 +1048,7 @@ function addDiffInHistory() {
         }
         let childNodes = null
         if (location.pathname.includes("/way") || location.pathname.includes("/relation")) {
-            childNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li a:first-child")).map((el) => el.href)
+            childNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map((el) => el.textContent)
             let lastChildNodes = versions.slice(-1)[0].nodes
             if (version > 1 &&
                 (childNodes.length !== lastChildNodes.length
