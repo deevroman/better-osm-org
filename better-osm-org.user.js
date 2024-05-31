@@ -310,11 +310,11 @@ function addResolveNotesButtons() {
     try {
         // timeback button
         let timestamp = document.querySelector("#sidebar_content time").dateTime;
-        const mapsmeDate = document.querySelector(".note-description p")?.textContent?.match(/OSM data version: ([\d]{4}-[\d]{2}-[\d]{2}T[\d]{2}:[\d]{2}:[\d]{2}Z)/);
+        const mapsmeDate = document.querySelector(".overflow-hidden p")?.textContent?.match(/OSM data version: ([\d]{4}-[\d]{2}-[\d]{2}T[\d]{2}:[\d]{2}:[\d]{2}Z)/);
         if (mapsmeDate) {
             timestamp = mapsmeDate[1];
         }
-        const organicmapsDate = document.querySelector(".note-description p")?.textContent?.match(/OSM snapshot date: ([\d]{4}-[\d]{2}-[\d]{2}T[\d]{2}:[\d]{2}:[\d]{2}Z)/);
+        const organicmapsDate = document.querySelector(".overflow-hidden p")?.textContent?.match(/OSM snapshot date: ([\d]{4}-[\d]{2}-[\d]{2}T[\d]{2}:[\d]{2}:[\d]{2}Z)/);
         if (organicmapsDate) {
             timestamp = organicmapsDate[1];
         }
@@ -340,7 +340,7 @@ function addResolveNotesButtons() {
             window.open(`https://overpass-turbo.eu/?Q=${encodeURI(query)}&C=${lat};${lon};${zoom}&R`)
         }
     } catch (e) {
-        console.error("setup timebeck button fail");
+        console.error("setup timeback button fail");
         console.error(e);
     }
 
