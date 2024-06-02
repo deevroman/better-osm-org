@@ -15,7 +15,7 @@
 // @downloadURL  https://github.com/deevroman/better-osm-org/raw/master/better-osm-org.user.js
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=openstreetmap.org
 // @grant        GM_registerMenuCommand
-// @require      https://openuserjs.org/src/libs/sizzle/GM_config.js
+// @require      https://raw.githubusercontent.com/sizzlemctwizzle/GM_config/master/gm_config.js
 // @require      https://raw.githubusercontent.com/Zverik/osmtags-editor/main/osm-auth.iife.min.js
 // @grant        GM_getValue
 // @grant        GM_setValue
@@ -1315,10 +1315,121 @@ async function simplifyHDCYIframe() {
 
 let sidebarObserverForMassActions = null;
 let massActionsCheckboxesVisible = null;
-
+let currentMassDownloadedPages = null;
+// TODO support JOSM reverter after https://josm.openstreetmap.de/ticket/23701
 function setupMassChangesetsActions() {
     if (!location.pathname.includes("/history")) {
         return;
+    }
+
+    function addChangeSetCheckbox(chagesetElem) {
+        if (chagesetElem.querySelector(".mass-action-checkbox")) {
+            return;
+        }
+        const a = document.createElement("a");
+        a.classList.add("mass-action-wrapper")
+        const checkbox = document.createElement("input")
+        checkbox.type = "checkbox"
+        checkbox.classList.add("mass-action-checkbox")
+        checkbox.value = chagesetElem.querySelector(".changeset_id").href.match(/\/(\d+)/)[1]
+        checkbox.style.cursor = "pointer"
+        checkbox.onclick = e => {
+            if (e.shiftKey) {
+                let currentCheckboxFound = false
+                for (const cBox of Array.from(document.querySelectorAll(".mass-action-checkbox")).toReversed()) {
+                    if (!currentCheckboxFound) {
+                        if (cBox.value === checkbox.value) {
+                            currentCheckboxFound = true
+                        }
+                    } else {
+                        if (cBox.checked) {
+                            break
+                        }
+                        cBox.checked = true
+                    }
+                }
+            }
+            const selectedIDsCount = document.querySelectorAll(".mass-action-checkbox:checked").length
+            document.querySelectorAll(".copy-changesets-ids-btn").forEach(i => {
+                if (selectedIDsCount) {
+                    i.textContent = `Copy ${selectedIDsCount} IDs`
+                } else {
+                    i.textContent = `Copy IDs`
+                }
+            })
+        }
+        a.appendChild(checkbox)
+        chagesetElem.querySelector("p").prepend(a)
+        chagesetElem.querySelectorAll("a.changeset_id").forEach((i) => {
+            i.onclick = (e) => {
+                if (massActionsCheckboxesVisible) {
+                    e.preventDefault()
+                }
+            }
+        })
+    }
+
+    function makeTopActionBar() {
+        const actionsBar = document.createElement("div")
+        actionsBar.classList.add("actions-bar")
+        const copyIds = document.createElement("button")
+        copyIds.textContent = "Copy IDs"
+        copyIds.classList.add("copy-changesets-ids-btn")
+        copyIds.onclick = () => {
+            const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
+            navigator.clipboard.writeText(ids);
+        }
+        const revertButton = document.createElement("button")
+        revertButton.textContent = "↩️"
+        revertButton.onclick = () => {
+            const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
+            window.location = "https://revert.monicz.dev/?changesets=" + ids
+        }
+        actionsBar.appendChild(copyIds)
+        actionsBar.appendChild(document.createTextNode("\xA0"))
+        actionsBar.appendChild(revertButton)
+        return actionsBar;
+    }
+
+    function makeBottomActionBar() {
+        if (document.querySelector(".buttom-btn")) {
+            return
+        }
+        const copyIds = document.createElement("button")
+        const selectedIDsCount = document.querySelectorAll(".mass-action-checkbox:checked").length
+        if (selectedIDsCount) {
+            copyIds.textContent = `Copy ${selectedIDsCount} IDs`
+        } else {
+            copyIds.textContent = "Copy IDs"
+        }
+        copyIds.classList.add("copy-changesets-ids-btn")
+        copyIds.classList.add("buttom-btn")
+        copyIds.classList.add("btn", "btn-primary")
+        copyIds.onclick = () => {
+            const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
+            navigator.clipboard.writeText(ids);
+        }
+        const revertButton = document.createElement("button")
+        revertButton.textContent = "↩️"
+        revertButton.onclick = () => {
+            const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
+            window.location = "https://revert.monicz.dev/?changesets=" + ids
+        }
+        revertButton.classList.add("btn", "btn-primary")
+        const changesetMore = document.querySelector("#sidebar_content div.changeset_more")
+        if (changesetMore) {
+            changesetMore.appendChild(copyIds)
+            changesetMore.appendChild(document.createTextNode("\xA0"))
+            changesetMore.appendChild(revertButton)
+        } else {
+            const changesetsList = document.querySelector("#sidebar_content ol");
+            const actionBarWrapper = document.createElement("div")
+            actionBarWrapper.classList.add("mt-3", "text-center")
+            actionBarWrapper.appendChild(copyIds)
+            actionBarWrapper.appendChild(document.createTextNode("\xA0"))
+            actionBarWrapper.appendChild(revertButton)
+            changesetsList.appendChild(actionBarWrapper)
+        }
     }
 
     if (location.pathname.includes("user")
@@ -1327,72 +1438,30 @@ function setupMassChangesetsActions() {
         const a = document.createElement("a")
         a.textContent = " 📋"
         a.style.cursor = "pointer"
-        a.id = "mass-acti=on-btn"
+        a.id = "mass-action-btn"
         a.onclick = () => {
             if (massActionsCheckboxesVisible === null) {
                 massActionsCheckboxesVisible = true
-                const actionsBar = document.createElement("div")
-                actionsBar.id = "actions-bar"
-                const copyIds = document.createElement("button")
-                copyIds.textContent = "Copy IDs"
-                copyIds.onclick = () => {
-                    const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
-                    navigator.clipboard.writeText(ids);
-                }
-                const revertButton = document.createElement("button")
-                revertButton.textContent = "↩️"
-                revertButton.onclick = () => {
-                    const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
-                    window.location = "https://revert.monicz.dev/?changesets=" + ids
-                }
-                actionsBar.appendChild(copyIds)
-                actionsBar.appendChild(revertButton)
-                document.querySelector("#sidebar_content > div").after(actionsBar)
-                document.querySelectorAll(".changesets li").forEach(i => {
-                    const a = document.createElement("a");
-                    a.classList.add("mass-action-wrapper")
-                    const checkbox = document.createElement("input")
-                    checkbox.type = "checkbox"
-                    checkbox.classList.add("mass-action-checkbox")
-                    checkbox.value = i.querySelector(".changeset_id").href.match(/\/(\d+)/)[1]
-                    checkbox.style.cursor = "pointer"
-                    checkbox.onclick = e => {
-                        if (e.shiftKey) {
-                            let currentCheckboxFound = false
-                            for (const cBox of Array.from(document.querySelectorAll(".mass-action-checkbox")).toReversed()) {
-                                if (!currentCheckboxFound) {
-                                    if (cBox.value === checkbox.value) {
-                                        currentCheckboxFound = true
-                                    }
-                                } else {
-                                    if (cBox.checked) {
-                                        break
-                                    }
-                                    cBox.checked = true
-                                }
-                            }
-                        }
-                    }
-                    a.appendChild(checkbox)
-                    i.querySelector("p").prepend(a)
-                    i.querySelectorAll("a.changeset_id").forEach((i) => {
-                        i.onclick = (e) => {
-                            if (massActionsCheckboxesVisible) {
-                                e.preventDefault()
-                            }
-                        }
-                    })
-                })
+                document.querySelector("#sidebar_content > div").after(makeTopActionBar())
+                document.querySelector("#sidebar_content div.changeset_more").after(document.createTextNode("   "))
+                makeBottomActionBar()
+                document.querySelectorAll(".changesets li").forEach(addChangeSetCheckbox)
             } else {
                 massActionsCheckboxesVisible = !massActionsCheckboxesVisible
-                document.querySelector("#actions-bar").toggleAttribute("hidden")
-                document.querySelectorAll(".mass-action-checkbox").forEach(i => {i.toggleAttribute("hidden")})
+                document.querySelectorAll(".actions-bar").forEach(i => i.toggleAttribute("hidden"))
+                document.querySelectorAll(".mass-action-checkbox").forEach(i => {
+                    i.toggleAttribute("hidden")
+                })
             }
         }
         document.querySelector("#sidebar_content h2").appendChild(a)
     }
+    const MAX_PAGE_FOR_LOAD = 25;
     sidebarObserverForMassActions?.disconnect()
     sidebarObserverForMassActions = new MutationObserver(() => {
+        if (massActionsCheckboxesVisible) {
+            document.querySelectorAll(".changesets li").forEach(addChangeSetCheckbox)
+        }
         document.querySelectorAll('#sidebar .col .changeset_id').forEach((item) => {
             if (item.classList.contains("custom-changeset-id-click")) {
                 return
@@ -1414,6 +1483,33 @@ function setupMassChangesetsActions() {
                 return;
             }
         })
+        if (currentMassDownloadedPages && currentMassDownloadedPages <= MAX_PAGE_FOR_LOAD) {
+            const loader = document.querySelector(".changeset_more > .loader")
+            if (loader === null) {
+                makeBottomActionBar()
+            } else if (loader.style.display === "") {
+                document.querySelector(".changeset_more > a").click()
+                console.log(`Loading page #${currentMassDownloadedPages}`)
+                currentMassDownloadedPages++
+            }
+        } else if (currentMassDownloadedPages > MAX_PAGE_FOR_LOAD) {
+            currentMassDownloadedPages = null
+        } else {
+            if (!document.querySelector("#infinity-list-btn")) {
+                let moreButton = document.querySelector(".changeset_more > a")
+                const infinityList = document.createElement("button")
+                infinityList.classList.add("btn", "btn-primary")
+                infinityList.textContent = `Load ${20 * MAX_PAGE_FOR_LOAD}`
+                infinityList.id = "infinity-list-btn"
+                infinityList.onclick = () => {
+                    currentMassDownloadedPages = 1;
+                    moreButton.click()
+                    infinityList.remove()
+                }
+                moreButton.after(infinityList)
+                moreButton.after(document.createTextNode("\xA0"))
+            }
+        }
     })
     sidebarObserverForMassActions.observe(document.querySelector('#sidebar'), {childList: true, subtree: true});
 }
