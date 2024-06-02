@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Better osm.org
-// @version      0.3.4
+// @version      0.3.5
 // @description  Several improvements for advanced users of osm.org
 // @author       deevroman
 // @match        https://www.openstreetmap.org/*
@@ -113,6 +113,12 @@ GM_config.init(
                 'NewEditorsLinks':
                     {
                         'label': 'Add new editors (Rapid, ... ?)',
+                        'type': 'checkbox',
+                        'default': 'checked'
+                    },
+                'MassChangesetsActions':
+                    {
+                        'label': 'Add mass action for changesets (mass revert, ...)',
                         'type': 'checkbox',
                         'default': 'checked'
                     }
@@ -240,7 +246,7 @@ function setupRevertButton(path) {
     addRevertButton();
 }
 
-var sidebarObserver = null
+let sidebarObserver = null;
 
 function setupCompactChangesetsHistory() {
     if (!location.pathname.includes("/history") && !location.pathname.includes("/changeset")) {
@@ -275,31 +281,18 @@ function setupCompactChangesetsHistory() {
         textContent: styleText,
     });
 
-    sidebarObserver?.disconnect()
-    sidebarObserver = new MutationObserver(() => {
+    function handleNewChangesets() {
         // remove useless
         document.querySelectorAll("#sidebar .changesets .col").forEach((e) => {
             e.childNodes[0].textContent = ""
         })
         // document.querySelector(".search_forms").remove() // make custom search via changesets
-        // copying id
-        document.querySelectorAll('#sidebar .col .changeset_id').forEach((item) => {
-            item.onclick = (e) => {
-                e.preventDefault();
-                let id = e.target.innerText.slice(1);
-                navigator.clipboard.writeText(id).then(() => {
-                    console.log(`Copying ${id} to clipboard was successful!`);
-                    e.target.classList.add("copied");
-                    setTimeout(() => {
-                        e.target.classList.remove("copied");
-                        e.target.classList.add("was-copied");
-                        setTimeout(() => e.target.classList.remove("was-copied"), 300);
-                    }, 300);
-                });
-            }
-        });
-    })
-    sidebarObserver.observe(document.querySelector('#sidebar'), {childList: true, subtree: true});
+    }
+
+    handleNewChangesets();
+    sidebarObserver?.disconnect();
+    sidebarObserver = new MutationObserver(handleNewChangesets);
+    sidebarObserver.observe(document.querySelector('#sidebar_content'), {childList: true, subtree: true});
 }
 
 function addResolveNotesButtons() {
@@ -736,7 +729,8 @@ async function parseCCC(target, url) {
         if (a[x + 2].getAttribute("href")?.match(/^\d+\.osm\.gz$/)) {
             return [a[x].getAttribute("href"), a[x + 2].getAttribute("href")]
         }
-    } catch { /* empty */ }
+    } catch { /* empty */
+    }
     if (x + 4 >= a.length) {
         return [a[x].getAttribute("href"), a[x].getAttribute("href")]
     }
@@ -898,6 +892,7 @@ function addDiffInHistory() {
     if (!location.pathname.includes("/history")
         || location.pathname === "/history"
         || location.pathname.includes("/history/")
+        || location.pathname.includes("/user/")
     ) return;
     if (document.querySelector(".compact-toggle-btn")) {
         return;
@@ -1318,9 +1313,115 @@ async function simplifyHDCYIframe() {
     }
 }
 
-let modules = [
+let sidebarObserverForMassActions = null;
+let massActionsCheckboxesVisible = null;
+
+function setupMassChangesetsActions() {
+    if (!location.pathname.includes("/history")) {
+        return;
+    }
+
+    if (location.pathname.includes("user")
+        && document.querySelector("#sidebar_content h2")
+        && !document.querySelector("#mass-action-btn")) {
+        const a = document.createElement("a")
+        a.textContent = " 📋"
+        a.style.cursor = "pointer"
+        a.id = "mass-acti=on-btn"
+        a.onclick = () => {
+            if (massActionsCheckboxesVisible === null) {
+                massActionsCheckboxesVisible = true
+                const actionsBar = document.createElement("div")
+                actionsBar.id = "actions-bar"
+                const copyIds = document.createElement("button")
+                copyIds.textContent = "Copy IDs"
+                copyIds.onclick = () => {
+                    const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
+                    navigator.clipboard.writeText(ids);
+                }
+                const revertButton = document.createElement("button")
+                revertButton.textContent = "↩️"
+                revertButton.onclick = () => {
+                    const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
+                    window.location = "https://revert.monicz.dev/?changesets=" + ids
+                }
+                actionsBar.appendChild(copyIds)
+                actionsBar.appendChild(revertButton)
+                document.querySelector("#sidebar_content > div").after(actionsBar)
+                document.querySelectorAll(".changesets li").forEach(i => {
+                    const a = document.createElement("a");
+                    a.classList.add("mass-action-wrapper")
+                    const checkbox = document.createElement("input")
+                    checkbox.type = "checkbox"
+                    checkbox.classList.add("mass-action-checkbox")
+                    checkbox.value = i.querySelector(".changeset_id").href.match(/\/(\d+)/)[1]
+                    checkbox.style.cursor = "pointer"
+                    checkbox.onclick = e => {
+                        if (e.shiftKey) {
+                            let currentCheckboxFound = false
+                            for (const cBox of Array.from(document.querySelectorAll(".mass-action-checkbox")).toReversed()) {
+                                if (!currentCheckboxFound) {
+                                    if (cBox.value === checkbox.value) {
+                                        currentCheckboxFound = true
+                                    }
+                                } else {
+                                    if (cBox.checked) {
+                                        break
+                                    }
+                                    cBox.checked = true
+                                }
+                            }
+                        }
+                    }
+                    a.appendChild(checkbox)
+                    i.querySelector("p").prepend(a)
+                    i.querySelectorAll("a.changeset_id").forEach((i) => {
+                        i.onclick = (e) => {
+                            if (massActionsCheckboxesVisible) {
+                                e.preventDefault()
+                            }
+                        }
+                    })
+                })
+            } else {
+                massActionsCheckboxesVisible = !massActionsCheckboxesVisible
+                document.querySelector("#actions-bar").toggleAttribute("hidden")
+                document.querySelectorAll(".mass-action-checkbox").forEach(i => {i.toggleAttribute("hidden")})
+            }
+        }
+        document.querySelector("#sidebar_content h2").appendChild(a)
+    }
+    sidebarObserverForMassActions?.disconnect()
+    sidebarObserverForMassActions = new MutationObserver(() => {
+        document.querySelectorAll('#sidebar .col .changeset_id').forEach((item) => {
+            if (item.classList.contains("custom-changeset-id-click")) {
+                return
+            }
+            item.classList.add("custom-changeset-id-click")
+            item.onclick = (e) => {
+                e.preventDefault();
+                // copying id
+                let id = e.target.innerText.slice(1);
+                navigator.clipboard.writeText(id).then(() => {
+                    console.log(`Copying ${id} to clipboard was successful!`);
+                    e.target.classList.add("copied");
+                    setTimeout(() => {
+                        e.target.classList.remove("copied");
+                        e.target.classList.add("was-copied");
+                        setTimeout(() => e.target.classList.remove("was-copied"), 300);
+                    }, 300);
+                });
+                return;
+            }
+        })
+    })
+    sidebarObserverForMassActions.observe(document.querySelector('#sidebar'), {childList: true, subtree: true});
+}
+
+const modules = [
     setupHDYCInProfile,
     setupCompactChangesetsHistory,
+    setupMassChangesetsActions,
     setupRevertButton,
     setupResolveNotesButtons,
     setupDeletor,
