@@ -74,4 +74,7 @@
 
 
 Maybe
-- [ ] Mass revert (via JOSM?)
+- [ ] Mass revert
+  - [x] via osm-revert
+  - [x] copy ids for JOSM
+  - [ ] via remote control JOSM
