@@ -325,7 +325,8 @@ function addResolveNotesButtons() {
         const lon = document.querySelector("#sidebar_content .longitude").textContent.replace(",", ".");
         const zoom = 18;
         const query =
-            `[date:"${timestamp}"]; // via ${timeSource}
+            `// via ${timeSource}
+    [date:"${timestamp}"]; 
     (
       node({{bbox}});
       way({{bbox}});
