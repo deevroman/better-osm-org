@@ -299,7 +299,7 @@ function setupCompactChangesetsHistory() {
             }
         });
     })
-    sidebarObserver.observe(document.body, {childList: true, subtree: true});
+    sidebarObserver.observe(document.querySelector('#sidebar'), {childList: true, subtree: true});
 }
 
 function addResolveNotesButtons() {
@@ -310,19 +310,22 @@ function addResolveNotesButtons() {
     try {
         // timeback button
         let timestamp = document.querySelector("#sidebar_content time").dateTime;
+        let timeSource = "note creation date"
         const mapsmeDate = document.querySelector(".overflow-hidden p")?.textContent?.match(/OSM data version: ([\d]{4}-[\d]{2}-[\d]{2}T[\d]{2}:[\d]{2}:[\d]{2}Z)/);
         if (mapsmeDate) {
             timestamp = mapsmeDate[1];
+            timeSource = "MAPS.ME snapshot date"
         }
         const organicmapsDate = document.querySelector(".overflow-hidden p")?.textContent?.match(/OSM snapshot date: ([\d]{4}-[\d]{2}-[\d]{2}T[\d]{2}:[\d]{2}:[\d]{2}Z)/);
         if (organicmapsDate) {
             timestamp = organicmapsDate[1];
+            timeSource = "Organic Maps snapshot date"
         }
         const lat = document.querySelector("#sidebar_content .latitude").textContent.replace(",", ".");
         const lon = document.querySelector("#sidebar_content .longitude").textContent.replace(",", ".");
         const zoom = 18;
         const query =
-            `[date:"${timestamp}"];
+            `[date:"${timestamp}"]; // via ${timeSource}
     (
       node({{bbox}});
       way({{bbox}});
@@ -339,9 +342,8 @@ function addResolveNotesButtons() {
         btn.onclick = () => {
             window.open(`https://overpass-turbo.eu/?Q=${encodeURI(query)}&C=${lat};${lon};${zoom}&R`)
         }
-    } catch (e) {
+    } catch {
         console.error("setup timeback button fail");
-        console.error(e);
     }
 
     if (!document.querySelector("#sidebar_content textarea.form-control")) {
@@ -492,12 +494,25 @@ function setupDeletor(path) {
     addDeleteButton();
 }
 
+let mapDataSwitcherUnderSupervision = false
+
 function hideNoteHighlight() {
     let g = document.querySelector("g");
     if (!g || g.childElementCount === 0) return;
+    let mapDataCheckbox = document.querySelector(".layers-ui li:nth-child(2) > label:nth-child(1) > input:nth-child(1)")
+    if (!mapDataCheckbox.checked) {
+        if (mapDataSwitcherUnderSupervision) return;
+        mapDataSwitcherUnderSupervision = true
+        mapDataCheckbox.addEventListener("click", () => {
+            mapDataSwitcherUnderSupervision = false
+            hideNoteHighlight();
+        }, {once: true})
+        return;
+    }
     if (g.childNodes[g.childElementCount - 1].getAttribute("stroke") === "#FF6200"
         && g.childNodes[g.childElementCount - 1].getAttribute("d").includes("a20,20 0 1,0 -40,0 ")) {
         g.childNodes[g.childElementCount - 1].remove();
+        document.querySelector("img.leaflet-marker-icon:last-child").style.filter = "contrast(120%)";
     }
 }
 
@@ -1193,7 +1208,7 @@ function setupNewEditorsLinks() {
     }
     try {
         coordinatesObserver?.disconnect()
-        if (!curURL.includes("edit?editor=id#")) {
+        if (!curURL.includes("edit?editor=id#") || !match) {
             return;
         }
         const zoom = match[1]
