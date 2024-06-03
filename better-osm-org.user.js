@@ -120,7 +120,7 @@ GM_config.init(
                     {
                         'label': 'Add mass action for changesets (mass revert, ...)',
                         'type': 'checkbox',
-                        'default': 'checked'
+                        // 'default': 'checked'
                     }
             },
         frameStyle: `
@@ -1316,6 +1316,7 @@ async function simplifyHDCYIframe() {
 let sidebarObserverForMassActions = null;
 let massActionsCheckboxesVisible = null;
 let currentMassDownloadedPages = null;
+
 // TODO support JOSM reverter after https://josm.openstreetmap.de/ticket/23701
 function setupMassChangesetsActions() {
     if (!location.pathname.includes("/history")) {
@@ -1456,11 +1457,211 @@ function setupMassChangesetsActions() {
         }
         document.querySelector("#sidebar_content h2").appendChild(a)
     }
+
+    function filterChangesets() {
+        const usernameFilters = document.querySelector("#filter-by-user-input").value.trim().split(",").filter(i => i.trim() !== "")
+        const commentFilters = document.querySelector("#filter-by-comment-input").value.trim().split(",").filter(i => i.trim() !== "")
+        document.querySelectorAll("ol li").forEach(i => {
+            const changesetComment = i.querySelector("a:nth-child(1) span").textContent
+            const changesetAuthor = i.querySelector("a:nth-child(2)").textContent
+            let bbox;
+            if (i.getAttribute("data-changeset")) {
+                bbox = Object.values(JSON.parse(i.getAttribute("data-changeset")).bbox)
+            } else {
+                bbox = Object.values(JSON.parse(i.getAttribute("hidden-data-changeset")).bbox)
+            }
+            bbox = bbox.map(parseFloat)
+            const deltaLon = bbox[2] - bbox[0]
+            const deltaLat = bbox[3] - bbox[1]
+            const bboxSizeLimit = 2
+            let wasHidden = false
+            if (deltaLat > bboxSizeLimit || deltaLon > bboxSizeLimit) {
+                wasHidden = true
+                if (i.getAttribute("data-changeset")) {
+                    i.setAttribute("hidden-data-changeset", i.getAttribute("data-changeset"))
+                    i.removeAttribute("data-changeset")
+                    i.setAttribute("hidden", true)
+                } else {
+                    // FIXME
+                }
+            }
+            if (!wasHidden) {
+                let invert = document.querySelector("#invert-user-filter-checkbox").getAttribute("checked") === "true"
+                usernameFilters.forEach(username => {
+                    if (changesetAuthor.includes(username.trim()) ^ invert) {
+                        if (i.getAttribute("data-changeset")) {
+                            i.setAttribute("hidden-data-changeset", i.getAttribute("data-changeset"))
+                            i.removeAttribute("data-changeset")
+                            i.setAttribute("hidden", true)
+                        } else {
+                            // FIXME
+                        }
+                        wasHidden = true
+                    }
+                })
+            }
+            if (!wasHidden) {
+                let invert = document.querySelector("#invert-comment-filter-checkbox").getAttribute("checked") === "true"
+                commentFilters.forEach(comment => {
+                    if (changesetComment.includes(comment.trim()) ^ invert) {
+                        if (i.getAttribute("data-changeset")) {
+                            i.setAttribute("hidden-data-changeset", i.getAttribute("data-changeset"))
+                            i.removeAttribute("data-changeset")
+                            i.setAttribute("hidden", true)
+                        } else {
+                            // FIXME
+                        }
+                        wasHidden = true
+                    }
+                })
+            }
+            if (!wasHidden) {
+                if (i.getAttribute("hidden-data-changeset")) {
+                    i.setAttribute("data-changeset", i.getAttribute("hidden-data-changeset"))
+                    i.removeAttribute("hidden-data-changeset")
+                    i.removeAttribute("hidden")
+                } else {
+                    // FIXME
+                }
+            }
+            console.log(bbox);
+        })
+    }
+
+    function makeUsernamesFilterable(i) {
+        if (i.classList.contains("listen-for-filters")) {
+            return
+        }
+        i.classList.add("listen-for-filters")
+        i.onclick = (e) => {
+            if (massActionsCheckboxesVisible && (!e.metaKey && !e.ctrlKey)) {
+                e.preventDefault()
+                const filterByUsersInput = document.querySelector("#filter-by-user-input")
+                if (filterByUsersInput.value === "") {
+                    filterByUsersInput.value = e.target.textContent
+                } else {
+                    filterByUsersInput.value = filterByUsersInput.value + "," + e.target.textContent
+                }
+                filterChangesets()
+                document.querySelector(".changeset_more > a").click()
+            }
+        }
+    }
+
+    if (location.pathname === "/history"
+        && document.querySelector("#sidebar_content h2")
+        && !document.querySelector("#changesets-filter-btn")) {
+        const a = document.createElement("a")
+        a.textContent = " 🔎"
+        a.style.cursor = "pointer"
+        a.id = "changesets-filter-btn"
+        a.onclick = () => {
+            function makeTopFilterBar() {
+                const filterBar = document.createElement("div")
+                filterBar.classList.add("filter-bar")
+
+                const label = document.createElement("span")
+                label.textContent = "🔄Hide changesets from "
+                label.style.minWidth = "165px";
+                label.style.display = "inline-block";
+                label.style.cursor = "pointer"
+                label.setAttribute("checked", false)
+                label.id = "invert-user-filter-checkbox"
+                label.onclick = e => {
+                    if (e.target.textContent === "🔄Hide changesets from ") {
+                        e.target.textContent = "🔄Show changesets from "
+                    } else {
+                        e.target.textContent = "🔄Hide changesets from "
+                    }
+                    if (e.target.getAttribute("checked") === "false") {
+                        e.target.setAttribute("checked", true)
+                    } else {
+                        e.target.setAttribute("checked", false)
+                    }
+                    if (document.querySelector("#invert-user-filter-checkbox").value !== "") {
+                        filterChangesets();
+                        document.querySelector(".changeset_more > a").click();
+                    }
+                }
+                filterBar.appendChild(label)
+                const filterByUsersInput = document.createElement("input")
+                filterByUsersInput.id = "filter-by-user-input"
+                filterByUsersInput.style.width = "250px"
+                filterByUsersInput.style.marginBottom = "3px"
+                filterByUsersInput.addEventListener("keypress", function (event) {
+                    if (event.key === "Enter") {
+                        event.preventDefault();
+                        filterChangesets();
+                        document.querySelector(".changeset_more > a").click()
+                    }
+                });
+                filterBar.appendChild(filterByUsersInput)
+
+                const label2 = document.createElement("span")
+                label2.textContent = "🔄Hide changesets with "
+                label2.style.minWidth = "165px";
+                label2.style.display = "inline-block";
+                label2.style.cursor = "pointer"
+                label2.id = "invert-comment-filter-checkbox"
+                label2.setAttribute("checked", false)
+                label2.onclick = e => {
+                    if (e.target.textContent === "🔄Hide changesets with ") {
+                        e.target.textContent = "🔄Show changesets with "
+                    } else {
+                        e.target.textContent = "🔄Hide changesets with "
+                    }
+                    if (e.target.getAttribute("checked") === "false") {
+                        e.target.setAttribute("checked", true)
+                    } else {
+                        e.target.setAttribute("checked", false)
+                    }
+                    if (document.querySelector("#filter-by-comment-input").value !== "") {
+                        filterChangesets();
+                        document.querySelector(".changeset_more > a").click();
+                    }
+                }
+                filterBar.appendChild(label2)
+                const filterByCommentInput = document.createElement("input")
+                filterByCommentInput.id = "filter-by-comment-input"
+                filterByCommentInput.style.width = "250px"
+                filterByCommentInput.addEventListener("keypress", function (event) {
+                    if (event.key === "Enter") {
+                        event.preventDefault();
+                        filterChangesets();
+                        document.querySelector(".changeset_more > a").click()
+                    }
+                });
+                filterBar.appendChild(filterByCommentInput)
+
+                return filterBar
+            }
+
+            if (massActionsCheckboxesVisible === null) {
+                massActionsCheckboxesVisible = true
+                document.querySelector("#sidebar_content > div").after(makeTopFilterBar())
+                document.querySelectorAll("ol li a:nth-child(2)").forEach(makeUsernamesFilterable)
+            } else {
+                massActionsCheckboxesVisible = !massActionsCheckboxesVisible
+                document.querySelectorAll(".filter-bar").forEach(i => i.toggleAttribute("hidden"))
+                document.querySelectorAll(".mass-action-checkbox").forEach(i => {
+                    // i.toggleAttribute("hidden")
+                })
+            }
+        }
+        document.querySelector("#sidebar_content h2").appendChild(a)
+    }
     const MAX_PAGE_FOR_LOAD = 25;
     sidebarObserverForMassActions?.disconnect()
-    sidebarObserverForMassActions = new MutationObserver(() => {
-        if (massActionsCheckboxesVisible) {
+
+    function observerHandler() {
+        if (massActionsCheckboxesVisible && location.pathname !== "/history") {
             document.querySelectorAll(".changesets li").forEach(addChangeSetCheckbox)
+        }
+        if (massActionsCheckboxesVisible) {
+            document.querySelectorAll("ol li a:nth-child(2)").forEach(makeUsernamesFilterable)
+            // sidebarObserverForMassActions?.disconnect()
+            filterChangesets() // todo
+            // sidebarObserverForMassActions.observe(document.querySelector('#sidebar'), {childList: true, subtree: true});
         }
         document.querySelectorAll('#sidebar .col .changeset_id').forEach((item) => {
             if (item.classList.contains("custom-changeset-id-click")) {
@@ -1497,6 +1698,9 @@ function setupMassChangesetsActions() {
         } else {
             if (!document.querySelector("#infinity-list-btn")) {
                 let moreButton = document.querySelector(".changeset_more > a")
+                if (!moreButton) {
+                    return
+                }
                 const infinityList = document.createElement("button")
                 infinityList.classList.add("btn", "btn-primary")
                 infinityList.textContent = `Load ${20 * MAX_PAGE_FOR_LOAD}`
@@ -1510,7 +1714,9 @@ function setupMassChangesetsActions() {
                 moreButton.after(document.createTextNode("\xA0"))
             }
         }
-    })
+    }
+
+    sidebarObserverForMassActions = new MutationObserver(observerHandler)
     sidebarObserverForMassActions.observe(document.querySelector('#sidebar'), {childList: true, subtree: true});
 }
 
