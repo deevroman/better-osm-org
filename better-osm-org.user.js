@@ -706,9 +706,16 @@ async function parseCCC(target, url) {
     let a = Array.from(CCCHTML.querySelector("pre").childNodes).slice(2)
     let x = 0;
     let found = false;
+    /**
+     * HTML format:
+     *              xxx.ext         datetime
+     *              xxx.state.txt   datetime <for new changesets>
+     *              file.tmp        datetime <sometimes>
+     *              yyy.ext         ....
+     */
     for (x; x < a.length; x += 2) {
         if (!a[x].textContent.match(/^\d+\.osm\.gz$/)) {
-            x += 2 // bypass .tmp files
+            continue
         }
         let d = new Date(a[x + 1].textContent
             .trim().slice(0, -1).trim()
@@ -770,6 +777,8 @@ async function checkAAA(AAA, targetTime, targetChangesetID) {
 // https://osm.org/way/488322838/history
 // https://osm.org/way/74034517/history
 // https://osm.org/relation/17425783/history
+// https://osm.org/way/554280669/history
+// https://osm.org/node/4122049406 (/replication/changesets/005/638/ contains .tmp files)
 // https://osm.org/node/2/history (very hard)
 async function findChangesetInDiff(e) {
     const response = await GM.xmlHttpRequest({
