@@ -15,7 +15,7 @@
 // @downloadURL  https://github.com/deevroman/better-osm-org/raw/master/better-osm-org.user.js
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=openstreetmap.org
 // @grant        GM_registerMenuCommand
-// @require      https://raw.githubusercontent.com/sizzlemctwizzle/GM_config/master/gm_config.js
+// @require      https://openuserjs.org/src/libs/sizzle/GM_config.js
 // @require      https://raw.githubusercontent.com/Zverik/osmtags-editor/main/osm-auth.iife.min.js
 // @grant        GM_getValue
 // @grant        GM_setValue
@@ -122,7 +122,7 @@ GM_config.init(
                     {
                         'label': 'Add mass action for changesets (mass revert, ...)',
                         'type': 'checkbox',
-                        // 'default': 'checked'
+                        'default': 'checked'
                     }
             },
         frameStyle: `
@@ -1856,6 +1856,12 @@ function setupMassChangesetsActions() {
     }, 5000);
     addMassChangesetsActions();
 }
+
+// Модули должны стать классами
+// - поддерживается всеми браузерами, в которых есть TM
+// - изоляция функций и глобальных переменных
+// - для модулей, которые внедряются черзе setInterval можно сохранить таймер, чтобы предотвратить дублирование вызовов
+// - возможность сохранить результат внедрения
 
 
 const modules = [
