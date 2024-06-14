@@ -38,6 +38,8 @@
 /*global GM_config*/
 /*global GM_addElement*/
 /*global GM_getResourceURL*/
+/*global unsafeWindow*/
+/*global exportFunction*/
 GM_config.init(
     {
         'id': 'Config',
@@ -304,12 +306,12 @@ function addResolveNotesButtons() {
         // timeback button
         let timestamp = document.querySelector("#sidebar_content time").dateTime;
         let timeSource = "note creation date"
-        const mapsmeDate = document.querySelector(".overflow-hidden p")?.textContent?.match(/OSM data version: ([\d]{4}-[\d]{2}-[\d]{2}T[\d]{2}:[\d]{2}:[\d]{2}Z)/);
+        const mapsmeDate = document.querySelector(".overflow-hidden p")?.textContent?.match(/OSM data version: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/);
         if (mapsmeDate) {
             timestamp = mapsmeDate[1];
             timeSource = "MAPS.ME snapshot date"
         }
-        const organicmapsDate = document.querySelector(".overflow-hidden p")?.textContent?.match(/OSM snapshot date: ([\d]{4}-[\d]{2}-[\d]{2}T[\d]{2}:[\d]{2}:[\d]{2}Z)/);
+        const organicmapsDate = document.querySelector(".overflow-hidden p")?.textContent?.match(/OSM snapshot date: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/);
         if (organicmapsDate) {
             timestamp = organicmapsDate[1];
             timeSource = "Organic Maps snapshot date"
@@ -319,14 +321,14 @@ function addResolveNotesButtons() {
         const zoom = 18;
         const query =
             `// via ${timeSource}
-    [date:"${timestamp}"]; 
-    (
-      node({{bbox}});
-      way({{bbox}});
-      //relation({{bbox}});
-    );
-    (._;>;);
-    out meta;
+[date:"${timestamp}"]; 
+(
+  node({{bbox}});
+  way({{bbox}});
+  //relation({{bbox}});
+);
+(._;>;);
+out meta;
     `;
         let btn = document.createElement("a")
         btn.id = "timeback-btn";
@@ -772,6 +774,15 @@ async function checkAAA(AAA, targetTime, targetChangesetID) {
     return foundedChangeset
 }
 
+function copyAnimation(e, text) {
+    console.log(`Copying ${text} to clipboard was successful!`);
+    e.target.classList.add("copied");
+    setTimeout(() => {
+        e.target.classList.remove("copied");
+        e.target.classList.add("was-copied");
+        setTimeout(() => e.target.classList.remove("was-copied"), 300);
+    }, 300);
+}
 
 // tests
 // https://osm.org/way/488322838/history
@@ -823,15 +834,7 @@ async function findChangesetInDiff(e) {
     function clickForCopy(e) {
         e.preventDefault();
         let id = e.target.innerText;
-        navigator.clipboard.writeText(id).then(() => {
-            console.log(`Copying ${id} to clipboard was successful!`);
-            e.target.classList.add("copied");
-            setTimeout(() => {
-                e.target.classList.remove("copied");
-                e.target.classList.add("was-copied");
-                setTimeout(() => e.target.classList.remove("was-copied"), 300);
-            }, 300);
-        });
+        navigator.clipboard.writeText(id).then(() => copyAnimation(e, id));
     }
 
     userInfo.onclick = clickForCopy
@@ -1323,240 +1326,260 @@ async function simplifyHDCYIframe() {
 }
 
 let sidebarObserverForMassActions = null;
-let massActionsCheckboxesVisible = null;
+let massModeForUserChangesetsActive = null;
+let massModeActive = null;
 let currentMassDownloadedPages = null;
+let needClearLoadMoreRequest = false;
+let needPatchLoadMoreRequest = null;
+let needHideBigChangesets = true;
+let hiddenChangesetsCount = null;
+let lastLoadMoreURL = "";
 
-// TODO support JOSM reverter after https://josm.openstreetmap.de/ticket/23701
-function setupMassChangesetsActions() {
-    if (!location.pathname.includes("/history")) {
+function makeTopActionBar() {
+    const actionsBar = document.createElement("div")
+    actionsBar.classList.add("actions-bar")
+    const copyIds = document.createElement("button")
+    copyIds.textContent = "Copy IDs"
+    copyIds.classList.add("copy-changesets-ids-btn")
+    copyIds.onclick = () => {
+        const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
+        navigator.clipboard.writeText(ids);
+    }
+    const revertButton = document.createElement("button")
+    revertButton.textContent = "↩️"
+    revertButton.onclick = () => {
+        const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
+        window.location = "https://revert.monicz.dev/?changesets=" + ids
+    }
+    actionsBar.appendChild(copyIds)
+    actionsBar.appendChild(document.createTextNode("\xA0"))
+    actionsBar.appendChild(revertButton)
+    return actionsBar;
+}
+
+function makeBottomActionBar() {
+    if (document.querySelector(".buttom-btn")) return
+
+    const copyIds = document.createElement("button")
+    const selectedIDsCount = document.querySelectorAll(".mass-action-checkbox:checked").length
+    if (selectedIDsCount) {
+        copyIds.textContent = `Copy ${selectedIDsCount} IDs`
+    } else {
+        copyIds.textContent = "Copy IDs"
+    }
+    copyIds.classList.add("copy-changesets-ids-btn")
+    copyIds.classList.add("buttom-btn")
+    copyIds.classList.add("btn", "btn-primary")
+    copyIds.onclick = () => {
+        const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
+        navigator.clipboard.writeText(ids);
+    }
+    const revertButton = document.createElement("button")
+    revertButton.textContent = "↩️"
+    revertButton.onclick = () => {
+        const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
+        window.location = "https://revert.monicz.dev/?changesets=" + ids
+    }
+    revertButton.classList.add("btn", "btn-primary")
+    const changesetMore = document.querySelector("#sidebar_content div.changeset_more")
+    if (changesetMore) {
+        changesetMore.appendChild(copyIds)
+        changesetMore.appendChild(document.createTextNode("\xA0"))
+        changesetMore.appendChild(revertButton)
+    } else {
+        const changesetsList = document.querySelector("#sidebar_content ol");
+        const actionBarWrapper = document.createElement("div")
+        actionBarWrapper.classList.add("mt-3", "text-center")
+        actionBarWrapper.appendChild(copyIds)
+        actionBarWrapper.appendChild(document.createTextNode("\xA0"))
+        actionBarWrapper.appendChild(revertButton)
+        changesetsList.appendChild(actionBarWrapper)
+    }
+}
+
+function addMassActionForUserChangesets() {
+    if (!location.pathname.includes("/user/") || document.querySelector("#mass-action-btn")) {
         return;
     }
-
-    function addChangeSetCheckbox(chagesetElem) {
-        if (chagesetElem.querySelector(".mass-action-checkbox")) {
-            return;
+    const a = document.createElement("a")
+    a.textContent = " 📋"
+    a.style.cursor = "pointer"
+    a.id = "mass-action-btn"
+    a.onclick = () => {
+        if (massModeForUserChangesetsActive === null) {
+            massModeForUserChangesetsActive = true
+            document.querySelector("#sidebar_content > div").after(makeTopActionBar())
+            document.querySelector("#sidebar_content div.changeset_more").after(document.createTextNode("   "))
+            makeBottomActionBar()
+            document.querySelectorAll(".changesets li").forEach(addChangesetCheckbox)
+        } else {
+            massModeForUserChangesetsActive = !massModeForUserChangesetsActive
+            document.querySelectorAll(".actions-bar").forEach(i => i.toggleAttribute("hidden"))
+            document.querySelectorAll(".mass-action-checkbox").forEach(i => {
+                i.toggleAttribute("hidden")
+            })
         }
-        const a = document.createElement("a");
-        a.classList.add("mass-action-wrapper")
-        const checkbox = document.createElement("input")
-        checkbox.type = "checkbox"
-        checkbox.classList.add("mass-action-checkbox")
-        checkbox.value = chagesetElem.querySelector(".changeset_id").href.match(/\/(\d+)/)[1]
-        checkbox.style.cursor = "pointer"
-        checkbox.onclick = e => {
-            if (e.shiftKey) {
-                let currentCheckboxFound = false
-                for (const cBox of Array.from(document.querySelectorAll(".mass-action-checkbox")).toReversed()) {
-                    if (!currentCheckboxFound) {
-                        if (cBox.value === checkbox.value) {
-                            currentCheckboxFound = true
-                        }
-                    } else {
-                        if (cBox.checked) {
-                            break
-                        }
-                        cBox.checked = true
+    }
+    document.querySelector("#sidebar_content h2").appendChild(a)
+}
+
+function addChangesetCheckbox(chagesetElem) {
+    if (chagesetElem.querySelector(".mass-action-checkbox")) {
+        return;
+    }
+    const a = document.createElement("a");
+    a.classList.add("mass-action-wrapper")
+    const checkbox = document.createElement("input")
+    checkbox.type = "checkbox"
+    checkbox.classList.add("mass-action-checkbox")
+    checkbox.value = chagesetElem.querySelector(".changeset_id").href.match(/\/(\d+)/)[1]
+    checkbox.style.cursor = "pointer"
+    checkbox.onclick = e => {
+        if (e.shiftKey) {
+            let currentCheckboxFound = false
+            for (const cBox of Array.from(document.querySelectorAll(".mass-action-checkbox")).toReversed()) {
+                if (!currentCheckboxFound) {
+                    if (cBox.value === checkbox.value) {
+                        currentCheckboxFound = true
                     }
+                } else {
+                    if (cBox.checked) {
+                        break
+                    }
+                    cBox.checked = true
                 }
             }
-            const selectedIDsCount = document.querySelectorAll(".mass-action-checkbox:checked").length
-            document.querySelectorAll(".copy-changesets-ids-btn").forEach(i => {
-                if (selectedIDsCount) {
-                    i.textContent = `Copy ${selectedIDsCount} IDs`
-                } else {
-                    i.textContent = `Copy IDs`
+        }
+        const selectedIDsCount = document.querySelectorAll(".mass-action-checkbox:checked").length
+        document.querySelectorAll(".copy-changesets-ids-btn").forEach(i => {
+            if (selectedIDsCount) {
+                i.textContent = `Copy ${selectedIDsCount} IDs`
+            } else {
+                i.textContent = `Copy IDs`
+            }
+        })
+    }
+    a.appendChild(checkbox)
+    chagesetElem.querySelector("p").prepend(a)
+    chagesetElem.querySelectorAll("a.changeset_id").forEach((i) => {
+        i.onclick = (e) => {
+            if (massModeActive) {
+                e.preventDefault()
+            }
+        }
+    })
+}
+
+function filterChangesets(htmlDocument = document) {
+    const usernameFilters = document.querySelector("#filter-by-user-input").value.trim().split(",").filter(i => i.trim() !== "")
+    const commentFilters = document.querySelector("#filter-by-comment-input").value.trim().split(",").filter(i => i.trim() !== "")
+    let newHiddenChangesetsCount = 0;
+    htmlDocument.querySelectorAll("ol li").forEach(i => {
+        const changesetComment = i.querySelector("a:nth-child(1) span").textContent
+        const changesetAuthor = i.querySelector("a:nth-child(2)").textContent
+        let bbox;
+        if (i.getAttribute("data-changeset")) {
+            bbox = Object.values(JSON.parse(i.getAttribute("data-changeset")).bbox)
+        } else {
+            bbox = Object.values(JSON.parse(i.getAttribute("hidden-data-changeset")).bbox)
+        }
+        bbox = bbox.map(parseFloat)
+        const deltaLon = bbox[2] - bbox[0]
+        const deltaLat = bbox[3] - bbox[1]
+        const bboxSizeLimit = 1
+        let wasHidden = false
+        if (needHideBigChangesets && (deltaLat > bboxSizeLimit || deltaLon > bboxSizeLimit)) {
+            wasHidden = true
+            if (i.getAttribute("data-changeset")) {
+                i.setAttribute("hidden-data-changeset", i.getAttribute("data-changeset"))
+                i.removeAttribute("data-changeset")
+                i.setAttribute("hidden", true)
+            } else {
+                // FIXME
+            }
+        }
+        if (!wasHidden) {
+            let invert = document.querySelector("#invert-user-filter-checkbox").getAttribute("checked") === "true"
+            usernameFilters.forEach(username => {
+                if (changesetAuthor.includes(username.trim()) ^ invert) {
+                    if (i.getAttribute("data-changeset")) {
+                        i.setAttribute("hidden-data-changeset", i.getAttribute("data-changeset"))
+                        i.removeAttribute("data-changeset")
+                        i.setAttribute("hidden", true)
+                    } else {
+                        // FIXME
+                    }
+                    wasHidden = true
                 }
             })
         }
-        a.appendChild(checkbox)
-        chagesetElem.querySelector("p").prepend(a)
-        chagesetElem.querySelectorAll("a.changeset_id").forEach((i) => {
-            i.onclick = (e) => {
-                if (massActionsCheckboxesVisible) {
-                    e.preventDefault()
-                }
-            }
-        })
-    }
-
-    function makeTopActionBar() {
-        const actionsBar = document.createElement("div")
-        actionsBar.classList.add("actions-bar")
-        const copyIds = document.createElement("button")
-        copyIds.textContent = "Copy IDs"
-        copyIds.classList.add("copy-changesets-ids-btn")
-        copyIds.onclick = () => {
-            const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
-            navigator.clipboard.writeText(ids);
-        }
-        const revertButton = document.createElement("button")
-        revertButton.textContent = "↩️"
-        revertButton.onclick = () => {
-            const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
-            window.location = "https://revert.monicz.dev/?changesets=" + ids
-        }
-        actionsBar.appendChild(copyIds)
-        actionsBar.appendChild(document.createTextNode("\xA0"))
-        actionsBar.appendChild(revertButton)
-        return actionsBar;
-    }
-
-    function makeBottomActionBar() {
-        if (document.querySelector(".buttom-btn")) {
-            return
-        }
-        const copyIds = document.createElement("button")
-        const selectedIDsCount = document.querySelectorAll(".mass-action-checkbox:checked").length
-        if (selectedIDsCount) {
-            copyIds.textContent = `Copy ${selectedIDsCount} IDs`
-        } else {
-            copyIds.textContent = "Copy IDs"
-        }
-        copyIds.classList.add("copy-changesets-ids-btn")
-        copyIds.classList.add("buttom-btn")
-        copyIds.classList.add("btn", "btn-primary")
-        copyIds.onclick = () => {
-            const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
-            navigator.clipboard.writeText(ids);
-        }
-        const revertButton = document.createElement("button")
-        revertButton.textContent = "↩️"
-        revertButton.onclick = () => {
-            const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
-            window.location = "https://revert.monicz.dev/?changesets=" + ids
-        }
-        revertButton.classList.add("btn", "btn-primary")
-        const changesetMore = document.querySelector("#sidebar_content div.changeset_more")
-        if (changesetMore) {
-            changesetMore.appendChild(copyIds)
-            changesetMore.appendChild(document.createTextNode("\xA0"))
-            changesetMore.appendChild(revertButton)
-        } else {
-            const changesetsList = document.querySelector("#sidebar_content ol");
-            const actionBarWrapper = document.createElement("div")
-            actionBarWrapper.classList.add("mt-3", "text-center")
-            actionBarWrapper.appendChild(copyIds)
-            actionBarWrapper.appendChild(document.createTextNode("\xA0"))
-            actionBarWrapper.appendChild(revertButton)
-            changesetsList.appendChild(actionBarWrapper)
-        }
-    }
-
-    if (location.pathname.includes("user")
-        && document.querySelector("#sidebar_content h2")
-        && !document.querySelector("#mass-action-btn")) {
-        const a = document.createElement("a")
-        a.textContent = " 📋"
-        a.style.cursor = "pointer"
-        a.id = "mass-action-btn"
-        a.onclick = () => {
-            if (massActionsCheckboxesVisible === null) {
-                massActionsCheckboxesVisible = true
-                document.querySelector("#sidebar_content > div").after(makeTopActionBar())
-                document.querySelector("#sidebar_content div.changeset_more").after(document.createTextNode("   "))
-                makeBottomActionBar()
-                document.querySelectorAll(".changesets li").forEach(addChangeSetCheckbox)
-            } else {
-                massActionsCheckboxesVisible = !massActionsCheckboxesVisible
-                document.querySelectorAll(".actions-bar").forEach(i => i.toggleAttribute("hidden"))
-                document.querySelectorAll(".mass-action-checkbox").forEach(i => {
-                    i.toggleAttribute("hidden")
-                })
-            }
-        }
-        document.querySelector("#sidebar_content h2").appendChild(a)
-    }
-
-    function filterChangesets() {
-        const usernameFilters = document.querySelector("#filter-by-user-input").value.trim().split(",").filter(i => i.trim() !== "")
-        const commentFilters = document.querySelector("#filter-by-comment-input").value.trim().split(",").filter(i => i.trim() !== "")
-        document.querySelectorAll("ol li").forEach(i => {
-            const changesetComment = i.querySelector("a:nth-child(1) span").textContent
-            const changesetAuthor = i.querySelector("a:nth-child(2)").textContent
-            let bbox;
-            if (i.getAttribute("data-changeset")) {
-                bbox = Object.values(JSON.parse(i.getAttribute("data-changeset")).bbox)
-            } else {
-                bbox = Object.values(JSON.parse(i.getAttribute("hidden-data-changeset")).bbox)
-            }
-            bbox = bbox.map(parseFloat)
-            const deltaLon = bbox[2] - bbox[0]
-            const deltaLat = bbox[3] - bbox[1]
-            const bboxSizeLimit = 2
-            let wasHidden = false
-            if (deltaLat > bboxSizeLimit || deltaLon > bboxSizeLimit) {
-                wasHidden = true
-                if (i.getAttribute("data-changeset")) {
-                    i.setAttribute("hidden-data-changeset", i.getAttribute("data-changeset"))
-                    i.removeAttribute("data-changeset")
-                    i.setAttribute("hidden", true)
-                } else {
-                    // FIXME
-                }
-            }
-            if (!wasHidden) {
-                let invert = document.querySelector("#invert-user-filter-checkbox").getAttribute("checked") === "true"
-                usernameFilters.forEach(username => {
-                    if (changesetAuthor.includes(username.trim()) ^ invert) {
-                        if (i.getAttribute("data-changeset")) {
-                            i.setAttribute("hidden-data-changeset", i.getAttribute("data-changeset"))
-                            i.removeAttribute("data-changeset")
-                            i.setAttribute("hidden", true)
-                        } else {
-                            // FIXME
-                        }
-                        wasHidden = true
+        if (!wasHidden) {
+            let invert = document.querySelector("#invert-comment-filter-checkbox").getAttribute("checked") === "true"
+            commentFilters.forEach(comment => {
+                if (changesetComment.includes(comment.trim()) ^ invert) {
+                    if (i.getAttribute("data-changeset")) {
+                        i.setAttribute("hidden-data-changeset", i.getAttribute("data-changeset"))
+                        i.removeAttribute("data-changeset")
+                        i.setAttribute("hidden", true)
+                    } else {
+                        // FIXME
                     }
-                })
-            }
-            if (!wasHidden) {
-                let invert = document.querySelector("#invert-comment-filter-checkbox").getAttribute("checked") === "true"
-                commentFilters.forEach(comment => {
-                    if (changesetComment.includes(comment.trim()) ^ invert) {
-                        if (i.getAttribute("data-changeset")) {
-                            i.setAttribute("hidden-data-changeset", i.getAttribute("data-changeset"))
-                            i.removeAttribute("data-changeset")
-                            i.setAttribute("hidden", true)
-                        } else {
-                            // FIXME
-                        }
-                        wasHidden = true
-                    }
-                })
-            }
-            if (!wasHidden) {
-                if (i.getAttribute("hidden-data-changeset")) {
-                    i.setAttribute("data-changeset", i.getAttribute("hidden-data-changeset"))
-                    i.removeAttribute("hidden-data-changeset")
-                    i.removeAttribute("hidden")
-                } else {
-                    // FIXME
+                    wasHidden = true
                 }
-            }
-            console.log(bbox);
-        })
-    }
-
-    function makeUsernamesFilterable(i) {
-        if (i.classList.contains("listen-for-filters")) {
-            return
+            })
         }
-        i.classList.add("listen-for-filters")
-        i.onclick = (e) => {
-            if (massActionsCheckboxesVisible && (!e.metaKey && !e.ctrlKey)) {
-                e.preventDefault()
-                const filterByUsersInput = document.querySelector("#filter-by-user-input")
-                if (filterByUsersInput.value === "") {
-                    filterByUsersInput.value = e.target.textContent
-                } else {
-                    filterByUsersInput.value = filterByUsersInput.value + "," + e.target.textContent
-                }
-                filterChangesets()
-                document.querySelector(".changeset_more > a").click()
+        if (!wasHidden) {
+            if (i.getAttribute("hidden-data-changeset")) {
+                i.setAttribute("data-changeset", i.getAttribute("hidden-data-changeset"))
+                i.removeAttribute("hidden-data-changeset")
+                i.removeAttribute("hidden")
+            } else {
+                // FIXME
             }
+        } else {
+            newHiddenChangesetsCount++;
+        }
+    })
+    if (hiddenChangesetsCount !== newHiddenChangesetsCount && htmlDocument === document) {
+        hiddenChangesetsCount = newHiddenChangesetsCount
+        const changesetsCount = document.querySelectorAll("ol > li").length
+        document.querySelector("#hidden-changeset-counter").textContent = ` Displayed ${changesetsCount - newHiddenChangesetsCount}/${changesetsCount}`
+    }
+}
+
+function updateMap() {
+    // debugger
+    needClearLoadMoreRequest = true
+    lastLoadMoreURL = document.querySelector(".changeset_more > a").href
+    document.querySelector(".changeset_more > a").click()
+}
+
+function makeUsernamesFilterable(i) {
+    if (i.classList.contains("listen-for-filters")) {
+        return
+    }
+    i.classList.add("listen-for-filters")
+    i.onclick = (e) => {
+        if (massModeActive && (!e.metaKey && !e.ctrlKey)) {
+            e.preventDefault()
+            const filterByUsersInput = document.querySelector("#filter-by-user-input")
+            if (filterByUsersInput.value === "") {
+                filterByUsersInput.value = e.target.textContent
+            } else {
+                filterByUsersInput.value = filterByUsersInput.value + "," + e.target.textContent
+            }
+            filterChangesets()
+            updateMap()
         }
     }
+}
 
+let queriesCache = {
+    cacheTime: Date.now(),
+    elems: {}
+}
+
+function addMassActionForGlobalChangesets() {
     if (location.pathname === "/history"
         && document.querySelector("#sidebar_content h2")
         && !document.querySelector("#changesets-filter-btn")) {
@@ -1565,9 +1588,31 @@ function setupMassChangesetsActions() {
         a.style.cursor = "pointer"
         a.id = "changesets-filter-btn"
         a.onclick = () => {
+            document.querySelector("#sidebar .search_forms")?.setAttribute("hidden", "true")
+
             function makeTopFilterBar() {
                 const filterBar = document.createElement("div")
                 filterBar.classList.add("filter-bar")
+
+                const hideBigChangesetsCheckbox = document.createElement("input")
+                hideBigChangesetsCheckbox.checked = true
+                hideBigChangesetsCheckbox.type = "checkbox"
+                hideBigChangesetsCheckbox.style.cursor = "pointer"
+                hideBigChangesetsCheckbox.id = "hide-big-changesets-checkbox"
+                const hideBigChangesetLabel = document.createElement("label")
+                hideBigChangesetLabel.textContent = "Hide big changesets"
+                hideBigChangesetLabel.htmlFor = "hide-big-changesets-checkbox"
+                hideBigChangesetLabel.style.marginLeft = "1px"
+                hideBigChangesetLabel.style.marginBottom = "4px"
+                hideBigChangesetLabel.style.cursor = "pointer"
+                hideBigChangesetsCheckbox.onchange = () => {
+                    needHideBigChangesets = hideBigChangesetsCheckbox.checked;
+                    updateMap()
+                }
+                filterBar.appendChild(hideBigChangesetsCheckbox)
+                filterBar.appendChild(hideBigChangesetLabel)
+                filterBar.appendChild(document.createElement("br"))
+
 
                 const label = document.createElement("span")
                 label.textContent = "🔄Hide changesets from "
@@ -1587,9 +1632,9 @@ function setupMassChangesetsActions() {
                     } else {
                         e.target.setAttribute("checked", false)
                     }
-                    if (document.querySelector("#invert-user-filter-checkbox").value !== "") {
+                    if (document.querySelector("#filter-by-user-input").value !== "") {
                         filterChangesets();
-                        document.querySelector(".changeset_more > a").click();
+                        updateMap();
                     }
                 }
                 filterBar.appendChild(label)
@@ -1601,7 +1646,7 @@ function setupMassChangesetsActions() {
                     if (event.key === "Enter") {
                         event.preventDefault();
                         filterChangesets();
-                        document.querySelector(".changeset_more > a").click()
+                        updateMap()
                     }
                 });
                 filterBar.appendChild(filterByUsersInput)
@@ -1626,7 +1671,7 @@ function setupMassChangesetsActions() {
                     }
                     if (document.querySelector("#filter-by-comment-input").value !== "") {
                         filterChangesets();
-                        document.querySelector(".changeset_more > a").click();
+                        updateMap()
                     }
                 }
                 filterBar.appendChild(label2)
@@ -1637,7 +1682,7 @@ function setupMassChangesetsActions() {
                     if (event.key === "Enter") {
                         event.preventDefault();
                         filterChangesets();
-                        document.querySelector(".changeset_more > a").click()
+                        updateMap()
                     }
                 });
                 filterBar.appendChild(filterByCommentInput)
@@ -1645,52 +1690,126 @@ function setupMassChangesetsActions() {
                 return filterBar
             }
 
-            if (massActionsCheckboxesVisible === null) {
-                massActionsCheckboxesVisible = true
+            needPatchLoadMoreRequest = true
+            if (massModeActive === null) {
+                massModeActive = true
                 document.querySelector("#sidebar_content > div").after(makeTopFilterBar())
                 document.querySelectorAll("ol li a:nth-child(2)").forEach(makeUsernamesFilterable)
             } else {
-                massActionsCheckboxesVisible = !massActionsCheckboxesVisible
+                massModeActive = !massModeActive
                 document.querySelectorAll(".filter-bar").forEach(i => i.toggleAttribute("hidden"))
-                document.querySelectorAll(".mass-action-checkbox").forEach(i => {
-                    // i.toggleAttribute("hidden")
-                })
+                document.querySelector("#hidden-changeset-counter")?.toggleAttribute("hidden")
+                // document.querySelectorAll(".mass-action-checkbox").forEach(i => {
+                // i.toggleAttribute("hidden")
+                // })
             }
         }
         document.querySelector("#sidebar_content h2").appendChild(a)
+        const hiddenChangesetsCounter = document.createElement("span")
+        hiddenChangesetsCounter.id = "hidden-changeset-counter"
+        document.querySelector("#sidebar_content h2").appendChild(hiddenChangesetsCounter)
     }
+
+    if (needPatchLoadMoreRequest === null) {
+        // double dirty hack
+        // override XMLHttpRequest.getResponseText
+        // caching queries since .responseText can be called multiple times
+        needPatchLoadMoreRequest = false
+        if (!unsafeWindow.XMLHttpRequest.prototype.getResponseText) {
+            unsafeWindow.XMLHttpRequest.prototype.getResponseText = Object.getOwnPropertyDescriptor(unsafeWindow.XMLHttpRequest.prototype, 'responseText').get;
+        }
+        Object.defineProperty(unsafeWindow.XMLHttpRequest.prototype, 'responseText', {
+            get: exportFunction(function () {
+                if (queriesCache.cacheTime + 2 > Date.now()) {
+                    if (queriesCache.elems[this.responseURL]) {
+                        return queriesCache.elems[this.responseURL]
+                    }
+                } else {
+                    queriesCache.cacheTime = Date.now()
+                    queriesCache.elems = {}
+                }
+                let responseText = unsafeWindow.XMLHttpRequest.prototype.getResponseText.call(this);
+                if (location.pathname !== "/history"
+                    && !(location.pathname.includes("/history") && location.pathname.includes("/user/"))) {
+                    // todo also for node/123/history
+                    // off patching
+                    Object.defineProperty(unsafeWindow.XMLHttpRequest.prototype, 'responseText', {
+                        get: unsafeWindow.XMLHttpRequest.prototype.getResponseText,
+                        enumerable: true,
+                        configurable: true
+                    })
+                    return responseText;
+                }
+                if (needClearLoadMoreRequest) {
+                    console.log("new changesets cleared")
+                    needClearLoadMoreRequest = false
+                    const docParser = new DOMParser();
+                    const doc = docParser.parseFromString(responseText, "text/html");
+                    doc.querySelectorAll("ol > li").forEach(i => i.remove())
+                    doc.querySelector(".changeset_more a").href = lastLoadMoreURL
+                    queriesCache.elems[lastLoadMoreURL] = doc.documentElement.outerHTML;
+                    queriesCache.elems[this.responseURL] = doc.documentElement.outerHTML;
+                    lastLoadMoreURL = ""
+                } else if (needPatchLoadMoreRequest) {
+                    console.log("new changesets patched")
+                    const docParser = new DOMParser();
+                    const doc = docParser.parseFromString(responseText, "text/html");
+                    filterChangesets(doc)
+                    queriesCache.elems[this.responseURL] = doc.documentElement.outerHTML;
+                } else {
+                    queriesCache.elems[this.responseURL] = responseText
+                }
+                return queriesCache.elems[this.responseURL]
+            }, unsafeWindow),
+            enumerable: true,
+            configurable: true
+        });
+    }
+
+}
+
+// TODO support JOSM reverter after https://josm.openstreetmap.de/ticket/23701
+function addMassChangesetsActions() {
+    if (!location.pathname.includes("/history")) return;
+    if (!document.querySelector("#sidebar_content h2")) return
+
+    addMassActionForUserChangesets();
+    addMassActionForGlobalChangesets();
+
     const MAX_PAGE_FOR_LOAD = 25;
     sidebarObserverForMassActions?.disconnect()
 
-    function observerHandler() {
-        if (massActionsCheckboxesVisible && location.pathname !== "/history") {
-            document.querySelectorAll(".changesets li").forEach(addChangeSetCheckbox)
+    function observerHandler(mutationsList, observer) {
+        // console.log(mutationsList)
+        // debugger
+        if (!location.pathname.includes("/history")) {
+            massModeActive = null
+            needClearLoadMoreRequest = false
+            needPatchLoadMoreRequest = false
+            needHideBigChangesets = false
+            currentMassDownloadedPages = null
+            observer.disconnect()
+            sidebarObserverForMassActions = null
+            return;
         }
-        if (massActionsCheckboxesVisible) {
+        if (massModeForUserChangesetsActive && location.pathname !== "/history") {
+            document.querySelectorAll(".changesets li").forEach(addChangesetCheckbox)
+            makeBottomActionBar()
+        }
+        if (massModeActive && location.pathname === "/history") {
             document.querySelectorAll("ol li a:nth-child(2)").forEach(makeUsernamesFilterable)
             // sidebarObserverForMassActions?.disconnect()
-            filterChangesets() // todo
+            filterChangesets()
+            // todo
             // sidebarObserverForMassActions.observe(document.querySelector('#sidebar'), {childList: true, subtree: true});
         }
         document.querySelectorAll('#sidebar .col .changeset_id').forEach((item) => {
-            if (item.classList.contains("custom-changeset-id-click")) {
-                return
-            }
+            if (item.classList.contains("custom-changeset-id-click")) return
             item.classList.add("custom-changeset-id-click")
             item.onclick = (e) => {
                 e.preventDefault();
-                // copying id
                 let id = e.target.innerText.slice(1);
-                navigator.clipboard.writeText(id).then(() => {
-                    console.log(`Copying ${id} to clipboard was successful!`);
-                    e.target.classList.add("copied");
-                    setTimeout(() => {
-                        e.target.classList.remove("copied");
-                        e.target.classList.add("was-copied");
-                        setTimeout(() => e.target.classList.remove("was-copied"), 300);
-                    }, 300);
-                });
-                return;
+                navigator.clipboard.writeText(id).then(() => copyAnimation(e, id));
             }
         })
         if (currentMassDownloadedPages && currentMassDownloadedPages <= MAX_PAGE_FOR_LOAD) {
@@ -1707,9 +1826,7 @@ function setupMassChangesetsActions() {
         } else {
             if (!document.querySelector("#infinity-list-btn")) {
                 let moreButton = document.querySelector(".changeset_more > a")
-                if (!moreButton) {
-                    return
-                }
+                if (!moreButton) return
                 const infinityList = document.createElement("button")
                 infinityList.classList.add("btn", "btn-primary")
                 infinityList.textContent = `Load ${20 * MAX_PAGE_FOR_LOAD}`
@@ -1729,6 +1846,18 @@ function setupMassChangesetsActions() {
     sidebarObserverForMassActions.observe(document.querySelector('#sidebar'), {childList: true, subtree: true});
 }
 
+function setupMassChangesetsActions() {
+    if (location.pathname !== "/history"
+        && !(location.pathname.includes("/history") && location.pathname.includes("/user/"))) return;
+    let timerId = setInterval(addMassChangesetsActions, 300);
+    setTimeout(() => {
+        clearInterval(timerId);
+        console.debug('stop try add mass changesets actions');
+    }, 5000);
+    addMassChangesetsActions();
+}
+
+
 const modules = [
     setupHDYCInProfile,
     setupCompactChangesetsHistory,
@@ -1746,6 +1875,10 @@ const modules = [
 
 
 function setup() {
+    if (location.href.startsWith("https://osmcha.org")){
+        // todo
+        return
+    }
     if (location.href.startsWith(prod_server.origin)) {
         osm_server = prod_server;
     } else if (location.href.startsWith(dev_server.origin)) {

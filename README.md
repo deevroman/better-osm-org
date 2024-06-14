@@ -55,12 +55,16 @@
 - [x] Collapse changeset comment form
 - [ ] Template responses when closing notes
 - + [x] 👌
-+ [x] Add Rapid & geo: links into Edit menu 
++ [x] Add Rapid & geo: links into Edit menu
+- [ ] Mass revert
+- + [x] via osm-revert
+- + [x] copy ids for JOSM
+- + [ ] via remote control JOSM
 - [x] Settings (Firefox only)
+- [ ] Changesets filter
 - [ ] QuickLook for small changesets
 - [ ] Exact time instead of a verbal description
 - [ ] Compact osmcha.org
-- [ ] Changesets filter
 - [ ] Jump to overpass from tags
 - [ ] Show deleted
 - [ ] Hide resolved notes
@@ -71,10 +75,10 @@
 - [ ] Player button for history
 - [ ] Documentation
 - [ ] Collapse name tags
+- [ ] Highlight DWG members
+- [ ] Calc area size
 
 
 Maybe
-- [ ] Mass revert
-  - [x] via osm-revert
-  - [x] copy ids for JOSM
-  - [ ] via remote control JOSM
+- [ ] osm-revert template
+- [ ] stop via kill switch for osm token
