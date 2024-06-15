@@ -851,12 +851,11 @@ async function findChangesetInDiff(e) {
     e.target.remove()
 }
 
-
-function deg2rad(deg) {
-    return deg * (Math.PI / 180)
-}
-
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+    function deg2rad(deg) {
+        return deg * (Math.PI / 180)
+    }
+
     const R = 6371;
     const dLat = deg2rad(lat2 - lat1);
     const dLon = deg2rad(lon2 - lon1);
@@ -1881,7 +1880,7 @@ const modules = [
 
 
 function setup() {
-    if (location.href.startsWith("https://osmcha.org")){
+    if (location.href.startsWith("https://osmcha.org")) {
         // todo
         return
     }
