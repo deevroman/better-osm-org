@@ -5,6 +5,7 @@
 // @author       deevroman
 // @match        https://www.openstreetmap.org/*
 // @match        https://master.apis.dev.openstreetmap.org/*
+// @exclude      https://master.apis.dev.openstreetmap.org/api/*
 // @match        https://osmcha.org/*
 // @match        http://localhost:3000/*
 // @match        https://www.hdyc.neis-one.org/*
@@ -294,7 +295,9 @@ function setupCompactChangesetsHistory() {
     handleNewChangesets();
     sidebarObserver?.disconnect();
     sidebarObserver = new MutationObserver(handleNewChangesets);
-    sidebarObserver.observe(document.querySelector('#sidebar_content'), {childList: true, subtree: true});
+    if (document.querySelector('#sidebar_content')) {
+        sidebarObserver.observe(document.querySelector('#sidebar_content'), {childList: true, subtree: true});
+    }
 }
 
 function addResolveNotesButtons() {
