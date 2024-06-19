@@ -16,7 +16,7 @@
 // @downloadURL  https://github.com/deevroman/better-osm-org/raw/master/better-osm-org.user.js
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=openstreetmap.org
 // @grant        GM_registerMenuCommand
-// @require      https://openuserjs.org/src/libs/sizzle/GM_config.js
+// @require      https://github.com/deevroman/GM_config/raw/fixed-for-chromium/gm_config.js
 // @require      https://raw.githubusercontent.com/Zverik/osmtags-editor/main/osm-auth.iife.min.js
 // @grant        GM_getValue
 // @grant        GM_setValue
