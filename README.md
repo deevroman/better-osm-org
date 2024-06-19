@@ -60,7 +60,7 @@
 - + [x] via osm-revert
 - + [x] copy ids for JOSM
 - + [ ] via remote control JOSM
-- [x] Settings (Firefox only)
+- [x] Settings
 - [ ] Changesets filter
 - [ ] QuickLook for small changesets
 - [ ] Exact time instead of a verbal description
