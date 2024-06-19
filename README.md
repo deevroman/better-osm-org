@@ -77,7 +77,8 @@
 - [ ] Collapse name tags
 - [ ] Highlight DWG members
 - [ ] Calc area size
-
+- [x] Alt + ←/→
+- [ ] Cache for users info (is_moderator, blocked, ..)
 
 Maybe
 - [ ] osm-revert template
