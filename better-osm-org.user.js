@@ -124,6 +124,12 @@ GM_config.init(
                         'label': 'Add mass action for changesets (mass revert, ...)',
                         'type': 'checkbox',
                         'default': 'checked'
+                    },
+                'NavigationViaHotkeys':
+                    {
+                        'label': 'Add hotkeys for navigation (for user changesets, ...)',
+                        'type': 'checkbox',
+                        'default': 'checked'
                     }
             },
         frameStyle: `
@@ -1866,6 +1872,31 @@ function setupMassChangesetsActions() {
 // - возможность сохранить результат внедрения
 
 
+let hotkeysConfigured = false
+function setupNavigationViaHotkeys() {
+    if (!location.pathname.includes("/changeset")) return;
+    if (hotkeysConfigured) return
+    hotkeysConfigured = true
+    function keyupHandler(e) {
+        if (!location.pathname.includes("/changeset")) return;
+        if (e.altKey) {
+            if (e.code === "ArrowLeft") {
+                const navigationLinks = document.querySelectorAll("div.secondary-actions")[1].querySelectorAll("a")
+                if (navigationLinks[0].href.includes("/changeset/")){
+                    navigationLinks[0].click()
+                }
+
+            } else if (e.code === "ArrowRight") {
+                const navigationLinks = document.querySelectorAll("div.secondary-actions")[1].querySelectorAll("a")
+                if (Array.from(navigationLinks).at(-1).href.includes("/changeset/")){
+                    Array.from(navigationLinks).at(-1).click()
+                }
+            }
+        }
+    }
+    document.addEventListener('keyup', keyupHandler, false);
+}
+
 const modules = [
     setupHDYCInProfile,
     setupCompactChangesetsHistory,
@@ -1878,7 +1909,8 @@ const modules = [
     setupVersionsDiff,
     // setupChangesetQuickLook
     // setupHideLinesForDataView
-    setupNewEditorsLinks
+    setupNewEditorsLinks,
+    setupNavigationViaHotkeys
 ];
 
 
