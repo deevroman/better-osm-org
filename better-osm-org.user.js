@@ -289,12 +289,16 @@ function setupCompactChangesetsHistory() {
     .changesets p {
       margin-bottom: 0;
       font-weight: 788;
+      font-style: italic;
+      font-size: 14px !important;
     }
-    /*@document regexp(".*!history") {*/
-        .map-layout #sidebar {
-          width: 450px;
-        }
-    /*}
+    .browse-section p:nth-of-type(1) {
+        font-size: 14px !important;
+        font-style: italic;  
+    }
+    .map-layout #sidebar {
+      width: 450px;
+    }
     /*for id copied*/
     .copied {
       background-color: red;
