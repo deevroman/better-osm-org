@@ -4,10 +4,12 @@
 // @description  Several improvements for advanced users of osm.org
 // @author       deevroman
 // @match        https://www.openstreetmap.org/*
+// @exclude      https://www.openstreetmap.org/api*
 // @match        https://master.apis.dev.openstreetmap.org/*
 // @exclude      https://master.apis.dev.openstreetmap.org/api/*
 // @match        https://osmcha.org/*
 // @match        http://localhost:3000/*
+// @exclude      http://localhost:3000//api/*
 // @match        https://www.hdyc.neis-one.org/*
 // @match        https://hdyc.neis-one.org/*
 // @license      WTFPL
@@ -44,99 +46,120 @@
 GM_config.init(
     {
         'id': 'Config',
-        'title': 'Better osm.org settings',
+        'title': ' ',
         'fields':
             {
-                'RevertButton':
-                    {
-                        'label': 'Revert button',
-                        'type': 'checkbox',
-                        'default': 'checked'
-                    },
                 'CompactChangesetsHistory':
                     {
+                        'section': ["Viewing edits"],
                         'label': 'Compact changesets history',
                         'type': 'checkbox',
-                        'default': 'checked'
-                    },
-                'ResolveNotesButtons':
-                    {
-                        'label': 'Show addition resolve buttons',
-                        'type': 'checkbox',
-                        'default': 'checked'
-                    },
-                'Deletor':
-                    {
-                        'label': 'Show buttons for object deletion',
-                        'type': 'checkbox',
-                        'default': 'checked'
-                    },
-                'OneClickDeletor':
-                    {
-                        'label': 'Delete object without confirmation',
-                        'type': 'checkbox',
-                        // 'default': 'unchecked'
-                    },
-                'HideNoteHighlight':
-                    {
-                        'label': 'Hide note highlight',
-                        'type': 'checkbox',
-                        'default': 'checked'
-                    },
-                'SatelliteLayers':
-                    {
-                        'label': 'Add satellite layers for notes page (Firefox only)',
-                        'type': 'checkbox',
-                        'default': 'checked'
+                        'default': 'checked',
+                        'labelPos': 'right',
                     },
                 'VersionsDiff':
                     {
                         'label': 'Add tags diff in history',
                         'type': 'checkbox',
-                        'default': 'checked'
+                        'default': 'checked',
+                        'labelPos': 'right',
                     },
-                // 'ChangesetQuickLook':
+                'ChangesetQuickLook':
+                    {
+                        'label': 'Add QuickLook for small changesets ',
+                        'type': 'checkbox',
+                        'default': 'checked',
+                        'labelPos': 'right'
+                    },
+                'MassChangesetsActions':
+                    {
+                        'label': 'Add actions for changesets list (mass revert, filtering, ...)',
+                        'type': 'checkbox',
+                        'default': 'checked',
+                        'labelPos': 'right'
+                    },
+                'ResolveNotesButtons':
+                    {
+                        'section': ["Working with notes"],
+                        'label': 'Show addition resolve buttons',
+                        'type': 'checkbox',
+                        'default': 'checked',
+                        'labelPos': 'right'
+                    },
+                'HideNoteHighlight':
+                    {
+                        'label': 'Hide note highlight',
+                        'type': 'checkbox',
+                        'default': 'checked',
+                        'labelPos': 'right'
+                    },
+                'SatelliteLayers':
+                    {
+                        'label': 'Add satellite layers for notes page (Firefox only)',
+                        'type': 'checkbox',
+                        'default': 'checked',
+                        'labelPos': 'right'
+                    },
+                'RevertButton':
+                    {
+                        'section': ["New actions"],
+                        'label': 'Revert changeset button',
+                        'type': 'checkbox',
+                        'default': 'checked',
+                        'labelPos': 'right'
+                    },
+                'Deletor':
+                    {
+                        'label': 'Button for node deletion',
+                        'type': 'checkbox',
+                        'default': 'checked',
+                        'labelPos': 'right'
+                    },
+                'OneClickDeletor':
+                    {
+                        'label': 'Delete node without confirmation',
+                        'type': 'checkbox',
+                        'default': false,
+                        'labelPos': 'right'
+                    },
+                // 'HideLinesForDataView':
                 //     {
-                //         'label': 'Add QuickLook for small changesets ',
+                //         'label': 'Hide lines in Data View (experimental)',
                 //         'type': 'checkbox',
                 //         'default': 'unchecked'
                 //     },
                 'HDYCInProfile':
                     {
-                        'label': 'Add HDYC in history',
+                        'section': ["Other"],
+                        'label': 'Add HDYC to user profile',
                         'type': 'checkbox',
-                        'default': 'checked'
+                        'default': 'checked',
+                        'labelPos': 'right'
                     },
-                'HideLinesForDataView':
+                'NavigationViaHotkeys':
                     {
-                        'label': 'Hide lines in Data View (experimental)',
+                        'label': 'Add hotkeys for navigation (Alt + ←/→ for user changesets)',
                         'type': 'checkbox',
-                        // 'default': 'unchecked'
+                        'default': 'checked',
+                        'labelPos': 'right'
                     },
                 'NewEditorsLinks':
                     {
                         'label': 'Add new editors (Rapid, ... ?)',
                         'type': 'checkbox',
-                        'default': 'checked'
+                        'default': 'checked',
+                        'labelPos': 'right'
                     },
-                'MassChangesetsActions':
-                    {
-                        'label': 'Add mass action for changesets (mass revert, ...)',
-                        'type': 'checkbox',
-                        'default': 'checked'
-                    },
-                'NavigationViaHotkeys':
-                    {
-                        'label': 'Add hotkeys for navigation (for user changesets, ...)',
-                        'type': 'checkbox',
-                        'default': 'checked'
-                    }
             },
         frameStyle: `
-            bottom: auto; border: 1px solid #000; display: none; height: min(75%, 400px);
-            left: 0; margin: 0; max-height: 95%; max-width: 95%; opacity: 0;
-            overflow: auto; padding: 0; position: fixed; right: auto; top: 0;
-            width: 25%; z-index: 9999;
+            border: 1px solid #000;
+            height: min(75%, 500px);
+            width: max(25%, 400px);
+            z-index: 9999;
+            opacity: 0;
+            position: absolute;
+            margin-left: auto;
+            margin-right: auto;
         `
     });
 
@@ -1871,29 +1894,122 @@ function setupMassChangesetsActions() {
 // - для модулей, которые внедряются черзе setInterval можно сохранить таймер, чтобы предотвратить дублирование вызовов
 // - возможность сохранить результат внедрения
 
+// TODO локализация
+let injectingStarted = false
+
+async function addChangesetQuickLook() {
+    if (!location.pathname.includes("/changeset")) return
+    if (document.querySelector('.quick-look')) return true;
+
+    let sidebar = document.querySelector("#sidebar_content h2");
+    if (!sidebar) {
+        return;
+    }
+    if (injectingStarted) return
+    injectingStarted = true
+    try {
+        for (const objType of ["node", "way", "relation"]) {
+            await Promise.all(Array.from(document.querySelectorAll(`.list-unstyled li.${objType}`)).map(async (i) => {
+                const [, , nodeID, version] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
+                const res = await fetch(osm_server.apiBase + objType + "/" + nodeID + "/history.json");
+                const objHistory = (await res.json()).elements;
+                let prevVersion = {
+                    tags: {}, version: 0
+                };
+
+                let targetVersion = prevVersion;
+                let lastVersion = objHistory.at(-1);
+                for (const objVersion of objHistory) {
+                    prevVersion = targetVersion
+                    targetVersion = objVersion
+                    if (objVersion.version.toString() === version) {
+                        break
+                    }
+                }
+                const tagsTable = document.createElement("table")
+                const tbody = document.createElement("tbody")
+                tagsTable.appendChild(tbody)
+                tagsTable.classList.add("quick-look")
+
+                function makeTagRow(key, value) {
+                    const tagRow = document.createElement("tr")
+                    const tagTh = document.createElement("th")
+                    const tagTd = document.createElement("td")
+                    tagRow.appendChild(tagTh)
+                    tagRow.appendChild(tagTd)
+                    tagTh.textContent = key
+                    tagTd.textContent = value
+                    return tagRow
+                }
+
+                if (prevVersion.version !== 0) {
+                    for (const [key, value] of Object.entries(prevVersion.tags ?? {})) {
+                        if (targetVersion.tags[key] === undefined) {
+                            const row = makeTagRow(key, value)
+                            row.style.background = "rgba(238,51,9,0.6)"
+                            tbody.appendChild(row)
+                        }
+                    }
+                }
+                for (const [key, value] of Object.entries(targetVersion.tags ?? {})) {
+                    const row = makeTagRow(key, value)
+                    if (prevVersion.tags[key] === undefined) {
+                        row.style.background = "rgba(17,238,9,0.6)"
+                    } else if (prevVersion.tags[key] !== value) {
+                        const valCell = row.querySelector("td")
+                        valCell.style.background = "rgba(223,238,9,0.6)"
+                        valCell.textContent = prevVersion.tags[key] + " → " + valCell.textContent
+                        valCell.title = "was " + prevVersion.tags[key]
+                    } else {
+                        row.classList.add("non-modified-tag-in-quick-view")
+                    }
+                    tbody.appendChild(row)
+                }
+                i.appendChild(tagsTable)
+
+                // console.log(prevVersion, targetVersion, lastVersion);
+            }))
+        }
+    } finally {
+        injectingStarted = false
+    }
+}
+
+function setupChangesetQuickLook(path) {
+    if (!path.includes("/changeset")) return;
+    let timerId = setInterval(addChangesetQuickLook, 100);
+    setTimeout(() => {
+        clearInterval(timerId);
+        console.debug('stop try add revert button');
+    }, 3000);
+    addChangesetQuickLook();
+}
 
 let hotkeysConfigured = false
+
 function setupNavigationViaHotkeys() {
     if (!location.pathname.includes("/changeset")) return;
     if (hotkeysConfigured) return
     hotkeysConfigured = true
+
     function keyupHandler(e) {
         if (!location.pathname.includes("/changeset")) return;
         if (e.altKey) {
             if (e.code === "ArrowLeft") {
                 const navigationLinks = document.querySelectorAll("div.secondary-actions")[1].querySelectorAll("a")
-                if (navigationLinks[0].href.includes("/changeset/")){
+                if (navigationLinks[0].href.includes("/changeset/")) {
                     navigationLinks[0].click()
                 }
 
             } else if (e.code === "ArrowRight") {
                 const navigationLinks = document.querySelectorAll("div.secondary-actions")[1].querySelectorAll("a")
-                if (Array.from(navigationLinks).at(-1).href.includes("/changeset/")){
+                if (Array.from(navigationLinks).at(-1).href.includes("/changeset/")) {
                     Array.from(navigationLinks).at(-1).click()
                 }
             }
         }
     }
+
     document.addEventListener('keyup', keyupHandler, false);
 }
 
@@ -1907,7 +2023,7 @@ const modules = [
     setupHideNoteHighlight,
     setupSatelliteLayers,
     setupVersionsDiff,
-    // setupChangesetQuickLook
+    setupChangesetQuickLook,
     // setupHideLinesForDataView
     setupNewEditorsLinks,
     setupNavigationViaHotkeys
@@ -1945,7 +2061,6 @@ function main() {
     if (location.origin === "https://www.hdyc.neis-one.org" || location.origin === "https://hdyc.neis-one.org") {
         simplifyHDCYIframe();
     } else {
-        // TODO write custom settings
         GM.registerMenuCommand("Settings", function () {
             GM_config.open();
         });
