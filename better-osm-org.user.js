@@ -1234,8 +1234,7 @@ function setupChangesetQuickLook(path) {
 
 }
  */
-
-const rapidLink = "https://mapwith.ai/rapid#background=fb-mapwithai-maxar&disable_features=boundaries&map="
+const rapidLink = "https://mapwith.ai/rapid#background=EsriWorldImagery&map="
 let coordinatesObserver = null;
 
 function setupNewEditorsLinks() {
@@ -1245,7 +1244,7 @@ function setupNewEditorsLinks() {
         return;
     }
     const curURL = editorsList.querySelector("li a").href
-    const match = curURL.match(/map=(\d+)\/([\d.]+)\/([\d.]+)(&|$)/)
+    const match = curURL.match(/map=(\d+)\/([-\d.]+)\/([-\d.]+)(&|$)/)
     if (!match && !curURL.includes("edit?editor=id")) {
         return
     }
@@ -2065,9 +2064,13 @@ function main() {
     if (location.origin === "https://www.hdyc.neis-one.org" || location.origin === "https://hdyc.neis-one.org") {
         simplifyHDCYIframe();
     } else {
-        GM.registerMenuCommand("Settings", function () {
-            GM_config.open();
-        });
+        try {
+            GM.registerMenuCommand("Settings", function () {
+                GM_config.open();
+            });
+        } catch {
+            // todo add alternative for Violentmonkey
+        }
         setup();
     }
 }
