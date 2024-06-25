@@ -17,9 +17,9 @@
 // @updateURL    https://github.com/deevroman/better-osm-org/raw/master/better-osm-org.user.js
 // @downloadURL  https://github.com/deevroman/better-osm-org/raw/master/better-osm-org.user.js
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=openstreetmap.org
-// @grant        GM_registerMenuCommand
 // @require      https://github.com/deevroman/GM_config/raw/fixed-for-chromium/gm_config.js
 // @require      https://raw.githubusercontent.com/Zverik/osmtags-editor/main/osm-auth.iife.min.js
+// @grant        GM_registerMenuCommand
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM.getValue
@@ -43,6 +43,7 @@
 /*global GM_getValue*/
 /*global GM_setValue*/
 /*global GM_getResourceURL*/
+/*global GM_registerMenuCommand*/
 /*global unsafeWindow*/
 /*global exportFunction*/
 GM_config.init(
@@ -2231,12 +2232,10 @@ function main() {
         simplifyHDCYIframe();
     } else {
         try {
-            GM.registerMenuCommand("Settings", function () {
+            GM_registerMenuCommand("Settings", function () {
                 GM_config.open();
             });
-        } catch {
-            // todo add alternative for Violentmonkey
-        }
+        } catch { /* empty */ }
         setup();
     }
 }
