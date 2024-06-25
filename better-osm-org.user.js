@@ -1714,6 +1714,7 @@ function addMassActionForGlobalChangesets() {
 
                 const label = document.createElement("span")
                 label.textContent = "🔄Hide changesets from "
+                label.title = "Click for invert"
                 label.style.minWidth = "165px";
                 label.style.display = "inline-block";
                 label.style.cursor = "pointer"
@@ -1755,6 +1756,7 @@ function addMassActionForGlobalChangesets() {
 
                 const label2 = document.createElement("span")
                 label2.textContent = "🔄Hide changesets with "
+                label2.title = "Click for invert"
                 label2.style.minWidth = "165px";
                 label2.style.display = "inline-block";
                 label2.style.cursor = "pointer"
