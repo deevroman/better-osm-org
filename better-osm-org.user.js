@@ -292,6 +292,12 @@ function setupCompactChangesetsHistory() {
         return;
     }
 
+    if (location.pathname.includes("/changeset/")) {
+        if (document.querySelector("#sidebar_content ul")) {
+            document.querySelector("#sidebar_content ul").querySelectorAll("a").forEach(i => i.setAttribute("target", "_blank"));
+        }
+    }
+
     let styleText = `
     .changesets p {
       margin-bottom: 0;
