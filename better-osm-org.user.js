@@ -2028,6 +2028,13 @@ async function addChangesetQuickLook() {
     injectingStarted = true
     // TODO load full changeset and filter geometry points
     try {
+        let uniqTypes = 0
+        for (const objType of ["way", "node", "relation"]) {
+            if (document.querySelectorAll(`.list-unstyled li.${objType}`).length > 0){
+                uniqTypes++;
+            }
+        }
+
         for (const objType of ["way", "node", "relation"]) {
             const objCount = document.querySelectorAll(`.list-unstyled li.${objType}`).length
             if (objCount === 0) {
@@ -2153,7 +2160,7 @@ async function addChangesetQuickLook() {
             compactToggle.classList.add("quick-look")
             compactToggle.onclick = (e) => {
                 document.querySelectorAll(".quick-look-compact-toggle-btn").forEach(i => {
-                    if (i.textContent === "><") {
+                    if (e.target.textContent === "><") {
                         i.textContent = "<>"
                     } else {
                         i.textContent = "><"
@@ -2161,12 +2168,16 @@ async function addChangesetQuickLook() {
                 })
                 tagsOfObjectsVisible = !tagsOfObjectsVisible
                 document.querySelectorAll(".non-modified-tag-in-quick-view").forEach(i => {
-                    i.toggleAttribute("hidden")
+                    if (e.target.textContent === "><") {
+                        i.removeAttribute("hidden")
+                    } else {
+                        i.setAttribute("hidden", "true")
+                    }
                 });
             }
             document.querySelector(`.list-unstyled li.${objType}`).parentElement.previousElementSibling.querySelector("h4").appendChild(compactToggle)
             compactToggle.before(document.createTextNode("\xA0"))
-            if (document.querySelectorAll(`.list-unstyled li.${objType} .non-modified-tag-in-quick-view`).length < 5) {
+            if (uniqTypes === 1 && document.querySelectorAll(`.list-unstyled li.${objType} .non-modified-tag-in-quick-view`).length < 5) {
                 compactToggle.style.display = "none"
                 document.querySelectorAll(".non-modified-tag-in-quick-view").forEach(i => {
                     i.removeAttribute("hidden")
