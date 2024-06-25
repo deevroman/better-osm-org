@@ -8,28 +8,16 @@ Userscript adding several improvements for experienced osm.org users
 - [x] Tags diff in object history
 
   <img src="img/diff.png" width="50%">
-  
-- [x] Revert button
-- [x] Compact changesets history
-- + [x] Copy changeset id
 
-<table>
+- [x] QuickLook for simple changesets
 
-<tr>
+  <img src="img/changeset-quickview.png">
 
-<td>
 
-<img src="img/compact-changeset.jpg">
+- [x] Changesets filters
+- [x] Show users roles and status
 
-</td>
-
-<td>
-<img src="img/compact-history.jpg">
-</td>
-
-</tr>
-
-</table>
+  <img src="img/changesets-filter.png">
 
 
 - [x] Node deletion
@@ -45,12 +33,12 @@ Userscript adding several improvements for experienced osm.org users
 - [x] Stat HDYC in profile (Firefox only)
 - + [ ] Bypass tracking protection
 
-+ <img src="img/hdyc.jpg" width="50%">
+  <img src="img/hdyc.jpg" width="50%">
 
-- [x] Hide active note highlight
+- [x] Alt + ←/→ for user changesets
+- [x] Changeset revert button
 - [ ] Profile for deleted users
 - + [x] Search in diffs
-- [x] Collapse changeset comment form
 - [ ] Template responses when closing notes
 - + [x] 👌
 + [x] Add Rapid & geo: links into Edit menu
@@ -58,18 +46,9 @@ Userscript adding several improvements for experienced osm.org users
 - + [x] mass revert via osm-revert
 - + [x] copy ids for JOSM
 - + [ ] via remote control JOSM
-+ + [ ] mass changesets download 
-- [x] QuickLook for small changesets
-- [x] Alt + ←/→ for user changesets
+- + [ ] mass changesets download 
 - [x] Settings
-- [x] Changesets filter
-- + [x] Filter by user
-- + [x] Filter by comment
-- + [x] Hide big changesets
-- [x] Show users status
-- + [x] Moderator
-- + [x] Blocked
-- + [x] Beginner
+- [x] Hide active note highlight
 
 ### Ideas
 - [ ] Exact time instead of a verbal description
