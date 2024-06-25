@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Better osm.org
-// @version      0.3.5
+// @version      0.4
 // @description  Several improvements for advanced users of osm.org
 // @author       deevroman
 // @match        https://www.openstreetmap.org/*
