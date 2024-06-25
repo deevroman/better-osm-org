@@ -31,9 +31,7 @@
 </table>
 
 
-- [ ] Integrate https://github.com/Zverik/osmtags-editor
-- + [ ] Edit tags in Overpass Turbo
-- + [x] Node deletion
+- [x] Node deletion
 
     <img src="img/delete.png" width="50%">
     
@@ -49,22 +47,31 @@
 + <img src="img/hdyc.jpg" width="50%">
 
 - [x] Hide active note highlight
-- + [ ] Hide ways
 - [ ] Profile for deleted users
 - + [x] Search in diffs
 - [x] Collapse changeset comment form
 - [ ] Template responses when closing notes
 - + [x] 👌
 + [x] Add Rapid & geo: links into Edit menu
-- [ ] Mass revert
-- + [x] via osm-revert
+- [ ] Mass actions with changesets
+- + [x] mass revert via osm-revert
 - + [x] copy ids for JOSM
 - + [ ] via remote control JOSM
++ + [ ] mass changesets download 
+- [x] QuickLook for small changesets
+- [x] Alt + ←/→ for user changesets
 - [x] Settings
-- [ ] Changesets filter
-- [ ] QuickLook for small changesets
+- [x] Changesets filter
+- + [x] Filter by user
+- + [x] Filter by comment
+- + [x] Hide big changesets
+- [x] Show users status
+- + [x] Moderator
+- + [x] Blocked
+- + [x] Beginner
+
+### Ideas
 - [ ] Exact time instead of a verbal description
-- [ ] Compact osmcha.org
 - [ ] Jump to overpass from tags
 - [ ] Show deleted
 - [ ] Hide resolved notes
@@ -75,11 +82,13 @@
 - [ ] Player button for history
 - [ ] Documentation
 - [ ] Collapse name tags
-- [ ] Highlight DWG members
 - [ ] Calc area size
-- [x] Alt + ←/→
-- [ ] Cache for users info (is_moderator, blocked, ..)
+- [ ] Integrate https://github.com/Zverik/osmtags-editor
+- [ ] Edit tags in Overpass Turbo
+- [ ] Hide ways in map data view
+- [ ] Localization
 
 Maybe
+- [ ] Compact osmcha.org
 - [ ] osm-revert template
 - [ ] stop via kill switch for osm token

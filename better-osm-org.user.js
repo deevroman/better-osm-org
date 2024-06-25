@@ -40,6 +40,8 @@
 /*global GM*/
 /*global GM_config*/
 /*global GM_addElement*/
+/*global GM_getValue*/
+/*global GM_setValue*/
 /*global GM_getResourceURL*/
 /*global unsafeWindow*/
 /*global exportFunction*/
@@ -252,13 +254,17 @@ function addRevertButton() {
     }
     let textarea = document.querySelector("#sidebar_content textarea")
     if (textarea) {
-        textarea.rows = 2;
+        textarea.rows = 1;
         let comment = document.querySelector("#sidebar_content button[name=comment]")
         if (comment) {
             comment.hidden = true
             textarea.addEventListener("input", () => {
                     comment.hidden = false
                 }
+            )
+            textarea.addEventListener("click", () => {
+                    textarea.rows = textarea.rows + 2
+                }, {once: true}
             )
         }
     }
@@ -1359,11 +1365,43 @@ async function simplifyHDCYIframe() {
     }
 }
 
+async function updateUserInfo(username) {
+    // debugger
+    const rawRes = await fetch(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
+        display_name: username,
+        limit: 1
+    }).toString());
+    const res = await rawRes.json()
+    const uid = res['changesets'][0]['uid']
+
+    const rawRes2 = await fetch(osm_server.apiBase + "user/" + uid + ".json");
+    const res2 = await rawRes2.json()
+    const userInfo = res2.user
+    userInfo['cacheTime'] = new Date()
+    GM_setValue("userinfo-" + username, JSON.stringify(userInfo))
+    return userInfo
+}
+
+async function getCachedUserInfo(username) {
+    // debugger
+    // TODO async better?
+    const localUserInfo = GM_getValue("userinfo-" + username, "")
+    if (localUserInfo) {
+        console.debug(username + " found in cache")
+        const cacheTime = new Date(localUserInfo['cacheTime'])
+        if (cacheTime.setUTCDate(cacheTime.getUTCDate() + 7) < new Date()) {
+            setTimeout(updateUserInfo, 0, username)
+        }
+        return JSON.parse(localUserInfo)
+    }
+    return await updateUserInfo(username)
+}
+
 let sidebarObserverForMassActions = null;
 let massModeForUserChangesetsActive = null;
 let massModeActive = null;
 let currentMassDownloadedPages = null;
-let needClearLoadMoreRequest = false;
+let needClearLoadMoreRequest = 0;
 let needPatchLoadMoreRequest = null;
 let needHideBigChangesets = true;
 let hiddenChangesetsCount = null;
@@ -1509,8 +1547,8 @@ function filterChangesets(htmlDocument = document) {
     const commentFilters = document.querySelector("#filter-by-comment-input").value.trim().split(",").filter(i => i.trim() !== "")
     let newHiddenChangesetsCount = 0;
     htmlDocument.querySelectorAll("ol li").forEach(i => {
-        const changesetComment = i.querySelector("a:nth-child(1) span").textContent
-        const changesetAuthor = i.querySelector("a:nth-child(2)").textContent
+        const changesetComment = i.querySelector("p a span").textContent
+        const changesetAuthor = i.querySelector("div > a").textContent
         let bbox;
         if (i.getAttribute("data-changeset")) {
             bbox = Object.values(JSON.parse(i.getAttribute("data-changeset")).bbox)
@@ -1578,12 +1616,12 @@ function filterChangesets(htmlDocument = document) {
         hiddenChangesetsCount = newHiddenChangesetsCount
         const changesetsCount = document.querySelectorAll("ol > li").length
         document.querySelector("#hidden-changeset-counter").textContent = ` Displayed ${changesetsCount - newHiddenChangesetsCount}/${changesetsCount}`
+        console.log(changesetsCount);
     }
 }
 
 function updateMap() {
-    // debugger
-    needClearLoadMoreRequest = true
+    needClearLoadMoreRequest++
     lastLoadMoreURL = document.querySelector(".changeset_more > a").href
     document.querySelector(".changeset_more > a").click()
 }
@@ -1604,8 +1642,10 @@ function makeUsernamesFilterable(i) {
             }
             filterChangesets()
             updateMap()
+            GM_setValue("last-user-filter", document.getElementById("filter-by-user-input")?.value)
         }
     }
+    i.title = "Click for hide this user changesets. Ctrl + click for open user profile"
 }
 
 let queriesCache = {
@@ -1629,7 +1669,7 @@ function addMassActionForGlobalChangesets() {
                 filterBar.classList.add("filter-bar")
 
                 const hideBigChangesetsCheckbox = document.createElement("input")
-                hideBigChangesetsCheckbox.checked = true
+                hideBigChangesetsCheckbox.checked = needHideBigChangesets = GM_getValue("last-big-changesets-filter")
                 hideBigChangesetsCheckbox.type = "checkbox"
                 hideBigChangesetsCheckbox.style.cursor = "pointer"
                 hideBigChangesetsCheckbox.id = "hide-big-changesets-checkbox"
@@ -1641,7 +1681,9 @@ function addMassActionForGlobalChangesets() {
                 hideBigChangesetLabel.style.cursor = "pointer"
                 hideBigChangesetsCheckbox.onchange = () => {
                     needHideBigChangesets = hideBigChangesetsCheckbox.checked;
+                    filterChangesets()
                     updateMap()
+                    GM_setValue("last-big-changesets-filter", hideBigChangesetsCheckbox.checked)
                 }
                 filterBar.appendChild(hideBigChangesetsCheckbox)
                 filterBar.appendChild(hideBigChangesetLabel)
@@ -1673,6 +1715,7 @@ function addMassActionForGlobalChangesets() {
                 }
                 filterBar.appendChild(label)
                 const filterByUsersInput = document.createElement("input")
+                filterByUsersInput.placeholder = "user1,user2,... and press Enter"
                 filterByUsersInput.id = "filter-by-user-input"
                 filterByUsersInput.style.width = "250px"
                 filterByUsersInput.style.marginBottom = "3px"
@@ -1681,8 +1724,10 @@ function addMassActionForGlobalChangesets() {
                         event.preventDefault();
                         filterChangesets();
                         updateMap()
+                        GM_setValue("last-user-filter", filterByUsersInput.value)
                     }
                 });
+                filterByUsersInput.value = GM_getValue("last-user-filter", "")
                 filterBar.appendChild(filterByUsersInput)
 
                 const label2 = document.createElement("span")
@@ -1717,8 +1762,10 @@ function addMassActionForGlobalChangesets() {
                         event.preventDefault();
                         filterChangesets();
                         updateMap()
+                        GM_setValue("last-comment-filter", filterByCommentInput.value)
                     }
                 });
+                filterByCommentInput.value = GM_getValue("last-comment-filter", "")
                 filterBar.appendChild(filterByCommentInput)
 
                 return filterBar
@@ -1728,7 +1775,7 @@ function addMassActionForGlobalChangesets() {
             if (massModeActive === null) {
                 massModeActive = true
                 document.querySelector("#sidebar_content > div").after(makeTopFilterBar())
-                document.querySelectorAll("ol li a:nth-child(2)").forEach(makeUsernamesFilterable)
+                document.querySelectorAll("ol li div > a").forEach(makeUsernamesFilterable)
             } else {
                 massModeActive = !massModeActive
                 document.querySelectorAll(".filter-bar").forEach(i => i.toggleAttribute("hidden"))
@@ -1737,6 +1784,8 @@ function addMassActionForGlobalChangesets() {
                 // i.toggleAttribute("hidden")
                 // })
             }
+            filterChangesets()
+            updateMap()
         }
         document.querySelector("#sidebar_content h2").appendChild(a)
         const hiddenChangesetsCounter = document.createElement("span")
@@ -1776,7 +1825,7 @@ function addMassActionForGlobalChangesets() {
                 }
                 if (needClearLoadMoreRequest) {
                     console.log("new changesets cleared")
-                    needClearLoadMoreRequest = false
+                    needClearLoadMoreRequest--;
                     const docParser = new DOMParser();
                     const doc = docParser.parseFromString(responseText, "text/html");
                     doc.querySelectorAll("ol > li").forEach(i => i.remove())
@@ -1810,7 +1859,7 @@ function addMassChangesetsActions() {
     addMassActionForUserChangesets();
     addMassActionForGlobalChangesets();
 
-    const MAX_PAGE_FOR_LOAD = 25;
+    const MAX_PAGE_FOR_LOAD = 15;
     sidebarObserverForMassActions?.disconnect()
 
     function observerHandler(mutationsList, observer) {
@@ -1818,7 +1867,7 @@ function addMassChangesetsActions() {
         // debugger
         if (!location.pathname.includes("/history")) {
             massModeActive = null
-            needClearLoadMoreRequest = false
+            needClearLoadMoreRequest = 0
             needPatchLoadMoreRequest = false
             needHideBigChangesets = false
             currentMassDownloadedPages = null
@@ -1831,7 +1880,7 @@ function addMassChangesetsActions() {
             makeBottomActionBar()
         }
         if (massModeActive && location.pathname === "/history") {
-            document.querySelectorAll("ol li a:nth-child(2)").forEach(makeUsernamesFilterable)
+            document.querySelectorAll("ol li div > a").forEach(makeUsernamesFilterable)
             // sidebarObserverForMassActions?.disconnect()
             filterChangesets()
             // todo
@@ -1845,6 +1894,31 @@ function addMassChangesetsActions() {
                 let id = e.target.innerText.slice(1);
                 navigator.clipboard.writeText(id).then(() => copyAnimation(e, id));
             }
+            item.title = "Click for copy changeset id"
+            getCachedUserInfo(item.previousSibling.previousSibling.textContent).then((res) => {
+                if (res['roles'].some(i => i === "moderator")) {
+                    let userBadge = document.createElement("span")
+                    userBadge.classList.add("user-badge")
+                    userBadge.style.position = "relative"
+                    userBadge.style.bottom = "2px"
+                    userBadge.title = "This user is a moderator"
+                    userBadge.innerHTML = '<svg width="20" height="20"><path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#447eff" stroke="#447eff" stroke-width="2" stroke-linejoin="round"></path></svg>'
+                    userBadge.querySelector("svg").style.transform = "scale(0.9)"
+                    item.previousSibling.previousSibling.before(userBadge)
+                } else if (res['blocks']['received']['active']) {
+                    let userBadge = document.createElement("span")
+                    userBadge.classList.add("user-badge")
+                    userBadge.title = "The user was banned"
+                    userBadge.textContent = "⛔️"
+                    item.previousSibling.previousSibling.before(userBadge)
+                } else if (new Date(res['account_created']).setUTCDate(new Date(res['account_created']).getUTCDate() + 30) > new Date()) {
+                    let userBadge = document.createElement("span")
+                    userBadge.classList.add("user-badge")
+                    userBadge.title = "The user is less than a month old"
+                    userBadge.textContent = "🍼"
+                    item.previousSibling.previousSibling.before(userBadge)
+                }
+            })
         })
         if (currentMassDownloadedPages && currentMassDownloadedPages <= MAX_PAGE_FOR_LOAD) {
             const loader = document.querySelector(".changeset_more > .loader")
@@ -1897,11 +1971,14 @@ function setupMassChangesetsActions() {
 // - для модулей, которые внедряются черзе setInterval можно сохранить таймер, чтобы предотвратить дублирование вызовов
 // - возможность сохранить результат внедрения
 
-// TODO локализация
 let injectingStarted = false
+let tagsOfObjectsVisible = true
 
 async function addChangesetQuickLook() {
-    if (!location.pathname.includes("/changeset")) return
+    if (!location.pathname.includes("/changeset")) {
+        tagsOfObjectsVisible = true
+        return
+    }
     if (document.querySelector('.quick-look')) return true;
 
     let sidebar = document.querySelector("#sidebar_content h2");
@@ -1910,14 +1987,22 @@ async function addChangesetQuickLook() {
     }
     if (injectingStarted) return
     injectingStarted = true
+    // TODO load full changeset and filter geometry points
     try {
-        for (const objType of ["node", "way", "relation"]) {
-            await Promise.all(Array.from(document.querySelectorAll(`.list-unstyled li.${objType}`)).map(async (i) => {
+        for (const objType of ["way", "node", "relation"]) {
+            const objCount = document.querySelectorAll(`.list-unstyled li.${objType}`).length
+            if (objCount === 0) {
+                continue
+            }
+            await Promise.all(Array.from(document.querySelectorAll(`.list-unstyled li.${objType}`)).map(async (i, idx) => {
                 const [, , nodeID, version] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
                 const res = await fetch(osm_server.apiBase + objType + "/" + nodeID + "/history.json");
                 const objHistory = (await res.json()).elements;
                 let prevVersion = {
-                    tags: {}, version: 0
+                    tags: {},
+                    version: 0,
+                    lat: null,
+                    lon: null
                 };
 
                 let targetVersion = prevVersion;
@@ -1930,9 +2015,9 @@ async function addChangesetQuickLook() {
                     }
                 }
                 const tagsTable = document.createElement("table")
+                tagsTable.classList.add("quick-look")
                 const tbody = document.createElement("tbody")
                 tagsTable.appendChild(tbody)
-                tagsTable.classList.add("quick-look")
 
                 function makeTagRow(key, value) {
                     const tagRow = document.createElement("tr")
@@ -1945,33 +2030,110 @@ async function addChangesetQuickLook() {
                     return tagRow
                 }
 
+                let tagsWasChanged = false;
                 if (prevVersion.version !== 0) {
-                    for (const [key, value] of Object.entries(prevVersion.tags ?? {})) {
-                        if (targetVersion.tags[key] === undefined) {
+                    for (const [key, value] of Object.entries(prevVersion?.tags ?? {})) {
+                        if (targetVersion.tags === undefined || targetVersion.tags[key] === undefined) {
                             const row = makeTagRow(key, value)
                             row.style.background = "rgba(238,51,9,0.6)"
                             tbody.appendChild(row)
+                            tagsWasChanged = true
                         }
                     }
                 }
                 for (const [key, value] of Object.entries(targetVersion.tags ?? {})) {
                     const row = makeTagRow(key, value)
-                    if (prevVersion.tags[key] === undefined) {
+                    if (prevVersion.tags === null || prevVersion.tags[key] === undefined) {
+                        tagsWasChanged = true
                         row.style.background = "rgba(17,238,9,0.6)"
                     } else if (prevVersion.tags[key] !== value) {
                         const valCell = row.querySelector("td")
                         valCell.style.background = "rgba(223,238,9,0.6)"
                         valCell.textContent = prevVersion.tags[key] + " → " + valCell.textContent
-                        valCell.title = "was " + prevVersion.tags[key]
+                        valCell.title = "was: " + prevVersion.tags[key]
+                        tagsWasChanged = true
                     } else {
                         row.classList.add("non-modified-tag-in-quick-view")
+                        if (!tagsOfObjectsVisible) {
+                            row.setAttribute("hidden", "true")
+                        }
                     }
                     tbody.appendChild(row)
                 }
-                i.appendChild(tagsTable)
-
+                if (targetVersion.visible !== false && prevVersion?.nodes && prevVersion.nodes.toString() !== targetVersion.nodes?.toString()) {
+                    let geomChangedFlag = document.createElement("span")
+                    geomChangedFlag.textContent = " 📐"
+                    geomChangedFlag.title = "List of way nodes has been changed"
+                    geomChangedFlag.style.background = "rgba(223,238,9,0.6)"
+                    i.appendChild(geomChangedFlag)
+                }
+                if (prevVersion?.members && prevVersion.members.toString() !== targetVersion.members?.toString()) {
+                    let memChangedFlag = document.createElement("span")
+                    memChangedFlag.textContent = " 👥"
+                    memChangedFlag.title = "List of relation members has been changed"
+                    memChangedFlag.style.background = "rgba(223,238,9,0.6)"
+                    i.appendChild(memChangedFlag)
+                }
+                if (targetVersion.lat && prevVersion.lat && (prevVersion.lat !== targetVersion.lat || prevVersion.lon !== targetVersion.lon)) {
+                    i.classList.add("location-modified")
+                    let memChangedFlag = document.createElement("span")
+                    const distInMeters = getDistanceFromLatLonInKm(
+                        prevVersion.lat,
+                        prevVersion.lon,
+                        targetVersion.lat,
+                        targetVersion.lon,
+                    ) * 1000;
+                    memChangedFlag.textContent = ` 📍${distInMeters.toFixed(1)}m`
+                    memChangedFlag.title = "Coordinates of node has been changed"
+                    memChangedFlag.style.background = "rgba(223,238,9,0.6)"
+                    i.appendChild(memChangedFlag)
+                }
+                if (targetVersion.visible === false) {
+                    i.classList.add("removed-object")
+                }
+                if (targetVersion.version !== lastVersion.version && lastVersion.visible === false) {
+                    i.appendChild(document.createTextNode(['ru-RU', 'ru'].includes(navigator.language) ? " ⓘ Объект уже удалён" : " ⓘ The object is now deleted"))
+                }
+                if (tagsWasChanged) {
+                    i.appendChild(tagsTable)
+                } else {
+                    i.classList.add("tags-non-modified")
+                }
                 // console.log(prevVersion, targetVersion, lastVersion);
             }))
+
+            Array.from(document.querySelectorAll(`.list-unstyled li.${objType}.tags-non-modified`)).forEach(i => {
+                // reorder non-interesting-objects
+                document.querySelector(`.list-unstyled li.${objType}`).parentElement.appendChild(i)
+            })
+
+            let compactToggle = document.createElement("button")
+            compactToggle.textContent = tagsOfObjectsVisible ? "><" : "<>"
+            compactToggle.classList.add("quick-look-compact-toggle-btn")
+            compactToggle.classList.add("btn", "btn-sm", "btn-primary")
+            compactToggle.classList.add("quick-look")
+            compactToggle.onclick = (e) => {
+                if (e.target.textContent === "><") {
+                    e.target.textContent = "<>"
+                } else {
+                    e.target.textContent = "><"
+                }
+                tagsOfObjectsVisible = !tagsOfObjectsVisible
+                document.querySelectorAll(".non-modified-tag-in-quick-view").forEach(i => {
+                    i.toggleAttribute("hidden")
+                });
+            }
+            document.querySelector(`.list-unstyled li.${objType}`).parentElement.previousElementSibling.querySelector("h4").appendChild(compactToggle)
+            compactToggle.before(document.createTextNode("\xA0"))
+            if (document.querySelectorAll(`.list-unstyled li.${objType} .non-modified-tag-in-quick-view`).length < 5) {
+                compactToggle.style.display = "none"
+                document.querySelectorAll(".non-modified-tag-in-quick-view").forEach(i => {
+                    i.removeAttribute("hidden")
+                });
+            }
+            if (objCount === 20) {
+                await new Promise(r => setTimeout(r, 500));
+            }
         }
     } finally {
         injectingStarted = false
@@ -2048,8 +2210,8 @@ function setup() {
     let lastPath = "";
     new MutationObserver(function fn() {
         const path = location.pathname;
-        if (path === lastPath) return;
-        lastPath = path;
+        if (path + location.search === lastPath) return;
+        lastPath = path + location.search;
         for (const module of modules.filter(module => GM_config.get(module.name.slice('setup'.length)))) {
             setTimeout(module, 0, path);
         }
