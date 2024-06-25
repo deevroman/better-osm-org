@@ -344,6 +344,10 @@ function addResolveNotesButtons() {
     if (document.querySelector('.resolve-note-done')) return true;
     if (document.querySelector('#timeback-btn')) return true;
 
+    document.querySelectorAll(".overflow-hidden a").forEach(i => {
+        i.setAttribute("target", "_blank")
+    })
+
     try {
         // timeback button
         let timestamp = document.querySelector("#sidebar_content time").dateTime;
