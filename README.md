@@ -1,8 +1,9 @@
 # better-osm-org
 
-[Tampermonkey](https://www.tampermonkey.net) userscript adding several improvements for experienced osm.org users
+Userscript adding several improvements for experienced osm.org users
 
-[Install](https://raw.githubusercontent.com/deevroman/better-osm-org/master/better-osm-org.user.js)
+1. Install [Tampermonkey](https://www.tampermonkey.net) or [Violentmonkey](https://violentmonkey.github.io/)
+2. [Install](https://raw.githubusercontent.com/deevroman/better-osm-org/master/better-osm-org.user.js) script
 
 - [x] Tags diff in object history
 
