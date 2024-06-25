@@ -1521,6 +1521,7 @@ function addChangesetCheckbox(chagesetElem) {
     checkbox.classList.add("mass-action-checkbox")
     checkbox.value = chagesetElem.querySelector(".changeset_id").href.match(/\/(\d+)/)[1]
     checkbox.style.cursor = "pointer"
+    checkbox.title = "Shift + click for select a range of empty checkboxes"
     checkbox.onclick = e => {
         if (e.shiftKey) {
             let currentCheckboxFound = false
@@ -1918,6 +1919,15 @@ function addMassChangesetsActions() {
                     userBadge.style.bottom = "2px"
                     userBadge.title = "This user is a moderator"
                     userBadge.innerHTML = '<svg width="20" height="20"><path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#447eff" stroke="#447eff" stroke-width="2" stroke-linejoin="round"></path></svg>'
+                    userBadge.querySelector("svg").style.transform = "scale(0.9)"
+                    item.previousSibling.previousSibling.before(userBadge)
+                } else if (res['roles'].some(i => i === "importer")) {
+                    let userBadge = document.createElement("span")
+                    userBadge.classList.add("user-badge")
+                    userBadge.style.position = "relative"
+                    userBadge.style.bottom = "2px"
+                    userBadge.title = "This user is a importer"
+                    userBadge.innerHTML = '<svg width="20" height="20"><path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#38e13a" stroke="#38e13a" stroke-width="2" stroke-linejoin="round"></path></svg>'
                     userBadge.querySelector("svg").style.transform = "scale(0.9)"
                     item.previousSibling.previousSibling.before(userBadge)
                 } else if (res['blocks']['received']['active']) {
