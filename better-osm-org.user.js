@@ -1854,6 +1854,10 @@ function addMassActionForGlobalChangesets() {
                     const docParser = new DOMParser();
                     const doc = docParser.parseFromString(responseText, "text/html");
                     filterChangesets(doc)
+                    setTimeout(() => {
+                        const changesetsCount = document.querySelectorAll("ol > li").length
+                        document.querySelector("#hidden-changeset-counter").textContent = ` Displayed ${changesetsCount - hiddenChangesetsCount}/${changesetsCount}` // hiddenChangesetsCount?
+                    }, 100)
                     queriesCache.elems[this.responseURL] = doc.documentElement.outerHTML;
                 } else {
                     queriesCache.elems[this.responseURL] = responseText
@@ -1956,6 +1960,8 @@ function addMassChangesetsActions() {
             }
         } else if (currentMassDownloadedPages > MAX_PAGE_FOR_LOAD) {
             currentMassDownloadedPages = null
+            const changesetsCount = document.querySelectorAll("ol > li").length
+            document.querySelector("#hidden-changeset-counter").textContent = ` Displayed ${changesetsCount - hiddenChangesetsCount}/${changesetsCount}`
         } else {
             if (!document.querySelector("#infinity-list-btn")) {
                 let moreButton = document.querySelector(".changeset_more > a")
@@ -2138,11 +2144,13 @@ async function addChangesetQuickLook() {
             compactToggle.classList.add("btn", "btn-sm", "btn-primary")
             compactToggle.classList.add("quick-look")
             compactToggle.onclick = (e) => {
-                if (e.target.textContent === "><") {
-                    e.target.textContent = "<>"
-                } else {
-                    e.target.textContent = "><"
-                }
+                document.querySelectorAll(".quick-look-compact-toggle-btn").forEach(i => {
+                    if (i.textContent === "><") {
+                        i.textContent = "<>"
+                    } else {
+                        i.textContent = "><"
+                    }
+                })
                 tagsOfObjectsVisible = !tagsOfObjectsVisible
                 document.querySelectorAll(".non-modified-tag-in-quick-view").forEach(i => {
                     i.toggleAttribute("hidden")
