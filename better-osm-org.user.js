@@ -248,11 +248,11 @@ function addRevertButton() {
             let time = Array.from(metainfoHTML.children).find(i => i.localName === "time")
             metainfoHTML.innerHTML = ""
             metainfoHTML.appendChild(time)
-            let findBtn = document.createElement("a")
+            let findBtn = document.createElement("span")
             findBtn.textContent = " 🔍 "
             findBtn.value = changeset_id
             findBtn.datetime = time.dateTime
-            findBtn.classList.add("find-deleted-user-btn")
+            findBtn.style.cursor = "pointer"
             findBtn.onclick = findChangesetInDiff
             metainfoHTML.appendChild(findBtn)
         }
@@ -849,6 +849,7 @@ function copyAnimation(e, text) {
 // https://osm.org/node/4122049406 (/replication/changesets/005/638/ contains .tmp files)
 // https://osm.org/node/2/history (very hard)
 async function findChangesetInDiff(e) {
+    e.target.style.cursor = "progress"
     const response = await GM.xmlHttpRequest({
         method: "GET",
         url: planetOrigin + "/replication/changesets/",
@@ -898,6 +899,7 @@ async function findChangesetInDiff(e) {
     e.target.before(document.createTextNode("\xA0"))
     e.target.before(userInfo)
     e.target.before(document.createTextNode("\xA0"))
+
     let uid = document.createElement("span")
     uid.style.background = "#9cff81"
     uid.style.cursor = "pointer"
@@ -905,6 +907,14 @@ async function findChangesetInDiff(e) {
     uid.textContent = `${foundedChangeset.getAttribute("uid")}`
     e.target.before(uid)
     e.target.before(document.createTextNode("\xA0"))
+
+    const webArchiveLink = document.createElement("a")
+    webArchiveLink.textContent = "WebArchive"
+    webArchiveLink.target = "_blank"
+    webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + foundedChangeset.getAttribute("user")
+    e.target.before(webArchiveLink)
+    e.target.before(document.createTextNode("\xA0"))
+
     e.target.remove()
 }
 
@@ -1005,10 +1015,6 @@ function addDiffInHistory() {
         font-size: 1rem;
     }
     
-    .find-deleted-user-btn {
-        cursor: pointer !important;
-    }
-    
     .copied {
       background-color: red !important;
       transition:all 0.3s;
@@ -1048,11 +1054,11 @@ function addDiffInHistory() {
         } else {
             metainfoHTML.innerHTML = ""
             metainfoHTML.appendChild(time)
-            let findBtn = document.createElement("a")
+            let findBtn = document.createElement("span")
             findBtn.textContent = " 🔍 "
             findBtn.value = changesetID
             findBtn.datetime = time.dateTime
-            findBtn.classList.add("find-deleted-user-btn")
+            findBtn.style.cursor = "pointer"
             findBtn.onclick = findChangesetInDiff
             metainfoHTML.appendChild(findBtn)
         }
@@ -1741,6 +1747,7 @@ function addMassActionForGlobalChangesets() {
                         filterChangesets();
                         updateMap()
                         GM_setValue("last-user-filter", filterByUsersInput.value)
+                        GM_setValue("last-comment-filter", filterByCommentInput.value)
                     }
                 });
                 filterByUsersInput.value = GM_getValue("last-user-filter", "")
@@ -1778,6 +1785,7 @@ function addMassActionForGlobalChangesets() {
                         event.preventDefault();
                         filterChangesets();
                         updateMap()
+                        GM_setValue("last-user-filter", filterByUsersInput.value)
                         GM_setValue("last-comment-filter", filterByCommentInput.value)
                     }
                 });
