@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Better osm.org
-// @version      0.4
+// @version      0.4.1
 // @description  Several improvements for advanced users of osm.org
 // @author       deevroman
 // @match        https://www.openstreetmap.org/*
@@ -1257,9 +1257,6 @@ function setupHideLinesForDataView(path) {
     addHideLinesForDataView();
 }
 
-function setupChangesetQuickLook(path) {
-
-}
  */
 const rapidLink = "https://mapwith.ai/rapid#background=EsriWorldImagery&map="
 let coordinatesObserver = null;
@@ -2028,6 +2025,9 @@ async function addChangesetQuickLook() {
     }
     if (injectingStarted) return
     injectingStarted = true
+    if (document.activeElement?.name === "query") {
+        document.activeElement?.blur()
+    }
     // TODO load full changeset and filter geometry points
     try {
         let uniqTypes = 0
@@ -2212,7 +2212,7 @@ function setupNavigationViaHotkeys() {
     hotkeysConfigured = true
 
     function keyupHandler(e) {
-        if (!location.pathname.includes("/changeset")) return;
+        if (!location.pathname.includes("/changeset") || document.activeElement?.name === "text") return;
         if (e.altKey) {
             if (e.code === "ArrowLeft") {
                 const navigationLinks = document.querySelectorAll("div.secondary-actions")[1].querySelectorAll("a")
