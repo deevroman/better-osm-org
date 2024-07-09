@@ -51,6 +51,8 @@ Userscript adding several improvements for experienced osm.org users
 - [x] Hide active note highlight
 
 ### Ideas
+- [ ] Changesets feed like who did it
+- [ ] Show state of way in the past
 - [ ] Exact time instead of a verbal description
 - [ ] Jump to overpass from tags
 - [ ] Show deleted
