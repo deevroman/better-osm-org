@@ -2079,6 +2079,7 @@ async function addChangesetQuickLook() {
                 }
 
                 let tagsWasChanged = false;
+                // tags deletion
                 if (prevVersion.version !== 0) {
                     for (const [key, value] of Object.entries(prevVersion?.tags ?? {})) {
                         if (targetVersion.tags === undefined || targetVersion.tags[key] === undefined) {
@@ -2089,9 +2090,10 @@ async function addChangesetQuickLook() {
                         }
                     }
                 }
+                // tags add/modification
                 for (const [key, value] of Object.entries(targetVersion.tags ?? {})) {
                     const row = makeTagRow(key, value)
-                    if (prevVersion.tags === null || prevVersion.tags[key] === undefined) {
+                    if (prevVersion.tags === undefined || prevVersion.tags[key] === undefined) {
                         tagsWasChanged = true
                         row.style.background = "rgba(17,238,9,0.6)"
                     } else if (prevVersion.tags[key] !== value) {
@@ -2189,7 +2191,7 @@ async function addChangesetQuickLook() {
                 await new Promise(r => setTimeout(r, 500));
             }
         }
-    } finally {
+    } finally { // TODO catch and notify user
         injectingStarted = false
     }
 }
@@ -2284,7 +2286,8 @@ function main() {
             GM_registerMenuCommand("Settings", function () {
                 GM_config.open();
             });
-        } catch { /* empty */ }
+        } catch { /* empty */
+        }
         setup();
     }
 }
