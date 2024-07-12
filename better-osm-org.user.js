@@ -13,7 +13,7 @@
 // @exclude      https://master.apis.dev.openstreetmap.org/api/*
 // @match        https://osmcha.org/*
 // @match        http://localhost:3000/*
-// @exclude      http://localhost:3000//api/*
+// @exclude      http://localhost:3000/api/*
 // @match        https://www.hdyc.neis-one.org/*
 // @match        https://hdyc.neis-one.org/*
 // @license      WTFPL
@@ -50,6 +50,7 @@
 /*global GM_registerMenuCommand*/
 /*global unsafeWindow*/
 /*global exportFunction*/
+/*global cloneInto*/
 GM_config.init(
     {
         'id': 'Config',
@@ -957,6 +958,120 @@ function addHistoryLink() {
     }
 }
 
+const nodesHistorys = {}
+const waysHistorys = {}
+
+async function loadWayVersionNodes(wayID, version) {
+    console.debug("Loading", wayID, version)
+    let wayHistory
+    if (waysHistorys[wayID]) {
+        wayHistory = waysHistorys[wayID];
+    } else {
+        const res = await fetch(osm_server.apiBase + "way" + "/" + wayID + "/history.json");
+        wayHistory = (await res.json()).elements;
+        waysHistorys[wayID] = wayHistory;
+    }
+    const targetVersion = wayHistory.filter(v => v.version.toString() === version)[0]
+    if (!targetVersion) {
+        throw `loadWayVersionNodes failed ${wayID}, ${version}`
+    }
+    const nodesHistory = []
+    for (const nodeID of targetVersion.nodes) {
+        if (nodesHistorys[nodeID]) {
+            nodesHistory.push(nodesHistorys[nodeID]);
+        } else {
+            const res = await fetch(osm_server.apiBase + "node" + "/" + nodeID + "/history.json");
+            nodesHistorys[nodeID] = (await res.json()).elements
+            nodesHistory.push(nodesHistorys[nodeID]);
+        }
+    }
+    return [targetVersion, nodesHistory]
+}
+
+function setupWayVersionView() {
+    let wayID = location.pathname.match(/\/way\/(\d+)\//)[1];
+    if (wayID === null) return;
+    document.querySelectorAll(".browse-way h4:nth-child(1) a").forEach((i) => {
+        const version = i.href.match(/\/(\d+)$/)[1];
+        const btn = document.createElement("a")
+        btn.classList.add("way-version-view")
+        btn.textContent = "📥"
+        btn.style.cursor = "pointer"
+        btn.setAttribute("way-version", version.toString())
+
+        async function loadWayVersion(e, loadMore = true, showWay=true) {
+            const htmlElem = e.target ? e.target : e
+            htmlElem.style.cursor = "progress"
+            const version = htmlElem.getAttribute("way-version")
+            const [targetVersion, nodesHistory] = await loadWayVersionNodes(wayID, version);
+            console.log(nodesHistory);
+            const targetTime = new Date(targetVersion.timestamp)
+            const nodesList = nodesHistory.map(history => {
+                let cur = history[0]
+                for (const v of history) {
+                    if (new Date(v.timestamp) <= targetTime) {
+                        cur = v;
+                    }
+                }
+                return [cur.lat, cur.lon]
+            })
+            if (showWay) {
+                GM_addElement("script", {
+                    //language=js
+                    textContent: `function showWay(nodesList) {
+                        customObjects.forEach(i => i.remove())
+                        customObjects = []
+                        const line = L.polyline(
+                            nodesList.map(elem => L.latLng(elem)),
+                            {
+                                color: "#000000",
+                                weight: 4,
+                                clickable: false,
+                                opacity: 1,
+                                fillOpacity: 1
+                            }
+                        ).addTo(map);
+                        customObjects.push(line);
+                    }
+                    `
+                })
+                unsafeWindow.showWay(cloneInto(nodesList, unsafeWindow))
+            }
+            if (htmlElem.nodeName === "A") {
+                const versionDiv = htmlElem.parentNode.parentNode
+                versionDiv.onmouseenter = loadWayVersion
+                versionDiv.setAttribute("way-version", version.toString())
+                htmlElem.style.cursor = "pointer" // todo finally{}
+                htmlElem.setAttribute("hidden", "true")
+                // preload next
+                if (version !== "1") {
+                    console.log(`preloading v${version - 1}`);
+                    await loadWayVersionNodes(wayID, (version - 1).toString())
+                    console.log(`preloaded v${version - 1}`);
+                    if (loadMore && versionDiv.nextElementSibling?.querySelector("h4 a.way-version-view")) {
+                        if (waysHistorys[wayID].filter(v => v.version === version - 1)[0].nodes.length <= 50) {
+                            await loadWayVersion(versionDiv.nextElementSibling.querySelector("h4 a.way-version-view"), true, false)
+                        } else {
+                            await loadWayVersion(versionDiv.nextElementSibling.querySelector("h4 a.way-version-view"), false, false)
+                            if (version !== "2") {
+                                console.log(`preloading2 v${version - 2}`);
+                                await loadWayVersionNodes(wayID, (version - 2).toString())
+                                console.log(`preloaded v${version - 2}`);
+                            }
+                        }
+                    }
+                }
+            } else {
+                e.target.style.cursor = "auto"
+            }
+        }
+        btn.addEventListener("mouseenter", loadWayVersion, {
+            once: true,
+        })
+        i.after(btn)
+        i.after(document.createTextNode("\xA0"))
+    })
+}
 
 // hard cases:
 // https://www.openstreetmap.org/node/1/history
@@ -1022,6 +1137,14 @@ function addDiffInHistory() {
     .was-copied {
       background-color: none !important;
       transition:all 0.3s;
+    }
+    
+    .way-version-view:hover {
+        background-color: yellow;
+    }
+    
+    [way-version]:hover {
+        background-color: rgba(244, 244, 244);
     }
     
     `;
@@ -1205,6 +1328,7 @@ function addDiffInHistory() {
         }
     )
     makeHistoryCompact();
+    setupWayVersionView();
 }
 
 
@@ -2025,6 +2149,25 @@ async function addChangesetQuickLook() {
     }
     if (injectingStarted) return
     injectingStarted = true
+    try {
+        GM_addElement(document.head, "style", {
+            textContent: `
+            #sidebar_content li.node:hover {
+                // background: #ffe300;
+                background-color: rgba(223, 223, 223, 0.6);
+                //box-shadow: inset 0px 0px 0px 1px #f00;
+            }
+            #sidebar_content li.way:hover {
+                // background: #ffe300;
+                background-color: rgba(223, 223, 223, 0.6);
+                
+                //background: #ffeeee;
+                //box-shadow: inset 0px 0px 0px 1px #f00;
+            }
+            `,
+        });
+    } catch (e) { /* empty */
+    }
     if (document.activeElement?.name === "query") {
         document.activeElement?.blur()
     }
@@ -2032,7 +2175,7 @@ async function addChangesetQuickLook() {
     try {
         let uniqTypes = 0
         for (const objType of ["way", "node", "relation"]) {
-            if (document.querySelectorAll(`.list-unstyled li.${objType}`).length > 0){
+            if (document.querySelectorAll(`.list-unstyled li.${objType}`).length > 0) {
                 uniqTypes++;
             }
         }
@@ -2043,8 +2186,8 @@ async function addChangesetQuickLook() {
                 continue
             }
             await Promise.all(Array.from(document.querySelectorAll(`.list-unstyled li.${objType}`)).map(async (i, idx) => {
-                const [, , nodeID, version] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
-                const res = await fetch(osm_server.apiBase + objType + "/" + nodeID + "/history.json");
+                const [, , objID, version] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
+                const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/history.json");
                 const objHistory = (await res.json()).elements;
                 let prevVersion = {
                     tags: {},
@@ -2062,6 +2205,7 @@ async function addChangesetQuickLook() {
                         break
                     }
                 }
+
                 const tagsTable = document.createElement("table")
                 tagsTable.classList.add("quick-look")
                 const tbody = document.createElement("tbody")
@@ -2148,6 +2292,156 @@ async function addChangesetQuickLook() {
                     i.appendChild(tagsTable)
                 } else {
                     i.classList.add("tags-non-modified")
+                }
+                if (objType === "node") {
+                    i.onmouseenter = () => {
+                        GM_addElement("script", {
+                            //language=js
+                            textContent: `
+                                function showNodeMarker(lat, lon) {
+                                    const haloStyle = {
+                                        weight: 2.5,
+                                        radius: 5,
+                                        fillOpacity: 0,
+                                        color: "#ff00e3"
+                                    };
+                                    activeObjects.forEach((i) => {
+                                        i.remove();
+                                    })
+                                    activeObjects.push(L.circleMarker(L.latLng(lat, lon), haloStyle).addTo(map));
+                                }`
+                        })
+                        if (targetVersion.visible === false) {
+                            unsafeWindow.showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString())
+                        } else {
+                            unsafeWindow.showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString())
+                        }
+                    }
+                    i.onclick = () => {
+                        GM_addElement("script", {
+                            //language=js
+                            textContent: `
+                                function panTo(lat, lon) {
+                                    map.flyTo([lat, lon], 18, {animate: false});
+                                }
+                            `
+                        })
+                        unsafeWindow.panTo(targetVersion.lat.toString(), targetVersion.lon.toString())
+                    }
+                    GM_addElement("script", {
+                        //language=js
+                        textContent: `
+                            function showNodeMarker(a, b) {
+                                const haloStyle = {
+                                    weight: 2.5,
+                                    radius: 5,
+                                    fillOpacity: 0,
+                                    color: "#006200"
+                                };
+                                customObjects.push(L.circleMarker(L.latLng(a, b), haloStyle).addTo(map));
+                            }`
+                    })
+                    if (targetVersion.visible === false) {
+                        unsafeWindow.showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString())
+                    } else {
+                        unsafeWindow.showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString())
+                    }
+                } else if (objType === "way") {
+                    const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/full.json");
+                    if (!res.ok) {
+                        console.warn(res)
+                        return
+                    }
+                    const elements = (await res.json()).elements
+                    let nodesMap = {}
+                    elements.forEach(elem => {
+                        if (elem.type === "node") {
+                            nodesMap[elem.id] = [elem.lat, elem.lon]
+                        }
+                    })
+                    let nodesList = []
+                    targetVersion.nodes.forEach(node => {
+                        if (node in nodesMap) {
+                            nodesList.push(nodesMap[node])
+                        } else {
+                            console.log(objID, node)
+                        }
+                    })
+
+                    function displayWay(needFly) {
+                        GM_addElement("script", {
+                            //language=js
+                            textContent: `function showWay(nodesList, needFly) {
+                                const line = L.polyline(
+                                    nodesList.map(elem => L.latLng(elem)),
+                                    {/**/
+                                        color: "#000000",
+                                        weight: 4,
+                                        clickable: false,
+                                        opacity: 1,
+                                        fillOpacity: 1
+                                    }
+                                ).addTo(map);
+                                customObjects.push(line);
+                                if (needFly) {
+                                    map.flyTo(line.getBounds().getCenter(), 18, {
+                                        animate: false,
+                                        duration: 0.5
+                                    });
+                                }
+                            }
+                            `
+                        })
+                        unsafeWindow.showWay(cloneInto(nodesList, unsafeWindow), needFly)
+                    }
+
+                    i.onclick = () => {
+                        GM_addElement("script", {
+                            textContent: `function showWay(nodesList){
+                                const line = L.polyline(
+                                    nodesList.map(elem => L.latLng(elem)),
+                                     {
+                                      color : "#ff00e3",
+                                      weight : 4,
+                                      clickable : false,
+                                      opacity : 1,
+                                      fillOpacity : 1
+                                     }
+                                  ).addTo(map);
+                                activeObjects.forEach((i) => {
+                                    i.remove();
+                                })
+                                activeObjects.push(line);
+                               }`
+                        })
+                        unsafeWindow.showWay(cloneInto(nodesList, unsafeWindow))
+                    }
+                    if (objCount <= 5) {
+                        displayWay(false)
+                    }
+                    i.onmouseenter = (e) => {
+                        GM_addElement("script", {
+                            textContent: `function showWay(nodesList){
+                                const line = L.polyline(
+                                    nodesList.map(elem => L.latLng(elem)),
+                                     {
+                                      color : "#ff00e3",
+                                      weight : 4,
+                                      clickable : false,
+                                      opacity : 1,
+                                      fillOpacity : 1
+                                     }
+                                  ).addTo(map);
+                                activeObjects.forEach((i) => {
+                                    i.remove();
+                                })
+                                activeObjects.push(line);
+                               }`
+                        })
+                        unsafeWindow.showWay(cloneInto(nodesList, unsafeWindow))
+                    }
+                } else if (objType === "relation") {
+
                 }
                 // console.log(prevVersion, targetVersion, lastVersion);
             }))
@@ -2267,6 +2561,20 @@ function setup() {
     new MutationObserver(function fn() {
         const path = location.pathname;
         if (path + location.search === lastPath) return;
+        if (lastPath.includes("/changeset/") && (!path.includes("/changeset/") || lastPath !== path)) {
+            GM_addElement("script", {
+                textContent: `
+                        customObjects.forEach((i) => {
+                            i.remove();
+                        })
+                        customObjects = []
+                        activeObjects.forEach((i) => {
+                            i.remove();
+                        })
+                        activeObjects = []
+                    `
+            })
+        }
         lastPath = path + location.search;
         for (const module of modules.filter(module => GM_config.get(module.name.slice('setup'.length)))) {
             setTimeout(module, 0, path);
@@ -2275,10 +2583,8 @@ function setup() {
     }()).observe(document, {subtree: true, childList: true});
 }
 
-
 function main() {
     'use strict';
-
     if (location.origin === "https://www.hdyc.neis-one.org" || location.origin === "https://hdyc.neis-one.org") {
         simplifyHDCYIframe();
     } else {
@@ -2290,6 +2596,23 @@ function main() {
         }
         setup();
     }
+}
+
+if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)) {
+    // This must be done as early as possible in order to pull the map object into the global scope
+    GM_addElement("script", {
+        textContent: `
+            var map = null;
+            var customObjects = []
+            var activeObjects = []
+            L.Map.addInitHook((function () {
+                // There are also maps in the Layers menu, but we only need the main visible map
+                if (this._container?.id === "map") {
+                    map = this;
+                }
+            })
+    )`
+    })
 }
 
 init.then(main);
