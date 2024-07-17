@@ -49,11 +49,11 @@ Userscript adding several improvements for experienced osm.org users
 - + [ ] mass changesets download 
 - [x] Settings
 - [x] Hide active note highlight
+- [x] Exact datetime instead of a verbal description
 
 ### Ideas
 - [ ] Changesets feed like who did it
 - [ ] Show state of way in the past
-- [ ] Exact time instead of a verbal description
 - [ ] Jump to overpass from tags
 - [ ] Show deleted
 - [ ] Hide resolved notes
@@ -69,6 +69,10 @@ Userscript adding several improvements for experienced osm.org users
 - [ ] Edit tags in Overpass Turbo
 - [ ] Hide ways in map data view
 - [ ] Localization
+- [ ] Photos from imgur, wikipedia commons, ...?
+- [ ] Custom overlays for iD
+- + [ ] Geoscribble
+- + [ ] Strava (Hard, need bypass CORS)
 
 Maybe
 - [ ] Compact osmcha.org
