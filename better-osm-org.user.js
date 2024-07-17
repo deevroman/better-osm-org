@@ -231,6 +231,7 @@ function addRevertButton() {
 
     let sidebar = document.querySelector("#sidebar_content h2");
     if (sidebar) {
+        hideSearchForm();
         // sidebar.classList.add("changeset-header")
         let changeset_id = sidebar.innerHTML.match(/(\d+)/)[0];
         sidebar.innerHTML += ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank class=revert_button_class>↩️</a>`;
@@ -290,7 +291,18 @@ function setupRevertButton(path) {
     addRevertButton();
 }
 
+function hideSearchForm() {
+    if (location.pathname.includes("/search")) return;
+    if (!document.querySelector("#sidebar .search_forms")?.hasAttribute("hidden")) {
+        document.querySelector("#sidebar .search_forms")?.setAttribute("hidden", "true")
+    }
+    document.querySelector("#sidebar_content .btn-close")?.addEventListener("click", () => {
+        document.querySelector("#sidebar .search_forms")?.removeAttribute("hidden");
+    })
+}
+
 let sidebarObserver = null;
+let timestampMode = "natural_text"
 
 function setupCompactChangesetsHistory() {
     if (!location.pathname.includes("/history") && !location.pathname.includes("/changeset")) {
@@ -329,6 +341,11 @@ function setupCompactChangesetsHistory() {
     #sidebar_content h2:not(.changeset-header) {
         font-size: 1rem;
     }
+    #sidebar {
+        border-top: solid;
+        border-top-width: 1px;
+        border-top-color: rgba(var(--bs-secondary-bg-rgb), var(--bs-bg-opacity)) !important;
+      }
     `;
 
     GM_addElement(document.head, "style", {
@@ -340,7 +357,41 @@ function setupCompactChangesetsHistory() {
         document.querySelectorAll("#sidebar .changesets .col").forEach((e) => {
             e.childNodes[0].textContent = ""
         })
-        // document.querySelector(".search_forms").remove() // make custom search via changesets
+        if (timestampMode !== "natural_text") {
+            document.querySelectorAll("#sidebar .changesets .col time:not([natural_text])").forEach(j => {
+                j.setAttribute("natural_text", j.textContent)
+                j.textContent = j.getAttribute("datetime")
+            })
+        }
+
+        document.querySelectorAll("#sidebar .changesets .col time").forEach(i => {
+            i.onclick = () => {
+                document.querySelectorAll("#sidebar .changesets .col time:not([natural_text])").forEach(j => {
+                    j.setAttribute("natural_text", j.textContent)
+                })
+                document.querySelectorAll("#sidebar .changesets .col time").forEach(j => {
+                    if (j.textContent === j.getAttribute("natural_text")) {
+                        const nowDate = new Date()
+                        nowDate.setHours(0)
+                        nowDate.setMinutes(0)
+                        nowDate.setSeconds(0)
+                        const changesetDate = new Date(j.getAttribute("datetime"))
+                        if (changesetDate < nowDate) {
+                            j.textContent = j.getAttribute("datetime")
+                        } else {
+                            j.textContent = `${changesetDate.getHours().toString().padStart(2, "0")}:${changesetDate.getMinutes().toString().padStart(2, "0")}:${changesetDate.getSeconds().toString().padStart(2, "0")}`
+                        }
+                        timestampMode = "datetime"
+                    } else {
+                        j.textContent = j.getAttribute("natural_text")
+                        timestampMode = "natural_text"
+                    }
+                })
+
+
+            }
+        })
+        hideSearchForm();
     }
 
     handleNewChangesets();
@@ -960,9 +1011,157 @@ function addHistoryLink() {
 
 const nodesHistorys = {}
 const waysHistorys = {}
+const relationsHistorys = {}
+
+// For WebStorm: Settings | Editor | Language Injections
+// Places Patterns + jsLiteralExpression(jsArgument(jsReferenceExpression().withQualifiedName("injectJSIntoPage"), 0))
+
+/**
+ * @param {string} text
+ */
+function injectJSIntoPage(text) {
+    GM_addElement("script", {
+        textContent: text
+    })
+}
+
+function defineShowWay() {
+    injectJSIntoPage(`
+    function showWay(nodesList, color = "#000000") {
+        customObjects.forEach(i => i.remove())
+        customObjects = []
+        const line = L.polyline(
+            nodesList.map(elem => L.latLng(elem)),
+            {
+                color: color,
+                weight: 4,
+                clickable: false,
+                opacity: 1,
+                fillOpacity: 1
+            }
+        ).addTo(map);
+        customObjects.push(line);
+    }`)
+}
+
+function defineDisplayWay() {
+    injectJSIntoPage(`
+    function displayWay(nodesList, needFly = false, color = "#000000") {
+        const line = L.polyline(
+            nodesList.map(elem => L.latLng(elem)),
+            {
+                color: color,
+                weight: 4,
+                clickable: false,
+                opacity: 1,
+                fillOpacity: 1,
+            }
+        ).addTo(map);
+        customObjects.push(line);
+        if (needFly) {
+            map.flyTo(line.getBounds().getCenter(), 18, {
+                animate: false,
+                duration: 0.5
+            });
+        }
+    }
+    `)
+}
+
+function defineShowNodeMarker() {
+    injectJSIntoPage(`
+    function showNodeMarker(a, b, color = "#006200") {
+        const haloStyle = {
+            weight: 2.5,
+            radius: 5,
+            fillOpacity: 0,
+            color: color
+        };
+        customObjects.push(L.circleMarker(L.latLng(a, b), haloStyle).addTo(map));
+    }`)
+}
+
+function defineShowActiveNodeMarker() {
+    injectJSIntoPage(`
+    function showActiveNodeMarker(lat, lon, color) {
+        const haloStyle = {
+            weight: 2.5,
+            radius: 5,
+            fillOpacity: 0,
+            color: color
+        };
+        activeObjects.forEach((i) => {
+            i.remove();
+        })
+        activeObjects.push(L.circleMarker(L.latLng(lat, lon), haloStyle).addTo(map));
+    }`)
+}
+
+function defineShowActiveWay() {
+    injectJSIntoPage(`
+    function showActiveWay(nodesList, color = "#ff00e3", needFly = false) {
+        const line = L.polyline(
+            nodesList.map(elem => L.latLng(elem)),
+            {
+                color: color,
+                weight: 4,
+                clickable: false,
+                opacity: 1,
+                fillOpacity: 1
+            }
+        ).addTo(map);
+        activeObjects.forEach((i) => {
+            i.remove();
+        })
+        activeObjects.push(line);
+        if (needFly) {
+            map.flyTo(line.getBounds().getCenter(), 18, {animate: false});
+        }
+    }`)
+}
+
+function defineCleanCustomObjects() {
+    injectJSIntoPage(`
+    function cleanCustomObjects() {
+        customObjects.forEach(i => i.remove())
+        customObjects = []
+    }
+    `)
+}
+
+function definePanTo() {
+    injectJSIntoPage(`
+    function panTo(lat, lon, zoom = 18, animate = false) {
+        map.flyTo([lat, lon], zoom, {animate: animate});
+    }
+    `)
+}
+
+function defineRenderFunctions() {
+    defineShowWay();
+    defineDisplayWay();
+    defineShowNodeMarker();
+    defineShowActiveNodeMarker();
+    defineCleanCustomObjects();
+    definePanTo();
+    defineShowActiveWay();
+}
+
+function cleanAllObjects() {
+    injectJSIntoPage(`
+    customObjects.forEach((i) => {
+        i.remove();
+    })
+    customObjects = []
+    activeObjects.forEach((i) => {
+        i.remove();
+    })
+    activeObjects = []
+    `)
+}
 
 async function loadWayVersionNodes(wayID, version) {
-    console.debug("Loading", wayID, version)
+    console.debug("Loading way", wayID, version)
     let wayHistory
     if (waysHistorys[wayID]) {
         wayHistory = waysHistorys[wayID];
@@ -976,7 +1175,8 @@ async function loadWayVersionNodes(wayID, version) {
         throw `loadWayVersionNodes failed ${wayID}, ${version}`
     }
     const nodesHistory = []
-    for (const nodeID of targetVersion.nodes) {
+    console.log("Nodes historys for download:", targetVersion.nodes?.length ?? 0)
+    for (const nodeID of targetVersion.nodes ?? []) {
         if (nodesHistorys[nodeID]) {
             nodesHistory.push(nodesHistorys[nodeID]);
         } else {
@@ -989,8 +1189,9 @@ async function loadWayVersionNodes(wayID, version) {
 }
 
 function setupWayVersionView() {
-    let wayID = location.pathname.match(/\/way\/(\d+)\//)[1];
-    if (wayID === null) return;
+    const match = location.pathname.match(/\/way\/(\d+)\//);
+    if (match === null) return;
+    const wayID = match[1]
     document.querySelectorAll(".browse-way h4:nth-child(1) a").forEach((i) => {
         const version = i.href.match(/\/(\d+)$/)[1];
         const btn = document.createElement("a")
@@ -999,7 +1200,7 @@ function setupWayVersionView() {
         btn.style.cursor = "pointer"
         btn.setAttribute("way-version", version.toString())
 
-        async function loadWayVersion(e, loadMore = true, showWay=true) {
+        async function loadWayVersion(e, loadMore = true, showWay = true) {
             const htmlElem = e.target ? e.target : e
             htmlElem.style.cursor = "progress"
             const version = htmlElem.getAttribute("way-version")
@@ -1016,25 +1217,6 @@ function setupWayVersionView() {
                 return [cur.lat, cur.lon]
             })
             if (showWay) {
-                GM_addElement("script", {
-                    //language=js
-                    textContent: `function showWay(nodesList) {
-                        customObjects.forEach(i => i.remove())
-                        customObjects = []
-                        const line = L.polyline(
-                            nodesList.map(elem => L.latLng(elem)),
-                            {
-                                color: "#000000",
-                                weight: 4,
-                                clickable: false,
-                                opacity: 1,
-                                fillOpacity: 1
-                            }
-                        ).addTo(map);
-                        customObjects.push(line);
-                    }
-                    `
-                })
                 unsafeWindow.showWay(cloneInto(nodesList, unsafeWindow))
             }
             if (htmlElem.nodeName === "A") {
@@ -1065,7 +1247,139 @@ function setupWayVersionView() {
                 e.target.style.cursor = "auto"
             }
         }
+
         btn.addEventListener("mouseenter", loadWayVersion, {
+            once: true,
+        })
+        i.after(btn)
+        i.after(document.createTextNode("\xA0"))
+    })
+}
+
+async function loadRelationVersionMembers(relationID, version) {
+    console.debug("Loading relation", relationID, version)
+    let relationHistory
+    if (relationsHistorys[relationID]) {
+        relationHistory = relationsHistorys[relationID];
+    } else {
+        const res = await fetch(osm_server.apiBase + "relation" + "/" + relationID + "/history.json");
+        relationHistory = (await res.json()).elements;
+        relationsHistorys[relationID] = relationHistory;
+    }
+    const targetVersion = relationHistory.filter(v => v.version.toString() === version)[0]
+    if (!targetVersion) {
+        throw `loadWayVersionNodes failed ${relationID}, ${version}`
+    }
+    const membersHistory = []
+    for (const member of targetVersion.members) {
+        if (member.type === "node") {
+            if (nodesHistorys[member.ref]) {
+                membersHistory.push(nodesHistorys[member.ref]);
+            } else {
+                const res = await fetch(osm_server.apiBase + "node" + "/" + member.ref + "/history.json");
+                nodesHistorys[member.ref] = (await res.json()).elements
+                membersHistory.push(nodesHistorys[member.ref]);
+            }
+        } else if (member.type === "way") {
+            let wayHistory
+            if (waysHistorys[member.ref]) {
+                wayHistory = waysHistorys[member.ref];
+            } else {
+                const res = await fetch(osm_server.apiBase + "way" + "/" + member.ref + "/history.json");
+                wayHistory = (await res.json()).elements;
+                waysHistorys[member.ref] = wayHistory;
+            }
+            const targetTime = new Date(targetVersion.timestamp)
+            let targetWayVersion = wayHistory[0]
+            wayHistory.forEach(history => {
+                if (new Date(history.timestamp) <= targetTime) {
+                    targetWayVersion = history;
+                }
+            })
+            membersHistory.push(await loadWayVersionNodes(member.ref, targetWayVersion.version.toString()))
+        } else if (member.type === "relation") {
+            // TODO может нинада? :(
+        }
+
+    }
+    return [targetVersion, membersHistory]
+}
+
+function setupRelationVersionView() {
+    const match = location.pathname.match(/\/relation\/(\d+)\//);
+    if (match === null) return;
+    const relationID = match[1];
+    document.querySelectorAll(".browse-relation h4:nth-child(1) a").forEach((i) => {
+        const version = i.href.match(/\/(\d+)$/)[1];
+        const btn = document.createElement("a")
+        btn.classList.add("relation-version-view")
+        btn.textContent = "📥"
+        btn.style.cursor = "pointer"
+        btn.setAttribute("relation-version", version.toString())
+
+        async function loadRelationVersion(e, loadMore = true, showWay = true) {
+            const htmlElem = e.target ? e.target : e
+            htmlElem.style.cursor = "progress"
+            const version = htmlElem.getAttribute("relation-version")
+            const [targetVersion, membersHistory] = await loadRelationVersionMembers(relationID, version);
+            const targetTime = new Date(targetVersion.timestamp)
+            const singleNodesList = membersHistory.filter(history => history[0].type === "node")
+                .map(history => {
+                    let cur = history[0]
+                    for (const v of history) {
+                        if (new Date(v.timestamp) <= targetTime) {
+                            cur = v;
+                        }
+                    }
+                    return [cur.lat, cur.lon]
+                })
+            if (showWay) {
+                singleNodesList.forEach((node) => {
+                        if (targetVersion.visible === false) {
+                            // todo
+                        } else {
+                            unsafeWindow.showNodeMarker(node[0], node[1])
+                        }
+                    }
+                )
+
+                unsafeWindow.cleanCustomObjects()
+                membersHistory.forEach(([targetVersion, nodesVersionsList]) => {
+                    if (targetVersion.type === "relation") {
+                        debugger
+                    }
+                    if (nodesVersionsList instanceof Array) {
+                        const nodesList = nodesVersionsList.map(history => {
+                            let cur = history[0]
+                            for (const v of history) {
+                                if (new Date(v.timestamp) <= targetTime) {
+                                    cur = v;
+                                }
+                            }
+                            return [cur.lat, cur.lon]
+                        })
+                        unsafeWindow.displayWay(cloneInto(nodesList, unsafeWindow))
+                    } else {
+                        if (nodesVersionsList.lat === undefined) {
+                            debugger
+                        } else {
+                            unsafeWindow.showNodeMarker(nodesVersionsList.lat, nodesVersionsList.lon, "#006200")
+                        }
+                    }
+                })
+            }
+            if (htmlElem.nodeName === "A") {
+                const versionDiv = htmlElem.parentNode.parentNode
+                versionDiv.onmouseenter = loadRelationVersion
+                versionDiv.setAttribute("relation-version", version.toString())
+                htmlElem.style.cursor = "pointer" // todo finally{}
+                htmlElem.setAttribute("hidden", "true")
+            } else {
+                e.target.style.cursor = "auto"
+            }
+        }
+
+        btn.addEventListener("mouseenter", loadRelationVersion, {
             once: true,
         })
         i.after(btn)
@@ -1090,6 +1404,7 @@ function addDiffInHistory() {
     if (document.querySelector(".compact-toggle-btn")) {
         return;
     }
+    hideSearchForm();
     if (!location.pathname.includes("/user/")) {
         let compactToggle = document.createElement("button")
         compactToggle.textContent = "><"
@@ -1145,12 +1460,24 @@ function addDiffInHistory() {
     
     [way-version]:hover {
         background-color: rgba(244, 244, 244);
+    }    
+    .relation-version-view:hover {
+        background-color: yellow;
+    }
+    
+    [relation-version]:hover {
+        background-color: rgba(244, 244, 244);
     }
     
     `;
     GM_addElement(document.head, "style", {
         textContent: styleText,
     });
+
+    document.querySelector("#sidebar .search_forms").setAttribute("hidden", "true")
+    document.querySelector("#sidebar .btn-close")?.addEventListener("click", () => {
+        document.querySelector("#sidebar .search_forms")?.removeAttribute("hidden");
+    })
     let versions = [{tags: [], coordinates: "", wasModified: false, nodes: [], members: [], visible: true}];
     // add/modification
     let versionsHTML = Array.from(document.querySelectorAll(".browse-section.browse-node, .browse-section.browse-way, .browse-section.browse-relation"))
@@ -1329,6 +1656,7 @@ function addDiffInHistory() {
     )
     makeHistoryCompact();
     setupWayVersionView();
+    setupRelationVersionView();
 }
 
 
@@ -2295,58 +2623,22 @@ async function addChangesetQuickLook() {
                 }
                 if (objType === "node") {
                     i.onmouseenter = () => {
-                        GM_addElement("script", {
-                            //language=js
-                            textContent: `
-                                function showNodeMarker(lat, lon) {
-                                    const haloStyle = {
-                                        weight: 2.5,
-                                        radius: 5,
-                                        fillOpacity: 0,
-                                        color: "#ff00e3"
-                                    };
-                                    activeObjects.forEach((i) => {
-                                        i.remove();
-                                    })
-                                    activeObjects.push(L.circleMarker(L.latLng(lat, lon), haloStyle).addTo(map));
-                                }`
-                        })
                         if (targetVersion.visible === false) {
-                            unsafeWindow.showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString())
+                            unsafeWindow.showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#ff00e3")
                         } else {
-                            unsafeWindow.showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString())
+                            unsafeWindow.showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3")
                         }
                     }
                     i.onclick = () => {
-                        GM_addElement("script", {
-                            //language=js
-                            textContent: `
-                                function panTo(lat, lon) {
-                                    map.flyTo([lat, lon], 18, {animate: false});
-                                }
-                            `
-                        })
-                        unsafeWindow.panTo(targetVersion.lat.toString(), targetVersion.lon.toString())
+                        unsafeWindow.panTo(targetVersion.lat.toString(), targetVersion.lon.toString(), 18, false)
                     }
-                    GM_addElement("script", {
-                        //language=js
-                        textContent: `
-                            function showNodeMarker(a, b) {
-                                const haloStyle = {
-                                    weight: 2.5,
-                                    radius: 5,
-                                    fillOpacity: 0,
-                                    color: "#006200"
-                                };
-                                customObjects.push(L.circleMarker(L.latLng(a, b), haloStyle).addTo(map));
-                            }`
-                    })
                     if (targetVersion.visible === false) {
-                        unsafeWindow.showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString())
+                        unsafeWindow.showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#006200")
                     } else {
-                        unsafeWindow.showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString())
+                        unsafeWindow.showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#006200")
                     }
                 } else if (objType === "way") {
+                    // fixme
                     const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/full.json");
                     if (!res.ok) {
                         console.warn(res)
@@ -2368,77 +2660,14 @@ async function addChangesetQuickLook() {
                         }
                     })
 
-                    function displayWay(needFly) {
-                        GM_addElement("script", {
-                            //language=js
-                            textContent: `function showWay(nodesList, needFly) {
-                                const line = L.polyline(
-                                    nodesList.map(elem => L.latLng(elem)),
-                                    {/**/
-                                        color: "#000000",
-                                        weight: 4,
-                                        clickable: false,
-                                        opacity: 1,
-                                        fillOpacity: 1
-                                    }
-                                ).addTo(map);
-                                customObjects.push(line);
-                                if (needFly) {
-                                    map.flyTo(line.getBounds().getCenter(), 18, {
-                                        animate: false,
-                                        duration: 0.5
-                                    });
-                                }
-                            }
-                            `
-                        })
-                        unsafeWindow.showWay(cloneInto(nodesList, unsafeWindow), needFly)
-                    }
-
                     i.onclick = () => {
-                        GM_addElement("script", {
-                            textContent: `function showWay(nodesList){
-                                const line = L.polyline(
-                                    nodesList.map(elem => L.latLng(elem)),
-                                     {
-                                      color : "#ff00e3",
-                                      weight : 4,
-                                      clickable : false,
-                                      opacity : 1,
-                                      fillOpacity : 1
-                                     }
-                                  ).addTo(map);
-                                activeObjects.forEach((i) => {
-                                    i.remove();
-                                })
-                                activeObjects.push(line);
-                               }`
-                        })
-                        unsafeWindow.showWay(cloneInto(nodesList, unsafeWindow))
+                        unsafeWindow.showActiveWay(cloneInto(nodesList, unsafeWindow), "#ff00e3", true)
                     }
-                    if (objCount <= 5) {
-                        displayWay(false)
-                    }
-                    i.onmouseenter = (e) => {
-                        GM_addElement("script", {
-                            textContent: `function showWay(nodesList){
-                                const line = L.polyline(
-                                    nodesList.map(elem => L.latLng(elem)),
-                                     {
-                                      color : "#ff00e3",
-                                      weight : 4,
-                                      clickable : false,
-                                      opacity : 1,
-                                      fillOpacity : 1
-                                     }
-                                  ).addTo(map);
-                                activeObjects.forEach((i) => {
-                                    i.remove();
-                                })
-                                activeObjects.push(line);
-                               }`
-                        })
-                        unsafeWindow.showWay(cloneInto(nodesList, unsafeWindow))
+                    // if (objCount <= 5) {
+                    unsafeWindow.displayWay(cloneInto(nodesList, unsafeWindow), false, "#373737")
+                    // }
+                    i.onmouseenter = () => {
+                        unsafeWindow.showActiveWay(cloneInto(nodesList, unsafeWindow))
                     }
                 } else if (objType === "relation") {
 
@@ -2562,18 +2791,7 @@ function setup() {
         const path = location.pathname;
         if (path + location.search === lastPath) return;
         if (lastPath.includes("/changeset/") && (!path.includes("/changeset/") || lastPath !== path)) {
-            GM_addElement("script", {
-                textContent: `
-                        customObjects.forEach((i) => {
-                            i.remove();
-                        })
-                        customObjects = []
-                        activeObjects.forEach((i) => {
-                            i.remove();
-                        })
-                        activeObjects = []
-                    `
-            })
+            cleanAllObjects()
         }
         lastPath = path + location.search;
         for (const module of modules.filter(module => GM_config.get(module.name.slice('setup'.length)))) {
@@ -2598,21 +2816,24 @@ function main() {
     }
 }
 
-if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)) {
+if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)
+    && !["/edit", "/id"].includes(location.pathname)) {
     // This must be done as early as possible in order to pull the map object into the global scope
     GM_addElement("script", {
+        //language=js
         textContent: `
             var map = null;
             var customObjects = []
             var activeObjects = []
             L.Map.addInitHook((function () {
-                // There are also maps in the Layers menu, but we only need the main visible map
-                if (this._container?.id === "map") {
-                    map = this;
-                }
-            })
-    )`
+                    // There are also maps in the Layers menu, but we only need the main visible map
+                    if (this._container?.id === "map") {
+                        map = this;
+                    }
+                })
+            )`
     })
+    defineRenderFunctions();
 }
 
 init.then(main);
