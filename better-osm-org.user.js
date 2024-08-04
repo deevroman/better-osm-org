@@ -12,6 +12,8 @@
 // @match        https://master.apis.dev.openstreetmap.org/*
 // @exclude      https://master.apis.dev.openstreetmap.org/api/*
 // @match        https://osmcha.org/*
+// @match        https://taginfo.openstreetmap.org/*
+// @match        https://taginfo.geofabrik.de/*
 // @match        http://localhost:3000/*
 // @exclude      http://localhost:3000/api/*
 // @match        https://www.hdyc.neis-one.org/*
@@ -296,13 +298,65 @@ function hideSearchForm() {
     if (!document.querySelector("#sidebar .search_forms")?.hasAttribute("hidden")) {
         document.querySelector("#sidebar .search_forms")?.setAttribute("hidden", "true")
     }
-    document.querySelector("#sidebar_content .btn-close")?.addEventListener("click", () => {
+
+    function showSearchForm() {
         document.querySelector("#sidebar .search_forms")?.removeAttribute("hidden");
-    })
+    }
+
+    document.querySelector("#sidebar_content .btn-close")?.addEventListener("click", showSearchForm)
+    document.querySelector("h1 .icon-link")?.addEventListener("click", showSearchForm)
 }
 
 let sidebarObserver = null;
 let timestampMode = "natural_text"
+
+function _setupTimestampsSwitch() {
+    if (timestampMode !== "natural_text") {
+        [
+            ...document.querySelectorAll("#sidebar .changesets .col time:not([natural_text])"),
+            ...document.querySelectorAll("#sidebar .details time:not([natural_text])"),
+        ].forEach(j => {
+            j.setAttribute("natural_text", j.textContent)
+            j.textContent = j.getAttribute("datetime")
+        })
+    }
+
+    function switchTimestamp() {
+        document.querySelectorAll("#sidebar .changesets .col time:not([natural_text])").forEach(j => {
+            j.setAttribute("natural_text", j.textContent)
+        })
+
+        function switchElement(j) {
+            if (j.textContent === j.getAttribute("natural_text")) {
+                const nowDate = new Date()
+                nowDate.setHours(0)
+                nowDate.setMinutes(0)
+                nowDate.setSeconds(0)
+                const changesetDate = new Date(j.getAttribute("datetime"))
+                if (changesetDate < nowDate) {
+                    j.textContent = j.getAttribute("datetime")
+                } else {
+                    j.textContent = `${changesetDate.getHours().toString().padStart(2, "0")}:${changesetDate.getMinutes().toString().padStart(2, "0")}:${changesetDate.getSeconds().toString().padStart(2, "0")}`
+                }
+                timestampMode = "datetime"
+            } else {
+                j.textContent = j.getAttribute("natural_text")
+                timestampMode = "natural_text"
+            }
+        }
+
+        document.querySelectorAll("#sidebar .changesets .col time").forEach(switchElement)
+        document.querySelectorAll("#sidebar .details time").forEach(switchElement)
+    }
+
+    document.querySelectorAll("#sidebar .changesets .col time").forEach(i => {
+        i.onclick = switchTimestamp
+    })
+    // debugger
+    document.querySelector("time:not([switchable])")?.addEventListener("click", switchTimestamp)
+    document.querySelector("time:not([switchable])")?.setAttribute("switchable", "true")
+
+}
 
 function setupCompactChangesetsHistory() {
     if (!location.pathname.includes("/history") && !location.pathname.includes("/changeset")) {
@@ -357,40 +411,7 @@ function setupCompactChangesetsHistory() {
         document.querySelectorAll("#sidebar .changesets .col").forEach((e) => {
             e.childNodes[0].textContent = ""
         })
-        if (timestampMode !== "natural_text") {
-            document.querySelectorAll("#sidebar .changesets .col time:not([natural_text])").forEach(j => {
-                j.setAttribute("natural_text", j.textContent)
-                j.textContent = j.getAttribute("datetime")
-            })
-        }
-
-        document.querySelectorAll("#sidebar .changesets .col time").forEach(i => {
-            i.onclick = () => {
-                document.querySelectorAll("#sidebar .changesets .col time:not([natural_text])").forEach(j => {
-                    j.setAttribute("natural_text", j.textContent)
-                })
-                document.querySelectorAll("#sidebar .changesets .col time").forEach(j => {
-                    if (j.textContent === j.getAttribute("natural_text")) {
-                        const nowDate = new Date()
-                        nowDate.setHours(0)
-                        nowDate.setMinutes(0)
-                        nowDate.setSeconds(0)
-                        const changesetDate = new Date(j.getAttribute("datetime"))
-                        if (changesetDate < nowDate) {
-                            j.textContent = j.getAttribute("datetime")
-                        } else {
-                            j.textContent = `${changesetDate.getHours().toString().padStart(2, "0")}:${changesetDate.getMinutes().toString().padStart(2, "0")}:${changesetDate.getSeconds().toString().padStart(2, "0")}`
-                        }
-                        timestampMode = "datetime"
-                    } else {
-                        j.textContent = j.getAttribute("natural_text")
-                        timestampMode = "natural_text"
-                    }
-                })
-
-
-            }
-        })
+        _setupTimestampsSwitch();
         hideSearchForm();
     }
 
@@ -636,8 +657,77 @@ const ESRIPrefix = "https://server.arcgisonline.com/arcgis/rest/services/World_I
 // const ESRIPrefix = "https://clarity.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
 let SAT_MODE = "🛰"
 let MAPNIK_MODE = "🗺️"
-let mode = SAT_MODE;
+let currentTilesMode = MAPNIK_MODE;
 let tilesObserver = undefined;
+
+function invertTilesMode(mode) {
+    return mode === "🛰" ? "🗺️" : "🛰";
+}
+
+function parseOSMTileURL(url) {
+    let match = url.match(new RegExp(`${OSMPrefix}(\\d+)\\/(\\d+)\\/(\\d+)\\.png`))
+    if (!match) {
+        return false
+    }
+    return {
+        x: match[2],
+        y: match[3],
+        z: match[1],
+    }
+}
+
+function parseESRITileURL(url) {
+    let match = url.match(new RegExp(`${ESRIPrefix}(\\d+)\\/(\\d+)\\/(\\d+)`))
+    if (!match) {
+        return false
+    }
+    return {
+        x: match[3],
+        y: match[2],
+        z: match[1],
+    }
+}
+
+function switchTiles() {
+    if (tilesObserver) {
+        tilesObserver.disconnect();
+    }
+    currentTilesMode = invertTilesMode(currentTilesMode);
+    document.querySelectorAll(".leaflet-tile").forEach(i => {
+        if (i.nodeName !== 'IMG') {
+            return;
+        }
+        if (currentTilesMode === SAT_MODE) {
+            let xyz = parseOSMTileURL(i.src)
+            if (!xyz) return
+            i.src = ESRIPrefix + xyz.z + "/" + xyz.y + "/" + xyz.x;
+        } else {
+            let xyz = parseESRITileURL(i.src)
+            if (!xyz) return
+            i.src = OSMPrefix + xyz.z + "/" + xyz.x + "/" + xyz.y + ".png";
+        }
+    })
+    const observer = new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
+            mutation.addedNodes.forEach(node => {
+                if (node.nodeName !== 'IMG') {
+                    return;
+                }
+                if (currentTilesMode === SAT_MODE) {
+                    let xyz = parseOSMTileURL(node.src);
+                    if (!xyz) return
+                    node.src = ESRIPrefix + xyz.z + "/" + xyz.y + "/" + xyz.x;
+                } else {
+                    let xyz = parseESRITileURL(node.src)
+                    if (!xyz) return
+                    node.src = OSMPrefix + xyz.z + "/" + xyz.x + "/" + xyz.y + ".png";
+                }
+            });
+        });
+    });
+    tilesObserver = observer;
+    observer.observe(document.body, {childList: true, subtree: true});
+}
 
 function addSatelliteLayers() {
     if (!navigator.userAgent.includes("Firefox")) return
@@ -650,84 +740,17 @@ function addSatelliteLayers() {
     if (!tilesObserver) {
         b.textContent = "🛰";
     } else {
-        b.textContent = (mode === SAT_MODE) ? MAPNIK_MODE : SAT_MODE;
+        b.textContent = invertTilesMode(currentTilesMode);
     }
     b.style.cursor = "pointer";
     b.classList.add("turn-on-satellite");
     document.querySelectorAll("h4")[0].appendChild(document.createTextNode("\xA0"));
     document.querySelectorAll("h4")[0].appendChild(b);
 
-    function parseOSMTileURL(url) {
-        let match = url.match(new RegExp(`${OSMPrefix}(\\d+)\\/(\\d+)\\/(\\d+)\\.png`))
-        if (!match) {
-            return false
-        }
-        return {
-            x: match[2],
-            y: match[3],
-            z: match[1],
-        }
+    b.onclick = (e) => {
+        switchTiles();
+        e.target.textContent = invertTilesMode(currentTilesMode);
     }
-
-    function parseESRITileURL(url) {
-        let match = url.match(new RegExp(`${ESRIPrefix}(\\d+)\\/(\\d+)\\/(\\d+)`))
-        if (!match) {
-            return false
-        }
-        return {
-            x: match[3],
-            y: match[2],
-            z: match[1],
-        }
-    }
-
-    function switchTiles(e) {
-        if (tilesObserver) {
-            tilesObserver.disconnect();
-        }
-        mode = e.target.textContent;
-        document.querySelectorAll(".leaflet-tile").forEach(i => {
-            if (i.nodeName !== 'IMG') {
-                return;
-            }
-            if (mode === "🛰") {
-                let xyz = parseOSMTileURL(i.src)
-                if (!xyz) return
-                i.src = ESRIPrefix + xyz.z + "/" + xyz.y + "/" + xyz.x;
-            } else {
-                let xyz = parseESRITileURL(i.src)
-                if (!xyz) return
-                i.src = OSMPrefix + xyz.z + "/" + xyz.x + "/" + xyz.y + ".png";
-            }
-        })
-        const observer = new MutationObserver(mutations => {
-            mutations.forEach(mutation => {
-                mutation.addedNodes.forEach(node => {
-                    if (node.nodeName !== 'IMG') {
-                        return;
-                    }
-                    if (mode === "🛰") {
-                        let xyz = parseOSMTileURL(node.src);
-                        if (!xyz) return
-                        node.src = ESRIPrefix + xyz.z + "/" + xyz.y + "/" + xyz.x;
-                    } else {
-                        let xyz = parseESRITileURL(node.src)
-                        if (!xyz) return
-                        node.src = OSMPrefix + xyz.z + "/" + xyz.x + "/" + xyz.y + ".png";
-                    }
-                });
-            });
-        });
-        tilesObserver = observer;
-        observer.observe(document.body, {childList: true, subtree: true});
-        if (e.target.textContent === "🛰") {
-            e.target.textContent = "🗺️"
-        } else {
-            e.target.textContent = "🛰"
-        }
-    }
-
-    b.onclick = switchTiles;
 }
 
 function setupSatelliteLayers(path) {
@@ -854,7 +877,6 @@ async function parseCCC(target, url) {
     }
     return [a[x].getAttribute("href"), a[x + 4].getAttribute("href")]
 }
-
 
 async function checkBBB(AAA, BBB, targetTime, targetChangesetID) {
     let CCC = await parseCCC(targetTime, AAA + BBB);
@@ -987,6 +1009,13 @@ function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
     return R * c;
 }
 
+function blurSearchField() {
+    if (!document.querySelector("#query").getAttribute("blured")) {
+        document.querySelector("#query").setAttribute("blured", "true")
+        document.activeElement?.blur()
+    }
+}
+
 function addHistoryLink() {
     if (!location.pathname.includes("/node")
         && !location.pathname.includes("/way")
@@ -1007,6 +1036,8 @@ function addHistoryLink() {
         versionInSidebar.after(a)
         versionInSidebar.after(document.createTextNode("\xA0"))
     }
+    blurSearchField();
+    _setupTimestampsSwitch();
 }
 
 const nodesHistorys = {}
@@ -1026,7 +1057,16 @@ function injectJSIntoPage(text) {
 }
 
 function defineShowWay() {
+    /**
+     * @name showWay
+     * @memberof unsafeWindow
+     * @param {[]} nodesList
+     * @param {string=} color
+     */
     injectJSIntoPage(`
+    /* global L*/
+
+    /* global customObjects*/
     function showWay(nodesList, color = "#000000") {
         customObjects.forEach(i => i.remove())
         customObjects = []
@@ -1045,16 +1085,27 @@ function defineShowWay() {
 }
 
 function defineDisplayWay() {
+    /**
+     * @name displayWay
+     * @memberof unsafeWindow
+     * @param {[]} nodesList
+     * @param {boolean=} needFly
+     * @param {string=} color
+     * @param {number=} width
+     */
     injectJSIntoPage(`
-    function displayWay(nodesList, needFly = false, color = "#000000") {
+    /* global L*/
+
+    /* global customObjects*/
+    function displayWay(nodesList, needFly = false, color = "#000000", width = 4) {
         const line = L.polyline(
             nodesList.map(elem => L.latLng(elem)),
             {
                 color: color,
-                weight: 4,
+                weight: width,
                 clickable: false,
                 opacity: 1,
-                fillOpacity: 1,
+                fillOpacity: 1
             }
         ).addTo(map);
         customObjects.push(line);
@@ -1069,7 +1120,17 @@ function defineDisplayWay() {
 }
 
 function defineShowNodeMarker() {
+    /**
+     * @name showNodeMarker
+     * @memberof unsafeWindow
+     * @param {string|float} a
+     * @param {string|float} b
+     * @param {string=} color
+     */
     injectJSIntoPage(`
+    /* global L*/
+
+    /* global customObjects*/
     function showNodeMarker(a, b, color = "#006200") {
         const haloStyle = {
             weight: 2.5,
@@ -1082,7 +1143,17 @@ function defineShowNodeMarker() {
 }
 
 function defineShowActiveNodeMarker() {
+    /**
+     * @name showActiveNodeMarker
+     * @memberof unsafeWindow
+     * @param {string} lat
+     * @param {string} lon
+     * @param {string} color
+     */
     injectJSIntoPage(`
+    /* global L*/
+
+    /* global activeObjects*/
     function showActiveNodeMarker(lat, lon, color) {
         const haloStyle = {
             weight: 2.5,
@@ -1098,7 +1169,17 @@ function defineShowActiveNodeMarker() {
 }
 
 function defineShowActiveWay() {
+    /**
+     * @name showActiveWay
+     * @memberof unsafeWindow
+     * @param {[]} nodesList
+     * @param {string=} color
+     * @param {boolean=} needFly
+     */
     injectJSIntoPage(`
+    /* global L*/
+
+    /* global activeObjects*/
     function showActiveWay(nodesList, color = "#ff00e3", needFly = false) {
         const line = L.polyline(
             nodesList.map(elem => L.latLng(elem)),
@@ -1121,8 +1202,13 @@ function defineShowActiveWay() {
 }
 
 function defineCleanCustomObjects() {
+    /**
+     * @name cleanCustomObjects
+     * @memberof unsafeWindow
+     */
     injectJSIntoPage(`
     function cleanCustomObjects() {
+        /*global customObjects*/
         customObjects.forEach(i => i.remove())
         customObjects = []
     }
@@ -1130,9 +1216,29 @@ function defineCleanCustomObjects() {
 }
 
 function definePanTo() {
+    /**
+     * @name panTo
+     * @memberof unsafeWindow
+     * @param {string} lat
+     * @param {string} lon
+     * @param {number=} zoom
+     * @param {boolean=} animate
+     */
     injectJSIntoPage(`
     function panTo(lat, lon, zoom = 18, animate = false) {
         map.flyTo([lat, lon], zoom, {animate: animate});
+    }
+    `)
+}
+
+function defineFitBounds() {
+    /**
+     * @name fitBounds
+     * @memberof unsafeWindow
+     */
+    injectJSIntoPage(`
+    function fitBounds(bound) {
+        map.fitBounds(bound);
     }
     `)
 }
@@ -1144,6 +1250,7 @@ function defineRenderFunctions() {
     defineShowActiveNodeMarker();
     defineCleanCustomObjects();
     definePanTo();
+    defineFitBounds();
     defineShowActiveWay();
 }
 
@@ -2463,6 +2570,7 @@ function setupMassChangesetsActions() {
 
 let injectingStarted = false
 let tagsOfObjectsVisible = true
+let changesetMetainfo = null
 
 async function addChangesetQuickLook() {
     if (!location.pathname.includes("/changeset")) {
@@ -2494,19 +2602,10 @@ async function addChangesetQuickLook() {
             }
             `,
         });
-    } catch (e) { /* empty */
+    } catch { /* empty */
     }
-    if (document.activeElement?.name === "query") {
-        document.activeElement?.blur()
-    }
-    // TODO load full changeset and filter geometry points
-    try {
-        let uniqTypes = 0
-        for (const objType of ["way", "node", "relation"]) {
-            if (document.querySelectorAll(`.list-unstyled li.${objType}`).length > 0) {
-                uniqTypes++;
-            }
-        }
+    blurSearchField();
+    _setupTimestampsSwitch()
 
         for (const objType of ["way", "node", "relation"]) {
             const objCount = document.querySelectorAll(`.list-unstyled li.${objType}`).length
@@ -2732,23 +2831,98 @@ function setupChangesetQuickLook(path) {
 let hotkeysConfigured = false
 
 function setupNavigationViaHotkeys() {
-    if (!location.pathname.includes("/changeset")) return;
+    // if (!location.pathname.includes("/changeset")) return;
     if (hotkeysConfigured) return
     hotkeysConfigured = true
 
     function keyupHandler(e) {
-        if (!location.pathname.includes("/changeset") || document.activeElement?.name === "text") return;
-        if (e.altKey) {
-            if (e.code === "ArrowLeft") {
-                const navigationLinks = document.querySelectorAll("div.secondary-actions")[1].querySelectorAll("a")
-                if (navigationLinks[0].href.includes("/changeset/")) {
-                    navigationLinks[0].click()
+        if (document.activeElement?.name === "text") return
+        if (document.activeElement?.name !== "query" && !["TEXTAREA", "INPUT"].includes(document.activeElement?.nodeName)) {
+            if (e.code === "KeyN") { // notes
+                Array.from(document.querySelectorAll(".overlay-layers label"))[0].click()
+            } else if (e.code === "KeyD") { // map data
+                Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
+            } else if (e.code === "KeyG") { // gps tracks
+                Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
+            } else if (e.code === "KeyS") { // satellite
+                switchTiles(invertTilesMode(currentTilesMode))
+                if (document.querySelector(".turn-on-satellite")) {
+                    document.querySelector(".turn-on-satellite").textContent = invertTilesMode(currentTilesMode)
                 }
+            } else if (e.code === "KeyH") {
+                if (location.pathname.match(/(node|way|relation)\/\d+/)) {
+                    if (location.pathname.match(/(node|way|relation)\/\d+\/?$/)) {
+                        unsafeWindow.OSM.router.route(window.location.pathname + "/history")
+                    } else if (location.pathname.match(/(node|way|relation)\/\d+\/history\/\d+\/?$/)) {
+                        const historyPath = window.location.pathname.match(/(\/(node|way|relation)\/\d+\/history)\/\d+/)[1]
+                        unsafeWindow.OSM.router.route(historyPath)
+                    } else {
+                        console.debug("skip H")
+                    }
+                }
+            } else if (e.key === "1") {
+                if (location.pathname.match(/\/(node|way|relation)\/\d+/)) {
+                    if (location.pathname.match(/\/(node|way|relation)\/\d+/)) {
+                        unsafeWindow.OSM.router.route(location.pathname.match(/\/(node|way|relation)\/\d+/)[0] + "/history/1")
+                    } else {
+                        console.debug("skip 1")
+                    }
+                }
+            } else if (e.code === "KeyZ") {
+                if (location.pathname.includes("/changeset")) {
+                    if (changesetMetainfo) {
+                        unsafeWindow.fitBounds(
+                            cloneInto([
+                                    [changesetMetainfo.min_lat, changesetMetainfo.min_lon],
+                                    [changesetMetainfo.max_lat, changesetMetainfo.max_lon]
+                                ],
+                                unsafeWindow))
+                    }
+                } else if (location.pathname.match(/(node|way|relation)\/d+/)) {
+                    // todo
+                    /*
+                    const objID = location.pathname.match(/(node|way|relation)\/(d+)/)[2]
+                    if (location.pathname.includes("node")) {
 
-            } else if (e.code === "ArrowRight") {
-                const navigationLinks = document.querySelectorAll("div.secondary-actions")[1].querySelectorAll("a")
-                if (Array.from(navigationLinks).at(-1).href.includes("/changeset/")) {
-                    Array.from(navigationLinks).at(-1).click()
+                    } else if (location.pathname.includes("way")) {
+
+                    } else if (location.pathname.includes("relation")) {
+
+                    }
+                    */
+                }
+            } else {
+                // console.log(e.key, e.code)
+            }
+        }
+        if (location.pathname.includes("/changeset")) {
+            if (e.altKey) {
+                if (e.code === "ArrowLeft") {
+                    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1].querySelectorAll("a")
+                    if (navigationLinks[0].href.includes("/changeset/")) {
+                        navigationLinks[0].click()
+                    }
+
+                } else if (e.code === "ArrowRight") {
+                    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1].querySelectorAll("a")
+                    if (Array.from(navigationLinks).at(-1).href.includes("/changeset/")) {
+                        Array.from(navigationLinks).at(-1).click()
+                    }
+                }
+            }
+        } else if (location.pathname.match(/(node|way|relation)\/\d+\/history\/\d+\/?$/)) {
+            if (e.altKey) {
+                if (e.code === "ArrowLeft") {
+                    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1].querySelectorAll("a")
+                    if (navigationLinks[0].href.includes("/history/")) {
+                        navigationLinks[0].click()
+                    }
+
+                } else if (e.code === "ArrowRight") {
+                    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1].querySelectorAll("a")
+                    if (Array.from(navigationLinks).at(-1).href.includes("/history/")) {
+                        Array.from(navigationLinks).at(-1).click()
+                    }
                 }
             }
         }
@@ -2773,10 +2947,37 @@ const modules = [
     setupNavigationViaHotkeys
 ];
 
+function setupTaginfo() {
+    if (location.pathname.match(/reports\/key_lengths$/)) {
+        const instance = document.querySelector("#instance").textContent
+        document.querySelectorAll(".dt-body[data-col='1']").forEach(i => {
+            if (i.querySelector(".overpass-link")) return
+            const overpassLink = document.createElement("a")
+            overpassLink.classList.add("overpass-link")
+            overpassLink.textContent = "🔍"
+            overpassLink.target = "_blank"
+            const key = i.querySelector("a").textContent
+            overpassLink.href = "https://overpass-turbo.eu/?" + new URLSearchParams({
+                w: `"${key}"=* in "${instance}"`,
+                R: ""
+            }).toString()
+            i.prepend(document.createTextNode("\xA0"))
+            i.prepend(overpassLink)
+        })
+    }
+}
 
 function setup() {
     if (location.href.startsWith("https://osmcha.org")) {
         // todo
+        return
+    }
+    if (location.href.startsWith("https://taginfo.openstreetmap.org")
+        || location.href.startsWith("https://taginfo.geofabrik.de")) {
+        new MutationObserver(function fn() {
+            setTimeout(setupTaginfo, 0);
+            return fn
+        }()).observe(document, {subtree: true, childList: true});
         return
     }
     if (location.href.startsWith(prod_server.origin)) {
@@ -2822,6 +3023,7 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
     GM_addElement("script", {
         //language=js
         textContent: `
+            /* global L*/
             var map = null;
             var customObjects = []
             var activeObjects = []
