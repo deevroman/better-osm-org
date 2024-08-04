@@ -25,8 +25,7 @@ Userscript adding several improvements for experienced osm.org users
     <img src="img/delete.png" width="50%">
     
   
-- [ ] Show satelite layer (Firefox only)
-- + [x] For notes
+- [x] Show satelite layer (Firefox only)
     
   <img src="img/notes-sat.jpg" width="50%">
 
@@ -34,8 +33,19 @@ Userscript adding several improvements for experienced osm.org users
 - + [ ] Bypass tracking protection
 
   <img src="img/hdyc.jpg" width="50%">
-
-- [x] Alt + ←/→ for user changesets
+- Hotkeys
+- + [x] Alt + ←/→ for user changesets
+- + [x] N — on/off notes layer 
+- + [x] D — on/off Map Data layer 
+- + [x] G — on/off GPS tracks layer 
+- + [x] S — on/off satellite layer
+- + [x] H — open object history
+- + [x] 1 — open first version of object
+- + Z — zoom to
+- + * [x] to changeset bbox
+- + * [ ] to object bbox
+- + [ ] Open editor
+- + [ ] 8-9 Prev/Next map position 
 - [x] Changeset revert button
 - [ ] Profile for deleted users
 - + [x] Search in diffs
@@ -73,6 +83,13 @@ Userscript adding several improvements for experienced osm.org users
 - [ ] Custom overlays for iD
 - + [ ] Geoscribble
 - + [ ] Strava (Hard, need bypass CORS)
+- [ ] Mark reviewed changesets
+- [ ] Add info about review from OSMCha
+- [ ] website & iD helper for translator (open search query into translation platform)
+- [ ] show in quick look the base way tag
+- [ ] deletor: add a description in the comment a small description of the point to be deleted
+- [ ] nakarte.me: line drawing
+- [ ] taginfo: new overpass links
 
 Maybe
 - [ ] Compact osmcha.org
