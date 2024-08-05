@@ -67,8 +67,6 @@ Userscript adding several improvements for experienced osm.org users
 - [ ] Jump to overpass from tags
 - [ ] Show deleted
 - [ ] Hide resolved notes
-- [ ] Enable/disable note/data buttons
-- [ ] User id everywhere
 - [ ] Fast tags copy from wiki
 - [ ] Object age
 - [ ] Player button for history
