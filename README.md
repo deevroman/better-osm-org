@@ -38,14 +38,12 @@ Userscript adding several improvements for experienced osm.org users
 - + [x] N — on/off notes layer 
 - + [x] D — on/off Map Data layer 
 - + [x] G — on/off GPS tracks layer 
-- + [x] S — on/off satellite layer
+- + [x] S — on/off satellite layer (Firefox only)
 - + [x] H — open object history
 - + [x] 1 — open first version of object
-- + Z — zoom to
-- + * [x] to changeset bbox
-- + * [ ] to object bbox
-- + [ ] Open editor
-- + [ ] 8-9 Prev/Next map position 
+- + [x] Z — zoom to changeset/object bbox
+- + [x] E — Open editor
+- + [x] 8-9 Prev/Next map position 
 - [x] Changeset revert button
 - [ ] Profile for deleted users
 - + [x] Search in diffs
@@ -88,6 +86,11 @@ Userscript adding several improvements for experienced osm.org users
 - [ ] deletor: add a description in the comment a small description of the point to be deleted
 - [ ] nakarte.me: line drawing
 - [ ] taginfo: new overpass links
+- [ ] Improve search
+- + [ ] Filter by object type
+- + [ ] Improve default zoom
+- + [ ] Photon?
+- + [ ] Overpass? 
 
 Maybe
 - [ ] Compact osmcha.org
