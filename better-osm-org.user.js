@@ -28,6 +28,8 @@
 // @grant        GM_registerMenuCommand
 // @grant        GM_getValue
 // @grant        GM_setValue
+// @grant        GM_listValues
+// @grant        GM_deleteValue
 // @grant        GM.getValue
 // @grant        GM.setValue
 // @grant        GM_getResourceURL
@@ -48,6 +50,8 @@
 /*global GM_addElement*/
 /*global GM_getValue*/
 /*global GM_setValue*/
+/*global GM_listValues*/
+/*global GM_deleteValue*/
 /*global GM_getResourceURL*/
 /*global GM_registerMenuCommand*/
 /*global unsafeWindow*/
@@ -167,6 +171,12 @@ GM_config.init(
                         'default': 'checked',
                         'labelPos': 'right'
                     },
+                'ShowChangesetGeometry': {
+                    'label': 'Show geometry of objects in changeset β',
+                    'type': 'checkbox',
+                    'default': 'checked',
+                    'labelPos': 'right'
+                },
             },
         frameStyle: `
             border: 1px solid #000;
@@ -320,33 +330,37 @@ let sidebarObserver = null;
 let timestampMode = "natural_text"
 
 function _setupTimestampsSwitch() {
-    if (timestampMode !== "natural_text") {
-        [
-            ...document.querySelectorAll("#sidebar .changesets .col time:not([natural_text])"),
-            ...document.querySelectorAll("#sidebar .details time:not([natural_text])"),
-        ].forEach(j => {
-            j.setAttribute("natural_text", j.textContent)
+    document.querySelectorAll("time:not([natural_text])").forEach(j => {
+        j.setAttribute("natural_text", j.textContent)
+        if (timestampMode !== "natural_text") {
             j.textContent = j.getAttribute("datetime")
-        })
-    }
+        }
+    })
 
     function switchTimestamp() {
-        document.querySelectorAll("#sidebar .changesets .col time:not([natural_text])").forEach(j => {
+        if (window.getSelection().type === "Range") {
+            return
+        }
+        document.querySelectorAll("time:not([natural_text])").forEach(j => {
             j.setAttribute("natural_text", j.textContent)
         })
 
         function switchElement(j) {
+            // debugger
             if (j.textContent === j.getAttribute("natural_text")) {
-                const nowDate = new Date()
-                nowDate.setHours(0)
-                nowDate.setMinutes(0)
-                nowDate.setSeconds(0)
-                const changesetDate = new Date(j.getAttribute("datetime"))
-                if (changesetDate < nowDate) {
-                    j.textContent = j.getAttribute("datetime")
-                } else {
-                    j.textContent = `${changesetDate.getHours().toString().padStart(2, "0")}:${changesetDate.getMinutes().toString().padStart(2, "0")}:${changesetDate.getSeconds().toString().padStart(2, "0")}`
-                }
+                j.textContent = j.getAttribute("datetime")
+                //navigator.clipboard.writeText(j.textContent);
+                // todo
+                // const nowDate = new Date()
+                // nowDate.setHours(0)
+                // nowDate.setMinutes(0)
+                // nowDate.setSeconds(0)
+                // const changesetDate = new Date(j.getAttribute("datetime"))
+                // if (changesetDate < nowDate) {
+                //     j.textContent = j.getAttribute("datetime")
+                // } else {
+                //     j.textContent = `${changesetDate.getHours().toString().padStart(2, "0")}:${changesetDate.getMinutes().toString().padStart(2, "0")}:${changesetDate.getSeconds().toString().padStart(2, "0")}`
+                // }
                 timestampMode = "datetime"
             } else {
                 j.textContent = j.getAttribute("natural_text")
@@ -354,14 +368,9 @@ function _setupTimestampsSwitch() {
             }
         }
 
-        document.querySelectorAll("#sidebar .changesets .col time").forEach(switchElement)
-        document.querySelectorAll("#sidebar .details time").forEach(switchElement)
+        document.querySelectorAll("time").forEach(switchElement)
     }
 
-    document.querySelectorAll("#sidebar .changesets .col time").forEach(i => {
-        i.onclick = switchTimestamp
-    })
-    // debugger
     document.querySelector("time:not([switchable])")?.addEventListener("click", switchTimestamp)
     document.querySelector("time:not([switchable])")?.setAttribute("switchable", "true")
 
@@ -420,6 +429,7 @@ function setupCompactChangesetsHistory() {
         document.querySelectorAll("#sidebar .changesets .col").forEach((e) => {
             e.childNodes[0].textContent = ""
         })
+        // debugger
         _setupTimestampsSwitch();
         hideSearchForm();
     }
@@ -664,7 +674,8 @@ function setupHideNoteHighlight(path) {
 
 const OSMPrefix = "https://tile.openstreetmap.org/"
 const ESRIPrefix = "https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
-// const ESRIPrefix = "https://clarity.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
+const ESRIArchivePrefix = "https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
+let SatellitePrefix = ESRIPrefix
 let SAT_MODE = "🛰"
 let MAPNIK_MODE = "🗺️"
 let currentTilesMode = MAPNIK_MODE;
@@ -687,7 +698,7 @@ function parseOSMTileURL(url) {
 }
 
 function parseESRITileURL(url) {
-    let match = url.match(new RegExp(`${ESRIPrefix}(\\d+)\\/(\\d+)\\/(\\d+)`))
+    let match = url.match(new RegExp(`${SatellitePrefix}(\\d+)\\/(\\d+)\\/(\\d+)`))
     if (!match) {
         return false
     }
@@ -710,7 +721,7 @@ function switchTiles() {
         if (currentTilesMode === SAT_MODE) {
             let xyz = parseOSMTileURL(i.src)
             if (!xyz) return
-            i.src = ESRIPrefix + xyz.z + "/" + xyz.y + "/" + xyz.x;
+            i.src = SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x;
         } else {
             let xyz = parseESRITileURL(i.src)
             if (!xyz) return
@@ -726,7 +737,7 @@ function switchTiles() {
                 if (currentTilesMode === SAT_MODE) {
                     let xyz = parseOSMTileURL(node.src);
                     if (!xyz) return
-                    node.src = ESRIPrefix + xyz.z + "/" + xyz.y + "/" + xyz.x;
+                    node.src = SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x;
                 } else {
                     let xyz = parseESRITileURL(node.src)
                     if (!xyz) return
@@ -1311,6 +1322,18 @@ function defineFitBounds() {
     `)
 }
 
+function defineSetZoom() {
+    /**
+     * @name setZoom
+     * @memberof unsafeWindow
+     */
+    injectJSIntoPage(`
+    function setZoom(zoomLevel) {
+        map.setZoom(zoomLevel);
+    }
+    `)
+}
+
 function defineRenderFunctions() {
     defineShowWay();
     defineDisplayWay();
@@ -1319,6 +1342,7 @@ function defineRenderFunctions() {
     defineCleanCustomObjects();
     definePanTo();
     defineFitBounds();
+    defineSetZoom();
     defineShowActiveWay();
 }
 
@@ -3028,6 +3052,7 @@ async function addChangesetQuickLook() {
                 i.classList.add("tags-non-modified")
             }
             // setup interactive possibilities
+            if (!GM_config.get("ShowChangesetGeometry")) return
             if (objType === "node") {
                 i.id = "n" + objID
                 i.onmouseenter = () => {
@@ -3036,12 +3061,25 @@ async function addChangesetQuickLook() {
                     } else {
                         unsafeWindow.showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3")
                     }
+                    document.querySelectorAll(".map-hover").forEach(el => {
+                        el.classList.remove("map-hover")
+                    })
                 }
                 i.onclick = () => {
                     if (targetVersion.visible === false) {
                         unsafeWindow.panTo(prevVersion.lat.toString(), prevVersion.lon.toString(), 18, false)
                     } else {
                         unsafeWindow.panTo(targetVersion.lat.toString(), targetVersion.lon.toString(), 18, false)
+                    }
+                }
+                i.ondblclick = () => {
+                    if (changesetMetadata) {
+                        unsafeWindow.fitBounds(
+                            cloneInto([
+                                    [changesetMetadata.min_lat, changesetMetadata.min_lon],
+                                    [changesetMetadata.max_lat, changesetMetadata.max_lon]
+                                ],
+                                unsafeWindow))
                     }
                 }
                 if (targetVersion.visible === false) {
@@ -3101,9 +3139,26 @@ async function addChangesetQuickLook() {
                 i.onclick = () => {
                     unsafeWindow.showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", true)
                 }
-                unsafeWindow.displayWay(cloneInto(currentNodesList, unsafeWindow), false, "#373737", 4, objID)
+                if (version === 1) {
+                    unsafeWindow.displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(0,128,0,0.6)", 4, objID)
+                } else {
+                    unsafeWindow.displayWay(cloneInto(currentNodesList, unsafeWindow), false, "#373737", 4, objID)
+                }
                 i.onmouseenter = () => {
                     unsafeWindow.showActiveWay(cloneInto(currentNodesList, unsafeWindow))
+                    document.querySelectorAll(".map-hover").forEach(el => {
+                        el.classList.remove("map-hover")
+                    })
+                }
+                i.ondblclick = () => {
+                    if (changesetMetadata) {
+                        unsafeWindow.fitBounds(
+                            cloneInto([
+                                    [changesetMetadata.min_lat, changesetMetadata.min_lon],
+                                    [changesetMetadata.max_lat, changesetMetadata.max_lon]
+                                ],
+                                unsafeWindow))
+                    }
                 }
             } else if (objType === "relation") {
 
@@ -3357,98 +3412,201 @@ function updateCurrentObjectMetadata() {
     setTimeout(loadRelationMetadata, 0)
 }
 
+const mapPositionsHistory = []
+const mapPositionsNextHistory = []
+
+function runPositionTracker() {
+    setInterval(() => {
+        if (!unsafeWindow.map) return
+        const bound = unsafeWindow.map.getBounds()
+        if (JSON.stringify(mapPositionsHistory[mapPositionsHistory.length - 1]) === JSON.stringify(bound)) {
+            return;
+        }
+        // in case of a transition between positions
+        // via timeout?
+        if (JSON.stringify(mapPositionsNextHistory[mapPositionsNextHistory.length - 1]) === JSON.stringify(bound)) {
+            return;
+        }
+        mapPositionsNextHistory.length = 0
+        mapPositionsHistory.push(bound)
+        if (mapPositionsHistory.length > 100) {
+            mapPositionsHistory.shift()
+            mapPositionsHistory.shift()
+        }
+    }, 1000);
+}
+
 function setupNavigationViaHotkeys() {
+    if (["/edit", "/id"].includes(location.pathname)) return
     updateCurrentObjectMetadata()
     // if (!location.pathname.includes("/changeset")) return;
     if (hotkeysConfigured) return
     hotkeysConfigured = true
 
+    runPositionTracker()
+
     function keydownHandler(e) {
         if (e.repeat) return
         if (document.activeElement?.name === "text") return
-        if (document.activeElement?.name !== "query" && !["TEXTAREA", "INPUT"].includes(document.activeElement?.nodeName)) {
-            if (e.code === "KeyN") { // notes
-                Array.from(document.querySelectorAll(".overlay-layers label"))[0].click()
-            } else if (e.code === "KeyD") { // map data
-                Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
-            } else if (e.code === "KeyG") { // gps tracks
-                Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
-            } else if (e.code === "KeyS") { // satellite
+        if (!(document.activeElement?.name !== "query" && !["TEXTAREA", "INPUT"].includes(document.activeElement?.nodeName))) {
+            return;
+        }
+        if (e.code === "KeyN") { // notes
+            Array.from(document.querySelectorAll(".overlay-layers label"))[0].click()
+        } else if (e.code === "KeyD") { // map data
+            Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
+        } else if (e.code === "KeyG") { // gps tracks
+            Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
+        } else if (e.code === "KeyS") { // satellite
+            switchTiles(invertTilesMode(currentTilesMode))
+            if (document.querySelector(".turn-on-satellite")) {
+                document.querySelector(".turn-on-satellite").textContent = invertTilesMode(currentTilesMode)
+            }
+            if (e.shiftKey) {
+                //debugger
+                SatellitePrefix = SatellitePrefix === ESRIPrefix ? ESRIArchivePrefix : ESRIPrefix;
                 switchTiles(invertTilesMode(currentTilesMode))
-                if (document.querySelector(".turn-on-satellite")) {
-                    document.querySelector(".turn-on-satellite").textContent = invertTilesMode(currentTilesMode)
+            }
+        } else if (e.code === "KeyE") {
+            document.querySelector("#editanchor")?.click()
+        } else if (e.code === "KeyH") {
+            if (location.pathname.match(/(node|way|relation)\/\d+/)) {
+                if (location.pathname.match(/(node|way|relation)\/\d+\/?$/)) {
+                    unsafeWindow.OSM.router.route(window.location.pathname + "/history")
+                } else if (location.pathname.match(/(node|way|relation)\/\d+\/history\/\d+\/?$/)) {
+                    const historyPath = window.location.pathname.match(/(\/(node|way|relation)\/\d+\/history)\/\d+/)[1]
+                    unsafeWindow.OSM.router.route(historyPath)
+                } else {
+                    console.debug("skip H")
                 }
-            } else if (e.code === "KeyE") {
-                document.querySelector("#editanchor")?.click()
-            } else if (e.code === "KeyH") {
-                if (location.pathname.match(/(node|way|relation)\/\d+/)) {
-                    if (location.pathname.match(/(node|way|relation)\/\d+\/?$/)) {
-                        unsafeWindow.OSM.router.route(window.location.pathname + "/history")
-                    } else if (location.pathname.match(/(node|way|relation)\/\d+\/history\/\d+\/?$/)) {
-                        const historyPath = window.location.pathname.match(/(\/(node|way|relation)\/\d+\/history)\/\d+/)[1]
-                        unsafeWindow.OSM.router.route(historyPath)
-                    } else {
-                        console.debug("skip H")
-                    }
-                }
-            } else if (e.key === "1") {
+            }
+        } else if (e.key === "1") {
+            if (location.pathname.match(/\/(node|way|relation)\/\d+/)) {
                 if (location.pathname.match(/\/(node|way|relation)\/\d+/)) {
-                    if (location.pathname.match(/\/(node|way|relation)\/\d+/)) {
-                        unsafeWindow.OSM.router.route(location.pathname.match(/\/(node|way|relation)\/\d+/)[0] + "/history/1")
-                    } else {
-                        console.debug("skip 1")
-                    }
+                    unsafeWindow.OSM.router.route(location.pathname.match(/\/(node|way|relation)\/\d+/)[0] + "/history/1")
+                } else {
+                    console.debug("skip 1")
                 }
-            } else if (e.code === "KeyZ") {
-                if (location.pathname.includes("/changeset")) {
-                    if (changesetMetadata) {
+            }
+        } else if (e.key === "0") {
+            unsafeWindow.setZoom(2)
+        } else if (e.code === "KeyZ") {
+            if (location.pathname.includes("/changeset")) {
+                if (changesetMetadata) {
+                    unsafeWindow.fitBounds(
+                        cloneInto([
+                                [changesetMetadata.min_lat, changesetMetadata.min_lon],
+                                [changesetMetadata.max_lat, changesetMetadata.max_lon]
+                            ],
+                            unsafeWindow))
+                } else {
+                    console.warn("Changeset metadata not downloaded")
+                }
+            } else if (location.pathname.match(/(node|way|relation)\/\d+/)) {
+                if (location.pathname.includes("node")) {
+                    if (nodeMetadata) {
+                        unsafeWindow.panTo(nodeMetadata.lat, nodeMetadata.lon)
+                    }
+                } else if (location.pathname.includes("way")) {
+                    if (wayMetadata) {
                         unsafeWindow.fitBounds(
                             cloneInto([
-                                    [changesetMetadata.min_lat, changesetMetadata.min_lon],
-                                    [changesetMetadata.max_lat, changesetMetadata.max_lon]
+                                    [wayMetadata.bbox.min_lat, wayMetadata.bbox.min_lon],
+                                    [wayMetadata.bbox.max_lat, wayMetadata.bbox.max_lon]
                                 ],
                                 unsafeWindow))
-                    } else {
-                        console.warn("Changeset metadata not downloaded")
                     }
-                } else if (location.pathname.match(/(node|way|relation)\/\d+/)) {
-                    if (location.pathname.includes("node")) {
-                        if (nodeMetadata) {
-                            unsafeWindow.panTo(nodeMetadata.lat, nodeMetadata.lon)
-                        }
-                    } else if (location.pathname.includes("way")) {
-                        if (wayMetadata) {
-                            unsafeWindow.fitBounds(
-                                cloneInto([
-                                        [wayMetadata.bbox.min_lat, wayMetadata.bbox.min_lon],
-                                        [wayMetadata.bbox.max_lat, wayMetadata.bbox.max_lon]
-                                    ],
-                                    unsafeWindow))
-                        }
-                    } else if (location.pathname.includes("relation")) {
-                        if (relationMetadata) {
-                            unsafeWindow.fitBounds(
-                                cloneInto([
-                                        [relationMetadata.bbox.min_lat, relationMetadata.bbox.min_lon],
-                                        [relationMetadata.bbox.max_lat, relationMetadata.bbox.max_lon]
-                                    ],
-                                    unsafeWindow))
-                        }
+                } else if (location.pathname.includes("relation")) {
+                    if (relationMetadata) {
+                        unsafeWindow.fitBounds(
+                            cloneInto([
+                                    [relationMetadata.bbox.min_lat, relationMetadata.bbox.min_lon],
+                                    [relationMetadata.bbox.max_lat, relationMetadata.bbox.max_lon]
+                                ],
+                                unsafeWindow))
                     }
                 }
-            } else {
-                // console.log(e.key, e.code)
             }
+        } else if (e.code === "KeyK") {
+            //debugger
+            if (!document.querySelector("ul .active-object")) {
+                //todo
+            } else {
+                const cur = document.querySelector("ul .active-object")
+                if (cur.previousElementSibling) {
+                    cur.previousElementSibling.classList.add("active-object")
+                    cur.classList.remove("active-object")
+                    cur.previousElementSibling.click()
+                    cur.previousElementSibling.scrollIntoView()
+                    document.querySelectorAll(".map-hover").forEach(el => {
+                        el.classList.remove("map-hover")
+                    })
+                    cur.previousElementSibling.classList.add("map-hover")
+                } else {
+                    if (cur.classList.contains("node")) {
+                        cur.classList.remove("active-object")
+                        document.querySelector("ul.list-unstyled li.way:last-of-type").classList.add("active-object")
+                        document.querySelector("ul .active-object").click()
+
+                        document.querySelectorAll(".map-hover").forEach(el => {
+                            el.classList.remove("map-hover")
+                        })
+                        document.querySelector("ul .active-object").classList.add("map-hover")
+                    }
+                }
+            }
+        } else if (e.code === "KeyL") {
+            //debugger
+            if (!document.querySelector("ul .active-object")) {
+                document.querySelector("ul.list-unstyled li").classList.add("active-object")
+                document.querySelector("ul .active-object").click()
+            } else {
+                const cur = document.querySelector("ul .active-object")
+                if (cur.nextElementSibling) {
+                    cur.nextElementSibling.classList.add("active-object")
+                    cur.classList.remove("active-object")
+                    cur.nextElementSibling.click()
+                    cur.nextElementSibling.scrollIntoView()
+                    document.querySelectorAll(".map-hover").forEach(el => {
+                        el.classList.remove("map-hover")
+                    })
+                    cur.nextElementSibling.classList.add("map-hover")
+                } else {
+                    if (cur.classList.contains("way")) {
+                        cur.classList.remove("active-object")
+                        document.querySelector("ul.list-unstyled li.node").classList.add("active-object")
+                        document.querySelector("ul .active-object").click()
+
+                        document.querySelectorAll(".map-hover").forEach(el => {
+                            el.classList.remove("map-hover")
+                        })
+                        document.querySelector("ul .active-object").classList.add("map-hover")
+                    }
+                }
+            }
+        } else if (e.key === "8") {
+            if (mapPositionsHistory.length > 1) {
+                mapPositionsNextHistory.push(mapPositionsHistory[mapPositionsHistory.length - 1])
+                mapPositionsHistory.pop()
+                unsafeWindow.fitBounds(mapPositionsHistory[mapPositionsHistory.length - 1])
+            }
+        } else if (e.key === "9") {
+            if (mapPositionsNextHistory.length) {
+                mapPositionsHistory.push(mapPositionsNextHistory.pop())
+                unsafeWindow.fitBounds(mapPositionsHistory[mapPositionsHistory.length - 1])
+            }
+        } else {
+            // console.log(e.key, e.code)
         }
         if (location.pathname.includes("/changeset")) {
-            if (e.altKey) {
-                if (e.code === "ArrowLeft") {
+            if (e.altKey || ["Comma", "Period"].includes(e.code)) {
+                if (e.code === "ArrowLeft" || e.code === "Comma") {
                     const navigationLinks = document.querySelectorAll("div.secondary-actions")[1].querySelectorAll("a")
                     if (navigationLinks[0].href.includes("/changeset/")) {
                         navigationLinks[0].click()
                     }
 
-                } else if (e.code === "ArrowRight") {
+                } else if (e.code === "ArrowRight" || e.code === "Period") {
                     const navigationLinks = document.querySelectorAll("div.secondary-actions")[1].querySelectorAll("a")
                     if (Array.from(navigationLinks).at(-1).href.includes("/changeset/")) {
                         Array.from(navigationLinks).at(-1).click()
@@ -3456,13 +3614,13 @@ function setupNavigationViaHotkeys() {
                 }
             }
         } else if (location.pathname.match(/^\/(node|way|relation)\/\d+/)) {
-            if (e.altKey) {
-                if (e.code === "ArrowLeft") {
+            if (e.altKey || ["Comma", "Period"].includes(e.code)) {
+                if (e.code === "ArrowLeft" || e.code === "Comma") {
                     const navigationLinks = document.querySelectorAll("div.secondary-actions")[1].querySelectorAll("a")
                     if (navigationLinks[0].href.includes("/history/")) {
                         navigationLinks[0].click()
                     }
-                } else if (e.code === "ArrowRight") {
+                } else if (e.code === "ArrowRight" || e.code === "Period") {
                     const navigationLinks = document.querySelectorAll("div.secondary-actions")[1].querySelectorAll("a")
                     if (Array.from(navigationLinks).at(-1).href.includes("/history/")) {
                         Array.from(navigationLinks).at(-1).click()
@@ -3488,7 +3646,6 @@ const modules = [
     setupChangesetQuickLook,
     // setupHideLinesForDataView
     setupNewEditorsLinks,
-    setupNavigationViaHotkeys
     setupNavigationViaHotkeys,
     setupRelationVersionViewer,
 ];
@@ -3586,3 +3743,24 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
 }
 
 init.then(main);
+
+// garbage collection for cached infos (user info, changeset history)
+setTimeout(async function () {
+    if (Math.random() > 0.5) return
+    if (!location.pathname.includes("/history")) return
+    const lastGC = new Date(GM_getValue("last-garbage-collection-time", Date.now()))
+    if (lastGC.getTime() + 1000 * 60 * 60 * 24 * 2 > Date.now()) return
+    GM_setValue("last-garbage-collection-time", Date.now());
+
+    const keys = GM_listValues();
+    for (const i of keys) {
+        try {
+            const userinfo = JSON.parse(GM_getValue(i))
+            if (userinfo.cacheTime && (new Date(userinfo.cacheTime)).getTime() + 1000 * 60 * 60 * 24 * 14 < Date.now()) {
+                await GM_deleteValue(i);
+            }
+        } catch (e) {
+        }
+    }
+    console.log("Old cache cleaned")
+}, 1000 * 42)
