@@ -44,6 +44,7 @@
 // @sandbox      JavaScript
 // @resource     OAUTH_HTML https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html
 // ==/UserScript==
+//<editor-fold desc="config" defaultstate="collapsed">
 /*global osmAuth*/
 /*global GM*/
 /*global GM_config*/
@@ -177,6 +178,12 @@ GM_config.init(
                     'default': 'checked',
                     'labelPos': 'right'
                 },
+                'ResetSearchFormFocus': {
+                    'label': 'Reset search form focus',
+                    'type': 'checkbox',
+                    'default': 'checked',
+                    'labelPos': 'right'
+                }
             },
         frameStyle: `
             border: 1px solid #000;
@@ -222,6 +229,8 @@ const local_server = {
 let osm_server = dev_server;
 
 const planetOrigin = "https://planet.maps.mail.ru"
+
+//</editor-fold>
 
 function tagsToXml(doc, node, tags) {
     for (const [k, v] of Object.entries(tags)) {
@@ -672,6 +681,7 @@ function setupHideNoteHighlight(path) {
     hideNoteHighlight();
 }
 
+//<editor-fold desc="satellite switching">
 const OSMPrefix = "https://tile.openstreetmap.org/"
 const ESRIPrefix = "https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
 const ESRIArchivePrefix = "https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
@@ -783,6 +793,7 @@ function setupSatelliteLayers(path) {
     }, 3000);
     addSatelliteLayers();
 }
+//</editor-fold>
 
 function makeHistoryCompact() {
     // todo -> toogleAttribute
@@ -805,6 +816,17 @@ function makeHistoryCompact() {
     }
 }
 
+function copyAnimation(e, text) {
+    console.log(`Copying ${text} to clipboard was successful!`);
+    e.target.classList.add("copied");
+    setTimeout(() => {
+        e.target.classList.remove("copied");
+        e.target.classList.add("was-copied");
+        setTimeout(() => e.target.classList.remove("was-copied"), 300);
+    }, 300);
+}
+
+//<editor-fold desc="find deleted user in diffs" defaultstate="collapsed">
 async function tryFindChangesetInDiffGZ(gzURL, changesetId) {
     async function decompressBlob(blob) {
         let ds = new DecompressionStream("gzip");
@@ -926,16 +948,6 @@ async function checkAAA(AAA, targetTime, targetChangesetID) {
     return foundedChangeset
 }
 
-function copyAnimation(e, text) {
-    console.log(`Copying ${text} to clipboard was successful!`);
-    e.target.classList.add("copied");
-    setTimeout(() => {
-        e.target.classList.remove("copied");
-        e.target.classList.add("was-copied");
-        setTimeout(() => e.target.classList.remove("was-copied"), 300);
-    }, 300);
-}
-
 // tests
 // https://osm.org/way/488322838/history
 // https://osm.org/way/74034517/history
@@ -1012,7 +1024,14 @@ async function findChangesetInDiff(e) {
 
     e.target.remove()
 }
+//</editor-fold>
 
+/**
+ * @param {number} lat1
+ * @param {number} lon1
+ * @param {number} lat2
+ * @param {number} lon2
+ */
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
     function deg2rad(deg) {
         return deg * (Math.PI / 180)
@@ -1061,46 +1080,8 @@ function addHistoryLink() {
     _setupTimestampsSwitch();
 }
 
-/**
- * @typedef {Object} ObjectVersion
- * @property {number} version
- * @property {number} id
- * @property {boolean} visible
- * @property {string} timestamp
- */
-/**
- * @typedef {Object} NodeVersion
- * @extends ObjectVersion
- * @property {number} version
- * @property {number} id
- * @property {boolean} visible
- * @property {string} timestamp
- * @property {float} lat
- * @property {float} lon
- */
 
-/**
- * @type {Object.<string, NodeVersion[]>}
- */
-const nodesHistories = {}
-
-/**
- * @type {Object.<string, WayVersion[]>}
- */
-const waysHistories = {}
-
-/**
- * @type {Object.<string, RelationVersion[]>}
- */
-const relationsHistories = {}
-
-const histories = {
-    node: nodesHistories,
-    way: waysHistories,
-    relation: relationsHistories
-}
-
-//<editor-fold desc="render functions">
+//<editor-fold desc="render functions" defaultstate="collapsed">
 // For WebStorm: Settings | Editor | Language Injections
 // Places Patterns + jsLiteralExpression(jsArgument(jsReferenceExpression().withQualifiedName("injectJSIntoPage"), 0))
 
@@ -1360,6 +1341,51 @@ function cleanAllObjects() {
 }
 
 //</editor-fold>
+
+/**
+ * @typedef {Object} ObjectVersion
+ * @property {number} version
+ * @property {number} id
+ * @property {boolean} visible
+ * @property {string} timestamp
+ */
+/**
+ * @typedef {Object} NodeVersion
+ * @extends ObjectVersion
+ * @property {number} version
+ * @property {number} id
+ * @property {boolean} visible
+ * @property {string} timestamp
+ * @property {float} lat
+ * @property {float} lon
+ */
+
+/**
+ * @type {Object.<string, NodeVersion[]>}
+ */
+const nodesHistories = {}
+
+/**
+ * @type {Object.<string, WayVersion[]>}
+ */
+const waysHistories = {}
+
+/**
+ * @type {Object.<string, RelationVersion[]>}
+ */
+const relationsHistories = {}
+
+const histories = {
+    node: nodesHistories,
+    way: waysHistories,
+    relation: relationsHistories
+}
+
+async function getChangeset(id) {
+    const res = await fetch(osm_server.apiBase + "changeset" + "/" + id + "/download");
+    const parser = new DOMParser();
+    return parser.parseFromString(res.responseText, "text/html");
+}
 
 function setupNodeVersionView() {
     const match = location.pathname.match(/\/node\/(\d+)\//);
@@ -2114,41 +2140,422 @@ function setupRelationVersionViewer() {
     addRelationVersionView();
 }
 
-/*
-let HIDE_WAYS = true
+// Модули должны стать классами
+// - поддерживается всеми браузерами, в которых есть TM
+// - изоляция функций и глобальных переменных
+// - для модулей, которые внедряются черзе setInterval можно сохранить таймер, чтобы предотвратить дублирование вызовов
+// - возможность сохранить результат внедрения
 
-function addHideLinesForDataView() {
-    if (!location.hash.includes("D")) {
+let injectingStarted = false
+let tagsOfObjectsVisible = true
+let changesetMetadata = null
+
+async function addChangesetQuickLook() {
+    if (!location.pathname.includes("/changeset")) {
+        tagsOfObjectsVisible = true
+        return
+    }
+    if (document.querySelector('.quick-look')) return true;
+
+    let sidebar = document.querySelector("#sidebar_content h2");
+    if (!sidebar) {
         return;
     }
-    let g = document.querySelector("g");
-    if (g && HIDE_WAYS) {
-        document.querySelector("g").querySelectorAll("path:not([fill-rule=evenodd])").forEach(i => {
-            i.remove()
+    if (injectingStarted) return
+    injectingStarted = true
+    try {
+        GM_addElement(document.head, "style", {
+            textContent: `
+            #sidebar_content li.node:hover {
+                // background: #ffe300;
+                background-color: rgba(223, 223, 223, 0.6);
+                //box-shadow: inset 0px 0px 0px 1px #f00;
+            }
+            #sidebar_content li.way:hover {
+                // background: #ffe300;
+                background-color: rgba(223, 223, 223, 0.6);
+                
+                //background: #ffeeee;
+                //box-shadow: inset 0px 0px 0px 1px #f00;
+            }
+            #sidebar_content li.node.map-hover {
+                // background: #ffe300;
+                background-color: rgba(223, 223, 223, 0.6);
+                //box-shadow: inset 0px 0px 0px 1px #f00;
+            }
+            #sidebar_content li.way.map-hover {
+                // background: #ffe300;
+                background-color: rgba(223, 223, 223, 0.6);
+                //box-shadow: inset 0px 0px 0px 1px #f00;
+            }
+            `,
+        });
+    } catch { /* empty */
+    }
+    blurSearchField();
+    _setupTimestampsSwitch()
+
+    async function processObjects(objType, uniqTypes) {
+        const objCount = document.querySelectorAll(`.list-unstyled li.${objType}`).length
+        if (objCount === 0) {
+            return;
+        }
+
+        /**
+         * @param {Element} i
+         * @param {NodeVersion|WayVersion|RelationVersion} prevVersion
+         * @param {NodeVersion|WayVersion|RelationVersion} targetVersion
+         * @param {NodeVersion|WayVersion|RelationVersion} lastVersion
+         */
+        async function processObject(i, prevVersion, targetVersion, lastVersion) {
+            const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
+            const version = parseInt(strVersion)
+            //<editor-fold desc="tags diff">
+            const tagsTable = document.createElement("table")
+            tagsTable.classList.add("quick-look")
+            const tbody = document.createElement("tbody")
+            tagsTable.appendChild(tbody)
+
+            function makeTagRow(key, value) {
+                const tagRow = document.createElement("tr")
+                const tagTh = document.createElement("th")
+                const tagTd = document.createElement("td")
+                tagRow.appendChild(tagTh)
+                tagRow.appendChild(tagTd)
+                tagTh.textContent = key
+                tagTd.textContent = value
+                return tagRow
+            }
+
+            let tagsWasChanged = false;
+            // tags deletion
+            if (prevVersion.version !== 0) {
+                for (const [key, value] of Object.entries(prevVersion?.tags ?? {})) {
+                    if (targetVersion.tags === undefined || targetVersion.tags[key] === undefined) {
+                        const row = makeTagRow(key, value)
+                        row.style.background = "rgba(238,51,9,0.6)"
+                        tbody.appendChild(row)
+                        tagsWasChanged = true
+                    }
+                }
+            }
+            // tags add/modification
+            for (const [key, value] of Object.entries(targetVersion.tags ?? {})) {
+                const row = makeTagRow(key, value)
+                if (prevVersion.tags === undefined || prevVersion.tags[key] === undefined) {
+                    tagsWasChanged = true
+                    row.style.background = "rgba(17,238,9,0.6)"
+                } else if (prevVersion.tags[key] !== value) {
+                    const valCell = row.querySelector("td")
+                    valCell.style.background = "rgba(223,238,9,0.6)"
+                    valCell.textContent = prevVersion.tags[key] + " → " + valCell.textContent
+                    valCell.title = "was: " + prevVersion.tags[key]
+                    tagsWasChanged = true
+                } else {
+                    row.classList.add("non-modified-tag-in-quick-view")
+                    if (!tagsOfObjectsVisible) {
+                        row.setAttribute("hidden", "true")
+                    }
+                }
+                tbody.appendChild(row)
+            }
+            if (targetVersion.visible !== false && prevVersion?.nodes && prevVersion.nodes.toString() !== targetVersion.nodes?.toString()) {
+                let geomChangedFlag = document.createElement("span")
+                geomChangedFlag.textContent = " 📐"
+                geomChangedFlag.title = "List of way nodes has been changed"
+                geomChangedFlag.style.background = "rgba(223,238,9,0.6)"
+                i.appendChild(geomChangedFlag)
+            }
+            if (prevVersion?.members && prevVersion.members.toString() !== targetVersion.members?.toString()) {
+                let memChangedFlag = document.createElement("span")
+                memChangedFlag.textContent = " 👥"
+                memChangedFlag.title = "List of relation members has been changed"
+                memChangedFlag.style.background = "rgba(223,238,9,0.6)"
+                i.appendChild(memChangedFlag)
+            }
+            if (targetVersion.lat && prevVersion.lat && (prevVersion.lat !== targetVersion.lat || prevVersion.lon !== targetVersion.lon)) {
+                i.classList.add("location-modified")
+                let memChangedFlag = document.createElement("span")
+                const distInMeters = getDistanceFromLatLonInKm(
+                    prevVersion.lat,
+                    prevVersion.lon,
+                    targetVersion.lat,
+                    targetVersion.lon,
+                ) * 1000;
+                memChangedFlag.textContent = ` 📍${distInMeters.toFixed(1)}m`
+                memChangedFlag.title = "Coordinates of node has been changed"
+                memChangedFlag.style.background = "rgba(223,238,9,0.6)"
+                i.appendChild(memChangedFlag)
+            }
+            if (targetVersion.visible === false) {
+                i.classList.add("removed-object")
+            }
+            if (targetVersion.version !== lastVersion.version && lastVersion.visible === false) {
+                i.appendChild(document.createTextNode(['ru-RU', 'ru'].includes(navigator.language) ? " ⓘ Объект уже удалён" : " ⓘ The object is now deleted"))
+            }
+            if (tagsWasChanged) {
+                i.appendChild(tagsTable)
+            } else {
+                i.classList.add("tags-non-modified")
+            }
+            //</editor-fold>
+            //<editor-fold desc="setup interactive possibilities">
+            if (!GM_config.get("ShowChangesetGeometry")) return
+            if (objType === "node") {
+                i.id = "n" + objID
+                i.onmouseenter = () => {
+                    if (targetVersion.visible === false) {
+                        unsafeWindow.showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff")
+                    } else {
+                        unsafeWindow.showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3")
+                    }
+                    document.querySelectorAll(".map-hover").forEach(el => {
+                        el.classList.remove("map-hover")
+                    })
+                }
+                i.onclick = () => {
+                    if (targetVersion.visible === false) {
+                        unsafeWindow.panTo(prevVersion.lat.toString(), prevVersion.lon.toString(), 18, false)
+                    } else {
+                        unsafeWindow.panTo(targetVersion.lat.toString(), targetVersion.lon.toString(), 18, false)
+                    }
+                }
+                i.ondblclick = () => {
+                    if (changesetMetadata) {
+                        unsafeWindow.fitBounds(
+                            cloneInto([
+                                    [changesetMetadata.min_lat, changesetMetadata.min_lon],
+                                    [changesetMetadata.max_lat, changesetMetadata.max_lon]
+                                ],
+                                unsafeWindow))
+                    }
+                }
+                if (targetVersion.visible === false) {
+                    unsafeWindow.showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#FF0000", prevVersion.id)
+                } else {
+                    unsafeWindow.showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#006200", targetVersion.id)
+                }
+            } else if (objType === "way") {
+                if (objID === "695574090") debugger
+                i.id = "w" + objID
+
+                const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/full.json");
+                if (!res.ok) {
+                    // fixme
+                    console.warn(res)
+                    i.onmouseenter = () => {
+                        unsafeWindow.showActiveWay(cloneInto([], unsafeWindow))
+                    }
+                    return
+                }
+                const lastElements = (await res.json()).elements
+                lastElements.forEach(n => {
+                    if (n.type !== "node") return
+                    if (n.version === 1) {
+                        nodesHistories[n.id] = [n]
+                    }
+                })
+
+                let nodesMap = {}
+                lastElements.forEach(elem => {
+                    if (elem.type === "node") {
+                        nodesMap[elem.id] = [elem.lat, elem.lon]
+                    }
+                })
+                let currentNodesList = []
+                targetVersion.nodes.forEach(node => {
+                    if (node in nodesMap) {
+                        currentNodesList.push(nodesMap[node])
+                    } else {
+                        console.log(objID, node)
+                    }
+                })
+
+
+                const [, wayNodesHistories] = await loadWayVersionNodes(objID, version)
+                const targetNodes = filterObjectListByTimestamp(wayNodesHistories, targetVersion.timestamp)
+                let prevNodesList = []
+                targetNodes.forEach(node => {
+                    if (node in nodesMap) {
+                        prevNodesList.push(nodesMap[node])
+                    } else {
+                        console.log(objID, node)
+                    }
+                })
+
+
+                i.onclick = () => {
+                    unsafeWindow.showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", true)
+                }
+                if (version === 1) {
+                    unsafeWindow.displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(0,128,0,0.6)", 4, objID)
+                } else {
+                    unsafeWindow.displayWay(cloneInto(currentNodesList, unsafeWindow), false, "#373737", 4, objID)
+                }
+                i.onmouseenter = () => {
+                    unsafeWindow.showActiveWay(cloneInto(currentNodesList, unsafeWindow))
+                    document.querySelectorAll(".map-hover").forEach(el => {
+                        el.classList.remove("map-hover")
+                    })
+                }
+                i.ondblclick = () => {
+                    if (changesetMetadata) {
+                        unsafeWindow.fitBounds(
+                            cloneInto([
+                                    [changesetMetadata.min_lat, changesetMetadata.min_lon],
+                                    [changesetMetadata.max_lat, changesetMetadata.max_lon]
+                                ],
+                                unsafeWindow))
+                    }
+                }
+            } else if (objType === "relation") {
+
+            }
+            //</editor-fold>
+            // console.log(prevVersion, targetVersion, lastVersion);
+        }
+
+        const needFetch = []
+
+        const emptyVersion = {
+            tags: {},
+            version: 0,
+            lat: null,
+            lon: null
+        }
+
+        async function getHistoryAndVersionByElem(elem) {
+            const [, , objID, version] = elem.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
+            const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/history.json");
+            return [histories[objType][objID] = (await res.json()).elements, parseInt(version)];
+        }
+
+        /**
+         * @param {[]} objHistory
+         * @param {number} version
+         */
+        function getPrevTargetLastVersions(objHistory, version) {
+            let prevVersion = emptyVersion;
+            let targetVersion = prevVersion;
+            let lastVersion = objHistory.at(-1);
+
+            for (const objVersion of objHistory) {
+                prevVersion = targetVersion
+                targetVersion = objVersion
+                if (objVersion.version === version) {
+                    break
+                }
+            }
+            return [prevVersion, targetVersion, lastVersion]
+        }
+
+        if (objType === "relation" && objCount >= 2) {
+            for (let i of document.querySelectorAll(`.list-unstyled li.${objType}`)) {
+                const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
+                const version = parseInt(strVersion)
+                if (version === 1) {
+                    needFetch.push(objID + "v" + version)
+                    needFetch.push(objID)
+                } else {
+                    needFetch.push(objID + "v" + (version - 1))
+                    needFetch.push(objID + "v" + version)
+                    needFetch.push(objID)
+                }
+            }
+            const res = await fetch(osm_server.apiBase + `${objType}s.json?${objType}s=` + needFetch.join(","));
+            if (res.status === 404) {
+                for (let i of document.querySelectorAll(`.list-unstyled li.${objType}`)) {
+                    await processObject(i, ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(i))))
+                }
+            } else {
+                const versions = (await res.json()).elements
+                const objectsVersions = {}
+                Object.entries(Object.groupBy(Array.from(versions), i => i.id)).forEach(([k, history]) => {
+                        objectsVersions[k] = Object.groupBy(history, i => i.version)
+                    }
+                )
+                for (let i of document.querySelectorAll(`.list-unstyled li.${objType}`)) {
+                    const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
+                    const version = parseInt(strVersion)
+                    await processObject(i, ...getPrevTargetLastVersions(Object.values(objectsVersions[objID])[0], version))
+                }
+            }
+        } else {
+            await Promise.all(Array.from(document.querySelectorAll(`.list-unstyled li.${objType}`)).map(async function (i) {
+                await processObject(i, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(i)))
+            }))
+        }
+
+        Array.from(document.querySelectorAll(`.list-unstyled li.${objType}.tags-non-modified`)).forEach(i => {
+            // reorder non-interesting-objects
+            document.querySelector(`.list-unstyled li.${objType}`).parentElement.appendChild(i)
         })
-        let obs = new MutationObserver(() => {
-            document.querySelector("g").querySelectorAll("path:not([fill-rule=evenodd])").forEach(i => {
-                i.remove()
+
+        //<editor-fold desc="setup compact mode toggles">
+        let compactToggle = document.createElement("button")
+        compactToggle.textContent = tagsOfObjectsVisible ? "><" : "<>"
+        compactToggle.classList.add("quick-look-compact-toggle-btn")
+        compactToggle.classList.add("btn", "btn-sm", "btn-primary")
+        compactToggle.classList.add("quick-look")
+        compactToggle.onclick = (e) => {
+            document.querySelectorAll(".quick-look-compact-toggle-btn").forEach(i => {
+                if (e.target.textContent === "><") {
+                    i.textContent = "<>"
+                } else {
+                    i.textContent = "><"
+                }
             })
-        })
-        obs.observe(g, {subtree: true, childList: true})
+            tagsOfObjectsVisible = !tagsOfObjectsVisible
+            document.querySelectorAll(".non-modified-tag-in-quick-view").forEach(i => {
+                if (e.target.textContent === "><") {
+                    i.removeAttribute("hidden")
+                } else {
+                    i.setAttribute("hidden", "true")
+                }
+            });
+        }
+        document.querySelector(`.list-unstyled li.${objType}`).parentElement.previousElementSibling.querySelector("h4").appendChild(compactToggle)
+        compactToggle.before(document.createTextNode("\xA0"))
+        if (uniqTypes === 1 && document.querySelectorAll(`.list-unstyled li.${objType} .non-modified-tag-in-quick-view`).length < 5) {
+            compactToggle.style.display = "none"
+            document.querySelectorAll(".non-modified-tag-in-quick-view").forEach(i => {
+                i.removeAttribute("hidden")
+            });
+        }
+        //</editor-fold>
+        if (objCount === 20) {
+            await new Promise(r => setTimeout(r, 1000));
+        }
+    }
+
+// TODO load full changeset and filter geometry points
+    try {
+        let uniqTypes = 0
+        for (const objType of ["way", "node", "relation"]) {
+            if (document.querySelectorAll(`.list-unstyled li.${objType}`).length > 0) {
+                uniqTypes++;
+            }
+        }
+
+        for (const objType of ["way", "node", "relation"]) {
+            await processObjects(objType, uniqTypes);
+        }
+    } finally { // TODO catch and notify user
+        injectingStarted = false
     }
 }
-*/
-/*
-function setupHideLinesForDataView(path) {
-    if (!location.hash.includes("D")) {
-        return;
-    }
-    let timerId = setInterval(addHideLinesForDataView, 500);
+
+function setupChangesetQuickLook(path) {
+    if (!path.includes("/changeset")) return;
+    let timerId = setInterval(addChangesetQuickLook, 100);
     setTimeout(() => {
         clearInterval(timerId);
-        console.debug('stop try hide lines for data view');
-    }, 5000);
-    addHideLinesForDataView();
+        console.debug('stop try add revert button');
+    }, 3000);
+    addChangesetQuickLook();
 }
 
- */
+
 const rapidLink = "https://mapwith.ai/rapid#background=EsriWorldImagery&map="
 let coordinatesObserver = null;
 
@@ -2274,6 +2681,7 @@ async function simplifyHDCYIframe() {
     }
 }
 
+//<editor-fold desc="/history, /user/*/history">
 async function updateUserInfo(username) {
     // debugger
     const rawRes = await fetch(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
@@ -2893,417 +3301,10 @@ function setupMassChangesetsActions() {
     }, 5000);
     addMassChangesetsActions();
 }
-
-// Модули должны стать классами
-// - поддерживается всеми браузерами, в которых есть TM
-// - изоляция функций и глобальных переменных
-// - для модулей, которые внедряются черзе setInterval можно сохранить таймер, чтобы предотвратить дублирование вызовов
-// - возможность сохранить результат внедрения
-
-let injectingStarted = false
-let tagsOfObjectsVisible = true
-let changesetMetadata = null
-
-async function addChangesetQuickLook() {
-    if (!location.pathname.includes("/changeset")) {
-        tagsOfObjectsVisible = true
-        return
-    }
-    if (document.querySelector('.quick-look')) return true;
-
-    let sidebar = document.querySelector("#sidebar_content h2");
-    if (!sidebar) {
-        return;
-    }
-    if (injectingStarted) return
-    injectingStarted = true
-    try {
-        GM_addElement(document.head, "style", {
-            textContent: `
-            #sidebar_content li.node:hover {
-                // background: #ffe300;
-                background-color: rgba(223, 223, 223, 0.6);
-                //box-shadow: inset 0px 0px 0px 1px #f00;
-            }
-            #sidebar_content li.way:hover {
-                // background: #ffe300;
-                background-color: rgba(223, 223, 223, 0.6);
-                
-                //background: #ffeeee;
-                //box-shadow: inset 0px 0px 0px 1px #f00;
-            }
-            #sidebar_content li.node.map-hover {
-                // background: #ffe300;
-                background-color: rgba(223, 223, 223, 0.6);
-                //box-shadow: inset 0px 0px 0px 1px #f00;
-            }
-            #sidebar_content li.way.map-hover {
-                // background: #ffe300;
-                background-color: rgba(223, 223, 223, 0.6);
-                //box-shadow: inset 0px 0px 0px 1px #f00;
-            }
-            `,
-        });
-    } catch { /* empty */
-    }
-    blurSearchField();
-    _setupTimestampsSwitch()
-
-    async function processObjects(objType, uniqTypes) {
-        const objCount = document.querySelectorAll(`.list-unstyled li.${objType}`).length
-        if (objCount === 0) {
-            return;
-        }
-
-        /**
-         * @param {Element} i
-         * @param {NodeVersion|WayVersion|RelationVersion} prevVersion
-         * @param {NodeVersion|WayVersion|RelationVersion} targetVersion
-         * @param {NodeVersion|WayVersion|RelationVersion} lastVersion
-         */
-        async function processObject(i, prevVersion, targetVersion, lastVersion) {
-            const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
-            const version = parseInt(strVersion)
-            const tagsTable = document.createElement("table")
-            tagsTable.classList.add("quick-look")
-            const tbody = document.createElement("tbody")
-            tagsTable.appendChild(tbody)
-
-            function makeTagRow(key, value) {
-                const tagRow = document.createElement("tr")
-                const tagTh = document.createElement("th")
-                const tagTd = document.createElement("td")
-                tagRow.appendChild(tagTh)
-                tagRow.appendChild(tagTd)
-                tagTh.textContent = key
-                tagTd.textContent = value
-                return tagRow
-            }
-
-            let tagsWasChanged = false;
-            // tags deletion
-            if (prevVersion.version !== 0) {
-                for (const [key, value] of Object.entries(prevVersion?.tags ?? {})) {
-                    if (targetVersion.tags === undefined || targetVersion.tags[key] === undefined) {
-                        const row = makeTagRow(key, value)
-                        row.style.background = "rgba(238,51,9,0.6)"
-                        tbody.appendChild(row)
-                        tagsWasChanged = true
-                    }
-                }
-            }
-            // tags add/modification
-            for (const [key, value] of Object.entries(targetVersion.tags ?? {})) {
-                const row = makeTagRow(key, value)
-                if (prevVersion.tags === undefined || prevVersion.tags[key] === undefined) {
-                    tagsWasChanged = true
-                    row.style.background = "rgba(17,238,9,0.6)"
-                } else if (prevVersion.tags[key] !== value) {
-                    const valCell = row.querySelector("td")
-                    valCell.style.background = "rgba(223,238,9,0.6)"
-                    valCell.textContent = prevVersion.tags[key] + " → " + valCell.textContent
-                    valCell.title = "was: " + prevVersion.tags[key]
-                    tagsWasChanged = true
-                } else {
-                    row.classList.add("non-modified-tag-in-quick-view")
-                    if (!tagsOfObjectsVisible) {
-                        row.setAttribute("hidden", "true")
-                    }
-                }
-                tbody.appendChild(row)
-            }
-            if (targetVersion.visible !== false && prevVersion?.nodes && prevVersion.nodes.toString() !== targetVersion.nodes?.toString()) {
-                let geomChangedFlag = document.createElement("span")
-                geomChangedFlag.textContent = " 📐"
-                geomChangedFlag.title = "List of way nodes has been changed"
-                geomChangedFlag.style.background = "rgba(223,238,9,0.6)"
-                i.appendChild(geomChangedFlag)
-            }
-            if (prevVersion?.members && prevVersion.members.toString() !== targetVersion.members?.toString()) {
-                let memChangedFlag = document.createElement("span")
-                memChangedFlag.textContent = " 👥"
-                memChangedFlag.title = "List of relation members has been changed"
-                memChangedFlag.style.background = "rgba(223,238,9,0.6)"
-                i.appendChild(memChangedFlag)
-            }
-            if (targetVersion.lat && prevVersion.lat && (prevVersion.lat !== targetVersion.lat || prevVersion.lon !== targetVersion.lon)) {
-                i.classList.add("location-modified")
-                let memChangedFlag = document.createElement("span")
-                const distInMeters = getDistanceFromLatLonInKm(
-                    prevVersion.lat,
-                    prevVersion.lon,
-                    targetVersion.lat,
-                    targetVersion.lon,
-                ) * 1000;
-                memChangedFlag.textContent = ` 📍${distInMeters.toFixed(1)}m`
-                memChangedFlag.title = "Coordinates of node has been changed"
-                memChangedFlag.style.background = "rgba(223,238,9,0.6)"
-                i.appendChild(memChangedFlag)
-            }
-            if (targetVersion.visible === false) {
-                i.classList.add("removed-object")
-            }
-            if (targetVersion.version !== lastVersion.version && lastVersion.visible === false) {
-                i.appendChild(document.createTextNode(['ru-RU', 'ru'].includes(navigator.language) ? " ⓘ Объект уже удалён" : " ⓘ The object is now deleted"))
-            }
-            if (tagsWasChanged) {
-                i.appendChild(tagsTable)
-            } else {
-                i.classList.add("tags-non-modified")
-            }
-            // setup interactive possibilities
-            if (!GM_config.get("ShowChangesetGeometry")) return
-            if (objType === "node") {
-                i.id = "n" + objID
-                i.onmouseenter = () => {
-                    if (targetVersion.visible === false) {
-                        unsafeWindow.showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff")
-                    } else {
-                        unsafeWindow.showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3")
-                    }
-                    document.querySelectorAll(".map-hover").forEach(el => {
-                        el.classList.remove("map-hover")
-                    })
-                }
-                i.onclick = () => {
-                    if (targetVersion.visible === false) {
-                        unsafeWindow.panTo(prevVersion.lat.toString(), prevVersion.lon.toString(), 18, false)
-                    } else {
-                        unsafeWindow.panTo(targetVersion.lat.toString(), targetVersion.lon.toString(), 18, false)
-                    }
-                }
-                i.ondblclick = () => {
-                    if (changesetMetadata) {
-                        unsafeWindow.fitBounds(
-                            cloneInto([
-                                    [changesetMetadata.min_lat, changesetMetadata.min_lon],
-                                    [changesetMetadata.max_lat, changesetMetadata.max_lon]
-                                ],
-                                unsafeWindow))
-                    }
-                }
-                if (targetVersion.visible === false) {
-                    unsafeWindow.showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#FF0000", prevVersion.id)
-                } else {
-                    unsafeWindow.showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#006200", targetVersion.id)
-                }
-            } else if (objType === "way") {
-                debugger
-                i.id = "w" + objID
-
-                const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/full.json");
-                if (!res.ok) {
-                    // fixme
-                    console.warn(res)
-                    i.onmouseenter = () => {
-                        unsafeWindow.showActiveWay(cloneInto([], unsafeWindow))
-                    }
-                    return
-                }
-                const lastElements = (await res.json()).elements
-                lastElements.forEach(n => {
-                    if (n.type !== "node") return
-                    if (n.version === 1) {
-                        nodesHistories[n.id] = [n]
-                    }
-                })
-
-                let nodesMap = {}
-                lastElements.forEach(elem => {
-                    if (elem.type === "node") {
-                        nodesMap[elem.id] = [elem.lat, elem.lon]
-                    }
-                })
-                let currentNodesList = []
-                targetVersion.nodes.forEach(node => {
-                    if (node in nodesMap) {
-                        currentNodesList.push(nodesMap[node])
-                    } else {
-                        console.log(objID, node)
-                    }
-                })
+//</editor-fold>
 
 
-                const [, wayNodesHistories] = await loadWayVersionNodes(objID, version)
-                const targetNodes = filterObjectListByTimestamp(wayNodesHistories, targetVersion.timestamp)
-                let prevNodesList = []
-                targetNodes.forEach(node => {
-                    if (node in nodesMap) {
-                        prevNodesList.push(nodesMap[node])
-                    } else {
-                        console.log(objID, node)
-                    }
-                })
-
-
-                i.onclick = () => {
-                    unsafeWindow.showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", true)
-                }
-                if (version === 1) {
-                    unsafeWindow.displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(0,128,0,0.6)", 4, objID)
-                } else {
-                    unsafeWindow.displayWay(cloneInto(currentNodesList, unsafeWindow), false, "#373737", 4, objID)
-                }
-                i.onmouseenter = () => {
-                    unsafeWindow.showActiveWay(cloneInto(currentNodesList, unsafeWindow))
-                    document.querySelectorAll(".map-hover").forEach(el => {
-                        el.classList.remove("map-hover")
-                    })
-                }
-                i.ondblclick = () => {
-                    if (changesetMetadata) {
-                        unsafeWindow.fitBounds(
-                            cloneInto([
-                                    [changesetMetadata.min_lat, changesetMetadata.min_lon],
-                                    [changesetMetadata.max_lat, changesetMetadata.max_lon]
-                                ],
-                                unsafeWindow))
-                    }
-                }
-            } else if (objType === "relation") {
-
-            }
-            // console.log(prevVersion, targetVersion, lastVersion);
-        }
-
-        const needFetch = []
-
-        const emptyVersion = {
-            tags: {},
-            version: 0,
-            lat: null,
-            lon: null
-        }
-
-        async function getHistoryAndVersionByElem(elem) {
-            const [, , objID, version] = elem.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
-            const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/history.json");
-            return [histories[objType][objID] = (await res.json()).elements, parseInt(version)];
-        }
-
-        /**
-         * @param {[]} objHistory
-         * @param {number} version
-         */
-        function getPrevTargetLastVersions(objHistory, version) {
-            let prevVersion = emptyVersion;
-            let targetVersion = prevVersion;
-            let lastVersion = objHistory.at(-1);
-
-            for (const objVersion of objHistory) {
-                prevVersion = targetVersion
-                targetVersion = objVersion
-                if (objVersion.version === version) {
-                    break
-                }
-            }
-            return [prevVersion, targetVersion, lastVersion]
-        }
-
-        if (objType === "relation" && objCount >= 2) {
-            for (let i of document.querySelectorAll(`.list-unstyled li.${objType}`)) {
-                const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
-                const version = parseInt(strVersion)
-                if (version === 1) {
-                    needFetch.push(objID + "v" + version)
-                    needFetch.push(objID)
-                } else {
-                    needFetch.push(objID + "v" + (version - 1))
-                    needFetch.push(objID + "v" + version)
-                    needFetch.push(objID)
-                }
-            }
-            const res = await fetch(osm_server.apiBase + `${objType}s.json?${objType}s=` + needFetch.join(","));
-            if (res.status === 404) {
-                for (let i of document.querySelectorAll(`.list-unstyled li.${objType}`)) {
-                    await processObject(i, ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(i))))
-                }
-            } else {
-                const versions = (await res.json()).elements
-                const objectsVersions = {}
-                Object.entries(Object.groupBy(Array.from(versions), i => i.id)).forEach(([k, history]) => {
-                        objectsVersions[k] = Object.groupBy(history, i => i.version)
-                    }
-                )
-                for (let i of document.querySelectorAll(`.list-unstyled li.${objType}`)) {
-                    const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
-                    const version = parseInt(strVersion)
-                    await processObject(i, ...getPrevTargetLastVersions(Object.values(objectsVersions[objID])[0], version))
-                }
-            }
-        } else {
-            await Promise.all(Array.from(document.querySelectorAll(`.list-unstyled li.${objType}`)).map(async function (i) {
-                await processObject(i, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(i)))
-            }))
-        }
-
-        Array.from(document.querySelectorAll(`.list-unstyled li.${objType}.tags-non-modified`)).forEach(i => {
-            // reorder non-interesting-objects
-            document.querySelector(`.list-unstyled li.${objType}`).parentElement.appendChild(i)
-        })
-
-        let compactToggle = document.createElement("button")
-        compactToggle.textContent = tagsOfObjectsVisible ? "><" : "<>"
-        compactToggle.classList.add("quick-look-compact-toggle-btn")
-        compactToggle.classList.add("btn", "btn-sm", "btn-primary")
-        compactToggle.classList.add("quick-look")
-        compactToggle.onclick = (e) => {
-            document.querySelectorAll(".quick-look-compact-toggle-btn").forEach(i => {
-                if (e.target.textContent === "><") {
-                    i.textContent = "<>"
-                } else {
-                    i.textContent = "><"
-                }
-            })
-            tagsOfObjectsVisible = !tagsOfObjectsVisible
-            document.querySelectorAll(".non-modified-tag-in-quick-view").forEach(i => {
-                if (e.target.textContent === "><") {
-                    i.removeAttribute("hidden")
-                } else {
-                    i.setAttribute("hidden", "true")
-                }
-            });
-        }
-        document.querySelector(`.list-unstyled li.${objType}`).parentElement.previousElementSibling.querySelector("h4").appendChild(compactToggle)
-        compactToggle.before(document.createTextNode("\xA0"))
-        if (uniqTypes === 1 && document.querySelectorAll(`.list-unstyled li.${objType} .non-modified-tag-in-quick-view`).length < 5) {
-            compactToggle.style.display = "none"
-            document.querySelectorAll(".non-modified-tag-in-quick-view").forEach(i => {
-                i.removeAttribute("hidden")
-            });
-        }
-        if (objCount === 20) {
-            await new Promise(r => setTimeout(r, 1000));
-        }
-    }
-
-// TODO load full changeset and filter geometry points
-    try {
-        let uniqTypes = 0
-        for (const objType of ["way", "node", "relation"]) {
-            if (document.querySelectorAll(`.list-unstyled li.${objType}`).length > 0) {
-                uniqTypes++;
-            }
-        }
-
-        for (const objType of ["way", "node", "relation"]) {
-            await processObjects(objType, uniqTypes);
-        }
-    } finally { // TODO catch and notify user
-        injectingStarted = false
-    }
-}
-
-function setupChangesetQuickLook(path) {
-    if (!path.includes("/changeset")) return;
-    let timerId = setInterval(addChangesetQuickLook, 100);
-    setTimeout(() => {
-        clearInterval(timerId);
-        console.debug('stop try add revert button');
-    }, 3000);
-    addChangesetQuickLook();
-}
-
+//<editor-fold desc="hotkeys">
 let hotkeysConfigured = false
 
 
@@ -3632,6 +3633,12 @@ function setupNavigationViaHotkeys() {
 
     document.addEventListener('keydown', keydownHandler, false);
 }
+//</editor-fold>
+
+function resetSearchFormFocus() {
+    blurSearchField()
+    // document.querySelector("#sidebar .search_form .input-group > button").setAttribute('tabIndex', "-1")
+}
 
 const modules = [
     setupHDYCInProfile,
@@ -3644,7 +3651,6 @@ const modules = [
     setupSatelliteLayers,
     setupVersionsDiff,
     setupChangesetQuickLook,
-    // setupHideLinesForDataView
     setupNewEditorsLinks,
     setupNavigationViaHotkeys,
     setupRelationVersionViewer,
@@ -3684,6 +3690,9 @@ function setup() {
         }()).observe(document, {subtree: true, childList: true});
         return
     }
+    if (GM_config.get("ResetSearchFormFocus")) {
+        resetSearchFormFocus();
+    }
     if (location.href.startsWith(prod_server.origin)) {
         osm_server = prod_server;
     } else if (location.href.startsWith(dev_server.origin)) {
@@ -3720,6 +3729,7 @@ function main() {
         setup();
     }
 }
+
 
 if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)
     && !["/edit", "/id"].includes(location.pathname)) {
