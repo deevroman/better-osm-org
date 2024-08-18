@@ -11,7 +11,6 @@
 // @exclude      https://www.openstreetmap.org/profile/edit
 // @match        https://master.apis.dev.openstreetmap.org/*
 // @exclude      https://master.apis.dev.openstreetmap.org/api/*
-// @match        https://osmcha.org/*
 // @match        https://taginfo.openstreetmap.org/*
 // @match        https://taginfo.geofabrik.de/*
 // @match        http://localhost:3000/*
@@ -43,6 +42,8 @@
 // @connect      www.openstreetmap.org
 // @sandbox      JavaScript
 // @resource     OAUTH_HTML https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html
+// @resource     OSMCHA_ICON https://github.com/deevroman/better-osm-org/raw/dev/osmcha.ico
+// @run-at       document-end
 // ==/UserScript==
 //<editor-fold desc="config" defaultstate="collapsed">
 /*global osmAuth*/
@@ -255,14 +256,21 @@ function makeAuth() {
 
 function addRevertButton() {
     if (!location.pathname.includes("/changeset")) return
-    if (document.querySelector('.revert_button_class')) return true;
+    if (document.querySelector('#revert_button_class')) return true;
 
     let sidebar = document.querySelector("#sidebar_content h2");
     if (sidebar) {
         hideSearchForm();
         // sidebar.classList.add("changeset-header")
         let changeset_id = sidebar.innerHTML.match(/(\d+)/)[0];
-        sidebar.innerHTML += ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank class=revert_button_class>↩️</a>`;
+        sidebar.innerHTML += ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class>↩️</a> 
+                               <a href="https://osmcha.org/changesets/${changeset_id}" target="_blank" rel="noreferrer"><img src="${GM_getResourceURL("OSMCHA_ICON")}" id="osmcha_link"></a>`;
+        document.querySelector("#revert_button_class").style.textDecoration = "none"
+        const osmcha_link = document.querySelector("#osmcha_link");
+        osmcha_link.style.height = "1em";
+        osmcha_link.style.cursor = "pointer";
+        osmcha_link.style.marginTop = "-3px";
+
         // find deleted user
         // todo extract
         let metainfoHTML = document.querySelector(".browse-section > .details")
@@ -338,7 +346,7 @@ function hideSearchForm() {
 let sidebarObserver = null;
 let timestampMode = "natural_text"
 
-function _setupTimestampsSwitch() {
+function makeTimesSwitchable() {
     document.querySelectorAll("time:not([natural_text])").forEach(j => {
         j.setAttribute("natural_text", j.textContent)
         if (timestampMode !== "natural_text") {
@@ -355,7 +363,6 @@ function _setupTimestampsSwitch() {
         })
 
         function switchElement(j) {
-            // debugger
             if (j.textContent === j.getAttribute("natural_text")) {
                 j.textContent = j.getAttribute("datetime")
                 //navigator.clipboard.writeText(j.textContent);
@@ -380,8 +387,8 @@ function _setupTimestampsSwitch() {
         document.querySelectorAll("time").forEach(switchElement)
     }
 
-    document.querySelector("time:not([switchable])")?.addEventListener("click", switchTimestamp)
-    document.querySelector("time:not([switchable])")?.setAttribute("switchable", "true")
+    document.querySelectorAll("time:not([switchable])").forEach(i => i.addEventListener("click", switchTimestamp))
+    document.querySelectorAll("time:not([switchable])").forEach(i => i.setAttribute("switchable", "true"))
 
 }
 
@@ -438,8 +445,7 @@ function setupCompactChangesetsHistory() {
         document.querySelectorAll("#sidebar .changesets .col").forEach((e) => {
             e.childNodes[0].textContent = ""
         })
-        // debugger
-        _setupTimestampsSwitch();
+        makeTimesSwitchable();
         hideSearchForm();
     }
 
@@ -793,6 +799,7 @@ function setupSatelliteLayers(path) {
     }, 3000);
     addSatelliteLayers();
 }
+
 //</editor-fold>
 
 function makeHistoryCompact() {
@@ -1024,6 +1031,7 @@ async function findChangesetInDiff(e) {
 
     e.target.remove()
 }
+
 //</editor-fold>
 
 /**
@@ -1050,7 +1058,7 @@ function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
 }
 
 function blurSearchField() {
-    if (!document.querySelector("#query").getAttribute("blured")) {
+    if (document.querySelector("#query") && !document.querySelector("#query").getAttribute("blured")) {
         document.querySelector("#query").setAttribute("blured", "true")
         document.activeElement?.blur()
     }
@@ -1077,7 +1085,7 @@ function addHistoryLink() {
         versionInSidebar.after(document.createTextNode("\xA0"))
     }
     blurSearchField();
-    _setupTimestampsSwitch();
+    makeTimesSwitchable();
 }
 
 
@@ -1209,21 +1217,24 @@ function defineShowActiveNodeMarker() {
      * @param {string} lat
      * @param {string} lon
      * @param {string} color
+     * @param {boolean=true} removeActiveObjects
      */
     injectJSIntoPage(`
     /* global L*/
 
     /* global activeObjects*/
-    function showActiveNodeMarker(lat, lon, color) {
+    function showActiveNodeMarker(lat, lon, color, removeActiveObjects = true) {
         const haloStyle = {
             weight: 2.5,
             radius: 5,
             fillOpacity: 0,
             color: color
         };
-        activeObjects.forEach((i) => {
-            i.remove();
-        })
+        if (removeActiveObjects) {
+            activeObjects.forEach((i) => {
+                i.remove();
+            })
+        }
         activeObjects.push(L.circleMarker(L.latLng(lat, lon), haloStyle).addTo(map));
     }`)
 }
@@ -2148,6 +2159,30 @@ function setupRelationVersionViewer() {
 
 let injectingStarted = false
 let tagsOfObjectsVisible = true
+
+
+/**
+ *
+ * @type {{minlon: number,
+ * closed_at: string,
+ * max_lon: number,
+ * maxlon: number,
+ * created_at: string,
+ * type: string,
+ * changes_count: number,
+ * tags: {},
+ * min_lon: number,
+ * uid: number,
+ * max_lat: number,
+ * maxlat: number,
+ * minlat: number,
+ * comments_count: number,
+ * id: number,
+ * min_lat: number,
+ * user: string,
+ * open: boolean}
+ * |null}
+ */
 let changesetMetadata = null
 
 async function addChangesetQuickLook() {
@@ -2188,12 +2223,15 @@ async function addChangesetQuickLook() {
                 background-color: rgba(223, 223, 223, 0.6);
                 //box-shadow: inset 0px 0px 0px 1px #f00;
             }
+            .location-modified-marker:hover {
+                background: #0022ff82 !important;
+            }
             `,
         });
     } catch { /* empty */
     }
     blurSearchField();
-    _setupTimestampsSwitch()
+    makeTimesSwitchable()
 
     async function processObjects(objType, uniqTypes) {
         const objCount = document.querySelectorAll(`.list-unstyled li.${objType}`).length
@@ -2284,8 +2322,13 @@ async function addChangesetQuickLook() {
                 ) * 1000;
                 memChangedFlag.textContent = ` 📍${distInMeters.toFixed(1)}m`
                 memChangedFlag.title = "Coordinates of node has been changed"
+                memChangedFlag.classList.add("location-modified-marker")
                 memChangedFlag.style.background = "rgba(223,238,9,0.6)"
                 i.appendChild(memChangedFlag)
+                memChangedFlag.onmouseover = function () {
+                    unsafeWindow.showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3")
+                    unsafeWindow.showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", false)
+                }
             }
             if (targetVersion.visible === false) {
                 i.classList.add("removed-object")
@@ -2301,6 +2344,16 @@ async function addChangesetQuickLook() {
             //</editor-fold>
             //<editor-fold desc="setup interactive possibilities">
             if (!GM_config.get("ShowChangesetGeometry")) return
+            i.ondblclick = () => {
+                if (changesetMetadata) {
+                    unsafeWindow.fitBounds(
+                        cloneInto([
+                                [changesetMetadata.min_lat, changesetMetadata.min_lon],
+                                [changesetMetadata.max_lat, changesetMetadata.max_lon]
+                            ],
+                            unsafeWindow))
+                }
+            }
             if (objType === "node") {
                 i.id = "n" + objID
                 i.onmouseenter = () => {
@@ -2320,16 +2373,6 @@ async function addChangesetQuickLook() {
                         unsafeWindow.panTo(targetVersion.lat.toString(), targetVersion.lon.toString(), 18, false)
                     }
                 }
-                i.ondblclick = () => {
-                    if (changesetMetadata) {
-                        unsafeWindow.fitBounds(
-                            cloneInto([
-                                    [changesetMetadata.min_lat, changesetMetadata.min_lon],
-                                    [changesetMetadata.max_lat, changesetMetadata.max_lon]
-                                ],
-                                unsafeWindow))
-                    }
-                }
                 if (targetVersion.visible === false) {
                     unsafeWindow.showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#FF0000", prevVersion.id)
                 } else {
@@ -2341,11 +2384,23 @@ async function addChangesetQuickLook() {
 
                 const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/full.json");
                 if (!res.ok) {
-                    // fixme
-                    console.warn(res)
-                    i.onmouseenter = () => {
-                        unsafeWindow.showActiveWay(cloneInto([], unsafeWindow))
-                    }
+                    setTimeout(async () => {
+                        if (changesetMetadata === null) {
+                            await new Promise(r => setTimeout(r, 1000));
+                        }
+                        const [targetVersion, nodesHistory] = await loadWayVersionNodes(objID, version - 1);
+                        const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
+                        const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
+                        unsafeWindow.displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 3, objID)
+
+                        console.warn(res)
+                        i.onmouseenter = () => {
+                            unsafeWindow.showActiveWay(cloneInto(nodesList, unsafeWindow))
+                        }
+                        i.onclick = () => {
+                            unsafeWindow.showActiveWay(cloneInto(nodesList, unsafeWindow), "#ff00e3", true)
+                        }
+                    }, 10);
                     return
                 }
                 const lastElements = (await res.json()).elements
@@ -2397,16 +2452,6 @@ async function addChangesetQuickLook() {
                     document.querySelectorAll(".map-hover").forEach(el => {
                         el.classList.remove("map-hover")
                     })
-                }
-                i.ondblclick = () => {
-                    if (changesetMetadata) {
-                        unsafeWindow.fitBounds(
-                            cloneInto([
-                                    [changesetMetadata.min_lat, changesetMetadata.min_lon],
-                                    [changesetMetadata.max_lat, changesetMetadata.max_lon]
-                                ],
-                                unsafeWindow))
-                    }
                 }
             } else if (objType === "relation") {
 
@@ -3301,6 +3346,7 @@ function setupMassChangesetsActions() {
     }, 5000);
     addMassChangesetsActions();
 }
+
 //</editor-fold>
 
 
@@ -3491,6 +3537,7 @@ function setupNavigationViaHotkeys() {
             }
         } else if (e.key === "0") {
             unsafeWindow.setZoom(2)
+            // todo make nominatim call
         } else if (e.code === "KeyZ") {
             if (location.pathname.includes("/changeset")) {
                 if (changesetMetadata) {
@@ -3528,63 +3575,6 @@ function setupNavigationViaHotkeys() {
                     }
                 }
             }
-        } else if (e.code === "KeyK") {
-            //debugger
-            if (!document.querySelector("ul .active-object")) {
-                //todo
-            } else {
-                const cur = document.querySelector("ul .active-object")
-                if (cur.previousElementSibling) {
-                    cur.previousElementSibling.classList.add("active-object")
-                    cur.classList.remove("active-object")
-                    cur.previousElementSibling.click()
-                    cur.previousElementSibling.scrollIntoView()
-                    document.querySelectorAll(".map-hover").forEach(el => {
-                        el.classList.remove("map-hover")
-                    })
-                    cur.previousElementSibling.classList.add("map-hover")
-                } else {
-                    if (cur.classList.contains("node")) {
-                        cur.classList.remove("active-object")
-                        document.querySelector("ul.list-unstyled li.way:last-of-type").classList.add("active-object")
-                        document.querySelector("ul .active-object").click()
-
-                        document.querySelectorAll(".map-hover").forEach(el => {
-                            el.classList.remove("map-hover")
-                        })
-                        document.querySelector("ul .active-object").classList.add("map-hover")
-                    }
-                }
-            }
-        } else if (e.code === "KeyL") {
-            //debugger
-            if (!document.querySelector("ul .active-object")) {
-                document.querySelector("ul.list-unstyled li").classList.add("active-object")
-                document.querySelector("ul .active-object").click()
-            } else {
-                const cur = document.querySelector("ul .active-object")
-                if (cur.nextElementSibling) {
-                    cur.nextElementSibling.classList.add("active-object")
-                    cur.classList.remove("active-object")
-                    cur.nextElementSibling.click()
-                    cur.nextElementSibling.scrollIntoView()
-                    document.querySelectorAll(".map-hover").forEach(el => {
-                        el.classList.remove("map-hover")
-                    })
-                    cur.nextElementSibling.classList.add("map-hover")
-                } else {
-                    if (cur.classList.contains("way")) {
-                        cur.classList.remove("active-object")
-                        document.querySelector("ul.list-unstyled li.node").classList.add("active-object")
-                        document.querySelector("ul .active-object").click()
-
-                        document.querySelectorAll(".map-hover").forEach(el => {
-                            el.classList.remove("map-hover")
-                        })
-                        document.querySelector("ul .active-object").classList.add("map-hover")
-                    }
-                }
-            }
         } else if (e.key === "8") {
             if (mapPositionsHistory.length > 1) {
                 mapPositionsNextHistory.push(mapPositionsHistory[mapPositionsHistory.length - 1])
@@ -3613,6 +3603,63 @@ function setupNavigationViaHotkeys() {
                         Array.from(navigationLinks).at(-1).click()
                     }
                 }
+            } else if (e.code === "KeyK") {
+                if (!document.querySelector("ul .active-object")) {
+
+                } else {
+                    const cur = document.querySelector("ul .active-object")
+                    if (cur.previousElementSibling) {
+                        cur.previousElementSibling.classList.add("active-object")
+                        cur.classList.remove("active-object")
+                        cur.previousElementSibling.click()
+                        cur.previousElementSibling.scrollIntoView()
+                        document.querySelectorAll(".map-hover").forEach(el => {
+                            el.classList.remove("map-hover")
+                        })
+                        cur.previousElementSibling.classList.add("map-hover")
+                    } else {
+                        if (cur.classList.contains("node")) {
+                            cur.classList.remove("active-object")
+                            document.querySelector("ul.list-unstyled li.way:last-of-type").classList.add("active-object")
+                            document.querySelector("ul .active-object").click()
+                            document.querySelector("ul .active-object").classList.add("map-hover")
+
+                            document.querySelectorAll(".map-hover").forEach(el => {
+                                el.classList.remove("map-hover")
+                            })
+                            document.querySelector("ul .active-object").classList.add("map-hover")
+                        }
+                    }
+                }
+            } else if (e.code === "KeyL") {
+                if (!document.querySelector("ul .active-object")) {
+                    document.querySelector("ul.list-unstyled li.node,.way,.relation").classList.add("active-object")
+                    document.querySelector("ul .active-object").click()
+                    document.querySelector("ul .active-object").classList.add("map-hover")
+                } else {
+                    const cur = document.querySelector("ul .active-object")
+                    if (cur.nextElementSibling) {
+                        cur.nextElementSibling.classList.add("active-object")
+                        cur.classList.remove("active-object")
+                        cur.nextElementSibling.click()
+                        cur.nextElementSibling.scrollIntoView()
+                        document.querySelectorAll(".map-hover").forEach(el => {
+                            el.classList.remove("map-hover")
+                        })
+                        cur.nextElementSibling.classList.add("map-hover")
+                    } else {
+                        if (cur.classList.contains("way")) {
+                            cur.classList.remove("active-object")
+                            document.querySelector("ul.list-unstyled li.node").classList.add("active-object")
+                            document.querySelector("ul .active-object").click()
+
+                            document.querySelectorAll(".map-hover").forEach(el => {
+                                el.classList.remove("map-hover")
+                            })
+                            document.querySelector("ul .active-object").classList.add("map-hover")
+                        }
+                    }
+                }
             }
         } else if (location.pathname.match(/^\/(node|way|relation)\/\d+/)) {
             if (e.altKey || ["Comma", "Period"].includes(e.code)) {
@@ -3633,6 +3680,7 @@ function setupNavigationViaHotkeys() {
 
     document.addEventListener('keydown', keydownHandler, false);
 }
+
 //</editor-fold>
 
 function resetSearchFormFocus() {

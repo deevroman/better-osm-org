@@ -90,9 +90,9 @@ Userscript adding several improvements for experienced osm.org users
 - + [ ] Filter by object type
 - + [ ] Improve default zoom
 - + [ ] Photon?
-- + [ ] Overpass? 
+- + [ ] Overpass?
+- [ ] Clickable contact:* 
 
 Maybe
-- [ ] Compact osmcha.org
 - [ ] osm-revert template
 - [ ] stop via kill switch for osm token
