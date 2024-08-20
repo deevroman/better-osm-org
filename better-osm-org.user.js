@@ -2385,6 +2385,9 @@ async function addChangesetQuickLook() {
                 nodesTable.style.display = "none"
                 const tbody = document.createElement("tbody")
                 nodesTable.style.borderWidth = "2px"
+                nodesTable.onclick = e => {
+                    e.stopPropagation()
+                }
                 tbody.style.borderWidth = "2px"
                 nodesTable.appendChild(tbody)
 
@@ -2411,12 +2414,18 @@ async function addChangesetQuickLook() {
                             const version = filterVersionByTimestamp(await getNodeHistory(left), targetTimestamp)
                             unsafeWindow.showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
                         }
+                        tagTd.onclick = async e => {
+                            e.stopPropagation() // fixme
+                            const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
+                            const version = filterVersionByTimestamp(await getNodeHistory(left), targetTimestamp)
+                            unsafeWindow.panTo(version.lat.toString(), version.lon.toString())
+                        }
                         tagTd.onmouseleave = e => {
                             e.target.classList.remove("way-version-node")
                         }
+                    } else {
                         tagTd.onclick = e => {
                             e.stopPropagation()
-                            unsafeWindow.panTo(prevVersion.lat.toString(), prevVersion.lon.toString(), 18, false)
                         }
                     }
 
@@ -2428,12 +2437,19 @@ async function addChangesetQuickLook() {
                             const version = filterVersionByTimestamp(await getNodeHistory(right), changesetMetadata.closed_at)
                             unsafeWindow.showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
                         }
+                        tagTd2.onclick = async e => {
+                            e.stopPropagation() // fixme
+                            e.target.classList.add("way-version-node")
+                            // todo check for open changesets
+                            const version = filterVersionByTimestamp(await getNodeHistory(right), changesetMetadata.closed_at)
+                            unsafeWindow.panTo(version.lat.toString(), version.lon.toString())
+                        }
                         tagTd2.onmouseleave = e => {
                             e.target.classList.remove("way-version-node")
                         }
+                    } else {
                         tagTd2.onclick = e => {
                             e.stopPropagation()
-                            unsafeWindow.panTo(targetVersion.lat.toString(), targetVersion.lon.toString(), 18, false)
                         }
                     }
 
@@ -2637,7 +2653,8 @@ async function addChangesetQuickLook() {
                 memChangedFlag.classList.add("location-modified-marker")
                 memChangedFlag.style.background = "rgba(223,238,9,0.6)"
                 i.appendChild(memChangedFlag)
-                memChangedFlag.onmouseover = function () {
+                memChangedFlag.onmouseover = e => {
+                    e.stopPropagation()
                     unsafeWindow.showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3")
                     unsafeWindow.showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", false)
                 }
