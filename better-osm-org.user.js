@@ -42,10 +42,10 @@
 // @connect      www.openstreetmap.org
 // @sandbox      JavaScript
 // @resource     OAUTH_HTML https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html
-// @resource     OSMCHA_ICON https://github.com/deevroman/better-osm-org/raw/dev/osmcha.ico
-// @resource     NODE_ICON https://github.com/deevroman/better-osm-org/raw/dev/Osm_element_node.svg
-// @resource     WAY_ICON https://github.com/deevroman/better-osm-org/raw/dev/Osm_element_way.svg
-// @resource     RELATION_ICON https://github.com/deevroman/better-osm-org/raw/dev/Taginfo_element_relation.svg
+// @resource     OSMCHA_ICON https://github.com/deevroman/better-osm-org/raw/dev/icons/osmcha.ico
+// @resource     NODE_ICON https://github.com/deevroman/better-osm-org/raw/dev/icons/Osm_element_node.svg
+// @resource     WAY_ICON https://github.com/deevroman/better-osm-org/raw/dev/icons/Osm_element_way.svg
+// @resource     RELATION_ICON https://github.com/deevroman/better-osm-org/raw/dev/icons/Taginfo_element_relation.svg
 // @run-at       document-end
 // ==/UserScript==
 //<editor-fold desc="config" defaultstate="collapsed">
