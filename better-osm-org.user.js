@@ -43,6 +43,9 @@
 // @sandbox      JavaScript
 // @resource     OAUTH_HTML https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html
 // @resource     OSMCHA_ICON https://github.com/deevroman/better-osm-org/raw/dev/osmcha.ico
+// @resource     NODE_ICON https://github.com/deevroman/better-osm-org/raw/dev/Osm_element_node.svg
+// @resource     WAY_ICON https://github.com/deevroman/better-osm-org/raw/dev/Osm_element_way.svg
+// @resource     RELATION_ICON https://github.com/deevroman/better-osm-org/raw/dev/Taginfo_element_relation.svg
 // @run-at       document-end
 // ==/UserScript==
 //<editor-fold desc="config" defaultstate="collapsed">
@@ -1570,10 +1573,12 @@ async function loadWayVersionNodes(wayID, version) {
     return [targetVersion, targetVersion.nodes.map(nodeID => nodesHistories[nodeID])]
 }
 
+// TODO T -> ObjectHistory
 /**
- * @param {ObjectVersion[]} history
+ * @template T
+ * @param {T[]} history
  * @param {string} timestamp
- * @return {ObjectVersion}
+ * @return {T}
  */
 function filterVersionByTimestamp(history, timestamp) {
     const targetTime = new Date(timestamp)
@@ -1658,7 +1663,7 @@ function setupWayVersionView() {
 /**
  * @typedef {Object} RelationMember
  * @property {number} ref
- * @property {string} type
+ * @property {'node'|'way'|'relation'} type
  * @property {string} role
  */
 
@@ -2160,6 +2165,74 @@ function setupRelationVersionViewer() {
 let injectingStarted = false
 let tagsOfObjectsVisible = true
 
+/**
+ * Get editorial prescription via modified Levenshtein distance finding algorithm
+ * @template T
+ * @param {T[]} a
+ * @param {T[]} b
+ * @return {[T, T][]}
+ */
+function arraysDiff(a, b) {
+    const dp = []
+    for (let i = 0; i < a.length + 1; i++) {
+        dp[i] = []
+        for (let j = 0; j < b.length + 1; j++) {
+            dp[i].push(0)
+        }
+    }
+
+    for (let i = 0; i <= a.length; i++) {
+        dp[i][0] = i
+    }
+
+    for (let i = 0; i <= b.length; i++) {
+        dp[0][i] = i
+    }
+
+    for (let i = 1; i <= a.length; i++) {
+        for (let j = 1; j <= b.length; j++) {
+            const del_cost = dp[i - 1][j]
+            const ins_cost = dp[i][j - 1]
+            const replace_cost = dp[i - 1][j - 1] + (JSON.stringify(a[i - 1]) !== JSON.stringify(b[j - 1])) * 2 // replacement is not very desirable
+            dp[i][j] = Math.min(Math.min(del_cost, ins_cost) + 1, replace_cost)
+        }
+    }
+
+    const answer = []
+
+    function restore(i, j) {
+        if (i === 0 || j === 0) {
+            if (i === 0 && j === 0) {
+                return;
+            } else if (i === 0) {
+                answer.push([null, b[j - 1]])
+                restore(i, j - 1)
+                return;
+            } else {
+                answer.push([a[i - 1], null])
+                restore(i - 1, j)
+                return;
+            }
+        }
+
+        const del_cost = dp[i - 1][j]
+        const ins_cost = dp[i][j - 1]
+        const replace_cost = dp[i - 1][j - 1] + (JSON.stringify(a[i - 1]) !== JSON.stringify(b[j - 1])) * 2
+        if (del_cost <= ins_cost && del_cost + 1 <= replace_cost) {
+            answer.push([a[i - 1], null])
+            restore(i - 1, j)
+        } else if (ins_cost <= del_cost && ins_cost + 1 <= replace_cost) {
+            answer.push([null, b[j - 1]])
+            restore(i, j - 1)
+        } else {
+            answer.push([a[i - 1], b[j - 1]])
+            restore(i - 1, j - 1)
+        }
+    }
+
+    restore(a.length, b.length);
+    return answer.toReversed();
+}
 
 /**
  *
@@ -2225,6 +2298,9 @@ async function addChangesetQuickLook() {
             }
             .location-modified-marker:hover {
                 background: #0022ff82 !important;
+            }
+            .way-version-node:hover {
+                background-color: #ff00e3 !important;
             }
             `,
         });
@@ -2302,14 +2378,250 @@ async function addChangesetQuickLook() {
                 geomChangedFlag.textContent = " 📐"
                 geomChangedFlag.title = "List of way nodes has been changed"
                 geomChangedFlag.style.background = "rgba(223,238,9,0.6)"
+                geomChangedFlag.style.cursor = "pointer"
+
+                const nodesTable = document.createElement("table")
+                nodesTable.classList.add("way-nodes-table")
+                nodesTable.style.display = "none"
+                const tbody = document.createElement("tbody")
+                nodesTable.style.borderWidth = "2px"
+                tbody.style.borderWidth = "2px"
+                nodesTable.appendChild(tbody)
+
+                function makeDiffRow(left, right) {
+                    const row = document.createElement("tr")
+                    const tagTd = document.createElement("td")
+                    const tagTd2 = document.createElement("td")
+                    tagTd.style.borderWidth = "2px"
+                    tagTd2.style.borderWidth = "2px"
+                    row.style.borderWidth = "2px"
+                    row.appendChild(tagTd)
+                    row.appendChild(tagTd2)
+                    tagTd.textContent = left
+                    tagTd2.textContent = right
+                    tagTd.style.textAlign = "right"
+                    tagTd2.style.textAlign = "right"
+
+                    if (typeof left === "number") {
+                        tagTd.onmouseenter = async e => {
+                            e.stopPropagation() // fixme
+                            e.target.classList.add("way-version-node")
+                            // todo check for open changesets
+                            const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
+                            const version = filterVersionByTimestamp(await getNodeHistory(left), targetTimestamp)
+                            unsafeWindow.showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
+                        }
+                        tagTd.onmouseleave = e => {
+                            e.target.classList.remove("way-version-node")
+                        }
+                        tagTd.onclick = e => {
+                            e.stopPropagation()
+                            unsafeWindow.panTo(prevVersion.lat.toString(), prevVersion.lon.toString(), 18, false)
+                        }
+                    }
+
+                    if (typeof right === "number") {
+                        tagTd2.onmouseenter = async e => {
+                            e.stopPropagation() // fixme
+                            e.target.classList.add("way-version-node")
+                            // todo check for open changesets
+                            const version = filterVersionByTimestamp(await getNodeHistory(right), changesetMetadata.closed_at)
+                            unsafeWindow.showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
+                        }
+                        tagTd2.onmouseleave = e => {
+                            e.target.classList.remove("way-version-node")
+                        }
+                        tagTd2.onclick = e => {
+                            e.stopPropagation()
+                            unsafeWindow.panTo(targetVersion.lat.toString(), targetVersion.lon.toString(), 18, false)
+                        }
+                    }
+
+                    return row
+                }
+
+                const lineWasReversed = JSON.stringify(prevVersion.nodes.toReversed()) === JSON.stringify(targetVersion.nodes)
+                if (lineWasReversed) {
+                    const row = makeDiffRow("", "🔃")
+                    row.querySelectorAll("td").forEach(i => i.style.textAlign = "center")
+                    row.querySelector("td:nth-of-type(2)").title = "Nodes of the way were reversed"
+                    tbody.appendChild(row)
+
+                    prevVersion.nodes.forEach((i, index) => {
+                        const row = makeDiffRow(i, targetVersion.nodes[index])
+                        row.querySelector("td:nth-of-type(2)").style.background = "rgba(223,238,9,0.6)"
+                        row.style.fontFamily = "monospace"
+                        tbody.appendChild(row)
+                    })
+                } else {
+                    arraysDiff(prevVersion.nodes, targetVersion.nodes).forEach(i => {
+                        const row = makeDiffRow(i[0], i[1])
+                        if (i[0] === null) {
+                            row.style.background = "rgba(17,238,9,0.6)"
+                        } else if (i[1] === null) {
+                            row.style.background = "rgba(238,51,9,0.6)"
+                        } else if (i[0] !== i[1]) {
+                            row.style.background = "rgba(223,238,9,0.6)"
+                        }
+                        row.style.fontFamily = "monospace"
+                        tbody.appendChild(row)
+                    })
+                }
+
+
+                geomChangedFlag.onclick = e => {
+                    e.stopPropagation()
+                    if (nodesTable.style.display === "none") {
+                        nodesTable.style.display = ""
+                    } else {
+                        nodesTable.style.display = "none"
+                    }
+                }
+
                 i.appendChild(geomChangedFlag)
+                geomChangedFlag.after(nodesTable)
+                if (lineWasReversed) {
+                    geomChangedFlag.after(document.createTextNode(['ru-RU', 'ru'].includes(navigator.language) ? " ⓘ Линию перевернули" : "ⓘ The line has been reversed"))
+                }
             }
             if (prevVersion?.members && prevVersion.members.toString() !== targetVersion.members?.toString()) {
                 let memChangedFlag = document.createElement("span")
                 memChangedFlag.textContent = " 👥"
                 memChangedFlag.title = "List of relation members has been changed"
                 memChangedFlag.style.background = "rgba(223,238,9,0.6)"
+                memChangedFlag.style.cursor = "pointer"
+
+
+                const membersTable = document.createElement("table")
+                membersTable.classList.add("relation-members-table")
+                membersTable.style.display = "none"
+                const tbody = document.createElement("tbody")
+                membersTable.style.borderWidth = "2px"
+                tbody.style.borderWidth = "2px"
+                membersTable.appendChild(tbody)
+
+                /**
+                 * @param {RelationMember} member
+                 */
+                function getIcon(member) {
+                    if (member?.type === "node") {
+                        return GM_getResourceURL("NODE_ICON")
+                    } else if (member?.type === "way") {
+                        return GM_getResourceURL("WAY_ICON")
+                    } else if (member?.type === "relation") {
+                        return GM_getResourceURL("RELATION_ICON")
+                    } else {
+                        console.error(member);
+                        console.trace();
+                    }
+                }
+
+                /**
+                 * @param {string|RelationMember} left
+                 * @param {string|RelationMember} right
+                 */
+                function makeRelationDiffRow(left, right) {
+                    const row = document.createElement("tr")
+                    const tagTd = document.createElement("td")
+                    const tagTd2 = document.createElement("td")
+                    tagTd.style.borderWidth = "2px"
+                    tagTd2.style.borderWidth = "2px"
+                    row.style.borderWidth = "2px"
+                    row.appendChild(tagTd)
+                    row.appendChild(tagTd2)
+                    tagTd.textContent = `${left?.ref ?? ""} ${left?.role ?? ""}`
+                    if (left && typeof left === "object") {
+                        const icon = document.createElement("img")
+                        icon.src = getIcon(left)
+                        icon.style.height = "1em"
+                        icon.style.marginLeft = "1px"
+                        tagTd.appendChild(icon)
+                    }
+                    tagTd2.textContent = `${right?.ref ?? ""} ${right?.role ?? ""}`
+                    if (right && typeof right === "object") {
+                        const icon = document.createElement("img")
+                        icon.src = getIcon(right)
+                        icon.style.height = "1em"
+                        icon.style.marginLeft = "1px"
+                        tagTd2.appendChild(icon)
+                    }
+                    tagTd.style.pointerEvents = "none";
+                    tagTd2.style.cursor = "";
+                    tagTd.style.textAlign = "right"
+                    tagTd2.style.textAlign = "right"
+
+                    if (typeof left === "object") {
+                        tagTd.onmouseenter = async e => {
+                            e.stopPropagation() // fixme
+                            e.target.classList.add("way-version-node")
+                            // todo check for open changesets
+                            const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
+                        }
+                        tagTd.onmouseleave = e => {
+                            e.target.classList.remove("way-version-node")
+                        }
+                        tagTd.onclick = e => {
+                            e.stopPropagation()
+                        }
+                    }
+
+                    if (typeof right === "object") {
+                        tagTd2.onmouseenter = async e => {
+                            e.stopPropagation() // fixme
+                            e.target.classList.add("way-version-node")
+                            // todo check for open changesets
+                        }
+                        tagTd2.onmouseleave = e => {
+                            e.target.classList.remove("way-version-node")
+                        }
+                        tagTd2.onclick = e => {
+                            e.stopPropagation()
+                        }
+                    }
+
+                    return row
+                }
+
+                if (JSON.stringify(prevVersion.members.toReversed()) === JSON.stringify(targetVersion.members)) {
+                    // members reversed
+                    const row = makeRelationDiffRow("", "🔃")
+                    row.querySelectorAll("td").forEach(i => i.style.textAlign = "center")
+                    row.querySelector("td:nth-of-type(2)").title = "Members of the relation were reversed"
+                    tbody.appendChild(row)
+
+                    prevVersion.members.forEach((i, index) => {
+                        const row = makeRelationDiffRow(i, targetVersion.members[index])
+                        row.querySelector("td:nth-of-type(2)").style.background = "rgba(223,238,9,0.6)"
+                        row.style.fontFamily = "monospace"
+                        tbody.appendChild(row)
+                    })
+                } else {
+                    arraysDiff(prevVersion.members, targetVersion.members).forEach(i => {
+                        const row = makeRelationDiffRow(i[0], i[1])
+                        if (i[0] === null) {
+                            row.style.background = "rgba(17,238,9,0.6)"
+                        } else if (i[1] === null) {
+                            row.style.background = "rgba(238,51,9,0.6)"
+                        } else if (JSON.stringify(i[0]) !== JSON.stringify(i[1])) {
+                            row.style.background = "rgba(223,238,9,0.6)"
+                        }
+                        row.style.fontFamily = "monospace"
+                        tbody.appendChild(row)
+                    })
+                }
+
+
+                memChangedFlag.onclick = e => {
+                    e.stopPropagation()
+                    if (membersTable.style.display === "none") {
+                        membersTable.style.display = ""
+                    } else {
+                        membersTable.style.display = "none"
+                    }
+                }
+
                 i.appendChild(memChangedFlag)
+                memChangedFlag.after(membersTable)
             }
             if (targetVersion.lat && prevVersion.lat && (prevVersion.lat !== targetVersion.lat || prevVersion.lon !== targetVersion.lon)) {
                 i.classList.add("location-modified")
@@ -3536,8 +3848,15 @@ function setupNavigationViaHotkeys() {
                 }
             }
         } else if (e.key === "0") {
+            const center = unsafeWindow.map.getCenter()
             unsafeWindow.setZoom(2)
-            // todo make nominatim call
+            fetch(`https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2`).then((res) => {
+                res.json().then((r) => {
+                    if (r?.address?.state) {
+                        unsafeWindow.map.attributionControl.setPrefix(`${r.address.state}`)
+                    }
+                })
+            })
         } else if (e.code === "KeyZ") {
             if (location.pathname.includes("/changeset")) {
                 if (changesetMetadata) {
@@ -3592,14 +3911,14 @@ function setupNavigationViaHotkeys() {
         if (location.pathname.includes("/changeset")) {
             if (e.altKey || ["Comma", "Period"].includes(e.code)) {
                 if (e.code === "ArrowLeft" || e.code === "Comma") {
-                    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1].querySelectorAll("a")
-                    if (navigationLinks[0].href.includes("/changeset/")) {
+                    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
+                    if (navigationLinks && navigationLinks[0].href.includes("/changeset/")) {
                         navigationLinks[0].click()
                     }
 
                 } else if (e.code === "ArrowRight" || e.code === "Period") {
-                    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1].querySelectorAll("a")
-                    if (Array.from(navigationLinks).at(-1).href.includes("/changeset/")) {
+                    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
+                    if (navigationLinks && Array.from(navigationLinks).at(-1).href.includes("/changeset/")) {
                         Array.from(navigationLinks).at(-1).click()
                     }
                 }
@@ -3753,7 +4072,11 @@ function setup() {
         const path = location.pathname;
         if (path + location.search === lastPath) return;
         if (lastPath.includes("/changeset/") && (!path.includes("/changeset/") || lastPath !== path)) {
-            cleanAllObjects()
+            try {
+                cleanAllObjects()
+                unsafeWindow.map.attributionControl.setPrefix("")
+            } catch (e) {
+            }
         }
         lastPath = path + location.search;
         for (const module of modules.filter(module => GM_config.get(module.name.slice('setup'.length)))) {
