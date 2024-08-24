@@ -90,6 +90,13 @@ GM_config.init(
                         'default': 'checked',
                         'labelPos': 'right'
                     },
+                'ShowChangesetGeometry':
+                    {
+                        'label': 'Show geometry of objects in changeset β',
+                        'type': 'checkbox',
+                        'default': 'checked',
+                        'labelPos': 'right'
+                    },
                 'MassChangesetsActions':
                     {
                         'label': 'Add actions for changesets list (mass revert, filtering, ...)',
@@ -122,7 +129,7 @@ GM_config.init(
                 'RevertButton':
                     {
                         'section': ["New actions"],
-                        'label': 'Revert changeset button',
+                        'label': 'Revert&Osmcha changeset button',
                         'type': 'checkbox',
                         'default': 'checked',
                         'labelPos': 'right'
@@ -176,12 +183,6 @@ GM_config.init(
                         'default': 'checked',
                         'labelPos': 'right'
                     },
-                'ShowChangesetGeometry': {
-                    'label': 'Show geometry of objects in changeset β',
-                    'type': 'checkbox',
-                    'default': 'checked',
-                    'labelPos': 'right'
-                },
                 'ResetSearchFormFocus': {
                     'label': 'Reset search form focus',
                     'type': 'checkbox',
@@ -693,7 +694,7 @@ function setupHideNoteHighlight(path) {
 //<editor-fold desc="satellite switching">
 const OSMPrefix = "https://tile.openstreetmap.org/"
 const ESRIPrefix = "https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
-const ESRIArchivePrefix = "https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
+const ESRIArchivePrefix = "https://clarity.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
 let SatellitePrefix = ESRIPrefix
 let SAT_MODE = "🛰"
 let MAPNIK_MODE = "🗺️"
@@ -733,6 +734,11 @@ function switchTiles() {
         tilesObserver.disconnect();
     }
     currentTilesMode = invertTilesMode(currentTilesMode);
+    if (currentTilesMode === SAT_MODE) {
+        unsafeWindow.map?.attributionControl?.setPrefix("ESRI")
+    } else {
+        unsafeWindow.map?.attributionControl?.setPrefix("")
+    }
     document.querySelectorAll(".leaflet-tile").forEach(i => {
         if (i.nodeName !== 'IMG') {
             return;
@@ -741,6 +747,14 @@ function switchTiles() {
             let xyz = parseOSMTileURL(i.src)
             if (!xyz) return
             i.src = SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x;
+            /*
+            const newImg = GM_addElement(document.body, "img", {
+                src: SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x
+            })
+            newImg.classList = i.classList
+            newImg.style.cssText = i.style.cssText;
+            i.replaceWith(newImg)
+            */
         } else {
             let xyz = parseESRITileURL(i.src)
             if (!xyz) return
@@ -757,6 +771,14 @@ function switchTiles() {
                     let xyz = parseOSMTileURL(node.src);
                     if (!xyz) return
                     node.src = SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x;
+                    /*
+                    const newImg = GM_addElement(document.body, "img", {
+                        src: SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x
+                    })
+                    newImg.classList = node.classList
+                    newImg.style.cssText = node.style.cssText;
+                    node.replaceWith(newImg)
+                    */
                 } else {
                     let xyz = parseESRITileURL(node.src)
                     if (!xyz) return
@@ -1395,10 +1417,13 @@ const histories = {
     relation: relationsHistories
 }
 
+/**
+ * @param {string|number} id
+ */
 async function getChangeset(id) {
     const res = await fetch(osm_server.apiBase + "changeset" + "/" + id + "/download");
     const parser = new DOMParser();
-    return parser.parseFromString(res.responseText, "text/html");
+    return parser.parseFromString(await res.text(), "application/xml");
 }
 
 function setupNodeVersionView() {
@@ -1841,6 +1866,9 @@ function setupRelationVersionView() {
 // https://www.openstreetmap.org/relation/16022751/history
 function addDiffInHistory() {
     addHistoryLink();
+    if (document.querySelector("#sidebar_content table")) {
+        document.querySelector("#sidebar_content table").querySelectorAll("a").forEach(i => i.setAttribute("target", "_blank"));
+    }
     if (!location.pathname.includes("/history")
         || location.pathname === "/history"
         || location.pathname.includes("/history/")
@@ -2310,7 +2338,7 @@ async function addChangesetQuickLook() {
     makeTimesSwitchable()
 
     async function processObjects(objType, uniqTypes) {
-        const objCount = document.querySelectorAll(`.list-unstyled li.${objType}`).length
+        const objCount = document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`).length
         if (objCount === 0) {
             return;
         }
@@ -2561,37 +2589,59 @@ async function addChangesetQuickLook() {
                         icon.style.marginLeft = "1px"
                         tagTd2.appendChild(icon)
                     }
-                    tagTd.style.pointerEvents = "none";
                     tagTd2.style.cursor = "";
                     tagTd.style.textAlign = "right"
                     tagTd2.style.textAlign = "right"
-
-                    if (typeof left === "object") {
+                    if (left && typeof left === "object") {
                         tagTd.onmouseenter = async e => {
                             e.stopPropagation() // fixme
                             e.target.classList.add("way-version-node")
                             // todo check for open changesets
                             const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
+                            if (left.type === "node") {
+                                const version = filterVersionByTimestamp(await getNodeHistory(left.ref), targetTimestamp)
+                                unsafeWindow.showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
+                            } else {
+                                // todo
+                            }
                         }
+
                         tagTd.onmouseleave = e => {
                             e.target.classList.remove("way-version-node")
                         }
-                        tagTd.onclick = e => {
+                        tagTd.onclick = async e => {
                             e.stopPropagation()
+                            if (left.type === "node") {
+                                const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
+                                const version = filterVersionByTimestamp(await getNodeHistory(left.ref), targetTimestamp)
+                                unsafeWindow.panTo(version.lat.toString(), version.lon.toString())
+                            }
                         }
                     }
 
-                    if (typeof right === "object") {
+                    if (right && typeof right === "object") {
                         tagTd2.onmouseenter = async e => {
                             e.stopPropagation() // fixme
                             e.target.classList.add("way-version-node")
                             // todo check for open changesets
+                            const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
+                            if (right.type === "node") {
+                                const version = filterVersionByTimestamp(await getNodeHistory(right.ref), targetTimestamp)
+                                unsafeWindow.showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
+                            } else {
+                                // todo
+                            }
                         }
                         tagTd2.onmouseleave = e => {
                             e.target.classList.remove("way-version-node")
                         }
-                        tagTd2.onclick = e => {
+                        tagTd2.onclick = async e => {
                             e.stopPropagation()
+                            if (right.type === "node") {
+                                const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
+                                const version = filterVersionByTimestamp(await getNodeHistory(right.ref), targetTimestamp)
+                                unsafeWindow.panTo(version.lat.toString(), version.lon.toString())
+                            }
                         }
                     }
 
@@ -2704,11 +2754,13 @@ async function addChangesetQuickLook() {
                 }
                 if (targetVersion.visible === false) {
                     unsafeWindow.showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#FF0000", prevVersion.id)
-                } else {
+                } else if (targetVersion.version === 1) {
                     unsafeWindow.showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#006200", targetVersion.id)
+                } else {
+                    unsafeWindow.showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "rgb(255,245,41)", targetVersion.id)
                 }
             } else if (objType === "way") {
-                if (objID === "695574090") debugger
+                if (objID === "695574090") debugger // fixme
                 i.id = "w" + objID
 
                 const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/full.json");
@@ -2787,6 +2839,7 @@ async function addChangesetQuickLook() {
             }
             //</editor-fold>
             // console.log(prevVersion, targetVersion, lastVersion);
+            i.classList.add("processed-object")
         }
 
         const needFetch = []
@@ -2801,6 +2854,9 @@ async function addChangesetQuickLook() {
         async function getHistoryAndVersionByElem(elem) {
             const [, , objID, version] = elem.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
             const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/history.json");
+            if (histories[objType][objID]) {
+                return [histories[objType][objID], parseInt(version)]
+            }
             return [histories[objType][objID] = (await res.json()).elements, parseInt(version)];
         }
 
@@ -2824,7 +2880,7 @@ async function addChangesetQuickLook() {
         }
 
         if (objType === "relation" && objCount >= 2) {
-            for (let i of document.querySelectorAll(`.list-unstyled li.${objType}`)) {
+            for (let i of document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`)) {
                 const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
                 const version = parseInt(strVersion)
                 if (version === 1) {
@@ -2838,7 +2894,7 @@ async function addChangesetQuickLook() {
             }
             const res = await fetch(osm_server.apiBase + `${objType}s.json?${objType}s=` + needFetch.join(","));
             if (res.status === 404) {
-                for (let i of document.querySelectorAll(`.list-unstyled li.${objType}`)) {
+                for (let i of document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`)) {
                     await processObject(i, ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(i))))
                 }
             } else {
@@ -2848,14 +2904,14 @@ async function addChangesetQuickLook() {
                         objectsVersions[k] = Object.groupBy(history, i => i.version)
                     }
                 )
-                for (let i of document.querySelectorAll(`.list-unstyled li.${objType}`)) {
+                for (let i of document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`)) {
                     const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
                     const version = parseInt(strVersion)
                     await processObject(i, ...getPrevTargetLastVersions(Object.values(objectsVersions[objID])[0], version))
                 }
             }
         } else {
-            await Promise.all(Array.from(document.querySelectorAll(`.list-unstyled li.${objType}`)).map(async function (i) {
+            await Promise.all(Array.from(document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`)).map(async function (i) {
                 await processObject(i, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(i)))
             }))
         }
@@ -2888,7 +2944,10 @@ async function addChangesetQuickLook() {
                 }
             });
         }
-        document.querySelector(`.list-unstyled li.${objType}`).parentElement.previousElementSibling.querySelector("h4").appendChild(compactToggle)
+        const objectListSection = document.querySelector(`.list-unstyled li.${objType}`).parentElement.previousElementSibling.querySelector("h4")
+        if (!objectListSection.querySelector(".quick-look-compact-toggle-btn")) {
+            objectListSection.appendChild(compactToggle)
+        }
         compactToggle.before(document.createTextNode("\xA0"))
         if (uniqTypes === 1 && document.querySelectorAll(`.list-unstyled li.${objType} .non-modified-tag-in-quick-view`).length < 5) {
             compactToggle.style.display = "none"
@@ -2897,7 +2956,7 @@ async function addChangesetQuickLook() {
             });
         }
         //</editor-fold>
-        if (objCount === 20) {
+        if (objCount >= 20) {
             await new Promise(r => setTimeout(r, 1000));
         }
     }
@@ -2914,6 +2973,119 @@ async function addChangesetQuickLook() {
         for (const objType of ["way", "node", "relation"]) {
             await processObjects(objType, uniqTypes);
         }
+        const changesetData = await getChangeset(location.pathname.match(/changeset\/(\d+)/)[1])
+
+        function replaceNodes(changesetData) {
+            const pagination = Array.from(document.querySelectorAll(".pagination")).find(i => {
+                return Array.from(i.querySelectorAll("a.page-link")).some(a => a.href?.includes("node"))
+            })
+            if (!pagination) return
+            const ul = pagination.parentElement.nextElementSibling
+            const nodes = changesetData.querySelectorAll("node")
+            if (nodes.length > 1000) {
+                return;
+            }
+            pagination.remove();
+            const summaryHeader = document.querySelector(`.list-unstyled li.node`)
+                .parentElement.previousElementSibling.querySelector("h4")
+                .firstChild;
+            summaryHeader.textContent = summaryHeader.textContent.replace(/\(.*\)/, `(1-${nodes.length})`)
+
+            nodes.forEach(node => {
+                if (document.querySelector("#n" + node.id)) {
+                    return
+                }
+                const ulItem = document.createElement("li");
+                ulItem.classList.add("node");
+                ulItem.id = "n" + node.id
+
+                const nodeLink = document.createElement("a")
+                nodeLink.rel = "nofollow"
+                nodeLink.href = `/node/${node.id}`
+                nodeLink.textContent = node.id
+                ulItem.appendChild(nodeLink)
+
+                ulItem.appendChild(document.createTextNode(", "))
+
+                const versionLink = document.createElement("a")
+                versionLink.rel = "nofollow"
+                versionLink.href = `/node/${node.id}/history/${node.getAttribute("version")}`
+                versionLink.textContent = "v" + node.getAttribute("version")
+                ulItem.appendChild(versionLink)
+
+                Array.from(node.children).forEach(i => {
+                    // todo
+                    if (["shop", "building", "amenity", "man_made", "highway", "natural"].includes(i.getAttribute("k"))) {
+                        ulItem.classList.add(i.getAttribute("k"))
+                        ulItem.classList.add(i.getAttribute("v"))
+                    }
+                })
+                if (node.getAttribute("visible") === "false") {
+                    ulItem.innerHTML = "<s>" + ulItem.innerHTML + "</s>"
+                }
+                ul.appendChild(ulItem)
+            })
+        }
+
+        // todo unify
+        function replaceWays(changesetData) {
+            const pagination = Array.from(document.querySelectorAll(".pagination")).find(i => {
+                return Array.from(i.querySelectorAll("a.page-link")).some(a => a.href?.includes("way"))
+            })
+            if (!pagination) return
+            const ul = pagination.parentElement.nextElementSibling
+            const ways = changesetData.querySelectorAll("way")
+            if (ways.length > 50) {
+                if (ways.length > 100 && changesetData.querySelectorAll("node") > 40) {
+                    return;
+                }
+            }
+            pagination.remove();
+            const summaryHeader = document.querySelector(`.list-unstyled li.way`)
+                .parentElement.previousElementSibling.querySelector("h4")
+                .firstChild;
+            summaryHeader.textContent = summaryHeader.textContent.replace(/\(.*\)/, `(1-${ways.length})`)
+            ways.forEach(way => {
+                if (document.querySelector("#w" + way.id)) {
+                    return
+                }
+                const ulItem = document.createElement("li");
+                ulItem.classList.add("way");
+                ulItem.id = "w" + way.id
+
+                const nodeLink = document.createElement("a")
+                nodeLink.rel = "nofollow"
+                nodeLink.href = `/way/${way.id}`
+                nodeLink.textContent = way.id
+                ulItem.appendChild(nodeLink)
+
+                ulItem.appendChild(document.createTextNode(", "))
+
+                const versionLink = document.createElement("a")
+                versionLink.rel = "nofollow"
+                versionLink.href = `/way/${way.id}/history/${way.getAttribute("version")}`
+                versionLink.textContent = "v" + way.getAttribute("version")
+                ulItem.appendChild(versionLink)
+
+                Array.from(way.children).forEach(i => {
+                    // todo
+                    if (["shop", "building", "amenity", "man_made", "highway", "natural"].includes(i.getAttribute("k"))) {
+                        ulItem.classList.add(i.getAttribute("k"))
+                        ulItem.classList.add(i.getAttribute("v"))
+                    }
+                })
+                if (way.getAttribute("visible") === "false") {
+                    ulItem.innerHTML = "<s>" + ulItem.innerHTML + "</s>"
+                }
+                ul.appendChild(ulItem)
+            })
+        }
+
+        replaceWays(changesetData)
+        await processObjects("way", uniqTypes);
+
+        replaceNodes(changesetData)
+        await processObjects("node", uniqTypes);
     } finally { // TODO catch and notify user
         injectingStarted = false
     }
@@ -3114,9 +3286,17 @@ function makeTopActionBar() {
         const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
         window.location = "https://revert.monicz.dev/?changesets=" + ids
     }
+    const revertViaJOSMButton = document.createElement("button")
+    revertViaJOSMButton.textContent = "↩️ via JOSM"
+    revertViaJOSMButton.onclick = () => {
+        const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
+        window.location = "http://127.0.0.1:8111/revert_changeset?id=" + ids
+    }
     actionsBar.appendChild(copyIds)
     actionsBar.appendChild(document.createTextNode("\xA0"))
     actionsBar.appendChild(revertButton)
+    actionsBar.appendChild(document.createTextNode("\xA0"))
+    actionsBar.appendChild(revertViaJOSMButton)
     return actionsBar;
 }
 
@@ -3183,7 +3363,24 @@ function addMassActionForUserChangesets() {
             })
         }
     }
+    // example: https://osmcha.org?filters={"users":[{"label":"TrickyFoxy","value":"TrickyFoxy"}]}
+    const username = location.pathname.match(/\/user\/(.*)\/history$/)[1]
+    const osmchaFilter = {"users": [{"label": username, "value": username}]}
+    const osmchaLink = document.createElement("a");
+    osmchaLink.href = "https://osmcha.org?" + new URLSearchParams({filters: JSON.stringify(osmchaFilter)}).toString()
+    osmchaLink.target = "_blank"
+    osmchaLink.rel = "noreferrer"
+
+    const osmchaIcon = document.createElement("img")
+    osmchaIcon.src = GM_getResourceURL("OSMCHA_ICON")
+    osmchaIcon.style.height = "1em";
+    osmchaIcon.style.cursor = "pointer";
+    osmchaIcon.style.marginTop = "-3px";
+    osmchaLink.appendChild(osmchaIcon)
+
     document.querySelector("#sidebar_content h2").appendChild(a)
+    document.querySelector("#sidebar_content h2").appendChild(document.createTextNode("\xA0"))
+    document.querySelector("#sidebar_content h2").appendChild(osmchaLink)
 }
 
 function addChangesetCheckbox(chagesetElem) {
@@ -3834,14 +4031,23 @@ function setupNavigationViaHotkeys() {
         } else if (e.code === "KeyG") { // gps tracks
             Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
         } else if (e.code === "KeyS") { // satellite
-            switchTiles(invertTilesMode(currentTilesMode))
-            if (document.querySelector(".turn-on-satellite")) {
-                document.querySelector(".turn-on-satellite").textContent = invertTilesMode(currentTilesMode)
-            }
             if (e.shiftKey) {
-                //debugger
-                SatellitePrefix = SatellitePrefix === ESRIPrefix ? ESRIArchivePrefix : ESRIPrefix;
-                switchTiles(invertTilesMode(currentTilesMode))
+                const NewSatellitePrefix = SatellitePrefix === ESRIPrefix ? ESRIArchivePrefix : ESRIPrefix;
+                document.querySelectorAll(".leaflet-tile").forEach(i => {
+                    if (i.nodeName !== 'IMG') {
+                        return;
+                    }
+                    let xyz = parseESRITileURL(i.src)
+                    if (!xyz) return
+                    i.src = NewSatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x;
+                })
+                SatellitePrefix = NewSatellitePrefix
+                return
+            } else {
+                switchTiles()
+                if (document.querySelector(".turn-on-satellite")) {
+                    document.querySelector(".turn-on-satellite").textContent = invertTilesMode(currentTilesMode)
+                }
             }
         } else if (e.code === "KeyE") {
             document.querySelector("#editanchor")?.click()
@@ -3971,6 +4177,9 @@ function setupNavigationViaHotkeys() {
                 if (!document.querySelector("ul .active-object")) {
                     document.querySelector("ul.list-unstyled li.node,.way,.relation").classList.add("active-object")
                     document.querySelector("ul .active-object").click()
+                    document.querySelectorAll(".map-hover").forEach(el => {
+                        el.classList.remove("map-hover")
+                    })
                     document.querySelector("ul .active-object").classList.add("map-hover")
                 } else {
                     const cur = document.querySelector("ul .active-object")

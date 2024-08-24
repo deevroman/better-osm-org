@@ -53,7 +53,7 @@ Userscript adding several improvements for experienced osm.org users
 - [ ] Mass actions with changesets
 - + [x] mass revert via osm-revert
 - + [x] copy ids for JOSM
-- + [ ] via remote control JOSM
+- + [x] via remote control JOSM
 - + [ ] mass changesets download 
 - [x] Settings
 - [x] Hide active note highlight
@@ -92,6 +92,7 @@ Userscript adding several improvements for experienced osm.org users
 - + [ ] Photon?
 - + [ ] Overpass?
 - [ ] Clickable contact:* 
+- [ ] {{bbox}} on/off in Overpass Turbo
 
 Maybe
 - [ ] osm-revert template
