@@ -4053,7 +4053,15 @@ function setupNavigationViaHotkeys() {
                 }
             }
         } else if (e.code === "KeyE") {
-            document.querySelector("#editanchor")?.click()
+            if (e.shiftKey) {
+                if (document.querySelector("#editanchor").getAttribute("data-editor") === "id"){
+                    document.querySelectorAll("#edit_tab .dropdown-menu .editlink")[1]?.click()
+                } else {
+                    document.querySelectorAll("#edit_tab .dropdown-menu .editlink")[0]?.click()
+                }
+            } else {
+                document.querySelector("#editanchor")?.click()
+            }
         } else if (e.code === "KeyH") {
             if (location.pathname.match(/(node|way|relation)\/\d+/)) {
                 if (location.pathname.match(/(node|way|relation)\/\d+\/?$/)) {
