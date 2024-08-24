@@ -3817,7 +3817,10 @@ function addMassChangesetsActions() {
                     userBadge.title = "The user was banned"
                     userBadge.textContent = "⛔️"
                     item.previousSibling.previousSibling.before(userBadge)
-                } else if (new Date(res['account_created']).setUTCDate(new Date(res['account_created']).getUTCDate() + 30) > new Date()) {
+                } else if (
+                    new Date(res['account_created']).setUTCDate(new Date(res['account_created']).getUTCDate() + 30)
+                    > new Date(item.parentElement.querySelector("time")?.getAttribute("datetime") ?? new Date())
+                ) {
                     let userBadge = document.createElement("span")
                     userBadge.classList.add("user-badge")
                     userBadge.title = "The user is less than a month old"
