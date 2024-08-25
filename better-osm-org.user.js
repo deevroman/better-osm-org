@@ -262,7 +262,7 @@ function addRevertButton() {
     if (!location.pathname.includes("/changeset")) return
     if (document.querySelector('#revert_button_class')) return true;
 
-    let sidebar = document.querySelector("#sidebar_content h2");
+    const sidebar = document.querySelector("#sidebar_content h2");
     if (sidebar) {
         hideSearchForm();
         // sidebar.classList.add("changeset-header")
@@ -298,8 +298,20 @@ function addRevertButton() {
             findBtn.onclick = findChangesetInDiff
             metainfoHTML.appendChild(findBtn)
         }
+        // compact changeset tags
+        if (!document.querySelector(".browse-tag-list[compacted]")) {
+            document.querySelectorAll(".browse-tag-list tr").forEach(i => {
+                if (i.querySelector("th").textContent === "host") {
+                    if (i.querySelector("td").textContent === "https://www.openstreetmap.org/edit") {
+                        i.style.display = "none"
+                    }
+                }
+            })
+            document.querySelector(".browse-tag-list")?.setAttribute("compacted", "true")
+        }
+
     }
-    let textarea = document.querySelector("#sidebar_content textarea")
+    const textarea = document.querySelector("#sidebar_content textarea");
     if (textarea) {
         textarea.rows = 1;
         let comment = document.querySelector("#sidebar_content button[name=comment]")
@@ -315,7 +327,7 @@ function addRevertButton() {
             )
         }
     }
-    let tagsHeader = document.querySelector("#sidebar_content h4");
+    const tagsHeader = document.querySelector("#sidebar_content h4");
     if (tagsHeader) {
         tagsHeader.remove()
     }
