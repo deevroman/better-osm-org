@@ -2205,6 +2205,7 @@ function setupRelationVersionViewer() {
 let injectingStarted = false
 let tagsOfObjectsVisible = true
 
+// Perf test: https://www.openstreetmap.org/changeset/155712128
 /**
  * Get editorial prescription via modified Levenshtein distance finding algorithm
  * @template T
@@ -2213,12 +2214,11 @@ let tagsOfObjectsVisible = true
  * @return {[T, T][]}
  */
 function arraysDiff(a, b) {
+    a = a.map(i => JSON.stringify(i))
+    b = b.map(i => JSON.stringify(i))
     const dp = []
     for (let i = 0; i < a.length + 1; i++) {
-        dp[i] = []
-        for (let j = 0; j < b.length + 1; j++) {
-            dp[i].push(0)
-        }
+        dp[i] = new Uint32Array(b.length + 1);
     }
 
     for (let i = 0; i <= a.length; i++) {
@@ -2229,14 +2229,20 @@ function arraysDiff(a, b) {
         dp[0][i] = i
     }
 
+    const min = Math.min; // fuck Tampermonkey
+    // for some fucking reason every math.min call goes through TM wrapper code
+    // that is not optimised by the JIT compiler
     for (let i = 1; i <= a.length; i++) {
         for (let j = 1; j <= b.length; j++) {
             const del_cost = dp[i - 1][j]
             const ins_cost = dp[i][j - 1]
-            const replace_cost = dp[i - 1][j - 1] + (JSON.stringify(a[i - 1]) !== JSON.stringify(b[j - 1])) * 2 // replacement is not very desirable
-            dp[i][j] = Math.min(Math.min(del_cost, ins_cost) + 1, replace_cost)
+            const replace_cost = dp[i - 1][j - 1] + (a[i - 1] !== b[j - 1]) * 2 // replacement is not very desirable
+            dp[i][j] = min(min(del_cost, ins_cost) + 1, replace_cost)
         }
     }
+
+    a = a.map(i => JSON.parse(i))
+    b = b.map(i => JSON.parse(i))
 
     const answer = []
 
@@ -2556,16 +2562,21 @@ async function addChangesetQuickLook() {
                 tbody.style.borderWidth = "2px"
                 membersTable.appendChild(tbody)
 
+
+                const nodeIcon = GM_getResourceURL("NODE_ICON")
+                const wayIcon = GM_getResourceURL("WAY_ICON")
+                const relationIcon = GM_getResourceURL("RELATION_ICON")
+
                 /**
                  * @param {RelationMember} member
                  */
                 function getIcon(member) {
                     if (member?.type === "node") {
-                        return GM_getResourceURL("NODE_ICON")
+                        return nodeIcon
                     } else if (member?.type === "way") {
-                        return GM_getResourceURL("WAY_ICON")
+                        return wayIcon
                     } else if (member?.type === "relation") {
-                        return GM_getResourceURL("RELATION_ICON")
+                        return relationIcon
                     } else {
                         console.error(member);
                         console.trace();
