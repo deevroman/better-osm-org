@@ -58,6 +58,7 @@ Userscript adding several improvements for experienced osm.org users
 - [x] Settings
 - [x] Hide active note highlight
 - [x] Exact datetime instead of a verbal description
+- [x] Add info about review from OSMCha
 
 ### Ideas
 - [ ] Changesets feed like who did it
@@ -80,7 +81,6 @@ Userscript adding several improvements for experienced osm.org users
 - + [ ] Geoscribble
 - + [ ] Strava (Hard, need bypass CORS)
 - [ ] Mark reviewed changesets
-- [ ] Add info about review from OSMCha
 - [ ] website & iD helper for translator (open search query into translation platform)
 - [ ] show in quick look the base way tag
 - [ ] deletor: add a description in the comment a small description of the point to be deleted
