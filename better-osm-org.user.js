@@ -168,7 +168,7 @@ GM_config.init(
                     },
                 'NavigationViaHotkeys':
                     {
-                        'label': 'Add hotkeys for navigation (Alt + ←/→ for user changesets)',
+                        'label': 'Add hotkeys for navigation (Alt + ←/→ for user changesets)', // add help button with list
                         'type': 'checkbox',
                         'default': 'checked',
                         'labelPos': 'right'
@@ -196,7 +196,7 @@ GM_config.init(
             },
         frameStyle: `
             border: 1px solid #000;
-            height: min(75%, 500px);
+            height: min(85%, 570px);
             width: max(25%, 400px);
             z-index: 9999;
             opacity: 0;
@@ -261,6 +261,8 @@ function makeAuth() {
         auto: true
     });
 }
+
+const mainTags = ["shop", "building", "amenity", "man_made", "highway", "natural", "aeroway", "historic", "railway", "tourism", "landuse", "leisure"]
 
 function addRevertButton() {
     if (!location.pathname.includes("/changeset")) return
@@ -734,15 +736,6 @@ function addDeleteButton() {
     function deleteObject(e) {
         e.preventDefault();
         link.classList.add("dbclicked");
-        const changesetTags = {
-            'created_by': 'better osm.org',
-            'comment': 'Delete ' + object_type + " " + object_id
-        };
-        let changesetPayload = document.implementation.createDocument(null, 'osm');
-        let cs = changesetPayload.createElement('changeset');
-        changesetPayload.documentElement.appendChild(cs);
-        tagsToXml(changesetPayload, cs, changesetTags);
-        const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload);
 
         console.log("Opening changeset");
 
@@ -755,6 +748,32 @@ function addDeleteButton() {
                 console.log(err);
                 return;
             }
+
+            let tagsHint = ""
+            const tags = Array.from(objectInfo.children[0].children[0]?.children)
+            for (const i of tags) {
+                if (mainTags.includes(i.getAttribute("k"))) {
+                    tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`;
+                    break
+                }
+            }
+            for (const i of tags) {
+                if (i.getAttribute("k") === "name") {
+                    tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`;
+                    break
+                }
+            }
+            const changesetTags = {
+                'created_by': 'better osm.org',
+                'comment': tagsHint !== "" ? `Delete${tagsHint}` : `Delete ${object_type} ${object_id}`
+            };
+
+            let changesetPayload = document.implementation.createDocument(null, 'osm');
+            let cs = changesetPayload.createElement('changeset');
+            changesetPayload.documentElement.appendChild(cs);
+            tagsToXml(changesetPayload, cs, changesetTags);
+            const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload);
+
             auth.xhr({
                 method: 'PUT',
                 path: osm_server.apiBase + 'changeset/create',
@@ -1883,34 +1902,70 @@ async function getRelationHistory(relationID) {
     }
 }
 
+const overpassCache = {}
+
 /**
  *
  * @param {number} id
  * @param {string} timestamp
- * @return {Promise<void>}
+ * @param {boolean=true} cleanPrevObjects=true
+ * @return {Promise<{}>}
  */
-async function loadRelationVersionMembersViaOverpass(id, timestamp) {
+async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObjects=true) {
     console.log(id, timestamp)
-    // console.time()
-    const res = await fetch("https://overpass-api.de/api/interpreter?" + new URLSearchParams({
-        data: `
+
+    async function getRelationViaOverpass(id, timestamp) {
+        if (overpassCache[[id, timestamp]]) {
+            return overpassCache[[id, timestamp]]
+        } else {
+            const res = await fetch("https://overpass-api.de/api/interpreter?" + new URLSearchParams({
+                data: `
             [out:json][date:"${timestamp}"];
             relation(${id});
             //(._;>;);
             out geom;
         `
-    }))
-    const overpassGeom = await res.json()
-    // console.timeLog()
-    unsafeWindow.cleanCustomObjects()
+            }))
+            return overpassCache[[id, timestamp]] = await res.json()
+        }
+    }
+
+    const overpassGeom = await getRelationViaOverpass(id, timestamp)
+    if (cleanPrevObjects) {
+        unsafeWindow.cleanCustomObjects()
+    }
+
     overpassGeom.elements[0].members.forEach(i => {
         if (i.type === "way") {
             const nodesList = i.geometry.map(p => [p.lat, p.lon])
             unsafeWindow.displayWay(cloneInto(nodesList, unsafeWindow))
+        } else if (i.type === "node") {
+            unsafeWindow.showNodeMarker(i.lat, i.lon, "#000000")
+        } else if (i.type === "relation") {
+
         }
     })
-    // console.timeEnd()
+    const nodesBag = []
+    overpassGeom.elements[0].members.forEach(i => {
+        if (i.type === "way") {
+            nodesBag.push(...i.geometry.map(p => {
+                return {lat: p.lat, lon: p.lon}
+            }))
+        } else if (i.type === "node") {
+            nodesBag.push({lat: i.lat, lon: i.lon})
+        } else {
+            // ну нинада пожалуйста
+        }
+    })
+    const relationInfo = {}
+    relationInfo.bbox = {
+        min_lat: Math.min(...nodesBag.map(i => i.lat)),
+        min_lon: Math.min(...nodesBag.map(i => i.lon)),
+        max_lat: Math.max(...nodesBag.map(i => i.lat)),
+        max_lon: Math.max(...nodesBag.map(i => i.lon))
+    }
     console.log("relation loaded")
+    return relationInfo
 }
 
 /**
@@ -2481,26 +2536,19 @@ async function addChangesetQuickLook() {
         GM_addElement(document.head, "style", {
             textContent: `
             #sidebar_content li.node:hover {
-                // background: #ffe300;
                 background-color: rgba(223, 223, 223, 0.6);
-                //box-shadow: inset 0px 0px 0px 1px #f00;
             }
             #sidebar_content li.way:hover {
-                // background: #ffe300;
                 background-color: rgba(223, 223, 223, 0.6);
-                
-                //background: #ffeeee;
-                //box-shadow: inset 0px 0px 0px 1px #f00;
             }
             #sidebar_content li.node.map-hover {
-                // background: #ffe300;
                 background-color: rgba(223, 223, 223, 0.6);
-                //box-shadow: inset 0px 0px 0px 1px #f00;
             }
             #sidebar_content li.way.map-hover {
-                // background: #ffe300;
                 background-color: rgba(223, 223, 223, 0.6);
-                //box-shadow: inset 0px 0px 0px 1px #f00;
+            }
+            #sidebar_content li.relation.downloaded:hover {
+                background-color: rgba(223, 223, 223, 0.6);
             }
             .location-modified-marker:hover {
                 background: #0022ff82 !important;
@@ -3033,7 +3081,38 @@ async function addChangesetQuickLook() {
                     unsafeWindow.showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false)
                 }
             } else if (objType === "relation") {
-
+                const btn = document.createElement("a")
+                btn.textContent = "📥"
+                btn.classList.add("load-relation-version")
+                btn.style.cursor = "pointer"
+                btn.addEventListener("click", async () => {
+                    btn.style.cursor = "progress"
+                    // const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
+                    const targetTimestamp = (new Date(changesetMetadata.closed_at)).toISOString() ?? new Date().toISOString()
+                    try {
+                        const relationMetadata = await loadRelationVersionMembersViaOverpass(objID, targetTimestamp, false)
+                        i.ondblclick = () => {
+                            unsafeWindow.fitBounds(
+                                cloneInto([
+                                        [relationMetadata.bbox.min_lat, relationMetadata.bbox.min_lon],
+                                        [relationMetadata.bbox.max_lat, relationMetadata.bbox.max_lon]
+                                    ],
+                                    unsafeWindow))
+                        }
+                        i.onmouseenter = async () => {
+                            // todo рисовать ярким
+                            await loadRelationVersionMembersViaOverpass(objID, targetTimestamp, false)
+                        }
+                        i.classList.add("downloaded")
+                    } catch (e) {
+                        btn.style.cursor = "pointer"
+                        throw e
+                    }
+                    btn.style.visibility = "hidden"
+                    // todo нужна кнопка с глазом чтобы можно было скрывать
+                })
+                i.querySelector("a:nth-of-type(2)").after(btn)
+                i.querySelector("a:nth-of-type(2)").after(document.createTextNode("\xA0"))
             }
             //</editor-fold>
             // console.log(prevVersion, targetVersion, lastVersion);
@@ -3213,7 +3292,7 @@ async function addChangesetQuickLook() {
 
                 Array.from(node.children).forEach(i => {
                     // todo
-                    if (["shop", "building", "amenity", "man_made", "highway", "natural"].includes(i.getAttribute("k"))) {
+                    if (mainTags.includes(i.getAttribute("k"))) {
                         ulItem.classList.add(i.getAttribute("k"))
                         ulItem.classList.add(i.getAttribute("v"))
                     }
