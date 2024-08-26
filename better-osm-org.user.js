@@ -272,6 +272,12 @@ function addRevertButton() {
         let changeset_id = sidebar.innerHTML.match(/(\d+)/)[0];
         sidebar.innerHTML += ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class>↩️</a> 
                                <a href="https://osmcha.org/changesets/${changeset_id}" target="_blank" rel="noreferrer"><img src="${GM_getResourceURL("OSMCHA_ICON")}" id="osmcha_link"></a>`;
+        // bypass ViolentMonkey bug
+        document.querySelector("#osmcha_link").replaceWith(GM_addElement("img", {
+            id: "osmcha_link",
+            src: GM_getResourceURL("OSMCHA_ICON")
+        }))
+
         document.querySelector("#revert_button_class").style.textDecoration = "none"
         const osmcha_link = document.querySelector("#osmcha_link");
         osmcha_link.style.height = "1em";
@@ -357,8 +363,14 @@ function addRevertButton() {
         likeImg.style.height = "1.1em"
         likeImg.style.cursor = "pointer"
         likeImg.style.filter = "grayscale(1)"
-        likeImg.style.marginTop = "-6px"
+        likeImg.style.marginTop = "-8px"
         likeBtn.onclick = async e => {
+            const osmchaToken = GM_getValue("OSMCHA_TOKEN")
+            if (!osmchaToken) {
+                alert("Please, login into OSMCha")
+                window.open("https://osmcha.org")
+                return;
+            }
             if (e.target.hasAttribute("active")) {
                 await uncheck(changeset_id)
                 await updateReactions()
@@ -389,6 +401,12 @@ function addRevertButton() {
         dislikeImg.style.marginTop = "3px"
         dislikeBtn.appendChild(dislikeImg)
         dislikeBtn.onclick = async e => {
+            const osmchaToken = GM_getValue("OSMCHA_TOKEN")
+            if (!osmchaToken) {
+                alert("Please, login into OSMCha")
+                window.open("https://osmcha.org")
+                return;
+            }
             if (e.target.hasAttribute("active")) {
                 await uncheck(changeset_id)
                 await updateReactions()
@@ -408,12 +426,6 @@ function addRevertButton() {
         }
 
         async function updateReactions() {
-            const osmchaToken = GM_getValue("OSMCHA_TOKEN")
-            if (!osmchaToken) {
-                alert("Please, login into OSMCha")
-                window.open("https://osmcha.org")
-                return;
-            }
             const res = await fetch("https://osmcha.org/api/v1/changesets/" + changeset_id, {
                 "headers": {
                     "Authorization": "Token " + GM_getValue("OSMCHA_TOKEN"),
