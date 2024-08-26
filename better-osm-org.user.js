@@ -17,6 +17,7 @@
 // @exclude      http://localhost:3000/api/*
 // @match        https://www.hdyc.neis-one.org/*
 // @match        https://hdyc.neis-one.org/*
+// @match        https://osmcha.org/*
 // @license      WTFPL
 // @namespace    https://github.com/deevroman/better-osm-org
 // @updateURL    https://github.com/deevroman/better-osm-org/raw/master/better-osm-org.user.js
@@ -40,12 +41,15 @@
 // @connect      hdyc.neis-one.org
 // @connect      resultmaps.neis-one.org
 // @connect      www.openstreetmap.org
+// @connect      osmcha.org
 // @sandbox      JavaScript
 // @resource     OAUTH_HTML https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html
 // @resource     OSMCHA_ICON https://github.com/deevroman/better-osm-org/raw/dev/icons/osmcha.ico
 // @resource     NODE_ICON https://github.com/deevroman/better-osm-org/raw/dev/icons/Osm_element_node.svg
 // @resource     WAY_ICON https://github.com/deevroman/better-osm-org/raw/dev/icons/Osm_element_way.svg
 // @resource     RELATION_ICON https://github.com/deevroman/better-osm-org/raw/dev/icons/Taginfo_element_relation.svg
+// @resource     OSMCHA_LIKE https://github.com/OSMCha/osmcha-frontend/raw/94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-up.svg
+// @resource     OSMCHA_DISLIKE https://github.com/OSMCha/osmcha-frontend/raw/94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-down.svg
 // @run-at       document-end
 // ==/UserScript==
 //<editor-fold desc="config" defaultstate="collapsed">
@@ -261,7 +265,6 @@ function makeAuth() {
 function addRevertButton() {
     if (!location.pathname.includes("/changeset")) return
     if (document.querySelector('#revert_button_class')) return true;
-
     const sidebar = document.querySelector("#sidebar_content h2");
     if (sidebar) {
         hideSearchForm();
@@ -330,6 +333,132 @@ function addRevertButton() {
     const tagsHeader = document.querySelector("#sidebar_content h4");
     if (tagsHeader) {
         tagsHeader.remove()
+    }
+    const primaryButtons = document.querySelector("[name=subscribe]")
+    if (primaryButtons) {
+        const changeset_id = sidebar.innerHTML.match(/(\d+)/)[0];
+
+        async function uncheck(changeset_id) {
+            return await fetch(`https://osmcha.org/api/v1/changesets/${changeset_id}/uncheck/`, {
+                "headers": {
+                    "Authorization": "Token " + GM_getValue("OSMCHA_TOKEN"),
+                },
+                "method": "PUT",
+            });
+        }
+
+        const likeImgRes = GM_getResourceURL("OSMCHA_LIKE")
+        const dislikeImgRes = GM_getResourceURL("OSMCHA_DISLIKE")
+
+        const likeBtn = document.createElement("span")
+        const likeImg = document.createElement("img")
+        likeImg.title = "OSMCha review like"
+        likeImg.src = likeImgRes
+        likeImg.style.height = "1.1em"
+        likeImg.style.cursor = "pointer"
+        likeImg.style.filter = "grayscale(1)"
+        likeImg.style.marginTop = "-6px"
+        likeBtn.onclick = async e => {
+            if (e.target.hasAttribute("active")) {
+                await uncheck(changeset_id)
+                await updateReactions()
+                return
+            }
+            if (document.querySelector(".check_user")) {
+                await uncheck(changeset_id)
+                await updateReactions()
+            }
+            await fetch(`https://osmcha.org/api/v1/changesets/${changeset_id}/set-good/`, {
+                "headers": {
+                    "Authorization": "Token " + GM_getValue("OSMCHA_TOKEN"),
+                },
+                "method": "PUT",
+            });
+            await updateReactions()
+        }
+        likeBtn.appendChild(likeImg)
+
+        const dislikeBtn = document.createElement("span")
+        const dislikeImg = document.createElement("img")
+        dislikeImg.title = "OSMCha review like"
+        dislikeImg.src = likeImgRes // dirty hack for different graystyle colors
+        dislikeImg.style.height = "1.1em"
+        dislikeImg.style.cursor = "pointer"
+        dislikeImg.style.filter = "grayscale(1)"
+        dislikeImg.style.transform = "rotate(180deg)"
+        dislikeImg.style.marginTop = "3px"
+        dislikeBtn.appendChild(dislikeImg)
+        dislikeBtn.onclick = async e => {
+            if (e.target.hasAttribute("active")) {
+                await uncheck(changeset_id)
+                await updateReactions()
+                return
+            }
+            if (document.querySelector(".check_user")) {
+                await uncheck(changeset_id)
+                await updateReactions()
+            }
+            await fetch(`https://osmcha.org/api/v1/changesets/${changeset_id}/set-harmful/`, {
+                "headers": {
+                    "Authorization": "Token " + GM_getValue("OSMCHA_TOKEN"),
+                },
+                "method": "PUT",
+            });
+            await updateReactions()
+        }
+
+        async function updateReactions() {
+            const osmchaToken = GM_getValue("OSMCHA_TOKEN")
+            if (!osmchaToken) {
+                alert("Please, login into OSMCha")
+                window.open("https://osmcha.org")
+                return;
+            }
+            const res = await fetch("https://osmcha.org/api/v1/changesets/" + changeset_id, {
+                "headers": {
+                    "Authorization": "Token " + GM_getValue("OSMCHA_TOKEN"),
+                },
+                "method": "GET",
+            });
+            const json = await res.json();
+            if (json['properties']['check_user']) {
+                document.querySelector(".check_user")?.remove()
+                likeImg.style.filter = "grayscale(1)"
+                dislikeImg.style.filter = "grayscale(1)"
+
+                const username = document.createElement("span")
+                username.classList.add("check_user")
+                username.textContent = json['properties']['check_user']
+                if (json['properties']['harmful'] === true) {
+                    dislikeImg.style.filter = ""
+                    dislikeImg.style.transform = ""
+                    dislikeImg.src = dislikeImgRes
+                    dislikeImg.setAttribute("active", "true")
+                    username.style.color = "red"
+                    dislikeBtn.after(username)
+                } else {
+                    likeImg.style.filter = ""
+                    likeImg.setAttribute("active", "true")
+                    username.style.color = "green"
+                    likeBtn.after(username)
+                }
+            } else {
+                likeImg.style.filter = "grayscale(1)"
+                dislikeImg.style.filter = "grayscale(1)"
+                dislikeImg.style.transform = "rotate(180deg)"
+                dislikeImg.src = likeImgRes
+                likeImg.removeAttribute("active")
+                dislikeImg.removeAttribute("active")
+                document.querySelector(".check_user")?.remove()
+            }
+        }
+
+        setTimeout(updateReactions, 0);
+
+        primaryButtons.before(likeBtn)
+        primaryButtons.before(document.createTextNode("\xA0"))
+        primaryButtons.before(dislikeBtn)
+        primaryButtons.before(document.createTextNode("\xA0"))
     }
 }
 
@@ -706,7 +835,7 @@ function setupHideNoteHighlight(path) {
 //<editor-fold desc="satellite switching">
 const OSMPrefix = "https://tile.openstreetmap.org/"
 const ESRIPrefix = "https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
-const ESRIArchivePrefix = "https://clarity.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
+const ESRIBetaPrefix = "https://clarity.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
 let SatellitePrefix = ESRIPrefix
 let SAT_MODE = "🛰"
 let MAPNIK_MODE = "🗺️"
@@ -747,7 +876,11 @@ function switchTiles() {
     }
     currentTilesMode = invertTilesMode(currentTilesMode);
     if (currentTilesMode === SAT_MODE) {
-        unsafeWindow.map?.attributionControl?.setPrefix("ESRI")
+        if (SatellitePrefix === ESRIBetaPrefix) {
+            unsafeWindow.map?.attributionControl?.setPrefix("ESRI Beta")
+        } else {
+            unsafeWindow.map?.attributionControl?.setPrefix("ESRI")
+        }
     } else {
         unsafeWindow.map?.attributionControl?.setPrefix("")
     }
@@ -1283,12 +1416,14 @@ function defineShowActiveWay() {
      * @param {[]} nodesList
      * @param {string=} color
      * @param {boolean=} needFly
+     * @param {string|number=null} infoElemID
+     * @param {boolean=true} removeActiveObjects
      */
     injectJSIntoPage(`
     /* global L*/
 
     /* global activeObjects*/
-    function showActiveWay(nodesList, color = "#ff00e3", needFly = false) {
+    function showActiveWay(nodesList, color = "#ff00e3", needFly = false, infoElemID = null, removeActiveObjects = true) {
         const line = L.polyline(
             nodesList.map(elem => L.latLng(elem)),
             {
@@ -1299,13 +1434,26 @@ function defineShowActiveWay() {
                 fillOpacity: 1
             }
         ).addTo(map);
-        activeObjects.forEach((i) => {
-            i.remove();
-        })
+        if (removeActiveObjects) {
+            activeObjects.forEach((i) => {
+                i.remove();
+            })
+        }
         activeObjects.push(line);
         if (needFly) {
             map.fitBounds(line.getBounds())
         }
+        if (infoElemID) {
+            activeObjects[activeObjects.length - 1].on('click', function (e) {
+                const elementById = document.getElementById("w" + infoElemID);
+                elementById?.scrollIntoView()
+                document.querySelectorAll(".map-hover").forEach(el => {
+                    el.classList.remove("map-hover")
+                })
+                elementById.classList.add("map-hover")
+            })
+        }
+        []
     }`)
 }
 
@@ -2799,10 +2947,10 @@ async function addChangesetQuickLook() {
 
                         console.warn(res)
                         i.onmouseenter = () => {
-                            unsafeWindow.showActiveWay(cloneInto(nodesList, unsafeWindow))
+                            unsafeWindow.showActiveWay(cloneInto(nodesList, unsafeWindow), "#ff00e3", false, objID)
                         }
                         i.onclick = () => {
-                            unsafeWindow.showActiveWay(cloneInto(nodesList, unsafeWindow), "#ff00e3", true)
+                            unsafeWindow.showActiveWay(cloneInto(nodesList, unsafeWindow), "#ff00e3", true, objID)
                         }
                     }, 10);
                     return
@@ -2843,19 +2991,34 @@ async function addChangesetQuickLook() {
                 })
 
 
-                i.onclick = () => {
-                    unsafeWindow.showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", true)
+                i.onclick = async () => {
+                    // show prev version
+                    unsafeWindow.showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", true, objID)
+
+                    const [targetVersion, nodesHistory] = await loadWayVersionNodes(objID, version - 1);
+                    const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
+                    const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
+                    unsafeWindow.showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false)
+
+                    unsafeWindow.showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false)
                 }
                 if (version === 1) {
                     unsafeWindow.displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(0,128,0,0.6)", 4, objID)
                 } else {
                     unsafeWindow.displayWay(cloneInto(currentNodesList, unsafeWindow), false, "#373737", 4, objID)
                 }
-                i.onmouseenter = () => {
+                i.onmouseenter = async () => {
                     unsafeWindow.showActiveWay(cloneInto(currentNodesList, unsafeWindow))
                     document.querySelectorAll(".map-hover").forEach(el => {
                         el.classList.remove("map-hover")
                     })
+                    // show prev version
+                    const [targetVersion, nodesHistory] = await loadWayVersionNodes(objID, version - 1);
+                    const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
+                    const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
+                    unsafeWindow.showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false)
+
+                    unsafeWindow.showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false)
                 }
             } else if (objType === "relation") {
 
@@ -3061,6 +3224,9 @@ async function addChangesetQuickLook() {
             if (ways.length > 50) {
                 if (ways.length > 100 && changesetData.querySelectorAll("node") > 40) {
                     return;
+                }
+                if (ways.length > 500) {
+                    return
                 }
             }
             pagination.remove();
@@ -3269,11 +3435,9 @@ async function updateUserInfo(username) {
 }
 
 async function getCachedUserInfo(username) {
-    // debugger
     // TODO async better?
     const localUserInfo = GM_getValue("userinfo-" + username, "")
     if (localUserInfo) {
-        console.debug(username + " found in cache")
         const cacheTime = new Date(localUserInfo['cacheTime'])
         if (cacheTime.setUTCDate(cacheTime.getUTCDate() + 7) < new Date()) {
             setTimeout(updateUserInfo, 0, username)
@@ -4058,7 +4222,7 @@ function setupNavigationViaHotkeys() {
             Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
         } else if (e.code === "KeyS") { // satellite
             if (e.shiftKey) {
-                const NewSatellitePrefix = SatellitePrefix === ESRIPrefix ? ESRIArchivePrefix : ESRIPrefix;
+                const NewSatellitePrefix = SatellitePrefix === ESRIPrefix ? ESRIBetaPrefix : ESRIPrefix;
                 document.querySelectorAll(".leaflet-tile").forEach(i => {
                     if (i.nodeName !== 'IMG') {
                         return;
@@ -4068,6 +4232,11 @@ function setupNavigationViaHotkeys() {
                     i.src = NewSatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x;
                 })
                 SatellitePrefix = NewSatellitePrefix
+                if (SatellitePrefix === ESRIBetaPrefix) {
+                    unsafeWindow.map?.attributionControl?.setPrefix("ESRI Beta")
+                } else {
+                    unsafeWindow.map?.attributionControl?.setPrefix("ESRI")
+                }
                 return
             } else {
                 switchTiles()
@@ -4077,7 +4246,7 @@ function setupNavigationViaHotkeys() {
             }
         } else if (e.code === "KeyE") {
             if (e.shiftKey) {
-                if (document.querySelector("#editanchor").getAttribute("data-editor") === "id"){
+                if (document.querySelector("#editanchor").getAttribute("data-editor") === "id") {
                     document.querySelectorAll("#edit_tab .dropdown-menu .editlink")[1]?.click()
                 } else {
                     document.querySelectorAll("#edit_tab .dropdown-menu .editlink")[0]?.click()
@@ -4306,7 +4475,9 @@ function setupTaginfo() {
 
 function setup() {
     if (location.href.startsWith("https://osmcha.org")) {
-        // todo
+        setTimeout(() => {
+            GM_setValue("OSMCHA_TOKEN", localStorage.getItem("token"))
+        }, 1000);
         return
     }
     if (location.href.startsWith("https://taginfo.openstreetmap.org")
