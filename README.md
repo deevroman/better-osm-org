@@ -83,7 +83,6 @@ Userscript adding several improvements for experienced osm.org users
 - [ ] Mark reviewed changesets
 - [ ] website & iD helper for translator (open search query into translation platform)
 - [ ] show in quick look the base way tag
-- [ ] deletor: add a description in the comment a small description of the point to be deleted
 - [ ] nakarte.me: line drawing
 - [ ] taginfo: new overpass links
 - [ ] Improve search
