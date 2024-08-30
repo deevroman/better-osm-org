@@ -4471,7 +4471,11 @@ function setupNavigationViaHotkeys() {
                     console.debug("skip H")
                 }
             }
-        } else if (e.key === "1") {
+        } else if (e.code === "KeyY") {
+            const [, z, x, y] = new URL(document.querySelector("#editanchor").href).hash.match(/map=(\d+)\/([0-9.-]+)\/([0-9.-]+)/)
+            window.open(`https://yandex.ru/maps/?l=stv,sta&ll=${y},${x}&z=${z}`,"_blank","noreferrer");
+        }
+        else if (e.key === "1") {
             if (location.pathname.match(/\/(node|way|relation)\/\d+/)) {
                 if (location.pathname.match(/\/(node|way|relation)\/\d+/)) {
                     unsafeWindow.OSM.router.route(location.pathname.match(/\/(node|way|relation)\/\d+/)[0] + "/history/1")
