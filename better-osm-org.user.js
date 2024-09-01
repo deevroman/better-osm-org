@@ -1483,7 +1483,7 @@ function showActiveWay(nodesList, color = "#ff00e3", needFly = false, infoElemID
     }
     layers["activeObjects"].push(line);
     if (needFly) {
-        getMap().fitBounds(intoPageWithFun(line.getBounds()))
+        fitBounds(get4Bounds(line))
     }
     if (infoElemID) {
         layers["activeObjects"][layers["activeObjects"].length - 1].on('click', cloneInto(function (e) {
@@ -1528,6 +1528,13 @@ function cleanCustomObjects() {
  */
 function panTo(lat, lon, zoom = 18, animate = false) {
     getMap().flyTo(intoPage([lat, lon]), zoom, intoPage({animate: animate}));
+}
+
+function get4Bounds(b) {
+    return [
+        [b.getBounds().getSouth(), b.getBounds().getWest()],
+        [b.getBounds().getNorth(), b.getBounds().getEast()]
+    ]
 }
 
 /**
@@ -3028,9 +3035,9 @@ async function addChangesetQuickLook() {
             i.ondblclick = () => {
                 if (changesetMetadata) {
                     fitBounds([
-                            [changesetMetadata.min_lat, changesetMetadata.min_lon],
-                            [changesetMetadata.max_lat, changesetMetadata.max_lon]
-                        ])
+                        [changesetMetadata.min_lat, changesetMetadata.min_lon],
+                        [changesetMetadata.max_lat, changesetMetadata.max_lon]
+                    ])
                 }
             }
             if (objType === "node") {
@@ -3180,9 +3187,9 @@ async function addChangesetQuickLook() {
                         const relationMetadata = await loadRelationVersionMembersViaOverpass(objID, targetTimestamp, false, "#ff00e3")
                         i.onclick = () => {
                             fitBounds([
-                                        [relationMetadata.bbox.min_lat, relationMetadata.bbox.min_lon],
-                                        [relationMetadata.bbox.max_lat, relationMetadata.bbox.max_lon]
-                                    ])
+                                [relationMetadata.bbox.min_lat, relationMetadata.bbox.min_lon],
+                                [relationMetadata.bbox.max_lat, relationMetadata.bbox.max_lon]
+                            ])
                         }
                         i.onmouseenter = async () => {
                             // todo рисовать ярким
@@ -3718,7 +3725,6 @@ async function simplifyHDCYIframe() {
 
 //<editor-fold desc="/history, /user/*/history">
 async function updateUserInfo(username) {
-    // debugger
     const rawRes = await fetch(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
         display_name: username,
         limit: 1
@@ -4598,9 +4604,9 @@ function setupNavigationViaHotkeys() {
             if (location.pathname.includes("/changeset")) {
                 if (changesetMetadata) {
                     fitBounds([
-                                [changesetMetadata.min_lat, changesetMetadata.min_lon],
-                                [changesetMetadata.max_lat, changesetMetadata.max_lon]
-                            ])
+                        [changesetMetadata.min_lat, changesetMetadata.min_lon],
+                        [changesetMetadata.max_lat, changesetMetadata.max_lon]
+                    ])
                 } else {
                     console.warn("Changeset metadata not downloaded")
                 }
@@ -4612,16 +4618,16 @@ function setupNavigationViaHotkeys() {
                 } else if (location.pathname.includes("way")) {
                     if (wayMetadata) {
                         fitBounds([
-                                    [wayMetadata.bbox.min_lat, wayMetadata.bbox.min_lon],
-                                    [wayMetadata.bbox.max_lat, wayMetadata.bbox.max_lon]
-                                ])
+                            [wayMetadata.bbox.min_lat, wayMetadata.bbox.min_lon],
+                            [wayMetadata.bbox.max_lat, wayMetadata.bbox.max_lon]
+                        ])
                     }
                 } else if (location.pathname.includes("relation")) {
                     if (relationMetadata) {
                         fitBounds([
-                                    [relationMetadata.bbox.min_lat, relationMetadata.bbox.min_lon],
-                                    [relationMetadata.bbox.max_lat, relationMetadata.bbox.max_lon]
-                                ])
+                            [relationMetadata.bbox.min_lat, relationMetadata.bbox.min_lon],
+                            [relationMetadata.bbox.max_lat, relationMetadata.bbox.max_lon]
+                        ])
                     }
                 }
             }
