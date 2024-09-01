@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Better osm.org
-// @version      0.4.1
+// @version      0.4.9
 // @description  Several improvements for advanced users of osm.org
 // @author       deevroman
 // @match        https://www.openstreetmap.org/*
@@ -45,10 +45,10 @@
 // @connect      osmcha.org
 // @sandbox      JavaScript
 // @resource     OAUTH_HTML https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html
-// @resource     OSMCHA_ICON https://github.com/deevroman/better-osm-org/raw/dev/icons/osmcha.ico
-// @resource     NODE_ICON https://github.com/deevroman/better-osm-org/raw/dev/icons/Osm_element_node.svg
-// @resource     WAY_ICON https://github.com/deevroman/better-osm-org/raw/dev/icons/Osm_element_way.svg
-// @resource     RELATION_ICON https://github.com/deevroman/better-osm-org/raw/dev/icons/Taginfo_element_relation.svg
+// @resource     OSMCHA_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/osmcha.ico
+// @resource     NODE_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/Osm_element_node.svg
+// @resource     WAY_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/Osm_element_way.svg
+// @resource     RELATION_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/Taginfo_element_relation.svg
 // @resource     OSMCHA_LIKE https://github.com/OSMCha/osmcha-frontend/raw/94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-up.svg
 // @resource     OSMCHA_DISLIKE https://github.com/OSMCha/osmcha-frontend/raw/94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-down.svg
 // @run-at       document-end
@@ -3192,8 +3192,7 @@ async function addChangesetQuickLook() {
                             ])
                         }
                         i.onmouseenter = async () => {
-                            // todo рисовать ярким
-                            await loadRelationVersionMembersViaOverpass(objID, targetTimestamp, false)
+                            await loadRelationVersionMembersViaOverpass(objID, targetTimestamp, false, "#ff00e3")
                         }
                         i.classList.add("downloaded")
                     } catch (e) {
@@ -3290,10 +3289,14 @@ async function addChangesetQuickLook() {
             }))
         }
 
+        // reorder non-interesting-objects
         Array.from(document.querySelectorAll(`.list-unstyled li.${objType}.tags-non-modified`)).forEach(i => {
-            // reorder non-interesting-objects
             document.querySelector(`.list-unstyled li.${objType}`).parentElement.appendChild(i)
         })
+        Array.from(document.querySelectorAll(`.list-unstyled li.${objType}.tags-non-modified:not(.location-modified)`)).forEach(i => {
+            document.querySelector(`.list-unstyled li.${objType}`).parentElement.appendChild(i)
+        })
+
 
         //<editor-fold desc="setup compact mode toggles">
         let compactToggle = document.createElement("button")
@@ -3506,7 +3509,6 @@ async function addChangesetQuickLook() {
                 if (nodesWithParentWays.has(nodeID) || processedNodes.has(nodeID)) continue;
                 const parents = await getParentWays(nodeID)
                 for (const way of parents) {
-                    if (way.id === 741695027) debugger
                     way.nodes.forEach(node => {
                         processedNodes.add(node)
                     })
@@ -3551,9 +3553,9 @@ async function addChangesetQuickLook() {
                             document.querySelectorAll(".map-hover").forEach(el => {
                                 el.classList.remove("map-hover")
                             })
+                            const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                             if (targetVersion.version > 1) {
                                 // show prev version
-                                const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                                 const prevVersion = filterVersionByTimestamp(await getWayHistory(way.id), targetTimestamp);
                                 const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
                                 const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
@@ -3561,7 +3563,6 @@ async function addChangesetQuickLook() {
 
                                 // showActiveWay(cloneInto(currentNodesList, unsafeWindow), "rgba(55,55,55,0.5)", false, objID, false)
                             } else {
-                                const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                                 const prevVersion = filterVersionByTimestamp(await getWayHistory(way.id), targetTimestamp);
                                 const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
                                 const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
@@ -3569,6 +3570,10 @@ async function addChangesetQuickLook() {
 
                                 // showActiveWay(cloneInto(currentNodesList, unsafeWindow), "rgba(55,55,55,0.5)", false, objID, false)
                             }
+                            const prevVersion = filterVersionByTimestamp(await getNodeHistory(n), targetTimestamp)
+                            const curVersion = filterVersionByTimestamp(await getNodeHistory(n), changesetMetadata.closed_at ?? new Date())
+                            showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", false)
+                            showActiveNodeMarker(curVersion.lat.toString(), curVersion.lon.toString(), "#ff00e3", false)
                         })
                     })
                 }
@@ -4495,7 +4500,7 @@ const mapPositionsNextHistory = []
 function runPositionTracker() {
     setInterval(() => {
         if (!getMap()) return
-        const bound = getMap().getBounds()
+        const bound = get4Bounds(getMap())
         if (JSON.stringify(mapPositionsHistory[mapPositionsHistory.length - 1]) === JSON.stringify(bound)) {
             return;
         }
