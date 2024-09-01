@@ -35,6 +35,7 @@
 // @grant        GM_getResourceURL
 // @grant        GM_addElement
 // @grant        GM.xmlHttpRequest
+// @grant        GM_info
 // @connect      planet.openstreetmap.org
 // @connect      planet.maps.mail.ru
 // @connect      www.hdyc.neis-one.org
@@ -55,6 +56,7 @@
 //<editor-fold desc="config" defaultstate="collapsed">
 /*global osmAuth*/
 /*global GM*/
+/*global GM_info*/
 /*global GM_config*/
 /*global GM_addElement*/
 /*global GM_getValue*/
@@ -94,11 +96,11 @@ GM_config.init(
                         'default': 'checked',
                         'labelPos': 'right'
                     },
-                'ShowChangesetGeometry':
+                'ShowChangesetGeometryBeta':
                     {
                         'label': 'Show geometry of objects in changeset β',
                         'type': 'checkbox',
-                        'default': 'checked',
+                        'default': 'unchecked',
                         'labelPos': 'right'
                     },
                 'MassChangesetsActions':
@@ -273,7 +275,7 @@ function addRevertButton() {
         // sidebar.classList.add("changeset-header")
         let changeset_id = sidebar.innerHTML.match(/(\d+)/)[0];
         sidebar.innerHTML += ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class>↩️</a> 
-                               <a href="https://osmcha.org/changesets/${changeset_id}" target="_blank" rel="noreferrer"><img src="${GM_getResourceURL("OSMCHA_ICON")}" id="osmcha_link"></a>`;
+                               <a href="https://osmcha.org/changesets/${changeset_id}" target="_blank" rel="noreferrer"><img src="${GM_info.scriptHandler !== "Violentmonkey" ? GM_getResourceURL("OSMCHA_ICON") : ''}" id="osmcha_link"></a>`;
         // bypass ViolentMonkey bug
         document.querySelector("#osmcha_link").replaceWith(GM_addElement("img", {
             id: "osmcha_link",
@@ -528,18 +530,6 @@ function makeTimesSwitchable() {
         function switchElement(j) {
             if (j.textContent === j.getAttribute("natural_text")) {
                 j.textContent = j.getAttribute("datetime")
-                //navigator.clipboard.writeText(j.textContent);
-                // todo
-                // const nowDate = new Date()
-                // nowDate.setHours(0)
-                // nowDate.setMinutes(0)
-                // nowDate.setSeconds(0)
-                // const changesetDate = new Date(j.getAttribute("datetime"))
-                // if (changesetDate < nowDate) {
-                //     j.textContent = j.getAttribute("datetime")
-                // } else {
-                //     j.textContent = `${changesetDate.getHours().toString().padStart(2, "0")}:${changesetDate.getMinutes().toString().padStart(2, "0")}:${changesetDate.getSeconds().toString().padStart(2, "0")}`
-                // }
                 timestampMode = "datetime"
             } else {
                 j.textContent = j.getAttribute("natural_text")
@@ -912,12 +902,12 @@ function switchTiles() {
     currentTilesMode = invertTilesMode(currentTilesMode);
     if (currentTilesMode === SAT_MODE) {
         if (SatellitePrefix === ESRIBetaPrefix) {
-            unsafeWindow.map?.attributionControl?.setPrefix("ESRI Beta")
+            getMap()?.attributionControl?.setPrefix("ESRI Beta")
         } else {
-            unsafeWindow.map?.attributionControl?.setPrefix("ESRI")
+            getMap()?.attributionControl?.setPrefix("ESRI")
         }
     } else {
-        unsafeWindow.map?.attributionControl?.setPrefix("")
+        getMap()?.attributionControl?.setPrefix("")
     }
     document.querySelectorAll(".leaflet-tile").forEach(i => {
         if (i.nodeName !== 'IMG') {
@@ -1307,324 +1297,262 @@ function injectJSIntoPage(text) {
     })
 }
 
-function defineRenderFunctions() {
-
-    function defineShowWay() {
-        /**
-         * @name showWay
-         * @memberof unsafeWindow
-         * @param {[]} nodesList
-         * @param {string=} color
-         */
-        injectJSIntoPage(`
-        /* global L*/
-
-        /* global layers*/
-        function showWay(nodesList, color = "#000000") {
-            layers["customObjects"].forEach(i => i.remove())
-            layers["customObjects"] = []
-            const line = L.polyline(
-                nodesList.map(elem => L.latLng(elem)),
-                {
-                    color: color,
-                    weight: 4,
-                    clickable: false,
-                    opacity: 1,
-                    fillOpacity: 1
-                }
-            ).addTo(map);
-            layers["customObjects"].push(line);
-        }`)
-    }
-
-    function defineShowWays() {
-        /**
-         * @name showWays
-         * @memberof unsafeWindow
-         * @param {[][]} nodesList
-         * @param {string=} name
-         * @param {string=} color
-         */
-        injectJSIntoPage(`
-        /* global L*/
-
-        /* global layers*/
-        function showWays(ListOfNodesList, layerName = "customObjects", color = "#000000") {
-            layers[layerName]?.forEach(i => i.remove())
-            layers[layerName] = []
-            ListOfNodesList.forEach(nodesList => {
-                const line = L.polyline(
-                    nodesList.map(elem => L.latLng(elem)),
-                    {
-                        color: color,
-                        weight: 4,
-                        clickable: false,
-                        opacity: 1,
-                        fillOpacity: 1
-                    }
-                ).addTo(map);
-                layers[layerName].push(line);
-            })
-        }`)
-    }
-
-    function defineDisplayWay() {
-        /**
-         * @name displayWay
-         * @memberof unsafeWindow
-         * @param {[]} nodesList
-         * @param {boolean=} needFly
-         * @param {string=} color
-         * @param {number=} width
-         * @param {string|number=null} infoElemID
-         * @param {string=null} layerName
-         */
-        injectJSIntoPage(`
-        /* global L*/
-
-        /* global layers*/
-        function displayWay(nodesList, needFly = false, color = "#000000", width = 4, infoElemID = null, layerName = "customObjects") {
-            if (!layers[layerName]) {
-                layers[layerName] = []
-            }
-            const line = L.polyline(
-                nodesList.map(elem => L.latLng(elem)),
-                {
-                    color: color,
-                    weight: width,
-                    clickable: false,
-                    opacity: 1,
-                    fillOpacity: 1
-                }
-            ).addTo(map);
-            layers[layerName].push(line);
-            if (needFly) {
-                map.flyTo(line.getBounds().getCenter(), 18, {
-                    animate: false,
-                    duration: 0.5
-                });
-            }
-            if (infoElemID) {
-                layers[layerName][layers[layerName].length - 1].on('click', function (e) {
-                    const elementById = document.getElementById("w" + infoElemID);
-                    elementById?.scrollIntoView()
-                    document.querySelectorAll(".map-hover").forEach(el => {
-                        el.classList.remove("map-hover")
-                    })
-                    elementById.classList.add("map-hover")
-                })
-            }
-        }
-        `)
-    }
-
-    function defineShowNodeMarker() {
-        /**
-         * @name showNodeMarker
-         * @memberof unsafeWindow
-         * @param {string|float} a
-         * @param {string|float} b
-         * @param {string=} color
-         * @param {string|number|null=null} infoElemID
-         * @param {string=} layerName
-         */
-        injectJSIntoPage(`
-        /* global L*/
-
-        /* global layers*/
-        function showNodeMarker(a, b, color = "#006200", infoElemID = null, layerName = 'customObjects') {
-            const haloStyle = {
-                weight: 2.5,
-                radius: 5,
-                fillOpacity: 0,
-                color: color
-            };
-            layers[layerName].push(L.circleMarker(L.latLng(a, b), haloStyle).addTo(map));
-            if (infoElemID) {
-                layers[layerName][layers[layerName].length - 1].on('click', function (e) {
-                    const elementById = document.getElementById("n" + infoElemID);
-                    elementById?.scrollIntoView()
-                    document.querySelectorAll(".map-hover").forEach(el => {
-                        el.classList.remove("map-hover")
-                    })
-                    elementById.classList.add("map-hover")
-                })
-            }
-        }`)
-    }
-
-    function defineShowActiveNodeMarker() {
-        /**
-         * @name showActiveNodeMarker
-         * @memberof unsafeWindow
-         * @param {string} lat
-         * @param {string} lon
-         * @param {string} color
-         * @param {boolean=true} removeActiveObjects
-         */
-        injectJSIntoPage(`
-        /* global L*/
-
-        /* global layers*/
-        function showActiveNodeMarker(lat, lon, color, removeActiveObjects = true) {
-            const haloStyle = {
-                weight: 2.5,
-                radius: 5,
-                fillOpacity: 0,
-                color: color
-            };
-            if (removeActiveObjects) {
-                layers["activeObjects"].forEach((i) => {
-                    i.remove();
-                })
-            }
-            layers["activeObjects"].push(L.circleMarker(L.latLng(lat, lon), haloStyle).addTo(map));
-        }`)
-    }
-
-    function defineShowActiveWay() {
-        /**
-         * @name showActiveWay
-         * @memberof unsafeWindow
-         * @param {[]} nodesList
-         * @param {string=} color
-         * @param {boolean=} needFly
-         * @param {string|number=null} infoElemID
-         * @param {boolean=true} removeActiveObjects
-         */
-        injectJSIntoPage(`
-        /* global L*/
-
-        /* global layers*/
-        function showActiveWay(nodesList, color = "#ff00e3", needFly = false, infoElemID = null, removeActiveObjects = true) {
-            const line = L.polyline(
-                nodesList.map(elem => L.latLng(elem)),
-                {
-                    color: color,
-                    weight: 4,
-                    clickable: false,
-                    opacity: 1,
-                    fillOpacity: 1
-                }
-            ).addTo(map);
-            if (removeActiveObjects) {
-                layers["activeObjects"].forEach((i) => {
-                    i.remove();
-                })
-            }
-            layers["activeObjects"].push(line);
-            if (needFly) {
-                map.fitBounds(line.getBounds())
-            }
-            if (infoElemID) {
-                layers["activeObjects"][layers["activeObjects"].length - 1].on('click', function (e) {
-                    const elementById = document.getElementById("w" + infoElemID);
-                    elementById?.scrollIntoView()
-                    document.querySelectorAll(".map-hover").forEach(el => {
-                        el.classList.remove("map-hover")
-                    })
-                    elementById.classList.add("map-hover")
-                })
-            }
-            []
-        }`)
-    }
-
-    function defineCleanObjectsByKey() {
-        /**
-         * @name cleanObjectsByKey
-         * @param {string} key
-         * @memberof unsafeWindow
-         */
-        injectJSIntoPage(`
-        function cleanObjectsByKey(key) {
-            /*global layers*/
-            if (layers[key]) {
-                layers[key]?.forEach(i => i.remove())
-                layers[key] = []
-            }
-        }
-        `)
-    }
-
-    function defineCleanCustomObjects() {
-        /**
-         * @name cleanCustomObjects
-         * @memberof unsafeWindow
-         */
-        injectJSIntoPage(`
-        function cleanCustomObjects() {
-            /*global layers*/
-            layers["customObjects"].forEach(i => i.remove())
-            layers["customObjects"] = []
-        }
-        `)
-    }
-
-    function definePanTo() {
-        /**
-         * @name panTo
-         * @memberof unsafeWindow
-         * @param {string} lat
-         * @param {string} lon
-         * @param {number=} zoom
-         * @param {boolean=} animate
-         */
-        injectJSIntoPage(`
-        function panTo(lat, lon, zoom = 18, animate = false) {
-            map.flyTo([lat, lon], zoom, {animate: animate});
-        }
-        `)
-    }
-
-    function defineFitBounds() {
-        /**
-         * @name fitBounds
-         * @memberof unsafeWindow
-         */
-        injectJSIntoPage(`
-        function fitBounds(bound) {
-            map.fitBounds(bound);
-        }
-        `)
-    }
-
-    function defineSetZoom() {
-        /**
-         * @name setZoom
-         * @memberof unsafeWindow
-         */
-        injectJSIntoPage(`
-        function setZoom(zoomLevel) {
-            map.setZoom(zoomLevel);
-        }
-        `)
-    }
-
-    console.debug("Start defining render functions")
-    defineShowWay();
-    defineShowWays();
-    defineDisplayWay();
-    defineShowNodeMarker();
-    defineShowActiveNodeMarker();
-    defineCleanObjectsByKey();
-    defineCleanCustomObjects();
-    definePanTo();
-    defineFitBounds();
-    defineSetZoom();
-    defineShowActiveWay();
-    console.debug("Defining render functions finished")
+const layers = {
+    customObjects: [],
+    activeObjects: []
 }
 
+function intoPage(obj) {
+    return cloneInto(obj, getWindow())
+}
+
+function intoPageWithFun(obj) {
+    return cloneInto(obj, getWindow(), {cloneFunctions: true})
+}
+
+/**
+ * @name showWay
+ * @memberof unsafeWindow
+ * @param {[]} nodesList
+ * @param {string=} color
+ */
+function showWay(nodesList, color = "#000000") {
+    layers["customObjects"].forEach(i => i.remove())
+    layers["customObjects"] = []
+    const line = getWindow().L.polyline(
+        intoPage(nodesList.map(elem => getWindow().L.latLng(intoPage(elem)))),
+        intoPage({
+            color: color,
+            weight: 4,
+            clickable: false,
+            opacity: 1,
+            fillOpacity: 1
+        })
+    ).addTo(getMap());
+    layers["customObjects"].push(line);
+}
+
+/**
+ * @name showWays
+ * @memberof unsafeWindow
+ * @param {[][]} ListOfNodesList
+ * @param {string=} layerName
+ * @param {string=} color
+ */
+function showWays(ListOfNodesList, layerName = "customObjects", color = "#000000") {
+    layers[layerName]?.forEach(i => i.remove())
+    layers[layerName] = []
+    ListOfNodesList.forEach(nodesList => {
+        const line = getWindow().L.polyline(
+            intoPage(nodesList.map(elem => getWindow().L.latLng(intoPage(elem)))),
+            intoPage({
+                color: color,
+                weight: 4,
+                clickable: false,
+                opacity: 1,
+                fillOpacity: 1
+            })
+        ).addTo(getMap());
+        layers[layerName].push(line);
+    })
+}
+
+
+/**
+ * @name displayWay
+ * @memberof unsafeWindow
+ * @param {[]} nodesList
+ * @param {boolean=} needFly
+ * @param {string=} color
+ * @param {number=} width
+ * @param {string|number=null} infoElemID
+ * @param {string=null} layerName
+ * @param {string=} dashArray
+ */
+function displayWay(nodesList, needFly = false, color = "#000000", width = 4, infoElemID = null, layerName = "customObjects", dashArray = null) {
+    if (!layers[layerName]) {
+        layers[layerName] = []
+    }
+    const line = getWindow().L.polyline(
+        intoPage(nodesList.map(elem => intoPage(getWindow().L.latLng(intoPage(elem))))),
+        intoPage({
+            color: color,
+            weight: width,
+            clickable: false,
+            opacity: 1,
+            fillOpacity: 1,
+            dashArray: dashArray
+        })
+    ).addTo(getMap());
+    layers[layerName].push(line);
+    if (needFly) {
+        getMap().flyTo(intoPage(line.getBounds().getCenter()), 18, intoPage({
+            animate: false,
+            duration: 0.5
+        }));
+    }
+    if (infoElemID) {
+        layers[layerName][layers[layerName].length - 1].on('click', cloneInto(function (e) {
+            const elementById = document.getElementById("w" + infoElemID);
+            elementById?.scrollIntoView()
+            document.querySelectorAll(".map-hover").forEach(el => {
+                el.classList.remove("map-hover")
+            })
+            elementById?.classList.add("map-hover")
+        }, getWindow(), {cloneFunctions: true,}))
+    }
+}
+
+/**
+ * @name showNodeMarker
+ * @memberof unsafeWindow
+ * @param {string|float} a
+ * @param {string|float} b
+ * @param {string=} color
+ * @param {string|number|null=null} infoElemID
+ * @param {string=} layerName
+ */
+function showNodeMarker(a, b, color = "#006200", infoElemID = null, layerName = 'customObjects') {
+    const haloStyle = {
+        weight: 2.5,
+        radius: 5,
+        fillOpacity: 0,
+        color: color
+    };
+    layers[layerName].push(getWindow().L.circleMarker(getWindow().L.latLng(a, b), intoPage(haloStyle)).addTo(getMap()));
+    if (infoElemID) {
+        layers[layerName][layers[layerName].length - 1].on('click', cloneInto(function (e) {
+            const elementById = document.getElementById("n" + infoElemID);
+            elementById?.scrollIntoView()
+            document.querySelectorAll(".map-hover").forEach(el => {
+                el.classList.remove("map-hover")
+            })
+            elementById.classList.add("map-hover")
+        }, getWindow(), {cloneFunctions: true}))
+    }
+}
+
+/**
+ * @name showActiveNodeMarker
+ * @memberof unsafeWindow
+ * @param {string} lat
+ * @param {string} lon
+ * @param {string} color
+ * @param {boolean=true} removeActiveObjects
+ */
+function showActiveNodeMarker(lat, lon, color, removeActiveObjects = true) {
+    const haloStyle = {
+        weight: 2.5,
+        radius: 5,
+        fillOpacity: 0,
+        color: color
+    };
+    if (removeActiveObjects) {
+        layers["activeObjects"].forEach((i) => {
+            i.remove();
+        })
+    }
+    layers["activeObjects"].push(getWindow().L.circleMarker(getWindow().L.latLng(lat, lon), intoPage(haloStyle)).addTo(getMap()));
+}
+
+/**
+ * @name showActiveWay
+ * @memberof unsafeWindow
+ * @param {[]} nodesList
+ * @param {string=} color
+ * @param {boolean=} needFly
+ * @param {string|number=null} infoElemID
+ * @param {boolean=true} removeActiveObjects
+ * @param {number=} weight
+ */
+function showActiveWay(nodesList, color = "#ff00e3", needFly = false, infoElemID = null, removeActiveObjects = true, weight = 4) {
+    const line = getWindow().L.polyline(
+        intoPage(nodesList.map(elem => intoPage(getWindow().L.latLng(intoPage(elem))))),
+        intoPage({
+            color: color,
+            weight: weight,
+            clickable: false,
+            opacity: 1,
+            fillOpacity: 1
+        })
+    ).addTo(getMap());
+    if (removeActiveObjects) {
+        layers["activeObjects"].forEach((i) => {
+            i.remove();
+        })
+    }
+    layers["activeObjects"].push(line);
+    if (needFly) {
+        getMap().fitBounds(intoPageWithFun(line.getBounds()))
+    }
+    if (infoElemID) {
+        layers["activeObjects"][layers["activeObjects"].length - 1].on('click', cloneInto(function (e) {
+            const elementById = document.getElementById("w" + infoElemID);
+            elementById?.scrollIntoView()
+            document.querySelectorAll(".map-hover").forEach(el => {
+                el.classList.remove("map-hover")
+            })
+            elementById.classList.add("map-hover")
+        }, getWindow(), {cloneFunctions: true}))
+    }
+}
+
+/**
+ * @name cleanObjectsByKey
+ * @param {string} key
+ * @memberof unsafeWindow
+ */
+function cleanObjectsByKey(key) {
+    if (layers[key]) {
+        layers[key]?.forEach(i => i.remove())
+        layers[key] = []
+    }
+}
+
+/**
+ * @name cleanCustomObjects
+ * @memberof unsafeWindow
+ */
+function cleanCustomObjects() {
+    layers["customObjects"].forEach(i => i.remove())
+    layers["customObjects"] = []
+}
+
+/**
+ * @name panTo
+ * @memberof unsafeWindow
+ * @param {string} lat
+ * @param {string} lon
+ * @param {number=} zoom
+ * @param {boolean=} animate
+ */
+function panTo(lat, lon, zoom = 18, animate = false) {
+    getMap().flyTo(intoPage([lat, lon]), zoom, intoPage({animate: animate}));
+}
+
+/**
+ * @name fitBounds
+ * @memberof unsafeWindow
+ */
+function fitBounds(bound) {
+    getMap().fitBounds(intoPageWithFun(bound));
+}
+
+/**
+ * @name setZoom
+ * @memberof unsafeWindow
+ */
+function setZoom(zoomLevel) {
+    getMap().setZoom(zoomLevel);
+}
+
+
 function cleanAllObjects() {
-    injectJSIntoPage(`
-    /* global layers*/
-    for (var member in layers) {
+    for (let member in layers) {
         layers[member].forEach((i) => {
             i.remove();
         })
     }
-    `)
 }
 
 //</editor-fold>
@@ -1641,6 +1569,9 @@ function cleanAllObjects() {
  * @extends ObjectVersion
  * @property {number} version
  * @property {number} id
+ * @property {number} changeset
+ * @property {number} uid
+ * @property {string} user
  * @property {boolean} visible
  * @property {string} timestamp
  * @property {float} lat
@@ -1669,7 +1600,16 @@ const histories = {
     relation: relationsHistories
 }
 
+/**
+ *
+ * @type {Object.<number, Document>}
+ */
 let changesetsCache = {}
+/**
+ * @type {Set<number>}
+ */
+let nodesWithParentWays = new Set();
+let nodesWithOldParentWays = new Set();
 
 /**
  * @param {string|number} id
@@ -1680,7 +1620,10 @@ async function getChangeset(id) {
     }
     const res = await fetch(osm_server.apiBase + "changeset" + "/" + id + "/download");
     const parser = new DOMParser();
-    return changesetsCache[id] = parser.parseFromString(await res.text(), "application/xml");
+    changesetsCache[id] = parser.parseFromString(await res.text(), "application/xml");
+    nodesWithParentWays = new Set(Array.from(changesetsCache[id].querySelectorAll("way > nd")).map(i => parseInt(i.getAttribute("ref"))))
+    nodesWithOldParentWays = new Set(Array.from(changesetsCache[id].querySelectorAll("way:not([version='1']) > nd")).map(i => parseInt(i.getAttribute("ref"))))
+    return changesetsCache[id]
 }
 
 function setupNodeVersionView() {
@@ -1691,9 +1634,9 @@ function setupNodeVersionView() {
         let lat = i.textContent.replace(",", ".")
         let lon = i.nextElementSibling.textContent.replace(",", ".")
         nodeHistoryPath.push([lat, lon])
-        unsafeWindow.displayWay(cloneInto(nodeHistoryPath, unsafeWindow), false, "rgba(251,156,112,0.86)", 2);
+        displayWay(cloneInto(nodeHistoryPath, unsafeWindow), false, "rgba(251,156,112,0.86)", 2);
         i.parentElement.onmouseenter = () => {
-            unsafeWindow.showActiveNodeMarker(lat, lon, "#ff00e3");
+            showActiveNodeMarker(lat, lon, "#ff00e3");
         }
     })
 }
@@ -1723,8 +1666,10 @@ async function loadNodesViaHistoryCalls(nodes) {
  */
 async function getNodeHistory(nodeID) {
     if (nodesHistories[nodeID]) {
+        console.count("Node history hit")
         return nodesHistories[nodeID];
     } else {
+        console.count("Node history miss")
         const res = await fetch(osm_server.apiBase + "node" + "/" + nodeID + "/history.json");
         return nodesHistories[nodeID] = (await res.json()).elements;
     }
@@ -1732,6 +1677,10 @@ async function getNodeHistory(nodeID) {
 
 /**
  * @typedef {Object} WayVersion
+ * @property {number} id
+ * @property {number} changeset
+ * @property {number} uid
+ * @property {string} user
  * @property {number[]} nodes
  * @property {number} version
  * @property {boolean} visible
@@ -1780,7 +1729,7 @@ async function loadWayVersionNodes(wayID, version) {
     const batchSize = 410
     const lastVersions = []
     for (let i = 0; i < notCached.length; i += batchSize) {
-        console.log(`Batch #${i}/${notCached.length}`)
+        console.debug(`Batch #${i}/${notCached.length}`)
         const batch = notCached.slice(i, i + batchSize)
         const res = await fetch(osm_server.apiBase + "nodes.json?nodes=" + batch.join(","));
         const nodes = (await res.json()).elements
@@ -1801,7 +1750,7 @@ async function loadWayVersionNodes(wayID, version) {
     }
 
     const queryArgs = [""]
-    const maxQueryArgLen = 8213
+    const maxQueryArgLen = 8213 - (osm_server.apiBase.length + "nodes.json?nodes=".length)
     for (const lastVersion of longHistoryNodes) {
         for (let v = 1; v < lastVersion.version; v++) {
             const arg = lastVersion.id + "v" + v
@@ -1823,7 +1772,7 @@ async function loadWayVersionNodes(wayID, version) {
      * @type {NodeVersion[]}
      */
     let versions = []
-    console.groupCollapsed()
+    console.groupCollapsed(`w${wayID}v${version}`)
     for (let args of queryArgs) {
         const res = await fetch(osm_server.apiBase + "nodes.json?nodes=" + args);
         if (res.status === 404) {
@@ -1832,6 +1781,9 @@ async function loadWayVersionNodes(wayID, version) {
             (await loadNodesViaHistoryCalls(newArgs)).forEach(i => {
                 versions.push(...i)
             })
+        } else if (res.status === 414) {
+            console.error("hmm, the maximum length of the URI is incorrectly calculated")
+            console.trace();
         } else {
             versions.push(...(await res.json()).elements)
         }
@@ -1889,14 +1841,14 @@ function setupWayVersionView() {
     if (match === null) return;
     const wayID = match[1]
 
-    async function loadWayVersion(e, loadMore = true, showWay = true) {
+    async function loadWayVersion(e, loadMore = true, needShowWay = true) {
         const htmlElem = e.target ? e.target : e
         htmlElem.style.cursor = "progress"
         const version = parseInt(htmlElem.getAttribute("way-version"))
         const [targetVersion, nodesHistory] = await loadWayVersionNodes(wayID, version);
         const nodesList = filterObjectListByTimestamp(nodesHistory, targetVersion.timestamp)
-        if (showWay) {
-            unsafeWindow.showWay(cloneInto(nodesList, unsafeWindow))
+        if (needShowWay) {
+            showWay(cloneInto(nodesList, unsafeWindow))
         }
         if (htmlElem.nodeName === "A") {
             const versionDiv = htmlElem.parentNode.parentNode
@@ -1952,6 +1904,10 @@ function setupWayVersionView() {
 
 /**
  * @typedef {Object} RelationVersion
+ * @property {number} id
+ * @property {number} changeset
+ * @property {number} uid
+ * @property {string} user
  * @property {RelationMember[]} members
  * @property {number} version
  * @property {boolean} visible
@@ -2002,17 +1958,17 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
 
     const overpassGeom = await getRelationViaOverpass(id, timestamp)
     if (cleanPrevObjects) {
-        unsafeWindow.cleanCustomObjects()
+        cleanCustomObjects()
     }
-    unsafeWindow.cleanObjectsByKey("activeObjects")
+    cleanObjectsByKey("activeObjects")
     // нужен видимо веш геометрии
     // GC больно
     overpassGeom.elements[0].members.forEach(i => {
         if (i.type === "way") {
             const nodesList = i.geometry.map(p => [p.lat, p.lon])
-            unsafeWindow.displayWay(cloneInto(nodesList, unsafeWindow), false, color, 4, null, "activeObjects")
+            displayWay(cloneInto(nodesList, unsafeWindow), false, color, 4, null, "activeObjects")
         } else if (i.type === "node") {
-            unsafeWindow.showNodeMarker(i.lat, i.lon, color, null, "activeObjects")
+            showNodeMarker(i.lat, i.lon, color, null, "activeObjects")
         } else if (i.type === "relation") {
 
         }
@@ -2116,24 +2072,24 @@ function setupRelationVersionView() {
             singleNodesList.forEach((node) => {
                     if (targetVersion.visible === false) {
                         // todo
-                        unsafeWindow.showNodeMarker(node[0], node[1], "#FF0000")
+                        showNodeMarker(node[0], node[1], "#FF0000")
                     } else {
-                        unsafeWindow.showNodeMarker(node[0], node[1])
+                        showNodeMarker(node[0], node[1])
                     }
                 }
             )
 
-            unsafeWindow.cleanCustomObjects()
+            cleanCustomObjects()
             membersHistory.nodes.forEach(n => {
                 const {lat: lat, lon: lon} = filterVersionByTimestamp(n, targetVersion.timestamp)
-                unsafeWindow.showNodeMarker(lat, lon, "#006200")
+                showNodeMarker(lat, lon, "#006200")
             })
             membersHistory.ways.forEach(([, nodesVersionsList]) => {
                 const nodesList = nodesVersionsList.map(n => {
                     const {lat: lat, lon: lon} = filterVersionByTimestamp(n, targetVersion.timestamp)
                     return [lat, lon]
                 })
-                unsafeWindow.displayWay(cloneInto(nodesList, unsafeWindow))
+                displayWay(cloneInto(nodesList, unsafeWindow))
 
             })
         }
@@ -2233,7 +2189,7 @@ function addDiffInHistory() {
       background-color: none !important;
       transition:all 0.3s;
     }
-    
+    ` + (GM_config.get("ShowChangesetGeometryBeta") ? `
     .way-version-view:hover {
         background-color: yellow;
     }
@@ -2249,7 +2205,7 @@ function addDiffInHistory() {
         background-color: rgba(244, 244, 244);
     }
     
-    `;
+    ` : ``);
     GM_addElement(document.head, "style", {
         textContent: styleText,
     });
@@ -2502,6 +2458,7 @@ let tagsOfObjectsVisible = true
 
 // Perf test: https://www.openstreetmap.org/changeset/155712128
 // Check way 695574090: https://www.openstreetmap.org/changeset/71014890
+// Check deleted relation https://www.openstreetmap.org/changeset/155923052
 /**
  * Get editorial prescription via modified Levenshtein distance finding algorithm
  * @template T
@@ -2614,8 +2571,9 @@ async function addChangesetQuickLook() {
     if (injectingStarted) return
     injectingStarted = true
     try {
-        GM_addElement(document.head, "style", {
-            textContent: `
+        if (GM_config.get("ShowChangesetGeometryBeta")) {
+            GM_addElement(document.head, "style", {
+                textContent: `
             #sidebar_content li.node:hover {
                 background-color: rgba(223, 223, 223, 0.6);
             }
@@ -2637,8 +2595,12 @@ async function addChangesetQuickLook() {
             .way-version-node:hover {
                 background-color: #ff00e3 !important;
             }
+            .relation-version-node:hover {
+                background-color: #ff00e3 !important;
+            }
             `,
-        });
+            });
+        }
     } catch { /* empty */
     }
     blurSearchField();
@@ -2657,7 +2619,11 @@ async function addChangesetQuickLook() {
          * @param {NodeVersion|WayVersion|RelationVersion} lastVersion
          */
         async function processObject(i, prevVersion, targetVersion, lastVersion) {
-            const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
+            /**
+             * @type {[string, string, string, string]}
+             */
+            const m = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
+            const [, , objID, strVersion] = m
             const version = parseInt(strVersion)
             //<editor-fold desc="tags diff">
             const tagsTable = document.createElement("table")
@@ -2727,7 +2693,7 @@ async function addChangesetQuickLook() {
                 tbody.style.borderWidth = "2px"
                 nodesTable.appendChild(tbody)
 
-                function makeDiffRow(left, right) {
+                function makeWayDiffRow(left, right) {
                     const row = document.createElement("tr")
                     const tagTd = document.createElement("td")
                     const tagTd2 = document.createElement("td")
@@ -2745,16 +2711,15 @@ async function addChangesetQuickLook() {
                         tagTd.onmouseenter = async e => {
                             e.stopPropagation() // fixme
                             e.target.classList.add("way-version-node")
-                            // todo check for open changesets
                             const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                             const version = filterVersionByTimestamp(await getNodeHistory(left), targetTimestamp)
-                            unsafeWindow.showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
+                            showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
                         }
                         tagTd.onclick = async e => {
                             e.stopPropagation() // fixme
                             const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                             const version = filterVersionByTimestamp(await getNodeHistory(left), targetTimestamp)
-                            unsafeWindow.panTo(version.lat.toString(), version.lon.toString())
+                            panTo(version.lat.toString(), version.lon.toString())
                         }
                         tagTd.onmouseleave = e => {
                             e.target.classList.remove("way-version-node")
@@ -2769,16 +2734,14 @@ async function addChangesetQuickLook() {
                         tagTd2.onmouseenter = async e => {
                             e.stopPropagation() // fixme
                             e.target.classList.add("way-version-node")
-                            // todo check for open changesets
-                            const version = filterVersionByTimestamp(await getNodeHistory(right), changesetMetadata.closed_at)
-                            unsafeWindow.showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
+                            const version = filterVersionByTimestamp(await getNodeHistory(right), changesetMetadata.closed_at ?? new Date().toISOString())
+                            showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
                         }
                         tagTd2.onclick = async e => {
                             e.stopPropagation() // fixme
                             e.target.classList.add("way-version-node")
-                            // todo check for open changesets
-                            const version = filterVersionByTimestamp(await getNodeHistory(right), changesetMetadata.closed_at)
-                            unsafeWindow.panTo(version.lat.toString(), version.lon.toString())
+                            const version = filterVersionByTimestamp(await getNodeHistory(right), changesetMetadata.closed_at ?? new Date().toISOString())
+                            panTo(version.lat.toString(), version.lon.toString())
                         }
                         tagTd2.onmouseleave = e => {
                             e.target.classList.remove("way-version-node")
@@ -2794,20 +2757,20 @@ async function addChangesetQuickLook() {
 
                 const lineWasReversed = JSON.stringify(prevVersion.nodes.toReversed()) === JSON.stringify(targetVersion.nodes)
                 if (lineWasReversed) {
-                    const row = makeDiffRow("", "🔃")
+                    const row = makeWayDiffRow("", "🔃")
                     row.querySelectorAll("td").forEach(i => i.style.textAlign = "center")
                     row.querySelector("td:nth-of-type(2)").title = "Nodes of the way were reversed"
                     tbody.appendChild(row)
 
                     prevVersion.nodes.forEach((i, index) => {
-                        const row = makeDiffRow(i, targetVersion.nodes[index])
+                        const row = makeWayDiffRow(i, targetVersion.nodes[index])
                         row.querySelector("td:nth-of-type(2)").style.background = "rgba(223,238,9,0.6)"
                         row.style.fontFamily = "monospace"
                         tbody.appendChild(row)
                     })
                 } else {
-                    arraysDiff(prevVersion.nodes, targetVersion.nodes).forEach(i => {
-                        const row = makeDiffRow(i[0], i[1])
+                    arraysDiff(prevVersion.nodes ?? [], targetVersion.nodes ?? []).forEach(i => {
+                        const row = makeWayDiffRow(i[0], i[1])
                         if (i[0] === null) {
                             row.style.background = "rgba(17,238,9,0.6)"
                         } else if (i[1] === null) {
@@ -2920,27 +2883,26 @@ async function addChangesetQuickLook() {
                     tagTd2.style.textAlign = "right"
                     if (left && typeof left === "object") {
                         tagTd.onmouseenter = async e => {
-                            e.stopPropagation() // fixme
-                            e.target.classList.add("way-version-node")
-                            // todo check for open changesets
+                            e.stopPropagation()
+                            e.target.classList.add("relation-version-node")
                             const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                             if (left.type === "node") {
                                 const version = filterVersionByTimestamp(await getNodeHistory(left.ref), targetTimestamp)
-                                unsafeWindow.showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
+                                showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
                             } else {
                                 // todo
                             }
                         }
 
                         tagTd.onmouseleave = e => {
-                            e.target.classList.remove("way-version-node")
+                            e.target.classList.remove("relation-version-node")
                         }
                         tagTd.onclick = async e => {
                             e.stopPropagation()
                             if (left.type === "node") {
                                 const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                                 const version = filterVersionByTimestamp(await getNodeHistory(left.ref), targetTimestamp)
-                                unsafeWindow.panTo(version.lat.toString(), version.lon.toString())
+                                panTo(version.lat.toString(), version.lon.toString())
                             }
                         }
                     }
@@ -2948,25 +2910,24 @@ async function addChangesetQuickLook() {
                     if (right && typeof right === "object") {
                         tagTd2.onmouseenter = async e => {
                             e.stopPropagation() // fixme
-                            e.target.classList.add("way-version-node")
-                            // todo check for open changesets
-                            const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
+                            e.target.classList.add("relation-version-node")
+                            const targetTimestamp = (new Date(changesetMetadata.closed_at ?? new Date())).toISOString()
                             if (right.type === "node") {
                                 const version = filterVersionByTimestamp(await getNodeHistory(right.ref), targetTimestamp)
-                                unsafeWindow.showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
+                                showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
                             } else {
                                 // todo
                             }
                         }
                         tagTd2.onmouseleave = e => {
-                            e.target.classList.remove("way-version-node")
+                            e.target.classList.remove("relation-version-node")
                         }
                         tagTd2.onclick = async e => {
                             e.stopPropagation()
                             if (right.type === "node") {
-                                const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
+                                const targetTimestamp = (new Date(changesetMetadata.closed_at ?? new Date())).toISOString()
                                 const version = filterVersionByTimestamp(await getNodeHistory(right.ref), targetTimestamp)
-                                unsafeWindow.panTo(version.lat.toString(), version.lon.toString())
+                                panTo(version.lat.toString(), version.lon.toString())
                             }
                         }
                     }
@@ -2988,7 +2949,7 @@ async function addChangesetQuickLook() {
                         tbody.appendChild(row)
                     })
                 } else {
-                    arraysDiff(prevVersion.members, targetVersion.members).forEach(i => {
+                    arraysDiff(prevVersion.members ?? [], targetVersion.members ?? []).forEach(i => {
                         const row = makeRelationDiffRow(i[0], i[1])
                         if (i[0] === null) {
                             row.style.background = "rgba(17,238,9,0.6)"
@@ -3043,8 +3004,8 @@ async function addChangesetQuickLook() {
                 i.appendChild(memChangedFlag)
                 memChangedFlag.onmouseover = e => {
                     e.stopPropagation()
-                    unsafeWindow.showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3")
-                    unsafeWindow.showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", false)
+                    showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3")
+                    showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", false)
                 }
             }
             if (targetVersion.visible === false) {
@@ -3060,27 +3021,25 @@ async function addChangesetQuickLook() {
             }
             //</editor-fold>
             //<editor-fold desc="setup interactive possibilities">
-            if (!GM_config.get("ShowChangesetGeometry")) {
+            if (!GM_config.get("ShowChangesetGeometryBeta")) {
                 i.classList.add("processed-object")
                 return
             }
             i.ondblclick = () => {
                 if (changesetMetadata) {
-                    unsafeWindow.fitBounds(
-                        cloneInto([
-                                [changesetMetadata.min_lat, changesetMetadata.min_lon],
-                                [changesetMetadata.max_lat, changesetMetadata.max_lon]
-                            ],
-                            unsafeWindow))
+                    fitBounds([
+                            [changesetMetadata.min_lat, changesetMetadata.min_lon],
+                            [changesetMetadata.max_lat, changesetMetadata.max_lon]
+                        ])
                 }
             }
             if (objType === "node") {
                 i.id = "n" + objID
                 i.onmouseenter = () => {
                     if (targetVersion.visible === false) {
-                        unsafeWindow.showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff")
+                        showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff")
                     } else {
-                        unsafeWindow.showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3")
+                        showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3")
                     }
                     document.querySelectorAll(".map-hover").forEach(el => {
                         el.classList.remove("map-hover")
@@ -3088,17 +3047,19 @@ async function addChangesetQuickLook() {
                 }
                 i.onclick = () => {
                     if (targetVersion.visible === false) {
-                        unsafeWindow.panTo(prevVersion.lat.toString(), prevVersion.lon.toString(), 18, false)
+                        panTo(prevVersion.lat.toString(), prevVersion.lon.toString(), 18, false)
                     } else {
-                        unsafeWindow.panTo(targetVersion.lat.toString(), targetVersion.lon.toString(), 18, false)
+                        panTo(targetVersion.lat.toString(), targetVersion.lon.toString(), 18, false)
                     }
                 }
                 if (targetVersion.visible === false) {
-                    unsafeWindow.showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#FF0000", prevVersion.id)
+                    showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#FF0000", prevVersion.id)
                 } else if (targetVersion.version === 1) {
-                    unsafeWindow.showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#006200", targetVersion.id)
+                    if (targetVersion.tags || nodesWithOldParentWays.has(parseInt(objID))) {
+                        showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#006200", targetVersion.id)
+                    }
                 } else {
-                    unsafeWindow.showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "rgb(255,245,41)", targetVersion.id)
+                    showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "rgb(255,245,41)", targetVersion.id)
                 }
             } else if (objType === "way") {
                 i.id = "w" + objID
@@ -3113,16 +3074,21 @@ async function addChangesetQuickLook() {
                         const [, nodesHistory] = await loadWayVersionNodes(objID, versionForLoad);
                         const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                         const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                        unsafeWindow.displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 3, objID)
+                        if (targetVersion.visible === false) {
+                            displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 3, objID)
+                        } else {
+                            displayWay(cloneInto(nodesList, unsafeWindow), false, "rgba(0,128,0,0.6)", 3, objID, "customObjects", "4, 4")
+                        }
 
                         console.warn(res)
                         i.onmouseenter = () => {
-                            unsafeWindow.showActiveWay(cloneInto(nodesList, unsafeWindow), "#ff00e3", false, objID)
+                            showActiveWay(cloneInto(nodesList, unsafeWindow), "#ff00e3", false, objID)
                         }
                         i.onclick = () => {
-                            unsafeWindow.showActiveWay(cloneInto(nodesList, unsafeWindow), "#ff00e3", true, objID)
+                            showActiveWay(cloneInto(nodesList, unsafeWindow), "#ff00e3", true, objID)
                         }
                     }, 10);
+                    i.classList.add("processed-object")
                     return
                 }
                 const lastElements = (await res.json()).elements
@@ -3154,23 +3120,33 @@ async function addChangesetQuickLook() {
 
 
                 i.onclick = async () => {
-                    unsafeWindow.showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", true, objID)
+                    showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", true, objID)
 
-                    // show prev version
-                    const [, nodesHistory] = await loadWayVersionNodes(objID, version - 1);
-                    const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
-                    const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                    unsafeWindow.showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false)
+                    if (version > 1) {
+                        // show prev version
+                        const [, nodesHistory] = await loadWayVersionNodes(objID, version - 1);
+                        const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
+                        const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
+                        showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false)
 
-                    unsafeWindow.showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false)
+                        showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false)
+                    } else {
+                        const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
+                        const prevVersion = filterVersionByTimestamp(await getWayHistory(objID), targetTimestamp);
+                        const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
+                        const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
+                        showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false)
+
+                        showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false)
+                    }
                 }
                 if (version === 1) {
-                    unsafeWindow.displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(0,128,0,0.6)", 4, objID)
+                    displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(0,128,0,0.6)", 4, objID)
                 } else {
-                    unsafeWindow.displayWay(cloneInto(currentNodesList, unsafeWindow), false, "#373737", 4, objID)
+                    displayWay(cloneInto(currentNodesList, unsafeWindow), false, "#373737", 4, objID)
                 }
                 i.onmouseenter = async () => {
-                    unsafeWindow.showActiveWay(cloneInto(currentNodesList, unsafeWindow))
+                    showActiveWay(cloneInto(currentNodesList, unsafeWindow))
                     document.querySelectorAll(".map-hover").forEach(el => {
                         el.classList.remove("map-hover")
                     })
@@ -3179,9 +3155,17 @@ async function addChangesetQuickLook() {
                         const [, nodesHistory] = await loadWayVersionNodes(objID, version - 1);
                         const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                         const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                        unsafeWindow.showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false)
+                        showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false)
 
-                        unsafeWindow.showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false)
+                        showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false)
+                    } else {
+                        const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
+                        const prevVersion = filterVersionByTimestamp(await getWayHistory(objID), targetTimestamp);
+                        const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
+                        const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
+                        showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false)
+
+                        showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false)
                     }
                 }
             } else if (objType === "relation") {
@@ -3191,17 +3175,14 @@ async function addChangesetQuickLook() {
                 btn.style.cursor = "pointer"
                 btn.addEventListener("click", async () => {
                     btn.style.cursor = "progress"
-                    // const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
-                    const targetTimestamp = (new Date(changesetMetadata.closed_at)).toISOString() ?? new Date().toISOString()
+                    const targetTimestamp = (new Date(changesetMetadata.closed_at ?? new Date())).toISOString()
                     try {
                         const relationMetadata = await loadRelationVersionMembersViaOverpass(objID, targetTimestamp, false, "#ff00e3")
                         i.onclick = () => {
-                            unsafeWindow.fitBounds(
-                                cloneInto([
+                            fitBounds([
                                         [relationMetadata.bbox.min_lat, relationMetadata.bbox.min_lon],
                                         [relationMetadata.bbox.max_lat, relationMetadata.bbox.max_lon]
-                                    ],
-                                    unsafeWindow))
+                                    ])
                         }
                         i.onmouseenter = async () => {
                             // todo рисовать ярким
@@ -3219,7 +3200,6 @@ async function addChangesetQuickLook() {
                 i.querySelector("a:nth-of-type(2)").after(document.createTextNode("\xA0"))
             }
             //</editor-fold>
-            // console.log(prevVersion, targetVersion, lastVersion);
             i.classList.add("processed-object")
         }
 
@@ -3343,14 +3323,14 @@ async function addChangesetQuickLook() {
             });
         }
         //</editor-fold>
-        if (objCount >= 20) {
-            const changesetID = location.pathname.match(/changeset\/(\d+)/)[1]
-            if (!changesetsCache[changesetID]) {
-                await getChangeset(changesetID)
-            } else {
-                await new Promise(r => setTimeout(r, 500));
-            }
+
+        const changesetID = location.pathname.match(/changeset\/(\d+)/)[1]
+        if (!changesetsCache[changesetID]) {
+            await getChangeset(changesetID)
+        } else if (objCount >= 20) {
+            await new Promise(r => setTimeout(r, 500));
         }
+
     }
 
 // TODO load full changeset and filter geometry points
@@ -3481,8 +3461,122 @@ async function addChangesetQuickLook() {
 
         replaceNodes(changesetData)
         await processObjects("node", uniqTypes);
-    } finally { // TODO catch and notify user
+
+        // try find parent ways
+
+
+        /**
+         * @param {number|string} nodeID
+         * @return {Promise<WayVersion[]>}
+         */
+        async function getParentWays(nodeID) {
+            const rawRes = await fetch(osm_server.apiBase + "node/" + nodeID + "/ways.json");
+            if (!rawRes.ok) {
+                console.warn(`fetching parent ways for ${nodeID} failed)`)
+                console.trace()
+                return []
+            }
+            return (await rawRes.json()).elements;
+
+        }
+
+        async function findParents() {
+            changesetData.querySelectorAll(`node[version="1"]`).forEach(i => {
+                const nodeID = i.getAttribute("id")
+                if (!i.querySelector("tag")) {
+                    if (i.getAttribute("visible") === "false") {
+                        // todo
+                    } else if (i.getAttribute("version") === "1" && !nodesWithParentWays.has(parseInt(nodeID))) {
+                        showNodeMarker(i.getAttribute("lat"), i.getAttribute("lon"), "#006200", nodeID)
+                    }
+                }
+            })
+            const processedNodes = new Set();
+            // fixme
+            const changesetNodesMap = Object.groupBy(Array.from(changesetData.querySelectorAll(`node:not([version="1"])`)), n => parseInt(n.id))
+            for (const nodeElem of document.querySelectorAll(".node.location-modified")) {
+                const nodeID = parseInt(nodeElem.id.slice(1))
+                if (nodesWithParentWays.has(nodeID) || processedNodes.has(nodeID)) continue;
+                const parents = await getParentWays(nodeID)
+                for (const way of parents) {
+                    if (way.id === 741695027) debugger
+                    way.nodes.forEach(node => {
+                        processedNodes.add(node)
+                    })
+                    const objID = way.id
+
+                    const res = await fetch(osm_server.apiBase + "way" + "/" + way.id + "/full.json");
+                    if (!res.ok) {
+                        // todo
+                        continue;
+                    }
+                    const lastElements = (await res.json()).elements
+                    lastElements.forEach(n => {
+                        if (n.type !== "node") return
+                        if (n.version === 1) {
+                            nodesHistories[n.id] = [n]
+                        }
+                    })
+                    const targetVersion = filterVersionByTimestamp(await getWayHistory(way.id), changesetMetadata.closed_at);
+                    const [, wayNodesHistories] = await loadWayVersionNodes(objID, targetVersion.version)
+                    const targetNodes = filterObjectListByTimestamp(wayNodesHistories, changesetMetadata.closed_at)
+
+                    const nodesMap = {}
+                    targetNodes.forEach(elem => {
+                        nodesMap[elem.id] = [elem.lat, elem.lon]
+                    })
+
+                    let currentNodesList = []
+                    targetVersion.nodes.forEach(node => {
+                        if (node in nodesMap) {
+                            currentNodesList.push(nodesMap[node])
+                        } else {
+                            console.error(objID, node)
+                            console.trace()
+                        }
+                    })
+
+                    displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(55,55,55,0.5)", 4, objID)
+                    way.nodes.forEach(n => {
+                        if (!document.querySelector("#n" + n)) return
+                        document.querySelector("#n" + n).addEventListener('mouseenter', async () => {
+                            showActiveWay(cloneInto(currentNodesList, unsafeWindow))
+                            document.querySelectorAll(".map-hover").forEach(el => {
+                                el.classList.remove("map-hover")
+                            })
+                            if (targetVersion.version > 1) {
+                                // show prev version
+                                const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
+                                const prevVersion = filterVersionByTimestamp(await getWayHistory(way.id), targetTimestamp);
+                                const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
+                                const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
+                                showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false)
+
+                                // showActiveWay(cloneInto(currentNodesList, unsafeWindow), "rgba(55,55,55,0.5)", false, objID, false)
+                            } else {
+                                const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
+                                const prevVersion = filterVersionByTimestamp(await getWayHistory(way.id), targetTimestamp);
+                                const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
+                                const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
+                                showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false)
+
+                                // showActiveWay(cloneInto(currentNodesList, unsafeWindow), "rgba(55,55,55,0.5)", false, objID, false)
+                            }
+                        })
+                    })
+                }
+            }
+        }
+
+        if (GM_config.get("ShowChangesetGeometryBeta")) {
+            await findParents()
+        }
+    } catch (e) { // TODO notify user
+        console.error(e)
+        console.log("%cSetup QuickLook finished with error ⚠️", 'background: #222; color: #bada55')
+    } finally {
         injectingStarted = false
+        console.log("%cSetup QuickLook finished", 'background: #222; color: #bada55')
     }
 }
 
@@ -4185,42 +4279,44 @@ function addMassChangesetsActions() {
                 navigator.clipboard.writeText(id).then(() => copyAnimation(e, id));
             }
             item.title = "Click for copy changeset id"
-            getCachedUserInfo(item.previousSibling.previousSibling.textContent).then((res) => {
-                if (res['roles'].some(i => i === "moderator")) {
-                    let userBadge = document.createElement("span")
-                    userBadge.classList.add("user-badge")
-                    userBadge.style.position = "relative"
-                    userBadge.style.bottom = "2px"
-                    userBadge.title = "This user is a moderator"
-                    userBadge.innerHTML = '<svg width="20" height="20"><path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#447eff" stroke="#447eff" stroke-width="2" stroke-linejoin="round"></path></svg>'
-                    userBadge.querySelector("svg").style.transform = "scale(0.9)"
-                    item.previousSibling.previousSibling.before(userBadge)
-                } else if (res['roles'].some(i => i === "importer")) {
-                    let userBadge = document.createElement("span")
-                    userBadge.classList.add("user-badge")
-                    userBadge.style.position = "relative"
-                    userBadge.style.bottom = "2px"
-                    userBadge.title = "This user is a importer"
-                    userBadge.innerHTML = '<svg width="20" height="20"><path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#38e13a" stroke="#38e13a" stroke-width="2" stroke-linejoin="round"></path></svg>'
-                    userBadge.querySelector("svg").style.transform = "scale(0.9)"
-                    item.previousSibling.previousSibling.before(userBadge)
-                } else if (res['blocks']['received']['active']) {
-                    let userBadge = document.createElement("span")
-                    userBadge.classList.add("user-badge")
-                    userBadge.title = "The user was banned"
-                    userBadge.textContent = "⛔️"
-                    item.previousSibling.previousSibling.before(userBadge)
-                } else if (
-                    new Date(res['account_created']).setUTCDate(new Date(res['account_created']).getUTCDate() + 30)
-                    > new Date(item.parentElement.querySelector("time")?.getAttribute("datetime") ?? new Date())
-                ) {
-                    let userBadge = document.createElement("span")
-                    userBadge.classList.add("user-badge")
-                    userBadge.title = "The user is less than a month old"
-                    userBadge.textContent = "🍼"
-                    item.previousSibling.previousSibling.before(userBadge)
-                }
-            })
+            if (location.pathname.match(/^\/history\/?$/)) {
+                getCachedUserInfo(item.previousSibling.previousSibling.textContent).then((res) => {
+                    if (res['roles'].some(i => i === "moderator")) {
+                        let userBadge = document.createElement("span")
+                        userBadge.classList.add("user-badge")
+                        userBadge.style.position = "relative"
+                        userBadge.style.bottom = "2px"
+                        userBadge.title = "This user is a moderator"
+                        userBadge.innerHTML = '<svg width="20" height="20"><path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#447eff" stroke="#447eff" stroke-width="2" stroke-linejoin="round"></path></svg>'
+                        userBadge.querySelector("svg").style.transform = "scale(0.9)"
+                        item.previousSibling.previousSibling.before(userBadge)
+                    } else if (res['roles'].some(i => i === "importer")) {
+                        let userBadge = document.createElement("span")
+                        userBadge.classList.add("user-badge")
+                        userBadge.style.position = "relative"
+                        userBadge.style.bottom = "2px"
+                        userBadge.title = "This user is a importer"
+                        userBadge.innerHTML = '<svg width="20" height="20"><path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#38e13a" stroke="#38e13a" stroke-width="2" stroke-linejoin="round"></path></svg>'
+                        userBadge.querySelector("svg").style.transform = "scale(0.9)"
+                        item.previousSibling.previousSibling.before(userBadge)
+                    } else if (res['blocks']['received']['active']) {
+                        let userBadge = document.createElement("span")
+                        userBadge.classList.add("user-badge")
+                        userBadge.title = "The user was banned"
+                        userBadge.textContent = "⛔️"
+                        item.previousSibling.previousSibling.before(userBadge)
+                    } else if (
+                        new Date(res['account_created']).setUTCDate(new Date(res['account_created']).getUTCDate() + 30)
+                        > new Date(item.parentElement.querySelector("time")?.getAttribute("datetime") ?? new Date())
+                    ) {
+                        let userBadge = document.createElement("span")
+                        userBadge.classList.add("user-badge")
+                        userBadge.title = "The user is less than a month old"
+                        userBadge.textContent = "🍼"
+                        item.previousSibling.previousSibling.before(userBadge)
+                    }
+                })
+            }
         })
         if (currentMassDownloadedPages && currentMassDownloadedPages <= MAX_PAGE_FOR_LOAD) {
             const loader = document.querySelector(".changeset_more > .loader")
@@ -4314,10 +4410,12 @@ async function loadNodeMetadata() {
         return;
     }
     const res = await fetch(osm_server.apiBase + "node" + "/" + node_id + ".json");
-    const jsonRes = await res.json();
     if (res.status === 509) {
         console.error("oops, DOS block")
+    } else if (res.status === 410) {
+        console.warn("node was deleted");
     } else {
+        const jsonRes = await res.json();
         nodeMetadata = jsonRes.elements[0]
     }
 }
@@ -4334,10 +4432,12 @@ async function loadWayMetadata() {
         return;
     }
     const res = await fetch(osm_server.apiBase + "way" + "/" + way_id + "/full.json");
-    const jsonRes = await res.json();
     if (res.status === 509) {
         console.error("oops, DOS block")
+    } else if (res.status === 410) {
+        console.warn("way was deleted");
     } else {
+        const jsonRes = await res.json();
         wayMetadata = jsonRes.elements.filter(i => i.type === "node")
         wayMetadata.bbox = {
             min_lat: Math.min(...wayMetadata.map(i => i.lat)),
@@ -4360,10 +4460,12 @@ async function loadRelationMetadata() {
         return;
     }
     const res = await fetch(osm_server.apiBase + "relation" + "/" + relation_id + "/full.json");
-    const jsonRes = await res.json();
     if (res.status === 509) {
         console.error("oops, DOS block")
+    } else if (res.status === 410) {
+        console.warn("relation was deleted");
     } else {
+        const jsonRes = await res.json();
         relationMetadata = jsonRes.elements.filter(i => i.type === "node")
         relationMetadata.bbox = {
             min_lat: Math.min(...relationMetadata.map(i => i.lat)),
@@ -4386,8 +4488,8 @@ const mapPositionsNextHistory = []
 
 function runPositionTracker() {
     setInterval(() => {
-        if (!unsafeWindow.map) return
-        const bound = unsafeWindow.map.getBounds()
+        if (!getMap()) return
+        const bound = getMap().getBounds()
         if (JSON.stringify(mapPositionsHistory[mapPositionsHistory.length - 1]) === JSON.stringify(bound)) {
             return;
         }
@@ -4439,9 +4541,9 @@ function setupNavigationViaHotkeys() {
                 })
                 SatellitePrefix = NewSatellitePrefix
                 if (SatellitePrefix === ESRIBetaPrefix) {
-                    unsafeWindow.map?.attributionControl?.setPrefix("ESRI Beta")
+                    getMap()?.attributionControl?.setPrefix("ESRI Beta")
                 } else {
-                    unsafeWindow.map?.attributionControl?.setPrefix("ESRI")
+                    getMap()?.attributionControl?.setPrefix("ESRI")
                 }
                 return
             } else {
@@ -4463,70 +4565,63 @@ function setupNavigationViaHotkeys() {
         } else if (e.code === "KeyH") {
             if (location.pathname.match(/(node|way|relation)\/\d+/)) {
                 if (location.pathname.match(/(node|way|relation)\/\d+\/?$/)) {
-                    unsafeWindow.OSM.router.route(window.location.pathname + "/history")
+                    getWindow().OSM.router.route(window.location.pathname + "/history")
                 } else if (location.pathname.match(/(node|way|relation)\/\d+\/history\/\d+\/?$/)) {
                     const historyPath = window.location.pathname.match(/(\/(node|way|relation)\/\d+\/history)\/\d+/)[1]
-                    unsafeWindow.OSM.router.route(historyPath)
+                    getWindow().OSM.router.route(historyPath)
                 } else {
                     console.debug("skip H")
                 }
             }
         } else if (e.code === "KeyY") {
             const [, z, x, y] = new URL(document.querySelector("#editanchor").href).hash.match(/map=(\d+)\/([0-9.-]+)\/([0-9.-]+)/)
-            window.open(`https://yandex.ru/maps/?l=stv,sta&ll=${y},${x}&z=${z}`,"_blank","noreferrer");
-        }
-        else if (e.key === "1") {
+            window.open(`https://yandex.ru/maps/?l=stv,sta&ll=${y},${x}&z=${z}`, "_blank", "noreferrer");
+        } else if (e.key === "1") {
             if (location.pathname.match(/\/(node|way|relation)\/\d+/)) {
                 if (location.pathname.match(/\/(node|way|relation)\/\d+/)) {
-                    unsafeWindow.OSM.router.route(location.pathname.match(/\/(node|way|relation)\/\d+/)[0] + "/history/1")
+                    getWindow().OSM.router.route(location.pathname.match(/\/(node|way|relation)\/\d+/)[0] + "/history/1")
                 } else {
                     console.debug("skip 1")
                 }
             }
         } else if (e.key === "0") {
-            const center = unsafeWindow.map.getCenter()
-            unsafeWindow.setZoom(2)
+            const center = getMap().getCenter()
+            setZoom(2)
             fetch(`https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2`).then((res) => {
                 res.json().then((r) => {
                     if (r?.address?.state) {
-                        unsafeWindow.map.attributionControl.setPrefix(`${r.address.state}`)
+                        getMap().attributionControl.setPrefix(`${r.address.state}`)
                     }
                 })
             })
         } else if (e.code === "KeyZ") {
             if (location.pathname.includes("/changeset")) {
                 if (changesetMetadata) {
-                    unsafeWindow.fitBounds(
-                        cloneInto([
+                    fitBounds([
                                 [changesetMetadata.min_lat, changesetMetadata.min_lon],
                                 [changesetMetadata.max_lat, changesetMetadata.max_lon]
-                            ],
-                            unsafeWindow))
+                            ])
                 } else {
                     console.warn("Changeset metadata not downloaded")
                 }
             } else if (location.pathname.match(/(node|way|relation)\/\d+/)) {
                 if (location.pathname.includes("node")) {
                     if (nodeMetadata) {
-                        unsafeWindow.panTo(nodeMetadata.lat, nodeMetadata.lon)
+                        panTo(nodeMetadata.lat, nodeMetadata.lon)
                     }
                 } else if (location.pathname.includes("way")) {
                     if (wayMetadata) {
-                        unsafeWindow.fitBounds(
-                            cloneInto([
+                        fitBounds([
                                     [wayMetadata.bbox.min_lat, wayMetadata.bbox.min_lon],
                                     [wayMetadata.bbox.max_lat, wayMetadata.bbox.max_lon]
-                                ],
-                                unsafeWindow))
+                                ])
                     }
                 } else if (location.pathname.includes("relation")) {
                     if (relationMetadata) {
-                        unsafeWindow.fitBounds(
-                            cloneInto([
+                        fitBounds([
                                     [relationMetadata.bbox.min_lat, relationMetadata.bbox.min_lon],
                                     [relationMetadata.bbox.max_lat, relationMetadata.bbox.max_lon]
-                                ],
-                                unsafeWindow))
+                                ])
                     }
                 }
             }
@@ -4534,12 +4629,12 @@ function setupNavigationViaHotkeys() {
             if (mapPositionsHistory.length > 1) {
                 mapPositionsNextHistory.push(mapPositionsHistory[mapPositionsHistory.length - 1])
                 mapPositionsHistory.pop()
-                unsafeWindow.fitBounds(mapPositionsHistory[mapPositionsHistory.length - 1])
+                fitBounds(mapPositionsHistory[mapPositionsHistory.length - 1])
             }
         } else if (e.key === "9") {
             if (mapPositionsNextHistory.length) {
                 mapPositionsHistory.push(mapPositionsNextHistory.pop())
-                unsafeWindow.fitBounds(mapPositionsHistory[mapPositionsHistory.length - 1])
+                fitBounds(mapPositionsHistory[mapPositionsHistory.length - 1])
             }
         } else {
             // console.log(e.key, e.code)
@@ -4715,7 +4810,7 @@ function setup() {
         if (lastPath.includes("/changeset/") && (!path.includes("/changeset/") || lastPath !== path)) {
             try {
                 cleanAllObjects()
-                unsafeWindow.map.attributionControl.setPrefix("")
+                getMap().attributionControl.setPrefix("")
             } catch (e) {
             }
         }
@@ -4742,30 +4837,48 @@ function main() {
     }
 }
 
+var map = null
+var getMap = null
+var getWindow = null
 
 if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)
     && !["/edit", "/id"].includes(location.pathname)) {
     // This must be done as early as possible in order to pull the map object into the global scope
-    GM_addElement("script", {
-        //language=js
-        textContent: `
-            /* global L*/
-            var map = null;
-            const layers = {
-                customObjects: [],
-                activeObjects: []
-            }
-            console.log("start map intercepted")
-            L.Map.addInitHook((function () {
-                    // There are also maps in the Layers menu, but we only need the main visible map
+    // https://github.com/deevroman/better-osm-org/issues/34
+    if (navigator.userAgent.includes("Firefox") && GM_info.scriptHandler === "Violentmonkey") {
+        function mapHook() {
+            console.log("start map intercepting")
+            window.wrappedJSObject.L.Map.addInitHook(exportFunction((function () {
                     if (this._container?.id === "map") {
-                        map = this;
-                        console.log("map intercepted")
+                        window.wrappedJSObject.globalThis.map = this;
+                        console.log("map intercepted");
                     }
-                })
-            )`
-    })
-    defineRenderFunctions();
+                }), window.wrappedJSObject)
+            )
+        }
+
+        window.wrappedJSObject.mapHook = exportFunction(mapHook, window.wrappedJSObject)
+        window.wrappedJSObject.mapHook()
+        getMap = () => window.wrappedJSObject.map
+        getWindow = () => window.wrappedJSObject
+    } else {
+        function mapHook() {
+            console.log("start map intercepting")
+            unsafeWindow.L.Map.addInitHook(exportFunction((function () {
+                    if (this._container?.id === "map") {
+                        unsafeWindow.map = this;
+                        console.log("map intercepted");
+                    }
+                }), unsafeWindow)
+            )
+        }
+
+        unsafeWindow.mapHook = exportFunction(mapHook, unsafeWindow)
+        unsafeWindow.mapHook()
+        getMap = () => unsafeWindow.map
+        getWindow = () => unsafeWindow
+    }
+    map = getMap()
 }
 
 init.then(main);
