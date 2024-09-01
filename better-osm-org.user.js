@@ -100,7 +100,7 @@ GM_config.init(
                     {
                         'label': 'Show geometry of objects in changeset β',
                         'type': 'checkbox',
-                        'default': 'unchecked',
+                        'default': false,
                         'labelPos': 'right'
                     },
                 'MassChangesetsActions':
