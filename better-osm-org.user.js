@@ -348,7 +348,7 @@ function addRevertButton() {
     if (tagsHeader) {
         tagsHeader.remove()
     }
-    const primaryButtons = document.querySelector("[name=subscribe]")
+    const primaryButtons = document.querySelector("[name=subscribe], [name=unsubscribe]")
     if (primaryButtons) {
         const changeset_id = sidebar.innerHTML.match(/(\d+)/)[0];
 
