@@ -4728,13 +4728,17 @@ function setupNavigationViaHotkeys() {
         } else if (location.pathname.match(/^\/(node|way|relation)\/\d+/)) {
             if (e.altKey || ["Comma", "Period"].includes(e.code)) {
                 if (e.code === "ArrowLeft" || e.code === "Comma") {
-                    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1].querySelectorAll("a")
-                    if (navigationLinks[0].href.includes("/history/")) {
-                        navigationLinks[0].click()
+                    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
+                    if (navigationLinks && navigationLinks[0].href.includes("/history/")) {
+                        if (location.pathname.includes("history")) {
+                            navigationLinks[0].click()
+                        } else {
+                            Array.from(navigationLinks).at(-1).click()
+                        }
                     }
                 } else if (e.code === "ArrowRight" || e.code === "Period") {
-                    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1].querySelectorAll("a")
-                    if (Array.from(navigationLinks).at(-1).href.includes("/history/")) {
+                    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
+                    if (navigationLinks && Array.from(navigationLinks).at(-1).href.includes("/history/")) {
                         Array.from(navigationLinks).at(-1).click()
                     }
                 }
