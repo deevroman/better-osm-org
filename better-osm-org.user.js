@@ -4246,7 +4246,6 @@ function addMassActionForGlobalChangesets() {
 
 }
 
-// TODO support JOSM reverter after https://josm.openstreetmap.de/ticket/23701
 function addMassChangesetsActions() {
     if (!location.pathname.includes("/history")) return;
     if (!document.querySelector("#sidebar_content h2")) return
@@ -4531,6 +4530,9 @@ function setupNavigationViaHotkeys() {
         if (e.repeat) return
         if (document.activeElement?.name === "text") return
         if (!(document.activeElement?.name !== "query" && !["TEXTAREA", "INPUT"].includes(document.activeElement?.nodeName))) {
+            return;
+        }
+        if (e.metaKey || e.ctrlKey) {
             return;
         }
         if (e.code === "KeyN") { // notes
