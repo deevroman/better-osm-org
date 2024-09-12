@@ -2134,6 +2134,7 @@ function setupRelationVersionView() {
 // https://www.openstreetmap.org/relation/72639/history
 // https://www.openstreetmap.org/node/10173297169/history
 // https://www.openstreetmap.org/relation/16022751/history
+// https://www.openstreetmap.org/node/12084992837/history
 function addDiffInHistory() {
     addHistoryLink();
     if (document.querySelector("#sidebar_content table")) {
@@ -2309,7 +2310,8 @@ function addDiffInHistory() {
 
             }
         )
-        let lastCoordinates = versions.slice(-1)[0].coordinates
+        const lastCoordinates = versions.slice(-1)[0].coordinates
+        const lastVisible = versions.slice(-1)[0].visible
         if (visible && coordinates && versions.length > 1 && coordinates.href !== lastCoordinates) {
             if (lastCoordinates) {
                 const curLat = coordinates.querySelector(".latitude").textContent.replace(",", ".");
@@ -2345,7 +2347,7 @@ function addDiffInHistory() {
         versions.push({
             tags: tags,
             coordinates: coordinates?.href ?? lastCoordinates,
-            wasModified: wasModifiedObject,
+            wasModified: wasModifiedObject || (visible && !lastVisible),
             nodes: childNodes,
             members: [],
             visible: visible
