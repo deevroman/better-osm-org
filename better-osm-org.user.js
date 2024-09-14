@@ -340,8 +340,12 @@ function addRevertButton() {
             )
             textarea.addEventListener("click", () => {
                     textarea.rows = textarea.rows + 2
+                    comment.hidden = false
                 }, {once: true}
             )
+            comment.onclick = () => {
+                [500, 1000, 2000, 4000].map(i => setTimeout(setupRevertButton, i));
+            }
         }
     }
     const tagsHeader = document.querySelector("#sidebar_content h4");
@@ -349,7 +353,7 @@ function addRevertButton() {
         tagsHeader.remove()
     }
     const primaryButtons = document.querySelector("[name=subscribe], [name=unsubscribe]")
-    if (primaryButtons) {
+    if (primaryButtons && osm_server.url === prod_server.url) {
         const changeset_id = sidebar.innerHTML.match(/(\d+)/)[0];
 
         async function uncheck(changeset_id) {
@@ -482,8 +486,8 @@ function addRevertButton() {
     }
 }
 
-function setupRevertButton(path) {
-    if (!path.includes("/changeset")) return;
+function setupRevertButton() {
+    if (!location.pathname.includes("/changeset")) return;
     let timerId = setInterval(() => {
         if (addRevertButton()) clearInterval(timerId)
     }, 100);
@@ -619,6 +623,8 @@ function addResolveNotesButtons() {
     document.querySelectorAll(".overflow-hidden a").forEach(i => {
         i.setAttribute("target", "_blank")
     })
+
+    makeTimesSwitchable()
 
     try {
         // timeback button
@@ -3347,6 +3353,7 @@ async function addChangesetQuickLook() {
 
 // TODO load full changeset and filter geometry points
     try {
+        console.time("QuickLook")
         let uniqTypes = 0
         for (const objType of ["way", "node", "relation"]) {
             if (document.querySelectorAll(`.list-unstyled li.${objType}`).length > 0) {
@@ -3583,6 +3590,7 @@ async function addChangesetQuickLook() {
         }
 
         if (GM_config.get("ShowChangesetGeometryBeta")) {
+            console.log("%cTry find parents ways", 'background: #222; color: #bada55')
             await findParents()
         }
     } catch (e) { // TODO notify user
@@ -3590,6 +3598,7 @@ async function addChangesetQuickLook() {
         console.log("%cSetup QuickLook finished with error ⚠️", 'background: #222; color: #bada55')
     } finally {
         injectingStarted = false
+        console.timeEnd("QuickLook")
         console.log("%cSetup QuickLook finished", 'background: #222; color: #bada55')
     }
 }
@@ -4650,6 +4659,14 @@ function setupNavigationViaHotkeys() {
             if (mapPositionsNextHistory.length) {
                 mapPositionsHistory.push(mapPositionsNextHistory.pop())
                 fitBounds(mapPositionsHistory[mapPositionsHistory.length - 1])
+            }
+        } else if (e.code === "Minus") {
+            if (document.activeElement?.id !== "map") {
+                getMap().setZoom(getMap().getZoom() - 2)
+            }
+        } else if (e.code === "Equal") {
+            if (document.activeElement?.id !== "map") {
+                getMap().setZoom(getMap().getZoom() + 2)
             }
         } else {
             // console.log(e.key, e.code)
