@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Better osm.org
-// @version      0.4.9
+// @version      0.4.99
 // @description  Several improvements for advanced users of osm.org
 // @author       deevroman
 // @match        https://www.openstreetmap.org/*
@@ -221,6 +221,13 @@ const prod_server = {
     apiUrl: "https://www.openstreetmap.org/api/0.6",
     url: "https://www.openstreetmap.org",
     origin: "https://www.openstreetmap.org"
+}
+
+const ohm_prod_server = {
+    apiBase: "https://www.openhistoricalmap.org/api/0.6/",
+    apiUrl: "https://www.openhistoricalmap.org/api/0.6",
+    url: "https://www.openhistoricalmap.org",
+    origin: "https://www.openhistoricalmap.org"
 }
 
 const dev_server = {
@@ -1417,11 +1424,12 @@ function displayWay(nodesList, needFly = false, color = "#000000", width = 4, in
  * @param {string=} color
  * @param {string|number|null=null} infoElemID
  * @param {string=} layerName
+ * @param {number=} radius
  */
-function showNodeMarker(a, b, color = "#006200", infoElemID = null, layerName = 'customObjects') {
+function showNodeMarker(a, b, color = "#006200", infoElemID = null, layerName = 'customObjects', radius = 5) {
     const haloStyle = {
         weight: 2.5,
-        radius: 5,
+        radius: radius,
         fillOpacity: 0,
         color: color
     };
@@ -1470,8 +1478,9 @@ function showActiveNodeMarker(lat, lon, color, removeActiveObjects = true) {
  * @param {string|number=null} infoElemID
  * @param {boolean=true} removeActiveObjects
  * @param {number=} weight
+ * @param {number=} dashArray
  */
-function showActiveWay(nodesList, color = "#ff00e3", needFly = false, infoElemID = null, removeActiveObjects = true, weight = 4) {
+function showActiveWay(nodesList, color = "#ff00e3", needFly = false, infoElemID = null, removeActiveObjects = true, weight = 4, dashArray = null) {
     const line = getWindow().L.polyline(
         intoPage(nodesList.map(elem => intoPage(getWindow().L.latLng(intoPage(elem))))),
         intoPage({
@@ -1479,7 +1488,8 @@ function showActiveWay(nodesList, color = "#ff00e3", needFly = false, infoElemID
             weight: weight,
             clickable: false,
             opacity: 1,
-            fillOpacity: 1
+            fillOpacity: 1,
+            dashArray: dashArray
         })
     ).addTo(getMap());
     if (removeActiveObjects) {
@@ -1660,17 +1670,21 @@ function setupNodeVersionView() {
  * @return {Promise<NodeVersion[][]>}
  */
 async function loadNodesViaHistoryCalls(nodes) {
-    const targetNodesHistory = []
-    for (const nodeID of nodes) {
-        if (nodesHistories[nodeID]) {
-            targetNodesHistory.push(nodesHistories[nodeID]);
-        } else {
-            const res = await fetch(osm_server.apiBase + "node" + "/" + nodeID + "/history.json");
-            nodesHistories[nodeID] = (await res.json()).elements
-            targetNodesHistory.push(nodesHistories[nodeID]);
+    async function _do(nodes) {
+        const targetNodesHistory = []
+        for (const nodeID of nodes) {
+            if (nodesHistories[nodeID]) {
+                targetNodesHistory.push(nodesHistories[nodeID]);
+            } else {
+                const res = await fetch(osm_server.apiBase + "node" + "/" + nodeID + "/history.json");
+                nodesHistories[nodeID] = (await res.json()).elements
+                targetNodesHistory.push(nodesHistories[nodeID]);
+            }
         }
+        return targetNodesHistory
     }
-    return targetNodesHistory
+
+    return (await Promise.all(arraySplit(nodes).map(_do))).flat()
 }
 
 /**
@@ -1717,9 +1731,10 @@ async function getWayHistory(wayID) {
 /**
  * @param {string|number} wayID
  * @param {number} version
+ * @param {string|number|null=} changesetID
  * @return {Promise<[WayVersion, NodeVersion[][]]>}
  */
-async function loadWayVersionNodes(wayID, version) {
+async function loadWayVersionNodes(wayID, version, changesetID = null) {
     console.debug("Loading way", wayID, version)
     const wayHistory = await getWayHistory(wayID)
 
@@ -1826,11 +1841,14 @@ async function loadWayVersionNodes(wayID, version) {
  * @template T
  * @param {T[]} history
  * @param {string} timestamp
- * @return {T}
+ * @return {T|null}
  */
 function filterVersionByTimestamp(history, timestamp) {
     const targetTime = new Date(timestamp)
     let cur = history[0]
+    if (targetTime < new Date(cur.timestamp)) {
+        return null
+    }
     for (const v of history) {
         if (new Date(v.timestamp) <= targetTime) {
             cur = v;
@@ -1899,7 +1917,8 @@ function setupWayVersionView() {
         btn.textContent = "📥"
         btn.style.cursor = "pointer"
         btn.setAttribute("way-version", version.toString())
-
+        // fixme mouseenter должен начинать загрузку в фоне
+        // но только при клике должна начинаться анимация
         btn.addEventListener("mouseenter", loadWayVersion, {
             once: true,
         })
@@ -2471,9 +2490,15 @@ function setupRelationVersionViewer() {
 let injectingStarted = false
 let tagsOfObjectsVisible = true
 
-// Perf test: https://www.openstreetmap.org/changeset/155712128
-// Check way 695574090: https://www.openstreetmap.org/changeset/71014890
-// Check deleted relation https://www.openstreetmap.org/changeset/155923052
+// Perf test:                                           https://osm.org/changeset/155712128
+// Check way 695574090:                                 https://osm.org/changeset/71014890
+// Check deleted relation                               https://osm.org/changeset/155923052
+// Heavy ways and deleted relation                      https://osm.org/changeset/153431079
+// Downloading parents:                                 https://osm.org/changeset/156331065
+// Restored objects                                     https://osm.org/changeset/156515722
+// Check ways with version=1                            https://osm.org/changeset/155689740
+// Many changes in the coordinates of the intersections https://osm.org/changeset/156331065
+// Many changes in the coordinates of the intersections https://osm.org/changeset/1000
 /**
  * Get editorial prescription via modified Levenshtein distance finding algorithm
  * @template T
@@ -2549,6 +2574,20 @@ function arraysDiff(a, b) {
 }
 
 /**
+ * @param {[]} arr
+ * @param N
+ * @return {[]}
+ */
+function arraySplit(arr, N = 2) {
+    const chunkSize = arr.length / N;
+    const res = [];
+    for (let i = 0; i < arr.length; i += chunkSize) {
+        res.push(arr.slice(i, i + chunkSize));
+    }
+    return res;
+}
+
+/**
  *
  * @type {{minlon: number,
  * closed_at: string,
@@ -2620,6 +2659,43 @@ async function addChangesetQuickLook() {
     }
     blurSearchField();
     makeTimesSwitchable()
+
+    const changesetID = location.pathname.match(/changeset\/(\d+)/)[1]
+
+    async function getHistoryAndVersionByElem(elem) {
+        const [, objType, objID, version] = elem.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
+        const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/history.json");
+        if (histories[objType][objID]) {
+            return [histories[objType][objID], parseInt(version)]
+        }
+        return [histories[objType][objID] = (await res.json()).elements, parseInt(version)];
+    }
+
+    const emptyVersion = {
+        tags: {},
+        version: 0,
+        lat: null,
+        lon: null
+    }
+
+    /**
+     * @param {[]} objHistory
+     * @param {number} version
+     */
+    function getPrevTargetLastVersions(objHistory, version) {
+        let prevVersion = emptyVersion;
+        let targetVersion = prevVersion;
+        let lastVersion = objHistory.at(-1);
+
+        for (const objVersion of objHistory) {
+            prevVersion = targetVersion
+            targetVersion = objVersion
+            if (objVersion.version === version) {
+                break
+            }
+        }
+        return [prevVersion, targetVersion, lastVersion]
+    }
 
     async function processObjects(objType, uniqTypes) {
         const objCount = document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`).length
@@ -2825,6 +2901,14 @@ async function addChangesetQuickLook() {
                 if (lineWasReversed) {
                     geomChangedFlag.after(document.createTextNode(['ru-RU', 'ru'].includes(navigator.language) ? " ⓘ Линию перевернули" : "ⓘ The line has been reversed"))
                 }
+
+            }
+            if (prevVersion.visible === false && targetVersion?.visible !== false) {
+                let restoredElemFlag = document.createElement("span")
+                restoredElemFlag.textContent = " ♻️"
+                restoredElemFlag.title = "Object was restored"
+                restoredElemFlag.style.userSelect = "none"
+                i.appendChild(restoredElemFlag)
             }
             if (prevVersion?.members && JSON.stringify(prevVersion.members) !== JSON.stringify(targetVersion.members)) {
                 let memChangedFlag = document.createElement("span")
@@ -3035,11 +3119,124 @@ async function addChangesetQuickLook() {
                 i.classList.add("tags-non-modified")
             }
             //</editor-fold>
-            //<editor-fold desc="setup interactive possibilities">
+            i.classList.add("tags-processed-object")
+        }
+
+        const needFetch = []
+
+
+        if (objType === "relation" && objCount >= 2) {
+            for (let i of document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`)) {
+                const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
+                const version = parseInt(strVersion)
+                if (version === 1) {
+                    needFetch.push(objID + "v" + version)
+                    needFetch.push(objID)
+                } else {
+                    needFetch.push(objID + "v" + (version - 1))
+                    needFetch.push(objID + "v" + version)
+                    needFetch.push(objID)
+                }
+            }
+            const res = await fetch(osm_server.apiBase + `${objType}s.json?${objType}s=` + needFetch.join(","));
+            if (res.status === 404) {
+                for (let i of document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`)) {
+                    await processObject(i, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(i)))
+                }
+            } else {
+                /**
+                 * @type {RelationVersion[]}
+                 */
+                const versions = (await res.json()).elements
+                /**
+                 * @type {Object.<number, Object.<number, RelationVersion>>}
+                 */
+                const objectsVersions = {}
+                Object.entries(Object.groupBy(Array.from(versions), i => i.id)).forEach(([id, history]) => {
+                        objectsVersions[id] = Object.fromEntries(Object.entries(Object.groupBy(history, i => i.version)).map(([version, val]) => [version, val[0]]))
+                    }
+                )
+                for (let i of document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`)) {
+                    const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
+                    const version = parseInt(strVersion)
+                    await processObject(i, ...getPrevTargetLastVersions(Object.values(objectsVersions[objID]), version))
+                }
+            }
+        } else {
+            await Promise.all(Array.from(document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`)).map(async function (i) {
+                await processObject(i, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(i)))
+            }))
+        }
+
+        // reorder non-interesting-objects
+        Array.from(document.querySelectorAll(`.list-unstyled li.${objType}.tags-non-modified`)).forEach(i => {
+            document.querySelector(`.list-unstyled li.${objType}`).parentElement.appendChild(i)
+        })
+        Array.from(document.querySelectorAll(`.list-unstyled li.${objType}.tags-non-modified:not(.location-modified)`)).forEach(i => {
+            document.querySelector(`.list-unstyled li.${objType}`).parentElement.appendChild(i)
+        })
+
+
+        //<editor-fold desc="setup compact mode toggles">
+        let compactToggle = document.createElement("button")
+        compactToggle.textContent = tagsOfObjectsVisible ? "><" : "<>"
+        compactToggle.classList.add("quick-look-compact-toggle-btn")
+        compactToggle.classList.add("btn", "btn-sm", "btn-primary")
+        compactToggle.classList.add("quick-look")
+        compactToggle.onclick = (e) => {
+            document.querySelectorAll(".quick-look-compact-toggle-btn").forEach(i => {
+                if (e.target.textContent === "><") {
+                    i.textContent = "<>"
+                } else {
+                    i.textContent = "><"
+                }
+            })
+            tagsOfObjectsVisible = !tagsOfObjectsVisible
+            document.querySelectorAll(".non-modified-tag-in-quick-view").forEach(i => {
+                if (e.target.textContent === "><") {
+                    i.removeAttribute("hidden")
+                } else {
+                    i.setAttribute("hidden", "true")
+                }
+            });
+        }
+        const objectListSection = document.querySelector(`.list-unstyled li.${objType}`).parentElement.parentElement.querySelector("h4")
+        if (!objectListSection.querySelector(".quick-look-compact-toggle-btn")) {
+            objectListSection.appendChild(compactToggle)
+        }
+        compactToggle.before(document.createTextNode("\xA0"))
+        if (uniqTypes === 1 && document.querySelectorAll(`.list-unstyled li.${objType} .non-modified-tag-in-quick-view`).length < 5) {
+            compactToggle.style.display = "none"
+            document.querySelectorAll(".non-modified-tag-in-quick-view").forEach(i => {
+                i.removeAttribute("hidden")
+            });
+        }
+        //</editor-fold>
+    }
+
+    async function processObjectsInteractions(objType, uniqTypes) {
+        const objCount = document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`).length
+        if (objCount === 0) {
+            return;
+        }
+
+        /**
+         * @param {Element} i
+         * @param {NodeVersion|WayVersion|RelationVersion} prevVersion
+         * @param {NodeVersion|WayVersion|RelationVersion} targetVersion
+         * @param {NodeVersion|WayVersion|RelationVersion} lastVersion
+         */
+        async function processObjectInteractions(i, prevVersion, targetVersion, lastVersion) {
             if (!GM_config.get("ShowChangesetGeometryBeta")) {
                 i.classList.add("processed-object")
                 return
             }
+            /**
+             * @type {[string, string, string, string]}
+             */
+            const m = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
+            const [, , objID, strVersion] = m
+            const version = parseInt(strVersion)
             i.ondblclick = () => {
                 if (changesetMetadata) {
                     fitBounds([
@@ -3073,6 +3270,8 @@ async function addChangesetQuickLook() {
                     if (targetVersion.tags || nodesWithOldParentWays.has(parseInt(objID))) {
                         showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#006200", targetVersion.id)
                     }
+                } else if (prevVersion?.visible === false && targetVersion?.visible !== false) {
+                    showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "rgba(89,170,9,0.6)", targetVersion.id, 'customObjects', 2)
                 } else {
                     showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "rgb(255,245,41)", targetVersion.id)
                 }
@@ -3142,21 +3341,24 @@ async function addChangesetQuickLook() {
                         const [, nodesHistory] = await loadWayVersionNodes(objID, version - 1);
                         const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                         const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                        showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false)
+                        showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false, 4, "4, 4")
 
                         showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false)
                     } else {
                         const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                         const prevVersion = filterVersionByTimestamp(await getWayHistory(objID), targetTimestamp);
-                        const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
-                        const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                        showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false)
-
+                        if (prevVersion) {
+                            const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
+                            const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
+                            showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false, 4, "4, 4")
+                        }
                         showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false)
                     }
                 }
-                if (version === 1) {
+                if (version === 1 && targetVersion.changeset === parseInt(changesetID)) {
                     displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(0,128,0,0.6)", 4, objID)
+                } else if (prevVersion?.visible === false) {
+                    displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(120,238,9,0.6)", 4, objID)
                 } else {
                     displayWay(cloneInto(currentNodesList, unsafeWindow), false, "#373737", 4, objID)
                 }
@@ -3170,16 +3372,17 @@ async function addChangesetQuickLook() {
                         const [, nodesHistory] = await loadWayVersionNodes(objID, version - 1);
                         const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                         const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                        showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false)
+                        showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false, 4, "4, 4")
 
                         showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false)
                     } else {
                         const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                         const prevVersion = filterVersionByTimestamp(await getWayHistory(objID), targetTimestamp);
-                        const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
-                        const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                        showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false)
-
+                        if (prevVersion) {
+                            const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
+                            const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
+                            showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false, 4, "4, 4")
+                        }
                         showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false)
                     }
                 }
@@ -3190,9 +3393,12 @@ async function addChangesetQuickLook() {
                 btn.style.cursor = "pointer"
                 btn.addEventListener("click", async () => {
                     btn.style.cursor = "progress"
-                    const targetTimestamp = (new Date(changesetMetadata.closed_at ?? new Date())).toISOString()
+                    let targetTimestamp = (new Date(changesetMetadata.closed_at ?? new Date())).toISOString()
+                    if (targetVersion.visible === false) {
+                        targetTimestamp = new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString();
+                    }
                     try {
-                        const relationMetadata = await loadRelationVersionMembersViaOverpass(objID, targetTimestamp, false, "#ff00e3")
+                        const relationMetadata = await loadRelationVersionMembersViaOverpass(parseInt(objID), targetTimestamp, false, "#ff00e3")
                         i.onclick = () => {
                             fitBounds([
                                 [relationMetadata.bbox.min_lat, relationMetadata.bbox.min_lon],
@@ -3200,7 +3406,7 @@ async function addChangesetQuickLook() {
                             ])
                         }
                         i.onmouseenter = async () => {
-                            await loadRelationVersionMembersViaOverpass(objID, targetTimestamp, false, "#ff00e3")
+                            await loadRelationVersionMembersViaOverpass(parseInt(objID), targetTimestamp, false, "#ff00e3")
                         }
                         i.classList.add("downloaded")
                     } catch (e) {
@@ -3213,46 +3419,10 @@ async function addChangesetQuickLook() {
                 i.querySelector("a:nth-of-type(2)").after(btn)
                 i.querySelector("a:nth-of-type(2)").after(document.createTextNode("\xA0"))
             }
-            //</editor-fold>
             i.classList.add("processed-object")
         }
 
         const needFetch = []
-
-        const emptyVersion = {
-            tags: {},
-            version: 0,
-            lat: null,
-            lon: null
-        }
-
-        async function getHistoryAndVersionByElem(elem) {
-            const [, , objID, version] = elem.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
-            const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/history.json");
-            if (histories[objType][objID]) {
-                return [histories[objType][objID], parseInt(version)]
-            }
-            return [histories[objType][objID] = (await res.json()).elements, parseInt(version)];
-        }
-
-        /**
-         * @param {[]} objHistory
-         * @param {number} version
-         */
-        function getPrevTargetLastVersions(objHistory, version) {
-            let prevVersion = emptyVersion;
-            let targetVersion = prevVersion;
-            let lastVersion = objHistory.at(-1);
-
-            for (const objVersion of objHistory) {
-                prevVersion = targetVersion
-                targetVersion = objVersion
-                if (objVersion.version === version) {
-                    break
-                }
-            }
-            return [prevVersion, targetVersion, lastVersion]
-        }
 
         if (objType === "relation" && objCount >= 2) {
             for (let i of document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`)) {
@@ -3270,7 +3440,7 @@ async function addChangesetQuickLook() {
             const res = await fetch(osm_server.apiBase + `${objType}s.json?${objType}s=` + needFetch.join(","));
             if (res.status === 404) {
                 for (let i of document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`)) {
-                    await processObject(i, ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(i))))
+                    await processObjectInteractions(i, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(i)))
                 }
             } else {
                 /**
@@ -3288,61 +3458,15 @@ async function addChangesetQuickLook() {
                 for (let i of document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`)) {
                     const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
                     const version = parseInt(strVersion)
-                    await processObject(i, ...getPrevTargetLastVersions(Object.values(objectsVersions[objID]), version))
+                    await processObjectInteractions(i, ...getPrevTargetLastVersions(Object.values(objectsVersions[objID]), version))
                 }
             }
         } else {
             await Promise.all(Array.from(document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`)).map(async function (i) {
-                await processObject(i, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(i)))
+                await processObjectInteractions(i, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(i)))
             }))
         }
 
-        // reorder non-interesting-objects
-        Array.from(document.querySelectorAll(`.list-unstyled li.${objType}.tags-non-modified`)).forEach(i => {
-            document.querySelector(`.list-unstyled li.${objType}`).parentElement.appendChild(i)
-        })
-        Array.from(document.querySelectorAll(`.list-unstyled li.${objType}.tags-non-modified:not(.location-modified)`)).forEach(i => {
-            document.querySelector(`.list-unstyled li.${objType}`).parentElement.appendChild(i)
-        })
-
-
-        //<editor-fold desc="setup compact mode toggles">
-        let compactToggle = document.createElement("button")
-        compactToggle.textContent = tagsOfObjectsVisible ? "><" : "<>"
-        compactToggle.classList.add("quick-look-compact-toggle-btn")
-        compactToggle.classList.add("btn", "btn-sm", "btn-primary")
-        compactToggle.classList.add("quick-look")
-        compactToggle.onclick = (e) => {
-            document.querySelectorAll(".quick-look-compact-toggle-btn").forEach(i => {
-                if (e.target.textContent === "><") {
-                    i.textContent = "<>"
-                } else {
-                    i.textContent = "><"
-                }
-            })
-            tagsOfObjectsVisible = !tagsOfObjectsVisible
-            document.querySelectorAll(".non-modified-tag-in-quick-view").forEach(i => {
-                if (e.target.textContent === "><") {
-                    i.removeAttribute("hidden")
-                } else {
-                    i.setAttribute("hidden", "true")
-                }
-            });
-        }
-        const objectListSection = document.querySelector(`.list-unstyled li.${objType}`).parentElement.previousElementSibling.querySelector("h4")
-        if (!objectListSection.querySelector(".quick-look-compact-toggle-btn")) {
-            objectListSection.appendChild(compactToggle)
-        }
-        compactToggle.before(document.createTextNode("\xA0"))
-        if (uniqTypes === 1 && document.querySelectorAll(`.list-unstyled li.${objType} .non-modified-tag-in-quick-view`).length < 5) {
-            compactToggle.style.display = "none"
-            document.querySelectorAll(".non-modified-tag-in-quick-view").forEach(i => {
-                i.removeAttribute("hidden")
-            });
-        }
-        //</editor-fold>
-
-        const changesetID = location.pathname.match(/changeset\/(\d+)/)[1]
         if (!changesetsCache[changesetID]) {
             await getChangeset(changesetID)
         } else if (objCount >= 20) {
@@ -3351,7 +3475,6 @@ async function addChangesetQuickLook() {
 
     }
 
-// TODO load full changeset and filter geometry points
     try {
         console.time("QuickLook")
         let uniqTypes = 0
@@ -3364,21 +3487,25 @@ async function addChangesetQuickLook() {
         for (const objType of ["way", "node", "relation"]) {
             await processObjects(objType, uniqTypes);
         }
-        const changesetData = await getChangeset(location.pathname.match(/changeset\/(\d+)/)[1])
+        const changesetDataPromise = getChangeset(location.pathname.match(/changeset\/(\d+)/)[1])
+        for (const objType of ["way", "node", "relation"]) {
+            await processObjectsInteractions(objType, uniqTypes);
+        }
+        const changesetData = await changesetDataPromise
 
         function replaceNodes(changesetData) {
             const pagination = Array.from(document.querySelectorAll(".pagination")).find(i => {
                 return Array.from(i.querySelectorAll("a.page-link")).some(a => a.href?.includes("node"))
             })
             if (!pagination) return
-            const ul = pagination.parentElement.nextElementSibling
+            const ul = pagination.parentElement.querySelector("ul.list-unstyled")
             const nodes = changesetData.querySelectorAll("node")
             if (nodes.length > 1000) {
                 return;
             }
             pagination.remove();
             const summaryHeader = document.querySelector(`.list-unstyled li.node`)
-                .parentElement.previousElementSibling.querySelector("h4")
+                .parentElement.parentElement.querySelector("h4")
                 .firstChild;
             summaryHeader.textContent = summaryHeader.textContent.replace(/\(.*\)/, `(1-${nodes.length})`)
 
@@ -3424,7 +3551,7 @@ async function addChangesetQuickLook() {
                 return Array.from(i.querySelectorAll("a.page-link")).some(a => a.href?.includes("way"))
             })
             if (!pagination) return
-            const ul = pagination.parentElement.nextElementSibling
+            const ul = pagination.parentElement.querySelector("ul.list-unstyled")
             const ways = changesetData.querySelectorAll("way")
             if (ways.length > 50) {
                 if (ways.length > 100 && changesetData.querySelectorAll("node") > 40) {
@@ -3436,7 +3563,7 @@ async function addChangesetQuickLook() {
             }
             pagination.remove();
             const summaryHeader = document.querySelector(`.list-unstyled li.way`)
-                .parentElement.previousElementSibling.querySelector("h4")
+                .parentElement.parentElement.querySelector("h4")
                 .firstChild;
             summaryHeader.textContent = summaryHeader.textContent.replace(/\(.*\)/, `(1-${ways.length})`)
             ways.forEach(way => {
@@ -3477,9 +3604,11 @@ async function addChangesetQuickLook() {
 
         replaceWays(changesetData)
         await processObjects("way", uniqTypes);
+        await processObjectsInteractions("way", uniqTypes);
 
         replaceNodes(changesetData)
         await processObjects("node", uniqTypes);
+        await processObjectsInteractions("node", uniqTypes);
 
         // try find parent ways
 
@@ -3500,6 +3629,7 @@ async function addChangesetQuickLook() {
         }
 
         async function findParents() {
+            const nodesCount = changesetData.querySelectorAll(`node`)
             changesetData.querySelectorAll(`node[version="1"]`).forEach(i => {
                 const nodeID = i.getAttribute("id")
                 if (!i.querySelector("tag")) {
@@ -3510,83 +3640,106 @@ async function addChangesetQuickLook() {
                     }
                 }
             })
+            /**
+             * @type {Set<number>}
+             */
             const processedNodes = new Set();
+            /**
+             * @type {Set<number>}
+             */
+            const processedWays = new Set();
             // fixme
-            const changesetNodesMap = Object.groupBy(Array.from(changesetData.querySelectorAll(`node:not([version="1"])`)), n => parseInt(n.id))
-            for (const nodeElem of document.querySelectorAll(".node.location-modified")) {
-                const nodeID = parseInt(nodeElem.id.slice(1))
-                if (nodesWithParentWays.has(nodeID) || processedNodes.has(nodeID)) continue;
-                const parents = await getParentWays(nodeID)
-                for (const way of parents) {
-                    way.nodes.forEach(node => {
-                        processedNodes.add(node)
-                    })
-                    const objID = way.id
+            const changesetWaysSet = new Set(Array.from(changesetData.querySelectorAll(`way`)).map(i => parseInt(i.id)))
+            const loadNodesParents = async nodes => {
+                for (const nodeID of nodes) {
+                    if (nodesWithParentWays.has(nodeID) || processedNodes.has(parseInt(nodeID))) continue;
+                    const parents = await getParentWays(nodeID)
 
-                    const res = await fetch(osm_server.apiBase + "way" + "/" + way.id + "/full.json");
-                    if (!res.ok) {
-                        // todo
-                        continue;
-                    }
-                    const lastElements = (await res.json()).elements
-                    lastElements.forEach(n => {
-                        if (n.type !== "node") return
-                        if (n.version === 1) {
-                            nodesHistories[n.id] = [n]
-                        }
-                    })
-                    const targetVersion = filterVersionByTimestamp(await getWayHistory(way.id), changesetMetadata.closed_at);
-                    const [, wayNodesHistories] = await loadWayVersionNodes(objID, targetVersion.version)
-                    const targetNodes = filterObjectListByTimestamp(wayNodesHistories, changesetMetadata.closed_at)
+                    await Promise.all(parents.map(async way => {
+                                if (processedWays.has(way.id) || changesetWaysSet.has(way.id)) {
+                                    return
+                                }
+                                processedWays.add(way.id)
+                                way.nodes.forEach(node => {
+                                    processedNodes.add(node)
+                                })
+                                const objID = way.id
 
-                    const nodesMap = {}
-                    targetNodes.forEach(elem => {
-                        nodesMap[elem.id] = [elem.lat, elem.lon]
-                    })
+                                const res = await fetch(osm_server.apiBase + "way" + "/" + way.id + "/full.json");
+                                if (!res.ok) {
+                                    // todo
+                                    return;
+                                }
+                                const lastElements = (await res.json()).elements
+                                lastElements.forEach(n => {
+                                    if (n.type !== "node") return
+                                    if (n.version === 1) {
+                                        nodesHistories[n.id] = [n]
+                                    }
+                                })
+                                const targetVersion = filterVersionByTimestamp(await getWayHistory(way.id), changesetMetadata.closed_at);
+                                const [, wayNodesHistories] = await loadWayVersionNodes(objID, targetVersion.version)
+                                const targetNodes = filterObjectListByTimestamp(wayNodesHistories, changesetMetadata.closed_at)
 
-                    let currentNodesList = []
-                    targetVersion.nodes.forEach(node => {
-                        if (node in nodesMap) {
-                            currentNodesList.push(nodesMap[node])
-                        } else {
-                            console.error(objID, node)
-                            console.trace()
-                        }
-                    })
+                                const nodesMap = {}
+                                targetNodes.forEach(elem => {
+                                    nodesMap[elem.id] = [elem.lat, elem.lon]
+                                })
 
-                    displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(55,55,55,0.5)", 4, objID)
-                    way.nodes.forEach(n => {
-                        if (!document.querySelector("#n" + n)) return
-                        document.querySelector("#n" + n).addEventListener('mouseenter', async () => {
-                            showActiveWay(cloneInto(currentNodesList, unsafeWindow))
-                            document.querySelectorAll(".map-hover").forEach(el => {
-                                el.classList.remove("map-hover")
-                            })
-                            const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
-                            if (targetVersion.version > 1) {
-                                // show prev version
-                                const prevVersion = filterVersionByTimestamp(await getWayHistory(way.id), targetTimestamp);
-                                const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
-                                const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                                showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false)
+                                let currentNodesList = []
+                                targetVersion.nodes.forEach(node => {
+                                    if (node in nodesMap) {
+                                        currentNodesList.push(nodesMap[node])
+                                    } else {
+                                        console.error(objID, node)
+                                        console.trace()
+                                    }
+                                })
+                                displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(55,55,55,0.5)", 4, objID)
+                                way.nodes.forEach(n => {
+                                    if (!document.querySelector("#n" + n)) return
+                                    document.querySelector("#n" + n).addEventListener('mouseenter', async () => {
+                                        showActiveWay(cloneInto(currentNodesList, unsafeWindow))
+                                        document.querySelectorAll(".map-hover").forEach(el => {
+                                            el.classList.remove("map-hover")
+                                        })
+                                        const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
+                                        if (targetVersion.version > 1) {
+                                            // show prev version
+                                            const prevVersion = filterVersionByTimestamp(await getWayHistory(way.id), targetTimestamp);
+                                            const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
+                                            const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
+                                            showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false, 4, "4, 4")
 
-                                // showActiveWay(cloneInto(currentNodesList, unsafeWindow), "rgba(55,55,55,0.5)", false, objID, false)
-                            } else {
-                                const prevVersion = filterVersionByTimestamp(await getWayHistory(way.id), targetTimestamp);
-                                const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
-                                const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                                showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false)
+                                            // showActiveWay(cloneInto(currentNodesList, unsafeWindow), "rgba(55,55,55,0.5)", false, objID, false)
+                                        } else {
+                                            const prevVersion = filterVersionByTimestamp(await getWayHistory(way.id), targetTimestamp);
+                                            if (prevVersion) {
+                                                const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
+                                                const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
+                                                showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false, 4, "4, 4")
 
-                                // showActiveWay(cloneInto(currentNodesList, unsafeWindow), "rgba(55,55,55,0.5)", false, objID, false)
+                                                // showActiveWay(cloneInto(currentNodesList, unsafeWindow), "rgba(55,55,55,0.5)", false, objID, false)
+                                            }
+                                        }
+                                        // if (targetVersion.version > 1) {
+                                        //     const prevVersion = filterVersionByTimestamp(await getNodeHistory(n), targetTimestamp)
+                                        //     showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", false)
+                                        // }
+                                        const curVersion = filterVersionByTimestamp(await getNodeHistory(n), changesetMetadata.closed_at ?? new Date())
+                                        showActiveNodeMarker(curVersion.lat.toString(), curVersion.lon.toString(), "#ff00e3", false)
+                                    })
+                                })
                             }
-                            const prevVersion = filterVersionByTimestamp(await getNodeHistory(n), targetTimestamp)
-                            const curVersion = filterVersionByTimestamp(await getNodeHistory(n), changesetMetadata.closed_at ?? new Date())
-                            showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", false)
-                            showActiveNodeMarker(curVersion.lat.toString(), curVersion.lon.toString(), "#ff00e3", false)
-                        })
-                    })
+                        )
+                    )
                 }
-            }
+            };
+            const nodesWithModifiedLocation = Array.from(document.querySelectorAll(".node.location-modified")).map(i => parseInt(i.id.slice(1)))
+            await Promise.all(arraySplit(nodesWithModifiedLocation, 4).map(loadNodesParents))
+            // fast hack
+            // const someInterestingNodes = Array.from(changesetData.querySelectorAll("node")).filter(i => i.querySelector("tag[k=power],tag[k=entrance]")).map(i => parseInt(i.id))
+            // await Promise.all(arraySplit(someInterestingNodes, 4).map(loadNodesParents))
         }
 
         if (GM_config.get("ShowChangesetGeometryBeta")) {
@@ -4596,6 +4749,8 @@ function setupNavigationViaHotkeys() {
                 } else {
                     console.debug("skip H")
                 }
+            } else if (location.pathname === "/") {
+                document.querySelector("#history_tab")?.click()
             }
         } else if (e.code === "KeyY") {
             const [, z, x, y] = new URL(document.querySelector("#editanchor").href).hash.match(/map=(\d+)\/([0-9.-]+)\/([0-9.-]+)/)
@@ -4667,6 +4822,12 @@ function setupNavigationViaHotkeys() {
         } else if (e.code === "Equal") {
             if (document.activeElement?.id !== "map") {
                 getMap().setZoom(getMap().getZoom() + 2)
+            }
+        } else if (e.code === "KeyO") {
+            if (e.shiftKey) {
+                window.open("https://overpass-api.de/achavi/?changeset=" + location.pathname.match(/\/changeset\/(\d+)/)[1])
+            } else {
+                document.querySelector("#osmcha_link")?.click()
             }
         } else {
             // console.log(e.key, e.code)
@@ -4836,6 +4997,8 @@ function setup() {
         osm_server = prod_server;
     } else if (location.href.startsWith(dev_server.origin)) {
         osm_server = dev_server;
+    } else if (location.href.startsWith(ohm_prod_server.origin)) {
+        osm_server = ohm_prod_server
     } else {
         osm_server = local_server;
     }

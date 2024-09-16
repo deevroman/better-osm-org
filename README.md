@@ -50,11 +50,11 @@ Userscript adding several improvements for experienced osm.org users
 - [ ] Template responses when closing notes
 - + [x] 👌
 + [x] Add Rapid & geo: links into Edit menu
-- [ ] Mass actions with changesets
+- [x] Mass actions with changesets
 - + [x] mass revert via osm-revert
 - + [x] copy ids for JOSM
 - + [x] via remote control JOSM
-- + [ ] mass changesets download 
+- + [x] load 300 changeset 
 - [x] Settings
 - [x] Hide active note highlight
 - [x] Exact datetime instead of a verbal description
@@ -92,7 +92,11 @@ Userscript adding several improvements for experienced osm.org users
 - + [ ] Overpass?
 - [ ] Clickable contact:* 
 - [ ] {{bbox}} on/off in Overpass Turbo
+- [ ] Bookmarks on map (like Organic Maps)
+- [ ] Show nearest example for map legend 
 
 Maybe
+- [ ] Support OpenHistoricalMap
+- [ ] Move object from OSM into OpenHistoricalMap 
 - [ ] osm-revert template
 - [ ] stop via kill switch for osm token
