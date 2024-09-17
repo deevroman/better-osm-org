@@ -2498,7 +2498,8 @@ let tagsOfObjectsVisible = true
 // Restored objects                                     https://osm.org/changeset/156515722
 // Check ways with version=1                            https://osm.org/changeset/155689740
 // Many changes in the coordinates of the intersections https://osm.org/changeset/156331065
-// Many changes in the coordinates of the intersections https://osm.org/changeset/1000
+// Deleted and restored objects                         https://osm.org/changeset/155160344
+// Old edits with unusual objects                       https://osm.org/changeset/1000
 /**
  * Get editorial prescription via modified Levenshtein distance finding algorithm
  * @template T
@@ -2675,7 +2676,8 @@ async function addChangesetQuickLook() {
         tags: {},
         version: 0,
         lat: null,
-        lon: null
+        lon: null,
+        visible: false
     }
 
     /**
@@ -2903,7 +2905,7 @@ async function addChangesetQuickLook() {
                 }
 
             }
-            if (prevVersion.visible === false && targetVersion?.visible !== false) {
+            if (prevVersion.visible === false && targetVersion?.visible !== false && targetVersion.version !== 1) {
                 let restoredElemFlag = document.createElement("span")
                 restoredElemFlag.textContent = " ♻️"
                 restoredElemFlag.title = "Object was restored"
@@ -3113,6 +3115,9 @@ async function addChangesetQuickLook() {
             if (targetVersion.version !== lastVersion.version && lastVersion.visible === false) {
                 i.appendChild(document.createTextNode(['ru-RU', 'ru'].includes(navigator.language) ? " ⓘ Объект уже удалён" : " ⓘ The object is now deleted"))
             }
+            if (targetVersion.visible === false && lastVersion.visible !== false) {
+                i.appendChild(document.createTextNode(['ru-RU', 'ru'].includes(navigator.language) ? " ⓘ Объект сейчас восстановлен" : " ⓘ The object is now restored"))
+            }
             if (tagsWasChanged) {
                 i.appendChild(tagsTable)
             } else {
@@ -3249,7 +3254,9 @@ async function addChangesetQuickLook() {
                 i.id = "n" + objID
                 i.onmouseenter = () => {
                     if (targetVersion.visible === false) {
-                        showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff")
+                        if (prevVersion.visible !== false) {
+                            showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff")
+                        }
                     } else {
                         showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3")
                     }
@@ -3265,7 +3272,13 @@ async function addChangesetQuickLook() {
                     }
                 }
                 if (targetVersion.visible === false) {
-                    showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#FF0000", prevVersion.id)
+                    if (targetVersion.version !== 1) { // даа, такое есть https://www.openstreetmap.org/node/300524/history
+                        if (prevVersion.tags) {
+                            showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#FF0000", prevVersion.id)
+                        } else {
+                            showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#FF0000", prevVersion.id, "customObjects", 2)
+                        }
+                    }
                 } else if (targetVersion.version === 1) {
                     if (targetVersion.tags || nodesWithOldParentWays.has(parseInt(objID))) {
                         showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#006200", targetVersion.id)
@@ -3285,16 +3298,25 @@ async function addChangesetQuickLook() {
                             await new Promise(r => setTimeout(r, 1000));
                         }
                         const versionForLoad = targetVersion.visible === false ? prevVersion.version : targetVersion.version;
+                        if (versionForLoad === 0 && targetVersion.visible === false) {
+                            return;
+                        }
                         const [, nodesHistory] = await loadWayVersionNodes(objID, versionForLoad);
                         const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                         const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
                         if (targetVersion.visible === false) {
                             displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 3, objID)
                         } else {
-                            displayWay(cloneInto(nodesList, unsafeWindow), false, "rgba(0,128,0,0.6)", 3, objID, "customObjects", "4, 4")
+                            if (targetVersion.version === 1) {
+                                displayWay(cloneInto(nodesList, unsafeWindow), false, "rgba(0,128,0,0.6)", 3, objID, "customObjects", "4, 4")
+                            } else {
+                                if (prevVersion.visible === false) {
+                                    displayWay(cloneInto(nodesList, unsafeWindow), false, "rgb(255,245,41)", 3, objID, "customObjects", "4, 4")
+                                } else {
+                                    displayWay(cloneInto(nodesList, unsafeWindow), false, "rgb(0,0,0)", 3, objID, "customObjects", "4, 4")
+                                }
+                            }
                         }
-
-                        console.warn(res)
                         i.onmouseenter = () => {
                             showActiveWay(cloneInto(nodesList, unsafeWindow), "#ff00e3", false, objID)
                         }
@@ -3323,25 +3345,27 @@ async function addChangesetQuickLook() {
                 })
 
                 let currentNodesList = []
-                targetVersion.nodes.forEach(node => {
-                    if (node in nodesMap) {
-                        currentNodesList.push(nodesMap[node])
-                    } else {
-                        console.error(objID, node)
-                        console.trace()
-                    }
-                })
+                if (targetVersion.visible !== false) {
+                    targetVersion.nodes?.forEach(node => {
+                        if (node in nodesMap) {
+                            currentNodesList.push(nodesMap[node])
+                        } else {
+                            console.error(objID, node)
+                            console.trace()
+                        }
+                    })
+                }
 
 
                 i.onclick = async () => {
-                    showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", true, objID)
+                    showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", currentNodesList.length !== 0, objID)
 
                     if (version > 1) {
                         // show prev version
                         const [, nodesHistory] = await loadWayVersionNodes(objID, version - 1);
                         const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                         const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                        showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false, 4, "4, 4")
+                        showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", currentNodesList.length === 0, objID, false, 4, "4, 4")
 
                         showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false)
                     } else {
@@ -3350,12 +3374,20 @@ async function addChangesetQuickLook() {
                         if (prevVersion) {
                             const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
                             const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                            showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false, 4, "4, 4")
+                            showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", currentNodesList.length === 0, objID, false, 4, "4, 4")
                         }
                         showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false)
                     }
                 }
-                if (version === 1 && targetVersion.changeset === parseInt(changesetID)) {
+                if (targetVersion.visible === false) {
+                    const versionForLoad = targetVersion.visible === false ? prevVersion.version : targetVersion.version;
+                    const [, nodesHistory] = await loadWayVersionNodes(objID, versionForLoad);
+                    const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
+                    const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
+                    if (targetVersion.visible === false) {
+                        displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 3, objID)
+                    }
+                } else if (version === 1 && targetVersion.changeset === parseInt(changesetID)) {
                     displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(0,128,0,0.6)", 4, objID)
                 } else if (prevVersion?.visible === false) {
                     displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(120,238,9,0.6)", 4, objID)
