@@ -1328,8 +1328,9 @@ function intoPageWithFun(obj) {
  * @memberof unsafeWindow
  * @param {[]} nodesList
  * @param {string=} color
+ * @param {boolean} needFly
  */
-function showWay(nodesList, color = "#000000") {
+function showWay(nodesList, color = "#000000", needFly = false) {
     layers["customObjects"].forEach(i => i.remove())
     layers["customObjects"] = []
     const line = getWindow().L.polyline(
@@ -1343,6 +1344,11 @@ function showWay(nodesList, color = "#000000") {
         })
     ).addTo(getMap());
     layers["customObjects"].push(line);
+    if (needFly) {
+        if (nodesList.length) {
+            fitBounds(get4Bounds(line))
+        }
+    }
 }
 
 /**
@@ -1658,7 +1664,12 @@ function setupNodeVersionView() {
         let lon = i.nextElementSibling.textContent.replace(",", ".")
         nodeHistoryPath.push([lat, lon])
         displayWay(cloneInto(nodeHistoryPath, unsafeWindow), false, "rgba(251,156,112,0.86)", 2);
-        i.parentElement.onmouseenter = () => {
+        i.parentElement.parentElement.onmouseenter = () => {
+            showActiveNodeMarker(lat, lon, "#ff00e3");
+        }
+        i.parentElement.parentElement.parentElement.parentElement.onclick = (e) => {
+            if (e.altKey) return;
+            panTo(lat, lon);
             showActiveNodeMarker(lat, lon, "#ff00e3");
         }
     })
@@ -1684,7 +1695,7 @@ async function loadNodesViaHistoryCalls(nodes) {
         return targetNodesHistory
     }
 
-    return (await Promise.all(arraySplit(nodes).map(_do))).flat()
+    return (await Promise.all(arraySplit(nodes, 5).map(_do))).flat()
 }
 
 /**
@@ -1756,9 +1767,12 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
     // пример точки: 123456789012v1234,
     const batchSize = 410
     const lastVersions = []
+    const batches = []
     for (let i = 0; i < notCached.length; i += batchSize) {
         console.debug(`Batch #${i}/${notCached.length}`)
-        const batch = notCached.slice(i, i + batchSize)
+        batches.push(notCached.slice(i, i + batchSize))
+    }
+    await Promise.all(batches.map(async (batch) => {
         const res = await fetch(osm_server.apiBase + "nodes.json?nodes=" + batch.join(","));
         const nodes = (await res.json()).elements
         lastVersions.push(...nodes)
@@ -1767,7 +1781,7 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
                 nodesHistories[n.id] = [n]
             }
         })
-    }
+    }))
 
     const longHistoryNodes = lastVersions.filter(n => n?.version !== 1)
     const lastVersionsMap = Object.groupBy(lastVersions, ({id}) => id)
@@ -1801,7 +1815,7 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
      */
     let versions = []
     console.groupCollapsed(`w${wayID}v${version}`)
-    for (let args of queryArgs) {
+    await Promise.all(queryArgs.map(async args => {
         const res = await fetch(osm_server.apiBase + "nodes.json?nodes=" + args);
         if (res.status === 404) {
             console.log('%c Some nodes was hidden. Start slow fetching :(', 'background: #222; color: #bada55')
@@ -1815,11 +1829,10 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
         } else {
             versions.push(...(await res.json()).elements)
         }
-    }
+    }))
     console.groupEnd()
     // из-за возможной ручной докачки историй, нужна дедупликация
     const seen = {};
-    const versions2 = versions;
     versions = versions.filter(function ({id: id, version: version}) {
         return Object.prototype.hasOwnProperty.call(seen, [id, version]) ? false : (seen[[id, version]] = true);
     });
@@ -1872,18 +1885,21 @@ function setupWayVersionView() {
     if (match === null) return;
     const wayID = match[1]
 
-    async function loadWayVersion(e, loadMore = true, needShowWay = true) {
+    async function loadWayVersion(e, loadMore = true, needShowWay = true, needFly = false) {
         const htmlElem = e.target ? e.target : e
         htmlElem.style.cursor = "progress"
         const version = parseInt(htmlElem.getAttribute("way-version"))
         const [targetVersion, nodesHistory] = await loadWayVersionNodes(wayID, version);
         const nodesList = filterObjectListByTimestamp(nodesHistory, targetVersion.timestamp)
         if (needShowWay) {
-            showWay(cloneInto(nodesList, unsafeWindow))
+            showWay(cloneInto(nodesList, unsafeWindow), "#000000", needFly)
         }
         if (htmlElem.nodeName === "A") {
             const versionDiv = htmlElem.parentNode.parentNode
             versionDiv.onmouseenter = loadWayVersion
+            versionDiv.onclick = async () => {
+                await loadWayVersion(versionDiv, true, true, true)
+            }
             versionDiv.setAttribute("way-version", version.toString())
             htmlElem.style.cursor = "pointer" // todo finally{}
             htmlElem.setAttribute("hidden", "true")
@@ -1906,7 +1922,11 @@ function setupWayVersionView() {
                 }
             }
         } else {
-            e.target.style.cursor = "auto"
+            try {
+                e.target.style.cursor = "auto"
+            } catch {
+                e.style.cursor = "auto"
+            }
         }
     }
 
@@ -2580,7 +2600,7 @@ function arraysDiff(a, b) {
  * @return {[]}
  */
 function arraySplit(arr, N = 2) {
-    const chunkSize = arr.length / N;
+    const chunkSize = Math.max(1, Math.floor(arr.length / N));
     const res = [];
     for (let i = 0; i < arr.length; i += chunkSize) {
         res.push(arr.slice(i, i + chunkSize));
@@ -4819,6 +4839,14 @@ function setupNavigationViaHotkeys() {
                 if (location.pathname.includes("node")) {
                     if (nodeMetadata) {
                         panTo(nodeMetadata.lat, nodeMetadata.lon)
+                    } else {
+                        if (location.pathname.includes("history")) {
+                            // panTo last visible version
+                            panTo(
+                                document.querySelector(".browse-node span.latitude").textContent.replace(",", "."),
+                                document.querySelector(".browse-node span.longitude").textContent.replace(",", ".")
+                            )
+                        }
                     }
                 } else if (location.pathname.includes("way")) {
                     if (wayMetadata) {
