@@ -194,6 +194,12 @@ GM_config.init(
                     'type': 'checkbox',
                     'default': 'checked',
                     'labelPos': 'right'
+                },
+                'ResizableSidebar': {
+                    'label': 'Add slider for sidebar width',
+                    'type': 'checkbox',
+                    'default': false,
+                    'labelPos': 'right'
                 }
             },
         frameStyle: `
@@ -2680,6 +2686,9 @@ async function addChangesetQuickLook() {
     }
     blurSearchField();
     makeTimesSwitchable()
+    if (GM_config.get("ResizableSidebar")) {
+        document.querySelector("#sidebar").style.resize = "horizontal"
+    }
 
     const changesetID = location.pathname.match(/changeset\/(\d+)/)[1]
 
