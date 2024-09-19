@@ -1592,6 +1592,8 @@ function cleanAllObjects() {
 
 //</editor-fold>
 
+let abortDownloadingController = new AbortController();
+
 /**
  * @typedef {Object} ObjectVersion
  * @property {number} version
@@ -1653,7 +1655,7 @@ async function getChangeset(id) {
     if (changesetsCache[id]) {
         return changesetsCache[id];
     }
-    const res = await fetch(osm_server.apiBase + "changeset" + "/" + id + "/download");
+    const res = await fetch(osm_server.apiBase + "changeset" + "/" + id + "/download", {signal: abortDownloadingController.signal});
     const parser = new DOMParser();
     changesetsCache[id] = parser.parseFromString(await res.text(), "application/xml");
     nodesWithParentWays = new Set(Array.from(changesetsCache[id].querySelectorAll("way > nd")).map(i => parseInt(i.getAttribute("ref"))))
@@ -1693,14 +1695,13 @@ async function loadNodesViaHistoryCalls(nodes) {
             if (nodesHistories[nodeID]) {
                 targetNodesHistory.push(nodesHistories[nodeID]);
             } else {
-                const res = await fetch(osm_server.apiBase + "node" + "/" + nodeID + "/history.json");
+                const res = await fetch(osm_server.apiBase + "node" + "/" + nodeID + "/history.json", {signal: abortDownloadingController.signal});
                 nodesHistories[nodeID] = (await res.json()).elements
                 targetNodesHistory.push(nodesHistories[nodeID]);
             }
         }
         return targetNodesHistory
     }
-
     return (await Promise.all(arraySplit(nodes, 5).map(_do))).flat()
 }
 
@@ -1714,7 +1715,7 @@ async function getNodeHistory(nodeID) {
         return nodesHistories[nodeID];
     } else {
         console.count("Node history miss")
-        const res = await fetch(osm_server.apiBase + "node" + "/" + nodeID + "/history.json");
+        const res = await fetch(osm_server.apiBase + "node" + "/" + nodeID + "/history.json", {signal: abortDownloadingController.signal});
         return nodesHistories[nodeID] = (await res.json()).elements;
     }
 }
@@ -1739,7 +1740,7 @@ async function getWayHistory(wayID) {
     if (waysHistories[wayID]) {
         return waysHistories[wayID];
     } else {
-        const res = await fetch(osm_server.apiBase + "way" + "/" + wayID + "/history.json");
+        const res = await fetch(osm_server.apiBase + "way" + "/" + wayID + "/history.json", {signal: abortDownloadingController.signal});
         return waysHistories[wayID] = (await res.json()).elements;
     }
 }
@@ -1779,7 +1780,7 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
         batches.push(notCached.slice(i, i + batchSize))
     }
     await Promise.all(batches.map(async (batch) => {
-        const res = await fetch(osm_server.apiBase + "nodes.json?nodes=" + batch.join(","));
+        const res = await fetch(osm_server.apiBase + "nodes.json?nodes=" + batch.join(","), {signal: abortDownloadingController.signal});
         const nodes = (await res.json()).elements
         lastVersions.push(...nodes)
         nodes.forEach(n => {
@@ -1822,7 +1823,7 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
     let versions = []
     console.groupCollapsed(`w${wayID}v${version}`)
     await Promise.all(queryArgs.map(async args => {
-        const res = await fetch(osm_server.apiBase + "nodes.json?nodes=" + args);
+        const res = await fetch(osm_server.apiBase + "nodes.json?nodes=" + args, {signal: abortDownloadingController.signal});
         if (res.status === 404) {
             console.log('%c Some nodes was hidden. Start slow fetching :(', 'background: #222; color: #bada55')
             let newArgs = args.split(",").map(i => parseInt(i.match(/(\d+)v(\d+)/)[1]));
@@ -2009,7 +2010,7 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
             //(._;>;);
             out geom;
         `
-            }))
+            }), {signal: abortDownloadingController.signal})
             return overpassCache[[id, timestamp]] = await res.json()
         }
     }
@@ -2526,6 +2527,7 @@ let tagsOfObjectsVisible = true
 // Many changes in the coordinates of the intersections https://osm.org/changeset/156331065
 // Deleted and restored objects                         https://osm.org/changeset/155160344
 // Old edits with unusual objects                       https://osm.org/changeset/1000
+// Parent ways only in future                           https://www.openstreetmap.org/changeset/156525401
 /**
  * Get editorial prescription via modified Levenshtein distance finding algorithm
  * @template T
@@ -2651,6 +2653,7 @@ async function addChangesetQuickLook() {
     }
     if (injectingStarted) return
     injectingStarted = true
+    abortDownloadingController = new AbortController()
     try {
         if (GM_config.get("ShowChangesetGeometryBeta")) {
             GM_addElement(document.head, "style", {
@@ -2694,7 +2697,7 @@ async function addChangesetQuickLook() {
 
     async function getHistoryAndVersionByElem(elem) {
         const [, objType, objID, version] = elem.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
-        const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/history.json");
+        const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/history.json", {signal: abortDownloadingController.signal});
         if (histories[objType][objID]) {
             return [histories[objType][objID], parseInt(version)]
         }
@@ -3172,7 +3175,7 @@ async function addChangesetQuickLook() {
                     needFetch.push(objID)
                 }
             }
-            const res = await fetch(osm_server.apiBase + `${objType}s.json?${objType}s=` + needFetch.join(","));
+            const res = await fetch(osm_server.apiBase + `${objType}s.json?${objType}s=` + needFetch.join(","), {signal: abortDownloadingController.signal});
             if (res.status === 404) {
                 for (let i of document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`)) {
                     await processObject(i, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(i)))
@@ -3320,7 +3323,7 @@ async function addChangesetQuickLook() {
             } else if (objType === "way") {
                 i.id = "w" + objID
 
-                const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/full.json");
+                const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/full.json", {signal: abortDownloadingController.signal});
                 if (!res.ok) {
                     setTimeout(async () => {
                         if (changesetMetadata === null) {
@@ -3498,7 +3501,7 @@ async function addChangesetQuickLook() {
                     needFetch.push(objID)
                 }
             }
-            const res = await fetch(osm_server.apiBase + `${objType}s.json?${objType}s=` + needFetch.join(","));
+            const res = await fetch(osm_server.apiBase + `${objType}s.json?${objType}s=` + needFetch.join(","), {signal: abortDownloadingController.signal});
             if (res.status === 404) {
                 for (let i of document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`)) {
                     await processObjectInteractions(i, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(i)))
@@ -3679,7 +3682,7 @@ async function addChangesetQuickLook() {
          * @return {Promise<WayVersion[]>}
          */
         async function getParentWays(nodeID) {
-            const rawRes = await fetch(osm_server.apiBase + "node/" + nodeID + "/ways.json");
+            const rawRes = await fetch(osm_server.apiBase + "node/" + nodeID + "/ways.json", {signal: abortDownloadingController.signal});
             if (!rawRes.ok) {
                 console.warn(`fetching parent ways for ${nodeID} failed)`)
                 console.trace()
@@ -3726,7 +3729,7 @@ async function addChangesetQuickLook() {
                                 })
                                 const objID = way.id
 
-                                const res = await fetch(osm_server.apiBase + "way" + "/" + way.id + "/full.json");
+                                const res = await fetch(osm_server.apiBase + "way" + "/" + way.id + "/full.json", {signal: abortDownloadingController.signal});
                                 if (!res.ok) {
                                     // todo
                                     return;
@@ -3739,6 +3742,9 @@ async function addChangesetQuickLook() {
                                     }
                                 })
                                 const targetVersion = filterVersionByTimestamp(await getWayHistory(way.id), changesetMetadata.closed_at);
+                                if (targetVersion === null) {
+                                    return
+                                }
                                 const [, wayNodesHistories] = await loadWayVersionNodes(objID, targetVersion.version)
                                 const targetNodes = filterObjectListByTimestamp(wayNodesHistories, changesetMetadata.closed_at)
 
@@ -3808,8 +3814,12 @@ async function addChangesetQuickLook() {
             await findParents()
         }
     } catch (e) { // TODO notify user
-        console.error(e)
-        console.log("%cSetup QuickLook finished with error ⚠️", 'background: #222; color: #bada55')
+        if (e.name === "AbortError") {
+            console.debug("Some requests was aborted")
+        } else {
+            console.error(e)
+            console.log("%cSetup QuickLook finished with error ⚠️", 'background: #222; color: #bada55')
+        }
     } finally {
         injectingStarted = false
         console.timeEnd("QuickLook")
@@ -4616,7 +4626,9 @@ async function loadChangesetMetadata() {
     if (changesetMetadata !== null && changesetMetadata.id === changeset_id) {
         return;
     }
-    const res = await fetch(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json");
+    const res = await fetch(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json",
+        // {signal: abortDownloadingController.signal}
+    );
     const jsonRes = await res.json();
     if (res.status === 509) {
         console.error("oops, DOS block")
@@ -4644,7 +4656,7 @@ async function loadNodeMetadata() {
     if (nodeMetadata !== null && nodeMetadata.id === node_id) {
         return;
     }
-    const res = await fetch(osm_server.apiBase + "node" + "/" + node_id + ".json");
+    const res = await fetch(osm_server.apiBase + "node" + "/" + node_id + ".json", {signal: abortDownloadingController.signal});
     if (res.status === 509) {
         console.error("oops, DOS block")
     } else if (res.status === 410) {
@@ -4666,7 +4678,7 @@ async function loadWayMetadata() {
     if (wayMetadata !== null && wayMetadata.id === way_id) {
         return;
     }
-    const res = await fetch(osm_server.apiBase + "way" + "/" + way_id + "/full.json");
+    const res = await fetch(osm_server.apiBase + "way" + "/" + way_id + "/full.json", {signal: abortDownloadingController.signal});
     if (res.status === 509) {
         console.error("oops, DOS block")
     } else if (res.status === 410) {
@@ -4694,7 +4706,7 @@ async function loadRelationMetadata() {
     if (relationMetadata !== null && relationMetadata.id === relation_id) {
         return;
     }
-    const res = await fetch(osm_server.apiBase + "relation" + "/" + relation_id + "/full.json");
+    const res = await fetch(osm_server.apiBase + "relation" + "/" + relation_id + "/full.json", {signal: abortDownloadingController.signal});
     if (res.status === 509) {
         console.error("oops, DOS block")
     } else if (res.status === 410) {
@@ -4906,12 +4918,16 @@ function setupNavigationViaHotkeys() {
                 if (e.code === "ArrowLeft" || e.code === "Comma") {
                     const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
                     if (navigationLinks && navigationLinks[0].href.includes("/changeset/")) {
+                        // abortDownloadingController.abort()
+                        // abortDownloadingController = new AbortController();
                         navigationLinks[0].click()
                     }
 
                 } else if (e.code === "ArrowRight" || e.code === "Period") {
                     const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
                     if (navigationLinks && Array.from(navigationLinks).at(-1).href.includes("/changeset/")) {
+                        // abortDownloadingController.abort()
+                        // abortDownloadingController = new AbortController();
                         Array.from(navigationLinks).at(-1).click()
                     }
                 }
@@ -5077,6 +5093,7 @@ function setup() {
         if (path + location.search === lastPath) return;
         if (lastPath.includes("/changeset/") && (!path.includes("/changeset/") || lastPath !== path)) {
             try {
+                abortDownloadingController.abort()
                 cleanAllObjects()
                 getMap().attributionControl.setPrefix("")
             } catch (e) {
