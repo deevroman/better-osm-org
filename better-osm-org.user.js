@@ -200,6 +200,12 @@ GM_config.init(
                     'type': 'checkbox',
                     'default': false,
                     'labelPos': 'right'
+                },
+                'Swipes': {
+                    'label': 'Add swipes between user changesets',
+                    'type': 'checkbox',
+                    'default': false,
+                    'labelPos': 'right'
                 }
             },
         frameStyle: `
@@ -1390,7 +1396,7 @@ function showWays(ListOfNodesList, layerName = "customObjects", color = "#000000
  * @param {boolean=} needFly
  * @param {string=} color
  * @param {number=} width
- * @param {string|number=null} infoElemID
+ * @param {string|number|null=} infoElemID
  * @param {string=null} layerName
  * @param {string=} dashArray
  */
@@ -1418,7 +1424,7 @@ function displayWay(nodesList, needFly = false, color = "#000000", width = 4, in
     }
     if (infoElemID) {
         layers[layerName][layers[layerName].length - 1].on('click', cloneInto(function (e) {
-            const elementById = document.getElementById("w" + infoElemID);
+            const elementById = document.getElementById(infoElemID);
             elementById?.scrollIntoView()
             document.querySelectorAll(".map-hover").forEach(el => {
                 el.classList.remove("map-hover")
@@ -1643,10 +1649,16 @@ const histories = {
  */
 let changesetsCache = {}
 /**
- * @type {Set<number>}
+ * @type {Object.<number, Set<number>>}
  */
-let nodesWithParentWays = new Set();
-let nodesWithOldParentWays = new Set();
+let nodesWithParentWays = {};
+/**
+ * @type {Object.<number, Set<number>>}
+ */
+let nodesWithOldParentWays = {};
+
+// TODO кажется это всё нужно чистить
+
 
 /**
  * @param {string|number} id
@@ -1658,8 +1670,8 @@ async function getChangeset(id) {
     const res = await fetch(osm_server.apiBase + "changeset" + "/" + id + "/download", {signal: abortDownloadingController.signal});
     const parser = new DOMParser();
     changesetsCache[id] = parser.parseFromString(await res.text(), "application/xml");
-    nodesWithParentWays = new Set(Array.from(changesetsCache[id].querySelectorAll("way > nd")).map(i => parseInt(i.getAttribute("ref"))))
-    nodesWithOldParentWays = new Set(Array.from(changesetsCache[id].querySelectorAll("way:not([version='1']) > nd")).map(i => parseInt(i.getAttribute("ref"))))
+    nodesWithParentWays[id] = new Set(Array.from(changesetsCache[id].querySelectorAll("way > nd")).map(i => parseInt(i.getAttribute("ref"))))
+    nodesWithOldParentWays[id] = new Set(Array.from(changesetsCache[id].querySelectorAll("way:not([version='1']) > nd")).map(i => parseInt(i.getAttribute("ref"))))
     return changesetsCache[id]
 }
 
@@ -1702,6 +1714,7 @@ async function loadNodesViaHistoryCalls(nodes) {
         }
         return targetNodesHistory
     }
+
     return (await Promise.all(arraySplit(nodes, 5).map(_do))).flat()
 }
 
@@ -2639,6 +2652,74 @@ function arraySplit(arr, N = 2) {
  * |null}
  */
 let changesetMetadata = null
+let startTouch = null;
+let touchMove = null;
+let touchEnd = null;
+
+function addSwipes() {
+    let startX = 0
+    let startY = 0
+    let direction = null
+    const sidebar = document.querySelector("#sidebar_content")
+    sidebar.style.transform = 'translateX(var(--touch-diff, 0px))'
+
+    if (!location.pathname.includes("/changeset/")) {
+        sidebar.removeEventListener('touchstart', startTouch)
+        sidebar.removeEventListener('touchmove', touchMove)
+        sidebar.removeEventListener('touchend', touchEnd)
+        startTouch = null;
+        touchMove = null;
+        touchEnd = null;
+    } else {
+        if (startTouch !== null) return
+        startTouch = e => {
+            startX = e.touches[0].clientX
+            startY = e.touches[0].clientY
+        };
+
+        touchMove = e => {
+            const diffY = e.changedTouches[0].clientY - startY;
+            const diffX = e.changedTouches[0].clientX - startX;
+            if (direction == null) {
+                if (diffY >= 10 || diffY <= -10) {
+                    direction = "v"
+                } else if (diffX >=  10 || diffX <= -10) {
+                    direction = "g"
+                    startX = e.touches[0].clientX
+                }
+            } else if (direction === "g") {
+                e.preventDefault()
+                sidebar.style.setProperty('--touch-diff', `${diffX}px`)
+            }
+        };
+
+        touchEnd = e => {
+            const diffX = startX - e.changedTouches[0].clientX
+
+            sidebar.style.removeProperty('--touch-diff')
+            if (direction === "g") {
+                if (diffX > sidebar.offsetWidth / 3) {
+                    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
+                    if (navigationLinks && Array.from(navigationLinks).at(-1).href.includes("/changeset/")) {
+                        abortDownloadingController.abort()
+                        Array.from(navigationLinks).at(-1).click()
+                    }
+                } else if (diffX < -sidebar.offsetWidth / 3) {
+                    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
+                    if (navigationLinks && navigationLinks[0].href.includes("/changeset/")) {
+                        abortDownloadingController.abort()
+                        navigationLinks[0].click()
+                    }
+                }
+            }
+            direction = null
+        };
+
+        sidebar.addEventListener('touchstart', startTouch)
+        sidebar.addEventListener('touchmove', touchMove)
+        sidebar.addEventListener('touchend', touchEnd)
+    }
+}
 
 async function addChangesetQuickLook() {
     if (!location.pathname.includes("/changeset")) {
@@ -2692,6 +2773,10 @@ async function addChangesetQuickLook() {
     if (GM_config.get("ResizableSidebar")) {
         document.querySelector("#sidebar").style.resize = "horizontal"
     }
+    if (GM_config.get("Swipes")) {
+        addSwipes();
+    }
+
 
     const changesetID = location.pathname.match(/changeset\/(\d+)/)[1]
 
@@ -3312,7 +3397,7 @@ async function addChangesetQuickLook() {
                         }
                     }
                 } else if (targetVersion.version === 1) {
-                    if (targetVersion.tags || nodesWithOldParentWays.has(parseInt(objID))) {
+                    if (targetVersion.tags || nodesWithOldParentWays[parseInt(changesetID)].has(parseInt(objID))) {
                         showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#006200", targetVersion.id)
                     }
                 } else if (prevVersion?.visible === false && targetVersion?.visible !== false) {
@@ -3337,15 +3422,15 @@ async function addChangesetQuickLook() {
                         const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                         const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
                         if (targetVersion.visible === false) {
-                            displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 3, objID)
+                            displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 3, "w" + objID)
                         } else {
                             if (targetVersion.version === 1) {
-                                displayWay(cloneInto(nodesList, unsafeWindow), false, "rgba(0,128,0,0.6)", 3, objID, "customObjects", "4, 4")
+                                displayWay(cloneInto(nodesList, unsafeWindow), false, "rgba(0,128,0,0.6)", 3, "w" + objID, "customObjects", "4, 4")
                             } else {
                                 if (prevVersion.visible === false) {
-                                    displayWay(cloneInto(nodesList, unsafeWindow), false, "rgb(255,245,41)", 3, objID, "customObjects", "4, 4")
+                                    displayWay(cloneInto(nodesList, unsafeWindow), false, "rgb(255,245,41)", 3, "w" + objID, "customObjects", "4, 4")
                                 } else {
-                                    displayWay(cloneInto(nodesList, unsafeWindow), false, "rgb(0,0,0)", 3, objID, "customObjects", "4, 4")
+                                    displayWay(cloneInto(nodesList, unsafeWindow), false, "rgb(0,0,0)", 3, "w" + objID, "customObjects", "4, 4")
                                 }
                             }
                         }
@@ -3417,14 +3502,14 @@ async function addChangesetQuickLook() {
                     const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                     const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
                     if (targetVersion.visible === false) {
-                        displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 3, objID)
+                        displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 3, "w" + objID)
                     }
                 } else if (version === 1 && targetVersion.changeset === parseInt(changesetID)) {
-                    displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(0,128,0,0.6)", 4, objID)
+                    displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(0,128,0,0.6)", 4, "w" + objID)
                 } else if (prevVersion?.visible === false) {
-                    displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(120,238,9,0.6)", 4, objID)
+                    displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(120,238,9,0.6)", 4, "w" + objID)
                 } else {
-                    displayWay(cloneInto(currentNodesList, unsafeWindow), false, "#373737", 4, objID)
+                    displayWay(cloneInto(currentNodesList, unsafeWindow), false, "#373737", 4, "w" + objID)
                 }
                 i.onmouseenter = async () => {
                     showActiveWay(cloneInto(currentNodesList, unsafeWindow))
@@ -3541,6 +3626,7 @@ async function addChangesetQuickLook() {
 
     try {
         console.time("QuickLook")
+        console.log(`%cQuickLook for ${changesetID}`, 'background: #222; color: #bada55')
         let uniqTypes = 0
         for (const objType of ["way", "node", "relation"]) {
             if (document.querySelectorAll(`.list-unstyled li.${objType}`).length > 0) {
@@ -3699,7 +3785,7 @@ async function addChangesetQuickLook() {
                 if (!i.querySelector("tag")) {
                     if (i.getAttribute("visible") === "false") {
                         // todo
-                    } else if (i.getAttribute("version") === "1" && !nodesWithParentWays.has(parseInt(nodeID))) {
+                    } else if (i.getAttribute("version") === "1" && !nodesWithParentWays[parseInt(changesetID)].has(parseInt(nodeID))) {
                         showNodeMarker(i.getAttribute("lat"), i.getAttribute("lon"), "#006200", nodeID)
                     }
                 }
@@ -3716,7 +3802,7 @@ async function addChangesetQuickLook() {
             const changesetWaysSet = new Set(Array.from(changesetData.querySelectorAll(`way`)).map(i => parseInt(i.id)))
             const loadNodesParents = async nodes => {
                 for (const nodeID of nodes) {
-                    if (nodesWithParentWays.has(nodeID) || processedNodes.has(parseInt(nodeID))) continue;
+                    if (nodesWithParentWays[parseInt(changesetID)].has(nodeID) || processedNodes.has(parseInt(nodeID))) continue;
                     const parents = await getParentWays(nodeID)
 
                     await Promise.all(parents.map(async way => {
@@ -3762,7 +3848,9 @@ async function addChangesetQuickLook() {
                                         console.trace()
                                     }
                                 })
-                                displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(55,55,55,0.5)", 4, objID)
+
+                                displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(55,55,55,0.5)", 4, "n" + nodeID)
+
                                 way.nodes.forEach(n => {
                                     if (!document.querySelector("#n" + n)) return
                                     document.querySelector("#n" + n).addEventListener('mouseenter', async () => {
@@ -4918,16 +5006,13 @@ function setupNavigationViaHotkeys() {
                 if (e.code === "ArrowLeft" || e.code === "Comma") {
                     const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
                     if (navigationLinks && navigationLinks[0].href.includes("/changeset/")) {
-                        // abortDownloadingController.abort()
-                        // abortDownloadingController = new AbortController();
+                        abortDownloadingController.abort()
                         navigationLinks[0].click()
                     }
-
                 } else if (e.code === "ArrowRight" || e.code === "Period") {
                     const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
                     if (navigationLinks && Array.from(navigationLinks).at(-1).href.includes("/changeset/")) {
-                        // abortDownloadingController.abort()
-                        // abortDownloadingController = new AbortController();
+                        abortDownloadingController.abort()
                         Array.from(navigationLinks).at(-1).click()
                     }
                 }
@@ -5096,6 +5181,7 @@ function setup() {
                 abortDownloadingController.abort()
                 cleanAllObjects()
                 getMap().attributionControl.setPrefix("")
+                addSwipes();
             } catch (e) {
             }
         }
