@@ -1405,10 +1405,12 @@ function displayWay(nodesList, needFly = false, color = "#000000", width = 4, in
     if (!layers[layerName]) {
         layers[layerName] = []
     }
+
     function bindPopup(line, popup) {
         if (popup) return line.bindPopup(popup)
         return line
     }
+
     const line = bindPopup(getWindow().L.polyline(
         intoPage(nodesList.map(elem => intoPage(getWindow().L.latLng(intoPage(elem))))),
         intoPage({
@@ -1437,6 +1439,7 @@ function displayWay(nodesList, needFly = false, color = "#000000", width = 4, in
             elementById?.classList.add("map-hover")
         }, getWindow(), {cloneFunctions: true,}))
     }
+    return line
 }
 
 /**
@@ -3430,7 +3433,12 @@ async function addChangesetQuickLook() {
                         const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                         const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
                         if (targetVersion.visible === false) {
-                            displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 3, "w" + objID)
+                            if (nodesList.some(i => i.version.visible === false)) {
+                                displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 3, "w" + objID)
+                            } else {
+                                const layer = displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 7, "w" + objID)
+                                layer.bringToBack()
+                            }
                         } else {
                             if (targetVersion.version === 1) {
                                 displayWay(cloneInto(nodesList, unsafeWindow), false, "rgba(0,128,0,0.6)", 3, "w" + objID, "customObjects", "4, 4")
@@ -3510,7 +3518,12 @@ async function addChangesetQuickLook() {
                     const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                     const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
                     if (targetVersion.visible === false) {
-                        displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 3, "w" + objID)
+                        if (nodesList.some(i => i.version.visible === false)) {
+                            displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 3, "w" + objID)
+                        } else {
+                            const layer = displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 7, "w" + objID)
+                            layer.bringToBack()
+                        }
                     }
                 } else if (version === 1 && targetVersion.changeset === parseInt(changesetID)) {
                     displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(0,128,0,0.6)", 4, "w" + objID)
@@ -3866,7 +3879,7 @@ async function addChangesetQuickLook() {
 
                                 const tagsTable = document.createElement("table")
                                 const tbody = document.createElement("tbody")
-                                Object.entries(way.tags).forEach(tag => {
+                                Object.entries(way.tags ?? {}).forEach(tag => {
                                     const row = document.createElement("tr")
                                     const tagTd = document.createElement("th")
                                     const tagTd2 = document.createElement("td")
