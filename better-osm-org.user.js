@@ -1399,12 +1399,17 @@ function showWays(ListOfNodesList, layerName = "customObjects", color = "#000000
  * @param {string|number|null=} infoElemID
  * @param {string=null} layerName
  * @param {string=} dashArray
+ * @param {string} popupContent
  */
-function displayWay(nodesList, needFly = false, color = "#000000", width = 4, infoElemID = null, layerName = "customObjects", dashArray = null) {
+function displayWay(nodesList, needFly = false, color = "#000000", width = 4, infoElemID = null, layerName = "customObjects", dashArray = null, popupContent = null) {
     if (!layers[layerName]) {
         layers[layerName] = []
     }
-    const line = getWindow().L.polyline(
+    function bindPopup(line, popup) {
+        if (popup) return line.bindPopup(popup)
+        return line
+    }
+    const line = bindPopup(getWindow().L.polyline(
         intoPage(nodesList.map(elem => intoPage(getWindow().L.latLng(intoPage(elem))))),
         intoPage({
             color: color,
@@ -1414,7 +1419,7 @@ function displayWay(nodesList, needFly = false, color = "#000000", width = 4, in
             fillOpacity: 1,
             dashArray: dashArray
         })
-    ).addTo(getMap());
+    ), popupContent).addTo(getMap());
     layers[layerName].push(line);
     if (needFly) {
         getMap().flyTo(intoPage(line.getBounds().getCenter()), 18, intoPage({
@@ -2683,11 +2688,11 @@ function addSwipes() {
             if (direction == null) {
                 if (diffY >= 10 || diffY <= -10) {
                     direction = "v"
-                } else if (diffX >=  10 || diffX <= -10) {
-                    direction = "g"
+                } else if (diffX >= 10 || diffX <= -10) {
+                    direction = "h"
                     startX = e.touches[0].clientX
                 }
-            } else if (direction === "g") {
+            } else if (direction === "h") {
                 e.preventDefault()
                 sidebar.style.setProperty('--touch-diff', `${diffX}px`)
             }
@@ -2697,7 +2702,7 @@ function addSwipes() {
             const diffX = startX - e.changedTouches[0].clientX
 
             sidebar.style.removeProperty('--touch-diff')
-            if (direction === "g") {
+            if (direction === "h") {
                 if (diffX > sidebar.offsetWidth / 3) {
                     const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
                     if (navigationLinks && Array.from(navigationLinks).at(-1).href.includes("/changeset/")) {
@@ -2762,6 +2767,9 @@ async function addChangesetQuickLook() {
             }
             .relation-version-node:hover {
                 background-color: #ff00e3 !important;
+            }
+            .leaflet-fade-anim .leaflet-popup {
+                transition: none;
             }
             `,
             });
@@ -3618,7 +3626,7 @@ async function addChangesetQuickLook() {
 
         if (!changesetsCache[changesetID]) {
             await getChangeset(changesetID)
-        } else if (objCount >= 20) {
+        } else if (objCount >= 20 && uniqTypes !== 1) {
             await new Promise(r => setTimeout(r, 500));
         }
 
@@ -3805,7 +3813,8 @@ async function addChangesetQuickLook() {
                     if (nodesWithParentWays[parseInt(changesetID)].has(nodeID) || processedNodes.has(parseInt(nodeID))) continue;
                     const parents = await getParentWays(nodeID)
 
-                    await Promise.all(parents.map(async way => {
+                    await Promise.all(parents.map(
+                            async way => {
                                 if (processedWays.has(way.id) || changesetWaysSet.has(way.id)) {
                                     return
                                 }
@@ -3849,7 +3858,34 @@ async function addChangesetQuickLook() {
                                     }
                                 })
 
-                                displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(55,55,55,0.5)", 4, "n" + nodeID)
+                                const popup = document.createElement("span")
+                                const link = document.createElement("a")
+                                link.href = `/way/${way.id}`
+                                link.target = "_blank"
+                                link.textContent = "w" + way.id
+
+                                const tagsTable = document.createElement("table")
+                                const tbody = document.createElement("tbody")
+                                Object.entries(way.tags).forEach(tag => {
+                                    const row = document.createElement("tr")
+                                    const tagTd = document.createElement("th")
+                                    const tagTd2 = document.createElement("td")
+                                    tagTd.style.borderWidth = "2px"
+                                    tagTd2.style.borderWidth = "2px"
+                                    row.style.borderWidth = "2px"
+                                    row.appendChild(tagTd)
+                                    row.appendChild(tagTd2)
+                                    tagTd.textContent = tag[0]
+                                    tagTd2.textContent = tag[1]
+                                    tagTd.style.textAlign = "right"
+                                    tagTd2.style.textAlign = "right"
+                                    tbody.appendChild(row)
+                                })
+                                tagsTable.appendChild(tbody)
+                                popup.appendChild(link)
+                                popup.appendChild(tagsTable)
+
+                                displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(55,55,55,0.5)", 4, "n" + nodeID, "customObjects", null, popup.outerHTML)
 
                                 way.nodes.forEach(n => {
                                     if (!document.querySelector("#n" + n)) return
