@@ -5,70 +5,84 @@ Userscript adding several improvements for experienced osm.org users
 1. Install [Tampermonkey](https://www.tampermonkey.net) or [Violentmonkey](https://violentmonkey.github.io/)
 2. [Install](https://raw.githubusercontent.com/deevroman/better-osm-org/master/better-osm-org.user.js) script
 
-- [x] Tags diff in object history
+### Tags diff in object history
 
   <img src="img/diff.png" width="50%">
 
-- [x] QuickLook for simple changesets
+### QuickLook for simple changesets
 
   <img src="img/changeset-quickview.png">
 
+### Improved history tab
 
-- [x] Changesets filters
-- [x] Show users roles and status
+- Changesets filters
+- Show users roles and status
 
-  <img src="img/changesets-filter.png">
+<img src="img/changesets-filter.png">
 
+### Node deletion
 
-- [x] Node deletion
+  <img src="img/delete.png" width="50%">
 
-    <img src="img/delete.png" width="50%">
-    
-  
-- [x] Show satelite layer (Firefox only)
-    
+### Satelite layer ([Firefox only](https://github.com/deevroman/better-osm-org/issues/33))
+
   <img src="img/notes-sat.jpg" width="50%">
 
-- [x] Stat HDYC in profile (Firefox only)
-- + [ ] Bypass tracking protection
+### Stat HDYC in profile (Firefox only)
 
   <img src="img/hdyc.jpg" width="50%">
-- Hotkeys
-- + [x] Alt + ←/→ for user changesets
-- + [x] N — on/off notes layer 
-- + [x] D — on/off Map Data layer 
-- + [x] G — on/off GPS tracks layer 
-- + [x] S — on/off satellite layer (Firefox only)
-- + [x] H — open object history
-- + [x] 1 — open first version of object
-- + [x] Z — zoom to changeset/object bbox
-- + [x] E — Open editor
-- + [x] 8-9 Prev/Next map position 
+
+### Hotkeys
+
+- `Alt` + `←`/`→` or `<` `>` for user changesets
+- `N` — on/off notes layer
+- `D` — on/off Map Data layer
+- `G` — on/off GPS tracks layer
+- `S` — on/off satellite layer (Firefox only)
+- `H` — open object history
+- `1` — open first version of object
+- `Z` — zoom to changeset/object bbox
+- `E` — Open editor
+- `8`/`9` — prev/next map position
+- `O`— open OSMCha
+- `shift` + `O` — open Achavi
+
+
+### Other
+
 - [x] Changeset revert button
-- [ ] Profile for deleted users
-- + [x] Search in diffs
-- [ ] Template responses when closing notes
-- + [x] 👌
+- [x] OSMCha dis/likes
+- [x] Display way/relation versions
+
+- [x] Search deleted author of changeset
+- [ ] Template responses when closing notes/changeset
+-
+    + [x] 👌
+
 + [x] Add Rapid & geo: links into Edit menu
-- [x] Mass actions with changesets
-- + [x] mass revert via osm-revert
-- + [x] copy ids for JOSM
-- + [x] via remote control JOSM
-- + [x] load 300 changeset 
+
+- Mass actions with changesets
+-
+    + [x] mass revert via osm-revert
+-
+    + [x] copy ids for JOSM
+-
+    + [x] via remote control JOSM
+-
+    + [x] load 300 changeset
 - [x] Settings
 - [x] Hide active note highlight
-- [x] Exact datetime instead of a verbal description
-- [x] Add info about review from OSMCha
+- [x] Click on time for show ISO-time
+- [x] Open external links in new tab 
 
 ### Ideas
+
 - [ ] Changesets feed like who did it
-- [ ] Show state of way in the past
 - [ ] Jump to overpass from tags
 - [ ] Show deleted
 - [ ] Hide resolved notes
 - [ ] Fast tags copy from wiki
 - [ ] Object age
-- [ ] Player button for history
 - [ ] Documentation
 - [ ] Collapse name tags
 - [ ] Calc area size
@@ -78,25 +92,32 @@ Userscript adding several improvements for experienced osm.org users
 - [ ] Localization
 - [ ] Photos from imgur, wikipedia commons, ...?
 - [ ] Custom overlays for iD
-- + [ ] Geoscribble
-- + [ ] Strava (Hard, need bypass CORS)
+-
+    + [ ] Geoscribble
+-
+    + [ ] Strava (Hard, need bypass CORS)
 - [ ] Mark reviewed changesets
 - [ ] website & iD helper for translator (open search query into translation platform)
 - [ ] show in quick look the base way tag
 - [ ] nakarte.me: line drawing
 - [ ] taginfo: new overpass links
 - [ ] Improve search
-- + [ ] Filter by object type
-- + [ ] Improve default zoom
-- + [ ] Photon?
-- + [ ] Overpass?
-- [ ] Clickable contact:* 
+-
+    + [ ] Filter by object type
+-
+    + [ ] Improve default zoom
+-
+    + [ ] Photon?
+-
+    + [ ] Overpass?
+- [ ] Clickable contact:*
 - [ ] {{bbox}} on/off in Overpass Turbo
 - [ ] Bookmarks on map (like Organic Maps)
-- [ ] Show nearest example for map legend 
+- [ ] Show nearest example for map legend
 
 Maybe
+
 - [ ] Support OpenHistoricalMap
-- [ ] Move object from OSM into OpenHistoricalMap 
+- [ ] Move object from OSM into OpenHistoricalMap
 - [ ] osm-revert template
 - [ ] stop via kill switch for osm token

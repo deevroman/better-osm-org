@@ -170,7 +170,7 @@ GM_config.init(
                     },
                 'NavigationViaHotkeys':
                     {
-                        'label': 'Add hotkeys for navigation (Alt + ←/→ for user changesets)', // add help button with list
+                        'label': 'Add hotkeys <a href="https://github.com/deevroman/better-osm-org#Hotkeys" target="_blank">(List)</a>', // add help button with list
                         'type': 'checkbox',
                         'default': 'checked',
                         'labelPos': 'right'
@@ -210,7 +210,7 @@ GM_config.init(
             },
         frameStyle: `
             border: 1px solid #000;
-            height: min(85%, 570px);
+            height: min(85%, 620px);
             width: max(25%, 400px);
             z-index: 9999;
             opacity: 0;
