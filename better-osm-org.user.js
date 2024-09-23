@@ -463,6 +463,10 @@ function addRevertButton() {
                 },
                 "method": "GET",
             });
+            if (res.status === 404) {
+                console.warn("Changeset not found in OSMCha database")
+                return;
+            }
             const json = await res.json();
             if (json['properties']['check_user']) {
                 document.querySelector(".check_user")?.remove()
@@ -2548,7 +2552,8 @@ let tagsOfObjectsVisible = true
 // Many changes in the coordinates of the intersections https://osm.org/changeset/156331065
 // Deleted and restored objects                         https://osm.org/changeset/155160344
 // Old edits with unusual objects                       https://osm.org/changeset/1000
-// Parent ways only in future                           https://www.openstreetmap.org/changeset/156525401
+// Parent ways only in future                           https://osm.org/changeset/156525401
+// Restored tags                                        https://osm.org/changeset/141362243
 /**
  * Get editorial prescription via modified Levenshtein distance finding algorithm
  * @template T
@@ -2774,6 +2779,11 @@ async function addChangesetQuickLook() {
             .leaflet-fade-anim .leaflet-popup {
                 transition: none;
             }
+            tr.restored-tag::after {
+              content: " ♻️";
+              position: absolute;
+              margin-top: 2px
+            }
             `,
             });
         }
@@ -2872,6 +2882,10 @@ async function addChangesetQuickLook() {
                         row.style.background = "rgba(238,51,9,0.6)"
                         tbody.appendChild(row)
                         tagsWasChanged = true
+                        if (lastVersion.tags && lastVersion.tags[key] === prevVersion.tags[key]) {
+                            row.classList.add("restored-tag")
+                            row.title = row.title + "The tag is now restored"
+                        }
                     }
                 }
             }
@@ -3013,7 +3027,7 @@ async function addChangesetQuickLook() {
                 if (haveOnlyInsertion) {
                     geomChangedFlag.style.background = "rgba(101,238,9,0.6)"
                 } else if (haveOnlyDeletion) {
-                    geomChangedFlag.style.background = "rgba(238, 9, 9, 0.6)"
+                    geomChangedFlag.style.background = "rgba(238, 9, 9, 0.42)"
                 }
 
                 const tagsTable = document.createElement("table")
@@ -3213,7 +3227,7 @@ async function addChangesetQuickLook() {
                 if (haveOnlyInsertion) {
                     memChangedFlag.style.background = "rgba(101,238,9,0.6)"
                 } else if (haveOnlyDeletion) {
-                    memChangedFlag.style.background = "rgba(238, 9, 9, 0.6)"
+                    memChangedFlag.style.background = "rgba(238, 9, 9, 0.42)"
                 }
 
                 const tagsTable = document.createElement("table")
@@ -3424,7 +3438,7 @@ async function addChangesetQuickLook() {
                     }
                 }
                 if (targetVersion.visible === false) {
-                    if (targetVersion.version !== 1) { // даа, такое есть https://www.openstreetmap.org/node/300524/history
+                    if (targetVersion.version !== 1 && prevVersion.visible !== false) { // даа, такое есть https://www.openstreetmap.org/node/300524/history
                         if (prevVersion.tags) {
                             showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#FF0000", prevVersion.id)
                         } else {
@@ -3929,6 +3943,7 @@ async function addChangesetQuickLook() {
                                 tagsTable.appendChild(tbody)
                                 popup.appendChild(link)
                                 popup.appendChild(tagsTable)
+                                // todo показать по ховеру прошлую версию?
 
                                 displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(55,55,55,0.5)", 4, "n" + nodeID, "customObjects", null, popup.outerHTML)
 
