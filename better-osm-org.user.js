@@ -195,18 +195,18 @@ GM_config.init(
                     'default': 'checked',
                     'labelPos': 'right'
                 },
-                'ResizableSidebar': {
-                    'label': 'Add slider for sidebar width',
-                    'type': 'checkbox',
-                    'default': false,
-                    'labelPos': 'right'
-                },
                 'Swipes': {
                     'label': 'Add swipes between user changesets',
                     'type': 'checkbox',
                     'default': false,
                     'labelPos': 'right'
-                }
+                },
+                'ResizableSidebar': {
+                    'label': 'Add slider for sidebar width',
+                    'type': 'checkbox',
+                    'default': 'checked',
+                    'labelPos': 'right'
+                },
             },
         frameStyle: `
             border: 1px solid #000;
@@ -2976,6 +2976,8 @@ async function addChangesetQuickLook() {
                     return row
                 }
 
+                let haveOnlyInsertion = true
+                let haveOnlyDeletion = true
                 const lineWasReversed = JSON.stringify(prevVersion.nodes.toReversed()) === JSON.stringify(targetVersion.nodes)
                 if (lineWasReversed) {
                     const row = makeWayDiffRow("", "🔃")
@@ -2989,19 +2991,29 @@ async function addChangesetQuickLook() {
                         row.style.fontFamily = "monospace"
                         tbody.appendChild(row)
                     })
+                    haveOnlyInsertion = false
                 } else {
                     arraysDiff(prevVersion.nodes ?? [], targetVersion.nodes ?? []).forEach(i => {
                         const row = makeWayDiffRow(i[0], i[1])
                         if (i[0] === null) {
                             row.style.background = "rgba(17,238,9,0.6)"
+                            haveOnlyDeletion = false
                         } else if (i[1] === null) {
                             row.style.background = "rgba(238,51,9,0.6)"
+                            haveOnlyInsertion = false
                         } else if (i[0] !== i[1]) {
-                            row.style.background = "rgba(223,238,9,0.6)"
+                            row.style.background = "rgba(223,238,9,0.6)" // never executed?
+                            haveOnlyInsertion = false
+                            haveOnlyDeletion = false
                         }
                         row.style.fontFamily = "monospace"
                         tbody.appendChild(row)
                     })
+                }
+                if (haveOnlyInsertion) {
+                    geomChangedFlag.style.background = "rgba(101,238,9,0.6)"
+                } else if (haveOnlyDeletion) {
+                    geomChangedFlag.style.background = "rgba(238, 9, 9, 0.6)"
                 }
 
                 const tagsTable = document.createElement("table")
@@ -3164,6 +3176,8 @@ async function addChangesetQuickLook() {
                     return row
                 }
 
+                let haveOnlyInsertion = true
+                let haveOnlyDeletion = true
                 if (JSON.stringify(prevVersion.members.toReversed()) === JSON.stringify(targetVersion.members)) {
                     // members reversed
                     const row = makeRelationDiffRow("", "🔃")
@@ -3182,14 +3196,24 @@ async function addChangesetQuickLook() {
                         const row = makeRelationDiffRow(i[0], i[1])
                         if (i[0] === null) {
                             row.style.background = "rgba(17,238,9,0.6)"
+                            haveOnlyDeletion = false
                         } else if (i[1] === null) {
                             row.style.background = "rgba(238,51,9,0.6)"
+                            haveOnlyInsertion = false
                         } else if (JSON.stringify(i[0]) !== JSON.stringify(i[1])) {
                             row.style.background = "rgba(223,238,9,0.6)"
+                            haveOnlyInsertion = false
+                            haveOnlyDeletion = false
                         }
                         row.style.fontFamily = "monospace"
                         tbody.appendChild(row)
                     })
+                }
+
+                if (haveOnlyInsertion) {
+                    memChangedFlag.style.background = "rgba(101,238,9,0.6)"
+                } else if (haveOnlyDeletion) {
+                    memChangedFlag.style.background = "rgba(238, 9, 9, 0.6)"
                 }
 
                 const tagsTable = document.createElement("table")
@@ -3429,15 +3453,19 @@ async function addChangesetQuickLook() {
                         if (versionForLoad === 0 && targetVersion.visible === false) {
                             return;
                         }
+                        let lineWidth = 4
                         const [, nodesHistory] = await loadWayVersionNodes(objID, versionForLoad);
                         const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                         const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
                         if (targetVersion.visible === false) {
-                            if (nodesList.some(i => i.version.visible === false)) {
+                            const closedTime = (new Date(changesetMetadata.closed_at ?? new Date())).toISOString()
+                            const nodesAfterChangeset = filterObjectListByTimestamp(nodesHistory, closedTime)
+                            if (nodesAfterChangeset.some(i => i.visible === false)) {
                                 displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 3, "w" + objID)
                             } else {
                                 const layer = displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 7, "w" + objID)
                                 layer.bringToBack()
+                                lineWidth = 8
                             }
                         } else {
                             if (targetVersion.version === 1) {
@@ -3451,10 +3479,10 @@ async function addChangesetQuickLook() {
                             }
                         }
                         i.onmouseenter = () => {
-                            showActiveWay(cloneInto(nodesList, unsafeWindow), "#ff00e3", false, objID)
+                            showActiveWay(cloneInto(nodesList, unsafeWindow), "#ff00e3", false, objID, true, lineWidth)
                         }
                         i.onclick = () => {
-                            showActiveWay(cloneInto(nodesList, unsafeWindow), "#ff00e3", true, objID)
+                            showActiveWay(cloneInto(nodesList, unsafeWindow), "#ff00e3", true, objID, true, lineWidth)
                         }
                     }, 10);
                     i.classList.add("processed-object")
@@ -3518,7 +3546,9 @@ async function addChangesetQuickLook() {
                     const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                     const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
                     if (targetVersion.visible === false) {
-                        if (nodesList.some(i => i.version.visible === false)) {
+                        const closedTime = (new Date(changesetMetadata.closed_at ?? new Date())).toISOString()
+                        const nodesAfterChangeset = filterObjectListByTimestamp(nodesHistory, closedTime)
+                        if (nodesAfterChangeset.some(i => i.visible === false)) {
                             displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 3, "w" + objID)
                         } else {
                             const layer = displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 7, "w" + objID)
@@ -3823,7 +3853,9 @@ async function addChangesetQuickLook() {
             const changesetWaysSet = new Set(Array.from(changesetData.querySelectorAll(`way`)).map(i => parseInt(i.id)))
             const loadNodesParents = async nodes => {
                 for (const nodeID of nodes) {
-                    if (nodesWithParentWays[parseInt(changesetID)].has(nodeID) || processedNodes.has(parseInt(nodeID))) continue;
+                    if (nodesWithParentWays[parseInt(changesetID)].has(nodeID) && nodesCount > 30 || processedNodes.has(parseInt(nodeID))) {
+                        continue;
+                    }
                     const parents = await getParentWays(nodeID)
 
                     await Promise.all(parents.map(
@@ -3839,7 +3871,7 @@ async function addChangesetQuickLook() {
 
                                 const res = await fetch(osm_server.apiBase + "way" + "/" + way.id + "/full.json", {signal: abortDownloadingController.signal});
                                 if (!res.ok) {
-                                    // todo
+                                    // крааайне маловероятно
                                     return;
                                 }
                                 const lastElements = (await res.json()).elements
