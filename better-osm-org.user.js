@@ -579,7 +579,7 @@ function setupCompactChangesetsHistory() {
 
     if (location.pathname.includes("/changeset/")) {
         if (document.querySelector("#sidebar_content ul")) {
-            document.querySelector("#sidebar_content ul").querySelectorAll("a").forEach(i => i.setAttribute("target", "_blank"));
+            document.querySelector("#sidebar_content ul").querySelectorAll("a:not(.page-link)").forEach(i => i.setAttribute("target", "_blank"));
         }
     }
 
@@ -2803,10 +2803,10 @@ async function addChangesetQuickLook() {
 
     async function getHistoryAndVersionByElem(elem) {
         const [, objType, objID, version] = elem.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
-        const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/history.json", {signal: abortDownloadingController.signal});
         if (histories[objType][objID]) {
             return [histories[objType][objID], parseInt(version)]
         }
+        const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/history.json", {signal: abortDownloadingController.signal});
         return [histories[objType][objID] = (await res.json()).elements, parseInt(version)];
     }
 
@@ -3006,6 +3006,7 @@ async function addChangesetQuickLook() {
                         tbody.appendChild(row)
                     })
                     haveOnlyInsertion = false
+                    haveOnlyDeletion = false
                 } else {
                     arraysDiff(prevVersion.nodes ?? [], targetVersion.nodes ?? []).forEach(i => {
                         const row = makeWayDiffRow(i[0], i[1])
@@ -3205,6 +3206,8 @@ async function addChangesetQuickLook() {
                         row.style.fontFamily = "monospace"
                         tbody.appendChild(row)
                     })
+                    haveOnlyInsertion = false
+                    haveOnlyDeletion = false
                 } else {
                     arraysDiff(prevVersion.members ?? [], targetVersion.members ?? []).forEach(i => {
                         const row = makeRelationDiffRow(i[0], i[1])
@@ -3824,6 +3827,38 @@ async function addChangesetQuickLook() {
         replaceNodes(changesetData)
         await processObjects("node", uniqTypes);
         await processObjectsInteractions("node", uniqTypes);
+
+        function observePagination(obs){
+            if (document.querySelector("#changeset_nodes .pagination")) {
+                obs.observe(document.querySelector("#changeset_nodes"), {
+                    attributes: true
+                })
+            }
+            if (document.querySelector("#changeset_ways .pagination")) {
+                obs.observe(document.querySelector("#changeset_ways"), {
+                    attributes: true
+                })
+            }
+            if (document.querySelector("#changeset_relations .pagination")) {
+                obs.observe(document.querySelector("#changeset_relations"), {
+                    attributes: true
+                })
+            }
+        }
+
+
+        const obs = new MutationObserver(async (mutationList, observer) => {
+            observer.disconnect()
+            observer.takeRecords()
+            for (const objType of ["way", "node", "relation"]) {
+                await processObjects(objType, uniqTypes);
+            }
+            for (const objType of ["way", "node", "relation"]) {
+                await processObjectsInteractions(objType, uniqTypes);
+            }
+            observePagination(obs)
+        })
+        observePagination(obs)
 
         // try find parent ways
 
