@@ -2104,7 +2104,7 @@ async function loadRelationVersionMembers(relationID, version) {
     }
 
     /**
-     * @type {{nodes: NodeVersion[][], ways: [WayVersion, NodeVersion[][]][], relations: RelationVersion[][]}}
+     * @type {{nodes: NodeVersion[][], ways: [WayVersion, NodeVersion[][]][]|Promise<[WayVersion, NodeVersion[][]]>[], relations: RelationVersion[][]}}
      */
     const membersHistory = {
         nodes: [],
@@ -2123,20 +2123,23 @@ async function loadRelationVersionMembers(relationID, version) {
             })
             membersHistory.nodes.push(targetWayVersion)
         } else if (member.type === "way") {
-            let wayHistory = await getWayHistory(member.ref);
-            const targetTime = new Date(targetVersion.timestamp)
-            let targetWayVersion = wayHistory[0]
-            wayHistory.forEach(history => {
-                if (new Date(history.timestamp) <= targetTime) {
-                    targetWayVersion = history;
-                }
-            })
-            membersHistory.ways.push(await loadWayVersionNodes(member.ref, targetWayVersion.version))
+            async function loadWay() {
+                let wayHistory = await getWayHistory(member.ref);
+                const targetTime = new Date(targetVersion.timestamp)
+                let targetWayVersion = wayHistory[0]
+                wayHistory.forEach(history => {
+                    if (new Date(history.timestamp) <= targetTime) {
+                        targetWayVersion = history;
+                    }
+                })
+                return await loadWayVersionNodes(member.ref, targetWayVersion.version)
+            }
+            membersHistory.ways.push(loadWay())
         } else if (member.type === "relation") {
             // TODO может нинада? :(
         }
-
     }
+    membersHistory.ways = await Promise.all(membersHistory.ways)
     return [targetVersion, membersHistory]
 }
 
@@ -2150,8 +2153,10 @@ function setupRelationVersionView() {
         htmlElem.style.cursor = "progress"
 
         const version = parseInt(htmlElem.getAttribute("relation-version"))
+        console.time(`r${relationID} v${version}`)
         const [targetVersion, membersHistory] = await loadRelationVersionMembers(relationID, version);
         const singleNodesList = membersHistory.nodes.map(n => filterVersionByTimestamp(n, targetVersion.timestamp))
+        console.timeEnd(`r${relationID} v${version}`)
         if (showWay) {
             singleNodesList.forEach((node) => {
                     if (targetVersion.visible === false) {
