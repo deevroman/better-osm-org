@@ -1631,7 +1631,7 @@ let abortDownloadingController = new AbortController();
  * @property {string} timestamp
  * @property {float} lat
  * @property {float} lon
- * @property {{}=} tags
+ * @property {Object.<string, string>=} tags
  */
 
 /**
@@ -1755,7 +1755,7 @@ async function getNodeHistory(nodeID) {
  * @property {number} version
  * @property {boolean} visible
  * @property {string} timestamp
- * @property {{}=} tags
+ * @property {Object.<string, string>=} tags
  */
 /**
  * @param {number|string} wayID
@@ -1995,7 +1995,7 @@ function setupWayVersionView() {
  * @property {RelationMember[]} members
  * @property {number} version
  * @property {boolean} visible
- * @property {{}=} tags
+ * @property {Object.<string, string>=} tags
  */
 /**
  * @param {number|string} relationID
@@ -2559,9 +2559,10 @@ let tagsOfObjectsVisible = true
  * @template T
  * @param {T[]} a
  * @param {T[]} b
+ * @param {number} one_replace_cost
  * @return {[T, T][]}
  */
-function arraysDiff(a, b) {
+function arraysDiff(a, b, one_replace_cost=2) {
     a = a.map(i => JSON.stringify(i))
     b = b.map(i => JSON.stringify(i))
     const dp = []
@@ -2584,7 +2585,7 @@ function arraysDiff(a, b) {
         for (let j = 1; j <= b.length; j++) {
             const del_cost = dp[i - 1][j]
             const ins_cost = dp[i][j - 1]
-            const replace_cost = dp[i - 1][j - 1] + (a[i - 1] !== b[j - 1]) * 2 // replacement is not very desirable
+            const replace_cost = dp[i - 1][j - 1] + (a[i - 1] !== b[j - 1]) * one_replace_cost // replacement is not very desirable
             dp[i][j] = min(min(del_cost, ins_cost) + 1, replace_cost)
         }
     }
@@ -2611,7 +2612,7 @@ function arraysDiff(a, b) {
 
         const del_cost = dp[i - 1][j]
         const ins_cost = dp[i][j - 1]
-        const replace_cost = dp[i - 1][j - 1] + (JSON.stringify(a[i - 1]) !== JSON.stringify(b[j - 1])) * 2
+        const replace_cost = dp[i - 1][j - 1] + (JSON.stringify(a[i - 1]) !== JSON.stringify(b[j - 1])) * one_replace_cost
         if (del_cost <= ins_cost && del_cost + 1 <= replace_cost) {
             answer.push([a[i - 1], null])
             restore(i - 1, j)
@@ -2898,7 +2899,42 @@ async function addChangesetQuickLook() {
                 } else if (prevVersion.tags[key] !== value) {
                     const valCell = row.querySelector("td")
                     valCell.style.background = "rgba(223,238,9,0.6)"
-                    valCell.textContent = prevVersion.tags[key] + " → " + valCell.textContent
+                    const diff = arraysDiff(Array.from(prevVersion.tags[key]), Array.from(valCell.textContent), 1)
+                    // for one character diff
+                    // example: https://osm.org/changeset/157002657
+                    if (valCell.textContent.length > 1
+                        && prevVersion.tags[key].length > 1
+                        && diff.length === valCell.textContent.length && prevVersion.tags[key].length === valCell.textContent.length
+                        && diff.reduce((a, b) => a + (b[0] !== b[1]), 0) === 1) {
+                        let prevText = document.createElement("span")
+                        let newText = document.createElement("span")
+                        diff.forEach(c => {
+                            if (c[0] !== c[1]) {
+                                {
+                                    const colored = document.createElement("span")
+                                    colored.style.background = "rgba(25, 223, 25, 0.6)"
+                                    colored.textContent = c[1]
+                                    newText.appendChild(colored)
+                                }
+                                {
+                                    const colored = document.createElement("span")
+                                    colored.style.background = "rgba(255, 144, 144, 0.6)"
+                                    colored.textContent = c[0]
+                                    prevText.appendChild(colored)
+                                }
+                            } else {
+                                    prevText.appendChild(document.createTextNode(c[0]))
+                                    newText.appendChild(document.createTextNode(c[1]))
+
+                            }
+                        })
+                        valCell.textContent = ""
+                        valCell.appendChild(prevText)
+                        valCell.appendChild(document.createTextNode(" → "))
+                        valCell.appendChild(newText)
+                    } else {
+                        valCell.textContent = prevVersion.tags[key] + " → " + valCell.textContent
+                    }
                     valCell.title = "was: " + prevVersion.tags[key]
                     tagsWasChanged = true
                 } else {
@@ -3828,7 +3864,7 @@ async function addChangesetQuickLook() {
         await processObjects("node", uniqTypes);
         await processObjectsInteractions("node", uniqTypes);
 
-        function observePagination(obs){
+        function observePagination(obs) {
             if (document.querySelector("#changeset_nodes .pagination")) {
                 obs.observe(document.querySelector("#changeset_nodes"), {
                     attributes: true
