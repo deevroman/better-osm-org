@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Better osm.org
-// @version      0.4.99
+// @version      0.5
 // @description  Several improvements for advanced users of osm.org
 // @author       deevroman
 // @match        https://www.openstreetmap.org/*
@@ -96,11 +96,11 @@ GM_config.init(
                         'default': 'checked',
                         'labelPos': 'right'
                     },
-                'ShowChangesetGeometryBeta':
+                'ShowChangesetGeometry':
                     {
                         'label': 'Show geometry of objects in changeset β',
                         'type': 'checkbox',
-                        'default': false,
+                        'default': 'checked',
                         'labelPos': 'right'
                     },
                 'MassChangesetsActions':
@@ -619,6 +619,11 @@ function setupCompactChangesetsHistory() {
     GM_addElement(document.head, "style", {
         textContent: styleText,
     });
+    // увы, инвалидация в этом месте ломает зум при загрузке объекте самим сайтом
+    // try {
+    // getMap()?.invalidateSize()
+    // } catch (e) {
+    // }
 
     function handleNewChangesets() {
         // remove useless
@@ -1881,17 +1886,17 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
     return [targetVersion, targetVersion.nodes.map(nodeID => nodesHistories[nodeID])]
 }
 
-// TODO T -> ObjectHistory
 /**
- * @template T
+ * @template {NodeVersion|WayVersion|RelationVersion} T
  * @param {T[]} history
  * @param {string} timestamp
+ * @param {boolean=} alwaysReturn
  * @return {T|null}
  */
-function filterVersionByTimestamp(history, timestamp) {
+function filterVersionByTimestamp(history, timestamp, alwaysReturn = false) {
     const targetTime = new Date(timestamp)
     let cur = history[0]
-    if (targetTime < new Date(cur.timestamp)) {
+    if (targetTime < new Date(cur.timestamp) && !alwaysReturn) {
         return null
     }
     for (const v of history) {
@@ -1906,10 +1911,11 @@ function filterVersionByTimestamp(history, timestamp) {
  * @template T
  * @param {T[][]} objectList
  * @param {string} timestamp
+ * @param {boolean=} alwaysReturn
  * @return {T[]}
  */
-function filterObjectListByTimestamp(objectList, timestamp) {
-    return objectList.map(i => filterVersionByTimestamp(i, timestamp))
+function filterObjectListByTimestamp(objectList, timestamp, alwaysReturn = false) {
+    return objectList.map(i => filterVersionByTimestamp(i, timestamp, alwaysReturn))
 }
 
 function setupWayVersionView() {
@@ -1995,6 +2001,7 @@ function setupWayVersionView() {
  * @property {RelationMember[]} members
  * @property {number} version
  * @property {boolean} visible
+ * @property {string} timestamp
  * @property {Object.<string, string>=} tags
  */
 /**
@@ -2089,10 +2096,19 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
 }
 
 /**
+ * @typedef {{nodes: NodeVersion[][], ways: [WayVersion, NodeVersion[][]][], relations: RelationVersion[][]}}
+ * @name RelationMembersVersions
+ */
+
+/**
  *
  * @param {string|number} relationID
  * @param {number} version
- * @returns {Promise<[RelationVersion, {nodes: NodeVersion[][], ways: [WayVersion, NodeVersion[][]][], relations: RelationVersion[][]}]>}
+ * @throws {string}
+ * @returns {Promise<{
+ * targetVersion: RelationVersion,
+ * membersHistory: RelationMembersVersions
+ * }>}
  */
 async function loadRelationVersionMembers(relationID, version) {
     console.debug("Loading relation", relationID, version)
@@ -2134,13 +2150,14 @@ async function loadRelationVersionMembers(relationID, version) {
                 })
                 return await loadWayVersionNodes(member.ref, targetWayVersion.version)
             }
+
             membersHistory.ways.push(loadWay())
         } else if (member.type === "relation") {
             // TODO может нинада? :(
         }
     }
     membersHistory.ways = await Promise.all(membersHistory.ways)
-    return [targetVersion, membersHistory]
+    return {targetVersion: targetVersion, membersHistory: membersHistory}
 }
 
 function setupRelationVersionView() {
@@ -2154,24 +2171,15 @@ function setupRelationVersionView() {
 
         const version = parseInt(htmlElem.getAttribute("relation-version"))
         console.time(`r${relationID} v${version}`)
-        const [targetVersion, membersHistory] = await loadRelationVersionMembers(relationID, version);
-        const singleNodesList = membersHistory.nodes.map(n => filterVersionByTimestamp(n, targetVersion.timestamp))
+        const {
+            targetVersion: targetVersion,
+            membersHistory: membersHistory
+        } = await loadRelationVersionMembers(relationID, version);
         console.timeEnd(`r${relationID} v${version}`)
         if (showWay) {
-            singleNodesList.forEach((node) => {
-                    if (targetVersion.visible === false) {
-                        // todo
-                        showNodeMarker(node[0], node[1], "#FF0000")
-                    } else {
-                        showNodeMarker(node[0], node[1])
-                    }
-                }
-            )
-
             cleanCustomObjects()
             membersHistory.nodes.forEach(n => {
-                const {lat: lat, lon: lon} = filterVersionByTimestamp(n, targetVersion.timestamp)
-                showNodeMarker(lat, lon, "#006200")
+                showNodeMarker(n.lat, n.lon, "#000")
             })
             membersHistory.ways.forEach(([, nodesVersionsList]) => {
                 const nodesList = nodesVersionsList.map(n => {
@@ -2279,7 +2287,7 @@ function addDiffInHistory() {
       background-color: none !important;
       transition:all 0.3s;
     }
-    ` + (GM_config.get("ShowChangesetGeometryBeta") ? `
+    ` + (GM_config.get("ShowChangesetGeometry") ? `
     .way-version-view:hover {
         background-color: yellow;
     }
@@ -2567,7 +2575,7 @@ let tagsOfObjectsVisible = true
  * @param {number} one_replace_cost
  * @return {[T, T][]}
  */
-function arraysDiff(a, b, one_replace_cost=2) {
+function arraysDiff(a, b, one_replace_cost = 2) {
     a = a.map(i => JSON.stringify(i))
     b = b.map(i => JSON.stringify(i))
     const dp = []
@@ -2755,7 +2763,7 @@ async function addChangesetQuickLook() {
     injectingStarted = true
     abortDownloadingController = new AbortController()
     try {
-        if (GM_config.get("ShowChangesetGeometryBeta")) {
+        if (GM_config.get("ShowChangesetGeometry")) {
             GM_addElement(document.head, "style", {
                 textContent: `
             #sidebar_content li.node:hover {
@@ -2789,6 +2797,20 @@ async function addChangesetQuickLook() {
               content: " ♻️";
               position: absolute;
               margin-top: 2px
+            }
+            tr.removed-tag::after {
+              content: " 🗑";
+              position: absolute;
+              margin-top: 2px
+            }
+            tr.replaced-tag::after {
+              content: " ⇄";
+              position: absolute;
+            }
+            tr.reverted-tag::after {
+              content: " ↻";
+              position: absolute;
+              // margin-top: 2px
             }
             `,
             });
@@ -2901,7 +2923,17 @@ async function addChangesetQuickLook() {
                 if (prevVersion.tags === undefined || prevVersion.tags[key] === undefined) {
                     tagsWasChanged = true
                     row.style.background = "rgba(17,238,9,0.6)"
+                    if (!lastVersion.tags || lastVersion.tags[key] !== targetVersion.tags[key]) {
+                        if (lastVersion.tags && lastVersion.tags[key]) {
+                            row.classList.add("replaced-tag")
+                            row.title = `Now is ${key}=${lastVersion.tags[key]}`
+                        } else if (lastVersion.visible !== false) {
+                            row.classList.add("removed-tag")
+                            row.title = `The tag is now deleted`
+                        }
+                    }
                 } else if (prevVersion.tags[key] !== value) {
+                    // todo reverted changes
                     const valCell = row.querySelector("td")
                     valCell.style.background = "rgba(223,238,9,0.6)"
                     const diff = arraysDiff(Array.from(prevVersion.tags[key]), Array.from(valCell.textContent), 1)
@@ -2928,9 +2960,8 @@ async function addChangesetQuickLook() {
                                     prevText.appendChild(colored)
                                 }
                             } else {
-                                    prevText.appendChild(document.createTextNode(c[0]))
-                                    newText.appendChild(document.createTextNode(c[1]))
-
+                                prevText.appendChild(document.createTextNode(c[0]))
+                                newText.appendChild(document.createTextNode(c[1]))
                             }
                         })
                         valCell.textContent = ""
@@ -2942,6 +2973,18 @@ async function addChangesetQuickLook() {
                     }
                     valCell.title = "was: " + prevVersion.tags[key]
                     tagsWasChanged = true
+                    if (!lastVersion.tags || lastVersion.tags[key] !== targetVersion.tags[key]) {
+                        if (lastVersion.tags && prevVersion.tags && lastVersion.tags[key] === prevVersion.tags[key]) {
+                            row.classList.add("reverted-tag")
+                            row.title = `The tag is now reverted`
+                        } else if (lastVersion.tags && lastVersion.tags[key]) {
+                            row.classList.add("replaced-tag")
+                            row.title = `Now is ${key}=${lastVersion.tags[key]}`
+                        } else if (lastVersion.visible !== false) {
+                            row.classList.add("removed-tag")
+                            row.title = `The tag is now deleted`
+                        }
+                    }
                 } else {
                     row.classList.add("non-modified-tag-in-quick-view")
                     if (!tagsOfObjectsVisible) {
@@ -3442,7 +3485,7 @@ async function addChangesetQuickLook() {
          * @param {NodeVersion|WayVersion|RelationVersion} lastVersion
          */
         async function processObjectInteractions(i, prevVersion, targetVersion, lastVersion) {
-            if (!GM_config.get("ShowChangesetGeometryBeta")) {
+            if (!GM_config.get("ShowChangesetGeometry")) {
                 i.classList.add("processed-object")
                 return
             }
@@ -3451,6 +3494,7 @@ async function addChangesetQuickLook() {
              */
             const m = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
             const [, , objID, strVersion] = m
+            if (objID === "1317609767") debugger
             const version = parseInt(strVersion)
             i.ondblclick = () => {
                 if (changesetMetadata) {
@@ -3487,6 +3531,7 @@ async function addChangesetQuickLook() {
                             showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#FF0000", prevVersion.id)
                         } else {
                             showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#FF0000", prevVersion.id, "customObjects", 2)
+                            // todo show prev parent ways
                         }
                     }
                 } else if (targetVersion.version === 1) {
@@ -3514,7 +3559,7 @@ async function addChangesetQuickLook() {
                         let lineWidth = 4
                         const [, nodesHistory] = await loadWayVersionNodes(objID, versionForLoad);
                         const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
-                        const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
+                        const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp, true)
                         if (targetVersion.visible === false) {
                             const closedTime = (new Date(changesetMetadata.closed_at ?? new Date())).toISOString()
                             const nodesAfterChangeset = filterObjectListByTimestamp(nodesHistory, closedTime)
@@ -4069,7 +4114,7 @@ async function addChangesetQuickLook() {
             // await Promise.all(arraySplit(someInterestingNodes, 4).map(loadNodesParents))
         }
 
-        if (GM_config.get("ShowChangesetGeometryBeta")) {
+        if (GM_config.get("ShowChangesetGeometry")) {
             console.log("%cTry find parents ways", 'background: #222; color: #bada55')
             await findParents()
         }
@@ -5108,6 +5153,7 @@ function setupNavigationViaHotkeys() {
             })
         } else if (e.code === "KeyZ") {
             if (location.pathname.includes("/changeset")) {
+                getMap()?.invalidateSize()
                 if (changesetMetadata) {
                     fitBounds([
                         [changesetMetadata.min_lat, changesetMetadata.min_lon],
@@ -5170,6 +5216,8 @@ function setupNavigationViaHotkeys() {
             } else {
                 document.querySelector("#osmcha_link")?.click()
             }
+        } else if (e.code === "Escape") {
+            cleanObjectsByKey("activeObjects")
         } else {
             // console.log(e.key, e.code)
         }
