@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Better osm.org
-// @version      0.5
+// @version      0.5.1
 // @description  Several improvements for advanced users of osm.org
 // @author       deevroman
 // @match        https://www.openstreetmap.org/*
@@ -43,6 +43,7 @@
 // @connect      resultmaps.neis-one.org
 // @connect      www.openstreetmap.org
 // @connect      osmcha.org
+// @connect      overpass-api.de
 // @sandbox      JavaScript
 // @resource     OAUTH_HTML https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html
 // @resource     OSMCHA_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/osmcha.ico
@@ -376,11 +377,12 @@ function addRevertButton() {
         const changeset_id = sidebar.innerHTML.match(/(\d+)/)[0];
 
         async function uncheck(changeset_id) {
-            return await fetch(`https://osmcha.org/api/v1/changesets/${changeset_id}/uncheck/`, {
-                "headers": {
+            return await GM.xmlHttpRequest({
+                url: `https://osmcha.org/api/v1/changesets/${changeset_id}/uncheck/`,
+                headers: {
                     "Authorization": "Token " + GM_getValue("OSMCHA_TOKEN"),
                 },
-                "method": "PUT",
+                method: "PUT",
             });
         }
 
@@ -411,11 +413,12 @@ function addRevertButton() {
                 await uncheck(changeset_id)
                 await updateReactions()
             }
-            await fetch(`https://osmcha.org/api/v1/changesets/${changeset_id}/set-good/`, {
-                "headers": {
+            await GM.xmlHttpRequest({
+                url: `https://osmcha.org/api/v1/changesets/${changeset_id}/set-good/`,
+                headers: {
                     "Authorization": "Token " + GM_getValue("OSMCHA_TOKEN"),
                 },
-                "method": "PUT",
+                method: "PUT",
             });
             await updateReactions()
         }
@@ -447,27 +450,30 @@ function addRevertButton() {
                 await uncheck(changeset_id)
                 await updateReactions()
             }
-            await fetch(`https://osmcha.org/api/v1/changesets/${changeset_id}/set-harmful/`, {
-                "headers": {
+            await GM.xmlHttpRequest({
+                url: `https://osmcha.org/api/v1/changesets/${changeset_id}/set-harmful/`,
+                headers: {
                     "Authorization": "Token " + GM_getValue("OSMCHA_TOKEN"),
                 },
-                "method": "PUT",
+                method: "PUT",
             });
             await updateReactions()
         }
 
         async function updateReactions() {
-            const res = await fetch("https://osmcha.org/api/v1/changesets/" + changeset_id, {
-                "headers": {
+            const res = await GM.xmlHttpRequest({
+                url: "https://osmcha.org/api/v1/changesets/" + changeset_id,
+                method: "GET",
+                headers: {
                     "Authorization": "Token " + GM_getValue("OSMCHA_TOKEN"),
                 },
-                "method": "GET",
-            });
+                responseType: "json"
+            })
             if (res.status === 404) {
                 console.warn("Changeset not found in OSMCha database")
                 return;
             }
-            const json = await res.json();
+            const json = res.response;
             if (json['properties']['check_user']) {
                 document.querySelector(".check_user")?.remove()
                 likeImg.style.filter = "grayscale(1)"
@@ -2035,15 +2041,30 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
         if (overpassCache[[id, timestamp]]) {
             return overpassCache[[id, timestamp]]
         } else {
-            const res = await fetch("https://overpass-api.de/api/interpreter?" + new URLSearchParams({
-                data: `
-            [out:json][date:"${timestamp}"];
-            relation(${id});
-            //(._;>;);
-            out geom;
-        `
-            }), {signal: abortDownloadingController.signal})
-            return overpassCache[[id, timestamp]] = await res.json()
+            try {
+                const res = await fetch("https://overpass-api.de/api/interpreter?" + new URLSearchParams({
+                    data: `
+                [out:json][date:"${timestamp}"];
+                relation(${id});
+                //(._;>;);
+                out geom;
+            `
+                }), {signal: abortDownloadingController.signal})
+                return overpassCache[[id, timestamp]] = await res.json()
+            } catch (e) {
+                const res = await GM.xmlHttpRequest({
+                    url: "https://overpass-api.de/api/interpreter?" + new URLSearchParams({
+                        data: `
+                            [out:json][date:"${timestamp}"];
+                            relation(${id});
+                            //(._;>;);
+                            out geom;
+                        `
+                    }),
+                    responseType: "json"
+                });
+                return overpassCache[[id, timestamp]] = res.response
+            }
         }
     }
 
@@ -2187,7 +2208,6 @@ function setupRelationVersionView() {
                     return [lat, lon]
                 })
                 displayWay(cloneInto(nodesList, unsafeWindow))
-
             })
         }
         if (htmlElem.nodeName === "A") {
@@ -3208,6 +3228,7 @@ async function addChangesetQuickLook() {
                         icon.src = getIcon(left)
                         icon.style.height = "1em"
                         icon.style.marginLeft = "1px"
+                        icon.style.marginTop = "-3px"
                         tagTd.appendChild(icon)
                     }
                     tagTd2.textContent = `${right?.ref ?? ""} ${right?.role ?? ""}`
@@ -3216,6 +3237,7 @@ async function addChangesetQuickLook() {
                         icon.src = getIcon(right)
                         icon.style.height = "1em"
                         icon.style.marginLeft = "1px"
+                        icon.style.marginTop = "-3px"
                         tagTd2.appendChild(icon)
                     }
                     tagTd2.style.cursor = "";
@@ -3861,7 +3883,7 @@ async function addChangesetQuickLook() {
                 if (ways.length > 100 && changesetData.querySelectorAll("node") > 40) {
                     return;
                 }
-                if (ways.length > 500) {
+                if (ways.length > 520) {
                     return
                 }
             }
