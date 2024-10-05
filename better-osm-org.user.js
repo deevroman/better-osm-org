@@ -535,6 +535,7 @@ function hideSearchForm() {
 
     function showSearchForm() {
         document.querySelector("#sidebar .search_forms")?.removeAttribute("hidden");
+        cleanAllObjects()
     }
 
     document.querySelector("#sidebar_content .btn-close")?.addEventListener("click", showSearchForm)
@@ -765,7 +766,30 @@ function addDeleteButton() {
     if (!document.querySelector(".secondary-actions")) return;
     document.querySelector(".secondary-actions").appendChild(link);
     link.after(document.createTextNode("\xA0"));
-    link.before(document.createTextNode("\xA0"));
+    link.before(document.createTextNode("\xA0· "));
+
+    if (!document.querySelector(".secondary-actions .edit_tags_class")) {
+        const tagsEditorExtensionWaiter = new MutationObserver(() => {
+            if (document.querySelector(".secondary-actions .edit_tags_class")) {
+                tagsEditorExtensionWaiter.disconnect()
+
+                const tmp = document.createComment('')
+                const node1 = document.querySelector(".delete_object_button_class")
+                const node2 = document.querySelector(".edit_tags_class")
+
+                node2.replaceWith(tmp)
+                node1.replaceWith(node2)
+                tmp.replaceWith(node1)
+
+                console.log("Delete button replaced for Tags editor extension capability")
+            }
+        })
+        tagsEditorExtensionWaiter.observe(document.querySelector(".secondary-actions"), {
+            childList: true,
+            subtree: true
+        })
+        setTimeout(() => tagsEditorExtensionWaiter.disconnect(), 3000)
+    }
 
     function deleteObject(e) {
         e.preventDefault();
@@ -1948,7 +1972,7 @@ function setupWayVersionView() {
             const versionDiv = htmlElem.parentNode.parentNode
             versionDiv.onmouseenter = loadWayVersion
             versionDiv.onclick = async e => {
-                if (e.target.tagName === "A" || e.target.tagName === "TIME"  || e.target.tagName === "SUMMARY") {
+                if (e.target.tagName === "A" || e.target.tagName === "TIME" || e.target.tagName === "SUMMARY") {
                     return
                 }
                 await loadWayVersion(versionDiv, true, true, true)
@@ -1993,6 +2017,7 @@ function setupWayVersionView() {
             }
         }
     }
+
     document.querySelectorAll(".browse-way h4:nth-of-type(1) a").forEach(i => {
         const version = i.href.match(/\/(\d+)$/)[1];
         const btn = document.createElement("a")
@@ -2008,6 +2033,24 @@ function setupWayVersionView() {
         i.after(btn)
         i.after(document.createTextNode("\xA0"))
     })
+    if (document.querySelectorAll(`.way-version-view:not([hidden])`).length > 1) {
+        const downloadAllVersionsBtn = document.createElement("a")
+        downloadAllVersionsBtn.textContent = "⏬"
+        downloadAllVersionsBtn.style.cursor = "pointer"
+        downloadAllVersionsBtn.title = "Download all versions"
+
+        downloadAllVersionsBtn.addEventListener("click", async e => {
+            downloadAllVersionsBtn.style.cursor = "progress"
+            for (const i of document.querySelectorAll(`.way-version-view:not([hidden])`)) {
+                await loadWayVersion(i)
+            }
+            e.target.remove()
+        }, {
+            once: true,
+        })
+        document.querySelector(".compact-toggle-btn")?.after(downloadAllVersionsBtn)
+        document.querySelector(".compact-toggle-btn")?.after(document.createTextNode("\xA0"))
+    }
 }
 
 /**
@@ -2094,7 +2137,7 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
     cleanObjectsByKey("activeObjects")
     // нужен видимо веш геометрии
     // GC больно
-    overpassGeom.elements[0].members.forEach(i => {
+    overpassGeom.elements[0]?.members?.forEach(i => {
         if (i.type === "way") {
             const nodesList = i.geometry.map(p => [p.lat, p.lon])
             displayWay(cloneInto(nodesList, unsafeWindow), false, color, 4, null, "activeObjects")
@@ -2110,7 +2153,7 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
             return bboxCache[[id, timestamp]]
         }
         const nodesBag = []
-        overpassGeom.elements[0].members.forEach(i => {
+        overpassGeom.elements[0]?.members?.forEach(i => {
             if (i.type === "way") {
                 nodesBag.push(...i.geometry.map(p => {
                     return {lat: p.lat, lon: p.lon}
@@ -2167,7 +2210,7 @@ async function loadRelationVersionMembers(relationID, version) {
         ways: [],
         relations: []
     }
-    for (const member of targetVersion.members) {
+    for (const member of targetVersion.members ?? []) {
         if (member.type === "node") {
             const nodeHistory = await getNodeHistory(member.ref)
             const targetTime = new Date(targetVersion.timestamp)
@@ -2240,20 +2283,41 @@ function setupRelationVersionView() {
         }
     }
 
-    document.querySelectorAll(".browse-relation h4:nth-child(1) a").forEach((i) => {
+    document.querySelectorAll(".browse-relation h4:nth-of-type(1) a").forEach((i) => {
         const version = i.href.match(/\/(\d+)$/)[1];
         const btn = document.createElement("a")
         btn.classList.add("relation-version-view")
         btn.textContent = "📥"
         btn.style.cursor = "pointer"
-        btn.setAttribute("relation-version", version.toString())
+        btn.setAttribute("relation-version", version)
 
-        btn.addEventListener("mouseenter", loadRelationVersion, {
+        btn.addEventListener("mouseenter", async e => {
+            await loadRelationVersion(e)
+        }, {
             once: true,
         })
         i.after(btn)
         i.after(document.createTextNode("\xA0"))
     })
+
+    if (document.querySelectorAll(`.relation-version-view:not([hidden])`).length > 1) {
+        const downloadAllVersionsBtn = document.createElement("a")
+        downloadAllVersionsBtn.textContent = "⏬"
+        downloadAllVersionsBtn.style.cursor = "pointer"
+        downloadAllVersionsBtn.title = "Download all versions"
+
+        downloadAllVersionsBtn.addEventListener("click", async e => {
+            downloadAllVersionsBtn.style.cursor = "progress"
+            for (const i of document.querySelectorAll(`.relation-version-view:not([hidden])`)) {
+                await loadRelationVersion(i)
+            }
+            e.target.remove()
+        }, {
+            once: true,
+        })
+        document.querySelector(".compact-toggle-btn")?.after(downloadAllVersionsBtn)
+        document.querySelector(".compact-toggle-btn")?.after(document.createTextNode("\xA0"))
+    }
 }
 
 // hard cases:
@@ -2350,15 +2414,19 @@ function addDiffInHistory() {
         background-color: rgba(244, 244, 244);
     }
     
+    [relation-version].broken-version details:before {
+        background-color: rgba(244, 244, 244);
+        content: "Some members were hidden by moderators";
+        font-style: italic;
+        font-weight: normal;
+        font-size: small;
+    }
+    
     ` : ``);
     GM_addElement(document.head, "style", {
         textContent: styleText,
     });
 
-    document.querySelector("#sidebar .search_forms").setAttribute("hidden", "true")
-    document.querySelector("#sidebar .btn-close")?.addEventListener("click", () => {
-        document.querySelector("#sidebar .search_forms")?.removeAttribute("hidden");
-    })
     let versions = [{tags: [], coordinates: "", wasModified: false, nodes: [], members: [], visible: true}];
     // add/modification
     let versionsHTML = Array.from(document.querySelectorAll(".browse-section.browse-node, .browse-section.browse-way, .browse-section.browse-relation"))
