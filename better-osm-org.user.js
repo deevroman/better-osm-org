@@ -1947,7 +1947,10 @@ function setupWayVersionView() {
         if (htmlElem.nodeName === "A") {
             const versionDiv = htmlElem.parentNode.parentNode
             versionDiv.onmouseenter = loadWayVersion
-            versionDiv.onclick = async () => {
+            versionDiv.onclick = async e => {
+                if (e.target.tagName === "A" || e.target.tagName === "TIME"  || e.target.tagName === "SUMMARY") {
+                    return
+                }
                 await loadWayVersion(versionDiv, true, true, true)
             }
             versionDiv.setAttribute("way-version", version.toString())
