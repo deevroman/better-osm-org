@@ -5,13 +5,15 @@ Userscript adding several improvements for experienced osm.org users
 1. Install [Tampermonkey](https://www.tampermonkey.net) or [Violentmonkey](https://violentmonkey.github.io/)
 2. [Install](https://raw.githubusercontent.com/deevroman/better-osm-org/master/better-osm-org.user.js) script
 
+Also works in Firefox for Android
+
 ### Tags diff in object history
 
   <img src="img/diff.png" width="50%">
 
 ### QuickLook for simple changesets
 
-  <img src="img/changeset-quickview.png">
+  <img src="img/changeset-quicklook.jpg">
 
 ### Improved history tab
 
@@ -34,7 +36,7 @@ Userscript adding several improvements for experienced osm.org users
 
 ### Hotkeys
 
-- `Alt` + `←`/`→` or `<` `>` for user changesets
+- `<` `>` for user changesets
 - `N` — on/off notes layer
 - `D` — on/off Map Data layer
 - `G` — on/off GPS tracks layer
@@ -79,18 +81,21 @@ Userscript adding several improvements for experienced osm.org users
 
 - [ ] Changesets feed like who did it
 - [ ] Jump to overpass from tags
-- [ ] Show deleted
 - [ ] Hide resolved notes
 - [ ] Fast tags copy from wiki
 - [ ] Object age
-- [ ] Documentation
+- [ ] Tutorial
 - [ ] Collapse name tags
 - [ ] Calc area size
 - [ ] Integrate https://github.com/Zverik/osmtags-editor
 - [ ] Edit tags in Overpass Turbo
-- [ ] Hide ways in map data view
+- [ ] {{bbox}} on/off in Overpass Turbo
+- [ ] Improve data view
+- + [ ] Hide ways
+- + [ ] Filters
+- + [ ] Colors
 - [ ] Localization
-- [ ] Photos from imgur, wikipedia commons, ...?
+- [ ] Show photos from imgur, wikipedia commons, ...?
 - [ ] Custom overlays for iD
 -
     + [ ] Geoscribble
@@ -111,7 +116,6 @@ Userscript adding several improvements for experienced osm.org users
 -
     + [ ] Overpass?
 - [ ] Clickable contact:*
-- [ ] {{bbox}} on/off in Overpass Turbo
 - [ ] Bookmarks on map (like Organic Maps)
 - [ ] Show nearest example for map legend
 
