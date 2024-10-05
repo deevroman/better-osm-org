@@ -1935,8 +1935,14 @@ function setupWayVersionView() {
         const version = parseInt(htmlElem.getAttribute("way-version"))
         const [targetVersion, nodesHistory] = await loadWayVersionNodes(wayID, version);
         const nodesList = filterObjectListByTimestamp(nodesHistory, targetVersion.timestamp)
-        if (needShowWay) {
-            showWay(cloneInto(nodesList, unsafeWindow), "#000000", needFly)
+        if (nodesList.some(i => i === null)) {
+            htmlElem.parentElement.parentElement.classList.add("broken-version")
+            htmlElem.title = "Some nodes was hidden by moderators"
+            htmlElem.style.cursor = "auto"
+        } else {
+            if (needShowWay) {
+                showWay(cloneInto(nodesList, unsafeWindow), "#000000", needFly)
+            }
         }
         if (htmlElem.nodeName === "A") {
             const versionDiv = htmlElem.parentNode.parentNode
@@ -1949,18 +1955,29 @@ function setupWayVersionView() {
             htmlElem.setAttribute("hidden", "true")
             // preload next
             if (version !== 1) {
-                console.log(`preloading v${version - 1}`);
-                await loadWayVersionNodes(wayID, version - 1)
-                console.log(`preloaded v${version - 1}`);
-                if (loadMore && versionDiv.nextElementSibling?.querySelector("h4 a.way-version-view")) {
-                    if (waysHistories[wayID].filter(v => v.version === version - 1)[0].nodes?.length <= 50) {
-                        await loadWayVersion(versionDiv.nextElementSibling.querySelector("h4 a.way-version-view"), true, false)
+                let prevVersionNum = version - 1;
+                while (prevVersionNum > 0) {
+                    try {
+                        console.log(`preloading v${prevVersionNum}`);
+                        await loadWayVersionNodes(wayID, prevVersionNum)
+                        console.log(`preloaded v${prevVersionNum}`);
+                        break
+                    } catch {
+                        console.log(`Skip v${prevVersionNum}`)
+                        prevVersionNum--;
+                    }
+                }
+                const loadBtn = document.querySelector(`#sidebar_content a[way-version="${prevVersionNum}"]`)
+                if (loadMore && document.querySelector(`#sidebar_content a[way-version="${prevVersionNum}"]`)) {
+                    const nodesCount = waysHistories[wayID].filter(v => v.version === prevVersionNum)[0].nodes?.length
+                    if (!nodesCount || nodesCount <= 123) {
+                        await loadWayVersion(loadBtn, true, false)
                     } else {
-                        await loadWayVersion(versionDiv.nextElementSibling.querySelector("h4 a.way-version-view"), false, false)
-                        if (version !== 2) {
-                            console.log(`preloading2 v${version - 2}`);
-                            await loadWayVersionNodes(wayID, (version - 2))
-                            console.log(`preloaded v${version - 2}`);
+                        await loadWayVersion(loadBtn, false, false)
+                        if (prevVersionNum > 1) {
+                            console.log(`preloading2 v${prevVersionNum - 1}`);
+                            await loadWayVersionNodes(wayID, (prevVersionNum - 1))
+                            console.log(`preloaded v${prevVersionNum - 1}`);
                         }
                     }
                 }
@@ -1973,14 +1990,13 @@ function setupWayVersionView() {
             }
         }
     }
-
-    document.querySelectorAll(".browse-way h4:nth-child(1) a").forEach(i => {
+    document.querySelectorAll(".browse-way h4:nth-of-type(1) a").forEach(i => {
         const version = i.href.match(/\/(\d+)$/)[1];
         const btn = document.createElement("a")
         btn.classList.add("way-version-view")
         btn.textContent = "📥"
         btn.style.cursor = "pointer"
-        btn.setAttribute("way-version", version.toString())
+        btn.setAttribute("way-version", version)
         // fixme mouseenter должен начинать загрузку в фоне
         // но только при клике должна начинаться анимация
         btn.addEventListener("mouseenter", loadWayVersion, {
@@ -2304,7 +2320,7 @@ function addDiffInHistory() {
       transition:all 0.3s;
     }
     .was-copied {
-      background-color: none !important;
+      background-color: unset !important;
       transition:all 0.3s;
     }
     ` + (GM_config.get("ShowChangesetGeometry") ? `
@@ -2314,6 +2330,14 @@ function addDiffInHistory() {
     
     [way-version]:hover {
         background-color: rgba(244, 244, 244);
+    }
+          
+    [way-version].broken-version details:before {
+        background-color: rgba(244, 244, 244);
+        content: "Some nodes were hidden by moderators";
+        font-style: italic;
+        font-weight: normal;
+        font-size: small;
     }    
     .relation-version-view:hover {
         background-color: yellow;
@@ -2506,6 +2530,7 @@ function addDiffInHistory() {
             spoiler.innerHTML = x.innerHTML
             spoiler.prepend(summary)
             spoiler.classList.add("empty-version")
+            spoiler.classList.add("browse-" + location.pathname.match(/(node|way|relation)/)[1])
             x.replaceWith(spoiler)
         }
     })
@@ -3260,7 +3285,8 @@ async function addChangesetQuickLook() {
                             if (left.type === "node") {
                                 const version = filterVersionByTimestamp(await getNodeHistory(left.ref), targetTimestamp)
                                 showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
-                            } else {
+                            } else if (left.type === "way") {
+
                                 // todo
                             }
                         }
@@ -5481,6 +5507,9 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
 
         window.wrappedJSObject.mapHook = exportFunction(mapHook, window.wrappedJSObject)
         window.wrappedJSObject.mapHook()
+        if (window.wrappedJSObject.map instanceof HTMLElement) {
+            console.error("Please, reload page")
+        }
         getMap = () => window.wrappedJSObject.map
         getWindow = () => window.wrappedJSObject
     } else {
@@ -5497,6 +5526,9 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
 
         unsafeWindow.mapHook = exportFunction(mapHook, unsafeWindow)
         unsafeWindow.mapHook()
+        if (unsafeWindow.map instanceof HTMLElement) {
+            console.error("Please, reload page")
+        }
         getMap = () => unsafeWindow.map
         getWindow = () => unsafeWindow
     }
