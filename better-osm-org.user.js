@@ -2490,7 +2490,12 @@ function addDiffInHistory() {
                     tableDiv.appendChild(table)
                     x.appendChild(tableDiv)
                 }
-                x.querySelector("tbody").prepend(tr)
+                const firstNonDeletedTag = x.querySelector("th:not(.history-diff-deleted-tag)")?.parentElement
+                if (firstNonDeletedTag) {
+                    firstNonDeletedTag.before(tr)
+                } else {
+                    x.querySelector("tbody").appendChild(tr)
+                }
                 versions[versions.length - index - 1].wasModified = true
             }
         })
