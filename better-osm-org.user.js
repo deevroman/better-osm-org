@@ -1612,10 +1612,14 @@ function panTo(lat, lon, zoom = 18, animate = false) {
 }
 
 function get4Bounds(b) {
-    return [
-        [b.getBounds().getSouth(), b.getBounds().getWest()],
-        [b.getBounds().getNorth(), b.getBounds().getEast()]
-    ]
+    try {
+        return [
+            [b.getBounds().getSouth(), b.getBounds().getWest()],
+            [b.getBounds().getNorth(), b.getBounds().getEast()]
+        ]
+    } catch {
+        console.error("Please, reload page")
+    }
 }
 
 /**
@@ -1730,7 +1734,6 @@ function setupNodeVersionView() {
         let lat = i.textContent.replace(",", ".")
         let lon = i.nextElementSibling.textContent.replace(",", ".")
         nodeHistoryPath.push([lat, lon])
-        displayWay(cloneInto(nodeHistoryPath, unsafeWindow), false, "rgba(251,156,112,0.86)", 2);
         i.parentElement.parentElement.onmouseenter = () => {
             showActiveNodeMarker(lat, lon, "#ff00e3");
         }
@@ -1740,6 +1743,7 @@ function setupNodeVersionView() {
             showActiveNodeMarker(lat, lon, "#ff00e3");
         }
     })
+    displayWay(cloneInto(nodeHistoryPath, unsafeWindow), false, "rgba(251,156,112,0.86)", 2);
 }
 
 
@@ -5579,7 +5583,7 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
         window.wrappedJSObject.mapHook = exportFunction(mapHook, window.wrappedJSObject)
         window.wrappedJSObject.mapHook()
         if (window.wrappedJSObject.map instanceof HTMLElement) {
-            console.error("Please, reload page")
+            console.error("Please, reload page, if something doesn't work")
         }
         getMap = () => window.wrappedJSObject.map
         getWindow = () => window.wrappedJSObject
@@ -5598,7 +5602,7 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
         unsafeWindow.mapHook = exportFunction(mapHook, unsafeWindow)
         unsafeWindow.mapHook()
         if (unsafeWindow.map instanceof HTMLElement) {
-            console.error("Please, reload page")
+            console.error("Please, reload page, if something doesn't work")
         }
         getMap = () => unsafeWindow.map
         getWindow = () => unsafeWindow
