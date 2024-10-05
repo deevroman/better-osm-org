@@ -2956,13 +2956,17 @@ async function addChangesetQuickLook() {
                     // todo reverted changes
                     const valCell = row.querySelector("td")
                     valCell.style.background = "rgba(223,238,9,0.6)"
-                    const diff = arraysDiff(Array.from(prevVersion.tags[key]), Array.from(valCell.textContent), 1)
+                    // toReversed is dirty hack for group inserted/deleted symbols https://osm.org/changeset/157338007
+                    const diff = arraysDiff(Array.from(prevVersion.tags[key]).toReversed(), Array.from(valCell.textContent).toReversed(), 1).toReversed()
                     // for one character diff
                     // example: https://osm.org/changeset/157002657
-                    if (valCell.textContent.length > 1
-                        && prevVersion.tags[key].length > 1
-                        && diff.length === valCell.textContent.length && prevVersion.tags[key].length === valCell.textContent.length
-                        && diff.reduce((a, b) => a + (b[0] !== b[1]), 0) === 1) {
+                    if (valCell.textContent.length > 1 && prevVersion.tags[key].length > 1
+                        && (
+                            diff.length === valCell.textContent.length && prevVersion.tags[key].length === valCell.textContent.length
+                            && diff.reduce((cnt, b) => cnt + (b[0] !== b[1]), 0) === 1
+                            || diff.reduce((cnt, b) => cnt + (b[0] !== b[1] && b[0] !== null), 0) === 0
+                            || diff.reduce((cnt, b) => cnt + (b[0] !== b[1] && b[1] !== null), 0) === 0
+                        )) {
                         let prevText = document.createElement("span")
                         let newText = document.createElement("span")
                         diff.forEach(c => {
