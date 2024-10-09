@@ -1739,6 +1739,9 @@ function setupNodeVersionView() {
         }
         i.parentElement.parentElement.parentElement.parentElement.onclick = (e) => {
             if (e.altKey) return;
+            if (e.target.tagName === "A" || e.target.tagName === "TIME" || e.target.tagName === "SUMMARY") {
+                return
+            }
             panTo(lat, lon);
             showActiveNodeMarker(lat, lon, "#ff00e3");
         }
