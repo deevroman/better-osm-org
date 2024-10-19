@@ -2268,16 +2268,25 @@ function setupRelationVersionView() {
         console.timeEnd(`r${relationID} v${version}`)
         if (showWay) {
             cleanCustomObjects()
+            let hasBrokenMembers = false
             membersHistory.nodes.forEach(n => {
                 showNodeMarker(n.lat, n.lon, "#000")
             })
             membersHistory.ways.forEach(([, nodesVersionsList]) => {
-                const nodesList = nodesVersionsList.map(n => {
-                    const {lat: lat, lon: lon} = filterVersionByTimestamp(n, targetVersion.timestamp)
-                    return [lat, lon]
-                })
-                displayWay(cloneInto(nodesList, unsafeWindow))
+                try {
+                    const nodesList = nodesVersionsList.map(n => {
+                        const {lat: lat, lon: lon} = filterVersionByTimestamp(n, targetVersion.timestamp)
+                        return [lat, lon]
+                    })
+                    displayWay(cloneInto(nodesList, unsafeWindow))
+                } catch {
+                    hasBrokenMembers = true
+                    // TODO highlight in member list
+                }
             })
+            if (hasBrokenMembers) {
+                htmlElem.classList.add("broken-version")
+            }
         }
         if (htmlElem.nodeName === "A") {
             const versionDiv = htmlElem.parentNode.parentNode
