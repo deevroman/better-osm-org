@@ -2286,6 +2286,9 @@ function setupRelationVersionView() {
             })
             if (hasBrokenMembers) {
                 htmlElem.classList.add("broken-version")
+                if (htmlElem.parentElement?.parentElement.classList.contains("browse-section")) {
+                    htmlElem.parentElement.parentElement.classList.add("broken-version")
+                }
             }
         }
         if (htmlElem.nodeName === "A") {
