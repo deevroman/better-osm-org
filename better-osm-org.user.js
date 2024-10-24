@@ -208,11 +208,17 @@ GM_config.init(
                     'default': 'checked',
                     'labelPos': 'right'
                 },
+                'ClickableAvatar': {
+                    'label': 'Click by avatar for open changesets',
+                    'type': 'checkbox',
+                    'default': 'checked',
+                    'labelPos': 'right'
+                },
             },
         frameStyle: `
             border: 1px solid #000;
-            height: min(85%, 620px);
-            width: max(25%, 400px);
+            height: min(85%, 640px);
+            width: max(25%, 380px);
             z-index: 9999;
             opacity: 0;
             position: absolute;
@@ -4373,16 +4379,44 @@ async function simplifyHDCYIframe() {
     }
     const loginLink = document.getElementById("loginLink")
     if (loginLink) {
-        let warn = document.createElement("b")
-        warn.textContent = "Please disable tracking protection so that the HDYC account login works"
-        document.getElementById("authenticate").before(warn)
-        let hdycLink = document.createElement("a")
-        hdycLink.href = "https://www.hdyc.neis-one.org/"
-        hdycLink.textContent = "Go to https://www.hdyc.neis-one.org/"
-        hdycLink.target = "_blank"
-        document.getElementById("authenticate").before(document.createElement("br"))
-        document.getElementById("authenticate").before(hdycLink)
-        document.getElementById("authenticate").remove()
+        let warn = document.createElement("div")
+        warn.id = "hdyc-warn"
+        if (navigator.userAgent.includes("Firefox")) {
+            warn.textContent = "Please disable tracking protection so that the HDYC account login works"
+
+            document.getElementById("authenticate").before(warn)
+            let hdycLink = document.createElement("a")
+            hdycLink.href = "https://www.hdyc.neis-one.org/"
+            hdycLink.textContent = "Go to https://www.hdyc.neis-one.org/"
+            hdycLink.target = "_blank"
+            document.getElementById("authenticate").before(document.createElement("br"))
+            document.getElementById("authenticate").before(hdycLink)
+            document.getElementById("authenticate").remove()
+        } else {
+            warn.innerHTML = `To see more than just public profiles, do the following:<br/>
+1. <a href="https://www.hdyc.neis-one.org/"> Log in to HDYC</a> <br/>
+2. Open the browser console (F12) <br/>
+3. Open the Application tab <br/>
+4. In the left panel, select <i>Storage</i>→<i>Cookies</i>→<i>https://www.hdyc.neis-one.org</i><br/>
+5. Click on the cell with the name <i>SameSite</i> and type <i>None</i> in it`
+            GM_addElement(document.head, "style", {
+                textContent: `
+                    #hdyc-warn {
+                        text-align: left !important;
+                        width: 50%;
+                        position: relative;
+                        left: 35%;
+                        right: 33%;
+                    }
+                `,
+            });
+            document.getElementById("authenticate").before(warn)
+            const img_help = document.createElement("img")
+            img_help.src = "https://raw.githubusercontent.com/deevroman/better-osm-org/dev/img/hdyc-fix-in-chrome.png"
+            img_help.style.width = "90%"
+            warn.after(img_help)
+            document.getElementById("authenticate").remove()
+        }
         // var xhr = XPCNativeWrapper(new window.wrappedJSObject.XMLHttpRequest());
         // let res = await GM.xmlHttpRequest({
         //     method: "GET",
@@ -5265,17 +5299,28 @@ function setupNavigationViaHotkeys() {
                 document.querySelector("#editanchor")?.click()
             }
         } else if (e.code === "KeyH") {
-            if (location.pathname.match(/(node|way|relation)\/\d+/)) {
-                if (location.pathname.match(/(node|way|relation)\/\d+\/?$/)) {
-                    getWindow().OSM.router.route(window.location.pathname + "/history")
-                } else if (location.pathname.match(/(node|way|relation)\/\d+\/history\/\d+\/?$/)) {
-                    const historyPath = window.location.pathname.match(/(\/(node|way|relation)\/\d+\/history)\/\d+/)[1]
-                    getWindow().OSM.router.route(historyPath)
-                } else {
-                    console.debug("skip H")
+            if (e.shiftKey) {
+                const targetURL = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href") + "/history"
+                if (targetURL !== location.pathname) {
+                    try {
+                        getWindow().OSM.router.route(targetURL)
+                    } catch {
+                        window.location = targetURL
+                    }
                 }
-            } else if (location.pathname === "/") {
-                document.querySelector("#history_tab")?.click()
+            } else {
+                if (location.pathname.match(/(node|way|relation)\/\d+/)) {
+                    if (location.pathname.match(/(node|way|relation)\/\d+\/?$/)) {
+                        getWindow().OSM.router.route(window.location.pathname + "/history")
+                    } else if (location.pathname.match(/(node|way|relation)\/\d+\/history\/\d+\/?$/)) {
+                        const historyPath = window.location.pathname.match(/(\/(node|way|relation)\/\d+\/history)\/\d+/)[1]
+                        getWindow().OSM.router.route(historyPath)
+                    } else {
+                        console.debug("skip H")
+                    }
+                } else if (location.pathname === "/" || location.pathname.includes("/note")) {
+                    document.querySelector("#history_tab")?.click()
+                }
             }
         } else if (e.code === "KeyY") {
             const [, z, x, y] = new URL(document.querySelector("#editanchor").href).hash.match(/map=(\d+)\/([0-9.-]+)\/([0-9.-]+)/)
@@ -5475,6 +5520,28 @@ function resetSearchFormFocus() {
     // document.querySelector("#sidebar .search_form .input-group > button").setAttribute('tabIndex', "-1")
 }
 
+function setupClickableAvatar() {
+    const miniAvatar = document.querySelector(".user_thumbnail_tiny:not([patched-for-click])")
+    if (!miniAvatar || miniAvatar.setAttribute("patched-for-click", "true")) {
+        return;
+    }
+    miniAvatar.onclick = (e) => {
+        if (!e.isTrusted) return
+        e.preventDefault()
+        e.stopPropagation()
+        e.stopImmediatePropagation()
+        const targetURL = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href") + "/history"
+        if (targetURL !== location.pathname) {
+            try {
+                getWindow().OSM.router.route(targetURL)
+            } catch {
+                window.location = targetURL
+            }
+            miniAvatar.click() // dirty hack for hide dropdown
+        }
+    }
+}
+
 const modules = [
     setupHDYCInProfile,
     setupCompactChangesetsHistory,
@@ -5489,6 +5556,7 @@ const modules = [
     setupNewEditorsLinks,
     setupNavigationViaHotkeys,
     setupRelationVersionViewer,
+    setupClickableAvatar
 ];
 
 function setupTaginfo() {
