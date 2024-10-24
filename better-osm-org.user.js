@@ -534,7 +534,7 @@ function setupRevertButton() {
 }
 
 function hideSearchForm() {
-    if (location.pathname.includes("/search")) return;
+    if (location.pathname.includes("/search") || location.pathname.includes("/directions")) return;
     if (!document.querySelector("#sidebar .search_forms")?.hasAttribute("hidden")) {
         document.querySelector("#sidebar .search_forms")?.setAttribute("hidden", "true")
     }
