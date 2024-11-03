@@ -5133,6 +5133,25 @@ async function loadChangesetMetadata() {
     }
 }
 
+let noteMetadata = null
+
+async function loadNoteMetadata() {
+    const match = location.pathname.match(/note\/(\d+)/)
+    if (!match) {
+        return;
+    }
+    const note_id = parseInt(match[1]);
+    if (noteMetadata !== null && noteMetadata.id === note_id) {
+        return;
+    }
+    const res = await fetch(osm_server.apiBase + "notes" + "/" + note_id + ".json", {signal: abortDownloadingController.signal});
+    if (res.status === 509) {
+        console.error("oops, DOS block")
+    } else {
+        noteMetadata = await res.json()
+    }
+}
+
 let nodeMetadata = null
 
 async function loadNodeMetadata() {
@@ -5213,6 +5232,7 @@ async function loadRelationMetadata() {
 
 function updateCurrentObjectMetadata() {
     setTimeout(loadChangesetMetadata, 0)
+    setTimeout(loadNoteMetadata, 0)
     setTimeout(loadNodeMetadata, 0)
     setTimeout(loadWayMetadata, 0)
     setTimeout(loadRelationMetadata, 0)
@@ -5356,7 +5376,7 @@ function setupNavigationViaHotkeys() {
                 } else {
                     console.warn("Changeset metadata not downloaded")
                 }
-            } else if (location.pathname.match(/(node|way|relation)\/\d+/)) {
+            } else if (location.pathname.match(/(node|way|relation|note)\/\d+/)) {
                 if (location.pathname.includes("node")) {
                     if (nodeMetadata) {
                         panTo(nodeMetadata.lat, nodeMetadata.lon)
@@ -5368,6 +5388,11 @@ function setupNavigationViaHotkeys() {
                                 document.querySelector(".browse-node span.longitude").textContent.replace(",", ".")
                             )
                         }
+                    }
+                }
+                else if (location.pathname.includes("note")) {
+                    if (noteMetadata) {
+                        panTo(noteMetadata.geometry.coordinates[1], noteMetadata.geometry.coordinates[0], Math.max(17, getMap().getZoom()))
                     }
                 } else if (location.pathname.includes("way")) {
                     if (wayMetadata) {
@@ -5412,6 +5437,10 @@ function setupNavigationViaHotkeys() {
             }
         } else if (e.code === "Escape") {
             cleanObjectsByKey("activeObjects")
+        } else if (e.code === "KeyL") {
+            if (e.shiftKey) {
+                document.getElementsByClassName("geolocate")[0]?.click()
+            }
         } else {
             // console.log(e.key, e.code)
         }
