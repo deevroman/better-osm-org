@@ -4373,10 +4373,12 @@ async function setupHDYCInProfile(path) {
     });
 }
 
-async function simplifyHDCYIframe() {
+function simplifyHDCYIframe() {
     if (window.location === window.parent.location) {
         return
     }
+    document.querySelector("html").style.overflowX = "scroll"
+    document.querySelector("body").style.overflowX = "scroll"
     const loginLink = document.getElementById("loginLink")
     if (loginLink) {
         let warn = document.createElement("div")
