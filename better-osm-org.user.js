@@ -325,6 +325,10 @@ function addRevertButton() {
             metainfoHTML.appendChild(document.createTextNode(" "))
             metainfoHTML.appendChild(a)
             metainfoHTML.appendChild(document.createTextNode(" "))
+            getCachedUserInfo(a.textContent).then((res) => {
+                a.before(makeBadge(res))
+                a.before(document.createTextNode(" "))
+            })
         } else {
             let time = Array.from(metainfoHTML.children).find(i => i.localName === "time")
             metainfoHTML.innerHTML = ""
@@ -519,6 +523,11 @@ function addRevertButton() {
         primaryButtons.before(dislikeBtn)
         primaryButtons.before(document.createTextNode("\xA0"))
     }
+    document.querySelectorAll('#sidebar_content li[id^=c] small > a[href^="/user/"]').forEach(elem => {
+        getCachedUserInfo(elem.textContent).then(info => {
+            elem.before(makeBadge(info))
+        })
+    })
 }
 
 function setupRevertButton() {
@@ -603,7 +612,7 @@ function setupCompactChangesetsHistory() {
       font-style: italic;
       font-size: 14px !important;
     }
-    .browse-section p:nth-of-type(1) {
+    .browse-section > p:nth-of-type(1) {
         font-size: 14px !important;
         font-style: italic;  
     }
@@ -4371,6 +4380,9 @@ async function setupHDYCInProfile(path) {
         id: "hdyc-iframe",
         scrolling: "no",
     });
+    if (document.querySelector('a[href$="/blocks"]')?.nextElementSibling?.textContent > 0) {
+        document.querySelector('a[href$="/blocks"]').nextElementSibling.style.background = "rgba(255, 0, 0, 0.3)"
+    }
 }
 
 function simplifyHDCYIframe() {
@@ -4969,6 +4981,34 @@ function addMassActionForGlobalChangesets() {
 
 }
 
+function makeBadge(userInfo, changesetDate = new Date()) {
+    let userBadge = document.createElement("span")
+    userBadge.classList.add("user-badge")
+    if (userInfo['roles'].some(i => i === "moderator")) {
+        userBadge.style.position = "relative"
+        userBadge.style.bottom = "2px"
+        userBadge.title = "This user is a moderator"
+        userBadge.innerHTML = '<svg width="20" height="20"><path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#447eff" stroke="#447eff" stroke-width="2" stroke-linejoin="round"></path></svg>'
+        userBadge.querySelector("svg").style.transform = "scale(0.9)"
+    } else if (userInfo['roles'].some(i => i === "importer")) {
+        userBadge.style.position = "relative"
+        userBadge.style.bottom = "2px"
+        userBadge.title = "This user is a importer"
+        userBadge.innerHTML = '<svg width="20" height="20"><path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#38e13a" stroke="#38e13a" stroke-width="2" stroke-linejoin="round"></path></svg>'
+        userBadge.querySelector("svg").style.transform = "scale(0.9)"
+    } else if (userInfo['blocks']['received']['active']) {
+        userBadge.title = "The user was banned"
+        userBadge.textContent = "⛔️"
+    } else if (
+        new Date(userInfo['account_created']).setUTCDate(new Date(userInfo['account_created']).getUTCDate() + 30)
+        > changesetDate
+    ) {
+        userBadge.title = "The user is less than a month old"
+        userBadge.textContent = "🍼"
+    }
+    return userBadge
+}
+
 function addMassChangesetsActions() {
     if (!location.pathname.includes("/history")) return;
     if (!document.querySelector("#sidebar_content h2")) return
@@ -5014,40 +5054,8 @@ function addMassChangesetsActions() {
             item.title = "Click for copy changeset id"
             if (location.pathname.match(/^\/history\/?$/)) {
                 getCachedUserInfo(item.previousSibling.previousSibling.textContent).then((res) => {
-                    if (res['roles'].some(i => i === "moderator")) {
-                        let userBadge = document.createElement("span")
-                        userBadge.classList.add("user-badge")
-                        userBadge.style.position = "relative"
-                        userBadge.style.bottom = "2px"
-                        userBadge.title = "This user is a moderator"
-                        userBadge.innerHTML = '<svg width="20" height="20"><path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#447eff" stroke="#447eff" stroke-width="2" stroke-linejoin="round"></path></svg>'
-                        userBadge.querySelector("svg").style.transform = "scale(0.9)"
-                        item.previousSibling.previousSibling.before(userBadge)
-                    } else if (res['roles'].some(i => i === "importer")) {
-                        let userBadge = document.createElement("span")
-                        userBadge.classList.add("user-badge")
-                        userBadge.style.position = "relative"
-                        userBadge.style.bottom = "2px"
-                        userBadge.title = "This user is a importer"
-                        userBadge.innerHTML = '<svg width="20" height="20"><path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#38e13a" stroke="#38e13a" stroke-width="2" stroke-linejoin="round"></path></svg>'
-                        userBadge.querySelector("svg").style.transform = "scale(0.9)"
-                        item.previousSibling.previousSibling.before(userBadge)
-                    } else if (res['blocks']['received']['active']) {
-                        let userBadge = document.createElement("span")
-                        userBadge.classList.add("user-badge")
-                        userBadge.title = "The user was banned"
-                        userBadge.textContent = "⛔️"
-                        item.previousSibling.previousSibling.before(userBadge)
-                    } else if (
-                        new Date(res['account_created']).setUTCDate(new Date(res['account_created']).getUTCDate() + 30)
-                        > new Date(item.parentElement.querySelector("time")?.getAttribute("datetime") ?? new Date())
-                    ) {
-                        let userBadge = document.createElement("span")
-                        userBadge.classList.add("user-badge")
-                        userBadge.title = "The user is less than a month old"
-                        userBadge.textContent = "🍼"
-                        item.previousSibling.previousSibling.before(userBadge)
-                    }
+                    item.previousSibling.previousSibling.before(makeBadge(res,
+                        new Date(item.parentElement.querySelector("time")?.getAttribute("datetime") ?? new Date())))
                 })
             }
         })
@@ -5389,8 +5397,7 @@ function setupNavigationViaHotkeys() {
                             )
                         }
                     }
-                }
-                else if (location.pathname.includes("note")) {
+                } else if (location.pathname.includes("note")) {
                     if (noteMetadata) {
                         panTo(noteMetadata.geometry.coordinates[1], noteMetadata.geometry.coordinates[0], Math.max(17, getMap().getZoom()))
                     }
@@ -5563,10 +5570,14 @@ function setupClickableAvatar() {
         e.stopImmediatePropagation()
         const targetURL = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href") + "/history"
         if (targetURL !== location.pathname) {
-            try {
-                getWindow().OSM.router.route(targetURL)
-            } catch {
-                window.location = targetURL
+            if (e.ctrlKey || e.metaKey) {
+                window.open(targetURL, "_blank")
+            } else {
+                try {
+                    getWindow().OSM.router.route(targetURL)
+                } catch {
+                    window.location = targetURL
+                }
             }
             miniAvatar.click() // dirty hack for hide dropdown
         }
