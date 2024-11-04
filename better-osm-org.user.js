@@ -44,6 +44,7 @@
 // @connect      www.openstreetmap.org
 // @connect      osmcha.org
 // @connect      overpass-api.de
+// @connect      raw.githubusercontent.com
 // @sandbox      JavaScript
 // @resource     OAUTH_HTML https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html
 // @resource     OSMCHA_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/osmcha.ico
@@ -1108,13 +1109,13 @@ function copyAnimation(e, text) {
 }
 
 //<editor-fold desc="find deleted user in diffs" defaultstate="collapsed">
-async function tryFindChangesetInDiffGZ(gzURL, changesetId) {
-    async function decompressBlob(blob) {
-        let ds = new DecompressionStream("gzip");
-        let decompressedStream = blob.stream().pipeThrough(ds);
-        return await new Response(decompressedStream).blob();
-    }
+async function decompressBlob(blob) {
+    let ds = new DecompressionStream("gzip");
+    let decompressedStream = blob.stream().pipeThrough(ds);
+    return await new Response(decompressedStream).blob();
+}
 
+async function tryFindChangesetInDiffGZ(gzURL, changesetId) {
     const diffGZ = await GM.xmlHttpRequest({
         method: "GET",
         url: gzURL,
@@ -1237,40 +1238,60 @@ async function checkAAA(AAA, targetTime, targetChangesetID) {
 // https://osm.org/node/4122049406 (/replication/changesets/005/638/ contains .tmp files)
 // https://osm.org/node/2/history (very hard)
 async function findChangesetInDiff(e) {
+    e.preventDefault()
+    e.stopPropagation()
     e.target.style.cursor = "progress"
-    const response = await GM.xmlHttpRequest({
-        method: "GET",
-        url: planetOrigin + "/replication/changesets/",
-    });
-    const parser = new DOMParser();
-    const AAAHTML = parser.parseFromString(response.responseText, "text/html");
-    const targetTime = new Date(e.target.datetime)
-    targetTime.setSeconds(0)
-    const targetChangesetID = e.target.value;
 
-    let a = Array.from(AAAHTML.querySelector("pre").childNodes).slice(2).slice(0, -4)
-    a.push(...a.slice(-2))
-    let x = 0;
-    for (x; x < a.length - 2; x += 2) {
-        let d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim())
-        if (targetTime < d) break
-    }
-    let AAAs;
-    if (x === 0) {
-        AAAs = [a[x].getAttribute("href"), a[x].getAttribute("href")]
-    } else {
-        AAAs = [a[x - 2].getAttribute("href"), a[x].getAttribute("href")]
-    }
+    let foundedChangeset;
+    try {
+        const match = location.pathname.match(/\/(node|way|relation)\/(\d+)/)
+        const [, type, objID] = match
+        if (type === "node") {
+            foundedChangeset = await getNodeViaOverpassXML(objID, e.target.datetime)
+        } else if (type === "way") {
+            foundedChangeset = await getWayViaOverpassXML(objID, e.target.datetime)
+        } else if (type === "relation") {
+            foundedChangeset = await getRelationViaOverpassXML(objID, e.target.datetime)
+        }
+        if (!foundedChangeset.getAttribute("user")) {
+            foundedChangeset = null
+            console.log("Loading via overpass failed. Try via diffs")
+            throw ""
+        }
+    } catch {
+        const response = await GM.xmlHttpRequest({
+            method: "GET",
+            url: planetOrigin + "/replication/changesets/",
+        });
+        const parser = new DOMParser();
+        const AAAHTML = parser.parseFromString(response.responseText, "text/html");
+        const targetTime = new Date(e.target.datetime)
+        targetTime.setSeconds(0)
+        const targetChangesetID = e.target.value;
 
-    let foundedChangeset = await checkAAA(AAAs[0], targetTime, targetChangesetID);
-    if (!foundedChangeset) {
-        foundedChangeset = await checkAAA(AAAs[1], targetTime, targetChangesetID);
-    }
-    if (!foundedChangeset) {
-        alert(":(")
-        return
-    }
+        let a = Array.from(AAAHTML.querySelector("pre").childNodes).slice(2).slice(0, -4)
+        a.push(...a.slice(-2))
+        let x = 0;
+        for (x; x < a.length - 2; x += 2) {
+            let d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim())
+            if (targetTime < d) break
+        }
+        let AAAs;
+        if (x === 0) {
+            AAAs = [a[x].getAttribute("href"), a[x].getAttribute("href")]
+        } else {
+            AAAs = [a[x - 2].getAttribute("href"), a[x].getAttribute("href")]
+        }
 
+        foundedChangeset = await checkAAA(AAAs[0], targetTime, targetChangesetID);
+        if (!foundedChangeset) {
+            foundedChangeset = await checkAAA(AAAs[1], targetTime, targetChangesetID);
+        }
+        if (!foundedChangeset) {
+            alert(":(")
+            return
+        }
+    }
 
     let userInfo = document.createElement("span")
     userInfo.style.cursor = "pointer"
@@ -2200,6 +2221,51 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
     return getBbox(id, timestamp)
 }
 
+async function getNodeViaOverpassXML(id, timestamp) {
+    const res = await GM.xmlHttpRequest({
+        url: "https://overpass-api.de/api/interpreter?" + new URLSearchParams({
+            data: `
+                [out:xml][date:"${timestamp}"];
+                node(${id});
+                out meta;
+            `
+        }),
+        responseType: "xml"
+    });
+    return new DOMParser().parseFromString(res.response, "text/xml").querySelector("node")
+}
+
+async function getWayViaOverpassXML(id, timestamp) {
+    const res = await GM.xmlHttpRequest({
+        url: "https://overpass-api.de/api/interpreter?" + new URLSearchParams({
+            data: `
+                [out:xml][date:"${timestamp}"];
+                way(${id});
+                //(._;>;);
+                out meta;
+            `
+        }),
+        responseType: "xml"
+    });
+    return new DOMParser().parseFromString(res.response, "text/xml").querySelector("way")
+}
+
+
+async function getRelationViaOverpassXML(id, timestamp) {
+    const res = await GM.xmlHttpRequest({
+        url: "https://overpass-api.de/api/interpreter?" + new URLSearchParams({
+            data: `
+                [out:xml][date:"${timestamp}"];
+                relation(${id});
+                //(._;>;);
+                out meta;
+            `
+        }),
+        responseType: "xml"
+    });
+    return new DOMParser().parseFromString(res.response, "text/xml").querySelector("relation")
+}
+
 /**
  * @typedef {{nodes: NodeVersion[][], ways: [WayVersion, NodeVersion[][]][], relations: RelationVersion[][]}}
  * @name RelationMembersVersions
@@ -2354,6 +2420,273 @@ function setupRelationVersionView() {
     }
 }
 
+function setupViewRedactions() {
+    // TODO дозагрузку нужно делать только если есть аргументы в URL?
+    // if (!location.pathname.includes("/node")) {
+    //     return;
+    // }
+    if (document.getElementById("show-unredacted-btn")) {
+        return
+    }
+    let showUnredactedBtn = document.createElement("a")
+    showUnredactedBtn.id = "show-unredacted-btn"
+    showUnredactedBtn.textContent = ['ru-RU', 'ru'].includes(navigator.language) ? "Просмотр неотредактированной истории" : "View Unredacted History"
+    showUnredactedBtn.style.cursor = "pointer"
+    showUnredactedBtn.href = ""
+    showUnredactedBtn.onclick = async e => {
+        e.preventDefault()
+        showUnredactedBtn.style.cursor = "progress"
+        const type = location.pathname.match(/\/(node|way|relation)/)[1]
+        const objID = parseInt(location.pathname.match(/\/(node|way|relation)\/(\d+)/)[2]);
+        let id_prefix = objID;
+        if (type === "node") {
+            id_prefix = Math.floor(id_prefix / 10000);
+        } else if (type === "way") {
+            id_prefix = Math.floor(id_prefix / 1000);
+        } else if (type === "relation") {
+            id_prefix = Math.floor(id_prefix / 10);
+        }
+
+        async function downloadArchiveData(url, objID, needUnzip = false) {
+            const diffGZ = await GM.xmlHttpRequest({
+                method: "GET",
+                url: url,
+                responseType: "blob"
+            });
+            let blob = needUnzip ? await decompressBlob(diffGZ.response) : diffGZ.response;
+            let diffXML = await blob.text()
+
+            const diffParser = new DOMParser();
+            const doc = diffParser.parseFromString(diffXML, "application/xml");
+            return doc.querySelectorAll(`osm [id='${objID}']`)
+        }
+
+        const url = `https://raw.githubusercontent.com/osm-cc-by-sa/data/refs/heads/main/versions_affected_by_disagreed_users_and_all_after/${type}/${id_prefix}.osm` + (type === "relation" ? ".gz" : "")
+        const data = await downloadArchiveData(url, objID, type === "relation")
+
+        const keysLinks = new Map()
+        document.querySelectorAll(".browse-section table th a").forEach(a => {
+            keysLinks.set(a.textContent, a.href)
+        })
+        const valuesLinks = new Map()
+        document.querySelectorAll(".browse-section table td a").forEach(a => {
+            valuesLinks.set(a.textContent, a.href)
+        })
+
+        const versionPrefix = document.querySelector(`.browse-${type} h4`)?.textContent?.match(/(^.*#)/gms)?.at(0)
+
+        for (const elem of Array.from(document.getElementsByClassName("browse-section browse-redacted"))) {
+            const version = elem.textContent.match(/(\d+).*(\d+)/)[1]
+            elem.childNodes[0].textContent = elem.childNodes[0].textContent.match(/(\..*$)/gm)[0].slice(1)
+            let target = Array.from(data).find(i => i.getAttribute("version") === version)
+            if (!target) {
+                const prevDatetime = elem.previousElementSibling.querySelector("time").getAttribute("datetime")
+                const targetDatetime = new Date(new Date(prevDatetime).getTime() - 1).toISOString()
+                if (type === "node") {
+                    target = await getNodeViaOverpassXML(objID, targetDatetime)
+                } else if (type === "way") {
+                    target = await getWayViaOverpassXML(objID, targetDatetime)
+                } else if (type === "relation") {
+                    target = await getRelationViaOverpassXML(objID, targetDatetime)
+                }
+                // todo попробовать заменить на оператор timeline в overpass api
+            }
+            const h4 = document.createElement("h4")
+            h4.textContent = versionPrefix ?? "#"
+            const versionLink = document.createElement("a")
+            versionLink.textContent = version
+            versionLink.href = "/node/" + objID + "/history/" + version
+            h4.appendChild(versionLink)
+
+            const comment = document.createElement("p")
+            comment.classList.add("fs-6", "overflow-x-auto")
+            setTimeout(async () => {
+                const res = await fetch(osm_server.apiBase + "changeset" + "/" + target.getAttribute("changeset") + ".json",);
+                const jsonRes = await res.json();
+                comment.textContent = jsonRes.tags?.comment
+            }, 0)
+
+            const ul = document.createElement("ul")
+            ul.classList.add("list-unstyled")
+
+            const timeLi = document.createElement("li")
+            ul.appendChild(timeLi)
+
+            const time = document.createElement("time")
+            time.setAttribute("datetime", target.getAttribute("timestamp"))
+            time.setAttribute("natural_text", target.getAttribute("timestamp")) // it should server side string :(
+            time.setAttribute("title", target.getAttribute("timestamp")) // it should server side string :(
+            time.textContent = (new Date(target.getAttribute("timestamp")).toISOString()).slice(0, -5) + "Z"
+            timeLi.appendChild(time)
+            timeLi.appendChild(document.createTextNode(" "))
+
+            const user = document.createElement("a")
+            user.href = "/user/" + target.getAttribute("user")
+            user.textContent = target.getAttribute("user")
+            timeLi.appendChild(user)
+
+            const changesetLi = document.createElement("li")
+            const changeset = document.createElement("a")
+            changeset.href = "/changeset/" + target.getAttribute("changeset")
+            changeset.textContent = target.getAttribute("changeset")
+            changesetLi.appendChild(document.createTextNode(" #"))
+            changesetLi.appendChild(changeset)
+            ul.appendChild(changesetLi)
+
+            if (type === "node") {
+                const locationLi = document.createElement("li")
+                ul.appendChild(locationLi)
+
+                const locationA = document.createElement("a")
+                locationA.href = "/#map=18/" + target.getAttribute("lat") + "/" + target.getAttribute("lon")
+
+                const latSpan = document.createElement("span")
+                latSpan.classList.add("latitude")
+                latSpan.textContent = target.getAttribute("lat")
+                locationA.appendChild(latSpan)
+                locationA.appendChild(document.createTextNode(", "))
+
+                const lonSpan = document.createElement("span")
+                lonSpan.classList.add("longitude")
+                lonSpan.textContent = target.getAttribute("lon")
+                locationA.appendChild(lonSpan)
+
+                locationLi.appendChild(locationA)
+            }
+
+            const tags = document.createElement("div")
+            tags.classList.add("mb-3", "border", "border-secondary-subtle", "rounded", "overflow-hidden")
+            const table = document.createElement("table")
+            table.classList.add("mb-0", "browse-tag-list", "table", "align-middle")
+            const tbody = document.createElement("tbody")
+            table.appendChild(tbody)
+
+            target.querySelectorAll("tag").forEach(tag => {
+                const tr = document.createElement("tr")
+
+                const th = document.createElement("th")
+                th.classList.add("py-1", "border-secondary-subtle", "table-secondary", "fw-normal", "history-diff-modified-key")
+                const k = tag.getAttribute("k")
+                if (keysLinks.has(k)) {
+                    const wikiLink = document.createElement("a")
+                    wikiLink.textContent = k
+                    wikiLink.href = keysLinks.get(k)
+                    th.appendChild(wikiLink)
+                } else {
+                    th.textContent = k
+                }
+
+                const td = document.createElement("td")
+                td.classList.add("py-1", "border-secondary-subtle", "border-start")
+                const v = tag.getAttribute("v")
+                if (valuesLinks.has(v)) {
+                    const wikiLink = document.createElement("a")
+                    wikiLink.textContent = v
+                    wikiLink.href = valuesLinks.get(v)
+                    td.appendChild(wikiLink)
+                } else {
+                    td.textContent = v
+                }
+
+                tr.appendChild(th)
+                tr.appendChild(td)
+                tbody.appendChild(tr)
+            })
+            tags.appendChild(table)
+            elem.prepend(h4)
+            elem.appendChild(comment)
+            elem.appendChild(ul)
+            elem.appendChild(tags)
+
+            if (type === "way") {
+                const nodes = Array.from(target.querySelectorAll("nd")).map(i => i.getAttribute("ref"))
+
+                const nodesDetails = document.createElement("details")
+                const summary = document.createElement("summary")
+                summary.textContent = nodes.length
+                nodesDetails.appendChild(summary)
+                const ulNodes = document.createElement("ul")
+                ulNodes.classList.add("list-unstyled")
+                nodes.forEach(i => {
+                    const nodeLi = document.createElement("li")
+                    const a = document.createElement("a")
+                    a.classList.add("node")
+                    a.href = "/node/" + i
+                    a.textContent = i
+                    nodeLi.appendChild(a)
+                    ulNodes.appendChild(nodeLi)
+                })
+                nodesDetails.appendChild(ulNodes)
+                elem.appendChild(nodesDetails)
+            } else if (type === "relation") {
+                const members = Array.from(target.querySelectorAll("member")).map(i => {
+                    return {
+                        ref: i.getAttribute("ref"),
+                        type: i.getAttribute("type"),
+                        role: i.getAttribute("role")
+                    }
+                })
+
+                const membersDetails = document.createElement("details")
+                const summary = document.createElement("summary")
+                summary.textContent = members.length
+                membersDetails.appendChild(summary)
+                const ulMembers = document.createElement("ul")
+                ulMembers.classList.add("list-unstyled")
+                members.forEach(i => {
+                    const memberLi = document.createElement("li")
+                    const a = document.createElement("a")
+                    a.classList.add(type)
+                    a.href = "/node/" + i.ref
+                    a.textContent = i.ref
+                    memberLi.appendChild(a)
+                    a.before(document.createTextNode(i.type + " "))
+                    a.after(document.createTextNode(" " + i.role))
+                    ulMembers.appendChild(memberLi)
+                })
+                membersDetails.appendChild(ulMembers)
+                elem.appendChild(membersDetails)
+            }
+
+            elem.classList.remove("hidden-version")
+            elem.classList.remove("browse-redacted")
+            elem.classList.add("browse-unredacted")
+            elem.classList.add("browse-node")
+        }
+        showUnredactedBtn.remove()
+        const classesForClean = ["history-diff-new-tag", "history-diff-modified-tag", "non-modified-tag", ".empty-version", "hidden-non-modified-tag", "hidden-empty-version"]
+        classesForClean.forEach(className => {
+            Array.from(document.getElementsByClassName(className)).forEach(i => {
+                i.classList.remove(className)
+            })
+        })
+        const elementClassesForRemove = ["history-diff-deleted-tag-tr", "history-diff-modified-location", "find-user-btn", "way-version-view", "relation-version-view"]
+        elementClassesForRemove.forEach(elemClass => {
+            Array.from(document.getElementsByClassName(elemClass)).forEach(i => {
+                i.remove()
+            })
+        })
+
+        Array.from(["browse-node", "browse-way", "browse-relation"]).forEach(typeClass => {
+            Array.from(document.querySelectorAll("details." + typeClass)).forEach(i => {
+                i.querySelector("summary")?.remove()
+                const div = document.createElement("div")
+                div.innerHTML = i.innerHTML
+                div.classList.add("browse-section", typeClass)
+                i.replaceWith(div)
+            })
+
+        })
+        cleanAllObjects()
+        document.querySelector(".compact-toggle-btn")?.remove()
+        setTimeout(addDiffInHistory, 0)
+    }
+    if (!document.querySelector('#sidebar .secondary-actions a[href$="show_redactions=true"]')) {
+        document.querySelector("#sidebar .secondary-actions").appendChild(document.createElement("br"))
+        document.querySelector("#sidebar .secondary-actions").appendChild(showUnredactedBtn)
+    }
+}
+
 // hard cases:
 // https://www.openstreetmap.org/node/1/history
 // https://www.openstreetmap.org/node/2/history
@@ -2460,7 +2793,6 @@ function addDiffInHistory() {
     GM_addElement(document.head, "style", {
         textContent: styleText,
     });
-
     let versions = [{tags: [], coordinates: "", wasModified: false, nodes: [], members: [], visible: true}];
     // add/modification
     let versionsHTML = Array.from(document.querySelectorAll(".browse-section.browse-node, .browse-section.browse-way, .browse-section.browse-relation"))
@@ -2470,14 +2802,14 @@ function addDiffInHistory() {
         let kv = ver.querySelectorAll("tbody > tr") ?? [];
         let tags = [];
 
-        let metainfoHTML = ver.querySelector('ul:nth-child(3) > li:nth-child(1)');
+        let metainfoHTML = ver.querySelector('ul > li:nth-child(1)');
 
-        let changesetHTML = ver.querySelector('ul:nth-child(3) > li:nth-child(2)');
-        let changesetA = ver.querySelector('ul:nth-child(3) > li:nth-child(2) > a');
+        let changesetHTML = ver.querySelector('ul > li:nth-child(2)');
+        let changesetA = ver.querySelector('ul a[href^="/changeset"]');
         const changesetID = changesetA.textContent
 
         let time = Array.from(metainfoHTML.children).find(i => i.localName === "time")
-        if (Array.from(metainfoHTML.children).some(e => e.localName === "a")) {
+        if (Array.from(metainfoHTML.children).some(e => e.localName === "a" && e.href.includes("/user/"))) {
             let a = Array.from(metainfoHTML.children).find(i => i.localName === "a")
             metainfoHTML.innerHTML = ""
             metainfoHTML.appendChild(time)
@@ -2488,6 +2820,7 @@ function addDiffInHistory() {
             metainfoHTML.innerHTML = ""
             metainfoHTML.appendChild(time)
             let findBtn = document.createElement("span")
+            findBtn.classList.add("find-user-btn")
             findBtn.textContent = " 🔍 "
             findBtn.value = changesetID
             findBtn.datetime = time.dateTime
@@ -2506,13 +2839,21 @@ function addDiffInHistory() {
         if (location.pathname.includes("/node")) {
             coordinates = ver.querySelector("li:nth-child(3) > a")
             if (coordinates) {
-                let locationHTML = ver.querySelector('ul:nth-child(3) > li:nth-child(3)');
-                let locationA = ver.querySelector('ul:nth-child(3) > li:nth-child(3) > a');
+                let locationHTML = ver.querySelector('ul > li:nth-child(3)');
+                let locationA = ver.querySelector('ul > li:nth-child(3) > a');
                 locationHTML.innerHTML = ''
                 locationHTML.appendChild(locationA)
             } else {
                 visible = false
                 wasModifiedObject = true // because sometimes deleted object has tags
+                time.before(document.createTextNode("🗑 "))
+            }
+        } else if (location.pathname.includes("/way")) {
+            if (!ver.querySelector("details")) {
+                time.before(document.createTextNode("🗑 "))
+            }
+        } else if (location.pathname.includes("/relation")) {
+            if (!ver.querySelector("details")) {
                 time.before(document.createTextNode("🗑 "))
             }
         }
@@ -2566,18 +2907,30 @@ function addDiffInHistory() {
                 const distTxt = document.createElement("span")
                 distTxt.textContent = `${distInMeters.toFixed(1)}m`
                 distTxt.classList.add("history-diff-modified-tag")
+                distTxt.classList.add("history-diff-modified-location")
                 coordinates.after(distTxt);
                 coordinates.after(document.createTextNode(" "));
             }
             wasModifiedObject = true
         }
         let childNodes = null
-        if (location.pathname.includes("/way") || location.pathname.includes("/relation")) {
-            childNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map((el) => el.textContent)
+        if (location.pathname.includes("/way")) {
+            childNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent.match(/\d+/)[0])
             let lastChildNodes = versions.slice(-1)[0].nodes
             if (version > 1 &&
                 (childNodes.length !== lastChildNodes.length
                     || childNodes.some((el, index) => lastChildNodes[index] !== childNodes[index]))) {
+                ver.querySelector("details > summary")?.classList.add("history-diff-modified-tag")
+                wasModifiedObject = true
+            }
+            ver.querySelector("details")?.removeAttribute("open")
+        } else if (location.pathname.includes("/relation")) {
+            childNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
+            let lastChildMembers = versions.slice(-1)[0].members
+            if (version > 1 &&
+                (childNodes.length !== lastChildMembers.length
+                    || childNodes.some((el, index) => lastChildMembers[index] !== childNodes[index]))) {
+                // todo непонятно как подружить отображением редакшнов
                 ver.querySelector("details > summary")?.classList.add("history-diff-modified-tag")
                 wasModifiedObject = true
             }
@@ -2588,7 +2941,7 @@ function addDiffInHistory() {
             coordinates: coordinates?.href ?? lastCoordinates,
             wasModified: wasModifiedObject || (visible && !lastVisible),
             nodes: childNodes,
-            members: [],
+            members: childNodes,
             visible: visible
         })
         ver.querySelectorAll("h4").forEach((el, index) => (index !== 0) ? el.classList.add("hidden-h4") : null)
@@ -2601,6 +2954,7 @@ function addDiffInHistory() {
             let v = tag[1]
             if (!versions.toReversed()[index].tags.some((elem) => elem[0] === k)) {
                 let tr = document.createElement("tr")
+                tr.classList.add("history-diff-deleted-tag-tr")
                 let th = document.createElement("th")
                 th.textContent = k
                 th.classList.add("history-diff-deleted-tag", "py-1", "border-grey", "table-light", "fw-normal")
@@ -2639,11 +2993,20 @@ function addDiffInHistory() {
             x.replaceWith(spoiler)
         }
     })
+    let hasRedacted = false
     Array.from(document.getElementsByClassName("browse-section browse-redacted")).forEach(
-        (elem) => {
-            elem.classList.add("hidden-version")
+        x => {
+            x.classList.add("hidden-version")
+            hasRedacted = true
         }
     )
+    if (hasRedacted) {
+        try {
+            setupViewRedactions();
+        } catch (e) {
+            console.error(e)
+        }
+    }
     makeHistoryCompact();
     setupNodeVersionView();
     setupWayVersionView();
