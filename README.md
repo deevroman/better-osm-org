@@ -49,6 +49,12 @@ Also works in Firefox for Android
 - `O`— open OSMCha
 - `shift` + `O` — open Achavi
 
+Experimental hotkeys:
+- `K` `L` — navigation between changeset elements
+- `shift` + `L` — pan to current location
+- `shift` + `H` — open My changesets
+- `Y` — open Yandex.Panoramas
+- `shift` + `E` — open second editor
 
 ### Other
 
@@ -76,6 +82,7 @@ Also works in Firefox for Android
 - [x] Hide active note highlight
 - [x] Click on time for show ISO-time
 - [x] Open external links in new tab 
+- [ ] Bypass OSMF Redactions
 
 ### Ideas
 

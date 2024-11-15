@@ -76,6 +76,18 @@ GM_config.init(
         'title': ' ',
         'fields':
             {
+                'OffMapDim': {
+                    'label': 'Off map dim in dark mode 🆕',
+                    'type': 'checkbox',
+                    'default': false,
+                    'labelPos': 'right'
+                },
+                'DarkModeForMap': {
+                    'label': 'Invert map colors in dark mode 🆕',
+                    'type': 'checkbox',
+                    'default': false,
+                    'labelPos': 'right'
+                },
                 'CompactChangesetsHistory':
                     {
                         'section': ["Viewing edits"],
@@ -214,11 +226,11 @@ GM_config.init(
                     'type': 'checkbox',
                     'default': 'checked',
                     'labelPos': 'right'
-                },
+                }
             },
         frameStyle: `
             border: 1px solid #000;
-            height: min(85%, 640px);
+            height: min(85%, 700px);
             width: max(25%, 380px);
             z-index: 9999;
             opacity: 0;
@@ -301,7 +313,7 @@ function addRevertButton() {
         hideSearchForm();
         // sidebar.classList.add("changeset-header")
         let changeset_id = sidebar.innerHTML.match(/(\d+)/)[0];
-        sidebar.innerHTML += ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class>↩️</a> 
+        sidebar.innerHTML += ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="Open osm-revert">↩️</a> 
                                <a href="https://osmcha.org/changesets/${changeset_id}" target="_blank" rel="noreferrer"><img src="${GM_info.scriptHandler !== "Violentmonkey" ? GM_getResourceURL("OSMCHA_ICON") : ''}" id="osmcha_link"></a>`;
         // bypass ViolentMonkey bug
         document.querySelector("#osmcha_link").replaceWith(GM_addElement("img", {
@@ -314,6 +326,10 @@ function addRevertButton() {
         osmcha_link.style.height = "1em";
         osmcha_link.style.cursor = "pointer";
         osmcha_link.style.marginTop = "-3px";
+        osmcha_link.title = "Open changeset in OSMCha (or press O)\n(shift + O for open Achavi)";
+        if (isDarkMode()) {
+            osmcha_link.style.filter = "invert(0.7)";
+        }
 
         // find deleted user
         // todo extract
@@ -612,6 +628,19 @@ function setupCompactChangesetsHistory() {
       font-weight: 788;
       font-style: italic;
       font-size: 14px !important;
+    }
+    @media (prefers-color-scheme: dark) {
+        .changesets time {
+            color: darkgray;
+        }
+                
+        .changesets p {
+            font-weight: 400;
+        }
+        
+        .changeset_id.custom-changeset-id-click {
+            color: #767676 !important;
+        }
     }
     .browse-section > p:nth-of-type(1) {
         font-size: 14px !important;
@@ -2420,6 +2449,9 @@ function setupRelationVersionView() {
     }
 }
 
+
+// tests
+// https://www.openstreetmap.org/relation/100742/history
 function setupViewRedactions() {
     // TODO дозагрузку нужно делать только если есть аргументы в URL?
     // if (!location.pathname.includes("/node")) {
@@ -2430,7 +2462,7 @@ function setupViewRedactions() {
     }
     let showUnredactedBtn = document.createElement("a")
     showUnredactedBtn.id = "show-unredacted-btn"
-    showUnredactedBtn.textContent = ['ru-RU', 'ru'].includes(navigator.language) ? "Просмотр неотредактированной истории" : "View Unredacted History"
+    showUnredactedBtn.textContent = ['ru-RU', 'ru'].includes(navigator.language) ? "Просмотр неотредактированной истории β" : "View Unredacted History β"
     showUnredactedBtn.style.cursor = "pointer"
     showUnredactedBtn.href = ""
     showUnredactedBtn.onclick = async e => {
@@ -2461,7 +2493,7 @@ function setupViewRedactions() {
             return doc.querySelectorAll(`osm [id='${objID}']`)
         }
 
-        const url = `https://raw.githubusercontent.com/osm-cc-by-sa/data/refs/heads/main/versions_affected_by_disagreed_users_and_all_after/${type}/${id_prefix}.osm` + (type === "relation" ? ".gz" : "")
+        const url = `https://raw.githubusercontent.com/osm-cc-by-sa/data/refs/heads/main/versions_affected_by_disagreed_users_and_all_after_with_redaction_period/${type}/${id_prefix}.osm` + (type === "relation" ? ".gz" : "")
         const data = await downloadArchiveData(url, objID, type === "relation")
 
         const keysLinks = new Map()
@@ -2495,7 +2527,7 @@ function setupViewRedactions() {
             h4.textContent = versionPrefix ?? "#"
             const versionLink = document.createElement("a")
             versionLink.textContent = version
-            versionLink.href = "/node/" + objID + "/history/" + version
+            versionLink.href = `/${type}/${objID}/history/${version}`
             h4.appendChild(versionLink)
 
             const comment = document.createElement("p")
@@ -2731,6 +2763,23 @@ function addDiffInHistory() {
     .history-diff-deleted-tag {
       background: rgba(238,51,9,0.6) !important;
     }
+    
+    @media (prefers-color-scheme: dark) {
+        .history-diff-new-tag {
+          background: rgba(4, 123, 0, 0.6) !important;
+        }
+        .history-diff-modified-tag a {
+          color: #052894;
+        }
+        .history-diff-deleted-tag {
+          color: lightgray !important;
+          background: rgba(238,51,9,0.4) !important;
+        }
+        
+        summary.history-diff-modified-tag {
+            background: rgba(223,238,9,0.2) !important;
+        }
+    }
     .non-modified-tag .empty-version {
         
     }
@@ -2765,6 +2814,12 @@ function addDiffInHistory() {
     [way-version]:hover {
         background-color: rgba(244, 244, 244);
     }
+    
+    @media (prefers-color-scheme: dark) {
+        [way-version]:hover {
+            background-color: rgb(14, 17, 19);
+        }
+    }
           
     [way-version].broken-version details:before {
         background-color: rgba(244, 244, 244);
@@ -2781,12 +2836,28 @@ function addDiffInHistory() {
         background-color: rgba(244, 244, 244);
     }
     
+    @media (prefers-color-scheme: dark) {
+        [relation-version]:hover {
+            background-color: rgb(14, 17, 19);
+        }
+    }
+    
     [relation-version].broken-version details:before {
         background-color: rgba(244, 244, 244);
         content: "Some members were hidden by moderators";
         font-style: italic;
         font-weight: normal;
         font-size: small;
+    }
+
+    @media (prefers-color-scheme: dark) {        
+        [relation-version].broken-version details:before {
+            background-color: rgb(14, 17, 19);
+            content: "Some members were hidden by moderators";
+            font-style: italic;
+            font-weight: normal;
+            font-size: small;
+        }
     }
     
     ` : ``);
@@ -3266,6 +3337,10 @@ function addSwipes() {
     }
 }
 
+function isDarkMode() {
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
 async function addChangesetQuickLook() {
     if (!location.pathname.includes("/changeset")) {
         tagsOfObjectsVisible = true
@@ -3298,6 +3373,24 @@ async function addChangesetQuickLook() {
             }
             #sidebar_content li.relation.downloaded:hover {
                 background-color: rgba(223, 223, 223, 0.6);
+            }
+            
+            @media (prefers-color-scheme: dark) {            
+                #sidebar_content li.node:hover {
+                    background-color: rgb(14, 17, 19);
+                }
+                #sidebar_content li.way:hover {
+                    background-color: rgb(14, 17, 19);
+                }
+                #sidebar_content li.node.map-hover {
+                    background-color: rgb(14, 17, 19);
+                }
+                #sidebar_content li.way.map-hover {
+                    background-color: rgb(14, 17, 19);
+                }
+                #sidebar_content li.relation.downloaded:hover {
+                    background-color: rgb(14, 17, 19);
+                }
             }
             .location-modified-marker:hover {
                 background: #0022ff82 !important;
@@ -3425,7 +3518,11 @@ async function addChangesetQuickLook() {
                 for (const [key, value] of Object.entries(prevVersion?.tags ?? {})) {
                     if (targetVersion.tags === undefined || targetVersion.tags[key] === undefined) {
                         const row = makeTagRow(key, value)
-                        row.style.background = "rgba(238,51,9,0.6)"
+                        if (isDarkMode()) {
+                            row.style.background = "rgba(238,51,9,0.4)"
+                        } else {
+                            row.style.background = "rgba(238,51,9,0.6)"
+                        }
                         tbody.appendChild(row)
                         tagsWasChanged = true
                         if (lastVersion.tags && lastVersion.tags[key] === prevVersion.tags[key]) {
@@ -3440,7 +3537,11 @@ async function addChangesetQuickLook() {
                 const row = makeTagRow(key, value)
                 if (prevVersion.tags === undefined || prevVersion.tags[key] === undefined) {
                     tagsWasChanged = true
-                    row.style.background = "rgba(17,238,9,0.6)"
+                    if (isDarkMode()) {
+                        row.style.background = "rgba(17,238,9,0.3)"
+                    } else {
+                        row.style.background = "rgba(17,238,9,0.6)"
+                    }
                     if (!lastVersion.tags || lastVersion.tags[key] !== targetVersion.tags[key]) {
                         if (lastVersion.tags && lastVersion.tags[key]) {
                             row.classList.add("replaced-tag")
@@ -3454,6 +3555,9 @@ async function addChangesetQuickLook() {
                     // todo reverted changes
                     const valCell = row.querySelector("td")
                     valCell.style.background = "rgba(223,238,9,0.6)"
+                    if (isDarkMode()) {
+                        valCell.style.color = "black"
+                    }
                     // toReversed is dirty hack for group inserted/deleted symbols https://osm.org/changeset/157338007
                     const diff = arraysDiff(Array.from(prevVersion.tags[key]).toReversed(), Array.from(valCell.textContent).toReversed(), 1).toReversed()
                     // for one character diff
@@ -3471,13 +3575,21 @@ async function addChangesetQuickLook() {
                             if (c[0] !== c[1]) {
                                 {
                                     const colored = document.createElement("span")
-                                    colored.style.background = "rgba(25, 223, 25, 0.6)"
+                                    if (isDarkMode()) {
+                                        colored.style.background = "rgba(25, 223, 25, 0.9)"
+                                    } else {
+                                        colored.style.background = "rgba(25, 223, 25, 0.6)"
+                                    }
                                     colored.textContent = c[1]
                                     newText.appendChild(colored)
                                 }
                                 {
                                     const colored = document.createElement("span")
-                                    colored.style.background = "rgba(255, 144, 144, 0.6)"
+                                    if (isDarkMode()) {
+                                        colored.style.background = "rgba(253, 83, 83, 0.8)"
+                                    } else {
+                                        colored.style.background = "rgba(255, 144, 144, 0.6)"
+                                    }
                                     colored.textContent = c[0]
                                     prevText.appendChild(colored)
                                 }
@@ -3632,9 +3744,17 @@ async function addChangesetQuickLook() {
                     })
                 }
                 if (haveOnlyInsertion) {
-                    geomChangedFlag.style.background = "rgba(101,238,9,0.6)"
+                    if (isDarkMode()) {
+                        geomChangedFlag.style.background = "rgba(17, 238, 9, 0.3)"
+                    } else {
+                        geomChangedFlag.style.background = "rgba(101,238,9,0.6)"
+                    }
                 } else if (haveOnlyDeletion) {
-                    geomChangedFlag.style.background = "rgba(238, 9, 9, 0.42)"
+                    if (isDarkMode()) {
+                        geomChangedFlag.style.background = "rgba(238, 51, 9, 0.4)"
+                    } else {
+                        geomChangedFlag.style.background = "rgba(238, 9, 9, 0.42)"
+                    }
                 }
 
                 const tagsTable = document.createElement("table")
@@ -3676,7 +3796,7 @@ async function addChangesetQuickLook() {
             if (prevVersion?.members && JSON.stringify(prevVersion.members) !== JSON.stringify(targetVersion.members)) {
                 let memChangedFlag = document.createElement("span")
                 memChangedFlag.textContent = " 👥"
-                memChangedFlag.title = "List of relation members has been changed"
+                memChangedFlag.title = "List of relation members has been changed.\nСlick to see more details"
                 memChangedFlag.style.userSelect = "none"
                 memChangedFlag.style.background = "rgba(223,238,9,0.6)"
                 memChangedFlag.style.cursor = "pointer"
@@ -3837,9 +3957,17 @@ async function addChangesetQuickLook() {
                 }
 
                 if (haveOnlyInsertion) {
-                    memChangedFlag.style.background = "rgba(101,238,9,0.6)"
+                    if (isDarkMode()) {
+                        memChangedFlag.style.background = "rgba(17, 238, 9, 0.3)"
+                    } else {
+                        memChangedFlag.style.background = "rgba(101,238,9,0.6)"
+                    }
                 } else if (haveOnlyDeletion) {
-                    memChangedFlag.style.background = "rgba(238, 9, 9, 0.42)"
+                    if (isDarkMode()) {
+                        memChangedFlag.style.background = "rgba(238, 51, 9, 0.4)"
+                    } else {
+                        memChangedFlag.style.background = "rgba(238, 9, 9, 0.42)"
+                    }
                 }
 
                 const tagsTable = document.createElement("table")
@@ -3879,7 +4007,12 @@ async function addChangesetQuickLook() {
                 memChangedFlag.title = "Coordinates of node has been changed"
                 memChangedFlag.classList.add("location-modified-marker")
                 memChangedFlag.style.userSelect = "none"
-                memChangedFlag.style.background = "rgba(223,238,9,0.6)"
+                if (isDarkMode()) {
+                    memChangedFlag.style.background = "rgba(223, 238, 9, 0.6)"
+                    memChangedFlag.style.color = "black"
+                } else {
+                    memChangedFlag.style.background = "rgba(223,238,9,0.6)"
+                }
                 i.appendChild(memChangedFlag)
                 memChangedFlag.onmouseover = e => {
                     e.stopPropagation()
@@ -4218,6 +4351,7 @@ async function addChangesetQuickLook() {
                 const btn = document.createElement("a")
                 btn.textContent = "📥"
                 btn.classList.add("load-relation-version")
+                btn.title = "Download this relation"
                 btn.style.cursor = "pointer"
                 btn.addEventListener("click", async () => {
                     btn.style.cursor = "progress"
@@ -4728,6 +4862,45 @@ function setupNewEditorsLinks() {
     }
 }
 
+let unDimmed = false;
+
+function setupOffMapDim(){
+    if (!GM_config.get("OffMapDim") || GM_config.get("DarkModeForMap") || unDimmed) {
+        return;
+    }
+    GM_addElement(document.head, "style", {
+        textContent: `
+            @media (prefers-color-scheme: dark) {
+              .leaflet-tile-container, .mapkey-table-entry td:first-child > * {
+                filter: none !important;
+              }
+            }
+        `,
+    });
+    unDimmed = true
+}
+
+let darkModeForMap = false;
+
+function setupDarkModeForMap(){
+    if (!GM_config.get("DarkModeForMap") || darkModeForMap) {
+        return;
+    }
+    GM_addElement(document.head, "style", {
+        textContent: `
+            @media (prefers-color-scheme: dark) {
+              .leaflet-tile-container, .mapkey-table-entry td:first-child > * {
+                filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+              }
+              .leaflet-tile-container * {
+                filter: none;
+              }
+            }
+        `,
+    });
+    darkModeForMap = true
+}
+
 async function setupHDYCInProfile(path) {
     let match = path.match(/^\/user\/([^/]+)$/);
     if (!match) {
@@ -4751,6 +4924,38 @@ async function setupHDYCInProfile(path) {
 function simplifyHDCYIframe() {
     if (window.location === window.parent.location) {
         return
+    }
+    if (isDarkMode()) {
+        GM_addElement(document.head, "style", {
+            textContent: `
+                body {
+                    background-color: rgb(49, 54, 59);
+                    color: lightgray;
+                }
+                
+                #mapwrapper {
+                    filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) brightness(0.7);
+                }
+                
+                #activitymap {
+                    filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) brightness(0.7);
+                }
+                
+                .leaflet-popup-content {
+                    filter: brightness(0.7);
+                }
+            `,
+        });
+        document.querySelectorAll("a").forEach(i => {
+            if (i.style.color === "black") {
+                i.style.color = "lightgray";
+            }
+        })
+        document.querySelectorAll("td").forEach(i => {
+            if (i.style.color === "purple") {
+                i.style.color = "orchid";
+            }
+        })
     }
     document.querySelector("html").style.overflowX = "scroll"
     document.querySelector("body").style.overflowX = "scroll"
@@ -4789,7 +4994,7 @@ function simplifyHDCYIframe() {
             });
             document.getElementById("authenticate").before(warn)
             const img_help = document.createElement("img")
-            img_help.src = "https://raw.githubusercontent.com/deevroman/better-osm-org/dev/img/hdyc-fix-in-chrome.png"
+            img_help.src = "https://raw.githubusercontent.com/deevroman/better-osm-org/master/img/hdyc-fix-in-chrome.png"
             img_help.style.width = "90%"
             warn.after(img_help)
             document.getElementById("authenticate").remove()
@@ -4972,7 +5177,11 @@ function addMassActionForUserChangesets() {
     osmchaIcon.style.height = "1em";
     osmchaIcon.style.cursor = "pointer";
     osmchaIcon.style.marginTop = "-3px";
+    if (isDarkMode()) {
+        osmchaIcon.style.filter = "invert(0.7)";
+    }
     osmchaLink.appendChild(osmchaIcon)
+
 
     document.querySelector("#sidebar_content h2").appendChild(a)
     document.querySelector("#sidebar_content h2").appendChild(document.createTextNode("\xA0"))
@@ -5712,7 +5921,8 @@ function setupNavigationViaHotkeys() {
                         console.debug("skip H")
                     }
                 } else if (location.pathname === "/" || location.pathname.includes("/note")) {
-                    document.querySelector("#history_tab")?.click()
+                    // document.querySelector("#history_tab")?.click()
+                    document.querySelector('.nav-link[href^="/history"]')?.click()
                 }
             }
         } else if (e.code === "KeyY") {
@@ -5948,6 +6158,8 @@ function setupClickableAvatar() {
 }
 
 const modules = [
+    setupOffMapDim,
+    setupDarkModeForMap,
     setupHDYCInProfile,
     setupCompactChangesetsHistory,
     setupMassChangesetsActions,
