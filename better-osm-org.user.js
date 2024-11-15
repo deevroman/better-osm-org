@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Better osm.org
-// @version      0.5.1
+// @version      0.5.2
 // @description  Several improvements for advanced users of osm.org
 // @author       deevroman
 // @match        https://www.openstreetmap.org/*
@@ -1742,6 +1742,11 @@ let abortDownloadingController = new AbortController();
  * @type {Object.<string, NodeVersion[]>}
  */
 const nodesHistories = {}
+
+/**
+ * @type {Object.<string, WayVersion[]>}
+ */
+const waysRedactedVersions = {}
 
 /**
  * @type {Object.<string, WayVersion[]>}
