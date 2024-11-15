@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.5.2
+// @version         0.5.3
 // @description     Several improvements for advanced users of osm.org
 // @description:ru  Скрипт, добавляющий на osm.org полезные картографам функции
 // @author       deevroman
@@ -4885,7 +4885,7 @@ function setupOffMapDim(){
     GM_addElement(document.head, "style", {
         textContent: `
             @media (prefers-color-scheme: dark) {
-              .leaflet-tile-container, .mapkey-table-entry td:first-child > * {
+              .leaflet-tile-container .leaflet-tile, .mapkey-table-entry td:first-child > * {
                 filter: none !important;
               }
             }
@@ -4903,7 +4903,7 @@ function setupDarkModeForMap(){
     GM_addElement(document.head, "style", {
         textContent: `
             @media (prefers-color-scheme: dark) {
-              .leaflet-tile-container, .mapkey-table-entry td:first-child > * {
+              .leaflet-tile-container .leaflet-tile, .mapkey-table-entry td:first-child > * {
                 filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
               }
               .leaflet-tile-container * {
@@ -4923,13 +4923,28 @@ async function setupHDYCInProfile(path) {
     const user = match[1];
     if (user === "forgot-password" || user === "new") return;
     document.querySelector(".content-body > .content-inner").style.paddingBottom = "0px";
-    GM_addElement(document.querySelector("#content"), "iframe", {
-        src: "https://www.hdyc.neis-one.org/?" + user,
-        width: "100%",
-        height: "2500px",
-        id: "hdyc-iframe",
-        scrolling: "no",
-    });
+    if (isDarkMode()) {
+        GM_addElement(document.querySelector("#content"), "iframe", {
+            src: "https://www.hdyc.neis-one.org/?" + user,
+            width: "100%",
+            height: "2700px",
+            id: "hdyc-iframe",
+            scrolling: "no",
+            background: "rgb(49, 54, 59)",
+            style: "visibility:hidden;background-color: rgb(49, 54, 59);",
+        });
+        setTimeout(() => {
+            document.getElementById("hdyc-iframe").style.visibility = 'visible';
+        }, 1500)
+    } else {
+        GM_addElement(document.querySelector("#content"), "iframe", {
+            src: "https://www.hdyc.neis-one.org/?" + user,
+            width: "100%",
+            height: "2700px",
+            id: "hdyc-iframe",
+            scrolling: "no",
+        });
+    }
     if (document.querySelector('a[href$="/blocks"]')?.nextElementSibling?.textContent > 0) {
         document.querySelector('a[href$="/blocks"]').nextElementSibling.style.background = "rgba(255, 0, 0, 0.3)"
     }
