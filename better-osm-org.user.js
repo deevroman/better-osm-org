@@ -2485,17 +2485,21 @@ function setupViewRedactions() {
         }
 
         async function downloadArchiveData(url, objID, needUnzip = false) {
-            const diffGZ = await GM.xmlHttpRequest({
-                method: "GET",
-                url: url,
-                responseType: "blob"
-            });
-            let blob = needUnzip ? await decompressBlob(diffGZ.response) : diffGZ.response;
-            let diffXML = await blob.text()
+            try {
+                const diffGZ = await GM.xmlHttpRequest({
+                    method: "GET",
+                    url: url,
+                    responseType: "blob"
+                });
+                let blob = needUnzip ? await decompressBlob(diffGZ.response) : diffGZ.response;
+                let diffXML = await blob.text()
 
-            const diffParser = new DOMParser();
-            const doc = diffParser.parseFromString(diffXML, "application/xml");
-            return doc.querySelectorAll(`osm [id='${objID}']`)
+                const diffParser = new DOMParser();
+                const doc = diffParser.parseFromString(diffXML, "application/xml");
+                return doc.querySelectorAll(`osm [id='${objID}']`)
+            } catch {
+                return null
+            }
         }
 
         const url = `https://raw.githubusercontent.com/osm-cc-by-sa/data/refs/heads/main/versions_affected_by_disagreed_users_and_all_after_with_redaction_period/${type}/${id_prefix}.osm` + (type === "relation" ? ".gz" : "")
@@ -2515,7 +2519,10 @@ function setupViewRedactions() {
         for (const elem of Array.from(document.getElementsByClassName("browse-section browse-redacted"))) {
             const version = elem.textContent.match(/(\d+).*(\d+)/)[1]
             elem.childNodes[0].textContent = elem.childNodes[0].textContent.match(/(\..*$)/gm)[0].slice(1)
-            let target = Array.from(data).find(i => i.getAttribute("version") === version)
+            let target;
+            try {
+                target = Array.from(data).find(i => i.getAttribute("version") === version)
+            } catch {}
             if (!target) {
                 const prevDatetime = elem.previousElementSibling.querySelector("time").getAttribute("datetime")
                 const targetDatetime = new Date(new Date(prevDatetime).getTime() - 1).toISOString()
