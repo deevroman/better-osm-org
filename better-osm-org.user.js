@@ -1,7 +1,9 @@
 // ==UserScript==
-// @name         Better osm.org
-// @version      0.5.2
-// @description  Several improvements for advanced users of osm.org
+// @name            Better osm.org
+// @name:ru         Better osm.org
+// @version         0.5.2
+// @description     Several improvements for advanced users of osm.org
+// @description:ru  Скрипт, добавляющий на osm.org полезные картографам функции
 // @author       deevroman
 // @match        https://www.openstreetmap.org/*
 // @exclude      https://www.openstreetmap.org/api*
