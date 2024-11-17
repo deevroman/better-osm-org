@@ -1023,7 +1023,13 @@ function switchTiles() {
             let xyz = parseOSMTileURL(i.src)
             if (!xyz) return
             i.src = SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x;
-            i.classList.add("no-invert");
+            if (i.complete) {
+                i.classList.add("no-invert");
+            } else {
+                i.addEventListener("load", e => {
+                    e.target.classList.add("no-invert");
+                }, {once: true})
+            }
             /*
             const newImg = GM_addElement(document.body, "img", {
                 src: SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x
@@ -1036,7 +1042,13 @@ function switchTiles() {
             let xyz = parseESRITileURL(i.src)
             if (!xyz) return
             i.src = OSMPrefix + xyz.z + "/" + xyz.x + "/" + xyz.y + ".png";
-            i.classList.remove("no-invert")
+            if (i.complete) {
+                i.classList.remove("no-invert");
+            } else {
+                i.addEventListener("load", e => {
+                    e.target.classList.remove("no-invert");
+                }, {once: true})
+            }
         }
     })
     const observer = new MutationObserver(mutations => {
@@ -1049,7 +1061,13 @@ function switchTiles() {
                     let xyz = parseOSMTileURL(node.src);
                     if (!xyz) return
                     node.src = SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x;
-                    node.classList.add("no-invert");
+                    if (node.complete) {
+                        node.classList.add("no-invert");
+                    } else {
+                        node.addEventListener("load", e => {
+                            e.target.classList.add("no-invert");
+                        }, {once: true})
+                    }
                     /*
                     const newImg = GM_addElement(document.body, "img", {
                         src: SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x
@@ -1062,7 +1080,13 @@ function switchTiles() {
                     let xyz = parseESRITileURL(node.src)
                     if (!xyz) return
                     node.src = OSMPrefix + xyz.z + "/" + xyz.x + "/" + xyz.y + ".png";
-                    node.classList.remove("no-invert");
+                    if (node.complete) {
+                        node.classList.remove("no-invert");
+                    } else {
+                        node.addEventListener("load", e => {
+                            e.target.classList.remove("no-invert");
+                        }, {once: true})
+                    }
                 }
             });
         });
