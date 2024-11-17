@@ -1023,6 +1023,7 @@ function switchTiles() {
             let xyz = parseOSMTileURL(i.src)
             if (!xyz) return
             i.src = SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x;
+            i.classList.add("no-invert");
             /*
             const newImg = GM_addElement(document.body, "img", {
                 src: SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x
@@ -1035,6 +1036,7 @@ function switchTiles() {
             let xyz = parseESRITileURL(i.src)
             if (!xyz) return
             i.src = OSMPrefix + xyz.z + "/" + xyz.x + "/" + xyz.y + ".png";
+            i.classList.remove("no-invert")
         }
     })
     const observer = new MutationObserver(mutations => {
@@ -1047,6 +1049,7 @@ function switchTiles() {
                     let xyz = parseOSMTileURL(node.src);
                     if (!xyz) return
                     node.src = SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x;
+                    node.classList.add("no-invert");
                     /*
                     const newImg = GM_addElement(document.body, "img", {
                         src: SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x
@@ -1059,6 +1062,7 @@ function switchTiles() {
                     let xyz = parseESRITileURL(node.src)
                     if (!xyz) return
                     node.src = OSMPrefix + xyz.z + "/" + xyz.x + "/" + xyz.y + ".png";
+                    node.classList.remove("no-invert");
                 }
             });
         });
@@ -4905,7 +4909,7 @@ function setupOffMapDim() {
     GM_addElement(document.head, "style", {
         textContent: `
             @media (prefers-color-scheme: dark) {
-              .leaflet-tile-container .leaflet-tile, .mapkey-table-entry td:first-child > * {
+              .leaflet-tile-container .leaflet-tile:not(.no-invert), .mapkey-table-entry td:first-child > * {
                 filter: none !important;
               }
             }
@@ -4923,7 +4927,7 @@ function setupDarkModeForMap() {
     GM_addElement(document.head, "style", {
         textContent: `
             @media (prefers-color-scheme: dark) {
-              .leaflet-tile-container .leaflet-tile, .mapkey-table-entry td:first-child > * {
+              .leaflet-tile-container .leaflet-tile:not(.no-invert), .mapkey-table-entry td:first-child > * {
                 filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
               }
               .leaflet-tile-container * {
