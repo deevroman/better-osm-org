@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.5.4
+// @version         0.5.5
 // @description     Several improvements for advanced users of osm.org
 // @description:ru  Скрипт, добавляющий на osm.org полезные картографам функции
 // @author       deevroman
@@ -1322,6 +1322,9 @@ async function findChangesetInDiff(e) {
     let userInfo = document.createElement("span")
     userInfo.style.cursor = "pointer"
     userInfo.style.background = "#fff181"
+    if (isDarkMode()){
+        userInfo.style.color = "black"
+    }
     userInfo.textContent = foundedChangeset.getAttribute("user")
 
     function clickForCopy(e) {
@@ -1338,6 +1341,9 @@ async function findChangesetInDiff(e) {
     let uid = document.createElement("span")
     uid.style.background = "#9cff81"
     uid.style.cursor = "pointer"
+    if (isDarkMode()){
+        uid.style.color = "black"
+    }
     uid.onclick = clickForCopy
     uid.textContent = `${foundedChangeset.getAttribute("uid")}`
     e.target.before(uid)
@@ -1442,8 +1448,9 @@ function intoPageWithFun(obj) {
  * @param {[]} nodesList
  * @param {string=} color
  * @param {boolean} needFly
+ * @param {boolean} addStroke
  */
-function showWay(nodesList, color = "#000000", needFly = false) {
+function showWay(nodesList, color = "#000000", needFly = false, addStroke = false) {
     layers["customObjects"].forEach(i => i.remove())
     layers["customObjects"] = []
     const line = getWindow().L.polyline(
@@ -1456,6 +1463,9 @@ function showWay(nodesList, color = "#000000", needFly = false) {
             fillOpacity: 1
         })
     ).addTo(getMap());
+    if (addStroke) {
+        line._path.classList.add("stroke-polyline")
+    }
     layers["customObjects"].push(line);
     if (needFly) {
         if (nodesList.length) {
@@ -1502,7 +1512,7 @@ function showWays(ListOfNodesList, layerName = "customObjects", color = "#000000
  * @param {string=} dashArray
  * @param {string} popupContent
  */
-function displayWay(nodesList, needFly = false, color = "#000000", width = 4, infoElemID = null, layerName = "customObjects", dashArray = null, popupContent = null) {
+function displayWay(nodesList, needFly = false, color = "#000000", width = 4, infoElemID = null, layerName = "customObjects", dashArray = null, popupContent = null, addStroke) {
     if (!layers[layerName]) {
         layers[layerName] = []
     }
@@ -1540,6 +1550,9 @@ function displayWay(nodesList, needFly = false, color = "#000000", width = 4, in
             elementById?.classList.add("map-hover")
         }, getWindow(), {cloneFunctions: true,}))
     }
+    if (addStroke) {
+        line._path.classList.add("stroke-polyline");
+    }
     return line
 }
 
@@ -1553,7 +1566,7 @@ function displayWay(nodesList, needFly = false, color = "#000000", width = 4, in
  * @param {string=} layerName
  * @param {number=} radius
  */
-function showNodeMarker(a, b, color = "#006200", infoElemID = null, layerName = 'customObjects', radius = 5) {
+function showNodeMarker(a, b, color = "#00a500", infoElemID = null, layerName = 'customObjects', radius = 5) {
     const haloStyle = {
         weight: 2.5,
         radius: radius,
@@ -2039,7 +2052,7 @@ function setupWayVersionView() {
             htmlElem.style.cursor = "auto"
         } else {
             if (needShowWay) {
-                showWay(cloneInto(nodesList, unsafeWindow), "#000000", needFly)
+                showWay(cloneInto(nodesList, unsafeWindow), "#000000", needFly, darkModeForMap && isDarkMode())
             }
         }
         if (htmlElem.nodeName === "A") {
@@ -2390,7 +2403,7 @@ function setupRelationVersionView() {
                         const {lat: lat, lon: lon} = filterVersionByTimestamp(n, targetVersion.timestamp)
                         return [lat, lon]
                     })
-                    displayWay(cloneInto(nodesList, unsafeWindow))
+                    displayWay(cloneInto(nodesList, unsafeWindow), false, "#000000", 4, null, "customObjects", null, null, darkModeForMap && isDarkMode())
                 } catch {
                     hasBrokenMembers = true
                     // TODO highlight in member list
@@ -2519,7 +2532,8 @@ function setupViewRedactions() {
             let target;
             try {
                 target = Array.from(data).find(i => i.getAttribute("version") === version)
-            } catch {}
+            } catch {
+            }
             if (!target) {
                 const prevDatetime = elem.previousElementSibling.querySelector("time").getAttribute("datetime")
                 const targetDatetime = new Date(new Date(prevDatetime).getTime() - 1).toISOString()
@@ -2869,6 +2883,11 @@ function addDiffInHistory() {
         }
     }
     
+    @media (prefers-color-scheme: dark) {        
+        path.stroke-polyline {
+            filter: drop-shadow(1px 1px 0 #7a7a7a) drop-shadow(-1px -1px 0 #7a7a7a) drop-shadow(1px -1px 0 #7a7a7a) drop-shadow(-1px 1px 0 #7a7a7a);
+        }
+    }
     ` : ``);
     GM_addElement(document.head, "style", {
         textContent: styleText,
@@ -3431,6 +3450,12 @@ async function addChangesetQuickLook() {
               content: " ↻";
               position: absolute;
               // margin-top: 2px
+            }
+            
+            @media (prefers-color-scheme: dark) {        
+                path.stroke-polyline {
+                    filter: drop-shadow(1px 1px 0 #7a7a7a) drop-shadow(-1px -1px 0 #7a7a7a) drop-shadow(1px -1px 0 #7a7a7a) drop-shadow(-1px 1px 0 #7a7a7a);
+                }
             }
             `,
             });
@@ -4203,7 +4228,7 @@ async function addChangesetQuickLook() {
                     }
                 } else if (targetVersion.version === 1) {
                     if (targetVersion.tags || nodesWithOldParentWays[parseInt(changesetID)].has(parseInt(objID))) {
-                        showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#006200", targetVersion.id)
+                        showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#00a500", targetVersion.id)
                     }
                 } else if (prevVersion?.visible === false && targetVersion?.visible !== false) {
                     showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "rgba(89,170,9,0.6)", targetVersion.id, 'customObjects', 2)
@@ -4244,7 +4269,7 @@ async function addChangesetQuickLook() {
                                 if (prevVersion.visible === false) {
                                     displayWay(cloneInto(nodesList, unsafeWindow), false, "rgb(255,245,41)", 3, "w" + objID, "customObjects", "4, 4")
                                 } else {
-                                    displayWay(cloneInto(nodesList, unsafeWindow), false, "rgb(0,0,0)", 3, "w" + objID, "customObjects", "4, 4")
+                                    displayWay(cloneInto(nodesList, unsafeWindow), false, "rgb(0,0,0)", 3, "w" + objID, "customObjects", "4, 4", null, darkModeForMap && isDarkMode())
                                 }
                             }
                         }
@@ -4330,7 +4355,7 @@ async function addChangesetQuickLook() {
                 } else if (prevVersion?.visible === false) {
                     displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(120,238,9,0.6)", 4, "w" + objID)
                 } else {
-                    displayWay(cloneInto(currentNodesList, unsafeWindow), false, "#373737", 4, "w" + objID)
+                    displayWay(cloneInto(currentNodesList, unsafeWindow), false, "#373737", 4, "w" + objID, "customObjects", null, null, darkModeForMap && isDarkMode())
                 }
                 i.onmouseenter = async () => {
                     showActiveWay(cloneInto(currentNodesList, unsafeWindow))
@@ -4640,7 +4665,7 @@ async function addChangesetQuickLook() {
                     if (i.getAttribute("visible") === "false") {
                         // todo
                     } else if (i.getAttribute("version") === "1" && !nodesWithParentWays[parseInt(changesetID)].has(parseInt(nodeID))) {
-                        showNodeMarker(i.getAttribute("lat"), i.getAttribute("lon"), "#006200", nodeID)
+                        showNodeMarker(i.getAttribute("lat"), i.getAttribute("lon"), "#00a500", nodeID)
                     }
                 }
             })
@@ -4734,7 +4759,7 @@ async function addChangesetQuickLook() {
                                 popup.appendChild(tagsTable)
                                 // todo показать по ховеру прошлую версию?
 
-                                displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(55,55,55,0.5)", 4, "n" + nodeID, "customObjects", null, popup.outerHTML)
+                                displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(55,55,55,0.5)", 4, "n" + nodeID, "customObjects", null, popup.outerHTML, darkModeForMap && isDarkMode())
 
                                 way.nodes.forEach(n => {
                                     if (!document.querySelector("#n" + n)) return
@@ -4873,7 +4898,7 @@ function setupNewEditorsLinks() {
 
 let unDimmed = false;
 
-function setupOffMapDim(){
+function setupOffMapDim() {
     if (!GM_config.get("OffMapDim") || GM_config.get("DarkModeForMap") || unDimmed) {
         return;
     }
@@ -4891,7 +4916,7 @@ function setupOffMapDim(){
 
 let darkModeForMap = false;
 
-function setupDarkModeForMap(){
+function setupDarkModeForMap() {
     if (!GM_config.get("DarkModeForMap") || darkModeForMap) {
         return;
     }
