@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.5.3
+// @version         0.5.4
 // @description     Several improvements for advanced users of osm.org
 // @description:ru  Скрипт, добавляющий на osm.org полезные картографам функции
 // @author       deevroman
@@ -316,12 +316,7 @@ function addRevertButton() {
         // sidebar.classList.add("changeset-header")
         let changeset_id = sidebar.innerHTML.match(/(\d+)/)[0];
         sidebar.innerHTML += ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="Open osm-revert">↩️</a> 
-                               <a href="https://osmcha.org/changesets/${changeset_id}" target="_blank" rel="noreferrer"><img src="${GM_info.scriptHandler !== "Violentmonkey" ? GM_getResourceURL("OSMCHA_ICON") : ''}" id="osmcha_link"></a>`;
-        // bypass ViolentMonkey bug
-        document.querySelector("#osmcha_link").replaceWith(GM_addElement("img", {
-            id: "osmcha_link",
-            src: GM_getResourceURL("OSMCHA_ICON")
-        }))
+                               <a href="https://osmcha.org/changesets/${changeset_id}" target="_blank" rel="noreferrer"><img src="${GM_getResourceURL("OSMCHA_ICON", false)}" id="osmcha_link"></a>`;
 
         document.querySelector("#revert_button_class").style.textDecoration = "none"
         const osmcha_link = document.querySelector("#osmcha_link");
@@ -415,8 +410,8 @@ function addRevertButton() {
             });
         }
 
-        const likeImgRes = GM_getResourceURL("OSMCHA_LIKE")
-        const dislikeImgRes = GM_getResourceURL("OSMCHA_DISLIKE")
+        const likeImgRes = GM_getResourceURL("OSMCHA_LIKE", false)
+        const dislikeImgRes = GM_getResourceURL("OSMCHA_DISLIKE", false)
 
         const likeBtn = document.createElement("span")
         const likeImg = document.createElement("img")
@@ -3825,9 +3820,9 @@ async function addChangesetQuickLook() {
                 membersTable.appendChild(tbody)
 
 
-                const nodeIcon = GM_getResourceURL("NODE_ICON")
-                const wayIcon = GM_getResourceURL("WAY_ICON")
-                const relationIcon = GM_getResourceURL("RELATION_ICON")
+                const nodeIcon = GM_getResourceURL("NODE_ICON", false)
+                const wayIcon = GM_getResourceURL("WAY_ICON", false)
+                const relationIcon = GM_getResourceURL("RELATION_ICON", false)
 
                 /**
                  * @param {RelationMember} member
@@ -5202,7 +5197,7 @@ function addMassActionForUserChangesets() {
     osmchaLink.rel = "noreferrer"
 
     const osmchaIcon = document.createElement("img")
-    osmchaIcon.src = GM_getResourceURL("OSMCHA_ICON")
+    osmchaIcon.src = GM_getResourceURL("OSMCHA_ICON", false)
     osmchaIcon.style.height = "1em";
     osmchaIcon.style.cursor = "pointer";
     osmchaIcon.style.marginTop = "-3px";
