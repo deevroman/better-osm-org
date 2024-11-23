@@ -2857,6 +2857,12 @@ function addDiffInHistory() {
       background-color: unset !important;
       transition:all 0.3s;
     }
+    
+    @media (max-device-width: 640px) and (prefers-color-scheme: dark) {
+        td.history-diff-new-tag,.history-diff-modified-tag,.history-diff-deleted-tag::selection {
+            background: black;
+        }
+    }
     ` + (GM_config.get("ShowChangesetGeometry") ? `
     .way-version-view:hover {
         background-color: yellow;
