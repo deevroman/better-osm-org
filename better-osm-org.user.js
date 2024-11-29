@@ -20,6 +20,7 @@
 // @match        https://www.hdyc.neis-one.org/*
 // @match        https://hdyc.neis-one.org/*
 // @match        https://osmcha.org/*
+// @exclude      https://taginfo.openstreetmap.org/embed/*
 // @license      WTFPL
 // @namespace    https://github.com/deevroman/better-osm-org
 // @updateURL    https://github.com/deevroman/better-osm-org/raw/master/better-osm-org.user.js
@@ -6335,6 +6336,9 @@ function main() {
     } else {
         try {
             GM_registerMenuCommand("Settings", function () {
+                if (window.location !== window.parent.location) {
+                    return
+                }
                 GM_config.open();
             });
         } catch { /* empty */
