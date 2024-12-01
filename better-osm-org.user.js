@@ -73,6 +73,11 @@
 /*global unsafeWindow*/
 /*global exportFunction*/
 /*global cloneInto*/
+
+function isDarkMode() {
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
 GM_config.init(
     {
         'id': 'Config',
@@ -240,7 +245,33 @@ GM_config.init(
             position: absolute;
             margin-left: auto;
             margin-right: auto;
-        `
+        `,
+        css: `
+            #Config_saveBtn {
+                cursor: pointer;
+            }
+            #Config_closeBtn {
+                cursor: pointer;
+            }
+        @media (prefers-color-scheme: dark) {
+            #Config {
+                background: #232528;
+                color: white;
+            }
+            #Config a {
+                color: darkgray;
+            }
+            #Config_saveBtn {
+                filter: invert(0.9);
+            }
+            #Config_closeBtn {
+                filter: invert(0.9);
+            }
+            #Config_resetLink {
+                color: gray !important;
+            }
+        }
+        `,
     });
 
 let onInit = config => new Promise(resolve => {
@@ -1351,7 +1382,7 @@ async function findChangesetInDiff(e) {
     let userInfo = document.createElement("span")
     userInfo.style.cursor = "pointer"
     userInfo.style.background = "#fff181"
-    if (isDarkMode()){
+    if (isDarkMode()) {
         userInfo.style.color = "black"
     }
     userInfo.textContent = foundedChangeset.getAttribute("user")
@@ -1370,7 +1401,7 @@ async function findChangesetInDiff(e) {
     let uid = document.createElement("span")
     uid.style.background = "#9cff81"
     uid.style.cursor = "pointer"
-    if (isDarkMode()){
+    if (isDarkMode()) {
         uid.style.color = "black"
     }
     uid.onclick = clickForCopy
@@ -2820,6 +2851,9 @@ function addDiffInHistory() {
         .history-diff-new-tag {
           background: rgba(4, 123, 0, 0.6) !important;
         }
+        .history-diff-modified-tag {
+          color: black !important;
+        }
         .history-diff-modified-tag a {
           color: #052894;
         }
@@ -2860,7 +2894,19 @@ function addDiffInHistory() {
     }
     
     @media (max-device-width: 640px) and (prefers-color-scheme: dark) {
-        td.history-diff-new-tag,.history-diff-modified-tag,.history-diff-deleted-tag::selection {
+        td.history-diff-new-tag::selection, /*td.history-diff-modified-tag::selection,*/ td.history-diff-deleted-tag::selection {
+            background: black;
+        }
+        
+        th.history-diff-new-tag::selection, /*th.history-diff-modified-tag::selection,*/ th.history-diff-deleted-tag::selection {
+            background: black;
+        }
+        
+        td a.history-diff-new-tag::selection, td a.history-diff-modified-tag::selection, td a.history-diff-deleted-tag::selection {
+            background: black;
+        }
+        
+        th a.history-diff-new-tag::selection, th a.history-diff-modified-tag::selection, th a.history-diff-deleted-tag::selection {
             background: black;
         }
     }
@@ -3400,10 +3446,6 @@ function addSwipes() {
     }
 }
 
-function isDarkMode() {
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-}
-
 async function addChangesetQuickLook() {
     if (!location.pathname.includes("/changeset")) {
         tagsOfObjectsVisible = true
@@ -3419,9 +3461,83 @@ async function addChangesetQuickLook() {
     injectingStarted = true
     abortDownloadingController = new AbortController()
     try {
-        if (GM_config.get("ShowChangesetGeometry")) {
-            GM_addElement(document.head, "style", {
-                textContent: `
+        const styleText = `
+            tr.quick-look-new-tag {
+                background: rgba(17,238,9,0.6);
+            }
+            
+            tr.quick-look-modified-tag td {
+                background: rgba(223,238,9,0.6);
+            }
+            
+            tr.quick-look-deleted-tag {
+                background: rgba(238,51,9,0.6);
+            }
+            
+            @media (prefers-color-scheme: dark) {            
+                tr.quick-look-new-tag {
+                    /*background: #0f540fde;*/
+                    background: rgba(17,238,9,0.3);
+                    /*background: rgba(87, 171, 90, 0.3);*/
+                }
+                
+                tr.quick-look-modified-tag td {
+                    color: black;
+                }
+                            
+                tr.quick-look-deleted-tag {
+                    /*background: #692113;*/
+                    background: rgba(238,51,9,0.4);
+                    /*background: rgba(229, 83, 75, 0.3);*/
+                }
+                                
+                tr.quick-look-new-tag th::selection {
+                    background: black !important;
+                }
+                
+                tr.quick-look-modified-tag th::selection {
+                    background: black !important;
+                }
+                            
+                tr.quick-look-deleted-tag th::selection {
+                    background: black !important;
+                }
+                              
+                tr.quick-look-new-tag td::selection {
+                    background: black !important;
+                }
+                
+                /*tr.quick-look-modified-tag td::selection {*/
+                /*    background: black !important;*/
+                /*}*/
+                            
+                tr.quick-look-deleted-tag td::selection {
+                    background: black !important;
+                }
+            }
+            
+            tr.restored-tag::after {
+              content: " ♻️";
+              position: absolute;
+              margin-top: 2px
+            }
+            tr.removed-tag::after {
+              content: " 🗑";
+              position: absolute;
+              margin-top: 2px
+            }
+            tr.replaced-tag::after {
+              content: " ⇄";
+              position: absolute;
+            }
+            tr.reverted-tag::after {
+              content: " ↻";
+              position: absolute;
+              // margin-top: 2px
+            }
+            
+            `
+            + ((GM_config.get("ShowChangesetGeometry")) ? `
             #sidebar_content li.node:hover {
                 background-color: rgba(223, 223, 223, 0.6);
             }
@@ -3467,34 +3583,16 @@ async function addChangesetQuickLook() {
             .leaflet-fade-anim .leaflet-popup {
                 transition: none;
             }
-            tr.restored-tag::after {
-              content: " ♻️";
-              position: absolute;
-              margin-top: 2px
-            }
-            tr.removed-tag::after {
-              content: " 🗑";
-              position: absolute;
-              margin-top: 2px
-            }
-            tr.replaced-tag::after {
-              content: " ⇄";
-              position: absolute;
-            }
-            tr.reverted-tag::after {
-              content: " ↻";
-              position: absolute;
-              // margin-top: 2px
-            }
             
             @media (prefers-color-scheme: dark) {        
                 path.stroke-polyline {
                     filter: drop-shadow(1px 1px 0 #7a7a7a) drop-shadow(-1px -1px 0 #7a7a7a) drop-shadow(1px -1px 0 #7a7a7a) drop-shadow(-1px 1px 0 #7a7a7a);
                 }
             }
-            `,
-            });
-        }
+            ` : "");
+        GM_addElement(document.head, "style", {
+            textContent: styleText
+        });
     } catch { /* empty */
     }
     blurSearchField();
@@ -3587,11 +3685,7 @@ async function addChangesetQuickLook() {
                 for (const [key, value] of Object.entries(prevVersion?.tags ?? {})) {
                     if (targetVersion.tags === undefined || targetVersion.tags[key] === undefined) {
                         const row = makeTagRow(key, value)
-                        if (isDarkMode()) {
-                            row.style.background = "rgba(238,51,9,0.4)"
-                        } else {
-                            row.style.background = "rgba(238,51,9,0.6)"
-                        }
+                        row.classList.add("quick-look-deleted-tag")
                         tbody.appendChild(row)
                         tagsWasChanged = true
                         if (lastVersion.tags && lastVersion.tags[key] === prevVersion.tags[key]) {
@@ -3606,11 +3700,7 @@ async function addChangesetQuickLook() {
                 const row = makeTagRow(key, value)
                 if (prevVersion.tags === undefined || prevVersion.tags[key] === undefined) {
                     tagsWasChanged = true
-                    if (isDarkMode()) {
-                        row.style.background = "rgba(17,238,9,0.3)"
-                    } else {
-                        row.style.background = "rgba(17,238,9,0.6)"
-                    }
+                    row.classList.add("quick-look-new-tag")
                     if (!lastVersion.tags || lastVersion.tags[key] !== targetVersion.tags[key]) {
                         if (lastVersion.tags && lastVersion.tags[key]) {
                             row.classList.add("replaced-tag")
@@ -3623,10 +3713,7 @@ async function addChangesetQuickLook() {
                 } else if (prevVersion.tags[key] !== value) {
                     // todo reverted changes
                     const valCell = row.querySelector("td")
-                    valCell.style.background = "rgba(223,238,9,0.6)"
-                    if (isDarkMode()) {
-                        valCell.style.color = "black"
-                    }
+                    row.classList.add("quick-look-modified-tag")
                     // toReversed is dirty hack for group inserted/deleted symbols https://osm.org/changeset/157338007
                     const diff = arraysDiff(Array.from(prevVersion.tags[key]).toReversed(), Array.from(valCell.textContent).toReversed(), 1).toReversed()
                     // for one character diff
