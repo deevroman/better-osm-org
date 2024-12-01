@@ -6260,20 +6260,94 @@ const modules = [
     setupClickableAvatar
 ];
 
+const fetchWithCache = (() => {
+    const cache = new Map();
+
+    return async url => {
+        if (cache.has(url)) {
+            return cache.get(url);
+        }
+
+        const promise = fetch(url).then((res) => res.json());
+        cache.set(url, promise);
+
+        try {
+            const result = await promise;
+            cache.set(url, result);
+            return result;
+        } catch (error) {
+            cache.delete(url);
+            throw error;
+        }
+    };
+})();
+
 function setupTaginfo() {
+    const instance = document.querySelector("#instance")?.textContent
     if (location.pathname.match(/reports\/key_lengths$/)) {
-        const instance = document.querySelector("#instance").textContent
         document.querySelectorAll(".dt-body[data-col='1']").forEach(i => {
             if (i.querySelector(".overpass-link")) return
             const overpassLink = document.createElement("a")
             overpassLink.classList.add("overpass-link")
             overpassLink.textContent = "🔍"
             overpassLink.target = "_blank"
-            const key = i.querySelector("a").textContent
-            overpassLink.href = "https://overpass-turbo.eu/?" + new URLSearchParams({
-                w: `"${key}"=* in "${instance}"`,
-                R: ""
-            }).toString()
+            const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ''))
+            const key = i.querySelector(".empty") ? "" : i.querySelector("a").textContent
+            overpassLink.href = "https://overpass-turbo.eu/?" + (count > 100000
+                ? new URLSearchParams({
+                    w: instance ? `"${key}"=* in "${instance}"` : `"${key}"=*`}
+                ).toString()
+                : new URLSearchParams({
+                    w: instance ? `"${key}"=* in "${instance}"` : `"${key}"=* global`,
+                    R: ""
+                }).toString())
+            i.prepend(document.createTextNode("\xA0"))
+            i.prepend(overpassLink)
+        })
+    } else if (location.pathname.match(/relations\//)) {
+        if (location.hash !== "#roles") {
+            return
+        }
+        if (!document.querySelector(".value")) {
+            console.log("Table not loaded")
+            return
+        }
+        document.querySelectorAll("#roles .dt-body[data-col='0']").forEach(i => {
+            if (i.querySelector(".overpass-link")) return
+            const overpassLink = document.createElement("a")
+            overpassLink.classList.add("overpass-link")
+            overpassLink.textContent = "🔍"
+            overpassLink.target = "_blank"
+            overpassLink.style.cursor = "progress"
+            const role = i.querySelector(".empty") ? "" : i.textContent.replaceAll("␣", " ")
+            const type = location.pathname.match(/relations\/(.*$)/)[1]
+            const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ''))
+            if (instance) {
+                fetchWithCache("https://nominatim.openstreetmap.org/search?" + new URLSearchParams({
+                    format: "json",
+                    q: instance
+                }).toString()).then((r) => {
+                    if (r[0]['osm_id']) {
+                        const query = `// ${instance}
+area(id:${3600000000 + parseInt(r[0]['osm_id'])})->.a;
+rel[type=${type}](if:count_by_role("${role}") > 0)(area.a);
+out geom;
+`;
+                        overpassLink.href = "https://overpass-turbo.eu/?" + (count > 1000
+                            ? new URLSearchParams({Q: query})
+                            : new URLSearchParams({Q: query, R: ""})).toString()
+                        overpassLink.style.cursor = "pointer"
+                    } else {
+                        overpassLink.remove()
+                    }
+                })
+            } else {
+                const query = `rel[type=${type}](if:count_by_role("${role}") > 0)${count > 1000 ? "({{bbox}})" : ""};\nout geom;`
+                overpassLink.href = "https://overpass-turbo.eu/?" + (count > 1000
+                    ? new URLSearchParams({Q: query})
+                    : new URLSearchParams({Q: query, R: ""})).toString()
+                overpassLink.style.cursor = "pointer"
+            }
             i.prepend(document.createTextNode("\xA0"))
             i.prepend(overpassLink)
         })
