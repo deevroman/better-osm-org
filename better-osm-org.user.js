@@ -6283,7 +6283,17 @@ const fetchWithCache = (() => {
 })();
 
 function setupTaginfo() {
-    const instance = document.querySelector("#instance")?.textContent
+    const instance_text = document.querySelector("#instance")?.textContent;
+    const instance = instance_text.replace(/ \(.*\)/, "")
+
+    if (instance_text.includes(" ")) {
+        const turboLink = document.querySelector("#turbo_button:not(.fixed-link)")
+        if (turboLink && turboLink.href.includes("%22+in")) {
+            turboLink.href = turboLink.href.replace(/%22\+in\+(.*)&/, `%22+in+"${instance}"&`)
+            turboLink.classList?.add("fixed-link")
+        }
+    }
+
     if (location.pathname.match(/reports\/key_lengths$/)) {
         document.querySelectorAll(".dt-body[data-col='1']").forEach(i => {
             if (i.querySelector(".overpass-link")) return
@@ -6295,7 +6305,8 @@ function setupTaginfo() {
             const key = i.querySelector(".empty") ? "" : i.querySelector("a").textContent
             overpassLink.href = "https://overpass-turbo.eu/?" + (count > 100000
                 ? new URLSearchParams({
-                    w: instance ? `"${key}"=* in "${instance}"` : `"${key}"=*`}
+                        w: instance ? `"${key}"=* in "${instance}"` : `"${key}"=*`
+                    }
                 ).toString()
                 : new URLSearchParams({
                     w: instance ? `"${key}"=* in "${instance}"` : `"${key}"=* global`,
