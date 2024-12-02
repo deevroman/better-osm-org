@@ -649,18 +649,7 @@ function makeTimesSwitchable() {
 
 }
 
-function setupCompactChangesetsHistory() {
-    if (!location.pathname.includes("/history") && !location.pathname.includes("/changeset")) {
-        return;
-    }
-
-    if (location.pathname.includes("/changeset/")) {
-        if (document.querySelector("#sidebar_content ul")) {
-            document.querySelector("#sidebar_content ul").querySelectorAll("a:not(.page-link)").forEach(i => i.setAttribute("target", "_blank"));
-        }
-    }
-
-    let styleText = `
+const compactSidebarStyleText = `
     .changesets p {
       margin-bottom: 0;
       font-weight: 788;
@@ -706,9 +695,41 @@ function setupCompactChangesetsHistory() {
       }
     `;
 
+let styleForSidebarApplied = false
+
+// workaround for https://github.com/openstreetmap/openstreetmap-website/issues/5368
+function simplifyListOfParentRelations(){
+    document.querySelectorAll('details a[href^="/relation/"]').forEach(i => {
+        i.previousSibling?.remove()
+    })
+}
+
+function setupCompactChangesetsHistory() {
+    if (!location.pathname.includes("/history") && !location.pathname.includes("/changeset")) {
+        if (!styleForSidebarApplied && (location.pathname.includes("/node")
+            || location.pathname.includes("/way")
+            || location.pathname.includes("/relation"))){
+            styleForSidebarApplied = true
+            GM_addElement(document.head, "style", {
+                textContent: compactSidebarStyleText,
+            });
+            simplifyListOfParentRelations();
+        }
+        return;
+    }
+
+    if (location.pathname.includes("/changeset/")) {
+        if (document.querySelector("#sidebar_content ul")) {
+            document.querySelector("#sidebar_content ul").querySelectorAll("a:not(.page-link)").forEach(i => i.setAttribute("target", "_blank"));
+        }
+    }
+
+    styleForSidebarApplied = true
     GM_addElement(document.head, "style", {
-        textContent: styleText,
+        textContent: compactSidebarStyleText,
     });
+
+    simplifyListOfParentRelations();
     // увы, инвалидация в этом месте ломает зум при загрузке объекте самим сайтом
     // try {
     // getMap()?.invalidateSize()
@@ -1482,6 +1503,10 @@ function addHistoryLink() {
     }
     blurSearchField();
     makeTimesSwitchable();
+    if (GM_config.get("ResizableSidebar")) {
+        document.querySelector("#sidebar").style.resize = "horizontal"
+    }
+    simplifyListOfParentRelations()
 }
 
 
