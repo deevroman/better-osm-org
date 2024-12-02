@@ -36,6 +36,7 @@
 // @grant        GM.getValue
 // @grant        GM.setValue
 // @grant        GM_getResourceURL
+// @grant        GM_getResourceText
 // @grant        GM_addElement
 // @grant        GM.xmlHttpRequest
 // @grant        GM_info
@@ -56,6 +57,7 @@
 // @resource     RELATION_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/Taginfo_element_relation.svg
 // @resource     OSMCHA_LIKE https://github.com/OSMCha/osmcha-frontend/raw/94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-up.svg
 // @resource     OSMCHA_DISLIKE https://github.com/OSMCha/osmcha-frontend/raw/94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-down.svg
+// @resource     DARK_THEME_FOR_ID_CSS https://gist.githubusercontent.com/deevroman/55f35da68ab1efb57b7ba4636bdf013d/raw/72e47205c4fa9147e9e6211287f60be4fa1370c2/dark.css
 // @run-at       document-end
 // ==/UserScript==
 //<editor-fold desc="config" defaultstate="collapsed">
@@ -69,6 +71,7 @@
 /*global GM_listValues*/
 /*global GM_deleteValue*/
 /*global GM_getResourceURL*/
+/*global GM_getResourceText*/
 /*global GM_registerMenuCommand*/
 /*global unsafeWindow*/
 /*global exportFunction*/
@@ -92,6 +95,12 @@ GM_config.init(
                 },
                 'DarkModeForMap': {
                     'label': 'Invert map colors in dark mode 🆕',
+                    'type': 'checkbox',
+                    'default': false,
+                    'labelPos': 'right'
+                },
+                'DarkModeForID': {
+                    'label': 'Dark mode for iD 🆕 (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme">Thanks AlexPS</a>)',
                     'type': 'checkbox',
                     'default': false,
                     'labelPos': 'right'
@@ -238,7 +247,7 @@ GM_config.init(
             },
         frameStyle: `
             border: 1px solid #000;
-            height: min(85%, 700px);
+            height: min(85%, 730px);
             width: max(25%, 380px);
             z-index: 9999;
             opacity: 0;
@@ -6375,8 +6384,8 @@ function setupTaginfo() {
 
     if (instance_text.includes(" ")) {
         const turboLink = document.querySelector("#turbo_button:not(.fixed-link)")
-        if (turboLink && turboLink.href.includes("%22+in")) {
-            turboLink.href = turboLink.href.replace(/%22\+in\+(.*)&/, `%22+in+"${instance}"&`)
+        if (turboLink && (turboLink.href.includes("%22+in") || turboLink.href.includes("*+in"))) {
+            turboLink.href = turboLink.href.replace(/(%22|\*)\+in\+(.*)&/, `$1+in+"${instance}"&`)
             turboLink.classList?.add("fixed-link")
         }
     }
@@ -6466,6 +6475,13 @@ function setup() {
             setTimeout(setupTaginfo, 0);
             return fn
         }()).observe(document, {subtree: true, childList: true});
+        return
+    }
+    if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)
+        && ["/id"].includes(location.pathname) && GM_config.get("DarkModeForID")) {
+        GM_addElement(document.head, "style", {
+            textContent: "@media (prefers-color-scheme: dark) {\n" + GM_getResourceText("DARK_THEME_FOR_ID_CSS") + "\n}"
+        })
         return
     }
     if (GM_config.get("ResetSearchFormFocus")) {
@@ -6567,6 +6583,47 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
         getWindow = () => unsafeWindow
     }
     map = getMap()
+} else if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)
+    && ["/edit", "/id"].includes(location.pathname) && isDarkMode()) {
+    if (location.pathname === "/edit") {
+        // document.querySelector("#id-embed").style.visibility = "hidden"
+        // window.addEventListener("message", (event) => {
+        //     console.log("making iD visible")
+        //     if (event.origin !== location.origin)
+        //         return;
+        //     if (event.data === "kek") {
+        //         document.querySelector("#id-embed").style.visibility = "visible"
+        //     }
+        // });
+        GM_addElement(document.head, "style", {
+            textContent: `@media (prefers-color-scheme: dark) {
+            #id-embed {
+                background: #212529 !important;
+            }
+        }`
+        })
+    } else {
+        GM_addElement(document.head, "style", {
+            textContent: `@media (prefers-color-scheme: dark) {
+            html {
+             background: #212529 !important;
+            }
+            body {
+             background: #212529 !important;
+            }
+            #id-embed {
+                background: #212529 !important;
+            }
+            #id-container {
+                background: #212529 !important;
+            }
+        }`
+        })
+        // if (location.pathname === "/id") {
+        //     console.log("post")
+        //     window.parent.postMessage("kek", location.origin);
+        // }
+    }
 }
 
 init.then(main);
