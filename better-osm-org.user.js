@@ -6235,12 +6235,14 @@ function setupNavigationViaHotkeys() {
                     const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
                     if (navigationLinks && navigationLinks[0].href.includes("/changeset/")) {
                         abortDownloadingController.abort()
+                        navigationLinks[0].focus()
                         navigationLinks[0].click()
                     }
                 } else if (e.code === "ArrowRight" || e.code === "Period") {
                     const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
                     if (navigationLinks && Array.from(navigationLinks).at(-1).href.includes("/changeset/")) {
                         abortDownloadingController.abort()
+                        Array.from(navigationLinks).at(-1).focus()
                         Array.from(navigationLinks).at(-1).click()
                     }
                 }
