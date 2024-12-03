@@ -5123,6 +5123,9 @@ async function setupHDYCInProfile(path) {
     }
     if (document.querySelector('a[href$="/blocks"]')?.nextElementSibling?.textContent > 0) {
         document.querySelector('a[href$="/blocks"]').nextElementSibling.style.background = "rgba(255, 0, 0, 0.3)"
+        if (isDarkMode()) {
+            document.querySelector('a[href$="/blocks"]').nextElementSibling.style.color = "white"
+        }
     }
 }
 
