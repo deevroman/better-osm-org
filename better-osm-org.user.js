@@ -355,10 +355,15 @@ function addRevertButton() {
     if (sidebar) {
         hideSearchForm();
         // sidebar.classList.add("changeset-header")
-        let changeset_id = sidebar.innerHTML.match(/(\d+)/)[0];
-        sidebar.innerHTML += ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="Open osm-revert">↩️</a> 
+        const changeset_id = sidebar.innerHTML.match(/(\d+)/)[0];
+        sidebar.innerHTML += ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="Open osm-revert\nShift + click for revert via JOSM">↩️</a> 
                                <a href="https://osmcha.org/changesets/${changeset_id}" target="_blank" rel="noreferrer"><img src="${GM_getResourceURL("OSMCHA_ICON", false)}" id="osmcha_link"></a>`;
 
+        document.querySelector("#revert_button_class").onclick = (e) => {
+            if (!e.shiftKey) return
+            e.preventDefault()
+            window.location = "http://127.0.0.1:8111/revert_changeset?id=" + changeset_id
+        }
         document.querySelector("#revert_button_class").style.textDecoration = "none"
         const osmcha_link = document.querySelector("#osmcha_link");
         osmcha_link.style.height = "1em";
