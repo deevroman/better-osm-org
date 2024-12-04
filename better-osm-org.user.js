@@ -772,6 +772,14 @@ function setupCompactChangesetsHistory() {
 
 function addResolveNotesButtons() {
     if (!location.pathname.includes("/note")) return
+    if (location.pathname.includes("/note/new")) {
+        if (newNotePlaceholder && document.querySelector(".note form textarea")) {
+            document.querySelector(".note form textarea").textContent = newNotePlaceholder
+            document.querySelector(".note form textarea").selectionEnd = 0
+            newNotePlaceholder = null
+        }
+        return
+    }
     if (document.querySelector('.resolve-note-done')) return true;
     if (document.querySelector('#timeback-btn')) return true;
     blurSearchField();
@@ -6115,6 +6123,8 @@ function runPositionTracker() {
     }, 1000);
 }
 
+let newNotePlaceholder = null
+
 function setupNavigationViaHotkeys() {
     if (["/edit", "/id"].includes(location.pathname)) return
     updateCurrentObjectMetadata()
@@ -6134,7 +6144,14 @@ function setupNavigationViaHotkeys() {
             return;
         }
         if (e.code === "KeyN") { // notes
-            Array.from(document.querySelectorAll(".overlay-layers label"))[0].click()
+            if (e.shiftKey) {
+                if (location.pathname.includes("/node") || location.pathname.includes("/way") || location.pathname.includes("/relation")) {
+                    newNotePlaceholder = "\n \n" + location.href
+                }
+                document.querySelector("a:has(span.note)").click()
+            } else {
+                Array.from(document.querySelectorAll(".overlay-layers label"))[0].click()
+            }
         } else if (e.code === "KeyD") { // map data
             Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
         } else if (e.code === "KeyG") { // gps tracks
