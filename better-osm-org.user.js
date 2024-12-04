@@ -4394,7 +4394,7 @@ async function addChangesetQuickLook() {
                 }
 
                 i.onmouseenter = mouseenterHandler
-                if ((prevVersion.tags && prevVersion.tags.length) || targetVersion.tags && targetVersion.tags.length) { // todo temp hack for potential speed up
+                if ((prevVersion.tags && Object.keys(prevVersion.tags).length) || (targetVersion.tags && Object.keys(targetVersion.tags).length)) { // todo temp hack for potential speed up
                     document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div a[href*="node/${objID}"]`).forEach(link => {
                         // link.title = "Alt + click for scroll into object list"
                         link.onmouseenter = mouseenterHandler
