@@ -412,6 +412,13 @@ function addRevertButton() {
                 } else if (key.textContent.startsWith("ideditor:")) {
                     key.title = key.textContent
                     key.textContent = key.textContent.replace("ideditor:", "iD:")
+                } else if (key.textContent === "revert:id") {
+                    if (i.querySelector("td").textContent.match(/^((\d+(;|$))+$)/)) {
+                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)/g,
+                            `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>`)
+                    } else if (i.querySelector("td").textContent.match(/https:\/\/(www\.)?openstreetmap.org\/changeset\//g)) {
+                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/>https:\/\/(www\.)?openstreetmap.org\/changeset\//g, ">")
+                    }
                 }
             })
             document.querySelector(".browse-tag-list")?.setAttribute("compacted", "true")
@@ -590,8 +597,8 @@ function addRevertButton() {
     })
     document.querySelectorAll(".browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div").forEach(c => {
         c.innerHTML = c.innerHTML.replaceAll(/((changesets )((\d+)([,. ])(\s|$|<\/))+|changeset \d+)/gm, (match) => {
-            return match.replaceAll(/(\d+)/g, `<a href="/changeset/$1" class="changeset_link_in_commment">$1</a>`)
-        })
+            return match.replaceAll(/(\d+)/g, `<a href="/changeset/$1" class="changeset_link_in_comment">$1</a>`)
+        }).replaceAll(/>https:\/\/(www\.)?openstreetmap.org\//g, ">osm.org/")
     })
 }
 
@@ -708,7 +715,7 @@ const compactSidebarStyleText = `
 let styleForSidebarApplied = false
 
 // workaround for https://github.com/openstreetmap/openstreetmap-website/issues/5368
-function simplifyListOfParentRelations(){
+function simplifyListOfParentRelations() {
     document.querySelectorAll('details a[href^="/relation/"]').forEach(i => {
         i.previousSibling?.remove()
     })
@@ -718,7 +725,7 @@ function setupCompactChangesetsHistory() {
     if (!location.pathname.includes("/history") && !location.pathname.includes("/changeset")) {
         if (!styleForSidebarApplied && (location.pathname.includes("/node")
             || location.pathname.includes("/way")
-            || location.pathname.includes("/relation"))){
+            || location.pathname.includes("/relation"))) {
             styleForSidebarApplied = true
             GM_addElement(document.head, "style", {
                 textContent: compactSidebarStyleText,
@@ -4364,7 +4371,8 @@ async function addChangesetQuickLook() {
             }
             if (objType === "node") {
                 i.id = "n" + objID
-                i.onmouseenter = () => {
+
+                function mouseenterHandler() {
                     if (targetVersion.visible === false) {
                         if (prevVersion.visible !== false) {
                             showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff")
@@ -4374,6 +4382,18 @@ async function addChangesetQuickLook() {
                     }
                     document.querySelectorAll(".map-hover").forEach(el => {
                         el.classList.remove("map-hover")
+                    })
+                }
+
+                i.onmouseenter = mouseenterHandler
+                if ((prevVersion.tags && prevVersion.tags.length) || targetVersion.tags && targetVersion.tags.length) { // todo temp hack for potential speed up
+                    document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div a[href*="node/${objID}"]`).forEach(link => {
+                        // link.title = "Alt + click for scroll into object list"
+                        link.onmouseenter = mouseenterHandler
+                        link.onclick = (e) => {
+                            if (!e.altKey) return
+                            i.scrollIntoView()
+                        }
                     })
                 }
                 i.onclick = () => {
@@ -4439,9 +4459,21 @@ async function addChangesetQuickLook() {
                                 }
                             }
                         }
-                        i.onmouseenter = () => {
+
+                        function mouseenterHandler() {
                             showActiveWay(cloneInto(nodesList, unsafeWindow), "#ff00e3", false, objID, true, lineWidth)
                         }
+
+                        i.onmouseenter = mouseenterHandler
+                        document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div a[href*="way/${objID}"]`).forEach(link => {
+                            // link.title = "Alt + click for scroll into object list"
+                            link.onmouseenter = mouseenterHandler
+                            link.onclick = (e) => {
+                                if (!e.altKey) return
+                                i.scrollIntoView()
+                            }
+                        })
+
                         i.onclick = () => {
                             showActiveWay(cloneInto(nodesList, unsafeWindow), "#ff00e3", true, objID, true, lineWidth)
                         }
@@ -4523,7 +4555,8 @@ async function addChangesetQuickLook() {
                 } else {
                     displayWay(cloneInto(currentNodesList, unsafeWindow), false, "#373737", 4, "w" + objID, "customObjects", null, null, darkModeForMap && isDarkMode())
                 }
-                i.onmouseenter = async () => {
+
+                async function mouseenterHandler() {
                     showActiveWay(cloneInto(currentNodesList, unsafeWindow))
                     document.querySelectorAll(".map-hover").forEach(el => {
                         el.classList.remove("map-hover")
@@ -4547,6 +4580,16 @@ async function addChangesetQuickLook() {
                         showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false)
                     }
                 }
+
+                i.onmouseenter = mouseenterHandler
+                document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div a[href*="way/${objID}"]`).forEach(link => {
+                    // link.title = "Alt + click for scroll into object list"
+                    link.onmouseenter = mouseenterHandler
+                    link.onclick = (e) => {
+                        if (!e.altKey) return
+                        i.scrollIntoView()
+                    }
+                })
             } else if (objType === "relation") {
                 const btn = document.createElement("a")
                 btn.textContent = "📥"
@@ -4567,9 +4610,21 @@ async function addChangesetQuickLook() {
                                 [relationMetadata.bbox.max_lat, relationMetadata.bbox.max_lon]
                             ])
                         }
-                        i.onmouseenter = async () => {
+
+                        async function mouseenterHandler() {
                             await loadRelationVersionMembersViaOverpass(parseInt(objID), targetTimestamp, false, "#ff00e3")
                         }
+
+                        i.onmouseenter = mouseenterHandler
+                        document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div a[href*="relation/${objID}"]`).forEach(link => {
+                            // link.title = "Alt + click for scroll into object list"
+                            link.onmouseenter = mouseenterHandler
+                            link.onclick = (e) => {
+                                if (!e.altKey) return
+                                i.scrollIntoView()
+                            }
+                        })
+
                         i.classList.add("downloaded")
                     } catch (e) {
                         btn.style.cursor = "pointer"
