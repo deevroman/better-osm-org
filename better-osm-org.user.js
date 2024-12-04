@@ -588,6 +588,11 @@ function addRevertButton() {
             elem.before(makeBadge(info))
         })
     })
+    document.querySelectorAll(".browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div").forEach(c => {
+        c.innerHTML = c.innerHTML.replaceAll(/((changesets )((\d+)([,. ])(\s|$|<\/))+|changeset \d+)/gm, (match) => {
+            return match.replaceAll(/(\d+)/g, `<a href="/changeset/$1" class="changeset_link_in_commment">$1</a>`)
+        })
+    })
 }
 
 function setupRevertButton() {
@@ -6238,21 +6243,19 @@ function setupNavigationViaHotkeys() {
             // console.log(e.key, e.code)
         }
         if (location.pathname.includes("/changeset")) {
-            if (e.altKey || ["Comma", "Period"].includes(e.code)) {
-                if (e.code === "ArrowLeft" || e.code === "Comma") {
-                    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
-                    if (navigationLinks && navigationLinks[0].href.includes("/changeset/")) {
-                        abortDownloadingController.abort()
-                        navigationLinks[0].focus()
-                        navigationLinks[0].click()
-                    }
-                } else if (e.code === "ArrowRight" || e.code === "Period") {
-                    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
-                    if (navigationLinks && Array.from(navigationLinks).at(-1).href.includes("/changeset/")) {
-                        abortDownloadingController.abort()
-                        Array.from(navigationLinks).at(-1).focus()
-                        Array.from(navigationLinks).at(-1).click()
-                    }
+            if (e.code === "Comma") {
+                const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
+                if (navigationLinks && navigationLinks[0].href.includes("/changeset/")) {
+                    abortDownloadingController.abort()
+                    navigationLinks[0].focus()
+                    navigationLinks[0].click()
+                }
+            } else if (e.code === "Period") {
+                const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
+                if (navigationLinks && Array.from(navigationLinks).at(-1).href.includes("/changeset/")) {
+                    abortDownloadingController.abort()
+                    Array.from(navigationLinks).at(-1).focus()
+                    Array.from(navigationLinks).at(-1).click()
                 }
             } else if (e.code === "KeyK") {
                 if (!document.querySelector("ul .active-object")) {
@@ -6316,21 +6319,19 @@ function setupNavigationViaHotkeys() {
                 }
             }
         } else if (location.pathname.match(/^\/(node|way|relation)\/\d+/)) {
-            if (e.altKey || ["Comma", "Period"].includes(e.code)) {
-                if (e.code === "ArrowLeft" || e.code === "Comma") {
-                    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
-                    if (navigationLinks && navigationLinks[0].href.includes("/history/")) {
-                        if (location.pathname.includes("history")) {
-                            navigationLinks[0].click()
-                        } else {
-                            Array.from(navigationLinks).at(-1).click()
-                        }
-                    }
-                } else if (e.code === "ArrowRight" || e.code === "Period") {
-                    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
-                    if (navigationLinks && Array.from(navigationLinks).at(-1).href.includes("/history/")) {
+            if (e.code === "Comma") {
+                const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
+                if (navigationLinks && navigationLinks[0].href.includes("/history/")) {
+                    if (location.pathname.includes("history")) {
+                        navigationLinks[0].click()
+                    } else {
                         Array.from(navigationLinks).at(-1).click()
                     }
+                }
+            } else if (e.code === "Period") {
+                const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
+                if (navigationLinks && Array.from(navigationLinks).at(-1).href.includes("/history/")) {
+                    Array.from(navigationLinks).at(-1).click()
                 }
             }
         }
