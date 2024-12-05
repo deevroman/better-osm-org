@@ -4375,9 +4375,9 @@ async function addChangesetQuickLook() {
              */
             const m = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
             const [, , objID, strVersion] = m
-            if (objID === "1317609767") debugger
             const version = parseInt(strVersion)
-            i.ondblclick = () => {
+            i.ondblclick = (e) => {
+                if (e.altKey) return
                 if (changesetMetadata) {
                     fitBounds([
                         [changesetMetadata.min_lat, changesetMetadata.min_lon],
@@ -4412,7 +4412,8 @@ async function addChangesetQuickLook() {
                         }
                     })
                 }
-                i.onclick = () => {
+                i.onclick = (e) => {
+                    if (e.altKey) return
                     if (targetVersion.visible === false) {
                         panTo(prevVersion.lat.toString(), prevVersion.lon.toString(), 18, false)
                     } else {
@@ -4451,33 +4452,43 @@ async function addChangesetQuickLook() {
                             return;
                         }
                         let lineWidth = 4
-                        const [, nodesHistory] = await loadWayVersionNodes(objID, versionForLoad);
                         const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
-                        const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp, true)
+                        const prevVersionViaTimestamp = filterVersionByTimestamp(await getWayHistory(objID), targetTimestamp);
+                        const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersionViaTimestamp.version);
+                        const prevNodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp, true)
+                        let targetNodesList = null
                         if (targetVersion.visible === false) {
                             const closedTime = (new Date(changesetMetadata.closed_at ?? new Date())).toISOString()
                             const nodesAfterChangeset = filterObjectListByTimestamp(nodesHistory, closedTime)
                             if (nodesAfterChangeset.some(i => i.visible === false)) {
-                                displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 3, "w" + objID)
+                                displayWay(cloneInto(prevNodesList, unsafeWindow), false, "#ff0000", 3, "w" + objID)
                             } else {
-                                const layer = displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 7, "w" + objID)
+                                const layer = displayWay(cloneInto(prevNodesList, unsafeWindow), false, "#ff0000", 7, "w" + objID)
                                 layer.bringToBack()
                                 lineWidth = 8
                             }
                         } else {
                             if (targetVersion.version === 1) {
-                                displayWay(cloneInto(nodesList, unsafeWindow), false, "rgba(0,128,0,0.6)", 3, "w" + objID, "customObjects", "4, 4")
+                                displayWay(cloneInto(prevNodesList, unsafeWindow), false, "rgba(0,128,0,0.6)", 3, "w" + objID, "customObjects", "4, 4")
                             } else {
                                 if (prevVersion.visible === false) {
-                                    displayWay(cloneInto(nodesList, unsafeWindow), false, "rgb(255,245,41)", 3, "w" + objID, "customObjects", "4, 4")
+                                    displayWay(cloneInto(prevNodesList, unsafeWindow), false, "rgb(255,245,41)", 3, "w" + objID, "customObjects", "4, 4")
                                 } else {
-                                    displayWay(cloneInto(nodesList, unsafeWindow), false, "rgb(0,0,0)", 3, "w" + objID, "customObjects", "4, 4", null, darkModeForMap && isDarkMode())
+                                    const targetTimestamp = (new Date(changesetMetadata.closed_at ?? new Date())).toISOString()
+                                    const [, nodesHistory] = await loadWayVersionNodes(objID, version);
+                                    targetNodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp, true)
+                                    displayWay(cloneInto(targetNodesList, unsafeWindow), false, "rgb(0,0,0)", 3, "w" + objID, "customObjects", "4, 4", null, darkModeForMap && isDarkMode())
                                 }
                             }
                         }
 
                         function mouseenterHandler() {
-                            showActiveWay(cloneInto(nodesList, unsafeWindow), "#ff00e3", false, objID, true, lineWidth)
+                            if (targetNodesList) {
+                                showActiveWay(cloneInto(prevNodesList, unsafeWindow), "rgb(238,146,9)", false, objID, true, 4, "4, 4")
+                                showActiveWay(cloneInto(targetNodesList, unsafeWindow), "#ff00e3", false, objID, false, lineWidth)
+                            } else {
+                                showActiveWay(cloneInto(prevNodesList, unsafeWindow), "#ff00e3", false, objID, true, lineWidth)
+                            }
                         }
 
                         i.onmouseenter = mouseenterHandler
@@ -4490,8 +4501,14 @@ async function addChangesetQuickLook() {
                             }
                         })
 
-                        i.onclick = () => {
-                            showActiveWay(cloneInto(nodesList, unsafeWindow), "#ff00e3", true, objID, true, lineWidth)
+                        i.onclick = (e) => {
+                            if (e.altKey) return
+                            if (targetNodesList) {
+                                showActiveWay(cloneInto(prevNodesList, unsafeWindow), "rgb(238,146,9)", false, objID, true, 4, "4, 4")
+                                showActiveWay(cloneInto(targetNodesList, unsafeWindow), "#ff00e3", true, objID, false, lineWidth)
+                            } else {
+                                showActiveWay(cloneInto(prevNodesList, unsafeWindow), "#ff00e3", true, objID, true, lineWidth)
+                            }
                         }
                     }, 10);
                     i.classList.add("processed-object")
@@ -4507,7 +4524,7 @@ async function addChangesetQuickLook() {
 
 
                 const [, wayNodesHistories] = await loadWayVersionNodes(objID, version)
-                const targetNodes = filterObjectListByTimestamp(wayNodesHistories, targetVersion.timestamp)
+                const targetNodes = filterObjectListByTimestamp(wayNodesHistories, targetVersion.timestamp) // fixme what if changeset was long opened anf nodes changed after way?
 
                 let nodesMap = {}
                 targetNodes.forEach(elem => {
@@ -4527,7 +4544,8 @@ async function addChangesetQuickLook() {
                 }
 
 
-                i.onclick = async () => {
+                i.onclick = async (e) => {
+                    if (e.altKey) return
                     showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", currentNodesList.length !== 0, objID)
 
                     if (version > 1) {
@@ -4620,7 +4638,8 @@ async function addChangesetQuickLook() {
                     }
                     try {
                         const relationMetadata = await loadRelationVersionMembersViaOverpass(parseInt(objID), targetTimestamp, false, "#ff00e3")
-                        i.onclick = () => {
+                        i.onclick = (e) => {
+                            if (e.altKey) return
                             fitBounds([
                                 [relationMetadata.bbox.min_lat, relationMetadata.bbox.min_lon],
                                 [relationMetadata.bbox.max_lat, relationMetadata.bbox.max_lon]
