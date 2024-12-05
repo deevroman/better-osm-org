@@ -467,6 +467,7 @@ function addRevertButton() {
         const dislikeImgRes = GM_getResourceURL("OSMCHA_DISLIKE", false)
 
         const likeBtn = document.createElement("span")
+        likeBtn.title = "OSMCha review like"
         const likeImg = document.createElement("img")
         likeImg.title = "OSMCha review like"
         likeImg.src = likeImgRes
@@ -502,8 +503,9 @@ function addRevertButton() {
         likeBtn.appendChild(likeImg)
 
         const dislikeBtn = document.createElement("span")
+        dislikeBtn.title = "OSMCha review dislike"
         const dislikeImg = document.createElement("img")
-        dislikeImg.title = "OSMCha review like"
+        dislikeImg.title = "OSMCha review dislike"
         dislikeImg.src = likeImgRes // dirty hack for different graystyle colors
         dislikeImg.style.height = "1.1em"
         dislikeImg.style.cursor = "pointer"
@@ -564,11 +566,13 @@ function addRevertButton() {
                     dislikeImg.style.transform = ""
                     dislikeImg.src = dislikeImgRes
                     dislikeImg.setAttribute("active", "true")
+                    dislikeImg.title = "OSMCha review dislike"
                     username.style.color = "red"
                     dislikeBtn.after(username)
                 } else {
                     likeImg.style.filter = ""
                     likeImg.setAttribute("active", "true")
+                    likeImg.title = "OSMCha review like"
                     username.style.color = "green"
                     likeBtn.after(username)
                 }
@@ -577,6 +581,8 @@ function addRevertButton() {
                 dislikeImg.style.filter = "grayscale(1)"
                 dislikeImg.style.transform = "rotate(180deg)"
                 dislikeImg.src = likeImgRes
+                dislikeImg.title = "OSMCha review dislike"
+                likeImg.title = "OSMCha review like"
                 likeImg.removeAttribute("active")
                 dislikeImg.removeAttribute("active")
                 document.querySelector(".check_user")?.remove()
@@ -2885,6 +2891,7 @@ function addDiffInHistory() {
     hideSearchForm();
     if (!location.pathname.includes("/user/")) {
         let compactToggle = document.createElement("button")
+        compactToggle.title = "Toggle between full and compact tags diff"
         compactToggle.textContent = "><"
         compactToggle.classList.add("compact-toggle-btn")
         compactToggle.onclick = makeHistoryCompact
@@ -4310,6 +4317,7 @@ async function addChangesetQuickLook() {
 
         //<editor-fold desc="setup compact mode toggles">
         let compactToggle = document.createElement("button")
+        compactToggle.title = "Toggle between full and compact tags diff"
         compactToggle.textContent = tagsOfObjectsVisible ? "><" : "<>"
         compactToggle.classList.add("quick-look-compact-toggle-btn")
         compactToggle.classList.add("btn", "btn-sm", "btn-primary")
@@ -5209,21 +5217,35 @@ function simplifyHDCYIframe() {
     if (isDarkMode()) {
         GM_addElement(document.head, "style", {
             textContent: `
-                body {
-                    background-color: rgb(49, 54, 59);
-                    color: lightgray;
-                }
-                
-                #mapwrapper {
-                    filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) brightness(0.7);
-                }
-                
-                #activitymap {
-                    filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) brightness(0.7);
-                }
-                
-                .leaflet-popup-content {
-                    filter: brightness(0.7);
+                @media (prefers-color-scheme: dark) {
+                    body {
+                        background-color: rgb(49, 54, 59);
+                        color: lightgray;
+                    }
+                    
+                    #mapwrapper {
+                        filter: invert(100%) hue-rotate(180deg) contrast(90%);
+                    }
+                    
+                    #activitymap {
+                        filter: invert(100%) hue-rotate(180deg) contrast(90%);
+                    }
+                    
+                    .leaflet-popup-content {
+                        filter: brightness(0.3);
+                    }
+                    
+                    .leaflet-popup-content-wrapper {
+                        filter: brightness(0.9);
+                    }
+                    
+                    a {
+                        color: darkblue;
+                    }
+                    
+                    a:visited {
+                        color: darkviolet;
+                    }
                 }
             `,
         });
@@ -5249,7 +5271,8 @@ function simplifyHDCYIframe() {
 
             document.getElementById("authenticate").before(warn)
             let hdycLink = document.createElement("a")
-            hdycLink.href = "https://www.hdyc.neis-one.org/"
+            const match = location.pathname.match(/^\/user\/([^/]+)$/);
+            hdycLink.href = "https://www.hdyc.neis-one.org/"+ (match ? match[1] : "")
             hdycLink.textContent = "Go to https://www.hdyc.neis-one.org/"
             hdycLink.target = "_blank"
             document.getElementById("authenticate").before(document.createElement("br"))
@@ -5427,6 +5450,7 @@ function addMassActionForUserChangesets() {
         return;
     }
     const a = document.createElement("a")
+    a.title = "Add checkboxes for mass actions with changesets"
     a.textContent = " 📋"
     a.style.cursor = "pointer"
     a.id = "mass-action-btn"
@@ -5449,6 +5473,7 @@ function addMassActionForUserChangesets() {
     const username = location.pathname.match(/\/user\/(.*)\/history$/)[1]
     const osmchaFilter = {"users": [{"label": username, "value": username}]}
     const osmchaLink = document.createElement("a");
+    osmchaLink.title = "Open profile in OSMCha.org"
     osmchaLink.href = "https://osmcha.org?" + new URLSearchParams({filters: JSON.stringify(osmchaFilter)}).toString()
     osmchaLink.target = "_blank"
     osmchaLink.rel = "noreferrer"
@@ -5636,6 +5661,7 @@ function addMassActionForGlobalChangesets() {
         a.textContent = " 🔎"
         a.style.cursor = "pointer"
         a.id = "changesets-filter-btn"
+        a.title = "Changesets filter via better-osm-org"
         a.onclick = () => {
             document.querySelector("#sidebar .search_forms")?.setAttribute("hidden", "true")
 
