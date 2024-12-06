@@ -5412,25 +5412,22 @@ function simplifyHDCYIframe() {
 
 //<editor-fold desc="/history, /user/*/history">
 async function updateUserInfo(username) {
-    const rawRes = await fetch(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
+    const res = await fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
         display_name: username,
         limit: 1
     }).toString());
-    const res = await rawRes.json()
     let uid;
     if (res['changesets'].length === 0) {
-        const rawRes = await fetch(osm_server.apiBase + "notes/search.json?" + new URLSearchParams({
+        const res = await fetchJSONWithCache(osm_server.apiBase + "notes/search.json?" + new URLSearchParams({
             display_name: username,
             limit: 1
         }).toString());
-        const res = await rawRes.json()
         uid = res['features'][0]['properties']['comments'][0]['uid']
     } else {
         uid = res['changesets'][0]['uid']
     }
 
-    const rawRes2 = await fetch(osm_server.apiBase + "user/" + uid + ".json");
-    const res2 = await rawRes2.json()
+    const res2 = await fetchJSONWithCache(osm_server.apiBase + "user/" + uid + ".json");
     const userInfo = res2.user
     userInfo['cacheTime'] = new Date()
     GM_setValue("userinfo-" + username, JSON.stringify(userInfo))
@@ -6018,6 +6015,7 @@ function addMassChangesetsActions() {
             item.title = "Click for copy changeset id"
             if (location.pathname.match(/^\/history\/?$/)) {
                 getCachedUserInfo(item.previousSibling.previousSibling.textContent).then((res) => {
+                    item.previousSibling.previousSibling.title = `changesets_count: ${res['changesets']['count']}\naccount_created: ${res['account_created']}`
                     item.previousSibling.previousSibling.before(makeBadge(res,
                         new Date(item.parentElement.querySelector("time")?.getAttribute("datetime") ?? new Date())))
                 })
@@ -6575,7 +6573,7 @@ const modules = [
     setupClickableAvatar
 ];
 
-const fetchWithCache = (() => {
+const fetchJSONWithCache = (() => {
     const cache = new Map();
 
     return async url => {
@@ -6649,7 +6647,7 @@ function setupTaginfo() {
             const type = location.pathname.match(/relations\/(.*$)/)[1]
             const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ''))
             if (instance) {
-                fetchWithCache("https://nominatim.openstreetmap.org/search?" + new URLSearchParams({
+                fetchJSONWithCache("https://nominatim.openstreetmap.org/search?" + new URLSearchParams({
                     format: "json",
                     q: instance
                 }).toString()).then((r) => {
