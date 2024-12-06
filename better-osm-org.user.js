@@ -393,7 +393,8 @@ function addRevertButton() {
             let time = Array.from(metainfoHTML.children).find(i => i.localName === "time")
             metainfoHTML.innerHTML = ""
             metainfoHTML.appendChild(time)
-            let findBtn = document.createElement("span")
+            const findBtn = document.createElement("span")
+            findBtn.title = "Try find deleted user"
             findBtn.textContent = " 🔍 "
             findBtn.value = changeset_id
             findBtn.datetime = time.dateTime
@@ -722,9 +723,9 @@ let styleForSidebarApplied = false
 
 // workaround for https://github.com/openstreetmap/openstreetmap-website/issues/5368
 function simplifyListOfParentRelations() {
-    document.querySelectorAll('details a[href^="/relation/"]').forEach(i => {
-        i.previousSibling?.remove()
-    })
+    // document.querySelectorAll('details a[href^="/relation/"]').forEach(i => {
+    //     i.previousSibling?.remove()
+    // })
 }
 
 function setupCompactChangesetsHistory() {
@@ -753,6 +754,28 @@ function setupCompactChangesetsHistory() {
     });
 
     simplifyListOfParentRelations();
+    if (location.pathname.match(/\d+\/history\/\d+$/) && !document.querySelector(".find-user-btn")) {
+        try {
+            const ver = document.querySelector(".browse-section.browse-node, .browse-section.browse-way, .browse-section.browse-relation")
+            const metainfoHTML = ver?.querySelector('ul > li:nth-child(1)');
+            if (metainfoHTML && !Array.from(metainfoHTML.children).some(e => e.localName === "a" && e.href.includes("/user/"))) {
+                const time = Array.from(metainfoHTML.children).find(i => i.localName === "time")
+                const changesetID = ver.querySelector('ul a[href^="/changeset"]').textContent;
+
+                metainfoHTML.lastChild.remove()
+                const findBtn = document.createElement("span")
+                findBtn.classList.add("find-user-btn")
+                findBtn.title = "Try find deleted user"
+                findBtn.textContent = " 🔍 "
+                findBtn.value = changesetID
+                findBtn.datetime = time.dateTime
+                findBtn.style.cursor = "pointer"
+                findBtn.onclick = findChangesetInDiff
+                metainfoHTML.appendChild(findBtn)
+            }
+        } catch {
+        }
+    }
     // увы, инвалидация в этом месте ломает зум при загрузке объекте самим сайтом
     // try {
     // getMap()?.invalidateSize()
@@ -3067,6 +3090,7 @@ function addDiffInHistory() {
             metainfoHTML.appendChild(time)
             let findBtn = document.createElement("span")
             findBtn.classList.add("find-user-btn")
+            findBtn.title = "Try find deleted user"
             findBtn.textContent = " 🔍 "
             findBtn.value = changesetID
             findBtn.datetime = time.dateTime
@@ -5291,7 +5315,7 @@ function simplifyHDCYIframe() {
             document.getElementById("authenticate").before(warn)
             let hdycLink = document.createElement("a")
             const match = location.pathname.match(/^\/user\/([^/]+)$/);
-            hdycLink.href = "https://www.hdyc.neis-one.org/"+ (match ? match[1] : "")
+            hdycLink.href = "https://www.hdyc.neis-one.org/" + (match ? match[1] : "")
             hdycLink.textContent = "Go to https://www.hdyc.neis-one.org/"
             hdycLink.target = "_blank"
             document.getElementById("authenticate").before(document.createElement("br"))
