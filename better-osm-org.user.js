@@ -2158,7 +2158,7 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
  * @param {boolean=} alwaysReturn
  * @return {T|null}
  */
-function filterVersionByTimestamp(history, timestamp, alwaysReturn = false) {
+function searchVersionByTimestamp(history, timestamp, alwaysReturn = false) {
     const targetTime = new Date(timestamp)
     let cur = history[0]
     if (targetTime < new Date(cur.timestamp) && !alwaysReturn) {
@@ -2180,7 +2180,7 @@ function filterVersionByTimestamp(history, timestamp, alwaysReturn = false) {
  * @return {T[]}
  */
 function filterObjectListByTimestamp(objectList, timestamp, alwaysReturn = false) {
-    return objectList.map(i => filterVersionByTimestamp(i, timestamp, alwaysReturn))
+    return objectList.map(i => searchVersionByTimestamp(i, timestamp, alwaysReturn))
 }
 
 function setupWayVersionView() {
@@ -2548,7 +2548,7 @@ function setupRelationVersionView() {
             membersHistory.ways.forEach(([, nodesVersionsList]) => {
                 try {
                     const nodesList = nodesVersionsList.map(n => {
-                        const {lat: lat, lon: lon} = filterVersionByTimestamp(n, targetVersion.timestamp)
+                        const {lat: lat, lon: lon} = searchVersionByTimestamp(n, targetVersion.timestamp)
                         return [lat, lon]
                     })
                     displayWay(cloneInto(nodesList, unsafeWindow), false, "#000000", 4, null, "customObjects", null, null, darkModeForMap && isDarkMode())
@@ -3911,13 +3911,13 @@ async function addChangesetQuickLook() {
                             e.stopPropagation() // fixme
                             e.target.classList.add("way-version-node")
                             const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
-                            const version = filterVersionByTimestamp(await getNodeHistory(left), targetTimestamp)
+                            const version = searchVersionByTimestamp(await getNodeHistory(left), targetTimestamp)
                             showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
                         }
                         tagTd.onclick = async e => {
                             e.stopPropagation() // fixme
                             const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
-                            const version = filterVersionByTimestamp(await getNodeHistory(left), targetTimestamp)
+                            const version = searchVersionByTimestamp(await getNodeHistory(left), targetTimestamp)
                             panTo(version.lat.toString(), version.lon.toString())
                         }
                         tagTd.onmouseleave = e => {
@@ -3933,13 +3933,13 @@ async function addChangesetQuickLook() {
                         tagTd2.onmouseenter = async e => {
                             e.stopPropagation() // fixme
                             e.target.classList.add("way-version-node")
-                            const version = filterVersionByTimestamp(await getNodeHistory(right), changesetMetadata.closed_at ?? new Date().toISOString())
+                            const version = searchVersionByTimestamp(await getNodeHistory(right), changesetMetadata.closed_at ?? new Date().toISOString())
                             showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
                         }
                         tagTd2.onclick = async e => {
                             e.stopPropagation() // fixme
                             e.target.classList.add("way-version-node")
-                            const version = filterVersionByTimestamp(await getNodeHistory(right), changesetMetadata.closed_at ?? new Date().toISOString())
+                            const version = searchVersionByTimestamp(await getNodeHistory(right), changesetMetadata.closed_at ?? new Date().toISOString())
                             panTo(version.lat.toString(), version.lon.toString())
                         }
                         tagTd2.onmouseleave = e => {
@@ -4117,7 +4117,7 @@ async function addChangesetQuickLook() {
                             e.target.classList.add("relation-version-node")
                             const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                             if (left.type === "node") {
-                                const version = filterVersionByTimestamp(await getNodeHistory(left.ref), targetTimestamp)
+                                const version = searchVersionByTimestamp(await getNodeHistory(left.ref), targetTimestamp)
                                 showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
                             } else if (left.type === "way") {
 
@@ -4132,7 +4132,7 @@ async function addChangesetQuickLook() {
                             e.stopPropagation()
                             if (left.type === "node") {
                                 const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
-                                const version = filterVersionByTimestamp(await getNodeHistory(left.ref), targetTimestamp)
+                                const version = searchVersionByTimestamp(await getNodeHistory(left.ref), targetTimestamp)
                                 panTo(version.lat.toString(), version.lon.toString())
                             }
                         }
@@ -4144,7 +4144,7 @@ async function addChangesetQuickLook() {
                             e.target.classList.add("relation-version-node")
                             const targetTimestamp = (new Date(changesetMetadata.closed_at ?? new Date())).toISOString()
                             if (right.type === "node") {
-                                const version = filterVersionByTimestamp(await getNodeHistory(right.ref), targetTimestamp)
+                                const version = searchVersionByTimestamp(await getNodeHistory(right.ref), targetTimestamp)
                                 showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
                             } else {
                                 // todo
@@ -4157,7 +4157,7 @@ async function addChangesetQuickLook() {
                             e.stopPropagation()
                             if (right.type === "node") {
                                 const targetTimestamp = (new Date(changesetMetadata.closed_at ?? new Date())).toISOString()
-                                const version = filterVersionByTimestamp(await getNodeHistory(right.ref), targetTimestamp)
+                                const version = searchVersionByTimestamp(await getNodeHistory(right.ref), targetTimestamp)
                                 panTo(version.lat.toString(), version.lon.toString())
                             }
                         }
@@ -4477,7 +4477,7 @@ async function addChangesetQuickLook() {
                         }
                         let lineWidth = 4
                         const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
-                        const prevVersionViaTimestamp = filterVersionByTimestamp(await getWayHistory(objID), targetTimestamp);
+                        const prevVersionViaTimestamp = searchVersionByTimestamp(await getWayHistory(objID), targetTimestamp);
                         const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersionViaTimestamp.version);
                         const prevNodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp, true)
                         let targetNodesList = null
@@ -4582,7 +4582,7 @@ async function addChangesetQuickLook() {
                         showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false)
                     } else {
                         const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
-                        const prevVersion = filterVersionByTimestamp(await getWayHistory(objID), targetTimestamp);
+                        const prevVersion = searchVersionByTimestamp(await getWayHistory(objID), targetTimestamp);
                         if (prevVersion) {
                             const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
                             const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
@@ -4629,7 +4629,7 @@ async function addChangesetQuickLook() {
                         showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false)
                     } else {
                         const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
-                        const prevVersion = filterVersionByTimestamp(await getWayHistory(objID), targetTimestamp);
+                        const prevVersion = searchVersionByTimestamp(await getWayHistory(objID), targetTimestamp);
                         if (prevVersion) {
                             const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
                             const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
@@ -4989,7 +4989,7 @@ async function addChangesetQuickLook() {
                                         nodesHistories[n.id] = [n]
                                     }
                                 })
-                                const targetVersion = filterVersionByTimestamp(await getWayHistory(way.id), changesetMetadata.closed_at);
+                                const targetVersion = searchVersionByTimestamp(await getWayHistory(way.id), changesetMetadata.closed_at);
                                 if (targetVersion === null) {
                                     return
                                 }
@@ -5051,14 +5051,14 @@ async function addChangesetQuickLook() {
                                         const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                                         if (targetVersion.version > 1) {
                                             // show prev version
-                                            const prevVersion = filterVersionByTimestamp(await getWayHistory(way.id), targetTimestamp);
+                                            const prevVersion = searchVersionByTimestamp(await getWayHistory(way.id), targetTimestamp);
                                             const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
                                             const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
                                             showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false, 4, "4, 4")
 
                                             // showActiveWay(cloneInto(currentNodesList, unsafeWindow), "rgba(55,55,55,0.5)", false, objID, false)
                                         } else {
-                                            const prevVersion = filterVersionByTimestamp(await getWayHistory(way.id), targetTimestamp);
+                                            const prevVersion = searchVersionByTimestamp(await getWayHistory(way.id), targetTimestamp);
                                             if (prevVersion) {
                                                 const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
                                                 const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
@@ -5071,7 +5071,7 @@ async function addChangesetQuickLook() {
                                         //     const prevVersion = filterVersionByTimestamp(await getNodeHistory(n), targetTimestamp)
                                         //     showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", false)
                                         // }
-                                        const curVersion = filterVersionByTimestamp(await getNodeHistory(n), changesetMetadata.closed_at ?? new Date())
+                                        const curVersion = searchVersionByTimestamp(await getNodeHistory(n), changesetMetadata.closed_at ?? new Date())
                                         showActiveNodeMarker(curVersion.lat.toString(), curVersion.lon.toString(), "#ff00e3", false)
                                     })
                                 })
