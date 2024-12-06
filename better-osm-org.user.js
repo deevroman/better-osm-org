@@ -2908,6 +2908,7 @@ function setupViewRedactions() {
 // https://www.openstreetmap.org/node/10173297169/history
 // https://www.openstreetmap.org/relation/16022751/history
 // https://www.openstreetmap.org/node/12084992837/history
+// https://www.openstreetmap.org/way/1329437422/history
 function addDiffInHistory() {
     addHistoryLink();
     if (document.querySelector("#sidebar_content table")) {
@@ -3145,6 +3146,11 @@ function addDiffInHistory() {
                     // Human-readable Wikidata extension compatibility
                     return
                 }
+                if (k.includes("colour")) {
+                    const tmpV = i.querySelector("td").cloneNode(true)
+                    tmpV.querySelector("svg")?.remove()
+                    v = tmpV.textContent
+                }
                 tags.push([k, v])
 
                 let lastTags = versions.slice(-1)[0].tags
@@ -3239,7 +3245,13 @@ function addDiffInHistory() {
                 th.textContent = k
                 th.classList.add("history-diff-deleted-tag", "py-1", "border-grey", "table-light", "fw-normal")
                 let td = document.createElement("td")
-                td.textContent = v
+                if (k.includes("colour")) {
+                    td.innerHTML = `<svg width="14" height="14" class="float-end m-1"><title></title><rect x="0.5" y="0.5" width="13" height="13" fill="" stroke="#2222"></rect></svg>`
+                    td.querySelector("svg rect").setAttribute("fill", v)
+                    td.appendChild(document.createTextNode(v))
+                } else {
+                    td.textContent = v
+                }
                 td.classList.add("history-diff-deleted-tag", "py-1", "border-grey", "table-light", "fw-normal")
                 tr.appendChild(th)
                 tr.appendChild(td)
