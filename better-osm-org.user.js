@@ -818,6 +818,11 @@ function addResolveNotesButtons() {
     if (document.querySelector('#timeback-btn')) return true;
     blurSearchField();
 
+    document.querySelectorAll('#sidebar_content a[href^="/user/"]').forEach(elem => {
+        getCachedUserInfo(elem.textContent).then(info => {
+            elem.before(makeBadge(info, new Date(elem.parentElement.querySelector("time")?.getAttribute("datetime") ?? new Date())))
+        })
+    })
     document.querySelectorAll(".overflow-hidden a").forEach(i => {
         i.setAttribute("target", "_blank")
     })
@@ -5390,7 +5395,17 @@ async function updateUserInfo(username) {
         limit: 1
     }).toString());
     const res = await rawRes.json()
-    const uid = res['changesets'][0]['uid']
+    let uid;
+    if (res['changesets'].length === 0) {
+        const rawRes = await fetch(osm_server.apiBase + "notes/search.json?" + new URLSearchParams({
+            display_name: username,
+            limit: 1
+        }).toString());
+        const res = await rawRes.json()
+        uid = res['features'][0]['properties']['comments'][0]['uid']
+    } else {
+        uid = res['changesets'][0]['uid']
+    }
 
     const rawRes2 = await fetch(osm_server.apiBase + "user/" + uid + ".json");
     const res2 = await rawRes2.json()
