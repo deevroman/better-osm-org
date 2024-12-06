@@ -404,6 +404,16 @@ function addRevertButton() {
         }
         // compact changeset tags
         if (!document.querySelector(".browse-tag-list[compacted]")) {
+            document.querySelector(".browse-section p").innerHTML = document.querySelector(".browse-section p").innerHTML.replaceAll(/\B(#[\p{L}\d_-]+)\b/gu, function (match) {
+                const osmchaFilter = {"comment": [{"label": match, "value": match}]}
+                const osmchaLink = "https://osmcha.org?" + new URLSearchParams({filters: JSON.stringify(osmchaFilter)}).toString()
+                const a = document.createElement("a")
+                a.href = osmchaLink
+                a.target = "_blank"
+                a.title="Search this hashtags in OSMCha"
+                a.textContent = match
+                return a.outerHTML
+            })
             document.querySelectorAll(".browse-tag-list tr").forEach(i => {
                 const key = i.querySelector("th")
                 if (key.textContent === "host") {
