@@ -728,10 +728,23 @@ const compactSidebarStyleText = `
         font-size: 1rem;
     }
     #sidebar {
-        border-top: solid;
-        border-top-width: 1px;
-        border-top-color: rgba(var(--bs-secondary-bg-rgb), var(--bs-bg-opacity)) !important;
+      border-top: solid;
+      border-top-width: 1px;
+      border-top-color: rgba(var(--bs-secondary-bg-rgb), var(--bs-bg-opacity)) !important;
+    }
+  
+    .fixme-tag {
+      color: red !important;
+      font-weight: bold;
+    }
+  
+    @media (prefers-color-scheme: dark) {
+      .fixme-tag {
+        color: #ff5454 !important;
+        font-weight: unset;
       }
+    }
+      
     `;
 
 let styleForSidebarApplied = false
@@ -1580,6 +1593,11 @@ function addHistoryLink() {
     if (GM_config.get("ResizableSidebar")) {
         document.querySelector("#sidebar").style.resize = "horizontal"
     }
+    document.querySelectorAll(".browse-tag-list tr").forEach(i => {
+        if (i.querySelector("th")?.textContent?.toLowerCase() === "fixme") {
+            i.querySelector("td").classList.add("fixme-tag")
+        }
+    })
     simplifyListOfParentRelations()
 }
 
