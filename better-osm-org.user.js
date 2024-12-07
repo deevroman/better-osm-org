@@ -379,16 +379,24 @@ function addRevertButton() {
         let metainfoHTML = document.querySelector(".browse-section > .details")
         let time = Array.from(metainfoHTML.children).find(i => i.localName === "time")
         if (Array.from(metainfoHTML.children).some(e => e.localName === "a")) {
-            let a = Array.from(metainfoHTML.children).find(i => i.localName === "a")
+            let usernameA = Array.from(metainfoHTML.children).find(i => i.localName === "a")
             metainfoHTML.innerHTML = ""
             metainfoHTML.appendChild(time)
             metainfoHTML.appendChild(document.createTextNode(" "))
-            metainfoHTML.appendChild(a)
+            metainfoHTML.appendChild(usernameA)
             metainfoHTML.appendChild(document.createTextNode(" "))
-            getCachedUserInfo(a.textContent).then((res) => {
-                a.before(makeBadge(res))
-                a.before(document.createTextNode(" "))
+            getCachedUserInfo(usernameA.textContent).then((res) => {
+                usernameA.before(makeBadge(res))
+                usernameA.before(document.createTextNode(" "))
             })
+            //<link rel="alternate" type="application/atom+xml" title="ATOM" href="https://www.openstreetmap.org/user/Elizen/history/feed">
+            const rssfeed = document.createElement("link")
+            rssfeed.id = "fixed-rss-feed"
+            rssfeed.type = "application/atom+xml"
+            rssfeed.title = "ATOM"
+            rssfeed.rel = "alternate"
+            rssfeed.href = `https://www.openstreetmap.org/user/${encodeURI(usernameA.textContent)}/history/feed`
+            document.head.appendChild(rssfeed)
         } else {
             let time = Array.from(metainfoHTML.children).find(i => i.localName === "time")
             metainfoHTML.innerHTML = ""
@@ -3516,6 +3524,7 @@ function arraySplit(arr, N = 2) {
  * open: boolean}
  * |null}
  */
+let prevChangesetMetadata = null
 let changesetMetadata = null
 let startTouch = null;
 let touchMove = null;
@@ -3566,13 +3575,13 @@ function addSwipes() {
                 if (diffX > sidebar.offsetWidth / 3) {
                     const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
                     if (navigationLinks && Array.from(navigationLinks).at(-1).href.includes("/changeset/")) {
-                        abortDownloadingController.abort()
+                        abortDownloadingController.abort("Abort requests for moving to prev changeset")
                         Array.from(navigationLinks).at(-1).click()
                     }
                 } else if (diffX < -sidebar.offsetWidth / 3) {
                     const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
                     if (navigationLinks && navigationLinks[0].href.includes("/changeset/")) {
-                        abortDownloadingController.abort()
+                        abortDownloadingController.abort("Abort requests for moving to next changeset")
                         navigationLinks[0].click()
                     }
                 }
@@ -3584,6 +3593,30 @@ function addSwipes() {
         sidebar.addEventListener('touchmove', touchMove)
         sidebar.addEventListener('touchend', touchEnd)
     }
+}
+
+function addRegionForFirstChangeset(skip=false) {
+    if (getMap().getZoom() <= 10) {
+        getMap().attributionControl.setPrefix("")
+        if (skip) {
+            console.log("Skip geocoding")
+        } else {
+            console.log("Second attempt for geocoding")
+            setTimeout(() => {addRegionForFirstChangeset(true)}, 100)
+        }
+        return
+    }
+    const center = getMap().getCenter()
+    console.time("Geocoding changeset")
+    fetch(`https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2&zoom=10`, {signal: abortDownloadingController.signal}).then((res) => {
+        res.json().then((r) => {
+            if (r?.address?.state) {
+                getMap().attributionControl.setPrefix(`${r.address.state}`)
+                console.timeEnd("Geocoding changeset")
+            }
+        })
+    })
+
 }
 
 async function addChangesetQuickLook() {
@@ -3735,6 +3768,7 @@ async function addChangesetQuickLook() {
         });
     } catch { /* empty */
     }
+    addRegionForFirstChangeset();
     blurSearchField();
     makeTimesSwitchable()
     if (GM_config.get("ResizableSidebar")) {
@@ -6102,6 +6136,7 @@ async function loadChangesetMetadata() {
     if (changesetMetadata !== null && changesetMetadata.id === changeset_id) {
         return;
     }
+    prevChangesetMetadata = changesetMetadata
     const res = await fetch(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json",
         // {signal: abortDownloadingController.signal}
     );
@@ -6445,14 +6480,14 @@ function setupNavigationViaHotkeys() {
             if (e.code === "Comma") {
                 const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
                 if (navigationLinks && navigationLinks[0].href.includes("/changeset/")) {
-                    abortDownloadingController.abort()
+                    abortDownloadingController.abort("Abort requests for moving to prev changeset")
                     navigationLinks[0].focus()
                     navigationLinks[0].click()
                 }
             } else if (e.code === "Period") {
                 const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
                 if (navigationLinks && Array.from(navigationLinks).at(-1).href.includes("/changeset/")) {
-                    abortDownloadingController.abort()
+                    abortDownloadingController.abort("Abort requests for moving to next changeset")
                     Array.from(navigationLinks).at(-1).focus()
                     Array.from(navigationLinks).at(-1).click()
                 }
@@ -6484,7 +6519,7 @@ function setupNavigationViaHotkeys() {
                         }
                     }
                 }
-            } else if (e.code === "KeyL") {
+            } else if (e.code === "KeyL" && !e.shiftKey) {
                 if (!document.querySelector("ul .active-object")) {
                     document.querySelector("ul.list-unstyled li.node,.way,.relation").classList.add("active-object")
                     document.querySelector("ul .active-object").click()
@@ -6615,9 +6650,9 @@ const fetchJSONWithCache = (() => {
 
 function setupTaginfo() {
     const instance_text = document.querySelector("#instance")?.textContent;
-    const instance = instance_text.replace(/ \(.*\)/, "")
+    const instance = instance_text?.replace(/ \(.*\)/, "")
 
-    if (instance_text.includes(" ")) {
+    if (instance_text?.includes(" ")) {
         const turboLink = document.querySelector("#turbo_button:not(.fixed-link)")
         if (turboLink && (turboLink.href.includes("%22+in") || turboLink.href.includes("*+in"))) {
             turboLink.href = turboLink.href.replace(/(%22|\*)\+in\+(.*)&/, `$1+in+"${instance}"&`)
@@ -6741,6 +6776,7 @@ function setup() {
                 cleanAllObjects()
                 getMap().attributionControl.setPrefix("")
                 addSwipes();
+                document.querySelector("#fixed-rss-feed")?.remove()
             } catch (e) {
             }
         }
@@ -6764,6 +6800,9 @@ function main() {
                 }
                 GM_config.open();
             });
+            // GM_registerMenuCommand("Ask question on forum", function () {
+            //     window.open("https://community.openstreetmap.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670")
+            // });
         } catch { /* empty */
         }
         setup();
@@ -6882,4 +6921,4 @@ setTimeout(async function () {
         }
     }
     console.log("Old cache cleaned")
-}, 1000 * 42)
+}, 1000 * 22)
