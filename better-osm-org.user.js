@@ -422,11 +422,13 @@ function addRevertButton() {
                 a.textContent = match
                 return a.outerHTML
             })
+            let needUnhide = false
             document.querySelectorAll(".browse-tag-list tr").forEach(i => {
                 const key = i.querySelector("th")
                 if (key.textContent === "host") {
                     if (i.querySelector("td").textContent === "https://www.openstreetmap.org/edit") {
                         i.style.display = "none"
+                        i.classList.add("hidden-tag")
                     }
                 } else if (key.textContent.startsWith("ideditor:")) {
                     key.title = key.textContent
@@ -443,8 +445,27 @@ function addRevertButton() {
                         i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)/g,
                             `<a href="/note/$1" class="note_link_in_changeset_tags">$1</a>`)
                     }
+                } else if (key.textContent.startsWith("v:") && GM_config.get("ChangesetQuickLook")) {
+                    i.style.display = "none"
+                    i.classList.add("hidden-tag")
+                    needUnhide = true
                 }
             })
+            if (needUnhide) {
+                const expander = document.createElement("td")
+                expander.onclick = e => {
+                    document.querySelectorAll(".hidden-tag").forEach(i => {
+                        i.style.display = ""
+                    })
+                    e.target.remove()
+                }
+                expander.colSpan = 2
+                expander.textContent = "∇"
+                expander.style.textAlign = "center"
+                expander.style.cursor = "pointer"
+                expander.title = "Show hidden tags"
+                document.querySelector(".browse-tag-list").appendChild(expander)
+            }
             document.querySelector(".browse-tag-list")?.setAttribute("compacted", "true")
         }
 
