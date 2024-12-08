@@ -750,7 +750,7 @@ const compactSidebarStyleText = `
       transition:all 0.3s;
     }
     .was-copied {
-      background-color: none;
+      background-color: initial;
       transition:all 0.3s;
     }
     #sidebar_content h2:not(.changeset-header) {
@@ -4186,6 +4186,14 @@ async function addChangesetQuickLook() {
                     geomChangedFlag.after(document.createTextNode(['ru-RU', 'ru'].includes(navigator.language) ? " ⓘ Линию перевернули" : "ⓘ The line has been reversed"))
                 }
 
+            }
+            if (objType === "way" && targetVersion.visible !== false) {
+                if(prevVersion.nodes && prevVersion.nodes.length !== targetVersion.nodes?.length) {
+                    i.title += `\nNodes count: ${prevVersion.nodes.length} → ${targetVersion.nodes.length}`
+                }
+                else {
+                    i.title += `\nNodes count: ${targetVersion.nodes.length}`
+                }
             }
             if (prevVersion.visible === false && targetVersion?.visible !== false && targetVersion.version !== 1) {
                 let restoredElemFlag = document.createElement("span")
