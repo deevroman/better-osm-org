@@ -418,7 +418,7 @@ function addRevertButton() {
                 const a = document.createElement("a")
                 a.href = osmchaLink
                 a.target = "_blank"
-                a.title="Search this hashtags in OSMCha"
+                a.title = "Search this hashtags in OSMCha"
                 a.textContent = match
                 return a.outerHTML
             })
@@ -1921,6 +1921,14 @@ function fitBounds(bound) {
 }
 
 /**
+ * @name fitBoundsWithPadding
+ * @memberof unsafeWindow
+ */
+function fitBoundsWithPadding(bound, padding) {
+    getMap().fitBounds(intoPageWithFun(bound), intoPage({padding: [padding, padding]}));
+}
+
+/**
  * @name setZoom
  * @memberof unsafeWindow
  */
@@ -3303,7 +3311,10 @@ function addDiffInHistory() {
                 th.classList.add("history-diff-deleted-tag", "py-1", "border-grey", "table-light", "fw-normal")
                 let td = document.createElement("td")
                 if (k.includes("colour")) {
-                    td.innerHTML = `<svg width="14" height="14" class="float-end m-1"><title></title><rect x="0.5" y="0.5" width="13" height="13" fill="" stroke="#2222"></rect></svg>`
+                    td.innerHTML = `
+                        <svg width="14" height="14" class="float-end m-1"><title></title>
+                            <rect x="0.5" y="0.5" width="13" height="13" fill="" stroke="#2222"></rect>
+                        </svg>`
                     td.querySelector("svg rect").setAttribute("fill", v)
                     td.appendChild(document.createTextNode(v))
                 } else {
@@ -3616,14 +3627,16 @@ function addSwipes() {
     }
 }
 
-function addRegionForFirstChangeset(skip=false) {
+function addRegionForFirstChangeset(skip = false) {
     if (getMap().getZoom() <= 10) {
         getMap().attributionControl.setPrefix("")
         if (skip) {
             console.log("Skip geocoding")
         } else {
             console.log("Second attempt for geocoding")
-            setTimeout(() => {addRegionForFirstChangeset(true)}, 100)
+            setTimeout(() => {
+                addRegionForFirstChangeset(true)
+            }, 100)
         }
         return
     }
@@ -3729,6 +3742,12 @@ async function addChangesetQuickLook() {
               position: absolute;
               // margin-top: 2px
             }
+            span.reverted-coordinates::after {
+              content: " ↻";
+              position: absolute;
+              color: var(--bs-body-color);
+              // margin-top: 2px
+            }
             
             `
             + ((GM_config.get("ShowChangesetGeometry")) ? `
@@ -3748,6 +3767,10 @@ async function addChangesetQuickLook() {
                 background-color: rgba(223, 223, 223, 0.6);
             }
             
+            .location-modified-marker-warn::after:hover {
+                  background-color: rgba(223, 223, 223, 0.6);;
+            }
+            
             @media (prefers-color-scheme: dark) {            
                 #sidebar_content li.node:hover {
                     background-color: rgb(14, 17, 19);
@@ -3764,6 +3787,14 @@ async function addChangesetQuickLook() {
                 #sidebar_content li.relation.downloaded:hover {
                     background-color: rgb(14, 17, 19);
                 }
+                    
+                .location-modified-marker-warn::after:hover {
+                    background-color: rgb(14, 17, 19);
+                }
+            }
+            .location-modified-marker-warn::after {
+              content: " ⚠️";
+              background: var(--bs-body-bg);
             }
             .location-modified-marker:hover {
                 background: #0022ff82 !important;
@@ -3874,7 +3905,24 @@ async function addChangesetQuickLook() {
                 return tagRow
             }
 
+
+            function makeLinksInRowClickable(row) {
+                if (row.querySelector("td").textContent.match(/^https?:\/\//)) {
+                    const a = document.createElement("a")
+                    a.textContent = row.querySelector("td").textContent
+                    a.href = row.querySelector("td").textContent
+                    row.querySelector("td").textContent = ""
+                    a.target = "_blank"
+                    a.onclick = e => {
+                        e.stopPropagation()
+                        e.stopImmediatePropagation()
+                    }
+                    row.querySelector("td").appendChild(a)
+                }
+            }
+
             let tagsWasChanged = false;
+
             // tags deletion
             if (prevVersion.version !== 0) {
                 for (const [key, value] of Object.entries(prevVersion?.tags ?? {})) {
@@ -3887,6 +3935,7 @@ async function addChangesetQuickLook() {
                             row.classList.add("restored-tag")
                             row.title = row.title + "The tag is now restored"
                         }
+                        makeLinksInRowClickable(row)
                     }
                 }
             }
@@ -3976,6 +4025,7 @@ async function addChangesetQuickLook() {
                         row.setAttribute("hidden", "true")
                     }
                 }
+                makeLinksInRowClickable(row)
                 tbody.appendChild(row)
             }
             if (targetVersion.visible !== false && prevVersion?.nodes && prevVersion.nodes.toString() !== targetVersion.nodes?.toString()) {
@@ -4347,28 +4397,44 @@ async function addChangesetQuickLook() {
             }
             if (targetVersion.lat && prevVersion.lat && (prevVersion.lat !== targetVersion.lat || prevVersion.lon !== targetVersion.lon)) {
                 i.classList.add("location-modified")
-                let memChangedFlag = document.createElement("span")
+                const locationChangedFlag = document.createElement("span")
                 const distInMeters = getDistanceFromLatLonInKm(
                     prevVersion.lat,
                     prevVersion.lon,
                     targetVersion.lat,
                     targetVersion.lon,
                 ) * 1000;
-                memChangedFlag.textContent = ` 📍${distInMeters.toFixed(1)}m`
-                memChangedFlag.title = "Coordinates of node has been changed"
-                memChangedFlag.classList.add("location-modified-marker")
-                memChangedFlag.style.userSelect = "none"
+                locationChangedFlag.textContent = ` 📍${distInMeters.toFixed(1)}m`
+                locationChangedFlag.title = "Coordinates of node has been changed"
+                locationChangedFlag.classList.add("location-modified-marker")
+                // if (distInMeters > 100) {
+                //     locationChangedFlag.classList.add("location-modified-marker-warn")
+                // }
+                locationChangedFlag.style.userSelect = "none"
                 if (isDarkMode()) {
-                    memChangedFlag.style.background = "rgba(223, 238, 9, 0.6)"
-                    memChangedFlag.style.color = "black"
+                    locationChangedFlag.style.background = "rgba(223, 238, 9, 0.6)"
+                    locationChangedFlag.style.color = "black"
                 } else {
-                    memChangedFlag.style.background = "rgba(223,238,9,0.6)"
+                    locationChangedFlag.style.background = "rgba(223,238,9,0.6)"
                 }
-                i.appendChild(memChangedFlag)
-                memChangedFlag.onmouseover = e => {
+                i.appendChild(locationChangedFlag)
+                locationChangedFlag.onmouseover = e => {
                     e.stopPropagation()
+                    e.stopImmediatePropagation()
                     showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3")
                     showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", false)
+                }
+                locationChangedFlag.onclick = (e) => {
+                    e.stopPropagation()
+                    e.stopImmediatePropagation()
+                    fitBoundsWithPadding([
+                        [prevVersion.lat.toString(), prevVersion.lon.toString()],
+                        [targetVersion.lat.toString(), targetVersion.lon.toString()]
+                    ], 30)
+                }
+                if (lastVersion.visible !== false && (prevVersion.lat === lastVersion.lat && prevVersion.lon === lastVersion.lon)) {
+                    locationChangedFlag.classList.add("reverted-coordinates")
+                    locationChangedFlag.title += ",\nbut now they have been restored."
                 }
             }
             if (targetVersion.visible === false) {
@@ -4517,7 +4583,10 @@ async function addChangesetQuickLook() {
             if (objType === "node") {
                 i.id = "n" + objID
 
-                function mouseenterHandler() {
+                function mouseenterHandler(e) {
+                    if(e.relatedTarget?.parentElement === e.target){
+                        return
+                    }
                     if (targetVersion.visible === false) {
                         if (prevVersion.visible !== false) {
                             showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff")
@@ -4530,7 +4599,7 @@ async function addChangesetQuickLook() {
                     })
                 }
 
-                i.onmouseenter = mouseenterHandler
+                i.onmouseover = mouseenterHandler
                 if ((prevVersion.tags && Object.keys(prevVersion.tags).length) || (targetVersion.tags && Object.keys(targetVersion.tags).length)) { // todo temp hack for potential speed up
                     document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div a[href*="node/${objID}"]`).forEach(link => {
                         // link.title = "Alt + click for scroll into object list"
@@ -5148,7 +5217,7 @@ async function addChangesetQuickLook() {
 
                                 way.nodes.forEach(n => {
                                     if (!document.querySelector("#n" + n)) return
-                                    document.querySelector("#n" + n).addEventListener('mouseenter', async () => {
+                                    document.querySelector("#n" + n).addEventListener('mouseover', async () => {
                                         showActiveWay(cloneInto(currentNodesList, unsafeWindow))
                                         document.querySelectorAll(".map-hover").forEach(el => {
                                             el.classList.remove("map-hover")
