@@ -3448,14 +3448,14 @@ let tagsOfObjectsVisible = true
 /**
  * Get editorial prescription via modified Levenshtein distance finding algorithm
  * @template T
- * @param {T[]} a
- * @param {T[]} b
+ * @param {T[]} arg_a
+ * @param {T[]} arg_b
  * @param {number} one_replace_cost
  * @return {[T, T][]}
  */
-function arraysDiff(a, b, one_replace_cost = 2) {
-    a = a.map(i => JSON.stringify(i))
-    b = b.map(i => JSON.stringify(i))
+function arraysDiff(arg_a, arg_b, one_replace_cost = 2) {
+    let a = arg_a.map(i => JSON.stringify(i))
+    let b = arg_b.map(i => JSON.stringify(i))
     const dp = []
     for (let i = 0; i < a.length + 1; i++) {
         dp[i] = new Uint32Array(b.length + 1);
@@ -3472,12 +3472,25 @@ function arraysDiff(a, b, one_replace_cost = 2) {
     const min = Math.min; // fuck Tampermonkey
     // for some fucking reason every math.min call goes through TM wrapper code
     // that is not optimised by the JIT compiler
-    for (let i = 1; i <= a.length; i++) {
-        for (let j = 1; j <= b.length; j++) {
-            const del_cost = dp[i - 1][j]
-            const ins_cost = dp[i][j - 1]
-            const replace_cost = dp[i - 1][j - 1] + (a[i - 1] !== b[j - 1]) * one_replace_cost // replacement is not very desirable
-            dp[i][j] = min(min(del_cost, ins_cost) + 1, replace_cost)
+    if (arg_a.length && Object.prototype.hasOwnProperty.call(arg_a[0], "role")) {
+        for (let i = 1; i <= a.length; i++) {
+            for (let j = 1; j <= b.length; j++) {
+                const del_cost = dp[i - 1][j]
+                const ins_cost = dp[i][j - 1]
+                const replace_cost = dp[i - 1][j - 1] + (a[i - 1] !== b[j - 1]) * one_replace_cost // replacement is not very desirable
+                const replace_role_cost = dp[i - 1][j - 1] +
+                    ((!(arg_a[i - 1].type === arg_b[j - 1].type && arg_a[i - 1].ref === arg_b[j - 1].ref)) || arg_a[i - 1].role === arg_b[j - 1].role) * one_replace_cost
+                dp[i][j] = min(min(del_cost, ins_cost) + 1, min(replace_cost, replace_role_cost))
+            }
+        }
+    } else {
+        for (let i = 1; i <= a.length; i++) {
+            for (let j = 1; j <= b.length; j++) {
+                const del_cost = dp[i - 1][j]
+                const ins_cost = dp[i][j - 1]
+                const replace_cost = dp[i - 1][j - 1] + (a[i - 1] !== b[j - 1]) * one_replace_cost // replacement is not very desirable
+                dp[i][j] = min(min(del_cost, ins_cost) + 1, replace_cost)
+            }
         }
     }
 
@@ -3503,7 +3516,11 @@ function arraysDiff(a, b, one_replace_cost = 2) {
 
         const del_cost = dp[i - 1][j]
         const ins_cost = dp[i][j - 1]
-        const replace_cost = dp[i - 1][j - 1] + (JSON.stringify(a[i - 1]) !== JSON.stringify(b[j - 1])) * one_replace_cost
+        let replace_cost = dp[i - 1][j - 1] + (JSON.stringify(a[i - 1]) !== JSON.stringify(b[j - 1])) * one_replace_cost
+        if (arg_a.length && Object.prototype.hasOwnProperty.call(arg_a[0], "role")) {
+            replace_cost = min(replace_cost, dp[i - 1][j - 1] + ((!(arg_a[i - 1].type === arg_b[j - 1].type && arg_a[i - 1].ref === arg_b[j - 1].ref)) || arg_a[i - 1].role === arg_b[j - 1].role) * one_replace_cost)
+        }
+
         if (del_cost <= ins_cost && del_cost + 1 <= replace_cost) {
             answer.push([a[i - 1], null])
             restore(i - 1, j)
@@ -4024,8 +4041,8 @@ async function addChangesetQuickLook() {
                     if (!tagsOfObjectsVisible) {
                         row.setAttribute("hidden", "true")
                     }
+                    makeLinksInRowClickable(row)
                 }
-                makeLinksInRowClickable(row)
                 tbody.appendChild(row)
             }
             if (targetVersion.visible !== false && prevVersion?.nodes && prevVersion.nodes.toString() !== targetVersion.nodes?.toString()) {
@@ -4188,10 +4205,9 @@ async function addChangesetQuickLook() {
 
             }
             if (objType === "way" && targetVersion.visible !== false) {
-                if(prevVersion.nodes && prevVersion.nodes.length !== targetVersion.nodes?.length) {
+                if (prevVersion.nodes && prevVersion.nodes.length !== targetVersion.nodes?.length) {
                     i.title += `\nNodes count: ${prevVersion.nodes.length} → ${targetVersion.nodes.length}`
-                }
-                else {
+                } else {
                     i.title += `\nNodes count: ${targetVersion.nodes.length}`
                 }
             }
@@ -4253,7 +4269,17 @@ async function addChangesetQuickLook() {
                     row.style.borderWidth = "2px"
                     row.appendChild(tagTd)
                     row.appendChild(tagTd2)
-                    tagTd.textContent = `${left?.ref ?? ""} ${left?.role ?? ""}`
+
+                    const leftRefSpan = document.createElement("span")
+                    leftRefSpan.classList.add("rel-ref")
+                    leftRefSpan.textContent = `${left?.ref ?? ""} `
+                    const leftRoleSpan = document.createElement("span")
+                    leftRoleSpan.classList.add("rel-role")
+                    leftRoleSpan.textContent = `${left?.role ?? ""}`
+
+                    tagTd.appendChild(leftRefSpan)
+                    tagTd.appendChild(leftRoleSpan)
+
                     if (left && typeof left === "object") {
                         const icon = document.createElement("img")
                         icon.src = getIcon(left)
@@ -4262,7 +4288,17 @@ async function addChangesetQuickLook() {
                         icon.style.marginTop = "-3px"
                         tagTd.appendChild(icon)
                     }
-                    tagTd2.textContent = `${right?.ref ?? ""} ${right?.role ?? ""}`
+
+                    const rightRefSpan = document.createElement("span")
+                    rightRefSpan.textContent = `${right?.ref ?? ""} `
+                    rightRefSpan.classList.add("rel-ref")
+                    const rightRoleSpan = document.createElement("span")
+                    rightRoleSpan.textContent = `${right?.role ?? ""}`
+                    rightRoleSpan.classList.add("rel-role")
+
+                    tagTd2.appendChild(rightRefSpan)
+                    tagTd2.appendChild(rightRoleSpan)
+
                     if (right && typeof right === "object") {
                         const icon = document.createElement("img")
                         icon.src = getIcon(right)
@@ -4356,7 +4392,19 @@ async function addChangesetQuickLook() {
                             row.style.background = "rgba(238,51,9,0.6)"
                             haveOnlyInsertion = false
                         } else if (JSON.stringify(i[0]) !== JSON.stringify(i[1])) {
-                            row.style.background = "rgba(223,238,9,0.6)"
+                            if (i[0].ref === i[1].ref && i[0].type === i[1].type) {
+                                row.querySelectorAll(".rel-role").forEach(i => {
+                                    i.style.background = "rgba(223,238,9,0.6)"
+                                    if (isDarkMode()) {
+                                        i.style.color = "black"
+                                    }
+                                })
+                            } else {
+                                row.style.background = "rgba(223,238,9,0.6)"
+                                if (isDarkMode()) {
+                                    row.style.color = "black"
+                                }
+                            }
                             haveOnlyInsertion = false
                             haveOnlyDeletion = false
                         }
@@ -4592,7 +4640,7 @@ async function addChangesetQuickLook() {
                 i.id = "n" + objID
 
                 function mouseenterHandler(e) {
-                    if(e.relatedTarget?.parentElement === e.target){
+                    if (e.relatedTarget?.parentElement === e.target) {
                         return
                     }
                     if (targetVersion.visible === false) {
@@ -4620,6 +4668,8 @@ async function addChangesetQuickLook() {
                 }
                 i.onclick = (e) => {
                     if (e.altKey) return
+                    if (window.getSelection().type === "Range") return
+
                     if (targetVersion.visible === false) {
                         panTo(prevVersion.lat.toString(), prevVersion.lon.toString(), 18, false)
                     } else {
@@ -4709,6 +4759,7 @@ async function addChangesetQuickLook() {
 
                         i.onclick = (e) => {
                             if (e.altKey) return
+                            if (window.getSelection().type === "Range") return
                             if (targetNodesList) {
                                 showActiveWay(cloneInto(prevNodesList, unsafeWindow), "rgb(238,146,9)", false, objID, true, 4, "4, 4")
                                 showActiveWay(cloneInto(targetNodesList, unsafeWindow), "#ff00e3", true, objID, false, lineWidth)
@@ -4752,6 +4803,7 @@ async function addChangesetQuickLook() {
 
                 i.onclick = async (e) => {
                     if (e.altKey) return
+                    if (window.getSelection().type === "Range") return
                     showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", currentNodesList.length !== 0, objID)
 
                     if (version > 1) {
@@ -4836,7 +4888,9 @@ async function addChangesetQuickLook() {
                 btn.classList.add("load-relation-version")
                 btn.title = "Download this relation"
                 btn.style.cursor = "pointer"
-                btn.addEventListener("click", async () => {
+                btn.addEventListener("click", async (e) => {
+                    if (e.altKey) return
+                    if (window.getSelection().type === "Range") return
                     btn.style.cursor = "progress"
                     let targetTimestamp = (new Date(changesetMetadata.closed_at ?? new Date())).toISOString()
                     if (targetVersion.visible === false) {
