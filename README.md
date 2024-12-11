@@ -34,6 +34,19 @@ Also works in Firefox for Android
 
   <img src="img/hdyc.jpg" width="50%">
 
+### Dark mode for map and iD
+
+<img src="img/dark-map.png" width="50%">
+
+<img src="img/dark-id.png" width="50%">
+
+Based on [OpenStreetMap Dark Theme by AlexPS](https://userstyles.world/style/15596/openstreetmap-dark-theme)
+
+### Edit war detector
+
+<img src="img/edit-war-detector.png" width="50%">
+
+
 ### Hotkeys
 
 - `<` `>` for user changesets
@@ -55,6 +68,7 @@ Experimental hotkeys:
 - `shift` + `H` — open My changesets
 - `Y` — open Yandex.Panoramas
 - `shift` + `E` — open second editor
+- `shift` + `N` — create new note
 
 ### Other
 
@@ -82,6 +96,13 @@ Experimental hotkeys:
 - [x] Hide active note highlight
 - [x] Click on time for show ISO-time
 - [x] Open external links in new tab 
+- [x] Highlight `fixme=*`
+- [x] Resizable sidebar
+- Clickable:
+- + [x] Hashtags in changeset comment
+- + [x] Changeset IDs in comments
+- + [x] `panoramax=*`, `mapillary=*` tags 
+- + [ ] `contact:*`
 - [ ] Bypass OSMF Redactions
 
 ### Ideas
@@ -90,7 +111,6 @@ Experimental hotkeys:
 - [ ] Jump to overpass from tags
 - [ ] Hide resolved notes
 - [ ] Fast tags copy from wiki
-- [ ] Object age
 - [ ] Tutorial
 - [ ] Collapse name tags
 - [ ] Calc area size
@@ -103,32 +123,35 @@ Experimental hotkeys:
 - + [ ] Colors
 - [ ] Localization
 - [ ] Show photos from imgur, wikipedia commons, ...?
-- [ ] Custom overlays for iD
+- [ ] Improve search
 -
-    + [ ] Geoscribble
+  + [ ] Filter by object type
+-
+  + [ ] Improve default zoom
+-
+  + [ ] Photon?
+-
+  + [ ] Overpass?
+- [ ] Custom overlays for iD
 -
     + [ ] Strava (Hard, need bypass CORS)
 - [ ] Mark reviewed changesets
+- [ ] Show nearest example for map legend
 - [ ] website & iD helper for translator (open search query into translation platform)
 - [ ] show in quick look the base way tag
 - [ ] nakarte.me: line drawing
 - [ ] taginfo: new overpass links
-- [ ] Improve search
--
-    + [ ] Filter by object type
--
-    + [ ] Improve default zoom
--
-    + [ ] Photon?
--
-    + [ ] Overpass?
-- [ ] Clickable contact:*
 - [ ] Bookmarks on map (like Organic Maps)
-- [ ] Show nearest example for map legend
 
 Maybe
 
 - [ ] Support OpenHistoricalMap
 - [ ] Move object from OSM into OpenHistoricalMap
-- [ ] osm-revert template
-- [ ] stop via kill switch for osm token
+- [ ] in-browser reverter
+
+### Other
+
+- [Discussion on forum](https://community.openstreetmap.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670)
+- [Greasy Fork](https://greasyfork.org/en/scripts/517486-better-osm-org)
+- [Issues](https://github.com/deevroman/better-osm-org/issues?q=sort%3Aupdated-desc+is%3Aissue+is%3Aopen)
+- [Mastodon](https://en.osm.town/@foxy)
