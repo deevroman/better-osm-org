@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.5.7
+// @version         0.5.7.1
 // @changelog       https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670/8
 // @description     Several improvements for advanced users of osm.org
 // @description:ru  Скрипт, добавляющий на osm.org полезные картографам функции
@@ -347,6 +347,21 @@ function makeAuth() {
     });
 }
 
+function makeHashtagsClickable() {
+    document.querySelectorAll(".browse-section p:nth-of-type(1)").forEach( i => {
+        i.innerHTML = i.innerHTML.replaceAll(/\B(#[\p{L}\d_-]+)\b/gu, function (match) {
+            const osmchaFilter = {"comment": [{"label": match, "value": match}]}
+            const osmchaLink = "https://osmcha.org?" + new URLSearchParams({filters: JSON.stringify(osmchaFilter)}).toString()
+            const a = document.createElement("a")
+            a.href = osmchaLink
+            a.target = "_blank"
+            a.title = "Search this hashtags in OSMCha"
+            a.textContent = match
+            return a.outerHTML
+        })
+    })
+}
+
 const mainTags = ["shop", "building", "amenity", "man_made", "highway", "natural", "aeroway", "historic", "railway", "tourism", "landuse", "leisure"]
 
 function addRevertButton() {
@@ -413,16 +428,7 @@ function addRevertButton() {
         }
         // compact changeset tags
         if (!document.querySelector(".browse-tag-list[compacted]")) {
-            document.querySelector(".browse-section p").innerHTML = document.querySelector(".browse-section p").innerHTML.replaceAll(/\B(#[\p{L}\d_-]+)\b/gu, function (match) {
-                const osmchaFilter = {"comment": [{"label": match, "value": match}]}
-                const osmchaLink = "https://osmcha.org?" + new URLSearchParams({filters: JSON.stringify(osmchaFilter)}).toString()
-                const a = document.createElement("a")
-                a.href = osmchaLink
-                a.target = "_blank"
-                a.title = "Search this hashtags in OSMCha"
-                a.textContent = match
-                return a.outerHTML
-            })
+            makeHashtagsClickable()
             let needUnhide = false
             document.querySelectorAll(".browse-tag-list tr").forEach(i => {
                 const key = i.querySelector("th")
@@ -788,13 +794,6 @@ const compactSidebarStyleText = `
 
 let styleForSidebarApplied = false
 
-// workaround for https://github.com/openstreetmap/openstreetmap-website/issues/5368
-function simplifyListOfParentRelations() {
-    // document.querySelectorAll('details a[href^="/relation/"]').forEach(i => {
-    //     i.previousSibling?.remove()
-    // })
-}
-
 function setupCompactChangesetsHistory() {
     if (!location.pathname.includes("/history") && !location.pathname.includes("/changeset")) {
         if (!styleForSidebarApplied && (location.pathname.includes("/node")
@@ -804,7 +803,6 @@ function setupCompactChangesetsHistory() {
             GM_addElement(document.head, "style", {
                 textContent: compactSidebarStyleText,
             });
-            simplifyListOfParentRelations();
         }
         return;
     }
@@ -820,7 +818,6 @@ function setupCompactChangesetsHistory() {
         textContent: compactSidebarStyleText,
     });
 
-    simplifyListOfParentRelations();
     if (location.pathname.match(/\d+\/history\/\d+$/) && !document.querySelector(".find-user-btn")) {
         try {
             const ver = document.querySelector(".browse-section.browse-node, .browse-section.browse-way, .browse-section.browse-relation")
@@ -1657,7 +1654,7 @@ function addHistoryLink() {
             }
         }
     })
-    simplifyListOfParentRelations()
+    makeHashtagsClickable()
 }
 
 
@@ -3398,6 +3395,7 @@ function addDiffInHistory() {
         }
     }
     makeHistoryCompact();
+    makeHashtagsClickable()
     setupNodeVersionView();
     setupWayVersionView();
     setupRelationVersionView();
