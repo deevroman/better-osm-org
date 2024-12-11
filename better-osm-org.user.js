@@ -1,7 +1,8 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.5.5
+// @version         0.5.6
+// @changelog       https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670/8
 // @description     Several improvements for advanced users of osm.org
 // @description:ru  Скрипт, добавляющий на osm.org полезные картографам функции
 // @author       deevroman
@@ -744,6 +745,15 @@ const compactSidebarStyleText = `
     .map-layout #sidebar {
       width: 450px;
     }
+    turbo-frame {
+        word-wrap: anywhere;
+    }
+    
+    turbo-frame th {
+        min-width: max-content;
+        word-wrap: break-word;
+    }
+    
     /*for id copied*/
     .copied {
       background-color: red;
@@ -1625,6 +1635,26 @@ function addHistoryLink() {
     document.querySelectorAll(".browse-tag-list tr").forEach(i => {
         if (i.querySelector("th")?.textContent?.toLowerCase() === "fixme") {
             i.querySelector("td").classList.add("fixme-tag")
+        } else if (i.querySelector("th")?.textContent?.toLowerCase().startsWith("panoramax")) {
+            if (!i.querySelector("td a")) {
+                i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/([0-9a-z-]+)/g, function(match) {
+                    const a = document.createElement("a")
+                    a.textContent = match
+                    a.target = "_blank"
+                    a.href = "https://api.panoramax.xyz/#focus=pic&pic=" + match
+                    return a.outerHTML
+                })
+            }
+        } else if (i.querySelector("th")?.textContent?.toLowerCase().startsWith("mapillary")) {
+            if (!i.querySelector("td a")) {
+                i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/([0-9]+)/g, function(match) {
+                    const a = document.createElement("a")
+                    a.textContent = match
+                    a.target = "_blank"
+                    a.href = "https://www.mapillary.com/app/?pKey=" + match
+                    return a.outerHTML
+                })
+            }
         }
     })
     simplifyListOfParentRelations()
@@ -3580,6 +3610,9 @@ let touchMove = null;
 let touchEnd = null;
 
 function addSwipes() {
+    if (!GM_config.get("Swipes")) {
+        return;
+    }
     let startX = 0
     let startY = 0
     let direction = null
@@ -3686,20 +3719,34 @@ async function addChangesetQuickLook() {
     abortDownloadingController = new AbortController()
     try {
         const styleText = `
-            tr.quick-look-new-tag {
+            tr.quick-look-new-tag th {
                 background: rgba(17,238,9,0.6);
             }
             
-            tr.quick-look-modified-tag td {
+            tr.quick-look-modified-tag td:nth-of-type(1){
                 background: rgba(223,238,9,0.6);
             }
             
-            tr.quick-look-deleted-tag {
+            tr.quick-look-deleted-tag th {
+                background: rgba(238,51,9,0.6);
+            }
+                        
+            tr.quick-look-new-tag td:not(.tag-flag) {
+                background: rgba(17,238,9,0.6);
+            }
+            
+            tr.quick-look-deleted-tag td:not(.tag-flag) {
                 background: rgba(238,51,9,0.6);
             }
             
             @media (prefers-color-scheme: dark) {            
-                tr.quick-look-new-tag {
+                tr.quick-look-new-tag th{
+                    /*background: #0f540fde;*/
+                    background: rgba(17,238,9,0.3);
+                    /*background: rgba(87, 171, 90, 0.3);*/
+                }
+                                
+                tr.quick-look-new-tag td:not(.tag-flag){
                     /*background: #0f540fde;*/
                     background: rgba(17,238,9,0.3);
                     /*background: rgba(87, 171, 90, 0.3);*/
@@ -3709,7 +3756,13 @@ async function addChangesetQuickLook() {
                     color: black;
                 }
                             
-                tr.quick-look-deleted-tag {
+                tr.quick-look-deleted-tag th {
+                    /*background: #692113;*/
+                    background: rgba(238,51,9,0.4);
+                    /*background: rgba(229, 83, 75, 0.3);*/
+                }
+                                
+                tr.quick-look-deleted-tag td:not(.tag-flag) {
                     /*background: #692113;*/
                     background: rgba(238,51,9,0.4);
                     /*background: rgba(229, 83, 75, 0.3);*/
@@ -3739,48 +3792,63 @@ async function addChangesetQuickLook() {
                     background: black !important;
                 }
             }
-            
-            tr.restored-tag::after {
+            .edits-wars-tag td:nth-of-type(2)::after{
+              content: " ⚔️";
+              margin-top: 2px
+            }
+            tr.restored-tag td:nth-of-type(2)::after {
               content: " ♻️";
-              position: absolute;
               margin-top: 2px
             }
-            tr.removed-tag::after {
+            tr.restored-tag.edits-wars-tag td:nth-of-type(2)::after {
+              content: " ♻️⚔️";
+              margin-top: 2px
+            }
+            tr.removed-tag td:nth-of-type(2)::after {
               content: " 🗑";
-              position: absolute;
               margin-top: 2px
             }
-            tr.replaced-tag::after {
-              content: " ⇄";
-              position: absolute;
+            tr.removed-tag.edits-wars-tag td:nth-of-type(2)::after {
+              content: " 🗑⚔️";
+              margin-top: 2px
             }
-            tr.reverted-tag::after {
+            tr.replaced-tag td:nth-of-type(2)::after {
+              content: " ⇄";
+              color: var(--bs-body-color);
+            }
+            tr.replaced-tag.edits-wars-tag td:nth-of-type(2)::after {
+              content: " ⇄⚔️";
+              color: var(--bs-body-color);
+            }
+            tr.reverted-tag td:nth-of-type(2)::after {
               content: " ↻";
-              position: absolute;
-              // margin-top: 2px
+              color: var(--bs-body-color);
+            }
+
+            tr.reverted-tag.edits-wars-tag td:nth-of-type(2)::after {
+              content: " ↻⚔️";
+              color: var(--bs-body-color);
             }
             span.reverted-coordinates::after {
               content: " ↻";
               position: absolute;
               color: var(--bs-body-color);
-              // margin-top: 2px
             }
-            
             `
             + ((GM_config.get("ShowChangesetGeometry")) ? `
-            #sidebar_content li.node:hover {
+            #sidebar_content #changeset_nodes li:hover {
                 background-color: rgba(223, 223, 223, 0.6);
             }
-            #sidebar_content li.way:hover {
+            #sidebar_content #changeset_ways li:hover {
                 background-color: rgba(223, 223, 223, 0.6);
             }
-            #sidebar_content li.node.map-hover {
+            #sidebar_content #changeset_nodes li.map-hover {
                 background-color: rgba(223, 223, 223, 0.6);
             }
-            #sidebar_content li.way.map-hover {
+            #sidebar_content #changeset_ways li.map-hover {
                 background-color: rgba(223, 223, 223, 0.6);
             }
-            #sidebar_content li.relation.downloaded:hover {
+            #sidebar_content #changeset_relations li.downloaded:hover {
                 background-color: rgba(223, 223, 223, 0.6);
             }
             
@@ -3789,19 +3857,19 @@ async function addChangesetQuickLook() {
             }
             
             @media (prefers-color-scheme: dark) {            
-                #sidebar_content li.node:hover {
+                #sidebar_content #changeset_nodes li:hover {
                     background-color: rgb(14, 17, 19);
                 }
-                #sidebar_content li.way:hover {
+                #sidebar_content #changeset_ways li:hover {
                     background-color: rgb(14, 17, 19);
                 }
-                #sidebar_content li.node.map-hover {
+                #sidebar_content #changeset_nodes li.map-hover {
                     background-color: rgb(14, 17, 19);
                 }
-                #sidebar_content li.way.map-hover {
+                #sidebar_content #changeset_ways li.map-hover {
                     background-color: rgb(14, 17, 19);
                 }
-                #sidebar_content li.relation.downloaded:hover {
+                #sidebar_content #changeset_relations li.downloaded:hover {
                     background-color: rgb(14, 17, 19);
                 }
                     
@@ -3843,9 +3911,7 @@ async function addChangesetQuickLook() {
     if (GM_config.get("ResizableSidebar")) {
         document.querySelector("#sidebar").style.resize = "horizontal"
     }
-    if (GM_config.get("Swipes")) {
-        addSwipes();
-    }
+    addSwipes();
 
 
     const changesetID = location.pathname.match(/changeset\/(\d+)/)[1]
@@ -3883,11 +3949,11 @@ async function addChangesetQuickLook() {
                 break
             }
         }
-        return [prevVersion, targetVersion, lastVersion]
+        return [prevVersion, targetVersion, lastVersion, objHistory]
     }
 
     async function processObjects(objType, uniqTypes) {
-        const objCount = document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`).length
+        const objCount = document.querySelectorAll(`#changeset_${objType}s .list-unstyled li:not(.processed-object)`).length
         if (objCount === 0) {
             return;
         }
@@ -3897,8 +3963,9 @@ async function addChangesetQuickLook() {
          * @param {NodeVersion|WayVersion|RelationVersion} prevVersion
          * @param {NodeVersion|WayVersion|RelationVersion} targetVersion
          * @param {NodeVersion|WayVersion|RelationVersion} lastVersion
+         * @param {NodeVersion[]|WayVersion[]|RelationVersion[]} objHistory
          */
-        async function processObject(i, prevVersion, targetVersion, lastVersion) {
+        async function processObject(i, prevVersion, targetVersion, lastVersion, objHistory) {
             /**
              * @type {[string, string, string, string]}
              */
@@ -3911,12 +3978,17 @@ async function addChangesetQuickLook() {
             const tbody = document.createElement("tbody")
             tagsTable.appendChild(tbody)
 
-            function makeTagRow(key, value) {
+            function makeTagRow(key, value, addTd=false) {
                 const tagRow = document.createElement("tr")
                 const tagTh = document.createElement("th")
                 const tagTd = document.createElement("td")
                 tagRow.appendChild(tagTh)
                 tagRow.appendChild(tagTd)
+                if (addTd) {
+                    const td = document.createElement("td")
+                    td.classList.add("tag-flag")
+                    tagRow.appendChild(td)
+                }
                 tagTh.textContent = key
                 tagTd.textContent = value
                 return tagRow
@@ -3938,13 +4010,91 @@ async function addChangesetQuickLook() {
                 }
             }
 
+            function detectEditsWars(row, key) {
+                let revertsCounter = 0
+                let warLog = document.createElement("table")
+                warLog.style.borderColor =  "var(--bs-body-color)";
+                warLog.style.borderStyle =  "solid";
+                warLog.style.borderWidth =  "1px";
+                for (let j = 0; j < objHistory.length; j++) {
+                    const it = objHistory[j];
+
+                    const prevIt = (objHistory[j - 1]?.tags ?? {})[key]
+                    const targetIt = (it.tags ?? {})[key]
+                    const prevTag = (prevVersion.tags ?? {})[key]
+                    const targetTag = (targetVersion.tags ?? {})[key]
+
+                    if (it.version === targetVersion.version) {
+                        continue
+                    }
+
+                    if (prevIt === targetIt) {
+                        continue
+                    }
+
+                    if (prevTag === targetIt) {
+                        revertsCounter++
+                    }
+                    if (targetIt === undefined) {
+                        const tr = document.createElement("tr")
+                        tr.classList.add("quick-look-deleted-tag")
+                        const th_ver = document.createElement("th")
+                        th_ver.textContent = `v${it.version}`
+                        const td_user = document.createElement("td")
+                        td_user.textContent = `${it.user}`
+                        const td_tag = document.createElement("td")
+                        td_tag.textContent = "<deleted>"
+                        tr.appendChild(th_ver)
+                        tr.appendChild(td_user)
+                        tr.appendChild(td_tag)
+                        warLog.appendChild(tr)
+                    } else {
+                        const tr = document.createElement("tr")
+                        const th_ver = document.createElement("th")
+                        th_ver.textContent = `v${it.version}`
+                        const td_user = document.createElement("td")
+                        td_user.textContent = `${it.user}`
+                        const td_tag = document.createElement("td")
+                        td_tag.textContent = it.tags[key]
+                        tr.appendChild(th_ver)
+                        tr.appendChild(td_user)
+                        tr.appendChild(td_tag)
+                        warLog.appendChild(tr)
+                    }
+                }
+                if (revertsCounter > 3) {
+                    row.classList.add("edits-wars-tag")
+                    row.title = `Edits war. ${row.title}\nClick for details`
+                }
+                const tr = document.createElement("tr")
+                const td = document.createElement("td")
+                td.appendChild(warLog)
+                td.colSpan = 3
+                tr.style.display = "none"
+                tr.appendChild(td)
+
+                row.after(tr)
+                row.querySelector("td.tag-flag").style.cursor = "pointer"
+                row.querySelector("td.tag-flag").onclick = (e) => {
+                    e.stopPropagation()
+                    e.stopImmediatePropagation()
+                    if (e.target.getAttribute("open")) {
+                        tr.style.display = "none"
+                        e.target.removeAttribute("open")
+                    } else {
+                        tr.style.removeProperty("display")
+                        e.target.setAttribute("open", "true")
+                    }
+                }
+            }
+
             let tagsWasChanged = false;
 
             // tags deletion
             if (prevVersion.version !== 0) {
                 for (const [key, value] of Object.entries(prevVersion?.tags ?? {})) {
                     if (targetVersion.tags === undefined || targetVersion.tags[key] === undefined) {
-                        const row = makeTagRow(key, value)
+                        const row = makeTagRow(key, value, true)
                         row.classList.add("quick-look-deleted-tag")
                         tbody.appendChild(row)
                         tagsWasChanged = true
@@ -3953,12 +4103,13 @@ async function addChangesetQuickLook() {
                             row.title = row.title + "The tag is now restored"
                         }
                         makeLinksInRowClickable(row)
+                        detectEditsWars(row, key)
                     }
                 }
             }
             // tags add/modification
             for (const [key, value] of Object.entries(targetVersion.tags ?? {})) {
-                const row = makeTagRow(key, value)
+                const row = makeTagRow(key, value, true)
                 if (prevVersion.tags === undefined || prevVersion.tags[key] === undefined) {
                     tagsWasChanged = true
                     row.classList.add("quick-look-new-tag")
@@ -3971,6 +4122,9 @@ async function addChangesetQuickLook() {
                             row.title = `The tag is now deleted`
                         }
                     }
+                    makeLinksInRowClickable(row)
+                    tbody.appendChild(row)
+                    detectEditsWars(row, key)
                 } else if (prevVersion.tags[key] !== value) {
                     // todo reverted changes
                     const valCell = row.querySelector("td")
@@ -4036,14 +4190,16 @@ async function addChangesetQuickLook() {
                             row.title = `The tag is now deleted`
                         }
                     }
+                    tbody.appendChild(row)
+                    detectEditsWars(row, key)
                 } else {
                     row.classList.add("non-modified-tag-in-quick-view")
                     if (!tagsOfObjectsVisible) {
                         row.setAttribute("hidden", "true")
                     }
                     makeLinksInRowClickable(row)
+                    tbody.appendChild(row)
                 }
-                tbody.appendChild(row)
             }
             if (targetVersion.visible !== false && prevVersion?.nodes && prevVersion.nodes.toString() !== targetVersion.nodes?.toString()) {
                 let geomChangedFlag = document.createElement("span")
@@ -4452,7 +4608,7 @@ async function addChangesetQuickLook() {
                 memChangedFlag.after(tagsTable)
             }
             if (targetVersion.lat && prevVersion.lat && (prevVersion.lat !== targetVersion.lat || prevVersion.lon !== targetVersion.lon)) {
-                i.classList.add("location-modified")
+                i.parentElement.parentElement.classList.add("location-modified")
                 const locationChangedFlag = document.createElement("span")
                 const distInMeters = getDistanceFromLatLonInKm(
                     prevVersion.lat,
@@ -4494,7 +4650,7 @@ async function addChangesetQuickLook() {
                 }
             }
             if (targetVersion.visible === false) {
-                i.classList.add("removed-object")
+                i.parentElement.parentElement.classList.add("removed-object")
             }
             if (targetVersion.version !== lastVersion.version && lastVersion.visible === false) {
                 i.appendChild(document.createTextNode(['ru-RU', 'ru'].includes(navigator.language) ? " ⓘ Объект уже удалён" : " ⓘ The object is now deleted"))
@@ -4505,17 +4661,17 @@ async function addChangesetQuickLook() {
             if (tagsWasChanged) {
                 i.appendChild(tagsTable)
             } else {
-                i.classList.add("tags-non-modified")
+                i.parentElement.parentElement.classList.add("tags-non-modified")
             }
             //</editor-fold>
-            i.classList.add("tags-processed-object")
+            i.parentElement.parentElement.classList.add("tags-processed-object")
         }
 
         const needFetch = []
 
 
         if (objType === "relation" && objCount >= 2) {
-            for (let i of document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`)) {
+            for (let i of document.querySelectorAll(`#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)) {
                 const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
                 const version = parseInt(strVersion)
                 if (version === 1) {
@@ -4529,7 +4685,7 @@ async function addChangesetQuickLook() {
             }
             const res = await fetch(osm_server.apiBase + `${objType}s.json?${objType}s=` + needFetch.join(","), {signal: abortDownloadingController.signal});
             if (res.status === 404) {
-                for (let i of document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`)) {
+                for (let i of document.querySelectorAll(`#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)) {
                     await processObject(i, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(i)))
                 }
             } else {
@@ -4545,24 +4701,24 @@ async function addChangesetQuickLook() {
                         objectsVersions[id] = Object.fromEntries(Object.entries(Object.groupBy(history, i => i.version)).map(([version, val]) => [version, val[0]]))
                     }
                 )
-                for (let i of document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`)) {
+                for (let i of document.querySelectorAll(`#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)) {
                     const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
                     const version = parseInt(strVersion)
                     await processObject(i, ...getPrevTargetLastVersions(Object.values(objectsVersions[objID]), version))
                 }
             }
         } else {
-            await Promise.all(Array.from(document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`)).map(async function (i) {
+            await Promise.all(Array.from(document.querySelectorAll(`#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)).map(async function (i) {
                 await processObject(i, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(i)))
             }))
         }
 
         // reorder non-interesting-objects
-        Array.from(document.querySelectorAll(`.list-unstyled li.${objType}.tags-non-modified`)).forEach(i => {
-            document.querySelector(`.list-unstyled li.${objType}`).parentElement.appendChild(i)
+        Array.from(document.querySelectorAll(`#changeset_${objType}s .list-unstyled li.tags-non-modified`)).forEach(i => {
+            document.querySelector(`#changeset_${objType}s .list-unstyled li`).parentElement.appendChild(i)
         })
-        Array.from(document.querySelectorAll(`.list-unstyled li.${objType}.tags-non-modified:not(.location-modified)`)).forEach(i => {
-            document.querySelector(`.list-unstyled li.${objType}`).parentElement.appendChild(i)
+        Array.from(document.querySelectorAll(`#changeset_${objType}s .list-unstyled li.tags-non-modified:not(.location-modified)`)).forEach(i => {
+            document.querySelector(`#changeset_${objType}s .list-unstyled li`).parentElement.appendChild(i)
         })
 
 
@@ -4590,12 +4746,12 @@ async function addChangesetQuickLook() {
                 }
             });
         }
-        const objectListSection = document.querySelector(`.list-unstyled li.${objType}`).parentElement.parentElement.querySelector("h4")
+        const objectListSection = document.querySelector(`#changeset_${objType}s .list-unstyled li`).parentElement.parentElement.querySelector("h4")
         if (!objectListSection.querySelector(".quick-look-compact-toggle-btn")) {
             objectListSection.appendChild(compactToggle)
         }
         compactToggle.before(document.createTextNode("\xA0"))
-        if (uniqTypes === 1 && document.querySelectorAll(`.list-unstyled li.${objType} .non-modified-tag-in-quick-view`).length < 5) {
+        if (uniqTypes === 1 && document.querySelectorAll(`#changeset_${objType}s .list-unstyled li .non-modified-tag-in-quick-view`).length < 5) {
             compactToggle.style.display = "none"
             document.querySelectorAll(".non-modified-tag-in-quick-view").forEach(i => {
                 i.removeAttribute("hidden")
@@ -4605,7 +4761,7 @@ async function addChangesetQuickLook() {
     }
 
     async function processObjectsInteractions(objType, uniqTypes) {
-        const objCount = document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`).length
+        const objCount = document.querySelectorAll(`#changeset_${objType}s .list-unstyled li:not(.processed-object)`).length
         if (objCount === 0) {
             return;
         }
@@ -4618,7 +4774,7 @@ async function addChangesetQuickLook() {
          */
         async function processObjectInteractions(i, prevVersion, targetVersion, lastVersion) {
             if (!GM_config.get("ShowChangesetGeometry")) {
-                i.classList.add("processed-object")
+                i.parentElement.parentElement.classList.add("processed-object")
                 return
             }
             /**
@@ -4627,7 +4783,7 @@ async function addChangesetQuickLook() {
             const m = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
             const [, , objID, strVersion] = m
             const version = parseInt(strVersion)
-            i.ondblclick = (e) => {
+            i.parentElement.parentElement.ondblclick = (e) => {
                 if (e.altKey) return
                 if (changesetMetadata) {
                     fitBounds([
@@ -4655,7 +4811,7 @@ async function addChangesetQuickLook() {
                     })
                 }
 
-                i.onmouseover = mouseenterHandler
+                i.parentElement.parentElement.onmouseover = mouseenterHandler
                 if ((prevVersion.tags && Object.keys(prevVersion.tags).length) || (targetVersion.tags && Object.keys(targetVersion.tags).length)) { // todo temp hack for potential speed up
                     document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div a[href*="node/${objID}"]`).forEach(link => {
                         // link.title = "Alt + click for scroll into object list"
@@ -4666,7 +4822,7 @@ async function addChangesetQuickLook() {
                         }
                     })
                 }
-                i.onclick = (e) => {
+                i.parentElement.parentElement.onclick = (e) => {
                     if (e.altKey) return
                     if (window.getSelection().type === "Range") return
 
@@ -4747,7 +4903,7 @@ async function addChangesetQuickLook() {
                             }
                         }
 
-                        i.onmouseenter = mouseenterHandler
+                        i.parentElement.parentElement.onmouseenter = mouseenterHandler
                         document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div a[href*="way/${objID}"]`).forEach(link => {
                             // link.title = "Alt + click for scroll into object list"
                             link.onmouseenter = mouseenterHandler
@@ -4757,7 +4913,7 @@ async function addChangesetQuickLook() {
                             }
                         })
 
-                        i.onclick = (e) => {
+                        i.parentElement.parentElement.onclick = (e) => {
                             if (e.altKey) return
                             if (window.getSelection().type === "Range") return
                             if (targetNodesList) {
@@ -4768,7 +4924,7 @@ async function addChangesetQuickLook() {
                             }
                         }
                     }, 10);
-                    i.classList.add("processed-object")
+                    i.parentElement.parentElement.classList.add("processed-object")
                     return
                 }
                 const lastElements = (await res.json()).elements
@@ -4801,7 +4957,7 @@ async function addChangesetQuickLook() {
                 }
 
 
-                i.onclick = async (e) => {
+                i.parentElement.parentElement.onclick = async (e) => {
                     if (e.altKey) return
                     if (window.getSelection().type === "Range") return
                     showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", currentNodesList.length !== 0, objID)
@@ -4873,7 +5029,7 @@ async function addChangesetQuickLook() {
                     }
                 }
 
-                i.onmouseenter = mouseenterHandler
+                i.parentElement.parentElement.onmouseenter = mouseenterHandler
                 document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div a[href*="way/${objID}"]`).forEach(link => {
                     // link.title = "Alt + click for scroll into object list"
                     link.onmouseenter = mouseenterHandler
@@ -4898,7 +5054,7 @@ async function addChangesetQuickLook() {
                     }
                     try {
                         const relationMetadata = await loadRelationVersionMembersViaOverpass(parseInt(objID), targetTimestamp, false, "#ff00e3")
-                        i.onclick = (e) => {
+                        i.parentElement.parentElement.onclick = (e) => {
                             if (e.altKey) return
                             fitBounds([
                                 [relationMetadata.bbox.min_lat, relationMetadata.bbox.min_lon],
@@ -4910,7 +5066,7 @@ async function addChangesetQuickLook() {
                             await loadRelationVersionMembersViaOverpass(parseInt(objID), targetTimestamp, false, "#ff00e3")
                         }
 
-                        i.onmouseenter = mouseenterHandler
+                        i.parentElement.parentElement.onmouseenter = mouseenterHandler
                         document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div a[href*="relation/${objID}"]`).forEach(link => {
                             // link.title = "Alt + click for scroll into object list"
                             link.onmouseenter = mouseenterHandler
@@ -4920,7 +5076,7 @@ async function addChangesetQuickLook() {
                             }
                         })
 
-                        i.classList.add("downloaded")
+                        i.parentElement.parentElement.classList.add("downloaded")
                     } catch (e) {
                         btn.style.cursor = "pointer"
                         throw e
@@ -4931,13 +5087,13 @@ async function addChangesetQuickLook() {
                 i.querySelector("a:nth-of-type(2)").after(btn)
                 i.querySelector("a:nth-of-type(2)").after(document.createTextNode("\xA0"))
             }
-            i.classList.add("processed-object")
+            i.parentElement.parentElement.classList.add("processed-object")
         }
 
         const needFetch = []
 
         if (objType === "relation" && objCount >= 2) {
-            for (let i of document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`)) {
+            for (let i of document.querySelectorAll(`#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)) {
                 const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
                 const version = parseInt(strVersion)
                 if (version === 1) {
@@ -4951,7 +5107,7 @@ async function addChangesetQuickLook() {
             }
             const res = await fetch(osm_server.apiBase + `${objType}s.json?${objType}s=` + needFetch.join(","), {signal: abortDownloadingController.signal});
             if (res.status === 404) {
-                for (let i of document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`)) {
+                for (let i of document.querySelectorAll(`#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)) {
                     await processObjectInteractions(i, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(i)))
                 }
             } else {
@@ -4967,14 +5123,14 @@ async function addChangesetQuickLook() {
                         objectsVersions[id] = Object.fromEntries(Object.entries(Object.groupBy(history, i => i.version)).map(([version, val]) => [version, val[0]]))
                     }
                 )
-                for (let i of document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`)) {
+                for (let i of document.querySelectorAll(`#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)) {
                     const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
                     const version = parseInt(strVersion)
                     await processObjectInteractions(i, ...getPrevTargetLastVersions(Object.values(objectsVersions[objID]), version))
                 }
             }
         } else {
-            await Promise.all(Array.from(document.querySelectorAll(`.list-unstyled li.${objType}:not(.processed-object)`)).map(async function (i) {
+            await Promise.all(Array.from(document.querySelectorAll(`#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)).map(async function (i) {
                 await processObjectInteractions(i, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(i)))
             }))
         }
@@ -5017,9 +5173,7 @@ async function addChangesetQuickLook() {
                 return;
             }
             pagination.remove();
-            const summaryHeader = document.querySelector(`.list-unstyled li.node`)
-                .parentElement.parentElement.querySelector("h4")
-                .firstChild;
+            const summaryHeader = document.querySelector(`#changeset_nodes h4`).firstChild;
             summaryHeader.textContent = summaryHeader.textContent.replace(/\(.*\)/, `(1-${nodes.length})`)
 
             nodes.forEach(node => {
@@ -5027,32 +5181,46 @@ async function addChangesetQuickLook() {
                     return
                 }
                 const ulItem = document.createElement("li");
-                ulItem.classList.add("node");
-                ulItem.id = "n" + node.id
+                const div1 = document.createElement("div")
+                div1.classList.add("d-flex", "gap-1")
+                ulItem.appendChild(div1)
+
+                const img = document.createElement("img")
+                img.height = 20
+                img.width = 20
+                img.style.visibility = "hidden"
+                div1.appendChild(img)
+
+                const div2 = document.createElement("div")
+                div2.classList.add("align-self-center")
+                div1.appendChild(div2)
+
+                div2.classList.add("node");
+                div2.id = "n" + node.id
 
                 const nodeLink = document.createElement("a")
                 nodeLink.rel = "nofollow"
                 nodeLink.href = `/node/${node.id}`
                 nodeLink.textContent = node.id
-                ulItem.appendChild(nodeLink)
+                div2.appendChild(nodeLink)
 
-                ulItem.appendChild(document.createTextNode(", "))
+                div2.appendChild(document.createTextNode(", "))
 
                 const versionLink = document.createElement("a")
                 versionLink.rel = "nofollow"
                 versionLink.href = `/node/${node.id}/history/${node.getAttribute("version")}`
                 versionLink.textContent = "v" + node.getAttribute("version")
-                ulItem.appendChild(versionLink)
+                div2.appendChild(versionLink)
 
                 Array.from(node.children).forEach(i => {
                     // todo
                     if (mainTags.includes(i.getAttribute("k"))) {
-                        ulItem.classList.add(i.getAttribute("k"))
-                        ulItem.classList.add(i.getAttribute("v"))
+                        div2.classList.add(i.getAttribute("k"))
+                        div2.classList.add(i.getAttribute("v"))
                     }
                 })
                 if (node.getAttribute("visible") === "false") {
-                    ulItem.innerHTML = "<s>" + ulItem.innerHTML + "</s>"
+                    div2.innerHTML = "<s>" + div2.innerHTML + "</s>"
                 }
                 ul.appendChild(ulItem)
             })
@@ -5075,41 +5243,53 @@ async function addChangesetQuickLook() {
                 }
             }
             pagination.remove();
-            const summaryHeader = document.querySelector(`.list-unstyled li.way`)
-                .parentElement.parentElement.querySelector("h4")
-                .firstChild;
+            const summaryHeader = document.querySelector(`#changeset_ways h4`).firstChild;
             summaryHeader.textContent = summaryHeader.textContent.replace(/\(.*\)/, `(1-${ways.length})`)
             ways.forEach(way => {
                 if (document.querySelector("#w" + way.id)) {
                     return
                 }
                 const ulItem = document.createElement("li");
-                ulItem.classList.add("way");
-                ulItem.id = "w" + way.id
+                const div1 = document.createElement("div")
+                div1.classList.add("d-flex", "gap-1")
+                ulItem.appendChild(div1)
+
+                const img = document.createElement("img")
+                img.height = 20
+                img.width = 20
+                img.style.visibility = "hidden"
+                div1.appendChild(img)
+
+                const div2 = document.createElement("div")
+                div2.classList.add("align-self-center")
+                div1.appendChild(div2)
+
+                div2.classList.add("way");
+                div2.id = "w" + way.id
 
                 const nodeLink = document.createElement("a")
                 nodeLink.rel = "nofollow"
                 nodeLink.href = `/way/${way.id}`
                 nodeLink.textContent = way.id
-                ulItem.appendChild(nodeLink)
+                div2.appendChild(nodeLink)
 
-                ulItem.appendChild(document.createTextNode(", "))
+                div2.appendChild(document.createTextNode(", "))
 
                 const versionLink = document.createElement("a")
                 versionLink.rel = "nofollow"
                 versionLink.href = `/way/${way.id}/history/${way.getAttribute("version")}`
                 versionLink.textContent = "v" + way.getAttribute("version")
-                ulItem.appendChild(versionLink)
+                div2.appendChild(versionLink)
 
                 Array.from(way.children).forEach(i => {
                     // todo
                     if (["shop", "building", "amenity", "man_made", "highway", "natural"].includes(i.getAttribute("k"))) {
-                        ulItem.classList.add(i.getAttribute("k"))
-                        ulItem.classList.add(i.getAttribute("v"))
+                        div2.classList.add(i.getAttribute("k"))
+                        div2.classList.add(i.getAttribute("v"))
                     }
                 })
                 if (way.getAttribute("visible") === "false") {
-                    ulItem.innerHTML = "<s>" + ulItem.innerHTML + "</s>"
+                    div2.innerHTML = "<s>" + div2.innerHTML + "</s>"
                 }
                 ul.appendChild(ulItem)
             })
@@ -5316,7 +5496,7 @@ async function addChangesetQuickLook() {
                     )
                 }
             };
-            const nodesWithModifiedLocation = Array.from(document.querySelectorAll(".node.location-modified")).map(i => parseInt(i.id.slice(1)))
+            const nodesWithModifiedLocation = Array.from(document.querySelectorAll("#changeset_nodes .location-modified div div")).map(i => parseInt(i.id.slice(1)))
             await Promise.all(arraySplit(nodesWithModifiedLocation, 4).map(loadNodesParents))
             // fast hack
             // const someInterestingNodes = Array.from(changesetData.querySelectorAll("node")).filter(i => i.querySelector("tag[k=power],tag[k=entrance]")).map(i => parseInt(i.id))
@@ -5501,27 +5681,27 @@ function simplifyHDCYIframe() {
                         background-color: rgb(49, 54, 59);
                         color: lightgray;
                     }
-                    
+
                     #mapwrapper {
                         filter: invert(100%) hue-rotate(180deg) contrast(90%);
                     }
-                    
+
                     #activitymap {
                         filter: invert(100%) hue-rotate(180deg) contrast(90%);
                     }
-                    
+
                     .leaflet-popup-content {
                         filter: brightness(0.3);
                     }
-                    
+
                     .leaflet-popup-content-wrapper {
                         filter: brightness(0.9);
                     }
-                    
+
                     a {
                         color: darkblue;
                     }
-                    
+
                     a:visited {
                         color: darkviolet;
                     }
@@ -6658,9 +6838,9 @@ function setupNavigationViaHotkeys() {
                         })
                         cur.previousElementSibling.classList.add("map-hover")
                     } else {
-                        if (cur.classList.contains("node")) {
+                        if (cur.parentElement.parentElement.id === "changeset_nodes") {
                             cur.classList.remove("active-object")
-                            document.querySelector("ul.list-unstyled li.way:last-of-type").classList.add("active-object")
+                            document.querySelector("#changeset_ways li:last-of-type").classList.add("active-object")
                             document.querySelector("ul .active-object").click()
                             document.querySelector("ul .active-object").classList.add("map-hover")
 
@@ -6673,7 +6853,7 @@ function setupNavigationViaHotkeys() {
                 }
             } else if (e.code === "KeyL" && !e.shiftKey) {
                 if (!document.querySelector("ul .active-object")) {
-                    document.querySelector("ul.list-unstyled li.node,.way,.relation").classList.add("active-object")
+                    document.querySelector("#changeset_nodes li, #changeset_ways li, #changeset_relations li").classList.add("active-object")
                     document.querySelector("ul .active-object").click()
                     document.querySelectorAll(".map-hover").forEach(el => {
                         el.classList.remove("map-hover")
@@ -6691,9 +6871,9 @@ function setupNavigationViaHotkeys() {
                         })
                         cur.nextElementSibling.classList.add("map-hover")
                     } else {
-                        if (cur.classList.contains("way")) {
+                        if (cur.parentElement.parentElement.id === "changeset_ways") {
                             cur.classList.remove("active-object")
-                            document.querySelector("ul.list-unstyled li.node").classList.add("active-object")
+                            document.querySelector("#changeset_nodes li").classList.add("active-object")
                             document.querySelector("ul .active-object").click()
 
                             document.querySelectorAll(".map-hover").forEach(el => {
