@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.5.6
+// @version         0.5.7
 // @changelog       https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670/8
 // @description     Several improvements for advanced users of osm.org
 // @description:ru  Скрипт, добавляющий на osm.org полезные картографам функции
@@ -4023,10 +4023,6 @@ async function addChangesetQuickLook() {
                     const targetIt = (it.tags ?? {})[key]
                     const prevTag = (prevVersion.tags ?? {})[key]
                     const targetTag = (targetVersion.tags ?? {})[key]
-
-                    if (it.version === targetVersion.version) {
-                        continue
-                    }
 
                     if (prevIt === targetIt) {
                         continue
