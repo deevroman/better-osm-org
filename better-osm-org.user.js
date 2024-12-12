@@ -282,6 +282,12 @@ GM_config.init(
             }
         }
         `,
+        'events':
+            {
+                'save': function () {
+                    GM_config.close()
+                }
+            }
     });
 
 let onInit = config => new Promise(resolve => {
