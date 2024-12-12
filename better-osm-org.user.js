@@ -1604,31 +1604,7 @@ function blurSearchField() {
     }
 }
 
-function addHistoryLink() {
-    if (!location.pathname.includes("/node")
-        && !location.pathname.includes("/way")
-        && !location.pathname.includes("/relation")
-        || location.pathname.includes("/history")
-    ) return;
-    if (document.querySelector('.history_button_class')) return true;
-    let versionInSidebar = document.querySelector("#sidebar_content h4 a")
-    if (!versionInSidebar) {
-        return
-    }
-    let a = document.createElement("a")
-    let curHref = document.querySelector("#sidebar_content h4 a").href.match(/(.*)\/(\d+)$/)
-    a.href = curHref[1]
-    a.textContent = "🕒"
-    a.classList.add("history_button_class")
-    if (curHref[2] !== "1") {
-        versionInSidebar.after(a)
-        versionInSidebar.after(document.createTextNode("\xA0"))
-    }
-    blurSearchField();
-    makeTimesSwitchable();
-    if (GM_config.get("ResizableSidebar")) {
-        document.querySelector("#sidebar").style.resize = "horizontal"
-    }
+function makeLinksInTagsClickable(){
     document.querySelectorAll(".browse-tag-list tr").forEach(i => {
         if (i.querySelector("th")?.textContent?.toLowerCase() === "fixme") {
             i.querySelector("td").classList.add("fixme-tag")
@@ -1654,6 +1630,34 @@ function addHistoryLink() {
             }
         }
     })
+}
+
+function addHistoryLink() {
+    if (!location.pathname.includes("/node")
+        && !location.pathname.includes("/way")
+        && !location.pathname.includes("/relation")
+        || location.pathname.includes("/history")
+    ) return;
+    if (document.querySelector('.history_button_class')) return true;
+    let versionInSidebar = document.querySelector("#sidebar_content h4 a")
+    if (!versionInSidebar) {
+        return
+    }
+    let a = document.createElement("a")
+    let curHref = document.querySelector("#sidebar_content h4 a").href.match(/(.*)\/(\d+)$/)
+    a.href = curHref[1]
+    a.textContent = "🕒"
+    a.classList.add("history_button_class")
+    if (curHref[2] !== "1") {
+        versionInSidebar.after(a)
+        versionInSidebar.after(document.createTextNode("\xA0"))
+    }
+    blurSearchField();
+    makeTimesSwitchable();
+    if (GM_config.get("ResizableSidebar")) {
+        document.querySelector("#sidebar").style.resize = "horizontal"
+    }
+    makeLinksInTagsClickable()
     makeHashtagsClickable()
 }
 
@@ -3015,6 +3019,7 @@ function addDiffInHistory() {
         return;
     }
     hideSearchForm();
+    makeLinksInTagsClickable();
     if (!location.pathname.includes("/user/")) {
         let compactToggle = document.createElement("button")
         compactToggle.title = "Toggle between full and compact tags diff"
