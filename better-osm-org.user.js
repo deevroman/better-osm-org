@@ -101,7 +101,7 @@ GM_config.init(
                     'labelPos': 'right'
                 },
                 'DarkModeForID': {
-                    'label': 'Dark mode for iD 🆕 (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme">Thanks AlexPS</a>)',
+                    'label': 'Dark mode for iD 🆕 (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Thanks AlexPS</a>)',
                     'type': 'checkbox',
                     'default': false,
                     'labelPos': 'right'
