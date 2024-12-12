@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.5.7.1
+// @version         0.5.8
 // @changelog       https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670/8
 // @description     Several improvements for advanced users of osm.org
 // @description:ru  Скрипт, добавляющий на osm.org полезные картографам функции
@@ -89,7 +89,7 @@ GM_config.init(
         'fields':
             {
                 'OffMapDim': {
-                    'label': 'Off map dim in dark mode 🆕',
+                    'label': 'Off map dim (⚠️: now it\'s <a href="https://www.openstreetmap.org/preferences" target="_blank">built</a> into osm.org! Disable it)',
                     'type': 'checkbox',
                     'default': false,
                     'labelPos': 'right'
@@ -5595,7 +5595,10 @@ function setupOffMapDim() {
     GM_addElement(document.head, "style", {
         textContent: `
             @media (prefers-color-scheme: dark) {
-              .leaflet-tile-container .leaflet-tile:not(.no-invert), .mapkey-table-entry td:first-child > * {
+              .leaflet-tile-container, .mapkey-table-entry td:first-child > * {
+                filter: none !important;
+              }
+              .leaflet-tile-container * {
                 filter: none !important;
               }
             }
@@ -5613,11 +5616,14 @@ function setupDarkModeForMap() {
     GM_addElement(document.head, "style", {
         textContent: `
             @media (prefers-color-scheme: dark) {
-              .leaflet-tile-container .leaflet-tile:not(.no-invert), .mapkey-table-entry td:first-child > * {
-                filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+              .leaflet-tile-container, .mapkey-table-entry td:first-child > * {
+                filter: none !important;
               }
               .leaflet-tile-container * {
-                filter: none;
+                filter: none !important;
+              }
+               .leaflet-tile-container .leaflet-tile:not(.no-invert), .mapkey-table-entry td:first-child > * {
+                filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%) !important;
               }
             }
         `,
