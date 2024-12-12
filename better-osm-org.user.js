@@ -89,7 +89,7 @@ GM_config.init(
         'fields':
             {
                 'OffMapDim': {
-                    'label': 'Off map dim (⚠️: now it\'s <a href="https://www.openstreetmap.org/preferences" target="_blank">built</a> into osm.org! Disable it)',
+                    'label': 'Off map dim (⚠️: now it\'s <a href="https://www.openstreetmap.org/preferences" target="_blank">built</a> into osm.org!)',
                     'type': 'checkbox',
                     'default': false,
                     'labelPos': 'right'
