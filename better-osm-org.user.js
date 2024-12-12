@@ -4800,7 +4800,7 @@ async function addChangesetQuickLook() {
             if (objType === "node") {
                 i.id = "n" + objID
 
-                function mouseenterHandler(e) {
+                function mouseoverHandler(e) {
                     if (e.relatedTarget?.parentElement === e.target) {
                         return
                     }
@@ -4816,11 +4816,11 @@ async function addChangesetQuickLook() {
                     })
                 }
 
-                i.parentElement.parentElement.onmouseover = mouseenterHandler
+                i.parentElement.parentElement.onmouseover = mouseoverHandler
                 if ((prevVersion.tags && Object.keys(prevVersion.tags).length) || (targetVersion.tags && Object.keys(targetVersion.tags).length)) { // todo temp hack for potential speed up
                     document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div a[href*="node/${objID}"]`).forEach(link => {
                         // link.title = "Alt + click for scroll into object list"
-                        link.onmouseenter = mouseenterHandler
+                        link.onmouseenter = mouseoverHandler
                         link.onclick = (e) => {
                             if (!e.altKey) return
                             i.scrollIntoView()
@@ -5464,7 +5464,7 @@ async function addChangesetQuickLook() {
 
                                 way.nodes.forEach(n => {
                                     if (!document.querySelector("#n" + n)) return
-                                    document.querySelector("#n" + n).addEventListener('mouseover', async () => {
+                                    document.querySelector("#n" + n).parentElement.parentElement.addEventListener('mouseover', async () => {
                                         showActiveWay(cloneInto(currentNodesList, unsafeWindow))
                                         document.querySelectorAll(".map-hover").forEach(el => {
                                             el.classList.remove("map-hover")
