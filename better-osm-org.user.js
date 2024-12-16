@@ -1,7 +1,8 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.5.8
+// @version         0.5.9
+// @changelog       New: displaying the full history of ways
 // @changelog       https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670/8
 // @description     Several improvements for advanced users of osm.org
 // @description:ru  Скрипт, добавляющий на osm.org полезные картографам функции
@@ -119,6 +120,13 @@ GM_config.init(
                         'label': 'Add tags diff in history',
                         'type': 'checkbox',
                         'default': 'checked',
+                        'labelPos': 'right',
+                    },
+                'FullVersionsDiff':
+                    {
+                        'label': 'Add diff with intermediate versions in way history',
+                        'type': 'checkbox',
+                        'default': false,
                         'labelPos': 'right',
                     },
                 'ChangesetQuickLook':
@@ -248,7 +256,7 @@ GM_config.init(
             },
         frameStyle: `
             border: 1px solid #000;
-            height: min(85%, 730px);
+            height: min(85%, 745px);
             width: max(25%, 380px);
             z-index: 9999;
             opacity: 0;
@@ -354,8 +362,12 @@ function makeAuth() {
 }
 
 function makeHashtagsClickable() {
-    document.querySelectorAll(".browse-section p:nth-of-type(1)").forEach( i => {
-        i.innerHTML = i.innerHTML.replaceAll(/\B(#[\p{L}\d_-]+)\b/gu, function (match) {
+    const comment = document.querySelector(".browse-section p")
+    comment.childNodes.forEach(node => {
+        if (node.nodeType !== Node.TEXT_NODE) return
+        const span = document.createElement("span")
+        span.textContent = node.textContent
+        span.innerHTML = span.innerHTML.replaceAll(/\B(#[\p{L}\d_-]+)\b/gu, function (match) {
             const osmchaFilter = {"comment": [{"label": match, "value": match}]}
             const osmchaLink = "https://osmcha.org?" + new URLSearchParams({filters: JSON.stringify(osmchaFilter)}).toString()
             const a = document.createElement("a")
@@ -365,9 +377,11 @@ function makeHashtagsClickable() {
             a.textContent = match
             return a.outerHTML
         })
+        node.replaceWith(span)
     })
 }
 
+// todo remove this
 const mainTags = ["shop", "building", "amenity", "man_made", "highway", "natural", "aeroway", "historic", "railway", "tourism", "landuse", "leisure"]
 
 function addRevertButton() {
@@ -659,6 +673,7 @@ function addRevertButton() {
             elem.before(makeBadge(info))
         })
     })
+    // fixme dont work loggined
     document.querySelectorAll(".browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div").forEach(c => {
         c.innerHTML = c.innerHTML.replaceAll(/((changesets )((\d+)([,. ])(\s|$|<\/))+|changeset \d+)/gm, (match) => {
             return match.replaceAll(/(\d+)/g, `<a href="/changeset/$1" class="changeset_link_in_comment">$1</a>`)
@@ -942,6 +957,7 @@ out meta;
     let b = document.createElement("button");
     b.classList.add("resolve-note-done", "btn", "btn-primary");
     b.textContent = "👌";
+    b.title = "Add to the comment 👌 and close the note."
     document.querySelectorAll("form.mb-3")[0].before(b);
     document.querySelectorAll("form.mb-3")[0].before(document.createElement("p"));
     document.querySelector("form.mb-3 .form-control").rows = 3;
@@ -1610,13 +1626,13 @@ function blurSearchField() {
     }
 }
 
-function makeLinksInTagsClickable(){
+function makeLinksInTagsClickable() {
     document.querySelectorAll(".browse-tag-list tr").forEach(i => {
         if (i.querySelector("th")?.textContent?.toLowerCase() === "fixme") {
             i.querySelector("td").classList.add("fixme-tag")
         } else if (i.querySelector("th")?.textContent?.toLowerCase().startsWith("panoramax")) {
             if (!i.querySelector("td a")) {
-                i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/([0-9a-z-]+)/g, function(match) {
+                i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/([0-9a-z-]+)/g, function (match) {
                     const a = document.createElement("a")
                     a.textContent = match
                     a.target = "_blank"
@@ -1626,7 +1642,7 @@ function makeLinksInTagsClickable(){
             }
         } else if (i.querySelector("th")?.textContent?.toLowerCase().startsWith("mapillary")) {
             if (!i.querySelector("td a")) {
-                i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/([0-9]+)/g, function(match) {
+                i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/([0-9]+)/g, function (match) {
                     const a = document.createElement("a")
                     a.textContent = match
                     a.target = "_blank"
@@ -1761,10 +1777,11 @@ function showWays(ListOfNodesList, layerName = "customObjects", color = "#000000
  * @param {number=} width
  * @param {string|number|null=} infoElemID
  * @param {string=null} layerName
- * @param {string=} dashArray
- * @param {string} popupContent
+ * @param {string|null=} dashArray
+ * @param {string|null=} popupContent
+ * @param {boolean|null=} addStroke
  */
-function displayWay(nodesList, needFly = false, color = "#000000", width = 4, infoElemID = null, layerName = "customObjects", dashArray = null, popupContent = null, addStroke) {
+function displayWay(nodesList, needFly = false, color = "#000000", width = 4, infoElemID = null, layerName = "customObjects", dashArray = null, popupContent = null, addStroke = null) {
     if (!layers[layerName]) {
         layers[layerName] = []
     }
@@ -1793,13 +1810,12 @@ function displayWay(nodesList, needFly = false, color = "#000000", width = 4, in
         }));
     }
     if (infoElemID) {
-        layers[layerName][layers[layerName].length - 1].on('click', cloneInto(function (e) {
+        layers[layerName][layers[layerName].length - 1].on('click', cloneInto(function () {
             const elementById = document.getElementById(infoElemID);
             elementById?.scrollIntoView()
-            document.querySelectorAll(".map-hover").forEach(el => {
-                el.classList.remove("map-hover")
-            })
-            elementById?.classList.add("map-hover")
+            resetMapHover()
+            elementById?.parentElement?.parentElement?.classList.add("map-hover")
+            cleanObjectsByKey("activeObjects")
         }, getWindow(), {cloneFunctions: true,}))
     }
     if (addStroke) {
@@ -1827,13 +1843,11 @@ function showNodeMarker(a, b, color = "#00a500", infoElemID = null, layerName = 
     };
     layers[layerName].push(getWindow().L.circleMarker(getWindow().L.latLng(a, b), intoPage(haloStyle)).addTo(getMap()));
     if (infoElemID) {
-        layers[layerName][layers[layerName].length - 1].on('click', cloneInto(function (e) {
+        layers[layerName][layers[layerName].length - 1].on('click', cloneInto(function () {
             const elementById = document.getElementById("n" + infoElemID);
             elementById?.scrollIntoView()
-            document.querySelectorAll(".map-hover").forEach(el => {
-                el.classList.remove("map-hover")
-            })
-            elementById.classList.add("map-hover")
+            resetMapHover()
+            elementById?.parentElement?.parentElement.classList?.add("map-hover")
         }, getWindow(), {cloneFunctions: true}))
     }
 }
@@ -1894,12 +1908,10 @@ function showActiveWay(nodesList, color = "#ff00e3", needFly = false, infoElemID
         fitBounds(get4Bounds(line))
     }
     if (infoElemID) {
-        layers["activeObjects"][layers["activeObjects"].length - 1].on('click', cloneInto(function (e) {
+        layers["activeObjects"][layers["activeObjects"].length - 1].on('click', cloneInto(function () {
             const elementById = document.getElementById("w" + infoElemID);
             elementById?.scrollIntoView()
-            document.querySelectorAll(".map-hover").forEach(el => {
-                el.classList.remove("map-hover")
-            })
+            resetMapHover()
             elementById.classList.add("map-hover")
         }, getWindow(), {cloneFunctions: true}))
     }
@@ -2003,6 +2015,7 @@ let abortDownloadingController = new AbortController();
  * @property {string} user
  * @property {boolean} visible
  * @property {string} timestamp
+ * @property {'node'|'way'|'relation'} type
  * @property {float} lat
  * @property {float} lon
  * @property {Object.<string, string>=} tags
@@ -2036,7 +2049,7 @@ const histories = {
 
 /**
  *
- * @type {Object.<number, Document>}
+ * @type {Object.<number, XMLDocument>}
  */
 let changesetsCache = {}
 /**
@@ -2060,7 +2073,7 @@ async function getChangeset(id) {
     }
     const res = await fetch(osm_server.apiBase + "changeset" + "/" + id + "/download", {signal: abortDownloadingController.signal});
     const parser = new DOMParser();
-    changesetsCache[id] = parser.parseFromString(await res.text(), "application/xml");
+    changesetsCache[id] = /** @type {XMLDocument} **/ parser.parseFromString(await res.text(), "application/xml");
     nodesWithParentWays[id] = new Set(Array.from(changesetsCache[id].querySelectorAll("way > nd")).map(i => parseInt(i.getAttribute("ref"))))
     nodesWithOldParentWays[id] = new Set(Array.from(changesetsCache[id].querySelectorAll("way:not([version='1']) > nd")).map(i => parseInt(i.getAttribute("ref"))))
     return changesetsCache[id]
@@ -2133,11 +2146,12 @@ async function getNodeHistory(nodeID) {
  * @property {number} changeset
  * @property {number} uid
  * @property {string} user
- * @property {number[]} nodes
+ * @property {number[]=} [nodes]
  * @property {number} version
  * @property {boolean} visible
  * @property {string} timestamp
- * @property {Object.<string, string>=} tags
+ * @property {'node'|'way'|'relation'} type
+ * @property {Object.<string, string>=} [tags]
  */
 /**
  * @param {number|string} wayID
@@ -2172,7 +2186,7 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
     }
     const notCached = targetVersion.nodes.filter(nodeID => !nodesHistories[nodeID])
     console.debug("Not cached nodes histories for download:", notCached.length, "/", targetVersion.nodes)
-    if (notCached.length < 2) {
+    if (notCached.length < 2 || osm_server === local_server) { // https://github.com/openstreetmap/openstreetmap-website/issues/5183
         return [targetVersion, await loadNodesViaHistoryCalls(targetVersion.nodes)]
     }
     // todo batchSize должен быть динамический
@@ -2295,6 +2309,443 @@ function filterObjectListByTimestamp(objectList, timestamp, alwaysReturn = false
     return objectList.map(i => searchVersionByTimestamp(i, timestamp, alwaysReturn))
 }
 
+async function showFullWayHistory(wayID) {
+    const btn = document.querySelector("#download-all-versions-btn")
+    try {
+        /**
+         * @type {(NodeVersion|WayVersion)[]}
+         */
+        const objectsBag = []
+        const objectsSet = new Set()
+        for (const i of document.querySelectorAll(`.way-version-view`)) {
+            const [targetVersion, nodesHistory] = await loadWayVersionNodes(wayID, parseInt(i.getAttribute("way-version")));
+            objectsBag.push(targetVersion)
+            nodesHistory.forEach(v => {
+                if (v.length === 0) {
+                    console.error(`${wayID}, v${parseInt(i.getAttribute("way-version"))} has node with empty history`)
+                }
+                const uniq_key = `${v[0].type} ${v[0].id}`
+                if (!objectsSet.has(uniq_key)) {
+                    objectsBag.push(...v)
+                    objectsSet.add(uniq_key)
+                }
+            })
+        }
+        objectsBag.sort((a, b) => {
+            if (a.timestamp < b.timestamp) return -1;
+            if (a.timestamp > b.timestamp) return 1;
+            if (a.type < b.type) return -1;
+            if (a.type > b.type) return 1;
+            return 0
+        })
+        const wayVersionsIndex = {};
+        (await getWayHistory(wayID)).forEach(i => {
+            wayVersionsIndex[i.version] = i;
+        });
+        /** @type {Object.<string, NodeVersion|WayVersion>}*/
+        const objectStates = {};
+        /** @type {Object.<string, [string, NodeVersion|WayVersion, NodeVersion|WayVersion]>} */
+        let currentChanges = {}
+
+        /**
+         * @param {NodeVersion} v1
+         * @param {NodeVersion} v2
+         * @return {boolean}
+         */
+        function locationChanged(v1, v2) {
+            return v1.lat !== v2.lat || v1.lon !== v2.lon;
+        }
+
+        /**
+         * @param {NodeVersion|WayVersion} v1
+         * @param {NodeVersion|WayVersion} v2
+         * @return {boolean}
+         */
+        function tagsChanged(v1, v2) {
+            return JSON.stringify(v1.tags) !== JSON.stringify(v2.tags);
+        }
+
+        function storeChanges(key, newVersion) {
+            const prev = objectStates[key];
+            if (prev === undefined) {
+                currentChanges[key] = ["new", prev, newVersion]
+            } else {
+                if (locationChanged(prev, newVersion) && tagsChanged(prev, newVersion)) {
+                    currentChanges[key] = ["new", prev, newVersion]
+                } else if (locationChanged(prev, newVersion)) {
+                    currentChanges[key] = ["location", prev, newVersion]
+                } else if (tagsChanged(prev, newVersion)) {
+                    currentChanges[key] = ["tags", prev, newVersion]
+                } else {
+                    currentChanges[key] = ["", prev, newVersion]
+                }
+            }
+        }
+
+        /** @type {number|null} */
+        let currentChangeset = null
+        /** @type {string|null} */
+        let currentUser = null
+        /** @type {string|null} */
+        let currentTimestamp = null
+        /** @type {WayVersion}*/
+        let currentWayVersion = {version: 0, nodes: []}
+        for (const it of objectsBag) {
+            console.debug(it);
+            const uniq_key = `${it.type} ${it.id}`
+            if (it.type === "node" && currentWayVersion.version > 0 && currentWayVersion.nodes?.find(i => i === it.id) === undefined) { // fixme O(n^2)
+                objectStates[uniq_key] = it
+                continue
+            }
+            if (it.changeset === currentChangeset) {
+                storeChanges(uniq_key, it) // todo split if new way version
+            } else if (currentChangeset === null) {
+                currentChangeset = it.changeset
+                currentUser = it.user
+                currentTimestamp = it.timestamp
+                storeChanges(uniq_key, it)
+            } else {
+                if (currentWayVersion.version !== 0) {
+                    const currentNodes = [];
+                    wayVersionsIndex[currentWayVersion.version].nodes.forEach(nodeID => {
+                        currentNodes.push(objectStates[`node ${nodeID}`])
+                        const uniq_key = `node ${nodeID}`
+                        if (currentChanges[uniq_key] === undefined) {
+                            const curV = objectStates[uniq_key]
+                            if (curV) {
+                                if (curV.version === 1 && currentWayVersion.changeset === curV.changeset) {
+                                    currentChanges[uniq_key] = ["new", emptyVersion, curV]
+                                } else {
+                                    currentChanges[uniq_key] = ["", curV, curV]
+                                }
+                            } else {
+                                console.warn(`${uniq_key} not found in states`)
+                            }
+                        }
+                    });
+
+                    const interVersionDiv = document.createElement("div")
+                    interVersionDiv.setAttribute("way-version", "inter")
+                    interVersionDiv.classList.add("browse-section")
+
+                    const interVersionDivHeader = document.createElement("h4")
+                    const interVersionDivAbbr = document.createElement("abbr")
+                    interVersionDivAbbr.textContent = ['ru-RU', 'ru'].includes(navigator.language) ? "Промежуточная версия" : "Intermediate version"
+                    interVersionDivAbbr.title = ['ru-RU', 'ru'].includes(navigator.language)
+                        ? "Произошли изменения тегов или координат точек в линии,\nкоторые не увеличили версию линии"
+                        : "There have been changes to the tags or coordinates of nodes in the way that have not increased the way version"
+                    interVersionDivHeader.appendChild(interVersionDivAbbr)
+                    interVersionDiv.appendChild(interVersionDivHeader)
+
+                    const p = document.createElement("p")
+                    interVersionDiv.appendChild(p)
+                    fetch(osm_server.apiBase + "changeset" + "/" + currentChangeset + ".json").then(async res => {
+                        const jsonRes = await res.json();
+                        /**
+                         * @type {ChangesetMetadata}
+                         */
+                        const changesetMetadata = jsonRes.changeset ? jsonRes.changeset : jsonRes.elements[0]
+                        p.textContent = changesetMetadata.tags['comment'];
+                    })
+
+                    const ul = document.createElement("ul")
+                    ul.classList.add("list-unstyled")
+                    const li = document.createElement("li")
+                    ul.appendChild(li)
+
+                    const time = document.createElement("time")
+                    time.setAttribute("datetime", currentTimestamp)
+                    time.setAttribute("natural_text", currentTimestamp) // it should server side string :(
+                    time.setAttribute("title", currentTimestamp) // it should server side string :(
+                    time.textContent = (new Date(currentTimestamp).toISOString()).slice(0, -5) + "Z"
+                    li.appendChild(time)
+                    li.appendChild(document.createTextNode("\xA0"))
+
+                    const user_link = document.createElement("a")
+                    user_link.href = location.origin + "/user/" + currentUser
+                    user_link.textContent = currentUser
+                    li.appendChild(user_link)
+                    li.appendChild(document.createTextNode("\xA0"))
+
+                    const changeset_link = document.createElement("a")
+                    changeset_link.href = location.origin + "/changeset/" + currentChangeset
+                    changeset_link.textContent = "#" + currentChangeset
+                    li.appendChild(changeset_link)
+
+                    interVersionDiv.appendChild(ul)
+
+                    const nodesDetails = document.createElement("details")
+                    nodesDetails.onclick = (e) => {
+                        e.stopImmediatePropagation()
+                    }
+                    const summary = document.createElement("summary")
+                    summary.textContent = currentNodes.length
+                    summary.classList.add("history-diff-modified-tag")
+                    nodesDetails.appendChild(summary)
+                    const ulNodes = document.createElement("ul")
+                    ulNodes.classList.add("list-unstyled")
+                    currentNodes.forEach(i => {
+                        const nodeLi = document.createElement("li")
+                        const div = document.createElement("div")
+                        div.classList.add("d-flex", "gap-1")
+                        const div2 = document.createElement("div")
+                        div2.classList.add("align-self-center")
+                        div.appendChild(div2)
+
+                        const aHistory = document.createElement("a")
+                        aHistory.classList.add("node")
+                        aHistory.href = "/node/" + i.id + "/history"
+                        aHistory.textContent = i.id
+                        div2.appendChild(aHistory)
+
+                        div2.appendChild(document.createTextNode(", "))
+
+                        const aVersion = document.createElement("a")
+                        aVersion.classList.add("node")
+                        aVersion.href = "/node/" + i.id + "/history/" + i.version
+                        aVersion.textContent = "v" + i.version
+                        div2.appendChild(aVersion)
+                        nodeLi.appendChild(div)
+
+                        const curChange = currentChanges[`node ${i.id}`]
+                        const nodesHistory = nodesHistories[i.id]
+                        const tagsTable = processObject(div2, "node", curChange[1] ?? curChange[2], curChange[2], nodesHistory[nodesHistory.length - 1], nodesHistory)
+                        tagsTable.then((table) => {
+                            if (nodeLi.classList.contains("tags-non-modified")) {
+                                div2.appendChild(table)
+                            }
+                            // table.style.borderColor = "var(--bs-body-color)";
+                            // table.style.borderStyle = "solid";
+                            // table.style.borderWidth = "1px";
+                        })
+                        ulNodes.appendChild(nodeLi)
+                    })
+                    nodesDetails.appendChild(ulNodes)
+                    interVersionDiv.appendChild(nodesDetails)
+
+                    const tmpChangedNodes = Object.values(currentChanges).filter(i => i[2].type === "node")
+                    if (tmpChangedNodes.every(i => i[0] === "tags")) {
+                        interVersionDiv.classList.add("only-tags-changed")
+                    }
+                    const changedNodes = tmpChangedNodes.filter(i => i[0] !== "location")
+                    interVersionDiv.onmouseenter = () => {
+                        cleanAllObjects()
+                        showWay(cloneInto(currentNodes, unsafeWindow), "#000000", false, darkModeForMap && isDarkMode())
+                        currentNodes.forEach(node => {
+                            if (node.tags && Object.keys(node.tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                                showNodeMarker(node.lat.toString(), node.lon.toString(), "rgb(161,161,161)", null, 'customObjects', 3)
+                            }
+                        })
+                        changedNodes.forEach(i => {
+                            if (i[0] === "") return
+                            if (i[2].visible === false) {
+                                if (i[1].visible !== false) {
+                                    showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, 'customObjects', 3)
+                                }
+                            } else {
+                                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, 'customObjects', 3)
+                            }
+                        })
+                    }
+                    interVersionDiv.onclick = () => {
+                        cleanAllObjects()
+                        showWay(cloneInto(currentNodes, unsafeWindow), "#000000", true, darkModeForMap && isDarkMode())
+                        currentNodes.forEach(node => {
+                            if (node.tags && Object.keys(node.tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                                showNodeMarker(node.lat.toString(), node.lon.toString(), "rgb(161,161,161)", null, 'customObjects', 3)
+                            }
+                        })
+                        changedNodes.forEach(i => {
+                            if (i[0] === "") return
+                            if (i[2].visible === false) {
+                                if (i[1].visible !== false) {
+                                    showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, 'customObjects', 3)
+                                }
+                            } else {
+                                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, 'customObjects', 3)
+                            }
+                        })
+                    }
+                    let insertBeforeThat = document.querySelector(`.browse-way[way-version="${currentWayVersion.version}"]`)
+                    while (insertBeforeThat.previousElementSibling.getAttribute("way-version") === "inter") { // fixme O(n^2)
+                        insertBeforeThat = insertBeforeThat.previousElementSibling
+                    }
+                    insertBeforeThat.before(interVersionDiv)
+                }
+                currentChanges = {}
+                storeChanges(uniq_key, it)
+                currentChangeset = it.changeset
+                currentUser = it.user
+                currentTimestamp = it.timestamp
+            }
+            objectStates[uniq_key] = it
+            // для настоящей версии линии
+            if (it.type === "way") {
+                let forNodesReplace = document.querySelector(`.browse-way[way-version="${it.version}"]`)
+                if (Object.keys(currentChanges).length > 1 && (forNodesReplace.classList?.contains("empty-version") || forNodesReplace.classList?.contains("hidden-empty-version"))) {
+                    forNodesReplace.querySelector("summary")?.remove()
+                    const div = document.createElement("div")
+                    div.innerHTML = forNodesReplace.innerHTML
+                    div.classList.add("browse-section")
+                    div.classList.add("browse-way")
+                    div.setAttribute("way-version", forNodesReplace.getAttribute("way-version"))
+                    forNodesReplace.replaceWith(div)
+                    forNodesReplace = div
+                }
+                currentWayVersion = it
+                currentWayVersion.nodes?.forEach(nodeID => {
+                    const uniq_key = `node ${nodeID}`
+                    if (currentChanges[uniq_key] === undefined) {
+                        const curV = objectStates[uniq_key]
+                        if (curV) {
+                            if (curV.version === 1 && currentWayVersion.changeset === curV.changeset) {
+                                currentChanges[uniq_key] = ["new", emptyVersion, curV]
+                            } else {
+                                currentChanges[uniq_key] = ["", curV, curV]
+                            }
+                        } else {
+                            console.warn(`${uniq_key} not found in states`)
+                        }
+                    }
+                })
+                if (forNodesReplace && currentWayVersion.nodes) {
+                    const currentNodes = [];
+                    const ulNodes = forNodesReplace.querySelector("details:not(.empty-version):not(.hidden-empty-version) ul")
+                    ulNodes.querySelectorAll("li").forEach(li => {
+                        li.style.display = "none"
+                        const id = li.querySelector("div div a").href.match(/node\/(\d+)/)[1]
+                        currentNodes.push([li.querySelector("img"), objectStates[`node ${id}`]])
+                    })
+                    if (it.version !== 1) {
+                        const changedNodes = Object.values(currentChanges).filter(i => i[2].type === "node" && i[0] !== "location" && i[0] !== "")
+                        document.querySelector(`.browse-way[way-version="${it.version}"]`)?.addEventListener("mouseenter", () => {
+                            changedNodes.forEach(i => {
+                                if (i[2].visible === false)  {
+                                    if (i[1].visible !== false) {
+                                        showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, 'customObjects', 3)
+                                    }
+                                } else {
+                                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, 'customObjects', 3)
+                                }
+                            })
+                        })
+                        document.querySelector(`.browse-way[way-version="${it.version}"]`)?.addEventListener("click", () => {
+                            changedNodes.forEach(i => {
+                                if (i[2].visible === false) {
+                                    if (i[1].visible !== false) {
+                                        showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, 'customObjects', 3)
+                                    }
+                                } else {
+                                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, 'customObjects', 3)
+                                }
+                            })
+                        })
+                    }
+                    currentNodes.forEach(([img, i]) => {
+                        const nodeLi = document.createElement("li")
+                        const div = document.createElement("div")
+                        div.classList.add("d-flex", "gap-1")
+                        const div2 = document.createElement("div")
+                        div2.classList.add("align-self-center")
+                        div.appendChild(div2)
+
+                        div2.before(img.cloneNode(true))
+
+                        const aHistory = document.createElement("a")
+                        aHistory.classList.add("node")
+                        aHistory.href = "/node/" + i.id + "/history"
+                        aHistory.textContent = i.id
+                        div2.appendChild(aHistory)
+                        nodeLi.appendChild(div)
+
+                        div2.appendChild(document.createTextNode(", "))
+
+                        const aVersion = document.createElement("a")
+                        aVersion.classList.add("node")
+                        aVersion.href = "/node/" + i.id + "/history/" + i.version
+                        aVersion.textContent = "v" + i.version
+                        div2.appendChild(aVersion)
+                        nodeLi.appendChild(div)
+
+                        const curChange = currentChanges[`node ${i.id}`]
+                        const nodesHistory = nodesHistories[i.id]
+                        const tagsTable = processObject(div2, "node", curChange[1] ?? curChange[2], curChange[2], nodesHistory[nodesHistory.length - 1], nodesHistory)
+                        tagsTable.then((table) => {
+                            if (nodeLi.classList.contains("tags-non-modified")) {
+                                div2.appendChild(table)
+                            }
+//                            table.style.borderColor = "var(--bs-body-color)";
+//                             table.style.borderStyle = "solid";
+//                             table.style.borderWidth = "1px";
+                        })
+                        ulNodes.appendChild(nodeLi)
+                    })
+                }
+                currentChanges = {}
+                currentChangeset = null
+            }
+        }
+        document.querySelector("#sidebar_content h2").addEventListener("mouseleave", () => {
+            document.querySelector("#sidebar_content h2").onmouseenter = () => {
+                cleanAllObjects()
+            }
+        }, {
+            once: true
+        })
+        // making version filter
+        if (document.querySelectorAll('[way-version="inter"]').length > 10) {
+            const select = document.createElement("select")
+            select.id = "versions-filter"
+            select.title = "Filter for intermediate changes"
+
+            const allVersions = document.createElement("option")
+            allVersions.value = "all-versions"
+            allVersions.textContent = ['ru-RU', 'ru'].includes(navigator.language) ? "Все версии" : "All versions"
+            select.appendChild(allVersions)
+
+            const withGeom = document.createElement("option")
+            withGeom.value = "with-geom"
+            withGeom.textContent = ['ru-RU', 'ru'].includes(navigator.language) ? "Все изменения геометрии" : "With geometry changes"
+            withGeom.setAttribute("selected", "selected")
+            select.appendChild(withGeom)
+
+            const withoutInter = document.createElement("option")
+            withoutInter.value = "without-inter"
+            withoutInter.textContent = ['ru-RU', 'ru'].includes(navigator.language) ? "Без промежуточных" : "Without intermediate"
+            select.appendChild(withoutInter)
+
+            select.onchange = (e) => {
+                if (e.target.value === "all-versions") {
+                    document.querySelectorAll('[way-version="inter"]').forEach(i => {
+                        i.removeAttribute("hidden")
+                    })
+                } else if (e.target.value === "with-geom") {
+                    document.querySelectorAll('.only-tags-changed[way-version="inter"]').forEach(i => {
+                        i.setAttribute("hidden", "true")
+                    })
+                    document.querySelectorAll('[way-version="inter"]:not(.only-tags-changed)').forEach(i => {
+                        i.removeAttribute("hidden")
+                    })
+                } else if (e.target.value === "without-inter") {
+                    document.querySelectorAll('[way-version="inter"]').forEach(i => {
+                        i.setAttribute("hidden", "true")
+                    })
+                }
+            }
+            document.querySelectorAll('.only-tags-changed[way-version="inter"]').forEach(i => {
+                i.setAttribute("hidden", "true")
+            })
+            btn.after(select)
+        }
+        btn.remove()
+    } catch (err) {
+        console.error(err)
+        btn.title = "Please try reload page.\nIf the error persists, a message about it in the better-osm-org repository"
+        btn.style.background = "red"
+        btn.style.cursor = "auto"
+    }
+}
+
 function setupWayVersionView() {
     const match = location.pathname.match(/\/way\/(\d+)\//);
     if (match === null) return;
@@ -2312,7 +2763,13 @@ function setupWayVersionView() {
             htmlElem.style.cursor = "auto"
         } else {
             if (needShowWay) {
+                cleanAllObjects()
                 showWay(cloneInto(nodesList, unsafeWindow), "#000000", needFly, darkModeForMap && isDarkMode())
+                nodesList.forEach(node => {
+                    if (node.tags && Object.keys(node.tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                        showNodeMarker(node.lat.toString(), node.lon.toString(), "rgb(161,161,161)", null, 'customObjects', 3)
+                    }
+                })
             }
         }
         if (htmlElem.nodeName === "A") {
@@ -2382,6 +2839,7 @@ function setupWayVersionView() {
     })
     if (document.querySelectorAll(`.way-version-view:not([hidden])`).length > 1) {
         const downloadAllVersionsBtn = document.createElement("a")
+        downloadAllVersionsBtn.id = "download-all-versions-btn"
         downloadAllVersionsBtn.textContent = "⏬"
         downloadAllVersionsBtn.style.cursor = "pointer"
         downloadAllVersionsBtn.title = "Download all versions"
@@ -2391,7 +2849,12 @@ function setupWayVersionView() {
             for (const i of document.querySelectorAll(`.way-version-view:not([hidden])`)) {
                 await loadWayVersion(i)
             }
-            e.target.remove()
+            if (GM_config.get("FullVersionsDiff")) {
+                console.time("full history")
+                addQuickLookStyles()
+                await showFullWayHistory(wayID)
+                console.timeEnd("full history")
+            }
         }, {
             once: true,
         })
@@ -2417,6 +2880,7 @@ function setupWayVersionView() {
  * @property {number} version
  * @property {boolean} visible
  * @property {string} timestamp
+ * @property {'node'|'way'|'relation'} type
  * @property {Object.<string, string>=} tags
  */
 /**
@@ -2460,7 +2924,7 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
             `
                 }), {signal: abortDownloadingController.signal})
                 return overpassCache[[id, timestamp]] = await res.json()
-            } catch (e) {
+            } catch {
                 const res = await GM.xmlHttpRequest({
                     url: "https://overpass-api.de/api/interpreter?" + new URLSearchParams({
                         data: `
@@ -2491,7 +2955,7 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
         } else if (i.type === "node") {
             showNodeMarker(i.lat, i.lon, color, null, "activeObjects")
         } else if (i.type === "relation") {
-
+            // todo
         }
     })
 
@@ -2706,6 +3170,7 @@ function setupRelationVersionView() {
 
     if (document.querySelectorAll(`.relation-version-view:not([hidden])`).length > 1) {
         const downloadAllVersionsBtn = document.createElement("a")
+        downloadAllVersionsBtn.id = "download-all-versions-btn"
         downloadAllVersionsBtn.textContent = "⏬"
         downloadAllVersionsBtn.style.cursor = "pointer"
         downloadAllVersionsBtn.title = "Download all versions"
@@ -3068,6 +3533,10 @@ function addDiffInHistory() {
         summary.history-diff-modified-tag {
             background: rgba(223,238,9,0.2) !important;
         }
+                
+        // li.history-diff-modified-tag {
+        //     background: rgba(223,238,9,0.2) !important;
+        // }
     }
     .non-modified-tag .empty-version {
         
@@ -3129,12 +3598,13 @@ function addDiffInHistory() {
     }
           
     [way-version].broken-version details:before {
-        background-color: rgba(244, 244, 244);
+        color: var(--bs-body-color);
         content: "Some nodes were hidden by moderators";
         font-style: italic;
         font-weight: normal;
         font-size: small;
-    }    
+    }
+    
     .relation-version-view:hover {
         background-color: yellow;
     }
@@ -3150,23 +3620,13 @@ function addDiffInHistory() {
     }
     
     [relation-version].broken-version details:before {
-        background-color: rgba(244, 244, 244);
+        color: var(--bs-body-color);
         content: "Some members were hidden by moderators";
         font-style: italic;
         font-weight: normal;
         font-size: small;
     }
 
-    @media (prefers-color-scheme: dark) {        
-        [relation-version].broken-version details:before {
-            background-color: rgb(14, 17, 19);
-            content: "Some members were hidden by moderators";
-            font-style: italic;
-            font-weight: normal;
-            font-size: small;
-        }
-    }
-    
     @media (prefers-color-scheme: dark) {        
         path.stroke-polyline {
             filter: drop-shadow(1px 1px 0 #7a7a7a) drop-shadow(-1px -1px 0 #7a7a7a) drop-shadow(1px -1px 0 #7a7a7a) drop-shadow(-1px 1px 0 #7a7a7a);
@@ -3591,8 +4051,7 @@ function arraySplit(arr, N = 2) {
 }
 
 /**
- *
- * @type {{minlon: number,
+ * @typedef {{
  * closed_at: string,
  * max_lon: number,
  * maxlon: number,
@@ -3601,6 +4060,7 @@ function arraySplit(arr, N = 2) {
  * changes_count: number,
  * tags: {},
  * min_lon: number,
+ * minlon: number,
  * uid: number,
  * max_lat: number,
  * maxlat: number,
@@ -3609,10 +4069,17 @@ function arraySplit(arr, N = 2) {
  * id: number,
  * min_lat: number,
  * user: string,
- * open: boolean}
- * |null}
+ * open: boolean}}
+ * @name ChangesetMetadata
  */
+
+/**
+ * @type ChangesetMetadata|null
+ **/
 let prevChangesetMetadata = null
+/**
+ * @type ChangesetMetadata|null
+ **/
 let changesetMetadata = null
 let startTouch = null;
 let touchMove = null;
@@ -3712,20 +4179,760 @@ function addRegionForFirstChangeset(skip = false) {
 
 }
 
-async function addChangesetQuickLook() {
-    if (!location.pathname.includes("/changeset")) {
-        tagsOfObjectsVisible = true
-        return
-    }
-    if (document.querySelector('.quick-look')) return true;
+// let iconsList = null
+//
+// function loadIconsList() {
+//     const yml = GM_getResourceText("OSM_ORG_POI_ICONS_YML")
+//     const result = {}
+//
+// }
 
-    let sidebar = document.querySelector("#sidebar_content h2");
-    if (!sidebar) {
-        return;
+
+function makeTagRow(key, value, addTd = false) {
+    const tagRow = document.createElement("tr")
+    const tagTh = document.createElement("th")
+    const tagTd = document.createElement("td")
+    tagRow.appendChild(tagTh)
+    tagRow.appendChild(tagTd)
+    if (addTd) {
+        const td = document.createElement("td")
+        td.classList.add("tag-flag")
+        tagRow.appendChild(td)
     }
-    if (injectingStarted) return
-    injectingStarted = true
-    abortDownloadingController = new AbortController()
+    tagTh.textContent = key
+    tagTd.textContent = value
+    return tagRow
+}
+
+
+function makeLinksInRowClickable(row) {
+    if (row.querySelector("td").textContent.match(/^https?:\/\//)) {
+        const a = document.createElement("a")
+        a.textContent = row.querySelector("td").textContent
+        a.href = row.querySelector("td").textContent
+        row.querySelector("td").textContent = ""
+        a.target = "_blank"
+        a.onclick = e => {
+            e.stopPropagation()
+            e.stopImmediatePropagation()
+        }
+        row.querySelector("td").appendChild(a)
+    }
+}
+
+function detectEditsWars(prevVersion, targetVersion, objHistory, row, key) {
+    let revertsCounter = 0
+    let warLog = document.createElement("table")
+    warLog.style.borderColor = "var(--bs-body-color)";
+    warLog.style.borderStyle = "solid";
+    warLog.style.borderWidth = "1px";
+    for (let j = 0; j < objHistory.length; j++) {
+        const it = objHistory[j];
+
+        const prevIt = (objHistory[j - 1]?.tags ?? {})[key]
+        const targetIt = (it.tags ?? {})[key]
+        const prevTag = (prevVersion.tags ?? {})[key]
+        const targetTag = (targetVersion.tags ?? {})[key]
+
+        if (prevIt === targetIt) {
+            continue
+        }
+
+        if (prevTag === targetIt) {
+            revertsCounter++
+        }
+        if (targetIt === undefined) {
+            const tr = document.createElement("tr")
+            tr.classList.add("quick-look-deleted-tag")
+            const th_ver = document.createElement("th")
+            th_ver.textContent = `v${it.version}`
+            const td_user = document.createElement("td")
+            td_user.textContent = `${it.user}`
+            const td_tag = document.createElement("td")
+            td_tag.textContent = "<deleted>"
+            tr.appendChild(th_ver)
+            tr.appendChild(td_user)
+            tr.appendChild(td_tag)
+            warLog.appendChild(tr)
+        } else {
+            const tr = document.createElement("tr")
+            const th_ver = document.createElement("th")
+            th_ver.textContent = `v${it.version}`
+            const td_user = document.createElement("td")
+            td_user.textContent = `${it.user}`
+            const td_tag = document.createElement("td")
+            td_tag.textContent = it.tags[key]
+            tr.appendChild(th_ver)
+            tr.appendChild(td_user)
+            tr.appendChild(td_tag)
+            warLog.appendChild(tr)
+        }
+    }
+    if (revertsCounter > 3) {
+        row.classList.add("edits-wars-tag")
+        row.title = `Edits war. ${row.title}\nClick for details`
+    }
+    const tr = document.createElement("tr")
+    const td = document.createElement("td")
+    td.appendChild(warLog)
+    td.colSpan = 3
+    tr.style.display = "none"
+    tr.appendChild(td)
+
+    row.after(tr)
+    row.querySelector("td.tag-flag").style.cursor = "pointer"
+    row.querySelector("td.tag-flag").onclick = (e) => {
+        e.stopPropagation()
+        e.stopImmediatePropagation()
+        if (e.target.getAttribute("open")) {
+            tr.style.display = "none"
+            e.target.removeAttribute("open")
+        } else {
+            tr.style.removeProperty("display")
+            e.target.setAttribute("open", "true")
+        }
+    }
+}
+
+const emptyVersion = {
+    tags: {},
+    version: 0,
+    lat: null,
+    lon: null,
+    visible: false
+}
+
+/**
+ * @param {Element} i
+ * @param {string} objType
+ * @param {NodeVersion|WayVersion|RelationVersion} prevVersion
+ * @param {NodeVersion|WayVersion|RelationVersion} targetVersion
+ * @param {NodeVersion|WayVersion|RelationVersion} lastVersion
+ * @param {NodeVersion[]|WayVersion[]|RelationVersion[]} objHistory
+ */
+async function processObject(i, objType, prevVersion, targetVersion, lastVersion, objHistory) {
+    const tagsTable = document.createElement("table")
+    tagsTable.classList.add("quick-look")
+    const tbody = document.createElement("tbody")
+    tagsTable.appendChild(tbody)
+
+    let tagsWasChanged = false;
+
+    // tags deletion
+    if (prevVersion.version !== 0) {
+        for (const [key, value] of Object.entries(prevVersion?.tags ?? {})) {
+            if (targetVersion.tags === undefined || targetVersion.tags[key] === undefined) {
+                const row = makeTagRow(key, value, true)
+                row.classList.add("quick-look-deleted-tag")
+                tbody.appendChild(row)
+                tagsWasChanged = true
+                if (lastVersion.tags && lastVersion.tags[key] === prevVersion.tags[key]) {
+                    row.classList.add("restored-tag")
+                    row.title = row.title + "The tag is now restored"
+                }
+                makeLinksInRowClickable(row)
+                detectEditsWars(prevVersion, targetVersion, objHistory, row, key)
+            }
+        }
+    }
+    // tags add/modification
+    for (const [key, value] of Object.entries(targetVersion.tags ?? {})) {
+        const row = makeTagRow(key, value, true)
+        if (prevVersion.tags === undefined || prevVersion.tags[key] === undefined) {
+            tagsWasChanged = true
+            row.classList.add("quick-look-new-tag")
+            if (!lastVersion.tags || lastVersion.tags[key] !== targetVersion.tags[key]) {
+                if (lastVersion.tags && lastVersion.tags[key]) {
+                    row.classList.add("replaced-tag")
+                    row.title = `Now is ${key}=${lastVersion.tags[key]}`
+                } else if (lastVersion.visible !== false) {
+                    row.classList.add("removed-tag")
+                    row.title = `The tag is now deleted`
+                }
+            }
+            makeLinksInRowClickable(row)
+            tbody.appendChild(row)
+            detectEditsWars(prevVersion, targetVersion, objHistory, row, key)
+        } else if (prevVersion.tags[key] !== value) {
+            // todo reverted changes
+            const valCell = row.querySelector("td")
+            row.classList.add("quick-look-modified-tag")
+            // toReversed is dirty hack for group inserted/deleted symbols https://osm.org/changeset/157338007
+            const diff = arraysDiff(Array.from(prevVersion.tags[key]).toReversed(), Array.from(valCell.textContent).toReversed(), 1).toReversed()
+            // for one character diff
+            // example: https://osm.org/changeset/157002657
+            if (valCell.textContent.length > 1 && prevVersion.tags[key].length > 1
+                && (
+                    diff.length === valCell.textContent.length && prevVersion.tags[key].length === valCell.textContent.length
+                    && diff.reduce((cnt, b) => cnt + (b[0] !== b[1]), 0) === 1
+                    || diff.reduce((cnt, b) => cnt + (b[0] !== b[1] && b[0] !== null), 0) === 0
+                    || diff.reduce((cnt, b) => cnt + (b[0] !== b[1] && b[1] !== null), 0) === 0
+                )) {
+                let prevText = document.createElement("span")
+                let newText = document.createElement("span")
+                diff.forEach(c => {
+                    if (c[0] !== c[1]) {
+                        {
+                            const colored = document.createElement("span")
+                            if (isDarkMode()) {
+                                colored.style.background = "rgba(25, 223, 25, 0.9)"
+                            } else {
+                                colored.style.background = "rgba(25, 223, 25, 0.6)"
+                            }
+                            colored.textContent = c[1]
+                            newText.appendChild(colored)
+                        }
+                        {
+                            const colored = document.createElement("span")
+                            if (isDarkMode()) {
+                                colored.style.background = "rgba(253, 83, 83, 0.8)"
+                            } else {
+                                colored.style.background = "rgba(255, 144, 144, 0.6)"
+                            }
+                            colored.textContent = c[0]
+                            prevText.appendChild(colored)
+                        }
+                    } else {
+                        prevText.appendChild(document.createTextNode(c[0]))
+                        newText.appendChild(document.createTextNode(c[1]))
+                    }
+                })
+                valCell.textContent = ""
+                valCell.appendChild(prevText)
+                valCell.appendChild(document.createTextNode(" → "))
+                valCell.appendChild(newText)
+            } else {
+                valCell.textContent = prevVersion.tags[key] + " → " + valCell.textContent
+            }
+            valCell.title = "was: " + prevVersion.tags[key]
+            tagsWasChanged = true
+            if (!lastVersion.tags || lastVersion.tags[key] !== targetVersion.tags[key]) {
+                if (lastVersion.tags && prevVersion.tags && lastVersion.tags[key] === prevVersion.tags[key]) {
+                    row.classList.add("reverted-tag")
+                    row.title = `The tag is now reverted`
+                } else if (lastVersion.tags && lastVersion.tags[key]) {
+                    row.classList.add("replaced-tag")
+                    row.title = `Now is ${key}=${lastVersion.tags[key]}`
+                } else if (lastVersion.visible !== false) {
+                    row.classList.add("removed-tag")
+                    row.title = `The tag is now deleted`
+                }
+            }
+            tbody.appendChild(row)
+            detectEditsWars(prevVersion, targetVersion, objHistory, row, key)
+        } else {
+            row.classList.add("non-modified-tag-in-quick-view")
+            if (!tagsOfObjectsVisible) {
+                row.setAttribute("hidden", "true")
+            }
+            makeLinksInRowClickable(row)
+            tbody.appendChild(row)
+        }
+    }
+    if (targetVersion.visible !== false && prevVersion?.nodes && prevVersion.nodes.toString() !== targetVersion.nodes?.toString()) {
+        let geomChangedFlag = document.createElement("span")
+        geomChangedFlag.textContent = " 📐"
+        geomChangedFlag.title = "List of way nodes has been changed"
+        geomChangedFlag.style.userSelect = "none"
+        geomChangedFlag.style.background = "rgba(223,238,9,0.6)"
+        geomChangedFlag.style.cursor = "pointer"
+
+        const nodesTable = document.createElement("table")
+        nodesTable.classList.add("way-nodes-table")
+        nodesTable.style.display = "none"
+        const tbody = document.createElement("tbody")
+        nodesTable.style.borderWidth = "2px"
+        nodesTable.onclick = e => {
+            e.stopPropagation()
+        }
+        tbody.style.borderWidth = "2px"
+        nodesTable.appendChild(tbody)
+
+        function makeWayDiffRow(left, right) {
+            const row = document.createElement("tr")
+            const tagTd = document.createElement("td")
+            const tagTd2 = document.createElement("td")
+            tagTd.style.borderWidth = "2px"
+            tagTd2.style.borderWidth = "2px"
+            row.style.borderWidth = "2px"
+            row.appendChild(tagTd)
+            row.appendChild(tagTd2)
+            tagTd.textContent = left
+            tagTd2.textContent = right
+            tagTd.style.textAlign = "right"
+            tagTd2.style.textAlign = "right"
+
+            if (typeof left === "number") {
+                tagTd.onmouseenter = async e => {
+                    e.stopPropagation() // fixme
+                    e.target.classList.add("way-version-node")
+                    const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
+                    const version = searchVersionByTimestamp(await getNodeHistory(left), targetTimestamp)
+                    showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
+                }
+                tagTd.onclick = async e => {
+                    e.stopPropagation() // fixme
+                    const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
+                    const version = searchVersionByTimestamp(await getNodeHistory(left), targetTimestamp)
+                    panTo(version.lat.toString(), version.lon.toString())
+                }
+                tagTd.onmouseleave = e => {
+                    e.target.classList.remove("way-version-node")
+                }
+            } else {
+                tagTd.onclick = e => {
+                    e.stopPropagation()
+                }
+            }
+
+            if (typeof right === "number") {
+                tagTd2.onmouseenter = async e => {
+                    e.stopPropagation() // fixme
+                    e.target.classList.add("way-version-node")
+                    const version = searchVersionByTimestamp(await getNodeHistory(right), changesetMetadata.closed_at ?? new Date().toISOString())
+                    showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
+                }
+                tagTd2.onclick = async e => {
+                    e.stopPropagation() // fixme
+                    e.target.classList.add("way-version-node")
+                    const version = searchVersionByTimestamp(await getNodeHistory(right), changesetMetadata.closed_at ?? new Date().toISOString())
+                    panTo(version.lat.toString(), version.lon.toString())
+                }
+                tagTd2.onmouseleave = e => {
+                    e.target.classList.remove("way-version-node")
+                }
+            } else {
+                tagTd2.onclick = e => {
+                    e.stopPropagation()
+                }
+            }
+
+            return row
+        }
+
+        let haveOnlyInsertion = true
+        let haveOnlyDeletion = true
+        const lineWasReversed = JSON.stringify(prevVersion.nodes.toReversed()) === JSON.stringify(targetVersion.nodes)
+        if (lineWasReversed) {
+            const row = makeWayDiffRow("", "🔃")
+            row.querySelectorAll("td").forEach(i => i.style.textAlign = "center")
+            row.querySelector("td:nth-of-type(2)").title = "Nodes of the way were reversed"
+            tbody.appendChild(row)
+
+            prevVersion.nodes.forEach((i, index) => {
+                const row = makeWayDiffRow(i, targetVersion.nodes[index])
+                row.querySelector("td:nth-of-type(2)").style.background = "rgba(223,238,9,0.6)"
+                row.style.fontFamily = "monospace"
+                tbody.appendChild(row)
+            })
+            haveOnlyInsertion = false
+            haveOnlyDeletion = false
+        } else {
+            arraysDiff(prevVersion.nodes ?? [], targetVersion.nodes ?? []).forEach(i => {
+                const row = makeWayDiffRow(i[0], i[1])
+                if (i[0] === null) {
+                    row.style.background = "rgba(17,238,9,0.6)"
+                    haveOnlyDeletion = false
+                } else if (i[1] === null) {
+                    row.style.background = "rgba(238,51,9,0.6)"
+                    haveOnlyInsertion = false
+                } else if (i[0] !== i[1]) {
+                    row.style.background = "rgba(223,238,9,0.6)" // never executed?
+                    haveOnlyInsertion = false
+                    haveOnlyDeletion = false
+                }
+                row.style.fontFamily = "monospace"
+                tbody.appendChild(row)
+            })
+        }
+        if (haveOnlyInsertion) {
+            if (isDarkMode()) {
+                geomChangedFlag.style.background = "rgba(17, 238, 9, 0.3)"
+            } else {
+                geomChangedFlag.style.background = "rgba(101,238,9,0.6)"
+            }
+        } else if (haveOnlyDeletion) {
+            if (isDarkMode()) {
+                geomChangedFlag.style.background = "rgba(238, 51, 9, 0.4)"
+            } else {
+                geomChangedFlag.style.background = "rgba(238, 9, 9, 0.42)"
+            }
+        }
+
+        const tagsTable = document.createElement("table")
+        tagsTable.style.display = "none"
+        const tbodyForTags = document.createElement("tbody")
+        tagsTable.appendChild(tbodyForTags)
+
+        Object.entries(targetVersion.tags ?? {}).forEach(([k, v]) => {
+            tbodyForTags.appendChild(makeTagRow(k, v))
+        })
+
+        geomChangedFlag.onclick = e => {
+            e.stopPropagation()
+            if (nodesTable.style.display === "none") {
+                nodesTable.style.display = ""
+                tagsTable.style.display = ""
+            } else {
+                nodesTable.style.display = "none"
+                tagsTable.style.display = "none"
+            }
+        }
+
+        i.appendChild(geomChangedFlag)
+
+        geomChangedFlag.after(nodesTable)
+        geomChangedFlag.after(tagsTable)
+        if (lineWasReversed) {
+            geomChangedFlag.after(document.createTextNode(['ru-RU', 'ru'].includes(navigator.language) ? " ⓘ Линию перевернули" : "ⓘ The line has been reversed"))
+        }
+
+    }
+    if (objType === "way" && targetVersion.visible !== false) {
+        if (prevVersion.nodes && prevVersion.nodes.length !== targetVersion.nodes?.length) {
+            i.title += `\nNodes count: ${prevVersion.nodes.length} → ${targetVersion.nodes.length}`
+        } else {
+            i.title += `\nNodes count: ${targetVersion.nodes.length}`
+        }
+    }
+    if (prevVersion.visible === false && targetVersion?.visible !== false && targetVersion.version !== 1) {
+        let restoredElemFlag = document.createElement("span")
+        restoredElemFlag.textContent = " ♻️"
+        restoredElemFlag.title = "Object was restored"
+        restoredElemFlag.style.userSelect = "none"
+        i.appendChild(restoredElemFlag)
+    }
+    if (prevVersion?.members && JSON.stringify(prevVersion.members) !== JSON.stringify(targetVersion.members)) {
+        let memChangedFlag = document.createElement("span")
+        memChangedFlag.textContent = " 👥"
+        memChangedFlag.title = "List of relation members has been changed.\nСlick to see more details"
+        memChangedFlag.style.userSelect = "none"
+        memChangedFlag.style.background = "rgba(223,238,9,0.6)"
+        memChangedFlag.style.cursor = "pointer"
+
+
+        const membersTable = document.createElement("table")
+        membersTable.classList.add("relation-members-table")
+        membersTable.style.display = "none"
+        const tbody = document.createElement("tbody")
+        membersTable.style.borderWidth = "2px"
+        tbody.style.borderWidth = "2px"
+        membersTable.appendChild(tbody)
+
+
+        const nodeIcon = GM_getResourceURL("NODE_ICON", false)
+        const wayIcon = GM_getResourceURL("WAY_ICON", false)
+        const relationIcon = GM_getResourceURL("RELATION_ICON", false)
+
+        /**
+         * @param {RelationMember} member
+         */
+        function getIcon(member) {
+            if (member?.type === "node") {
+                return nodeIcon
+            } else if (member?.type === "way") {
+                return wayIcon
+            } else if (member?.type === "relation") {
+                return relationIcon
+            } else {
+                console.error(member);
+                console.trace();
+            }
+        }
+
+        /**
+         * @param {string|RelationMember} left
+         * @param {string|RelationMember} right
+         */
+        function makeRelationDiffRow(left, right) {
+            const row = document.createElement("tr")
+            const tagTd = document.createElement("td")
+            const tagTd2 = document.createElement("td")
+            tagTd.style.borderWidth = "2px"
+            tagTd2.style.borderWidth = "2px"
+            row.style.borderWidth = "2px"
+            row.appendChild(tagTd)
+            row.appendChild(tagTd2)
+
+            const leftRefSpan = document.createElement("span")
+            leftRefSpan.classList.add("rel-ref")
+            leftRefSpan.textContent = `${left?.ref ?? ""} `
+            const leftRoleSpan = document.createElement("span")
+            leftRoleSpan.classList.add("rel-role")
+            leftRoleSpan.textContent = `${left?.role ?? ""}`
+
+            tagTd.appendChild(leftRefSpan)
+            tagTd.appendChild(leftRoleSpan)
+
+            if (left && typeof left === "object") {
+                const icon = document.createElement("img")
+                icon.src = getIcon(left)
+                icon.style.height = "1em"
+                icon.style.marginLeft = "1px"
+                icon.style.marginTop = "-3px"
+                tagTd.appendChild(icon)
+            }
+
+            const rightRefSpan = document.createElement("span")
+            rightRefSpan.textContent = `${right?.ref ?? ""} `
+            rightRefSpan.classList.add("rel-ref")
+            const rightRoleSpan = document.createElement("span")
+            rightRoleSpan.textContent = `${right?.role ?? ""}`
+            rightRoleSpan.classList.add("rel-role")
+
+            tagTd2.appendChild(rightRefSpan)
+            tagTd2.appendChild(rightRoleSpan)
+
+            if (right && typeof right === "object") {
+                const icon = document.createElement("img")
+                icon.src = getIcon(right)
+                icon.style.height = "1em"
+                icon.style.marginLeft = "1px"
+                icon.style.marginTop = "-3px"
+                tagTd2.appendChild(icon)
+            }
+            tagTd2.style.cursor = "";
+            tagTd.style.textAlign = "right"
+            tagTd2.style.textAlign = "right"
+            if (left && typeof left === "object") {
+                tagTd.onmouseenter = async e => {
+                    e.stopPropagation()
+                    e.target.classList.add("relation-version-node")
+                    const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
+                    if (left.type === "node") {
+                        const version = searchVersionByTimestamp(await getNodeHistory(left.ref), targetTimestamp)
+                        showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
+                    } else if (left.type === "way") {
+
+                        // todo
+                    }
+                }
+
+                tagTd.onmouseleave = e => {
+                    e.target.classList.remove("relation-version-node")
+                }
+                tagTd.onclick = async e => {
+                    e.stopPropagation()
+                    if (left.type === "node") {
+                        const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
+                        const version = searchVersionByTimestamp(await getNodeHistory(left.ref), targetTimestamp)
+                        panTo(version.lat.toString(), version.lon.toString())
+                    }
+                }
+            }
+
+            if (right && typeof right === "object") {
+                tagTd2.onmouseenter = async e => {
+                    e.stopPropagation() // fixme
+                    e.target.classList.add("relation-version-node")
+                    const targetTimestamp = (new Date(changesetMetadata.closed_at ?? new Date())).toISOString()
+                    if (right.type === "node") {
+                        const version = searchVersionByTimestamp(await getNodeHistory(right.ref), targetTimestamp)
+                        showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
+                    } else {
+                        // todo
+                    }
+                }
+                tagTd2.onmouseleave = e => {
+                    e.target.classList.remove("relation-version-node")
+                }
+                tagTd2.onclick = async e => {
+                    e.stopPropagation()
+                    if (right.type === "node") {
+                        const targetTimestamp = (new Date(changesetMetadata.closed_at ?? new Date())).toISOString()
+                        const version = searchVersionByTimestamp(await getNodeHistory(right.ref), targetTimestamp)
+                        panTo(version.lat.toString(), version.lon.toString())
+                    }
+                }
+            }
+
+            return row
+        }
+
+        let haveOnlyInsertion = true
+        let haveOnlyDeletion = true
+        if (JSON.stringify(prevVersion.members.toReversed()) === JSON.stringify(targetVersion.members)) {
+            // members reversed
+            const row = makeRelationDiffRow("", "🔃")
+            row.querySelectorAll("td").forEach(i => i.style.textAlign = "center")
+            row.querySelector("td:nth-of-type(2)").title = "Members of the relation were reversed"
+            tbody.appendChild(row)
+
+            prevVersion.members.forEach((i, index) => {
+                const row = makeRelationDiffRow(i, targetVersion.members[index])
+                row.querySelector("td:nth-of-type(2)").style.background = "rgba(223,238,9,0.6)"
+                row.style.fontFamily = "monospace"
+                tbody.appendChild(row)
+            })
+            haveOnlyInsertion = false
+            haveOnlyDeletion = false
+        } else {
+            arraysDiff(prevVersion.members ?? [], targetVersion.members ?? []).forEach(i => {
+                const row = makeRelationDiffRow(i[0], i[1])
+                if (i[0] === null) {
+                    row.style.background = "rgba(17,238,9,0.6)"
+                    haveOnlyDeletion = false
+                } else if (i[1] === null) {
+                    row.style.background = "rgba(238,51,9,0.6)"
+                    haveOnlyInsertion = false
+                } else if (JSON.stringify(i[0]) !== JSON.stringify(i[1])) {
+                    if (i[0].ref === i[1].ref && i[0].type === i[1].type) {
+                        row.querySelectorAll(".rel-role").forEach(i => {
+                            i.style.background = "rgba(223,238,9,0.6)"
+                            if (isDarkMode()) {
+                                i.style.color = "black"
+                            }
+                        })
+                    } else {
+                        row.style.background = "rgba(223,238,9,0.6)"
+                        if (isDarkMode()) {
+                            row.style.color = "black"
+                        }
+                    }
+                    haveOnlyInsertion = false
+                    haveOnlyDeletion = false
+                }
+                row.style.fontFamily = "monospace"
+                tbody.appendChild(row)
+            })
+        }
+
+        if (haveOnlyInsertion) {
+            if (isDarkMode()) {
+                memChangedFlag.style.background = "rgba(17, 238, 9, 0.3)"
+            } else {
+                memChangedFlag.style.background = "rgba(101,238,9,0.6)"
+            }
+        } else if (haveOnlyDeletion) {
+            if (isDarkMode()) {
+                memChangedFlag.style.background = "rgba(238, 51, 9, 0.4)"
+            } else {
+                memChangedFlag.style.background = "rgba(238, 9, 9, 0.42)"
+            }
+        }
+
+        const tagsTable = document.createElement("table")
+        tagsTable.style.display = "none"
+        const tbodyForTags = document.createElement("tbody")
+        tagsTable.appendChild(tbodyForTags)
+
+        Object.entries(targetVersion.tags ?? {}).forEach(([k, v]) => {
+            tbodyForTags.appendChild(makeTagRow(k, v))
+        })
+
+        memChangedFlag.onclick = e => {
+            e.stopPropagation()
+            if (membersTable.style.display === "none") {
+                membersTable.style.display = ""
+                tagsTable.style.display = ""
+            } else {
+                membersTable.style.display = "none"
+                tagsTable.style.display = "none"
+            }
+        }
+
+        i.appendChild(memChangedFlag)
+        memChangedFlag.after(membersTable)
+        memChangedFlag.after(tagsTable)
+    }
+    if (targetVersion.lat && prevVersion.lat && (prevVersion.lat !== targetVersion.lat || prevVersion.lon !== targetVersion.lon)) {
+        i.parentElement.parentElement.classList.add("location-modified")
+        const locationChangedFlag = document.createElement("span")
+        const distInMeters = getDistanceFromLatLonInKm(
+            prevVersion.lat,
+            prevVersion.lon,
+            targetVersion.lat,
+            targetVersion.lon,
+        ) * 1000;
+        locationChangedFlag.textContent = ` 📍${distInMeters.toFixed(1)}m`
+        locationChangedFlag.title = "Coordinates of node has been changed"
+        locationChangedFlag.classList.add("location-modified-marker")
+        // if (distInMeters > 100) {
+        //     locationChangedFlag.classList.add("location-modified-marker-warn")
+        // }
+        locationChangedFlag.style.userSelect = "none"
+        if (isDarkMode()) {
+            locationChangedFlag.style.background = "rgba(223, 238, 9, 0.6)"
+            locationChangedFlag.style.color = "black"
+        } else {
+            locationChangedFlag.style.background = "rgba(223,238,9,0.6)"
+        }
+        i.appendChild(locationChangedFlag)
+        locationChangedFlag.onmouseover = e => {
+            e.stopPropagation()
+            e.stopImmediatePropagation()
+            showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3")
+            showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", false)
+        }
+        locationChangedFlag.onclick = (e) => {
+            e.stopPropagation()
+            e.stopImmediatePropagation()
+            fitBoundsWithPadding([
+                [prevVersion.lat.toString(), prevVersion.lon.toString()],
+                [targetVersion.lat.toString(), targetVersion.lon.toString()]
+            ], 30)
+        }
+        if (lastVersion.visible !== false && (prevVersion.lat === lastVersion.lat && prevVersion.lon === lastVersion.lon)) {
+            locationChangedFlag.classList.add("reverted-coordinates")
+            locationChangedFlag.title += ",\nbut now they have been restored."
+        }
+    }
+    if (targetVersion.visible === false) {
+        i.parentElement.parentElement.classList.add("removed-object")
+    }
+    if (targetVersion.version !== lastVersion.version && lastVersion.visible === false) {
+        i.appendChild(document.createTextNode(['ru-RU', 'ru'].includes(navigator.language) ? " ⓘ Объект уже удалён" : " ⓘ The object is now deleted"))
+    }
+    if (targetVersion.visible === false && lastVersion.visible !== false) {
+        i.appendChild(document.createTextNode(['ru-RU', 'ru'].includes(navigator.language) ? " ⓘ Объект сейчас восстановлен" : " ⓘ The object is now restored"))
+    }
+    // if (objType === "node") {
+    //     i.appendChild(tagsTable)
+    // }
+    if (tagsWasChanged) {
+        i.appendChild(tagsTable)
+    } else {
+        i.parentElement.parentElement.classList.add("tags-non-modified")
+    }
+    i.parentElement.parentElement.classList.add("tags-processed-object")
+    return tagsTable
+}
+
+
+async function getHistoryAndVersionByElem(elem) {
+    const [, objType, objID, version] = elem.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
+    if (histories[objType][objID]) {
+        return [histories[objType][objID], parseInt(version)]
+    }
+    const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/history.json", {signal: abortDownloadingController.signal});
+    if (res.status === 509) {
+        console.error("oops, DOS block")
+    } else {
+        return [histories[objType][objID] = (await res.json()).elements, parseInt(version)];
+    }
+}
+
+/**
+ * @param {[]} objHistory
+ * @param {number} version
+ */
+function getPrevTargetLastVersions(objHistory, version) {
+    let prevVersion = emptyVersion;
+    let targetVersion = prevVersion;
+    let lastVersion = objHistory.at(-1);
+
+    for (const objVersion of objHistory) {
+        prevVersion = targetVersion
+        targetVersion = objVersion
+        if (objVersion.version === version) {
+            break
+        }
+    }
+    return [prevVersion, targetVersion, lastVersion, objHistory]
+}
+
+
+function addQuickLookStyles() {
     try {
         const styleText = `
             tr.quick-look-new-tag th {
@@ -3914,6 +5121,23 @@ async function addChangesetQuickLook() {
         });
     } catch { /* empty */
     }
+}
+
+async function addChangesetQuickLook() {
+    if (!location.pathname.includes("/changeset")) {
+        tagsOfObjectsVisible = true
+        return
+    }
+    if (document.querySelector('.quick-look')) return true;
+
+    let sidebar = document.querySelector("#sidebar_content h2");
+    if (!sidebar) {
+        return;
+    }
+    if (injectingStarted) return
+    injectingStarted = true
+    abortDownloadingController = new AbortController()
+    addQuickLookStyles();
     addRegionForFirstChangeset();
     blurSearchField();
     makeTimesSwitchable()
@@ -3922,754 +5146,12 @@ async function addChangesetQuickLook() {
     }
     addSwipes();
 
-
     const changesetID = location.pathname.match(/changeset\/(\d+)/)[1]
-
-    async function getHistoryAndVersionByElem(elem) {
-        const [, objType, objID, version] = elem.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
-        if (histories[objType][objID]) {
-            return [histories[objType][objID], parseInt(version)]
-        }
-        const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/history.json", {signal: abortDownloadingController.signal});
-        return [histories[objType][objID] = (await res.json()).elements, parseInt(version)];
-    }
-
-    const emptyVersion = {
-        tags: {},
-        version: 0,
-        lat: null,
-        lon: null,
-        visible: false
-    }
-
-    /**
-     * @param {[]} objHistory
-     * @param {number} version
-     */
-    function getPrevTargetLastVersions(objHistory, version) {
-        let prevVersion = emptyVersion;
-        let targetVersion = prevVersion;
-        let lastVersion = objHistory.at(-1);
-
-        for (const objVersion of objHistory) {
-            prevVersion = targetVersion
-            targetVersion = objVersion
-            if (objVersion.version === version) {
-                break
-            }
-        }
-        return [prevVersion, targetVersion, lastVersion, objHistory]
-    }
 
     async function processObjects(objType, uniqTypes) {
         const objCount = document.querySelectorAll(`#changeset_${objType}s .list-unstyled li:not(.processed-object)`).length
         if (objCount === 0) {
             return;
-        }
-
-        /**
-         * @param {Element} i
-         * @param {NodeVersion|WayVersion|RelationVersion} prevVersion
-         * @param {NodeVersion|WayVersion|RelationVersion} targetVersion
-         * @param {NodeVersion|WayVersion|RelationVersion} lastVersion
-         * @param {NodeVersion[]|WayVersion[]|RelationVersion[]} objHistory
-         */
-        async function processObject(i, prevVersion, targetVersion, lastVersion, objHistory) {
-            /**
-             * @type {[string, string, string, string]}
-             */
-            const m = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
-            const [, , objID, strVersion] = m
-            const version = parseInt(strVersion)
-            //<editor-fold desc="tags diff">
-            const tagsTable = document.createElement("table")
-            tagsTable.classList.add("quick-look")
-            const tbody = document.createElement("tbody")
-            tagsTable.appendChild(tbody)
-
-            function makeTagRow(key, value, addTd=false) {
-                const tagRow = document.createElement("tr")
-                const tagTh = document.createElement("th")
-                const tagTd = document.createElement("td")
-                tagRow.appendChild(tagTh)
-                tagRow.appendChild(tagTd)
-                if (addTd) {
-                    const td = document.createElement("td")
-                    td.classList.add("tag-flag")
-                    tagRow.appendChild(td)
-                }
-                tagTh.textContent = key
-                tagTd.textContent = value
-                return tagRow
-            }
-
-
-            function makeLinksInRowClickable(row) {
-                if (row.querySelector("td").textContent.match(/^https?:\/\//)) {
-                    const a = document.createElement("a")
-                    a.textContent = row.querySelector("td").textContent
-                    a.href = row.querySelector("td").textContent
-                    row.querySelector("td").textContent = ""
-                    a.target = "_blank"
-                    a.onclick = e => {
-                        e.stopPropagation()
-                        e.stopImmediatePropagation()
-                    }
-                    row.querySelector("td").appendChild(a)
-                }
-            }
-
-            function detectEditsWars(row, key) {
-                let revertsCounter = 0
-                let warLog = document.createElement("table")
-                warLog.style.borderColor =  "var(--bs-body-color)";
-                warLog.style.borderStyle =  "solid";
-                warLog.style.borderWidth =  "1px";
-                for (let j = 0; j < objHistory.length; j++) {
-                    const it = objHistory[j];
-
-                    const prevIt = (objHistory[j - 1]?.tags ?? {})[key]
-                    const targetIt = (it.tags ?? {})[key]
-                    const prevTag = (prevVersion.tags ?? {})[key]
-                    const targetTag = (targetVersion.tags ?? {})[key]
-
-                    if (prevIt === targetIt) {
-                        continue
-                    }
-
-                    if (prevTag === targetIt) {
-                        revertsCounter++
-                    }
-                    if (targetIt === undefined) {
-                        const tr = document.createElement("tr")
-                        tr.classList.add("quick-look-deleted-tag")
-                        const th_ver = document.createElement("th")
-                        th_ver.textContent = `v${it.version}`
-                        const td_user = document.createElement("td")
-                        td_user.textContent = `${it.user}`
-                        const td_tag = document.createElement("td")
-                        td_tag.textContent = "<deleted>"
-                        tr.appendChild(th_ver)
-                        tr.appendChild(td_user)
-                        tr.appendChild(td_tag)
-                        warLog.appendChild(tr)
-                    } else {
-                        const tr = document.createElement("tr")
-                        const th_ver = document.createElement("th")
-                        th_ver.textContent = `v${it.version}`
-                        const td_user = document.createElement("td")
-                        td_user.textContent = `${it.user}`
-                        const td_tag = document.createElement("td")
-                        td_tag.textContent = it.tags[key]
-                        tr.appendChild(th_ver)
-                        tr.appendChild(td_user)
-                        tr.appendChild(td_tag)
-                        warLog.appendChild(tr)
-                    }
-                }
-                if (revertsCounter > 3) {
-                    row.classList.add("edits-wars-tag")
-                    row.title = `Edits war. ${row.title}\nClick for details`
-                }
-                const tr = document.createElement("tr")
-                const td = document.createElement("td")
-                td.appendChild(warLog)
-                td.colSpan = 3
-                tr.style.display = "none"
-                tr.appendChild(td)
-
-                row.after(tr)
-                row.querySelector("td.tag-flag").style.cursor = "pointer"
-                row.querySelector("td.tag-flag").onclick = (e) => {
-                    e.stopPropagation()
-                    e.stopImmediatePropagation()
-                    if (e.target.getAttribute("open")) {
-                        tr.style.display = "none"
-                        e.target.removeAttribute("open")
-                    } else {
-                        tr.style.removeProperty("display")
-                        e.target.setAttribute("open", "true")
-                    }
-                }
-            }
-
-            let tagsWasChanged = false;
-
-            // tags deletion
-            if (prevVersion.version !== 0) {
-                for (const [key, value] of Object.entries(prevVersion?.tags ?? {})) {
-                    if (targetVersion.tags === undefined || targetVersion.tags[key] === undefined) {
-                        const row = makeTagRow(key, value, true)
-                        row.classList.add("quick-look-deleted-tag")
-                        tbody.appendChild(row)
-                        tagsWasChanged = true
-                        if (lastVersion.tags && lastVersion.tags[key] === prevVersion.tags[key]) {
-                            row.classList.add("restored-tag")
-                            row.title = row.title + "The tag is now restored"
-                        }
-                        makeLinksInRowClickable(row)
-                        detectEditsWars(row, key)
-                    }
-                }
-            }
-            // tags add/modification
-            for (const [key, value] of Object.entries(targetVersion.tags ?? {})) {
-                const row = makeTagRow(key, value, true)
-                if (prevVersion.tags === undefined || prevVersion.tags[key] === undefined) {
-                    tagsWasChanged = true
-                    row.classList.add("quick-look-new-tag")
-                    if (!lastVersion.tags || lastVersion.tags[key] !== targetVersion.tags[key]) {
-                        if (lastVersion.tags && lastVersion.tags[key]) {
-                            row.classList.add("replaced-tag")
-                            row.title = `Now is ${key}=${lastVersion.tags[key]}`
-                        } else if (lastVersion.visible !== false) {
-                            row.classList.add("removed-tag")
-                            row.title = `The tag is now deleted`
-                        }
-                    }
-                    makeLinksInRowClickable(row)
-                    tbody.appendChild(row)
-                    detectEditsWars(row, key)
-                } else if (prevVersion.tags[key] !== value) {
-                    // todo reverted changes
-                    const valCell = row.querySelector("td")
-                    row.classList.add("quick-look-modified-tag")
-                    // toReversed is dirty hack for group inserted/deleted symbols https://osm.org/changeset/157338007
-                    const diff = arraysDiff(Array.from(prevVersion.tags[key]).toReversed(), Array.from(valCell.textContent).toReversed(), 1).toReversed()
-                    // for one character diff
-                    // example: https://osm.org/changeset/157002657
-                    if (valCell.textContent.length > 1 && prevVersion.tags[key].length > 1
-                        && (
-                            diff.length === valCell.textContent.length && prevVersion.tags[key].length === valCell.textContent.length
-                            && diff.reduce((cnt, b) => cnt + (b[0] !== b[1]), 0) === 1
-                            || diff.reduce((cnt, b) => cnt + (b[0] !== b[1] && b[0] !== null), 0) === 0
-                            || diff.reduce((cnt, b) => cnt + (b[0] !== b[1] && b[1] !== null), 0) === 0
-                        )) {
-                        let prevText = document.createElement("span")
-                        let newText = document.createElement("span")
-                        diff.forEach(c => {
-                            if (c[0] !== c[1]) {
-                                {
-                                    const colored = document.createElement("span")
-                                    if (isDarkMode()) {
-                                        colored.style.background = "rgba(25, 223, 25, 0.9)"
-                                    } else {
-                                        colored.style.background = "rgba(25, 223, 25, 0.6)"
-                                    }
-                                    colored.textContent = c[1]
-                                    newText.appendChild(colored)
-                                }
-                                {
-                                    const colored = document.createElement("span")
-                                    if (isDarkMode()) {
-                                        colored.style.background = "rgba(253, 83, 83, 0.8)"
-                                    } else {
-                                        colored.style.background = "rgba(255, 144, 144, 0.6)"
-                                    }
-                                    colored.textContent = c[0]
-                                    prevText.appendChild(colored)
-                                }
-                            } else {
-                                prevText.appendChild(document.createTextNode(c[0]))
-                                newText.appendChild(document.createTextNode(c[1]))
-                            }
-                        })
-                        valCell.textContent = ""
-                        valCell.appendChild(prevText)
-                        valCell.appendChild(document.createTextNode(" → "))
-                        valCell.appendChild(newText)
-                    } else {
-                        valCell.textContent = prevVersion.tags[key] + " → " + valCell.textContent
-                    }
-                    valCell.title = "was: " + prevVersion.tags[key]
-                    tagsWasChanged = true
-                    if (!lastVersion.tags || lastVersion.tags[key] !== targetVersion.tags[key]) {
-                        if (lastVersion.tags && prevVersion.tags && lastVersion.tags[key] === prevVersion.tags[key]) {
-                            row.classList.add("reverted-tag")
-                            row.title = `The tag is now reverted`
-                        } else if (lastVersion.tags && lastVersion.tags[key]) {
-                            row.classList.add("replaced-tag")
-                            row.title = `Now is ${key}=${lastVersion.tags[key]}`
-                        } else if (lastVersion.visible !== false) {
-                            row.classList.add("removed-tag")
-                            row.title = `The tag is now deleted`
-                        }
-                    }
-                    tbody.appendChild(row)
-                    detectEditsWars(row, key)
-                } else {
-                    row.classList.add("non-modified-tag-in-quick-view")
-                    if (!tagsOfObjectsVisible) {
-                        row.setAttribute("hidden", "true")
-                    }
-                    makeLinksInRowClickable(row)
-                    tbody.appendChild(row)
-                }
-            }
-            if (targetVersion.visible !== false && prevVersion?.nodes && prevVersion.nodes.toString() !== targetVersion.nodes?.toString()) {
-                let geomChangedFlag = document.createElement("span")
-                geomChangedFlag.textContent = " 📐"
-                geomChangedFlag.title = "List of way nodes has been changed"
-                geomChangedFlag.style.userSelect = "none"
-                geomChangedFlag.style.background = "rgba(223,238,9,0.6)"
-                geomChangedFlag.style.cursor = "pointer"
-
-                const nodesTable = document.createElement("table")
-                nodesTable.classList.add("way-nodes-table")
-                nodesTable.style.display = "none"
-                const tbody = document.createElement("tbody")
-                nodesTable.style.borderWidth = "2px"
-                nodesTable.onclick = e => {
-                    e.stopPropagation()
-                }
-                tbody.style.borderWidth = "2px"
-                nodesTable.appendChild(tbody)
-
-                function makeWayDiffRow(left, right) {
-                    const row = document.createElement("tr")
-                    const tagTd = document.createElement("td")
-                    const tagTd2 = document.createElement("td")
-                    tagTd.style.borderWidth = "2px"
-                    tagTd2.style.borderWidth = "2px"
-                    row.style.borderWidth = "2px"
-                    row.appendChild(tagTd)
-                    row.appendChild(tagTd2)
-                    tagTd.textContent = left
-                    tagTd2.textContent = right
-                    tagTd.style.textAlign = "right"
-                    tagTd2.style.textAlign = "right"
-
-                    if (typeof left === "number") {
-                        tagTd.onmouseenter = async e => {
-                            e.stopPropagation() // fixme
-                            e.target.classList.add("way-version-node")
-                            const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
-                            const version = searchVersionByTimestamp(await getNodeHistory(left), targetTimestamp)
-                            showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
-                        }
-                        tagTd.onclick = async e => {
-                            e.stopPropagation() // fixme
-                            const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
-                            const version = searchVersionByTimestamp(await getNodeHistory(left), targetTimestamp)
-                            panTo(version.lat.toString(), version.lon.toString())
-                        }
-                        tagTd.onmouseleave = e => {
-                            e.target.classList.remove("way-version-node")
-                        }
-                    } else {
-                        tagTd.onclick = e => {
-                            e.stopPropagation()
-                        }
-                    }
-
-                    if (typeof right === "number") {
-                        tagTd2.onmouseenter = async e => {
-                            e.stopPropagation() // fixme
-                            e.target.classList.add("way-version-node")
-                            const version = searchVersionByTimestamp(await getNodeHistory(right), changesetMetadata.closed_at ?? new Date().toISOString())
-                            showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
-                        }
-                        tagTd2.onclick = async e => {
-                            e.stopPropagation() // fixme
-                            e.target.classList.add("way-version-node")
-                            const version = searchVersionByTimestamp(await getNodeHistory(right), changesetMetadata.closed_at ?? new Date().toISOString())
-                            panTo(version.lat.toString(), version.lon.toString())
-                        }
-                        tagTd2.onmouseleave = e => {
-                            e.target.classList.remove("way-version-node")
-                        }
-                    } else {
-                        tagTd2.onclick = e => {
-                            e.stopPropagation()
-                        }
-                    }
-
-                    return row
-                }
-
-                let haveOnlyInsertion = true
-                let haveOnlyDeletion = true
-                const lineWasReversed = JSON.stringify(prevVersion.nodes.toReversed()) === JSON.stringify(targetVersion.nodes)
-                if (lineWasReversed) {
-                    const row = makeWayDiffRow("", "🔃")
-                    row.querySelectorAll("td").forEach(i => i.style.textAlign = "center")
-                    row.querySelector("td:nth-of-type(2)").title = "Nodes of the way were reversed"
-                    tbody.appendChild(row)
-
-                    prevVersion.nodes.forEach((i, index) => {
-                        const row = makeWayDiffRow(i, targetVersion.nodes[index])
-                        row.querySelector("td:nth-of-type(2)").style.background = "rgba(223,238,9,0.6)"
-                        row.style.fontFamily = "monospace"
-                        tbody.appendChild(row)
-                    })
-                    haveOnlyInsertion = false
-                    haveOnlyDeletion = false
-                } else {
-                    arraysDiff(prevVersion.nodes ?? [], targetVersion.nodes ?? []).forEach(i => {
-                        const row = makeWayDiffRow(i[0], i[1])
-                        if (i[0] === null) {
-                            row.style.background = "rgba(17,238,9,0.6)"
-                            haveOnlyDeletion = false
-                        } else if (i[1] === null) {
-                            row.style.background = "rgba(238,51,9,0.6)"
-                            haveOnlyInsertion = false
-                        } else if (i[0] !== i[1]) {
-                            row.style.background = "rgba(223,238,9,0.6)" // never executed?
-                            haveOnlyInsertion = false
-                            haveOnlyDeletion = false
-                        }
-                        row.style.fontFamily = "monospace"
-                        tbody.appendChild(row)
-                    })
-                }
-                if (haveOnlyInsertion) {
-                    if (isDarkMode()) {
-                        geomChangedFlag.style.background = "rgba(17, 238, 9, 0.3)"
-                    } else {
-                        geomChangedFlag.style.background = "rgba(101,238,9,0.6)"
-                    }
-                } else if (haveOnlyDeletion) {
-                    if (isDarkMode()) {
-                        geomChangedFlag.style.background = "rgba(238, 51, 9, 0.4)"
-                    } else {
-                        geomChangedFlag.style.background = "rgba(238, 9, 9, 0.42)"
-                    }
-                }
-
-                const tagsTable = document.createElement("table")
-                tagsTable.style.display = "none"
-                const tbodyForTags = document.createElement("tbody")
-                tagsTable.appendChild(tbodyForTags)
-
-                Object.entries(targetVersion.tags ?? {}).forEach(([k, v]) => {
-                    tbodyForTags.appendChild(makeTagRow(k, v))
-                })
-
-                geomChangedFlag.onclick = e => {
-                    e.stopPropagation()
-                    if (nodesTable.style.display === "none") {
-                        nodesTable.style.display = ""
-                        tagsTable.style.display = ""
-                    } else {
-                        nodesTable.style.display = "none"
-                        tagsTable.style.display = "none"
-                    }
-                }
-
-                i.appendChild(geomChangedFlag)
-
-                geomChangedFlag.after(nodesTable)
-                geomChangedFlag.after(tagsTable)
-                if (lineWasReversed) {
-                    geomChangedFlag.after(document.createTextNode(['ru-RU', 'ru'].includes(navigator.language) ? " ⓘ Линию перевернули" : "ⓘ The line has been reversed"))
-                }
-
-            }
-            if (objType === "way" && targetVersion.visible !== false) {
-                if (prevVersion.nodes && prevVersion.nodes.length !== targetVersion.nodes?.length) {
-                    i.title += `\nNodes count: ${prevVersion.nodes.length} → ${targetVersion.nodes.length}`
-                } else {
-                    i.title += `\nNodes count: ${targetVersion.nodes.length}`
-                }
-            }
-            if (prevVersion.visible === false && targetVersion?.visible !== false && targetVersion.version !== 1) {
-                let restoredElemFlag = document.createElement("span")
-                restoredElemFlag.textContent = " ♻️"
-                restoredElemFlag.title = "Object was restored"
-                restoredElemFlag.style.userSelect = "none"
-                i.appendChild(restoredElemFlag)
-            }
-            if (prevVersion?.members && JSON.stringify(prevVersion.members) !== JSON.stringify(targetVersion.members)) {
-                let memChangedFlag = document.createElement("span")
-                memChangedFlag.textContent = " 👥"
-                memChangedFlag.title = "List of relation members has been changed.\nСlick to see more details"
-                memChangedFlag.style.userSelect = "none"
-                memChangedFlag.style.background = "rgba(223,238,9,0.6)"
-                memChangedFlag.style.cursor = "pointer"
-
-
-                const membersTable = document.createElement("table")
-                membersTable.classList.add("relation-members-table")
-                membersTable.style.display = "none"
-                const tbody = document.createElement("tbody")
-                membersTable.style.borderWidth = "2px"
-                tbody.style.borderWidth = "2px"
-                membersTable.appendChild(tbody)
-
-
-                const nodeIcon = GM_getResourceURL("NODE_ICON", false)
-                const wayIcon = GM_getResourceURL("WAY_ICON", false)
-                const relationIcon = GM_getResourceURL("RELATION_ICON", false)
-
-                /**
-                 * @param {RelationMember} member
-                 */
-                function getIcon(member) {
-                    if (member?.type === "node") {
-                        return nodeIcon
-                    } else if (member?.type === "way") {
-                        return wayIcon
-                    } else if (member?.type === "relation") {
-                        return relationIcon
-                    } else {
-                        console.error(member);
-                        console.trace();
-                    }
-                }
-
-                /**
-                 * @param {string|RelationMember} left
-                 * @param {string|RelationMember} right
-                 */
-                function makeRelationDiffRow(left, right) {
-                    const row = document.createElement("tr")
-                    const tagTd = document.createElement("td")
-                    const tagTd2 = document.createElement("td")
-                    tagTd.style.borderWidth = "2px"
-                    tagTd2.style.borderWidth = "2px"
-                    row.style.borderWidth = "2px"
-                    row.appendChild(tagTd)
-                    row.appendChild(tagTd2)
-
-                    const leftRefSpan = document.createElement("span")
-                    leftRefSpan.classList.add("rel-ref")
-                    leftRefSpan.textContent = `${left?.ref ?? ""} `
-                    const leftRoleSpan = document.createElement("span")
-                    leftRoleSpan.classList.add("rel-role")
-                    leftRoleSpan.textContent = `${left?.role ?? ""}`
-
-                    tagTd.appendChild(leftRefSpan)
-                    tagTd.appendChild(leftRoleSpan)
-
-                    if (left && typeof left === "object") {
-                        const icon = document.createElement("img")
-                        icon.src = getIcon(left)
-                        icon.style.height = "1em"
-                        icon.style.marginLeft = "1px"
-                        icon.style.marginTop = "-3px"
-                        tagTd.appendChild(icon)
-                    }
-
-                    const rightRefSpan = document.createElement("span")
-                    rightRefSpan.textContent = `${right?.ref ?? ""} `
-                    rightRefSpan.classList.add("rel-ref")
-                    const rightRoleSpan = document.createElement("span")
-                    rightRoleSpan.textContent = `${right?.role ?? ""}`
-                    rightRoleSpan.classList.add("rel-role")
-
-                    tagTd2.appendChild(rightRefSpan)
-                    tagTd2.appendChild(rightRoleSpan)
-
-                    if (right && typeof right === "object") {
-                        const icon = document.createElement("img")
-                        icon.src = getIcon(right)
-                        icon.style.height = "1em"
-                        icon.style.marginLeft = "1px"
-                        icon.style.marginTop = "-3px"
-                        tagTd2.appendChild(icon)
-                    }
-                    tagTd2.style.cursor = "";
-                    tagTd.style.textAlign = "right"
-                    tagTd2.style.textAlign = "right"
-                    if (left && typeof left === "object") {
-                        tagTd.onmouseenter = async e => {
-                            e.stopPropagation()
-                            e.target.classList.add("relation-version-node")
-                            const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
-                            if (left.type === "node") {
-                                const version = searchVersionByTimestamp(await getNodeHistory(left.ref), targetTimestamp)
-                                showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
-                            } else if (left.type === "way") {
-
-                                // todo
-                            }
-                        }
-
-                        tagTd.onmouseleave = e => {
-                            e.target.classList.remove("relation-version-node")
-                        }
-                        tagTd.onclick = async e => {
-                            e.stopPropagation()
-                            if (left.type === "node") {
-                                const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
-                                const version = searchVersionByTimestamp(await getNodeHistory(left.ref), targetTimestamp)
-                                panTo(version.lat.toString(), version.lon.toString())
-                            }
-                        }
-                    }
-
-                    if (right && typeof right === "object") {
-                        tagTd2.onmouseenter = async e => {
-                            e.stopPropagation() // fixme
-                            e.target.classList.add("relation-version-node")
-                            const targetTimestamp = (new Date(changesetMetadata.closed_at ?? new Date())).toISOString()
-                            if (right.type === "node") {
-                                const version = searchVersionByTimestamp(await getNodeHistory(right.ref), targetTimestamp)
-                                showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
-                            } else {
-                                // todo
-                            }
-                        }
-                        tagTd2.onmouseleave = e => {
-                            e.target.classList.remove("relation-version-node")
-                        }
-                        tagTd2.onclick = async e => {
-                            e.stopPropagation()
-                            if (right.type === "node") {
-                                const targetTimestamp = (new Date(changesetMetadata.closed_at ?? new Date())).toISOString()
-                                const version = searchVersionByTimestamp(await getNodeHistory(right.ref), targetTimestamp)
-                                panTo(version.lat.toString(), version.lon.toString())
-                            }
-                        }
-                    }
-
-                    return row
-                }
-
-                let haveOnlyInsertion = true
-                let haveOnlyDeletion = true
-                if (JSON.stringify(prevVersion.members.toReversed()) === JSON.stringify(targetVersion.members)) {
-                    // members reversed
-                    const row = makeRelationDiffRow("", "🔃")
-                    row.querySelectorAll("td").forEach(i => i.style.textAlign = "center")
-                    row.querySelector("td:nth-of-type(2)").title = "Members of the relation were reversed"
-                    tbody.appendChild(row)
-
-                    prevVersion.members.forEach((i, index) => {
-                        const row = makeRelationDiffRow(i, targetVersion.members[index])
-                        row.querySelector("td:nth-of-type(2)").style.background = "rgba(223,238,9,0.6)"
-                        row.style.fontFamily = "monospace"
-                        tbody.appendChild(row)
-                    })
-                    haveOnlyInsertion = false
-                    haveOnlyDeletion = false
-                } else {
-                    arraysDiff(prevVersion.members ?? [], targetVersion.members ?? []).forEach(i => {
-                        const row = makeRelationDiffRow(i[0], i[1])
-                        if (i[0] === null) {
-                            row.style.background = "rgba(17,238,9,0.6)"
-                            haveOnlyDeletion = false
-                        } else if (i[1] === null) {
-                            row.style.background = "rgba(238,51,9,0.6)"
-                            haveOnlyInsertion = false
-                        } else if (JSON.stringify(i[0]) !== JSON.stringify(i[1])) {
-                            if (i[0].ref === i[1].ref && i[0].type === i[1].type) {
-                                row.querySelectorAll(".rel-role").forEach(i => {
-                                    i.style.background = "rgba(223,238,9,0.6)"
-                                    if (isDarkMode()) {
-                                        i.style.color = "black"
-                                    }
-                                })
-                            } else {
-                                row.style.background = "rgba(223,238,9,0.6)"
-                                if (isDarkMode()) {
-                                    row.style.color = "black"
-                                }
-                            }
-                            haveOnlyInsertion = false
-                            haveOnlyDeletion = false
-                        }
-                        row.style.fontFamily = "monospace"
-                        tbody.appendChild(row)
-                    })
-                }
-
-                if (haveOnlyInsertion) {
-                    if (isDarkMode()) {
-                        memChangedFlag.style.background = "rgba(17, 238, 9, 0.3)"
-                    } else {
-                        memChangedFlag.style.background = "rgba(101,238,9,0.6)"
-                    }
-                } else if (haveOnlyDeletion) {
-                    if (isDarkMode()) {
-                        memChangedFlag.style.background = "rgba(238, 51, 9, 0.4)"
-                    } else {
-                        memChangedFlag.style.background = "rgba(238, 9, 9, 0.42)"
-                    }
-                }
-
-                const tagsTable = document.createElement("table")
-                tagsTable.style.display = "none"
-                const tbodyForTags = document.createElement("tbody")
-                tagsTable.appendChild(tbodyForTags)
-
-                Object.entries(targetVersion.tags ?? {}).forEach(([k, v]) => {
-                    tbodyForTags.appendChild(makeTagRow(k, v))
-                })
-
-                memChangedFlag.onclick = e => {
-                    e.stopPropagation()
-                    if (membersTable.style.display === "none") {
-                        membersTable.style.display = ""
-                        tagsTable.style.display = ""
-                    } else {
-                        membersTable.style.display = "none"
-                        tagsTable.style.display = "none"
-                    }
-                }
-
-                i.appendChild(memChangedFlag)
-                memChangedFlag.after(membersTable)
-                memChangedFlag.after(tagsTable)
-            }
-            if (targetVersion.lat && prevVersion.lat && (prevVersion.lat !== targetVersion.lat || prevVersion.lon !== targetVersion.lon)) {
-                i.parentElement.parentElement.classList.add("location-modified")
-                const locationChangedFlag = document.createElement("span")
-                const distInMeters = getDistanceFromLatLonInKm(
-                    prevVersion.lat,
-                    prevVersion.lon,
-                    targetVersion.lat,
-                    targetVersion.lon,
-                ) * 1000;
-                locationChangedFlag.textContent = ` 📍${distInMeters.toFixed(1)}m`
-                locationChangedFlag.title = "Coordinates of node has been changed"
-                locationChangedFlag.classList.add("location-modified-marker")
-                // if (distInMeters > 100) {
-                //     locationChangedFlag.classList.add("location-modified-marker-warn")
-                // }
-                locationChangedFlag.style.userSelect = "none"
-                if (isDarkMode()) {
-                    locationChangedFlag.style.background = "rgba(223, 238, 9, 0.6)"
-                    locationChangedFlag.style.color = "black"
-                } else {
-                    locationChangedFlag.style.background = "rgba(223,238,9,0.6)"
-                }
-                i.appendChild(locationChangedFlag)
-                locationChangedFlag.onmouseover = e => {
-                    e.stopPropagation()
-                    e.stopImmediatePropagation()
-                    showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3")
-                    showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", false)
-                }
-                locationChangedFlag.onclick = (e) => {
-                    e.stopPropagation()
-                    e.stopImmediatePropagation()
-                    fitBoundsWithPadding([
-                        [prevVersion.lat.toString(), prevVersion.lon.toString()],
-                        [targetVersion.lat.toString(), targetVersion.lon.toString()]
-                    ], 30)
-                }
-                if (lastVersion.visible !== false && (prevVersion.lat === lastVersion.lat && prevVersion.lon === lastVersion.lon)) {
-                    locationChangedFlag.classList.add("reverted-coordinates")
-                    locationChangedFlag.title += ",\nbut now they have been restored."
-                }
-            }
-            if (targetVersion.visible === false) {
-                i.parentElement.parentElement.classList.add("removed-object")
-            }
-            if (targetVersion.version !== lastVersion.version && lastVersion.visible === false) {
-                i.appendChild(document.createTextNode(['ru-RU', 'ru'].includes(navigator.language) ? " ⓘ Объект уже удалён" : " ⓘ The object is now deleted"))
-            }
-            if (targetVersion.visible === false && lastVersion.visible !== false) {
-                i.appendChild(document.createTextNode(['ru-RU', 'ru'].includes(navigator.language) ? " ⓘ Объект сейчас восстановлен" : " ⓘ The object is now restored"))
-            }
-            if (tagsWasChanged) {
-                i.appendChild(tagsTable)
-            } else {
-                i.parentElement.parentElement.classList.add("tags-non-modified")
-            }
-            //</editor-fold>
-            i.parentElement.parentElement.classList.add("tags-processed-object")
         }
 
         const needFetch = []
@@ -4691,7 +5173,7 @@ async function addChangesetQuickLook() {
             const res = await fetch(osm_server.apiBase + `${objType}s.json?${objType}s=` + needFetch.join(","), {signal: abortDownloadingController.signal});
             if (res.status === 404) {
                 for (let i of document.querySelectorAll(`#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)) {
-                    await processObject(i, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(i)))
+                    await processObject(i, objType, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(i)))
                 }
             } else {
                 /**
@@ -4709,12 +5191,12 @@ async function addChangesetQuickLook() {
                 for (let i of document.querySelectorAll(`#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)) {
                     const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
                     const version = parseInt(strVersion)
-                    await processObject(i, ...getPrevTargetLastVersions(Object.values(objectsVersions[objID]), version))
+                    await processObject(i, objType, ...getPrevTargetLastVersions(Object.values(objectsVersions[objID]), version))
                 }
             }
         } else {
             await Promise.all(Array.from(document.querySelectorAll(`#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)).map(async function (i) {
-                await processObject(i, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(i)))
+                await processObject(i, objType, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(i)))
             }))
         }
 
@@ -4797,7 +5279,8 @@ async function addChangesetQuickLook() {
                     ])
                 }
             }
-            if (objType === "node") {
+
+            function processNode() {
                 i.id = "n" + objID
 
                 function mouseoverHandler(e) {
@@ -4811,9 +5294,7 @@ async function addChangesetQuickLook() {
                     } else {
                         showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3")
                     }
-                    document.querySelectorAll(".map-hover").forEach(el => {
-                        el.classList.remove("map-hover")
-                    })
+                    resetMapHover()
                 }
 
                 i.parentElement.parentElement.onmouseover = mouseoverHandler
@@ -4831,10 +5312,19 @@ async function addChangesetQuickLook() {
                     if (e.altKey) return
                     if (window.getSelection().type === "Range") return
 
-                    if (targetVersion.visible === false) {
+                    if (prevVersion.visible !== false && targetVersion.visible !== false) {
+                        fitBoundsWithPadding([
+                            [prevVersion.lat.toString(), prevVersion.lon.toString()],
+                            [targetVersion.lat.toString(), targetVersion.lon.toString()]
+                        ], 30)
+                        showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", true)
+                        showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3", false)
+                    } else if (targetVersion.visible === false) {
                         panTo(prevVersion.lat.toString(), prevVersion.lon.toString(), 18, false)
+                        showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", true)
                     } else {
                         panTo(targetVersion.lat.toString(), targetVersion.lon.toString(), 18, false)
+                        showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3", true)
                     }
                 }
                 if (targetVersion.visible === false) {
@@ -4855,91 +5345,29 @@ async function addChangesetQuickLook() {
                 } else {
                     showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "rgb(255,245,41)", targetVersion.id)
                 }
-            } else if (objType === "way") {
+            }
+
+            async function processWay() {
                 i.id = "w" + objID
 
                 const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/full.json", {signal: abortDownloadingController.signal});
-                if (!res.ok) {
-                    setTimeout(async () => {
-                        if (changesetMetadata === null) {
-                            await new Promise(r => setTimeout(r, 1000));
-                        }
-                        const versionForLoad = targetVersion.visible === false ? prevVersion.version : targetVersion.version;
-                        if (versionForLoad === 0 && targetVersion.visible === false) {
-                            return;
-                        }
-                        let lineWidth = 4
-                        const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
-                        const prevVersionViaTimestamp = searchVersionByTimestamp(await getWayHistory(objID), targetTimestamp);
-                        const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersionViaTimestamp.version);
-                        const prevNodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp, true)
-                        let targetNodesList = null
-                        if (targetVersion.visible === false) {
-                            const closedTime = (new Date(changesetMetadata.closed_at ?? new Date())).toISOString()
-                            const nodesAfterChangeset = filterObjectListByTimestamp(nodesHistory, closedTime)
-                            if (nodesAfterChangeset.some(i => i.visible === false)) {
-                                displayWay(cloneInto(prevNodesList, unsafeWindow), false, "#ff0000", 3, "w" + objID)
-                            } else {
-                                const layer = displayWay(cloneInto(prevNodesList, unsafeWindow), false, "#ff0000", 7, "w" + objID)
-                                layer.bringToBack()
-                                lineWidth = 8
-                            }
-                        } else {
-                            if (targetVersion.version === 1) {
-                                displayWay(cloneInto(prevNodesList, unsafeWindow), false, "rgba(0,128,0,0.6)", 3, "w" + objID, "customObjects", "4, 4")
-                            } else {
-                                if (prevVersion.visible === false) {
-                                    displayWay(cloneInto(prevNodesList, unsafeWindow), false, "rgb(255,245,41)", 3, "w" + objID, "customObjects", "4, 4")
-                                } else {
-                                    const targetTimestamp = (new Date(changesetMetadata.closed_at ?? new Date())).toISOString()
-                                    const [, nodesHistory] = await loadWayVersionNodes(objID, version);
-                                    targetNodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp, true)
-                                    displayWay(cloneInto(targetNodesList, unsafeWindow), false, "rgb(0,0,0)", 3, "w" + objID, "customObjects", "4, 4", null, darkModeForMap && isDarkMode())
-                                }
-                            }
-                        }
+                const nowDeleted = !res.ok;
+                const dashArray = nowDeleted ? "4, 4" : null;
+                let lineWidth = nowDeleted ? 4 : 3
 
-                        function mouseenterHandler() {
-                            if (targetNodesList) {
-                                showActiveWay(cloneInto(prevNodesList, unsafeWindow), "rgb(238,146,9)", false, objID, true, 4, "4, 4")
-                                showActiveWay(cloneInto(targetNodesList, unsafeWindow), "#ff00e3", false, objID, false, lineWidth)
-                            } else {
-                                showActiveWay(cloneInto(prevNodesList, unsafeWindow), "#ff00e3", false, objID, true, lineWidth)
-                            }
+                if (!nowDeleted) {
+                    const lastElements = (await res.json()).elements
+                    lastElements.forEach(n => {
+                        if (n.type !== "node") return
+                        if (n.version === 1) {
+                            nodesHistories[n.id] = [n]
                         }
-
-                        i.parentElement.parentElement.onmouseenter = mouseenterHandler
-                        document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div a[href*="way/${objID}"]`).forEach(link => {
-                            // link.title = "Alt + click for scroll into object list"
-                            link.onmouseenter = mouseenterHandler
-                            link.onclick = (e) => {
-                                if (!e.altKey) return
-                                i.scrollIntoView()
-                            }
-                        })
-
-                        i.parentElement.parentElement.onclick = (e) => {
-                            if (e.altKey) return
-                            if (window.getSelection().type === "Range") return
-                            if (targetNodesList) {
-                                showActiveWay(cloneInto(prevNodesList, unsafeWindow), "rgb(238,146,9)", false, objID, true, 4, "4, 4")
-                                showActiveWay(cloneInto(targetNodesList, unsafeWindow), "#ff00e3", true, objID, false, lineWidth)
-                            } else {
-                                showActiveWay(cloneInto(prevNodesList, unsafeWindow), "#ff00e3", true, objID, true, lineWidth)
-                            }
-                        }
-                    }, 10);
-                    i.parentElement.parentElement.classList.add("processed-object")
-                    return
-                }
-                const lastElements = (await res.json()).elements
-                lastElements.forEach(n => {
-                    if (n.type !== "node") return
-                    if (n.version === 1) {
-                        nodesHistories[n.id] = [n]
+                    })
+                    if (changesetMetadata === null) {
+                        // alert("please report this object into better-osm-org repository")
+                        await new Promise(r => setTimeout(r, 1000));
                     }
-                })
-
+                }
 
                 const [, wayNodesHistories] = await loadWayVersionNodes(objID, version)
                 const targetNodes = filterObjectListByTimestamp(wayNodesHistories, targetVersion.timestamp) // fixme what if changeset was long opened anf nodes changed after way?
@@ -4995,25 +5423,24 @@ async function addChangesetQuickLook() {
                         const closedTime = (new Date(changesetMetadata.closed_at ?? new Date())).toISOString()
                         const nodesAfterChangeset = filterObjectListByTimestamp(nodesHistory, closedTime)
                         if (nodesAfterChangeset.some(i => i.visible === false)) {
-                            displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 3, "w" + objID)
+                            displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 3, "w" + objID, "customObjects", dashArray)
                         } else {
-                            const layer = displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 7, "w" + objID)
+                            const layer = displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 7, "w" + objID, "customObjects", dashArray)
                             layer.bringToBack()
+                            lineWidth = 8
                         }
                     }
                 } else if (version === 1 && targetVersion.changeset === parseInt(changesetID)) {
-                    displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(0,128,0,0.6)", 4, "w" + objID)
+                    displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(0,128,0,0.6)", lineWidth, "w" + objID, "customObjects", dashArray)
                 } else if (prevVersion?.visible === false) {
-                    displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(120,238,9,0.6)", 4, "w" + objID)
+                    displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(120,238,9,0.6)", lineWidth, "w" + objID, "customObjects", dashArray)
                 } else {
-                    displayWay(cloneInto(currentNodesList, unsafeWindow), false, "#373737", 4, "w" + objID, "customObjects", null, null, darkModeForMap && isDarkMode())
+                    displayWay(cloneInto(currentNodesList, unsafeWindow), false, nowDeleted ? "rgb(0,0,0)" : "#373737", lineWidth, "w" + objID, "customObjects", null, null, darkModeForMap && isDarkMode())
                 }
 
                 async function mouseenterHandler() {
                     showActiveWay(cloneInto(currentNodesList, unsafeWindow))
-                    document.querySelectorAll(".map-hover").forEach(el => {
-                        el.classList.remove("map-hover")
-                    })
+                    resetMapHover()
                     if (version > 1) {
                         // show prev version
                         const [, nodesHistory] = await loadWayVersionNodes(objID, version - 1);
@@ -5021,7 +5448,7 @@ async function addChangesetQuickLook() {
                         const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
                         showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false, 4, "4, 4")
 
-                        showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false)
+                        showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false, lineWidth)
                     } else {
                         const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                         const prevVersion = searchVersionByTimestamp(await getWayHistory(objID), targetTimestamp);
@@ -5030,7 +5457,7 @@ async function addChangesetQuickLook() {
                             const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
                             showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false, 4, "4, 4")
                         }
-                        showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false)
+                        showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false, lineWidth)
                     }
                 }
 
@@ -5043,7 +5470,9 @@ async function addChangesetQuickLook() {
                         i.scrollIntoView()
                     }
                 })
-            } else if (objType === "relation") {
+            }
+
+            function processRelation() {
                 const btn = document.createElement("a")
                 btn.textContent = "📥"
                 btn.classList.add("load-relation-version")
@@ -5091,6 +5520,15 @@ async function addChangesetQuickLook() {
                 })
                 i.querySelector("a:nth-of-type(2)").after(btn)
                 i.querySelector("a:nth-of-type(2)").after(document.createTextNode("\xA0"))
+            }
+
+
+            if (objType === "node") {
+                processNode()
+            } else if (objType === "way") {
+                await processWay()
+            } else if (objType === "relation") {
+                processRelation()
             }
             i.parentElement.parentElement.classList.add("processed-object")
         }
@@ -5206,7 +5644,11 @@ async function addChangesetQuickLook() {
                 const nodeLink = document.createElement("a")
                 nodeLink.rel = "nofollow"
                 nodeLink.href = `/node/${node.id}`
-                nodeLink.textContent = node.id
+                if (node.querySelector('tag[k="name"]')?.getAttribute("v")) {
+                    nodeLink.textContent = `${node.querySelector('tag[k="name"]')?.getAttribute("v")} (${node.id})`
+                } else {
+                    nodeLink.textContent = node.id
+                }
                 div2.appendChild(nodeLink)
 
                 div2.appendChild(document.createTextNode(", "))
@@ -5272,11 +5714,15 @@ async function addChangesetQuickLook() {
                 div2.classList.add("way");
                 div2.id = "w" + way.id
 
-                const nodeLink = document.createElement("a")
-                nodeLink.rel = "nofollow"
-                nodeLink.href = `/way/${way.id}`
-                nodeLink.textContent = way.id
-                div2.appendChild(nodeLink)
+                const wayLink = document.createElement("a")
+                wayLink.rel = "nofollow"
+                wayLink.href = `/way/${way.id}`
+                if (way.querySelector('tag[k="name"]')?.getAttribute("v")) {
+                    wayLink.textContent = `${way.querySelector('tag[k="name"]')?.getAttribute("v")} (${way.id})`
+                } else {
+                    wayLink.textContent = way.id
+                }
+                div2.appendChild(wayLink)
 
                 div2.appendChild(document.createTextNode(", "))
 
@@ -5462,13 +5908,15 @@ async function addChangesetQuickLook() {
 
                                 displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(55,55,55,0.5)", 4, "n" + nodeID, "customObjects", null, popup.outerHTML, darkModeForMap && isDarkMode())
 
+                                // ховер в списке объектов, который показывает родительнскую линию
                                 way.nodes.forEach(n => {
                                     if (!document.querySelector("#n" + n)) return
-                                    document.querySelector("#n" + n).parentElement.parentElement.addEventListener('mouseover', async () => {
+                                    document.querySelector("#n" + n).parentElement.parentElement.addEventListener('mouseover', async (e) => {
+                                        if (e.relatedTarget?.parentElement === e.target) {
+                                            return
+                                        }
                                         showActiveWay(cloneInto(currentNodesList, unsafeWindow))
-                                        document.querySelectorAll(".map-hover").forEach(el => {
-                                            el.classList.remove("map-hover")
-                                        })
+                                        resetMapHover()
                                         const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                                         if (targetVersion.version > 1) {
                                             // show prev version
@@ -5488,11 +5936,11 @@ async function addChangesetQuickLook() {
                                                 // showActiveWay(cloneInto(currentNodesList, unsafeWindow), "rgba(55,55,55,0.5)", false, objID, false)
                                             }
                                         }
-                                        // if (targetVersion.version > 1) {
-                                        //     const prevVersion = filterVersionByTimestamp(await getNodeHistory(n), targetTimestamp)
-                                        //     showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", false)
-                                        // }
                                         const curVersion = searchVersionByTimestamp(await getNodeHistory(n), changesetMetadata.closed_at ?? new Date())
+                                        if (curVersion.version > 1) {
+                                            const prevVersion = searchVersionByTimestamp(await getNodeHistory(n), targetTimestamp)
+                                            showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", false)
+                                        }
                                         showActiveNodeMarker(curVersion.lat.toString(), curVersion.lon.toString(), "#ff00e3", false)
                                     })
                                 })
@@ -6483,10 +6931,10 @@ async function loadChangesetMetadata() {
     const res = await fetch(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json",
         // {signal: abortDownloadingController.signal}
     );
-    const jsonRes = await res.json();
     if (res.status === 509) {
         console.error("oops, DOS block")
     } else {
+        const jsonRes = await res.json();
         if (jsonRes.changeset) {
             changesetMetadata = jsonRes.changeset
             return
@@ -6629,6 +7077,12 @@ function runPositionTracker() {
 }
 
 let newNotePlaceholder = null
+
+function resetMapHover() {
+    document.querySelectorAll(".map-hover").forEach(el => {
+        el.classList.remove("map-hover")
+    })
+}
 
 function setupNavigationViaHotkeys() {
     if (["/edit", "/id"].includes(location.pathname)) return
@@ -6844,9 +7298,7 @@ function setupNavigationViaHotkeys() {
                         cur.classList.remove("active-object")
                         cur.previousElementSibling.click()
                         cur.previousElementSibling.scrollIntoView()
-                        document.querySelectorAll(".map-hover").forEach(el => {
-                            el.classList.remove("map-hover")
-                        })
+                        resetMapHover()
                         cur.previousElementSibling.classList.add("map-hover")
                     } else {
                         if (cur.parentElement.parentElement.id === "changeset_nodes") {
@@ -6854,10 +7306,7 @@ function setupNavigationViaHotkeys() {
                             document.querySelector("#changeset_ways li:last-of-type").classList.add("active-object")
                             document.querySelector("ul .active-object").click()
                             document.querySelector("ul .active-object").classList.add("map-hover")
-
-                            document.querySelectorAll(".map-hover").forEach(el => {
-                                el.classList.remove("map-hover")
-                            })
+                            resetMapHover()
                             document.querySelector("ul .active-object").classList.add("map-hover")
                         }
                     }
@@ -6866,9 +7315,7 @@ function setupNavigationViaHotkeys() {
                 if (!document.querySelector("ul .active-object")) {
                     document.querySelector("#changeset_nodes li, #changeset_ways li, #changeset_relations li").classList.add("active-object")
                     document.querySelector("ul .active-object").click()
-                    document.querySelectorAll(".map-hover").forEach(el => {
-                        el.classList.remove("map-hover")
-                    })
+                    resetMapHover()
                     document.querySelector("ul .active-object").classList.add("map-hover")
                 } else {
                     const cur = document.querySelector("ul .active-object")
@@ -6877,9 +7324,7 @@ function setupNavigationViaHotkeys() {
                         cur.classList.remove("active-object")
                         cur.nextElementSibling.click()
                         cur.nextElementSibling.scrollIntoView()
-                        document.querySelectorAll(".map-hover").forEach(el => {
-                            el.classList.remove("map-hover")
-                        })
+                        resetMapHover()
                         cur.nextElementSibling.classList.add("map-hover")
                     } else {
                         if (cur.parentElement.parentElement.id === "changeset_ways") {
@@ -6887,9 +7332,7 @@ function setupNavigationViaHotkeys() {
                             document.querySelector("#changeset_nodes li").classList.add("active-object")
                             document.querySelector("ul .active-object").click()
 
-                            document.querySelectorAll(".map-hover").forEach(el => {
-                                el.classList.remove("map-hover")
-                            })
+                            resetMapHover();
                             document.querySelector("ul .active-object").classList.add("map-hover")
                         }
                     }
@@ -7120,7 +7563,7 @@ function setup() {
                 getMap().attributionControl.setPrefix("")
                 addSwipes();
                 document.querySelector("#fixed-rss-feed")?.remove()
-            } catch (e) {
+            } catch {
             }
         }
         lastPath = path + location.search;
@@ -7143,6 +7586,11 @@ function main() {
                 }
                 GM_config.open();
             });
+            if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+                GM_registerMenuCommand("Check script updates", function () {
+                    window.open("https://raw.githubusercontent.com/deevroman/better-osm-org/master/better-osm-org.user.js", "_blank")
+                });
+            }
             // GM_registerMenuCommand("Ask question on forum", function () {
             //     window.open("https://community.openstreetmap.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670")
             // });
