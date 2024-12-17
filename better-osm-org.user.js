@@ -7612,7 +7612,7 @@ function main() {
             }
             // New Year Easter egg
             const curDate = new Date()
-            if (curDate.getMonth() === 11 && curDate.getDate() > 18 || curDate.getMonth() === 0 && curDate.getDate() < 14) {
+            if (curDate.getMonth() === 11 && curDate.getDate() >= 18 || curDate.getMonth() === 0 && curDate.getDate() < 14) {
                 GM_registerMenuCommand("☃️", function () {
                     //<editor-fold desc="config" defaultstate="collapsed">
                     injectJSIntoPage(`
