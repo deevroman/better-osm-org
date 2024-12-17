@@ -2,7 +2,7 @@
 // @name            Better osm.org
 // @name:ru         Better osm.org
 // @version         0.5.9
-// @changelog       New: displaying the full history of ways
+// @changelog       New: displaying the full history of ways (You can disable it in settings)
 // @changelog       https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670/8
 // @description     Several improvements for advanced users of osm.org
 // @description:ru  Скрипт, добавляющий на osm.org полезные картографам функции
@@ -126,7 +126,7 @@ GM_config.init(
                     {
                         'label': 'Add diff with intermediate versions in way history',
                         'type': 'checkbox',
-                        'default': false,
+                        'default': 'checked',
                         'labelPos': 'right',
                     },
                 'ChangesetQuickLook':
