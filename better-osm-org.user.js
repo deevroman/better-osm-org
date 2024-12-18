@@ -6154,10 +6154,14 @@ function simplifyHDCYIframe() {
     if (isDarkMode()) {
         GM_addElement(document.head, "style", {
             textContent: `
+                body {
+                    overflow-x: auto !important;
+                }
+
                 @media (prefers-color-scheme: dark) {
                     body {
-                        background-color: rgb(49, 54, 59);
-                        color: lightgray;
+                        background-color: #181a1b;
+                        color: #e8e6e3;
                     }
 
                     #mapwrapper {
@@ -6167,21 +6171,52 @@ function simplifyHDCYIframe() {
                     #activitymap {
                         filter: invert(100%) hue-rotate(180deg) contrast(90%);
                     }
+                    #activitymapswitcher {
+                        background-color: rgba(24, 26, 27, 0.8);
+                    }
 
                     .leaflet-popup-content {
                         filter: brightness(0.3);
                     }
 
-                    .leaflet-popup-content-wrapper {
+                    .leaflet-popup-content-wrapper, .leaflet-popup-tip {
                         filter: brightness(0.9);
+                        box-shadow: none;
+                    }
+                    .leaflet-marker-shadow {
+                        filter: invert(100%);
                     }
 
                     a {
-                        color: darkblue;
+                        color: #1c84fd;
                     }
 
                     a:visited {
-                        color: darkviolet;
+                        color: #c94bff;
+                    }
+
+                    .day-cell[fill="#e8e8e8"] {
+                        fill: #262a2b;
+                    }
+
+                    #result td {
+                        border-color: #363659;
+                    }
+                    #result tr:nth-child(-n + 4) td:nth-child(3) {
+                        color: limegreen !important;
+                    }
+
+                    #graph_years canvas,
+                    #graph_editors canvas,
+                    #graph_days canvas,
+                    #graph_hours canvas {
+                        filter: saturate(4);
+                    }
+                    .tickLabel {
+                        color: #b3aca2;
+                    }
+                    .editors_wrapper th, .editors_wrapper td {
+                        border-bottom-color: #8c8273;
                     }
                 }
             `,
