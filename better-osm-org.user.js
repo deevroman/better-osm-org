@@ -6151,89 +6151,77 @@ function simplifyHDCYIframe() {
     if (window.location === window.parent.location) {
         return
     }
-    if (isDarkMode()) {
-        GM_addElement(document.head, "style", {
-            textContent: `
+    GM_addElement(document.head, "style", {
+        textContent: `
+            html, body {
+                overflow-x: auto;
+            }
+
+            @media (prefers-color-scheme: dark) {
                 body {
-                    overflow-x: auto !important;
+                    background-color: #181a1b;
+                    color: #e8e6e3;
                 }
 
-                @media (prefers-color-scheme: dark) {
-                    body {
-                        background-color: #181a1b;
-                        color: #e8e6e3;
-                    }
-
-                    #mapwrapper {
-                        filter: invert(100%) hue-rotate(180deg) contrast(90%);
-                    }
-
-                    #activitymap {
-                        filter: invert(100%) hue-rotate(180deg) contrast(90%);
-                    }
-                    #activitymapswitcher {
-                        background-color: rgba(24, 26, 27, 0.8);
-                    }
-
-                    .leaflet-popup-content {
-                        filter: brightness(0.3);
-                    }
-
-                    .leaflet-popup-content-wrapper, .leaflet-popup-tip {
-                        filter: brightness(0.9);
-                        box-shadow: none;
-                    }
-                    .leaflet-marker-shadow {
-                        filter: invert(100%);
-                    }
-
-                    a {
-                        color: #1c84fd;
-                    }
-
-                    a:visited {
-                        color: #c94bff;
-                    }
-
-                    .day-cell[fill="#e8e8e8"] {
-                        fill: #262a2b;
-                    }
-
-                    #result td {
-                        border-color: #363659;
-                    }
-                    #result tr:nth-child(-n + 4) td:nth-child(3) {
-                        color: limegreen !important;
-                    }
-
-                    #graph_years canvas,
-                    #graph_editors canvas,
-                    #graph_days canvas,
-                    #graph_hours canvas {
-                        filter: saturate(4);
-                    }
-                    .tickLabel {
-                        color: #b3aca2;
-                    }
-                    .editors_wrapper th, .editors_wrapper td {
-                        border-bottom-color: #8c8273;
-                    }
+                #activitymap .leaflet-tile,
+                #mapwrapper .leaflet-tile {
+                    filter: invert(100%) hue-rotate(180deg) contrast(90%);
                 }
-            `,
-        });
-        document.querySelectorAll("a").forEach(i => {
-            if (i.style.color === "black") {
-                i.style.color = "lightgray";
+                #activitymap path {
+                    stroke: #0088ff;
+                    fill: #0088ff;
+                    stroke-opacity: 0.7;
+                }
+                #activitymapswitcher {
+                    background-color: rgba(24, 26, 27, 0.8);
+                }
+
+                .leaflet-popup-content {
+                    color: lightgray;
+                }
+                .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+                    background: #222;
+                }
+
+                a, .leaflet-container a {
+                    color: #1c84fd;
+                }
+                a:visited, .leaflet-container a:visited {
+                    color: #c94bff;
+                }
+                a[style*="black"] {
+                    color: lightgray !important;
+                }
+
+                .day-cell[fill="#e8e8e8"] {
+                    fill: #262a2b;
+                }
+
+                #result td {
+                    border-color: #363659;
+                }
+                td[style*="purple"] {
+                    color: #ff72ff !important;
+                }
+                td[style*="green"] {
+                    color: limegreen !important;
+                }
+
+                #graph_years canvas,
+                #graph_editors canvas,
+                #graph_days canvas,
+                #graph_hours canvas {
+                    filter: saturate(4);
+                }
+                .tickLabel {
+                    color: #b3aca2;
+                }
+                .editors_wrapper th, .editors_wrapper td {
+                    border-bottom-color: #8c8273;
+                }
             }
-        })
-        document.querySelectorAll("td").forEach(i => {
-            if (i.style.color === "purple") {
-                i.style.color = "orchid";
-            }
-        })
-    }
-    document.querySelector("html").style.overflowX = "scroll"
-    document.querySelector("body").style.overflowX = "scroll"
+        `,
+    });
     const loginLink = document.getElementById("loginLink")
     if (loginLink) {
         let warn = document.createElement("div")
