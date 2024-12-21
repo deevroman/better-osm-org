@@ -6217,6 +6217,7 @@ function simplifyHDCYIframe() {
             document.getElementById("authenticate").before(document.createElement("br"))
             document.getElementById("authenticate").before(hdycLink)
             document.getElementById("authenticate").remove()
+            window.parent.postMessage({ height: document.body.scrollHeight }, '*')
         } else {
             warn.innerHTML = `To see more than just public profiles, do the following:<br/>
 1. <a href="https://www.hdyc.neis-one.org/"> Log in to HDYC</a> <br/>
@@ -6237,6 +6238,7 @@ function simplifyHDCYIframe() {
             });
             document.getElementById("authenticate").before(warn)
             const img_help = document.createElement("img")
+            img_help.onload = () => { window.parent.postMessage({ height: document.body.scrollHeight }, '*')}
             img_help.src = "https://raw.githubusercontent.com/deevroman/better-osm-org/master/img/hdyc-fix-in-chrome.png"
             img_help.style.width = "90%"
             warn.after(img_help)
