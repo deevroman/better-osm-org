@@ -6121,7 +6121,6 @@ async function setupHDYCInProfile(path) {
         GM_addElement(document.querySelector("#content"), "iframe", {
             src: "https://www.hdyc.neis-one.org/?" + user,
             width: "100%",
-            height: "2700px",
             id: "hdyc-iframe",
             scrolling: "no",
             background: "rgb(49, 54, 59)",
@@ -6134,7 +6133,6 @@ async function setupHDYCInProfile(path) {
         GM_addElement(document.querySelector("#content"), "iframe", {
             src: "https://www.hdyc.neis-one.org/?" + user,
             width: "100%",
-            height: "2700px",
             id: "hdyc-iframe",
             scrolling: "no",
         });
@@ -6145,6 +6143,10 @@ async function setupHDYCInProfile(path) {
             document.querySelector('a[href$="/blocks"]').nextElementSibling.style.color = "white"
         }
     }
+    const iframe = document.getElementById('hdyc-iframe');
+    window.addEventListener('message', function (event) {
+        iframe.height = event.data.height + 'px';
+    });
 }
 
 function simplifyHDCYIframe() {
@@ -6293,6 +6295,7 @@ function simplifyHDCYIframe() {
         }
         childNodesKey.remove()
     }
+    window.parent.postMessage({ height: document.body.scrollHeight }, '*');
 }
 
 //<editor-fold desc="/history, /user/*/history">
