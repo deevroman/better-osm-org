@@ -398,7 +398,7 @@ function addRevertButton() {
         document.querySelector("#revert_button_class").onclick = (e) => {
             if (!e.shiftKey) return
             e.preventDefault()
-            window.location = "http://127.0.0.1:8111/revert_changeset?id=" + changeset_id
+            window.location = "http://127.0.0.1:8111/revert_changeset?id=" + changeset_id // todo open in new tab
         }
         document.querySelector("#revert_button_class").style.textDecoration = "none"
         const osmcha_link = document.querySelector("#osmcha_link");
@@ -4222,13 +4222,82 @@ function addRegionForFirstChangeset(skip = false) {
 
 }
 
-// let iconsList = null
-//
-// function loadIconsList() {
-//     const yml = GM_getResourceText("OSM_ORG_POI_ICONS_YML")
-//     const result = {}
-//
-// }
+let iconsList = null
+
+async function loadIconsList() {
+    const yml = (await GM.xmlHttpRequest({
+        url: `https://raw.githubusercontent.com/openstreetmap/openstreetmap-website/refs/heads/master/config/browse_icons.yml`,
+    })).responseText
+    iconsList = {}
+    // не, ну а почему бы и нет
+    yml.match(/[\w_-]+:\s*(([\w_-]|:\*)+:(\s+{.*}\s+))*/g).forEach(tags => {
+        const lines = tags.split("\n")
+        lines.slice(1).forEach(i => {
+            const line = i.trim()
+            if (line === "") return;
+            const [, value, json] = line.match(/(:\*|\w+): (\{.*})/)
+            iconsList[lines[0].slice(0, -1) + "=" + value] = JSON.parse(json.replaceAll(/(\w+):/g, '"$1":'))
+        })
+    })
+    GM_setValue("poi-icons", JSON.stringify({icons: iconsList, cacheTime: new Date()}))
+    return iconsList
+}
+
+async function initPOIIcons() {
+    const cache = GM_getValue("poi-icons", "")
+    if (cache) {
+        console.log("poi icons cached")
+        const cacheTime = new Date(cache['cacheTime'])
+        if (cacheTime.setUTCDate(cacheTime.getUTCDate() + 2) < new Date()) {
+            console.log("but cache outdated")
+            setTimeout(loadIconsList, 0)
+        }
+        iconsList = JSON.parse(cache)['icons']
+    }
+    console.log("loading icons")
+    await loadIconsList()
+}
+
+const nodeFallback = "https://raw.githubusercontent.com/openstreetmap/openstreetmap-website/master/app/assets/images/browse/node.svg"
+const wayFallback = "https://raw.githubusercontent.com/openstreetmap/openstreetmap-website/master/app/assets/images/browse/way.svg"
+const relationFallback = "https://raw.githubusercontent.com/openstreetmap/openstreetmap-website/master/app/assets/images/browse/relation.svg"
+
+/**
+ *
+ * @param {string} type
+ * @param {[[string, string]]}tags
+ * @return {[string, boolean]}
+ */
+function getPOIIconURL(type, tags) {
+    if (!iconsList) {
+        return ["", false]
+    }
+    function getFallback(type) {
+        if (type === "node") {
+            return nodeFallback
+        } else if (type === "way") {
+            return wayFallback
+        } else if (type === "relation") {
+            return relationFallback
+        }
+    }
+
+    let result = undefined
+    tags.forEach(([key, value]) => {
+        function makeIconURL(filename) {
+            return `https://raw.githubusercontent.com/openstreetmap/openstreetmap-website/master/app/assets/images/browse/` + filename
+        }
+
+        if (iconsList[key + "=" + value] === undefined) {
+            if (iconsList[key + "=:*"] && !result) {
+                result = [makeIconURL(iconsList[key + "=:*"]["filename"]), iconsList[key + "=:*"]["invert"]]
+            }
+        } else {
+            result = [makeIconURL(iconsList[key + "=" + value]["filename"]), iconsList[key + "=" + value]["invert"]]
+        }
+    })
+    return result ?? [getFallback(type), false]
+}
 
 
 function makeTagRow(key, value, addTd = false) {
@@ -5676,11 +5745,24 @@ async function addChangesetQuickLook() {
                 div1.classList.add("d-flex", "gap-1")
                 ulItem.appendChild(div1)
 
-                const img = document.createElement("img")
-                img.height = 20
-                img.width = 20
-                img.style.visibility = "hidden"
-                div1.appendChild(img)
+
+                try {
+                    const [iconSrc, invert] = getPOIIconURL("node", Array.from(node.querySelectorAll('tag[k]')).map(i => [i.getAttribute("k"), i.getAttribute("v")]))
+                    div1.appendChild(GM_addElement("img", {
+                        src: iconSrc,
+                        height: 20,
+                        width: 20,
+                        class: "align-bottom object-fit-none browse-icon" + (invert ? " browse-icon-invertible" : "")
+                        })
+                    )
+                } catch (e) {
+                    console.error(e)
+                    const img = document.createElement("img")
+                    img.height = 20
+                    img.width = 20
+                    img.style.visibility = "hidden"
+                    div1.appendChild(img)
+                }
 
                 const div2 = document.createElement("div")
                 div2.classList.add("align-self-center")
@@ -5749,11 +5831,23 @@ async function addChangesetQuickLook() {
                 div1.classList.add("d-flex", "gap-1")
                 ulItem.appendChild(div1)
 
-                const img = document.createElement("img")
-                img.height = 20
-                img.width = 20
-                img.style.visibility = "hidden"
-                div1.appendChild(img)
+                try {
+                    const [iconSrc, invert] = getPOIIconURL("way", Array.from(way.querySelectorAll('tag[k]')).map(i => [i.getAttribute("k"), i.getAttribute("v")]))
+                    div1.appendChild(GM_addElement("img", {
+                        src: iconSrc,
+                        height: 20,
+                        width: 20,
+                        class: "align-bottom object-fit-none browse-icon" + (invert ? " browse-icon-invertible" : "")
+                        })
+                    )
+                } catch (e) {
+                    console.error(e)
+                    const img = document.createElement("img")
+                    img.height = 20
+                    img.width = 20
+                    img.style.visibility = "hidden"
+                    div1.appendChild(img)
+                }
 
                 const div2 = document.createElement("div")
                 div2.classList.add("align-self-center")
@@ -5792,6 +5886,13 @@ async function addChangesetQuickLook() {
                 }
                 ul.appendChild(ulItem)
             })
+        }
+
+        try {
+            await initPOIIcons()
+        } catch (e) {
+            console.log(e)
+            console.trace()
         }
 
         replaceWays(changesetData)
@@ -6139,7 +6240,7 @@ function setupDarkModeForMap() {
 }
 
 async function setupHDYCInProfile(path) {
-    let match = path.match(/^\/user\/([^/]+)$/);
+    let match = path.match(/^\/user\/([^/]+)($|\/)/);
     if (!match) {
         return;
     }
@@ -6396,7 +6497,7 @@ function makeTopActionBar() {
     revertViaJOSMButton.textContent = "↩️ via JOSM"
     revertViaJOSMButton.onclick = () => {
         const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
-        window.location = "http://127.0.0.1:8111/revert_changeset?id=" + ids
+        open("http://127.0.0.1:8111/revert_changeset?id=" + ids, "_blank")
     }
     actionsBar.appendChild(copyIds)
     actionsBar.appendChild(document.createTextNode("\xA0"))
