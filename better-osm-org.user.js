@@ -398,7 +398,7 @@ function addRevertButton() {
         document.querySelector("#revert_button_class").onclick = (e) => {
             if (!e.shiftKey) return
             e.preventDefault()
-            window.location = "http://127.0.0.1:8111/revert_changeset?id=" + changeset_id
+            window.location = "http://127.0.0.1:8111/revert_changeset?id=" + changeset_id // todo open in new tab
         }
         document.querySelector("#revert_button_class").style.textDecoration = "none"
         const osmcha_link = document.querySelector("#osmcha_link");
@@ -1653,7 +1653,9 @@ function makeLinksInTagsClickable() {
         }
     })
     const tagsTable = document.querySelector(".browse-tag-list")
-    tagsTable.parentElement.previousElementSibling.title = tagsTable.querySelectorAll("tr th").length + " tags"
+    if (tagsTable) {
+        tagsTable.parentElement.previousElementSibling.title = tagsTable.querySelectorAll("tr th").length + " tags"
+    }
 }
 
 function addHistoryLink() {
@@ -2539,6 +2541,7 @@ async function showFullWayHistory(wayID) {
                     }
                     const changedNodes = tmpChangedNodes.filter(i => i[0] !== "location")
                     interVersionDiv.onmouseenter = () => {
+                        resetMapHover()
                         cleanAllObjects()
                         showWay(cloneInto(currentNodes, unsafeWindow), "#000000", false, darkModeForMap && isDarkMode())
                         currentNodes.forEach(node => {
@@ -2557,9 +2560,10 @@ async function showFullWayHistory(wayID) {
                             }
                         })
                     }
-                    interVersionDiv.onclick = () => {
+                    interVersionDiv.onclick = (e) => {
+                        resetMapHover()
                         cleanAllObjects()
-                        showWay(cloneInto(currentNodes, unsafeWindow), "#000000", true, darkModeForMap && isDarkMode())
+                        showWay(cloneInto(currentNodes, unsafeWindow), "#000000", e.isTrusted, darkModeForMap && isDarkMode())
                         currentNodes.forEach(node => {
                             if (node.tags && Object.keys(node.tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
                                 showNodeMarker(node.lat.toString(), node.lon.toString(), "rgb(161,161,161)", null, 'customObjects', 3)
@@ -2630,7 +2634,7 @@ async function showFullWayHistory(wayID) {
                         const changedNodes = Object.values(currentChanges).filter(i => i[2].type === "node" && i[0] !== "location" && i[0] !== "")
                         document.querySelector(`.browse-way[way-version="${it.version}"]`)?.addEventListener("mouseenter", () => {
                             changedNodes.forEach(i => {
-                                if (i[2].visible === false)  {
+                                if (i[2].visible === false) {
                                     if (i[1].visible !== false) {
                                         showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, 'customObjects', 3)
                                     }
@@ -2784,7 +2788,10 @@ function setupWayVersionView() {
         }
         if (htmlElem.nodeName === "A") {
             const versionDiv = htmlElem.parentNode.parentNode
-            versionDiv.onmouseenter = loadWayVersion
+            versionDiv.onmouseenter = (e) => {
+                resetMapHover()
+                loadWayVersion(e);
+            }
             versionDiv.onclick = async e => {
                 if (e.target.tagName === "A" || e.target.tagName === "TIME" || e.target.tagName === "SUMMARY") {
                     return
@@ -3215,6 +3222,9 @@ function setupViewRedactions() {
     showUnredactedBtn.textContent = ['ru-RU', 'ru'].includes(navigator.language) ? "Просмотр неотредактированной истории β" : "View Unredacted History β"
     showUnredactedBtn.style.cursor = "pointer"
     showUnredactedBtn.href = ""
+    showUnredactedBtn.onmouseenter = async () => {
+        resetMapHover()
+    }
     showUnredactedBtn.onclick = async e => {
         e.preventDefault()
         showUnredactedBtn.style.cursor = "progress"
@@ -3263,6 +3273,7 @@ function setupViewRedactions() {
 
         for (const elem of Array.from(document.getElementsByClassName("browse-section browse-redacted"))) {
             const version = elem.textContent.match(/(\d+).*(\d+)/)[1]
+            console.log(`Downloading v${version}`)
             elem.childNodes[0].textContent = elem.childNodes[0].textContent.match(/(\..*$)/gm)[0].slice(1)
             let target;
             try {
@@ -3500,6 +3511,9 @@ function addDiffInHistory() {
         return;
     }
     hideSearchForm();
+    // в хроме фокус не выставляется
+    document.querySelector("#sidebar").focus({focusVisible: false}) // focusVisible работает только в Firefox
+    document.querySelector("#sidebar").blur()
     makeLinksInTagsClickable();
     if (!location.pathname.includes("/user/")) {
         let compactToggle = document.createElement("button")
@@ -3525,6 +3539,10 @@ function addDiffInHistory() {
       background: rgba(238,51,9,0.6) !important;
     }
     
+    #sidebar_content div.map-hover {
+      background-color: rgba(223, 223, 223, 0.6);
+    }
+    
     @media (prefers-color-scheme: dark) {
         .history-diff-new-tag {
           background: rgba(4, 123, 0, 0.6) !important;
@@ -3544,9 +3562,13 @@ function addDiffInHistory() {
             background: rgba(223,238,9,0.2) !important;
         }
                 
-        // li.history-diff-modified-tag {
-        //     background: rgba(223,238,9,0.2) !important;
-        // }
+        /*li.history-diff-modified-tag {*/
+        /*     background: rgba(223,238,9,0.2) !important;*/
+        /*}*/
+        
+        #sidebar_content div.map-hover {
+            background-color: rgb(14, 17, 19);
+        }
     }
     .non-modified-tag .empty-version {
         
@@ -3808,6 +3830,13 @@ function addDiffInHistory() {
             visible: visible
         })
         ver.querySelectorAll("h4").forEach((el, index) => (index !== 0) ? el.classList.add("hidden-h4") : null)
+        if (tags.length === 1) { // fixme after adding locationzation
+            ver.title = tags.length + (['ru-RU', 'ru'].includes(navigator.language) ? " тег" : " tag")
+        } else if (tags.length < 10 && tags.length > 20 && ([2, 3, 4].includes(tags.length % 10))) {
+            ver.title = tags.length + (['ru-RU', 'ru'].includes(navigator.language) ? " тега" : " tags")
+        } else {
+            ver.title = tags.length + (['ru-RU', 'ru'].includes(navigator.language) ? " тегов" : " tags")
+        }
     }
     // deletion
     Array.from(versionsHTML).forEach((x, index) => {
@@ -4193,13 +4222,82 @@ function addRegionForFirstChangeset(skip = false) {
 
 }
 
-// let iconsList = null
-//
-// function loadIconsList() {
-//     const yml = GM_getResourceText("OSM_ORG_POI_ICONS_YML")
-//     const result = {}
-//
-// }
+let iconsList = null
+
+async function loadIconsList() {
+    const yml = (await GM.xmlHttpRequest({
+        url: `https://raw.githubusercontent.com/openstreetmap/openstreetmap-website/refs/heads/master/config/browse_icons.yml`,
+    })).responseText
+    iconsList = {}
+    // не, ну а почему бы и нет
+    yml.match(/[\w_-]+:\s*(([\w_-]|:\*)+:(\s+{.*}\s+))*/g).forEach(tags => {
+        const lines = tags.split("\n")
+        lines.slice(1).forEach(i => {
+            const line = i.trim()
+            if (line === "") return;
+            const [, value, json] = line.match(/(:\*|\w+): (\{.*})/)
+            iconsList[lines[0].slice(0, -1) + "=" + value] = JSON.parse(json.replaceAll(/(\w+):/g, '"$1":'))
+        })
+    })
+    GM_setValue("poi-icons", JSON.stringify({icons: iconsList, cacheTime: new Date()}))
+    return iconsList
+}
+
+async function initPOIIcons() {
+    const cache = GM_getValue("poi-icons", "")
+    if (cache) {
+        console.log("poi icons cached")
+        const cacheTime = new Date(cache['cacheTime'])
+        if (cacheTime.setUTCDate(cacheTime.getUTCDate() + 2) < new Date()) {
+            console.log("but cache outdated")
+            setTimeout(loadIconsList, 0)
+        }
+        iconsList = JSON.parse(cache)['icons']
+    }
+    console.log("loading icons")
+    await loadIconsList()
+}
+
+const nodeFallback = "https://raw.githubusercontent.com/openstreetmap/openstreetmap-website/master/app/assets/images/browse/node.svg"
+const wayFallback = "https://raw.githubusercontent.com/openstreetmap/openstreetmap-website/master/app/assets/images/browse/way.svg"
+const relationFallback = "https://raw.githubusercontent.com/openstreetmap/openstreetmap-website/master/app/assets/images/browse/relation.svg"
+
+/**
+ *
+ * @param {string} type
+ * @param {[[string, string]]}tags
+ * @return {[string, boolean]}
+ */
+function getPOIIconURL(type, tags) {
+    if (!iconsList) {
+        return ["", false]
+    }
+    function getFallback(type) {
+        if (type === "node") {
+            return nodeFallback
+        } else if (type === "way") {
+            return wayFallback
+        } else if (type === "relation") {
+            return relationFallback
+        }
+    }
+
+    let result = undefined
+    tags.forEach(([key, value]) => {
+        function makeIconURL(filename) {
+            return `https://raw.githubusercontent.com/openstreetmap/openstreetmap-website/master/app/assets/images/browse/` + filename
+        }
+
+        if (iconsList[key + "=" + value] === undefined) {
+            if (iconsList[key + "=:*"] && !result) {
+                result = [makeIconURL(iconsList[key + "=:*"]["filename"]), iconsList[key + "=:*"]["invert"]]
+            }
+        } else {
+            result = [makeIconURL(iconsList[key + "=" + value]["filename"]), iconsList[key + "=" + value]["invert"]]
+        }
+    })
+    return result ?? [getFallback(type), false]
+}
 
 
 function makeTagRow(key, value, addTd = false) {
@@ -5647,11 +5745,24 @@ async function addChangesetQuickLook() {
                 div1.classList.add("d-flex", "gap-1")
                 ulItem.appendChild(div1)
 
-                const img = document.createElement("img")
-                img.height = 20
-                img.width = 20
-                img.style.visibility = "hidden"
-                div1.appendChild(img)
+
+                try {
+                    const [iconSrc, invert] = getPOIIconURL("node", Array.from(node.querySelectorAll('tag[k]')).map(i => [i.getAttribute("k"), i.getAttribute("v")]))
+                    div1.appendChild(GM_addElement("img", {
+                        src: iconSrc,
+                        height: 20,
+                        width: 20,
+                        class: "align-bottom object-fit-none browse-icon" + (invert ? " browse-icon-invertible" : "")
+                        })
+                    )
+                } catch (e) {
+                    console.error(e)
+                    const img = document.createElement("img")
+                    img.height = 20
+                    img.width = 20
+                    img.style.visibility = "hidden"
+                    div1.appendChild(img)
+                }
 
                 const div2 = document.createElement("div")
                 div2.classList.add("align-self-center")
@@ -5720,11 +5831,23 @@ async function addChangesetQuickLook() {
                 div1.classList.add("d-flex", "gap-1")
                 ulItem.appendChild(div1)
 
-                const img = document.createElement("img")
-                img.height = 20
-                img.width = 20
-                img.style.visibility = "hidden"
-                div1.appendChild(img)
+                try {
+                    const [iconSrc, invert] = getPOIIconURL("way", Array.from(way.querySelectorAll('tag[k]')).map(i => [i.getAttribute("k"), i.getAttribute("v")]))
+                    div1.appendChild(GM_addElement("img", {
+                        src: iconSrc,
+                        height: 20,
+                        width: 20,
+                        class: "align-bottom object-fit-none browse-icon" + (invert ? " browse-icon-invertible" : "")
+                        })
+                    )
+                } catch (e) {
+                    console.error(e)
+                    const img = document.createElement("img")
+                    img.height = 20
+                    img.width = 20
+                    img.style.visibility = "hidden"
+                    div1.appendChild(img)
+                }
 
                 const div2 = document.createElement("div")
                 div2.classList.add("align-self-center")
@@ -5763,6 +5886,13 @@ async function addChangesetQuickLook() {
                 }
                 ul.appendChild(ulItem)
             })
+        }
+
+        try {
+            await initPOIIcons()
+        } catch (e) {
+            console.log(e)
+            console.trace()
         }
 
         replaceWays(changesetData)
@@ -6110,7 +6240,7 @@ function setupDarkModeForMap() {
 }
 
 async function setupHDYCInProfile(path) {
-    let match = path.match(/^\/user\/([^/]+)$/);
+    let match = path.match(/^\/user\/([^/]+)($|\/)/);
     if (!match) {
         return;
     }
@@ -6339,7 +6469,7 @@ function makeTopActionBar() {
     revertViaJOSMButton.textContent = "↩️ via JOSM"
     revertViaJOSMButton.onclick = () => {
         const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
-        window.location = "http://127.0.0.1:8111/revert_changeset?id=" + ids
+        open("http://127.0.0.1:8111/revert_changeset?id=" + ids, "_blank")
     }
     actionsBar.appendChild(copyIds)
     actionsBar.appendChild(document.createTextNode("\xA0"))
@@ -7371,6 +7501,53 @@ function setupNavigationViaHotkeys() {
                 const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
                 if (navigationLinks && Array.from(navigationLinks).at(-1).href.includes("/history/")) {
                     Array.from(navigationLinks).at(-1).click()
+                }
+            }
+            if (location.pathname.match(/\/history$/)) {
+                if (e.code === "KeyK") {
+                    if (!document.querySelector("#sidebar_content .active-object")) {
+                        getMap()?.invalidateSize()
+                        document.querySelector(".browse-section:not(.hidden-version)").classList.add("active-object")
+                        document.querySelector(".browse-section:not(.hidden-version)").click()
+                        resetMapHover()
+                        document.querySelector(".browse-section:not(.hidden-version)").classList.add("map-hover")
+                    } else {
+                        const old = document.querySelector(".browse-section.active-object")
+                        let cur = old?.previousElementSibling
+                        while (cur && (!cur.classList.contains("browse-section") || cur.classList.contains("hidden-version"))) {
+                            cur = cur.previousElementSibling
+                        }
+                        if (cur) {
+                            cur.classList.add("active-object")
+                            old.classList.remove("active-object")
+                            cur.click()
+                            cur.scrollIntoView()
+                            resetMapHover()
+                            cur.classList.add("map-hover")
+                        }
+                    }
+                } else if (e.code === "KeyL" && !e.shiftKey) {
+                    if (!document.querySelector("#sidebar_content .active-object")) {
+                        getMap()?.invalidateSize()
+                        document.querySelector(".browse-section").classList.add("active-object")
+                        document.querySelector(".browse-section.active-object").click()
+                        resetMapHover()
+                        document.querySelector(".browse-section.active-object").classList.add("map-hover")
+                    } else {
+                        const old = document.querySelector(".browse-section.active-object")
+                        let cur = old?.nextElementSibling
+                        while (cur && (!cur.classList.contains("browse-section") || cur.classList.contains("hidden-version"))) {
+                            cur = cur.nextElementSibling
+                        }
+                        if (cur) {
+                            cur.classList.add("active-object")
+                            old.classList.remove("active-object")
+                            cur.click()
+                            cur.scrollIntoView()
+                            resetMapHover()
+                            cur.classList.add("map-hover")
+                        }
+                    }
                 }
             }
         }
