@@ -2321,62 +2321,81 @@ function filterObjectListByTimestamp(objectList, timestamp, alwaysReturn = false
     return objectList.map(i => searchVersionByTimestamp(i, timestamp, alwaysReturn))
 }
 
+async function sortWayNodesByTimestamp(wayID) {
+    /** @type {(NodeVersion|WayVersion)[]} */
+    const objectsBag = []
+    /** @type {Set<string>} */
+    const objectsSet = new Set()
+    for (const i of document.querySelectorAll(`.way-version-view`)) {
+        const [targetVersion, nodesHistory] = await loadWayVersionNodes(wayID, parseInt(i.getAttribute("way-version")));
+        objectsBag.push(targetVersion)
+        nodesHistory.forEach(v => {
+            if (v.length === 0) {
+                console.error(`${wayID}, v${parseInt(i.getAttribute("way-version"))} has node with empty history`)
+            }
+            const uniq_key = `${v[0].type} ${v[0].id}`
+            if (!objectsSet.has(uniq_key)) {
+                objectsBag.push(...v)
+                objectsSet.add(uniq_key)
+            }
+        })
+    }
+    objectsBag.sort((a, b) => {
+        if (a.timestamp < b.timestamp) return -1;
+        if (a.timestamp > b.timestamp) return 1;
+        if (a.type < b.type) return -1;
+        if (a.type > b.type) return 1;
+        return 0
+    })
+    return objectsBag;
+}
+
+/**
+ * @template T
+ * @param {T[]} history
+ * @return {Object.<number, T>}
+ */
+function makeObjectVersionsIndex(history) {
+    const wayVersionsIndex = {};
+    history.forEach(i => {
+        wayVersionsIndex[i.version] = i;
+    });
+    return wayVersionsIndex
+}
+
+/**
+ * @param {NodeVersion} v1
+ * @param {NodeVersion} v2
+ * @return {boolean}
+ */
+function locationChanged(v1, v2) {
+    return v1.lat !== v2.lat || v1.lon !== v2.lon;
+}
+
+/**
+ * @param {NodeVersion|WayVersion} v1
+ * @param {NodeVersion|WayVersion} v2
+ * @return {boolean}
+ */
+function tagsChanged(v1, v2) {
+    return JSON.stringify(v1.tags) !== JSON.stringify(v2.tags);
+}
+
 async function showFullWayHistory(wayID) {
     const btn = document.querySelector("#download-all-versions-btn")
     try {
-        /**
-         * @type {(NodeVersion|WayVersion)[]}
-         */
-        const objectsBag = []
-        const objectsSet = new Set()
-        for (const i of document.querySelectorAll(`.way-version-view`)) {
-            const [targetVersion, nodesHistory] = await loadWayVersionNodes(wayID, parseInt(i.getAttribute("way-version")));
-            objectsBag.push(targetVersion)
-            nodesHistory.forEach(v => {
-                if (v.length === 0) {
-                    console.error(`${wayID}, v${parseInt(i.getAttribute("way-version"))} has node with empty history`)
-                }
-                const uniq_key = `${v[0].type} ${v[0].id}`
-                if (!objectsSet.has(uniq_key)) {
-                    objectsBag.push(...v)
-                    objectsSet.add(uniq_key)
-                }
-            })
-        }
-        objectsBag.sort((a, b) => {
-            if (a.timestamp < b.timestamp) return -1;
-            if (a.timestamp > b.timestamp) return 1;
-            if (a.type < b.type) return -1;
-            if (a.type > b.type) return 1;
-            return 0
-        })
-        const wayVersionsIndex = {};
-        (await getWayHistory(wayID)).forEach(i => {
-            wayVersionsIndex[i.version] = i;
-        });
+        const objectsBag = await sortWayNodesByTimestamp(wayID);
+
+        const wayVersionsIndex = makeObjectVersionsIndex(await getWayHistory(wayID));
         /** @type {Object.<string, NodeVersion|WayVersion>}*/
         const objectStates = {};
         /** @type {Object.<string, [string, NodeVersion|WayVersion, NodeVersion|WayVersion]>} */
         let currentChanges = {}
 
         /**
-         * @param {NodeVersion} v1
-         * @param {NodeVersion} v2
-         * @return {boolean}
+         * @param {string} key
+         * @param {NodeVersion|WayVersion} newVersion
          */
-        function locationChanged(v1, v2) {
-            return v1.lat !== v2.lat || v1.lon !== v2.lon;
-        }
-
-        /**
-         * @param {NodeVersion|WayVersion} v1
-         * @param {NodeVersion|WayVersion} v2
-         * @return {boolean}
-         */
-        function tagsChanged(v1, v2) {
-            return JSON.stringify(v1.tags) !== JSON.stringify(v2.tags);
-        }
-
         function storeChanges(key, newVersion) {
             const prev = objectStates[key];
             if (prev === undefined) {
@@ -2402,10 +2421,11 @@ async function showFullWayHistory(wayID) {
         let currentTimestamp = null
         /** @type {WayVersion}*/
         let currentWayVersion = {version: 0, nodes: []}
+        let currentWayNodesSet = new Set()
         for (const it of objectsBag) {
             console.debug(it);
             const uniq_key = `${it.type} ${it.id}`
-            if (it.type === "node" && currentWayVersion.version > 0 && currentWayVersion.nodes?.find(i => i === it.id) === undefined) { // fixme O(n^2)
+            if (it.type === "node" && currentWayVersion.version > 0 && !currentWayNodesSet.has(it.id)) {
                 objectStates[uniq_key] = it
                 continue
             }
@@ -2422,17 +2442,12 @@ async function showFullWayHistory(wayID) {
                     wayVersionsIndex[currentWayVersion.version].nodes.forEach(nodeID => {
                         currentNodes.push(objectStates[`node ${nodeID}`])
                         const uniq_key = `node ${nodeID}`
-                        if (currentChanges[uniq_key] === undefined) {
-                            const curV = objectStates[uniq_key]
-                            if (curV) {
-                                if (curV.version === 1 && currentWayVersion.changeset === curV.changeset) {
-                                    currentChanges[uniq_key] = ["new", emptyVersion, curV]
-                                } else {
-                                    currentChanges[uniq_key] = ["", curV, curV]
-                                }
-                            } else {
-                                console.warn(`${uniq_key} not found in states`)
-                            }
+                        if (currentChanges[uniq_key] !== undefined) return;
+                        const curV = objectStates[uniq_key]
+                        if (curV) {
+                            currentChanges[uniq_key] = ["", curV, curV]
+                        } else {
+                            console.warn(`${uniq_key} not found in states`)
                         }
                     });
 
@@ -2453,9 +2468,7 @@ async function showFullWayHistory(wayID) {
                     interVersionDiv.appendChild(p)
                     fetch(osm_server.apiBase + "changeset" + "/" + currentChangeset + ".json").then(async res => {
                         const jsonRes = await res.json();
-                        /**
-                         * @type {ChangesetMetadata}
-                         */
+                        /** @type {ChangesetMetadata} */
                         const changesetMetadata = jsonRes.changeset ? jsonRes.changeset : jsonRes.elements[0]
                         p.textContent = changesetMetadata.tags['comment'];
                     })
@@ -2607,7 +2620,9 @@ async function showFullWayHistory(wayID) {
                     forNodesReplace = div
                 }
                 currentWayVersion = it
+                currentWayNodesSet = new Set()
                 currentWayVersion.nodes?.forEach(nodeID => {
+                    currentWayNodesSet.add(nodeID)
                     const uniq_key = `node ${nodeID}`
                     if (currentChanges[uniq_key] === undefined) {
                         const curV = objectStates[uniq_key]
@@ -2638,6 +2653,11 @@ async function showFullWayHistory(wayID) {
                                     if (i[1].visible !== false) {
                                         showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, 'customObjects', 3)
                                     }
+                                } else if (i[0] === "new") {
+                                    if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                                        showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, 'customObjects', 3)
+                                    }
+                                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, 'customObjects', 3)
                                 } else {
                                     showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, 'customObjects', 3)
                                 }
@@ -2707,7 +2727,7 @@ async function showFullWayHistory(wayID) {
             once: true
         })
         // making version filter
-        if (document.querySelectorAll('[way-version="inter"]').length > 10) {
+        if (document.querySelectorAll('[way-version="inter"]').length > 20) {
             const select = document.createElement("select")
             select.id = "versions-filter"
             select.title = "Filter for intermediate changes"
@@ -2864,7 +2884,12 @@ function setupWayVersionView() {
         downloadAllVersionsBtn.addEventListener("click", async e => {
             downloadAllVersionsBtn.style.cursor = "progress"
             for (const i of document.querySelectorAll(`.way-version-view:not([hidden])`)) {
-                await loadWayVersion(i)
+                try {
+                    await loadWayVersion(i)
+                } catch (e) {
+                    console.error(e)
+                    console.log("redacted version")
+                }
             }
             if (GM_config.get("FullVersionsDiff")) {
                 console.time("full history")
@@ -4272,6 +4297,7 @@ function getPOIIconURL(type, tags) {
     if (!iconsList) {
         return ["", false]
     }
+
     function getFallback(type) {
         if (type === "node") {
             return nodeFallback
@@ -5749,10 +5775,10 @@ async function addChangesetQuickLook() {
                 try {
                     const [iconSrc, invert] = getPOIIconURL("node", Array.from(node.querySelectorAll('tag[k]')).map(i => [i.getAttribute("k"), i.getAttribute("v")]))
                     div1.appendChild(GM_addElement("img", {
-                        src: iconSrc,
-                        height: 20,
-                        width: 20,
-                        class: "align-bottom object-fit-none browse-icon" + (invert ? " browse-icon-invertible" : "")
+                            src: iconSrc,
+                            height: 20,
+                            width: 20,
+                            class: "align-bottom object-fit-none browse-icon" + (invert ? " browse-icon-invertible" : "")
                         })
                     )
                 } catch (e) {
@@ -5834,10 +5860,10 @@ async function addChangesetQuickLook() {
                 try {
                     const [iconSrc, invert] = getPOIIconURL("way", Array.from(way.querySelectorAll('tag[k]')).map(i => [i.getAttribute("k"), i.getAttribute("v")]))
                     div1.appendChild(GM_addElement("img", {
-                        src: iconSrc,
-                        height: 20,
-                        width: 20,
-                        class: "align-bottom object-fit-none browse-icon" + (invert ? " browse-icon-invertible" : "")
+                            src: iconSrc,
+                            height: 20,
+                            width: 20,
+                            class: "align-bottom object-fit-none browse-icon" + (invert ? " browse-icon-invertible" : "")
                         })
                     )
                 } catch (e) {
@@ -6463,7 +6489,7 @@ function makeTopActionBar() {
     revertButton.textContent = "↩️"
     revertButton.onclick = () => {
         const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
-        window.location = "https://revert.monicz.dev/?changesets=" + ids
+        open("https://revert.monicz.dev/?changesets=" + ids, "_blank")
     }
     const revertViaJOSMButton = document.createElement("button")
     revertViaJOSMButton.textContent = "↩️ via JOSM"
