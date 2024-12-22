@@ -2528,6 +2528,13 @@ async function showFullWayHistory(wayID) {
                     const ulNodes = document.createElement("ul")
                     ulNodes.classList.add("list-unstyled")
                     currentNodes.forEach(i => {
+                        if (i === undefined) {
+                            console.trace()
+                            console.log(currentNodes)
+                            btn.style.background = "yellow"
+                            btn.title = "Some nodes was hidden by moderators"
+                            return
+                        }
                         const nodeLi = document.createElement("li")
                         const div = document.createElement("div")
                         div.classList.add("d-flex", "gap-1")
@@ -2694,6 +2701,16 @@ async function showFullWayHistory(wayID) {
                         })
                     }
                     currentNodes.forEach(([img, i]) => {
+                        if (i === undefined) {
+                            console.trace()
+                            console.log(currentNodes)
+                            btn.style.background = "yellow"
+                            btn.title = "Please try reload page.\nIf the error persists, a message about it in the better-osm-org repository"
+                            forNodesReplace.classList.add("broken-version")
+                            forNodesReplace.title = "Some nodes was hidden by moderators :\\"
+                            forNodesReplace.style.cursor = "auto"
+                            return
+                        }
                         const nodeLi = document.createElement("li")
                         const div = document.createElement("div")
                         div.classList.add("d-flex", "gap-1")
