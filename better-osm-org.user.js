@@ -2602,6 +2602,11 @@ async function showFullWayHistory(wayID) {
                                 if (i[1].visible !== false) {
                                     showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, 'customObjects', 3)
                                 }
+                            }  else if (i[0] === "new") {
+                                if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, 'customObjects', 3)
+                                }
+                                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, 'customObjects', 3)
                             } else {
                                 showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, 'customObjects', 3)
                             }
@@ -2622,6 +2627,11 @@ async function showFullWayHistory(wayID) {
                                 if (i[1].visible !== false) {
                                     showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, 'customObjects', 3)
                                 }
+                            } else if (i[0] === "new") {
+                                if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, 'customObjects', 3)
+                                }
+                                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, 'customObjects', 3)
                             } else {
                                 showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, 'customObjects', 3)
                             }
@@ -2704,7 +2714,12 @@ async function showFullWayHistory(wayID) {
                                     if (i[1].visible !== false) {
                                         showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, 'customObjects', 3)
                                     }
-                                } else {
+                                } else if (i[0] === "new") {
+                                    if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                                        showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, 'customObjects', 3)
+                                    }
+                                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, 'customObjects', 3)
+                                }  else {
                                     showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, 'customObjects', 3)
                                 }
                             })
@@ -2749,6 +2764,9 @@ async function showFullWayHistory(wayID) {
                         const curChange = currentChanges[`node ${i.id}`]
                         const nodesHistory = nodesHistories[i.id]
                         const tagsTable = processObject(div2, "node", curChange[1] ?? curChange[2], curChange[2], nodesHistory[nodesHistory.length - 1], nodesHistory)
+                        setTimeout(async () => {
+                            await processObjectInteractions("", "node", div2, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(div2)))
+                        }, 0)
                         tagsTable.then((table) => {
                             if (nodeLi.classList.contains("tags-non-modified")) {
                                 div2.appendChild(table)
