@@ -2278,6 +2278,9 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
         if (res.status === 404) {
             console.log('%c Some nodes was hidden. Start slow fetching :(', 'background: #222; color: #bada55')
             let newArgs = args.split(",").map(i => parseInt(i.match(/(\d+)v(\d+)/)[1]));
+            // это нарушает инвариант, что versions не содержит последней версии
+            // важно также сохранять отсортированность,
+            // иначе loadNodesViaHistoryCalls сделает внутри несколько вызовов для одной и той же точки
             (await loadNodesViaHistoryCalls(newArgs)).forEach(i => {
                 versions.push(...i)
             })
@@ -2301,7 +2304,9 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
             if (a.version > b.version) return 1;
             return 0
         })
-        history.push(lastVersionsMap[id][0])
+        if (history.length && history[history.length - 1].version !== lastVersionsMap[id][0].version) {
+            history.push(lastVersionsMap[id][0])
+        }
         nodesHistories[id] = history
     })
     return [targetVersion, targetVersion.nodes.map(nodeID => nodesHistories[nodeID])]
@@ -6433,7 +6438,7 @@ function simplifyHDCYIframe() {
             document.getElementById("authenticate").before(document.createElement("br"))
             document.getElementById("authenticate").before(hdycLink)
             document.getElementById("authenticate").remove()
-            window.parent.postMessage({ height: document.body.scrollHeight }, '*')
+            window.parent.postMessage({height: document.body.scrollHeight}, '*')
         } else {
             warn.innerHTML = `To see more than just public profiles, do the following:<br/>
 1. <a href="https://www.hdyc.neis-one.org/"> Log in to HDYC</a> <br/>
@@ -6454,7 +6459,9 @@ function simplifyHDCYIframe() {
             });
             document.getElementById("authenticate").before(warn)
             const img_help = document.createElement("img")
-            img_help.onload = () => { window.parent.postMessage({ height: document.body.scrollHeight }, '*')}
+            img_help.onload = () => {
+                window.parent.postMessage({height: document.body.scrollHeight}, '*')
+            }
             img_help.src = "https://raw.githubusercontent.com/deevroman/better-osm-org/master/img/hdyc-fix-in-chrome.png"
             img_help.style.width = "90%"
             warn.after(img_help)
@@ -6490,7 +6497,7 @@ function simplifyHDCYIframe() {
         }
         childNodesKey.remove()
     }
-    window.parent.postMessage({ height: document.body.scrollHeight }, '*');
+    window.parent.postMessage({height: document.body.scrollHeight}, '*');
 }
 
 //<editor-fold desc="/history, /user/*/history">
