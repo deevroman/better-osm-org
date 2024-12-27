@@ -939,6 +939,7 @@ out meta;
     `;
         let btn = document.createElement("a")
         btn.id = "timeback-btn";
+        btn.title = "Open the map state at the time of note creation"
         btn.textContent = " 🕰";
         btn.style.cursor = "pointer"
         document.querySelector("#sidebar_content time").after(btn);
@@ -1317,6 +1318,8 @@ function addSatelliteLayers() {
     }
     b.style.cursor = "pointer";
     b.classList.add("turn-on-satellite");
+    b.title = "Switch between map and satellite images. Only for Firefox"
+    // todo disable for Chrome
     document.querySelectorAll("h4")[0].appendChild(document.createTextNode("\xA0"));
     document.querySelectorAll("h4")[0].appendChild(b);
 
