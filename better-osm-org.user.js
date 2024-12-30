@@ -6713,8 +6713,8 @@ function addMassActionForUserChangesets() {
         }
     }
     // example: https://osmcha.org?filters={"users":[{"label":"TrickyFoxy","value":"TrickyFoxy"}]}
-    const username = location.pathname.match(/\/user\/(.*)\/history$/)[1]
-    const osmchaFilter = {"users": [{"label": username, "value": username}]}
+    const username = decodeURI(location.pathname.match(/\/user\/(.*)\/history$/)[1])
+    const osmchaFilter = {"users": [{"label": username, "value": username}], "date__gte": [{"label": "", "value": ""}]}
     const osmchaLink = document.createElement("a");
     osmchaLink.title = "Open profile in OSMCha.org"
     osmchaLink.href = "https://osmcha.org?" + new URLSearchParams({filters: JSON.stringify(osmchaFilter)}).toString()
