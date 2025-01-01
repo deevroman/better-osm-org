@@ -4770,7 +4770,9 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         tagsTable.appendChild(tbodyForTags)
 
         Object.entries(targetVersion.tags ?? {}).forEach(([k, v]) => {
-            tbodyForTags.appendChild(makeTagRow(k, v))
+            const row = makeTagRow(k, v)
+            makeLinksInRowClickable(row)
+            tbodyForTags.appendChild(row)
         })
 
         geomChangedFlag.onclick = e => {
@@ -5022,7 +5024,9 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         tagsTable.appendChild(tbodyForTags)
 
         Object.entries(targetVersion.tags ?? {}).forEach(([k, v]) => {
-            tbodyForTags.appendChild(makeTagRow(k, v))
+            const row = makeTagRow(k, v)
+            makeLinksInRowClickable(row)
+            tbodyForTags.appendChild(row)
         })
 
         memChangedFlag.onclick = e => {
