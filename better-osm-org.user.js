@@ -1629,6 +1629,33 @@ function blurSearchField() {
     }
 }
 
+
+function makePanoramaxValue(elem) {
+    elem.innerHTML = elem.innerHTML.replaceAll(/([0-9a-z-]+)/g, function (match) {
+        const a = document.createElement("a")
+        a.textContent = match
+        a.target = "_blank"
+        a.href = "https://api.panoramax.xyz/#focus=pic&pic=" + match
+        return a.outerHTML
+    })
+    elem.onclick = e => {
+        e.stopImmediatePropagation()
+    }
+}
+
+function makeMapillaryValue(elem) {
+    elem.innerHTML = elem.innerHTML.replaceAll(/([0-9]+)/g, function (match) {
+        const a = document.createElement("a")
+        a.textContent = match
+        a.target = "_blank"
+        a.href = "https://www.mapillary.com/app/?pKey=" + match
+        return a.outerHTML
+    })
+    elem.onclick = e => {
+        e.stopImmediatePropagation()
+    }
+}
+
 // example https://osm.org/node/6506618057
 function makeLinksInTagsClickable() {
     document.querySelectorAll(".browse-tag-list tr").forEach(i => {
@@ -1637,23 +1664,11 @@ function makeLinksInTagsClickable() {
             i.querySelector("td").classList.add("fixme-tag")
         } else if (key.startsWith("panoramax")) {
             if (!i.querySelector("td a")) {
-                i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/([0-9a-z-]+)/g, function (match) {
-                    const a = document.createElement("a")
-                    a.textContent = match
-                    a.target = "_blank"
-                    a.href = "https://api.panoramax.xyz/#focus=pic&pic=" + match
-                    return a.outerHTML
-                })
+                makePanoramaxValue(i.querySelector("td"))
             }
         } else if (key.startsWith("mapillary")) {
             if (!i.querySelector("td a")) {
-                i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/([0-9]+)/g, function (match) {
-                    const a = document.createElement("a")
-                    a.textContent = match
-                    a.target = "_blank"
-                    a.href = "https://www.mapillary.com/app/?pKey=" + match
-                    return a.outerHTML
-                })
+                makeMapillaryValue(i.querySelector("td"))
             }
         } else if (key === "xmas:feature" && !document.querySelector(".egg-snow-tag") || i.querySelector("td").textContent.includes("snow")) {
             const curDate = new Date()
@@ -4422,6 +4437,12 @@ function makeLinksInRowClickable(row) {
             e.stopImmediatePropagation()
         }
         row.querySelector("td").appendChild(a)
+    } else {
+        if (row.querySelector("th").textContent.startsWith("panoramax")) {
+            makePanoramaxValue(row.querySelector("td"))
+        } else if (row.querySelector("th").textContent.startsWith("mapillary")) {
+            makeMapillaryValue(row.querySelector("td"))
+        }
     }
 }
 
