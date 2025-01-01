@@ -6426,6 +6426,11 @@ async function setupHDYCInProfile(path) {
         if (isDarkMode()) {
             document.querySelector('a[href$="/blocks"]').nextElementSibling.style.color = "white"
         }
+        getCachedUserInfo(decodeURI(user)).then(userInfo => {
+            if (userInfo['blocks']['received']['active'] === 0) {
+                updateUserInfo(decodeURI(user))
+            }
+        })
     }
     const iframe = document.getElementById('hdyc-iframe');
     window.addEventListener('message', function (event) {
@@ -6598,7 +6603,7 @@ async function updateUserInfo(username) {
             display_name: username,
             limit: 1
         }).toString());
-        uid = res['features'][0]['properties']['comments'][0]['uid']
+        uid = res['features'][0]['properties']['comments'].find(i => i['user'] === username)['uid']
     } else {
         uid = res['changesets'][0]['uid']
     }
