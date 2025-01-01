@@ -4431,6 +4431,7 @@ function detectEditsWars(prevVersion, targetVersion, objHistory, row, key) {
     warLog.style.borderColor = "var(--bs-body-color)";
     warLog.style.borderStyle = "solid";
     warLog.style.borderWidth = "1px";
+    warLog.title = ""
     for (let j = 0; j < objHistory.length; j++) {
         const it = objHistory[j];
 
@@ -4450,7 +4451,12 @@ function detectEditsWars(prevVersion, targetVersion, objHistory, row, key) {
             const tr = document.createElement("tr")
             tr.classList.add("quick-look-deleted-tag")
             const th_ver = document.createElement("th")
-            th_ver.textContent = `v${it.version}`
+            const ver_link = document.createElement("a")
+            ver_link.textContent = `v${it.version}`
+            ver_link.href = `/${it.type}/${it.id}/history/${it.version}`
+            ver_link.target = "_blank"
+            ver_link.style.color = "unset"
+            th_ver.appendChild(ver_link)
             const td_user = document.createElement("td")
             td_user.textContent = `${it.user}`
             const td_tag = document.createElement("td")
@@ -4462,7 +4468,12 @@ function detectEditsWars(prevVersion, targetVersion, objHistory, row, key) {
         } else {
             const tr = document.createElement("tr")
             const th_ver = document.createElement("th")
-            th_ver.textContent = `v${it.version}`
+            const ver_link = document.createElement("a")
+            ver_link.textContent = `v${it.version}`
+            ver_link.href = `/${it.type}/${it.id}/history/${it.version}`
+            ver_link.target = "_blank"
+            ver_link.style.color = "unset"
+            th_ver.appendChild(ver_link)
             const td_user = document.createElement("td")
             td_user.textContent = `${it.user}`
             const td_tag = document.createElement("td")
