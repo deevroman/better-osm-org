@@ -7608,6 +7608,16 @@ function setupNavigationViaHotkeys() {
             if (e.shiftKey) {
                 document.getElementsByClassName("geolocate")[0]?.click()
             }
+        } else if (e.code === "KeyC") {
+            const activeObject = document.querySelector(".browse-section.active-object")
+            if (activeObject) {
+                activeObject.querySelector('a[href^="/changeset/"]')?.click()
+            } else {
+                const changesetsLinks = document.querySelectorAll('a[href^="/changeset/"]')
+                if (changesetsLinks.length === 1) {
+                    changesetsLinks[0].click()
+                }
+            }
         } else {
             // console.log(e.key, e.code)
         }
