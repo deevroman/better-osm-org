@@ -7626,6 +7626,13 @@ function setupNavigationViaHotkeys() {
                     Array.from(navigationLinks).at(-1).focus()
                     Array.from(navigationLinks).at(-1).click()
                 }
+            } else if (e.code === "KeyH") {
+                const userChangesetsLink = document.querySelectorAll("div.secondary-actions")[1]?.querySelector('a[href^="/user/"]')
+                if (userChangesetsLink) {
+                    abortDownloadingController.abort("Abort requests for moving to user changesets")
+                    userChangesetsLink.focus()
+                    userChangesetsLink.click()
+                }
             } else if (e.code === "KeyK") {
                 if (!document.querySelector("ul .active-object")) {
 
