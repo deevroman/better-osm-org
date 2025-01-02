@@ -27,9 +27,11 @@
 // @namespace    https://github.com/deevroman/better-osm-org
 // @updateURL    https://github.com/deevroman/better-osm-org/raw/master/better-osm-org.user.js
 // @downloadURL  https://github.com/deevroman/better-osm-org/raw/master/better-osm-org.user.js
+// @supportURL   https://github.com/deevroman/better-osm-org/issues
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=openstreetmap.org
 // @require      https://github.com/deevroman/GM_config/raw/fixed-for-chromium/gm_config.js#sha256=ea04cb4254619543f8bca102756beee3e45e861077a75a5e74d72a5c131c580b
 // @require      https://raw.githubusercontent.com/deevroman/osmtags-editor/main/osm-auth.iife.min.js#sha256=dcd67312a2714b7a13afbcc87d2f81ee46af7c3871011427ddba1e56900b4edd
+// @incompatible safari https://github.com/deevroman/better-osm-org/issues/13
 // @grant        GM_registerMenuCommand
 // @grant        GM_getValue
 // @grant        GM_setValue
