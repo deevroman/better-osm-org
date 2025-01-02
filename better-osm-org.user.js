@@ -4,8 +4,8 @@
 // @version         0.6.1
 // @changelog       New: displaying the full history of ways (You can disable it in settings)
 // @changelog       https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670/25
-// @description     Several improvements for advanced users of osm.org
-// @description:ru  Скрипт, добавляющий на osm.org полезные картографам функции
+// @description     Several improvements for advanced users of openstreetmap.org
+// @description:ru  Скрипт, добавляющий на openstreetmap.org полезные картографам функции
 // @author       deevroman
 // @match        https://www.openstreetmap.org/*
 // @exclude      https://www.openstreetmap.org/api*
@@ -138,7 +138,7 @@ GM_config.init(
                     },
                 'ShowChangesetGeometry':
                     {
-                        'label': 'Show geometry of objects in changeset β',
+                        'label': 'Show geometry of objects in changeset',
                         'type': 'checkbox',
                         'default': 'checked',
                         'labelPos': 'right'
@@ -252,11 +252,17 @@ GM_config.init(
                     'type': 'checkbox',
                     'default': 'checked',
                     'labelPos': 'right'
+                },
+                'OverzoomForDataLayer': {
+                    'label': 'Allow overzoom when data layer enabled β',
+                    'type': 'checkbox',
+                    'default': false,
+                    'labelPos': 'right'
                 }
             },
         frameStyle: `
             border: 1px solid #000;
-            height: min(85%, 745px);
+            height: min(85%, 760px);
             width: max(25%, 380px);
             z-index: 9999;
             opacity: 0;
@@ -4050,6 +4056,7 @@ function addRelationVersionView() {
     const btn = document.createElement("a")
     btn.textContent = "📥"
     btn.id = "load-relation-version"
+    btn.title = "Load relation version via Overpass API"
     btn.style.cursor = "pointer"
     btn.addEventListener("click", async () => {
         btn.style.cursor = "progress"
@@ -7453,6 +7460,22 @@ function resetMapHover() {
     })
 }
 
+function enableOverzoom() {
+    if (!GM_config.get("OverzoomForDataLayer")) {
+        return
+    }
+    console.log("start")
+    injectJSIntoPage(`
+    (function () {
+        map.options.maxZoom = 23
+        const layers = [];
+        map.eachLayer(i => layers.push(i))
+        layers[0].options.maxZoom = 23
+    })()
+    `)
+    console.log("end")
+}
+
 function setupNavigationViaHotkeys() {
     if (["/edit", "/id"].includes(location.pathname)) return
     updateCurrentObjectMetadata()
@@ -7482,6 +7505,7 @@ function setupNavigationViaHotkeys() {
             }
         } else if (e.code === "KeyD") { // map data
             Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
+            enableOverzoom()
         } else if (e.code === "KeyG") { // gps tracks
             Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
         } else if (e.code === "KeyS") { // satellite
@@ -7826,6 +7850,12 @@ function setupClickableAvatar() {
     }
 }
 
+function setupOverzoomForDataLayer() {
+    if (location.hash.includes("D") && location.hash.includes("layers")) {
+        enableOverzoom()
+    }
+}
+
 const modules = [
     setupOffMapDim,
     setupDarkModeForMap,
@@ -7842,7 +7872,8 @@ const modules = [
     setupNewEditorsLinks,
     setupNavigationViaHotkeys,
     setupRelationVersionViewer,
-    setupClickableAvatar
+    setupClickableAvatar,
+    setupOverzoomForDataLayer,
 ];
 
 const fetchJSONWithCache = (() => {
@@ -8221,9 +8252,9 @@ init.then(main);
 // garbage collection for cached infos (user info, changeset history)
 setTimeout(async function () {
     if (Math.random() > 0.5) return
-    if (!location.pathname.includes("/history")) return
-    const lastGC = new Date(GM_getValue("last-garbage-collection-time", Date.now()))
-    if (lastGC.getTime() + 1000 * 60 * 60 * 24 * 2 > Date.now()) return
+    if (!location.pathname.includes("/history") && !location.pathname.includes("/note")) return
+    const lastGC = GM_getValue("last-garbage-collection-time")
+    if (lastGC && (new Date(lastGC)).getTime() + 1000 * 60 * 60 * 24 * 2 > Date.now()) return
     GM_setValue("last-garbage-collection-time", Date.now());
 
     const keys = GM_listValues();
@@ -8237,4 +8268,4 @@ setTimeout(async function () {
         }
     }
     console.log("Old cache cleaned")
-}, 1000 * 22)
+}, 1000 * 12)
