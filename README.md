@@ -102,9 +102,11 @@ Experimental hotkeys:
 - Clickable:
 - + [x] Hashtags in changeset comment
 - + [x] Changeset IDs in comments
-- + [x] `panoramax=*`, `mapillary=*` tags 
+- + [x] `revert:id`, `closed:note`, `redacted_changesets` key in changeset
+- + [x] `panoramax=*`, `mapillary=*` tags
 - + [ ] `contact:*`=
 - [x] Shortening long URLs in comments: https://www.openstreetmap.org → osm.org
+- [x] Shortening `v:`, `ideditor:` keys in changesets tags and hide `host=https://www.openstreetmap.org/edit`
 - [ ] Bypass OSMF Redactions
 
 ### Ideas
