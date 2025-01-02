@@ -6508,7 +6508,10 @@ function simplifyHDCYIframe() {
                 .day-cell[fill="#e8e8e8"] {
                     fill: #262a2b;
                 }
-
+                
+                #result th {
+                    background-color: rgba(24, 26, 27, 0.8);
+                }
                 #result td {
                     border-color: #363659;
                 }
