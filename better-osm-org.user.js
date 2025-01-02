@@ -2620,7 +2620,7 @@ async function showFullWayHistory(wayID) {
                                 if (i[1].visible !== false) {
                                     showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, 'customObjects', 3)
                                 }
-                            }  else if (i[0] === "new") {
+                            } else if (i[0] === "new") {
                                 if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
                                     showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, 'customObjects', 3)
                                 }
@@ -2737,7 +2737,7 @@ async function showFullWayHistory(wayID) {
                                         showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, 'customObjects', 3)
                                     }
                                     showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, 'customObjects', 3)
-                                }  else {
+                                } else {
                                     showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, 'customObjects', 3)
                                 }
                             })
