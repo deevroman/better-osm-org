@@ -69,6 +69,7 @@ Experimental hotkeys:
 - `Y` — open Yandex.Panoramas
 - `shift` + `E` — open second editor
 - `shift` + `N` — create new note
+- `C` — Open changeset of object version
 
 ### Other
 
@@ -101,8 +102,11 @@ Experimental hotkeys:
 - Clickable:
 - + [x] Hashtags in changeset comment
 - + [x] Changeset IDs in comments
-- + [x] `panoramax=*`, `mapillary=*` tags 
-- + [ ] `contact:*`
+- + [x] `revert:id`, `closed:note`, `redacted_changesets` key in changeset
+- + [x] `panoramax=*`, `mapillary=*` tags
+- + [ ] `contact:*`=
+- [x] Shortening long URLs in comments: https://www.openstreetmap.org → osm.org
+- [x] Shortening `v:`, `ideditor:` keys in changesets tags and hide `host=https://www.openstreetmap.org/edit`
 - [ ] Bypass OSMF Redactions
 
 ### Ideas
@@ -152,6 +156,7 @@ Maybe
 ### Other
 
 - [Discussion on forum](https://community.openstreetmap.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670)
+- [OSM Wiki](https://wiki.openstreetmap.org/wiki/Better-osm-org)
 - [Greasy Fork](https://greasyfork.org/en/scripts/517486-better-osm-org)
 - [Issues](https://github.com/deevroman/better-osm-org/issues?q=sort%3Aupdated-desc+is%3Aissue+is%3Aopen)
 - [Mastodon](https://en.osm.town/@foxy)

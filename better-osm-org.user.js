@@ -467,6 +467,13 @@ function addRevertButton() {
                     } else if (i.querySelector("td").textContent.match(/https:\/\/(www\.)?openstreetmap.org\/changeset\//g)) {
                         i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/>https:\/\/(www\.)?openstreetmap.org\/changeset\//g, ">")
                     }
+                } else if (key.textContent === "redacted_changesets") {
+                    if (i.querySelector("td").textContent.match(/^((\d+(,|$))+$)/)) {
+                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)/g,
+                            `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>`)
+                    } else if (i.querySelector("td").textContent.match(/https:\/\/(www\.)?openstreetmap.org\/changeset\//g)) {
+                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/>https:\/\/(www\.)?openstreetmap.org\/changeset\//g, ">")
+                    }
                 } else if (key.textContent === "closed:note") {
                     if (i.querySelector("td").textContent.match(/^((\d+(;|$))+$)/)) {
                         i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)/g,
@@ -508,7 +515,7 @@ function addRevertButton() {
                 }
             )
             textarea.addEventListener("click", () => {
-                    textarea.rows = textarea.rows + 2
+                    textarea.rows = textarea.rows + 5
                     comment.hidden = false
                 }, {once: true}
             )
@@ -939,6 +946,7 @@ out meta;
     `;
         let btn = document.createElement("a")
         btn.id = "timeback-btn";
+        btn.title = "Open the map state at the time of note creation"
         btn.textContent = " 🕰";
         btn.style.cursor = "pointer"
         document.querySelector("#sidebar_content time").after(btn);
@@ -1317,6 +1325,8 @@ function addSatelliteLayers() {
     }
     b.style.cursor = "pointer";
     b.classList.add("turn-on-satellite");
+    b.title = "Switch between map and satellite images. Only for Firefox"
+    // todo disable for Chrome
     document.querySelectorAll("h4")[0].appendChild(document.createTextNode("\xA0"));
     document.querySelectorAll("h4")[0].appendChild(b);
 
@@ -1626,6 +1636,33 @@ function blurSearchField() {
     }
 }
 
+
+function makePanoramaxValue(elem) {
+    elem.innerHTML = elem.innerHTML.replaceAll(/([0-9a-z-]+)/g, function (match) {
+        const a = document.createElement("a")
+        a.textContent = match
+        a.target = "_blank"
+        a.href = "https://api.panoramax.xyz/#focus=pic&pic=" + match
+        return a.outerHTML
+    })
+    elem.onclick = e => {
+        e.stopImmediatePropagation()
+    }
+}
+
+function makeMapillaryValue(elem) {
+    elem.innerHTML = elem.innerHTML.replaceAll(/([0-9]+)/g, function (match) {
+        const a = document.createElement("a")
+        a.textContent = match
+        a.target = "_blank"
+        a.href = "https://www.mapillary.com/app/?pKey=" + match
+        return a.outerHTML
+    })
+    elem.onclick = e => {
+        e.stopImmediatePropagation()
+    }
+}
+
 // example https://osm.org/node/6506618057
 function makeLinksInTagsClickable() {
     document.querySelectorAll(".browse-tag-list tr").forEach(i => {
@@ -1634,23 +1671,11 @@ function makeLinksInTagsClickable() {
             i.querySelector("td").classList.add("fixme-tag")
         } else if (key.startsWith("panoramax")) {
             if (!i.querySelector("td a")) {
-                i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/([0-9a-z-]+)/g, function (match) {
-                    const a = document.createElement("a")
-                    a.textContent = match
-                    a.target = "_blank"
-                    a.href = "https://api.panoramax.xyz/#focus=pic&pic=" + match
-                    return a.outerHTML
-                })
+                makePanoramaxValue(i.querySelector("td"))
             }
         } else if (key.startsWith("mapillary")) {
             if (!i.querySelector("td a")) {
-                i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/([0-9]+)/g, function (match) {
-                    const a = document.createElement("a")
-                    a.textContent = match
-                    a.target = "_blank"
-                    a.href = "https://www.mapillary.com/app/?pKey=" + match
-                    return a.outerHTML
-                })
+                makeMapillaryValue(i.querySelector("td"))
             }
         } else if (key === "xmas:feature" && !document.querySelector(".egg-snow-tag") || i.querySelector("td").textContent.includes("snow")) {
             const curDate = new Date()
@@ -2602,7 +2627,7 @@ async function showFullWayHistory(wayID) {
                                 if (i[1].visible !== false) {
                                     showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, 'customObjects', 3)
                                 }
-                            }  else if (i[0] === "new") {
+                            } else if (i[0] === "new") {
                                 if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
                                     showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, 'customObjects', 3)
                                 }
@@ -2719,7 +2744,7 @@ async function showFullWayHistory(wayID) {
                                         showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, 'customObjects', 3)
                                     }
                                     showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, 'customObjects', 3)
-                                }  else {
+                                } else {
                                     showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, 'customObjects', 3)
                                 }
                             })
@@ -4419,6 +4444,12 @@ function makeLinksInRowClickable(row) {
             e.stopImmediatePropagation()
         }
         row.querySelector("td").appendChild(a)
+    } else {
+        if (row.querySelector("th").textContent.startsWith("panoramax")) {
+            makePanoramaxValue(row.querySelector("td"))
+        } else if (row.querySelector("th").textContent.startsWith("mapillary")) {
+            makeMapillaryValue(row.querySelector("td"))
+        }
     }
 }
 
@@ -4428,6 +4459,7 @@ function detectEditsWars(prevVersion, targetVersion, objHistory, row, key) {
     warLog.style.borderColor = "var(--bs-body-color)";
     warLog.style.borderStyle = "solid";
     warLog.style.borderWidth = "1px";
+    warLog.title = ""
     for (let j = 0; j < objHistory.length; j++) {
         const it = objHistory[j];
 
@@ -4447,7 +4479,12 @@ function detectEditsWars(prevVersion, targetVersion, objHistory, row, key) {
             const tr = document.createElement("tr")
             tr.classList.add("quick-look-deleted-tag")
             const th_ver = document.createElement("th")
-            th_ver.textContent = `v${it.version}`
+            const ver_link = document.createElement("a")
+            ver_link.textContent = `v${it.version}`
+            ver_link.href = `/${it.type}/${it.id}/history/${it.version}`
+            ver_link.target = "_blank"
+            ver_link.style.color = "unset"
+            th_ver.appendChild(ver_link)
             const td_user = document.createElement("td")
             td_user.textContent = `${it.user}`
             const td_tag = document.createElement("td")
@@ -4459,7 +4496,12 @@ function detectEditsWars(prevVersion, targetVersion, objHistory, row, key) {
         } else {
             const tr = document.createElement("tr")
             const th_ver = document.createElement("th")
-            th_ver.textContent = `v${it.version}`
+            const ver_link = document.createElement("a")
+            ver_link.textContent = `v${it.version}`
+            ver_link.href = `/${it.type}/${it.id}/history/${it.version}`
+            ver_link.target = "_blank"
+            ver_link.style.color = "unset"
+            th_ver.appendChild(ver_link)
             const td_user = document.createElement("td")
             td_user.textContent = `${it.user}`
             const td_tag = document.createElement("td")
@@ -4767,7 +4809,9 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         tagsTable.appendChild(tbodyForTags)
 
         Object.entries(targetVersion.tags ?? {}).forEach(([k, v]) => {
-            tbodyForTags.appendChild(makeTagRow(k, v))
+            const row = makeTagRow(k, v)
+            makeLinksInRowClickable(row)
+            tbodyForTags.appendChild(row)
         })
 
         geomChangedFlag.onclick = e => {
@@ -5019,7 +5063,9 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         tagsTable.appendChild(tbodyForTags)
 
         Object.entries(targetVersion.tags ?? {}).forEach(([k, v]) => {
-            tbodyForTags.appendChild(makeTagRow(k, v))
+            const row = makeTagRow(k, v)
+            makeLinksInRowClickable(row)
+            tbodyForTags.appendChild(row)
         })
 
         memChangedFlag.onclick = e => {
@@ -6408,6 +6454,11 @@ async function setupHDYCInProfile(path) {
         if (isDarkMode()) {
             document.querySelector('a[href$="/blocks"]').nextElementSibling.style.color = "white"
         }
+        getCachedUserInfo(decodeURI(user)).then(userInfo => {
+            if (userInfo['blocks']['received']['active'] === 0) {
+                updateUserInfo(decodeURI(user))
+            }
+        })
     }
     const iframe = document.getElementById('hdyc-iframe');
     window.addEventListener('message', function (event) {
@@ -6464,7 +6515,10 @@ function simplifyHDCYIframe() {
                 .day-cell[fill="#e8e8e8"] {
                     fill: #262a2b;
                 }
-
+                
+                #result th {
+                    background-color: rgba(24, 26, 27, 0.8);
+                }
                 #result td {
                     border-color: #363659;
                 }
@@ -6580,7 +6634,7 @@ async function updateUserInfo(username) {
             display_name: username,
             limit: 1
         }).toString());
-        uid = res['features'][0]['properties']['comments'][0]['uid']
+        uid = res['features'][0]['properties']['comments'].find(i => i['user'] === username)['uid']
     } else {
         uid = res['changesets'][0]['uid']
     }
@@ -6710,8 +6764,8 @@ function addMassActionForUserChangesets() {
         }
     }
     // example: https://osmcha.org?filters={"users":[{"label":"TrickyFoxy","value":"TrickyFoxy"}]}
-    const username = location.pathname.match(/\/user\/(.*)\/history$/)[1]
-    const osmchaFilter = {"users": [{"label": username, "value": username}]}
+    const username = decodeURI(location.pathname.match(/\/user\/(.*)\/history$/)[1])
+    const osmchaFilter = {"users": [{"label": username, "value": username}], "date__gte": [{"label": "", "value": ""}]}
     const osmchaLink = document.createElement("a");
     osmchaLink.title = "Open profile in OSMCha.org"
     osmchaLink.href = "https://osmcha.org?" + new URLSearchParams({filters: JSON.stringify(osmchaFilter)}).toString()
@@ -7585,6 +7639,16 @@ function setupNavigationViaHotkeys() {
             if (e.shiftKey) {
                 document.getElementsByClassName("geolocate")[0]?.click()
             }
+        } else if (e.code === "KeyC") {
+            const activeObject = document.querySelector(".browse-section.active-object")
+            if (activeObject) {
+                activeObject.querySelector('a[href^="/changeset/"]')?.click()
+            } else {
+                const changesetsLinks = document.querySelectorAll('a[href^="/changeset/"]')
+                if (changesetsLinks.length === 1) {
+                    changesetsLinks[0].click()
+                }
+            }
         } else {
             // console.log(e.key, e.code)
         }
@@ -7602,6 +7666,13 @@ function setupNavigationViaHotkeys() {
                     abortDownloadingController.abort("Abort requests for moving to next changeset")
                     Array.from(navigationLinks).at(-1).focus()
                     Array.from(navigationLinks).at(-1).click()
+                }
+            } else if (e.code === "KeyH") {
+                const userChangesetsLink = document.querySelectorAll("div.secondary-actions")[1]?.querySelector('a[href^="/user/"]')
+                if (userChangesetsLink) {
+                    abortDownloadingController.abort("Abort requests for moving to user changesets")
+                    userChangesetsLink.focus()
+                    userChangesetsLink.click()
                 }
             } else if (e.code === "KeyK") {
                 if (!document.querySelector("ul .active-object")) {
