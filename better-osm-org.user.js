@@ -508,7 +508,7 @@ function addRevertButton() {
                 }
             )
             textarea.addEventListener("click", () => {
-                    textarea.rows = textarea.rows + 2
+                    textarea.rows = textarea.rows + 5
                     comment.hidden = false
                 }, {once: true}
             )
