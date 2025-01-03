@@ -79,6 +79,7 @@
 /*global GM_registerMenuCommand*/
 /*global unsafeWindow*/
 /*global exportFunction*/
+
 /*global cloneInto*/
 
 function isDarkMode() {
@@ -4555,6 +4556,39 @@ const emptyVersion = {
     visible: false
 }
 
+
+/**
+ *
+ * @param {string} targetTimestamp
+ * @param {string|number} wayID
+ * @return {Promise<*[]>}
+ */
+async function getWayNodesByTimestamp(targetTimestamp, wayID) {
+    const targetVersion = searchVersionByTimestamp(await getWayHistory(wayID), targetTimestamp);
+    if (targetVersion === null) {
+        return
+    }
+    const [, wayNodesHistories] = await loadWayVersionNodes(wayID, targetVersion.version)
+    const targetNodes = filterObjectListByTimestamp(wayNodesHistories, targetTimestamp)
+
+    const nodesMap = {}
+    targetNodes.forEach(elem => {
+        nodesMap[elem.id] = [elem.lat, elem.lon]
+    })
+
+    let currentNodesList = []
+    targetVersion.nodes.forEach(node => {
+        if (node in nodesMap) {
+            currentNodesList.push(nodesMap[node])
+        } else {
+            console.error(wayID, node)
+            console.trace()
+        }
+    })
+    return currentNodesList
+}
+
+
 /**
  * @param {Element} i
  * @param {string} objType
@@ -4949,6 +4983,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             tagTd2.style.cursor = "";
             tagTd.style.textAlign = "right"
             tagTd2.style.textAlign = "right"
+
             if (left && typeof left === "object") {
                 tagTd.onmouseenter = async e => {
                     e.stopPropagation()
@@ -4957,8 +4992,19 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                     if (left.type === "node") {
                         const version = searchVersionByTimestamp(await getNodeHistory(left.ref), targetTimestamp)
                         showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
+                        tagTd.title = ""
+                        for (let tagsKey in version.tags ?? {}) {
+                            tagTd.title += `${tagsKey}=${version.tags[tagsKey]}\n`;
+                        }
                     } else if (left.type === "way") {
-
+                        const currentNodesList = await getWayNodesByTimestamp(targetTimestamp, left.ref)
+                        showActiveWay(cloneInto(currentNodesList, unsafeWindow))
+                        const version = searchVersionByTimestamp(await getWayHistory(left.ref), targetTimestamp)
+                        tagTd.title = ""
+                        for (let tagsKey in version.tags ?? {}) {
+                            tagTd.title += `${tagsKey}=${version.tags[tagsKey]}\n`;
+                        }
+                    } else if (left.type === "relation") {
                         // todo
                     }
                 }
@@ -4968,10 +5014,13 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 }
                 tagTd.onclick = async e => {
                     e.stopPropagation()
+                    const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                     if (left.type === "node") {
-                        const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
                         const version = searchVersionByTimestamp(await getNodeHistory(left.ref), targetTimestamp)
                         panTo(version.lat.toString(), version.lon.toString())
+                    } else if (left.type === "way") {
+                        const currentNodesList = await getWayNodesByTimestamp(targetTimestamp, left.ref)
+                        showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", true)
                     }
                 }
             }
@@ -4984,7 +5033,19 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                     if (right.type === "node") {
                         const version = searchVersionByTimestamp(await getNodeHistory(right.ref), targetTimestamp)
                         showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
-                    } else {
+                        tagTd2.title = ""
+                        for (let tagsKey in version.tags ?? {}) {
+                            tagTd2.title += `${tagsKey}=${version.tags[tagsKey]}\n`;
+                        }
+                    } else if (right.type === "way") {
+                        const currentNodesList = await getWayNodesByTimestamp(targetTimestamp, right.ref)
+                        showActiveWay(cloneInto(currentNodesList, unsafeWindow))
+                        const version = searchVersionByTimestamp(await getWayHistory(right.ref), targetTimestamp)
+                        tagTd2.title = ""
+                        for (let tagsKey in version.tags ?? {}) {
+                            tagTd2.title += `${tagsKey}=${version.tags[tagsKey]}\n`;
+                        }
+                    } else if (right.type === "relation") {
                         // todo
                     }
                 }
@@ -4993,10 +5054,13 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 }
                 tagTd2.onclick = async e => {
                     e.stopPropagation()
+                    const targetTimestamp = (new Date(changesetMetadata.closed_at ?? new Date())).toISOString()
                     if (right.type === "node") {
-                        const targetTimestamp = (new Date(changesetMetadata.closed_at ?? new Date())).toISOString()
                         const version = searchVersionByTimestamp(await getNodeHistory(right.ref), targetTimestamp)
                         panTo(version.lat.toString(), version.lon.toString())
+                    } else if (right.type === "way") {
+                        const currentNodesList = await getWayNodesByTimestamp(targetTimestamp, right.ref)
+                        showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", true)
                     }
                 }
             }
@@ -6196,27 +6260,7 @@ async function addChangesetQuickLook() {
                                         nodesHistories[n.id] = [n]
                                     }
                                 })
-                                const targetVersion = searchVersionByTimestamp(await getWayHistory(way.id), changesetMetadata.closed_at);
-                                if (targetVersion === null) {
-                                    return
-                                }
-                                const [, wayNodesHistories] = await loadWayVersionNodes(objID, targetVersion.version)
-                                const targetNodes = filterObjectListByTimestamp(wayNodesHistories, changesetMetadata.closed_at)
-
-                                const nodesMap = {}
-                                targetNodes.forEach(elem => {
-                                    nodesMap[elem.id] = [elem.lat, elem.lon]
-                                })
-
-                                let currentNodesList = []
-                                targetVersion.nodes.forEach(node => {
-                                    if (node in nodesMap) {
-                                        currentNodesList.push(nodesMap[node])
-                                    } else {
-                                        console.error(objID, node)
-                                        console.trace()
-                                    }
-                                })
+                                const currentNodesList = await getWayNodesByTimestamp(changesetMetadata.closed_at, objID)
 
                                 const popup = document.createElement("span")
                                 const link = document.createElement("a")
