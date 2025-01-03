@@ -4320,16 +4320,16 @@ function addSwipes() {
     }
 }
 
-function addRegionForFirstChangeset(skip = false) {
+function addRegionForFirstChangeset(attempts = 5) {
     if (getMap().getZoom() <= 10) {
         getMap().attributionControl.setPrefix("")
-        if (skip) {
-            console.log("Skip geocoding")
-        } else {
-            console.log("Second attempt for geocoding")
+        if (attempts > 0) {
+            console.log(`Attempt №${7 - attempts} for geocoding`)
             setTimeout(() => {
-                addRegionForFirstChangeset(true)
+                addRegionForFirstChangeset(attempts - 1)
             }, 100)
+        } else {
+            console.log("Skip geocoding")
         }
         return
     }
