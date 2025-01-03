@@ -4558,10 +4558,9 @@ const emptyVersion = {
 
 
 /**
- *
  * @param {string} targetTimestamp
  * @param {string|number} wayID
- * @return {Promise<*[]>}
+ * @return {Promise<(*[])[]>}
  */
 async function getWayNodesByTimestamp(targetTimestamp, wayID) {
     const targetVersion = searchVersionByTimestamp(await getWayHistory(wayID), targetTimestamp);
@@ -4585,7 +4584,7 @@ async function getWayNodesByTimestamp(targetTimestamp, wayID) {
             console.trace()
         }
     })
-    return currentNodesList
+    return [targetVersion, currentNodesList]
 }
 
 
@@ -4997,7 +4996,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                             tagTd.title += `${tagsKey}=${version.tags[tagsKey]}\n`;
                         }
                     } else if (left.type === "way") {
-                        const currentNodesList = await getWayNodesByTimestamp(targetTimestamp, left.ref)
+                        const [, currentNodesList] = await getWayNodesByTimestamp(targetTimestamp, left.ref)
                         showActiveWay(cloneInto(currentNodesList, unsafeWindow))
                         const version = searchVersionByTimestamp(await getWayHistory(left.ref), targetTimestamp)
                         tagTd.title = ""
@@ -5019,7 +5018,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                         const version = searchVersionByTimestamp(await getNodeHistory(left.ref), targetTimestamp)
                         panTo(version.lat.toString(), version.lon.toString())
                     } else if (left.type === "way") {
-                        const currentNodesList = await getWayNodesByTimestamp(targetTimestamp, left.ref)
+                        const [, currentNodesList] = await getWayNodesByTimestamp(targetTimestamp, left.ref)
                         showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", true)
                     }
                 }
@@ -5038,7 +5037,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                             tagTd2.title += `${tagsKey}=${version.tags[tagsKey]}\n`;
                         }
                     } else if (right.type === "way") {
-                        const currentNodesList = await getWayNodesByTimestamp(targetTimestamp, right.ref)
+                        const [, currentNodesList] = await getWayNodesByTimestamp(targetTimestamp, right.ref)
                         showActiveWay(cloneInto(currentNodesList, unsafeWindow))
                         const version = searchVersionByTimestamp(await getWayHistory(right.ref), targetTimestamp)
                         tagTd2.title = ""
@@ -5059,7 +5058,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                         const version = searchVersionByTimestamp(await getNodeHistory(right.ref), targetTimestamp)
                         panTo(version.lat.toString(), version.lon.toString())
                     } else if (right.type === "way") {
-                        const currentNodesList = await getWayNodesByTimestamp(targetTimestamp, right.ref)
+                        const [, currentNodesList] = await getWayNodesByTimestamp(targetTimestamp, right.ref)
                         showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", true)
                     }
                 }
@@ -6260,7 +6259,7 @@ async function addChangesetQuickLook() {
                                         nodesHistories[n.id] = [n]
                                     }
                                 })
-                                const currentNodesList = await getWayNodesByTimestamp(changesetMetadata.closed_at, objID)
+                                const [targetVersion, currentNodesList] = await getWayNodesByTimestamp(changesetMetadata.closed_at, objID)
 
                                 const popup = document.createElement("span")
                                 const link = document.createElement("a")
