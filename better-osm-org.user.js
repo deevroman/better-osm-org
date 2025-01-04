@@ -1783,8 +1783,7 @@ function intoPageWithFun(obj) {
  * @param {boolean} addStroke
  */
 function showWay(nodesList, color = "#000000", needFly = false, addStroke = false) {
-    layers["customObjects"].forEach(i => i.remove())
-    layers["customObjects"] = []
+    cleanCustomObjects()
     const line = getWindow().L.polyline(
         intoPage(nodesList.map(elem => getWindow().L.latLng(intoPage(elem)))),
         intoPage({
@@ -1814,8 +1813,7 @@ function showWay(nodesList, color = "#000000", needFly = false, addStroke = fals
  * @param {string=} color
  */
 function showWays(ListOfNodesList, layerName = "customObjects", color = "#000000") {
-    layers[layerName]?.forEach(i => i.remove())
-    layers[layerName] = []
+    cleanObjectsByKey(layerName)
     ListOfNodesList.forEach(nodesList => {
         const line = getWindow().L.polyline(
             intoPage(nodesList.map(elem => getWindow().L.latLng(intoPage(elem)))),
@@ -1854,7 +1852,6 @@ function displayWay(nodesList, needFly = false, color = "#000000", width = 4, in
         if (popup) return line.bindPopup(popup)
         return line
     }
-
     const line = bindPopup(getWindow().L.polyline(
         intoPage(nodesList.map(elem => intoPage(getWindow().L.latLng(intoPage(elem))))),
         intoPage({
@@ -1932,9 +1929,7 @@ function showActiveNodeMarker(lat, lon, color, removeActiveObjects = true) {
         color: color
     };
     if (removeActiveObjects) {
-        layers["activeObjects"].forEach((i) => {
-            i.remove();
-        })
+        cleanObjectsByKey("activeObjects")
     }
     layers["activeObjects"].push(getWindow().L.circleMarker(getWindow().L.latLng(lat, lon), intoPage(haloStyle)).addTo(getMap()));
 }
@@ -1963,9 +1958,7 @@ function showActiveWay(nodesList, color = "#ff00e3", needFly = false, infoElemID
         })
     ).addTo(getMap());
     if (removeActiveObjects) {
-        layers["activeObjects"].forEach((i) => {
-            i.remove();
-        })
+        cleanObjectsByKey("activeObjects")
     }
     layers["activeObjects"].push(line);
     if (needFly) {
@@ -2055,6 +2048,7 @@ function cleanAllObjects() {
         layers[member].forEach((i) => {
             i.remove();
         })
+        layers[member] = []
     }
 }
 
@@ -2136,11 +2130,15 @@ async function getChangeset(id) {
         return changesetsCache[id];
     }
     const res = await fetch(osm_server.apiBase + "changeset" + "/" + id + "/download", {signal: abortDownloadingController.signal});
-    const parser = new DOMParser();
-    changesetsCache[id] = /** @type {XMLDocument} **/ parser.parseFromString(await res.text(), "application/xml");
-    nodesWithParentWays[id] = new Set(Array.from(changesetsCache[id].querySelectorAll("way > nd")).map(i => parseInt(i.getAttribute("ref"))))
-    nodesWithOldParentWays[id] = new Set(Array.from(changesetsCache[id].querySelectorAll("way:not([version='1']) > nd")).map(i => parseInt(i.getAttribute("ref"))))
-    return changesetsCache[id]
+    if (res.status === 509) {
+        await error509Handler(res)
+    } else {
+        const parser = new DOMParser();
+        changesetsCache[id] = /** @type {XMLDocument} **/ parser.parseFromString(await res.text(), "application/xml");
+        nodesWithParentWays[id] = new Set(Array.from(changesetsCache[id].querySelectorAll("way > nd")).map(i => parseInt(i.getAttribute("ref"))))
+        nodesWithOldParentWays[id] = new Set(Array.from(changesetsCache[id].querySelectorAll("way:not([version='1']) > nd")).map(i => parseInt(i.getAttribute("ref"))))
+        return changesetsCache[id]
+    }
 }
 
 function setupNodeVersionView() {
@@ -3031,7 +3029,11 @@ async function getRelationHistory(relationID) {
         return relationsHistories[relationID];
     } else {
         const res = await fetch(osm_server.apiBase + "relation" + "/" + relationID + "/history.json");
-        return relationsHistories[relationID] = (await res.json()).elements;
+        if (res.status === 509) {
+            await error509Handler(res)
+        } else {
+            return relationsHistories[relationID] = (await res.json()).elements;
+        }
     }
 }
 
@@ -3081,22 +3083,27 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
     }
 
     const overpassGeom = await getRelationViaOverpass(id, timestamp)
+    console.log("Data downloaded")
     if (cleanPrevObjects) {
         cleanCustomObjects()
     }
     cleanObjectsByKey("activeObjects")
+    console.log("Prev map objects cleaned. Start rendering")
     // нужен видимо веш геометрии
     // GC больно
+    let wayCounts = 0
     overpassGeom.elements[0]?.members?.forEach(i => {
         if (i.type === "way") {
+            wayCounts++
             const nodesList = i.geometry.map(p => [p.lat, p.lon])
-            displayWay(cloneInto(nodesList, unsafeWindow), false, color, 4, null, "activeObjects")
+            displayWay(nodesList, false, color, 4, null, "activeObjects")
         } else if (i.type === "node") {
             showNodeMarker(i.lat, i.lon, color, null, "activeObjects")
         } else if (i.type === "relation") {
             // todo
         }
     })
+    console.log(`${wayCounts} rendered`)
 
     function getBbox(id, timestamp) {
         if (bboxCache[[id, timestamp]]) {
@@ -4320,7 +4327,19 @@ function addSwipes() {
     }
 }
 
+
+let rateLimitBan = false
+
+async function error509Handler(res) {
+    rateLimitBan = true
+    console.error("oops, DOS block")
+    getMap()?.attributionControl?.setPrefix(await res.text())
+}
+
 function addRegionForFirstChangeset(attempts = 5) {
+    if (rateLimitBan) {
+        return
+    }
     if (getMap().getZoom() <= 10) {
         getMap().attributionControl.setPrefix("")
         if (attempts > 0) {
@@ -5571,7 +5590,7 @@ async function getHistoryAndVersionByElem(elem) {
     }
     const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/history.json", {signal: abortDownloadingController.signal});
     if (res.status === 509) {
-        console.error("oops, DOS block")
+        await error509Handler(res)
     } else {
         return [histories[objType][objID] = (await res.json()).elements, parseInt(version)];
     }
@@ -5863,7 +5882,7 @@ async function addChangesetQuickLook() {
         const needFetch = []
 
 
-        if (objType === "relation" && objCount >= 2) {
+        if (objType === "relation") {
             for (let i of document.querySelectorAll(`#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)) {
                 const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
                 const version = parseInt(strVersion)
@@ -7353,7 +7372,7 @@ async function loadChangesetMetadata() {
         // {signal: abortDownloadingController.signal}
     );
     if (res.status === 509) {
-        console.error("oops, DOS block")
+        await error509Handler(res)
     } else {
         const jsonRes = await res.json();
         if (jsonRes.changeset) {
@@ -7381,7 +7400,7 @@ async function loadNoteMetadata() {
     }
     const res = await fetch(osm_server.apiBase + "notes" + "/" + note_id + ".json", {signal: abortDownloadingController.signal});
     if (res.status === 509) {
-        console.error("oops, DOS block")
+        await error509Handler(res)
     } else {
         noteMetadata = await res.json()
     }
@@ -7400,7 +7419,7 @@ async function loadNodeMetadata() {
     }
     const res = await fetch(osm_server.apiBase + "node" + "/" + node_id + ".json", {signal: abortDownloadingController.signal});
     if (res.status === 509) {
-        console.error("oops, DOS block")
+        await error509Handler(res)
     } else if (res.status === 410) {
         console.warn("node was deleted");
     } else {
@@ -7422,7 +7441,7 @@ async function loadWayMetadata() {
     }
     const res = await fetch(osm_server.apiBase + "way" + "/" + way_id + "/full.json", {signal: abortDownloadingController.signal});
     if (res.status === 509) {
-        console.error("oops, DOS block")
+        await error509Handler(res)
     } else if (res.status === 410) {
         console.warn("way was deleted");
     } else {
@@ -7450,7 +7469,7 @@ async function loadRelationMetadata() {
     }
     const res = await fetch(osm_server.apiBase + "relation" + "/" + relation_id + "/full.json", {signal: abortDownloadingController.signal});
     if (res.status === 509) {
-        console.error("oops, DOS block")
+        await error509Handler(res)
     } else if (res.status === 410) {
         console.warn("relation was deleted");
     } else {
