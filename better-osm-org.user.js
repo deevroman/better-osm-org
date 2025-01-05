@@ -2,6 +2,7 @@
 // @name            Better osm.org
 // @name:ru         Better osm.org
 // @version         0.6.2
+// @changelog       New: overzoom for data layer, speedup relations render, support ways render in relation members list
 // @changelog       New: displaying the full history of ways (You can disable it in settings)
 // @changelog       https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670/25
 // @description     Several improvements for advanced users of openstreetmap.org
@@ -1688,7 +1689,7 @@ function makeLinksInTagsClickable() {
             }
         } else if (key === "xmas:feature" && !document.querySelector(".egg-snow-tag") || i.querySelector("td").textContent.includes("snow")) {
             const curDate = new Date()
-            if (curDate.getMonth() === 11 && curDate.getDate() >= 18 || curDate.getMonth() === 0 && curDate.getDate() < 14) {
+            if (curDate.getMonth() === 11 && curDate.getDate() >= 18 || curDate.getMonth() === 0 && curDate.getDate() < 10) {
                 const snowBtn = document.createElement("span")
                 snowBtn.classList.add("egg-snow-tag")
                 snowBtn.textContent = " ❄️"
@@ -7574,7 +7575,8 @@ function enableOverzoom() {
         layers[0].options.maxZoom = 22
     })()
     `)
-    getMap().off("layeradd layerremove")
+    // it's unstable
+    // getMap().off("layeradd layerremove")
     console.log("Overzoom enabled and map layer speeded up")
 }
 
@@ -8247,7 +8249,7 @@ function main() {
             }
             // New Year Easter egg
             const curDate = new Date()
-            if (curDate.getMonth() === 11 && curDate.getDate() >= 18 || curDate.getMonth() === 0 && curDate.getDate() < 14) {
+            if (curDate.getMonth() === 11 && curDate.getDate() >= 18 || curDate.getMonth() === 0 && curDate.getDate() < 10) {
                 GM_registerMenuCommand("☃️", runSnow);
             }
             // GM_registerMenuCommand("Ask question on forum", function () {
