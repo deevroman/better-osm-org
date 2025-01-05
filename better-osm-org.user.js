@@ -3040,6 +3040,8 @@ async function getRelationHistory(relationID) {
 const overpassCache = {}
 const bboxCache = {}
 
+let dataLayerInitedOnce = false
+
 /**
  *
  * @param {number} id
@@ -3119,6 +3121,11 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
     })
     console.log("Start rendering")
     console.time("Render relation")
+    if (!dataLayerInitedOnce) {
+        dataLayerInitedOnce = true
+        Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
+        Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
+    }
     getMap().off("layeradd layerremove")
     mergedGeometry.forEach(nodesList => {
         displayWay(nodesList, false, color, 4, null, "activeObjects")
@@ -3344,6 +3351,11 @@ function setupRelationVersionView() {
 
         downloadAllVersionsBtn.addEventListener("click", async e => {
             downloadAllVersionsBtn.style.cursor = "progress"
+            if (!dataLayerInitedOnce) {
+                dataLayerInitedOnce = true
+                Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
+                Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
+            }
             getMap().off("layeradd layerremove")
             for (const i of document.querySelectorAll(`.relation-version-view:not([hidden])`)) {
                 await loadRelationVersion(i)
@@ -7595,6 +7607,7 @@ function setupNavigationViaHotkeys() {
             }
         } else if (e.code === "KeyD") { // map data
             Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
+            dataLayerInitedOnce = true
             enableOverzoom()
         } else if (e.code === "KeyG") { // gps tracks
             Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
