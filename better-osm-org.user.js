@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.6.1
+// @version         0.6.2
 // @changelog       New: displaying the full history of ways (You can disable it in settings)
 // @changelog       https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670/25
 // @description     Several improvements for advanced users of openstreetmap.org
@@ -259,7 +259,7 @@ GM_config.init(
                 'OverzoomForDataLayer': {
                     'label': 'Allow overzoom when data layer enabled β',
                     'type': 'checkbox',
-                    'default': false,
+                    'default': 'checked',
                     'labelPos': 'right'
                 }
             },
@@ -1853,7 +1853,7 @@ function displayWay(nodesList, needFly = false, color = "#000000", width = 4, in
         return line
     }
     const line = bindPopup(getWindow().L.polyline(
-        intoPage(nodesList.map(elem => intoPage(getWindow().L.latLng(intoPage(elem))))),
+        intoPage(nodesList),
         intoPage({
             color: color,
             weight: width,
@@ -3088,22 +3088,43 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
         cleanCustomObjects()
     }
     cleanObjectsByKey("activeObjects")
-    console.log("Prev map objects cleaned. Start rendering")
+    console.log("Prev map objects cleaned. Merging ways...")
     // нужен видимо веш геометрии
     // GC больно
     let wayCounts = 0
+    const mergedGeometry = []
     overpassGeom.elements[0]?.members?.forEach(i => {
         if (i.type === "way") {
             wayCounts++
+            if (i.geometry === undefined || !i.geometry.length) {
+                return
+            }
             const nodesList = i.geometry.map(p => [p.lat, p.lon])
-            displayWay(nodesList, false, color, 4, null, "activeObjects")
+            if (mergedGeometry.length === 0) {
+                mergedGeometry.push(nodesList)
+            } else {
+                const lastWay = mergedGeometry[mergedGeometry.length - 1]
+                const [lastLat, lastLon] = lastWay[lastWay.length - 1]
+                if (lastLat === nodesList[0][0] && lastLon === nodesList[0][1]) {
+                    mergedGeometry[mergedGeometry.length - 1].push(...nodesList.slice(1))
+                } else {
+                    mergedGeometry.push(nodesList)
+                }
+            }
         } else if (i.type === "node") {
             showNodeMarker(i.lat, i.lon, color, null, "activeObjects")
         } else if (i.type === "relation") {
             // todo
         }
     })
-    console.log(`${wayCounts} rendered`)
+    console.log("Start rendering")
+    console.time("Render relation")
+    getMap().off("layeradd layerremove")
+    mergedGeometry.forEach(nodesList => {
+        displayWay(nodesList, false, color, 4, null, "activeObjects")
+    })
+    console.timeEnd("Render relation")
+    console.log(`${mergedGeometry.length}/${wayCounts} rendered`)
 
     function getBbox(id, timestamp) {
         if (bboxCache[[id, timestamp]]) {
@@ -3323,6 +3344,7 @@ function setupRelationVersionView() {
 
         downloadAllVersionsBtn.addEventListener("click", async e => {
             downloadAllVersionsBtn.style.cursor = "progress"
+            getMap().off("layeradd layerremove")
             for (const i of document.querySelectorAll(`.relation-version-view:not([hidden])`)) {
                 await loadRelationVersion(i)
             }
@@ -6217,13 +6239,16 @@ async function addChangesetQuickLook() {
          */
         async function getParentWays(nodeID) {
             const rawRes = await fetch(osm_server.apiBase + "node/" + nodeID + "/ways.json", {signal: abortDownloadingController.signal});
-            if (!rawRes.ok) {
-                console.warn(`fetching parent ways for ${nodeID} failed)`)
-                console.trace()
-                return []
+            if (rawRes.status === 509) {
+                await error509Handler(rawRes)
+            } else {
+                if (!rawRes.ok) {
+                    console.warn(`fetching parent ways for ${nodeID} failed`)
+                    console.trace()
+                    return []
+                }
+                return (await rawRes.json()).elements;
             }
-            return (await rawRes.json()).elements;
-
         }
 
         async function findParents() {
@@ -7528,16 +7553,17 @@ function enableOverzoom() {
     if (!GM_config.get("OverzoomForDataLayer")) {
         return
     }
-    console.log("start")
+    console.log("Enabling overzoom and speed up map layer")
     injectJSIntoPage(`
     (function () {
-        map.options.maxZoom = 23
+        map.options.maxZoom = 22
         const layers = [];
         map.eachLayer(i => layers.push(i))
-        layers[0].options.maxZoom = 23
+        layers[0].options.maxZoom = 22
     })()
     `)
-    console.log("end")
+    getMap().off("layeradd layerremove")
+    console.log("Overzoom enabled and map layer speeded up")
 }
 
 function setupNavigationViaHotkeys() {
