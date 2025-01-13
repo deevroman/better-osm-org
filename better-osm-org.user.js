@@ -4366,8 +4366,7 @@ function addSwipes() {
 
 let rateLimitBan = false
 
-function escapeHtml(unsafe)
-{
+function escapeHtml(unsafe) {
     return unsafe
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
@@ -7706,14 +7705,70 @@ function setupNavigationViaHotkeys() {
             })
         } else if (e.code === "KeyZ") {
             if (location.pathname.includes("/changeset")) {
-                getMap()?.invalidateSize()
-                if (changesetMetadata) {
-                    fitBounds([
-                        [changesetMetadata.min_lat, changesetMetadata.min_lon],
-                        [changesetMetadata.max_lat, changesetMetadata.max_lon]
-                    ])
+                if (e.shiftKey && changesetMetadata) {
+                    setTimeout(async () => {
+                        const changesetID = parseInt(location.pathname.match(/changeset\/(\d+)/)[1])
+                        const nodesBag = [];
+                        for (const node of Array.from(changesetsCache[changesetID].querySelectorAll('node'))) {
+                            if (node.getAttribute("visible") !== "false") {
+                                nodesBag.push({
+                                    lat: parseFloat(node.getAttribute("lat")),
+                                    lon: parseFloat(node.getAttribute("lon"))
+                                });
+                            } else {
+                                const version = searchVersionByTimestamp(
+                                    await getNodeHistory(node.getAttribute("id")),
+                                    new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString()
+                                )
+                                if (version.visible !== false) {
+                                    nodesBag.push({
+                                        lat: version.lat,
+                                        lon: version.lon
+                                    });
+                                }
+                            }
+                        }
+                        for (const way of changesetsCache[changesetID].querySelectorAll("way")) {
+                            const targetTime = way.getAttribute("visible") === "false"
+                                ? new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString()
+                                : changesetMetadata.closed_at
+                            const [, currentNodesList] = await getWayNodesByTimestamp(targetTime, way.getAttribute("id"))
+                            currentNodesList.forEach(coords => {
+                                nodesBag.push({
+                                    lat: coords[0],
+                                    lon: coords[1]
+                                })
+                            })
+                        }
+                        getMap()?.invalidateSize()
+                        if (nodesBag.length) {
+                            const bbox = {
+                                min_lat: Math.min(...nodesBag.map(i => i.lat)),
+                                min_lon: Math.min(...nodesBag.map(i => i.lon)),
+                                max_lat: Math.max(...nodesBag.map(i => i.lat)),
+                                max_lon: Math.max(...nodesBag.map(i => i.lon))
+                            }
+                            fitBounds([
+                                [bbox.min_lat, bbox.min_lon],
+                                [bbox.max_lat, bbox.max_lon]
+                            ])
+                        } else {
+                            fitBounds([
+                                [changesetMetadata.min_lat, changesetMetadata.min_lon],
+                                [changesetMetadata.max_lat, changesetMetadata.max_lon]
+                            ])
+                        }
+                    })
                 } else {
-                    console.warn("Changeset metadata not downloaded")
+                    getMap()?.invalidateSize()
+                    if (changesetMetadata) {
+                        fitBounds([
+                            [changesetMetadata.min_lat, changesetMetadata.min_lon],
+                            [changesetMetadata.max_lat, changesetMetadata.max_lon]
+                        ])
+                    } else {
+                        console.warn("Changeset metadata not downloaded")
+                    }
                 }
             } else if (location.pathname.match(/(node|way|relation|note)\/\d+/)) {
                 if (location.pathname.includes("node")) {
