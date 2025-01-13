@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.6.2
-// @changelog       New: overzoom for data layer, speedup relations render, support ways render in relation members list
+// @version         0.6.3
+// @changelog       New: overzoom for data layer, support ways render in relation members list, Q for close sidebar
 // @changelog       New: displaying the full history of ways (You can disable it in settings)
 // @changelog       https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670/25
 // @description     Several improvements for advanced users of openstreetmap.org
@@ -1853,6 +1853,7 @@ function displayWay(nodesList, needFly = false, color = "#000000", width = 4, in
         if (popup) return line.bindPopup(popup)
         return line
     }
+
     const line = bindPopup(getWindow().L.polyline(
         intoPage(nodesList),
         intoPage({
@@ -3127,7 +3128,7 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
         Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
         Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
     }
-    getMap().off("layeradd layerremove")
+    // getMap().off("layeradd layerremove")
     mergedGeometry.forEach(nodesList => {
         displayWay(nodesList, false, color, 4, null, "activeObjects")
     })
@@ -3357,7 +3358,7 @@ function setupRelationVersionView() {
                 Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
                 Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
             }
-            getMap().off("layeradd layerremove")
+            // getMap().off("layeradd layerremove")
             for (const i of document.querySelectorAll(`.relation-version-view:not([hidden])`)) {
                 await loadRelationVersion(i)
             }
@@ -4365,10 +4366,20 @@ function addSwipes() {
 
 let rateLimitBan = false
 
+function escapeHtml(unsafe)
+{
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 async function error509Handler(res) {
     rateLimitBan = true
     console.error("oops, DOS block")
-    getMap()?.attributionControl?.setPrefix(await res.text())
+    getMap()?.attributionControl?.setPrefix(escapeHtml(await res.text()))
 }
 
 function addRegionForFirstChangeset(attempts = 5) {
@@ -7778,6 +7789,8 @@ function setupNavigationViaHotkeys() {
                     changesetsLinks[0].click()
                 }
             }
+        } else if (e.code === "KeyQ" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
+            document.querySelector("#sidebar_content .btn-close")?.click()
         } else {
             // console.log(e.key, e.code)
         }
@@ -8127,7 +8140,7 @@ function setup() {
         if (path + location.search === lastPath) return;
         if (lastPath.includes("/changeset/") && (!path.includes("/changeset/") || lastPath !== path)) {
             try {
-                abortDownloadingController.abort()
+                abortDownloadingController.abort() // todo вообще-то опасненько, нет гарантии что ещё не начились новые запросы
                 cleanAllObjects()
                 getMap().attributionControl.setPrefix("")
                 addSwipes();
