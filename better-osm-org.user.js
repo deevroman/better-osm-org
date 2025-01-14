@@ -5137,6 +5137,23 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
 
         let haveOnlyInsertion = true
         let haveOnlyDeletion = true
+
+        function colorizeFlag() {
+            if (haveOnlyInsertion) {
+                if (isDarkMode()) {
+                    memChangedFlag.style.background = "rgba(17, 238, 9, 0.3)"
+                } else {
+                    memChangedFlag.style.background = "rgba(101,238,9,0.6)"
+                }
+            } else if (haveOnlyDeletion) {
+                if (isDarkMode()) {
+                    memChangedFlag.style.background = "rgba(238, 51, 9, 0.4)"
+                } else {
+                    memChangedFlag.style.background = "rgba(238, 9, 9, 0.42)"
+                }
+            }
+        }
+
         if (JSON.stringify(prevVersion.members.toReversed()) === JSON.stringify(targetVersion.members)) {
             // members reversed
             const row = makeRelationDiffRow("", "🔃")
@@ -5152,7 +5169,9 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             })
             haveOnlyInsertion = false
             haveOnlyDeletion = false
+            colorizeFlag()
         } else {
+            memChangedFlag.style.display = "none"
             setTimeout(() => {
                 arraysDiff(prevVersion.members ?? [], targetVersion.members ?? []).forEach(i => {
                     const row = makeRelationDiffRow(i[0], i[1])
@@ -5182,21 +5201,9 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                     row.style.fontFamily = "monospace"
                     tbody.appendChild(row)
                 })
+                memChangedFlag.style.display = ""
+                colorizeFlag()
             })
-        }
-
-        if (haveOnlyInsertion) {
-            if (isDarkMode()) {
-                memChangedFlag.style.background = "rgba(17, 238, 9, 0.3)"
-            } else {
-                memChangedFlag.style.background = "rgba(101,238,9,0.6)"
-            }
-        } else if (haveOnlyDeletion) {
-            if (isDarkMode()) {
-                memChangedFlag.style.background = "rgba(238, 51, 9, 0.4)"
-            } else {
-                memChangedFlag.style.background = "rgba(238, 9, 9, 0.42)"
-            }
         }
 
         const tagsTable = document.createElement("table")
