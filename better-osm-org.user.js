@@ -4207,19 +4207,21 @@ function arraysDiff(arg_a, arg_b, one_replace_cost = 2) {
     b = b.map(i => JSON.parse(i))
 
     const answer = []
+    let i = a.length
+    let j = b.length
 
-    function restore(i, j) {
+    while (true) {
         if (i === 0 || j === 0) {
             if (i === 0 && j === 0) {
-                return;
+                break;
             } else if (i === 0) {
                 answer.push([null, b[j - 1]])
-                restore(i, j - 1)
-                return;
+                j = j - 1
+                continue;
             } else {
                 answer.push([a[i - 1], null])
-                restore(i - 1, j)
-                return;
+                i = i - 1
+                continue;
             }
         }
 
@@ -4232,17 +4234,16 @@ function arraysDiff(arg_a, arg_b, one_replace_cost = 2) {
 
         if (del_cost <= ins_cost && del_cost + 1 <= replace_cost) {
             answer.push([a[i - 1], null])
-            restore(i - 1, j)
+            i = i - 1
         } else if (ins_cost <= del_cost && ins_cost + 1 <= replace_cost) {
             answer.push([null, b[j - 1]])
-            restore(i, j - 1)
+            j = j - 1
         } else {
             answer.push([a[i - 1], b[j - 1]])
-            restore(i - 1, j - 1)
+            i = i - 1
+            j = j - 1
         }
     }
-
-    restore(a.length, b.length);
     return answer.toReversed();
 }
 
@@ -4975,6 +4976,9 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         const nodeIcon = GM_getResourceURL("NODE_ICON", false)
         const wayIcon = GM_getResourceURL("WAY_ICON", false)
         const relationIcon = GM_getResourceURL("RELATION_ICON", false)
+        // const nodeIcon = nodeFallback
+        // const wayIcon = wayFallback
+        // const relationIcon = relationFallback
 
         /**
          * @param {RelationMember} member
@@ -5149,33 +5153,35 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             haveOnlyInsertion = false
             haveOnlyDeletion = false
         } else {
-            arraysDiff(prevVersion.members ?? [], targetVersion.members ?? []).forEach(i => {
-                const row = makeRelationDiffRow(i[0], i[1])
-                if (i[0] === null) {
-                    row.style.background = "rgba(17,238,9,0.6)"
-                    haveOnlyDeletion = false
-                } else if (i[1] === null) {
-                    row.style.background = "rgba(238,51,9,0.6)"
-                    haveOnlyInsertion = false
-                } else if (JSON.stringify(i[0]) !== JSON.stringify(i[1])) {
-                    if (i[0].ref === i[1].ref && i[0].type === i[1].type) {
-                        row.querySelectorAll(".rel-role").forEach(i => {
-                            i.style.background = "rgba(223,238,9,0.6)"
+            setTimeout(() => {
+                arraysDiff(prevVersion.members ?? [], targetVersion.members ?? []).forEach(i => {
+                    const row = makeRelationDiffRow(i[0], i[1])
+                    if (i[0] === null) {
+                        row.style.background = "rgba(17,238,9,0.6)"
+                        haveOnlyDeletion = false
+                    } else if (i[1] === null) {
+                        row.style.background = "rgba(238,51,9,0.6)"
+                        haveOnlyInsertion = false
+                    } else if (JSON.stringify(i[0]) !== JSON.stringify(i[1])) {
+                        if (i[0].ref === i[1].ref && i[0].type === i[1].type) {
+                            row.querySelectorAll(".rel-role").forEach(i => {
+                                i.style.background = "rgba(223,238,9,0.6)"
+                                if (isDarkMode()) {
+                                    i.style.color = "black"
+                                }
+                            })
+                        } else {
+                            row.style.background = "rgba(223,238,9,0.6)"
                             if (isDarkMode()) {
-                                i.style.color = "black"
+                                row.style.color = "black"
                             }
-                        })
-                    } else {
-                        row.style.background = "rgba(223,238,9,0.6)"
-                        if (isDarkMode()) {
-                            row.style.color = "black"
                         }
+                        haveOnlyInsertion = false
+                        haveOnlyDeletion = false
                     }
-                    haveOnlyInsertion = false
-                    haveOnlyDeletion = false
-                }
-                row.style.fontFamily = "monospace"
-                tbody.appendChild(row)
+                    row.style.fontFamily = "monospace"
+                    tbody.appendChild(row)
+                })
             })
         }
 
