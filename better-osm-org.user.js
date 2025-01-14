@@ -4943,9 +4943,9 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
     }
     if (objType === "way" && targetVersion.visible !== false) {
         if (prevVersion.nodes && prevVersion.nodes.length !== targetVersion.nodes?.length) {
-            i.title += `\nNodes count: ${prevVersion.nodes.length} → ${targetVersion.nodes.length}`
+            i.title += (i.title === "" ? "" : "\n") + `Nodes count: ${prevVersion.nodes.length} → ${targetVersion.nodes.length}`
         } else {
-            i.title += `\nNodes count: ${targetVersion.nodes.length}`
+            i.title += (i.title === "" ? "" : "\n") + `Nodes count: ${targetVersion.nodes.length}`
         }
     }
     if (prevVersion.visible === false && targetVersion?.visible !== false && targetVersion.version !== 1) {
