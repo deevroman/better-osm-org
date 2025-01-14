@@ -70,6 +70,8 @@ Experimental hotkeys:
 - `shift` + `E` — open second editor
 - `shift` + `N` — create new note
 - `C` — Open changeset of object version
+- `Q` — Close sidebar
+- `shift + Z` — pan to real changeset bbox (without relations bboxes)
 
 ### Other
 
