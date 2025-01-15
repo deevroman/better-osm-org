@@ -80,10 +80,7 @@ Experimental hotkeys:
 - [x] Display way/relation versions
 
 - [x] Search deleted author of changeset
-- [ ] Template responses when closing notes/changeset
--
-    + [x] 👌
-
+- [x] Template responses when closing notes/changeset 👌/ 👋
 + [x] Add Rapid & geo: links into Edit menu
 
 - Mass actions with changesets
