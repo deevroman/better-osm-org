@@ -3,8 +3,10 @@
 // @name:ru         Better osm.org
 // @version         0.6.3
 // @changelog       New: overzoom for data layer, support ways render in relation members list, Q for close sidebar
+// @changelog       New: Comments templates, support ways render in relation members list
+// @changelog       New: Q for close sidebar, shift + Z for real bbox of changeset
 // @changelog       New: displaying the full history of ways (You can disable it in settings)
-// @changelog       https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670/25
+// @changelog       https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670/28
 // @description     Several improvements for advanced users of openstreetmap.org
 // @description:ru  Скрипт, добавляющий на openstreetmap.org полезные картографам функции
 // @author       deevroman
@@ -108,7 +110,7 @@ function makeRow(label, text) {
     td2.style.cursor = "pointer"
     td2.style.textAlign = "center"
     td2.onclick = () => {
-        if(label === "" && text === "" || confirm(`Remove "${label}"?`)) {
+        if (label === "" && text === "" || confirm(`Remove "${label}"?`)) {
             tr.remove()
         }
     }
@@ -294,7 +296,7 @@ GM_config.init(
                 'OverzoomForDataLayer': {
                     'label': 'Allow overzoom when data layer enabled β',
                     'type': 'checkbox',
-                    'default': 'checked',
+                    'default': false,
                     'labelPos': 'right'
                 }
             },
@@ -3248,39 +3250,28 @@ let dataLayerInitedOnce = false
  * @param {string} timestamp
  * @param {boolean=true} cleanPrevObjects=true
  * @param {string=} color=
+ * @param {string=} layer=
  * @return {Promise<{}>}
  */
-async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObjects = true, color = "#000000") {
+async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObjects = true, color = "#000000", layer = "activeObjects", addStroke=null) {
     console.log(id, timestamp)
 
     async function getRelationViaOverpass(id, timestamp) {
         if (overpassCache[[id, timestamp]]) {
             return overpassCache[[id, timestamp]]
         } else {
-            try {
-                const res = await fetch("https://overpass-api.de/api/interpreter?" + new URLSearchParams({
+            const res = await GM.xmlHttpRequest({
+                url: "https://overpass-api.de/api/interpreter?" + new URLSearchParams({
                     data: `
-                [out:json][date:"${timestamp}"];
-                relation(${id});
-                //(._;>;);
-                out geom;
-            `
-                }), {signal: abortDownloadingController.signal})
-                return overpassCache[[id, timestamp]] = await res.json()
-            } catch {
-                const res = await GM.xmlHttpRequest({
-                    url: "https://overpass-api.de/api/interpreter?" + new URLSearchParams({
-                        data: `
                             [out:json][date:"${timestamp}"];
                             relation(${id});
                             //(._;>;);
                             out geom;
                         `
-                    }),
-                    responseType: "json"
-                });
-                return overpassCache[[id, timestamp]] = res.response
-            }
+                }),
+                responseType: "json"
+            });
+            return overpassCache[[id, timestamp]] = res.response
         }
     }
 
@@ -3290,6 +3281,9 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
         cleanCustomObjects()
     }
     cleanObjectsByKey("activeObjects")
+    if (!layers[layer]) {
+        layers[layer] = []
+    }
     console.log("Prev map objects cleaned. Merging ways...")
     // нужен видимо веш геометрии
     // GC больно
@@ -3314,7 +3308,7 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
                 }
             }
         } else if (i.type === "node") {
-            showNodeMarker(i.lat, i.lon, color, null, "activeObjects")
+            showNodeMarker(i.lat, i.lon, color, null, layer)
         } else if (i.type === "relation") {
             // todo
         }
@@ -3328,7 +3322,7 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
     }
     // getMap().off("layeradd layerremove")
     mergedGeometry.forEach(nodesList => {
-        displayWay(nodesList, false, color, 4, null, "activeObjects")
+        displayWay(nodesList, false, color, 4, null, layer, null, null, addStroke)
     })
     console.timeEnd("Render relation")
     console.log(`${mergedGeometry.length}/${wayCounts} rendered`)
@@ -4850,6 +4844,7 @@ async function getWayNodesByTimestamp(targetTimestamp, wayID) {
     return [targetVersion, currentNodesList]
 }
 
+let pinnedRelations = new Set();
 
 /**
  * @param {Element} i
@@ -5153,12 +5148,18 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         restoredElemFlag.style.userSelect = "none"
         i.appendChild(restoredElemFlag)
     }
-    if (prevVersion?.members && JSON.stringify(prevVersion.members) !== JSON.stringify(targetVersion.members)) {
+    if (objType === "relation") {
         let memChangedFlag = document.createElement("span")
         memChangedFlag.textContent = " 👥"
-        memChangedFlag.title = "List of relation members has been changed.\nСlick to see more details"
         memChangedFlag.style.userSelect = "none"
-        memChangedFlag.style.background = "rgba(223,238,9,0.6)"
+        let membersChanged = false
+        if (JSON.stringify(prevVersion?.members ?? []) !== JSON.stringify(targetVersion.members) && targetVersion.version !== 1) {
+            memChangedFlag.style.background = "rgba(223,238,9,0.6)"
+            memChangedFlag.title = "List of relation members has been changed.\nСlick to see more details"
+            membersChanged = true
+        } else {
+            memChangedFlag.title = "Show list of relation members"
+        }
         memChangedFlag.style.cursor = "pointer"
 
 
@@ -5337,13 +5338,13 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         let haveOnlyDeletion = true
 
         function colorizeFlag() {
-            if (haveOnlyInsertion) {
+            if (haveOnlyInsertion && membersChanged && targetVersion.version !== 1) {
                 if (isDarkMode()) {
                     memChangedFlag.style.background = "rgba(17, 238, 9, 0.3)"
                 } else {
                     memChangedFlag.style.background = "rgba(101,238,9,0.6)"
                 }
-            } else if (haveOnlyDeletion) {
+            } else if (haveOnlyDeletion && membersChanged) {
                 if (isDarkMode()) {
                     memChangedFlag.style.background = "rgba(238, 51, 9, 0.4)"
                 } else {
@@ -5352,14 +5353,14 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             }
         }
 
-        if (JSON.stringify(prevVersion.members.toReversed()) === JSON.stringify(targetVersion.members)) {
+        if (JSON.stringify((prevVersion?.members ?? []).toReversed()) === JSON.stringify(targetVersion.members)) {
             // members reversed
             const row = makeRelationDiffRow("", "🔃")
             row.querySelectorAll("td").forEach(i => i.style.textAlign = "center")
             row.querySelector("td:nth-of-type(2)").title = "Members of the relation were reversed"
             tbody.appendChild(row)
 
-            prevVersion.members.forEach((i, index) => {
+            prevVersion?.members?.forEach((i, index) => {
                 const row = makeRelationDiffRow(i, targetVersion.members[index])
                 row.querySelector("td:nth-of-type(2)").style.background = "rgba(223,238,9,0.6)"
                 row.style.fontFamily = "monospace"
@@ -5371,7 +5372,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         } else {
             memChangedFlag.style.display = "none"
             setTimeout(() => {
-                arraysDiff(prevVersion.members ?? [], targetVersion.members ?? []).forEach(i => {
+                arraysDiff(prevVersion?.members ?? [], targetVersion.members ?? []).forEach(i => {
                     const row = makeRelationDiffRow(i[0], i[1])
                     if (i[0] === null) {
                         row.style.background = "rgba(17,238,9,0.6)"
@@ -5427,8 +5428,36 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         }
 
         i.appendChild(memChangedFlag)
-        memChangedFlag.after(membersTable)
-        memChangedFlag.after(tagsTable)
+        const pinRelation = document.createElement("span")
+        pinRelation.textContent = "📌"
+        pinRelation.classList.add("pin-relation")
+        pinRelation.style.cursor = "pointer"
+        pinRelation.style.display = "none"
+        pinRelation.title = "Pin relation on map"
+        pinRelation.onclick = async (e) => {
+            e.stopImmediatePropagation()
+            if (!pinRelation.classList.contains("pinned")) {
+                pinnedRelations.add(targetVersion.id)
+                pinRelation.style.cursor = "progress"
+                await loadRelationVersionMembersViaOverpass(targetVersion.id, targetVersion.timestamp, false, "#000", `customObjects/${targetVersion.id}`, isDarkMode())
+                pinRelation.style.cursor = "pointer"
+                pinRelation.classList.add("pinned")
+                pinRelation.textContent = "📍"
+                pinRelation.title = "Unpin relation from map"
+            } else {
+                pinRelation.title = "Pin relation on map"
+                pinRelation.classList.remove("pinned")
+                pinRelation.textContent = "📌"
+                cleanObjectsByKey(`customObjects/${targetVersion.id}`)
+                pinnedRelations.delete(targetVersion.id)
+            }
+        }
+        memChangedFlag.appendChild(pinRelation)
+
+        pinRelation.after(membersTable)
+        if (membersChanged) {
+            pinRelation.after(tagsTable)
+        }
     }
     if (targetVersion.lat && prevVersion.lat && (prevVersion.lat !== targetVersion.lat || prevVersion.lon !== targetVersion.lon)) {
         i.parentElement.parentElement.classList.add("location-modified")
@@ -5742,7 +5771,9 @@ async function processObjectInteractions(changesetID, objType, i, prevVersion, t
                 }
 
                 async function mouseenterHandler() {
-                    await loadRelationVersionMembersViaOverpass(parseInt(objID), targetTimestamp, false, "#ff00e3")
+                    if (!pinnedRelations.has(parseInt(objID))) {
+                        await loadRelationVersionMembersViaOverpass(parseInt(objID), targetTimestamp, false, "#ff00e3")
+                    }
                 }
 
                 i.parentElement.parentElement.onmouseenter = mouseenterHandler
@@ -5756,6 +5787,7 @@ async function processObjectInteractions(changesetID, objType, i, prevVersion, t
                 })
 
                 i.parentElement.parentElement.classList.add("downloaded")
+                i.parentElement.querySelector(".pin-relation").style.display = ""
             } catch (e) {
                 btn.style.cursor = "pointer"
                 throw e
@@ -6130,6 +6162,7 @@ async function addChangesetQuickLook() {
     const changesetID = location.pathname.match(/changeset\/(\d+)/)[1]
 
     async function processObjects(objType, uniqTypes) {
+        pinnedRelations = new Set()
         const objCount = document.querySelectorAll(`#changeset_${objType}s .list-unstyled li:not(.processed-object)`).length
         if (objCount === 0) {
             return;
@@ -6753,7 +6786,7 @@ function setupDarkModeForMap() {
 
 async function setupHDYCInProfile(path) {
     let match = path.match(/^\/user\/([^/]+)($|\/)/);
-    if (!match) {
+    if (!match || path.includes("/history")) {
         return;
     }
     const user = match[1];
@@ -7787,7 +7820,7 @@ function enableOverzoom() {
     if (!GM_config.get("OverzoomForDataLayer")) {
         return
     }
-    console.log("Enabling overzoom and speed up map layer")
+    console.log("Enabling overzoom for map layer")
     injectJSIntoPage(`
     (function () {
         map.options.maxZoom = 22
@@ -7798,7 +7831,7 @@ function enableOverzoom() {
     `)
     // it's unstable
     // getMap().off("layeradd layerremove")
-    console.log("Overzoom enabled and map layer speeded up")
+    console.log("Overzoom enabled")
 }
 
 function setupNavigationViaHotkeys() {
