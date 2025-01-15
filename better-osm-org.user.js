@@ -6845,6 +6845,10 @@ function simplifyHDCYIframe() {
                     background-color: #181a1b;
                     color: #e8e6e3;
                 }
+                
+                #header a {
+                    color: lightgray !important;
+                }
 
                 #activitymap .leaflet-tile,
                 #mapwrapper .leaflet-tile {
@@ -6912,6 +6916,17 @@ function simplifyHDCYIframe() {
     if (loginLink) {
         let warn = document.createElement("div")
         warn.id = "hdyc-warn"
+        GM_addElement(document.head, "style", {
+            textContent: `
+                    #hdyc-warn, #hdycLink {
+                        text-align: left !important;
+                        width: 50%;
+                        position: relative;
+                        left: 35%;
+                        right: 33%;
+                    }
+                `,
+        });
         if (navigator.userAgent.includes("Firefox")) {
             warn.textContent = "Please disable tracking protection so that the HDYC account login works"
 
@@ -6921,28 +6936,19 @@ function simplifyHDCYIframe() {
             hdycLink.href = "https://www.hdyc.neis-one.org/" + (match ? match[1] : "")
             hdycLink.textContent = "Go to https://www.hdyc.neis-one.org/"
             hdycLink.target = "_blank"
+            hdycLink.id = "hdycLink"
             document.getElementById("authenticate").before(document.createElement("br"))
             document.getElementById("authenticate").before(hdycLink)
             document.getElementById("authenticate").remove()
             window.parent.postMessage({height: document.body.scrollHeight}, '*')
         } else {
             warn.innerHTML = `To see more than just public profiles, do the following:<br/>
-1. <a href="https://www.hdyc.neis-one.org/"> Log in to HDYC</a> <br/>
+0. Turn off tracking protection if your browser has it (for example in Brave or Vivaldi)<br/>
+1. <a href="https://www.hdyc.neis-one.org/" target="_blank"> Log in to HDYC</a> <br/>
 2. Open the browser console (F12) <br/>
 3. Open the Application tab <br/>
 4. In the left panel, select <i>Storage</i>→<i>Cookies</i>→<i>https://www.hdyc.neis-one.org</i><br/>
 5. Click on the cell with the name <i>SameSite</i> and type <i>None</i> in it`
-            GM_addElement(document.head, "style", {
-                textContent: `
-                    #hdyc-warn {
-                        text-align: left !important;
-                        width: 50%;
-                        position: relative;
-                        left: 35%;
-                        right: 33%;
-                    }
-                `,
-            });
             document.getElementById("authenticate").before(warn)
             const img_help = document.createElement("img")
             img_help.onload = () => {
