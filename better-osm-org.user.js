@@ -3250,6 +3250,7 @@ let dataLayerInitedOnce = false
  * @param {boolean=true} cleanPrevObjects=true
  * @param {string=} color=
  * @param {string=} layer=
+ * @param {boolean=} addStroke
  * @return {Promise<{}>}
  */
 async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObjects = true, color = "#000000", layer = "activeObjects", addStroke=null) {
@@ -5438,7 +5439,8 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             if (!pinRelation.classList.contains("pinned")) {
                 pinnedRelations.add(targetVersion.id)
                 pinRelation.style.cursor = "progress"
-                await loadRelationVersionMembersViaOverpass(targetVersion.id, targetVersion.timestamp, false, "#000", `customObjects/${targetVersion.id}`, isDarkMode())
+                const color = (darkModeForMap && isDarkMode()) ? "#000" : "#373737";
+                await loadRelationVersionMembersViaOverpass(targetVersion.id, targetVersion.timestamp, false, color, `customObjects/${targetVersion.id}`, darkModeForMap && isDarkMode())
                 pinRelation.style.cursor = "pointer"
                 pinRelation.classList.add("pinned")
                 pinRelation.textContent = "📍"
