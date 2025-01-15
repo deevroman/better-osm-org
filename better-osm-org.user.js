@@ -87,6 +87,41 @@ function isDarkMode() {
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 }
 
+function makeRow(label, text) {
+    const tr = document.createElement("tr")
+    const th = document.createElement("th")
+    const td = document.createElement("td")
+    const td2 = document.createElement("td")
+
+    th.setAttribute("contenteditable", "true")
+    td.setAttribute("contenteditable", "true")
+
+    th.textContent = label
+    td.textContent = text
+    td.style.paddingLeft = "4px"
+    td.style.paddingRight = "4px"
+    td.setAttribute("placeholder", "comment that will be added when clicked")
+
+    td2.textContent = "×"
+    td2.title = "remove"
+    td2.style.width = "21px"
+    td2.style.cursor = "pointer"
+    td2.style.textAlign = "center"
+    td2.onclick = () => {
+        if(label === "" && text === "" || confirm(`Remove "${label}"?`)) {
+            tr.remove()
+        }
+    }
+
+    th.style.width = "30px"
+    th.appendChild(document.createElement("br"))
+
+    tr.appendChild(th)
+    tr.appendChild(td)
+    tr.appendChild(td2)
+    return tr
+}
+
 GM_config.init(
     {
         'id': 'Config',
@@ -154,16 +189,9 @@ GM_config.init(
                         'default': 'checked',
                         'labelPos': 'right'
                     },
-                'ResolveNotesButtons':
-                    {
-                        'section': ["Working with notes"],
-                        'label': 'Show addition resolve buttons',
-                        'type': 'checkbox',
-                        'default': 'checked',
-                        'labelPos': 'right'
-                    },
                 'HideNoteHighlight':
                     {
+                        'section': ["Working with notes"],
                         'label': 'Hide note highlight',
                         'type': 'checkbox',
                         'default': 'checked',
@@ -175,6 +203,12 @@ GM_config.init(
                         'type': 'checkbox',
                         'default': 'checked',
                         'labelPos': 'right'
+                    },
+                'ResolveNotesButton':
+                    {
+                        'label': 'Addition resolve buttons:',
+                        'type': 'menu',
+                        'default': '[{"label": "👌", "text": ""}]'
                     },
                 'RevertButton':
                     {
@@ -198,12 +232,12 @@ GM_config.init(
                         'default': false,
                         'labelPos': 'right'
                     },
-                // 'HideLinesForDataView':
-                //     {
-                //         'label': 'Hide lines in Data View (experimental)',
-                //         'type': 'checkbox',
-                //         'default': 'unchecked'
-                //     },
+                'ChangesetsTemplates':
+                    {
+                        'label': 'Changesets comments templates <a id="last-comments-link" target="_blank">(your last comments)</a>',
+                        'type': 'menu',
+                        'default': '[{"label": "👋", "text": ""}]'
+                    },
                 'HDYCInProfile':
                     {
                         'section': ["Other"],
@@ -246,7 +280,7 @@ GM_config.init(
                     'labelPos': 'right'
                 },
                 'ResizableSidebar': {
-                    'label': 'Add slider for sidebar width',
+                    'label': 'Slider for sidebar width',
                     'type': 'checkbox',
                     'default': 'checked',
                     'labelPos': 'right'
@@ -264,6 +298,95 @@ GM_config.init(
                     'labelPos': 'right'
                 }
             },
+        'types': {
+            'menu': {
+                'default': '',
+                toNode: function () {
+                    const templates = this.value || this.settings.default;
+                    const settingNode = this.create('div', {
+                        className: 'config_var',
+                        id: this.configId + '_' + this.id + '_var',
+                    });
+
+                    this.templates = templates;
+
+                    settingNode.appendChild(this.create('input', {
+                        innerHTML: this.settings.label,
+                        id: this.configId + '_' + this.id + '_field_filler',
+                        className: 'filler',
+                        type: "checkbox",
+                    }));
+
+                    const label = this.create('label', {
+                        innerHTML: this.settings.label,
+                        id: this.configId + '_' + this.id + '_field_label',
+                        for: this.configId + '_field_' + this.id,
+                        className: 'field_label'
+                    })
+                    if (label.querySelector("#last-comments-link")) {
+                        const userId = document.querySelector("head")?.getAttribute("data-user")
+                        if (userId) {
+                            label.querySelector("#last-comments-link").setAttribute("href", `https://resultmaps.neis-one.org/osm-discussion-comments?uid=${userId}&commented`)
+                        } else {
+                            label.querySelector("#last-comments-link").remove()
+                        }
+                    }
+                    settingNode.appendChild(label);
+
+
+                    const table = document.createElement("table")
+                    table.setAttribute("cellspacing", "0")
+                    table.setAttribute("cellpadding", "0")
+                    table.style.width = "100%"
+                    settingNode.appendChild(table)
+                    const tbody = document.createElement("tbody")
+                    table.appendChild(tbody)
+
+                    JSON.parse(templates).forEach(row => {
+                        tbody.appendChild(makeRow(row['label'], row['text']))
+                    })
+
+                    const tr = document.createElement("tr")
+                    tbody.appendChild(tr)
+                    const th = document.createElement("th")
+                    th.textContent = "+"
+                    th.colSpan = 3
+                    th.style.textAlign = "center"
+                    th.style.cursor = "pointer"
+                    tr.appendChild(th)
+                    th.onclick = () => {
+                        tbody.lastElementChild.before(makeRow("", ""))
+                    }
+
+                    return settingNode;
+                },
+                toValue: function () {
+                    let templates = [];
+                    if (this.wrapper) {
+                        for (let row of Array.from(this.wrapper.getElementsByTagName('tr')).slice(0, -1)) {
+                            const forPush = {
+                                label: row.querySelector("th").textContent,
+                                text: row.querySelector("td").textContent
+                            }
+                            if (!(forPush.label.trim() === "" && forPush.text.trim() === "")) {
+                                templates.push(forPush)
+                            }
+                        }
+                    }
+                    return JSON.stringify(templates);
+                },
+                reset: function () {
+                    if (this.wrapper) {
+                        for (let row of Array.from(this.wrapper.getElementsByTagName('tr')).slice(0, -1)) {
+                            row.remove()
+                        }
+                        JSON.parse(this.settings.default).forEach(i => {
+                            this.wrapper.querySelector(`#${this.configId}_${this.id}_var table`).lastElementChild.before(makeRow(i['label'], i['text']));
+                        })
+                    }
+                }
+            }
+        },
         frameStyle: `
             border: 1px solid #000;
             height: min(85%, 760px);
@@ -281,6 +404,29 @@ GM_config.init(
             #Config_closeBtn {
                 cursor: pointer;
             }
+            #Config_field_ResolveNotesButton {
+                width: 100%;
+                max-width: 100%;
+            }
+            #Config table {
+                border-collapse: collapse;
+            }
+            th, td {
+                border: 1px solid black;
+                min-height: 21px;
+            }
+            #Config [placeholder]:empty::before {
+                content: attr(placeholder);
+                color: #555; 
+            }
+            
+            #Config [placeholder]:empty:focus::before {
+                content: "";
+            }
+            
+            #Config .filler {
+                visibility: hidden;
+            }
         @media (prefers-color-scheme: dark) {
             #Config {
                 background: #232528;
@@ -297,6 +443,22 @@ GM_config.init(
             }
             #Config_resetLink {
                 color: gray !important;
+            }
+            #Config textarea {
+                background: #232528;
+                color: white;
+                background: rgb(31, 32, 35);
+                border: 1px solid rgb(60, 63, 68);
+                border-radius: 4px;
+                font-size: 13px;
+                color: rgb(247, 248, 248);
+                appearance: none;
+            }
+            #Config input:focus-visible {
+                outline-style: none;
+            }
+            th, td {
+                border-color: white;
             }
         }
         `,
@@ -519,18 +681,42 @@ function addRevertButton() {
         textarea.rows = 1;
         let comment = document.querySelector("#sidebar_content button[name=comment]")
         if (comment) {
-            comment.hidden = true
+            comment.parentElement.hidden = true
             textarea.addEventListener("input", () => {
                     comment.hidden = false
                 }
             )
             textarea.addEventListener("click", () => {
                     textarea.rows = textarea.rows + 5
-                    comment.hidden = false
+                    comment.parentElement.hidden = false
                 }, {once: true}
             )
             comment.onclick = () => {
-                [500, 1000, 2000, 4000].map(i => setTimeout(setupRevertButton, i));
+                [500, 1000, 2000, 4000, 6000].map(i => setTimeout(setupRevertButton, i));
+            }
+            const templates = GM_config.get("ChangesetsTemplates")
+            if (templates) {
+                JSON.parse(templates).forEach(row => {
+                    const label = row['label']
+                    let text = label
+                    if (row['text'] !== "") {
+                        text = row['text']
+                    }
+                    let b = document.createElement("span");
+                    b.classList.add("comment-template", "btn", "btn-primary");
+                    b.textContent = label;
+                    b.title = `Add into the comment "${text}".\nYou can change text in userscript settings`
+                    document.querySelectorAll("form.mb-3 [name=comment]")[0].parentElement.appendChild(b);
+                    b.after(document.createTextNode("\xA0"));
+                    b.onclick = (e) => {
+                        e.stopImmediatePropagation()
+                        const textarea = document.querySelector("form.mb-3 textarea")
+                        const prev = textarea.value;
+                        const cursor = textarea.selectionEnd
+                        textarea.value = prev.substring(0, cursor) + text + prev.substring(cursor)
+                        textarea.focus()
+                    }
+                })
             }
         }
     }
@@ -901,7 +1087,7 @@ function setupCompactChangesetsHistory() {
     }
 }
 
-function addResolveNotesButtons() {
+function addResolveNotesButton() {
     if (!location.pathname.includes("/note")) return
     if (location.pathname.includes("/note/new")) {
         if (newNotePlaceholder && document.querySelector(".note form textarea")) {
@@ -972,36 +1158,48 @@ out meta;
     }
     const auth = makeAuth();
     let note_id = location.pathname.match(/note\/(\d+)/)[1];
-    let b = document.createElement("button");
-    b.classList.add("resolve-note-done", "btn", "btn-primary");
-    b.textContent = "👌";
-    b.title = "Add to the comment 👌 and close the note."
-    document.querySelectorAll("form.mb-3")[0].before(b);
-    document.querySelectorAll("form.mb-3")[0].before(document.createElement("p"));
-    document.querySelector("form.mb-3 .form-control").rows = 3;
-    document.querySelector(".resolve-note-done").onclick = () => {
-        auth.xhr({
-                method: 'POST',
-                path: osm_server.apiBase + 'notes/' + note_id + "/close.json?text=" + encodeURI("👌"),
-                prefix: false,
-            }, (err) => {
-                if (err) {
-                    alert(err);
-                }
-                window.location.reload();
+    const resolveButtonsText = GM_config.get("ResolveNotesButton")
+    if (resolveButtonsText) {
+        JSON.parse(resolveButtonsText).forEach(row => {
+            const label = row['label']
+            let text = label
+            if (row['text'] !== "") {
+                text = row['text']
             }
-        );
+            let b = document.createElement("button");
+            b.classList.add("resolve-note-done", "btn", "btn-primary");
+            b.textContent = label;
+            b.title = `Add to the comment "${text}" and close the note.\nYou can change emoji in userscript settings`
+            document.querySelectorAll("form.mb-3")[0].before(b);
+            b.after(document.createTextNode("\xA0"));
+            b.onclick = () => {
+                auth.xhr({
+                        method: 'POST',
+                        path: osm_server.apiBase + 'notes/' + note_id + "/close.json?text=" + encodeURI(text),
+                        prefix: false,
+                    }, (err) => {
+                        if (err) {
+                            alert(err);
+                        }
+                        window.location.reload();
+                    }
+                );
+            }
+        })
+        document.querySelectorAll("form.mb-3")[0].before(document.createElement("p"));
+        document.querySelector("form.mb-3 .form-control").rows = 3;
     }
+
 }
 
-function setupResolveNotesButtons(path) {
+function setupResolveNotesButton(path) {
     if (!path.includes("/note")) return;
-    let timerId = setInterval(addResolveNotesButtons, 100);
+    let timerId = setInterval(addResolveNotesButton, 100);
     setTimeout(() => {
         clearInterval(timerId);
         console.debug('stop try add resolve note button');
     }, 3000);
-    addResolveNotesButtons();
+    addResolveNotesButton();
 }
 
 function addDeleteButton() {
@@ -8049,7 +8247,7 @@ const modules = [
     setupCompactChangesetsHistory,
     setupMassChangesetsActions,
     setupRevertButton,
-    setupResolveNotesButtons,
+    setupResolveNotesButton,
     setupDeletor,
     setupHideNoteHighlight,
     setupSatelliteLayers,
@@ -8312,6 +8510,7 @@ function runSnow() {
 //</editor-fold>
 
 function main() {
+    // GM_config.open();
     'use strict';
     if (location.origin === "https://www.hdyc.neis-one.org" || location.origin === "https://hdyc.neis-one.org") {
         simplifyHDCYIframe();
