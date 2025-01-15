@@ -5453,7 +5453,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 pinnedRelations.delete(targetVersion.id)
             }
         }
-        memChangedFlag.appendChild(pinRelation)
+        memChangedFlag.after(pinRelation)
 
         pinRelation.after(membersTable)
         if (membersChanged) {
