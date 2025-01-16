@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.7
+// @version         0.7.1
 // @changelog       New: Comments templates, support ways render in relation members list
 // @changelog       New: Q for close sidebar, shift + Z for real bbox of changeset
 // @changelog       New: displaying the full history of ways (You can disable it in settings)
@@ -1176,7 +1176,9 @@ out meta;
             b.onclick = () => {
                 auth.xhr({
                         method: 'POST',
-                        path: osm_server.apiBase + 'notes/' + note_id + "/close.json?text=" + encodeURI(text),
+                        path: osm_server.apiBase + 'notes/' + note_id + "/close.json?" + new URLSearchParams({
+                        text: text
+                    }).toString(),
                         prefix: false,
                     }, (err) => {
                         if (err) {
