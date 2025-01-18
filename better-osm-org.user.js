@@ -1174,6 +1174,11 @@ out meta;
             document.querySelectorAll("form.mb-3")[0].before(b);
             b.after(document.createTextNode("\xA0"));
             b.onclick = () => {
+                try {
+                    getWindow().OSM.router.stateChange(getWindow().OSM.parseHash(getWindow().OSM.formatHash(getMap())))
+                } catch (e) {
+                    console.error(e)
+                }
                 auth.xhr({
                         method: 'POST',
                         path: osm_server.apiBase + 'notes/' + note_id + "/close.json?" + new URLSearchParams({
