@@ -8104,6 +8104,7 @@ function setupNavigationViaHotkeys() {
             }
         } else if (e.code === "KeyQ" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
             document.querySelector("#sidebar_content .btn-close")?.click()
+            document.querySelector(".welcome .btn-close")?.click()
         } else {
             // console.log(e.key, e.code)
         }
