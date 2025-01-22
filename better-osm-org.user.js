@@ -8074,11 +8074,19 @@ function setupNavigationViaHotkeys() {
             }
         } else if (e.code === "Minus") {
             if (document.activeElement?.id !== "map") {
-                getMap().setZoom(getMap().getZoom() - 2)
+                if (!e.altKey) {
+                    getMap().setZoom(getMap().getZoom() - 2)
+                } else {
+                    getMap().setZoom(getMap().getZoom() - 1)
+                }
             }
         } else if (e.code === "Equal") {
             if (document.activeElement?.id !== "map") {
-                getMap().setZoom(getMap().getZoom() + 2)
+                if (!e.altKey) {
+                    getMap().setZoom(getMap().getZoom() + 2)
+                } else {
+                    getMap().setZoom(getMap().getZoom() + 1)
+                }
             }
         } else if (e.code === "KeyO") {
             if (e.shiftKey) {
