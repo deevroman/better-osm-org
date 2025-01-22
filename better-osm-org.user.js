@@ -1197,7 +1197,18 @@ out meta;
         document.querySelectorAll("form.mb-3")[0].before(document.createElement("p"));
         document.querySelector("form.mb-3 .form-control").rows = 3;
     }
-
+    // TODO resize notes sidebar
+    // inject photos
+    document.querySelectorAll('#sidebar_content div:has(h4) a').forEach(i => {
+        if (i.href.match(/^(https:\/\/streetcomplete\.app\/|https:\/\/westnordost\.de\/).+\.jpg$/)) {
+            const img = GM_addElement("img", {
+                src: i.href,
+                crossorigin: "anonymous"
+            })
+            img.style.width = "100%"
+            i.after(img)
+        }
+    })
 }
 
 function setupResolveNotesButton(path) {
