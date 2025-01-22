@@ -6793,7 +6793,7 @@ function setupDarkModeForMap() {
 }
 
 async function setupHDYCInProfile(path) {
-    let match = path.match(/^\/user\/([^/]+)($|\/)/);
+    let match = path.match(/^\/user\/([^/]+)(\/|\/notes)?$/);
     if (!match || path.includes("/history")) {
         return;
     }
