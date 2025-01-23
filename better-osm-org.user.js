@@ -1182,8 +1182,8 @@ out meta;
                 auth.xhr({
                         method: 'POST',
                         path: osm_server.apiBase + 'notes/' + note_id + "/close.json?" + new URLSearchParams({
-                        text: text
-                    }).toString(),
+                            text: text
+                        }).toString(),
                         prefix: false,
                     }, (err) => {
                         if (err) {
@@ -1207,6 +1207,9 @@ out meta;
             })
             img.style.width = "100%"
             i.after(img)
+            document.querySelector("#sidebar").style.resize = "horizontal"
+            document.querySelector("#sidebar").style.width = "450px"
+            // hideSearchForm()
         }
     })
 }
@@ -2503,7 +2506,7 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
     const queryArgs = [""]
     const maxQueryArgLen = 8213 - (osm_server.apiBase.length + "nodes.json?nodes=".length)
     for (const lastVersion of longHistoryNodes) {
-        for (let v = 1; v < lastVersion.version; v++) {
+        for (let v = 1; v < lastVersion.version; v++) { // todo не нужно загружать версию, которая в текущем пакете правок (если уже успели его загрузить)
             const arg = lastVersion.id + "v" + v
             if (queryArgs[queryArgs.length - 1].length + arg.length + 1 < maxQueryArgLen) {
                 if (queryArgs[queryArgs.length - 1] === "") {
@@ -3271,7 +3274,7 @@ let dataLayerInitedOnce = false
  * @param {boolean=} addStroke
  * @return {Promise<{}>}
  */
-async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObjects = true, color = "#000000", layer = "activeObjects", addStroke=null) {
+async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObjects = true, color = "#000000", layer = "activeObjects", addStroke = null) {
     console.log(id, timestamp)
 
     async function getRelationViaOverpass(id, timestamp) {
@@ -5658,7 +5661,7 @@ async function processObjectInteractions(changesetID, objType, i, prevVersion, t
             })
             if (changesetMetadata === null) {
                 // alert("please report this object into better-osm-org repository")
-                await new Promise(r => setTimeout(r, 1000));
+                await new Promise(r => setTimeout(r, 1000)); // todo нужно поретраить
             }
         }
 
@@ -6294,7 +6297,7 @@ async function addChangesetQuickLook() {
         for (const objType of ["way", "node", "relation"]) {
             await processObjects(objType, uniqTypes);
         }
-        const changesetDataPromise = getChangeset(location.pathname.match(/changeset\/(\d+)/)[1])
+        const changesetDataPromise = getChangeset(changesetID)
         for (const objType of ["way", "node", "relation"]) {
             await processObjectsInteractions(objType, uniqTypes, changesetID);
         }
@@ -6684,6 +6687,7 @@ async function addChangesetQuickLook() {
         injectingStarted = false
         console.timeEnd("QuickLook")
         console.log("%cSetup QuickLook finished", 'background: #222; color: #bada55')
+        // todo mark changeset as reviewed
     }
 }
 
@@ -7675,12 +7679,18 @@ function setupMassChangesetsActions() {
 let hotkeysConfigured = false
 
 
-async function loadChangesetMetadata() {
-    const match = location.pathname.match(/changeset\/(\d+)/)
-    if (!match) {
-        return;
+/**
+ * @param {number|null=} changeset_id
+ * @return {Promise<void>}
+ */
+async function loadChangesetMetadata(changeset_id = null) {
+    if (!changeset_id) {
+        const match = location.pathname.match(/changeset\/(\d+)/)
+        if (!match) {
+            return;
+        }
+        changeset_id = parseInt(match[1]);
     }
-    const changeset_id = parseInt(match[1]);
     if (changesetMetadata !== null && changesetMetadata.id === changeset_id) {
         return;
     }
@@ -7976,6 +7986,7 @@ function setupNavigationViaHotkeys() {
             if (location.pathname.includes("/changeset")) {
                 if (e.shiftKey && changesetMetadata) {
                     setTimeout(async () => {
+                        // todo changesetID => merged BBOX
                         const changesetID = parseInt(location.pathname.match(/changeset\/(\d+)/)[1])
                         const nodesBag = [];
                         for (const node of Array.from(changesetsCache[changesetID].querySelectorAll('node'))) {
@@ -8124,6 +8135,9 @@ function setupNavigationViaHotkeys() {
         } else if (e.code === "KeyQ" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
             document.querySelector("#sidebar_content .btn-close")?.click()
             document.querySelector(".welcome .btn-close")?.click()
+        } else if (e.code === "KeyT" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
+            document.querySelector(".quick-look-compact-toggle-btn")?.click()
+            document.querySelector(".compact-toggle-btn")?.click()
         } else {
             // console.log(e.key, e.code)
         }
