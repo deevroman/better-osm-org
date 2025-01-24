@@ -8157,13 +8157,17 @@ function setupNavigationViaHotkeys() {
                 document.getElementsByClassName("geolocate")[0]?.click()
             }
         } else if (e.code === "KeyC") {
-            const activeObject = document.querySelector(".browse-section.active-object")
-            if (activeObject) {
-                activeObject.querySelector('a[href^="/changeset/"]')?.click()
+            if (location.pathname.includes("/user/")) {
+                document.querySelector('a[href^="/user/"][href$="_comments"]')?.click()
             } else {
-                const changesetsLinks = document.querySelectorAll('a[href^="/changeset/"]')
-                if (changesetsLinks.length === 1) {
-                    changesetsLinks[0].click()
+                const activeObject = document.querySelector(".browse-section.active-object")
+                if (activeObject) {
+                    activeObject.querySelector('a[href^="/changeset/"]')?.click()
+                } else {
+                    const changesetsLinks = document.querySelectorAll('a[href^="/changeset/"]')
+                    if (changesetsLinks.length === 1) {
+                        changesetsLinks[0].click()
+                    }
                 }
             }
         } else if (e.code === "KeyQ" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
