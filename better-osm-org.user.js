@@ -63,7 +63,7 @@
 // @resource     RELATION_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/Taginfo_element_relation.svg
 // @resource     OSMCHA_LIKE https://github.com/OSMCha/osmcha-frontend/raw/94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-up.svg
 // @resource     OSMCHA_DISLIKE https://github.com/OSMCha/osmcha-frontend/raw/94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-down.svg
-// @resource     DARK_THEME_FOR_ID_CSS https://gist.githubusercontent.com/deevroman/55f35da68ab1efb57b7ba4636bdf013d/raw/55babb3017ef54370f3596750a5ed999d0836233/dark.css
+// @resource     DARK_THEME_FOR_ID_CSS https://gist.githubusercontent.com/deevroman/55f35da68ab1efb57b7ba4636bdf013d/raw/add3a1613520f54e22cef5bbe69ba297d7e15cec/dark.css
 // @run-at       document-end
 // ==/UserScript==
 //<editor-fold desc="config" defaultstate="collapsed">
@@ -6158,6 +6158,25 @@ function addQuickLookStyles() {
     }
 }
 
+function removeEditTagsButton() {
+    if (location.pathname.includes("/changeset/")){
+        if (!document.querySelector(".secondary-actions .edit_tags_class")) {
+            const tagsEditorExtensionWaiter = new MutationObserver(() => {
+                document.querySelector(".edit_tags_class")?.previousSibling?.remove()
+                document.querySelector(".edit_tags_class")?.remove()
+            })
+            tagsEditorExtensionWaiter.observe(document.querySelector(".secondary-actions"), {
+                childList: true,
+                subtree: true
+            })
+            setTimeout(() => tagsEditorExtensionWaiter.disconnect(), 3000)
+        } else {
+            document.querySelector(".edit_tags_class")?.previousSibling?.remove()
+            document.querySelector(".edit_tags_class")?.remove()
+        }
+    }
+}
+
 async function addChangesetQuickLook() {
     if (!location.pathname.includes("/changeset")) {
         tagsOfObjectsVisible = true
@@ -6180,6 +6199,7 @@ async function addChangesetQuickLook() {
         document.querySelector("#sidebar").style.resize = "horizontal"
     }
     addSwipes();
+    removeEditTagsButton();
 
     const changesetID = location.pathname.match(/changeset\/(\d+)/)[1]
 
