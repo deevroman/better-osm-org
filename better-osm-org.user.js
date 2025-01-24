@@ -7907,19 +7907,29 @@ function setupNavigationViaHotkeys() {
         if (e.metaKey || e.ctrlKey) {
             return;
         }
-        if (e.code === "KeyN") { // notes
-            if (e.shiftKey) {
-                if (location.pathname.includes("/node") || location.pathname.includes("/way") || location.pathname.includes("/relation")) {
-                    newNotePlaceholder = "\n \n" + location.href
-                }
-                document.querySelector("a:has(span.note)").click()
+        if (e.code === "KeyN") {
+            if (location.pathname.includes("/user/")) {
+                document.querySelector('a[href^="/user/"][href$="/notes"]')?.click()
             } else {
-                Array.from(document.querySelectorAll(".overlay-layers label"))[0].click()
+                // notes
+                if (e.shiftKey) {
+                    if (location.pathname.includes("/node") || location.pathname.includes("/way") || location.pathname.includes("/relation")) {
+                        newNotePlaceholder = "\n \n" + location.href
+                    }
+                    document.querySelector("a:has(span.note)").click()
+                } else {
+                    Array.from(document.querySelectorAll(".overlay-layers label"))[0].click()
+                }
             }
-        } else if (e.code === "KeyD") { // map data
-            Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
-            dataLayerInitedOnce = true
-            enableOverzoom()
+        } else if (e.code === "KeyD") {
+            if (location.pathname.includes("/user/")) {
+                document.querySelector('a[href^="/user/"][href$="/diary"]')?.click()
+            } else {
+                // map data
+                Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
+                dataLayerInitedOnce = true
+                enableOverzoom()
+            }
         } else if (e.code === "KeyG") { // gps tracks
             Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
         } else if (e.code === "KeyS") { // satellite
@@ -7979,6 +7989,8 @@ function setupNavigationViaHotkeys() {
                 } else if (location.pathname === "/" || location.pathname.includes("/note")) {
                     // document.querySelector("#history_tab")?.click()
                     document.querySelector('.nav-link[href^="/history"]')?.click()
+                } else if (location.pathname.includes("/user/")) {
+                    document.querySelector('a[href^="/user/"][href$="/history"]')?.click()
                 }
             }
         } else if (e.code === "KeyY") {
@@ -8158,8 +8170,12 @@ function setupNavigationViaHotkeys() {
             document.querySelector("#sidebar_content .btn-close")?.click()
             document.querySelector(".welcome .btn-close")?.click()
         } else if (e.code === "KeyT" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
-            document.querySelector(".quick-look-compact-toggle-btn")?.click()
-            document.querySelector(".compact-toggle-btn")?.click()
+            if (location.pathname.includes("/user/")) {
+                document.querySelector('a[href^="/traces/"]')?.click()
+            } else {
+                document.querySelector(".quick-look-compact-toggle-btn")?.click()
+                document.querySelector(".compact-toggle-btn")?.click()
+            }
         } else {
             // console.log(e.key, e.code)
         }
