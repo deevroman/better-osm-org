@@ -8028,17 +8028,19 @@ function setupNavigationViaHotkeys() {
                                 }
                             }
                         }
-                        for (const way of changesetsCache[changesetID].querySelectorAll("way")) {
-                            const targetTime = way.getAttribute("visible") === "false"
-                                ? new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString()
-                                : changesetMetadata.closed_at
-                            const [, currentNodesList] = await getWayNodesByTimestamp(targetTime, way.getAttribute("id"))
-                            currentNodesList.forEach(coords => {
-                                nodesBag.push({
-                                    lat: coords[0],
-                                    lon: coords[1]
+                        if (changesetsCache[changesetID].querySelectorAll("relation").length) {
+                            for (const way of changesetsCache[changesetID].querySelectorAll("way")) {
+                                const targetTime = way.getAttribute("visible") === "false"
+                                    ? new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString()
+                                    : changesetMetadata.closed_at
+                                const [, currentNodesList] = await getWayNodesByTimestamp(targetTime, way.getAttribute("id"))
+                                currentNodesList.forEach(coords => {
+                                    nodesBag.push({
+                                        lat: coords[0],
+                                        lon: coords[1]
+                                    })
                                 })
-                            })
+                            }
                         }
                         getMap()?.invalidateSize()
                         if (nodesBag.length) {
