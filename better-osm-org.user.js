@@ -1587,6 +1587,9 @@ function makeHistoryCompact() {
         document.querySelectorAll(".empty-version").forEach((el) => {
             el.classList.replace("empty-version", "hidden-empty-version")
         })
+        document.querySelectorAll(".panoramax-img-link img").forEach(i => {
+            i.style.display = "none"
+        })
         document.querySelector(".compact-toggle-btn").textContent = "<>"
     } else {
         document.querySelectorAll(".hidden-non-modified-tag").forEach((el) => {
@@ -1594,6 +1597,9 @@ function makeHistoryCompact() {
         })
         document.querySelectorAll(".hidden-empty-version").forEach((el) => {
             el.classList.replace("hidden-empty-version", "empty-version")
+        })
+        document.querySelectorAll(".panoramax-img-link img").forEach(i => {
+            i.style.display = ""
         })
         document.querySelector(".compact-toggle-btn").textContent = "><"
     }
@@ -1871,9 +1877,18 @@ function makePanoramaxValue(elem) {
     elem.innerHTML = elem.innerHTML.replaceAll(/([0-9a-z-]+)/g, function (match) {
         const a = document.createElement("a")
         a.textContent = match
+        a.classList.add("panoramax-img-link")
         a.target = "_blank"
         a.href = "https://api.panoramax.xyz/#focus=pic&pic=" + match
         return a.outerHTML
+    })
+    elem.querySelectorAll('a.panoramax-img-link').forEach(a => {
+        const img = GM_addElement("img", {
+            src: `https://api.panoramax.xyz/api/pictures/${a.textContent}/sd.jpg`,
+            crossorigin: "anonymous"
+        })
+        img.style.width = "100%"
+        a.appendChild(img)
     })
     elem.onclick = e => {
         e.stopImmediatePropagation()
@@ -6284,8 +6299,18 @@ async function addChangesetQuickLook() {
             document.querySelectorAll(".non-modified-tag-in-quick-view").forEach(i => {
                 if (e.target.textContent === "><") {
                     i.removeAttribute("hidden")
+                    if (!e.altKey) {
+                        document.querySelectorAll(".panoramax-img-link img").forEach(i => {
+                            i.style.display = ""
+                        })
+                    }
                 } else {
                     i.setAttribute("hidden", "true")
+                    if (!e.altKey) {
+                        document.querySelectorAll(".panoramax-img-link img").forEach(i => {
+                            i.style.display = "none"
+                        })
+                    }
                 }
             });
         }
