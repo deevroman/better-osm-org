@@ -6174,7 +6174,7 @@ function addQuickLookStyles() {
 }
 
 function removeEditTagsButton() {
-    if (location.pathname.includes("/changeset/")){
+    if (location.pathname.includes("/changeset/")) {
         if (!document.querySelector(".secondary-actions .edit_tags_class")) {
             const tagsEditorExtensionWaiter = new MutationObserver(() => {
                 document.querySelector(".edit_tags_class")?.previousSibling?.remove()
@@ -8513,6 +8513,74 @@ out geom;
     }
 }
 
+function setupGeoJSONViewer() {
+    document.querySelector("#map").addEventListener("drop", e => {
+        e.preventDefault()
+        e.stopPropagation()
+        e.stopImmediatePropagation();
+        e.target.style.cursor = "progress"
+        try {
+            getMap().off("layeradd layerremove")
+
+            GM_addElement(document.head, "style", {
+                textContent: `
+                    .leaflet-popup-content:has(.geojson-props-table) {
+                        overflow: scroll;
+                    }
+                `,
+            });
+
+            [...e.dataTransfer.items].forEach(async (item, i) => {
+                if (item.kind === "file") {
+                    const file = item.getAsFile();
+                    const geojson = JSON.parse(await file.text())
+
+                    injectJSIntoPage(`
+                        function renderGeoJSON(data) {
+                            L.geoJSON(data, {
+                                onEachFeature: function (feature, layer) {
+                                    if (feature.properties) {
+                                        const table = document.createElement("table")
+                                        table.style.overflow = "scroll"
+                                        table.classList.add("geojson-props-table")
+                                        const tbody = document.createElement("tbody")
+                                        table.appendChild(tbody)
+                                        Object.entries(feature.properties).forEach(([key, value]) => {
+                                            if (Array.isArray(value) && value.length === 0) {
+                                                value = "[]"
+                                            } else if (typeof value === 'object' && Object.entries(value).length === 0) {
+                                                value = "{}"
+                                            }
+                                            const th = document.createElement("th")
+                                            th.textContent = key
+                                            const td = document.createElement("td")
+                                            td.textContent = value
+    
+                                            const tr = document.createElement("tr")
+                                            tr.appendChild(th)
+                                            tr.appendChild(td)
+                                            tbody.appendChild(tr)
+                                        })
+                                        const popup = layer.bindPopup(table.outerHTML)
+                                    }
+                                }
+                            }).addTo(map);
+                        }
+                    `)
+                    getWindow().renderGeoJSON(intoPage(geojson))
+                }
+            });
+        } finally {
+            e.target.style.cursor = "grab"
+        }
+
+
+    })
+    document.querySelector("#map").addEventListener("dragover", e => {
+        e.preventDefault()
+    })
+}
+
 
 function setup() {
     if (location.href.startsWith("https://osmcha.org")) {
@@ -8568,6 +8636,7 @@ function setup() {
         }
         return fn
     }()).observe(document, {subtree: true, childList: true});
+    setupGeoJSONViewer()
 }
 
 //<editor-fold desc="config" defaultstate="collapsed">
