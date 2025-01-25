@@ -1159,6 +1159,7 @@ out meta;
     }
     const auth = makeAuth();
     let note_id = location.pathname.match(/note\/(\d+)/)[1];
+    /** @type {string} */
     const resolveButtonsText = GM_config.get("ResolveNotesButton")
     if (resolveButtonsText) {
         JSON.parse(resolveButtonsText).forEach(row => {
@@ -2180,7 +2181,7 @@ function showActiveNodeMarker(lat, lon, color, removeActiveObjects = true) {
  * @param {string|number=null} infoElemID
  * @param {boolean=true} removeActiveObjects
  * @param {number=} weight
- * @param {number=} dashArray
+ * @param {string=} dashArray
  */
 function showActiveWay(nodesList, color = "#ff00e3", needFly = false, infoElemID = null, removeActiveObjects = true, weight = 4, dashArray = null) {
     const line = getWindow().L.polyline(
@@ -3213,7 +3214,7 @@ function setupWayVersionView() {
         downloadAllVersionsBtn.style.cursor = "pointer"
         downloadAllVersionsBtn.title = "Download all versions"
 
-        downloadAllVersionsBtn.addEventListener("click", async e => {
+        downloadAllVersionsBtn.addEventListener("click", async () => {
             downloadAllVersionsBtn.style.cursor = "progress"
             for (const i of document.querySelectorAll(`.way-version-view:not([hidden])`)) {
                 try {
