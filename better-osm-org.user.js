@@ -55,6 +55,7 @@
 // @connect      osmcha.org
 // @connect      overpass-api.de
 // @connect      raw.githubusercontent.com
+// @connect      en.wikipedia.org
 // @sandbox      JavaScript
 // @resource     OAUTH_HTML https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html
 // @resource     OSMCHA_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/osmcha.ico
@@ -1588,7 +1589,7 @@ function makeHistoryCompact() {
         document.querySelectorAll(".empty-version").forEach((el) => {
             el.classList.replace("empty-version", "hidden-empty-version")
         })
-        document.querySelectorAll(".panoramax-img-link img").forEach(i => {
+        document.querySelectorAll(".preview-img-link img").forEach(i => {
             i.style.display = "none"
         })
         document.querySelector(".compact-toggle-btn").textContent = "<>"
@@ -1599,7 +1600,7 @@ function makeHistoryCompact() {
         document.querySelectorAll(".hidden-empty-version").forEach((el) => {
             el.classList.replace("hidden-empty-version", "empty-version")
         })
-        document.querySelectorAll(".panoramax-img-link img").forEach(i => {
+        document.querySelectorAll(".preview-img-link img").forEach(i => {
             i.style.display = ""
         })
         document.querySelector(".compact-toggle-btn").textContent = "><"
@@ -1878,12 +1879,12 @@ function makePanoramaxValue(elem) {
     elem.innerHTML = elem.innerHTML.replaceAll(/([0-9a-z-]+)/g, function (match) {
         const a = document.createElement("a")
         a.textContent = match
-        a.classList.add("panoramax-img-link")
+        a.classList.add("preview-img-link")
         a.target = "_blank"
         a.href = "https://api.panoramax.xyz/#focus=pic&pic=" + match
         return a.outerHTML
     })
-    elem.querySelectorAll('a.panoramax-img-link').forEach(a => {
+    elem.querySelectorAll('a.preview-img-link').forEach(a => {
         const img = GM_addElement("img", {
             src: `https://api.panoramax.xyz/api/pictures/${a.textContent}/sd.jpg`,
             crossorigin: "anonymous"
@@ -1907,6 +1908,30 @@ function makeMapillaryValue(elem) {
     elem.onclick = e => {
         e.stopImmediatePropagation()
     }
+}
+
+function makeWikimediaCommonsValue(elem) {
+    elem.querySelectorAll('a[href^="//commons.wikimedia.org/wiki/"]').forEach(a => {
+        a.classList.add("preview-img-link")
+        setTimeout(async () => {
+            const res = (await GM.xmlHttpRequest({
+                url: `https://en.wikipedia.org/w/api.php?` + new URLSearchParams({
+                    action: "query",
+                    iiprop: "url",
+                    prop: "imageinfo",
+                    titles: a.textContent,
+                    format: "json"
+                }).toString(),
+                responseType: "json"
+            })).response
+            const img = GM_addElement("img", {
+                src: res['query']['pages']["-1"]["imageinfo"][0]['url'],
+                crossorigin: "anonymous"
+            })
+            img.style.width = "100%"
+            a.appendChild(img)
+        })
+    })
 }
 
 // example https://osm.org/node/6506618057
@@ -1939,6 +1964,8 @@ function makeLinksInTagsClickable() {
                 })
                 document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(snowBtn)
             }
+        } else if (key === "wikimedia_commons") {
+            makeWikimediaCommonsValue(i.querySelector("td"));
         }
     })
     const tagsTable = document.querySelector(".browse-tag-list")
@@ -4753,6 +4780,8 @@ function makeLinksInRowClickable(row) {
             makePanoramaxValue(row.querySelector("td"))
         } else if (row.querySelector("th").textContent.startsWith("mapillary")) {
             makeMapillaryValue(row.querySelector("td"))
+        } else if (row.querySelector("th").textContent.startsWith("wikimedia_commons")) {
+            makeWikimediaCommonsValue(row.querySelector("td"))
         }
     }
 }
@@ -6301,14 +6330,14 @@ async function addChangesetQuickLook() {
                 if (e.target.textContent === "><") {
                     i.removeAttribute("hidden")
                     if (!e.altKey) {
-                        document.querySelectorAll(".panoramax-img-link img").forEach(i => {
+                        document.querySelectorAll(".preview-img-link img").forEach(i => {
                             i.style.display = ""
                         })
                     }
                 } else {
                     i.setAttribute("hidden", "true")
                     if (!e.altKey) {
-                        document.querySelectorAll(".panoramax-img-link img").forEach(i => {
+                        document.querySelectorAll(".preview-img-link img").forEach(i => {
                             i.style.display = "none"
                         })
                     }
@@ -8184,7 +8213,11 @@ function setupNavigationViaHotkeys() {
             }
         } else if (e.code === "KeyC") {
             if (location.pathname.includes("/user/")) {
-                document.querySelector('a[href^="/user/"][href$="_comments"]')?.click()
+                if (location.pathname.includes("/diary_comments")) {
+                    document.querySelector('a[href^="/user/"][href$="changeset_comments"]')?.click()
+                } else {
+                    document.querySelector('a[href^="/user/"][href$="_comments"]')?.click()
+                }
             } else {
                 const activeObject = document.querySelector(".browse-section.active-object")
                 if (activeObject) {
@@ -8201,10 +8234,21 @@ function setupNavigationViaHotkeys() {
             document.querySelector(".welcome .btn-close")?.click()
         } else if (e.code === "KeyT" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
             if (location.pathname.includes("/user/")) {
-                document.querySelector('a[href^="/traces/"]')?.click()
+                document.querySelector('a[href^="/traces"]')?.click()
             } else {
                 document.querySelector(".quick-look-compact-toggle-btn")?.click()
                 document.querySelector(".compact-toggle-btn")?.click()
+            }
+        } else if (e.code === "KeyU" && !e.altKey && !e.metaKey && !e.ctrlKey) {
+            if (e.shiftKey) {
+                window.location = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href")
+            } else {
+                const user_link = document.querySelector('#sidebar_content a[href^="/user/"]')
+                if (user_link) {
+                    user_link?.click()
+                } else {
+                    document.querySelector('#content a[href^="/user/"]:not([href$=rss]):not([href*="/diary"]):not([href*="/traces"])')?.click()
+                }
             }
         } else {
             // console.log(e.key, e.code)
@@ -8367,18 +8411,28 @@ function setupClickableAvatar() {
         e.preventDefault()
         e.stopPropagation()
         e.stopImmediatePropagation()
-        const targetURL = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href") + "/history"
-        if (targetURL !== location.pathname) {
+        if (location.pathname.match(/\/user\/.+\/history/)) {
+            const targetURL = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href")
             if (e.ctrlKey || e.metaKey) {
                 window.open(targetURL, "_blank")
             } else {
-                try {
-                    getWindow().OSM.router.route(targetURL)
-                } catch {
-                    window.location = targetURL
-                }
+                window.location = targetURL
             }
             miniAvatar.click() // dirty hack for hide dropdown
+        } else {
+            const targetURL = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href") + "/history"
+            if (targetURL !== location.pathname) {
+                if (e.ctrlKey || e.metaKey) {
+                    window.open(targetURL, "_blank")
+                } else {
+                    try {
+                        getWindow().OSM.router.route(targetURL)
+                    } catch {
+                        window.location = targetURL
+                    }
+                }
+                miniAvatar.click() // dirty hack for hide dropdown
+            }
         }
     }
 }
@@ -8515,7 +8569,7 @@ out geom;
 }
 
 function setupGeoJSONViewer() {
-    document.querySelector("#map").addEventListener("drop", e => {
+    document.querySelector("#map")?.addEventListener("drop", e => {
         e.preventDefault()
         e.stopPropagation()
         e.stopImmediatePropagation();
@@ -8537,36 +8591,36 @@ function setupGeoJSONViewer() {
                     const geojson = JSON.parse(await file.text())
 
                     injectJSIntoPage(`
-                        function renderGeoJSON(data) {
-                            L.geoJSON(data, {
-                                onEachFeature: function (feature, layer) {
-                                    if (feature.properties) {
-                                        const table = document.createElement("table")
-                                        table.style.overflow = "scroll"
-                                        table.classList.add("geojson-props-table")
-                                        const tbody = document.createElement("tbody")
-                                        table.appendChild(tbody)
-                                        Object.entries(feature.properties).forEach(([key, value]) => {
-                                            if (Array.isArray(value) && value.length === 0) {
-                                                value = "[]"
-                                            } else if (typeof value === 'object' && Object.entries(value).length === 0) {
-                                                value = "{}"
-                                            }
-                                            const th = document.createElement("th")
-                                            th.textContent = key
-                                            const td = document.createElement("td")
-                                            td.textContent = value
-    
-                                            const tr = document.createElement("tr")
-                                            tr.appendChild(th)
-                                            tr.appendChild(td)
-                                            tbody.appendChild(tr)
-                                        })
-                                        const popup = layer.bindPopup(table.outerHTML)
-                                    }
+                    function renderGeoJSON(data) {
+                        L.geoJSON(data, {
+                            onEachFeature: function (feature, layer) {
+                                if (feature.properties) {
+                                    const table = document.createElement("table")
+                                    table.style.overflow = "scroll"
+                                    table.classList.add("geojson-props-table")
+                                    const tbody = document.createElement("tbody")
+                                    table.appendChild(tbody)
+                                    Object.entries(feature.properties).forEach(([key, value]) => {
+                                        if (Array.isArray(value) && value.length === 0) {
+                                            value = "[]"
+                                        } else if (typeof value === 'object' && Object.entries(value).length === 0) {
+                                            value = "{}"
+                                        }
+                                        const th = document.createElement("th")
+                                        th.textContent = key
+                                        const td = document.createElement("td")
+                                        td.textContent = value
+
+                                        const tr = document.createElement("tr")
+                                        tr.appendChild(th)
+                                        tr.appendChild(td)
+                                        tbody.appendChild(tr)
+                                    })
+                                    const popup = layer.bindPopup(table.outerHTML)
                                 }
-                            }).addTo(map);
-                        }
+                            }
+                        }).addTo(map);
+                    }
                     `)
                     getWindow().renderGeoJSON(intoPage(geojson))
                 }
@@ -8577,7 +8631,7 @@ function setupGeoJSONViewer() {
 
 
     })
-    document.querySelector("#map").addEventListener("dragover", e => {
+    document.querySelector("#map")?.addEventListener("dragover", e => {
         e.preventDefault()
     })
 }
