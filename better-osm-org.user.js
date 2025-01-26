@@ -33,6 +33,7 @@
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=openstreetmap.org
 // @require      https://github.com/deevroman/GM_config/raw/fixed-for-chromium/gm_config.js#sha256=ea04cb4254619543f8bca102756beee3e45e861077a75a5e74d72a5c131c580b
 // @require      https://raw.githubusercontent.com/deevroman/osmtags-editor/main/osm-auth.iife.min.js#sha256=dcd67312a2714b7a13afbcc87d2f81ee46af7c3871011427ddba1e56900b4edd
+// @require      https://raw.githubusercontent.com/deevroman/exif-js/53b0c7c1951a23d255e37ed0a883462218a71b6f/exif.js#sha256=2235967d47deadccd9976244743e3a9be5ca5e41803cda65a40b8686ec713b74
 // @incompatible safari https://github.com/deevroman/better-osm-org/issues/13
 // @grant        GM_registerMenuCommand
 // @grant        GM_getValue
@@ -82,8 +83,8 @@
 /*global GM_registerMenuCommand*/
 /*global unsafeWindow*/
 /*global exportFunction*/
-
 /*global cloneInto*/
+/*global EXIF*/
 
 function isDarkMode() {
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -8577,52 +8578,100 @@ function setupGeoJSONViewer() {
         try {
             getMap().off("layeradd layerremove")
 
+            const mapWidth = getComputedStyle(document.querySelector("#map")).width
+            const mapHeight = getComputedStyle(document.querySelector("#map")).height
+
             GM_addElement(document.head, "style", {
                 textContent: `
                     .leaflet-popup-content:has(.geojson-props-table) {
                         overflow: scroll;
                     }
+                    
+                    .map-img-preview-popup {
+                        width: initial;
+                    }
+                    
+                    .leaflet-popup-content {
+                        max-width: calc(${mapWidth} / 2) !important;
+                        min-width: calc(${mapWidth} / 2) !important;
+                        max-height: calc(${mapHeight} / 2);
+                        min-height: calc(${mapHeight} / 2);
+                        width: auto;
+                        height: auto;
+                        overflow-y: scroll;
+                    }
                 `,
             });
 
-            [...e.dataTransfer.items].forEach(async (item, i) => {
+            [...e.dataTransfer.items].forEach(async (item, _) => {
                 if (item.kind === "file") {
                     const file = item.getAsFile();
-                    const geojson = JSON.parse(await file.text())
+                    if (file.type.startsWith("image/jpeg")) {
+                        const metadata = EXIF.readFromBinaryFile(await file.arrayBuffer())
+                        console.log(metadata)
+                        console.log(metadata.GPSLatitude, metadata.GPSLongitude)
+                        let lat = parseFloat(metadata.GPSLatitude[0]) + parseFloat(metadata.GPSLatitude[1])/60 + parseFloat(metadata.GPSLatitude[2])/3600;
+                        let lon = parseFloat(metadata.GPSLongitude[0]) + parseFloat(metadata.GPSLongitude[1])/60 + parseFloat(metadata.GPSLongitude[2])/3600;
 
-                    injectJSIntoPage(`
-                    function renderGeoJSON(data) {
-                        L.geoJSON(data, {
-                            onEachFeature: function (feature, layer) {
-                                if (feature.properties) {
-                                    const table = document.createElement("table")
-                                    table.style.overflow = "scroll"
-                                    table.classList.add("geojson-props-table")
-                                    const tbody = document.createElement("tbody")
-                                    table.appendChild(tbody)
-                                    Object.entries(feature.properties).forEach(([key, value]) => {
-                                        if (Array.isArray(value) && value.length === 0) {
-                                            value = "[]"
-                                        } else if (typeof value === 'object' && Object.entries(value).length === 0) {
-                                            value = "{}"
-                                        }
-                                        const th = document.createElement("th")
-                                        th.textContent = key
-                                        const td = document.createElement("td")
-                                        td.textContent = value
+                        if (metadata.GPSLatitudeRef === "S" ) {
+                            lat = parseFloat(lat) * -1;
+                        }
 
-                                        const tr = document.createElement("tr")
-                                        tr.appendChild(th)
-                                        tr.appendChild(td)
-                                        tbody.appendChild(tr)
-                                    })
-                                    const popup = layer.bindPopup(table.outerHTML)
+                        if (metadata.GPSLongitudeRef === "W") {
+                            lon = parseFloat(lon) * -1;
+                        }
+
+                        const marker = getWindow().L.marker(getWindow().L.latLng(lat, lon), intoPage({
+                            maxWidth: mapWidth,
+                            maxHeight: mapHeight,
+                            className: "map-img-preview-popup"
+                        }));
+                        const img = document.createElement("img")
+                        img.setAttribute("width", "100%")
+                        const fr = new FileReader();
+                        fr.onload = function () {
+                            img.src = fr.result;
+                            marker.bindPopup(img.outerHTML);
+                        }
+                        fr.readAsDataURL(file);
+                        marker.addTo(getMap());
+                    } else if (file.type === "application/json" || file.type === "application/geo+json" ){
+                        const geojson = JSON.parse(await file.text())
+
+                        injectJSIntoPage(`
+                        function renderGeoJSON(data) {
+                            L.geoJSON(data, {
+                                onEachFeature: function (feature, layer) {
+                                    if (feature.properties) {
+                                        const table = document.createElement("table")
+                                        table.style.overflow = "scroll"
+                                        table.classList.add("geojson-props-table")
+                                        const tbody = document.createElement("tbody")
+                                        table.appendChild(tbody)
+                                        Object.entries(feature.properties).forEach(([key, value]) => {
+                                            if (Array.isArray(value) && value.length === 0) {
+                                                value = "[]"
+                                            } else if (typeof value === 'object' && Object.entries(value).length === 0) {
+                                                value = "{}"
+                                            }
+                                            const th = document.createElement("th")
+                                            th.textContent = key
+                                            const td = document.createElement("td")
+                                            td.textContent = value
+
+                                            const tr = document.createElement("tr")
+                                            tr.appendChild(th)
+                                            tr.appendChild(td)
+                                            tbody.appendChild(tr)
+                                        })
+                                        const popup = layer.bindPopup(table.outerHTML)
+                                    }
                                 }
-                            }
-                        }).addTo(map);
+                            }).addTo(map);
+                        }
+                        `)
+                        getWindow().renderGeoJSON(intoPage(geojson))
                     }
-                    `)
-                    getWindow().renderGeoJSON(intoPage(geojson))
                 }
             });
         } finally {
