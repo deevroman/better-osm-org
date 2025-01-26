@@ -8807,7 +8807,8 @@ function main() {
             // GM_registerMenuCommand("Ask question on forum", function () {
             //     window.open("https://community.openstreetmap.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670")
             // });
-        } catch { /* empty */
+        } catch (e) {
+            console.error(e)
         }
         setup();
     }
