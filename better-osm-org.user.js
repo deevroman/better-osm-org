@@ -57,6 +57,7 @@
 // @connect      overpass-api.de
 // @connect      raw.githubusercontent.com
 // @connect      en.wikipedia.org
+// @connect      amazonaws.com
 // @sandbox      JavaScript
 // @resource     OAUTH_HTML https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html
 // @resource     OSMCHA_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/osmcha.ico
@@ -84,6 +85,7 @@
 /*global unsafeWindow*/
 /*global exportFunction*/
 /*global cloneInto*/
+
 /*global EXIF*/
 
 function isDarkMode() {
@@ -298,6 +300,12 @@ GM_config.init(
                     'label': 'Allow overzoom when data layer enabled β',
                     'type': 'checkbox',
                     'default': false,
+                    'labelPos': 'right'
+                },
+                'DragAndDropViewers': {
+                    'label': 'Drag&Drop for .geojson, .jpg, .gpx β',
+                    'type': 'checkbox',
+                    'default': 'checked',
                     'labelPos': 'right'
                 }
             },
@@ -1156,6 +1164,16 @@ out meta;
         console.error("setup timeback button fail");
     }
 
+    document.querySelectorAll('#sidebar_content div:has(h4) a:not(.gpx-displayed)').forEach(i => {
+        i.classList.add("gpx-displayed")
+        const m = i.href.match(new RegExp(`${osm_server.url}/user/.+/traces/(\\d+)`))
+        if (m) {
+            GM.xmlHttpRequest({
+                url: `${osm_server.url}/traces/${m[1]}/data`,
+            }).then(res => displayGPXTrack(res.response))
+        }
+    })
+
     if (!document.querySelector("#sidebar_content textarea.form-control")) {
         return;
     }
@@ -1200,8 +1218,6 @@ out meta;
         document.querySelectorAll("form.mb-3")[0].before(document.createElement("p"));
         document.querySelector("form.mb-3 .form-control").rows = 3;
     }
-    // TODO resize notes sidebar
-    // inject photos
     document.querySelectorAll('#sidebar_content div:has(h4) a').forEach(i => {
         if (i.href.match(/^(https:\/\/streetcomplete\.app\/|https:\/\/westnordost\.de\/).+\.jpg$/)) {
             const img = GM_addElement("img", {
@@ -8462,6 +8478,7 @@ const modules = [
     setupRelationVersionViewer,
     setupClickableAvatar,
     setupOverzoomForDataLayer,
+    setupDragAndDropViewers
 ];
 
 const fetchJSONWithCache = (() => {
@@ -8569,7 +8586,38 @@ out geom;
     }
 }
 
-function setupGeoJSONViewer() {
+/**
+ * @param {string} xml
+ */
+function displayGPXTrack(xml) {
+    const diffParser = new DOMParser();
+    const doc = diffParser.parseFromString(xml, "application/xml");
+    const nodesList = []
+    doc.querySelector("gpx trk trkseg").querySelectorAll("trkpt").forEach(i => {
+        nodesList.push([parseFloat(i.getAttribute("lat")), parseFloat(i.getAttribute("lon"))])
+    });
+    const popup = document.createElement("span")
+
+    const name = doc.querySelector("gpx trk name")?.textContent
+    const nameSpan = document.createElement("p")
+    nameSpan.textContent = name
+
+    const desc = doc.querySelector("gpx trk desc")?.textContent
+    const descSpan = document.createElement("p")
+    descSpan.textContent = desc
+
+    const link = doc.querySelector("gpx trk link")?.getAttribute("href")
+    const linkA = document.createElement("a")
+    linkA.href = link
+    linkA.textContent = link
+
+    popup.appendChild(nameSpan)
+    popup.appendChild(descSpan)
+    popup.appendChild(linkA)
+    displayWay(cloneInto(nodesList, unsafeWindow), false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML);
+}
+
+async function setupDragAndDropViewers() {
     document.querySelector("#map")?.addEventListener("drop", e => {
         e.preventDefault()
         e.stopPropagation()
@@ -8591,7 +8639,7 @@ function setupGeoJSONViewer() {
                         width: initial;
                     }
                     
-                    .leaflet-popup-content {
+                    .leaflet-popup-content:has(.geotagged-img) {
                         max-width: calc(${mapWidth} / 2) !important;
                         min-width: calc(${mapWidth} / 2) !important;
                         max-height: calc(${mapHeight} / 2);
@@ -8610,10 +8658,10 @@ function setupGeoJSONViewer() {
                         const metadata = EXIF.readFromBinaryFile(await file.arrayBuffer())
                         console.log(metadata)
                         console.log(metadata.GPSLatitude, metadata.GPSLongitude)
-                        let lat = parseFloat(metadata.GPSLatitude[0]) + parseFloat(metadata.GPSLatitude[1])/60 + parseFloat(metadata.GPSLatitude[2])/3600;
-                        let lon = parseFloat(metadata.GPSLongitude[0]) + parseFloat(metadata.GPSLongitude[1])/60 + parseFloat(metadata.GPSLongitude[2])/3600;
+                        let lat = parseFloat(metadata.GPSLatitude[0]) + parseFloat(metadata.GPSLatitude[1]) / 60 + parseFloat(metadata.GPSLatitude[2]) / 3600;
+                        let lon = parseFloat(metadata.GPSLongitude[0]) + parseFloat(metadata.GPSLongitude[1]) / 60 + parseFloat(metadata.GPSLongitude[2]) / 3600;
 
-                        if (metadata.GPSLatitudeRef === "S" ) {
+                        if (metadata.GPSLatitudeRef === "S") {
                             lat = parseFloat(lat) * -1;
                         }
 
@@ -8627,6 +8675,7 @@ function setupGeoJSONViewer() {
                             className: "map-img-preview-popup"
                         }));
                         const img = document.createElement("img")
+                        img.classList.add("geotagged-img")
                         img.setAttribute("width", "100%")
                         const fr = new FileReader();
                         fr.onload = function () {
@@ -8635,7 +8684,7 @@ function setupGeoJSONViewer() {
                         }
                         fr.readAsDataURL(file);
                         marker.addTo(getMap());
-                    } else if (file.type === "application/json" || file.type === "application/geo+json" ){
+                    } else if (file.type === "application/json" || file.type === "application/geo+json") {
                         const geojson = JSON.parse(await file.text())
 
                         injectJSIntoPage(`
@@ -8671,6 +8720,8 @@ function setupGeoJSONViewer() {
                         }
                         `)
                         getWindow().renderGeoJSON(intoPage(geojson))
+                    } else if (file.type === "application/gpx+xml") {
+                        displayGPXTrack(await file.text())
                     }
                 }
             });
@@ -8683,6 +8734,23 @@ function setupGeoJSONViewer() {
     document.querySelector("#map")?.addEventListener("dragover", e => {
         e.preventDefault()
     })
+
+    if (location.pathname.includes("/traces")) {
+        document.querySelectorAll('a[href*="edit?gpx="]').forEach(i => {
+            const trackID = i.getAttribute("href").match(/edit\?gpx=(\d+)/)[1]
+            const editLink = i.parentElement.parentElement.querySelector('a:not([href*="display-gpx"])')
+            const url = new URL(editLink.href);
+            url.search += "&display-gpx=" + trackID
+            editLink.href = url.toString()
+        })
+    } else if (location.search.includes("&display-gpx=")) {
+        const trackID = location.search.match(/&display-gpx=(\d+)/)[1]
+        const res = await GM.xmlHttpRequest({
+            url: `${osm_server.url}/traces/${trackID}/data`,
+        });
+        displayGPXTrack(res.response)
+    }
+
 }
 
 
@@ -8740,7 +8808,6 @@ function setup() {
         }
         return fn
     }()).observe(document, {subtree: true, childList: true});
-    setupGeoJSONViewer()
 }
 
 //<editor-fold desc="config" defaultstate="collapsed">
