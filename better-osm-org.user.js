@@ -8592,21 +8592,18 @@ out geom;
 function displayGPXTrack(xml) {
     const diffParser = new DOMParser();
     const doc = diffParser.parseFromString(xml, "application/xml");
-    const nodesList = []
-    doc.querySelector("gpx trk trkseg").querySelectorAll("trkpt").forEach(i => {
-        nodesList.push([parseFloat(i.getAttribute("lat")), parseFloat(i.getAttribute("lon"))])
-    });
+
     const popup = document.createElement("span")
 
-    const name = doc.querySelector("gpx trk name")?.textContent
+    const name = doc.querySelector("gpx name")?.textContent
     const nameSpan = document.createElement("p")
     nameSpan.textContent = name
 
-    const desc = doc.querySelector("gpx trk desc")?.textContent
+    const desc = doc.querySelector("gpx desc")?.textContent
     const descSpan = document.createElement("p")
     descSpan.textContent = desc
 
-    const link = doc.querySelector("gpx trk link")?.getAttribute("href")
+    const link = doc.querySelector("gpx link")?.getAttribute("href")
     const linkA = document.createElement("a")
     linkA.href = link
     linkA.textContent = link
@@ -8614,7 +8611,20 @@ function displayGPXTrack(xml) {
     popup.appendChild(nameSpan)
     popup.appendChild(descSpan)
     popup.appendChild(linkA)
-    displayWay(cloneInto(nodesList, unsafeWindow), false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML);
+
+    console.time("start gpx track render")
+    // getMap().off("layeradd layerremove")
+    doc.querySelectorAll("gpx trk").forEach(trk => {
+        const nodesList = []
+        trk.querySelectorAll("trkseg trkpt").forEach(i => {
+            nodesList.push([parseFloat(i.getAttribute("lat")), parseFloat(i.getAttribute("lon"))])
+        });
+        displayWay(cloneInto(nodesList, unsafeWindow), false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML);
+    });
+    doc.querySelectorAll("gpx wpt").forEach(wpt => {
+        showNodeMarker(wpt.getAttribute("lat"), wpt.getAttribute("lon"), "rgb(255,0,47)", null, 'customObjects', 3)
+    });
+    console.timeEnd("start gpx track render")
 }
 
 async function setupDragAndDropViewers() {
@@ -8624,7 +8634,7 @@ async function setupDragAndDropViewers() {
         e.stopImmediatePropagation();
         e.target.style.cursor = "progress"
         try {
-            getMap().off("layeradd layerremove")
+            // getMap().off("layeradd layerremove")
 
             const mapWidth = getComputedStyle(document.querySelector("#map")).width
             const mapHeight = getComputedStyle(document.querySelector("#map")).height
@@ -8747,8 +8757,14 @@ async function setupDragAndDropViewers() {
         const trackID = location.search.match(/&display-gpx=(\d+)/)[1]
         const res = await GM.xmlHttpRequest({
             url: `${osm_server.url}/traces/${trackID}/data`,
+            responseType: "blob"
         });
-        displayGPXTrack(res.response)
+        const contentType = res.responseHeaders.split("\r\n").find(i => i.startsWith("content-type:")).split(" ")[1]
+        if (contentType === "application/gpx+xml") {
+            displayGPXTrack(await res.response.text())
+        } else if (contentType === "application/gzip"){
+            displayGPXTrack(await (await decompressBlob(res.response)).text());
+        }
     }
 
 }
