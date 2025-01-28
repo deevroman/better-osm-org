@@ -8193,6 +8193,13 @@ function setupNavigationViaHotkeys() {
                         ])
                     }
                 }
+            } else if (location.search.includes("&display-gpx=")) {
+                if (trackMetadata) {
+                    fitBounds([
+                        [trackMetadata.min_lat, trackMetadata.min_lon],
+                        [trackMetadata.max_lat, trackMetadata.max_lon]
+                    ])
+                }
             }
         } else if (e.key === "8") {
             if (mapPositionsHistory.length > 1) {
@@ -8591,6 +8598,9 @@ out geom;
     }
 }
 
+
+let trackMetadata = null;
+
 /**
  * @param {string} xml
  */
@@ -8618,15 +8628,37 @@ function displayGPXTrack(xml) {
     popup.appendChild(linkA)
 
     console.time("start gpx track render")
+    const min = Math.min;
+    const max = Math.max;
+    trackMetadata = {
+        min_lat: 10000000,
+        min_lon: 10000000,
+        max_lat: -10000000,
+        max_lon: -100000000,
+    }
     doc.querySelectorAll("gpx trk").forEach(trk => {
         const nodesList = []
         trk.querySelectorAll("trkseg trkpt").forEach(i => {
-            nodesList.push([parseFloat(i.getAttribute("lat")), parseFloat(i.getAttribute("lon"))])
+            const lat = parseFloat(i.getAttribute("lat"));
+            const lon = parseFloat(i.getAttribute("lon"));
+            nodesList.push([lat, lon]);
+
+            trackMetadata.min_lat = min(trackMetadata.min_lat, lat);
+            trackMetadata.min_lon = min(trackMetadata.min_lon, lon);
+            trackMetadata.max_lat = max(trackMetadata.max_lat, lat);
+            trackMetadata.max_lon = max(trackMetadata.max_lon, lon);
         });
         displayWay(cloneInto(nodesList, unsafeWindow), false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML);
     });
     doc.querySelectorAll("gpx wpt").forEach(wpt => {
-        showNodeMarker(wpt.getAttribute("lat"), wpt.getAttribute("lon"), "rgb(255,0,47)", null, 'customObjects', 3)
+        const lat = wpt.getAttribute("lat");
+        const lon = wpt.getAttribute("lon");
+        showNodeMarker(lat, lon, "rgb(255,0,47)", null, 'customObjects', 3);
+
+        trackMetadata.min_lat = min(trackMetadata.min_lat, lat);
+        trackMetadata.min_lon = min(trackMetadata.min_lon, lon);
+        trackMetadata.max_lat = max(trackMetadata.max_lat, lat);
+        trackMetadata.max_lon = max(trackMetadata.max_lon, lon);
     });
     console.timeEnd("start gpx track render")
 }
