@@ -1024,6 +1024,12 @@ const compactSidebarStyleText = `
         font-weight: unset;
       }
     }
+    
+    @media (prefers-color-scheme: dark) {
+        table.browse-tag-list tr td[colspan="2"]{
+          background: var(--bs-body-bg) !important;
+        }
+    }
       
     `;
 
