@@ -3401,7 +3401,6 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
         Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
         Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
     }
-    // getMap().off("layeradd layerremove")
     mergedGeometry.forEach(nodesList => {
         displayWay(nodesList, false, color, 4, null, layer, null, null, addStroke)
     })
@@ -3631,7 +3630,6 @@ function setupRelationVersionView() {
                 Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
                 Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
             }
-            // getMap().off("layeradd layerremove")
             for (const i of document.querySelectorAll(`.relation-version-view:not([hidden])`)) {
                 await loadRelationVersion(i)
             }
@@ -4617,13 +4615,13 @@ function addSwipes() {
                 if (diffX > sidebar.offsetWidth / 3) {
                     const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
                     if (navigationLinks && Array.from(navigationLinks).at(-1).href.includes("/changeset/")) {
-                        abortDownloadingController.abort("Abort requests for moving to prev changeset")
+                        abortDownloadingController.abort(ABORT_ERROR_PREV)
                         Array.from(navigationLinks).at(-1).click()
                     }
                 } else if (diffX < -sidebar.offsetWidth / 3) {
                     const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
                     if (navigationLinks && navigationLinks[0].href.includes("/changeset/")) {
-                        abortDownloadingController.abort("Abort requests for moving to next changeset")
+                        abortDownloadingController.abort(ABORT_ERROR_NEXT)
                         navigationLinks[0].click()
                     }
                 }
@@ -5722,7 +5720,7 @@ async function processObjectInteractions(changesetID, objType, i, prevVersion, t
                 }
             })
             if (changesetMetadata === null) {
-                // alert("please report this object into better-osm-org repository")
+                console.log(`changesetMetadata not ready. Wait second...`)
                 await new Promise(r => setTimeout(r, 1000)); // todo нужно поретраить
             }
         }
@@ -5771,6 +5769,10 @@ async function processObjectInteractions(changesetID, objType, i, prevVersion, t
                 }
                 showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false)
             }
+        }
+        if (changesetMetadata === null) {
+            console.log(`changesetMetadata not ready. Wait second...`)
+            await new Promise(r => setTimeout(r, 1000)); // todo нужно поретраить
         }
         if (targetVersion.visible === false) {
             const versionForLoad = targetVersion.visible === false ? prevVersion.version : targetVersion.version;
@@ -7957,9 +7959,12 @@ function enableOverzoom() {
     })()
     `)
     // it's unstable
-    // getMap().off("layeradd layerremove")
     console.log("Overzoom enabled")
 }
+
+const ABORT_ERROR_PREV = "Abort requests for moving to prev changeset";
+const ABORT_ERROR_NEXT = "Abort requests for moving to next changeset";
+const ABORT_ERROR_USER_CHANGESETS = "Abort requests for moving to user changesets";
 
 function setupNavigationViaHotkeys() {
     if (["/edit", "/id"].includes(location.pathname)) return
@@ -8274,21 +8279,21 @@ function setupNavigationViaHotkeys() {
             if (e.code === "Comma") {
                 const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
                 if (navigationLinks && navigationLinks[0].href.includes("/changeset/")) {
-                    abortDownloadingController.abort("Abort requests for moving to prev changeset")
+                    abortDownloadingController.abort(ABORT_ERROR_PREV)
                     navigationLinks[0].focus()
                     navigationLinks[0].click()
                 }
             } else if (e.code === "Period") {
                 const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
                 if (navigationLinks && Array.from(navigationLinks).at(-1).href.includes("/changeset/")) {
-                    abortDownloadingController.abort("Abort requests for moving to next changeset")
+                    abortDownloadingController.abort(ABORT_ERROR_NEXT)
                     Array.from(navigationLinks).at(-1).focus()
                     Array.from(navigationLinks).at(-1).click()
                 }
             } else if (e.code === "KeyH") {
                 const userChangesetsLink = document.querySelectorAll("div.secondary-actions")[1]?.querySelector('a[href^="/user/"]')
                 if (userChangesetsLink) {
-                    abortDownloadingController.abort("Abort requests for moving to user changesets")
+                    abortDownloadingController.abort(ABORT_ERROR_USER_CHANGESETS)
                     userChangesetsLink.focus()
                     userChangesetsLink.click()
                 }
@@ -8613,7 +8618,6 @@ function displayGPXTrack(xml) {
     popup.appendChild(linkA)
 
     console.time("start gpx track render")
-    // getMap().off("layeradd layerremove")
     doc.querySelectorAll("gpx trk").forEach(trk => {
         const nodesList = []
         trk.querySelectorAll("trkseg trkpt").forEach(i => {
@@ -8634,8 +8638,6 @@ async function setupDragAndDropViewers() {
         e.stopImmediatePropagation();
         e.target.style.cursor = "progress"
         try {
-            // getMap().off("layeradd layerremove")
-
             const mapWidth = getComputedStyle(document.querySelector("#map")).width
             const mapHeight = getComputedStyle(document.querySelector("#map")).height
 
@@ -8742,7 +8744,9 @@ async function setupDragAndDropViewers() {
 
     })
     document.querySelector("#map")?.addEventListener("dragover", e => {
-        e.preventDefault()
+        if (!location.pathname.includes("/directions")) {
+            e.preventDefault()
+        }
     })
 
     if (location.pathname.includes("/traces")) {
@@ -8762,7 +8766,7 @@ async function setupDragAndDropViewers() {
         const contentType = res.responseHeaders.split("\r\n").find(i => i.startsWith("content-type:")).split(" ")[1]
         if (contentType === "application/gpx+xml") {
             displayGPXTrack(await res.response.text())
-        } else if (contentType === "application/gzip"){
+        } else if (contentType === "application/gzip") {
             displayGPXTrack(await (await decompressBlob(res.response)).text());
         }
     }
