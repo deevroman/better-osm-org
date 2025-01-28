@@ -104,28 +104,40 @@ Experimental hotkeys:
 - + [x] `revert:id`, `closed:note`, `redacted_changesets` key in changeset
 - + [x] `panoramax=*`, `mapillary=*` tags
 - + [ ] `contact:*`=
+- [x] Display GPS photos and tracks in StreetComplete notes
+- [x] Display photos from Panoramax and Wikimedia Commoms in tags
+- [x] Display GPS-track
 - [x] Shortening long URLs in comments: https://www.openstreetmap.org → osm.org
 - [x] Shortening `v:`, `ideditor:` keys in changesets tags and hide `host=https://www.openstreetmap.org/edit`
-- [ ] Bypass OSMF Redactions
+- Bypass OSMF Redactions
+- + [x] Show redacted tags
+- + [ ] Show redacted geometry 
+- [ ] taginfo: new overpass links
+- 
 
 ### Ideas
 
+- [ ] in-browser reverter
 - [ ] Changesets feed like who did it
 - [ ] Jump to overpass from tags
+- [ ] Custom links to geo services (like OSM Smart Menu) 
+- [ ] Mark reviewed changesets
+- [ ] Public transport viewer and validator
+- [ ] opening_hours validator (and fixer?)
 - [ ] Hide resolved notes
-- [ ] Fast tags copy from wiki
-- [ ] Tutorial
 - [ ] Collapse name tags
-- [ ] Calc area size
+- Measurement
+- + [ ] Calc area size
+- + [ ] Distance between points
 - [ ] Integrate https://github.com/Zverik/osmtags-editor
 - [ ] Edit tags in Overpass Turbo
+- [ ] Tutorial
 - [ ] {{bbox}} on/off in Overpass Turbo
 - [ ] Improve data view
 - + [ ] Hide ways
 - + [ ] Filters
 - + [ ] Colors
 - [ ] Localization
-- [ ] Show photos from imgur, wikipedia commons, ...?
 - [ ] Improve search
 -
   + [ ] Filter by object type
@@ -138,19 +150,17 @@ Experimental hotkeys:
 - [ ] Custom overlays for iD
 -
     + [ ] Strava (Hard, need bypass CORS)
-- [ ] Mark reviewed changesets
 - [ ] Show nearest example for map legend
 - [ ] website & iD helper for translator (open search query into translation platform)
 - [ ] show in quick look the base way tag
+- [ ] Fast tags copy from wiki
 - [ ] nakarte.me: line drawing
-- [ ] taginfo: new overpass links
-- [ ] Bookmarks on map (like Organic Maps)
 
 Maybe
 
 - [ ] Support OpenHistoricalMap
 - [ ] Move object from OSM into OpenHistoricalMap
-- [ ] in-browser reverter
+- [ ] Bookmarks on map (like Organic Maps)
 
 ### Other
 
