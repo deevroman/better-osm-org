@@ -8285,6 +8285,16 @@ function setupNavigationViaHotkeys() {
                     document.querySelector('#content a[href^="/user/"]:not([href$=rss]):not([href*="/diary"]):not([href*="/traces"])')?.click()
                 }
             }
+        } else if (e.code === "Backquote" && !e.altKey && !e.metaKey && !e.ctrlKey) {
+            for (let member in layers) {
+                layers[member].forEach((i) => {
+                    if (i.getElement().style.visibility === "hidden"){
+                        i.getElement().style.visibility = ""
+                    } else {
+                        i.getElement().style.visibility = "hidden"
+                    }
+                })
+            }
         } else {
             // console.log(e.key, e.code)
         }
