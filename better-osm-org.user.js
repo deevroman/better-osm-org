@@ -1094,6 +1094,56 @@ function setupCompactChangesetsHistory() {
         })
         makeTimesSwitchable();
         hideSearchForm();
+
+        async function getChangesetComments(changeset_id) {
+            const res = await fetch(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json?include_discussion=true",
+                // {signal: abortDownloadingController.signal}
+            );
+            if (res.status === 509) {
+                await error509Handler(res)
+            } else {
+                return (await res.json())['changeset']['comments'];
+            }
+        }
+
+        setTimeout(async () => {
+            for (const elem of document.querySelectorAll(".changesets li:not(:has(.first-comment))")) {
+                const commentsCount = parseInt(elem.querySelector(".col-auto.text-secondary").firstChild.textContent.trim());
+                if (commentsCount) {
+                    const comment = document.createElement("div");
+                    comment.classList.add("first-comment")
+                    comment.style.fontSize = "0.7rem"
+                    comment.style.borderTopColor = "#0000"
+                    comment.style.borderTopStyle = "solid"
+                    comment.style.borderTopWidth = "1px"
+                    elem.appendChild(comment)
+
+                    const changeset_id = elem.querySelector(".changeset_id").href.match(/\/(\d+)/)[1];
+                    getChangesetComments(changeset_id).then(res => {
+                        const firstComment = res[0];
+                        const userLink = document.createElement("a")
+                        userLink.href = osm_server.url + "/user/" + encodeURI(firstComment["user"]);
+                        userLink.textContent = firstComment["user"];
+                        comment.appendChild(userLink);
+                        getCachedUserInfo(firstComment["user"]).then((res) => {
+                            const badge = makeBadge(res)
+                            const svg = badge.querySelector("svg")
+                            if (svg) {
+                                badge.style.marginLeft = "-4px"
+                                badge.style.height = "1rem";
+                                badge.style.float = "left";
+                                svg.style.transform = "scale(0.7)"
+                            }
+                            userLink.before(badge)
+                        })
+                        const shortText = firstComment["text"]
+                            .replace("https://www.openstreetmap.org", "osm.org")
+                            .replace("https://wiki.openstreetmap.org", "osm.org")
+                        comment.appendChild(document.createTextNode(" " + shortText));
+                    });
+                }
+            }
+        }, 0);
     }
 
     handleNewChangesets();
@@ -8288,7 +8338,7 @@ function setupNavigationViaHotkeys() {
         } else if (e.code === "Backquote" && !e.altKey && !e.metaKey && !e.ctrlKey) {
             for (let member in layers) {
                 layers[member].forEach((i) => {
-                    if (i.getElement().style.visibility === "hidden"){
+                    if (i.getElement().style.visibility === "hidden") {
                         i.getElement().style.visibility = ""
                     } else {
                         i.getElement().style.visibility = "hidden"
