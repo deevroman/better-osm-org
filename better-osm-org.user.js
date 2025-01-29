@@ -1108,8 +1108,14 @@ function setupCompactChangesetsHistory() {
 
         setTimeout(async () => {
             for (const elem of document.querySelectorAll(".changesets li:not(:has(.first-comment))")) {
-                const commentsCount = parseInt(elem.querySelector(".col-auto.text-secondary").firstChild.textContent.trim());
+                const commentsBadge = elem.querySelector(".col-auto.text-secondary")
+                const commentsCount = parseInt(commentsBadge.firstChild.textContent.trim());
                 if (commentsCount) {
+                    if (commentsCount > 3) {
+                        commentsBadge.style.setProperty("color", "red", "important")
+                    } else if (commentsCount > 1) {
+                        commentsBadge.style.setProperty("color", "#ff7800", "important")
+                    }
                     const comment = document.createElement("div");
                     comment.classList.add("first-comment")
                     comment.style.fontSize = "0.7rem"
