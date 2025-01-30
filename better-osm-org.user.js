@@ -15,8 +15,10 @@
 // @exclude      https://www.openstreetmap.org/message/new/*
 // @exclude      https://www.openstreetmap.org/reports/new/*
 // @exclude      https://www.openstreetmap.org/profile/edit
+// @exclude      https://www.openstreetmap.org/oauth2/*
 // @match        https://master.apis.dev.openstreetmap.org/*
 // @exclude      https://master.apis.dev.openstreetmap.org/api/*
+// @exclude      https://master.apis.dev.openstreetmap.org/oauth2/*
 // @match        https://taginfo.openstreetmap.org/*
 // @match        https://taginfo.geofabrik.de/*
 // @match        http://localhost:3000/*
@@ -564,6 +566,15 @@ function makeHashtagsClickable() {
     })
 }
 
+function shortOsmOrgLinks(elem) {
+    elem.querySelectorAll('a[href^="https://www.openstreetmap.org"], a[href^="https://wiki.openstreetmap.org"], a[href^="https://openstreetmap.org"]').forEach(i => {
+        i.textContent = i.textContent
+            .replaceAll("https://www.openstreetmap.org", "osm.org")
+            .replaceAll("https://wiki.openstreetmap.org", "osm.org")
+            .replaceAll("https://openstreetmap.org", "osm.org")
+    })
+}
+
 // todo remove this
 const mainTags = ["shop", "building", "amenity", "man_made", "highway", "natural", "aeroway", "historic", "railway", "tourism", "landuse", "leisure"]
 
@@ -632,6 +643,7 @@ function addRevertButton() {
         // compact changeset tags
         if (!document.querySelector(".browse-tag-list[compacted]")) {
             makeHashtagsClickable()
+            shortOsmOrgLinks(document.querySelector(".browse-section p"));
             let needUnhide = false
             document.querySelectorAll(".browse-tag-list tr").forEach(i => {
                 const key = i.querySelector("th")
@@ -1095,6 +1107,15 @@ function setupCompactChangesetsHistory() {
         makeTimesSwitchable();
         hideSearchForm();
 
+        document.querySelectorAll(".changesets li a.changeset_id span:not(.compacted)").forEach(description => {
+            description.classList.add("compacted")
+            description.textContent = description.textContent
+                .replaceAll("https://www.openstreetmap.org", "osm.org")
+                .replaceAll("https://wiki.openstreetmap.org", "osm.org")
+                .replaceAll("https://openstreetmap.org", "osm.org")
+        })
+
+        // TODO need cache like getUserInfo
         async function getChangesetComments(changeset_id) {
             const res = await fetch(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json?include_discussion=true",
                 // {signal: abortDownloadingController.signal}
@@ -1143,8 +1164,8 @@ function setupCompactChangesetsHistory() {
                             userLink.before(badge)
                         })
                         const shortText = firstComment["text"]
-                            .replace("https://www.openstreetmap.org", "osm.org")
-                            .replace("https://wiki.openstreetmap.org", "osm.org")
+                            .replaceAll("https://www.openstreetmap.org", "osm.org")
+                            .replaceAll("https://wiki.openstreetmap.org", "osm.org")
                         comment.appendChild(document.createTextNode(" " + shortText));
                     });
                 }
@@ -2080,6 +2101,7 @@ function addHistoryLink() {
     }
     makeLinksInTagsClickable()
     makeHashtagsClickable()
+    shortOsmOrgLinks(document.querySelector(".browse-section p"))
     setTimeout(() => {
         GM_addElement(document.head, "style", {
             textContent: `
@@ -4408,7 +4430,8 @@ function addDiffInHistory() {
         }
     }
     makeHistoryCompact();
-    makeHashtagsClickable()
+    makeHashtagsClickable();
+    shortOsmOrgLinks(document.querySelector(".browse-section p"));
     setupNodeVersionView();
     setupWayVersionView();
     setupRelationVersionView();
@@ -7496,7 +7519,7 @@ let queriesCache = {
 }
 
 function addMassActionForGlobalChangesets() {
-    if (location.pathname === "/history"
+    if ((location.pathname === "/history" || location.pathname === "/history/friends")
         && document.querySelector("#sidebar_content h2")
         && !document.querySelector("#changesets-filter-btn")) {
         const a = document.createElement("a")
@@ -7726,6 +7749,13 @@ function makeBadge(userInfo, changesetDate = new Date()) {
     ) {
         userBadge.title = "The user is less than a month old"
         userBadge.textContent = "🍼"
+    } else {
+        getFriends().then(res => {
+            if (res.includes(userInfo['display_name'])) {
+                userBadge.title = "You are following this user"
+                userBadge.textContent = "🫂 "
+            }
+        })
     }
     return userBadge
 }
@@ -7753,11 +7783,11 @@ function addMassChangesetsActions() {
             sidebarObserverForMassActions = null
             return;
         }
-        if (massModeForUserChangesetsActive && location.pathname !== "/history") {
+        if (massModeForUserChangesetsActive && location.pathname !== "/history" && location.pathname !== "/history/friends") {
             document.querySelectorAll(".changesets li").forEach(addChangesetCheckbox)
             makeBottomActionBar()
         }
-        if (massModeActive && location.pathname === "/history") {
+        if (massModeActive && (location.pathname === "/history" || location.pathname === "/history/friends")) {
             document.querySelectorAll("ol li div > a").forEach(makeUsernamesFilterable)
             // sidebarObserverForMassActions?.disconnect()
             filterChangesets()
@@ -7773,7 +7803,7 @@ function addMassChangesetsActions() {
                 navigator.clipboard.writeText(id).then(() => copyAnimation(e, id));
             }
             item.title = "Click for copy changeset id"
-            if (location.pathname.match(/^\/history\/?$/)) {
+            if (location.pathname.match(/^\/history(\/?|\/friends)$/)) {
                 getCachedUserInfo(item.previousSibling.previousSibling.textContent).then((res) => {
                     item.previousSibling.previousSibling.title = `changesets_count: ${res['changesets']['count']}\naccount_created: ${res['account_created']}`
                     item.previousSibling.previousSibling.before(makeBadge(res,
@@ -7818,7 +7848,7 @@ function addMassChangesetsActions() {
 }
 
 function setupMassChangesetsActions() {
-    if (location.pathname !== "/history"
+    if (location.pathname !== "/history" && location.pathname !== "/history/friends"
         && !(location.pathname.includes("/history") && location.pathname.includes("/user/"))) return;
     let timerId = setInterval(addMassChangesetsActions, 300);
     setTimeout(() => {
@@ -7975,6 +8005,42 @@ function updateCurrentObjectMetadata() {
     setTimeout(loadRelationMetadata, 0)
 }
 
+async function sleep(ms) {
+    await new Promise(r => setTimeout(r, ms))
+}
+
+async function loadFriends() {
+    console.debug("Loading friends list")
+    const res = await ((await fetch(osm_server.url + "/dashboard")).text())
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(res, "text/html")
+    const friends = []
+    doc.querySelectorAll('a[data-method="delete"][href*="/follow"]').forEach(a => {
+        const username = a.getAttribute("href").match(/\/user\/(.+)\/follow/)[1]
+        friends.push(decodeURI(username))
+    })
+    GM_setValue("friends", JSON.stringify(friends))
+    console.debug("Friends list updated")
+    return friends
+}
+
+let friendsLoadingLock = false;
+
+async function getFriends() {
+    const friendsStr = GM_getValue("friends")
+    if (friendsStr) {
+        return JSON.parse(friendsStr)
+    } else {
+        while (friendsLoadingLock) {
+            await sleep(500)
+        }
+        friendsLoadingLock = true
+        const res = await loadFriends()
+        friendsLoadingLock = false
+        return res
+    }
+}
+
 const mapPositionsHistory = []
 const mapPositionsNextHistory = []
 
@@ -8027,6 +8093,8 @@ function enableOverzoom() {
 const ABORT_ERROR_PREV = "Abort requests for moving to prev changeset";
 const ABORT_ERROR_NEXT = "Abort requests for moving to next changeset";
 const ABORT_ERROR_USER_CHANGESETS = "Abort requests for moving to user changesets";
+
+let layersHidden = false;
 
 function setupNavigationViaHotkeys() {
     if (["/edit", "/id"].includes(location.pathname)) return
@@ -8344,13 +8412,14 @@ function setupNavigationViaHotkeys() {
         } else if (e.code === "Backquote" && !e.altKey && !e.metaKey && !e.ctrlKey) {
             for (let member in layers) {
                 layers[member].forEach((i) => {
-                    if (i.getElement().style.visibility === "hidden") {
+                    if (layersHidden) {
                         i.getElement().style.visibility = ""
                     } else {
                         i.getElement().style.visibility = "hidden"
                     }
                 })
             }
+            layersHidden = !layersHidden;
         } else {
             // console.log(e.key, e.code)
         }
@@ -8932,6 +9001,9 @@ function setup() {
         }
         return fn
     }()).observe(document, {subtree: true, childList: true});
+    if (location.pathname.includes("/dashboard") || location.pathname.includes("/user/")) {
+        setTimeout(loadFriends, 4000);
+    }
 }
 
 //<editor-fold desc="config" defaultstate="collapsed">
