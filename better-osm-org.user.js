@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.7.1
+// @version         0.7.2
 // @changelog       New: Comments templates, support ways render in relation members list
 // @changelog       New: Q for close sidebar, shift + Z for real bbox of changeset
 // @changelog       New: displaying the full history of ways (You can disable it in settings)
@@ -2207,9 +2207,9 @@ function showWays(ListOfNodesList, layerName = "customObjects", color = "#000000
  * @param {string|null=} dashArray
  * @param {string|null=} popupContent
  * @param {boolean|null=} addStroke
- * @param {boolean=} geomtryCached
+ * @param {boolean=} geometryCached
  */
-function displayWay(nodesList, needFly = false, color = "#000000", width = 4, infoElemID = null, layerName = "customObjects", dashArray = null, popupContent = null, addStroke = null, geometryCached=false) {
+function displayWay(nodesList, needFly = false, color = "#000000", width = 4, infoElemID = null, layerName = "customObjects", dashArray = null, popupContent = null, addStroke = null, geometryCached = false) {
     if (!layers[layerName]) {
         layers[layerName] = []
     }
@@ -3420,6 +3420,7 @@ const cachedRelationsGeometry = {}
  * @return {Promise<{}>}
  */
 async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObjects = true, color = "#000000", layer = "activeObjects", addStroke = null) {
+    console.time(`Render ${id} relation`)
     console.log(id, timestamp)
 
     async function getRelationViaOverpass(id, timestamp) {
@@ -3450,51 +3451,51 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
     if (!layers[layer]) {
         layers[layer] = []
     }
-    console.log("Prev map objects cleaned. Merging ways...")
     // нужен видимо веш геометрии
     // GC больно
-    let wayCounts = 0
-    const mergedGeometry = []
-    overpassGeom.elements[0]?.members?.forEach(i => {
-        if (i.type === "way") {
-            wayCounts++
-            if (i.geometry === undefined || !i.geometry.length) {
-                return
-            }
-            const nodesList = i.geometry.map(p => [p.lat, p.lon])
-            if (mergedGeometry.length === 0) {
-                mergedGeometry.push(nodesList)
-            } else {
-                const lastWay = mergedGeometry[mergedGeometry.length - 1]
-                const [lastLat, lastLon] = lastWay[lastWay.length - 1]
-                if (lastLat === nodesList[0][0] && lastLon === nodesList[0][1]) {
-                    mergedGeometry[mergedGeometry.length - 1].push(...nodesList.slice(1))
-                } else {
-                    mergedGeometry.push(nodesList)
-                }
-            }
-        } else if (i.type === "node") {
-            showNodeMarker(i.lat, i.lon, color, null, layer)
-        } else if (i.type === "relation") {
-            // todo
-        }
-    })
-    console.log("Start rendering")
-    console.time("Render relation")
-
     let cache = cachedRelationsGeometry[[id, timestamp]];
     if (!cache) {
+        let wayCounts = 0
+        const mergedGeometry = []
+        overpassGeom.elements[0]?.members?.forEach(i => {
+            if (i.type === "way") {
+                wayCounts++
+                if (i.geometry === undefined || !i.geometry.length) {
+                    return
+                }
+                const nodesList = i.geometry.map(p => [p.lat, p.lon])
+                if (mergedGeometry.length === 0) {
+                    mergedGeometry.push(nodesList)
+                } else {
+                    const lastWay = mergedGeometry[mergedGeometry.length - 1]
+                    const [lastLat, lastLon] = lastWay[lastWay.length - 1]
+                    if (lastLat === nodesList[0][0] && lastLon === nodesList[0][1]) {
+                        mergedGeometry[mergedGeometry.length - 1].push(...nodesList.slice(1))
+                    } else {
+                        mergedGeometry.push(nodesList)
+                    }
+                }
+            } else if (i.type === "node") {
+                showNodeMarker(i.lat, i.lon, color, null, layer)
+            } else if (i.type === "relation") {
+                // todo
+            }
+        })
         cache = cachedRelationsGeometry[[id, timestamp]] = mergedGeometry.map(i => intoPage(i))
+        console.log(`${cache.length}/${wayCounts} for render`)
     } else {
-        console.log("Cloned object cached")
+        overpassGeom.elements[0]?.members?.forEach(i => {
+            if (i.type === "node") {
+                showNodeMarker(i.lat, i.lon, color, null, layer)
+            }
+        })
     }
 
     cache.forEach(nodesList => {
         displayWay(nodesList, false, color, 4, null, layer, null, null, addStroke, true)
     })
 
-    console.timeEnd("Render relation")
-    console.log(`${mergedGeometry.length}/${wayCounts} rendered`)
+    console.timeEnd(`Render ${id} relation`)
 
     function getBbox(id, timestamp) {
         if (bboxCache[[id, timestamp]]) {
