@@ -6773,7 +6773,13 @@ async function addChangesetQuickLook() {
                                         nodesHistories[n.id] = [n]
                                     }
                                 })
-                                const [targetVersion, currentNodesList] = await getWayNodesByTimestamp(changesetMetadata.closed_at, objID)
+
+                                const res2 = await getWayNodesByTimestamp(changesetMetadata.closed_at, objID)
+                                if (!res2) {
+                                    // если линия создана после правки
+                                    return
+                                }
+                                const [targetVersion, currentNodesList] = res2
 
                                 const popup = document.createElement("span")
                                 const link = document.createElement("a")
