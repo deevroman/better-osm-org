@@ -2207,8 +2207,9 @@ function showWays(ListOfNodesList, layerName = "customObjects", color = "#000000
  * @param {string|null=} dashArray
  * @param {string|null=} popupContent
  * @param {boolean|null=} addStroke
+ * @param {boolean=} geomtryCached
  */
-function displayWay(nodesList, needFly = false, color = "#000000", width = 4, infoElemID = null, layerName = "customObjects", dashArray = null, popupContent = null, addStroke = null) {
+function displayWay(nodesList, needFly = false, color = "#000000", width = 4, infoElemID = null, layerName = "customObjects", dashArray = null, popupContent = null, addStroke = null, geometryCached=false) {
     if (!layers[layerName]) {
         layers[layerName] = []
     }
@@ -2219,7 +2220,7 @@ function displayWay(nodesList, needFly = false, color = "#000000", width = 4, in
     }
 
     const line = bindPopup(getWindow().L.polyline(
-        intoPage(nodesList),
+        geometryCached ? nodesList : intoPage(nodesList),
         intoPage({
             color: color,
             weight: width,
@@ -3406,7 +3407,7 @@ async function getRelationHistory(relationID) {
 const overpassCache = {}
 const bboxCache = {}
 
-let dataLayerInitedOnce = false
+const cachedRelationsGeometry = {}
 
 /**
  *
@@ -3480,14 +3481,18 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
     })
     console.log("Start rendering")
     console.time("Render relation")
-    if (!dataLayerInitedOnce) {
-        dataLayerInitedOnce = true
-        Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
-        Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
+
+    let cache = cachedRelationsGeometry[[id, timestamp]];
+    if (!cache) {
+        cache = cachedRelationsGeometry[[id, timestamp]] = mergedGeometry.map(i => intoPage(i))
+    } else {
+        console.log("Cloned object cached")
     }
-    mergedGeometry.forEach(nodesList => {
-        displayWay(nodesList, false, color, 4, null, layer, null, null, addStroke)
+
+    cache.forEach(nodesList => {
+        displayWay(nodesList, false, color, 4, null, layer, null, null, addStroke, true)
     })
+
     console.timeEnd("Render relation")
     console.log(`${mergedGeometry.length}/${wayCounts} rendered`)
 
@@ -3709,11 +3714,6 @@ function setupRelationVersionView() {
 
         downloadAllVersionsBtn.addEventListener("click", async e => {
             downloadAllVersionsBtn.style.cursor = "progress"
-            if (!dataLayerInitedOnce) {
-                dataLayerInitedOnce = true
-                Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
-                Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
-            }
             for (const i of document.querySelectorAll(`.relation-version-view:not([hidden])`)) {
                 await loadRelationVersion(i)
             }
@@ -5583,6 +5583,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         })
 
         memChangedFlag.onclick = e => {
+            // todo preload first elements
             e.stopPropagation()
             if (membersTable.style.display === "none") {
                 membersTable.style.display = ""
@@ -8134,7 +8135,6 @@ function setupNavigationViaHotkeys() {
             } else {
                 // map data
                 Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
-                dataLayerInitedOnce = true
                 enableOverzoom()
             }
         } else if (e.code === "KeyG") { // gps tracks
@@ -8405,6 +8405,7 @@ function setupNavigationViaHotkeys() {
                 const user_link = document.querySelector('#sidebar_content a[href^="/user/"]')
                 if (user_link) {
                     user_link?.click()
+                    // todo fixme on changesets page with filter
                 } else {
                     document.querySelector('#content a[href^="/user/"]:not([href$=rss]):not([href*="/diary"]):not([href*="/traces"])')?.click()
                 }
