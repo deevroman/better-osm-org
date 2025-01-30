@@ -566,12 +566,17 @@ function makeHashtagsClickable() {
     })
 }
 
+function shortOsmOrgLinksInText(text) {
+    return text.replaceAll("https://www.openstreetmap.org", "osm.org")
+        .replaceAll("https://wiki.openstreetmap.org/wiki", "osm.wiki")
+        .replaceAll("https://wiki.openstreetmap.org", "osm.wiki")
+        .replaceAll("https://community.openstreetmap.org", "c.osm.org")
+        .replaceAll("https://openstreetmap.org", "osm.org")
+}
+
 function shortOsmOrgLinks(elem) {
-    elem.querySelectorAll('a[href^="https://www.openstreetmap.org"], a[href^="https://wiki.openstreetmap.org"], a[href^="https://openstreetmap.org"]').forEach(i => {
-        i.textContent = i.textContent
-            .replaceAll("https://www.openstreetmap.org", "osm.org")
-            .replaceAll("https://wiki.openstreetmap.org", "osm.org")
-            .replaceAll("https://openstreetmap.org", "osm.org")
+    elem.querySelectorAll('a[href^="https://www.openstreetmap.org"], a[href^="https://wiki.openstreetmap.org"], a[href^="https://community.openstreetmap.org"], a[href^="https://openstreetmap.org"]').forEach(i => {
+        i.textContent = shortOsmOrgLinksInText(i.textContent)
     })
 }
 
@@ -1109,10 +1114,7 @@ function setupCompactChangesetsHistory() {
 
         document.querySelectorAll(".changesets li a.changeset_id span:not(.compacted)").forEach(description => {
             description.classList.add("compacted")
-            description.textContent = description.textContent
-                .replaceAll("https://www.openstreetmap.org", "osm.org")
-                .replaceAll("https://wiki.openstreetmap.org", "osm.org")
-                .replaceAll("https://openstreetmap.org", "osm.org")
+            description.textContent = shortOsmOrgLinksInText(description.textContent)
         })
 
         // TODO need cache like getUserInfo
@@ -1163,9 +1165,7 @@ function setupCompactChangesetsHistory() {
                             }
                             userLink.before(badge)
                         })
-                        const shortText = firstComment["text"]
-                            .replaceAll("https://www.openstreetmap.org", "osm.org")
-                            .replaceAll("https://wiki.openstreetmap.org", "osm.org")
+                        const shortText = shortOsmOrgLinksInText(firstComment["text"])
                         comment.appendChild(document.createTextNode(" " + shortText));
                     });
                 }
@@ -7505,7 +7505,7 @@ function makeUsernamesFilterable(i) {
     }
     i.classList.add("listen-for-filters")
     i.onclick = (e) => {
-        if (massModeActive && (!e.metaKey && !e.ctrlKey)) {
+        if (massModeActive && (!e.metaKey && !e.ctrlKey && e.isTrusted)) {
             e.preventDefault()
             const filterByUsersInput = document.querySelector("#filter-by-user-input")
             if (filterByUsersInput.value === "") {
@@ -8411,7 +8411,11 @@ function setupNavigationViaHotkeys() {
             } else {
                 const user_link = document.querySelector('#sidebar_content a[href^="/user/"]')
                 if (user_link) {
-                    user_link?.click()
+                    if (user_link.checkVisibility()) {
+                        user_link?.click()
+                    } else {
+                        document.querySelector('#sidebar_content li:not([hidden-data-changeset]) a[href^="/user/"]')?.click()
+                    }
                     // todo fixme on changesets page with filter
                 } else {
                     document.querySelector('#content a[href^="/user/"]:not([href$=rss]):not([href*="/diary"]):not([href*="/traces"])')?.click()
@@ -8428,6 +8432,8 @@ function setupNavigationViaHotkeys() {
                 })
             }
             layersHidden = !layersHidden;
+        } else if (e.code === "KeyF" && !e.altKey && !e.metaKey && !e.ctrlKey) {
+            document.querySelector("#changesets-filter-btn")?.click()
         } else {
             // console.log(e.key, e.code)
         }
