@@ -8906,7 +8906,7 @@ async function setupDragAndDropViewers() {
                                             tr.appendChild(td)
                                             tbody.appendChild(tr)
                                         })
-                                        const popup = layer.bindPopup(table.outerHTML)
+                                        layer.bindPopup(table.outerHTML)
                                     }
                                 }
                             }).addTo(map);
@@ -9017,7 +9017,7 @@ function setup() {
 //<editor-fold desc="config" defaultstate="collapsed">
 function runSnow() {
     injectJSIntoPage(`
-    // This code distibuted under MIT license
+    // This code distributed under MIT license
     // Author: https://github.com/DevBubba/Bookmarklets
     // Code was deminified
     function snow(t) {
