@@ -1306,7 +1306,7 @@ out meta;
         if (i.href.match(/^(https:\/\/streetcomplete\.app\/|https:\/\/westnordost\.de\/).+\.jpg$/)) {
             const img = GM_addElement("img", {
                 src: i.href,
-                crossorigin: "anonymous"
+                // crossorigin: "anonymous"
             })
             img.style.width = "100%"
             i.after(img)
@@ -2009,7 +2009,7 @@ function makePanoramaxValue(elem) {
     elem.querySelectorAll('a.preview-img-link').forEach(a => {
         const img = GM_addElement("img", {
             src: `https://api.panoramax.xyz/api/pictures/${a.textContent}/sd.jpg`,
-            crossorigin: "anonymous"
+            // crossorigin: "anonymous"
         })
         img.style.width = "100%"
         a.appendChild(img)
@@ -2048,7 +2048,7 @@ function makeWikimediaCommonsValue(elem) {
             })).response
             const img = GM_addElement("img", {
                 src: res['query']['pages']["-1"]["imageinfo"][0]['url'],
-                crossorigin: "anonymous"
+                // crossorigin: "anonymous"
             })
             img.style.width = "100%"
             a.appendChild(img)
@@ -6891,6 +6891,14 @@ async function addChangesetQuickLook() {
         } else {
             console.error(e)
             console.log("%cSetup QuickLook finished with error ⚠️", 'background: #222; color: #bada55')
+            // try {
+            //     if (![ABORT_ERROR_PREV, ABORT_ERROR_NEXT, ABORT_ERROR_USER_CHANGESETS].includes(e)) {
+            //         debugger
+            //         getMap()?.attributionControl?.setPrefix("⚠️") // todo debug only
+            //         alert("⚠")
+            //     }
+            // } catch (e) {
+            // }
         }
     } finally {
         injectingStarted = false
