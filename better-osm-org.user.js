@@ -1130,7 +1130,8 @@ function setupCompactChangesetsHistory() {
         }
 
         setTimeout(async () => {
-            for (const elem of document.querySelectorAll(".changesets li:not(:has(.first-comment))")) {
+            for (const elem of document.querySelectorAll(".changesets li:not(:has(.first-comment)):not(.comments-loaded)")) {
+                elem.classList.add("comments-loaded")
                 const commentsBadge = elem.querySelector(".col-auto.text-secondary")
                 const commentsCount = parseInt(commentsBadge.firstChild.textContent.trim());
                 if (commentsCount) {
@@ -1643,33 +1644,54 @@ function switchTiles() {
 }
 
 function addSatelliteLayers() {
-    if (!navigator.userAgent.includes("Firefox")) return
+    const btnOnPane = document.createElement("span");
+    let btnOnNotePage = document.createElement("span");
+    if (!document.querySelector('.turn-on-satellite-from-pane')) {
+        const mapnikBtn = document.querySelector(".layers-ui label span")
+        if (!tilesObserver) {
+            btnOnPane.textContent = "🛰";
+        } else {
+            btnOnPane.textContent = invertTilesMode(currentTilesMode);
+        }
+        btnOnPane.style.cursor = "pointer";
+        btnOnPane.classList.add("turn-on-satellite-from-pane");
+        btnOnPane.title = "Switch between map and satellite images. Only for Firefox.\nAlso you key press key S"
+        mapnikBtn.appendChild(document.createTextNode("\xA0"));
+        mapnikBtn.appendChild(btnOnPane);
+
+        btnOnPane.onclick = (e) => {
+            e.stopImmediatePropagation()
+            switchTiles();
+            btnOnNotePage.textContent = invertTilesMode(currentTilesMode);
+            btnOnPane.textContent = invertTilesMode(currentTilesMode);
+        }
+    }
     if (!location.pathname.includes("/note")) return;
     if (document.querySelector('.turn-on-satellite')) return true;
     if (!document.querySelector("#sidebar_content h4")) {
         return;
     }
-    let b = document.createElement("span");
     if (!tilesObserver) {
-        b.textContent = "🛰";
+        btnOnNotePage.textContent = "🛰";
     } else {
-        b.textContent = invertTilesMode(currentTilesMode);
+        btnOnNotePage.textContent = invertTilesMode(currentTilesMode);
     }
-    b.style.cursor = "pointer";
-    b.classList.add("turn-on-satellite");
-    b.title = "Switch between map and satellite images. Only for Firefox"
+    btnOnNotePage.style.cursor = "pointer";
+    btnOnNotePage.classList.add("turn-on-satellite");
+    btnOnNotePage.title = "Switch between map and satellite images. Only for Firefox"
     // todo disable for Chrome
     document.querySelectorAll("h4")[0].appendChild(document.createTextNode("\xA0"));
-    document.querySelectorAll("h4")[0].appendChild(b);
+    document.querySelectorAll("h4")[0].appendChild(btnOnNotePage);
 
-    b.onclick = (e) => {
+    btnOnNotePage.onclick = () => {
         switchTiles();
-        e.target.textContent = invertTilesMode(currentTilesMode);
+        btnOnNotePage.textContent = invertTilesMode(currentTilesMode);
+        btnOnPane.textContent = invertTilesMode(currentTilesMode);
     }
 }
 
-function setupSatelliteLayers(path) {
-    if (!path.includes("/note")) return;
+function setupSatelliteLayers() {
+    if (!navigator.userAgent.includes("Firefox")) return
     let timerId = setInterval(addSatelliteLayers, 100);
     setTimeout(() => {
         clearInterval(timerId);
@@ -8168,6 +8190,9 @@ function setupNavigationViaHotkeys() {
                 switchTiles()
                 if (document.querySelector(".turn-on-satellite")) {
                     document.querySelector(".turn-on-satellite").textContent = invertTilesMode(currentTilesMode)
+                }
+                if (document.querySelector(".turn-on-satellite-from-pane")) {
+                    document.querySelector(".turn-on-satellite-from-pane").textContent = invertTilesMode(currentTilesMode)
                 }
             }
         } else if (e.code === "KeyE") {
