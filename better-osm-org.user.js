@@ -28,8 +28,6 @@
 // @exclude      https://master.apis.dev.openstreetmap.org/oauth2/*
 // @match        https://taginfo.openstreetmap.org/*
 // @match        https://taginfo.geofabrik.de/*
-// @match        http://localhost:3000/*
-// @exclude      http://localhost:3000/api/*
 // @match        https://www.hdyc.neis-one.org/*
 // @match        https://hdyc.neis-one.org/*
 // @match        https://osmcha.org/*
