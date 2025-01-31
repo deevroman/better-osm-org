@@ -1,11 +1,18 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.7.2
+// @version         0.8
+// @changelog       v0.8: https://osm.org/user/TrickyFoxy/diary/406061
+// @changelog       v0.8: Images from Panoramax, StreetComplete, Wikipedia Commons in changeset and notes
+// @changelog       v0.8: GPX-tracks render (also in StreetComplete notes)
+// @changelog       v0.8: Show first comment in changesets history, user badge for your friends
+// @changelog       v0.8: T — toggle between compact and full tags diff mode, U — open user profile from changeset, note, ...
+// @changelog       v0.8: Hotkeys on user profile Page (H — user changesets, T — tracks, D — Diary, C — comments, N — notes)
+// @changelog       v0.8: Drag&Drop for geotagged photos, GeoJSON and GPX files
 // @changelog       New: Comments templates, support ways render in relation members list
 // @changelog       New: Q for close sidebar, shift + Z for real bbox of changeset
 // @changelog       New: displaying the full history of ways (You can disable it in settings)
-// @changelog       https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670/28
+// @changelog       https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670/44
 // @description     Several improvements for advanced users of openstreetmap.org
 // @description:ru  Скрипт, добавляющий на openstreetmap.org полезные картографам функции
 // @author       deevroman
@@ -1549,6 +1556,24 @@ function parseESRITileURL(url) {
     }
 }
 
+function switchESRIbeta() {
+    const NewSatellitePrefix = SatellitePrefix === ESRIPrefix ? ESRIBetaPrefix : ESRIPrefix;
+    document.querySelectorAll(".leaflet-tile").forEach(i => {
+        if (i.nodeName !== 'IMG') {
+            return;
+        }
+        let xyz = parseESRITileURL(i.src)
+        if (!xyz) return
+        i.src = NewSatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x;
+    })
+    SatellitePrefix = NewSatellitePrefix
+    if (SatellitePrefix === ESRIBetaPrefix) {
+        getMap()?.attributionControl?.setPrefix("ESRI Beta")
+    } else {
+        getMap()?.attributionControl?.setPrefix("ESRI")
+    }
+}
+
 function switchTiles() {
     if (tilesObserver) {
         tilesObserver.disconnect();
@@ -1655,12 +1680,16 @@ function addSatelliteLayers() {
         }
         btnOnPane.style.cursor = "pointer";
         btnOnPane.classList.add("turn-on-satellite-from-pane");
-        btnOnPane.title = "Switch between map and satellite images. Only for Firefox.\nAlso you key press key S"
+        btnOnPane.title = "Switch between map and satellite images.\nAlso you press key S, press with Shift for ESRI beta"
         mapnikBtn.appendChild(document.createTextNode("\xA0"));
         mapnikBtn.appendChild(btnOnPane);
 
         btnOnPane.onclick = (e) => {
             e.stopImmediatePropagation()
+            if (e.shiftKey) {
+                switchESRIbeta()
+                return
+            }
             switchTiles();
             btnOnNotePage.textContent = invertTilesMode(currentTilesMode);
             btnOnPane.textContent = invertTilesMode(currentTilesMode);
@@ -7789,7 +7818,7 @@ function makeBadge(userInfo, changesetDate = new Date()) {
         userBadge.textContent = "🍼"
     } else {
         getFriends().then(res => {
-            if (res.includes(userInfo['display_name'])) {
+            if (res.includes(userInfo['display_name'])) { // todo warn if username startsWith 🫂 or use svg
                 userBadge.title = "You are following this user"
                 userBadge.textContent = "🫂 "
             }
@@ -8178,21 +8207,7 @@ function setupNavigationViaHotkeys() {
             Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
         } else if (e.code === "KeyS") { // satellite
             if (e.shiftKey) {
-                const NewSatellitePrefix = SatellitePrefix === ESRIPrefix ? ESRIBetaPrefix : ESRIPrefix;
-                document.querySelectorAll(".leaflet-tile").forEach(i => {
-                    if (i.nodeName !== 'IMG') {
-                        return;
-                    }
-                    let xyz = parseESRITileURL(i.src)
-                    if (!xyz) return
-                    i.src = NewSatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x;
-                })
-                SatellitePrefix = NewSatellitePrefix
-                if (SatellitePrefix === ESRIBetaPrefix) {
-                    getMap()?.attributionControl?.setPrefix("ESRI Beta")
-                } else {
-                    getMap()?.attributionControl?.setPrefix("ESRI")
-                }
+                switchESRIbeta()
                 return
             } else {
                 switchTiles()
@@ -8345,8 +8360,15 @@ function setupNavigationViaHotkeys() {
                         }
                     }
                 } else if (location.pathname.includes("note")) {
-                    if (noteMetadata) {
-                        panTo(noteMetadata.geometry.coordinates[1], noteMetadata.geometry.coordinates[0], Math.max(17, getMap().getZoom()))
+                    if (!document.querySelector('#sidebar_content a[href*="/traces/"]') || !trackMetadata) {
+                        if (noteMetadata) {
+                            panTo(noteMetadata.geometry.coordinates[1], noteMetadata.geometry.coordinates[0], Math.max(17, getMap().getZoom()))
+                        }
+                    } else if (trackMetadata) {
+                        fitBounds([
+                            [trackMetadata.min_lat, trackMetadata.min_lon],
+                            [trackMetadata.max_lat, trackMetadata.max_lon]
+                        ])
                     }
                 } else if (location.pathname.includes("way")) {
                     if (wayMetadata) {
@@ -8433,7 +8455,7 @@ function setupNavigationViaHotkeys() {
             document.querySelector(".welcome .btn-close")?.click()
         } else if (e.code === "KeyT" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
             if (location.pathname.includes("/user/")) {
-                document.querySelector('a[href^="/traces"]')?.click()
+                document.querySelector('a[href="/traces/mine"], a[href$="/traces"]:not(.nav-link):not(.dropdown-item)')?.click()
             } else {
                 document.querySelector(".quick-look-compact-toggle-btn")?.click()
                 document.querySelector(".compact-toggle-btn")?.click()
@@ -8988,6 +9010,12 @@ async function setupDragAndDropViewers() {
             displayGPXTrack(await res.response.text())
         } else if (contentType === "application/gzip") {
             displayGPXTrack(await (await decompressBlob(res.response)).text());
+        }
+        if (trackMetadata) {
+            fitBounds([
+                [trackMetadata.min_lat, trackMetadata.min_lon],
+                [trackMetadata.max_lat, trackMetadata.max_lon]
+            ])
         }
     }
 
