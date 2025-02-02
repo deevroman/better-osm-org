@@ -2060,7 +2060,7 @@ function makeMapillaryValue(elem) {
 }
 
 function makeWikimediaCommonsValue(elem) {
-    elem.querySelectorAll('a[href^="//commons.wikimedia.org/wiki/"]').forEach(a => {
+    elem.querySelectorAll('a[href^="//commons.wikimedia.org/wiki/"]:not(.preview-img-link)').forEach(a => {
         a.classList.add("preview-img-link")
         setTimeout(async () => {
             const res = (await GM.xmlHttpRequest({
