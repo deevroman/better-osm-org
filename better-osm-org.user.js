@@ -1671,26 +1671,28 @@ function addSatelliteLayers() {
     let btnOnNotePage = document.createElement("span");
     if (!document.querySelector('.turn-on-satellite-from-pane')) {
         const mapnikBtn = document.querySelector(".layers-ui label span")
-        if (!tilesObserver) {
-            btnOnPane.textContent = "🛰";
-        } else {
-            btnOnPane.textContent = invertTilesMode(currentTilesMode);
-        }
-        btnOnPane.style.cursor = "pointer";
-        btnOnPane.classList.add("turn-on-satellite-from-pane");
-        btnOnPane.title = "Switch between map and satellite images.\nAlso you press key S, press with Shift for ESRI beta"
-        mapnikBtn.appendChild(document.createTextNode("\xA0"));
-        mapnikBtn.appendChild(btnOnPane);
-
-        btnOnPane.onclick = (e) => {
-            e.stopImmediatePropagation()
-            if (e.shiftKey) {
-                switchESRIbeta()
-                return
+        if (mapnikBtn) {
+            if (!tilesObserver) {
+                btnOnPane.textContent = "🛰";
+            } else {
+                btnOnPane.textContent = invertTilesMode(currentTilesMode);
             }
-            switchTiles();
-            btnOnNotePage.textContent = invertTilesMode(currentTilesMode);
-            btnOnPane.textContent = invertTilesMode(currentTilesMode);
+            btnOnPane.style.cursor = "pointer";
+            btnOnPane.classList.add("turn-on-satellite-from-pane");
+            btnOnPane.title = "Switch between map and satellite images.\nAlso you press key S, press with Shift for ESRI beta"
+            mapnikBtn.appendChild(document.createTextNode("\xA0"));
+            mapnikBtn.appendChild(btnOnPane);
+
+            btnOnPane.onclick = (e) => {
+                e.stopImmediatePropagation()
+                if (e.shiftKey) {
+                    switchESRIbeta()
+                    return
+                }
+                switchTiles();
+                btnOnNotePage.textContent = invertTilesMode(currentTilesMode);
+                btnOnPane.textContent = invertTilesMode(currentTilesMode);
+            }
         }
     }
     if (!location.pathname.includes("/note")) return;
@@ -8173,7 +8175,13 @@ function setupNavigationViaHotkeys() {
     function keydownHandler(e) {
         if (e.repeat) return
         if (document.activeElement?.name === "text") return
-        if (!(document.activeElement?.name !== "query" && !["TEXTAREA", "INPUT"].includes(document.activeElement?.nodeName))) {
+        if (document.activeElement?.name === "query") {
+            if (e.code === "Escape") {
+                document.activeElement.blur()
+            }
+            return
+        }
+        if (["TEXTAREA", "INPUT"].includes(document.activeElement?.nodeName) && document.activeElement?.getAttribute("type") !== "checkbox") {
             return;
         }
         if (e.metaKey || e.ctrlKey) {
@@ -8490,7 +8498,7 @@ function setupNavigationViaHotkeys() {
         } else {
             // console.log(e.key, e.code)
         }
-        if (location.pathname.includes("/changeset")) {
+        if (location.pathname.includes("/changeset") && !location.pathname.includes("/changeset_comments")) {
             if (e.code === "Comma") {
                 const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
                 if (navigationLinks && navigationLinks[0].href.includes("/changeset/")) {
@@ -8624,6 +8632,18 @@ function setupNavigationViaHotkeys() {
                         }
                     }
                 }
+            }
+        } else if (location.pathname.match(/user\/.+\/(traces|diary_comments|changeset_comments)/)) {
+            if (e.code === "Comma") {
+                document.querySelector('.pagination a[href*="after"]')?.click()
+            } else if (e.code === "Period") {
+                document.querySelector('.pagination a[href*="before"]')?.click()
+            }
+        } else if (location.pathname.match(/user\/.+\/(notes)/)) {
+            if (e.code === "Comma") {
+                document.querySelectorAll('.pagination li a')[0]?.click()
+            } else if (e.code === "Period") {
+                document.querySelectorAll('.pagination li a')[1]?.click()
             }
         }
     }
