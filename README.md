@@ -26,7 +26,7 @@ Also works in Firefox for Android
 
   <img src="img/delete.png" width="50%">
 
-### Satelite layer ([Firefox only](https://github.com/deevroman/better-osm-org/issues/33))
+### Satellite layer ([Firefox only](https://github.com/deevroman/better-osm-org/issues/33))
 
   <img src="img/notes-sat.jpg" width="50%">
 
@@ -46,6 +46,11 @@ Based on [OpenStreetMap Dark Theme by AlexPS](https://userstyles.world/style/155
 
 <img src="img/edit-war-detector.png" width="50%">
 
+### Display photos and traces in notes
+
+<img src="img/photos-and-traces-in-notes.png" width="50%">
+
+Photos are also displayed in the tags `panoramax=*` and `wikimedia_commons=*`
 
 ### Hotkeys
 
@@ -72,6 +77,11 @@ Experimental hotkeys:
 - `C` — Open changeset of object version
 - `Q` — Close sidebar
 - `shift + Z` — pan to real changeset bbox (without relations bboxes)
+- `0` — zoom to global view
+- ` — hide geometry from map
+- `T` — toggle between compact and full tags diff mode
+- `U` — open user profile
+- `shift` + `U` — open your profile
 
 ### Other
 
@@ -105,15 +115,20 @@ Experimental hotkeys:
 - + [x] `panoramax=*`, `mapillary=*` tags
 - + [ ] `contact:*`=
 - [x] Display GPS photos and tracks in StreetComplete notes
-- [x] Display photos from Panoramax and Wikimedia Commoms in tags
-- [x] Display GPS-track
+- [x] Display photos from Panoramax and Wikimedia Commons in tags
+- [x] Display GPS-tracks
 - [x] Shortening long URLs in comments: https://www.openstreetmap.org → osm.org
 - [x] Shortening `v:`, `ideditor:` keys in changesets tags and hide `host=https://www.openstreetmap.org/edit`
 - Bypass OSMF Redactions
 - + [x] Show redacted tags
 - + [ ] Show redacted geometry 
 - [ ] taginfo: new overpass links
-- 
+- + [x] search relation roles
+- + [x] search keys on Key length page
+- File viewer via Drag&Drop β
+- + [x] geotagged photos
+- + [x] .gpx
+- + [x] .geojson
 
 ### Ideas
 
