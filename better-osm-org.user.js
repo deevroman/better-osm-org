@@ -8873,6 +8873,9 @@ function displayGPXTrack(xml) {
 
 async function setupDragAndDropViewers() {
     document.querySelector("#map")?.addEventListener("drop", e => {
+        if (location.pathname.includes("/directions") || location.pathname.includes("/note/new")) {
+            return;
+        }
         e.preventDefault()
         e.stopPropagation()
         e.stopImmediatePropagation();
@@ -8984,7 +8987,7 @@ async function setupDragAndDropViewers() {
 
     })
     document.querySelector("#map")?.addEventListener("dragover", e => {
-        if (!location.pathname.includes("/directions")) {
+        if (!location.pathname.includes("/directions") && !location.pathname.includes("/note/new")) {
             e.preventDefault()
         }
     })
