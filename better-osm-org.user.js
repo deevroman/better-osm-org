@@ -16,6 +16,7 @@
 // @description     Several improvements for advanced users of openstreetmap.org
 // @description:ru  Скрипт, добавляющий на openstreetmap.org полезные картографам функции
 // @author       deevroman
+// @match        http://localhost:3000/*
 // @match        https://www.openstreetmap.org/*
 // @exclude      https://www.openstreetmap.org/api*
 // @exclude      https://www.openstreetmap.org/diary/new
@@ -65,6 +66,8 @@
 // @connect      raw.githubusercontent.com
 // @connect      en.wikipedia.org
 // @connect      amazonaws.com
+// @connect      server.arcgisonline.com
+// @connect      clarity.maptiles.arcgis.com
 // @sandbox      JavaScript
 // @resource     OAUTH_HTML https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html
 // @resource     OSMCHA_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/osmcha.ico
@@ -211,7 +214,7 @@ GM_config.init(
                     },
                 'SatelliteLayers':
                     {
-                        'label': 'Add satellite layers for notes page (Firefox only)',
+                        'label': 'Add satellite layers for notes page',
                         'type': 'checkbox',
                         'default': 'checked',
                         'labelPos': 'right'
@@ -1554,15 +1557,57 @@ function parseESRITileURL(url) {
     }
 }
 
+const fetchBlobWithCache = (() => {
+    const cache = new Map();
+
+    return async url => {
+        if (cache.has(url)) {
+            return cache.get(url);
+        }
+
+        const promise = GM.xmlHttpRequest({
+            url: url,
+            responseType: "blob"
+        })
+        cache.set(url, promise);
+
+        try {
+            const result = await promise;
+            cache.set(url, result);
+            return result;
+        } catch (error) {
+            cache.delete(url);
+            throw error;
+        }
+    };
+})();
+
+async function bypassChromeCSPForImagesSrc(imgElem, url) {
+    const blob = (await fetchBlobWithCache(url)).response;
+
+    const satTile = await new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+    });
+    if (currentTilesMode === SAT_MODE) {
+        imgElem.src = satTile;
+    }
+}
+
 function switchESRIbeta() {
     const NewSatellitePrefix = SatellitePrefix === ESRIPrefix ? ESRIBetaPrefix : ESRIPrefix;
     document.querySelectorAll(".leaflet-tile").forEach(i => {
         if (i.nodeName !== 'IMG') {
             return;
         }
-        let xyz = parseESRITileURL(i.src)
+        let xyz = parseESRITileURL(isFirefox ? i.src : i.getAttribute("real-url") ?? "")
         if (!xyz) return
-        i.src = NewSatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x;
+        if (isFirefox) {
+            i.src = NewSatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + "?blankTile=false";
+        } else {
+            bypassChromeCSPForImagesSrc(i, NewSatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + "?blankTile=false");
+        }
     })
     SatellitePrefix = NewSatellitePrefix
     if (SatellitePrefix === ESRIBetaPrefix) {
@@ -1571,6 +1616,8 @@ function switchESRIbeta() {
         getMap()?.attributionControl?.setPrefix("ESRI")
     }
 }
+
+const isFirefox = navigator.userAgent.includes("Firefox");
 
 function switchTiles() {
     if (tilesObserver) {
@@ -1593,8 +1640,16 @@ function switchTiles() {
         if (currentTilesMode === SAT_MODE) {
             let xyz = parseOSMTileURL(i.src)
             if (!xyz) return
-            i.src = SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x;
-            if (i.complete) {
+            unsafeWindow.L.DomEvent.off(i, "error")
+            if (isFirefox) {
+                i.src = SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + "?blankTile=false";
+            } else {
+                i.setAttribute("real-url", SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + "?blankTile=false");
+            }
+            if (!isFirefox) {
+                bypassChromeCSPForImagesSrc(i, SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + "?blankTile=false");
+            }
+            if (i.complete && isFirefox) {
                 i.classList.add("no-invert");
             } else {
                 i.addEventListener("load", e => {
@@ -1610,7 +1665,7 @@ function switchTiles() {
             i.replaceWith(newImg)
             */
         } else {
-            let xyz = parseESRITileURL(i.src)
+            let xyz = parseESRITileURL(isFirefox ? i.src : i.getAttribute("real-url") ?? "")
             if (!xyz) return
             i.src = OSMPrefix + xyz.z + "/" + xyz.x + "/" + xyz.y + ".png";
             if (i.complete) {
@@ -1631,7 +1686,16 @@ function switchTiles() {
                 if (currentTilesMode === SAT_MODE) {
                     let xyz = parseOSMTileURL(node.src);
                     if (!xyz) return
-                    node.src = SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x;
+                    unsafeWindow.L.DomEvent.off(node, "error")
+                    if (isFirefox) {
+                        node.src = SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + "?blankTile=false";
+                    } else {
+                        node.src = "";
+                    }
+                    node.setAttribute("real-url", SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + "?blankTile=false");
+                    if (!isFirefox) {
+                        bypassChromeCSPForImagesSrc(node, SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + "?blankTile=false")
+                    }
                     if (node.complete) {
                         node.classList.add("no-invert");
                     } else {
@@ -1648,7 +1712,7 @@ function switchTiles() {
                     node.replaceWith(newImg)
                     */
                 } else {
-                    let xyz = parseESRITileURL(node.src)
+                    let xyz = parseESRITileURL(isFirefox ? node.src : node.getAttribute("real-url"))
                     if (!xyz) return
                     node.src = OSMPrefix + xyz.z + "/" + xyz.x + "/" + xyz.y + ".png";
                     if (node.complete) {
@@ -1707,7 +1771,7 @@ function addSatelliteLayers() {
     }
     btnOnNotePage.style.cursor = "pointer";
     btnOnNotePage.classList.add("turn-on-satellite");
-    btnOnNotePage.title = "Switch between map and satellite images. Only for Firefox"
+    btnOnNotePage.title = "Switch between map and satellite images"
     // todo disable for Chrome
     document.querySelectorAll("h4")[0].appendChild(document.createTextNode("\xA0"));
     document.querySelectorAll("h4")[0].appendChild(btnOnNotePage);
@@ -1720,7 +1784,6 @@ function addSatelliteLayers() {
 }
 
 function setupSatelliteLayers() {
-    if (!navigator.userAgent.includes("Firefox")) return
     let timerId = setInterval(addSatelliteLayers, 100);
     setTimeout(() => {
         clearInterval(timerId);
@@ -9334,7 +9397,6 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
                 }), unsafeWindow)
             )
         }
-
         unsafeWindow.mapHook = exportFunction(mapHook, unsafeWindow)
         unsafeWindow.mapHook()
         if (unsafeWindow.map instanceof HTMLElement) {
