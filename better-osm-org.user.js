@@ -272,6 +272,13 @@ GM_config.init(
                         'default': 'checked',
                         'labelPos': 'right'
                     },
+                'ViewLinks':
+                    {
+                        'label': 'Viewers (Bing, GMaps, ... ?)',
+                        'type': 'checkbox',
+                        'default': 'checked',
+                        'labelPos': 'right'
+                    },
                 'RelationVersionViewer':
                     {
                         'label': 'Add relation version view via overpass',
@@ -7008,6 +7015,87 @@ function setupNewEditorsLinks() {
     }
 }
 
+function setupViewLinks() {
+    let viewersList = [
+        {
+            id: 'view-google-default',
+            name: 'Google Maps (Default)',
+            url: 'https://www.google.com/maps/@?api=1&map_action=map&basemap=roadmap&center=<lat>,<lon>&zoom=<zoom>'
+        },
+        {
+            id: 'view-google-satellite',
+            name: 'Google Maps (Satellite)',
+            url: 'https://www.google.com/maps/@?api=1&map_action=map&basemap=satellite&center=<lat>,<lon>&zoom=<zoom>'
+        },
+        {
+            id: 'view-bing-default',
+            name: 'Bing Maps (Default)',
+            url: 'https://bing.com/maps/default.aspx?cp=<lat>~<lon>&lvl=<zoom>&style=r'
+        },
+        {
+            id: 'view-bing-satellite',
+            name: 'Bing Maps (Satellite)',
+            url: 'https://bing.com/maps/default.aspx?cp=<lat>~<lon>&lvl=<zoom>&style=h'
+        }
+    ];
+    /* Steal current geo coordinates from Edit tab. */
+    let editorsList = document.querySelector("#edit_tab ul");
+    if (!editorsList) {
+        return;
+    }
+    const curURL = editorsList.querySelector("li a").href
+    const match = curURL.match(/map=(\d+)\/([-\d.]+)\/([-\d.]+)(&|$)/)
+    if (!match && !curURL.includes("edit?editor=id")) {
+        return;
+    }
+    try {
+        coordinatesObserver?.disconnect()
+        if (!curURL.includes("edit?editor=id#") || !match) {
+            return;
+        }
+        const zoom = match[1]
+        const lat = match[2]
+        const lon = match[3]
+        const firstRun = document.getElementsByClassName('viewlink').length === 0
+        if (firstRun) {
+            /*
+             * Create the new View drop down menu, copying the Edit menu element hierarchy
+             * and class names.
+             */
+            let primaryNav = document.getElementsByClassName('primary')[0];
+            let tabDivElem = document.createElement('div');
+            tabDivElem.id = 'view_tab';
+            tabDivElem.classList.add('btn-group');
+            let tabDivButtonElem = document.createElement('button');
+            tabDivButtonElem.classList.add('btn', 'btn-outline-primary', 'dropdown-toggle', 'dropdown-toggle-split', 'flex-grow-0');
+            tabDivButtonElem.type = 'button';
+            tabDivButtonElem.setAttribute('data-bs-toggle', 'dropdown');
+            tabDivButtonElem.innerText = 'View ';
+            tabDivElem.appendChild(tabDivButtonElem);
+            let tabDivUlElem = document.createElement('ul');
+            tabDivUlElem.classList.add('dropdown-menu');
+
+            viewersList.forEach(function(v) {
+                let tabDivUlLiElem = document.createElement('li');
+                let tabDivUlLiAElem = document.createElement('a');
+                tabDivUlLiAElem.classList.add('geolink', 'viewlink', 'dropdown-item');
+                tabDivUlLiAElem.id = v.id;
+                tabDivUlLiAElem.text = v.name;
+                tabDivUlLiElem.appendChild(tabDivUlLiAElem);
+                tabDivUlElem.appendChild(tabDivUlLiElem);
+            });
+            tabDivElem.appendChild(tabDivUlElem);
+            primaryNav.appendChild(tabDivElem);
+        }
+        viewersList.forEach(function(v) {
+            document.getElementById(v.id).href = v.url.replaceAll('<lat>', lat).replaceAll('<lon>', lon).replaceAll('<zoom>', zoom);
+        });
+    } finally {
+        coordinatesObserver = new MutationObserver(setupViewLinks);
+        coordinatesObserver.observe(editorsList, {subtree: true, childList: true, attributes: true});
+    }
+}
+
 let unDimmed = false;
 
 function setupOffMapDim() {
@@ -8714,6 +8802,7 @@ const modules = [
     setupVersionsDiff,
     setupChangesetQuickLook,
     setupNewEditorsLinks,
+    setupViewLinks,
     setupNavigationViaHotkeys,
     setupRelationVersionViewer,
     setupClickableAvatar,
