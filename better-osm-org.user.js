@@ -1640,7 +1640,7 @@ function switchTiles() {
         if (currentTilesMode === SAT_MODE) {
             let xyz = parseOSMTileURL(i.src)
             if (!xyz) return
-            unsafeWindow.L.DomEvent.off(i, "error")
+            unsafeWindow.L.DomEvent.off(i, "error") // todo добавить перехватчик 404
             if (isFirefox) {
                 i.src = SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + "?blankTile=false";
             } else {
@@ -7168,6 +7168,12 @@ async function setupHDYCInProfile(path) {
         }
         getCachedUserInfo(decodeURI(user)).then(userInfo => {
             if (userInfo['blocks']['received']['active'] === 0) {
+                updateUserInfo(decodeURI(user))
+            }
+        })
+    } else if (document.querySelector('a[href$="/blocks"]')?.nextElementSibling?.textContent === "0") {
+        getCachedUserInfo(decodeURI(user)).then(userInfo => {
+            if (userInfo['blocks']['received']['active'] !== 0) {
                 updateUserInfo(decodeURI(user))
             }
         })
