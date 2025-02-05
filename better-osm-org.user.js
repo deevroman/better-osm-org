@@ -1656,14 +1656,6 @@ function switchTiles() {
                     e.target.classList.add("no-invert");
                 }, {once: true})
             }
-            /*
-            const newImg = GM_addElement(document.body, "img", {
-                src: SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x
-            })
-            newImg.classList = i.classList
-            newImg.style.cssText = i.style.cssText;
-            i.replaceWith(newImg)
-            */
         } else {
             let xyz = parseESRITileURL(isFirefox ? i.src : i.getAttribute("real-url") ?? "")
             if (!xyz) return
@@ -1703,14 +1695,6 @@ function switchTiles() {
                             e.target.classList.add("no-invert");
                         }, {once: true})
                     }
-                    /*
-                    const newImg = GM_addElement(document.body, "img", {
-                        src: SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x
-                    })
-                    newImg.classList = node.classList
-                    newImg.style.cssText = node.style.cssText;
-                    node.replaceWith(newImg)
-                    */
                 } else {
                     let xyz = parseESRITileURL(isFirefox ? node.src : node.getAttribute("real-url"))
                     if (!xyz) return
@@ -8259,11 +8243,17 @@ function resetMapHover() {
     })
 }
 
+let overzoomObserver = null
+
 function enableOverzoom() {
     if (!GM_config.get("OverzoomForDataLayer")) {
         return
     }
     console.log("Enabling overzoom for map layer")
+    if (overzoomObserver){
+        overzoomObserver.disconnect()
+    }
+
     injectJSIntoPage(`
     (function () {
         map.options.maxZoom = 22
@@ -8272,6 +8262,20 @@ function enableOverzoom() {
         layers[0].options.maxZoom = 22
     })()
     `)
+
+    const observer = new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
+            mutation.addedNodes.forEach(node => {
+                if (node.nodeName !== 'IMG') {
+                    return;
+                }
+                unsafeWindow.L.DomEvent.off(node, "error")
+            });
+        });
+    });
+    overzoomObserver = observer;
+    observer.observe(document.body, {childList: true, subtree: true});
+
     // it's unstable
     console.log("Overzoom enabled")
 }
