@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.8.1
+// @version         0.8.2
 // @changelog       v0.8: https://osm.org/user/TrickyFoxy/diary/406061
 // @changelog       v0.8: Images from Panoramax, StreetComplete, Wikipedia Commons in changeset and notes
 // @changelog       v0.8: GPX-tracks render (also in StreetComplete notes)
@@ -16,7 +16,6 @@
 // @description     Several improvements for advanced users of openstreetmap.org
 // @description:ru  Скрипт, добавляющий на openstreetmap.org полезные картографам функции
 // @author       deevroman
-// @match        http://localhost:3000/*
 // @match        https://www.openstreetmap.org/*
 // @exclude      https://www.openstreetmap.org/api*
 // @exclude      https://www.openstreetmap.org/diary/new
@@ -55,6 +54,7 @@
 // @grant        GM_addElement
 // @grant        GM.xmlHttpRequest
 // @grant        GM_info
+// @comment      for get diffs for finding deleted users
 // @connect      planet.openstreetmap.org
 // @connect      planet.maps.mail.ru
 // @connect      www.hdyc.neis-one.org
@@ -65,7 +65,9 @@
 // @connect      overpass-api.de
 // @connect      raw.githubusercontent.com
 // @connect      en.wikipedia.org
+// @comment      for downloading gps-tracks — osm stores tracks in AWS
 // @connect      amazonaws.com
+// @comment      for satellite images
 // @connect      server.arcgisonline.com
 // @connect      clarity.maptiles.arcgis.com
 // @sandbox      JavaScript
@@ -7375,7 +7377,7 @@ async function getCachedUserInfo(username) {
     const localUserInfo = GM_getValue("userinfo-" + username, "")
     if (localUserInfo) {
         const cacheTime = new Date(localUserInfo['cacheTime'])
-        if (cacheTime.setUTCDate(cacheTime.getUTCDate() + 7) < new Date()) {
+        if (cacheTime.setUTCDate(cacheTime.getUTCDate() + 5) < new Date()) {
             setTimeout(updateUserInfo, 0, username)
         }
         return JSON.parse(localUserInfo)
