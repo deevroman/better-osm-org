@@ -184,3 +184,7 @@ Maybe
 - [Greasy Fork](https://greasyfork.org/en/scripts/517486-better-osm-org)
 - [Issues](https://github.com/deevroman/better-osm-org/issues?q=sort%3Aupdated-desc+is%3Aissue+is%3Aopen)
 - [Mastodon](https://en.osm.town/@foxy)
+
+### Other extensions
+- [OpenStreetMap Tags Editor](https://github.com/Zverik/osmtags-editor)
+- [OpenStreetMap Human-readable Wikidata](https://community.openstreetmap.org/t/announcing-human-readable-wikidata-browser-plugins-for-openstreetmap-org/108180)
