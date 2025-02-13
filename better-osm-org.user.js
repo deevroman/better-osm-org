@@ -634,7 +634,7 @@ function addRevertButton() {
             metainfoHTML.appendChild(usernameA)
             metainfoHTML.appendChild(document.createTextNode(" "))
             getCachedUserInfo(usernameA.textContent).then((res) => {
-                usernameA.before(makeBadge(res))
+                usernameA.before(makeBadge(res, new Date(time.getAttribute("datetime"))))
                 usernameA.before(document.createTextNode(" "))
             })
             //<link rel="alternate" type="application/atom+xml" title="ATOM" href="https://www.openstreetmap.org/user/Elizen/history/feed">
@@ -915,7 +915,7 @@ function addRevertButton() {
     }
     document.querySelectorAll('#sidebar_content li[id^=c] small > a[href^="/user/"]').forEach(elem => {
         getCachedUserInfo(elem.textContent).then(info => {
-            elem.before(makeBadge(info))
+            elem.before(makeBadge(info, new Date(elem.nextElementSibling.getAttribute("datetime"))))
         })
     })
     // fixme dont work loggined
@@ -1179,7 +1179,7 @@ function setupCompactChangesetsHistory() {
                         userLink.textContent = firstComment["user"];
                         comment.appendChild(userLink);
                         getCachedUserInfo(firstComment["user"]).then((res) => {
-                            const badge = makeBadge(res)
+                            const badge = makeBadge(res /* fixme */)
                             const svg = badge.querySelector("svg")
                             if (svg) {
                                 badge.style.marginLeft = "-4px"
@@ -7518,22 +7518,29 @@ function simplifyHDCYIframe() {
 async function updateUserInfo(username) {
     const res = await fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
         display_name: username,
-        limit: 1
+        limit: 1,
+        order: 'oldest'
     }).toString());
     let uid;
+    let firstObjectCreationTime;
     if (res['changesets'].length === 0) {
         const res = await fetchJSONWithCache(osm_server.apiBase + "notes/search.json?" + new URLSearchParams({
             display_name: username,
             limit: 1
         }).toString());
         uid = res['features'][0]['properties']['comments'].find(i => i['user'] === username)['uid']
+        firstObjectCreationTime = res['features'][0]['properties']['comments'].find(i => i['user'] === username)['date']
     } else {
         uid = res['changesets'][0]['uid']
+        firstObjectCreationTime = res['changesets'][0]['created_at']
     }
 
     const res2 = await fetchJSONWithCache(osm_server.apiBase + "user/" + uid + ".json");
     const userInfo = res2.user
     userInfo['cacheTime'] = new Date()
+    if (firstObjectCreationTime) {
+        userInfo['firstChangesetCreationTime'] = new Date(firstObjectCreationTime)
+    }
     GM_setValue("userinfo-" + username, JSON.stringify(userInfo))
     return userInfo
 }
@@ -8065,10 +8072,10 @@ function makeBadge(userInfo, changesetDate = new Date()) {
         userBadge.title = "The user was banned"
         userBadge.textContent = "⛔️"
     } else if (
-        new Date(userInfo['account_created']).setUTCDate(new Date(userInfo['account_created']).getUTCDate() + 30)
+        new Date(userInfo['firstChangesetCreationTime'] ?? userInfo['account_created']).setUTCDate(new Date(userInfo['firstChangesetCreationTime'] ?? userInfo['account_created']).getUTCDate() + 30)
         > changesetDate
     ) {
-        userBadge.title = "The user is less than a month old"
+        userBadge.title = "At the time of creating the changeset/note, the user had been editing OpenStreetMap for less than a month"
         userBadge.textContent = "🍼"
     } else {
         getFriends().then(res => {
