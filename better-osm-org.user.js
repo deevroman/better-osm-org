@@ -2089,7 +2089,8 @@ function blurSearchField() {
 
 
 function makePanoramaxValue(elem) {
-    elem.innerHTML = elem.innerHTML.replaceAll(/([0-9a-z-]+)/g, function (match) {
+    // extracting uuid
+    elem.innerHTML = elem.innerHTML.replaceAll(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi, function (match) {
         const a = document.createElement("a")
         a.textContent = match
         a.classList.add("preview-img-link")
