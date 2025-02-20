@@ -666,6 +666,7 @@ function addRevertButton() {
             document.querySelectorAll(".browse-tag-list tr").forEach(i => {
                 const key = i.querySelector("th")
                 if (!key) return
+                i.querySelectorAll("a").forEach(i => i.tabIndex = -1)
                 if (key.textContent === "host") {
                     if (i.querySelector("td").textContent === "https://www.openstreetmap.org/edit") {
                         i.style.display = "none"
