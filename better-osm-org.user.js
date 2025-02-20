@@ -989,7 +989,28 @@ function makeTimesSwitchable() {
         document.querySelectorAll("time").forEach(switchElement)
     }
 
-    document.querySelectorAll("time:not([switchable])").forEach(i => i.addEventListener("click", switchTimestamp))
+    document.querySelectorAll("time:not([switchable])").forEach(i => {
+        i.title += "\n\nClick with ctrl for open the map state at the time of changeset was closed"
+        i.addEventListener("click", (e) => {
+            if (e.metaKey || e.ctrlKey) {
+                const {lng: lon, lat: lat} = getMap().getCenter()
+                const zoom = getMap().getZoom();
+                const query = `// via changeset closing time
+[date:"${i.getAttribute("datetime")}"]; 
+(
+  node({{bbox}});
+  way({{bbox}});
+  //relation({{bbox}});
+);
+(._;>;);
+out meta;
+    `;
+                window.open(`https://overpass-turbo.eu/?Q=${encodeURI(query)}&C=${lat};${lon};${zoom}${zoom > 15 ? "&R" : ""}`, "_blank")
+            } else {
+                switchTimestamp()
+            }
+        })
+    })
     document.querySelectorAll("time:not([switchable])").forEach(i => i.setAttribute("switchable", "true"))
 
 }
@@ -1079,6 +1100,15 @@ const compactSidebarStyleText = `
 
 let styleForSidebarApplied = false
 
+async function getChangesetComments(changeset_id) {
+    const res = await fetchJSONWithCache(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json?include_discussion=true")
+    if (res.status === 509) {
+        await error509Handler(res)
+    } else {
+        return res['changeset']['comments'];
+    }
+}
+
 function setupCompactChangesetsHistory() {
     if (!location.pathname.includes("/history") && !location.pathname.includes("/changeset")) {
         if (!styleForSidebarApplied && (location.pathname.includes("/node")
@@ -1143,18 +1173,6 @@ function setupCompactChangesetsHistory() {
             description.classList.add("compacted")
             description.textContent = shortOsmOrgLinksInText(description.textContent)
         })
-
-        // TODO need cache like getUserInfo
-        async function getChangesetComments(changeset_id) {
-            const res = await fetch(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json?include_discussion=true",
-                // {signal: abortDownloadingController.signal}
-            );
-            if (res.status === 509) {
-                await error509Handler(res)
-            } else {
-                return (await res.json())['changeset']['comments'];
-            }
-        }
 
         setTimeout(async () => {
             for (const elem of document.querySelectorAll(".changesets li:not(:has(.first-comment)):not(.comments-loaded)")) {
@@ -1374,7 +1392,7 @@ out meta;
         btn.id = "timeback-btn";
         btn.title = "Open the map state at the time of note creation"
         btn.textContent = " 🕰";
-        btn.style.cursor = "pointer" // todo for all <time>
+        btn.style.cursor = "pointer"
         document.querySelector("#sidebar_content time").after(btn);
         btn.onclick = () => {
             window.open(`https://overpass-turbo.eu/?Q=${encodeURI(query)}&C=${lat};${lon};${zoom}&R`)
@@ -4325,6 +4343,51 @@ function setupViewRedactions() {
     }
 }
 
+function extractChangesetID(s) {
+    return s.match(/\/changeset\/([0-9]+)/)[1];
+}
+
+function addCommentsCount() {
+    setTimeout(async () => {
+        await loadChangesetMetadatas(
+            Array.from(document.querySelectorAll(`#sidebar_content .browse-section li a[href^="/changeset"]`))
+                .map(i => parseInt(extractChangesetID(i.getAttribute("href"))))
+        )
+        document.querySelectorAll(`#sidebar_content .browse-section li a[href^="/changeset"]`).forEach(i => {
+            const changesetID = extractChangesetID(i.getAttribute("href"))
+            const comments_count = changesetMetadatas[changesetID].comments_count
+            if (comments_count) {
+                const a = document.createElement("a")
+                a.textContent = `${comments_count} 💬`
+                a.href = i.getAttribute("href")
+                a.tabIndex = 0
+                a.style.cursor = "pointer"
+                a.style.color = "var(--bs-body-color)"
+                i.after(a)
+                i.after(document.createTextNode("\xA0"))
+                setTimeout(async () => {
+                    await loadChangesetMetadata(changesetID)
+                    Object.entries(changesetMetadatas[changesetID]["tags"]).forEach(([k, v]) => {
+                        if (k === "comment") return;
+                        i.parentElement.title += `${k}: ${v}\n`
+                    })
+                    const user_link = i.parentElement.querySelector(`a[href^="/user/"]`)
+                    getCachedUserInfo(user_link.textContent).then((res) => {
+                        user_link.title = `changesets_count: ${res['changesets']['count']}\naccount_created: ${res['account_created']}`
+                    })
+                    getChangesetComments(changesetID).then(res => {
+                        res.forEach(comment => {
+                            const shortText = shortOsmOrgLinksInText(comment["text"])
+                            a.title += `${comment["user"]}:\n${shortText}\n\n`
+                        })
+                        a.title = a.title.trimEnd()
+                    });
+                })
+            }
+        })
+    })
+}
+
 // hard cases:
 // https://www.openstreetmap.org/node/1/history
 // https://www.openstreetmap.org/node/2/history
@@ -4749,6 +4812,7 @@ function addDiffInHistory() {
     makeHistoryCompact();
     makeHashtagsClickable();
     shortOsmOrgLinks(document.querySelector(".browse-section p"));
+    addCommentsCount();
     setupNodeVersionView();
     setupWayVersionView();
     setupRelationVersionView();
