@@ -3979,6 +3979,12 @@ function setupRelationVersionView() {
         if (htmlElem.nodeName === "A") {
             const versionDiv = htmlElem.parentNode.parentNode
             versionDiv.onmouseenter = loadRelationVersion
+            versionDiv.onclick = async (e) => {
+                if (e.target.tagName === "A" || e.target.tagName === "TIME" || e.target.tagName === "SUMMARY") {
+                    return
+                }
+                await loadRelationVersion(e) // todo params
+            }
             versionDiv.setAttribute("relation-version", version.toString())
             htmlElem.style.cursor = "pointer" // todo finally{}
             htmlElem.setAttribute("hidden", "true")
@@ -4004,12 +4010,12 @@ function setupRelationVersionView() {
         i.after(document.createTextNode("\xA0"))
     })
 
-    if (document.querySelectorAll(`.relation-version-view:not([hidden])`).length > 1) {
+    if (document.querySelectorAll(`.relation-version-view:not([hidden])`).length > 1) { // todo remove check after when would full history
         const downloadAllVersionsBtn = document.createElement("a")
         downloadAllVersionsBtn.id = "download-all-versions-btn"
         downloadAllVersionsBtn.textContent = "⏬"
         downloadAllVersionsBtn.style.cursor = "pointer"
-        downloadAllVersionsBtn.title = "Download all versions"
+        downloadAllVersionsBtn.title = "Download all versions (with intermediate versions)"
 
         downloadAllVersionsBtn.addEventListener("click", async e => {
             downloadAllVersionsBtn.style.cursor = "progress"
@@ -4758,8 +4764,15 @@ function addRelationVersionView() {
     btn.textContent = "📥"
     btn.id = "load-relation-version"
     btn.title = "Load relation version via Overpass API"
+    btn.tabIndex = 0
     btn.style.cursor = "pointer"
-    btn.addEventListener("click", async () => {
+
+    async function clickHandler(e) {
+        if (e.type === "keypress" && (e.code === "Space" || e.code === "Enter")) {
+            e.preventDefault()
+        } else if (e.type === "keypress") {
+            return
+        }
         btn.style.cursor = "progress"
         const match = location.pathname.match(/relation\/(\d+)\/history\/(\d+)\/?$/)
         const id = parseInt(match[1])
@@ -4771,7 +4784,10 @@ function addRelationVersionView() {
             throw e
         }
         btn.style.visibility = "hidden"
-    })
+    }
+
+    btn.addEventListener("click", clickHandler)
+    btn.addEventListener("keypress", clickHandler)
     document.querySelector(".browse-relation h4")?.appendChild(btn)
 }
 
@@ -4908,7 +4924,7 @@ function arraysDiff(arg_a, arg_b, one_replace_cost = 2) {
  * @return {[]}
  */
 function arraySplit(arr, N = 2) {
-    const chunkSize = Math.max(1, Math.floor(arr.length / N));
+    const chunkSize = Math.max(1, Math.floor(arr.length / N)); // todo это неправильно, но и так сойдёт
     const res = [];
     for (let i = 0; i < arr.length; i += chunkSize) {
         res.push(arr.slice(i, i + chunkSize));
@@ -5035,6 +5051,7 @@ async function error509Handler(res) {
     rateLimitBan = true
     console.error("oops, DOS block")
     getMap()?.attributionControl?.setPrefix(escapeHtml(await res.text()))
+    // todo sleep
 }
 
 function addRegionForFirstChangeset(attempts = 5) {
@@ -5222,7 +5239,12 @@ function detectEditsWars(prevVersion, targetVersion, objHistory, row, key) {
             ver_link.style.color = "unset"
             th_ver.appendChild(ver_link)
             const td_user = document.createElement("td")
-            td_user.textContent = `${it.user}`
+            const user_link = document.createElement("a")
+            user_link.textContent = `${it.user}`
+            user_link.href = `/user/${it.user}`
+            user_link.target = "_blank"
+            user_link.style.color = "unset"
+            td_user.appendChild(user_link)
             const td_tag = document.createElement("td")
             td_tag.textContent = "<deleted>"
             tr.appendChild(th_ver)
@@ -5239,7 +5261,12 @@ function detectEditsWars(prevVersion, targetVersion, objHistory, row, key) {
             ver_link.style.color = "unset"
             th_ver.appendChild(ver_link)
             const td_user = document.createElement("td")
-            td_user.textContent = `${it.user}`
+            const user_link = document.createElement("a")
+            user_link.textContent = `${it.user}`
+            user_link.href = `/user/${it.user}`
+            user_link.target = "_blank"
+            user_link.style.color = "unset"
+            td_user.appendChild(user_link)
             const td_tag = document.createElement("td")
             td_tag.textContent = it.tags[key]
             tr.appendChild(th_ver)
@@ -5445,6 +5472,8 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
     if (targetVersion.visible !== false && prevVersion?.nodes && prevVersion.nodes.toString() !== targetVersion.nodes?.toString()) {
         let geomChangedFlag = document.createElement("span")
         geomChangedFlag.textContent = " 📐"
+        geomChangedFlag.tabIndex = 0
+        geomChangedFlag.classList.add("nodes-changed")
         geomChangedFlag.title = "List of way nodes has been changed"
         geomChangedFlag.style.userSelect = "none"
         geomChangedFlag.style.background = "rgba(223,238,9,0.6)"
@@ -5583,7 +5612,12 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             tbodyForTags.appendChild(row)
         })
 
-        geomChangedFlag.onclick = e => {
+        geomChangedFlag.onkeypress = geomChangedFlag.onclick = e => {
+            if (e.type === "keypress" && (e.code === "Space" || e.code === "Enter")) {
+                e.preventDefault()
+            } else if (e.type === "keypress") {
+                return
+            }
             e.stopPropagation()
             if (nodesTable.style.display === "none") {
                 nodesTable.style.display = ""
@@ -5620,6 +5654,8 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
     if (objType === "relation") {
         let memChangedFlag = document.createElement("span")
         memChangedFlag.textContent = " 👥"
+        memChangedFlag.tabIndex = 0
+        memChangedFlag.classList.add("members-changed")
         memChangedFlag.style.userSelect = "none"
         let membersChanged = false
         if (JSON.stringify(prevVersion?.members ?? []) !== JSON.stringify(targetVersion.members) && targetVersion.version !== 1) {
@@ -5885,7 +5921,12 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             tbodyForTags.appendChild(row)
         })
 
-        memChangedFlag.onclick = e => {
+        memChangedFlag.onkeypress = memChangedFlag.onclick = e => {
+            if (e.type === "keypress" && (e.code === "Space" || e.code === "Enter")) {
+                e.preventDefault()
+            } else if (e.type === "keypress") {
+                return
+            }
             // todo preload first elements
             e.stopPropagation()
             if (membersTable.style.display === "none") {
@@ -5900,11 +5941,17 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         i.appendChild(memChangedFlag)
         const pinRelation = document.createElement("span")
         pinRelation.textContent = "📌"
+        pinRelation.tabIndex = 0
         pinRelation.classList.add("pin-relation")
         pinRelation.style.cursor = "pointer"
         pinRelation.style.display = "none"
         pinRelation.title = "Pin relation on map"
-        pinRelation.onclick = async (e) => {
+        pinRelation.onkeypress = pinRelation.onclick = async (e) => {
+            if (e.type === "keypress" && (e.code === "Space" || e.code === "Enter")) {
+                e.preventDefault()
+            } else if (e.type === "keypress") {
+                return
+            }
             e.stopImmediatePropagation()
             if (!pinRelation.classList.contains("pinned")) {
                 pinnedRelations.add(targetVersion.id)
@@ -5994,14 +6041,24 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
 }
 
 /**
+ * @typedef {{
+ * nodes: [],
+ * ways: [],
+ * relations: []
+ * }}
+ * @name ObjectsInComments
+ */
+
+/**
  * @param {string} changesetID
  * @param {string} objType
+ * @param {ObjectsInComments} objectsInComments
  * @param {Element} i
  * @param {NodeVersion|WayVersion|RelationVersion} prevVersion
  * @param {NodeVersion|WayVersion|RelationVersion} targetVersion
  * @param {NodeVersion|WayVersion|RelationVersion} lastVersion
  */
-async function processObjectInteractions(changesetID, objType, i, prevVersion, targetVersion, lastVersion) {
+async function processObjectInteractions(changesetID, objType, objectsInComments, i, prevVersion, targetVersion, lastVersion) {
     let changesetMetadata = changesetMetadatas[targetVersion.changeset];
     if (!GM_config.get("ShowChangesetGeometry")) {
         i.parentElement.parentElement.classList.add("processed-object")
@@ -6041,8 +6098,8 @@ async function processObjectInteractions(changesetID, objType, i, prevVersion, t
         }
 
         i.parentElement.parentElement.onmouseover = mouseoverHandler
-        if ((prevVersion.tags && Object.keys(prevVersion.tags).length) || (targetVersion.tags && Object.keys(targetVersion.tags).length)) { // todo temp hack for potential speed up
-            document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div a[href*="node/${objID}"]`).forEach(link => {
+        if ((prevVersion.tags && Object.keys(prevVersion.tags).length) || (targetVersion.tags && Object.keys(targetVersion.tags).length)) { // todo temp hack for potential speed up // fixme remove comment
+            objectsInComments.nodes.filter(i => i.href.includes(`node/${objID}`)).forEach(link => {
                 // link.title = "Alt + click for scroll into object list"
                 link.onmouseenter = mouseoverHandler
                 link.onclick = (e) => {
@@ -6066,7 +6123,39 @@ async function processObjectInteractions(changesetID, objType, i, prevVersion, t
                 panTo(prevVersion.lat.toString(), prevVersion.lon.toString(), 18, false)
                 showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", true)
             } else {
-                panTo(targetVersion.lat.toString(), targetVersion.lon.toString(), 18, false)
+                if (!repeatedEvent && trustedEvent) { // todo
+                    panTo(targetVersion.lat.toString(), targetVersion.lon.toString(), 18, false)
+                } else {
+                    /*
+                    const bounds = getMap().getBounds()
+                    const lat1 = bounds.getNorthWest().lat
+                    const lng1 = bounds.getNorthWest().lng
+                    const lat2 = bounds.getSouthEast().lat
+                    const lng2 = bounds.getSouthEast().lng
+
+                    const delta_lat = (lat2 - lat1) / 5.0
+                    const delta_lng = (lng2 - lng1) / 5.0
+
+                    const newBounds = getWindow().L.latLngBounds(
+                        intoPage([lat1 + delta_lat, lng1 + delta_lng]),
+                        intoPage([lat2 - delta_lat, lng2 - delta_lng])
+                    )
+
+                    getWindow().L.rectangle(
+                        intoPage([
+                            [newBounds.getSouth(), newBounds.getWest()],
+                            [newBounds.getNorth(), newBounds.getEast()]
+                        ]),
+                        intoPage({color: "#0022ff", weight: 3, fillOpacity: 0})
+                    ).addTo(getMap());
+
+                    if (!newBounds.contains(getWindow().L.latLng(intoPage([targetVersion.lat.toString(), targetVersion.lon.toString()])))) {
+                        panTo(targetVersion.lat.toString(), targetVersion.lon.toString(), 18, false)
+                    }
+                    */
+                    // panInside(targetVersion.lat.toString(), targetVersion.lon.toString(), false, [70, 70])
+                    panTo(targetVersion.lat.toString(), targetVersion.lon.toString(), 18, false)
+                }
                 showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3", true)
             }
         }
@@ -6221,7 +6310,7 @@ async function processObjectInteractions(changesetID, objType, i, prevVersion, t
         }
 
         i.parentElement.parentElement.onmouseenter = mouseenterHandler
-        document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div a[href*="way/${objID}"]`).forEach(link => {
+        objectsInComments.ways.filter(i => i.href.includes(`way/${objID}`)).forEach(link => {
             // link.title = "Alt + click for scroll into object list"
             link.onmouseenter = mouseenterHandler
             link.onclick = (e) => {
@@ -6236,10 +6325,18 @@ async function processObjectInteractions(changesetID, objType, i, prevVersion, t
         btn.textContent = "📥"
         btn.classList.add("load-relation-version")
         btn.title = "Download this relation"
+        btn.tabIndex = 0
         btn.style.cursor = "pointer"
-        btn.addEventListener("click", async (e) => {
+
+        async function clickHandler(e) {
             if (e.altKey) return
             if (window.getSelection().type === "Range") return
+            if (e.type === "keypress" && (e.code === "Space" || e.code === "Enter")) {
+                e.preventDefault()
+            } else if (e.type === "keypress") {
+                return
+            }
+
             btn.style.cursor = "progress"
             let targetTimestamp = (new Date(changesetMetadatas[targetVersion.changeset].closed_at ?? new Date())).toISOString()
             if (targetVersion.visible === false) {
@@ -6262,7 +6359,7 @@ async function processObjectInteractions(changesetID, objType, i, prevVersion, t
                 }
 
                 i.parentElement.parentElement.onmouseenter = mouseenterHandler
-                document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div a[href*="relation/${objID}"]`).forEach(link => {
+                objectsInComments.relations.filter(i => i.href.includes(`relation/${objID}`)).forEach(link => {
                     // link.title = "Alt + click for scroll into object list"
                     link.onmouseenter = mouseenterHandler
                     link.onclick = (e) => {
@@ -6279,7 +6376,10 @@ async function processObjectInteractions(changesetID, objType, i, prevVersion, t
             }
             btn.style.visibility = "hidden"
             // todo нужна кнопка с глазом чтобы можно было скрывать
-        })
+        }
+
+        btn.addEventListener("click", clickHandler)
+        btn.addEventListener("keypress", clickHandler)
         i.querySelector("a:nth-of-type(2)").after(btn)
         i.querySelector("a:nth-of-type(2)").after(document.createTextNode("\xA0"))
     }
@@ -6803,8 +6903,8 @@ async function processQuickLookInSidebar(changesetID) {
             const ul = pagination.parentElement.querySelector("ul.list-unstyled")
             const nodes = changesetData.querySelectorAll("node")
             const other = changesetData.querySelectorAll("way,relation").length
-            if (nodes.length > 1000) {
-                if (nodes.length > 2000 || other > 10 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+            if (nodes.length > 1200) {
+                if (nodes.length > 2500 || other > 10 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
                     return;
                 }
             }
@@ -6888,10 +6988,13 @@ async function processQuickLookInSidebar(changesetID) {
             const ul = pagination.parentElement.querySelector("ul.list-unstyled")
             const ways = changesetData.querySelectorAll("way")
             if (ways.length > 50) {
-                if (ways.length > 100 && changesetData.querySelectorAll("node") > 40) {
+                if (ways.length > 200 && changesetData.querySelectorAll("node") > 40) {
                     return;
                 }
-                if (ways.length > 520) {
+                if (ways.length > 520 && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+                    return;
+                }
+                if (ways.length > 1520) {
                     return
                 }
             }
@@ -8614,6 +8717,7 @@ function enableOverzoom() {
     if (!GM_config.get("OverzoomForDataLayer")) {
         return
     }
+    blankSuffix = "?blankTile=false"
     console.log("Enabling overzoom for map layer")
     if (overzoomObserver) {
         overzoomObserver.disconnect()
@@ -8645,6 +8749,20 @@ function enableOverzoom() {
     console.log("Overzoom enabled")
 }
 
+function disableOverzoom() {
+    if (!GM_config.get("OverzoomForDataLayer")) {
+        return
+    }
+    injectJSIntoPage(`
+    (function () {
+        map.options.maxZoom = 19
+        const layers = [];
+        map.eachLayer(i => layers.push(i))
+        layers[0].options.maxZoom = 19
+    })()
+    `)
+}
+
 const ABORT_ERROR_PREV = "Abort requests for moving to prev changeset";
 const ABORT_ERROR_NEXT = "Abort requests for moving to next changeset";
 const ABORT_ERROR_USER_CHANGESETS = "Abort requests for moving to user changesets";
@@ -8667,85 +8785,197 @@ function getNextChangesetLink() {
     }
 }
 
-function goToPrevChangesetObject() {
+let repeatedEvent = false
+let trustedEvent = true
+const smoothScroll = "auto"
+
+function goToPrevChangesetObject(e) {
+    repeatedEvent = e.repeat
     if (!document.querySelector("ul .active-object")) {
         return;
     }
-    const cur = document.querySelector("ul .active-object")
-    if (cur.previousElementSibling) {
-        cur.previousElementSibling.classList.add("active-object")
-        cur.classList.remove("active-object")
-        cur.previousElementSibling.click()
-        cur.previousElementSibling.scrollIntoView({block: "center"})
-        resetMapHover()
-        cur.previousElementSibling.classList.add("map-hover")
-    } else {
-        const curFrame = cur.parentElement.parentElement
-        if (curFrame.id === "changeset_nodes" && curFrame.previousElementSibling.id === "changeset_ways") {
+
+    const prev = document.querySelector("ul .active-object")
+    for (let i = 0; i < 10000; i++) {
+        const cur = document.querySelector("ul .active-object")
+        if (cur.previousElementSibling) {
+            cur.previousElementSibling.classList.add("active-object")
             cur.classList.remove("active-object")
-            curFrame.previousElementSibling.querySelector("#changeset_ways li:last-of-type").classList.add("active-object")
-            curFrame.previousElementSibling.querySelector(".active-object").click()
-            curFrame.previousElementSibling.querySelector(".active-object").scrollIntoView({block: "center"})
-            resetMapHover()
-            curFrame.previousElementSibling.querySelector(".active-object").classList.add("map-hover")
-        } else {
-            let prev = curFrame?.previousElementSibling?.previousElementSibling
-            if (prev?.nodeName !== "TURBO-FRAME" && prev?.previousElementSibling?.nodeName === "TURBO-FRAME") {
-                prev = prev.previousElementSibling;
-            }
-            if (prev?.nodeName === "TURBO-FRAME") {
-                cur.classList.remove("active-object")
-                prev.querySelector("li:last-of-type").classList.add("active-object")
-                prev.querySelector("li:last-of-type").click()
-                prev.querySelector("li:last-of-type").scrollIntoView({block: "center"})
+
+            if (!cur.previousElementSibling.classList.contains('tags-non-modified')
+                || cur.previousElementSibling.classList.contains('location-modified')
+                || cur.previousElementSibling.querySelector('.nodes-changed, .members-changed')
+                || e.altKey
+                || !location.search.includes("changesets=")) {
+                trustedEvent = false
+                cur.previousElementSibling.click()
+                trustedEvent = true
+                cur.previousElementSibling.scrollIntoView({block: "center", behavior: smoothScroll})
                 resetMapHover()
-                prev.querySelector("li:last-of-type").classList.add("map-hover")
+                cur.previousElementSibling.classList.add("map-hover")
+                return
             }
+        } else {
+            const curFrame = cur.parentElement.parentElement
+            if (curFrame.id === "changeset_nodes" && ["changeset_ways", "changeset_relations"].includes(curFrame.previousElementSibling?.id)
+                || curFrame.id === "changeset_relations" && ["changeset_ways"].includes(curFrame.previousElementSibling?.id)) {
+                cur.classList.remove("active-object")
+                curFrame.previousElementSibling.querySelector("#changeset_ways li:last-of-type, #changeset_relations li:last-of-type").classList.add("active-object")
+                if (!curFrame.previousElementSibling.querySelector(".active-object").classList.contains('tags-non-modified')
+                    || curFrame.previousElementSibling.querySelector(".active-object").classList.contains('location-modified')
+                    || curFrame.previousElementSibling.querySelector(".active-object").querySelector('.nodes-changed, .members-changed')
+                    || e.altKey
+                    || !location.search.includes("changesets=")) {
+                    trustedEvent = false
+                    curFrame.previousElementSibling.querySelector(".active-object").click()
+                    trustedEvent = true
+                    curFrame.previousElementSibling.querySelector(".active-object").scrollIntoView({
+                        block: "center",
+                        behavior: smoothScroll
+                    })
+                    resetMapHover()
+                    curFrame.previousElementSibling.querySelector(".active-object").classList.add("map-hover")
+                    if (curFrame.previousElementSibling?.querySelector(".load-relation-version")) {
+                        curFrame.previousElementSibling.querySelector(".load-relation-version").focus()
+                    }
+                    if (curFrame.id === "changeset_relations") {
+                        document.activeElement.blur()
+                    }
+                    return
+                }
+            } else {
+                let prev = curFrame?.previousElementSibling?.previousElementSibling
+                if (prev?.nodeName !== "TURBO-FRAME" && prev?.previousElementSibling?.nodeName === "TURBO-FRAME") {
+                    prev = prev.previousElementSibling;
+                }
+                if (prev?.nodeName === "TURBO-FRAME") {
+                    cur.classList.remove("active-object")
+                    prev.querySelector("li:last-of-type").classList.add("active-object")
+                    if (!prev.querySelector("li:last-of-type").classList.contains('tags-non-modified')
+                        || prev.querySelector("li:last-of-type").classList.contains('location-modified')
+                        || prev.querySelector("li:last-of-type")?.querySelector('.nodes-changed, .members-changed')
+                        || e.altKey
+                        || !location.search.includes("changesets=")) {
+                        trustedEvent = false
+                        prev.querySelector("li:last-of-type").click()
+                        trustedEvent = true
+                        prev.querySelector("li:last-of-type").scrollIntoView({
+                            block: "center",
+                            behavior: smoothScroll
+                        })
+                        resetMapHover()
+                        prev.querySelector("li:last-of-type").classList.add("map-hover")
+                        if (prev.querySelector("li:last-of-type").querySelector(".load-relation-version")) {
+                            prev.querySelector("li:last-of-type").querySelector(".load-relation-version").focus()
+                        }
+                        return
+                    }
+                }
+            }
+        }
+
+        if (cur === document.querySelector("ul .active-object")) {
+            cur.classList.remove("active-object")
+            prev.classList.add("active-object")
+            return;
         }
     }
 }
 
-function goToNextChangesetObject() {
+function goToNextChangesetObject(e) {
+    repeatedEvent = e.repeat
     if (!document.querySelector("ul .active-object")) {
-        document.querySelector("#changeset_nodes li, #changeset_ways li, #changeset_relations li").classList.add("active-object")
+        document.querySelector("#changeset_nodes li:not(.page-item), #changeset_ways li:not(.page-item), #changeset_relations li:not(.page-item)").classList.add("active-object")
+        trustedEvent = false
         document.querySelector("ul .active-object").click()
+        trustedEvent = true
         resetMapHover()
         document.querySelector("ul .active-object").classList.add("map-hover")
         return
     }
-    const cur = document.querySelector("ul .active-object")
-    if (cur.nextElementSibling) {
-        cur.nextElementSibling.classList.add("active-object")
-        cur.classList.remove("active-object")
-        cur.nextElementSibling.click()
-        cur.nextElementSibling.scrollIntoView({block: "center"})
-        resetMapHover()
-        cur.nextElementSibling.classList.add("map-hover")
-    } else {
-        const curFrame = cur.parentElement.parentElement
-        if (curFrame.id === "changeset_ways" && curFrame.nextElementSibling.id === "changeset_nodes") {
+    const prev = document.querySelector("ul .active-object")
+    for (let i = 0; i < 10000; i++) {
+        const cur = document.querySelector("ul .active-object")
+        if (cur.nextElementSibling) {
+            cur.nextElementSibling.classList.add("active-object")
             cur.classList.remove("active-object")
-            curFrame.nextElementSibling.querySelector("#changeset_nodes li").classList.add("active-object")
-            curFrame.nextElementSibling.querySelector(".active-object").click()
-            curFrame.nextElementSibling.querySelector(".active-object").scrollIntoView({block: "center"})
-
-            resetMapHover();
-            curFrame.nextElementSibling.querySelector(".active-object").classList.add("map-hover")
-        } else {
-            let next = curFrame?.nextElementSibling?.nextElementSibling
-            if (next?.nodeName !== "TURBO-FRAME" && next?.nextElementSibling?.nodeName === "TURBO-FRAME") {
-                next = next.nextElementSibling;
-            }
-            if (next?.nodeName === "TURBO-FRAME") {
-                cur.classList.remove("active-object")
-                next.querySelector("li").classList.add("active-object")
-                next.querySelector("li").click()
-                next.querySelector("li").scrollIntoView({block: "center"})
+            if (!cur.nextElementSibling.classList.contains('tags-non-modified')
+                || cur.nextElementSibling.classList.contains('location-modified')
+                || cur.nextElementSibling.querySelector('.nodes-changed, .members-changed')
+                || e.altKey
+                || !location.search.includes("changesets=")) {
+                trustedEvent = false
+                cur.nextElementSibling.click()
+                trustedEvent = true
+                cur.nextElementSibling.scrollIntoView({block: "center", behavior: smoothScroll})
                 resetMapHover()
-                next.querySelector("li").classList.add("map-hover")
+                cur.nextElementSibling.classList.add("map-hover")
+                return
+            }
+        } else {
+            const curFrame = cur.parentElement.parentElement
+            if (curFrame.id === "changeset_ways" && ["changeset_nodes", "changeset_relations"].includes(curFrame.nextElementSibling?.id)
+                || curFrame.id === "changeset_relations" && ["changeset_nodes"].includes(curFrame.nextElementSibling?.id)) {
+                cur.classList.remove("active-object")
+                curFrame.nextElementSibling.querySelector("#changeset_nodes li, #changeset_relations li").classList.add("active-object")
+                if (!curFrame.nextElementSibling.querySelector(".active-object").classList.contains('tags-non-modified')
+                    || curFrame.nextElementSibling.querySelector(".active-object").classList.contains('location-modified')
+                    || curFrame.nextElementSibling.querySelector(".active-object").querySelector('.nodes-changed, .members-changed')
+                    || e.altKey
+                    || !location.search.includes("changesets=")) {
+                    trustedEvent = false
+                    curFrame.nextElementSibling.querySelector(".active-object").click()
+                    trustedEvent = true
+                    curFrame.nextElementSibling.querySelector(".active-object").scrollIntoView({
+                        block: "center",
+                        behavior: smoothScroll
+                    })
+
+                    resetMapHover();
+                    curFrame.nextElementSibling.querySelector(".active-object").classList.add("map-hover")
+                    if (curFrame.nextElementSibling?.querySelector(".load-relation-version")) {
+                        curFrame.nextElementSibling.querySelector(".load-relation-version").focus()
+                    }
+                    if (curFrame.id === "changeset_relations") {
+                        document.activeElement.blur()
+                    }
+                    return;
+                }
+            } else {
+                let next = curFrame?.nextElementSibling?.nextElementSibling
+                if (next?.nodeName !== "TURBO-FRAME" && next?.nextElementSibling?.nodeName === "TURBO-FRAME") {
+                    next = next.nextElementSibling;
+                }
+                if (next?.nodeName === "TURBO-FRAME") {
+                    cur.classList.remove("active-object")
+                    next.querySelector("li").classList.add("active-object")
+                    if (!next.querySelector("li").classList.contains('tags-non-modified')
+                        || next.querySelector("li").classList.contains('location-modified')
+                        || next.querySelector("li")?.querySelector('.nodes-changed, .members-changed')
+                        || e.altKey
+                        || !location.search.includes("changesets=")) {
+                        trustedEvent = false
+                        next.querySelector("li").click()
+                        trustedEvent = true
+                        next.querySelector("li").scrollIntoView({block: "center", behavior: smoothScroll})
+                        resetMapHover()
+                        next.querySelector("li").classList.add("map-hover")
+                        if (next.querySelector("li").querySelector(".load-relation-version")) {
+                            next.querySelector("li").querySelector(".load-relation-version").focus()
+                        }
+                        return
+                    }
+                }
             }
         }
+
+        if (cur === document.querySelector("ul .active-object")) {
+            cur.classList.remove("active-object")
+            prev.classList.add("active-object")
+            return;
+        }
     }
+    console.log("KeyL not found next elem")
 }
 
 function setupNavigationViaHotkeys() {
@@ -8758,7 +8988,7 @@ function setupNavigationViaHotkeys() {
     runPositionTracker()
 
     function keydownHandler(e) {
-        if (e.repeat) return
+        if (e.repeat && !["KeyK", "KeyL"].includes(e.code)) return
         if (document.activeElement?.name === "text") return
         if (document.activeElement?.name === "query") {
             if (e.code === "Escape") {
@@ -8773,7 +9003,7 @@ function setupNavigationViaHotkeys() {
             return;
         }
         if (e.code === "KeyN") {
-            if (location.pathname.includes("/user/")) {
+            if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
                 document.querySelector('a[href^="/user/"][href$="/notes"]')?.click()
             } else {
                 // notes
@@ -8787,12 +9017,16 @@ function setupNavigationViaHotkeys() {
                 }
             }
         } else if (e.code === "KeyD") {
-            if (location.pathname.includes("/user/")) {
+            if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
                 document.querySelector('a[href^="/user/"][href$="/diary"]')?.click()
             } else {
                 // map data
                 Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
-                enableOverzoom()
+                if (!location.hash.includes("D")) {
+                    disableOverzoom()
+                } else {
+                    enableOverzoom()
+                }
             }
         } else if (e.code === "KeyG") { // gps tracks
             Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
@@ -9056,7 +9290,7 @@ function setupNavigationViaHotkeys() {
                 document.getElementsByClassName("geolocate")[0]?.click()
             }
         } else if (e.code === "KeyC") {
-            if (location.pathname.includes("/user/")) {
+            if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
                 if (location.pathname.includes("/diary_comments")) {
                     document.querySelector('a[href^="/user/"][href$="changeset_comments"]')?.click()
                 } else {
@@ -9077,7 +9311,7 @@ function setupNavigationViaHotkeys() {
             document.querySelector("#sidebar_content .btn-close")?.click()
             document.querySelector(".welcome .btn-close")?.click()
         } else if (e.code === "KeyT" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
-            if (location.pathname.includes("/user/")) {
+            if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
                 document.querySelector('a[href="/traces/mine"], a[href$="/traces"]:not(.nav-link):not(.dropdown-item)')?.click()
             } else {
                 document.querySelector(".quick-look-compact-toggle-btn")?.click()
@@ -9140,9 +9374,9 @@ function setupNavigationViaHotkeys() {
                     userChangesetsLink.click()
                 }
             } else if (e.code === "KeyK") {
-                goToPrevChangesetObject();
+                goToPrevChangesetObject(e);
             } else if (e.code === "KeyL" && !e.shiftKey) {
-                goToNextChangesetObject();
+                goToNextChangesetObject(e);
             }
         } else if (location.pathname.match(/^\/(node|way|relation)\/\d+/)) {
             if (e.code === "Comma") {
