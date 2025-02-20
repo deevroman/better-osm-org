@@ -1926,7 +1926,7 @@ function addSatelliteLayers() {
     btnOnNotePage.style.cursor = "pointer";
     btnOnNotePage.classList.add("turn-on-satellite");
     btnOnNotePage.title = "Switch between map and satellite images"
-    // todo disable for Chrome
+
     document.querySelectorAll("h4")[0].appendChild(document.createTextNode("\xA0"));
     document.querySelectorAll("h4")[0].appendChild(btnOnNotePage);
 
@@ -2268,13 +2268,14 @@ function makePanoramaxValue(elem) {
 }
 
 // https://osm.org/node/7417065297
+// https://osm.org/node/6257534611
 function makeMapillaryValue(elem) {
     elem.innerHTML = elem.innerHTML.replaceAll(/([0-9]+)(&amp;x=-?[0-9]+.[0-9]+&amp;y=-?[0-9]+.[0-9]+&amp;zoom=-?[0-9]+.[0-9]+)?/g, function (match) {
         const a = document.createElement("a")
         a.textContent = match.replaceAll("&amp;", "&")
         a.classList.add("preview-mapillary-img-link")
         a.target = "_blank"
-        a.href = "https://www.mapillary.com/app/?pKey=" + arguments[4].replaceAll("&amp;", "&")
+        a.href = "https://www.mapillary.com/app/?pKey=" + arguments[0].replaceAll("&amp;", "&")
         return a.outerHTML
     })
     /*elem.querySelectorAll('a.preview-mapillary-img-link').forEach(a => {
