@@ -988,9 +988,9 @@ function makeTimesSwitchable() {
 
         document.querySelectorAll("time").forEach(switchElement)
     }
-
+    const isObjectPage = location.pathname.includes("node") || location.pathname.includes("way") || location.pathname.includes("relation")
     document.querySelectorAll("time:not([switchable])").forEach(i => {
-        i.title += "\n\nClick with ctrl for open the map state at the time of changeset was closed"
+        i.title += `\n\nClick for change time format\nClick with ctrl for open the map state at the time of ${isObjectPage ? "version was created" : "changeset was closed"}`
         i.addEventListener("click", (e) => {
             if (e.metaKey || e.ctrlKey) {
                 const {lng: lon, lat: lat} = getMap().getCenter()
