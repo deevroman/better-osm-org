@@ -768,6 +768,9 @@ function addRevertButton() {
         tagsHeader.remove()
     }
     const primaryButtons = document.querySelector("[name=subscribe], [name=unsubscribe]")
+    if (primaryButtons?.getAttribute("name") === "subscribe") {
+        primaryButtons.tabIndex = -1
+    }
     if (primaryButtons && osm_server.url === prod_server.url) {
         const changeset_id = sidebar.innerHTML.match(/(\d+)/)[0];
 
@@ -1201,7 +1204,7 @@ function setupCompactChangesetsHistory() {
     handleNewChangesets();
     sidebarObserver?.disconnect();
     sidebarObserver = new MutationObserver(handleNewChangesets);
-    if (document.querySelector('#sidebar_content')) {
+    if (document.querySelector('#sidebar_content') && !location.pathname.includes("/changeset")) {
         sidebarObserver.observe(document.querySelector('#sidebar_content'), {childList: true, subtree: true});
     }
 }
@@ -1213,6 +1216,114 @@ function addResolveNotesButton() {
             document.querySelector(".note form textarea").textContent = newNotePlaceholder
             document.querySelector(".note form textarea").selectionEnd = 0
             newNotePlaceholder = null
+        }
+        if (document.querySelector(".add-new-object-btn") && getMap()) return
+        let b = document.createElement("span");
+        b.classList.add("add-new-object-btn", "btn", "btn-primary");
+        b.textContent = "➕";
+        b.title = `add new object on map\nPaste tags in textarea\nkey1=value1\nkey2=value\n...`
+        document.querySelector("#sidebar_content form div:has(input)").appendChild(b);
+        b.before(document.createTextNode("\xA0"));
+        b.onclick = (e) => {
+            e.stopImmediatePropagation()
+            const auth = makeAuth();
+
+            console.log("Opening changeset");
+
+            function buildTags(text) {
+                const lines = text.split('\n');
+                let json = {};
+                for (let line of lines) {
+                    const eqPos = line.indexOf('=');
+                    if (eqPos <= 0 || eqPos === line.length - 1) {
+                        continue;
+                    }
+                    const k = line.substring(0, eqPos).trim();
+                    const v = line.substring(eqPos + 1).trim();
+                    if (v === '' || k === '') {
+                        continue;
+                    }
+                    json[k] = v.replaceAll('\\\\', '\n');
+                }
+                return Object.entries(json);
+            }
+
+            let tagsHint = ""
+            const tags = buildTags(document.querySelector("#sidebar_content form textarea").value)
+
+            for (const i of tags) {
+                if (mainTags.includes(i[0])) {
+                    tagsHint = tagsHint + ` ${i[0]}=${i[1]}`;
+                    break
+                }
+            }
+            for (const i of tags) {
+                if (i[0] === "name") {
+                    tagsHint = tagsHint + ` ${i[0]}=${i[1]}`;
+                    break
+                }
+            }
+            const changesetTags = {
+                'created_by': 'better osm.org',
+                'comment': tagsHint !== "" ? `Create${tagsHint}` : `Create node`
+            };
+
+            let changesetPayload = document.implementation.createDocument(null, 'osm');
+            let cs = changesetPayload.createElement('changeset');
+            changesetPayload.documentElement.appendChild(cs);
+            tagsToXml(changesetPayload, cs, changesetTags);
+            const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload);
+
+            auth.xhr({
+                method: 'PUT',
+                path: osm_server.apiBase + 'changeset/create',
+                prefix: false,
+                content: chPayloadStr
+            }, function (err1, result) {
+                const changesetId = result;
+                console.log(changesetId);
+
+                const nodePayload = document.createElement('osm');
+                const node = document.createElement("node")
+                nodePayload.appendChild(node)
+                node.setAttribute("changeset", changesetId)
+
+                const l = [];
+                getMap().eachLayer(intoPageWithFun(i => l.push(i)))
+                const {
+                    lat: lat,
+                    lng: lng
+                } = l.find(i => !!i._icon && i._icon.classList.contains("leaflet-marker-draggable"))._latlng
+                node.setAttribute("lat", lat)
+                node.setAttribute("lon", lng)
+
+                for (const tag of tags) {
+                    let tagElem = document.createElement("tag")
+                    tagElem.setAttribute("k", tag[0])
+                    tagElem.setAttribute("v", tag[1])
+                    node.appendChild(tagElem)
+                }
+                const nodeStr = new XMLSerializer().serializeToString(nodePayload).replace(/xmlns="[^"]+"/, '');
+                auth.xhr({
+                    method: 'POST',
+                    path: osm_server.apiBase + "nodes",
+                    prefix: false,
+                    content: nodeStr
+                }, function (err2) {
+                    if (err2) {
+                        console.log({changesetError: err2});
+                    }
+                    auth.xhr({
+                        method: 'PUT',
+                        path: osm_server.apiBase + 'changeset/' + changesetId + '/close',
+                        prefix: false
+                    }, function (err3) {
+                        if (!err3) {
+                            window.location = osm_server.url + '/changeset/' + changesetId
+                        }
+                    });
+                });
+            });
         }
         return
     }
@@ -1263,7 +1374,7 @@ out meta;
         btn.id = "timeback-btn";
         btn.title = "Open the map state at the time of note creation"
         btn.textContent = " 🕰";
-        btn.style.cursor = "pointer"
+        btn.style.cursor = "pointer" // todo for all <time>
         document.querySelector("#sidebar_content time").after(btn);
         btn.onclick = () => {
             window.open(`https://overpass-turbo.eu/?Q=${encodeURI(query)}&C=${lat};${lon};${zoom}&R`)
@@ -1611,6 +1722,8 @@ async function bypassChromeCSPForImagesSrc(imgElem, url) {
     }
 }
 
+let blankSuffix = "";
+
 function switchESRIbeta() {
     const NewSatellitePrefix = SatellitePrefix === ESRIPrefix ? ESRIBetaPrefix : ESRIPrefix;
     document.querySelectorAll(".leaflet-tile").forEach(i => {
@@ -1620,9 +1733,9 @@ function switchESRIbeta() {
         let xyz = parseESRITileURL(isFirefox ? i.src : i.getAttribute("real-url") ?? "")
         if (!xyz) return
         if (isFirefox) {
-            i.src = NewSatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + "?blankTile=false";
+            i.src = NewSatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix;
         } else {
-            bypassChromeCSPForImagesSrc(i, NewSatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + "?blankTile=false");
+            bypassChromeCSPForImagesSrc(i, NewSatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix);
         }
     })
     SatellitePrefix = NewSatellitePrefix
@@ -1634,6 +1747,20 @@ function switchESRIbeta() {
 }
 
 const isFirefox = navigator.userAgent.includes("Firefox");
+
+function tileErrorHandler(e) {
+    if (!GM_config.get("OverzoomForDataLayer")) {
+        return
+    }
+    if (getMap().getZoom() >= 18) {
+        const zoomStr = e.currentTarget.src.match(/(tile|org)\/([0-9]+)/)[2]
+        if (zoomStr) {
+            const tileZoom = parseInt(zoomStr)
+            console.log(tileZoom);
+            getMap().setZoom(Math.min(19, Math.min(getMap().getZoom(), tileZoom - 1)))
+        }
+    }
+}
 
 function switchTiles() {
     if (tilesObserver) {
@@ -1657,13 +1784,17 @@ function switchTiles() {
             let xyz = parseOSMTileURL(i.src)
             if (!xyz) return
             // unsafeWindow.L.DomEvent.off(i, "error") // todo добавить перехватчик 404
+            try {
+                i.onerror = tileErrorHandler
+            } catch (e) {
+            }
             if (isFirefox) {
-                i.src = SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + "?blankTile=false";
+                i.src = SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix;
             } else {
-                i.setAttribute("real-url", SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + "?blankTile=false");
+                i.setAttribute("real-url", SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix);
             }
             if (!isFirefox) {
-                bypassChromeCSPForImagesSrc(i, SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + "?blankTile=false");
+                bypassChromeCSPForImagesSrc(i, SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix);
             }
             if (i.complete && isFirefox) {
                 i.classList.add("no-invert");
@@ -1695,14 +1826,18 @@ function switchTiles() {
                     let xyz = parseOSMTileURL(node.src);
                     if (!xyz) return
                     // unsafeWindow.L.DomEvent.off(node, "error")
+                    try {
+                        node.onerror = tileErrorHandler
+                    } catch (e) {
+                    }
                     if (isFirefox) {
-                        node.src = SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + "?blankTile=false";
+                        node.src = SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix;
                     } else {
                         node.src = "";
                     }
-                    node.setAttribute("real-url", SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + "?blankTile=false");
+                    node.setAttribute("real-url", SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix);
                     if (!isFirefox) {
-                        bypassChromeCSPForImagesSrc(node, SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + "?blankTile=false")
+                        bypassChromeCSPForImagesSrc(node, SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix)
                     }
                     if (node.complete) {
                         node.classList.add("no-invert");
@@ -1749,6 +1884,7 @@ function addSatelliteLayers() {
 
             btnOnPane.onclick = (e) => {
                 e.stopImmediatePropagation()
+                enableOverzoom()
                 if (e.shiftKey) {
                     switchESRIbeta()
                     return
@@ -1777,6 +1913,7 @@ function addSatelliteLayers() {
     document.querySelectorAll("h4")[0].appendChild(btnOnNotePage);
 
     btnOnNotePage.onclick = () => {
+        enableOverzoom()
         switchTiles();
         btnOnNotePage.textContent = invertTilesMode(currentTilesMode);
         btnOnPane.textContent = invertTilesMode(currentTilesMode);
@@ -2112,14 +2249,24 @@ function makePanoramaxValue(elem) {
     }
 }
 
+// https://osm.org/node/7417065297
 function makeMapillaryValue(elem) {
-    elem.innerHTML = elem.innerHTML.replaceAll(/([0-9]+)/g, function (match) {
+    elem.innerHTML = elem.innerHTML.replaceAll(/([0-9]+)(&amp;x=-?[0-9]+.[0-9]+&amp;y=-?[0-9]+.[0-9]+&amp;zoom=-?[0-9]+.[0-9]+)?/g, function (match) {
         const a = document.createElement("a")
-        a.textContent = match
+        a.textContent = match.replaceAll("&amp;", "&")
+        a.classList.add("preview-mapillary-img-link")
         a.target = "_blank"
-        a.href = "https://www.mapillary.com/app/?pKey=" + match
+        a.href = "https://www.mapillary.com/app/?pKey=" + arguments[4].replaceAll("&amp;", "&")
         return a.outerHTML
     })
+    /*elem.querySelectorAll('a.preview-mapillary-img-link').forEach(a => {
+        const frame = GM_addElement("iframe", {
+            src: `https://www.mapillary.com/embed?image_key=${a.textContent}&style=photo`,
+            // crossorigin: "anonymous"
+        })
+        frame.style.width = "100%"
+        a.appendChild(frame)
+    })*/
     elem.onclick = e => {
         e.stopImmediatePropagation()
     }
@@ -2492,6 +2639,19 @@ function panTo(lat, lon, zoom = 18, animate = false) {
     getMap().flyTo(intoPage([lat, lon]), zoom, intoPage({animate: animate}));
 }
 
+/**
+ * @name panInside
+ * @memberof unsafeWindow
+ * @param {string} lat
+ * @param {string} lon
+ * @param {number=} zoom
+ * @param {boolean=} animate
+ * @param {[]=} padding
+ */
+function panInside(lat, lon, animate = false, padding = [0, 0]) {
+    getMap().panInside(intoPage([lat, lon]), intoPage({animate: animate, padding: padding}));
+}
+
 function get4Bounds(b) {
     try {
         return [
@@ -2507,16 +2667,16 @@ function get4Bounds(b) {
  * @name fitBounds
  * @memberof unsafeWindow
  */
-function fitBounds(bound) {
-    getMap().fitBounds(intoPageWithFun(bound));
+function fitBounds(bound, maxZoom = 19) {
+    getMap().fitBounds(intoPageWithFun(bound), intoPage({maxZoom: maxZoom}));
 }
 
 /**
  * @name fitBoundsWithPadding
  * @memberof unsafeWindow
  */
-function fitBoundsWithPadding(bound, padding) {
-    getMap().fitBounds(intoPageWithFun(bound), intoPage({padding: [padding, padding]}));
+function fitBoundsWithPadding(bound, padding, maxZoom = 19) {
+    getMap().fitBounds(intoPageWithFun(bound), intoPage({padding: [padding, padding], maxZoom: maxZoom}));
 }
 
 /**
@@ -2807,7 +2967,8 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
      * @type {NodeVersion[]}
      */
     let versions = []
-    console.groupCollapsed(`w${wayID}v${version}`)
+    // console.debug(`w${wayID}v${version}`)
+    // console.groupCollapsed(`w${wayID}v${version}`)
     await Promise.all(queryArgs.map(async args => {
         const res = await fetch(osm_server.apiBase + "nodes.json?nodes=" + args, {signal: abortDownloadingController.signal});
         if (res.status === 404) {
@@ -2826,7 +2987,8 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
             versions.push(...(await res.json()).elements)
         }
     }))
-    console.groupEnd()
+    // console.debug(`end w${wayID}v${version}`)
+    // console.groupEnd()
     // из-за возможной ручной докачки историй, нужна дедупликация
     const seen = {};
     versions = versions.filter(function ({id: id, version: version}) {
