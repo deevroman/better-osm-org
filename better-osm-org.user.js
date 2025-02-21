@@ -2292,7 +2292,10 @@ function makePanoramaxValue(elem) {
         a.textContent = arguments[0].replaceAll("&amp;", "&")
         a.classList.add("preview-img-link")
         a.target = "_blank"
-        a.href = "https://api.panoramax.xyz/#focus=pic&pic=" + arguments[0].replaceAll("&amp;", "&")
+        const browseSection = elem?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement
+        const lat = browseSection?.querySelector(".latitude")?.textContent?.replace(",", ".")
+        const lon = browseSection?.querySelector(".longitude")?.textContent?.replace(",", ".")
+        a.href = "https://api.panoramax.xyz/#focus=pic&pic=" + arguments[0].replaceAll("&amp;", "&") + (lat ? (`&map=16/${lat}/${lon}`) : "")
         return a.outerHTML
     })
     elem.querySelectorAll('a.preview-img-link').forEach(a => {
@@ -2357,7 +2360,10 @@ function makeMapillaryValue(elem) {
         a.textContent = match.replaceAll("&amp;", "&")
         a.classList.add("preview-mapillary-img-link")
         a.target = "_blank"
-        a.href = "https://www.mapillary.com/app/?pKey=" + arguments[0].replaceAll("&amp;", "&")
+        const browseSection = elem?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement
+        const lat = browseSection?.querySelector(".latitude")?.textContent?.replace(",", ".")
+        const lon = browseSection?.querySelector(".longitude")?.textContent?.replace(",", ".")
+        a.href = `https://www.mapillary.com/app/?focus=photo${lat ? ("&lat=" + lat + "&lng=" + lon) : ""}&pKey=` + arguments[0].replaceAll("&amp;", "&")
         return a.outerHTML
     })
     setTimeout(async () => {
