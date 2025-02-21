@@ -989,8 +989,10 @@ function hideSearchForm() {
         cleanAllObjects()
     }
 
-    document.querySelector("#sidebar_content .btn-close")?.addEventListener("click", showSearchForm)
-    document.querySelector("h1 .icon-link")?.addEventListener("click", showSearchForm)
+    document.querySelector("#sidebar_content .btn-close:not(.hotkeyed)")?.addEventListener("click", showSearchForm)
+    document.querySelector("#sidebar_content .btn-close:not(.hotkeyed)")?.classList?.add("hotkeyed")
+    document.querySelector("h1 .icon-link:not(.hotkeyed)")?.addEventListener("click", showSearchForm)
+    document.querySelector("h1 .icon-link:not(.hotkeyed)")?.classList?.add("hotkeyed")
 }
 
 let sidebarObserver = null;
@@ -2317,7 +2319,7 @@ function makePanoramaxValue(elem) {
                     const lon = res['features'][0]['geometry']["coordinates"][0]
                     const angle = parseFloat(res['features'][0]["properties"]["exif"]["Exif.GPSInfo.GPSImgDirection"])
 
-                    showActiveNodeMarker(lat, lon, "#0022ff", false)
+                    showActiveNodeMarker(lat, lon, "#0022ff", true)
 
                     drawRay(lat, lon, angle - 30, "#0022ff")
                     drawRay(lat, lon, angle + 30, "#0022ff")
@@ -2387,7 +2389,7 @@ function makeMapillaryValue(elem) {
                     const computed_lon = res['computed_geometry']["coordinates"][0]
                     const computed_angle = res["computed_compass_angle"]
 
-                    showActiveNodeMarker(lat, lon, "#0022ff", false)
+                    showActiveNodeMarker(lat, lon, "#0022ff", true)
                     showActiveNodeMarker(computed_lat, computed_lon, "#ee9209", false)
 
 
