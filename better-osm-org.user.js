@@ -731,7 +731,7 @@ function addRevertButton() {
                     i.style.display = "none"
                     i.classList.add("hidden-tag")
                     needUnhide = true
-                } else if (key.textContent === "hashtags" && document.querySelector(".browse-section p")?.textContent?.includes(i.querySelector("td").textContent)) {
+                } else if (key.textContent === "hashtags" && i.querySelector("td").textContent.includes("#") && document.querySelector(".browse-section p")?.textContent?.includes(i.querySelector("td").textContent)) {
                     i.style.display = "none"
                     i.classList.add("hidden-tag")
                 }
