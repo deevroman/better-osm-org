@@ -5416,6 +5416,7 @@ function detectEditsWars(prevVersion, targetVersion, objHistory, row, key) {
     warLog.style.borderStyle = "solid";
     warLog.style.borderWidth = "1px";
     warLog.title = ""
+    warLog.classList.add("edits-wars-log")
     for (let j = 0; j < objHistory.length; j++) {
         const it = objHistory[j];
 
@@ -6849,6 +6850,19 @@ function addQuickLookStyles() {
               position: absolute;
               color: var(--bs-body-color);
             }
+            
+            .edits-wars-log tr:nth-child(even) td, .edits-wars-log tr:nth-child(even) th {
+                background-color: color-mix(in srgb, var(--bs-body-bg), black 25%);
+            }
+            
+            @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+            
+            .edits-wars-log tr:nth-child(even) td, .edits-wars-log tr:nth-child(even) th {
+                background-color: color-mix(in srgb, var(--bs-body-bg), white 5%);
+            }
+            
+            }
+            
             
             table.browse-tag-list tr td[colspan="2"]{
                 background: var(--bs-body-bg) !important;
@@ -10205,6 +10219,18 @@ async function setupDragAndDropViewers() {
                         width: initial;
                     }
                     
+                    .zebra_colors tr:nth-child(even) td, .zebra_colors tr:nth-child(even) th {
+                        background-color: color-mix(in srgb, var(--bs-body-bg), black 10%);
+                    }
+                    
+                    @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+                    
+                    .zebra_colors tr:nth-child(even) td, .zebra_colors tr:nth-child(even) th {
+                        background-color: color-mix(in srgb, var(--bs-body-bg), white 7%);
+                    }
+                    
+                    }
+                    
                     .leaflet-popup-content:has(.geotagged-img) {
                         max-width: calc(${mapWidth} / 2) !important;
                         min-width: calc(${mapWidth} / 2) !important;
@@ -10261,6 +10287,7 @@ async function setupDragAndDropViewers() {
                                         const table = document.createElement("table")
                                         table.style.overflow = "scroll"
                                         table.classList.add("geojson-props-table")
+                                        table.classList.add("zebra_colors")
                                         const tbody = document.createElement("tbody")
                                         table.appendChild(tbody)
                                         Object.entries(feature.properties).forEach(([key, value]) => {
@@ -10495,7 +10522,7 @@ function main() {
                 }
                 GM_config.open();
             });
-            if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+            if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || isDebug()) {
                 GM_registerMenuCommand("Check script updates", function () {
                     window.open("https://raw.githubusercontent.com/deevroman/better-osm-org/master/better-osm-org.user.js", "_blank") // todo add random param for bypass cache?
                 });
