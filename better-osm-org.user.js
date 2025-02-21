@@ -636,6 +636,26 @@ function addRevertButton() {
             getCachedUserInfo(usernameA.textContent).then((res) => {
                 usernameA.before(makeBadge(res, new Date(time.getAttribute("datetime"))))
                 usernameA.before(document.createTextNode(" "))
+
+                document.querySelectorAll(".browse-tag-list tr").forEach(i => {
+                    const key = i.querySelector("th")
+                    if (!key) return
+                    if (key.textContent === "changesets_count") {
+                        function insertAllChangesets(info) {
+                            const allChangesets = document.createElement("span")
+                            allChangesets.textContent = `/${info['changesets']['count']}`
+                            allChangesets.style.color = "gray"
+                            i.querySelector("td").appendChild(allChangesets)
+                        }
+                        if (parseInt(i.querySelector("td").textContent) >= res['changesets']['count']) {
+                            updateUserInfo(usernameA.textContent).then((res) => {
+                                insertAllChangesets(res)
+                            })
+                        } else {
+                            insertAllChangesets(res)
+                        }
+                    }
+                })
             })
             //<link rel="alternate" type="application/atom+xml" title="ATOM" href="https://www.openstreetmap.org/user/Elizen/history/feed">
             const rssfeed = document.createElement("link")
@@ -6191,6 +6211,9 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             if (window.getSelection().type === "Range") return
             if ((e.target.nodeName === "TH" || e.target.nodeName === "TD") && i.querySelector("[contenteditable]")) return
 
+            document.querySelector(".browse-section.active-object")?.classList?.remove()
+            i.parentElement.parentElement.classList.add("active-object")
+
             if (prevVersion.visible !== false && targetVersion.visible !== false) {
                 fitBoundsWithPadding([
                     [prevVersion.lat.toString(), prevVersion.lon.toString()],
@@ -6317,6 +6340,9 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             if (window.getSelection().type === "Range") return
             if ((e.target.nodeName === "TH" || e.target.nodeName === "TD") && i.querySelector("[contenteditable]")) return
 
+            document.querySelector(".browse-section.active-object")?.classList?.remove()
+            i.parentElement.parentElement.classList.add("active-object")
+
             showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", currentNodesList.length !== 0, objID)
 
             if (version > 1) {
@@ -6420,6 +6446,9 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             } else if (e.type === "keypress") {
                 return
             }
+
+            document.querySelector(".browse-section.active-object")?.classList?.remove()
+            i.parentElement.parentElement.classList.add("active-object")
 
             btn.style.cursor = "progress"
             let targetTimestamp = (new Date(changesetMetadatas[targetVersion.changeset].closed_at ?? new Date())).toISOString()
@@ -7577,6 +7606,15 @@ async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) 
 
         const parser = new DOMParser()
         const doc = parser.parseFromString(res.response, "text/html")
+        const newPrevLink = getPrevChangesetLink(doc)
+        if (newPrevLink) {
+            const prevLink = getPrevChangesetLink()
+            const prevID = extractChangesetID(prevLink.href)
+
+            const newPrevID = extractChangesetID(newPrevLink.href)
+            prevLink.childNodes[2].textContent = prevLink.childNodes[2].textContent.replace(prevID, newPrevID)
+            prevLink.href = "/changeset/" + newPrevID
+        }
 
         const divID = document.createElement("a")
         divID.id = curID
@@ -8077,6 +8115,7 @@ function makeTopActionBar() {
     }
     const revertButton = document.createElement("button")
     revertButton.textContent = "↩️"
+    revertButton.title = "revert via osm-revert"
     revertButton.onclick = () => {
         const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
         open("https://revert.monicz.dev/?changesets=" + ids, "_blank")
@@ -8120,6 +8159,7 @@ function makeBottomActionBar() {
     }
     const revertButton = document.createElement("button")
     revertButton.textContent = "↩️"
+    revertButton.title = "revert via osm-revert"
     revertButton.onclick = () => {
         const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
         window.location = "https://revert.monicz.dev/?changesets=" + ids
@@ -9033,15 +9073,15 @@ let layersHidden = false;
 
 let needPreloadChangesets = false;
 
-function getPrevChangesetLink() {
-    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
+function getPrevChangesetLink(doc = document) {
+    const navigationLinks = doc.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
     if (navigationLinks && navigationLinks[0].href.includes("/changeset/")) {
         return navigationLinks[0]
     }
 }
 
-function getNextChangesetLink() {
-    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
+function getNextChangesetLink(doc = document) {
+    const navigationLinks = doc.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
     if (navigationLinks && Array.from(navigationLinks).at(-1).href.includes("/changeset/")) {
         return Array.from(navigationLinks).at(-1);
     }
