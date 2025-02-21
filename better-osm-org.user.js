@@ -66,6 +66,7 @@
 // @connect      raw.githubusercontent.com
 // @connect      en.wikipedia.org
 // @connect      graph.mapillary.com
+// @connect      api.panoramax.xyz
 // @comment      for downloading gps-tracks — osm stores tracks in AWS
 // @connect      amazonaws.com
 // @comment      for satellite images
@@ -2277,10 +2278,11 @@ function blurSearchField() {
 }
 
 // https://osm.org/node/12559772251
+// https://osm.org/node/10588878341
 function makePanoramaxValue(elem) {
     if (!GM_config.get("ImagesAndLinksInTags")) return;
     // extracting uuid
-    elem.innerHTML = elem.innerHTML.replaceAll(/(?<=(^|;))([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(&amp;xyz=-?[0-9]+(\.[0-9]+)?\/-?[0-9]+(\.[0-9]+)?\/-?[0-9]+(\.[0-9]+)?)/gi, function (match) {
+    elem.innerHTML = elem.innerHTML.replaceAll(/(?<=(^|;))([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(&amp;xyz=-?[0-9]+(\.[0-9]+)?\/-?[0-9]+(\.[0-9]+)?\/-?[0-9]+(\.[0-9]+)?)?/gi, function (match) {
         const a = document.createElement("a")
         a.textContent = arguments[0].replaceAll("&amp;", "&")
         a.classList.add("preview-img-link")
@@ -2289,16 +2291,49 @@ function makePanoramaxValue(elem) {
         return a.outerHTML
     })
     elem.querySelectorAll('a.preview-img-link').forEach(a => {
+        const uuid = a.textContent.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)
         const img = GM_addElement("img", {
-            src: `https://api.panoramax.xyz/api/pictures/${a.textContent.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)}/sd.jpg`,
+            src: `https://api.panoramax.xyz/api/pictures/${uuid}/sd.jpg`,
             // crossorigin: "anonymous"
         })
-        img.style.width = "100%"
+        img.onerror = () => {
+            img.style.display = "none"
+        }
+        img.onload = () => {
+            img.style.width = "100%"
+        }
         a.appendChild(img)
+        setTimeout(async () => {
+            const res = (await GM.xmlHttpRequest({
+                url: `https://api.panoramax.xyz/api/search?limit=1&ids=${uuid}`,
+                responseType: "json"
+            })).response
+            if (!res['error']) {
+                a.onmouseenter = () => {
+                    const lat = res['features'][0]['geometry']["coordinates"][1]
+                    const lon = res['features'][0]['geometry']["coordinates"][0]
+                    const angle = parseFloat(res['features'][0]["properties"]["exif"]["Exif.GPSInfo.GPSImgDirection"])
+
+                    showActiveNodeMarker(lat, lon, "#0022ff", false)
+
+                    drawRay(lat, lon, angle - 30, "#0022ff")
+                    drawRay(lat, lon, angle + 30, "#0022ff")
+                }
+            }
+        })
     })
     elem.onclick = e => {
         e.stopImmediatePropagation()
     }
+}
+
+function drawRay(lat, lon, angle, color) {
+    const earthRadius = 6378137;
+    const rad = (angle * Math.PI) / 180;
+    const length = 7;
+    const latOffset = (length * Math.cos(rad)) / earthRadius;
+    const lonOffset = (length * Math.sin(rad)) / (earthRadius * Math.cos((lat * Math.PI) / 180));
+    showActiveWay([[lat, lon], [lat + (latOffset * 180) / Math.PI, lon + (lonOffset * 180) / Math.PI]], color, false, null, false)
 }
 
 // https://www.mapillary.com/dashboard/developers
@@ -2341,15 +2376,6 @@ function makeMapillaryValue(elem) {
                 }
                 a.appendChild(img)
                 a.onmouseenter = () => {
-                    function drawRay(lat, lon, angle, color) {
-                        const earthRadius = 6378137;
-                        const rad = (angle * Math.PI) / 180;
-                        const length = 7;
-                        const latOffset = (length * Math.cos(rad)) / earthRadius;
-                        const lonOffset = (length * Math.sin(rad)) / (earthRadius * Math.cos((lat * Math.PI) / 180));
-                        showActiveWay([[lat, lon], [lat + (latOffset * 180) / Math.PI, lon + (lonOffset * 180) / Math.PI]], color, false, null, false)
-                    }
-
                     const lat = res['geometry']["coordinates"][1]
                     const lon = res['geometry']["coordinates"][0]
                     const angle = res["compass_angle"]
@@ -2362,11 +2388,11 @@ function makeMapillaryValue(elem) {
                     showActiveNodeMarker(computed_lat, computed_lon, "#ee9209", false)
 
 
-                    drawRay(lat, lon, angle - 20, "#0022ff")
-                    drawRay(computed_lat, computed_lon, computed_angle - 20, "#ee9209")
+                    drawRay(lat, lon, angle - 30, "#0022ff")
+                    drawRay(computed_lat, computed_lon, computed_angle - 25, "#ee9209")
 
-                    drawRay(lat, lon, angle + 20, "#0022ff")
-                    drawRay(computed_lat, computed_lon, computed_angle + 20, "#ee9209")
+                    drawRay(lat, lon, angle + 30, "#0022ff")
+                    drawRay(computed_lat, computed_lon, computed_angle + 25, "#ee9209")
                 }
             } else {
                 a.classList.add("broken-mapillary-link")
