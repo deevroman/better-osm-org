@@ -2363,7 +2363,7 @@ function makeMapillaryValue(elem) {
         const browseSection = elem?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement
         const lat = browseSection?.querySelector(".latitude")?.textContent?.replace(",", ".")
         const lon = browseSection?.querySelector(".longitude")?.textContent?.replace(",", ".")
-        a.href = `https://www.mapillary.com/app/?focus=photo${lat ? ("&lat=" + lat + "&lng=" + lon) : ""}&pKey=` + arguments[0].replaceAll("&amp;", "&")
+        a.href = `https://www.mapillary.com/app/?focus=photo${lat ? ("&lat=" + lat + "&lng=" + lon + "&z=16") : ""}&pKey=` + arguments[0].replaceAll("&amp;", "&")
         return a.outerHTML
     })
     setTimeout(async () => {
