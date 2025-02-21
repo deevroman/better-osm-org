@@ -657,6 +657,7 @@ function addRevertButton() {
                             const allChangesets = document.createElement("span")
                             allChangesets.textContent = `/${info['changesets']['count']}`
                             allChangesets.style.color = "gray"
+                            allChangesets.title = "how many changesets does the user have in total"
                             i.querySelector("td").appendChild(allChangesets)
                         }
 
@@ -8172,7 +8173,7 @@ async function getCachedUserInfo(username) {
     const localUserInfo = GM_getValue("userinfo-" + username, "")
     if (localUserInfo) {
         const cacheTime = new Date(localUserInfo['cacheTime'])
-        if (cacheTime.setUTCDate(cacheTime.getUTCDate() + 5) < new Date()) {
+        if (cacheTime.setUTCDate(cacheTime.getUTCDate() + 3) < new Date()) {
             setTimeout(updateUserInfo, 0, username)
         }
         return JSON.parse(localUserInfo)
