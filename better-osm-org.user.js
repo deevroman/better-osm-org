@@ -210,6 +210,13 @@ GM_config.init(
                         'default': 'checked',
                         'labelPos': 'right'
                     },
+                'ImagesAndLinksInTags':
+                    {
+                        'label': 'Make some tags clickable, shorter and display photos',
+                        'type': 'checkbox',
+                        'default': 'checked',
+                        'labelPos': 'right',
+                    },
                 'HideNoteHighlight':
                     {
                         'section': ["Working with notes"],
@@ -561,6 +568,8 @@ function makeAuth() {
 }
 
 function makeHashtagsClickable() {
+    if (!GM_config.get("ImagesAndLinksInTags")) return;
+
     const comment = document.querySelector(".browse-section p")
     comment.childNodes.forEach(node => {
         if (node.nodeType !== Node.TEXT_NODE) return
@@ -589,6 +598,7 @@ function shortOsmOrgLinksInText(text) {
 }
 
 function shortOsmOrgLinks(elem) {
+    if (!GM_config.get("ImagesAndLinksInTags")) return;
     elem.querySelectorAll('a[href^="https://www.openstreetmap.org"], a[href^="https://wiki.openstreetmap.org"], a[href^="https://community.openstreetmap.org"], a[href^="https://openstreetmap.org"]').forEach(i => {
         i.textContent = shortOsmOrgLinksInText(i.textContent)
     })
@@ -2268,6 +2278,7 @@ function blurSearchField() {
 
 // https://osm.org/node/12559772251
 function makePanoramaxValue(elem) {
+    if (!GM_config.get("ImagesAndLinksInTags")) return;
     // extracting uuid
     elem.innerHTML = elem.innerHTML.replaceAll(/(?<=(^|;))([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(&amp;xyz=-?[0-9]+(\.[0-9]+)?\/-?[0-9]+(\.[0-9]+)?\/-?[0-9]+(\.[0-9]+)?)/gi, function (match) {
         const a = document.createElement("a")
@@ -2300,6 +2311,7 @@ const MAPILLARY_URL_PARAMS = new URLSearchParams({
 // https://osm.org/node/7417065297
 // https://osm.org/node/6257534611
 function makeMapillaryValue(elem) {
+    if (!GM_config.get("ImagesAndLinksInTags")) return;
     elem.innerHTML = elem.innerHTML.replaceAll(/(?<=(^|;))([0-9]+)(&amp;x=-?[0-9]+(\.[0-9]+)?&amp;y=-?[0-9]+(\.[0-9]+)?&amp;zoom=-?[0-9]+(\.[0-9]+)?)?/g, function (match) {
         const a = document.createElement("a")
         a.textContent = match.replaceAll("&amp;", "&")
@@ -2367,6 +2379,7 @@ function makeMapillaryValue(elem) {
 }
 
 function makeWikimediaCommonsValue(elem) {
+    if (!GM_config.get("ImagesAndLinksInTags")) return;
     elem.querySelectorAll('a[href^="//commons.wikimedia.org/wiki/"]:not(.preview-img-link)').forEach(a => {
         a.classList.add("preview-img-link")
         setTimeout(async () => {
