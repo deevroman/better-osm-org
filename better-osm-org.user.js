@@ -65,6 +65,7 @@
 // @connect      overpass-api.de
 // @connect      raw.githubusercontent.com
 // @connect      en.wikipedia.org
+// @connect      graph.mapillary.com
 // @comment      for downloading gps-tracks — osm stores tracks in AWS
 // @connect      amazonaws.com
 // @comment      for satellite images
@@ -647,6 +648,7 @@ function addRevertButton() {
                             allChangesets.style.color = "gray"
                             i.querySelector("td").appendChild(allChangesets)
                         }
+
                         if (parseInt(i.querySelector("td").textContent) >= res['changesets']['count']) {
                             updateUserInfo(usernameA.textContent).then((res) => {
                                 insertAllChangesets(res)
@@ -1008,6 +1010,7 @@ function makeTimesSwitchable() {
 
         document.querySelectorAll("time").forEach(switchElement)
     }
+
     const isObjectPage = location.pathname.includes("node") || location.pathname.includes("way") || location.pathname.includes("relation")
     document.querySelectorAll("time:not([switchable])").forEach(i => {
         i.title += `\n\nClick for change time format\nClick with ctrl for open the map state at the time of ${isObjectPage ? "version was created" : "changeset was closed"}`
@@ -2263,20 +2266,20 @@ function blurSearchField() {
     }
 }
 
-
+// https://osm.org/node/12559772251
 function makePanoramaxValue(elem) {
     // extracting uuid
-    elem.innerHTML = elem.innerHTML.replaceAll(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi, function (match) {
+    elem.innerHTML = elem.innerHTML.replaceAll(/(?<=(^|;))([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(&amp;xyz=-?[0-9]+(\.[0-9]+)?\/-?[0-9]+(\.[0-9]+)?\/-?[0-9]+(\.[0-9]+)?)/gi, function (match) {
         const a = document.createElement("a")
-        a.textContent = match
+        a.textContent = arguments[0].replaceAll("&amp;", "&")
         a.classList.add("preview-img-link")
         a.target = "_blank"
-        a.href = "https://api.panoramax.xyz/#focus=pic&pic=" + match
+        a.href = "https://api.panoramax.xyz/#focus=pic&pic=" + arguments[0].replaceAll("&amp;", "&")
         return a.outerHTML
     })
     elem.querySelectorAll('a.preview-img-link').forEach(a => {
         const img = GM_addElement("img", {
-            src: `https://api.panoramax.xyz/api/pictures/${a.textContent}/sd.jpg`,
+            src: `https://api.panoramax.xyz/api/pictures/${a.textContent.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)}/sd.jpg`,
             // crossorigin: "anonymous"
         })
         img.style.width = "100%"
@@ -2287,10 +2290,17 @@ function makePanoramaxValue(elem) {
     }
 }
 
+// https://www.mapillary.com/dashboard/developers
+const MAPILLARY_CLIENT_KEY = "MLY|23980706878196295|56711819158553348b8159429530d931"
+const MAPILLARY_URL_PARAMS = new URLSearchParams({
+    access_token: MAPILLARY_CLIENT_KEY,
+    fields: "id,geometry,computed_geometry,compass_angle,computed_compass_angle,thumb_1024_url"
+})
+
 // https://osm.org/node/7417065297
 // https://osm.org/node/6257534611
 function makeMapillaryValue(elem) {
-    elem.innerHTML = elem.innerHTML.replaceAll(/([0-9]+)(&amp;x=-?[0-9]+.[0-9]+&amp;y=-?[0-9]+.[0-9]+&amp;zoom=-?[0-9]+.[0-9]+)?/g, function (match) {
+    elem.innerHTML = elem.innerHTML.replaceAll(/(?<=(^|;))([0-9]+)(&amp;x=-?[0-9]+(\.[0-9]+)?&amp;y=-?[0-9]+(\.[0-9]+)?&amp;zoom=-?[0-9]+(\.[0-9]+)?)?/g, function (match) {
         const a = document.createElement("a")
         a.textContent = match.replaceAll("&amp;", "&")
         a.classList.add("preview-mapillary-img-link")
@@ -2298,14 +2308,59 @@ function makeMapillaryValue(elem) {
         a.href = "https://www.mapillary.com/app/?pKey=" + arguments[0].replaceAll("&amp;", "&")
         return a.outerHTML
     })
-    /*elem.querySelectorAll('a.preview-mapillary-img-link').forEach(a => {
-        const frame = GM_addElement("iframe", {
-            src: `https://www.mapillary.com/embed?image_key=${a.textContent}&style=photo`,
-            // crossorigin: "anonymous"
-        })
-        frame.style.width = "100%"
-        a.appendChild(frame)
-    })*/
+    setTimeout(async () => {
+        for (const a of elem.querySelectorAll('a.preview-mapillary-img-link')) {
+            const res = (await GM.xmlHttpRequest({
+                url: `https://graph.mapillary.com/${a.textContent.match(/[0-9]+/)}?${MAPILLARY_URL_PARAMS.toString()}`,
+                responseType: "json"
+            })).response
+            if (!res['error']) {
+                const img = GM_addElement("img", {
+                    src: res['thumb_1024_url'],
+                    alt: "image from Mapillary",
+                    title: "Blue — position from GPS tracker\nOrange — estimated real postion"
+                    // crossorigin: "anonymous"
+                })
+                img.onerror = () => {
+                    img.style.display = "none"
+                }
+                img.onload = () => {
+                    img.style.width = "100%"
+                }
+                a.appendChild(img)
+                a.onmouseenter = () => {
+                    function drawRay(lat, lon, angle, color) {
+                        const earthRadius = 6378137;
+                        const rad = (angle * Math.PI) / 180;
+                        const length = 7;
+                        const latOffset = (length * Math.cos(rad)) / earthRadius;
+                        const lonOffset = (length * Math.sin(rad)) / (earthRadius * Math.cos((lat * Math.PI) / 180));
+                        showActiveWay([[lat, lon], [lat + (latOffset * 180) / Math.PI, lon + (lonOffset * 180) / Math.PI]], color, false, null, false)
+                    }
+
+                    const lat = res['geometry']["coordinates"][1]
+                    const lon = res['geometry']["coordinates"][0]
+                    const angle = res["compass_angle"]
+
+                    const computed_lat = res['computed_geometry']["coordinates"][1]
+                    const computed_lon = res['computed_geometry']["coordinates"][0]
+                    const computed_angle = res["computed_compass_angle"]
+
+                    showActiveNodeMarker(lat, lon, "#0022ff", false)
+                    showActiveNodeMarker(computed_lat, computed_lon, "#ee9209", false)
+
+
+                    drawRay(lat, lon, angle - 20, "#0022ff")
+                    drawRay(computed_lat, computed_lon, computed_angle - 20, "#ee9209")
+
+                    drawRay(lat, lon, angle + 20, "#0022ff")
+                    drawRay(computed_lat, computed_lon, computed_angle + 20, "#ee9209")
+                }
+            } else {
+                a.classList.add("broken-mapillary-link")
+            }
+        }
+    })
     elem.onclick = e => {
         e.stopImmediatePropagation()
     }
@@ -2611,7 +2666,7 @@ function showActiveNodeMarker(lat, lon, color, removeActiveObjects = true) {
  * @param {[]} nodesList
  * @param {string=} color
  * @param {boolean=} needFly
- * @param {string|number=null} infoElemID
+ * @param {string|number|null=} infoElemID
  * @param {boolean=true} removeActiveObjects
  * @param {number=} weight
  * @param {string=} dashArray
