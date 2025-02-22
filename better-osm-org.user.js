@@ -72,6 +72,7 @@
 // @comment      for satellite images
 // @connect      server.arcgisonline.com
 // @connect      clarity.maptiles.arcgis.com
+// @connect      wayback.maptiles.arcgis.com
 // @sandbox      JavaScript
 // @resource     OAUTH_HTML https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html
 // @resource     OSMCHA_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/osmcha.ico
@@ -157,13 +158,13 @@ GM_config.init(
                 //     'labelPos': 'right'
                 // },
                 'DarkModeForMap': {
-                    'label': 'Invert map colors in dark mode 🆕',
+                    'label': 'Invert map colors in dark mode',
                     'type': 'checkbox',
                     'default': false,
                     'labelPos': 'right'
                 },
                 'DarkModeForID': {
-                    'label': 'Dark mode for iD 🆕 (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Thanks AlexPS</a>)',
+                    'label': 'Dark mode for iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Thanks AlexPS</a>)',
                     'type': 'checkbox',
                     'default': false,
                     'labelPos': 'right'
@@ -1768,7 +1769,25 @@ const fetchBlobWithCache = (() => {
 })();
 
 async function bypassChromeCSPForImagesSrc(imgElem, url) {
-    const blob = (await fetchBlobWithCache(url)).response;
+    const res = await fetchBlobWithCache(url);
+    if (res.status !== 200) {
+        if (!GM_config.get("OverzoomForDataLayer")) {
+            return
+        }
+        if (getMap().getZoom() >= 18) {
+            const zoomStr = url.match(/(tile|org)\/([0-9]+)/)[2]
+            if (zoomStr) {
+                const tileZoom = parseInt(zoomStr)
+                console.log(tileZoom);
+                getMap().setZoom(Math.min(19, Math.min(getMap().getZoom(), tileZoom - 1)))
+            }
+        }
+        tileErrorHandler({currentTarget: imgElem}, url)
+        imgElem.src = "/dev/null";
+        return;
+    }
+
+    const blob = res.response;
 
     const satTile = await new Promise(resolve => {
         const reader = new FileReader();
@@ -1806,12 +1825,20 @@ function switchESRIbeta() {
 
 const isFirefox = navigator.userAgent.includes("Firefox");
 
-function tileErrorHandler(e) {
+function tileErrorHandler(e, url=null) {
     if (!GM_config.get("OverzoomForDataLayer")) {
         return
     }
     if (getMap().getZoom() >= 18) {
-        const zoomStr = e.currentTarget.src.match(/(tile|org)\/([0-9]+)/)[2]
+        if (e?.currentTarget?.src?.endsWith("/dev/null") && !url) {
+            return
+        }
+        let tileURL = e?.currentTarget?.src?.match(/(tile|org)\/([0-9]+)/)
+        if (!tileURL) {
+            tileURL = e.currentTarget.getAttribute("real-url").match(/(tile|org)\/([0-9]+)/)
+            console.log(e.currentTarget.getAttribute("real-url"));
+        }
+        const zoomStr = tileURL[2]
         if (zoomStr) {
             const tileZoom = parseInt(zoomStr)
             console.log(tileZoom);
@@ -1891,7 +1918,7 @@ function switchTiles() {
                     if (isFirefox) {
                         node.src = SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix;
                     } else {
-                        node.src = "";
+                        node.src = "/dev/null";
                     }
                     node.setAttribute("real-url", SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix);
                     if (!isFirefox) {
@@ -5258,35 +5285,36 @@ async function error509Handler(res) {
 }
 
 function addRegionForFirstChangeset(attempts = 5) {
-    if (rateLimitBan) {
-        return
-    }
-    if (getMap().getZoom() <= 10) {
-        getMap().attributionControl.setPrefix("")
-        if (attempts > 0) {
-            console.log(`Attempt №${7 - attempts} for geocoding`)
-            setTimeout(() => {
-                addRegionForFirstChangeset(attempts - 1)
-            }, 100)
-        } else {
-            console.log("Skip geocoding")
+    setTimeout(() => {
+        if (rateLimitBan) {
+            return
         }
-        return
-    }
-    const center = getMap().getCenter()
-    console.time(`Geocoding changeset ${center.lng},${center.lat}`)
-    fetch(`https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2&zoom=10`, {signal: abortDownloadingController.signal}).then((res) => {
-        res.json().then((r) => {
-            if (r?.address?.state) {
-                getMap().attributionControl.setPrefix(`${r.address.state}`)
-                console.timeEnd(`Geocoding changeset ${center.lng},${center.lat}`)
+        if (getMap().getZoom() <= 10) {
+            getMap().attributionControl.setPrefix("")
+            if (attempts > 0) {
+                console.log(`Attempt №${7 - attempts} for geocoding`)
+                setTimeout(() => {
+                    addRegionForFirstChangeset(attempts - 1)
+                }, 100)
+            } else {
+                console.log("Skip geocoding")
             }
+            return
+        }
+        const center = getMap().getCenter()
+        console.time(`Geocoding changeset ${center.lng},${center.lat}`)
+        fetch(`https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2&zoom=10`, {signal: abortDownloadingController.signal}).then((res) => {
+            res.json().then((r) => {
+                if (r?.address?.state) {
+                    getMap().attributionControl.setPrefix(`${r.address.state}`)
+                    console.timeEnd(`Geocoding changeset ${center.lng},${center.lat}`)
+                }
+            })
+        }).catch(e => {
+            console.debug("Nominatim fail")
+            console.debug(e)
         })
-    }).catch(e => {
-        console.debug("Nominatim fail")
-        console.debug(e)
     })
-
 }
 
 let iconsList = null
@@ -7609,16 +7637,16 @@ async function processQuickLookInSidebar(changesetID) {
         } else {
             console.error(e)
             console.log("%cSetup QuickLook finished with error ⚠️", 'background: #222; color: #bada55')
-            // if (![ABORT_ERROR_PREV, ABORT_ERROR_NEXT, ABORT_ERROR_USER_CHANGESETS].includes(e)) {
-            //     debugger
-            //     try {
-            //         getMap()?.attributionControl?.setPrefix("⚠️") // todo debug only
-            //     } catch (e) {
-            //     }
-            //     alert("⚠")
-            //     debugger
-            //     throw e
-            // }
+            if (isDebug() && ![ABORT_ERROR_PREV, ABORT_ERROR_NEXT, ABORT_ERROR_USER_CHANGESETS].includes(e)) {
+                debugger
+                try {
+                    getMap()?.attributionControl?.setPrefix("⚠️") // todo debug only
+                } catch (e) {
+                }
+                alert("⚠ read logs")
+                debugger
+                throw e
+            }
         }
     } finally {
         injectingStarted = false
@@ -9160,7 +9188,7 @@ function enableOverzoom() {
                 if (node.nodeName !== 'IMG') {
                     return;
                 }
-                unsafeWindow.L.DomEvent.off(node, "error")
+                getWindow().L.DomEvent.off(node, "error")
             });
         });
     });
