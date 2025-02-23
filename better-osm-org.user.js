@@ -77,6 +77,8 @@
 // @connect      server.arcgisonline.com
 // @connect      clarity.maptiles.arcgis.com
 // @connect      wayback.maptiles.arcgis.com
+// @comment      geocoder
+// @connect      photon.komoot.io
 // @sandbox      JavaScript
 // @resource     OAUTH_HTML https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html
 // @resource     OSMCHA_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/osmcha.ico
@@ -297,7 +299,14 @@ GM_config.init(
                 'RelationVersionViewer':
                     {
                         'label': 'Add relation version view via overpass',
-                        'type': 'checkbox',
+                        'type': 'hidden',
+                        'default': 'checked',
+                        'labelPos': 'right'
+                    },
+                'MakeVersionPageBetter':
+                    {
+                        'label': 'Make version page better',
+                        'type': 'hidden',
                         'default': 'checked',
                         'labelPos': 'right'
                     },
@@ -577,7 +586,7 @@ function makeHashtagsClickable() {
     if (!GM_config.get("ImagesAndLinksInTags")) return;
 
     const comment = document.querySelector(".browse-section p")
-    comment.childNodes.forEach(node => {
+    comment?.childNodes?.forEach(node => {
         if (node.nodeType !== Node.TEXT_NODE) return
         const span = document.createElement("span")
         span.textContent = node.textContent
@@ -605,7 +614,7 @@ function shortOsmOrgLinksInText(text) {
 
 function shortOsmOrgLinks(elem) {
     if (!GM_config.get("ImagesAndLinksInTags")) return;
-    elem.querySelectorAll('a[href^="https://www.openstreetmap.org"], a[href^="https://wiki.openstreetmap.org"], a[href^="https://community.openstreetmap.org"], a[href^="https://openstreetmap.org"]').forEach(i => {
+    elem?.querySelectorAll('a[href^="https://www.openstreetmap.org"], a[href^="https://wiki.openstreetmap.org"], a[href^="https://community.openstreetmap.org"], a[href^="https://openstreetmap.org"]')?.forEach(i => {
         i.textContent = shortOsmOrgLinksInText(i.textContent)
     })
 }
@@ -1178,28 +1187,6 @@ function setupCompactChangesetsHistory() {
         textContent: compactSidebarStyleText,
     });
 
-    if (location.pathname.match(/\d+\/history\/\d+$/) && !document.querySelector(".find-user-btn")) {
-        try {
-            const ver = document.querySelector(".browse-section.browse-node, .browse-section.browse-way, .browse-section.browse-relation")
-            const metainfoHTML = ver?.querySelector('ul > li:nth-child(1)');
-            if (metainfoHTML && !Array.from(metainfoHTML.children).some(e => e.localName === "a" && e.href.includes("/user/"))) {
-                const time = Array.from(metainfoHTML.children).find(i => i.localName === "time")
-                const changesetID = ver.querySelector('ul a[href^="/changeset"]').textContent;
-
-                metainfoHTML.lastChild.remove()
-                const findBtn = document.createElement("span")
-                findBtn.classList.add("find-user-btn")
-                findBtn.title = "Try find deleted user"
-                findBtn.textContent = " 🔍 "
-                findBtn.value = changesetID
-                findBtn.datetime = time.dateTime
-                findBtn.style.cursor = "pointer"
-                findBtn.onclick = findChangesetInDiff
-                metainfoHTML.appendChild(findBtn)
-            }
-        } catch {
-        }
-    }
     // увы, инвалидация в этом месте ломает зум при загрузке объекте самим сайтом
     // try {
     // getMap()?.invalidateSize()
@@ -2245,6 +2232,7 @@ async function findChangesetInDiff(e) {
     let userInfo = document.createElement("span")
     userInfo.style.cursor = "pointer"
     userInfo.style.background = "#fff181"
+    userInfo.title = "Click for copy username"
     if (isDarkMode()) {
         userInfo.style.color = "black"
     }
@@ -2264,6 +2252,7 @@ async function findChangesetInDiff(e) {
     let uid = document.createElement("span")
     uid.style.background = "#9cff81"
     uid.style.cursor = "pointer"
+    uid.title = "Click for copy user ID"
     if (isDarkMode()) {
         uid.style.color = "black"
     }
@@ -2356,8 +2345,10 @@ function makePanoramaxValue(elem) {
 
                     showActiveNodeMarker(lat, lon, "#0022ff", true)
 
-                    drawRay(lat, lon, angle - 30, "#0022ff")
-                    drawRay(lat, lon, angle + 30, "#0022ff")
+                    if (angle) {
+                        drawRay(lat, lon, angle - 30, "#0022ff")
+                        drawRay(lat, lon, angle + 30, "#0022ff")
+                    }
                 }
             }
         })
@@ -2507,6 +2498,21 @@ function makeLinksInTagsClickable() {
             }
         } else if (key === "wikimedia_commons") {
             makeWikimediaCommonsValue(i.querySelector("td"));
+        } else if (key === "direction") {
+            const coords = i.parentElement.parentElement.parentElement.parentElement.querySelector("span.latitude")
+            if (coords) {
+                const lat = coords.textContent.replace(",", ".")
+                const lon = coords.nextElementSibling.textContent.replace(",", ".")
+                const match = location.pathname.match(/(node|way|relation)\/(\d+)\/history\/(\d+)\/?$/)
+                if (match || document.querySelector(".browse-tag-list") === i.parentElement.parentElement) {
+                    cleanObjectsByKey("activeObjects")
+                    renderDirectionTag(parseFloat(lat), parseFloat(lon), i.querySelector("td").textContent, "#ff00e3")
+                }
+                i.onmouseenter = () => {
+                    cleanObjectsByKey("activeObjects")
+                    renderDirectionTag(parseFloat(lat), parseFloat(lon), i.querySelector("td").textContent, "#ff00e3")
+                }
+            }
         }
     })
     const tagsTable = document.querySelector(".browse-tag-list")
@@ -3011,9 +3017,11 @@ function renderDirectionTag(lat, lon, values, color="#ff00e3") {
         "NNW": 337.0,
     }
     values.split(";").forEach(angleStr => {
-        const angle = cardinalToAngle[angleStr] ? cardinalToAngle[angleStr] : parseFloat(angleStr)
-        drawRay(lat, lon, angle - 30, color)
-        drawRay(lat, lon, angle + 30, color)
+        const angle = cardinalToAngle[angleStr] !== undefined ? cardinalToAngle[angleStr] : parseFloat(angleStr)
+        if (!isNaN(angle)) {
+            drawRay(lat, lon, angle - 30, color)
+            drawRay(lat, lon, angle + 30, color)
+        }
     })
 }
 
@@ -3032,6 +3040,9 @@ function setupNodeVersionView() {
                 if (!key) return
                 if (key === "direction") {
                     renderDirectionTag(parseFloat(lat), parseFloat(lon), row.querySelector("td").textContent, "#ff00e3")
+                    row.onmouseenter = () => {
+                        renderDirectionTag(parseFloat(lat), parseFloat(lon), row.querySelector("td").textContent, "#ff00e3")
+                    }
                 }
             })
         }
@@ -5037,6 +5048,10 @@ function setupVersionsDiff(path) {
 }
 
 function addRelationVersionView() {
+    const match = location.pathname.match(/relation\/(\d+)\/history\/(\d+)\/?$/)
+    if (!match) {
+        return
+    }
     if (document.querySelector("#load-relation-version")) return
     const btn = document.createElement("a")
     btn.textContent = "📥"
@@ -5080,6 +5095,62 @@ function setupRelationVersionViewer() {
         console.debug('stop adding RelationVersionView');
     }, 25000);
     addRelationVersionView();
+}
+
+function makeVersionPageBetter() {
+    const match = location.pathname.match(/(node|way|relation)\/(\d+)(\/history\/(\d+)\/?$|\/?$)/)
+    if (!match) {
+        return
+    }
+    if (!styleForSidebarApplied) {
+        styleForSidebarApplied = true
+        GM_addElement(document.head, "style", {
+            textContent: compactSidebarStyleText,
+        });
+    }
+
+    if (!document.querySelector(".find-user-btn")) {
+        try {
+            const ver = document.querySelector(".browse-section.browse-node, .browse-section.browse-way, .browse-section.browse-relation")
+            const metainfoHTML = ver?.querySelector('ul > li:nth-child(1)');
+            if (metainfoHTML && !Array.from(metainfoHTML.children).some(e => e.localName === "a" && e.href.includes("/user/"))) {
+                const time = Array.from(metainfoHTML.children).find(i => i.localName === "time")
+                const changesetID = ver.querySelector('ul a[href^="/changeset"]').textContent;
+
+                metainfoHTML.lastChild.remove()
+                const findBtn = document.createElement("span")
+                findBtn.classList.add("find-user-btn")
+                findBtn.title = "Try find deleted user"
+                findBtn.textContent = " 🔍 "
+                findBtn.value = changesetID
+                findBtn.datetime = time.dateTime
+                findBtn.style.cursor = "pointer"
+                findBtn.onclick = findChangesetInDiff
+                metainfoHTML.appendChild(findBtn)
+            }
+        } catch {
+        }
+    }
+
+    addHistoryLink()
+    makeLinksInTagsClickable()
+    makeHashtagsClickable();
+    makeTimesSwitchable()
+    shortOsmOrgLinks(document.querySelector(".browse-section p"));
+    addCommentsCount();
+}
+
+function setupMakeVersionPageBetter() {
+    const match = location.pathname.match(/(node|way|relation)\/(\d+)(\/history\/(\d+)\/?$|\/?$)/)
+    if (!match) {
+        return
+    }
+    let timerId = setInterval(makeVersionPageBetter, 500);
+    setTimeout(() => {
+        clearInterval(timerId);
+        console.debug('stop adding MakeVersionPageBetter');
+    }, 2000);
+    makeVersionPageBetter();
 }
 
 // Модули должны стать классами
@@ -8977,6 +9048,7 @@ function isDebug() {
 function debug_alert() {
     if (!isDebug()) return
     alert(arguments)
+    // eslint-disable-next-line
     debugger
 }
 
@@ -10107,6 +10179,7 @@ const modules = [
     setupNewEditorsLinks,
     setupNavigationViaHotkeys,
     setupRelationVersionViewer,
+    setupMakeVersionPageBetter,
     setupClickableAvatar,
     setupOverzoomForDataLayer,
     setupDragAndDropViewers
@@ -10498,7 +10571,7 @@ ${GM_getResourceText("DARK_THEME_FOR_ID_CSS")}
     new MutationObserver(function fn() {
         const path = location.pathname;
         if (path + location.search === lastPath) return;
-        if (lastPath.includes("/changeset/") && (!path.includes("/changeset/") || lastPath !== path)) {
+        if (lastPath.includes("/changeset/") && (!path.includes("/changeset/") || lastPath !== path) || lastPath.includes("/history")) {
             try {
                 abortDownloadingController.abort() // todo вообще-то опасненько, нет гарантии что ещё не начились новые запросы
                 cleanAllObjects()
