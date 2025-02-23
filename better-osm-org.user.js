@@ -45,6 +45,7 @@
 // @require      https://github.com/deevroman/GM_config/raw/fixed-for-chromium/gm_config.js#sha256=ea04cb4254619543f8bca102756beee3e45e861077a75a5e74d72a5c131c580b
 // @require      https://raw.githubusercontent.com/deevroman/osmtags-editor/main/osm-auth.iife.min.js#sha256=dcd67312a2714b7a13afbcc87d2f81ee46af7c3871011427ddba1e56900b4edd
 // @require      https://raw.githubusercontent.com/deevroman/exif-js/53b0c7c1951a23d255e37ed0a883462218a71b6f/exif.js#sha256=2235967d47deadccd9976244743e3a9be5ca5e41803cda65a40b8686ec713b74
+// @require      https://raw.githubusercontent.com/deevroman/osmtogeojson/c97381a0c86c0a021641dd47d7bea01fb5514716/osmtogeojson.js#sha256=663bb5bbae47d5d12bff9cf1c87b8f973e85fab4b1f83453810aae99add54592
 // @incompatible safari https://github.com/deevroman/better-osm-org/issues/13
 // @grant        GM_registerMenuCommand
 // @grant        GM_getValue
@@ -106,8 +107,8 @@
 /*global unsafeWindow*/
 /*global exportFunction*/
 /*global cloneInto*/
-
 /*global EXIF*/
+/*global osmtogeojson*/
 
 const accountForceLightTheme = document.querySelector("html")?.getAttribute("data-bs-theme") === "light";
 const accountForceDarkTheme = document.querySelector("html")?.getAttribute("data-bs-theme") === "dark";
@@ -1796,7 +1797,7 @@ function switchESRIbeta() {
 
 const isFirefox = navigator.userAgent.includes("Firefox");
 
-function tileErrorHandler(e, url=null) {
+function tileErrorHandler(e, url = null) {
     if (!GM_config.get("OverzoomForDataLayer")) {
         return
     }
@@ -2274,6 +2275,80 @@ function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
     ;
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
+}
+
+function yetAnotherWizard(s) {
+    // const [k, v] = s.split("=")
+    if (s[0] === "[") {
+        return `nwr${s};`
+    } else if (s.match(/^(node|way|rel|nwr|nw|nr|wr)/)) {
+        return `${s}` + (s.slice(-1) === ";" ? "" : ";")
+    } else {
+        return `nwr[${s}];`
+    }
+}
+
+let searchResultBBOX = null;
+
+async function processOverpassQuery(query) {
+    if (!query.length) return
+    lastOverpassQuery = query
+    const bound = getMap().getBounds().wrap()
+    const bboxString = [bound.getSouth(), bound.getWest(), bound.getNorth(), bound.getEast()]
+    const bboxExpr = query[query.length - 1] !== "!" ? "[bbox:" + bboxString + "]" : ""
+    if (query[query.length - 1] === "!") {
+        query = query.slice(0, -1)
+    }
+    const prevTitle = document.title
+    const newTitle = "◴" + prevTitle
+    document.title = newTitle
+
+    try {
+        const overpassQuery = `[out:xml]${bboxExpr};
+${yetAnotherWizard(query)}
+//(._;>;);
+out geom;
+`
+        console.log(overpassQuery);
+        const res = await GM.xmlHttpRequest({
+            url: "https://overpass-api.de/api/interpreter?" + new URLSearchParams({
+                data: overpassQuery
+            }),
+            responseType: "xml"
+        })
+        const xml = (res).responseXML;
+        getMap()?.invalidateSize()
+        const bbox = searchResultBBOX = combineBBOXes(Array.from(xml.querySelectorAll("bounds")).map(i => {
+            return {
+                min_lat: i.getAttribute("minlat"),
+                min_lon: i.getAttribute("minlon"),
+                max_lat: i.getAttribute("maxlat"),
+                max_lon: i.getAttribute("maxlon")
+            }
+        }))
+        Array.from(xml.querySelectorAll("node")).forEach(n => {
+            const lat = parseFloat(n.getAttribute("lat"))
+            const lon = parseFloat(n.getAttribute("lon"))
+
+            bbox.min_lat = min(bbox.min_lat, lat);
+            bbox.min_lon = min(bbox.min_lon, lon);
+            bbox.max_lat = max(bbox.max_lat, lat);
+            bbox.max_lon = max(bbox.max_lon, lon);
+        })
+        console.log(bbox)
+        if (bbox.min_lon === 10000000) {
+            alert("invalid query")
+        } else {
+            fitBounds([[bbox.min_lat, bbox.min_lon], [bbox.max_lat, bbox.max_lon]])
+            cleanAllObjects()
+            getWindow().jsonLayer?.remove()
+            renderGeoJSONwrapper(osmtogeojson(xml), true)
+        }
+    } finally {
+        if (document.title === newTitle) {
+            document.title = prevTitle
+        }
+    }
 }
 
 function blurSearchField() {
@@ -2973,7 +3048,7 @@ async function getChangeset(id) {
  * @param {string} values
  * @param {string} color
  */
-function renderDirectionTag(lat, lon, values, color="#ff00e3") {
+function renderDirectionTag(lat, lon, values, color = "#ff00e3") {
     const cardinalToAngle = {
         "N": 0.0,
         "north": 0.0,
@@ -4542,15 +4617,19 @@ function extractChangesetID(s) {
 
 function addCommentsCount() {
     setTimeout(async () => {
+        const links = document.querySelectorAll(`#sidebar_content .browse-section li a[href^="/changeset"]:not(.comments-loaded):not(.comments-link)`)
         await loadChangesetMetadatas(
-            Array.from(document.querySelectorAll(`#sidebar_content .browse-section li a[href^="/changeset"]`))
-                .map(i => parseInt(extractChangesetID(i.getAttribute("href"))))
+            Array.from(links).map(i => {
+                i.classList.add("comments-loaded")
+                return parseInt(extractChangesetID(i.getAttribute("href")))
+            })
         )
-        document.querySelectorAll(`#sidebar_content .browse-section li a[href^="/changeset"]`).forEach(i => {
+        links.forEach(i => {
             const changesetID = extractChangesetID(i.getAttribute("href"))
             const comments_count = changesetMetadatas[changesetID].comments_count
             if (comments_count) {
                 const a = document.createElement("a")
+                a.classList.add("comments-link")
                 a.textContent = `${comments_count} 💬`
                 a.href = i.getAttribute("href")
                 a.tabIndex = 0
@@ -9550,6 +9629,24 @@ function goToNextChangesetObject(e) {
     console.log("KeyL not found next elem")
 }
 
+const min = Math.min;
+const max = Math.max;
+
+function combineBBOXes(bboxes) {
+    const bbox = {
+        min_lat: 10000000, min_lon: 10000000, max_lat: -10000000, max_lon: -100000000,
+    }
+    for (const i of bboxes) {
+        if (i?.min_lat) {
+            bbox.min_lat = min(bbox.min_lat, i.min_lat);
+            bbox.min_lon = min(bbox.min_lon, i.min_lon);
+            bbox.max_lat = max(bbox.max_lat, i.max_lat);
+            bbox.max_lon = max(bbox.max_lon, i.max_lon);
+        }
+    }
+    return bbox;
+}
+
 async function zoomToChangesets() {
     const params = new URLSearchParams(location.search)
     let changesetIDs = params.get("changesets")?.split(",")
@@ -9557,25 +9654,15 @@ async function zoomToChangesets() {
         return;
     }
 
-    const min = Math.min;
-    const max = Math.max;
     for (const i of changesetIDs) {
         await loadChangesetMetadata(parseInt(i));
     }
     getMap()?.invalidateSize()
-    const bbox = {
-        min_lat: 10000000, min_lon: 10000000, max_lat: -10000000, max_lon: -100000000,
-    }
-    for (const i of changesetIDs) {
-        if (changesetMetadatas[i]?.min_lat) {
-            bbox.min_lat = min(bbox.min_lat, changesetMetadatas[i].min_lat);
-            bbox.min_lon = min(bbox.min_lon, changesetMetadatas[i].min_lon);
-            bbox.max_lat = max(bbox.max_lat, changesetMetadatas[i].max_lat);
-            bbox.max_lon = max(bbox.max_lon, changesetMetadatas[i].max_lon);
-        }
-    }
+    const bbox = combineBBOXes(changesetIDs.map(i => changesetMetadatas[i]))
     fitBounds([[bbox.min_lat, bbox.min_lon], [bbox.max_lat, bbox.max_lon]])
 }
+
+let lastOverpassQuery = ""
 
 function setupNavigationViaHotkeys() {
     if (["/edit", "/id"].includes(location.pathname)) return
@@ -9654,7 +9741,7 @@ function setupNavigationViaHotkeys() {
                     document.querySelectorAll("#edit_tab .dropdown-menu .editlink")[0]?.click()
                 }
             } else if (e.altKey && isDebug()) {
-                document.querySelectorAll("table.quick-look").forEach(i => {
+                document.querySelectorAll("table.quick-look, table.geojson-props-table").forEach(i => {
                     i.setAttribute("contenteditable", "true")
                 })
             } else {
@@ -9848,6 +9935,11 @@ function setupNavigationViaHotkeys() {
                         [trackMetadata.max_lat, trackMetadata.max_lon]
                     ])
                 }
+            } else if (searchResultBBOX) {
+                fitBounds([
+                    [searchResultBBOX.min_lat, searchResultBBOX.min_lon],
+                    [searchResultBBOX.max_lat, searchResultBBOX.max_lon]
+                ])
             }
         } else if (e.key === "8") {
             if (mapPositionsHistory.length > 1) {
@@ -9942,6 +10034,11 @@ function setupNavigationViaHotkeys() {
                     }
                 })
             }
+            if (layersHidden && getWindow()?.jsonLayer) {
+                injectJSIntoPage(`jsonLayer.eachLayer(i => i.getElement().style.visibility = "")`)
+            } else {
+                injectJSIntoPage(`jsonLayer.eachLayer(i => i.getElement().style.visibility = "hidden")`)
+            }
             layersHidden = !layersHidden;
         } else if (e.code === "KeyF" && !e.altKey && !e.metaKey && !e.ctrlKey) {
             document.querySelector("#changesets-filter-btn")?.click()
@@ -9979,6 +10076,12 @@ function setupNavigationViaHotkeys() {
                         showActiveWay(nodesList, "#0022ff", false, null, true, 2)
                     })
                 }
+            }
+        } else if (e.code === "Slash" && e.shiftKey) {
+            getMap().getBounds()
+            const query = prompt("type overpass selector. End with ! for global", lastOverpassQuery)
+            if (query) {
+                processOverpassQuery(query)
             }
         } else {
             // console.log(e.key, e.code)
@@ -10338,6 +10441,69 @@ function displayGPXTrack(xml) {
     console.timeEnd("start gpx track render")
 }
 
+
+function renderGeoJSONwrapper(geojson, osmLayer = false) {
+    injectJSIntoPage(`
+    var jsonLayer = null;
+
+    function renderGeoJSON(data) {
+        function onEachFeature(feature, layer) {
+            if (feature.properties) {
+                const table = document.createElement("table")
+                table.style.overflow = "scroll"
+                table.classList.add("geojson-props-table")
+                table.classList.add("zebra_colors")
+                const tbody = document.createElement("tbody")
+                table.appendChild(tbody)
+                Object.entries(feature.properties).forEach(([key, value]) => {
+                    if (Array.isArray(value) && value.length === 0) {
+                        value = "[]"
+                    } else if (typeof value === 'object' && Object.entries(value).length === 0) {
+                        value = "{}"
+                    }
+                    const th = document.createElement("th")
+                    th.textContent = key
+                    const td = document.createElement("td")
+                    if (key === "id" && (value.startsWith("node/") || value.startsWith("way/") || value.startsWith("relation/"))) {
+                        const a = document.createElement("a")
+                        a.textContent = value
+                        a.href = "/" + value
+                        td.appendChild(a)
+                    } else {
+                        td.textContent = value
+                    }
+
+                    const tr = document.createElement("tr")
+                    tr.appendChild(th)
+                    tr.appendChild(td)
+                    tbody.appendChild(tr)
+                })
+                layer.on("click", e => {
+                    if (e.originalEvent.altKey) {
+                        layer.remove()
+                        e.originalEvent.stopPropagation()
+                        e.originalEvent.stopImmediatePropagation()
+                    }
+                })
+                layer.bindPopup(table.outerHTML)
+            }
+        }
+
+        const options = ${osmLayer} ? {
+            onEachFeature: onEachFeature,
+            pointToLayer: function (feature, latlng) {
+                return L.circleMarker(latlng);
+            }
+        } : {
+            onEachFeature: onEachFeature
+        }
+        jsonLayer = L.geoJSON(data, options);
+        jsonLayer.addTo(map);
+    }
+    `)
+    getWindow().renderGeoJSON(intoPage(geojson))
+}
+
 async function setupDragAndDropViewers() {
     // GM_addElement(document.head, "link", {
     //     href: "https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css",
@@ -10431,43 +10597,13 @@ async function setupDragAndDropViewers() {
                         marker.addTo(getMap());
                     } else if (file.type === "application/json" || file.type === "application/geo+json") {
                         const geojson = JSON.parse(await file.text())
-
-                        injectJSIntoPage(`
-                        function renderGeoJSON(data) {
-                            L.geoJSON(data, {
-                                onEachFeature: function (feature, layer) {
-                                    if (feature.properties) {
-                                        const table = document.createElement("table")
-                                        table.style.overflow = "scroll"
-                                        table.classList.add("geojson-props-table")
-                                        table.classList.add("zebra_colors")
-                                        const tbody = document.createElement("tbody")
-                                        table.appendChild(tbody)
-                                        Object.entries(feature.properties).forEach(([key, value]) => {
-                                            if (Array.isArray(value) && value.length === 0) {
-                                                value = "[]"
-                                            } else if (typeof value === 'object' && Object.entries(value).length === 0) {
-                                                value = "{}"
-                                            }
-                                            const th = document.createElement("th")
-                                            th.textContent = key
-                                            const td = document.createElement("td")
-                                            td.textContent = value
-
-                                            const tr = document.createElement("tr")
-                                            tr.appendChild(th)
-                                            tr.appendChild(td)
-                                            tbody.appendChild(tr)
-                                        })
-                                        layer.bindPopup(table.outerHTML)
-                                    }
-                                }
-                            }).addTo(map);
-                        }
-                        `)
-                        getWindow().renderGeoJSON(intoPage(geojson))
+                        renderGeoJSONwrapper(geojson)
                     } else if (file.type === "application/gpx+xml") {
                         displayGPXTrack(await file.text())
+                    } else if (file.type === "application/vnd.openstreetmap.data+xml") {
+                        const diffParser = new DOMParser();
+                        const doc = diffParser.parseFromString(await file.text(), "application/xml");
+                        renderGeoJSONwrapper(osmtogeojson(doc), true)
                     }
                 }
             });
