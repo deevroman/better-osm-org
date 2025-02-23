@@ -157,12 +157,6 @@ GM_config.init(
         'title': ' ',
         'fields':
             {
-                // 'OffMapDim': {
-                //     'label': 'Off map dim (⚠️: now it\'s <a href="https://www.openstreetmap.org/preferences" target="_blank">built</a> into osm.org!)',
-                //     'type': 'checkbox',
-                //     'default': false,
-                //     'labelPos': 'right'
-                // },
                 'DarkModeForMap': {
                     'label': 'Invert map colors in dark mode',
                     'type': 'checkbox',
@@ -293,20 +287,6 @@ GM_config.init(
                     {
                         'label': 'Add new editors (Rapid, ... ?)',
                         'type': 'checkbox',
-                        'default': 'checked',
-                        'labelPos': 'right'
-                    },
-                'RelationVersionViewer':
-                    {
-                        'label': 'Add relation version view via overpass',
-                        'type': 'hidden',
-                        'default': 'checked',
-                        'labelPos': 'right'
-                    },
-                'MakeVersionPageBetter':
-                    {
-                        'label': 'Make version page better',
-                        'type': 'hidden',
                         'default': 'checked',
                         'labelPos': 'right'
                     },
@@ -8061,6 +8041,7 @@ function setupNewEditorsLinks() {
 
 let unDimmed = false;
 
+// legacy
 function setupOffMapDim() {
     if (!GM_config.get("OffMapDim") || GM_config.get("DarkModeForMap") || unDimmed) {
         return;
@@ -10164,7 +10145,6 @@ function setupOverzoomForDataLayer() {
 }
 
 const modules = [
-    // setupOffMapDim,
     setupDarkModeForMap,
     setupHDYCInProfile,
     setupCompactChangesetsHistory,
@@ -10178,12 +10158,15 @@ const modules = [
     setupChangesetQuickLook,
     setupNewEditorsLinks,
     setupNavigationViaHotkeys,
-    setupRelationVersionViewer,
-    setupMakeVersionPageBetter,
     setupClickableAvatar,
     setupOverzoomForDataLayer,
     setupDragAndDropViewers
 ];
+
+const alwaysEnabledModules = [
+    setupRelationVersionViewer,
+    setupMakeVersionPageBetter
+]
 
 const fetchJSONWithCache = (() => {
     const cache = new Map();
@@ -10583,6 +10566,9 @@ ${GM_getResourceText("DARK_THEME_FOR_ID_CSS")}
         }
         lastPath = path + location.search;
         for (const module of modules.filter(module => GM_config.get(module.name.slice('setup'.length)))) {
+            setTimeout(module, 0, path);
+        }
+        for (const module of alwaysEnabledModules) {
             setTimeout(module, 0, path);
         }
         return fn
