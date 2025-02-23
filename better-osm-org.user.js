@@ -1,7 +1,11 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.8.2
+// @version         0.8.9
+// @changelog       v0.8.9: Satellite layer in Chrome
+// @changelog       v0.8.9: Support Mapillary images in tags
+// @changelog       v0.8.9: KeyJ — open in JOSM current state of objects from changeset
+// @changelog       v0.8.9: Ctrl + click by <time> for open  state of themap as of the selected date
 // @changelog       v0.8: https://osm.org/user/TrickyFoxy/diary/406061
 // @changelog       v0.8: Images from Panoramax, StreetComplete, Wikipedia Commons in changeset and notes
 // @changelog       v0.8: GPX-tracks render (also in StreetComplete notes)
@@ -322,7 +326,7 @@ GM_config.init(
                     'labelPos': 'right'
                 },
                 'OverzoomForDataLayer': {
-                    'label': 'Allow overzoom when data layer enabled β',
+                    'label': 'Allow overzoom when data/satellite layer enabled β',
                     'type': 'checkbox',
                     'default': false,
                     'labelPos': 'right'
@@ -2976,6 +2980,43 @@ async function getChangeset(id) {
     }
 }
 
+/**
+ *
+ * @param {float} lat
+ * @param {float} lon
+ * @param {string} values
+ * @param {string} color
+ */
+function renderDirectionTag(lat, lon, values, color="#ff00e3") {
+    const cardinalToAngle = {
+        "N": 0.0,
+        "north": 0.0,
+        "NNE": 22.0,
+        "NE": 45.0,
+        "ENE": 67.0,
+        "E": 90.0,
+        "east": 90.0,
+        "ESE": 112.0,
+        "SE": 135.0,
+        "SSE": 157.0,
+        "S": 180.0,
+        "south": 180.0,
+        "SSW": 202.0,
+        "SW": 225.0,
+        "WSW": 247.0,
+        "W": 270.0,
+        "west": 270.0,
+        "WNW": 292.0,
+        "NW": 315.0,
+        "NNW": 337.0,
+    }
+    values.split(";").forEach(angleStr => {
+        const angle = cardinalToAngle[angleStr] ? cardinalToAngle[angleStr] : parseFloat(angleStr)
+        drawRay(lat, lon, angle - 30, color)
+        drawRay(lat, lon, angle + 30, color)
+    })
+}
+
 function setupNodeVersionView() {
     const match = location.pathname.match(/\/node\/(\d+)\//);
     if (match === null) return;
@@ -2986,6 +3027,13 @@ function setupNodeVersionView() {
         nodeHistoryPath.push([lat, lon])
         i.parentElement.parentElement.onmouseenter = () => {
             showActiveNodeMarker(lat, lon, "#ff00e3");
+            i.parentElement.parentElement.parentElement.parentElement.querySelectorAll(".browse-tag-list tr").forEach(row => {
+                const key = row.querySelector("th")?.textContent?.toLowerCase()
+                if (!key) return
+                if (key === "direction") {
+                    renderDirectionTag(parseFloat(lat), parseFloat(lon), row.querySelector("td").textContent, "#ff00e3")
+                }
+            })
         }
         i.parentElement.parentElement.parentElement.parentElement.onclick = (e) => {
             if (e.altKey) return;
@@ -6323,9 +6371,15 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             if (targetVersion.visible === false) {
                 if (prevVersion.visible !== false) {
                     showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff")
+                    if (prevVersion.tags && prevVersion.tags['direction']) {
+                        renderDirectionTag(prevVersion.lat, prevVersion.lon, prevVersion.tags['direction'], "#0022ff")
+                    }
                 }
             } else {
                 showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3")
+                if (targetVersion.tags && targetVersion.tags['direction']) {
+                    renderDirectionTag(targetVersion.lat, targetVersion.lon, targetVersion.tags['direction'], "#ff00e3")
+                }
             }
             resetMapHover()
         }
@@ -6356,9 +6410,18 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 ], 30)
                 showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", true)
                 showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3", false)
+                if (prevVersion.tags && prevVersion.tags['direction']) {
+                    renderDirectionTag(prevVersion.lat, prevVersion.lon, prevVersion.tags['direction'], "#0022ff")
+                }
+                if (targetVersion.tags && targetVersion.tags['direction']) {
+                    renderDirectionTag(targetVersion.lat, targetVersion.lon, targetVersion.tags['direction'], "#ff00e3")
+                }
             } else if (targetVersion.visible === false) {
                 panTo(prevVersion.lat.toString(), prevVersion.lon.toString(), 18, false)
                 showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", true)
+                if (prevVersion.tags && prevVersion.tags['direction']) {
+                    renderDirectionTag(prevVersion.lat, prevVersion.lon, prevVersion.tags['direction'], "#0022ff")
+                }
             } else {
                 if (!repeatedEvent && trustedEvent) { // todo
                     panTo(targetVersion.lat.toString(), targetVersion.lon.toString(), 18, false)
@@ -6394,6 +6457,9 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                     panTo(targetVersion.lat.toString(), targetVersion.lon.toString(), 18, false)
                 }
                 showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3", true)
+                if (targetVersion.tags && targetVersion.tags['direction']) {
+                    renderDirectionTag(targetVersion.lat, targetVersion.lon, targetVersion.tags['direction'], "#ff00e3")
+                }
             }
         }
         if (!location.pathname.includes("changeset")) {
@@ -7577,7 +7643,10 @@ async function processQuickLookInSidebar(changesetID) {
                                 popup.appendChild(tagsTable)
                                 // todo показать по ховеру прошлую версию?
 
-                                displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(55,55,55,0.5)", 4, "n" + nodeID, "customObjects", null, popup.outerHTML, darkModeForMap && isDarkMode())
+                                const line = displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(55,55,55,0.5)", 4, "n" + nodeID, "customObjects", null, popup.outerHTML, darkModeForMap && isDarkMode())
+                                if (layersHidden) {
+                                    line.getElement().style.visibility = "hidden"
+                                }
 
                                 // ховер в списке объектов, который показывает родительнскую линию
                                 way.nodes.forEach(n => {
@@ -9531,7 +9600,7 @@ function setupNavigationViaHotkeys() {
                 } else {
                     document.querySelectorAll("#edit_tab .dropdown-menu .editlink")[0]?.click()
                 }
-            } else if (e.altKey) {
+            } else if (e.altKey && isDebug()) {
                 document.querySelectorAll("table.quick-look").forEach(i => {
                     i.setAttribute("contenteditable", "true")
                 })
@@ -9824,7 +9893,7 @@ function setupNavigationViaHotkeys() {
         } else if (e.code === "KeyF" && !e.altKey && !e.metaKey && !e.ctrlKey) {
             document.querySelector("#changesets-filter-btn")?.click()
             document.querySelector("#mass-action-btn")?.click()
-        } else if (e.code === "KeyP" && !e.altKey && !e.metaKey && !e.ctrlKey) {
+        } else if (isDebug() && e.code === "KeyP" && !e.altKey && !e.metaKey && !e.ctrlKey) {
             if (location.pathname.includes("/changeset")) {
                 const params = new URLSearchParams(location.search)
                 let changesetIDs = params.get("changesets")?.split(",") ?? [parseInt(location.pathname.match(/changeset\/(\d+)/)[1])]
