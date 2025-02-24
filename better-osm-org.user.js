@@ -2579,7 +2579,8 @@ function makeLinksInTagsClickable() {
                     renderDirectionTag(parseFloat(lat), parseFloat(lon), row.querySelector("td").textContent, "#ff00e3")
                 }
             }
-        } else if (key.startsWith("opening_hours")) {
+        } else if (key.startsWith("opening_hours") // https://github.com/opening-hours/opening_hours.js/blob/master/scripts/related_tags.txt
+            || ["happy_hours", "delivery_hours", "smoking_hours", "collection_times", "service_times"].includes(key)) {
             try {
                 new opening_hours(row.querySelector("td").textContent, null, {tag_key: key});
             } catch (e) {
