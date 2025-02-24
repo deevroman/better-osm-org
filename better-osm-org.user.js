@@ -46,6 +46,7 @@
 // @require      https://raw.githubusercontent.com/deevroman/osmtags-editor/main/osm-auth.iife.min.js#sha256=dcd67312a2714b7a13afbcc87d2f81ee46af7c3871011427ddba1e56900b4edd
 // @require      https://raw.githubusercontent.com/deevroman/exif-js/53b0c7c1951a23d255e37ed0a883462218a71b6f/exif.js#sha256=2235967d47deadccd9976244743e3a9be5ca5e41803cda65a40b8686ec713b74
 // @require      https://raw.githubusercontent.com/deevroman/osmtogeojson/c97381a0c86c0a021641dd47d7bea01fb5514716/osmtogeojson.js#sha256=663bb5bbae47d5d12bff9cf1c87b8f973e85fab4b1f83453810aae99add54592
+// @require      https://openingh.openstreetmap.de/opening_hours.js/opening_hours+deps.min.js#sha256=e9a3213aba77dcf79ff1da9f828532acf1ebf7107ed1ce5f9370b922e023baff
 // @incompatible safari https://github.com/deevroman/better-osm-org/issues/13
 // @grant        GM_registerMenuCommand
 // @grant        GM_getValue
@@ -109,6 +110,7 @@
 /*global cloneInto*/
 /*global EXIF*/
 /*global osmtogeojson*/
+/*global opening_hours*/
 
 const accountForceLightTheme = document.querySelector("html")?.getAttribute("data-bs-theme") === "light";
 const accountForceDarkTheme = document.querySelector("html")?.getAttribute("data-bs-theme") === "dark";
@@ -2526,22 +2528,22 @@ function makeWikimediaCommonsValue(elem) {
 
 // example https://osm.org/node/6506618057
 function makeLinksInTagsClickable() {
-    document.querySelectorAll(".browse-tag-list tr").forEach(i => {
-        const key = i.querySelector("th")?.textContent?.toLowerCase()
+    document.querySelectorAll(".browse-tag-list tr").forEach(row => {
+        const key = row.querySelector("th")?.textContent?.toLowerCase()
         if (!key) return
         if (key === "fixme") {
-            i.querySelector("td").classList.add("fixme-tag")
+            row.querySelector("td").classList.add("fixme-tag")
         } else if (key === "note") {
-            i.querySelector("td").classList.add("note-tag")
+            row.querySelector("td").classList.add("note-tag")
         } else if (key.startsWith("panoramax")) {
-            if (!i.querySelector("td a")) {
-                makePanoramaxValue(i.querySelector("td"))
+            if (!row.querySelector("td a")) {
+                makePanoramaxValue(row.querySelector("td"))
             }
         } else if (key.startsWith("mapillary")) {
-            if (!i.querySelector("td a")) {
-                makeMapillaryValue(i.querySelector("td"))
+            if (!row.querySelector("td a")) {
+                makeMapillaryValue(row.querySelector("td"))
             }
-        } else if (key === "xmas:feature" && !document.querySelector(".egg-snow-tag") || i.querySelector("td").textContent.includes("snow")) {
+        } else if (key === "xmas:feature" && !document.querySelector(".egg-snow-tag") || row.querySelector("td").textContent.includes("snow")) {
             const curDate = new Date()
             if (curDate.getMonth() === 11 && curDate.getDate() >= 18 || curDate.getMonth() === 0 && curDate.getDate() < 10) {
                 const snowBtn = document.createElement("span")
@@ -2558,21 +2560,28 @@ function makeLinksInTagsClickable() {
                 document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(snowBtn)
             }
         } else if (key === "wikimedia_commons") {
-            makeWikimediaCommonsValue(i.querySelector("td"));
+            makeWikimediaCommonsValue(row.querySelector("td"));
         } else if (key === "direction") {
-            const coords = i.parentElement.parentElement.parentElement.parentElement.querySelector("span.latitude")
+            const coords = row.parentElement.parentElement.parentElement.parentElement.querySelector("span.latitude")
             if (coords) {
                 const lat = coords.textContent.replace(",", ".")
                 const lon = coords.nextElementSibling.textContent.replace(",", ".")
                 const match = location.pathname.match(/(node|way|relation)\/(\d+)\/history\/(\d+)\/?$/)
-                if (match || document.querySelector(".browse-tag-list") === i.parentElement.parentElement) {
+                if (match || document.querySelector(".browse-tag-list") === row.parentElement.parentElement) {
                     cleanObjectsByKey("activeObjects")
-                    renderDirectionTag(parseFloat(lat), parseFloat(lon), i.querySelector("td").textContent, "#ff00e3")
+                    renderDirectionTag(parseFloat(lat), parseFloat(lon), row.querySelector("td").textContent, "#ff00e3")
                 }
-                i.onmouseenter = () => {
+                row.onmouseenter = () => {
                     cleanObjectsByKey("activeObjects")
-                    renderDirectionTag(parseFloat(lat), parseFloat(lon), i.querySelector("td").textContent, "#ff00e3")
+                    renderDirectionTag(parseFloat(lat), parseFloat(lon), row.querySelector("td").textContent, "#ff00e3")
                 }
+            }
+        } else if (key === "opening_hours") {
+            try {
+                new opening_hours(row.querySelector("td").textContent, null, {tag_key: "opening_hours"});
+            } catch (e) {
+                row.querySelector("td").title = e
+                row.querySelector("td").classList.add("fixme-tag")
             }
         }
     })
