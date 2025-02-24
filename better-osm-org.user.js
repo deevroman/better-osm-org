@@ -2591,6 +2591,7 @@ function addHistoryLink() {
     let curHref = document.querySelector("#sidebar_content h4 a").href.match(/(.*)\/(\d+)$/)
     a.href = curHref[1]
     a.textContent = "🕒"
+    a.title = "Click for open object history page\nOr press key H"
     a.classList.add("history_button_class")
     if (curHref[2] !== "1") {
         versionInSidebar.after(a)
