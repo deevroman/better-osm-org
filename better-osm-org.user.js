@@ -5,7 +5,7 @@
 // @changelog       v0.8.9: Satellite layer in Chrome
 // @changelog       v0.8.9: Support Mapillary images in tags
 // @changelog       v0.8.9: KeyJ — open in JOSM current state of objects from changeset
-// @changelog       v0.8.9: Ctrl + click by <time> for open  state of themap as of the selected date
+// @changelog       v0.8.9: Ctrl + click by <time> for open  state of the map as of the selected date
 // @changelog       v0.8: https://osm.org/user/TrickyFoxy/diary/406061
 // @changelog       v0.8: Images from Panoramax, StreetComplete, Wikipedia Commons in changeset and notes
 // @changelog       v0.8: GPX-tracks render (also in StreetComplete notes)
@@ -1843,7 +1843,7 @@ function switchTiles() {
             // unsafeWindow.L.DomEvent.off(i, "error") // todo добавить перехватчик 404
             try {
                 i.onerror = tileErrorHandler
-            } catch (e) {
+            } catch { /* empty */
             }
             if (isFirefox) {
                 i.src = SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix;
@@ -1885,7 +1885,7 @@ function switchTiles() {
                     // unsafeWindow.L.DomEvent.off(node, "error")
                     try {
                         node.onerror = tileErrorHandler
-                    } catch (e) {
+                    } catch { /* empty */
                     }
                     if (isFirefox) {
                         node.src = SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix;
@@ -2888,7 +2888,6 @@ function panTo(lat, lon, zoom = 18, animate = false) {
  * @memberof unsafeWindow
  * @param {string} lat
  * @param {string} lon
- * @param {number=} zoom
  * @param {boolean=} animate
  * @param {[]=} padding
  */
@@ -4408,7 +4407,7 @@ function setupViewRedactions() {
             let target;
             try {
                 target = Array.from(data).find(i => i.getAttribute("version") === version)
-            } catch {
+            } catch { /* empty */
             }
             if (!target) {
                 const prevDatetime = elem.previousElementSibling.querySelector("time").getAttribute("datetime")
@@ -5194,7 +5193,7 @@ function makeVersionPageBetter() {
                 findBtn.onclick = findChangesetInDiff
                 metainfoHTML.appendChild(findBtn)
             }
-        } catch {
+        } catch { /* empty */
         }
     }
 
@@ -7844,12 +7843,14 @@ async function processQuickLookInSidebar(changesetID) {
             console.error(e)
             console.log("%cSetup QuickLook finished with error ⚠️", 'background: #222; color: #bada55')
             if (isDebug() && ![ABORT_ERROR_PREV, ABORT_ERROR_NEXT, ABORT_ERROR_USER_CHANGESETS].includes(e)) {
+                // eslint-disable-next-line no-debugger
                 debugger
                 try {
                     getMap()?.attributionControl?.setPrefix("⚠️") // todo debug only
-                } catch (e) {
+                } catch { /* empty */
                 }
                 alert("⚠ read logs.\nOnly the script developer should see this message")
+                // eslint-disable-next-line no-debugger
                 debugger
                 throw e
             }
