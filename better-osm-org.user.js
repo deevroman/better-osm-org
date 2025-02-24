@@ -2310,12 +2310,16 @@ ${yetAnotherWizard(query)}
 out geom;
 `
         console.log(overpassQuery);
+
+        console.time("download overpass data")
         const res = await GM.xmlHttpRequest({
             url: "https://overpass-api.de/api/interpreter?" + new URLSearchParams({
                 data: overpassQuery
             }),
             responseType: "xml"
         })
+        console.timeEnd("download overpass data")
+
         const xml = (res).responseXML;
         getMap()?.invalidateSize()
         const bbox = searchResultBBOX = combineBBOXes(Array.from(xml.querySelectorAll("bounds")).map(i => {
@@ -2339,10 +2343,12 @@ out geom;
         if (bbox.min_lon === 10000000) {
             alert("invalid query")
         } else {
+            console.time("render overpass response")
             fitBounds([[bbox.min_lat, bbox.min_lon], [bbox.max_lat, bbox.max_lon]])
             cleanAllObjects()
             getWindow().jsonLayer?.remove()
             renderGeoJSONwrapper(osmtogeojson(xml), true)
+            console.timeEnd("render overpass response")
         }
     } finally {
         if (document.title === newTitle) {
@@ -7843,7 +7849,7 @@ async function processQuickLookInSidebar(changesetID) {
                     getMap()?.attributionControl?.setPrefix("⚠️") // todo debug only
                 } catch (e) {
                 }
-                alert("⚠ read logs")
+                alert("⚠ read logs.\nOnly the script developer should see this message")
                 debugger
                 throw e
             }
