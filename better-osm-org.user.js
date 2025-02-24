@@ -645,6 +645,7 @@ function addRevertButton() {
             getCachedUserInfo(usernameA.textContent).then((res) => {
                 usernameA.before(makeBadge(res, new Date(time.getAttribute("datetime"))))
                 usernameA.before(document.createTextNode(" "))
+                usernameA.title = `changesets_count: ${res['changesets']['count']}\naccount_created: ${res['account_created']}`
 
                 document.querySelectorAll(".browse-tag-list tr").forEach(i => {
                     const key = i.querySelector("th")
@@ -954,6 +955,7 @@ function addRevertButton() {
     document.querySelectorAll('#sidebar_content li[id^=c] small > a[href^="/user/"]').forEach(elem => {
         getCachedUserInfo(elem.textContent).then(info => {
             elem.before(makeBadge(info, new Date(elem.nextElementSibling.getAttribute("datetime"))))
+            elem.title = `changesets_count: ${info['changesets']['count']}\naccount_created: ${info['account_created']}`
         })
     })
     // fixme dont work loggined
@@ -1367,6 +1369,7 @@ function addResolveNotesButton() {
     document.querySelectorAll('#sidebar_content a[href^="/user/"]').forEach(elem => {
         getCachedUserInfo(elem.textContent).then(info => {
             elem.before(makeBadge(info, new Date(elem.parentElement.querySelector("time")?.getAttribute("datetime") ?? new Date())))
+            elem.title = `changesets_count: ${info['changesets']['count']}\naccount_created: ${info['account_created']}`
         })
     })
     document.querySelectorAll(".overflow-hidden a").forEach(i => {
@@ -2576,9 +2579,9 @@ function makeLinksInTagsClickable() {
                     renderDirectionTag(parseFloat(lat), parseFloat(lon), row.querySelector("td").textContent, "#ff00e3")
                 }
             }
-        } else if (key === "opening_hours") {
+        } else if (key.startsWith("opening_hours")) {
             try {
-                new opening_hours(row.querySelector("td").textContent, null, {tag_key: "opening_hours"});
+                new opening_hours(row.querySelector("td").textContent, null, {tag_key: key});
             } catch (e) {
                 row.querySelector("td").title = e
                 row.querySelector("td").classList.add("fixme-tag")
@@ -8408,7 +8411,9 @@ async function updateUserInfo(username) {
     if (res['changesets'].length === 0) {
         const res = await fetchJSONWithCache(osm_server.apiBase + "notes/search.json?" + new URLSearchParams({
             display_name: username,
-            limit: 1
+            limit: 1,
+            closed: -1,
+            order: "oldest"
         }).toString());
         uid = res['features'][0]['properties']['comments'].find(i => i['user'] === username)['uid']
         firstObjectCreationTime = res['features'][0]['properties']['comments'].find(i => i['user'] === username)['date']
@@ -9481,6 +9486,9 @@ function goToPrevChangesetObject(e) {
                 cur.previousElementSibling.scrollIntoView({block: "center", behavior: smoothScroll})
                 resetMapHover()
                 cur.previousElementSibling.classList.add("map-hover")
+                if (cur.previousElementSibling.querySelector(".load-relation-version")) {
+                    cur.previousElementSibling.querySelector(".load-relation-version").focus()
+                }
                 return
             }
         } else {
@@ -9578,6 +9586,9 @@ function goToNextChangesetObject(e) {
                 cur.nextElementSibling.scrollIntoView({block: "center", behavior: smoothScroll})
                 resetMapHover()
                 cur.nextElementSibling.classList.add("map-hover")
+                if (cur.nextElementSibling.querySelector(".load-relation-version")) {
+                    cur.nextElementSibling.querySelector(".load-relation-version").focus()
+                }
                 return
             }
         } else {
