@@ -6,6 +6,7 @@
 // @changelog       v0.8.9: Support Mapillary images in tags
 // @changelog       v0.8.9: KeyJ — open in JOSM current state of objects from changeset
 // @changelog       v0.8.9: Ctrl + click by <time> for open  state of the map as of the selected date
+// @changelog       v0.8.9: Shift + / for simple search via Overpass
 // @changelog       v0.8: https://osm.org/user/TrickyFoxy/diary/406061
 // @changelog       v0.8: Images from Panoramax, StreetComplete, Wikipedia Commons in changeset and notes
 // @changelog       v0.8: GPX-tracks render (also in StreetComplete notes)
@@ -43,7 +44,7 @@
 // @supportURL   https://github.com/deevroman/better-osm-org/issues
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=openstreetmap.org
 // @require      https://github.com/deevroman/GM_config/raw/fixed-for-chromium/gm_config.js#sha256=ea04cb4254619543f8bca102756beee3e45e861077a75a5e74d72a5c131c580b
-// @require      https://raw.githubusercontent.com/deevroman/osmtags-editor/main/osm-auth.iife.min.js#sha256=dcd67312a2714b7a13afbcc87d2f81ee46af7c3871011427ddba1e56900b4edd
+// @require      https://raw.githubusercontent.com/deevroman/osm-auth/ad63c40d376593d63ee2d35f60664e28769bf1ba/dist/osm-auth.iife.js#sha256=6f0401639929ca5de4c98e69c07665a82c93a2aa9e3f138ffa8429cecd0f900d
 // @require      https://raw.githubusercontent.com/deevroman/exif-js/53b0c7c1951a23d255e37ed0a883462218a71b6f/exif.js#sha256=2235967d47deadccd9976244743e3a9be5ca5e41803cda65a40b8686ec713b74
 // @require      https://raw.githubusercontent.com/deevroman/osmtogeojson/c97381a0c86c0a021641dd47d7bea01fb5514716/osmtogeojson.js#sha256=663bb5bbae47d5d12bff9cf1c87b8f973e85fab4b1f83453810aae99add54592
 // @require      https://openingh.openstreetmap.de/opening_hours.js/opening_hours+deps.min.js#sha256=e9a3213aba77dcf79ff1da9f828532acf1ebf7107ed1ce5f9370b922e023baff
@@ -63,6 +64,7 @@
 // @comment      for get diffs for finding deleted users
 // @connect      planet.openstreetmap.org
 // @connect      planet.maps.mail.ru
+// @connect      maps.mail.ru
 // @connect      www.hdyc.neis-one.org
 // @connect      hdyc.neis-one.org
 // @connect      resultmaps.neis-one.org
@@ -1299,7 +1301,7 @@ function addResolveNotesButton() {
                 }
             }
             const changesetTags = {
-                'created_by': 'better osm.org',
+                'created_by': `better osm.org v${GM_info.script.version}`,
                 'comment': tagsHint !== "" ? `Create${tagsHint}` : `Create node`
             };
 
@@ -1583,7 +1585,7 @@ function addDeleteButton() {
                 }
             }
             const changesetTags = {
-                'created_by': 'better osm.org',
+                'created_by': `better osm.org v${GM_info.script.version}`,
                 'comment': tagsHint !== "" ? `Delete${tagsHint}` : `Delete ${object_type} ${object_id}`
             };
 
@@ -2318,7 +2320,8 @@ out geom;
 
         console.time("download overpass data")
         const res = await GM.xmlHttpRequest({
-            url: "https://overpass-api.de/api/interpreter?" + new URLSearchParams({
+            // todo switcher
+            url: "https://maps.mail.ru/osm/tools/overpass/api/interpreter?" + new URLSearchParams({
                 data: overpassQuery
             }),
             responseType: "xml"
@@ -2352,7 +2355,8 @@ out geom;
             fitBounds([[bbox.min_lat, bbox.min_lon], [bbox.max_lat, bbox.max_lon]])
             cleanAllObjects()
             getWindow().jsonLayer?.remove()
-            renderGeoJSONwrapper(osmtogeojson(xml), true)
+            jsonLayer?.remove()
+            renderOSMGeoJSONwrapper(xml, true)
             console.timeEnd("render overpass response")
         }
     } finally {
@@ -9722,6 +9726,14 @@ function setupNavigationViaHotkeys() {
         if (document.activeElement.getAttribute("contenteditable")) {
             return
         }
+        if (["TH", "TD"].includes(document.activeElement?.nodeName)
+            && document.activeElement?.parentElement?.parentElement?.parentElement?.hasAttribute("contenteditable")) {
+            return
+        }
+        if (["TR"].includes(document.activeElement?.nodeName)
+            && document.activeElement?.parentElement?.parentElement?.hasAttribute("contenteditable")) {
+            return
+        }
         if (e.metaKey || e.ctrlKey) {
             return;
         }
@@ -9775,7 +9787,7 @@ function setupNavigationViaHotkeys() {
                     document.querySelectorAll("#edit_tab .dropdown-menu .editlink")[0]?.click()
                 }
             } else if (e.altKey && isDebug()) {
-                document.querySelectorAll("table.quick-look, table.geojson-props-table").forEach(i => {
+                document.querySelectorAll("table.quick-look, table.geojson-props-table:not(.metainfo-table)").forEach(i => {
                     i.setAttribute("contenteditable", "true")
                 })
             } else {
@@ -10078,10 +10090,18 @@ function setupNavigationViaHotkeys() {
                     }
                 })
             }
-            if (layersHidden && getWindow()?.jsonLayer) {
-                injectJSIntoPage(`jsonLayer.eachLayer(i => i.getElement().style.visibility = "")`)
-            } else {
-                injectJSIntoPage(`jsonLayer.eachLayer(i => i.getElement().style.visibility = "hidden")`)
+            if (getWindow()?.jsonLayer) {
+                if (layersHidden) {
+                    injectJSIntoPage(`jsonLayer.eachLayer(i => i.getElement().style.visibility = "")`)
+                } else {
+                    injectJSIntoPage(`jsonLayer.eachLayer(i => i.getElement().style.visibility = "hidden")`)
+                }
+            } else if (jsonLayer) {
+                if (layersHidden) {
+                    jsonLayer.eachLayer(i => i.getElement().style.visibility = "")
+                } else {
+                    jsonLayer.eachLayer(i => i.getElement().style.visibility = "hidden")
+                }
             }
             layersHidden = !layersHidden;
         } else if (e.code === "KeyF" && !e.altKey && !e.metaKey && !e.ctrlKey) {
@@ -10125,6 +10145,7 @@ function setupNavigationViaHotkeys() {
             getMap().getBounds()
             const query = prompt(`Type overpass selector:\n\tkey\n\tkey=value\n\tkey~val,i\n\tway[footway=crossing](if: length() > 150)\nEnd with ! for global search\n⚠this is a simple prototype of search`, lastOverpassQuery)
             if (query) {
+                insertOverlaysStyles()
                 processOverpassQuery(query)
             }
         } else {
@@ -10486,7 +10507,7 @@ function displayGPXTrack(xml) {
 }
 
 
-function renderGeoJSONwrapper(geojson, osmLayer = false) {
+function renderGeoJSONwrapper(geojson) {
     injectJSIntoPage(`
     var jsonLayer = null;
 
@@ -10533,49 +10554,330 @@ function renderGeoJSONwrapper(geojson, osmLayer = false) {
             }
         }
 
-        const options = ${osmLayer} ? {
-            onEachFeature: onEachFeature,
-            pointToLayer: function (feature, latlng) {
-                return L.circleMarker(latlng);
-            }
-        } : {
+        jsonLayer = L.geoJSON(data, {
             onEachFeature: onEachFeature
-        }
-        jsonLayer = L.geoJSON(data, options);
+        });
         jsonLayer.addTo(map);
     }
     `)
     getWindow().renderGeoJSON(intoPage(geojson))
 }
 
-async function setupDragAndDropViewers() {
-    // GM_addElement(document.head, "link", {
-    //     href: "https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css",
-    //     rel:'stylesheet'
-    // })
-    // GM_addElement(document.head, "script", {
-    //     src: "https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js",
-    // })
-    // GM_addElement(document.head, "script", {
-    //     src: "https://unpkg.com/@maplibre/maplibre-gl-leaflet/leaflet-maplibre-gl.js",
-    // })
+var jsonLayer = null;
 
-    document.querySelector("#map")?.addEventListener("drop", e => {
-        if (location.pathname.includes("/directions") || location.pathname.includes("/note/new")) {
-            return;
+function renderOSMGeoJSONwrapper(xml) {
+    const auth = makeAuth();
+
+    function renderOSMGeoJSON(data) {
+        function onEachFeature(feature, layer) {
+            if (!feature.properties) {
+                return;
+            }
+            const popupBody = document.createElement("span")
+            popupBody.classList.add("geojson-editor")
+
+            const objLink = document.createElement("a")
+            objLink.textContent = feature.properties.type + "/" + feature.properties.id
+            objLink.href = "/" + feature.properties.type + "/" + feature.properties.id
+            popupBody.appendChild(objLink)
+
+            popupBody.appendChild(document.createTextNode(", "))
+
+            const versionLink = document.createElement("a")
+            versionLink.classList.add("version-link")
+            versionLink.textContent = feature.properties.meta.version
+            versionLink.href = "/" + feature.type + "/" + feature.id + "history/" + feature.properties.meta.version
+            popupBody.appendChild(versionLink)
+
+            const editButton = document.createElement("button")
+            editButton.id = feature.properties.type + "-" + feature.properties.id + "-" + feature.properties.meta.version
+            editButton.classList.add("edit-tags-btn")
+            editButton.textContent = "🖊"
+            popupBody.appendChild(document.createTextNode("\xA0"))
+            popupBody.appendChild(editButton)
+
+            const table = document.createElement("table")
+            popupBody.appendChild(table)
+            table.style.overflow = "scroll"
+            table.classList.add("geojson-props-table")
+            table.classList.add("zebra_colors")
+            table.classList.add("tags-table")
+
+            function makeTBody(tags) {
+                const tbody = document.createElement("tbody")
+                Object.entries(tags).forEach(([key, value]) => {
+                    const th = document.createElement("th")
+                    th.textContent = key
+                    const td = document.createElement("td")
+                    td.textContent = value
+                    const tr = document.createElement("tr")
+                    tr.tabIndex = 0
+                    tr.appendChild(th)
+                    tr.appendChild(td)
+                    tbody.appendChild(tr)
+                })
+                return tbody
+            }
+
+            const tbody = makeTBody(feature.properties?.tags)
+            table.appendChild(tbody)
+
+            const details = document.createElement("details")
+            details.style.color = "gray"
+            // details.setAttribute("open", true)
+            const summary = document.createElement("summary")
+            summary.textContent = "metainfo"
+            details.appendChild(summary)
+            popupBody.appendChild(details)
+
+            const metaTable = document.createElement("table")
+            details.appendChild(metaTable)
+            metaTable.style.overflow = "scroll"
+            metaTable.classList.add("geojson-props-table")
+            metaTable.classList.add("zebra_colors")
+            metaTable.classList.add("metainfo-table")
+            const metaTBody = document.createElement("tbody")
+            metaTable.appendChild(metaTBody)
+            Object.entries(feature.properties?.meta).forEach(([key, value]) => {
+                const th = document.createElement("th")
+                th.textContent = key
+                const td = document.createElement("td")
+                if (key === "id" && (value.startsWith("node/") || value.startsWith("way/") || value.startsWith("relation/"))) {
+                    const a = document.createElement("a")
+                    a.textContent = value
+                    a.href = "/" + value
+                    td.appendChild(a)
+                } else {
+                    td.textContent = value
+                }
+
+                const tr = document.createElement("tr")
+                tr.appendChild(th)
+                tr.appendChild(td)
+                metaTBody.appendChild(tr)
+            })
+            getWindow().L.DomEvent.on(layer, "click", intoPageWithFun((e) => {
+                const layer = getMap()._layers[e.target._leaflet_id]
+                if (e.originalEvent.altKey) {
+                    layer.remove()
+                    e.originalEvent.stopPropagation()
+                    e.originalEvent.stopImmediatePropagation()
+                } else {
+                    if (!layer.getPopup()) {
+                        layer.bindPopup(popupBody.outerHTML, intoPage({minWidth: 210})).openPopup()
+                    }
+                }
+            }))
+            const startEdit = intoPageWithFun(async (startEditEvent) => {
+                const table = startEditEvent.target.parentElement.querySelector("table.tags-table")
+                const oldTags = {}
+                table.querySelectorAll("tr").forEach(i => {
+                    oldTags[i.querySelector("th").textContent] = i.querySelector("td").textContent
+                })
+
+                const object_type = feature.properties.type
+                const object_id = parseInt(feature.properties.id)
+                let object_version = parseInt(feature.properties.meta.version)
+
+                async function syncTags() {
+                    const rawObjectInfo = (await(await auth.fetch(osm_server.apiBase + object_type + '/' + object_id, {
+                        method: 'GET',
+                        prefix: false,
+                    })).text());
+                    const objectInfo = (new DOMParser()).parseFromString(rawObjectInfo, "text/xml")
+                    const lastTags = {}
+                    objectInfo.querySelectorAll("tag").forEach(i => {
+                        lastTags[i.getAttribute("k")] = i.getAttribute("v")
+                    })
+                    if (JSON.stringify(lastTags) !== JSON.stringify(oldTags)) {
+                        table.querySelector("tbody").remove()
+                        table.appendChild(makeTBody(lastTags))
+                    }
+                    object_version = parseInt(objectInfo.querySelector("[version]:not(osm)").getAttribute("version"))
+                    startEditEvent.target.parentElement.querySelector(".version-link").textContent = object_version
+                    startEditEvent.target.parentElement.querySelector(".version-link").href = `/${object_type}/${object_id}/history/${object_version}`
+                }
+
+                await syncTags()
+
+                table.setAttribute("contenteditable", "true")
+                table.addEventListener("input", () => {
+                    startEditEvent.target.removeAttribute("disabled")
+                })
+                startEditEvent.target.textContent = "📤"
+                startEditEvent.target.setAttribute("disabled", true)
+                startEditEvent.target.addEventListener("click", async () => {
+                    const newTags = {}
+                    table.querySelectorAll("tr").forEach(i => {
+                        const key = i.querySelector("th").textContent.trim()
+                        const value = i.querySelector("td").textContent.trim()
+                        if (key === "" || value === "") { // todo notify about error
+                            return;
+                        }
+                        newTags[key] = value
+                    })
+
+                    async function updateObject() {
+                        console.log("Opening changeset");
+                        const rawObjectInfo = (await (await auth.fetch(osm_server.apiBase + object_type + '/' + object_id, {
+                            method: 'GET',
+                            prefix: false,
+                        })).text());
+                        const objectInfo = (new DOMParser()).parseFromString(rawObjectInfo, "text/xml")
+                        const lastVersion = parseInt(objectInfo.querySelector("[version]:not(osm)").getAttribute("version"))
+                        if (lastVersion !== object_version) {
+                            startEditEvent.target.textContent = "🔄"
+                            alert("Conflict")
+                            throw ""
+                        }
+
+                        const objectXML = objectInfo.querySelector("node,way,relation")
+                        objectXML.querySelectorAll("tag").forEach(i => i.remove())
+                        Object.entries(newTags).forEach(([k, v]) => {
+                            const tag = objectInfo.createElement("tag")
+                            tag.setAttribute("k", k)
+                            tag.setAttribute("v", v)
+                            objectXML.appendChild(tag)
+                        })
+
+                        let tagsHint = ""
+                        // const tags = Array.from(objectInfo.children[0].children[0]?.children)
+                        // for (const i of newTags) {
+                        //     if (mainTags.includes(i.getAttribute("k"))) {
+                        //         tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`;
+                        //         break
+                        //     }
+                        // }
+                        // for (const i of tags) {
+                        //     if (i.getAttribute("k") === "name") {
+                        //         tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`;
+                        //         break
+                        //     }
+                        // }
+                        const changesetTags = {
+                            'created_by': `better osm.org v${GM_info.script.version}`,
+                            'comment': tagsHint !== "" ? `Update ${tagsHint}` : `Update tags of ${object_type} ${object_id}`
+                        };
+
+                        let changesetPayload = document.implementation.createDocument(null, 'osm');
+                        let cs = changesetPayload.createElement('changeset');
+                        changesetPayload.documentElement.appendChild(cs);
+                        tagsToXml(changesetPayload, cs, changesetTags);
+                        const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload);
+
+                        const changesetId = await auth.fetch(osm_server.apiBase + 'changeset/create', {
+                            method: 'PUT',
+                            prefix: false,
+                            body: chPayloadStr
+                        }).then((res) => {
+                            if (res.ok) return res.text();
+                            throw new Error(res);
+                        });
+                        console.log(changesetId);
+
+                        try {
+                            objectInfo.children[0].children[0].setAttribute('changeset', changesetId);
+
+                            const objectInfoStr = new XMLSerializer().serializeToString(objectInfo).replace(/xmlns="[^"]+"/, '')
+                            console.log(objectInfoStr);
+                            await auth.fetch(osm_server.apiBase + object_type + '/' + object_id, {
+                                method: 'PUT',
+                                prefix: false,
+                                body: objectInfoStr
+                            }).then(async (res) => {
+                                const text = await res.text()
+                                if (res.ok) return text;
+                                alert(text)
+                                throw new Error(text);
+                            });
+                        } finally {
+                            await auth.fetch(osm_server.apiBase + 'changeset/' + changesetId + '/close', {
+                                method: 'PUT',
+                                prefix: false
+                            });
+                        }
+
+                        startEditEvent.target.textContent = "#" + changesetId
+                        startEditEvent.target.style.color = "green"
+
+                        startEditEvent.target.onclick = () => {
+                            window.open("/changeset/" + changesetId, "_blank")
+                        }
+
+                        await syncTags()
+
+                        console.log(objectInfo);
+                    }
+
+                    await updateObject()
+                }, {once: true})
+                table.addEventListener('keydown', (e) => {
+                    if (e.code === "Enter" && (e.metaKey || e.ctrlKey)) {
+                        e.preventDefault()
+                        const tr = document.createElement("tr")
+                        const th = document.createElement("th")
+                        const td = document.createElement("td")
+                        tr.appendChild(th)
+                        tr.appendChild(td)
+                        tr.style.height = "1rem"
+                        tr.tabIndex = 0
+                        e.target.after(tr)
+                        tr.focus()
+                    }
+                }, false);
+            })
+            getWindow().L.DomEvent.on(layer, "popupopen", intoPageWithFun((openEvent) => {
+                const layer = getMap()._layers[openEvent.target._leaflet_id]
+                layer.getPopup().getElement().querySelector(".edit-tags-btn")
+                layer.getPopup().getElement().querySelector(".edit-tags-btn").addEventListener("click", startEdit, intoPage({once: true}))
+            }, intoPage({once: true})))
         }
-        e.preventDefault()
-        e.stopPropagation()
-        e.stopImmediatePropagation();
-        e.target.style.cursor = "progress"
-        try {
-            const mapWidth = getComputedStyle(document.querySelector("#map")).width
-            const mapHeight = getComputedStyle(document.querySelector("#map")).height
 
-            GM_addElement(document.head, "style", {
-                textContent: `
+        jsonLayer = getWindow().L.geoJSON(intoPage(data), intoPageWithFun({
+                onEachFeature: intoPageWithFun(onEachFeature),
+                pointToLayer: intoPageWithFun(function (feature, latlng) {
+                    return getWindow().L.circleMarker(latlng);
+                })
+            })
+        );
+        jsonLayer.addTo(getMap());
+    }
+
+    renderOSMGeoJSON(osmtogeojson(xml, {flatProperties: false}))
+}
+
+function insertOverlaysStyles() {
+    const mapWidth = getComputedStyle(document.querySelector("#map")).width
+    const mapHeight = getComputedStyle(document.querySelector("#map")).height
+
+    GM_addElement(document.head, "style", {
+        textContent: `
                     .leaflet-popup-content:has(.geojson-props-table) {
                         overflow: scroll;
+                    }
+                    
+                    .leaflet-popup-content:has(.geojson-editor) {
+                        /*max-width: calc(${mapWidth} / 3) !important;
+                        min-width: calc(${mapWidth} / 3) !important;
+                        max-height: calc(${mapHeight} / 2);
+                        min-height: calc(${mapHeight} / 2);*/
+                        overflow-y: scroll;
+                    }
+                    
+                    table.tags-table th:not(.tag-flag) {
+                        border: solid 2px transparent;
+                    }
+                    
+                    table.tags-table td:not(.tag-flag) {
+                        border: solid 2px transparent;
+                    }
+                    
+                    table[contenteditable].tags-table th:not(.tag-flag) {
+                        border: solid 2px black;
+                    }
+                    
+                    table[contenteditable].tags-table td:not(.tag-flag) {
+                        border: solid 2px black;
                     }
                     
                     .map-img-preview-popup {
@@ -10604,8 +10906,34 @@ async function setupDragAndDropViewers() {
                         overflow-y: scroll;
                     }
                 `,
-            });
+    });
 
+}
+
+async function setupDragAndDropViewers() {
+    // GM_addElement(document.head, "link", {
+    //     href: "https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css",
+    //     rel:'stylesheet'
+    // })
+    // GM_addElement(document.head, "script", {
+    //     src: "https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js",
+    // })
+    // GM_addElement(document.head, "script", {
+    //     src: "https://unpkg.com/@maplibre/maplibre-gl-leaflet/leaflet-maplibre-gl.js",
+    // })
+
+    document.querySelector("#map")?.addEventListener("drop", e => {
+        if (location.pathname.includes("/directions") || location.pathname.includes("/note/new")) {
+            return;
+        }
+        e.preventDefault()
+        e.stopPropagation()
+        e.stopImmediatePropagation();
+        e.target.style.cursor = "progress"
+        try {
+            const mapWidth = getComputedStyle(document.querySelector("#map")).width
+            const mapHeight = getComputedStyle(document.querySelector("#map")).height
+            insertOverlaysStyles();
             [...e.dataTransfer.items].forEach(async (item, _) => {
                 if (item.kind === "file") {
                     const file = item.getAsFile();
@@ -10647,10 +10975,11 @@ async function setupDragAndDropViewers() {
                     } else if (file.type === "application/vnd.openstreetmap.data+xml") {
                         const diffParser = new DOMParser();
                         const doc = diffParser.parseFromString(await file.text(), "application/xml");
-                        renderGeoJSONwrapper(osmtogeojson(doc), true)
+                        renderOSMGeoJSONwrapper(doc, true)
                     }
                 }
             });
+
         } finally {
             e.target.style.cursor = "grab"
         }
