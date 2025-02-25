@@ -10568,9 +10568,9 @@ let bannedVersions = null
 
 function currentVersionBanned(module) {
     if (!bannedVersions) return false;
-    if (bannedVersions[GM_info.version]) {
-        if (bannedVersions[GM_info.version][module]) {
-            return bannedVersions[GM_info.version][module]
+    if (bannedVersions[GM_info.script.version]) {
+        if (bannedVersions[GM_info.script.version][module]) {
+            return bannedVersions[GM_info.script.version][module]
         }
     }
     return false
@@ -10579,7 +10579,7 @@ function currentVersionBanned(module) {
 function renderOSMGeoJSONwrapper(xml) {
     const auth = makeAuth();
 
-    fetch("https://github.com/deevroman/better-osm-org/raw/dev/banned_version.json").then(async res => {
+    fetch("https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/dev/banned_versions.json").then(async res => {
         bannedVersions = await res.json()
     })
 
@@ -10608,11 +10608,6 @@ function renderOSMGeoJSONwrapper(xml) {
             editButton.id = feature.properties.type + "-" + feature.properties.id + "-" + feature.properties.meta.version
             editButton.classList.add("edit-tags-btn")
             editButton.textContent = "🖊"
-            if (currentVersionBanned("overpass_tags_editor")) {
-                editButton.classList.add("banned-feature")
-                editButton.textContent = "Need update better-osm-org"
-                editButton.title = "Please click for update better-osm-org script.\nThe current version contains a bug that may corrupt OSM data."
-            }
 
             popupBody.appendChild(document.createTextNode("\xA0"))
             popupBody.appendChild(editButton)
@@ -10850,7 +10845,10 @@ function renderOSMGeoJSONwrapper(xml) {
             getWindow().L.DomEvent.on(layer, "popupopen", intoPageWithFun((openEvent) => {
                 const layer = getMap()._layers[openEvent.target._leaflet_id]
                 const editButton = layer.getPopup().getElement().querySelector(".edit-tags-btn")
-                if (editButton.classList.contains("banned-feature")) {
+                if (currentVersionBanned("overpass_tags_editor")) {
+                    editButton.classList.add("banned-feature")
+                    editButton.textContent = "Need update better-osm-org"
+                    editButton.title = "Please click for update better-osm-org script.\nThe current version contains a bug that may corrupt OSM data."
                     editButton.addEventListener("click", intoPageWithFun(() => {
                         window.open(SCRIPT_UPDATE_URL, "_blank")
                     }), intoPage({once: true}))
