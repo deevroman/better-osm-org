@@ -7757,6 +7757,11 @@ async function processQuickLookInSidebar(changesetID) {
                                     }
                                 })
 
+                                if (!changesetMetadatas[changesetID]) {
+                                    console.log(`changesetMetadata not ready. Wait second...`)
+                                    await abortableSleep(1000, abortDownloadingController) // todo нужно поретраить
+                                }
+
                                 const res2 = await getWayNodesByTimestamp(changesetMetadatas[changesetID].closed_at, objID)
                                 if (!res2) {
                                     // если линия создана после правки
@@ -9789,14 +9794,24 @@ function setupNavigationViaHotkeys() {
             document.querySelectorAll(`#changeset_relations li.processed-object div div[id^="r"]`).forEach(i => {
                 relations.push(i.id.slice(1))
             })
-            window.open("http://localhost:8111/load_object?" + new URLSearchParams({
-                new_layer: "true",
-                objects: [
-                    nodes.map(i => "n" + i).join(","),
-                    ways.map(i => "w" + i).join(","),
-                    relations.map(i => "r" + i).join(",")
-                ].join(",")
-            }).toString())
+            if (e.altKey) {
+                window.open("https://level0.osmz.ru/?" + new URLSearchParams({
+                    url: [
+                        nodes.map(i => "n" + i).join(","),
+                        ways.map(i => "w" + i).join(","),
+                        relations.map(i => "r" + i).join(",")
+                    ].join(",").replace(/,$/, "").replace(/^,/, "").replace(/,,/, ",")
+                }).toString())
+            } else {
+                window.open("http://localhost:8111/load_object?" + new URLSearchParams({
+                    new_layer: "true",
+                    objects: [
+                        nodes.map(i => "n" + i).join(","),
+                        ways.map(i => "w" + i).join(","),
+                        relations.map(i => "r" + i).join(",")
+                    ].join(",")
+                }).toString())
+            }
         } else if (e.code === "KeyH") {
             if (e.shiftKey) {
                 const targetURL = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href") + "/history"
@@ -10108,7 +10123,7 @@ function setupNavigationViaHotkeys() {
             }
         } else if (e.code === "Slash" && e.shiftKey) {
             getMap().getBounds()
-            const query = prompt("type overpass selector. End with ! for global", lastOverpassQuery)
+            const query = prompt(`Type overpass selector:\n\tkey\n\tkey=value\n\tkey~val,i\n\tway[footway=crossing](if: length() > 150)\nEnd with ! for global search\n⚠this is a simple prototype of search`, lastOverpassQuery)
             if (query) {
                 processOverpassQuery(query)
             }
