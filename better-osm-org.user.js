@@ -10564,9 +10564,24 @@ function renderGeoJSONwrapper(geojson) {
 }
 
 var jsonLayer = null;
+let bannedVersions = null
+
+function currentVersionBanned(module) {
+    if (!bannedVersions) return false;
+    if (bannedVersions[GM_info.version]) {
+        if (bannedVersions[GM_info.version][module]) {
+            return bannedVersions[GM_info.version][module]
+        }
+    }
+    return false
+}
 
 function renderOSMGeoJSONwrapper(xml) {
     const auth = makeAuth();
+
+    fetch("https://github.com/deevroman/better-osm-org/raw/dev/banned_version.json").then(async res => {
+        bannedVersions = await res.json()
+    })
 
     function renderOSMGeoJSON(data) {
         function onEachFeature(feature, layer) {
@@ -10585,7 +10600,7 @@ function renderOSMGeoJSONwrapper(xml) {
 
             const versionLink = document.createElement("a")
             versionLink.classList.add("version-link")
-            versionLink.textContent = feature.properties.meta.version
+            versionLink.textContent = "v" + feature.properties.meta.version
             versionLink.href = "/" + feature.type + "/" + feature.id + "history/" + feature.properties.meta.version
             popupBody.appendChild(versionLink)
 
@@ -10593,6 +10608,12 @@ function renderOSMGeoJSONwrapper(xml) {
             editButton.id = feature.properties.type + "-" + feature.properties.id + "-" + feature.properties.meta.version
             editButton.classList.add("edit-tags-btn")
             editButton.textContent = "🖊"
+            if (currentVersionBanned("overpass_tags_editor")) {
+                editButton.classList.add("banned-feature")
+                editButton.textContent = "Need update better-osm-org"
+                editButton.title = "Please click for update better-osm-org script.\nThe current version contains a bug that may corrupt OSM data."
+            }
+
             popupBody.appendChild(document.createTextNode("\xA0"))
             popupBody.appendChild(editButton)
 
@@ -10680,7 +10701,7 @@ function renderOSMGeoJSONwrapper(xml) {
                 let object_version = parseInt(feature.properties.meta.version)
 
                 async function syncTags() {
-                    const rawObjectInfo = (await(await auth.fetch(osm_server.apiBase + object_type + '/' + object_id, {
+                    const rawObjectInfo = (await (await auth.fetch(osm_server.apiBase + object_type + '/' + object_id, {
                         method: 'GET',
                         prefix: false,
                     })).text());
@@ -10694,7 +10715,7 @@ function renderOSMGeoJSONwrapper(xml) {
                         table.appendChild(makeTBody(lastTags))
                     }
                     object_version = parseInt(objectInfo.querySelector("[version]:not(osm)").getAttribute("version"))
-                    startEditEvent.target.parentElement.querySelector(".version-link").textContent = object_version
+                    startEditEvent.target.parentElement.querySelector(".version-link").textContent = (object_version ? "v" + object_version : "")
                     startEditEvent.target.parentElement.querySelector(".version-link").href = `/${object_type}/${object_id}/history/${object_version}`
                 }
 
@@ -10828,8 +10849,14 @@ function renderOSMGeoJSONwrapper(xml) {
             })
             getWindow().L.DomEvent.on(layer, "popupopen", intoPageWithFun((openEvent) => {
                 const layer = getMap()._layers[openEvent.target._leaflet_id]
-                layer.getPopup().getElement().querySelector(".edit-tags-btn")
-                layer.getPopup().getElement().querySelector(".edit-tags-btn").addEventListener("click", startEdit, intoPage({once: true}))
+                const editButton = layer.getPopup().getElement().querySelector(".edit-tags-btn")
+                if (editButton.classList.contains("banned-feature")) {
+                    editButton.addEventListener("click", intoPageWithFun(() => {
+                        window.open(SCRIPT_UPDATE_URL, "_blank")
+                    }), intoPage({once: true}))
+                } else {
+                    editButton.addEventListener("click", startEdit, intoPage({once: true}))
+                }
             }, intoPage({once: true})))
         }
 
@@ -11174,6 +11201,8 @@ function runSnow() {
 
 //</editor-fold>
 
+const SCRIPT_UPDATE_URL = "https://raw.githubusercontent.com/deevroman/better-osm-org/master/better-osm-org.user.js"
+
 function main() {
     // GM_config.open();
     'use strict';
@@ -11189,7 +11218,7 @@ function main() {
             });
             if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || isDebug()) {
                 GM_registerMenuCommand("Check script updates", function () {
-                    window.open("https://raw.githubusercontent.com/deevroman/better-osm-org/master/better-osm-org.user.js", "_blank") // todo add random param for bypass cache?
+                    window.open(SCRIPT_UPDATE_URL, "_blank") // todo add random param for bypass cache?
                 });
             }
             // New Year Easter egg
