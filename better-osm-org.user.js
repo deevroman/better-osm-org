@@ -4,7 +4,7 @@
 // @version         0.8.9
 // @changelog       v0.8.9: Satellite layer in Chrome
 // @changelog       v0.8.9: Support Mapillary images in tags
-// @changelog       v0.8.9: KeyJ — open in JOSM current state of objects from changeset
+// @changelog       v0.8.9: KeyJ — open in JOSM current state of objects from changeset, alt + J — in Level0
 // @changelog       v0.8.9: Ctrl + click by <time> for open  state of the map as of the selected date
 // @changelog       v0.8.9: Shift + / for simple search via Overpass
 // @changelog       v0.8: https://osm.org/user/TrickyFoxy/diary/406061
@@ -1017,12 +1017,15 @@ function makeTimesSwitchable() {
         })
 
         function switchElement(j) {
-            if (j.textContent === j.getAttribute("natural_text")) {
-                j.textContent = j.getAttribute("datetime")
+            if (j.childNodes[0].textContent === j.getAttribute("natural_text")) {
+                j.childNodes[0].textContent = j.getAttribute("datetime")
                 timestampMode = "datetime"
             } else {
-                j.textContent = j.getAttribute("natural_text")
+                j.childNodes[0].textContent = j.getAttribute("natural_text")
                 timestampMode = "natural_text"
+            }
+            if (j.querySelector(".timeback-btn")) {
+                j.querySelector(".timeback-btn").style.display = ""
             }
         }
 
@@ -1030,14 +1033,12 @@ function makeTimesSwitchable() {
     }
 
     const isObjectPage = location.pathname.includes("node") || location.pathname.includes("way") || location.pathname.includes("relation")
-    document.querySelectorAll("time:not([switchable])").forEach(i => {
-        i.title += `\n\nClick for change time format\nClick with ctrl for open the map state at the time of ${isObjectPage ? "version was created" : "changeset was closed"}`
-        i.addEventListener("click", (e) => {
-            if (e.metaKey || e.ctrlKey) {
-                const {lng: lon, lat: lat} = getMap().getCenter()
-                const zoom = getMap().getZoom();
-                const query = `// via changeset closing time
-[date:"${i.getAttribute("datetime")}"]; 
+
+    function openMapStateInOverpass(elem) {
+        const {lng: lon, lat: lat} = getMap().getCenter()
+        const zoom = getMap().getZoom();
+        const query = `// via changeset closing time
+[date:"${elem.getAttribute("datetime")}"]; 
 (
   node({{bbox}});
   way({{bbox}});
@@ -1045,14 +1046,38 @@ function makeTimesSwitchable() {
 );
 (._;>;);
 out meta;
-    `;
-                window.open(`https://overpass-turbo.eu/?Q=${encodeURI(query)}&C=${lat};${lon};${zoom}${zoom > 15 ? "&R" : ""}`, "_blank")
+`;
+        window.open(`https://overpass-turbo.eu/?Q=${encodeURI(query)}&C=${lat};${lon};${zoom}${zoom > 15 ? "&R" : ""}`, "_blank")
+    }
+
+    document.querySelectorAll("time:not([switchable])").forEach(i => {
+        i.title += `\n\nClick for change time format\nClick with ctrl for open the map state at the time of ${isObjectPage ? "version was created" : "changeset was closed"}`
+        function clickEvent(e) {
+            if (e.metaKey || e.ctrlKey) {
+                if (window.getSelection().type === "Range") {
+                    return
+                }
+                openMapStateInOverpass(i)
             } else {
                 switchTimestamp()
             }
-        })
+        }
+        i.addEventListener("click", clickEvent);
     })
-    document.querySelectorAll("time:not([switchable])").forEach(i => i.setAttribute("switchable", "true"))
+    document.querySelectorAll("time:not([switchable])").forEach(i => {
+        i.setAttribute("switchable", "true")
+        const btn = document.createElement("a")
+        btn.classList.add("timeback-btn");
+        btn.title = `Open the map state at the time of ${isObjectPage ? "version was created" : "changeset was closed"}`
+        btn.textContent = " 🕰";
+        btn.style.cursor = "pointer"
+        btn.style.display = "none"
+        btn.onclick = (e) => {
+            e.stopPropagation()
+            openMapStateInOverpass(i)
+        }
+        i.appendChild(btn);
+    })
 
 }
 
