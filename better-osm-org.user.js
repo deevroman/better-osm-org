@@ -9087,6 +9087,7 @@ function addMassChangesetsActions() {
             if (item.classList.contains("custom-changeset-id-click")) return
             item.classList.add("custom-changeset-id-click")
             item.onclick = (e) => {
+                if (!e.isTrusted) return
                 e.preventDefault();
                 let id = e.target.innerText.slice(1);
                 navigator.clipboard.writeText(id).then(() => copyAnimation(e, id));
