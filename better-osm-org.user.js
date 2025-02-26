@@ -64,13 +64,16 @@
 // @comment      for get diffs for finding deleted users
 // @connect      planet.openstreetmap.org
 // @connect      planet.maps.mail.ru
+// @comment      overpass instances
 // @connect      maps.mail.ru
+// @connect      overpass.private.coffee
+// @connect      turbo.overpass.private.coffee
+// @connect      overpass-api.de
 // @connect      www.hdyc.neis-one.org
 // @connect      hdyc.neis-one.org
 // @connect      resultmaps.neis-one.org
 // @connect      www.openstreetmap.org
 // @connect      osmcha.org
-// @connect      overpass-api.de
 // @connect      raw.githubusercontent.com
 // @connect      en.wikipedia.org
 // @connect      graph.mapillary.com
@@ -155,6 +158,26 @@ function makeRow(label, text) {
     tr.appendChild(td2)
     return tr
 }
+
+const MAIN_OVERPASS_INSTANCE = {
+    name: "overpass-api.de",
+    apiUrl: "https://overpass-api.de/api",
+    url: "https://overpass-api.de/",
+}
+
+const MAILRU_OVERPASS_INSTANCE = {
+    name: "maps.mail.ru/osm/tools/overpass",
+    apiUrl: "https://maps.mail.ru/osm/tools/overpass/api",
+    url: "https://maps.mail.ru/osm/tools/overpass/",
+}
+
+const PRIVATECOFFEE_OVERPASS_INSTANCE = {
+    name: "overpass.private.coffee",
+    apiUrl: "https://overpass.private.coffee/api",
+    url: "https://turbo.overpass.private.coffee/",
+}
+
+let overpass_server = MAIN_OVERPASS_INSTANCE
 
 GM_config.init(
     {
@@ -330,6 +353,16 @@ GM_config.init(
                     'type': 'checkbox',
                     'default': 'checked',
                     'labelPos': 'right'
+                },
+                'OverpassInstance': {
+                    'label': '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass API server</a>',
+                    'labelPos': 'left',
+                    'type': 'select',
+                    'options': [
+                        MAIN_OVERPASS_INSTANCE.name,
+                        MAILRU_OVERPASS_INSTANCE.name,
+                        PRIVATECOFFEE_OVERPASS_INSTANCE.name
+                    ],
                 }
             },
         'types': {
@@ -468,6 +501,9 @@ GM_config.init(
             }
             #Config a {
                 color: darkgray;
+            }
+            #Config_field_OverpassInstance {
+                filter: invert(0.9);
             }
             #Config_saveBtn {
                 filter: invert(0.9);
@@ -1047,11 +1083,12 @@ function makeTimesSwitchable() {
 (._;>;);
 out meta;
 `;
-        window.open(`https://overpass-turbo.eu/?Q=${encodeURI(query)}&C=${lat};${lon};${zoom}${zoom > 15 ? "&R" : ""}`, "_blank")
+        window.open(`${overpass_server.url}?Q=${encodeURI(query)}&C=${lat};${lon};${zoom}${zoom > 15 ? "&R" : ""}`, "_blank")
     }
 
     document.querySelectorAll("time:not([switchable])").forEach(i => {
         i.title += `\n\nClick for change time format\nClick with ctrl for open the map state at the time of ${isObjectPage ? "version was created" : "changeset was closed"}`
+
         function clickEvent(e) {
             if (e.metaKey || e.ctrlKey) {
                 if (window.getSelection().type === "Range") {
@@ -1062,6 +1099,7 @@ out meta;
                 switchTimestamp()
             }
         }
+
         i.addEventListener("click", clickEvent);
     })
     document.querySelectorAll("time:not([switchable])").forEach(i => {
@@ -1283,7 +1321,7 @@ function addResolveNotesButton() {
         let b = document.createElement("span");
         b.classList.add("add-new-object-btn", "btn", "btn-primary");
         b.textContent = "➕";
-        b.title = `add new object on map\nPaste tags in textarea\nkey1=value1\nkey2=value\n...`
+        b.title = `add new object on map\nPaste tags in textarea\nkey=value\nkey2=value2\n...`
         document.querySelector("#sidebar_content form div:has(input)").appendChild(b);
         b.before(document.createTextNode("\xA0"));
         b.onclick = (e) => {
@@ -1440,7 +1478,7 @@ out meta;
         btn.style.cursor = "pointer"
         document.querySelector("#sidebar_content time").after(btn);
         btn.onclick = () => {
-            window.open(`https://overpass-turbo.eu/?Q=${encodeURI(query)}&C=${lat};${lon};${zoom}&R`)
+            window.open(`${overpass_server.url}?Q=${encodeURI(query)}&C=${lat};${lon};${zoom}&R`)
         }
     } catch {
         console.error("setup timeback button fail");
@@ -2324,7 +2362,7 @@ let searchResultBBOX = null;
 
 async function processOverpassQuery(query) {
     if (!query.length) return
-    lastOverpassQuery = query
+    GM_setValue("lastOverpassQuery", query)
     const bound = getMap().getBounds().wrap()
     const bboxString = [bound.getSouth(), bound.getWest(), bound.getNorth(), bound.getEast()]
     const bboxExpr = query[query.length - 1] !== "!" ? "[bbox:" + bboxString + "]" : ""
@@ -2346,7 +2384,7 @@ out geom;
         console.time("download overpass data")
         const res = await GM.xmlHttpRequest({
             // todo switcher
-            url: "https://maps.mail.ru/osm/tools/overpass/api/interpreter?" + new URLSearchParams({
+            url: overpass_server.apiUrl + "/interpreter?" + new URLSearchParams({
                 data: overpassQuery
             }),
             responseType: "xml"
@@ -2354,6 +2392,9 @@ out geom;
         console.timeEnd("download overpass data")
 
         const xml = (res).responseXML;
+        const data_age = new Date(xml.querySelector("meta").getAttribute("osm_base"))
+        console.log(data_age);
+
         getMap()?.invalidateSize()
         const bbox = searchResultBBOX = combineBBOXes(Array.from(xml.querySelectorAll("bounds")).map(i => {
             return {
@@ -2383,6 +2424,21 @@ out geom;
             jsonLayer?.remove()
             renderOSMGeoJSONwrapper(xml, true)
             console.timeEnd("render overpass response")
+
+            let statusPrefix = ""
+            if (!xml.querySelector("node,way,relation")) {
+                statusPrefix += "Empty result"
+            }
+
+            if ((new Date().getTime() - data_age.getTime()) / 1000 / 60 > 5) {
+                if (statusPrefix === "") {
+                    statusPrefix += "Currentless of the data: " + data_age.toLocaleDateString() + " " + data_age.toLocaleTimeString()
+                } else {
+                    statusPrefix += " | " + "Currentless of the data: " + data_age.toLocaleDateString() + " " + data_age.toLocaleTimeString()
+                }
+            }
+
+            getMap()?.attributionControl?.setPrefix(statusPrefix)
         }
     } finally {
         if (document.title === newTitle) {
@@ -4072,7 +4128,7 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
             return overpassCache[[id, timestamp]]
         } else {
             const res = await GM.xmlHttpRequest({
-                url: "https://overpass-api.de/api/interpreter?" + new URLSearchParams({
+                url: `${overpass_server.apiURL}/interpreter?` + new URLSearchParams({
                     data: `
                             [out:json][date:"${timestamp}"];
                             relation(${id});
@@ -4173,7 +4229,7 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
 
 async function getNodeViaOverpassXML(id, timestamp) {
     const res = await GM.xmlHttpRequest({
-        url: "https://overpass-api.de/api/interpreter?" + new URLSearchParams({
+        url: `${overpass_server.apiUrl}/interpreter?` + new URLSearchParams({
             data: `
                 [out:xml][date:"${timestamp}"];
                 node(${id});
@@ -4187,7 +4243,7 @@ async function getNodeViaOverpassXML(id, timestamp) {
 
 async function getWayViaOverpassXML(id, timestamp) {
     const res = await GM.xmlHttpRequest({
-        url: "https://overpass-api.de/api/interpreter?" + new URLSearchParams({
+        url: `${overpass_server.apiUrl}/interpreter?` + new URLSearchParams({
             data: `
                 [out:xml][date:"${timestamp}"];
                 way(${id});
@@ -4203,7 +4259,7 @@ async function getWayViaOverpassXML(id, timestamp) {
 
 async function getRelationViaOverpassXML(id, timestamp) {
     const res = await GM.xmlHttpRequest({
-        url: "https://overpass-api.de/api/interpreter?" + new URLSearchParams({
+        url: `${overpass_server.apiUrl}/interpreter?` + new URLSearchParams({
             data: `
                 [out:xml][date:"${timestamp}"];
                 relation(${id});
@@ -4691,7 +4747,7 @@ function addCommentsCount() {
                         if (k === "comment") return;
                         i.parentElement.title += `${k}: ${v}\n`
                     })
-                    const user_link = i.parentElement.querySelector(`a[href^="/user/"]`)
+                    const user_link = i.parentElement.parentElement.querySelector(`a[href^="/user/"]`)
                     getCachedUserInfo(user_link.textContent).then((res) => {
                         user_link.title = `changesets_count: ${res['changesets']['count']}\naccount_created: ${res['account_created']}`
                     })
@@ -6686,7 +6742,9 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                     nodesHistories[n.id] = [n]
                 }
             })
-            while (!changesetMetadata) {
+            let attempts = 0
+            while (!changesetMetadata && attempts < 60) {
+                attempts++
                 console.log(`changesetMetadata not ready. Wait second...`)
                 await abortableSleep(1000, abortDownloadingController) // todo нужно поретраить
                 changesetMetadata = changesetMetadatas[targetVersion.changeset]
@@ -6743,7 +6801,9 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false)
             }
         }
-        while (!changesetMetadata) {
+        let attempts = 0
+        while (!changesetMetadata && attempts < 60) {
+            attempts++
             console.log(`changesetMetadata not ready. Wait second...`)
             await abortableSleep(1000, abortDownloadingController) // todo нужно поретраить
             changesetMetadata = changesetMetadatas[targetVersion.changeset]
@@ -7889,14 +7949,54 @@ async function processQuickLookInSidebar(changesetID) {
         } else {
             console.error(e)
             console.log("%cSetup QuickLook finished with error ⚠️", 'background: #222; color: #bada55')
-            if (isDebug() && ![ABORT_ERROR_PREV, ABORT_ERROR_NEXT, ABORT_ERROR_USER_CHANGESETS].includes(e)) {
+
+            function makeGithubIssueLink(text) {
+                const a = document.createElement("a")
+                a.classList.add("crash-report-link")
+                a.href = "https://github.com/deevroman/better-osm-org/issues/new?"
+                    + new URLSearchParams({
+                        body: text,
+                        title: "Crash Report",
+                        labels: "bug,crash"
+                    }).toString()
+                a.target = "_blank"
+                a.appendChild(document.createTextNode("Send Bug Report"))
+                a.title = "better-osm-org was unable to display some data"
+                return a
+            }
+
+            if (![ABORT_ERROR_PREV, ABORT_ERROR_NEXT, ABORT_ERROR_USER_CHANGESETS].includes(e) && getMap().getZoom) {
                 // eslint-disable-next-line no-debugger
                 debugger
                 try {
-                    getMap()?.attributionControl?.setPrefix("⚠️") // todo debug only
+                    const reportText = `
+**Page:** ${location.origin}${location.pathname}
+
+**Error:** \`${e.toString().replace("`", "\\`")}\`
+
+**StackTrace:**
+
+\`\`\`
+${e.stack.replace("`", "\\`").replaceAll(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gm, "<hidden>")}
+\`\`\`
+
+**Script handler:** \`${GM_info.scriptHandler} v${GM_info.version}\`
+
+**UserAgent:** \`${JSON.stringify(GM_info.userAgentData)}\`
+                                   
+                    `
+                    if (!document.querySelector(".crash-report-link")) {
+                        document.querySelector("#sidebar_content .secondary-actions").appendChild(document.createTextNode(" · "))
+                        document.querySelector("#sidebar_content .secondary-actions").appendChild(makeGithubIssueLink(reportText))
+                    }
+                    if (isDebug()) {
+                        getMap()?.attributionControl?.setPrefix("⚠️")
+                    }
                 } catch { /* empty */
                 }
-                alert("⚠ read logs.\nOnly the script developer should see this message")
+                if (isDebug()) {
+                    alert("⚠ read logs.\nOnly the script developer should see this message")
+                }
                 // eslint-disable-next-line no-debugger
                 debugger
                 throw e
@@ -8516,7 +8616,9 @@ function makeTopActionBar() {
     copyIds.classList.add("copy-changesets-ids-btn")
     copyIds.onclick = () => {
         const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
-        navigator.clipboard.writeText(ids);
+        navigator.clipboard.writeText(ids).then(() => {
+            console.log("ids copied")
+        });
     }
     const revertButton = document.createElement("button")
     revertButton.textContent = "↩️"
@@ -8560,7 +8662,9 @@ function makeBottomActionBar() {
     copyIds.classList.add("btn", "btn-primary")
     copyIds.onclick = () => {
         const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
-        navigator.clipboard.writeText(ids);
+        navigator.clipboard.writeText(ids).then(() => {
+            console.log("ids copied")
+        });
     }
     const revertButton = document.createElement("button")
     revertButton.textContent = "↩️"
@@ -9726,8 +9830,6 @@ async function zoomToChangesets() {
     fitBounds([[bbox.min_lat, bbox.min_lon], [bbox.max_lat, bbox.max_lon]])
 }
 
-let lastOverpassQuery = ""
-
 function setupNavigationViaHotkeys() {
     if (["/edit", "/id"].includes(location.pathname)) return
     updateCurrentObjectMetadata()
@@ -10169,7 +10271,7 @@ function setupNavigationViaHotkeys() {
             }
         } else if (e.code === "Slash" && e.shiftKey) {
             getMap().getBounds()
-            const query = prompt(`Type overpass selector:\n\tkey\n\tkey=value\n\tkey~val,i\n\tway[footway=crossing](if: length() > 150)\nEnd with ! for global search\n⚠this is a simple prototype of search`, lastOverpassQuery)
+            const query = prompt(`Type overpass selector:\n\tkey\n\tkey=value\n\tkey~val,i\n\tway[footway=crossing](if: length() > 150)\nEnd with ! for global search\n⚠this is a simple prototype of search`, GM_getValue("lastOverpassQuery", ""))
             if (query) {
                 insertOverlaysStyles()
                 processOverpassQuery(query)
@@ -10405,7 +10507,7 @@ function setupTaginfo() {
             overpassLink.target = "_blank"
             const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ''))
             const key = i.querySelector(".empty") ? "" : i.querySelector("a").textContent
-            overpassLink.href = "https://overpass-turbo.eu/?" + (count > 100000
+            overpassLink.href = `${overpass_server.url}?` + (count > 100000
                 ? new URLSearchParams({
                         w: instance ? `"${key}"=* in "${instance}"` : `"${key}"=*`
                     }
@@ -10446,7 +10548,7 @@ area(id:${3600000000 + parseInt(r[0]['osm_id'])})->.a;
 rel[type=${type}](if:count_by_role("${role}") > 0)(area.a);
 out geom;
 `;
-                        overpassLink.href = "https://overpass-turbo.eu/?" + (count > 1000
+                        overpassLink.href = `${overpass_server.url}?` + (count > 1000
                             ? new URLSearchParams({Q: query})
                             : new URLSearchParams({Q: query, R: ""})).toString()
                         overpassLink.style.cursor = "pointer"
@@ -10456,7 +10558,7 @@ out geom;
                 })
             } else {
                 const query = `rel[type=${type}](if:count_by_role("${role}") > 0)${count > 1000 ? "({{bbox}})" : ""};\nout geom;`
-                overpassLink.href = "https://overpass-turbo.eu/?" + (count > 1000
+                overpassLink.href = `${overpass_server.url}?` + (count > 1000
                     ? new URLSearchParams({Q: query})
                     : new URLSearchParams({Q: query, R: ""})).toString()
                 overpassLink.style.cursor = "pointer"
@@ -10626,7 +10728,7 @@ function renderOSMGeoJSONwrapper(xml) {
 
             const versionLink = document.createElement("a")
             versionLink.classList.add("version-link")
-            versionLink.textContent = "v" + feature.properties.meta.version
+            versionLink.textContent = feature.properties.meta.version ? ("v" + feature.properties.meta.version) : ""
             versionLink.href = "/" + feature.type + "/" + feature.id + "history/" + feature.properties.meta.version
             popupBody.appendChild(versionLink)
 
@@ -11071,6 +11173,12 @@ async function setupDragAndDropViewers() {
         }
     }
 
+    // todo refactor
+    const createNoteButton = document.querySelector(".control-note.leaflet-control a")
+    if (createNoteButton) {
+        createNoteButton.setAttribute("data-bs-original-title", createNoteButton.getAttribute("data-bs-original-title") + " (shift + N)")
+    }
+
 }
 
 
@@ -11109,6 +11217,13 @@ ${GM_getResourceText("DARK_THEME_FOR_ID_CSS")}
         osm_server = ohm_prod_server
     } else {
         osm_server = local_server;
+    }
+    if (GM_config.get("OverpassInstance") === MAILRU_OVERPASS_INSTANCE.name) {
+        overpass_server = MAILRU_OVERPASS_INSTANCE
+    } else if (GM_config.get("OverpassInstance") === PRIVATECOFFEE_OVERPASS_INSTANCE.name) {
+        overpass_server = PRIVATECOFFEE_OVERPASS_INSTANCE
+    } else {
+        overpass_server = MAIN_OVERPASS_INSTANCE
     }
     let lastPath = "";
     new MutationObserver(function fn() {
@@ -11226,6 +11341,7 @@ function runSnow() {
 //</editor-fold>
 
 const SCRIPT_UPDATE_URL = "https://raw.githubusercontent.com/deevroman/better-osm-org/master/better-osm-org.user.js"
+const DEV_SCRIPT_UPDATE_URL = "https://raw.githubusercontent.com/deevroman/better-osm-org/dev/better-osm-org.user.js"
 
 function main() {
     // GM_config.open();
@@ -11242,9 +11358,15 @@ function main() {
             });
             if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || isDebug()) {
                 GM_registerMenuCommand("Check script updates", function () {
-                    window.open(SCRIPT_UPDATE_URL, "_blank") // todo add random param for bypass cache?
+                    window.open(`${DEV_SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`, "_blank")
                 });
             }
+            if (isDebug()) {
+                GM_registerMenuCommand("Check dev script updates", function () {
+                    window.open(`${DEV_SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`, "_blank")
+                });
+            }
+
             // New Year Easter egg
             const curDate = new Date()
             if (curDate.getMonth() === 11 && curDate.getDate() >= 18 || curDate.getMonth() === 0 && curDate.getDate() < 10) {
