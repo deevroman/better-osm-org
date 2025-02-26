@@ -69,6 +69,8 @@ Photos are also displayed in the tags `panoramax=*` and `wikimedia_commons=*`
 
 Experimental hotkeys:
 - `K` `L` — navigation between changeset elements
+- `J` — open objects from changesets in JOSM
+- `shift` + `J` — open objects from changesets in Level0
 - `shift` + `L` — pan to current location
 - `shift` + `H` — open My changesets
 - `Y` — open Yandex.Panoramas
