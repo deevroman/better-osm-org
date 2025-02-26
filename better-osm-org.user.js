@@ -1060,7 +1060,7 @@ function makeTimesSwitchable() {
                 j.childNodes[0].textContent = j.getAttribute("natural_text")
                 timestampMode = "natural_text"
             }
-            if (j.querySelector(".timeback-btn")) {
+            if (j.querySelector(".timeback-btn") && j.nextElementSibling?.id !== "timeback-btn") {
                 j.querySelector(".timeback-btn").style.display = ""
             }
         }
