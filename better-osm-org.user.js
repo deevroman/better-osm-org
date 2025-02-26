@@ -6,7 +6,7 @@
 // @changelog       v0.8.9: Support Mapillary images in tags
 // @changelog       v0.8.9: KeyJ — open in JOSM current state of objects from changeset, alt + J — in Level0
 // @changelog       v0.8.9: Ctrl + click by <time> for open  state of the map as of the selected date
-// @changelog       v0.8.9: Shift + / for simple search via Overpass
+// @changelog       v0.8.9: Shift + / for simple search and editor via Overpass
 // @changelog       v0.8: https://osm.org/user/TrickyFoxy/diary/406061
 // @changelog       v0.8: Images from Panoramax, StreetComplete, Wikipedia Commons in changeset and notes
 // @changelog       v0.8: GPX-tracks render (also in StreetComplete notes)
@@ -17,7 +17,7 @@
 // @changelog       New: Comments templates, support ways render in relation members list
 // @changelog       New: Q for close sidebar, shift + Z for real bbox of changeset
 // @changelog       New: displaying the full history of ways (You can disable it in settings)
-// @changelog       https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670/44
+// @changelog       https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670/57
 // @description     Several improvements for advanced users of openstreetmap.org
 // @description:ru  Скрипт, добавляющий на openstreetmap.org полезные картографам функции
 // @author       deevroman
@@ -2391,7 +2391,7 @@ out geom;
         })
         console.timeEnd("download overpass data")
 
-        const xml = (res).responseXML;
+        const xml = new DOMParser().parseFromString(res.response, "text/xml");
         const data_age = new Date(xml.querySelector("meta").getAttribute("osm_base"))
         console.log(data_age);
 
@@ -4128,7 +4128,7 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
             return overpassCache[[id, timestamp]]
         } else {
             const res = await GM.xmlHttpRequest({
-                url: `${overpass_server.apiURL}/interpreter?` + new URLSearchParams({
+                url: `${overpass_server.apiUrl}/interpreter?` + new URLSearchParams({
                     data: `
                             [out:json][date:"${timestamp}"];
                             relation(${id});
@@ -10707,8 +10707,12 @@ function currentVersionBanned(module) {
 function renderOSMGeoJSONwrapper(xml) {
     const auth = makeAuth();
 
-    fetch("https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/dev/banned_versions.json").then(async res => {
-        bannedVersions = await res.json()
+
+    GM.xmlHttpRequest({
+        url: "https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/dev/banned_versions.json",
+        responseType: "json"
+    }).then(async res => {
+        bannedVersions = await res.response
     })
 
     function renderOSMGeoJSON(data) {
