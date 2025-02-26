@@ -124,7 +124,7 @@ function isDarkMode() {
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && !accountForceLightTheme || accountForceDarkTheme;
 }
 
-function makeRow(label, text) {
+function makeRow(label, text, without_delete = false) {
     const tr = document.createElement("tr")
     const th = document.createElement("th")
     const td = document.createElement("td")
@@ -155,7 +155,9 @@ function makeRow(label, text) {
 
     tr.appendChild(th)
     tr.appendChild(td)
-    tr.appendChild(td2)
+    if (!without_delete) {
+        tr.appendChild(td2)
+    }
     return tr
 }
 
@@ -414,6 +416,7 @@ GM_config.init(
                     })
 
                     const tr = document.createElement("tr")
+                    tr.classList.add("add-tag-row")
                     tbody.appendChild(tr)
                     const th = document.createElement("th")
                     th.textContent = "+"
@@ -10759,11 +10762,24 @@ function renderOSMGeoJSONwrapper(xml) {
                     const td = document.createElement("td")
                     td.textContent = value
                     const tr = document.createElement("tr")
-                    tr.tabIndex = 0
+                    th.tabIndex = 0
+                    td.tabIndex = 0
                     tr.appendChild(th)
                     tr.appendChild(td)
                     tbody.appendChild(tr)
                 })
+                const tr = document.createElement("tr")
+                tr.classList.add("add-tag-row")
+                const th = document.createElement("th")
+                th.textContent = "+"
+                th.colSpan = 2
+                th.tabIndex = 0
+                th.setAttribute("contenteditable", false)
+                tr.appendChild(th)
+                th.onclick = () => {
+                    tbody.lastElementChild.before(makeRow("", "", true))
+                }
+                tbody.appendChild(tr)
                 return tbody
             }
 
@@ -10784,6 +10800,7 @@ function renderOSMGeoJSONwrapper(xml) {
             metaTable.classList.add("geojson-props-table")
             metaTable.classList.add("zebra_colors")
             metaTable.classList.add("metainfo-table")
+
             const metaTBody = document.createElement("tbody")
             metaTable.appendChild(metaTBody)
             Object.entries(feature.properties?.meta).forEach(([key, value]) => {
@@ -10818,8 +10835,9 @@ function renderOSMGeoJSONwrapper(xml) {
             }))
             const startEdit = intoPageWithFun(async (startEditEvent) => {
                 const table = startEditEvent.target.parentElement.querySelector("table.tags-table")
+                const metaTable = startEditEvent.target.parentElement.querySelector("table.metainfo-table")
                 const oldTags = {}
-                table.querySelectorAll("tr").forEach(i => {
+                table.querySelectorAll("tr:not(.add-tag-row)").forEach(i => {
                     oldTags[i.querySelector("th").textContent] = i.querySelector("td").textContent
                 })
 
@@ -10844,11 +10862,32 @@ function renderOSMGeoJSONwrapper(xml) {
                     object_version = parseInt(objectInfo.querySelector("[version]:not(osm)").getAttribute("version"))
                     startEditEvent.target.parentElement.querySelector(".version-link").textContent = (object_version ? "v" + object_version : "")
                     startEditEvent.target.parentElement.querySelector(".version-link").href = `/${object_type}/${object_id}/history/${object_version}`
+
+                    metaTable.querySelector("tbody")?.remove()
+
+                    const metaTBody = document.createElement("tbody")
+                    metaTable.appendChild(metaTBody)
+                    Array.from(objectInfo.querySelector("node,way,relation").attributes).map(i => [i.name, i.value]).forEach(([key, value]) => {
+                        if (key === "visible" || key === "nodes" || key === "members" || key === "id") return
+                        const th = document.createElement("th")
+                        th.textContent = key
+                        const td = document.createElement("td")
+                        td.textContent = value
+
+                        const tr = document.createElement("tr")
+                        tr.appendChild(th)
+                        tr.appendChild(td)
+                        metaTBody.appendChild(tr)
+                    })
                 }
 
                 await syncTags()
 
-                table.setAttribute("contenteditable", "true")
+                table.classList.add("editable")
+                table.querySelectorAll("tr:not(.add-tag-row)").forEach(i => {
+                    i.querySelector("th").setAttribute("contenteditable", true)
+                    i.querySelector("td").setAttribute("contenteditable", true)
+                })
                 table.addEventListener("input", () => {
                     startEditEvent.target.removeAttribute("disabled")
                 })
@@ -10856,7 +10895,7 @@ function renderOSMGeoJSONwrapper(xml) {
                 startEditEvent.target.setAttribute("disabled", true)
                 startEditEvent.target.addEventListener("click", async () => {
                     const newTags = {}
-                    table.querySelectorAll("tr").forEach(i => {
+                    table.querySelectorAll("tr:not(.add-tag-row)").forEach(i => {
                         const key = i.querySelector("th").textContent.trim()
                         const value = i.querySelector("td").textContent.trim()
                         if (key === "" || value === "") { // todo notify about error
@@ -11035,6 +11074,15 @@ function insertOverlaysStyles() {
                     
                     table[contenteditable].tags-table td:not(.tag-flag) {
                         border: solid 2px black;
+                    }
+                    
+                    table:not(.editable).tags-table tr.add-tag-row {
+                        display: none;
+                    }
+                    
+                    table.editable.tags-table tr.add-tag-row th {
+                        text-align: center;
+                        cursor: pointer;
                     }
                     
                     .map-img-preview-popup {
@@ -11494,7 +11542,7 @@ setTimeout(async function () {
             if (userinfo.cacheTime && (new Date(userinfo.cacheTime)).getTime() + 1000 * 60 * 60 * 24 * 14 < Date.now()) {
                 await GM_deleteValue(i);
             }
-        } catch (e) {
+        } catch { /* empty */
         }
     }
     console.log("Old cache cleaned")
