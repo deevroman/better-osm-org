@@ -9982,7 +9982,7 @@ function setupNavigationViaHotkeys() {
                         nodes.map(i => "n" + i).join(","),
                         ways.map(i => "w" + i).join(","),
                         relations.map(i => "r" + i).join(",")
-                    ].join(",").replace(/,$/, "").replace(/^,/, "").replace(/,,/, ",")
+                    ].join(",").replace(/,,/, ",").replace(/,$/, "").replace(/^,/, "")
                 }).toString())
             } else {
                 window.open("http://localhost:8111/load_object?" + new URLSearchParams({
