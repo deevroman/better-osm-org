@@ -1104,6 +1104,12 @@ out meta;
         }
 
         i.addEventListener("click", clickEvent);
+        i.addEventListener("dblclick", e => {
+            if (e.metaKey || e.ctrlKey || e.altKey) {
+                return
+            }
+            openMapStateInOverpass(i)
+        });
     })
     document.querySelectorAll("time:not([switchable])").forEach(i => {
         i.setAttribute("switchable", "true")
@@ -1113,6 +1119,7 @@ out meta;
         btn.textContent = " 🕰";
         btn.style.cursor = "pointer"
         btn.style.display = "none"
+        btn.style.userSelect = "none"
         btn.onclick = (e) => {
             e.stopPropagation()
             openMapStateInOverpass(i)
