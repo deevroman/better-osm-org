@@ -1358,11 +1358,14 @@ function addResolveNotesButton() {
             document.querySelector(".note form textarea").selectionEnd = 0
             newNotePlaceholder = null
         }
-        if (document.querySelector(".add-new-object-btn") && getMap()) return
+        if (document.querySelector(".add-new-object-btn")) return
         let b = document.createElement("span");
         b.classList.add("add-new-object-btn", "btn", "btn-primary");
         b.textContent = "➕";
-        b.title = `add new object on map\nPaste tags in textarea\nkey=value\nkey2=value2\n...`
+        if (!getMap() || !getMap().getZoom) {
+            b.style.display = "none"
+        }
+        b.title = `Add new object on map\nPaste tags in textarea\nkey=value\nkey2=value2\n...`
         document.querySelector("#sidebar_content form div:has(input)").appendChild(b);
         b.before(document.createTextNode("\xA0"));
         b.onclick = (e) => {
@@ -5732,12 +5735,21 @@ function makeLinksInRowClickable(row) {
         }
         row.querySelector("td").appendChild(a)
     } else {
-        if (row.querySelector("th").textContent.startsWith("panoramax")) {
+        const key = row.querySelector("th").textContent
+        if (key.startsWith("panoramax")) {
             makePanoramaxValue(row.querySelector("td"))
-        } else if (row.querySelector("th").textContent.startsWith("mapillary")) {
+        } else if (key.startsWith("mapillary")) {
             makeMapillaryValue(row.querySelector("td"))
-        } else if (row.querySelector("th").textContent.startsWith("wikimedia_commons")) {
+        } else if (key.startsWith("wikimedia_commons")) {
             makeWikimediaCommonsValue(row.querySelector("td"))
+        } else if (key.startsWith("opening_hours") // https://github.com/opening-hours/opening_hours.js/blob/master/scripts/related_tags.txt
+            || ["happy_hours", "delivery_hours", "smoking_hours", "collection_times", "service_times"].includes(key)) {
+            try {
+                new opening_hours(row.querySelector("td").textContent, null, {tag_key: key});
+            } catch (e) {
+                row.querySelector("td").title = e
+                row.querySelector("td").classList.add("fixme-tag")
+            }
         }
     }
 }
@@ -10249,9 +10261,9 @@ function setupNavigationViaHotkeys() {
                 }
             } else if (jsonLayer) {
                 if (layersHidden) {
-                    jsonLayer.eachLayer(i => i.getElement().style.visibility = "")
+                    jsonLayer.eachLayer(intoPageWithFun(i => getMap()._layers[i._leaflet_id].getElement().style.visibility = ""))
                 } else {
-                    jsonLayer.eachLayer(i => i.getElement().style.visibility = "hidden")
+                    jsonLayer.eachLayer(intoPageWithFun(i => getMap()._layers[i._leaflet_id].getElement().style.visibility = "hidden"))
                 }
             }
             layersHidden = !layersHidden;
@@ -10843,7 +10855,7 @@ function renderOSMGeoJSON(xml) {
     const auth = makeAuth();
 
     GM.xmlHttpRequest({
-        url: "https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/dev/banned_versions.json",
+        url: "https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/master/banned_versions.json",
         responseType: "json"
     }).then(async res => {
         bannedVersions = await res.response
@@ -11182,22 +11194,21 @@ function renderOSMGeoJSON(xml) {
                 })
 
                 let tagsHint = ""
-                // const tags = Array.from(objectInfo.children[0].children[0]?.children)
-                // for (const i of newTags) {
-                //     if (mainTags.includes(i.getAttribute("k"))) {
-                //         tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`;
-                //         break
-                //     }
-                // }
-                // for (const i of tags) {
-                //     if (i.getAttribute("k") === "name") {
-                //         tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`;
-                //         break
-                //     }
-                // }
+                for (const i of Object.entries(oldTags)) {
+                    if (mainTags.includes(i[0])) {
+                        tagsHint += ` ${i[0]}=${i[1]}`;
+                        break
+                    }
+                }
+                for (const i of Object.entries(oldTags)) {
+                    if (i[0] === "name") {
+                        tagsHint += ` ${i[0]}=${i[1]}`;
+                        break
+                    }
+                }
                 const changesetTags = {
                     'created_by': `better osm.org v${GM_info.script.version}`,
-                    'comment': tagsHint !== "" ? `Update ${tagsHint}` : `Update tags of ${object_type} ${object_id}`
+                    'comment': tagsHint !== "" ? `Update tags of ${tagsHint}`.slice(0, 255) : `Update tags of ${object_type} ${object_id}`
                 };
 
                 let changesetPayload = document.implementation.createDocument(null, 'osm');
