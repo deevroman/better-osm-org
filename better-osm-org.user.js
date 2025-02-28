@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.8.9
+// @version         0.9
 // @changelog       v0.8.9: Satellite layer in Chrome
 // @changelog       v0.8.9: Support Mapillary images in tags
 // @changelog       v0.8.9: KeyJ — open in JOSM current state of objects from changeset, alt + J — in Level0
@@ -164,7 +164,7 @@ function makeRow(label, text, without_delete = false) {
 const MAIN_OVERPASS_INSTANCE = {
     name: "overpass-api.de",
     apiUrl: "https://overpass-api.de/api",
-    url: "https://overpass-api.de/",
+    url: "https://overpass-turbo.eu/",
 }
 
 const MAILRU_OVERPASS_INSTANCE = {
@@ -1104,12 +1104,6 @@ out meta;
         }
 
         i.addEventListener("click", clickEvent);
-        i.addEventListener("dblclick", e => {
-            if (e.metaKey || e.ctrlKey || e.altKey) {
-                return
-            }
-            openMapStateInOverpass(i)
-        });
     })
     document.querySelectorAll("time:not([switchable])").forEach(i => {
         i.setAttribute("switchable", "true")
