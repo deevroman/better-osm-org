@@ -19,6 +19,7 @@ Also works in Firefox for Android
 
 - Changesets filters
 - Show users roles and status
+- Show first comment
 
 <img src="img/changesets-filter.png">
 
@@ -84,6 +85,7 @@ Experimental hotkeys:
 - `T` — toggle between compact and full tags diff mode
 - `U` — open user profile
 - `shift` + `U` — open your profile
+- `shift` + `/` — search with Overpass
 
 ### Other
 
@@ -108,19 +110,21 @@ Experimental hotkeys:
 - [x] Hide active note highlight
 - [x] Click on time for show ISO-time
 - [x] Open external links in new tab 
-- [x] Highlight `fixme=*`
+- [x] Highlight `fixme=*`, `note=*`
+- [x] opening_hours validator
 - [x] Resizable sidebar
 - Clickable:
 - + [x] Hashtags in changeset comment
 - + [x] Changeset IDs in comments
 - + [x] `revert:id`, `closed:note`, `redacted_changesets` key in changeset
 - + [x] `panoramax=*`, `mapillary=*` tags
-- + [ ] `contact:*`=
+- + [ ] use tag2link
 - [x] Display GPS photos and tracks in StreetComplete notes
 - [x] Display photos from Panoramax and Wikimedia Commons in tags
 - [x] Display GPS-tracks
 - [x] Shortening long URLs in comments: https://www.openstreetmap.org → osm.org
 - [x] Shortening `v:`, `ideditor:` keys in changesets tags and hide `host=https://www.openstreetmap.org/edit`
+- [x] Display number of comments to changesets on the map item page
 - Bypass OSMF Redactions
 - + [x] Show redacted tags
 - + [ ] Show redacted geometry 
@@ -131,6 +135,7 @@ Experimental hotkeys:
 - + [x] geotagged photos
 - + [x] .gpx
 - + [x] .geojson
+- + [x] .osm
 
 ### Ideas
 
@@ -140,7 +145,6 @@ Experimental hotkeys:
 - [ ] Custom links to geo services (like OSM Smart Menu) 
 - [ ] Mark reviewed changesets
 - [ ] Public transport viewer and validator
-- [ ] opening_hours validator (and fixer?)
 - [ ] Hide resolved notes
 - [ ] Collapse name tags
 - Measurement
@@ -163,7 +167,7 @@ Experimental hotkeys:
 -
   + [ ] Photon?
 -
-  + [ ] Overpass?
+  + [x] Overpass (`shift` + `/`)
 - [ ] Custom overlays for iD
 -
     + [ ] Strava (Hard, need bypass CORS)
