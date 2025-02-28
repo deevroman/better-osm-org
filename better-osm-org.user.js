@@ -9958,36 +9958,52 @@ function setupNavigationViaHotkeys() {
                 document.querySelector("#editanchor")?.click()
             }
         } else if (e.code === "KeyJ") {
-            const nodes = []
-            document.querySelectorAll(`#changeset_nodes li.processed-object div div[id^="n"]`).forEach(i => {
-                nodes.push(i.id.slice(1))
+            setTimeout(async () => {
+                if (!location.pathname.includes("changeset")) return
+
+                const nodes = []
+                const ways = []
+                const relations = []
+
+                let changesetID = parseInt(location.pathname.match(/changeset\/(\d+)/)[1])
+                const changesetData = (await getChangeset(changesetID)).data
+
+                function processChangeset(data) {
+                    Array.from(data.querySelectorAll("node")).map(i => nodes.push(parseInt(i.getAttribute("id"))))
+                    Array.from(data.querySelectorAll("way")).map(i => ways.push(parseInt(i.getAttribute("id"))))
+                    Array.from(data.querySelectorAll("relation")).map(i => relations.push(parseInt(i.getAttribute("id"))))
+                }
+
+                processChangeset(changesetData)
+
+                if (location.search.includes("changesets=")) {
+                    const params = new URLSearchParams(location.search)
+                    const changesetIDs = params.get("changesets")?.split(",")?.filter(i => i !== changesetID) ?? []
+                    await Promise.all(changesetIDs.map(async i => {
+                        if (i === changesetID) return
+                        processChangeset((await getChangeset(i)).data)
+                    }))
+                }
+
+                if (e.altKey) {
+                    window.open("https://level0.osmz.ru/?" + new URLSearchParams({
+                        url: [
+                            nodes.map(i => "n" + i).join(","),
+                            ways.map(i => "w" + i).join(","),
+                            relations.map(i => "r" + i).join(",")
+                        ].join(",").replace(/,,/, ",").replace(/,$/, "").replace(/^,/, "")
+                    }).toString())
+                } else {
+                    window.open("http://localhost:8111/load_object?" + new URLSearchParams({
+                        new_layer: "true",
+                        objects: [
+                            nodes.map(i => "n" + i).join(","),
+                            ways.map(i => "w" + i).join(","),
+                            relations.map(i => "r" + i).join(",")
+                        ].join(",")
+                    }).toString())
+                }
             })
-            const ways = []
-            document.querySelectorAll(`#changeset_ways li.processed-object div div[id^="w"]`).forEach(i => {
-                ways.push(i.id.slice(1))
-            })
-            const relations = []
-            document.querySelectorAll(`#changeset_relations li.processed-object div div[id^="r"]`).forEach(i => {
-                relations.push(i.id.slice(1))
-            })
-            if (e.altKey) {
-                window.open("https://level0.osmz.ru/?" + new URLSearchParams({
-                    url: [
-                        nodes.map(i => "n" + i).join(","),
-                        ways.map(i => "w" + i).join(","),
-                        relations.map(i => "r" + i).join(",")
-                    ].join(",").replace(/,,/, ",").replace(/,$/, "").replace(/^,/, "")
-                }).toString())
-            } else {
-                window.open("http://localhost:8111/load_object?" + new URLSearchParams({
-                    new_layer: "true",
-                    objects: [
-                        nodes.map(i => "n" + i).join(","),
-                        ways.map(i => "w" + i).join(","),
-                        relations.map(i => "r" + i).join(",")
-                    ].join(",")
-                }).toString())
-            }
         } else if (e.code === "KeyH") {
             if (e.shiftKey) {
                 const targetURL = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href") + "/history"
