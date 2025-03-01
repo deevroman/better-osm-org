@@ -54,12 +54,11 @@
 // @grant        GM_setValue
 // @grant        GM_listValues
 // @grant        GM_deleteValue
-// @grant        GM.getValue
-// @grant        GM.setValue
 // @grant        GM_getResourceURL
 // @grant        GM_getResourceText
 // @grant        GM_addElement
 // @grant        GM.xmlHttpRequest
+// @grant        GM.fetch
 // @grant        GM_info
 // @comment      for get diffs for finding deleted users
 // @connect      planet.openstreetmap.org
@@ -5596,7 +5595,7 @@ async function error509Handler(res) {
 function addRegionForFirstChangeset(attempts = 5) {
     if (location.search.includes("changesets")) return;
     setTimeout(() => {
-        if (rateLimitBan) {
+        if (rateLimitBan || !getMap().getZoom) {
             return
         }
         if (getMap().getZoom() <= 10) {
@@ -5630,9 +5629,14 @@ function addRegionForFirstChangeset(attempts = 5) {
 let iconsList = null
 
 async function loadIconsList() {
-    const yml = (await GM.xmlHttpRequest({
-        url: `https://raw.githubusercontent.com/openstreetmap/openstreetmap-website/refs/heads/master/config/browse_icons.yml`,
-    })).responseText
+    let yml;
+    if (GM_info.scriptHandler !== "FireMonkey") {
+        yml = (await GM.xmlHttpRequest({
+            url: `https://raw.githubusercontent.com/openstreetmap/openstreetmap-website/refs/heads/master/config/browse_icons.yml`,
+        })).responseText
+    } else {
+        yml = await (await GM.fetch(`https://raw.githubusercontent.com/openstreetmap/openstreetmap-website/refs/heads/master/config/browse_icons.yml`)).text
+    }
     iconsList = {}
     // не, ну а почему бы и нет
     yml.match(/[\w_-]+:\s*(([\w_-]|:\*)+:(\s+{.*}\s+))*/g).forEach(tags => {
@@ -8595,7 +8599,7 @@ async function updateUserInfo(username) {
     }
 
     const res2 = await fetchJSONWithCache(osm_server.apiBase + "user/" + uid + ".json");
-    const userInfo = res2.user
+    const userInfo = structuredClone(res2.user) // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
     userInfo['cacheTime'] = new Date()
     if (firstObjectCreationTime) {
         userInfo['firstChangesetCreationTime'] = new Date(firstObjectCreationTime)
