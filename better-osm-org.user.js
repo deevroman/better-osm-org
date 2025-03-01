@@ -1073,11 +1073,11 @@ function makeTimesSwitchable() {
 
     const isObjectPage = location.pathname.includes("node") || location.pathname.includes("way") || location.pathname.includes("relation")
 
-    function openMapStateInOverpass(elem) {
+    function openMapStateInOverpass(elem, adiff = false) {
         const {lng: lon, lat: lat} = getMap().getCenter()
         const zoom = getMap().getZoom();
         const query = `// via changeset closing time
-[date:"${elem.getAttribute("datetime")}"]; 
+[${adiff ? "adiff" : "date"}:"${elem.getAttribute("datetime")}"]; 
 (
   node({{bbox}});
   way({{bbox}});
@@ -1090,14 +1090,14 @@ out meta;
     }
 
     document.querySelectorAll("time:not([switchable])").forEach(i => {
-        i.title += `\n\nClick for change time format\nClick with ctrl for open the map state at the time of ${isObjectPage ? "version was created" : "changeset was closed"}`
+        i.title += `\n\nClick for change time format\nClick with ctrl for open the map state at the time of ${isObjectPage ? "version was created" : "changeset was closed"}\nClick with Alt for view adiff`
 
         function clickEvent(e) {
-            if (e.metaKey || e.ctrlKey) {
+            if (e.metaKey || e.ctrlKey || e.altKey) {
                 if (window.getSelection().type === "Range") {
                     return
                 }
-                openMapStateInOverpass(i)
+                openMapStateInOverpass(i, e.altKey)
             } else {
                 switchTimestamp()
             }
@@ -1116,7 +1116,7 @@ out meta;
         btn.style.userSelect = "none"
         btn.onclick = (e) => {
             e.stopPropagation()
-            openMapStateInOverpass(i)
+            openMapStateInOverpass(i, e.altKey)
         }
         i.appendChild(btn);
     })
@@ -5594,6 +5594,7 @@ async function error509Handler(res) {
 }
 
 function addRegionForFirstChangeset(attempts = 5) {
+    if (location.search.includes("changesets")) return;
     setTimeout(() => {
         if (rateLimitBan) {
             return
@@ -9961,17 +9962,17 @@ function setupNavigationViaHotkeys() {
             setTimeout(async () => {
                 if (!location.pathname.includes("changeset")) return
 
-                const nodes = []
-                const ways = []
-                const relations = []
+                const nodes = new Set()
+                const ways = new Set()
+                const relations = new Set()
 
                 let changesetID = parseInt(location.pathname.match(/changeset\/(\d+)/)[1])
                 const changesetData = (await getChangeset(changesetID)).data
 
                 function processChangeset(data) {
-                    Array.from(data.querySelectorAll("node")).map(i => nodes.push(parseInt(i.getAttribute("id"))))
-                    Array.from(data.querySelectorAll("way")).map(i => ways.push(parseInt(i.getAttribute("id"))))
-                    Array.from(data.querySelectorAll("relation")).map(i => relations.push(parseInt(i.getAttribute("id"))))
+                    Array.from(data.querySelectorAll("node")).map(i => nodes.add(parseInt(i.getAttribute("id"))))
+                    Array.from(data.querySelectorAll("way")).map(i => ways.add(parseInt(i.getAttribute("id"))))
+                    Array.from(data.querySelectorAll("relation")).map(i => relations.add(parseInt(i.getAttribute("id"))))
                 }
 
                 processChangeset(changesetData)
@@ -9988,18 +9989,18 @@ function setupNavigationViaHotkeys() {
                 if (e.altKey) {
                     window.open("https://level0.osmz.ru/?" + new URLSearchParams({
                         url: [
-                            nodes.map(i => "n" + i).join(","),
-                            ways.map(i => "w" + i).join(","),
-                            relations.map(i => "r" + i).join(",")
+                            Array.from(nodes).map(i => "n" + i).join(","),
+                            Array.from(ways).map(i => "w" + i).join(","),
+                            Array.from(relations).map(i => "r" + i).join(",")
                         ].join(",").replace(/,,/, ",").replace(/,$/, "").replace(/^,/, "")
                     }).toString())
                 } else {
                     window.open("http://localhost:8111/load_object?" + new URLSearchParams({
                         new_layer: "true",
                         objects: [
-                            nodes.map(i => "n" + i).join(","),
-                            ways.map(i => "w" + i).join(","),
-                            relations.map(i => "r" + i).join(",")
+                            Array.from(nodes).map(i => "n" + i).join(","),
+                            Array.from(ways).map(i => "w" + i).join(","),
+                            Array.from(relations).map(i => "r" + i).join(",")
                         ].join(",")
                     }).toString())
                 }
@@ -10260,7 +10261,8 @@ function setupNavigationViaHotkeys() {
                     document.querySelector('#content a[href^="/user/"]:not([href$=rss]):not([href*="/diary"]):not([href*="/traces"])')?.click()
                 }
             }
-        } else if (e.code === "Backquote" && !e.altKey && !e.metaKey && !e.ctrlKey) {
+        } else if ((e.code === "Backquote" || e.code === "Quote") && !e.altKey && !e.metaKey && !e.ctrlKey) {
+            e.preventDefault()
             for (let member in layers) {
                 layers[member].forEach((i) => {
                     if (layersHidden) {
@@ -10923,7 +10925,7 @@ function renderOSMGeoJSON(xml) {
         return tbody
     }
 
-    function makePopupHTML(feature){
+    function makePopupHTML(feature) {
         // debugger
         // const cachedObjectInfo = lastVersionsCache[`${feature.type}_${feature.id}`]
         // if (cachedObjectInfo && feature.properties.meta.version
@@ -11171,7 +11173,7 @@ function renderOSMGeoJSON(xml) {
             })
             startEditEvent.target.textContent = "📤"
             startEditEvent.target.setAttribute("disabled", true)
-            startEditEvent.target.addEventListener("click", async function upload()  {
+            startEditEvent.target.addEventListener("click", async function upload() {
                 startEditEvent.target.style.cursor = "progress"
                 let newTags = {}
                 const lastEditMode = GM_getValue("lastEditMode", "table")
