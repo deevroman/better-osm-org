@@ -4249,10 +4249,16 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
         })
         const relationInfo = {}
         relationInfo.bbox = {
-            min_lat: Math.min(...nodesBag.map(i => i.lat)), // fixьe crash
-            min_lon: Math.min(...nodesBag.map(i => i.lon)),
-            max_lat: Math.max(...nodesBag.map(i => i.lat)),
-            max_lon: Math.max(...nodesBag.map(i => i.lon))
+            min_lat: 10000000, min_lon: 10000000, max_lat: -10000000, max_lon: -100000000,
+        }
+
+        for (const i of nodesBag) {
+            if (i?.lat) {
+                relationInfo.min_lat = min(relationInfo.min_lat, i.lat)
+                relationInfo.min_lon = min(relationInfo.min_lon, i.lon)
+                relationInfo.max_lat = max(relationInfo.max_lat, i.lat)
+                relationInfo.max_lon = max(relationInfo.max_lon, i.lon)
+            }
         }
         return bboxCache[[id, timestamp]] = relationInfo
     }
@@ -8210,6 +8216,7 @@ async function interceptMapManually() {
         console.warn("try intercept map manually")
         injectJSIntoPage(`
         L.Layer.addInitHook(function () {
+                if (window.mapIntercepted) return 
                 try {
                     this.addEventListener("add", (e) => {
                         if (window.mapIntercepted) return;
