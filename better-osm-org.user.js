@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.9
+// @version         0.9.1
 // @changelog       v0.8.9: Satellite layer in Chrome
 // @changelog       v0.8.9: Support Mapillary images in tags
 // @changelog       v0.8.9: KeyJ — open in JOSM current state of objects from changeset, alt + J — in Level0
@@ -54,12 +54,11 @@
 // @grant        GM_setValue
 // @grant        GM_listValues
 // @grant        GM_deleteValue
-// @grant        GM.getValue
-// @grant        GM.setValue
 // @grant        GM_getResourceURL
 // @grant        GM_getResourceText
 // @grant        GM_addElement
 // @grant        GM.xmlHttpRequest
+// @grant        GM.fetch
 // @grant        GM_info
 // @comment      for get diffs for finding deleted users
 // @connect      planet.openstreetmap.org
@@ -1073,11 +1072,11 @@ function makeTimesSwitchable() {
 
     const isObjectPage = location.pathname.includes("node") || location.pathname.includes("way") || location.pathname.includes("relation")
 
-    function openMapStateInOverpass(elem) {
+    function openMapStateInOverpass(elem, adiff = false) {
         const {lng: lon, lat: lat} = getMap().getCenter()
         const zoom = getMap().getZoom();
         const query = `// via changeset closing time
-[date:"${elem.getAttribute("datetime")}"]; 
+[${adiff ? "adiff" : "date"}:"${elem.getAttribute("datetime")}"]; 
 (
   node({{bbox}});
   way({{bbox}});
@@ -1090,14 +1089,14 @@ out meta;
     }
 
     document.querySelectorAll("time:not([switchable])").forEach(i => {
-        i.title += `\n\nClick for change time format\nClick with ctrl for open the map state at the time of ${isObjectPage ? "version was created" : "changeset was closed"}`
+        i.title += `\n\nClick for change time format\nClick with ctrl for open the map state at the time of ${isObjectPage ? "version was created" : "changeset was closed"}\nClick with Alt for view adiff`
 
         function clickEvent(e) {
-            if (e.metaKey || e.ctrlKey) {
+            if (e.metaKey || e.ctrlKey || e.altKey) {
                 if (window.getSelection().type === "Range") {
                     return
                 }
-                openMapStateInOverpass(i)
+                openMapStateInOverpass(i, e.altKey)
             } else {
                 switchTimestamp()
             }
@@ -1116,7 +1115,7 @@ out meta;
         btn.style.userSelect = "none"
         btn.onclick = (e) => {
             e.stopPropagation()
-            openMapStateInOverpass(i)
+            openMapStateInOverpass(i, e.altKey)
         }
         i.appendChild(btn);
     })
@@ -1354,6 +1353,9 @@ function makeTextareaFromTagsTable(table) {
 function addResolveNotesButton() {
     if (!location.pathname.includes("/note")) return
     if (location.pathname.includes("/note/new")) {
+        if (!document.querySelector("#sidebar_content form")) {
+            return
+        }
         if (newNotePlaceholder && document.querySelector(".note form textarea")) {
             document.querySelector(".note form textarea").textContent = newNotePlaceholder
             document.querySelector(".note form textarea").selectionEnd = 0
@@ -1365,6 +1367,9 @@ function addResolveNotesButton() {
         b.textContent = "➕";
         if (!getMap() || !getMap().getZoom) {
             b.style.display = "none"
+            interceptMapManually().then(() => {
+                b.style.display = ""
+            })
         }
         b.title = `Add new object on map\nPaste tags in textarea\nkey=value\nkey2=value2\n...`
         document.querySelector("#sidebar_content form div:has(input)").appendChild(b);
@@ -2878,7 +2883,7 @@ function displayWay(nodesList, needFly = false, color = "#000000", width = 4, in
             resetMapHover()
             elementById?.parentElement?.parentElement?.classList.add("map-hover")
             cleanObjectsByKey("activeObjects")
-        }, getWindow(), {cloneFunctions: true,}))
+        }, getWindow(), {cloneFunctions: true}))
     }
     if (addStroke) {
         line._path.classList.add("stroke-polyline");
@@ -3241,7 +3246,9 @@ function setupNodeVersionView() {
             showActiveNodeMarker(lat, lon, "#ff00e3");
         }
     })
-    displayWay(cloneInto(nodeHistoryPath, unsafeWindow), false, "rgba(251,156,112,0.86)", 2);
+    interceptMapManually().then(() => {
+        displayWay(cloneInto(nodeHistoryPath, unsafeWindow), false, "rgba(251,156,112,0.86)", 2);
+    })
 }
 
 
@@ -4242,10 +4249,16 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
         })
         const relationInfo = {}
         relationInfo.bbox = {
-            min_lat: Math.min(...nodesBag.map(i => i.lat)),
-            min_lon: Math.min(...nodesBag.map(i => i.lon)),
-            max_lat: Math.max(...nodesBag.map(i => i.lat)),
-            max_lon: Math.max(...nodesBag.map(i => i.lon))
+            min_lat: 10000000, min_lon: 10000000, max_lat: -10000000, max_lon: -100000000,
+        }
+
+        for (const i of nodesBag) {
+            if (i?.lat) {
+                relationInfo.min_lat = min(relationInfo.min_lat, i.lat)
+                relationInfo.min_lon = min(relationInfo.min_lon, i.lon)
+                relationInfo.max_lat = max(relationInfo.max_lat, i.lat)
+                relationInfo.max_lon = max(relationInfo.max_lon, i.lon)
+            }
         }
         return bboxCache[[id, timestamp]] = relationInfo
     }
@@ -5594,10 +5607,12 @@ async function error509Handler(res) {
 }
 
 function addRegionForFirstChangeset(attempts = 5) {
-    setTimeout(() => {
+    if (location.search.includes("changesets")) return;
+    setTimeout(async () => {
         if (rateLimitBan) {
             return
         }
+        await interceptMapManually()
         if (getMap().getZoom() <= 10) {
             getMap().attributionControl.setPrefix("")
             if (attempts > 0) {
@@ -5629,9 +5644,14 @@ function addRegionForFirstChangeset(attempts = 5) {
 let iconsList = null
 
 async function loadIconsList() {
-    const yml = (await GM.xmlHttpRequest({
-        url: `https://raw.githubusercontent.com/openstreetmap/openstreetmap-website/refs/heads/master/config/browse_icons.yml`,
-    })).responseText
+    let yml;
+    if (GM_info.scriptHandler !== "FireMonkey") {
+        yml = (await GM.xmlHttpRequest({
+            url: `https://raw.githubusercontent.com/openstreetmap/openstreetmap-website/refs/heads/master/config/browse_icons.yml`,
+        })).responseText
+    } else {
+        yml = await (await GM.fetch(`https://raw.githubusercontent.com/openstreetmap/openstreetmap-website/refs/heads/master/config/browse_icons.yml`)).text
+    }
     iconsList = {}
     // не, ну а почему бы и нет
     yml.match(/[\w_-]+:\s*(([\w_-]|:\*)+:(\s+{.*}\s+))*/g).forEach(tags => {
@@ -6632,7 +6652,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
     }
 
     function processNode() {
-        i.id = "n" + objID
+        i.id = `${changesetID}n${objID}`
 
         function mouseoverHandler(e) {
             if (e.relatedTarget?.parentElement === e.target) {
@@ -6761,7 +6781,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
     }
 
     async function processWay() {
-        i.id = "w" + objID
+        i.id = `${changesetID}w${objID}`
 
         const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/full.json", {signal: abortDownloadingController.signal});
         // todo по-хорошему нужно проверять, а не успела ли измениться история линии
@@ -6905,6 +6925,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
     }
 
     function processRelation() {
+        i.id = `${changesetID}r${objID}`
         const btn = document.createElement("a")
         btn.textContent = "📥"
         btn.classList.add("load-relation-version")
@@ -7052,8 +7073,6 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
 
     if (!changesetsCache[changesetID]) {
         await getChangeset(changesetID)
-    } else if (objects.length >= 20 && uniqTypes !== 1) {
-        await abortableSleep(200, abortDownloadingController);
     }
 
 }
@@ -7403,6 +7422,26 @@ function preloadPrevNextChangesets() {
     needPreloadChangesets = false
 }
 
+
+/**
+ * @param {number|string} nodeID
+ * @return {Promise<WayVersion[]>}
+ */
+async function getParentWays(nodeID) {
+    const rawRes = await fetch(osm_server.apiBase + "node/" + nodeID + "/ways.json", {signal: abortDownloadingController.signal});
+    if (rawRes.status === 509) {
+        await error509Handler(rawRes)
+    } else {
+        if (!rawRes.ok) {
+            console.warn(`fetching parent ways for ${nodeID} failed`)
+            console.trace()
+            return []
+        }
+        return (await rawRes.json()).elements;
+    }
+}
+
+
 async function processQuickLookInSidebar(changesetID) {
 
     async function processObjects(objType, uniqTypes) {
@@ -7607,7 +7646,7 @@ async function processQuickLookInSidebar(changesetID) {
             summaryHeader.textContent = summaryHeader.textContent.replace(/\(.*\)/, `(1-${nodes.length})`)
 
             nodes.forEach(node => {
-                if (document.querySelector("#n" + node.id)) {
+                if (document.getElementById(`${changesetID}n${node.id}`)) {
                     return
                 }
                 const ulItem = document.createElement("li");
@@ -7639,7 +7678,7 @@ async function processQuickLookInSidebar(changesetID) {
                 div1.appendChild(div2)
 
                 div2.classList.add("node");
-                div2.id = "n" + node.id
+                div2.id = `${changesetID}n${node.id}`
 
                 const nodeLink = document.createElement("a")
                 nodeLink.rel = "nofollow"
@@ -7696,7 +7735,7 @@ async function processQuickLookInSidebar(changesetID) {
             const summaryHeader = document.querySelector(`[changeset-id="${changesetID}"]#changeset_ways h4`).firstChild;
             summaryHeader.textContent = summaryHeader.textContent.replace(/\(.*\)/, `(1-${ways.length})`)
             ways.forEach(way => {
-                if (document.querySelector("#w" + way.id)) {
+                if (document.getElementById(`${changesetID}w${way.id}`)) {
                     return
                 }
                 const ulItem = document.createElement("li");
@@ -7810,25 +7849,6 @@ async function processQuickLookInSidebar(changesetID) {
 
         // try find parent ways
 
-
-        /**
-         * @param {number|string} nodeID
-         * @return {Promise<WayVersion[]>}
-         */
-        async function getParentWays(nodeID) {
-            const rawRes = await fetch(osm_server.apiBase + "node/" + nodeID + "/ways.json", {signal: abortDownloadingController.signal});
-            if (rawRes.status === 509) {
-                await error509Handler(rawRes)
-            } else {
-                if (!rawRes.ok) {
-                    console.warn(`fetching parent ways for ${nodeID} failed`)
-                    console.trace()
-                    return []
-                }
-                return (await rawRes.json()).elements;
-            }
-        }
-
         async function findParents() {
             const nodesCount = changesetData.querySelectorAll(`node`)
             for (const i of changesetData.querySelectorAll(`node[version="1"]`)) {
@@ -7927,10 +7947,10 @@ async function processQuickLookInSidebar(changesetID) {
                                     line.getElement().style.visibility = "hidden"
                                 }
 
-                                // ховер в списке объектов, который показывает родительнскую линию
+                                // ховер в списке объектов, который показывает родительскую линию
                                 way.nodes.forEach(n => {
-                                    if (!document.querySelector("#n" + n)) return
-                                    document.querySelector("#n" + n).parentElement.parentElement.addEventListener('mouseover', async (e) => {
+                                    if (!document.getElementById(`${changesetID}n${n}`)) return
+                                    document.getElementById(`${changesetID}n${n}`).parentElement.parentElement.addEventListener('mouseover', async (e) => {
                                         if (e.relatedTarget?.parentElement === e.target) {
                                             return
                                         }
@@ -8048,6 +8068,51 @@ ${e.stack.replace("`", "\\`").replaceAll(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[
 
 const currentChangesets = [];
 
+
+function drawBBox(bbox) {
+    try {
+        const bottomLeft = getMap().project(getWindow().L.latLng(bbox.min_lat, bbox.min_lon));
+        const topRight = getMap().project(getWindow().L.latLng(bbox.max_lat, bbox.max_lon));
+        const width = topRight.x - bottomLeft.x;
+        const height = bottomLeft.y - topRight.y;
+        const minSize = 10;
+
+        if (width < minSize) {
+            bottomLeft.x -= ((minSize - width) / 2);
+            topRight.x += ((minSize - width) / 2);
+        }
+
+        if (height < minSize) {
+            bottomLeft.y += ((minSize - height) / 2);
+            topRight.y -= ((minSize - height) / 2);
+        }
+
+        const b = getWindow().L.latLngBounds(
+            getMap().unproject(intoPage(bottomLeft)),
+            getMap().unproject(intoPage(topRight))
+        )
+
+        const bound = getWindow().L.rectangle(
+            intoPage([
+                [b.getSouth(), b.getWest()],
+                [b.getNorth(), b.getEast()]
+            ]),
+            intoPage({color: "#ff7800", weight: 1, fillOpacity: 0})
+        );
+        bound.on('click', intoPageWithFun(function () {
+            const elementById = document.getElementById(bbox.id);
+            elementById?.scrollIntoView()
+            resetMapHover()
+            elementById?.parentElement?.parentElement?.classList.add("map-hover")
+            cleanObjectsByKey("activeObjects")
+        }))
+        bound.addTo(getMap());
+        bound.bringToBack()
+        layers['changesetBounds'].push(bound)
+    } catch { /* empty */
+    }
+}
+
 async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) {
     await loadChangesetMetadatas(changesetIDs)
     await zoomToChangesets()
@@ -8056,50 +8121,6 @@ async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) 
     }
     if (!layers['changesetBounds']) {
         layers['changesetBounds'] = []
-    }
-
-    function drawBBox(bbox) {
-        try {
-            const bottomLeft = getMap().project(getWindow().L.latLng(bbox.min_lat, bbox.min_lon));
-            const topRight = getMap().project(getWindow().L.latLng(bbox.max_lat, bbox.max_lon));
-            const width = topRight.x - bottomLeft.x;
-            const height = bottomLeft.y - topRight.y;
-            const minSize = 10;
-
-            if (width < minSize) {
-                bottomLeft.x -= ((minSize - width) / 2);
-                topRight.x += ((minSize - width) / 2);
-            }
-
-            if (height < minSize) {
-                bottomLeft.y += ((minSize - height) / 2);
-                topRight.y -= ((minSize - height) / 2);
-            }
-
-            const b = getWindow().L.latLngBounds(
-                getMap().unproject(intoPage(bottomLeft)),
-                getMap().unproject(intoPage(topRight))
-            )
-
-            const bound = getWindow().L.rectangle(
-                intoPage([
-                    [b.getSouth(), b.getWest()],
-                    [b.getNorth(), b.getEast()]
-                ]),
-                intoPage({color: "#ff7800", weight: 1, fillOpacity: 0})
-            );
-            bound.on('click', intoPageWithFun(function () {
-                const elementById = document.getElementById(bbox.id);
-                elementById?.scrollIntoView()
-                resetMapHover()
-                elementById?.parentElement?.parentElement?.classList.add("map-hover")
-                cleanObjectsByKey("activeObjects")
-            }))
-            bound.addTo(getMap());
-            bound.bringToBack()
-            layers['changesetBounds'].push(bound)
-        } catch { /* empty */
-        }
     }
 
     for (let bbox of currentChangesets) {
@@ -8174,7 +8195,7 @@ async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) 
         setTimeout(async () => {
             await loadChangesetMetadata(parseInt(curID))
             const span = document.createElement("span")
-            span.textContent = " " + (changesetMetadatas[curID].tags["comment"] ?? "") // todo trim
+            span.textContent = " " + shortOsmOrgLinksInText(changesetMetadatas[curID].tags["comment"] ?? "") // todo trim
             span.title = " " + (changesetMetadatas[curID].tags["comment"] ?? "")
             span.style.color = "gray"
             divID.after(span)
@@ -8187,6 +8208,36 @@ async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) 
             }))
         }
         await promise;
+    }
+}
+
+async function interceptMapManually() {
+    if (getWindow().mapIntercepted) return
+    try {
+        console.warn("try intercept map manually")
+        injectJSIntoPage(`
+        L.Layer.addInitHook(function () {
+                if (window.mapIntercepted) return
+                try {
+                    this.addEventListener("add", (e) => {
+                        if (window.mapIntercepted) return;
+                        console.log("%cMap intercepted with workaround", 'background: #000; color: #0f0')
+                        window.mapIntercepted = true
+                        window.map = e.target._map;
+                    })
+                } catch (e) {
+                    console.error(e)
+                }
+            }
+        )
+        `)
+        // trigger Layer creation
+        document.querySelector("#export-image #image_filter").click()
+        document.querySelector("#export-image #image_filter").click()
+        console.warn("wait for map intercepting")
+        await sleep(200)
+    } catch (e) {
+        console.error(e)
     }
 }
 
@@ -8227,6 +8278,7 @@ async function addChangesetQuickLook() {
         changesetIDs = params.get("changesets")?.split(",")?.filter(i => i !== changesetID) ?? []
     }
 
+    await interceptMapManually()
     await processQuickLookInSidebar(changesetID);
 
     if (changesetIDs.length) {
@@ -8594,7 +8646,7 @@ async function updateUserInfo(username) {
     }
 
     const res2 = await fetchJSONWithCache(osm_server.apiBase + "user/" + uid + ".json");
-    const userInfo = res2.user
+    const userInfo = structuredClone(res2.user) // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
     userInfo['cacheTime'] = new Date()
     if (firstObjectCreationTime) {
         userInfo['firstChangesetCreationTime'] = new Date(firstObjectCreationTime)
@@ -9901,6 +9953,8 @@ function setupNavigationViaHotkeys() {
         if (e.metaKey || e.ctrlKey) {
             return;
         }
+        console.debug("Key: ", e.key)
+        console.debug("Key code: ", e.code)
         if (e.code === "KeyN") {
             if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
                 document.querySelector('a[href^="/user/"][href$="/notes"]')?.click()
@@ -9961,17 +10015,17 @@ function setupNavigationViaHotkeys() {
             setTimeout(async () => {
                 if (!location.pathname.includes("changeset")) return
 
-                const nodes = []
-                const ways = []
-                const relations = []
+                const nodes = new Set()
+                const ways = new Set()
+                const relations = new Set()
 
                 let changesetID = parseInt(location.pathname.match(/changeset\/(\d+)/)[1])
                 const changesetData = (await getChangeset(changesetID)).data
 
                 function processChangeset(data) {
-                    Array.from(data.querySelectorAll("node")).map(i => nodes.push(parseInt(i.getAttribute("id"))))
-                    Array.from(data.querySelectorAll("way")).map(i => ways.push(parseInt(i.getAttribute("id"))))
-                    Array.from(data.querySelectorAll("relation")).map(i => relations.push(parseInt(i.getAttribute("id"))))
+                    Array.from(data.querySelectorAll("node")).map(i => nodes.add(parseInt(i.getAttribute("id"))))
+                    Array.from(data.querySelectorAll("way")).map(i => ways.add(parseInt(i.getAttribute("id"))))
+                    Array.from(data.querySelectorAll("relation")).map(i => relations.add(parseInt(i.getAttribute("id"))))
                 }
 
                 processChangeset(changesetData)
@@ -9988,18 +10042,18 @@ function setupNavigationViaHotkeys() {
                 if (e.altKey) {
                     window.open("https://level0.osmz.ru/?" + new URLSearchParams({
                         url: [
-                            nodes.map(i => "n" + i).join(","),
-                            ways.map(i => "w" + i).join(","),
-                            relations.map(i => "r" + i).join(",")
+                            Array.from(nodes).map(i => "n" + i).join(","),
+                            Array.from(ways).map(i => "w" + i).join(","),
+                            Array.from(relations).map(i => "r" + i).join(",")
                         ].join(",").replace(/,,/, ",").replace(/,$/, "").replace(/^,/, "")
                     }).toString())
                 } else {
                     window.open("http://localhost:8111/load_object?" + new URLSearchParams({
                         new_layer: "true",
                         objects: [
-                            nodes.map(i => "n" + i).join(","),
-                            ways.map(i => "w" + i).join(","),
-                            relations.map(i => "r" + i).join(",")
+                            Array.from(nodes).map(i => "n" + i).join(","),
+                            Array.from(ways).map(i => "w" + i).join(","),
+                            Array.from(relations).map(i => "r" + i).join(",")
                         ].join(",")
                     }).toString())
                 }
@@ -10260,7 +10314,9 @@ function setupNavigationViaHotkeys() {
                     document.querySelector('#content a[href^="/user/"]:not([href$=rss]):not([href*="/diary"]):not([href*="/traces"])')?.click()
                 }
             }
-        } else if (e.code === "Backquote" && !e.altKey && !e.metaKey && !e.ctrlKey) {
+        } else if ((e.code === "Backquote" || e.code === "Quote" || e.key === "`" || e.key === "?" || e.key === "~") && !e.altKey && !e.metaKey && !e.ctrlKey) {
+            if (!getWindow().mapIntercepted) return
+            e.preventDefault()
             for (let member in layers) {
                 layers[member].forEach((i) => {
                     if (layersHidden) {
@@ -10923,7 +10979,7 @@ function renderOSMGeoJSON(xml) {
         return tbody
     }
 
-    function makePopupHTML(feature){
+    function makePopupHTML(feature) {
         // debugger
         // const cachedObjectInfo = lastVersionsCache[`${feature.type}_${feature.id}`]
         // if (cachedObjectInfo && feature.properties.meta.version
@@ -11171,7 +11227,7 @@ function renderOSMGeoJSON(xml) {
             })
             startEditEvent.target.textContent = "📤"
             startEditEvent.target.setAttribute("disabled", true)
-            startEditEvent.target.addEventListener("click", async function upload()  {
+            startEditEvent.target.addEventListener("click", async function upload() {
                 startEditEvent.target.style.cursor = "progress"
                 let newTags = {}
                 const lastEditMode = GM_getValue("lastEditMode", "table")
@@ -11672,13 +11728,26 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
     && !["/edit", "/id"].includes(location.pathname)) {
     // This must be done as early as possible in order to pull the map object into the global scope
     // https://github.com/deevroman/better-osm-org/issues/34
+
+    // и только в ViolentMonkey нельзя наинжектить скрипт на страницу
+    // injectJSIntoPage(`
+    // L.Map.addInitHook(function () {
+    //         if (this._container?.id === "map") {
+    //              window.map = this;
+    //              console.log("%cMap intercepted", 'background: #000; color: #0f0')
+    //              window.mapIntercepted = true
+    //         }
+    //     }
+    // )
+    // `)
     if (navigator.userAgent.includes("Firefox") && GM_info.scriptHandler === "Violentmonkey") {
         function mapHook() {
             console.log("start map intercepting")
             window.wrappedJSObject.L.Map.addInitHook(exportFunction((function () {
                     if (this._container?.id === "map") {
                         window.wrappedJSObject.globalThis.map = this;
-                        console.log("map intercepted");
+                        window.wrappedJSObject.globalThis.mapIntercepted = true
+                        console.log("%cMap intercepted", 'background: #000; color: #0f0')
                     }
                 }), window.wrappedJSObject)
             )
@@ -11697,7 +11766,8 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
             unsafeWindow.L.Map.addInitHook(exportFunction((function () {
                     if (this._container?.id === "map") {
                         unsafeWindow.map = this;
-                        console.log("map intercepted");
+                        unsafeWindow.mapIntercepted = true
+                        console.log("%cMap intercepted", 'background: #000; color: #0f0')
                     }
                 }), unsafeWindow)
             )
@@ -11756,6 +11826,13 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
 }
 
 init.then(main);
+
+setTimeout(async () => {
+    if (!getWindow().mapIntercepted) {
+        console.log("map not intercepted after 900ms");
+        await interceptMapManually()
+    }
+}, 900)
 
 // garbage collection for cached infos (user info, changeset history)
 setTimeout(async function () {
