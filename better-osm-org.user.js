@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.9
+// @version         0.9.1
 // @changelog       v0.8.9: Satellite layer in Chrome
 // @changelog       v0.8.9: Support Mapillary images in tags
 // @changelog       v0.8.9: KeyJ — open in JOSM current state of objects from changeset, alt + J — in Level0
@@ -1353,6 +1353,9 @@ function makeTextareaFromTagsTable(table) {
 function addResolveNotesButton() {
     if (!location.pathname.includes("/note")) return
     if (location.pathname.includes("/note/new")) {
+        if (!document.querySelector("#sidebar_content form")) {
+            return
+        }
         if (newNotePlaceholder && document.querySelector(".note form textarea")) {
             document.querySelector(".note form textarea").textContent = newNotePlaceholder
             document.querySelector(".note form textarea").selectionEnd = 0
@@ -1364,6 +1367,9 @@ function addResolveNotesButton() {
         b.textContent = "➕";
         if (!getMap() || !getMap().getZoom) {
             b.style.display = "none"
+            interceptMapManually().then(() => {
+                b.style.display = ""
+            })
         }
         b.title = `Add new object on map\nPaste tags in textarea\nkey=value\nkey2=value2\n...`
         document.querySelector("#sidebar_content form div:has(input)").appendChild(b);
@@ -3240,7 +3246,9 @@ function setupNodeVersionView() {
             showActiveNodeMarker(lat, lon, "#ff00e3");
         }
     })
-    displayWay(cloneInto(nodeHistoryPath, unsafeWindow), false, "rgba(251,156,112,0.86)", 2);
+    interceptMapManually().then(() => {
+        displayWay(cloneInto(nodeHistoryPath, unsafeWindow), false, "rgba(251,156,112,0.86)", 2);
+    })
 }
 
 
@@ -4241,7 +4249,7 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
         })
         const relationInfo = {}
         relationInfo.bbox = {
-            min_lat: Math.min(...nodesBag.map(i => i.lat)),
+            min_lat: Math.min(...nodesBag.map(i => i.lat)), // fixьe crash
             min_lon: Math.min(...nodesBag.map(i => i.lon)),
             max_lat: Math.max(...nodesBag.map(i => i.lat)),
             max_lon: Math.max(...nodesBag.map(i => i.lon))
@@ -5594,10 +5602,11 @@ async function error509Handler(res) {
 
 function addRegionForFirstChangeset(attempts = 5) {
     if (location.search.includes("changesets")) return;
-    setTimeout(() => {
-        if (rateLimitBan || !getMap().getZoom) {
+    setTimeout(async () => {
+        if (rateLimitBan) {
             return
         }
+        await interceptMapManually()
         if (getMap().getZoom() <= 10) {
             getMap().attributionControl.setPrefix("")
             if (attempts > 0) {
@@ -8195,6 +8204,35 @@ async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) 
     }
 }
 
+async function interceptMapManually() {
+    if (getWindow().mapIntercepted) return
+    try {
+        console.warn("try intercept map manually")
+        injectJSIntoPage(`
+        L.Layer.addInitHook(function () {
+                try {
+                    this.addEventListener("add", (e) => {
+                        if (window.mapIntercepted) return;
+                        console.log("%cMap intercepted with workaround", 'background: #000; color: #0f0')
+                        window.mapIntercepted = true
+                        window.map = e.target._map;
+                    })
+                } catch (e) {
+                    console.error(e)
+                }
+            }
+        )
+        `)
+        // trigger Layer creation
+        document.querySelector("#export-image #image_filter").click()
+        document.querySelector("#export-image #image_filter").click()
+        console.warn("wait for map intercepting")
+        await sleep(200)
+    } catch (e) {
+        console.error(e)
+    }
+}
+
 async function addChangesetQuickLook() {
     if (!location.pathname.includes("/changeset")) {
         tagsOfObjectsVisible = true
@@ -8232,6 +8270,7 @@ async function addChangesetQuickLook() {
         changesetIDs = params.get("changesets")?.split(",")?.filter(i => i !== changesetID) ?? []
     }
 
+    await interceptMapManually()
     await processQuickLookInSidebar(changesetID);
 
     if (changesetIDs.length) {
@@ -9906,6 +9945,8 @@ function setupNavigationViaHotkeys() {
         if (e.metaKey || e.ctrlKey) {
             return;
         }
+        console.debug("Key: ", e.key)
+        console.debug("Key code: ", e.code)
         if (e.code === "KeyN") {
             if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
                 document.querySelector('a[href^="/user/"][href$="/notes"]')?.click()
@@ -11678,13 +11719,26 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
     && !["/edit", "/id"].includes(location.pathname)) {
     // This must be done as early as possible in order to pull the map object into the global scope
     // https://github.com/deevroman/better-osm-org/issues/34
+
+    // и только в ViolentMonkey нельзя наинжектить скрипт на страницу
+    // injectJSIntoPage(`
+    // L.Map.addInitHook(function () {
+    //         if (this._container?.id === "map") {
+    //              window.map = this;
+    //              console.log("%cMap intercepted", 'background: #000; color: #0f0')
+    //              window.mapIntercepted = true
+    //         }
+    //     }
+    // )
+    // `)
     if (navigator.userAgent.includes("Firefox") && GM_info.scriptHandler === "Violentmonkey") {
         function mapHook() {
             console.log("start map intercepting")
             window.wrappedJSObject.L.Map.addInitHook(exportFunction((function () {
                     if (this._container?.id === "map") {
                         window.wrappedJSObject.globalThis.map = this;
-                        console.log("map intercepted");
+                        window.wrappedJSObject.globalThis.mapIntercepted = true
+                        console.log("%cMap intercepted", 'background: #000; color: #0f0')
                     }
                 }), window.wrappedJSObject)
             )
@@ -11703,7 +11757,8 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
             unsafeWindow.L.Map.addInitHook(exportFunction((function () {
                     if (this._container?.id === "map") {
                         unsafeWindow.map = this;
-                        console.log("map intercepted");
+                        unsafeWindow.mapIntercepted = true
+                        console.log("%cMap intercepted", 'background: #000; color: #0f0')
                     }
                 }), unsafeWindow)
             )
@@ -11762,6 +11817,13 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
 }
 
 init.then(main);
+
+setTimeout(async () => {
+    if (!getWindow().mapIntercepted) {
+        console.log("map not intercepted after 900ms");
+        await interceptMapManually()
+    }
+}, 900)
 
 // garbage collection for cached infos (user info, changeset history)
 setTimeout(async function () {
