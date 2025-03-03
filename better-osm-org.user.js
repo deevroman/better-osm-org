@@ -8195,7 +8195,7 @@ async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) 
         setTimeout(async () => {
             await loadChangesetMetadata(parseInt(curID))
             const span = document.createElement("span")
-            span.textContent = " " + (changesetMetadatas[curID].tags["comment"] ?? "") // todo trim
+            span.textContent = " " + shortOsmOrgLinksInText(changesetMetadatas[curID].tags["comment"] ?? "") // todo trim
             span.title = " " + (changesetMetadatas[curID].tags["comment"] ?? "")
             span.style.color = "gray"
             divID.after(span)
@@ -8217,7 +8217,7 @@ async function interceptMapManually() {
         console.warn("try intercept map manually")
         injectJSIntoPage(`
         L.Layer.addInitHook(function () {
-                if (window.mapIntercepted) return 
+                if (window.mapIntercepted) return
                 try {
                     this.addEventListener("add", (e) => {
                         if (window.mapIntercepted) return;
@@ -10314,7 +10314,8 @@ function setupNavigationViaHotkeys() {
                     document.querySelector('#content a[href^="/user/"]:not([href$=rss]):not([href*="/diary"]):not([href*="/traces"])')?.click()
                 }
             }
-        } else if ((e.code === "Backquote" || e.code === "Quote") && !e.altKey && !e.metaKey && !e.ctrlKey) {
+        } else if ((e.code === "Backquote" || e.code === "Quote" || e.key === "`" || e.key === "?" || e.key === "~") && !e.altKey && !e.metaKey && !e.ctrlKey) {
+            if (!getWindow().mapIntercepted) return
             e.preventDefault()
             for (let member in layers) {
                 layers[member].forEach((i) => {
