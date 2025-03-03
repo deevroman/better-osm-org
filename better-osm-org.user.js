@@ -2883,7 +2883,7 @@ function displayWay(nodesList, needFly = false, color = "#000000", width = 4, in
             resetMapHover()
             elementById?.parentElement?.parentElement?.classList.add("map-hover")
             cleanObjectsByKey("activeObjects")
-        }, getWindow(), {cloneFunctions: true,}))
+        }, getWindow(), {cloneFunctions: true}))
     }
     if (addStroke) {
         line._path.classList.add("stroke-polyline");
@@ -6652,7 +6652,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
     }
 
     function processNode() {
-        i.id = "n" + objID
+        i.id = `${changesetID}n${objID}`
 
         function mouseoverHandler(e) {
             if (e.relatedTarget?.parentElement === e.target) {
@@ -6781,7 +6781,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
     }
 
     async function processWay() {
-        i.id = "w" + objID
+        i.id = `${changesetID}w${objID}`
 
         const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/full.json", {signal: abortDownloadingController.signal});
         // todo по-хорошему нужно проверять, а не успела ли измениться история линии
@@ -6925,6 +6925,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
     }
 
     function processRelation() {
+        i.id = `${changesetID}r${objID}`
         const btn = document.createElement("a")
         btn.textContent = "📥"
         btn.classList.add("load-relation-version")
@@ -7072,8 +7073,6 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
 
     if (!changesetsCache[changesetID]) {
         await getChangeset(changesetID)
-    } else if (objects.length >= 20 && uniqTypes !== 1) {
-        await abortableSleep(200, abortDownloadingController);
     }
 
 }
@@ -7423,6 +7422,26 @@ function preloadPrevNextChangesets() {
     needPreloadChangesets = false
 }
 
+
+/**
+ * @param {number|string} nodeID
+ * @return {Promise<WayVersion[]>}
+ */
+async function getParentWays(nodeID) {
+    const rawRes = await fetch(osm_server.apiBase + "node/" + nodeID + "/ways.json", {signal: abortDownloadingController.signal});
+    if (rawRes.status === 509) {
+        await error509Handler(rawRes)
+    } else {
+        if (!rawRes.ok) {
+            console.warn(`fetching parent ways for ${nodeID} failed`)
+            console.trace()
+            return []
+        }
+        return (await rawRes.json()).elements;
+    }
+}
+
+
 async function processQuickLookInSidebar(changesetID) {
 
     async function processObjects(objType, uniqTypes) {
@@ -7627,7 +7646,7 @@ async function processQuickLookInSidebar(changesetID) {
             summaryHeader.textContent = summaryHeader.textContent.replace(/\(.*\)/, `(1-${nodes.length})`)
 
             nodes.forEach(node => {
-                if (document.querySelector("#n" + node.id)) {
+                if (document.getElementById(`${changesetID}n${node.id}`)) {
                     return
                 }
                 const ulItem = document.createElement("li");
@@ -7659,7 +7678,7 @@ async function processQuickLookInSidebar(changesetID) {
                 div1.appendChild(div2)
 
                 div2.classList.add("node");
-                div2.id = "n" + node.id
+                div2.id = `${changesetID}n${node.id}`
 
                 const nodeLink = document.createElement("a")
                 nodeLink.rel = "nofollow"
@@ -7716,7 +7735,7 @@ async function processQuickLookInSidebar(changesetID) {
             const summaryHeader = document.querySelector(`[changeset-id="${changesetID}"]#changeset_ways h4`).firstChild;
             summaryHeader.textContent = summaryHeader.textContent.replace(/\(.*\)/, `(1-${ways.length})`)
             ways.forEach(way => {
-                if (document.querySelector("#w" + way.id)) {
+                if (document.getElementById(`${changesetID}w${way.id}`)) {
                     return
                 }
                 const ulItem = document.createElement("li");
@@ -7830,25 +7849,6 @@ async function processQuickLookInSidebar(changesetID) {
 
         // try find parent ways
 
-
-        /**
-         * @param {number|string} nodeID
-         * @return {Promise<WayVersion[]>}
-         */
-        async function getParentWays(nodeID) {
-            const rawRes = await fetch(osm_server.apiBase + "node/" + nodeID + "/ways.json", {signal: abortDownloadingController.signal});
-            if (rawRes.status === 509) {
-                await error509Handler(rawRes)
-            } else {
-                if (!rawRes.ok) {
-                    console.warn(`fetching parent ways for ${nodeID} failed`)
-                    console.trace()
-                    return []
-                }
-                return (await rawRes.json()).elements;
-            }
-        }
-
         async function findParents() {
             const nodesCount = changesetData.querySelectorAll(`node`)
             for (const i of changesetData.querySelectorAll(`node[version="1"]`)) {
@@ -7947,10 +7947,10 @@ async function processQuickLookInSidebar(changesetID) {
                                     line.getElement().style.visibility = "hidden"
                                 }
 
-                                // ховер в списке объектов, который показывает родительнскую линию
+                                // ховер в списке объектов, который показывает родительскую линию
                                 way.nodes.forEach(n => {
-                                    if (!document.querySelector("#n" + n)) return
-                                    document.querySelector("#n" + n).parentElement.parentElement.addEventListener('mouseover', async (e) => {
+                                    if (!document.getElementById(`${changesetID}n${n}`)) return
+                                    document.getElementById(`${changesetID}n${n}`).parentElement.parentElement.addEventListener('mouseover', async (e) => {
                                         if (e.relatedTarget?.parentElement === e.target) {
                                             return
                                         }
@@ -8068,6 +8068,51 @@ ${e.stack.replace("`", "\\`").replaceAll(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[
 
 const currentChangesets = [];
 
+
+function drawBBox(bbox) {
+    try {
+        const bottomLeft = getMap().project(getWindow().L.latLng(bbox.min_lat, bbox.min_lon));
+        const topRight = getMap().project(getWindow().L.latLng(bbox.max_lat, bbox.max_lon));
+        const width = topRight.x - bottomLeft.x;
+        const height = bottomLeft.y - topRight.y;
+        const minSize = 10;
+
+        if (width < minSize) {
+            bottomLeft.x -= ((minSize - width) / 2);
+            topRight.x += ((minSize - width) / 2);
+        }
+
+        if (height < minSize) {
+            bottomLeft.y += ((minSize - height) / 2);
+            topRight.y -= ((minSize - height) / 2);
+        }
+
+        const b = getWindow().L.latLngBounds(
+            getMap().unproject(intoPage(bottomLeft)),
+            getMap().unproject(intoPage(topRight))
+        )
+
+        const bound = getWindow().L.rectangle(
+            intoPage([
+                [b.getSouth(), b.getWest()],
+                [b.getNorth(), b.getEast()]
+            ]),
+            intoPage({color: "#ff7800", weight: 1, fillOpacity: 0})
+        );
+        bound.on('click', intoPageWithFun(function () {
+            const elementById = document.getElementById(bbox.id);
+            elementById?.scrollIntoView()
+            resetMapHover()
+            elementById?.parentElement?.parentElement?.classList.add("map-hover")
+            cleanObjectsByKey("activeObjects")
+        }))
+        bound.addTo(getMap());
+        bound.bringToBack()
+        layers['changesetBounds'].push(bound)
+    } catch { /* empty */
+    }
+}
+
 async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) {
     await loadChangesetMetadatas(changesetIDs)
     await zoomToChangesets()
@@ -8076,50 +8121,6 @@ async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) 
     }
     if (!layers['changesetBounds']) {
         layers['changesetBounds'] = []
-    }
-
-    function drawBBox(bbox) {
-        try {
-            const bottomLeft = getMap().project(getWindow().L.latLng(bbox.min_lat, bbox.min_lon));
-            const topRight = getMap().project(getWindow().L.latLng(bbox.max_lat, bbox.max_lon));
-            const width = topRight.x - bottomLeft.x;
-            const height = bottomLeft.y - topRight.y;
-            const minSize = 10;
-
-            if (width < minSize) {
-                bottomLeft.x -= ((minSize - width) / 2);
-                topRight.x += ((minSize - width) / 2);
-            }
-
-            if (height < minSize) {
-                bottomLeft.y += ((minSize - height) / 2);
-                topRight.y -= ((minSize - height) / 2);
-            }
-
-            const b = getWindow().L.latLngBounds(
-                getMap().unproject(intoPage(bottomLeft)),
-                getMap().unproject(intoPage(topRight))
-            )
-
-            const bound = getWindow().L.rectangle(
-                intoPage([
-                    [b.getSouth(), b.getWest()],
-                    [b.getNorth(), b.getEast()]
-                ]),
-                intoPage({color: "#ff7800", weight: 1, fillOpacity: 0})
-            );
-            bound.on('click', intoPageWithFun(function () {
-                const elementById = document.getElementById(bbox.id);
-                elementById?.scrollIntoView()
-                resetMapHover()
-                elementById?.parentElement?.parentElement?.classList.add("map-hover")
-                cleanObjectsByKey("activeObjects")
-            }))
-            bound.addTo(getMap());
-            bound.bringToBack()
-            layers['changesetBounds'].push(bound)
-        } catch { /* empty */
-        }
     }
 
     for (let bbox of currentChangesets) {
