@@ -2,6 +2,8 @@
 // @name            Better osm.org
 // @name:ru         Better osm.org
 // @version         0.9.1
+// @changelog       v0.9.1: script should work more stably in Сhrome
+// @changelog       v0.9.1: Alt + click by <time> for open augmented diffs
 // @changelog       v0.8.9: Satellite layer in Chrome
 // @changelog       v0.8.9: Support Mapillary images in tags
 // @changelog       v0.8.9: KeyJ — open in JOSM current state of objects from changeset, alt + J — in Level0
@@ -1071,6 +1073,7 @@ function makeTimesSwitchable() {
     }
 
     const isObjectPage = location.pathname.includes("node") || location.pathname.includes("way") || location.pathname.includes("relation")
+    const isNotePage = location.pathname.includes("note")
 
     function openMapStateInOverpass(elem, adiff = false) {
         const {lng: lon, lat: lat} = getMap().getCenter()
@@ -1089,7 +1092,11 @@ out meta;
     }
 
     document.querySelectorAll("time:not([switchable])").forEach(i => {
-        i.title += `\n\nClick for change time format\nClick with ctrl for open the map state at the time of ${isObjectPage ? "version was created" : "changeset was closed"}\nClick with Alt for view adiff`
+        if (i.title !== "") {
+            i.title += `\n\n`
+        }
+        i.title += `Click for change time format`
+        i.title += `\nClick with ctrl for open the map state at the time of ${isObjectPage ? "version was created" : (isNotePage ? "note was created" : "changeset was closed")}\nClick with Alt for view adiff`
 
         function clickEvent(e) {
             if (e.metaKey || e.ctrlKey || e.altKey) {
@@ -1505,7 +1512,11 @@ out meta;
     `;
         let btn = document.createElement("a")
         btn.id = "timeback-btn";
-        btn.title = "Open the map state at the time of note creation"
+        if (organicmapsDate || mapsmeDate) {
+            btn.title = "Open the map state at the time of map snapshot"
+        } else {
+            btn.title = "Open the map state at the time of note creation"
+        }
         btn.textContent = " 🕰";
         btn.style.cursor = "pointer"
         document.querySelector("#sidebar_content time").after(btn);
@@ -7763,7 +7774,7 @@ async function processQuickLookInSidebar(changesetID) {
                 div1.appendChild(div2)
 
                 div2.classList.add("way");
-                div2.id = "w" + way.id
+                div2.id = `${changesetID}w${way.id}`
 
                 const wayLink = document.createElement("a")
                 wayLink.rel = "nofollow"
