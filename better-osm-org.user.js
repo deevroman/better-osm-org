@@ -5169,10 +5169,7 @@ function addDiffInHistory() {
                 th.classList.add("history-diff-deleted-tag", "py-1", "border-grey", "table-light", "fw-normal")
                 let td = document.createElement("td")
                 if (k.includes("colour")) {
-                    td.innerHTML = `
-                        <svg width="14" height="14" class="float-end m-1"><title></title>
-                            <rect x="0.5" y="0.5" width="13" height="13" fill="" stroke="#2222"></rect>
-                        </svg>`
+                    td.innerHTML = `<svg width="14" height="14" class="float-end m-1"><title></title><rect x="0.5" y="0.5" width="13" height="13" fill="" stroke="#2222"></rect></svg>`
                     td.querySelector("svg rect").setAttribute("fill", v)
                     td.appendChild(document.createTextNode(v))
                 } else {
