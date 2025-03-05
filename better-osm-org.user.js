@@ -5,6 +5,7 @@
 // @changelog       v0.9.1: script should work more stably in Сhrome
 // @changelog       v0.9.1: display prev value in history diff cell
 // @changelog       v0.9.1: Alt + click by <time> for open augmented diffs
+// @changelog       v0.9.1: adapting to changes on the page /history
 // @changelog       v0.8.9: Satellite layer in Chrome
 // @changelog       v0.8.9: Support Mapillary images in tags
 // @changelog       v0.8.9: KeyJ — open in JOSM current state of objects from changeset, alt + J — in Level0
@@ -11833,7 +11834,7 @@ function main() {
             });
             if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || isDebug()) {
                 GM_registerMenuCommand("Check script updates", function () {
-                    window.open(`${DEV_SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`, "_blank")
+                    window.open(`${SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`, "_blank")
                 });
             }
             if (isDebug()) {
