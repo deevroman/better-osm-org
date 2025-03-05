@@ -6985,10 +6985,10 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 const closedTime = (new Date(changesetMetadata.closed_at ?? new Date())).toISOString()
                 const nodesAfterChangeset = filterObjectListByTimestamp(nodesHistory, closedTime)
                 if (nodesAfterChangeset.some(i => i.visible === false)) {
-                    displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 3, "w" + objID, "customObjects", dashArray)
+                    displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 3, changesetID + "w" + objID, "customObjects", dashArray)
                 } else {
                     // скорее всего это объединение линий, поэтому эту удаление линии нужно отправить на задний план
-                    const layer = displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 7, "w" + objID, "customObjects", dashArray)
+                    const layer = displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 7, changesetID + "w" + objID, "customObjects", dashArray)
                     layer.bringToBack()
                     lineWidth = 8
                 }
@@ -6996,11 +6996,11 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 console.error(`broken way: ${objID}`, nodesList) // todo retray
             }
         } else if (version === 1 && targetVersion.changeset === parseInt(changesetID)) {
-            displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(0,128,0,0.6)", lineWidth, "w" + objID, "customObjects", dashArray)
+            displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(0,128,0,0.6)", lineWidth, changesetID + "w" + objID, "customObjects", dashArray)
         } else if (prevVersion?.visible === false) {
-            displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(120,238,9,0.6)", lineWidth, "w" + objID, "customObjects", dashArray)
+            displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(120,238,9,0.6)", lineWidth, changesetID + "w" + objID, "customObjects", dashArray)
         } else {
-            displayWay(cloneInto(currentNodesList, unsafeWindow), false, nowDeleted ? "rgb(0,0,0)" : "#373737", lineWidth, "w" + objID, "customObjects", null, null, darkModeForMap && isDarkMode())
+            displayWay(cloneInto(currentNodesList, unsafeWindow), false, nowDeleted ? "rgb(0,0,0)" : "#373737", lineWidth, changesetID + "w" + objID, "customObjects", null, null, darkModeForMap && isDarkMode())
         }
 
         async function mouseenterHandler() {
@@ -8055,7 +8055,7 @@ async function processQuickLookInSidebar(changesetID) {
                                 popup.appendChild(tagsTable)
                                 // todo показать по ховеру прошлую версию?
 
-                                const line = displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(55,55,55,0.5)", 4, "n" + nodeID, "customObjects", null, popup.outerHTML, darkModeForMap && isDarkMode())
+                                const line = displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(55,55,55,0.5)", 4, changesetID + "n" + nodeID, "customObjects", null, popup.outerHTML, darkModeForMap && isDarkMode())
                                 if (layersHidden) {
                                     line.getElement().style.visibility = "hidden"
                                 }
@@ -8101,7 +8101,7 @@ async function processQuickLookInSidebar(changesetID) {
                     )
                 }
             };
-            const nodesWithModifiedLocation = Array.from(document.querySelectorAll("#changeset_nodes .location-modified div div")).map(i => parseInt(i.id.slice(1)))
+            const nodesWithModifiedLocation = Array.from(document.querySelectorAll("#changeset_nodes .location-modified div div")).map(i => parseInt(i.id.match(/n(\d+)/)[1]))
             await Promise.all(arraySplit(nodesWithModifiedLocation, 4).map(loadNodesParents))
             // fast hack
             // const someInterestingNodes = Array.from(changesetData.querySelectorAll("node")).filter(i => i.querySelector("tag[k=power],tag[k=entrance]")).map(i => parseInt(i.id))
