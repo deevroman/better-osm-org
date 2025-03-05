@@ -5075,6 +5075,12 @@ function addDiffInHistory() {
                 time.before(document.createTextNode("🗑 "))
             }
         }
+
+        const valuesLinks = new Map()
+        document.querySelectorAll(".browse-section table td a").forEach(a => {
+            valuesLinks.set(a.textContent, a.href)
+        })
+
         kv.forEach(
             (i) => {
                 let k = i.querySelector("th > a")?.textContent ?? i.querySelector("th")?.textContent;
@@ -5111,6 +5117,8 @@ function addDiffInHistory() {
                             valCell.onclick = e => {
                                 if (e.altKey) return
                                 if (window.getSelection().type === "Range") return
+                                if (e.target.nodeName === "A") return
+
                                 e.preventDefault()
                                 e.stopPropagation()
                                 if (valCell.querySelector(".prev-value-span").classList.contains("hidden")) {
@@ -5168,7 +5176,17 @@ function addDiffInHistory() {
                                 newText.style.display = "inline-block"
                                 currentValueSpan.replaceWith(newText)
                             } else {
-                                prevValueSpan.textContent = `${el[1]} → `
+                                if (valuesLinks.has(el[1])) {
+                                    const valueLink = document.createElement("a")
+                                    valueLink.href = valuesLinks.get(el[1])
+                                    valueLink.target = "_blank"
+                                    valueLink.title = ""
+                                    valueLink.textContent = `${el[1]}`
+                                    prevValueSpan.appendChild(valueLink)
+                                    prevValueSpan.appendChild(document.createTextNode(" → "))
+                                } else {
+                                    prevValueSpan.textContent = `${el[1]} → `
+                                }
                             }
 
                             currentValueSpan.setAttribute("value", v)
