@@ -1154,6 +1154,11 @@ const compactSidebarStyleText = `
         font-size: 14px !important;
         font-style: italic;  
     }
+    
+    .hidden-comments-badge {
+        display: none !important;
+    }
+    
     .map-layout #sidebar {
       width: 450px;
     }
@@ -1258,6 +1263,10 @@ function setupCompactChangesetsHistory() {
         // remove useless
         document.querySelectorAll("#sidebar .changesets .col").forEach((e) => {
             e.childNodes[0].textContent = ""
+            e.classList.remove("pt-3")
+            e.nextElementSibling.classList.remove("flex-column")
+            e.nextElementSibling.classList.add("flex-row")
+            e.nextElementSibling.style.gap = "5px"
         })
         makeTimesSwitchable();
         hideSearchForm();
@@ -1271,12 +1280,14 @@ function setupCompactChangesetsHistory() {
             for (const elem of document.querySelectorAll(".changesets li:not(:has(.first-comment)):not(.comments-loaded)")) {
                 elem.classList.add("comments-loaded")
                 const commentsBadge = elem.querySelector(".col-auto.text-secondary")
-                const commentsCount = parseInt(commentsBadge.firstChild.textContent.trim());
+                const commentsCount = parseInt(commentsBadge.firstElementChild.firstChild.textContent.trim());
                 if (commentsCount) {
                     if (commentsCount > 3) {
-                        commentsBadge.style.setProperty("color", "red", "important")
+                        commentsBadge.firstElementChild.style.setProperty("color", "red", "important")
                     } else if (commentsCount > 1) {
-                        commentsBadge.style.setProperty("color", "#ff7800", "important")
+                        commentsBadge.firstElementChild.style.setProperty("color", "#ff7800", "important")
+                    } else if (commentsCount > 0) {
+                        commentsBadge.firstElementChild.style.setProperty("color", "#ffae00", "important")
                     }
                     const comment = document.createElement("div");
                     comment.classList.add("first-comment")
@@ -1307,6 +1318,8 @@ function setupCompactChangesetsHistory() {
                         const shortText = shortOsmOrgLinksInText(firstComment["text"])
                         comment.appendChild(document.createTextNode(" " + shortText));
                     });
+                } else {
+                    commentsBadge.firstElementChild.classList.add("hidden-comments-badge")
                 }
             }
         }, 0);
