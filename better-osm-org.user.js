@@ -3,6 +3,7 @@
 // @name:ru         Better osm.org
 // @version         0.9.1
 // @changelog       v0.9.1: script should work more stably in Сhrome
+// @changelog       v0.9.1: display prev value in history diff cell
 // @changelog       v0.9.1: Alt + click by <time> for open augmented diffs
 // @changelog       v0.8.9: Satellite layer in Chrome
 // @changelog       v0.8.9: Support Mapillary images in tags
@@ -2662,19 +2663,20 @@ function makeLinksInTagsClickable() {
     document.querySelectorAll(".browse-tag-list tr").forEach(row => {
         const key = row.querySelector("th")?.textContent?.toLowerCase()
         if (!key) return
+        const valueCell = row.querySelector("td .current-value-span") ? row.querySelector("td .current-value-span") : row.querySelector("td")
         if (key === "fixme") {
-            row.querySelector("td").classList.add("fixme-tag")
+            valueCell.classList.add("fixme-tag")
         } else if (key === "note") {
-            row.querySelector("td").classList.add("note-tag")
+            valueCell.classList.add("note-tag")
         } else if (key.startsWith("panoramax")) {
             if (!row.querySelector("td a")) {
-                makePanoramaxValue(row.querySelector("td"))
+                makePanoramaxValue(valueCell)
             }
         } else if (key.startsWith("mapillary")) {
             if (!row.querySelector("td a")) {
-                makeMapillaryValue(row.querySelector("td"))
+                makeMapillaryValue(valueCell)
             }
-        } else if (key === "xmas:feature" && !document.querySelector(".egg-snow-tag") || row.querySelector("td").textContent.includes("snow")) {
+        } else if (key === "xmas:feature" && !document.querySelector(".egg-snow-tag") || valueCell.textContent.includes("snow")) {
             const curDate = new Date()
             if (curDate.getMonth() === 11 && curDate.getDate() >= 18 || curDate.getMonth() === 0 && curDate.getDate() < 10) {
                 const snowBtn = document.createElement("span")
@@ -2691,7 +2693,7 @@ function makeLinksInTagsClickable() {
                 document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(snowBtn)
             }
         } else if (key === "wikimedia_commons") {
-            makeWikimediaCommonsValue(row.querySelector("td"));
+            makeWikimediaCommonsValue(valueCell);
         } else if (key === "direction") {
             const coords = row.parentElement.parentElement.parentElement.parentElement.querySelector("span.latitude")
             if (coords) {
@@ -2700,20 +2702,20 @@ function makeLinksInTagsClickable() {
                 const match = location.pathname.match(/(node|way|relation)\/(\d+)\/history\/(\d+)\/?$/)
                 if (match || document.querySelector(".browse-tag-list") === row.parentElement.parentElement) {
                     cleanObjectsByKey("activeObjects")
-                    renderDirectionTag(parseFloat(lat), parseFloat(lon), row.querySelector("td").textContent, "#ff00e3")
+                    renderDirectionTag(parseFloat(lat), parseFloat(lon), valueCell.textContent, "#ff00e3")
                 }
                 row.onmouseenter = () => {
                     cleanObjectsByKey("activeObjects")
-                    renderDirectionTag(parseFloat(lat), parseFloat(lon), row.querySelector("td").textContent, "#ff00e3")
+                    renderDirectionTag(parseFloat(lat), parseFloat(lon), valueCell.textContent, "#ff00e3")
                 }
             }
         } else if (key.startsWith("opening_hours") // https://github.com/opening-hours/opening_hours.js/blob/master/scripts/related_tags.txt
             || ["happy_hours", "delivery_hours", "smoking_hours", "collection_times", "service_times"].includes(key)) {
             try {
-                new opening_hours(row.querySelector("td").textContent, null, {tag_key: key});
+                new opening_hours(valueCell.textContent, null, {tag_key: key});
             } catch (e) {
-                row.querySelector("td").title = e
-                row.querySelector("td").classList.add("fixme-tag")
+                valueCell.title = e
+                valueCell.classList.add("fixme-tag")
             }
         }
     })
@@ -4758,7 +4760,10 @@ function setupViewRedactions() {
         })
         cleanAllObjects()
         document.querySelector(".compact-toggle-btn")?.remove()
-        setTimeout(addDiffInHistory, 0)
+        setTimeout(async () => {
+            await addDiffInHistory();
+            addCommentsCount()
+        }, 0)
     }
     if (!document.querySelector('#sidebar .secondary-actions a[href$="show_redactions=true"]')) {
         document.querySelector("#sidebar .secondary-actions").appendChild(document.createElement("br"))
@@ -4946,6 +4951,11 @@ function addDiffInHistory() {
     table.browse-tag-list tr td[colspan="2"] {
         background: var(--bs-body-bg) !important;
     }
+    
+    .prev-value-span.hidden {
+        display: none !important;
+    }
+    
     ` + (GM_config.get("ShowChangesetGeometry") ? `
     .way-version-view:hover {
         background-color: yellow;
@@ -5068,8 +5078,13 @@ function addDiffInHistory() {
         kv.forEach(
             (i) => {
                 let k = i.querySelector("th > a")?.textContent ?? i.querySelector("th")?.textContent;
+                i.querySelector("td .prev-value-span")?.remove()
+                if (i.querySelector("td .current-value-span")) {
+                    i.querySelector("td .current-value-span").classList.remove("current-value-span")
+                }
                 let v = i.querySelector("td .wdplugin")?.textContent ?? i.querySelector("td")?.textContent;
                 if (k === undefined) {
+                    // todo support multiple wikidata
                     // Human-readable Wikidata extension compatibility
                     return
                 }
@@ -5090,8 +5105,79 @@ function addDiffInHistory() {
                     lastTags.forEach((el) => {
                         if (el[0] === k && el[1] !== v) {
                             i.querySelector("th").classList.add("history-diff-modified-key")
-                            i.querySelector("td").classList.add("history-diff-modified-tag")
-                            i.title = `was: "${el[1]}"`;
+                            const valCell = i.querySelector("td")
+                            valCell.classList.add("history-diff-modified-tag")
+                            valCell.innerHTML = "<span class='current-value-span'>" + valCell.innerHTML + "</span>"
+                            valCell.onclick = e => {
+                                if (e.altKey) return
+                                if (window.getSelection().type === "Range") return
+                                e.preventDefault()
+                                e.stopPropagation()
+                                if (valCell.querySelector(".prev-value-span").classList.contains("hidden")) {
+                                    document.querySelectorAll(".prev-value-span").forEach(span => span.classList.remove("hidden"))
+                                } else {
+                                    document.querySelectorAll(".prev-value-span").forEach(span => span.classList.add("hidden"))
+                                }
+                            }
+
+                            const currentValueSpan = i.querySelector("td .current-value-span")
+                            const prevValueSpan = document.createElement("span")
+                            prevValueSpan.classList.add("prev-value-span")
+
+                            const diff = arraysDiff(Array.from(el[1]).toReversed(), Array.from(v).toReversed(), 1).toReversed()
+                            // todo unify with diff in changesets
+                            if (!i.querySelector("td a") && v.length > 1 && el[1].length > 1
+                                && (
+                                    diff.length === v.length && el[1].length === v.length
+                                    && diff.reduce((cnt, b) => cnt + (b[0] !== b[1]), 0) === 1
+                                    || diff.reduce((cnt, b) => cnt + (b[0] !== b[1] && b[0] !== null), 0) === 0
+                                    || diff.reduce((cnt, b) => cnt + (b[0] !== b[1] && b[1] !== null), 0) === 0
+                                )) {
+                                let prevText = document.createElement("span")
+                                let newText = document.createElement("span")
+                                diff.forEach(c => {
+                                    if (c[0] !== c[1]) {
+                                        {
+                                            const colored = document.createElement("span")
+                                            if (isDarkMode()) {
+                                                colored.style.background = "rgba(25, 223, 25, 0.9)"
+                                            } else {
+                                                colored.style.background = "rgba(25, 223, 25, 0.6)"
+                                            }
+                                            colored.textContent = c[1]
+                                            newText.appendChild(colored)
+                                        }
+                                        {
+                                            const colored = document.createElement("span")
+                                            if (isDarkMode()) {
+                                                colored.style.background = "rgba(253, 83, 83, 0.8)"
+                                            } else {
+                                                colored.style.background = "rgba(255, 144, 144, 0.6)"
+                                            }
+                                            colored.textContent = c[0]
+                                            prevText.appendChild(colored)
+                                        }
+                                    } else {
+                                        prevText.appendChild(document.createTextNode(c[0]))
+                                        newText.appendChild(document.createTextNode(c[1]))
+                                    }
+                                })
+                                prevValueSpan.appendChild(prevText)
+                                prevValueSpan.appendChild(document.createTextNode(" → "))
+                                newText.classList.add("current-value-span")
+                                newText.style.display = "inline-block"
+                                currentValueSpan.replaceWith(newText)
+                            } else {
+                                prevValueSpan.textContent = `${el[1]} → `
+                            }
+
+                            currentValueSpan.setAttribute("value", v)
+                            currentValueSpan.classList.add("current-value-span")
+                            currentValueSpan.style.display = "inline-block"
+                            prevValueSpan.style.display = "inline-block"
+                            valCell.prepend(prevValueSpan)
+                            i.title = `Click for hide previous value`;
+                            // i.title = `was: "${el[1]}"`;
                             wasModifiedObject = tagWasModified = true
                         }
                     })
@@ -5765,19 +5851,20 @@ function makeLinksInRowClickable(row) {
         row.querySelector("td").appendChild(a)
     } else {
         const key = row.querySelector("th").textContent
+        const valueCell = row.querySelector("td")
         if (key.startsWith("panoramax")) {
-            makePanoramaxValue(row.querySelector("td"))
+            makePanoramaxValue(valueCell)
         } else if (key.startsWith("mapillary")) {
-            makeMapillaryValue(row.querySelector("td"))
+            makeMapillaryValue(valueCell)
         } else if (key.startsWith("wikimedia_commons")) {
-            makeWikimediaCommonsValue(row.querySelector("td"))
+            makeWikimediaCommonsValue(valueCell)
         } else if (key.startsWith("opening_hours") // https://github.com/opening-hours/opening_hours.js/blob/master/scripts/related_tags.txt
             || ["happy_hours", "delivery_hours", "smoking_hours", "collection_times", "service_times"].includes(key)) {
             try {
-                new opening_hours(row.querySelector("td").textContent, null, {tag_key: key});
+                new opening_hours(valueCell.textContent, null, {tag_key: key});
             } catch (e) {
-                row.querySelector("td").title = e
-                row.querySelector("td").classList.add("fixme-tag")
+                valueCell.title = e
+                valueCell.classList.add("fixme-tag")
             }
         }
     }
