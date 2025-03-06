@@ -2879,7 +2879,7 @@ function showWays(ListOfNodesList, layerName = "customObjects", color = "#000000
  * @param {boolean=} needFly
  * @param {string=} color
  * @param {number=} width
- * @param {string|number|null=} infoElemID
+ * @param {string|null=} infoElemID
  * @param {string=null} layerName
  * @param {string|null=} dashArray
  * @param {string|null=} popupContent
@@ -2935,7 +2935,7 @@ function displayWay(nodesList, needFly = false, color = "#000000", width = 4, in
  * @param {string|float} a
  * @param {string|float} b
  * @param {string=} color
- * @param {string|number|null=null} infoElemID
+ * @param {string|null=null} infoElemID
  * @param {string=} layerName
  * @param {number=} radius
  */
@@ -2949,7 +2949,7 @@ function showNodeMarker(a, b, color = "#00a500", infoElemID = null, layerName = 
     layers[layerName].push(getWindow().L.circleMarker(getWindow().L.latLng(a, b), intoPage(haloStyle)).addTo(getMap()));
     if (infoElemID) {
         layers[layerName][layers[layerName].length - 1].on('click', cloneInto(function () {
-            const elementById = document.getElementById("n" + infoElemID);
+            const elementById = document.getElementById(infoElemID);
             elementById?.scrollIntoView()
             resetMapHover()
             elementById?.parentElement?.parentElement.classList?.add("map-hover")
@@ -2984,7 +2984,7 @@ function showActiveNodeMarker(lat, lon, color, removeActiveObjects = true) {
  * @param {[]} nodesList
  * @param {string=} color
  * @param {boolean=} needFly
- * @param {string|number|null=} infoElemID
+ * @param {string|null=} infoElemID
  * @param {boolean=true} removeActiveObjects
  * @param {number=} weight
  * @param {string=} dashArray
@@ -3010,7 +3010,7 @@ function showActiveWay(nodesList, color = "#ff00e3", needFly = false, infoElemID
     }
     if (infoElemID) {
         layers["activeObjects"][layers["activeObjects"].length - 1].on('click', cloneInto(function () {
-            const elementById = document.getElementById("w" + infoElemID);
+            const elementById = document.getElementById(infoElemID);
             elementById?.scrollIntoView()
             resetMapHover()
             elementById.classList.add("map-hover")
@@ -6903,25 +6903,25 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
         if (targetVersion.visible === false) {
             if (targetVersion.version !== 1 && prevVersion.visible !== false) { // даа, такое есть https://www.openstreetmap.org/node/300524/history
                 if (prevVersion.tags) {
-                    showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#FF0000", prevVersion.id)
+                    showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#FF0000", changesetID + "n" + prevVersion.id)
                 } else {
-                    showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#FF0000", prevVersion.id, "customObjects", 2)
+                    showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#FF0000", changesetID + "n" + prevVersion.id, "customObjects", 2)
                     // todo show prev parent ways
                 }
             }
         } else if (targetVersion.version === 1) {
             if (targetVersion.tags) {
-                showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#00a500", targetVersion.id)
+                showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#00a500", changesetID + "n" + targetVersion.id)
             }
             setTimeout(async () => {
                 if ((await getChangeset(parseInt(changesetID))).nodesWithOldParentWays.has(parseInt(objID))) {
-                    showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#00a500", targetVersion.id)
+                    showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#00a500", changesetID + "n" + targetVersion.id)
                 }
             }, 0); // dirty hack for https://osm.org/changeset/162017882
         } else if (prevVersion?.visible === false && targetVersion?.visible !== false) {
-            showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "rgba(89,170,9,0.6)", targetVersion.id, 'customObjects', 2)
+            showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "rgba(89,170,9,0.6)", changesetID + "n" + targetVersion.id, 'customObjects', 2)
         } else {
-            showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "rgb(255,245,41)", targetVersion.id)
+            showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "rgb(255,245,41)", changesetID + "n" + targetVersion.id)
         }
     }
 
@@ -6981,25 +6981,25 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             document.querySelector(".browse-section.active-object")?.classList?.remove()
             i.parentElement.parentElement.classList.add("active-object")
 
-            showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", currentNodesList.length !== 0, objID)
+            showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", currentNodesList.length !== 0, changesetID + "w" + objID)
 
             if (version > 1) {
                 // show prev version
                 const [, nodesHistory] = await loadWayVersionNodes(objID, version - 1);
                 const targetTimestamp = (new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1)).toISOString()
                 const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", currentNodesList.length === 0, objID, false, 4, "4, 4")
+                showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", currentNodesList.length === 0, changesetID + "w" + objID, false, 4, "4, 4")
 
-                showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false)
+                showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, changesetID + "w" + objID, false)
             } else {
                 const targetTimestamp = (new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1)).toISOString()
                 const prevVersion = searchVersionByTimestamp(await getWayHistory(objID), targetTimestamp);
                 if (prevVersion) {
                     const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
                     const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                    showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", currentNodesList.length === 0, objID, false, 4, "4, 4")
+                    showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", currentNodesList.length === 0, changesetID + "w" + objID, false, 4, "4, 4")
                 }
-                showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false)
+                showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, changesetID + "w" + objID, false)
             }
         }
         let attempts = 0
@@ -7043,18 +7043,18 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 const [, nodesHistory] = await loadWayVersionNodes(objID, version - 1);
                 const targetTimestamp = (new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1)).toISOString()
                 const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false, 4, "4, 4")
+                showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, changesetID + "w" + objID, false, 4, "4, 4")
 
-                showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false, lineWidth)
+                showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, changesetID + "w" + objID, false, lineWidth)
             } else {
                 const targetTimestamp = (new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1)).toISOString()
                 const prevVersion = searchVersionByTimestamp(await getWayHistory(objID), targetTimestamp);
                 if (prevVersion) {
                     const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
                     const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                    showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false, 4, "4, 4")
+                    showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, changesetID + "w" + objID, false, 4, "4, 4")
                 }
-                showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, objID, false, lineWidth)
+                showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, changesetID + "w" + objID, false, lineWidth)
             }
         }
 
@@ -8002,7 +8002,7 @@ async function processQuickLookInSidebar(changesetID) {
                     if (i.getAttribute("visible") === "false") {
                         // todo
                     } else if (i.getAttribute("version") === "1" && !(await getChangeset(parseInt(changesetID))).nodesWithParentWays.has(parseInt(nodeID))) {
-                        showNodeMarker(i.getAttribute("lat"), i.getAttribute("lon"), "#00a500", nodeID)
+                        showNodeMarker(i.getAttribute("lat"), i.getAttribute("lon"), "#00a500", changesetID + "n" + nodeID)
                     }
                 }
             }
@@ -8107,7 +8107,7 @@ async function processQuickLookInSidebar(changesetID) {
                                             const prevVersion = searchVersionByTimestamp(await getWayHistory(way.id), targetTimestamp);
                                             const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
                                             const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                                            showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false, 4, "4, 4")
+                                            showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, changesetID + "w" + objID, false, 4, "4, 4")
 
                                             // showActiveWay(cloneInto(currentNodesList, unsafeWindow), "rgba(55,55,55,0.5)", false, objID, false)
                                         } else {
@@ -8115,7 +8115,7 @@ async function processQuickLookInSidebar(changesetID) {
                                             if (prevVersion) {
                                                 const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
                                                 const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                                                showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, objID, false, 4, "4, 4")
+                                                showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, changesetID + "w" + objID, false, 4, "4, 4")
 
                                                 // showActiveWay(cloneInto(currentNodesList, unsafeWindow), "rgba(55,55,55,0.5)", false, objID, false)
                                             }
