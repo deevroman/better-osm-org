@@ -4292,10 +4292,10 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
 
         for (const i of nodesBag) {
             if (i?.lat) {
-                relationInfo.min_lat = min(relationInfo.min_lat, i.lat)
-                relationInfo.min_lon = min(relationInfo.min_lon, i.lon)
-                relationInfo.max_lat = max(relationInfo.max_lat, i.lat)
-                relationInfo.max_lon = max(relationInfo.max_lon, i.lon)
+                relationInfo.bbox.min_lat = min(relationInfo.bbox.min_lat, i.lat)
+                relationInfo.bbox.min_lon = min(relationInfo.bbox.min_lon, i.lon)
+                relationInfo.bbox.max_lat = max(relationInfo.bbox.max_lat, i.lat)
+                relationInfo.bbox.max_lon = max(relationInfo.bbox.max_lon, i.lon)
             }
         }
         return bboxCache[[id, timestamp]] = relationInfo
