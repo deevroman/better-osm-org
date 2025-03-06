@@ -4595,6 +4595,10 @@ function setupViewRedactions() {
                 } else if (type === "relation") {
                     target = await getRelationViaOverpassXML(objID, targetDatetime)
                 }
+                if (!target) {
+                    console.error(`v${version} not founded`)
+                    continue
+                }
                 // todo попробовать заменить на оператор timeline в overpass api
             }
             const h4 = document.createElement("h4")
@@ -4607,6 +4611,7 @@ function setupViewRedactions() {
             const comment = document.createElement("p")
             comment.classList.add("fs-6", "overflow-x-auto")
             setTimeout(async () => {
+                if (!target) return
                 const res = await fetch(osm_server.apiBase + "changeset" + "/" + target.getAttribute("changeset") + ".json",);
                 const jsonRes = await res.json();
                 comment.textContent = jsonRes.tags?.comment
@@ -4829,9 +4834,11 @@ function addCommentsCount() {
                         i.parentElement.title += `${k}: ${v}\n`
                     })
                     const user_link = i.parentElement.parentElement.querySelector(`a[href^="/user/"]`)
-                    getCachedUserInfo(user_link.textContent).then((res) => {
-                        user_link.title = `changesets_count: ${res['changesets']['count']}\naccount_created: ${res['account_created']}`
-                    })
+                    if (user_link) {
+                        getCachedUserInfo(user_link.textContent).then((res) => {
+                            user_link.title = `changesets_count: ${res['changesets']['count']}\naccount_created: ${res['account_created']}`
+                        })
+                    }
                     getChangesetComments(changesetID).then(res => {
                         res.forEach(comment => {
                             const shortText = shortOsmOrgLinksInText(comment["text"])
