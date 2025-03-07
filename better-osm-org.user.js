@@ -10104,8 +10104,8 @@ function setupNavigationViaHotkeys() {
         if (e.metaKey || e.ctrlKey) {
             return;
         }
-        console.debug("Key: ", e.key)
-        console.debug("Key code: ", e.code)
+        console.log("Key: ", e.key)
+        console.log("Key code: ", e.code)
         if (e.code === "KeyN") {
             if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
                 document.querySelector('a[href^="/user/"][href$="/notes"]')?.click()
@@ -10465,7 +10465,7 @@ function setupNavigationViaHotkeys() {
                     document.querySelector('#content a[href^="/user/"]:not([href$=rss]):not([href*="/diary"]):not([href*="/traces"])')?.click()
                 }
             }
-        } else if ((e.code === "Backquote" || e.code === "Quote" || e.key === "`" || e.key === "?" || e.key === "~") && !e.altKey && !e.metaKey && !e.ctrlKey) {
+        } else if ((e.code === "Backquote" || e.code === "Quote" || e.key === "`" || e.key === "~") && !e.altKey && !e.metaKey && !e.ctrlKey) {
             if (!getWindow().mapIntercepted) return
             e.preventDefault()
             for (let member in layers) {
@@ -11664,7 +11664,7 @@ async function setupDragAndDropViewers() {
 
     // todo refactor
     const createNoteButton = document.querySelector(".control-note.leaflet-control a")
-    if (createNoteButton) {
+    if (createNoteButton && !createNoteButton.getAttribute("data-bs-original-title").includes(" (shift + N)")) {
         createNoteButton.setAttribute("data-bs-original-title", createNoteButton.getAttribute("data-bs-original-title") + " (shift + N)")
     }
 
@@ -11758,7 +11758,7 @@ function runSnow() {
 
         window;
         const h = Math, r = h.random, a = document, o = Date.now;
-        e = (t => {
+        const e = (t => {
             l.clearRect(0, 0, _, f), l.fill(), requestAnimationFrame(e);
             const i = .001 * y.et;
             y.r();
