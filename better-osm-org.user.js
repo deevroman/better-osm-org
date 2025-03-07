@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.9.1
+// @version         0.9.2
 // @changelog       v0.9.1: script should work more stably in Сhrome
 // @changelog       v0.9.1: display prev value in history diff cell
 // @changelog       v0.9.1: Alt + click by <time> for open augmented diffs
@@ -6950,7 +6950,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             let attempts = 0
             while (!changesetMetadata && attempts < 60) {
                 attempts++
-                console.log(`changesetMetadata not ready. Wait second...`)
+                console.log(`changesetMetadata[${targetVersion.changeset}] not ready. Wait second...`)
                 await abortableSleep(1000, abortDownloadingController) // todo нужно поретраить
                 changesetMetadata = changesetMetadatas[targetVersion.changeset]
             }
@@ -7009,7 +7009,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
         let attempts = 0
         while (!changesetMetadata && attempts < 60) {
             attempts++
-            console.log(`changesetMetadata not ready. Wait second...`)
+            console.log(`changesetMetadata[${targetVersion.changeset}] not ready. Wait second...`)
             await abortableSleep(1000, abortDownloadingController) // todo нужно поретраить
             changesetMetadata = changesetMetadatas[targetVersion.changeset]
         }
@@ -8052,7 +8052,7 @@ async function processQuickLookInSidebar(changesetID) {
                                 })
 
                                 if (!changesetMetadatas[changesetID]) {
-                                    console.log(`changesetMetadata not ready. Wait second...`)
+                                    console.log(`changesetMetadata[${changesetID}] not ready. Wait second...`)
                                     await abortableSleep(1000, abortDownloadingController) // todo нужно поретраить
                                 }
 
@@ -9516,6 +9516,7 @@ function debug_alert() {
  * @return {Promise<void>}
  */
 async function loadChangesetMetadata(changeset_id = null) {
+    console.log(`Loading changeset metadata`)
     if (!changeset_id) {
         const match = location.pathname.match(/changeset\/(\d+)/)
         if (!match) {
@@ -9523,6 +9524,7 @@ async function loadChangesetMetadata(changeset_id = null) {
         }
         changeset_id = parseInt(match[1]);
     }
+    console.log(`Loading metadata of changeset #${changeset_id}`)
     if (changesetMetadatas[changeset_id] && changesetMetadatas[changeset_id].id === changeset_id) {
         return;
     }
