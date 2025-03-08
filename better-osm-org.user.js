@@ -1267,7 +1267,7 @@ function setupCompactChangesetsHistory() {
 
     function handleNewChangesets() {
         // remove useless
-        document.querySelectorAll("#sidebar .changesets .col").forEach((e) => {
+        document.querySelectorAll("#sidebar .changesets .pt-3").forEach((e) => {
             e.childNodes[0].textContent = ""
             e.classList.remove("pt-3")
             e.nextElementSibling.classList.remove("flex-column")
@@ -1291,7 +1291,7 @@ function setupCompactChangesetsHistory() {
         setTimeout(async () => {
             for (const elem of document.querySelectorAll(".changesets li:not(:has(.first-comment)):not(.comments-loaded)")) {
                 elem.classList.add("comments-loaded")
-                const commentsBadge = elem.querySelector(".col-auto.text-secondary")
+                const commentsBadge = elem.querySelector(".flex-row.text-body-secondary")
                 const commentsCount = parseInt(commentsBadge.firstElementChild.firstChild.textContent.trim());
                 if (commentsCount) {
                     if (commentsCount > 3) {
