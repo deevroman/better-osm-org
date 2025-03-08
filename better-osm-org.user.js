@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.9.2
+// @version         0.9.3
 // @changelog       v0.9.1: script should work more stably in Сhrome
 // @changelog       v0.9.1: display prev value in history diff cell
 // @changelog       v0.9.1: Alt + click by <time> for open augmented diffs
@@ -10528,7 +10528,7 @@ function setupNavigationViaHotkeys() {
                     })
                 }
             }
-        } else if (e.code === "Slash" && e.shiftKey) {
+        } else if ((e.code === "Slash" || e.code === "Backslash" || e.code === "NumpadDivide" || e.key === "/") && e.shiftKey) {
             getMap().getBounds()
             const query = prompt(`Type overpass selector:\n\tkey\n\tkey=value\n\tkey~val,i\n\tway[footway=crossing](if: length() > 150)\nEnd with ! for global search\n⚠this is a simple prototype of search`, GM_getValue("lastOverpassQuery", ""))
             if (query) {
