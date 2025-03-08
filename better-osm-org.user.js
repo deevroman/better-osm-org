@@ -7263,6 +7263,18 @@ function getPrevTargetLastVersions(objHistory, version) {
 function addQuickLookStyles() {
     try {
         const styleText = `
+            .edits-wars-log tr:nth-child(even) td, .edits-wars-log tr:nth-child(even) th {
+                background-color: color-mix(in srgb, var(--bs-body-bg), black 25%);
+            }
+            
+            @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+            
+            .edits-wars-log tr:nth-child(even) td, .edits-wars-log tr:nth-child(even) th {
+                background-color: color-mix(in srgb, var(--bs-body-bg), white 5%);
+            }
+            
+            }
+            
             tr.quick-look-new-tag th {
                 background: rgba(17,238,9,0.6);
             }
@@ -7308,7 +7320,7 @@ function addQuickLookStyles() {
                     color: black;
                 }
                             
-                tr.quick-look-deleted-tag th {
+                tr.quick-look-deleted-tag th:not(.tag-flag) { /* dirty hack for zebra colors override */
                     /*background: #692113;*/
                     background: rgba(238,51,9,0.4);
                     /*background: rgba(229, 83, 75, 0.3);*/
@@ -7385,18 +7397,6 @@ function addQuickLookStyles() {
               content: " ↻";
               position: absolute;
               color: var(--bs-body-color);
-            }
-            
-            .edits-wars-log tr:nth-child(even) td, .edits-wars-log tr:nth-child(even) th {
-                background-color: color-mix(in srgb, var(--bs-body-bg), black 25%);
-            }
-            
-            @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
-            
-            .edits-wars-log tr:nth-child(even) td, .edits-wars-log tr:nth-child(even) th {
-                background-color: color-mix(in srgb, var(--bs-body-bg), white 5%);
-            }
-            
             }
             
             
