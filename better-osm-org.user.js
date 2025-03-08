@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.9.3
+// @version         0.9.4
 // @changelog       v0.9.1: script should work more stably in Сhrome
 // @changelog       v0.9.1: display prev value in history diff cell
 // @changelog       v0.9.1: Alt + click by <time> for open augmented diffs
@@ -1289,7 +1289,7 @@ function setupCompactChangesetsHistory() {
         })
 
         setTimeout(async () => {
-            for (const elem of document.querySelectorAll(".changesets li:not(:has(.first-comment)):not(.comments-loaded)")) {
+            for (const elem of document.querySelectorAll(".changesets li:not(:has(.comment)):not(.comments-loaded)")) {
                 elem.classList.add("comments-loaded")
                 const commentsBadge = elem.querySelector(".flex-row.text-body-secondary")
                 const commentsCount = parseInt(commentsBadge.firstElementChild.firstChild.textContent.trim());
@@ -1301,34 +1301,75 @@ function setupCompactChangesetsHistory() {
                     } else if (commentsCount > 0) {
                         commentsBadge.firstElementChild.style.setProperty("color", "#ffae00", "important")
                     }
-                    const comment = document.createElement("div");
-                    comment.classList.add("first-comment")
-                    comment.style.fontSize = "0.7rem"
-                    comment.style.borderTopColor = "#0000"
-                    comment.style.borderTopStyle = "solid"
-                    comment.style.borderTopWidth = "1px"
-                    elem.appendChild(comment)
 
                     const changeset_id = elem.querySelector(".changeset_id").href.match(/\/(\d+)/)[1];
                     getChangesetComments(changeset_id).then(res => {
-                        const firstComment = res[0];
-                        const userLink = document.createElement("a")
-                        userLink.href = osm_server.url + "/user/" + encodeURI(firstComment["user"]);
-                        userLink.textContent = firstComment["user"];
-                        comment.appendChild(userLink);
-                        getCachedUserInfo(firstComment["user"]).then((res) => {
-                            const badge = makeBadge(res /* fixme */)
-                            const svg = badge.querySelector("svg")
-                            if (svg) {
-                                badge.style.marginLeft = "-4px"
-                                badge.style.height = "1rem";
-                                badge.style.float = "left";
-                                svg.style.transform = "scale(0.7)"
+                        res.forEach((comment, idx) => {
+                            const commentElem = document.createElement("div");
+                            commentElem.classList.add("comment")
+                            commentElem.style.fontSize = "0.7rem"
+                            commentElem.style.borderTopColor = "#0000"
+                            commentElem.style.borderTopStyle = "solid"
+                            commentElem.style.borderTopWidth = "1px"
+                            if (idx !== 0) {
+                                commentElem.style.display = "none"
                             }
-                            userLink.before(badge)
+                            elem.appendChild(commentElem)
+
+                            const userLink = document.createElement("a")
+                            userLink.href = osm_server.url + "/user/" + encodeURI(comment["user"]);
+                            userLink.textContent = comment["user"];
+                            commentElem.appendChild(userLink);
+                            getCachedUserInfo(comment["user"]).then((res) => {
+                                const badge = makeBadge(res /* fixme */)
+                                const svg = badge.querySelector("svg")
+                                if (svg) {
+                                    badge.style.marginLeft = "-4px"
+                                    badge.style.height = "1rem";
+                                    badge.style.float = "left";
+                                    svg.style.transform = "scale(0.7)"
+                                }
+                                userLink.before(badge)
+                            })
+                            let shortText = shortOsmOrgLinksInText(comment["text"])
+                            if (shortText.length > 500) {
+                                const text = document.createElement("span")
+                                text.textContent = " " + shortText.slice(0, 500)
+                                commentElem.appendChild(text);
+                                const more = document.createElement("span")
+                                more.textContent = "..."
+                                more.title = "Click for view more"
+                                more.style.cursor = "pointer"
+                                more.style.color = "rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1))"
+                                more.onclick = () => {
+                                    more.remove()
+                                    text.textContent = " " + shortText
+                                }
+                                commentElem.appendChild(more);
+                            } else {
+                                commentElem.appendChild(document.createTextNode(" " + shortText));
+                            }
                         })
-                        const shortText = shortOsmOrgLinksInText(firstComment["text"])
-                        comment.appendChild(document.createTextNode(" " + shortText));
+
+                        commentsBadge.firstElementChild.style.cursor = "pointer"
+
+                        let state = (commentsCount === 1 ? "" : "none")
+                        commentsBadge.firstElementChild.onclick = () => {
+                            elem.querySelectorAll(".comment").forEach(comment => {
+                                if (state === "none") {
+                                    comment.style.display = ""
+                                } else {
+                                    comment.style.display = "none"
+                                }
+                            })
+                            state = (state === "none") ? "" : "none"
+                        }
+                        commentsBadge.firstElementChild.title = ""
+                        res.forEach(comment => {
+                            const shortText = shortOsmOrgLinksInText(comment["text"])
+                            commentsBadge.firstElementChild.title += `${comment["user"]}:\n${shortText}\n\n`
+                        })
+                        commentsBadge.firstElementChild.title = commentsBadge.firstElementChild.title.trimEnd()
                     });
                 } else {
                     commentsBadge.firstElementChild.classList.add("hidden-comments-badge")
