@@ -2,6 +2,7 @@
 // @name            Better osm.org
 // @name:ru         Better osm.org
 // @version         0.9.5
+// @changelog       v0.9.5: Adoption to updates osm.org, render camera:direction=*
 // @changelog       v0.9.1: script should work more stably in Chrome
 // @changelog       v0.9.1: display prev value in history diff cell
 // @changelog       v0.9.1: Alt + click by <time> for open augmented diffs
@@ -1221,7 +1222,12 @@ const compactSidebarStyleText = `
           background: var(--bs-body-bg) !important;
         }
     }
-      
+    
+    .sidebar-close-controls.position-relative .position-absolute {
+        padding: 1.5rem !important;
+        padding-bottom: 1.3rem !important;
+        padding-top: 1.4rem !important;
+    }
     `;
 
 let styleForSidebarApplied = false
