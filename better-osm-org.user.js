@@ -2,7 +2,7 @@
 // @name            Better osm.org
 // @name:ru         Better osm.org
 // @version         0.9.4
-// @changelog       v0.9.1: script should work more stably in Сhrome
+// @changelog       v0.9.1: script should work more stably in Chrome
 // @changelog       v0.9.1: display prev value in history diff cell
 // @changelog       v0.9.1: Alt + click by <time> for open augmented diffs
 // @changelog       v0.9.1: adapting to changes on the page /history
@@ -10168,6 +10168,10 @@ function setupNavigationViaHotkeys() {
                 }
             }
         } else if (e.code === "KeyD") {
+            if (e.altKey && isDebug()) {
+                debugger
+                throw "debug"
+            }
             if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
                 document.querySelector('a[href^="/user/"][href$="/diary"]')?.click()
             } else {
@@ -10487,7 +10491,7 @@ function setupNavigationViaHotkeys() {
                 }
             }
         } else if (e.code === "KeyQ" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
-            document.querySelector("#sidebar_content .btn-close")?.click()
+            document.querySelector("#sidebar .btn-close")?.click()
             document.querySelector(".welcome .btn-close")?.click()
         } else if (e.code === "KeyT" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
             if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
