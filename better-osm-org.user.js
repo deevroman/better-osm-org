@@ -9002,8 +9002,8 @@ function addMassActionForUserChangesets() {
     a.onclick = () => {
         if (massModeForUserChangesetsActive === null) {
             massModeForUserChangesetsActive = true
-            document.querySelector("#sidebar_content > div").after(makeTopActionBar())
-            document.querySelector("#sidebar_content div.changeset_more").after(document.createTextNode("   "))
+            document.querySelector("#sidebar .changesets").before(makeTopActionBar())
+            document.querySelector("#sidebar div.changeset_more").after(document.createTextNode("   "))
             makeBottomActionBar()
             document.querySelectorAll(".changesets li").forEach(addChangesetCheckbox)
         } else {
@@ -9328,7 +9328,7 @@ function addMassActionForGlobalChangesets() {
             needPatchLoadMoreRequest = true
             if (massModeActive === null) {
                 massModeActive = true
-                document.querySelector("#sidebar_content > div").after(makeTopFilterBar())
+                document.querySelector("#sidebar .changesets").before(makeTopFilterBar())
                 document.querySelectorAll("ol li div > a").forEach(makeUsernamesFilterable)
             } else {
                 massModeActive = !massModeActive
