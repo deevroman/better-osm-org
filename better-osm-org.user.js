@@ -1138,6 +1138,7 @@ const compactSidebarStyleText = `
       font-weight: 788;
       font-style: italic;
       font-size: 14px !important;
+      font-synthesis: none;
     }
     @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
         .changesets time {
@@ -1154,7 +1155,8 @@ const compactSidebarStyleText = `
     }
     .browse-section > p:nth-of-type(1) {
         font-size: 14px !important;
-        font-style: italic;  
+        font-style: italic;
+        font-synthesis: none;  
     }
     
     .hidden-comments-badge {
@@ -9309,6 +9311,8 @@ function addMassActionForGlobalChangesets() {
                 filterBar.appendChild(label2)
                 const filterByCommentInput = document.createElement("input")
                 filterByCommentInput.id = "filter-by-comment-input"
+                filterByCommentInput.placeholder = "words1,words2,... and press Enter"
+                filterByCommentInput.title = "Filter by substring in changesets comments"
                 filterByCommentInput.style.width = "250px"
                 filterByCommentInput.addEventListener("keypress", function (event) {
                     if (event.key === "Enter") {
