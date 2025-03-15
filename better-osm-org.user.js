@@ -5841,12 +5841,13 @@ let iconsList = null
 
 async function loadIconsList() {
     let yml;
+    const url = `https://raw.githubusercontent.com/openstreetmap/openstreetmap-website/refs/heads/master/config/browse_icons.yml`;
     if (GM_info.scriptHandler !== "FireMonkey") {
         yml = (await GM.xmlHttpRequest({
-            url: `https://raw.githubusercontent.com/openstreetmap/openstreetmap-website/refs/heads/master/config/browse_icons.yml`,
+            url: url,
         })).responseText
     } else {
-        yml = await (await GM.fetch(`https://raw.githubusercontent.com/openstreetmap/openstreetmap-website/refs/heads/master/config/browse_icons.yml`)).text
+        yml = await (await GM.fetch(url)).text
     }
     iconsList = {}
     // не, ну а почему бы и нет
@@ -8612,6 +8613,290 @@ function setupDarkModeForMap() {
     darkModeForMap = true
 }
 
+async function loadChangesets(user) {
+    let startTime = new Date((new Date().getTime()) - 1000 * 60 * 60 * 24 * 366)
+
+    const processedChangesets = new Set()
+    /*** @type {ChangesetMetadata[]}*/
+    const changesets = []
+
+    while (true) {
+        /*** @type {{changesets: ChangesetMetadata[]}}*/
+        const res = await fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
+            display_name: user,
+            order: 'oldest',
+            from: startTime.toISOString()
+        }).toString())
+        console.log(res);
+
+        res.changesets = res.changesets.filter(i => !processedChangesets.has(i.id))
+        if (res.changesets.length === 0) break
+
+        res.changesets.forEach(i => {
+            changesets.push(i)
+            processedChangesets.add(i.id)
+        })
+
+        startTime = new Date(res.changesets[res.changesets.length - 1].created_at)
+    }
+    return changesets
+}
+
+/**
+ * @param {ChangesetMetadata[]} changesets
+ * @param filter
+ * @return {{date: string, total_changes: number}[]}
+ */
+function makeChangesetsStat(changesets, filter) {
+    const datesStat = {}
+
+    changesets.forEach(i => {
+        if (!filter(i)) return
+        const date = new Date(i.created_at)
+        const key = `${date.getUTCFullYear()}-${date.getUTCMonth() + 1}-${date.getUTCDate()}`
+        if (datesStat[key] === undefined) {
+            datesStat[key] = 0
+        }
+        datesStat[key] += i.changes_count
+    })
+
+    return Object.entries(datesStat).map(([date, total_changes]) => {
+        return {date, total_changes}
+    })
+}
+
+async function betterUserStat(user) {
+    const filterInput = document.createElement("select")
+    filterInput.setAttribute("disabled", true)
+    filterInput.title = "Please wait while user changesets loading"
+
+    const item = document.createElement("option")
+    item.value = ""
+    item.textContent = "All editors"
+    filterInput.appendChild(item)
+
+    document.querySelector("#cal-heatmap").parentElement.parentElement.after(filterInput)
+
+    const changesets = await loadChangesets(user)
+    filterInput.removeAttribute("disabled")
+    filterInput.oninput = async e => {
+        let filter = (_) => true
+        if (e.target.value) {
+            const selected = Array.from(e.target.options).filter(i => i.selected)
+            filter = (ch) => {
+                return selected.some(i => ch?.tags?.["created_by"]?.includes(i.value))
+            }
+        }
+        const newHeatmapData = makeChangesetsStat(changesets, filter)
+        document.querySelector("#cal-heatmap").setAttribute("data-heatmap", JSON.stringify(newHeatmapData))
+
+        document.querySelector("#cal-heatmap .ch-container")?.remove()
+        injectJSIntoPage(`
+        // from openstreetmap-website with disabled animation
+        (() => {
+            const heatmapElement = document.querySelector("#cal-heatmap");
+
+            if (!heatmapElement) {
+                return;
+            }
+
+            const heatmapData = heatmapElement.dataset.heatmap ? JSON.parse(heatmapElement.dataset.heatmap) : [];
+            const colorScheme = document.documentElement.getAttribute("data-bs-theme") ?? "auto";
+            const rangeColors = ["#14432a", "#166b34", "#37a446", "#4dd05a"];
+            const startDate = new Date(Date.now() - (365 * 24 * 60 * 60 * 1000));
+            const monthNames = I18n.t("date.abbr_month_names");
+
+            const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+            let cal = new CalHeatmap();
+            let currentTheme = getTheme();
+
+            function renderHeatmap() {
+                cal.destroy();
+                cal = new CalHeatmap();
+
+                cal.paint({
+                    itemSelector: "#cal-heatmap",
+                    theme: currentTheme,
+                    domain: {
+                        type: "month",
+                        gutter: 4,
+                        label: {
+                            text: (timestamp) => monthNames[new Date(timestamp).getMonth() + 1],
+                            position: "top",
+                            textAlign: "middle"
+                        },
+                        dynamicDimension: true
+                    },
+                    subDomain: {
+                        type: "ghDay",
+                        radius: 2,
+                        width: 11,
+                        height: 11,
+                        gutter: 4
+                    },
+                    date: {
+                        start: startDate
+                    },
+                    range: 13,
+                    data: {
+                        source: heatmapData,
+                        type: "json",
+                        x: "date",
+                        y: "total_changes"
+                    },
+                    scale: {
+                        color: {
+                            type: "threshold",
+                            range: currentTheme === "dark" ? rangeColors : Array.from(rangeColors).reverse(),
+                            domain: [10, 20, 30, 40]
+                        }
+                    },
+                    animationDuration: 0
+                }, [
+                    [Tooltip, {
+                        text: (date, value) => getTooltipText(date, value)
+                    }]
+                ]);
+            }
+
+            function getTooltipText(date, value) {
+                const localizedDate = I18n.l("date.formats.long", date);
+
+                if (value > 0) {
+                    return I18n.t("javascripts.heatmap.tooltip.contributions", {count: value, date: localizedDate});
+                }
+
+                return I18n.t("javascripts.heatmap.tooltip.no_contributions", {date: localizedDate});
+            }
+
+            function getTheme() {
+                if (colorScheme === "auto") {
+                    return mediaQuery.matches ? "dark" : "light";
+                }
+
+                return colorScheme;
+            }
+
+            if (colorScheme === "auto") {
+                mediaQuery.addEventListener("change", (e) => {
+                    currentTheme = e.matches ? "dark" : "light";
+                    renderHeatmap();
+                });
+            }
+
+            renderHeatmap();
+        })()
+        `)
+    }
+    let rawReplaceRules;
+    const url = "https://raw.githubusercontent.com/piebro/openstreetmap-statistics/refs/heads/master/src/replace_rules_created_by.json";
+    if (GM_info.scriptHandler !== "FireMonkey") {
+        rawReplaceRules = (await GM.xmlHttpRequest({
+            url: url,
+        })).responseText
+    } else {
+        rawReplaceRules = await (await GM.fetch(url)).text
+    }
+
+    const tag_to_name = {}
+    const starts_with_list = []
+    const ends_with_list = []
+    const contains_list = []
+    Object.entries(JSON.parse(rawReplaceRules)).forEach(([name, name_infos]) => {
+        if (name_infos["aliases"]) {
+            for (let alias in name_infos["aliases"]) {
+                tag_to_name[alias] = name
+            }
+        }
+        if (name_infos["starts_with"]) {
+            for (const starts_with of name_infos["starts_with"]) {
+                starts_with_list.push([starts_with.length, starts_with, name])
+            }
+        }
+        if (name_infos["ends_with"]) {
+            for (const ends_with of name_infos["ends_with"]) {
+                ends_with_list.push([ends_with.length, ends_with, name])
+            }
+        }
+        if (name_infos["contains"]) {
+            for (const compare_str of name_infos["contains"]) {
+                contains_list.push([compare_str, name])
+            }
+        }
+    })
+
+    function replace_with_rules(tag) {
+        if (tag_to_name[tag]) {
+            return tag_to_name[tag]
+        }
+
+        for (let [compare_str_length, compare_str, replace_str] of starts_with_list) {
+            if (tag.slice(0, compare_str_length) === compare_str) {
+                return replace_str
+            }
+        }
+
+        for (let [compare_str_length, compare_str, replace_str] of ends_with_list) {
+            if (tag.slice(-compare_str_length) === compare_str) {
+                return replace_str
+            }
+        }
+
+        for (let [compare_str, replace_str] of contains_list) {
+            if (tag.includes(compare_str)) {
+                return replace_str
+            }
+        }
+
+        return tag
+    }
+
+    filterInput.id = "editors"
+    filterInput.addEventListener("mousedown", function (e) {
+        e.preventDefault()
+        e.target.focus()
+        filterInput.setAttribute("size", 7)
+        filterInput.setAttribute("multiple", true)
+    }, {"once": true})
+
+    const counts = {};
+
+    changesets.forEach(i => {
+        const editor = replace_with_rules(i.tags?.["created_by"])
+        counts[editor] = counts[editor] ? counts[editor] + i.changes_count : i.changes_count;
+    })
+
+    Array.from(new Set(changesets.map(i => replace_with_rules(i.tags?.["created_by"])))).sort((a, b) => {
+        if (counts[a] < counts[b]) {
+            return 1
+        }
+        if (counts[a] > counts[b]) {
+            return -1
+        }
+        return 0
+    }).forEach(i => {
+        const item = document.createElement("option")
+        item.value = i
+        if (i === 1) {
+            item.textContent = ` ${i} (${counts[i]} edit)`
+        } else {
+            item.textContent = ` ${i} (${counts[i]} edits)`
+        }
+        filterInput.appendChild(item)
+    })
+
+    Array.from(new Set(changesets.map(i => i.tags?.["created_by"]))).sort().forEach(i => {
+        const item = document.createElement("option")
+        item.value = i
+        item.textContent = i
+        filterInput.appendChild(item)
+    })
+
+    filterInput.after(filterInput)
+    console.log("setuping filters finished")
+}
+
 async function setupHDYCInProfile(path) {
     let match = path.match(/^\/user\/([^/]+)(\/|\/notes)?$/);
     if (!match || path.includes("/history")) {
@@ -8661,6 +8946,8 @@ async function setupHDYCInProfile(path) {
     window.addEventListener('message', function (event) {
         iframe.height = event.data.height + 'px';
     });
+
+    betterUserStat(user)
 }
 
 function simplifyHDCYIframe() {
@@ -10145,7 +10432,7 @@ function setupNavigationViaHotkeys() {
             }
             return
         }
-        if (["TEXTAREA", "INPUT"].includes(document.activeElement?.nodeName) && document.activeElement?.getAttribute("type") !== "checkbox") {
+        if (["TEXTAREA", "INPUT", "SELECT"].includes(document.activeElement?.nodeName) && document.activeElement?.getAttribute("type") !== "checkbox") {
             return;
         }
         if (document.activeElement.getAttribute("contenteditable")) {
@@ -12041,6 +12328,7 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
 init.then(main);
 
 setTimeout(async () => {
+    if (location.pathname.includes("/user/")) return
     if (!getWindow().mapIntercepted) {
         console.log("map not intercepted after 900ms");
         await interceptMapManually()
