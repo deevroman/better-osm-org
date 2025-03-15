@@ -8947,7 +8947,7 @@ async function setupHDYCInProfile(path) {
         iframe.height = event.data.height + 'px';
     });
 
-    betterUserStat(user)
+    betterUserStat(decodeURI(user))
 }
 
 function simplifyHDCYIframe() {
@@ -12323,17 +12323,17 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
         //     window.parent.postMessage("kek", location.origin);
         // }
     }
+
+    setTimeout(async () => {
+        if (location.pathname.includes("/user/")) return
+        if (!getWindow().mapIntercepted) {
+            console.log("map not intercepted after 900ms");
+            await interceptMapManually()
+        }
+    }, 900)
 }
 
 init.then(main);
-
-setTimeout(async () => {
-    if (location.pathname.includes("/user/")) return
-    if (!getWindow().mapIntercepted) {
-        console.log("map not intercepted after 900ms");
-        await interceptMapManually()
-    }
-}, 900)
 
 // garbage collection for cached infos (user info, changeset history)
 setTimeout(async function () {
