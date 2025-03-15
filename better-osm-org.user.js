@@ -9311,6 +9311,7 @@ function addMassActionForGlobalChangesets() {
                 filterBar.appendChild(label2)
                 const filterByCommentInput = document.createElement("input")
                 filterByCommentInput.id = "filter-by-comment-input"
+                filterByCommentInput.placeholder = "words1,words2,... and press Enter"
                 filterByCommentInput.style.width = "250px"
                 filterByCommentInput.addEventListener("keypress", function (event) {
                     if (event.key === "Enter") {
