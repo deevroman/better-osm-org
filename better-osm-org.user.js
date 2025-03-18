@@ -12396,6 +12396,30 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
         getWindow = () => unsafeWindow
     }
     map = getMap()
+    try {
+        interceptRectangle()
+    } catch (e) {
+    }
+
+    setTimeout(async () => {
+        if (location.pathname.includes("/user/")) return
+        if (!getWindow().mapIntercepted) {
+            console.log("map not intercepted after 900ms");
+            await interceptMapManually()
+        }
+    }, 900)
+
+    setTimeout(() => {
+        console.debug("Settings:")
+        console.debug(Object.entries(GM_config.fields).map(i => {
+            if (typeof i[1].value === "boolean") {
+                return [i[0], i[1].value]
+            } else {
+                return [i[0], `length: ${i[1].value.length}`]
+            }
+        }))
+    }, 1500)
+
 } else if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)
     && ["/edit", "/id"].includes(location.pathname) && isDarkMode()) {
     if (location.pathname === "/edit") {
@@ -12437,14 +12461,6 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
         //     window.parent.postMessage("kek", location.origin);
         // }
     }
-
-    setTimeout(async () => {
-        if (location.pathname.includes("/user/")) return
-        if (!getWindow().mapIntercepted) {
-            console.log("map not intercepted after 900ms");
-            await interceptMapManually()
-        }
-    }, 900)
 }
 
 init.then(main);
