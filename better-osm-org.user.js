@@ -7235,7 +7235,7 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
         i.classList.add("object-in-process")
     })
 
-    const objectsLinksInComments = {
+    const objectsLinksInComments = { // todo can be optimaized
         nodes: Array.from(document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div a[href*="node/"]`)),
         ways: Array.from(document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div a[href*="way/"]`)),
         relations: Array.from(document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div a[href*="relation/"]`))
@@ -7680,6 +7680,7 @@ async function getParentWays(nodeID) {
 
 
 async function processQuickLookInSidebar(changesetID) {
+    const multipleChangesets = location.search.includes("changesets=")
 
     async function processObjects(objType, uniqTypes) {
         pinnedRelations = new Set()
@@ -7691,7 +7692,6 @@ async function processQuickLookInSidebar(changesetID) {
             i.classList.add("object-in-process")
         })
 
-        const needHideNodes = location.search.includes("changesets=")
         const needFetch = []
 
         try {
@@ -7749,12 +7749,13 @@ async function processQuickLookInSidebar(changesetID) {
         // reorder non-interesting-objects
         Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li.tags-non-modified`)).forEach(i => {
             document.querySelector(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li`).parentElement.appendChild(i)
+            // todo убрать дублирование селекторов
         })
         Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li.tags-non-modified:not(.location-modified)`)).forEach(i => {
             document.querySelector(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li`).parentElement.appendChild(i)
         })
 
-        if (needHideNodes) {
+        if (multipleChangesets) {
             document.querySelectorAll("#changeset_nodes .tags-non-modified:not(.location-modified)").forEach(i => {
                 i.setAttribute("hidden", "true")
             })
@@ -7830,7 +7831,7 @@ async function processQuickLookInSidebar(changesetID) {
                 i.removeAttribute("hidden")
             });
         }
-        if (needHideNodes && compactToggle.style.display !== "none") {
+        if (multipleChangesets && compactToggle.style.display !== "none") {
             document.querySelectorAll(`[changeset-id="${changesetID}"]`).forEach(changeset => {
                 const forHide = document.querySelectorAll(`[changeset-id="${changeset.getAttribute("changeset-id")}"]#changeset_nodes .tags-non-modified:not(.location-modified)`);
                 forHide.forEach(i => {
@@ -8239,7 +8240,13 @@ async function processQuickLookInSidebar(changesetID) {
 
         if (GM_config.get("ShowChangesetGeometry")) {
             console.log("%cTry find parents ways", 'background: #222; color: #bada55')
-            await findParents()
+            if (multipleChangesets) { // todo не стоит если пакетов мало?
+                findParents().then(() => {
+                    console.log(`Parents with ${changesetID} loaded`);
+                })
+            } else {
+                await findParents()
+            }
         }
     } catch (e) { // TODO notify user
         if (e.name === "AbortError") {
