@@ -8521,6 +8521,9 @@ async function addChangesetQuickLook() {
     }
 
     await interceptMapManually()
+    if (!GM_config.get("NavigationViaHotkeys")) {
+        updateCurrentObjectMetadata()
+    }
     await processQuickLookInSidebar(changesetID);
 
     if (changesetIDs.length) {
