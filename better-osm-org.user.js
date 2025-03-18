@@ -1,7 +1,8 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.9.5
+// @version         0.9.6
+// @changelog       v0.9.6: Filter by editor for edits heatmap
 // @changelog       v0.9.5: Adoption to updates osm.org, render camera:direction=*
 // @changelog       v0.9.1: script should work more stably in Chrome
 // @changelog       v0.9.1: display prev value in history diff cell
@@ -314,6 +315,13 @@ GM_config.init(
                     {
                         'section': ["Other"],
                         'label': 'Add HDYC to user profile',
+                        'type': 'checkbox',
+                        'default': 'checked',
+                        'labelPos': 'right'
+                    },
+                'BetterProfileStat':
+                    {
+                        'label': 'Add filters to profile statistics',
                         'type': 'checkbox',
                         'default': 'checked',
                         'labelPos': 'right'
@@ -8721,6 +8729,7 @@ function makeChangesetsStat(changesets, filter) {
 }
 
 async function betterUserStat(user) {
+    if (!GM_config.get("BetterProfileStat")) return
     const filterInput = document.createElement("select")
     filterInput.setAttribute("disabled", true)
     filterInput.title = "Please wait while user changesets loading"
@@ -8734,6 +8743,7 @@ async function betterUserStat(user) {
 
     const changesets = await loadChangesets(user)
     filterInput.removeAttribute("disabled")
+    filterInput.title = "Alt + O for open selected changeset on one page"
     injectJSIntoPage(`
     // from openstreetmap-website with disabled animation
     // todo need some autosync with upstream
