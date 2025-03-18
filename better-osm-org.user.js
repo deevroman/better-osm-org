@@ -9276,9 +9276,16 @@ function makeTopActionBar() {
     copyIds.classList.add("copy-changesets-ids-btn")
     copyIds.onclick = () => {
         const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
-        navigator.clipboard.writeText(ids).then(() => {
-            console.log("ids copied")
-        });
+        if (ids !== "") {
+            navigator.clipboard.writeText(ids).then(() => {
+                console.log(ids, "ids copied")
+            });
+        } else {
+            const ids = Array.from(document.querySelectorAll(".mass-action-checkbox")).map(i => i.value).join(",")
+            navigator.clipboard.writeText(ids).then(() => {
+                console.log(ids, "ids copied")
+            });
+        }
     }
     const revertButton = document.createElement("button")
     revertButton.textContent = "↩️"
@@ -9322,9 +9329,16 @@ function makeBottomActionBar() {
     copyIds.classList.add("btn", "btn-primary")
     copyIds.onclick = () => {
         const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
-        navigator.clipboard.writeText(ids).then(() => {
-            console.log("ids copied")
-        });
+        if (ids !== "") {
+            navigator.clipboard.writeText(ids).then(() => {
+                console.log(ids, "ids copied")
+            });
+        } else {
+            const ids = Array.from(document.querySelectorAll(".mass-action-checkbox")).map(i => i.value).join(",")
+            navigator.clipboard.writeText(ids).then(() => {
+                console.log(ids, "ids copied")
+            });
+        }
     }
     const revertButton = document.createElement("button")
     revertButton.textContent = "↩️"
@@ -9849,7 +9863,7 @@ function addMassChangesetsActions() {
             // todo
             // sidebarObserverForMassActions.observe(document.querySelector('#sidebar'), {childList: true, subtree: true});
         }
-        document.querySelectorAll('#sidebar .col .changeset_id').forEach((item) => {
+        document.querySelectorAll('#sidebar ol li div .changeset_id').forEach((item) => {
             if (item.classList.contains("custom-changeset-id-click")) return
             item.classList.add("custom-changeset-id-click")
             item.onclick = (e) => {
