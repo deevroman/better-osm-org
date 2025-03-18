@@ -141,6 +141,7 @@ function makeRow(label, text, without_delete = false) {
     td.textContent = text
     td.style.paddingLeft = "4px"
     td.style.paddingRight = "4px"
+    td.style.wordWrap = "anywhere"
     td.setAttribute("placeholder", "comment that will be added when clicked")
 
     td2.textContent = "×"
@@ -214,6 +215,13 @@ GM_config.init(
                 'VersionsDiff':
                     {
                         'label': 'Add tags diff in history',
+                        'type': 'checkbox',
+                        'default': 'checked',
+                        'labelPos': 'right',
+                    },
+                'ShowPreviousTagValue':
+                    {
+                        'label': 'Show previous tag value',
                         'type': 'checkbox',
                         'default': 'checked',
                         'labelPos': 'right',
@@ -4960,6 +4968,14 @@ function addDiffInHistory() {
       background-color: rgba(223, 223, 223, 0.6);
     }
     
+    .new-letter {
+        background: rgba(25, 223, 25, 0.6);
+    }
+    
+    .deleted-letter {
+        background: rgba(255, 144, 144, 0.6);
+    }
+    
     @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
         .history-diff-new-tag {
           background: rgba(4, 123, 0, 0.6) !important;
@@ -4985,6 +5001,14 @@ function addDiffInHistory() {
         
         #sidebar_content div.map-hover {
             background-color: rgb(14, 17, 19);
+        }
+        
+        .new-letter {
+            background: rgba(25, 223, 25, 0.9); 
+        }
+    
+        .deleted-letter {
+            background: rgba(253, 83, 83, 0.8);
         }
     }
     .non-modified-tag .empty-version {
@@ -5164,7 +5188,7 @@ function addDiffInHistory() {
         document.querySelectorAll(".browse-section table td a").forEach(a => {
             valuesLinks.set(a.textContent, a.href)
         })
-
+        const showPreviousTagValue = GM_config.get("ShowPreviousTagValue", true)
         kv.forEach(
             (i) => {
                 let k = i.querySelector("th > a")?.textContent ?? i.querySelector("th")?.textContent;
@@ -5231,21 +5255,13 @@ function addDiffInHistory() {
                                     if (c[0] !== c[1]) {
                                         {
                                             const colored = document.createElement("span")
-                                            if (isDarkMode()) {
-                                                colored.style.background = "rgba(25, 223, 25, 0.9)"
-                                            } else {
-                                                colored.style.background = "rgba(25, 223, 25, 0.6)"
-                                            }
+                                            colored.classList.add("new-letter")
                                             colored.textContent = c[1]
                                             newText.appendChild(colored)
                                         }
                                         {
                                             const colored = document.createElement("span")
-                                            if (isDarkMode()) {
-                                                colored.style.background = "rgba(253, 83, 83, 0.8)"
-                                            } else {
-                                                colored.style.background = "rgba(255, 144, 144, 0.6)"
-                                            }
+                                            colored.classList.add("deleted-letter")
                                             colored.textContent = c[0]
                                             prevText.appendChild(colored)
                                         }
@@ -5258,7 +5274,11 @@ function addDiffInHistory() {
                                 prevValueSpan.appendChild(document.createTextNode(" → "))
                                 newText.classList.add("current-value-span")
                                 newText.style.display = "inline-block"
-                                currentValueSpan.replaceWith(newText)
+                                if (showPreviousTagValue) {
+                                    currentValueSpan.replaceWith(newText)
+                                } else {
+                                    currentValueSpan.replaceWith(v)
+                                }
                             } else {
                                 if (valuesLinks.has(el[1])) {
                                     const valueLink = document.createElement("a")
@@ -5278,6 +5298,9 @@ function addDiffInHistory() {
                             currentValueSpan.style.display = "inline-block"
                             prevValueSpan.style.display = "inline-block"
                             valCell.prepend(prevValueSpan)
+                            if (!showPreviousTagValue) {
+                                prevValueSpan.classList.add("hidden")
+                            }
                             i.title = `Click for hide previous value`;
                             // i.title = `was: "${el[1]}"`;
                             wasModifiedObject = tagWasModified = true
@@ -6184,21 +6207,13 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                     if (c[0] !== c[1]) {
                         {
                             const colored = document.createElement("span")
-                            if (isDarkMode()) {
-                                colored.style.background = "rgba(25, 223, 25, 0.9)"
-                            } else {
-                                colored.style.background = "rgba(25, 223, 25, 0.6)"
-                            }
+                            colored.classList.add("new-letter")
                             colored.textContent = c[1]
                             newText.appendChild(colored)
                         }
                         {
                             const colored = document.createElement("span")
-                            if (isDarkMode()) {
-                                colored.style.background = "rgba(253, 83, 83, 0.8)"
-                            } else {
-                                colored.style.background = "rgba(255, 144, 144, 0.6)"
-                            }
+                            colored.classList.add("deleted-letter")
                             colored.textContent = c[0]
                             prevText.appendChild(colored)
                         }
@@ -7360,6 +7375,14 @@ function addQuickLookStyles() {
                 background: rgba(238,51,9,0.6);
             }
             
+            .new-letter {
+                background: rgba(25, 223, 25, 0.6);
+            }
+            
+            .deleted-letter {
+                background: rgba(255, 144, 144, 0.6);
+            }
+            
             @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {            
                 tr.quick-look-new-tag th{
                     /*background: #0f540fde;*/
@@ -7411,6 +7434,14 @@ function addQuickLookStyles() {
                             
                 tr.quick-look-deleted-tag td::selection {
                     background: black !important;
+                }
+                
+                .new-letter {
+                    background: rgba(25, 223, 25, 0.9); 
+                }
+            
+                .deleted-letter {
+                    background: rgba(253, 83, 83, 0.8);
                 }
             }
             .edits-wars-tag td:nth-of-type(2)::after{
@@ -8706,6 +8737,7 @@ async function betterUserStat(user) {
             }
 
             const heatmapData = heatmapElement.dataset.heatmap ? JSON.parse(heatmapElement.dataset.heatmap) : [];
+            const displayName = heatmapElement.dataset.displayName;
             const colorScheme = document.documentElement.getAttribute("data-bs-theme") ?? "auto";
             const rangeColors = ["#14432a", "#166b34", "#37a446", "#4dd05a"];
             const startDate = new Date(Date.now() - (365 * 24 * 60 * 60 * 1000));
@@ -8713,12 +8745,11 @@ async function betterUserStat(user) {
 
             const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
-            let cal = new CalHeatmap();
             let currentTheme = getTheme();
 
             function renderHeatmap() {
-                cal.destroy();
-                cal = new CalHeatmap();
+                // cal.destroy();
+                // cal = new CalHeatmap();
 
                 cal.paint({
                     itemSelector: "#cal-heatmap",
@@ -8727,7 +8758,7 @@ async function betterUserStat(user) {
                         type: "month",
                         gutter: 4,
                         label: {
-                            text: (timestamp) => monthNames[new Date(timestamp).getMonth() + 1],
+                            text: (timestamp) => monthNames[new Date(timestamp).getUTCMonth() + 1],
                             position: "top",
                             textAlign: "middle"
                         },
@@ -8763,16 +8794,30 @@ async function betterUserStat(user) {
                         text: (date, value) => getTooltipText(date, value)
                     }]
                 ]);
+                
+                cal.on("mouseover", (event, _timestamp, value) => {
+                    if (value) event.target.style.cursor = "pointer";
+                });
+
+                cal.on("click", (_event, timestamp) => {
+                    if (!displayName) return;
+                    for (const {date, max_id} of heatmapData) {
+                        if (!max_id) continue;
+                        if (timestamp !== Date.parse(date)) continue;
+                        const params = new URLSearchParams([["before", max_id + 1]]);
+                        location = "/user/" + encodeURIComponent(displayName) + "/history?" + params;
+                    }
+                });
             }
 
             function getTooltipText(date, value) {
                 const localizedDate = I18n.l("date.formats.long", date);
 
                 if (value > 0) {
-                    return I18n.t("javascripts.heatmap.tooltip.contributions", {count: value, date: localizedDate});
+                    return I18n.t("javascripts.heatmap.tooltip.contributions", { count: value, date: localizedDate });
                 }
 
-                return I18n.t("javascripts.heatmap.tooltip.no_contributions", {date: localizedDate});
+                return I18n.t("javascripts.heatmap.tooltip.no_contributions", { date: localizedDate });
             }
 
             function getTheme() {
@@ -8791,9 +8836,36 @@ async function betterUserStat(user) {
             }
 
             renderHeatmap();
-        })()
+        }
         `)
+    let calReplaced = false
+    filterInput.oninput = async e => {
+        let filter = (_) => true
+        if (e.target.value) {
+            const selected = Array.from(e.target.options).filter(i => i.selected)
+            filter = (ch) => {
+                return selected.some(i => ch?.tags?.["created_by"]?.includes(i.value))
+            }
+        }
+        const newHeatmapData = makeChangesetsStat(changesets, filter)
+        document.querySelector("#cal-heatmap").setAttribute("data-heatmap", JSON.stringify(newHeatmapData))
+
+        if (!calReplaced) {
+            calReplaced = true
+            document.querySelector("#cal-heatmap .ch-container")?.remove()
+        }
+        getWindow().rerenderCalendar()
     }
+    document.addEventListener("keydown", (e) => {
+        if (e.altKey && e.code === "KeyO") {
+            const selected = Array.from(filterInput.options).filter(i => i.selected)
+            const ids = changesets.filter((ch) => {
+                return selected.some(i => ch?.tags?.["created_by"]?.includes(i.value))
+            }).map(i => i.id)
+            const idsStr = ids.join(",")
+            open(osm_server.url + `/changeset/${ids[0]}?changesets=` + idsStr, "_blank")
+        }
+    })
     let rawReplaceRules;
     const url = "https://raw.githubusercontent.com/piebro/openstreetmap-statistics/refs/heads/master/src/replace_rules_created_by.json";
     if (GM_info.scriptHandler !== "FireMonkey") {
@@ -9906,14 +9978,17 @@ async function loadChangesetMetadatas(changeset_ids) {
     if (!changeset_ids.length) {
         return
     }
-    const res = await fetch(osm_server.apiBase + "changesets.json?changesets=" + changeset_ids.join(",")); // todo split long queries
-    if (res.status === 509) {
-        await error509Handler(res)
-    } else {
-        const jsonRes = await res.json();
-        jsonRes["changesets"].forEach(i => {
-            changesetMetadatas[i.id] = i
-        })
+    const batchSize = 100
+    for (let i = 0; i < changeset_ids.length; i += batchSize) {
+        const res = await fetch(osm_server.apiBase + "changesets.json?changesets=" + changeset_ids.slice(i, i + batchSize).join(","));
+        if (res.status === 509) {
+            await error509Handler(res)
+        } else {
+            const jsonRes = await res.json();
+            jsonRes["changesets"].forEach(i => {
+                changesetMetadatas[i.id] = i
+            })
+        }
     }
 }
 
