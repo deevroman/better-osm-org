@@ -194,3 +194,17 @@ Maybe
 ### Other extensions
 - [OpenStreetMap Tags Editor](https://github.com/Zverik/osmtags-editor)
 - [OpenStreetMap Human-readable Wikidata](https://community.openstreetmap.org/t/announcing-human-readable-wikidata-browser-plugins-for-openstreetmap-org/108180)
+
+### Projects that are used directly or indirectly in the script
+
+- [exif-js](https://github.com/exif-js/exif-js) — to read the coordinates of the photos that you drag using Drag&Drop
+- [GM_config](https://github.com/sizzlemctwizzle/GM_config) — settings framework for UserScripts
+- [LetItSnow](https://github.com/DevBubba/Bookmarklets/blob/main/Screen/LetItSnow.js) — Easter New Year's Egg
+- [opening_hours.js](https://github.com/opening-hours/opening_hours.js) — for opening_hours tags validation
+- [OpenStreetMap Dark Theme](https://userstyles.world/style/15596/openstreetmap-dark-theme) — dark theme was the foundation based on this style
+- [OpenStreetMap Statistics](https://github.com/piebro/openstreetmap-statistics) — The script uses the rules from this project to normalize the names of OSM editors
+- [osmtogeojson](https://github.com/tyrasd/osmtogeojson) — converts OSM data to GeoJSON
+- [osm-auth](https://github.com/osmlab/osm-auth) — for authentication with OpenStreetMap
+- ...
+
+p.s. External libraries are hosted in fork repositories (if possible) controlled by me, and imported with [Subresource Integrity](https://www.tampermonkey.net/documentation.php#api:Subresource_Integrity)
