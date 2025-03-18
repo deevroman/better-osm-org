@@ -7800,7 +7800,7 @@ async function processQuickLookInSidebar(changesetID) {
             });
         }
         if (needHideNodes && compactToggle.style.display !== "none") {
-            document.querySelectorAll("[changeset-id]").forEach(changeset => {
+            document.querySelectorAll(`[changeset-id="${changesetID}"]`).forEach(changeset => {
                 const forHide = document.querySelectorAll(`[changeset-id="${changeset.getAttribute("changeset-id")}"]#changeset_nodes .tags-non-modified:not(.location-modified)`);
                 forHide.forEach(i => {
                     i.setAttribute("hidden", "true")
@@ -8056,6 +8056,7 @@ async function processQuickLookInSidebar(changesetID) {
         // try find parent ways
 
         async function findParents() {
+            performance.mark("FIND_PARENTS_BEGIN_" + changesetID)
             const nodesCount = changesetData.querySelectorAll(`node`)
             for (const i of changesetData.querySelectorAll(`node[version="1"]`)) {
                 const nodeID = i.getAttribute("id")
@@ -8199,6 +8200,10 @@ async function processQuickLookInSidebar(changesetID) {
             // fast hack
             // const someInterestingNodes = Array.from(changesetData.querySelectorAll("node")).filter(i => i.querySelector("tag[k=power],tag[k=entrance]")).map(i => parseInt(i.id))
             // await Promise.all(arraySplit(someInterestingNodes, 4).map(loadNodesParents))
+            performance.mark("FIND_PARENTS_END_" + changesetID)
+            console.debug(performance.measure("FIND_PARENTS", {
+                start: "FIND_PARENTS_BEGIN_" + changesetID
+            }), "FIND_PARENTS_END_" + changesetID);
         }
 
         if (GM_config.get("ShowChangesetGeometry")) {
@@ -8653,15 +8658,24 @@ function makeChangesetsStat(changesets, filter) {
     changesets.forEach(i => {
         if (!filter(i)) return
         const date = new Date(i.created_at)
-        const key = `${date.getUTCFullYear()}-${date.getUTCMonth() + 1}-${date.getUTCDate()}`
+        const key = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`
         if (datesStat[key] === undefined) {
-            datesStat[key] = 0
+            datesStat[key] = [0, 0]
         }
-        datesStat[key] += i.changes_count
+        datesStat[key][0] += i.changes_count
+        datesStat[key][1] = max(datesStat[key][1], i.id)
     })
 
-    return Object.entries(datesStat).map(([date, total_changes]) => {
-        return {date, total_changes}
+    return Object.entries(datesStat).sort((a, b) => {
+        if (a[0] < b[0]) {
+            return -1;
+        }
+        if (a[0] > b[0]) {
+            return 1;
+        }
+        return 0
+    }).map(([date, [total_changes, max_id]]) => {
+        return {date, total_changes, max_id}
     })
 }
 
@@ -8679,21 +8693,12 @@ async function betterUserStat(user) {
 
     const changesets = await loadChangesets(user)
     filterInput.removeAttribute("disabled")
-    filterInput.oninput = async e => {
-        let filter = (_) => true
-        if (e.target.value) {
-            const selected = Array.from(e.target.options).filter(i => i.selected)
-            filter = (ch) => {
-                return selected.some(i => ch?.tags?.["created_by"]?.includes(i.value))
-            }
-        }
-        const newHeatmapData = makeChangesetsStat(changesets, filter)
-        document.querySelector("#cal-heatmap").setAttribute("data-heatmap", JSON.stringify(newHeatmapData))
-
-        document.querySelector("#cal-heatmap .ch-container")?.remove()
-        injectJSIntoPage(`
+    injectJSIntoPage(`
         // from openstreetmap-website with disabled animation
-        (() => {
+        // todo need some autosync with upstream
+        let cal = new CalHeatmap();
+        
+        function rerenderCalendar() {
             const heatmapElement = document.querySelector("#cal-heatmap");
 
             if (!heatmapElement) {
