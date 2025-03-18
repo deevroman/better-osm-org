@@ -8468,7 +8468,86 @@ async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) 
     }
 }
 
+function interceptRectangle() {
+    return
+    console.log("intercept rectangle");
+    injectJSIntoPage(`
+    var layers = {}
+
+    function makeColor(username) {
+        if (username === "StreetComplete_player_43721") debugger
+        let hash = 0;
+        for (let i = 0; i < username.length; i++) {
+            hash = username.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return '#' + ((hash >> 16) & 0xFFFFFF).toString(16).padStart(6, '0');
+    }
+
+    if (!window.rectangleIntercepted) {
+        L.Rectangle.addInitHook((function () {
+                return
+                this.better_id = -1
+                const layer = this
+                Object.defineProperty(
+                    this,
+                    'id',
+                    {
+                        get: function () {
+                            try {
+                                const username = document.querySelector('#changeset_' + this.better_id + ' a[href^="/user/"]').textContent
+                                // debugger
+                                this.options.color = makeColor(username)
+                            } catch (e) {
+                            }
+
+                            return this.better_id
+                        },
+                        set: function (val) {
+                            if (location.pathname !== "/history") {
+                                this.better_id = val;
+                                return;
+                            }
+                            const username = document.querySelector('#changeset_' + val + ' a[href^="/user/"]').textContent
+                            this.options.color = makeColor(username)
+
+                            this.better_id = val
+                        }
+                    }
+                );
+                Object.defineProperty(
+                    this.options,
+                    'color',
+                    {
+                        get: function () {
+                            if (location.pathname !== "/history") {
+                                this.better_id = val;
+                                return;
+                            }
+                            const username = document.querySelector('#changeset_' + layer.better_id + ' a[href^="/user/"]')?.textContent
+                            if (!username) return "#000"
+                            return makeColor(username)
+
+                            // return this.better_options
+                        },
+                        set: function (color) {
+                            // debugger
+                            const username = document.querySelector('#changeset_' + layer.better_id + ' a[href^="/user/"]')?.textContent
+                            if (!username) return color
+                            return makeColor(username)
+                        }
+                    }
+                );
+            })
+        )
+        window.rectangleIntercepted = true
+    }
+    `)
+}
+
 async function interceptMapManually() {
+    if (!getWindow().rectangleIntercepted) {
+        interceptRectangle()
+    }
     if (getWindow().mapIntercepted) return
     try {
         console.warn("try intercept map manually")
