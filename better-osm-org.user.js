@@ -8777,12 +8777,10 @@ function setupOffMapDim() {
 }
 
 let darkModeForMap = false;
+let darkMapStyleElement = false;
 
-function setupDarkModeForMap() {
-    if (!GM_config.get("DarkModeForMap") || darkModeForMap) {
-        return;
-    }
-    GM_addElement(document.head, "style", {
+function injectDarkMapStyle() {
+    darkMapStyleElement = GM_addElement(document.head, "style", {
         textContent: `
             @media (prefers-color-scheme: dark) {
               .leaflet-tile-container, .mapkey-table-entry td:first-child > * {
@@ -8797,6 +8795,13 @@ function setupDarkModeForMap() {
             }
         `,
     });
+}
+
+function setupDarkModeForMap() {
+    if (!GM_config.get("DarkModeForMap") || darkModeForMap) {
+        return;
+    }
+    injectDarkMapStyle()
     darkModeForMap = true
 }
 
@@ -11175,6 +11180,13 @@ function setupNavigationViaHotkeys() {
             if (query) {
                 insertOverlaysStyles()
                 processOverpassQuery(query)
+            }
+        } else if (e.altKey && e.code === "Backquote") {
+            darkModeForMap = !darkModeForMap
+            if (darkModeForMap) {
+                injectDarkMapStyle()
+            } else {
+                darkMapStyleElement.remove()
             }
         } else {
             // console.log(e.key, e.code)
