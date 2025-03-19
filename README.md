@@ -27,7 +27,7 @@ Also works in Firefox for Android
 
   <img src="img/delete.png" width="50%">
 
-### Satellite layer ([Firefox only](https://github.com/deevroman/better-osm-org/issues/33))
+### Satellite layer
 
   <img src="img/notes-sat.jpg" width="50%">
 
