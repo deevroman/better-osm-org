@@ -8900,7 +8900,7 @@ async function betterUserStat(user) {
 
     const changesets = await loadChangesets(user)
     filterInput.removeAttribute("disabled")
-    filterInput.title = "Alt + O for open selected changeset on one page"
+    filterInput.title = "Alt + O for open selected changesets on one page"
     injectJSIntoPage(`
     // from openstreetmap-website with disabled animation
     // todo need some autosync with upstream
@@ -11866,6 +11866,7 @@ function renderOSMGeoJSON(xml) {
 
             const table = startEditEvent.target.parentElement.querySelector("table.tags-table")
             const metaTable = startEditEvent.target.parentElement.querySelector("table.metainfo-table")
+            /** @type {Object.<string, string>}*/
             let oldTags = {}
             if (lastEditMode === "table") {
                 table.querySelectorAll("tr:not(.add-tag-row)").forEach(i => {
@@ -12000,6 +12001,7 @@ function renderOSMGeoJSON(xml) {
             startEditEvent.target.setAttribute("disabled", true)
             startEditEvent.target.addEventListener("click", async function upload() {
                 startEditEvent.target.style.cursor = "progress"
+                /** @type {Object.<string, string>}*/
                 let newTags = {}
                 const lastEditMode = GM_getValue("lastEditMode", "table")
                 if (lastEditMode === "table") {
@@ -12029,7 +12031,11 @@ function renderOSMGeoJSON(xml) {
                 }
 
                 const objectXML = objectInfo.querySelector("node,way,relation")
-                objectXML.querySelectorAll("tag").forEach(i => i.remove())
+                const prevTags = {}
+                objectXML.querySelectorAll("tag").forEach(i => {
+                    prevTags[i.getAttribute("k")] = i.getAttribute("v")
+                    i.remove()
+                })
                 Object.entries(newTags).forEach(([k, v]) => {
                     const tag = objectInfo.createElement("tag")
                     tag.setAttribute("k", k)
@@ -12037,22 +12043,74 @@ function renderOSMGeoJSON(xml) {
                     objectXML.appendChild(tag)
                 })
 
-                let tagsHint = ""
-                for (const i of Object.entries(oldTags)) {
-                    if (mainTags.includes(i[0])) {
-                        tagsHint += ` ${i[0]}=${i[1]}`;
-                        break
+                function makeComment(object_type, object_id, prevTags, newTags) {
+                    const removedKeys = Object.entries(prevTags).map(([k,]) => k).filter(k => newTags[k] === undefined)
+                    const addedKeys = Object.entries(newTags).map(([k,]) => k).filter(k => prevTags[k] === undefined)
+                    const modifiedKeys = Object.entries(prevTags).filter(([k, v]) => newTags[k] !== undefined && newTags[k] !== v).map(([k,]) => k)
+
+                    let tagsHint = ""
+                    if (addedKeys.length) {
+                        tagsHint += "Add " + addedKeys.map(k => `${k}=${newTags[k]}`).join(", ") + "; "
                     }
-                }
-                for (const i of Object.entries(oldTags)) {
-                    if (i[0] === "name") {
-                        tagsHint += ` ${i[0]}=${i[1]}`;
-                        break
+
+                    if (modifiedKeys.length) {
+                        tagsHint += "Changed " + modifiedKeys.map(k => `${k}=${prevTags[k]}​→​${newTags[k]}`).join(", ") + "; "
                     }
+
+                    if (removedKeys.length) {
+                        tagsHint += "Removed " + removedKeys.map(k => `${k}=${prevTags[k]}`).join(", ") + "; "
+                    }
+
+                    if (tagsHint.length > 200 || modifiedKeys.length > 1) {
+                        tagsHint = ""
+                        if (addedKeys.length) {
+                            tagsHint += "Add " + addedKeys.join(", ") + "; "
+                        }
+
+                        if (modifiedKeys.length) {
+                            tagsHint += "Changed " + modifiedKeys.join(", ") + "; "
+                        }
+
+                        if (removedKeys.length) {
+                            tagsHint += "Removed " + removedKeys.join(", ") + "; "
+                        }
+                    }
+
+                    tagsHint = tagsHint.match(/(.*); /)[1]
+
+                    let mainTagsHint = ""
+
+                    for (const i of Object.entries(prevTags)) {
+                        if (mainTags.includes(i[0]) && !removedKeys.includes(i[0]) && !modifiedKeys.includes(i[0])) {
+                            mainTagsHint += ` ${i[0]}=${i[1]}`;
+                            break
+                        }
+                    }
+                    for (const i of Object.entries(prevTags)) {
+                        if (i[0] === "name" && !removedKeys.includes("name") && !modifiedKeys.includes("name")) {
+                            mainTagsHint += ` ${i[0]}=${i[1]}`;
+                            break
+                        }
+                    }
+
+                    if (mainTagsHint !== "") {
+                        if (removedKeys.length) {
+                            tagsHint += " from" + mainTagsHint
+                        } else if (modifiedKeys.length) {
+                            tagsHint += " of" + mainTagsHint
+                        } else if (addedKeys.length) {
+                            tagsHint += " to" + mainTagsHint
+                        }
+                    } else {
+                        tagsHint += ` for ${object_type} ${object_id}`
+                    }
+
+                    return tagsHint !== "" ? tagsHint.slice(0, 255) : `Update tags of ${object_type} ${object_id}`
                 }
+
                 const changesetTags = {
                     'created_by': `better osm.org v${GM_info.script.version}`,
-                    'comment': tagsHint !== "" ? `Update tags of ${tagsHint}`.slice(0, 255) : `Update tags of ${object_type} ${object_id}`
+                    'comment': makeComment(object_type, object_id, prevTags, newTags)
                 };
 
                 let changesetPayload = document.implementation.createDocument(null, 'osm');
