@@ -3502,6 +3502,9 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
     }
     await Promise.all(batches.map(async (batch) => {
         const res = await fetch(osm_server.apiBase + "nodes.json?nodes=" + batch.join(","), {signal: getAbortController().signal});
+        if (!res.ok) {
+            console.trace(res)
+        }
         const nodes = (await res.json()).elements
         lastVersions.push(...nodes)
         nodes.forEach(n => {
@@ -3559,6 +3562,9 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
             console.error("hmm, the maximum length of the URI is incorrectly calculated")
             console.trace();
         } else {
+            if (!res.ok) {
+                console.trace(res)
+            }
             versions.push(...(await res.json()).elements)
         }
     }))
@@ -5932,8 +5938,8 @@ async function loadIconsList() {
         lines.slice(1).forEach(i => {
             const line = i.trim()
             if (line === "") return;
-            const [, value, json] = line.match(/(:\*|\w+): (\{.*})/)
-            iconsList[lines[0].slice(0, -1) + "=" + value] = JSON.parse(json.replaceAll(/(\w+):/g, '"$1":'))
+            const [, value, jsonValue] = line.match(/(:\*|\w+): (\{.*})/)
+            iconsList[lines[0].slice(0, -1) + "=" + value] = JSON.parse(jsonValue.replaceAll(/(\w+):/g, '"$1":'))
         })
     })
     GM_setValue("poi-icons", JSON.stringify({icons: iconsList, cacheTime: new Date()}))
@@ -7358,6 +7364,9 @@ async function getHistoryAndVersionByElem(elem) {
         return [histories[objType][objID], parseInt(version)]
     }
     const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/history.json", {signal: getAbortController().signal});
+    if (!res.ok) {
+        console.trace(objType, objID, version)
+    }
     if (res.status === 509) {
         await error509Handler(res)
     } else {
@@ -8301,11 +8310,11 @@ async function processQuickLookInSidebar(changesetID) {
                 await findParents()
             }
         }
-    } catch (e) { // TODO notify user
-        if (e.name === "AbortError") {
+    } catch (err) { // TODO notify user
+        if (err.name === "AbortError") {
             console.debug("Some requests was aborted")
         } else {
-            console.error(e)
+            console.error(err)
             console.log("%cSetup QuickLook finished with error ⚠️", 'background: #222; color: #bada55')
 
             function makeGithubIssueLink(text) {
@@ -8323,19 +8332,19 @@ async function processQuickLookInSidebar(changesetID) {
                 return a
             }
 
-            if (![ABORT_ERROR_PREV, ABORT_ERROR_NEXT, ABORT_ERROR_USER_CHANGESETS].includes(e) && getMap().getZoom) {
+            if (![ABORT_ERROR_PREV, ABORT_ERROR_NEXT, ABORT_ERROR_USER_CHANGESETS, ABORT_ERROR_WHEN_PAGE_CHANGED].includes(err) && getMap().getZoom) {
                 // eslint-disable-next-line no-debugger
                 debugger
                 try {
                     const reportText = `
 **Page:** ${location.origin}${location.pathname}
 
-**Error:** \`${e.toString().replace("`", "\\`")}\`
+**Error:** \`${err.toString().replace("`", "\\`")}\`
 
 **StackTrace:**
 
 \`\`\`
-${e.stack.replace("`", "\\`").replaceAll(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gm, "<hidden>")}
+${err.stack.replace("`", "\\`").replaceAll(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gm, "<hidden>")}
 \`\`\`
 
 **Script handler:** \`${GM_info.scriptHandler} v${GM_info.version}\`
@@ -8357,7 +8366,7 @@ ${e.stack.replace("`", "\\`").replaceAll(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[
                 }
                 // eslint-disable-next-line no-debugger
                 debugger
-                throw e
+                throw err
             }
         }
     } finally {
@@ -10113,8 +10122,10 @@ async function getChangesetMetadata(changeset_id) {
     return await fetch(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json");
 }
 
+const _isDebug = document.querySelector("head")?.getAttribute("data-user") === "11528195";
+
 function isDebug() {
-    return document.querySelector("head").getAttribute("data-user") === "11528195";
+    return _isDebug;
 }
 
 function debug_alert() {
@@ -10434,6 +10445,7 @@ function disableOverzoom() {
 const ABORT_ERROR_PREV = "Abort requests for moving to prev changeset";
 const ABORT_ERROR_NEXT = "Abort requests for moving to next changeset";
 const ABORT_ERROR_USER_CHANGESETS = "Abort requests for moving to user changesets";
+const ABORT_ERROR_WHEN_PAGE_CHANGED = "Abort requests. Reason: page changed";
 
 let layersHidden = false;
 
@@ -12398,7 +12410,7 @@ ${GM_getResourceText("DARK_THEME_FOR_ID_CSS")}
         if (path + location.search === lastPath) return;
         if (lastPath.includes("/changeset/") && (!path.includes("/changeset/") || lastPath !== path) || lastPath.includes("/history")) {
             try {
-                abortPrevControllers()
+                abortPrevControllers(ABORT_ERROR_WHEN_PAGE_CHANGED)
                 cleanAllObjects()
                 getMap().attributionControl.setPrefix("")
                 addSwipes();
