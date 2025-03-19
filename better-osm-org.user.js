@@ -3178,7 +3178,29 @@ function cleanAllObjects() {
 
 //</editor-fold>
 
-let abortDownloadingController = new AbortController();
+/**
+ *
+ * @type {Object.<string, AbortController>}
+ */
+let abortDownloadingControllers = {};
+
+function getAbortController() {
+    if (abortDownloadingControllers[location.pathname]) {
+        return abortDownloadingControllers[location.pathname]
+    }
+    return abortDownloadingControllers[location.pathname] = new AbortController()
+}
+
+function abortPrevControllers(reason=null) {
+    console.log("abort prev controllers")
+    Object.entries(abortDownloadingControllers).forEach(([path, controller]) => {
+        if (path !== location.pathname) {
+            console.log("abort for", path)
+            controller.abort(reason)
+            delete abortDownloadingControllers[path]
+        }
+    })
+}
 
 /**
  * @typedef {Object} ObjectVersion
@@ -3273,7 +3295,7 @@ async function getChangeset(id) {
     if (changesetsCache[id]) {
         return changesetsCache[id];
     }
-    const text = await fetchWithCache(osm_server.apiBase + "changeset" + "/" + id + "/download", {signal: abortDownloadingController.signal});
+    const text = await fetchWithCache(osm_server.apiBase + "changeset" + "/" + id + "/download", {signal: getAbortController().signal});
     const parser = new DOMParser();
     const data = /** @type {XMLDocument} **/ parser.parseFromString(text, "application/xml");
     return changesetsCache[id] = {
@@ -3369,7 +3391,7 @@ async function loadNodesViaHistoryCalls(nodes) {
             if (nodesHistories[nodeID]) {
                 targetNodesHistory.push(nodesHistories[nodeID]);
             } else {
-                const res = await fetch(osm_server.apiBase + "node" + "/" + nodeID + "/history.json", {signal: abortDownloadingController.signal});
+                const res = await fetch(osm_server.apiBase + "node" + "/" + nodeID + "/history.json", {signal: getAbortController().signal});
                 nodesHistories[nodeID] = (await res.json()).elements
                 targetNodesHistory.push(nodesHistories[nodeID]);
             }
@@ -3390,7 +3412,7 @@ async function getNodeHistory(nodeID) {
         return nodesHistories[nodeID];
     } else {
         console.count("Node history miss")
-        const res = await fetch(osm_server.apiBase + "node" + "/" + nodeID + "/history.json", {signal: abortDownloadingController.signal});
+        const res = await fetch(osm_server.apiBase + "node" + "/" + nodeID + "/history.json", {signal: getAbortController().signal});
         return nodesHistories[nodeID] = (await res.json()).elements;
     }
 }
@@ -3416,7 +3438,7 @@ async function getWayHistory(wayID) {
     if (waysHistories[wayID]) {
         return waysHistories[wayID];
     } else {
-        const res = await fetch(osm_server.apiBase + "way" + "/" + wayID + "/history.json", {signal: abortDownloadingController.signal});
+        const res = await fetch(osm_server.apiBase + "way" + "/" + wayID + "/history.json", {signal: getAbortController().signal});
         return waysHistories[wayID] = (await res.json()).elements;
     }
 }
@@ -3456,7 +3478,7 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
         batches.push(notCached.slice(i, i + batchSize))
     }
     await Promise.all(batches.map(async (batch) => {
-        const res = await fetch(osm_server.apiBase + "nodes.json?nodes=" + batch.join(","), {signal: abortDownloadingController.signal});
+        const res = await fetch(osm_server.apiBase + "nodes.json?nodes=" + batch.join(","), {signal: getAbortController().signal});
         const nodes = (await res.json()).elements
         lastVersions.push(...nodes)
         nodes.forEach(n => {
@@ -3500,7 +3522,7 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
     // console.debug(`w${wayID}v${version}`)
     // console.groupCollapsed(`w${wayID}v${version}`)
     await Promise.all(queryArgs.map(async args => {
-        const res = await fetch(osm_server.apiBase + "nodes.json?nodes=" + args, {signal: abortDownloadingController.signal});
+        const res = await fetch(osm_server.apiBase + "nodes.json?nodes=" + args, {signal: getAbortController().signal});
         if (res.status === 404) {
             console.log('%c Some nodes was hidden. Start slow fetching :(', 'background: #222; color: #bada55')
             let newArgs = args.split(",").map(i => parseInt(i.match(/(\d+)v(\d+)/)[1]));
@@ -5794,13 +5816,13 @@ function addSwipes() {
                 if (diffX > sidebar.offsetWidth / 3) {
                     const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
                     if (navigationLinks && Array.from(navigationLinks).at(-1).href.includes("/changeset/")) {
-                        abortDownloadingController.abort(ABORT_ERROR_PREV)
+                        getAbortController().abort(ABORT_ERROR_PREV)
                         Array.from(navigationLinks).at(-1).click()
                     }
                 } else if (diffX < -sidebar.offsetWidth / 3) {
                     const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
                     if (navigationLinks && navigationLinks[0].href.includes("/changeset/")) {
-                        abortDownloadingController.abort(ABORT_ERROR_NEXT)
+                        getAbortController().abort(ABORT_ERROR_NEXT)
                         navigationLinks[0].click()
                     }
                 }
@@ -5854,7 +5876,7 @@ function addRegionForFirstChangeset(attempts = 5) {
         }
         const center = getMap().getCenter()
         console.time(`Geocoding changeset ${center.lng},${center.lat}`)
-        fetch(`https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2&zoom=10`, {signal: abortDownloadingController.signal}).then((res) => {
+        fetch(`https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2&zoom=10`, {signal: getAbortController().signal}).then((res) => {
             res.json().then((r) => {
                 if (r?.address?.state) {
                     getMap().attributionControl.setPrefix(`${r.address.state}`)
@@ -7012,7 +7034,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
     async function processWay() {
         i.id = `${changesetID}w${objID}`
 
-        const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/full.json", {signal: abortDownloadingController.signal});
+        const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/full.json", {signal: getAbortController().signal});
         // todo по-хорошему нужно проверять, а не успела ли измениться история линии
         // будет более актуально после добавление предзагрузки
         const nowDeleted = !res.ok;
@@ -7031,7 +7053,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             while (!changesetMetadata && attempts < 60) {
                 attempts++
                 console.log(`changesetMetadata[${targetVersion.changeset}] not ready. Wait second...`)
-                await abortableSleep(1000, abortDownloadingController) // todo нужно поретраить
+                await abortableSleep(1000, getAbortController()) // todo нужно поретраить
                 changesetMetadata = changesetMetadatas[targetVersion.changeset]
             }
         }
@@ -7090,7 +7112,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
         while (!changesetMetadata && attempts < 60) {
             attempts++
             console.log(`changesetMetadata[${targetVersion.changeset}] not ready. Wait second...`)
-            await abortableSleep(1000, abortDownloadingController) // todo нужно поретраить
+            await abortableSleep(1000, getAbortController()) // todo нужно поретраить
             changesetMetadata = changesetMetadatas[targetVersion.changeset]
         }
         if (targetVersion.visible === false) {
@@ -7265,7 +7287,7 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
                     needFetch.push(objID)
                 }
             }
-            const res = await fetch(osm_server.apiBase + `${objType}s.json?${objType}s=` + needFetch.join(","), {signal: abortDownloadingController.signal});
+            const res = await fetch(osm_server.apiBase + `${objType}s.json?${objType}s=` + needFetch.join(","), {signal: getAbortController().signal});
             if (res.status === 404) {
                 for (let i of document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)) {
                     await processObjectInteractions(changesetID, objType, objectsLinksInComments, i, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(i)))
@@ -7312,7 +7334,7 @@ async function getHistoryAndVersionByElem(elem) {
     if (histories[objType][objID]) {
         return [histories[objType][objID], parseInt(version)]
     }
-    const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/history.json", {signal: abortDownloadingController.signal});
+    const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/history.json", {signal: getAbortController().signal});
     if (res.status === 509) {
         await error509Handler(res)
     } else {
@@ -7673,7 +7695,7 @@ function preloadPrevNextChangesets() {
  * @return {Promise<WayVersion[]>}
  */
 async function getParentWays(nodeID) {
-    const rawRes = await fetch(osm_server.apiBase + "node/" + nodeID + "/ways.json", {signal: abortDownloadingController.signal});
+    const rawRes = await fetch(osm_server.apiBase + "node/" + nodeID + "/ways.json", {signal: getAbortController().signal});
     if (rawRes.status === 509) {
         await error509Handler(rawRes)
     } else {
@@ -7716,7 +7738,7 @@ async function processQuickLookInSidebar(changesetID) {
                         needFetch.push(objID)
                     }
                 }
-                const res = await fetch(osm_server.apiBase + `${objType}s.json?${objType}s=` + needFetch.join(","), {signal: abortDownloadingController.signal});
+                const res = await fetch(osm_server.apiBase + `${objType}s.json?${objType}s=` + needFetch.join(","), {signal: getAbortController().signal});
                 if (res.status === 404) {
                     for (let i of document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)) {
                         await processObject(i, objType, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(i)))
@@ -8136,7 +8158,7 @@ async function processQuickLookInSidebar(changesetID) {
                                 })
                                 const objID = way.id
 
-                                const res = await fetch(osm_server.apiBase + "way" + "/" + way.id + "/full.json", {signal: abortDownloadingController.signal});
+                                const res = await fetch(osm_server.apiBase + "way" + "/" + way.id + "/full.json", {signal: getAbortController().signal});
                                 if (!res.ok) {
                                     // крааайне маловероятно
                                     return;
@@ -8151,7 +8173,7 @@ async function processQuickLookInSidebar(changesetID) {
 
                                 if (!changesetMetadatas[changesetID]) {
                                     console.log(`changesetMetadata[${changesetID}] not ready. Wait second...`)
-                                    await abortableSleep(1000, abortDownloadingController) // todo нужно поретраить
+                                    await abortableSleep(1000, getAbortController()) // todo нужно поретраить
                                 }
 
                                 const res2 = await getWayNodesByTimestamp(changesetMetadatas[changesetID].closed_at, objID)
@@ -8594,7 +8616,6 @@ async function addChangesetQuickLook() {
     }
     if (injectingStarted) return
     injectingStarted = true
-    abortDownloadingController = new AbortController()
     addQuickLookStyles();
     addRegionForFirstChangeset();
     blurSearchField();
@@ -10150,7 +10171,7 @@ async function loadNoteMetadata() {
     if (noteMetadata !== null && noteMetadata.id === note_id) {
         return;
     }
-    const res = await fetch(osm_server.apiBase + "notes" + "/" + note_id + ".json", {signal: abortDownloadingController.signal});
+    const res = await fetch(osm_server.apiBase + "notes" + "/" + note_id + ".json", {signal: getAbortController().signal});
     if (res.status === 509) {
         await error509Handler(res)
     } else {
@@ -10169,7 +10190,7 @@ async function loadNodeMetadata() {
     if (nodeMetadata !== null && nodeMetadata.id === node_id) {
         return;
     }
-    const res = await fetch(osm_server.apiBase + "node" + "/" + node_id + ".json", {signal: abortDownloadingController.signal});
+    const res = await fetch(osm_server.apiBase + "node" + "/" + node_id + ".json", {signal: getAbortController().signal});
     if (res.status === 509) {
         await error509Handler(res)
     } else if (res.status === 410) {
@@ -10191,7 +10212,7 @@ async function loadWayMetadata() {
     if (wayMetadata !== null && wayMetadata.id === way_id) {
         return;
     }
-    const res = await fetch(osm_server.apiBase + "way" + "/" + way_id + "/full.json", {signal: abortDownloadingController.signal});
+    const res = await fetch(osm_server.apiBase + "way" + "/" + way_id + "/full.json", {signal: getAbortController().signal});
     if (res.status === 509) {
         await error509Handler(res)
     } else if (res.status === 410) {
@@ -10219,7 +10240,7 @@ async function loadRelationMetadata() {
     if (relationMetadata !== null && relationMetadata.id === relation_id) {
         return;
     }
-    const res = await fetch(osm_server.apiBase + "relation" + "/" + relation_id + "/full.json", {signal: abortDownloadingController.signal});
+    const res = await fetch(osm_server.apiBase + "relation" + "/" + relation_id + "/full.json", {signal: getAbortController().signal});
     if (res.status === 509) {
         await error509Handler(res)
     } else if (res.status === 410) {
@@ -11118,7 +11139,7 @@ function setupNavigationViaHotkeys() {
             if (e.code === "Comma") {
                 const link = getPrevChangesetLink()
                 if (link) {
-                    abortDownloadingController.abort(ABORT_ERROR_PREV)
+                    getAbortController().abort(ABORT_ERROR_PREV)
                     needPreloadChangesets = true
                     link.focus()
                     link.click()
@@ -11126,7 +11147,7 @@ function setupNavigationViaHotkeys() {
             } else if (e.code === "Period") {
                 const link = getNextChangesetLink()
                 if (link) {
-                    abortDownloadingController.abort(ABORT_ERROR_NEXT)
+                    getAbortController().abort(ABORT_ERROR_NEXT)
                     needPreloadChangesets = true
                     link.focus()
                     link.click()
@@ -11134,7 +11155,7 @@ function setupNavigationViaHotkeys() {
             } else if (e.code === "KeyH") {
                 const userChangesetsLink = document.querySelectorAll("div.secondary-actions")[1]?.querySelector('a[href^="/user/"]')
                 if (userChangesetsLink) {
-                    abortDownloadingController.abort(ABORT_ERROR_USER_CHANGESETS)
+                    getAbortController().abort(ABORT_ERROR_USER_CHANGESETS)
                     userChangesetsLink.focus()
                     userChangesetsLink.click()
                 }
@@ -12296,7 +12317,7 @@ ${GM_getResourceText("DARK_THEME_FOR_ID_CSS")}
         if (path + location.search === lastPath) return;
         if (lastPath.includes("/changeset/") && (!path.includes("/changeset/") || lastPath !== path) || lastPath.includes("/history")) {
             try {
-                abortDownloadingController.abort() // todo вообще-то опасненько, нет гарантии что ещё не начились новые запросы
+                abortPrevControllers()
                 cleanAllObjects()
                 getMap().attributionControl.setPrefix("")
                 addSwipes();
@@ -12514,17 +12535,8 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
     } catch (e) {
     }
 
-    setTimeout(async () => {
-        if (location.pathname.includes("/user/")) return
-        if (!getWindow().mapIntercepted) {
-            console.log("map not intercepted after 900ms");
-            await interceptMapManually()
-        }
-    }, 900)
-
     setTimeout(() => {
-        console.debug("Settings:")
-        console.debug(Object.entries(GM_config.fields).map(i => {
+        console.debug("Settings:", Object.entries(GM_config.fields).map(i => {
             if (typeof i[1].value === "boolean") {
                 return [i[0], i[1].value]
             } else {
@@ -12577,6 +12589,14 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
 }
 
 init.then(main);
+
+setTimeout(async () => {
+    if (location.pathname.includes("/user/")) return
+    if (getWindow && !getWindow().mapIntercepted) {
+        console.log("map not intercepted after 900ms");
+        await interceptMapManually()
+    }
+}, 900)
 
 // garbage collection for cached infos (user info, changeset history)
 setTimeout(async function () {
