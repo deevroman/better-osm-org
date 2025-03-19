@@ -8746,9 +8746,8 @@ function setupDarkModeForMap() {
     darkModeForMap = true
 }
 
-async function loadChangesets(user) {
-    let startTime = new Date((new Date().getTime()) - 1000 * 60 * 60 * 24 * 366)
-
+async function loadChangesetsBetween(user, fromTime, toTime) {
+    let curTime = fromTime
     const processedChangesets = new Set()
     /*** @type {ChangesetMetadata[]}*/
     const changesets = []
@@ -8758,7 +8757,8 @@ async function loadChangesets(user) {
         const res = await fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
             display_name: user,
             order: 'oldest',
-            from: startTime.toISOString()
+            from: curTime.toISOString(),
+            to: toTime.toISOString()
         }).toString())
         console.log(res);
 
@@ -8770,8 +8770,42 @@ async function loadChangesets(user) {
             processedChangesets.add(i.id)
         })
 
-        startTime = new Date(res.changesets[res.changesets.length - 1].created_at)
+        curTime = new Date(res.changesets[res.changesets.length - 1].created_at)
     }
+    console.log(`${changesets.length} changsets from ${fromTime} to ${toTime} fetched`)
+    return changesets
+}
+
+async function loadChangesets(user) {
+    console.time(`stat-for-${user}`)
+    let startTime = new Date((new Date().getTime()) - 1000 * 60 * 60 * 24 * 366)
+    let startTime2 = new Date((new Date().getTime()) - 1000 * 60 * 60 * 24 * 366 * 3 / 4)
+    let startTime3 = new Date((new Date().getTime()) - 1000 * 60 * 60 * 24 * 366 * 2 / 4)
+    let startTime4 = new Date((new Date().getTime()) - 1000 * 60 * 60 * 24 * 366 / 4)
+    let endTime = new Date((new Date().getTime()) + 1000 * 60 * 60 * 24)
+
+
+    const parts = await Promise.all([
+        loadChangesetsBetween(user, startTime, startTime2),
+        loadChangesetsBetween(user, startTime2, startTime3),
+        loadChangesetsBetween(user, startTime3, startTime4),
+        loadChangesetsBetween(user, startTime4, endTime)
+    ])
+
+    const uniqChangesets = new Set()
+    const changesets = []
+
+    parts.forEach(part => {
+        part.forEach(ch => {
+            if (!uniqChangesets.has(ch.id)) {
+                uniqChangesets.add(ch.id)
+                changesets.push(ch)
+            }
+        })
+    })
+
+    console.timeEnd(`stat-for-${user}`)
+    console.log("Changesets for the last year:", changesets.length);
     return changesets
 }
 
@@ -8840,7 +8874,7 @@ async function betterUserStat(user) {
         const colorScheme = document.documentElement.getAttribute("data-bs-theme") ?? "auto";
         const rangeColors = ["#14432a", "#166b34", "#37a446", "#4dd05a"];
         const startDate = new Date(Date.now() - (365 * 24 * 60 * 60 * 1000));
-        const monthNames = I18n.t("date.abbr_month_names");
+        const monthNames = OSM.i18n.t("date.abbr_month_names");
 
         const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
@@ -8910,13 +8944,13 @@ async function betterUserStat(user) {
         }
 
         function getTooltipText(date, value) {
-            const localizedDate = I18n.l("date.formats.long", date);
+            const localizedDate = OSM.i18n.l("date.formats.long", date);
 
             if (value > 0) {
-                return I18n.t("javascripts.heatmap.tooltip.contributions", {count: value, date: localizedDate});
+                return OSM.i18n.t("javascripts.heatmap.tooltip.contributions", {count: value, date: localizedDate});
             }
 
-            return I18n.t("javascripts.heatmap.tooltip.no_contributions", {date: localizedDate});
+            return OSM.i18n.t("javascripts.heatmap.tooltip.no_contributions", {date: localizedDate});
         }
 
         function getTheme() {
