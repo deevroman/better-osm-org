@@ -8529,10 +8529,9 @@ function interceptRectangle() {
     var layers = {}
 
     function makeColor(username) {
-        if (username === "StreetComplete_player_43721") debugger
         let hash = 0;
         for (let i = 0; i < username.length; i++) {
-            hash = username.charCodeAt(i) + ((hash << 5) - hash);
+            hash = username.charCodeAt(i) + 42 + ((hash << 5) - hash);
         }
         return '#' + ((hash >> 16) & 0xFFFFFF).toString(16).padStart(6, '0');
     }
@@ -9741,6 +9740,9 @@ function updateMap() {
     document.querySelector(".changeset_more > a").click()
 }
 
+/**
+ * @param {HTMLAnchorElement} i
+ */
 function makeUsernamesFilterable(i) {
     if (i.classList.contains("listen-for-filters")) {
         return
@@ -9761,6 +9763,11 @@ function makeUsernamesFilterable(i) {
         }
     }
     i.title = "Click for hide this user changesets. Ctrl + click for open user profile"
+    // i.style.border = "solid"
+    // i.style.borderColor = getWindow()?.makeColor(i.textContent)
+    // i.onmouseover = () => {
+    //
+    // }
 }
 
 let queriesCache = {
@@ -9897,7 +9904,7 @@ function addMassActionForGlobalChangesets() {
             if (massModeActive === null) {
                 massModeActive = true
                 document.querySelector("#sidebar .changesets").before(makeTopFilterBar())
-                document.querySelectorAll("ol li div > a").forEach(makeUsernamesFilterable)
+                document.querySelectorAll('ol li div > a[href^="/user/"]').forEach(makeUsernamesFilterable)
             } else {
                 massModeActive = !massModeActive
                 document.querySelectorAll(".filter-bar").forEach(i => i.toggleAttribute("hidden"))
@@ -10040,7 +10047,7 @@ function addMassChangesetsActions() {
             makeBottomActionBar()
         }
         if (massModeActive && (location.pathname === "/history" || location.pathname === "/history/friends")) {
-            document.querySelectorAll("ol li div > a").forEach(makeUsernamesFilterable)
+            document.querySelectorAll('ol li div > a[href^="/user/"]').forEach(makeUsernamesFilterable)
             // sidebarObserverForMassActions?.disconnect()
             filterChangesets()
             // todo
