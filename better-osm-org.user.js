@@ -33,9 +33,11 @@
 // @exclude      https://www.openstreetmap.org/message/new/*
 // @exclude      https://www.openstreetmap.org/reports/new/*
 // @exclude      https://www.openstreetmap.org/profile/edit
+// @exclude      https://www.openstreetmap.org/account*
 // @exclude      https://www.openstreetmap.org/oauth2/*
 // @match        https://master.apis.dev.openstreetmap.org/*
 // @exclude      https://master.apis.dev.openstreetmap.org/api/*
+// @exclude      https://master.apis.dev.openstreetmap.org/account*
 // @exclude      https://master.apis.dev.openstreetmap.org/oauth2/*
 // @match        https://taginfo.openstreetmap.org/*
 // @match        https://taginfo.geofabrik.de/*
