@@ -119,6 +119,7 @@
 /*global exportFunction*/
 /*global cloneInto*/
 /*global EXIF*/
+/*global turf*/
 /*global osmtogeojson*/
 /*global opening_hours*/
 
@@ -2539,9 +2540,11 @@ out geom;
                 max_lon: i.getAttribute("maxlon")
             }
         }))
+        // const points = []
         Array.from(xml.querySelectorAll("node")).forEach(n => {
             const lat = parseFloat(n.getAttribute("lat"))
             const lon = parseFloat(n.getAttribute("lon"))
+            // points.push([lon, lat])
 
             bbox.min_lat = min(bbox.min_lat, lat);
             bbox.min_lon = min(bbox.min_lon, lon);
@@ -2574,6 +2577,26 @@ out geom;
             }
 
             getMap()?.attributionControl?.setPrefix(statusPrefix)
+
+            /*
+            const centroid = [...points.map(i => turf.point(i)), ...Array.from(xml.querySelectorAll("way")).map(w => {
+                return turf.center(
+                    turf.polygon([Array.from(w.querySelectorAll("nd")).map(n => {
+                        return [
+                            parseFloat(n.getAttribute("lon")),
+                            parseFloat(n.getAttribute("lat")),
+                        ]
+                    })])
+                )
+            })]
+            const voronoiPolygons = turf.voronoi(turf.featureCollection(centroid),
+                {
+                    bbox: [bbox.min_lon, bbox.min_lat, bbox.max_lon, bbox.max_lat]
+                }
+            );
+            renderGeoJSONwrapper(voronoiPolygons)
+            getWindow().jsonLayer.bringToBack()
+            */
         }
     } finally {
         if (document.title === newTitle) {
@@ -3191,7 +3214,7 @@ function getAbortController() {
     return abortDownloadingControllers[location.pathname] = new AbortController()
 }
 
-function abortPrevControllers(reason=null) {
+function abortPrevControllers(reason = null) {
     console.log("abort prev controllers")
     Object.entries(abortDownloadingControllers).forEach(([path, controller]) => {
         if (path !== location.pathname) {
@@ -11513,7 +11536,7 @@ function renderGeoJSONwrapper(geojson) {
                     const th = document.createElement("th")
                     th.textContent = key
                     const td = document.createElement("td")
-                    if (key === "id" && (value.startsWith("node/") || value.startsWith("way/") || value.startsWith("relation/"))) {
+                    if (key === "id" && typeof value(value.startsWith("node/") || value.startsWith("way/") || value.startsWith("relation/"))) {
                         const a = document.createElement("a")
                         a.textContent = value
                         a.href = "/" + value
@@ -11802,7 +11825,7 @@ function renderOSMGeoJSON(xml) {
             const th = document.createElement("th")
             th.textContent = key
             const td = document.createElement("td")
-            if (key === "id" && (value.startsWith("node/") || value.startsWith("way/") || value.startsWith("relation/"))) {
+            if (key === "id" && typeof value === "string" && (value.startsWith("node/") || value.startsWith("way/") || value.startsWith("relation/"))) {
                 const a = document.createElement("a")
                 a.textContent = value
                 a.href = "/" + value
