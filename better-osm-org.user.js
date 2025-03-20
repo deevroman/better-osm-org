@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.9.6.2
+// @version         0.9.6.3
 // @changelog       v0.9.6: Filter by editor for edits heatmap
 // @changelog       v0.9.5: Adoption to updates osm.org, render camera:direction=*
 // @changelog       v0.9.1: script should work more stably in Chrome
@@ -94,7 +94,7 @@
 // @comment      geocoder
 // @connect      photon.komoot.io
 // @sandbox      JavaScript
-// @inject-into  page
+// @inject-into  content
 // @resource     OAUTH_HTML https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html
 // @resource     OSMCHA_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/osmcha.ico
 // @resource     NODE_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/Osm_element_node.svg
@@ -9002,7 +9002,7 @@ async function betterUserStat(user) {
     filterInputByEditor.removeAttribute("disabled")
     filterInputByEditor.title = "Alt + O for open selected changesets on one page"
 
-    if (false && navigator.userAgent.includes("Firefox") && GM_info.scriptHandler === "Violentmonkey") {
+    if (navigator.userAgent.includes("Firefox") && GM_info.scriptHandler === "Violentmonkey") {
         exportFunction(function kek() {
             console.log("INJECT")
             let cal = new window.wrappedJSObject.CalHeatmap();
@@ -12765,7 +12765,7 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
     //     }
     // )
     // `)
-    if (false && navigator.userAgent.includes("Firefox") && GM_info.scriptHandler === "Violentmonkey") {
+    if (navigator.userAgent.includes("Firefox") && GM_info.scriptHandler === "Violentmonkey") {
         function mapHook() {
             console.log("start map intercepting")
             window.wrappedJSObject.L.Map.addInitHook(exportFunction((function () {
