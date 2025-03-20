@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.9.6.3
+// @version         0.9.6.4
 // @changelog       v0.9.6: Filter by editor for edits heatmap
 // @changelog       v0.9.5: Adoption to updates osm.org, render camera:direction=*
 // @changelog       v0.9.1: script should work more stably in Chrome
@@ -94,7 +94,7 @@
 // @comment      geocoder
 // @connect      photon.komoot.io
 // @sandbox      JavaScript
-// @inject-into  content
+// @inject-into  page
 // @resource     OAUTH_HTML https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html
 // @resource     OSMCHA_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/osmcha.ico
 // @resource     NODE_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/Osm_element_node.svg
@@ -1988,9 +1988,9 @@ function switchESRIbeta() {
         if (i.nodeName !== 'IMG') {
             return;
         }
-        let xyz = parseESRITileURL(isFirefox ? i.src : i.getAttribute("real-url") ?? "")
+        let xyz = parseESRITileURL(!needBypassSatellite ? i.src : i.getAttribute("real-url") ?? "")
         if (!xyz) return
-        if (isFirefox) {
+        if (!needBypassSatellite) {
             i.src = NewSatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix;
         } else {
             bypassChromeCSPForImagesSrc(i, NewSatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix);
@@ -2005,6 +2005,7 @@ function switchESRIbeta() {
 }
 
 const isFirefox = navigator.userAgent.includes("Firefox");
+const needBypassSatellite = !isFirefox || GM_info.scriptHandler === "Violentmonkey";
 
 function tileErrorHandler(e, url = null) {
     if (!GM_config.get("OverzoomForDataLayer")) {
@@ -2054,15 +2055,15 @@ function switchTiles() {
                 i.onerror = tileErrorHandler
             } catch { /* empty */
             }
-            if (isFirefox) {
+            if (!needBypassSatellite) {
                 i.src = SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix;
             } else {
                 i.setAttribute("real-url", SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix);
             }
-            if (!isFirefox) {
+            if (needBypassSatellite) {
                 bypassChromeCSPForImagesSrc(i, SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix);
             }
-            if (i.complete && isFirefox) {
+            if (i.complete && !needBypassSatellite) {
                 i.classList.add("no-invert");
             } else {
                 i.addEventListener("load", e => {
@@ -2070,7 +2071,7 @@ function switchTiles() {
                 }, {once: true})
             }
         } else {
-            let xyz = parseESRITileURL(isFirefox ? i.src : i.getAttribute("real-url") ?? "")
+            let xyz = parseESRITileURL(!needBypassSatellite ? i.src : i.getAttribute("real-url") ?? "")
             if (!xyz) return
             i.src = OSMPrefix + xyz.z + "/" + xyz.x + "/" + xyz.y + ".png";
             if (i.complete) {
@@ -2096,13 +2097,13 @@ function switchTiles() {
                         node.onerror = tileErrorHandler
                     } catch { /* empty */
                     }
-                    if (isFirefox) {
+                    if (!needBypassSatellite) {
                         node.src = SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix;
                     } else {
                         node.src = "/dev/null";
                     }
                     node.setAttribute("real-url", SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix);
-                    if (!isFirefox) {
+                    if (needBypassSatellite) {
                         bypassChromeCSPForImagesSrc(node, SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix)
                     }
                     if (node.complete) {
@@ -2113,7 +2114,7 @@ function switchTiles() {
                         }, {once: true})
                     }
                 } else {
-                    let xyz = parseESRITileURL(isFirefox ? node.src : node.getAttribute("real-url"))
+                    let xyz = parseESRITileURL(!needBypassSatellite ? node.src : node.getAttribute("real-url"))
                     if (!xyz) return
                     node.src = OSMPrefix + xyz.z + "/" + xyz.x + "/" + xyz.y + ".png";
                     if (node.complete) {
@@ -9002,7 +9003,7 @@ async function betterUserStat(user) {
     filterInputByEditor.removeAttribute("disabled")
     filterInputByEditor.title = "Alt + O for open selected changesets on one page"
 
-    if (navigator.userAgent.includes("Firefox") && GM_info.scriptHandler === "Violentmonkey") {
+    if (false && navigator.userAgent.includes("Firefox") && GM_info.scriptHandler === "Violentmonkey") {
         exportFunction(function kek() {
             console.log("INJECT")
             let cal = new window.wrappedJSObject.CalHeatmap();
@@ -12765,7 +12766,7 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
     //     }
     // )
     // `)
-    if (navigator.userAgent.includes("Firefox") && GM_info.scriptHandler === "Violentmonkey") {
+    if (false && navigator.userAgent.includes("Firefox") && GM_info.scriptHandler === "Violentmonkey") {
         function mapHook() {
             console.log("start map intercepting")
             window.wrappedJSObject.L.Map.addInitHook(exportFunction((function () {
