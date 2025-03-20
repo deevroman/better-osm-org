@@ -8837,10 +8837,10 @@ async function loadChangesetsBetween(user, fromTime, toTime) {
 
 async function loadChangesets(user) {
     console.time(`stat-for-${user}`)
-    let startTime = new Date((new Date().getTime()) - 1000 * 60 * 60 * 24 * 366)
-    let startTime2 = new Date((new Date().getTime()) - 1000 * 60 * 60 * 24 * 366 * 3 / 4)
-    let startTime3 = new Date((new Date().getTime()) - 1000 * 60 * 60 * 24 * 366 * 2 / 4)
-    let startTime4 = new Date((new Date().getTime()) - 1000 * 60 * 60 * 24 * 366 / 4)
+    let startTime = new Date((new Date().getTime()) - 1000 * 60 * 60 * 24 * 365)
+    let startTime2 = new Date((new Date().getTime()) - 1000 * 60 * 60 * 24 * 365 * 3 / 4)
+    let startTime3 = new Date((new Date().getTime()) - 1000 * 60 * 60 * 24 * 365 * 2 / 4)
+    let startTime4 = new Date((new Date().getTime()) - 1000 * 60 * 60 * 24 * 365 / 4)
     let endTime = new Date((new Date().getTime()) + 1000 * 60 * 60 * 24)
 
 
@@ -8970,26 +8970,32 @@ async function makeEditorNormalizer() {
 
 async function betterUserStat(user) {
     if (!GM_config.get("BetterProfileStat")) return
-    const filterInput = document.createElement("select")
-    filterInput.setAttribute("disabled", true)
-    filterInput.title = "Please wait while user changesets loading"
+    const filterInputByEditor = document.createElement("select")
+    filterInputByEditor.id = "filter-input-by-editor"
+    filterInputByEditor.setAttribute("disabled", true)
+    filterInputByEditor.title = "Please wait while user changesets loading"
 
     const item = document.createElement("option")
     item.value = ""
     item.textContent = "All editors"
-    filterInput.appendChild(item)
+    filterInputByEditor.appendChild(item)
 
-    document.querySelector("#cal-heatmap").parentElement.parentElement.after(filterInput)
+    document.querySelector("#cal-heatmap").parentElement.parentElement.after(filterInputByEditor)
+
+    const searchByComment = document.createElement("input")
+    searchByComment.type = "search"
+    searchByComment.style.display = "none"
+    filterInputByEditor.before(searchByComment)
 
     const _replace_with_rules = makeEditorNormalizer()
     const changesets = await loadChangesets(user)
     const replace_with_rules = await _replace_with_rules
     const editorOfChangesets = {}
     changesets.forEach(ch => editorOfChangesets[ch.id] = replace_with_rules(ch.tags?.["created_by"]))
-    filterInput.removeAttribute("disabled")
-    filterInput.title = "Alt + O for open selected changesets on one page"
+    filterInputByEditor.removeAttribute("disabled")
+    filterInputByEditor.title = "Alt + O for open selected changesets on one page"
 
-    if (navigator.userAgent.includes("Firefox") && GM_info.scriptHandler === "Violentmonkey") {
+    if (false && navigator.userAgent.includes("Firefox") && GM_info.scriptHandler === "Violentmonkey") {
         exportFunction(function kek() {
             console.log("INJECT")
             let cal = new window.wrappedJSObject.CalHeatmap();
@@ -9224,16 +9230,16 @@ async function betterUserStat(user) {
         `)
     }
     let calReplaced = false
-    filterInput.oninput = async e => {
+    async function inputHandler ()  {
         let filter = (_) => true
-        if (e.target.value) {
-            const selected = Array.from(e.target.options).filter(i => i.selected)
+        if (filterInputByEditor.value) {
+            const selected = Array.from(filterInputByEditor.options).filter(i => i.selected)
             filter = (ch) => {
                 return selected.some(option => {
                     if (option.getAttribute("is-editor-name") === "yes") {
-                        return editorOfChangesets[ch.id] === option.value
+                        return editorOfChangesets[ch.id] === option.value && ch.tags?.["comment"]?.includes(searchByComment.value)
                     } else {
-                        return ch.tags?.["created_by"] === option.value
+                        return ch.tags?.["created_by"] === option.value && ch.tags?.["comment"]?.includes(searchByComment.value)
                     }
                 })
             }
@@ -9247,23 +9253,27 @@ async function betterUserStat(user) {
         }
         getWindow().rerenderCalendar()
     }
+    filterInputByEditor.oninput = inputHandler
+    searchByComment.oninput = inputHandler
     document.addEventListener("keydown", (e) => {
         if (e.altKey && e.code === "KeyO") {
-            const selected = Array.from(filterInput.options).filter(i => i.selected)
+            const selected = Array.from(filterInputByEditor.options).filter(i => i.selected)
             const ids = changesets.filter((ch) => {
                 return selected.some(i => ch?.tags?.["created_by"]?.includes(i.value))
             }).map(i => i.id)
             const idsStr = ids.join(",")
             open(osm_server.url + `/changeset/${ids[0]}?changesets=` + idsStr, "_blank")
+        } else if (e.altKey && e.code === "KeyF") {
+            searchByComment.style.display = ""
         }
     })
 
-    filterInput.id = "editors"
-    filterInput.addEventListener("mousedown", function (e) {
+    filterInputByEditor.id = "editors"
+    filterInputByEditor.addEventListener("mousedown", function (e) {
         e.preventDefault()
         e.target.focus()
-        filterInput.setAttribute("size", 7)
-        filterInput.setAttribute("multiple", true)
+        filterInputByEditor.setAttribute("size", 7)
+        filterInputByEditor.setAttribute("multiple", true)
     }, {"once": true})
 
     const counts = {};
@@ -9290,17 +9300,17 @@ async function betterUserStat(user) {
         } else {
             item.textContent = ` ${i} (${counts[i]} edits)`
         }
-        filterInput.appendChild(item)
+        filterInputByEditor.appendChild(item)
     })
 
     Array.from(new Set(changesets.map(i => i.tags?.["created_by"]))).sort().forEach(i => {
         const item = document.createElement("option")
         item.value = i
         item.textContent = i
-        filterInput.appendChild(item)
+        filterInputByEditor.appendChild(item)
     })
 
-    filterInput.after(filterInput)
+    filterInputByEditor.after(filterInputByEditor)
     console.log("setuping filters finished")
 }
 
@@ -12740,7 +12750,7 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
     //     }
     // )
     // `)
-    if (navigator.userAgent.includes("Firefox") && GM_info.scriptHandler === "Violentmonkey") {
+    if (false && navigator.userAgent.includes("Firefox") && GM_info.scriptHandler === "Violentmonkey") {
         function mapHook() {
             console.log("start map intercepting")
             window.wrappedJSObject.L.Map.addInitHook(exportFunction((function () {
