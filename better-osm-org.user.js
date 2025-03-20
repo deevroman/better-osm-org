@@ -94,6 +94,7 @@
 // @comment      geocoder
 // @connect      photon.komoot.io
 // @sandbox      JavaScript
+// @inject-into  page
 // @resource     OAUTH_HTML https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html
 // @resource     OSMCHA_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/osmcha.ico
 // @resource     NODE_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/Osm_element_node.svg
