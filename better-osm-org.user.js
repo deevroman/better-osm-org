@@ -8526,6 +8526,7 @@ async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) 
 
 function interceptRectangle() {
     return
+    /*
     console.log("intercept rectangle");
     injectJSIntoPage(`
     var layers = {}
@@ -8597,6 +8598,7 @@ function interceptRectangle() {
         window.rectangleIntercepted = true
     }
     `)
+     */
 }
 
 async function interceptMapManually() {
@@ -8871,13 +8873,15 @@ async function loadChangesets(user) {
 /**
  * @param {ChangesetMetadata[]} changesets
  * @param filter
- * @return {{date: string, total_changes: number}[]}
+ * @return {[{date: string, total_changes: number}[], changesets_count: number]}
  */
 function makeChangesetsStat(changesets, filter) {
     const datesStat = {}
+    let changesets_count = 0
 
     changesets.forEach(i => {
         if (!filter(i)) return
+        changesets_count++
         const date = new Date(i.created_at)
         const key = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`
         if (datesStat[key] === undefined) {
@@ -8887,7 +8891,7 @@ function makeChangesetsStat(changesets, filter) {
         datesStat[key][1] = max(datesStat[key][1], i.id)
     })
 
-    return Object.entries(datesStat).sort((a, b) => {
+    return [Object.entries(datesStat).sort((a, b) => {
         if (a[0] < b[0]) {
             return -1;
         }
@@ -8897,7 +8901,7 @@ function makeChangesetsStat(changesets, filter) {
         return 0
     }).map(([date, [total_changes, max_id]]) => {
         return {date, total_changes, max_id}
-    })
+    }), changesets_count]
 }
 
 async function makeEditorNormalizer() {
@@ -8977,6 +8981,7 @@ async function betterUserStat(user) {
 
     const item = document.createElement("option")
     item.value = ""
+    item.setAttribute("all-editors", "yes")
     item.textContent = "All editors"
     filterInputByEditor.appendChild(item)
 
@@ -8984,6 +8989,7 @@ async function betterUserStat(user) {
 
     const searchByComment = document.createElement("input")
     searchByComment.type = "search"
+    searchByComment.placeholder = "Regex search by comments"
     searchByComment.style.display = "none"
     filterInputByEditor.before(searchByComment)
 
@@ -9232,19 +9238,27 @@ async function betterUserStat(user) {
     let calReplaced = false
     async function inputHandler ()  {
         let filter = (_) => true
-        if (filterInputByEditor.value) {
-            const selected = Array.from(filterInputByEditor.options).filter(i => i.selected)
-            filter = (ch) => {
-                return selected.some(option => {
-                    if (option.getAttribute("is-editor-name") === "yes") {
-                        return editorOfChangesets[ch.id] === option.value && ch.tags?.["comment"]?.includes(searchByComment.value)
-                    } else {
-                        return ch.tags?.["created_by"] === option.value && ch.tags?.["comment"]?.includes(searchByComment.value)
-                    }
-                })
+        const selected = Array.from(filterInputByEditor.options).filter(i => i.selected)
+        filter = (ch) => {
+            let regex;
+            try {
+                regex = new RegExp(searchByComment.value.toLowerCase());
+                searchByComment.style.color = ""
+            } catch (e) {
+                searchByComment.style.color = "red"
             }
+            return selected.some(option => {
+                if (option.getAttribute("all-editors") === "yes") {
+                    return ch.tags?.["comment"]?.toLowerCase()?.match(regex);
+                } else if (option.getAttribute("is-editor-name") === "yes") {
+                    return editorOfChangesets[ch.id] === option.value && ch.tags?.["comment"]?.toLowerCase()?.match(regex);
+                } else {
+                    return ch.tags?.["created_by"] === option.value && ch.tags?.["comment"]?.toLowerCase()?.match(regex);
+                }
+            })
         }
-        const newHeatmapData = makeChangesetsStat(changesets, filter)
+        const [newHeatmapData, changesets_count] = makeChangesetsStat(changesets, filter)
+        searchByComment.title = `${changesets_count} changesets filtered`
         document.querySelector("#cal-heatmap").setAttribute("data-heatmap", JSON.stringify(newHeatmapData))
 
         if (!calReplaced) {
