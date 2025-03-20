@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.9.6.1
+// @version         0.9.6.2
 // @changelog       v0.9.6: Filter by editor for edits heatmap
 // @changelog       v0.9.5: Adoption to updates osm.org, render camera:direction=*
 // @changelog       v0.9.1: script should work more stably in Chrome
@@ -8900,6 +8900,74 @@ function makeChangesetsStat(changesets, filter) {
     })
 }
 
+async function makeEditorNormalizer() {
+    let rawReplaceRules;
+    const url = "https://raw.githubusercontent.com/deevroman/openstreetmap-statistics/refs/heads/master/src/replace_rules_created_by.json";
+    if (GM_info.scriptHandler !== "FireMonkey") {
+        rawReplaceRules = (await GM.xmlHttpRequest({
+            url: url,
+        })).responseText
+    } else {
+        rawReplaceRules = await (await GM.fetch(url)).text
+    }
+    console.log("replace rules loaded")
+
+    const tag_to_name = {}
+    const starts_with_list = []
+    const ends_with_list = []
+    const contains_list = []
+    Object.entries(JSON.parse(rawReplaceRules)).forEach(([name, name_infos]) => {
+        if (name_infos["aliases"]) {
+            for (let alias in name_infos["aliases"]) {
+                tag_to_name[alias] = name
+            }
+        }
+        if (name_infos["starts_with"]) {
+            for (const starts_with of name_infos["starts_with"]) {
+                starts_with_list.push([starts_with.length, starts_with, name])
+            }
+        }
+        if (name_infos["ends_with"]) {
+            for (const ends_with of name_infos["ends_with"]) {
+                ends_with_list.push([ends_with.length, ends_with, name])
+            }
+        }
+        if (name_infos["contains"]) {
+            for (const compare_str of name_infos["contains"]) {
+                contains_list.push([compare_str, name])
+            }
+        }
+    })
+
+    return (tag) => {
+        if (!tag) return tag
+
+        if (tag_to_name[tag]) {
+            return tag_to_name[tag]
+        }
+
+        for (let [compare_str_length, compare_str, replace_str] of starts_with_list) {
+            if (tag.slice(0, compare_str_length) === compare_str) {
+                return replace_str
+            }
+        }
+
+        for (let [compare_str_length, compare_str, replace_str] of ends_with_list) {
+            if (tag.slice(-compare_str_length) === compare_str) {
+                return replace_str
+            }
+        }
+
+        for (let [compare_str, replace_str] of contains_list) {
+            if (tag.includes(compare_str)) {
+                return replace_str
+            }
+        }
+
+        return tag
+    }
+}
+
 async function betterUserStat(user) {
     if (!GM_config.get("BetterProfileStat")) return
     const filterInput = document.createElement("select")
@@ -8913,7 +8981,11 @@ async function betterUserStat(user) {
 
     document.querySelector("#cal-heatmap").parentElement.parentElement.after(filterInput)
 
+    const _replace_with_rules = makeEditorNormalizer()
     const changesets = await loadChangesets(user)
+    const replace_with_rules = await _replace_with_rules
+    const editorOfChangesets = {}
+    changesets.forEach(ch => editorOfChangesets[ch.id] = replace_with_rules(ch.tags?.["created_by"]))
     filterInput.removeAttribute("disabled")
     filterInput.title = "Alt + O for open selected changesets on one page"
 
@@ -9157,7 +9229,13 @@ async function betterUserStat(user) {
         if (e.target.value) {
             const selected = Array.from(e.target.options).filter(i => i.selected)
             filter = (ch) => {
-                return selected.some(i => ch?.tags?.["created_by"]?.includes(i.value))
+                return selected.some(option => {
+                    if (option.getAttribute("is-editor-name") === "yes") {
+                        return editorOfChangesets[ch.id] === option.value
+                    } else {
+                        return ch.tags?.["created_by"] === option.value
+                    }
+                })
             }
         }
         const newHeatmapData = makeChangesetsStat(changesets, filter)
@@ -9179,68 +9257,6 @@ async function betterUserStat(user) {
             open(osm_server.url + `/changeset/${ids[0]}?changesets=` + idsStr, "_blank")
         }
     })
-    let rawReplaceRules;
-    const url = "https://raw.githubusercontent.com/piebro/openstreetmap-statistics/refs/heads/master/src/replace_rules_created_by.json";
-    if (GM_info.scriptHandler !== "FireMonkey") {
-        rawReplaceRules = (await GM.xmlHttpRequest({
-            url: url,
-        })).responseText
-    } else {
-        rawReplaceRules = await (await GM.fetch(url)).text
-    }
-
-    const tag_to_name = {}
-    const starts_with_list = []
-    const ends_with_list = []
-    const contains_list = []
-    Object.entries(JSON.parse(rawReplaceRules)).forEach(([name, name_infos]) => {
-        if (name_infos["aliases"]) {
-            for (let alias in name_infos["aliases"]) {
-                tag_to_name[alias] = name
-            }
-        }
-        if (name_infos["starts_with"]) {
-            for (const starts_with of name_infos["starts_with"]) {
-                starts_with_list.push([starts_with.length, starts_with, name])
-            }
-        }
-        if (name_infos["ends_with"]) {
-            for (const ends_with of name_infos["ends_with"]) {
-                ends_with_list.push([ends_with.length, ends_with, name])
-            }
-        }
-        if (name_infos["contains"]) {
-            for (const compare_str of name_infos["contains"]) {
-                contains_list.push([compare_str, name])
-            }
-        }
-    })
-
-    function replace_with_rules(tag) {
-        if (tag_to_name[tag]) {
-            return tag_to_name[tag]
-        }
-
-        for (let [compare_str_length, compare_str, replace_str] of starts_with_list) {
-            if (tag.slice(0, compare_str_length) === compare_str) {
-                return replace_str
-            }
-        }
-
-        for (let [compare_str_length, compare_str, replace_str] of ends_with_list) {
-            if (tag.slice(-compare_str_length) === compare_str) {
-                return replace_str
-            }
-        }
-
-        for (let [compare_str, replace_str] of contains_list) {
-            if (tag.includes(compare_str)) {
-                return replace_str
-            }
-        }
-
-        return tag
-    }
 
     filterInput.id = "editors"
     filterInput.addEventListener("mousedown", function (e) {
@@ -9253,11 +9269,11 @@ async function betterUserStat(user) {
     const counts = {};
 
     changesets.forEach(i => {
-        const editor = replace_with_rules(i.tags?.["created_by"])
+        const editor = editorOfChangesets[i.id]
         counts[editor] = counts[editor] ? counts[editor] + i.changes_count : i.changes_count;
     })
 
-    Array.from(new Set(changesets.map(i => replace_with_rules(i.tags?.["created_by"])))).sort((a, b) => {
+    Array.from(new Set(changesets.map(i => editorOfChangesets[i.id]))).sort((a, b) => {
         if (counts[a] < counts[b]) {
             return 1
         }
@@ -9268,6 +9284,7 @@ async function betterUserStat(user) {
     }).forEach(i => {
         const item = document.createElement("option")
         item.value = i
+        item.setAttribute("is-editor-name", "yes")
         if (i === 1) {
             item.textContent = ` ${i} (${counts[i]} edit)`
         } else {
