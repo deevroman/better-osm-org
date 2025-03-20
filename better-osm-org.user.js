@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.9.6
+// @version         0.9.6.1
 // @changelog       v0.9.6: Filter by editor for edits heatmap
 // @changelog       v0.9.5: Adoption to updates osm.org, render camera:direction=*
 // @changelog       v0.9.1: script should work more stably in Chrome
@@ -8916,120 +8916,241 @@ async function betterUserStat(user) {
     const changesets = await loadChangesets(user)
     filterInput.removeAttribute("disabled")
     filterInput.title = "Alt + O for open selected changesets on one page"
-    injectJSIntoPage(`
-    // from openstreetmap-website with disabled animation
-    // todo need some autosync with upstream
-    let cal = new CalHeatmap();
 
-    function rerenderCalendar() {
-        const heatmapElement = document.querySelector("#cal-heatmap");
+    if (navigator.userAgent.includes("Firefox") && GM_info.scriptHandler === "Violentmonkey") {
+        exportFunction(function kek() {
+            console.log("INJECT")
+            let cal = new window.wrappedJSObject.CalHeatmap();
 
-        if (!heatmapElement) {
-            return;
-        }
+            window.wrappedJSObject.globalThis.rerenderCalendar = function () {
+                const heatmapElement = document.querySelector("#cal-heatmap");
 
-        const heatmapData = heatmapElement.dataset.heatmap ? JSON.parse(heatmapElement.dataset.heatmap) : [];
-        const displayName = heatmapElement.dataset.displayName;
-        const colorScheme = document.documentElement.getAttribute("data-bs-theme") ?? "auto";
-        const rangeColors = ["#14432a", "#166b34", "#37a446", "#4dd05a"];
-        const startDate = new Date(Date.now() - (365 * 24 * 60 * 60 * 1000));
-        const monthNames = OSM.i18n.t("date.abbr_month_names");
-
-        const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
-        let currentTheme = getTheme();
-
-        function renderHeatmap() {
-            // cal.destroy();
-            // cal = new CalHeatmap();
-
-            cal.paint({
-                itemSelector: "#cal-heatmap",
-                theme: currentTheme,
-                domain: {
-                    type: "month",
-                    gutter: 4,
-                    label: {
-                        text: (timestamp) => monthNames[new Date(timestamp).getUTCMonth() + 1],
-                        position: "top",
-                        textAlign: "middle"
-                    },
-                    dynamicDimension: true
-                },
-                subDomain: {
-                    type: "ghDay",
-                    radius: 2,
-                    width: 11,
-                    height: 11,
-                    gutter: 4
-                },
-                date: {
-                    start: startDate
-                },
-                range: 13,
-                data: {
-                    source: heatmapData,
-                    type: "json",
-                    x: "date",
-                    y: "total_changes"
-                },
-                scale: {
-                    color: {
-                        type: "threshold",
-                        range: currentTheme === "dark" ? rangeColors : Array.from(rangeColors).reverse(),
-                        domain: [10, 20, 30, 40]
-                    }
-                },
-                animationDuration: 0
-            }, [
-                [Tooltip, {
-                    text: (date, value) => getTooltipText(date, value)
-                }]
-            ]);
-
-            cal.on("mouseover", (event, _timestamp, value) => {
-                if (value) event.target.style.cursor = "pointer";
-            });
-
-            cal.on("click", (_event, timestamp) => {
-                if (!displayName) return;
-                for (const {date, max_id} of heatmapData) {
-                    if (!max_id) continue;
-                    if (timestamp !== Date.parse(date)) continue;
-                    const params = new URLSearchParams([["before", max_id + 1]]);
-                    location = "/user/" + encodeURIComponent(displayName) + "/history?" + params;
+                if (!heatmapElement) {
+                    return;
                 }
-            });
-        }
 
-        function getTooltipText(date, value) {
-            const localizedDate = OSM.i18n.l("date.formats.long", date);
+                const heatmapData = heatmapElement.dataset.heatmap ? JSON.parse(heatmapElement.dataset.heatmap) : [];
+                const displayName = heatmapElement.dataset.displayName;
+                const colorScheme = document.documentElement.getAttribute("data-bs-theme") ?? "auto";
+                const rangeColors = ["#14432a", "#166b34", "#37a446", "#4dd05a"];
+                const startDate = new Date(Date.now() - (365 * 24 * 60 * 60 * 1000));
+                const monthNames = window.wrappedJSObject.OSM.i18n.t("date.abbr_month_names");
 
-            if (value > 0) {
-                return OSM.i18n.t("javascripts.heatmap.tooltip.contributions", {count: value, date: localizedDate});
-            }
+                const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
-            return OSM.i18n.t("javascripts.heatmap.tooltip.no_contributions", {date: localizedDate});
-        }
+                let currentTheme = getTheme();
 
-        function getTheme() {
-            if (colorScheme === "auto") {
-                return mediaQuery.matches ? "dark" : "light";
-            }
+                function renderHeatmap() {
+                    // cal.destroy();
+                    // cal = new CalHeatmap();
+                    cal.paint(intoPageWithFun({
+                        itemSelector: "#cal-heatmap",
+                        theme: currentTheme,
+                        domain: {
+                            type: "month",
+                            gutter: 4,
+                            label: {
+                                text: (timestamp) => monthNames[new Date(timestamp).getUTCMonth() + 1],
+                                position: "top",
+                                textAlign: "middle"
+                            },
+                            dynamicDimension: true
+                        },
+                        subDomain: {
+                            type: "ghDay",
+                            radius: 2,
+                            width: 11,
+                            height: 11,
+                            gutter: 4
+                        },
+                        date: {
+                            start: startDate
+                        },
+                        range: 13,
+                        data: {
+                            source: heatmapData,
+                            type: "json",
+                            x: "date",
+                            y: "total_changes"
+                        },
+                        scale: {
+                            color: {
+                                type: "threshold",
+                                range: currentTheme === "dark" ? rangeColors : Array.from(rangeColors).reverse(),
+                                domain: [10, 20, 30, 40]
+                            }
+                        },
+                        animationDuration: 0
+                    }), intoPageWithFun([
+                        [intoPageWithFun(getWindow().Tooltip), {
+                            text: (date, value) => getTooltipText(date, value)
+                        }]
+                    ]));
 
-            return colorScheme;
-        }
+                    cal.on("mouseover", intoPageWithFun((event, _timestamp, value) => {
+                        if (value) event.target.style.cursor = "pointer";
+                    }));
 
-        if (colorScheme === "auto") {
-            mediaQuery.addEventListener("change", (e) => {
-                currentTheme = e.matches ? "dark" : "light";
+                    cal.on("click", intoPageWithFun((_event, timestamp) => {
+                        if (!displayName) return;
+                        for (const {date, max_id} of heatmapData) {
+                            if (!max_id) continue;
+                            if (timestamp !== Date.parse(date)) continue;
+                            const params = new URLSearchParams([["before", max_id + 1]]);
+                            location = "/user/" + encodeURIComponent(displayName) + "/history?" + params;
+                        }
+                    }));
+                }
+
+                function getTooltipText(date, value) {
+                    const localizedDate = window.wrappedJSObject.OSM.i18n.l("date.formats.long", date);
+
+                    if (value > 0) {
+                        return window.wrappedJSObject.OSM.i18n.t("javascripts.heatmap.tooltip.contributions", intoPage({
+                            count: value,
+                            date: localizedDate
+                        }));
+                    }
+
+                    return window.wrappedJSObject.OSM.i18n.t("javascripts.heatmap.tooltip.no_contributions", intoPage({date: localizedDate}));
+                }
+
+                function getTheme() {
+                    if (colorScheme === "auto") {
+                        return mediaQuery.matches ? "dark" : "light";
+                    }
+
+                    return colorScheme;
+                }
+
+                if (colorScheme === "auto") {
+                    mediaQuery.addEventListener("change", intoPageWithFun((e) => {
+                        currentTheme = e.matches ? "dark" : "light";
+                        renderHeatmap();
+                    }));
+                }
+
                 renderHeatmap();
-            });
+            }
+
+        }, window.wrappedJSObject)()
+    } else {
+        injectJSIntoPage(`
+        // from openstreetmap-website with disabled animation
+        // todo need some autosync with upstream
+        let cal = new CalHeatmap();
+
+        function rerenderCalendar() {
+            const heatmapElement = document.querySelector("#cal-heatmap");
+
+            if (!heatmapElement) {
+                return;
+            }
+
+            const heatmapData = heatmapElement.dataset.heatmap ? JSON.parse(heatmapElement.dataset.heatmap) : [];
+            const displayName = heatmapElement.dataset.displayName;
+            const colorScheme = document.documentElement.getAttribute("data-bs-theme") ?? "auto";
+            const rangeColors = ["#14432a", "#166b34", "#37a446", "#4dd05a"];
+            const startDate = new Date(Date.now() - (365 * 24 * 60 * 60 * 1000));
+            const monthNames = OSM.i18n.t("date.abbr_month_names");
+
+            const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+            let currentTheme = getTheme();
+
+            function renderHeatmap() {
+                // cal.destroy();
+                // cal = new CalHeatmap();
+
+                cal.paint({
+                    itemSelector: "#cal-heatmap",
+                    theme: currentTheme,
+                    domain: {
+                        type: "month",
+                        gutter: 4,
+                        label: {
+                            text: (timestamp) => monthNames[new Date(timestamp).getUTCMonth() + 1],
+                            position: "top",
+                            textAlign: "middle"
+                        },
+                        dynamicDimension: true
+                    },
+                    subDomain: {
+                        type: "ghDay",
+                        radius: 2,
+                        width: 11,
+                        height: 11,
+                        gutter: 4
+                    },
+                    date: {
+                        start: startDate
+                    },
+                    range: 13,
+                    data: {
+                        source: heatmapData,
+                        type: "json",
+                        x: "date",
+                        y: "total_changes"
+                    },
+                    scale: {
+                        color: {
+                            type: "threshold",
+                            range: currentTheme === "dark" ? rangeColors : Array.from(rangeColors).reverse(),
+                            domain: [10, 20, 30, 40]
+                        }
+                    },
+                    animationDuration: 0
+                }, [
+                    [Tooltip, {
+                        text: (date, value) => getTooltipText(date, value)
+                    }]
+                ]);
+
+                cal.on("mouseover", (event, _timestamp, value) => {
+                    if (value) event.target.style.cursor = "pointer";
+                });
+
+                cal.on("click", (_event, timestamp) => {
+                    if (!displayName) return;
+                    for (const {date, max_id} of heatmapData) {
+                        if (!max_id) continue;
+                        if (timestamp !== Date.parse(date)) continue;
+                        const params = new URLSearchParams([["before", max_id + 1]]);
+                        location = "/user/" + encodeURIComponent(displayName) + "/history?" + params;
+                    }
+                });
+            }
+
+            function getTooltipText(date, value) {
+                const localizedDate = OSM.i18n.l("date.formats.long", date);
+
+                if (value > 0) {
+                    return OSM.i18n.t("javascripts.heatmap.tooltip.contributions", {count: value, date: localizedDate});
+                }
+
+                return OSM.i18n.t("javascripts.heatmap.tooltip.no_contributions", {date: localizedDate});
+            }
+
+            function getTheme() {
+                if (colorScheme === "auto") {
+                    return mediaQuery.matches ? "dark" : "light";
+                }
+
+                return colorScheme;
+            }
+
+            if (colorScheme === "auto") {
+                mediaQuery.addEventListener("change", (e) => {
+                    currentTheme = e.matches ? "dark" : "light";
+                    renderHeatmap();
+                });
+            }
+
+            renderHeatmap();
         }
 
-        renderHeatmap();
+        `)
     }
-    `)
     let calReplaced = false
     filterInput.oninput = async e => {
         let filter = (_) => true
