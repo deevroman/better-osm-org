@@ -94,7 +94,6 @@
 // @comment      geocoder
 // @connect      photon.komoot.io
 // @sandbox      JavaScript
-// @inject-into  auto
 // @resource     OAUTH_HTML https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html
 // @resource     OSMCHA_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/osmcha.ico
 // @resource     NODE_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/Osm_element_node.svg
@@ -631,6 +630,9 @@ let onInit = config => new Promise(resolve => {
 });
 
 let init = onInit(GM_config);
+
+let boWindowObject = typeof window.wrappedJSObject !== "undefined" ? window.wrappedJSObject : unsafeWindow;
+let boGlobalThis = typeof boWindowObject.globalThis !== "undefined" ? boWindowObject.globalThis : boWindowObject;
 
 const prod_server = {
     apiBase: "https://www.openstreetmap.org/api/0.6/",
@@ -9065,130 +9067,14 @@ async function betterUserStat(user) {
     filterInputByEditor.removeAttribute("disabled")
     filterInputByEditor.title = "Alt + O for open selected changesets on one page"
 
-    if (false && navigator.userAgent.includes("Firefox") && GM_info.scriptHandler === "Violentmonkey") {
-        exportFunction(function kek() {
-            console.log("INJECT")
-            let cal = new window.wrappedJSObject.CalHeatmap();
+    function heatmapHook() {
+        console.log("start heatmap hook")
 
-            window.wrappedJSObject.globalThis.rerenderCalendar = function () {
-                const heatmapElement = document.querySelector("#cal-heatmap");
-
-                if (!heatmapElement) {
-                    return;
-                }
-
-                const heatmapData = heatmapElement.dataset.heatmap ? JSON.parse(heatmapElement.dataset.heatmap) : [];
-                const displayName = heatmapElement.dataset.displayName;
-                const colorScheme = document.documentElement.getAttribute("data-bs-theme") ?? "auto";
-                const rangeColors = ["#14432a", "#166b34", "#37a446", "#4dd05a"];
-                const startDate = new Date(Date.now() - (365 * 24 * 60 * 60 * 1000));
-                const monthNames = window.wrappedJSObject.OSM.i18n.t("date.abbr_month_names");
-
-                const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
-                let currentTheme = getTheme();
-
-                function renderHeatmap() {
-                    // cal.destroy();
-                    // cal = new CalHeatmap();
-                    cal.paint(intoPageWithFun({
-                        itemSelector: "#cal-heatmap",
-                        theme: currentTheme,
-                        domain: {
-                            type: "month",
-                            gutter: 4,
-                            label: {
-                                text: (timestamp) => monthNames[new Date(timestamp).getUTCMonth() + 1],
-                                position: "top",
-                                textAlign: "middle"
-                            },
-                            dynamicDimension: true
-                        },
-                        subDomain: {
-                            type: "ghDay",
-                            radius: 2,
-                            width: 11,
-                            height: 11,
-                            gutter: 4
-                        },
-                        date: {
-                            start: startDate
-                        },
-                        range: 13,
-                        data: {
-                            source: heatmapData,
-                            type: "json",
-                            x: "date",
-                            y: "total_changes"
-                        },
-                        scale: {
-                            color: {
-                                type: "threshold",
-                                range: currentTheme === "dark" ? rangeColors : Array.from(rangeColors).reverse(),
-                                domain: [10, 20, 30, 40]
-                            }
-                        },
-                        animationDuration: 0
-                    }), intoPageWithFun([
-                        [intoPageWithFun(getWindow().Tooltip), {
-                            text: (date, value) => getTooltipText(date, value)
-                        }]
-                    ]));
-
-                    cal.on("mouseover", intoPageWithFun((event, _timestamp, value) => {
-                        if (value) event.target.style.cursor = "pointer";
-                    }));
-
-                    cal.on("click", intoPageWithFun((_event, timestamp) => {
-                        if (!displayName) return;
-                        for (const {date, max_id} of heatmapData) {
-                            if (!max_id) continue;
-                            if (timestamp !== Date.parse(date)) continue;
-                            const params = new URLSearchParams([["before", max_id + 1]]);
-                            location = "/user/" + encodeURIComponent(displayName) + "/history?" + params;
-                        }
-                    }));
-                }
-
-                function getTooltipText(date, value) {
-                    const localizedDate = window.wrappedJSObject.OSM.i18n.l("date.formats.long", date);
-
-                    if (value > 0) {
-                        return window.wrappedJSObject.OSM.i18n.t("javascripts.heatmap.tooltip.contributions", intoPage({
-                            count: value,
-                            date: localizedDate
-                        }));
-                    }
-
-                    return window.wrappedJSObject.OSM.i18n.t("javascripts.heatmap.tooltip.no_contributions", intoPage({date: localizedDate}));
-                }
-
-                function getTheme() {
-                    if (colorScheme === "auto") {
-                        return mediaQuery.matches ? "dark" : "light";
-                    }
-
-                    return colorScheme;
-                }
-
-                if (colorScheme === "auto") {
-                    mediaQuery.addEventListener("change", intoPageWithFun((e) => {
-                        currentTheme = e.matches ? "dark" : "light";
-                        renderHeatmap();
-                    }));
-                }
-
-                renderHeatmap();
-            }
-
-        }, window.wrappedJSObject)()
-    } else {
-        injectJSIntoPage(`
         // from openstreetmap-website with disabled animation
         // todo need some autosync with upstream
-        let cal = new CalHeatmap();
+        let cal = new boWindowObject.CalHeatmap();
 
-        function rerenderCalendar() {
+        boGlobalThis.rerenderCalendar = function () {
             const heatmapElement = document.querySelector("#cal-heatmap");
 
             if (!heatmapElement) {
@@ -9200,7 +9086,7 @@ async function betterUserStat(user) {
             const colorScheme = document.documentElement.getAttribute("data-bs-theme") ?? "auto";
             const rangeColors = ["#14432a", "#166b34", "#37a446", "#4dd05a"];
             const startDate = new Date(Date.now() - (365 * 24 * 60 * 60 * 1000));
-            const monthNames = OSM.i18n.t("date.abbr_month_names");
+            const monthNames = getWindow().OSM.i18n.t("date.abbr_month_names");
 
             const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
@@ -9210,7 +9096,7 @@ async function betterUserStat(user) {
                 // cal.destroy();
                 // cal = new CalHeatmap();
 
-                cal.paint({
+                cal.paint(intoPageWithFun({
                     itemSelector: "#cal-heatmap",
                     theme: currentTheme,
                     domain: {
@@ -9249,10 +9135,10 @@ async function betterUserStat(user) {
                     },
                     animationDuration: 0
                 }, [
-                    [Tooltip, {
+                    [getWindow().Tooltip, {
                         text: (date, value) => getTooltipText(date, value)
                     }]
-                ]);
+                ]));
 
                 cal.on("mouseover", (event, _timestamp, value) => {
                     if (value) event.target.style.cursor = "pointer";
@@ -9270,13 +9156,13 @@ async function betterUserStat(user) {
             }
 
             function getTooltipText(date, value) {
-                const localizedDate = OSM.i18n.l("date.formats.long", date);
+                const localizedDate = getWindow().OSM.i18n.l("date.formats.long", date);
 
                 if (value > 0) {
-                    return OSM.i18n.t("javascripts.heatmap.tooltip.contributions", {count: value, date: localizedDate});
+                    return getWindow().OSM.i18n.t("javascripts.heatmap.tooltip.contributions", {count: value, date: localizedDate});
                 }
 
-                return OSM.i18n.t("javascripts.heatmap.tooltip.no_contributions", {date: localizedDate});
+                return getWindow().OSM.i18n.t("javascripts.heatmap.tooltip.no_contributions", {date: localizedDate});
             }
 
             function getTheme() {
@@ -9296,9 +9182,10 @@ async function betterUserStat(user) {
 
             renderHeatmap();
         }
-
-        `)
     }
+
+    exportFunction(heatmapHook, getWindow())()
+
     let calReplaced = false
 
     async function inputHandler() {
@@ -12826,64 +12713,32 @@ var getWindow = null
 
 if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)
     && !["/edit", "/id"].includes(location.pathname)) {
-    // This must be done as early as possible in order to pull the map object into the global scope
-    // https://github.com/deevroman/better-osm-org/issues/34
+    function mapHook() {
+        console.log("start map intercepting")
+        boWindowObject.L.Map.addInitHook(exportFunction((function () {
+                if (this._container?.id === "map") {
+                    boGlobalThis.map = this;
+                    boGlobalThis.mapIntercepted = true
+                    console.log("%cMap intercepted", 'background: #000; color: #0f0')
+                }
+            }), boWindowObject)
+        )
+    }
 
-    // и только в ViolentMonkey нельзя наинжектить скрипт на страницу
-    // injectJSIntoPage(`
-    // L.Map.addInitHook(function () {
-    //         if (this._container?.id === "map") {
-    //              window.map = this;
-    //              console.log("%cMap intercepted", 'background: #000; color: #0f0')
-    //              window.mapIntercepted = true
-    //         }
-    //     }
-    // )
-    // `)
     if (navigator.userAgent.includes("Safari") && GM_info.scriptHandler === "Userscripts") {
         getMap = () => null
         getWindow = () => window
-    } else if (false && navigator.userAgent.includes("Firefox") && GM_info.scriptHandler === "Violentmonkey") {
-        function mapHook() {
-            console.log("start map intercepting")
-            window.wrappedJSObject.L.Map.addInitHook(exportFunction((function () {
-                    if (this._container?.id === "map") {
-                        window.wrappedJSObject.globalThis.map = this;
-                        window.wrappedJSObject.globalThis.mapIntercepted = true
-                        console.log("%cMap intercepted", 'background: #000; color: #0f0')
-                    }
-                }), window.wrappedJSObject)
-            )
-        }
-
-        window.wrappedJSObject.mapHook = exportFunction(mapHook, window.wrappedJSObject)
-        window.wrappedJSObject.mapHook()
-        if (window.wrappedJSObject.map instanceof HTMLElement) {
-            console.error("Please, reload page, if something doesn't work")
-        }
-        getMap = () => window.wrappedJSObject.map
-        getWindow = () => window.wrappedJSObject
     } else {
-        function mapHook() {
-            console.log("start map intercepting")
-            unsafeWindow.L.Map.addInitHook(exportFunction((function () {
-                    if (this._container?.id === "map") {
-                        unsafeWindow.map = this;
-                        unsafeWindow.mapIntercepted = true
-                        console.log("%cMap intercepted", 'background: #000; color: #0f0')
-                    }
-                }), unsafeWindow)
-            )
-        }
-
-        unsafeWindow.mapHook = exportFunction(mapHook, unsafeWindow)
-        unsafeWindow.mapHook()
-        if (unsafeWindow.map instanceof HTMLElement) {
+        boWindowObject.mapHook = exportFunction(mapHook, boWindowObject)
+        boWindowObject.mapHook()
+        if (boWindowObject.map instanceof HTMLElement) {
             console.error("Please, reload page, if something doesn't work")
         }
-        getMap = () => unsafeWindow.map
-        getWindow = () => unsafeWindow
+
+        getMap = () => boWindowObject.map
+        getWindow = () => boWindowObject
     }
+
     map = getMap()
     try {
         interceptRectangle()
