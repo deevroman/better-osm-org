@@ -57,9 +57,9 @@
 // @require      https://raw.githubusercontent.com/deevroman/osmtogeojson/c97381a0c86c0a021641dd47d7bea01fb5514716/osmtogeojson.js#sha256=663bb5bbae47d5d12bff9cf1c87b8f973e85fab4b1f83453810aae99add54592
 // @require      https://openingh.openstreetmap.de/opening_hours.js/opening_hours+deps.min.js#sha256=e9a3213aba77dcf79ff1da9f828532acf1ebf7107ed1ce5f9370b922e023baff
 // @incompatible safari https://github.com/deevroman/better-osm-org/issues/13
+// @grant        GM.getValue
+// @grant        GM.setValue
 // @grant        GM_registerMenuCommand
-// @grant        GM_getValue
-// @grant        GM_setValue
 // @grant        GM_listValues
 // @grant        GM_deleteValue
 // @grant        GM_getResourceURL
@@ -94,7 +94,7 @@
 // @comment      geocoder
 // @connect      photon.komoot.io
 // @sandbox      JavaScript
-// @inject-into  page
+// @inject-into  auto
 // @resource     OAUTH_HTML https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html
 // @resource     OSMCHA_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/osmcha.ico
 // @resource     NODE_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/Osm_element_node.svg
@@ -111,8 +111,8 @@
 /*global GM_info*/
 /*global GM_config*/
 /*global GM_addElement*/
-/*global GM_getValue*/
-/*global GM_setValue*/
+/*global GM.getValue*/
+/*global GM.setValue*/
 /*global GM_listValues*/
 /*global GM_deleteValue*/
 /*global GM_getResourceURL*/
@@ -125,6 +125,63 @@
 /*global turf*/
 /*global osmtogeojson*/
 /*global opening_hours*/
+
+if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Greasemonkey") {
+    if (typeof GM_getResourceURL === "undefined") {
+        const resources = {}
+        setTimeout(async () => {
+            const resourcesName = {
+                "OAUTH_HTML": "https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html",
+                "OSMCHA_ICON": "https://github.com/deevroman/better-osm-org/raw/master/icons/osmcha.ico",
+                "NODE_ICON": "https://github.com/deevroman/better-osm-org/raw/master/icons/Osm_element_node.svg",
+                "WAY_ICON": "https://github.com/deevroman/better-osm-org/raw/master/icons/Osm_element_way.svg",
+                "RELATION_ICON": "https://github.com/deevroman/better-osm-org/raw/master/icons/Taginfo_element_relation.svg",
+                "OSMCHA_LIKE": "https://github.com/OSMCha/osmcha-frontend/raw/94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-up.svg",
+                "OSMCHA_DISLIKE": "https://github.com/OSMCha/osmcha-frontend/raw/94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-down.svg",
+                "DARK_THEME_FOR_ID_CSS": "https://gist.githubusercontent.com/deevroman/55f35da68ab1efb57b7ba4636bdf013d/raw/7b94e3b7db91d023f1570ae415acd7ac989fffe0/dark.css"
+            }
+            for (let resource in resourcesName) {
+                GM.xmlHttpRequest({
+                    method: "GET",
+                    url: resourcesName[resource],
+                    responseType: "blob",
+                    onload: res => {
+                        const a = new FileReader();
+                        a.onload = function(e) {
+                            resources[resource] = e.target.result
+                        }
+                        a.readAsDataURL(res.response);
+                    }
+                })
+            }
+        })
+        window.GM_getResourceURL = (name) => {
+            console.log(resources);
+            return resources[name]
+        }
+    }
+
+    if (typeof GM_addElement === "undefined") {
+        window.GM_addElement = function () {
+            let parent, type, attrs;
+            if (arguments.length === 3) {
+                [parent, type, attrs] = arguments
+            } else if (arguments.length === 2) {
+                [type, attrs] = arguments
+            } else {
+                return
+            }
+            const elem = document.createElement(type)
+            Object.entries(attrs).forEach(([key, value]) => {
+                elem.setAttribute(key, value)
+            })
+            if (parent) {
+                parent.appendChild(elem)
+            }
+            return elem
+        }
+    }
+}
 
 const accountForceLightTheme = document.querySelector("html")?.getAttribute("data-bs-theme") === "light";
 const accountForceDarkTheme = document.querySelector("html")?.getAttribute("data-bs-theme") === "dark";
@@ -878,7 +935,7 @@ function addRevertButton() {
             return await GM.xmlHttpRequest({
                 url: `https://osmcha.org/api/v1/changesets/${changeset_id}/uncheck/`,
                 headers: {
-                    "Authorization": "Token " + GM_getValue("OSMCHA_TOKEN"),
+                    "Authorization": "Token " + await GM.getValue("OSMCHA_TOKEN"),
                 },
                 method: "PUT",
             });
@@ -897,7 +954,7 @@ function addRevertButton() {
         likeImg.style.filter = "grayscale(1)"
         likeImg.style.marginTop = "-8px"
         likeBtn.onclick = async e => {
-            const osmchaToken = GM_getValue("OSMCHA_TOKEN")
+            const osmchaToken = await GM.getValue("OSMCHA_TOKEN")
             if (!osmchaToken) {
                 alert("Please, login into OSMCha")
                 window.open("https://osmcha.org")
@@ -915,7 +972,7 @@ function addRevertButton() {
             await GM.xmlHttpRequest({
                 url: `https://osmcha.org/api/v1/changesets/${changeset_id}/set-good/`,
                 headers: {
-                    "Authorization": "Token " + GM_getValue("OSMCHA_TOKEN"),
+                    "Authorization": "Token " + await GM.getValue("OSMCHA_TOKEN"),
                 },
                 method: "PUT",
             });
@@ -935,7 +992,7 @@ function addRevertButton() {
         dislikeImg.style.marginTop = "3px"
         dislikeBtn.appendChild(dislikeImg)
         dislikeBtn.onclick = async e => {
-            const osmchaToken = GM_getValue("OSMCHA_TOKEN")
+            const osmchaToken = await GM.getValue("OSMCHA_TOKEN")
             if (!osmchaToken) {
                 alert("Please, login into OSMCha")
                 window.open("https://osmcha.org")
@@ -953,7 +1010,7 @@ function addRevertButton() {
             await GM.xmlHttpRequest({
                 url: `https://osmcha.org/api/v1/changesets/${changeset_id}/set-harmful/`,
                 headers: {
-                    "Authorization": "Token " + GM_getValue("OSMCHA_TOKEN"),
+                    "Authorization": "Token " + await GM.getValue("OSMCHA_TOKEN"),
                 },
                 method: "PUT",
             });
@@ -965,7 +1022,7 @@ function addRevertButton() {
                 url: "https://osmcha.org/api/v1/changesets/" + changeset_id,
                 method: "GET",
                 headers: {
-                    "Authorization": "Token " + GM_getValue("OSMCHA_TOKEN"),
+                    "Authorization": "Token " + await GM.getValue("OSMCHA_TOKEN"),
                 },
                 responseType: "json"
             })
@@ -1269,9 +1326,7 @@ function setupCompactChangesetsHistory() {
             || location.pathname.includes("/way")
             || location.pathname.includes("/relation"))) {
             styleForSidebarApplied = true
-            GM_addElement(document.head, "style", {
-                textContent: compactSidebarStyleText,
-            });
+            injectCSSIntoPage(compactSidebarStyleText);
         }
         return;
     }
@@ -1283,9 +1338,7 @@ function setupCompactChangesetsHistory() {
     }
 
     styleForSidebarApplied = true
-    GM_addElement(document.head, "style", {
-        textContent: compactSidebarStyleText,
-    });
+    injectCSSIntoPage(compactSidebarStyleText)
 
     // увы, инвалидация в этом месте ломает зум при загрузке объекте самим сайтом
     // try {
@@ -2502,7 +2555,7 @@ let searchResultBBOX = null;
 
 async function processOverpassQuery(query) {
     if (!query.length) return
-    GM_setValue("lastOverpassQuery", query)
+    await GM.setValue("lastOverpassQuery", query)
     const bound = getMap().getBounds().wrap()
     const bboxString = [bound.getSouth(), bound.getWest(), bound.getNorth(), bound.getEast()]
     const bboxExpr = query[query.length - 1] !== "!" ? "[bbox:" + bboxString + "]" : ""
@@ -2875,13 +2928,12 @@ function addHistoryLink() {
     makeHashtagsClickable()
     shortOsmOrgLinks(document.querySelector(".browse-section p"))
     setTimeout(() => {
-        GM_addElement(document.head, "style", {
-            textContent: `
-            table.browse-tag-list tr td[colspan="2"]{
-                background: var(--bs-body-bg) !important;
-            }`,
-        }, 0);
-    })
+        injectCSSIntoPage(`
+        table.browse-tag-list tr td[colspan="2"] {
+            background: var(--bs-body-bg) !important;
+        }
+        `);
+    }, 0)
 }
 
 
@@ -2896,6 +2948,23 @@ function injectJSIntoPage(text) {
     GM_addElement("script", {
         textContent: text
     })
+}
+
+/**
+ * @param {string} text
+ */
+function injectCSSIntoPage(text) {
+    if (GM_info.scriptHandler === "FireMonkey" || GM_info.scriptHandler === "Userscripts"
+        || GM_info.scriptHandler === "Greasemonkey" || navigator.userAgent.includes("Safari")) {
+        document.querySelector("style").innerHTML += text;
+        if (!navigator.userAgent.includes("Safari")) {
+            document.querySelector("style").parentElement.appendChild(document.querySelector("style"))
+        }
+    } else {
+        return GM_addElement(document.head, "style", {
+            textContent: text,
+        });
+    }
 }
 
 const layers = {
@@ -5178,9 +5247,7 @@ function addDiffInHistory() {
         }
     }
     ` : ``);
-    GM_addElement(document.head, "style", {
-        textContent: styleText,
-    });
+    injectCSSIntoPage(styleText)
     let versions = [{tags: [], coordinates: "", wasModified: false, nodes: [], members: [], visible: true}];
     // add/modification
     let versionsHTML = Array.from(document.querySelectorAll(".browse-section.browse-node, .browse-section.browse-way, .browse-section.browse-relation"))
@@ -5589,9 +5656,7 @@ function makeVersionPageBetter() {
     }
     if (!styleForSidebarApplied) {
         styleForSidebarApplied = true
-        GM_addElement(document.head, "style", {
-            textContent: compactSidebarStyleText,
-        });
+        injectCSSIntoPage(compactSidebarStyleText)
     }
 
     if (!document.querySelector(".find-user-btn")) {
@@ -5946,12 +6011,12 @@ async function loadIconsList() {
             iconsList[lines[0].slice(0, -1) + "=" + value] = JSON.parse(jsonValue.replaceAll(/(\w+):/g, '"$1":'))
         })
     })
-    GM_setValue("poi-icons", JSON.stringify({icons: iconsList, cacheTime: new Date()}))
+    await GM.setValue("poi-icons", JSON.stringify({icons: iconsList, cacheTime: new Date()}))
     return iconsList
 }
 
 async function initPOIIcons() {
-    const cache = GM_getValue("poi-icons", "")
+    const cache = await GM.getValue("poi-icons", "")
     if (cache) {
         console.log("poi icons cached")
         const cacheTime = new Date(cache['cacheTime'])
@@ -7675,9 +7740,7 @@ function addQuickLookStyles() {
                 }
             }
             ` : "");
-        GM_addElement(document.head, "style", {
-            textContent: styleText
-        });
+        injectCSSIntoPage(styleText)
     } catch { /* empty */
     }
 }
@@ -8765,18 +8828,17 @@ function setupOffMapDim() {
     if (!GM_config.get("OffMapDim") || GM_config.get("DarkModeForMap") || unDimmed) {
         return;
     }
-    GM_addElement(document.head, "style", {
-        textContent: `
-            @media (prefers-color-scheme: dark) {
-              .leaflet-tile-container, .mapkey-table-entry td:first-child > * {
-                filter: none !important;
-              }
-              .leaflet-tile-container * {
-                filter: none !important;
-              }
-            }
-        `,
-    });
+    injectCSSIntoPage(`
+    @media (prefers-color-scheme: dark) {
+        .leaflet-tile-container, .mapkey-table-entry td:first-child > * {
+            filter: none !important;
+        }
+
+        .leaflet-tile-container * {
+            filter: none !important;
+        }
+    }
+    `)
     unDimmed = true
 }
 
@@ -8784,21 +8846,21 @@ let darkModeForMap = false;
 let darkMapStyleElement = false;
 
 function injectDarkMapStyle() {
-    darkMapStyleElement = GM_addElement(document.head, "style", {
-        textContent: `
-            @media (prefers-color-scheme: dark) {
-              .leaflet-tile-container, .mapkey-table-entry td:first-child > * {
-                filter: none !important;
-              }
-              .leaflet-tile-container * {
-                filter: none !important;
-              }
-               .leaflet-tile-container .leaflet-tile:not(.no-invert), .mapkey-table-entry td:first-child > * {
-                filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%) !important;
-              }
-            }
-        `,
-    });
+    darkMapStyleElement = injectCSSIntoPage(`
+    @media (prefers-color-scheme: dark) {
+        .leaflet-tile-container, .mapkey-table-entry td:first-child > * {
+            filter: none !important;
+        }
+
+        .leaflet-tile-container * {
+            filter: none !important;
+        }
+
+        .leaflet-tile-container .leaflet-tile:not(.no-invert), .mapkey-table-entry td:first-child > * {
+            filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%) !important;
+        }
+    }
+    `)
 }
 
 function setupDarkModeForMap() {
@@ -9238,7 +9300,8 @@ async function betterUserStat(user) {
         `)
     }
     let calReplaced = false
-    async function inputHandler ()  {
+
+    async function inputHandler() {
         let filter = (_) => true
         const selected = Array.from(filterInputByEditor.options).filter(i => i.selected)
         filter = (ch) => {
@@ -9269,6 +9332,7 @@ async function betterUserStat(user) {
         }
         getWindow().rerenderCalendar()
     }
+
     filterInputByEditor.oninput = inputHandler
     searchByComment.oninput = inputHandler
     document.addEventListener("keydown", (e) => {
@@ -9389,8 +9453,7 @@ function simplifyHDCYIframe() {
     }
     const forceLightTheme = location.hash.includes("forcelighttheme")
     const forceDarkTheme = location.hash.includes("forcedarktheme")
-    GM_addElement(document.head, "style", {
-        textContent: `
+    injectCSSIntoPage(`
             html, body {
                 overflow-x: auto;
             }
@@ -9400,7 +9463,7 @@ function simplifyHDCYIframe() {
                     background-color: #181a1b;
                     color: #e8e6e3;
                 }
-                
+
                 #header a {
                     color: lightgray !important;
                 }
@@ -9409,11 +9472,13 @@ function simplifyHDCYIframe() {
                 #mapwrapper .leaflet-tile {
                     filter: invert(100%) hue-rotate(180deg) contrast(90%);
                 }
+
                 #activitymap path {
                     stroke: #0088ff;
                     fill: #0088ff;
                     stroke-opacity: 0.7;
                 }
+
                 #activitymapswitcher {
                     background-color: rgba(24, 26, 27, 0.8);
                 }
@@ -9421,6 +9486,7 @@ function simplifyHDCYIframe() {
                 .leaflet-popup-content {
                     color: lightgray;
                 }
+
                 .leaflet-popup-content-wrapper, .leaflet-popup-tip {
                     background: #222;
                 }
@@ -9428,9 +9494,11 @@ function simplifyHDCYIframe() {
                 a, .leaflet-container a {
                     color: #1c84fd;
                 }
+
                 a:visited, .leaflet-container a:visited {
                     color: #c94bff;
                 }
+
                 a[style*="black"] {
                     color: lightgray !important;
                 }
@@ -9438,16 +9506,19 @@ function simplifyHDCYIframe() {
                 .day-cell[fill="#e8e8e8"] {
                     fill: #262a2b;
                 }
-                
+
                 #result th {
                     background-color: rgba(24, 26, 27, 0.8);
                 }
+
                 #result td {
                     border-color: #363659;
                 }
+
                 td[style*="purple"] {
                     color: #ff72ff !important;
                 }
+
                 td[style*="green"] {
                     color: limegreen !important;
                 }
@@ -9458,30 +9529,31 @@ function simplifyHDCYIframe() {
                 #graph_hours canvas {
                     filter: saturate(4);
                 }
+
                 .tickLabel {
                     color: #b3aca2;
                 }
+
                 .editors_wrapper th, .editors_wrapper td {
                     border-bottom-color: #8c8273;
                 }
             }
-        `,
-    });
+        `
+    );
     const loginLink = document.getElementById("loginLink")
     if (loginLink) {
         let warn = document.createElement("div")
         warn.id = "hdyc-warn"
-        GM_addElement(document.head, "style", {
-            textContent: `
-                    #hdyc-warn, #hdycLink {
-                        text-align: left !important;
-                        width: 50%;
-                        position: relative;
-                        left: 35%;
-                        right: 33%;
-                    }
-                `,
-        });
+        injectCSSIntoPage(`
+                #hdyc-warn, #hdycLink {
+                    text-align: left !important;
+                    width: 50%;
+                    position: relative;
+                    left: 35%;
+                    right: 33%;
+                }
+            `,
+        );
         if (navigator.userAgent.includes("Firefox")) {
             warn.textContent = "Please disable tracking protection so that the HDYC account login works"
 
@@ -9576,13 +9648,13 @@ async function updateUserInfo(username) {
     if (firstObjectCreationTime) {
         userInfo['firstChangesetCreationTime'] = new Date(firstObjectCreationTime)
     }
-    GM_setValue("userinfo-" + username, JSON.stringify(userInfo))
+    await GM.setValue("userinfo-" + username, JSON.stringify(userInfo))
     return userInfo
 }
 
 async function getCachedUserInfo(username) {
     // TODO async better?
-    const localUserInfo = GM_getValue("userinfo-" + username, "")
+    const localUserInfo = await GM.getValue("userinfo-" + username, "")
     if (localUserInfo) {
         const cacheTime = new Date(localUserInfo['cacheTime'])
         if (cacheTime.setUTCDate(cacheTime.getUTCDate() + 3) < new Date()) {
@@ -9919,7 +9991,7 @@ function makeUsernamesFilterable(i) {
         return
     }
     i.classList.add("listen-for-filters")
-    i.onclick = (e) => {
+    i.onclick = async (e) => {
         if (massModeActive && (!e.metaKey && !e.ctrlKey && e.isTrusted)) {
             e.preventDefault()
             const filterByUsersInput = document.querySelector("#filter-by-user-input")
@@ -9930,7 +10002,7 @@ function makeUsernamesFilterable(i) {
             }
             filterChangesets()
             updateMap()
-            GM_setValue("last-user-filter", document.getElementById("filter-by-user-input")?.value)
+            await GM.setValue("last-user-filter", document.getElementById("filter-by-user-input")?.value)
         }
     }
     i.title = "Click for hide this user changesets. Ctrl + click for open user profile"
@@ -9955,15 +10027,15 @@ function addMassActionForGlobalChangesets() {
         a.style.cursor = "pointer"
         a.id = "changesets-filter-btn"
         a.title = "Changesets filter via better-osm-org"
-        a.onclick = () => {
+        a.onclick = async () => {
             document.querySelector("#sidebar .search_forms")?.setAttribute("hidden", "true")
 
-            function makeTopFilterBar() {
+            async function makeTopFilterBar() {
                 const filterBar = document.createElement("div")
                 filterBar.classList.add("filter-bar")
 
                 const hideBigChangesetsCheckbox = document.createElement("input")
-                hideBigChangesetsCheckbox.checked = needHideBigChangesets = GM_getValue("last-big-changesets-filter")
+                hideBigChangesetsCheckbox.checked = needHideBigChangesets = await GM.getValue("last-big-changesets-filter")
                 hideBigChangesetsCheckbox.type = "checkbox"
                 hideBigChangesetsCheckbox.style.cursor = "pointer"
                 hideBigChangesetsCheckbox.id = "hide-big-changesets-checkbox"
@@ -9973,11 +10045,11 @@ function addMassActionForGlobalChangesets() {
                 hideBigChangesetLabel.style.marginLeft = "1px"
                 hideBigChangesetLabel.style.marginBottom = "4px"
                 hideBigChangesetLabel.style.cursor = "pointer"
-                hideBigChangesetsCheckbox.onchange = () => {
+                hideBigChangesetsCheckbox.onchange = async () => {
                     needHideBigChangesets = hideBigChangesetsCheckbox.checked;
                     filterChangesets()
                     updateMap()
-                    GM_setValue("last-big-changesets-filter", hideBigChangesetsCheckbox.checked)
+                    await GM.setValue("last-big-changesets-filter", hideBigChangesetsCheckbox.checked)
                 }
                 filterBar.appendChild(hideBigChangesetsCheckbox)
                 filterBar.appendChild(hideBigChangesetLabel)
@@ -10014,16 +10086,16 @@ function addMassActionForGlobalChangesets() {
                 filterByUsersInput.id = "filter-by-user-input"
                 filterByUsersInput.style.width = "250px"
                 filterByUsersInput.style.marginBottom = "3px"
-                filterByUsersInput.addEventListener("keypress", function (event) {
+                filterByUsersInput.addEventListener("keypress", async function (event) {
                     if (event.key === "Enter") {
                         event.preventDefault();
                         filterChangesets();
                         updateMap()
-                        GM_setValue("last-user-filter", filterByUsersInput.value)
-                        GM_setValue("last-comment-filter", filterByCommentInput.value)
+                        await GM.setValue("last-user-filter", filterByUsersInput.value)
+                        await GM.setValue("last-comment-filter", filterByCommentInput.value)
                     }
                 });
-                filterByUsersInput.value = GM_getValue("last-user-filter", "")
+                filterByUsersInput.value = await GM.getValue("last-user-filter", "")
                 filterBar.appendChild(filterByUsersInput)
 
                 const label2 = document.createElement("span")
@@ -10056,16 +10128,16 @@ function addMassActionForGlobalChangesets() {
                 filterByCommentInput.placeholder = "words1,words2,... and press Enter"
                 filterByCommentInput.title = "Filter by substring in changesets comments"
                 filterByCommentInput.style.width = "250px"
-                filterByCommentInput.addEventListener("keypress", function (event) {
+                filterByCommentInput.addEventListener("keypress", async function (event) {
                     if (event.key === "Enter") {
                         event.preventDefault();
                         filterChangesets();
                         updateMap()
-                        GM_setValue("last-user-filter", filterByUsersInput.value)
-                        GM_setValue("last-comment-filter", filterByCommentInput.value)
+                        await GM.setValue("last-user-filter", filterByUsersInput.value)
+                        await GM.setValue("last-comment-filter", filterByCommentInput.value)
                     }
                 });
-                filterByCommentInput.value = GM_getValue("last-comment-filter", "")
+                filterByCommentInput.value = await GM.getValue("last-comment-filter", "")
                 filterBar.appendChild(filterByCommentInput)
 
                 return filterBar
@@ -10074,7 +10146,7 @@ function addMassActionForGlobalChangesets() {
             needPatchLoadMoreRequest = true
             if (massModeActive === null) {
                 massModeActive = true
-                document.querySelector("#sidebar .changesets").before(makeTopFilterBar())
+                document.querySelector("#sidebar .changesets").before(await makeTopFilterBar())
                 document.querySelectorAll('ol li div > a[href^="/user/"]').forEach(makeUsernamesFilterable)
             } else {
                 massModeActive = !massModeActive
@@ -10514,7 +10586,7 @@ async function loadFriends() {
         const username = a.getAttribute("href").match(/\/user\/(.+)\/follow/)[1]
         friends.push(decodeURI(username))
     })
-    GM_setValue("friends", JSON.stringify(friends))
+    await GM.setValue("friends", JSON.stringify(friends))
     console.debug("Friends list updated")
     return friends
 }
@@ -10522,7 +10594,7 @@ async function loadFriends() {
 let friendsLoadingLock = false;
 
 async function getFriends() {
-    const friendsStr = GM_getValue("friends")
+    const friendsStr = await GM.getValue("friends")
     if (friendsStr) {
         return JSON.parse(friendsStr)
     } else {
@@ -11339,12 +11411,14 @@ function setupNavigationViaHotkeys() {
                 }
             }
         } else if ((e.code === "Slash" || e.code === "Backslash" || e.code === "NumpadDivide" || e.key === "/") && e.shiftKey) {
-            getMap().getBounds()
-            const query = prompt(`Type overpass selector:\n\tkey\n\tkey=value\n\tkey~val,i\n\tway[footway=crossing](if: length() > 150)\nEnd with ! for global search\n⚠this is a simple prototype of search`, GM_getValue("lastOverpassQuery", ""))
-            if (query) {
-                insertOverlaysStyles()
-                processOverpassQuery(query)
-            }
+            setTimeout(async () => {
+                getMap().getBounds()
+                const query = prompt(`Type overpass selector:\n\tkey\n\tkey=value\n\tkey~val,i\n\tway[footway=crossing](if: length() > 150)\nEnd with ! for global search\n⚠this is a simple prototype of search`, await GM.getValue("lastOverpassQuery", ""))
+                if (query) {
+                    insertOverlaysStyles()
+                    processOverpassQuery(query)
+                }
+            }, 0);
         } else if (e.altKey && e.code === "Backquote") {
             darkModeForMap = !darkModeForMap
             if (darkModeForMap) {
@@ -11784,106 +11858,105 @@ function insertOverlaysStyles() {
     const mapWidth = getComputedStyle(document.querySelector("#map")).width
     const mapHeight = getComputedStyle(document.querySelector("#map")).height
 
-    GM_addElement(document.head, "style", {
-        textContent: `
-                    .leaflet-popup-content:has(.geojson-props-table) {
-                        overflow: scroll;
-                    }
-                    
-                    .leaflet-popup-content:has(.geojson-editor) {
-                        /*max-width: calc(${mapWidth} / 3) !important;
+    injectCSSIntoPage(`
+            .leaflet-popup-content:has(.geojson-props-table) {
+                overflow: scroll;
+            }
+
+            .leaflet-popup-content:has(.geojson-editor) {
+                    /*max-width: calc(${mapWidth} / 3) !important;
                         min-width: calc(${mapWidth} / 3) !important;
                         max-height: calc(${mapHeight} / 2);
                         min-height: calc(${mapHeight} / 2);*/
-                        overflow-y: scroll;
-                        font-size: larger;
-                    }
-                    
-                    .geojson-editor {
-                        margin-left: 5px;
-                    }
-                    
-                    table.tags-table {
-                        margin-top: 5px;
-                        margin-left: 5px;
-                    }
-                     
-                     table.metainfo-table {
-                        margin-top: 5px;
-                        margin-left: 5px;
-                    }
-                    
-                    table.tags-table th:not(.tag-flag) {
-                        border: solid 2px transparent;
-                        min-width: 50px;
-                    }
-                    
-                    table.tags-table td:not(.tag-flag) {
-                        border: solid 2px transparent;
-                        min-width: 150px;
-                    }
-                    
-                    table.editable.tags-table th:not(.tag-flag) {
-                        border: solid 2px black;
-                        min-width: 50px;
-                    }
-                    
-                    table.editable.tags-table td:not(.tag-flag) {
-                        border: solid 2px black;
-                        min-width: 150px;
-                    }
-                    
-                    table:not(.editable).tags-table tr.add-tag-row {
-                        display: none;
-                        min-width: 150px;
-                    }
-                    
-                    table.editable.tags-table tr.add-tag-row th {
-                        text-align: center;
-                        cursor: pointer;
-                        min-width: 294px;
-                        resize: both !important;
-                    }
-                    
-                    table.tags-table textarea {
-                        min-width: 280px;
-                    }
-                    
-                    .mode-btn:not(.visible) {
-                        display: none;
-                    }
-                    
-                    .map-img-preview-popup {
-                        width: initial;
-                    }
-                    
-                    .zebra_colors tr:nth-child(even) td, .zebra_colors tr:nth-child(even) th {
-                        background-color: color-mix(in srgb, var(--bs-body-bg), black 10%);
-                    }
-                    
-                    @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
-                    
-                    .mode-btn.visible img {
-                        filter: invert(0.9);
-                    }
-                    
-                    .zebra_colors tr:nth-child(even) td, .zebra_colors tr:nth-child(even) th {
-                        background-color: color-mix(in srgb, var(--bs-body-bg), white 7%);
-                    }
-                    
-                    }
-                    
-                    .leaflet-popup-content:has(.geotagged-img) {
-                        max-width: calc(${mapWidth} / 2) !important;
-                        min-width: calc(${mapWidth} / 2) !important;
-                        max-height: calc(${mapHeight} / 2);
-                        min-height: calc(${mapHeight} / 2);
-                        width: auto;
-                        height: auto;
-                        overflow-y: scroll;
-                    }
-                `,
-    });
+                overflow-y: scroll;
+                font-size: larger;
+            }
+
+            .geojson-editor {
+                margin-left: 5px;
+            }
+
+            table.tags-table {
+                margin-top: 5px;
+                margin-left: 5px;
+            }
+
+            table.metainfo-table {
+                margin-top: 5px;
+                margin-left: 5px;
+            }
+
+            table.tags-table th:not(.tag-flag) {
+                border: solid 2px transparent;
+                min-width: 50px;
+            }
+
+            table.tags-table td:not(.tag-flag) {
+                border: solid 2px transparent;
+                min-width: 150px;
+            }
+
+            table.editable.tags-table th:not(.tag-flag) {
+                border: solid 2px black;
+                min-width: 50px;
+            }
+
+            table.editable.tags-table td:not(.tag-flag) {
+                border: solid 2px black;
+                min-width: 150px;
+            }
+
+            table:not(.editable).tags-table tr.add-tag-row {
+                display: none;
+                min-width: 150px;
+            }
+
+            table.editable.tags-table tr.add-tag-row th {
+                text-align: center;
+                cursor: pointer;
+                min-width: 294px;
+                resize: both !important;
+            }
+
+            table.tags-table textarea {
+                min-width: 280px;
+            }
+
+            .mode-btn:not(.visible) {
+                display: none;
+            }
+
+            .map-img-preview-popup {
+                width: initial;
+            }
+
+            .zebra_colors tr:nth-child(even) td, .zebra_colors tr:nth-child(even) th {
+                background-color: color-mix(in srgb, var(--bs-body-bg), black 10%);
+            }
+
+            @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+
+                .mode-btn.visible img {
+                    filter: invert(0.9);
+                }
+
+                .zebra_colors tr:nth-child(even) td, .zebra_colors tr:nth-child(even) th {
+                    background-color: color-mix(in srgb, var(--bs-body-bg), white 7%);
+                }
+
+            }
+
+            .leaflet-popup-content:has(.geotagged-img) {
+                max-width: calc(${mapWidth} / 2) !important;
+                min-width: calc(${mapWidth} / 2) !important;
+                max-height: calc(${mapHeight} / 2);
+                min-height: calc(${mapHeight} / 2);
+                width: auto;
+                height: auto;
+                overflow-y: scroll;
+            }
+        `
+    );
 
 }
 
@@ -12059,7 +12132,7 @@ function renderOSMGeoJSON(xml) {
         }))
 
         const startEdit = intoPageWithFun(async startEditEvent => {
-            let lastEditMode = GM_getValue("lastEditMode", "table")
+            let lastEditMode = await GM.getValue("lastEditMode", "table")
 
             const table = startEditEvent.target.parentElement.querySelector("table.tags-table")
             const metaTable = startEditEvent.target.parentElement.querySelector("table.metainfo-table")
@@ -12104,20 +12177,20 @@ function renderOSMGeoJSON(xml) {
                 table.appendChild(textarea)
             }
 
-            modeBtn.onclick = (e) => {
+            modeBtn.onclick = async (e) => {
                 e.stopPropagation()
                 modeBtn.querySelector("img").remove()
                 if (lastEditMode === "table") {
                     modeBtn.appendChild(tableModeBtnImg)
                     lastEditMode = "raw"
-                    GM_setValue("lastEditMode", lastEditMode)
+                    await GM.setValue("lastEditMode", lastEditMode)
 
                     table.appendChild(makeTextareaFromTagsTable(table))
                     table.querySelector("tbody")?.remove()
                 } else {
                     modeBtn.appendChild(rawModeBtnImg)
                     lastEditMode = "table"
-                    GM_setValue("lastEditMode", lastEditMode)
+                    await GM.setValue("lastEditMode", lastEditMode)
 
                     table.appendChild(makeTBody(buildTags(table.querySelector("textarea").value)))
                     table.querySelectorAll("tr:not(.add-tag-row)").forEach(i => {
@@ -12200,7 +12273,7 @@ function renderOSMGeoJSON(xml) {
                 startEditEvent.target.style.cursor = "progress"
                 /** @type {Object.<string, string>}*/
                 let newTags = {}
-                const lastEditMode = GM_getValue("lastEditMode", "table")
+                const lastEditMode = await GM.getValue("lastEditMode", "table")
                 if (lastEditMode === "table") {
                     table.querySelectorAll("tr:not(.add-tag-row)").forEach(i => {
                         const key = i.querySelector("th").textContent.trim()
@@ -12326,6 +12399,7 @@ function renderOSMGeoJSON(xml) {
                 });
                 console.log(changesetId);
 
+
                 try {
                     objectInfo.children[0].children[0].setAttribute('changeset', changesetId);
 
@@ -12386,7 +12460,7 @@ function renderOSMGeoJSON(xml) {
                 }
             }, false);
         })
-        getWindow().L.DomEvent.on(layer, "popupopen", intoPageWithFun((openEvent) => {
+        getWindow().L.DomEvent.on(layer, "popupopen", intoPageWithFun(async (openEvent) => {
             const layer = getMap()._layers[openEvent.target._leaflet_id]
             const editButton = layer.getPopup().getElement().querySelector(".edit-tags-btn")
             if (currentVersionBanned("overpass_tags_editor")) {
@@ -12399,7 +12473,7 @@ function renderOSMGeoJSON(xml) {
             } else {
                 editButton.addEventListener("click", startEdit, intoPage({once: true}))
 
-                if (GM_getValue("lastEditMode", "table") === "raw") {
+                if (await GM.getValue("lastEditMode", "table") === "raw") {
                     const textarea = document.createElement("textarea")
                     textarea.setAttribute("disabled", "true")
                     Object.entries(feature.properties?.tags).forEach(([k, v]) => {
@@ -12548,8 +12622,8 @@ async function setupDragAndDropViewers() {
 
 function setup() {
     if (location.href.startsWith("https://osmcha.org")) {
-        setTimeout(() => {
-            GM_setValue("OSMCHA_TOKEN", localStorage.getItem("token"))
+        setTimeout(async () => {
+            await GM.setValue("OSMCHA_TOKEN", localStorage.getItem("token"))
         }, 1000);
         return
     }
@@ -12563,11 +12637,11 @@ function setup() {
     }
     if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)
         && ["/id"].includes(location.pathname) && GM_config.get("DarkModeForID")) {
-        GM_addElement(document.head, "style", {
-            textContent: `@media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
-${GM_getResourceText("DARK_THEME_FOR_ID_CSS")}
-}`
-        })
+        injectCSSIntoPage(`
+                @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+                    ${GM_getResourceText("DARK_THEME_FOR_ID_CSS")}
+                }`
+        )
         return
     }
     if (GM_config.get("ResetSearchFormFocus")) {
@@ -12766,7 +12840,10 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
     //     }
     // )
     // `)
-    if (false && navigator.userAgent.includes("Firefox") && GM_info.scriptHandler === "Violentmonkey") {
+    if (navigator.userAgent.includes("Safari") && GM_info.scriptHandler === "Userscripts") {
+        getMap = () => null
+        getWindow = () => window
+    } else if (false && navigator.userAgent.includes("Firefox") && GM_info.scriptHandler === "Violentmonkey") {
         function mapHook() {
             console.log("start map intercepting")
             window.wrappedJSObject.L.Map.addInitHook(exportFunction((function () {
@@ -12835,30 +12912,33 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
         //         document.querySelector("#id-embed").style.visibility = "visible"
         //     }
         // });
-        GM_addElement(document.head, "style", {
-            textContent: `@media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""}  {
-            #id-embed {
-                background: #212529 !important;
-            }
-        }`
-        })
+        injectCSSIntoPage(
+            `@media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+                #id-embed {
+                    background: #212529 !important;
+                }
+            }`
+        )
     } else {
-        GM_addElement(document.head, "style", {
-            textContent: `@media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""}  {
-            html {
-             background: #212529 !important;
-            }
-            body {
-             background: #212529 !important;
-            }
-            #id-embed {
-                background: #212529 !important;
-            }
-            #id-container {
-                background: #212529 !important;
-            }
-        }`
-        })
+        injectCSSIntoPage(
+            `@media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+                html {
+                    background: #212529 !important;
+                }
+
+                body {
+                    background: #212529 !important;
+                }
+
+                #id-embed {
+                    background: #212529 !important;
+                }
+
+                #id-container {
+                    background: #212529 !important;
+                }
+            }`
+        )
         // if (location.pathname === "/id") {
         //     console.log("post")
         //     window.parent.postMessage("kek", location.origin);
@@ -12880,14 +12960,14 @@ setTimeout(async () => {
 setTimeout(async function () {
     if (Math.random() > 0.5) return
     if (!location.pathname.includes("/history") && !location.pathname.includes("/note")) return
-    const lastGC = GM_getValue("last-garbage-collection-time")
+    const lastGC = await GM.getValue("last-garbage-collection-time")
     if (lastGC && (new Date(lastGC)).getTime() + 1000 * 60 * 60 * 24 * 2 > Date.now()) return
-    GM_setValue("last-garbage-collection-time", Date.now());
+    await GM.setValue("last-garbage-collection-time", Date.now());
 
     const keys = GM_listValues();
     for (const i of keys) {
         try {
-            const userinfo = JSON.parse(GM_getValue(i))
+            const userinfo = JSON.parse(await GM.getValue(i))
             if (userinfo.cacheTime && (new Date(userinfo.cacheTime)).getTime() + 1000 * 60 * 60 * 24 * 14 < Date.now()) {
                 await GM_deleteValue(i);
             }
