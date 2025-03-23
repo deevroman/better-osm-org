@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.9.6.4
+// @version         0.9.6.5
 // @changelog       v0.9.6: Filter by editor for edits heatmap
 // @changelog       v0.9.5: Adoption to updates osm.org, render camera:direction=*
 // @changelog       v0.9.1: script should work more stably in Chrome
@@ -1029,6 +1029,8 @@ function addRevertButton() {
                 responseType: "json"
             })
             if (res.status === 404) {
+                likeImg.title = "Changeset not found in OSMCha database.\nEither OSMCha did not have time to process this changeset, or it is too old."
+                dislikeImg.title = "Changeset not found in OSMCha database.\nEither OSMCha did not have time to process this changeset, or it is too old."
                 console.warn("Changeset not found in OSMCha database") // todo show alert/title
                 return;
             }
@@ -1076,14 +1078,14 @@ function addRevertButton() {
         primaryButtons.before(dislikeBtn)
         primaryButtons.before(document.createTextNode("\xA0"))
     }
-    document.querySelectorAll('#sidebar_content li[id^=c] small > a[href^="/user/"]').forEach(elem => {
+    document.querySelectorAll('#sidebar_content article[id^=c] small > a[href^="/user/"]').forEach(elem => {
         getCachedUserInfo(elem.textContent).then(info => {
             elem.before(makeBadge(info, new Date(elem.nextElementSibling.getAttribute("datetime"))))
             elem.title = `changesets_count: ${info['changesets']['count']}\naccount_created: ${info['account_created']}`
         })
     })
     // fixme dont work loggined
-    document.querySelectorAll(".browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div").forEach(c => {
+    document.querySelectorAll(".browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ article div").forEach(c => {
         c.innerHTML = c.innerHTML.replaceAll(/((changesets )((\d+)([,. ])(\s|$|<\/))+|changeset \d+)/gm, (match) => {
             return match.replaceAll(/(\d+)/g, `<a href="/changeset/$1" class="changeset_link_in_comment">$1</a>`)
         }).replaceAll(/>https:\/\/(www\.)?openstreetmap.org\//g, ">osm.org/")
@@ -3904,7 +3906,7 @@ async function replaceDownloadWayButton(btn, wayID) {
             const nodesHistory = nodesHistories[i.id]
             const tagsTable = processObject(div2, "node", curChange[1] ?? curChange[2], curChange[2], nodesHistory[nodesHistory.length - 1], nodesHistory)
             setTimeout(async () => {
-                const nodesLinksInComments = document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div a[href*="node/"]`)
+                const nodesLinksInComments = document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="node/"]`)
                 await processObjectInteractions("", "node", {nodes: nodesLinksInComments}, div2, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(div2)))
             }, 0)
             tagsTable.then((table) => {
@@ -4122,7 +4124,7 @@ async function replaceDownloadWayButton(btn, wayID) {
                     const nodesHistory = nodesHistories[i.id]
                     const tagsTable = processObject(div2, "node", curChange[1] ?? curChange[2], curChange[2], nodesHistory[nodesHistory.length - 1], nodesHistory)
                     setTimeout(async () => {
-                        const nodesLinksInComments = document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div a[href*="node/"]`)
+                        const nodesLinksInComments = document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="node/"]`)
                         await processObjectInteractions("", "node", {nodes: nodesLinksInComments}, div2, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(div2)))
                     }, 0)
                     tagsTable.then((table) => {
@@ -7030,6 +7032,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                     if (!e.altKey) return
                     i.scrollIntoView()
                 }
+
             })
         }
         i.parentElement.parentElement.onclick = (e) => {
@@ -7366,9 +7369,9 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
     })
 
     const objectsLinksInComments = { // todo can be optimaized
-        nodes: Array.from(document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div a[href*="node/"]`)),
-        ways: Array.from(document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div a[href*="way/"]`)),
-        relations: Array.from(document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ ul li div a[href*="relation/"]`))
+        nodes: Array.from(document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="node/"]`)),
+        ways: Array.from(document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="way/"]`)),
+        relations: Array.from(document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="relation/"]`))
     }
 
     try {
