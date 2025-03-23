@@ -129,7 +129,11 @@ if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Grease
     console.error("YOU ARE USING AN UNSUPPORTED SCRIPT MANAGER")
 }
 
-if (navigator.userAgent.includes("Safari")) {
+const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+const isFirefox = navigator.userAgent.includes("Firefox");
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+
+if (isSafari) {
     console.error("YOU ARE USING AN UNSUPPORTED BROWSER")
 }
 
@@ -1338,7 +1342,7 @@ function setupCompactChangesetsHistory() {
             || location.pathname.includes("/way")
             || location.pathname.includes("/relation"))) {
             styleForSidebarApplied = true
-            injectCSSIntoPage(compactSidebarStyleText);
+            injectCSSIntoOSMPage(compactSidebarStyleText);
         }
         return;
     }
@@ -1350,7 +1354,7 @@ function setupCompactChangesetsHistory() {
     }
 
     styleForSidebarApplied = true
-    injectCSSIntoPage(compactSidebarStyleText)
+    injectCSSIntoOSMPage(compactSidebarStyleText)
 
     // увы, инвалидация в этом месте ломает зум при загрузке объекте самим сайтом
     // try {
@@ -2069,7 +2073,6 @@ function switchESRIbeta() {
     }
 }
 
-const isFirefox = navigator.userAgent.includes("Firefox");
 const needBypassSatellite = !isFirefox || GM_info.scriptHandler === "Violentmonkey";
 
 function tileErrorHandler(e, url = null) {
@@ -2940,7 +2943,7 @@ function addHistoryLink() {
     makeHashtagsClickable()
     shortOsmOrgLinks(document.querySelector(".browse-section p"))
     setTimeout(() => {
-        injectCSSIntoPage(`
+        injectCSSIntoOSMPage(`
         table.browse-tag-list tr td[colspan="2"] {
             background: var(--bs-body-bg) !important;
         }
@@ -2965,11 +2968,11 @@ function injectJSIntoPage(text) {
 /**
  * @param {string} text
  */
-function injectCSSIntoPage(text) {
+function injectCSSIntoOSMPage(text) {
     if (GM_info.scriptHandler === "FireMonkey" || GM_info.scriptHandler === "Userscripts"
-        || GM_info.scriptHandler === "Greasemonkey" || navigator.userAgent.includes("Safari")) {
+        || GM_info.scriptHandler === "Greasemonkey" || isSafari) {
         document.querySelector("style").innerHTML += text;
-        if (!navigator.userAgent.includes("Safari")) {
+        if (!isSafari) {
             document.querySelector("style").parentElement.appendChild(document.querySelector("style"))
         }
     } else {
@@ -2977,6 +2980,15 @@ function injectCSSIntoPage(text) {
             textContent: text,
         });
     }
+}
+
+/**
+ * @param {string} text
+ */
+function injectCSSIntoSimplePage(text) {
+    return GM_addElement(document.head, "style", {
+        textContent: text,
+    });
 }
 
 const layers = {
@@ -5259,7 +5271,7 @@ function addDiffInHistory() {
         }
     }
     ` : ``);
-    injectCSSIntoPage(styleText)
+    injectCSSIntoOSMPage(styleText)
     let versions = [{tags: [], coordinates: "", wasModified: false, nodes: [], members: [], visible: true}];
     // add/modification
     let versionsHTML = Array.from(document.querySelectorAll(".browse-section.browse-node, .browse-section.browse-way, .browse-section.browse-relation"))
@@ -5668,7 +5680,7 @@ function makeVersionPageBetter() {
     }
     if (!styleForSidebarApplied) {
         styleForSidebarApplied = true
-        injectCSSIntoPage(compactSidebarStyleText)
+        injectCSSIntoOSMPage(compactSidebarStyleText)
     }
 
     if (!document.querySelector(".find-user-btn")) {
@@ -7753,7 +7765,7 @@ function addQuickLookStyles() {
                 }
             }
             ` : "");
-        injectCSSIntoPage(styleText)
+        injectCSSIntoOSMPage(styleText)
     } catch { /* empty */
     }
 }
@@ -8017,7 +8029,7 @@ async function processQuickLookInSidebar(changesetID) {
             const nodes = changesetData.querySelectorAll("node")
             const other = changesetData.querySelectorAll("way,relation").length
             if (nodes.length > 1200) {
-                if (nodes.length > 2500 || other > 10 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+                if (nodes.length > 2500 || other > 10 || isMobile) {
                     return;
                 }
             }
@@ -8104,7 +8116,7 @@ async function processQuickLookInSidebar(changesetID) {
                 if (ways.length > 200 && changesetData.querySelectorAll("node") > 40) {
                     return;
                 }
-                if (ways.length > 520 && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+                if (ways.length > 520 && isMobile) {
                     return;
                 }
                 if (ways.length > 1520) {
@@ -8841,7 +8853,7 @@ function setupOffMapDim() {
     if (!GM_config.get("OffMapDim") || GM_config.get("DarkModeForMap") || unDimmed) {
         return;
     }
-    injectCSSIntoPage(`
+    injectCSSIntoOSMPage(`
     @media (prefers-color-scheme: dark) {
         .leaflet-tile-container, .mapkey-table-entry td:first-child > * {
             filter: none !important;
@@ -8859,7 +8871,7 @@ let darkModeForMap = false;
 let darkMapStyleElement = false;
 
 function injectDarkMapStyle() {
-    darkMapStyleElement = injectCSSIntoPage(`
+    darkMapStyleElement = injectCSSIntoOSMPage(`
     @media (prefers-color-scheme: dark) {
         .leaflet-tile-container, .mapkey-table-entry td:first-child > * {
             filter: none !important;
@@ -9114,7 +9126,7 @@ async function betterUserStat(user) {
                         type: "month",
                         gutter: 4,
                         label: {
-                            text: (timestamp) => new Date(timestamp).toLocaleString(getWindow().OSM.i18n.locale, { timeZone: "UTC", month: "short" }),
+                            text: (timestamp) => new Date(timestamp).toLocaleString(getWindow().OSM.i18n.locale, {timeZone: "UTC", month: "short"}),
                             position: "top",
                             textAlign: "middle"
                         },
@@ -9145,17 +9157,17 @@ async function betterUserStat(user) {
                         }
                     },
                     animationDuration: 0
-                }, [
-                    [getWindow().Tooltip, {
+                }), intoPageWithFun([
+                    [intoPageWithFun(getWindow().Tooltip), {
                         text: (date, value) => getTooltipText(date, value)
                     }]
                 ]));
 
-                cal.on("mouseover", (event, _timestamp, value) => {
+                cal.on("mouseover", intoPageWithFun((event, _timestamp, value) => {
                     if (value) event.target.style.cursor = "pointer";
-                });
+                }));
 
-                cal.on("click", (_event, timestamp) => {
+                cal.on("click", intoPageWithFun((_event, timestamp) => {
                     if (!displayName) return;
                     for (const {date, max_id} of heatmapData) {
                         if (!max_id) continue;
@@ -9163,17 +9175,17 @@ async function betterUserStat(user) {
                         const params = new URLSearchParams([["before", max_id + 1]]);
                         location = "/user/" + encodeURIComponent(displayName) + "/history?" + params;
                     }
-                });
+                }));
             }
 
             function getTooltipText(date, value) {
                 const localizedDate = getWindow().OSM.i18n.l("date.formats.long", date);
 
                 if (value > 0) {
-                    return getWindow().OSM.i18n.t("javascripts.heatmap.tooltip.contributions", {count: value, date: localizedDate});
+                    return getWindow().OSM.i18n.t("javascripts.heatmap.tooltip.contributions", intoPage({count: value, date: localizedDate}));
                 }
 
-                return getWindow().OSM.i18n.t("javascripts.heatmap.tooltip.no_contributions", {date: localizedDate});
+                return getWindow().OSM.i18n.t("javascripts.heatmap.tooltip.no_contributions", intoPage({date: localizedDate}));
             }
 
             function getTheme() {
@@ -9185,10 +9197,10 @@ async function betterUserStat(user) {
             }
 
             if (colorScheme === "auto") {
-                mediaQuery.addEventListener("change", (e) => {
+                mediaQuery.addEventListener("change", intoPageWithFun((e) => {
                     currentTheme = e.matches ? "dark" : "light";
                     renderHeatmap();
-                });
+                }));
             }
 
             renderHeatmap();
@@ -9351,7 +9363,7 @@ function simplifyHDCYIframe() {
     }
     const forceLightTheme = location.hash.includes("forcelighttheme")
     const forceDarkTheme = location.hash.includes("forcedarktheme")
-    injectCSSIntoPage(`
+    injectCSSIntoSimplePage(`
             html, body {
                 overflow-x: auto;
             }
@@ -9442,7 +9454,7 @@ function simplifyHDCYIframe() {
     if (loginLink) {
         let warn = document.createElement("div")
         warn.id = "hdyc-warn"
-        injectCSSIntoPage(`
+        injectCSSIntoSimplePage(`
                 #hdyc-warn, #hdycLink {
                     text-align: left !important;
                     width: 50%;
@@ -9452,7 +9464,7 @@ function simplifyHDCYIframe() {
                 }
             `,
         );
-        if (navigator.userAgent.includes("Firefox")) {
+        if (isFirefox) {
             warn.textContent = "Please disable tracking protection so that the HDYC account login works"
 
             document.getElementById("authenticate").before(warn)
@@ -11322,7 +11334,7 @@ function setupNavigationViaHotkeys() {
             if (darkModeForMap) {
                 injectDarkMapStyle()
             } else {
-                darkMapStyleElement.remove()
+                darkMapStyleElement?.remove()
             }
         } else {
             // console.log(e.key, e.code)
@@ -11756,7 +11768,7 @@ function insertOverlaysStyles() {
     const mapWidth = getComputedStyle(document.querySelector("#map")).width
     const mapHeight = getComputedStyle(document.querySelector("#map")).height
 
-    injectCSSIntoPage(`
+    injectCSSIntoOSMPage(`
             .leaflet-popup-content:has(.geojson-props-table) {
                 overflow: scroll;
             }
@@ -12535,7 +12547,7 @@ function setup() {
     }
     if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)
         && ["/id"].includes(location.pathname) && GM_config.get("DarkModeForID")) {
-        injectCSSIntoPage(`
+        injectCSSIntoOSMPage(`
                 @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
                     ${GM_getResourceText("DARK_THEME_FOR_ID_CSS")}
                 }`
@@ -12741,7 +12753,7 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
         }
     }
 
-    if (navigator.userAgent.includes("Safari") && GM_info.scriptHandler === "Userscripts") {
+    if (isSafari && GM_info.scriptHandler === "Userscripts") {
         getMap = () => null
         getWindow = () => window
     } else {
@@ -12783,7 +12795,7 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
         //         document.querySelector("#id-embed").style.visibility = "visible"
         //     }
         // });
-        injectCSSIntoPage(
+        injectCSSIntoOSMPage(
             `@media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
                 #id-embed {
                     background: #212529 !important;
@@ -12791,7 +12803,7 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
             }`
         )
     } else {
-        injectCSSIntoPage(
+        injectCSSIntoOSMPage(
             `@media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
                 html {
                     background: #212529 !important;
