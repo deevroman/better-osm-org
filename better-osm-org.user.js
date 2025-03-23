@@ -9095,9 +9095,9 @@ async function betterUserStat(user) {
             const heatmapData = heatmapElement.dataset.heatmap ? JSON.parse(heatmapElement.dataset.heatmap) : [];
             const displayName = heatmapElement.dataset.displayName;
             const colorScheme = document.documentElement.getAttribute("data-bs-theme") ?? "auto";
-            const rangeColors = ["#14432a", "#166b34", "#37a446", "#4dd05a"];
+            const rangeColorsDark = ["#14432a", "#4dd05a"];
+            const rangeColorsLight = ["#4dd05a", "#14432a"];
             const startDate = new Date(Date.now() - (365 * 24 * 60 * 60 * 1000));
-            const monthNames = getWindow().OSM.i18n.t("date.abbr_month_names");
 
             const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
@@ -9114,7 +9114,7 @@ async function betterUserStat(user) {
                         type: "month",
                         gutter: 4,
                         label: {
-                            text: (timestamp) => monthNames[new Date(timestamp).getUTCMonth() + 1],
+                            text: (timestamp) => new Date(timestamp).toLocaleString(getWindow().OSM.i18n.locale, { timeZone: "UTC", month: "short" }),
                             position: "top",
                             textAlign: "middle"
                         },
@@ -9139,9 +9139,9 @@ async function betterUserStat(user) {
                     },
                     scale: {
                         color: {
-                            type: "threshold",
-                            range: currentTheme === "dark" ? rangeColors : Array.from(rangeColors).reverse(),
-                            domain: [10, 20, 30, 40]
+                            type: "sqrt",
+                            range: currentTheme === "dark" ? rangeColorsDark : rangeColorsLight,
+                            domain: [0, Math.max(0, ...heatmapData.map(d => d.total_changes))]
                         }
                     },
                     animationDuration: 0
