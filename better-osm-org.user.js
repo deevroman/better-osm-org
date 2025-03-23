@@ -125,6 +125,14 @@
 /*global osmtogeojson*/
 /*global opening_hours*/
 
+if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Greasemonkey" || GM_info.scriptHandler === "Firemonkey") {
+    console.error("YOU ARE USING AN UNSUPPORTED SCRIPT MANAGER")
+}
+
+if (navigator.userAgent.includes("Safari")) {
+    console.error("YOU ARE USING AN UNSUPPORTED BROWSER")
+}
+
 if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Greasemonkey") {
     if (typeof GM_getResourceURL === "undefined") {
         const resources = {}
@@ -146,7 +154,7 @@ if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Grease
                     responseType: "blob",
                     onload: res => {
                         const a = new FileReader();
-                        a.onload = function(e) {
+                        a.onload = function (e) {
                             resources[resource] = e.target.result
                         }
                         a.readAsDataURL(res.response);
@@ -12718,14 +12726,19 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
     && !["/edit", "/id"].includes(location.pathname)) {
     function mapHook() {
         console.log("start map intercepting")
-        boWindowObject.L.Map.addInitHook(exportFunction((function () {
-                if (this._container?.id === "map") {
-                    boGlobalThis.map = this;
-                    boGlobalThis.mapIntercepted = true
-                    console.log("%cMap intercepted", 'background: #000; color: #0f0')
-                }
-            }), boWindowObject)
-        )
+        if (boWindowObject.L.Map) {
+            boWindowObject.L.Map.addInitHook(exportFunction((function () {
+                    if (this._container?.id === "map") {
+                        boGlobalThis.map = this;
+                        boGlobalThis.mapIntercepted = true
+                        console.log("%cMap intercepted", 'background: #000; color: #0f0')
+                    }
+                }), boWindowObject)
+            )
+        } else {
+            console.error("the script could not access the L.Map object. Some of the functions will not work")
+            console.log(GM_info)
+        }
     }
 
     if (navigator.userAgent.includes("Safari") && GM_info.scriptHandler === "Userscripts") {
