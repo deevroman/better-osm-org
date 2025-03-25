@@ -5374,6 +5374,9 @@ function addDiffInHistory() {
                         if (el[0] === k && el[1] !== v) {
                             i.querySelector("th").classList.add("history-diff-modified-key")
                             const valCell = i.querySelector("td")
+                            if (isRTL) {
+                                valCell.dir = ""
+                            }
                             valCell.classList.add("history-diff-modified-tag")
                             valCell.innerHTML = "<span class='current-value-span'>" + valCell.innerHTML + "</span>"
                             valCell.onclick = e => {
@@ -5425,7 +5428,7 @@ function addDiffInHistory() {
                                     }
                                 })
                                 prevValueSpan.appendChild(prevText)
-                                prevValueSpan.appendChild(document.createTextNode(" → "))
+                                prevValueSpan.appendChild(document.createTextNode(!isRTL ? " → " : " ← "))
                                 newText.classList.add("current-value-span")
                                 newText.style.display = "inline-block"
                                 if (showPreviousTagValue) {
@@ -5441,9 +5444,9 @@ function addDiffInHistory() {
                                     valueLink.title = ""
                                     valueLink.textContent = `${el[1]}`
                                     prevValueSpan.appendChild(valueLink)
-                                    prevValueSpan.appendChild(document.createTextNode(" → "))
+                                    prevValueSpan.appendChild(document.createTextNode(!isRTL ? " → " : " ← "))
                                 } else {
-                                    prevValueSpan.textContent = `${el[1]} → `
+                                    prevValueSpan.textContent = !isRTL ? `${el[1]} → ` : ` ← ${el[1]}`
                                 }
                             }
 
@@ -5452,6 +5455,7 @@ function addDiffInHistory() {
                             currentValueSpan.style.display = "inline-block"
                             prevValueSpan.style.display = "inline-block"
                             valCell.prepend(prevValueSpan)
+                            valCell.removeAttribute("dir")
                             if (!showPreviousTagValue) {
                                 prevValueSpan.classList.add("hidden")
                             }
@@ -6285,6 +6289,8 @@ async function getWayNodesByTimestamp(targetTimestamp, wayID) {
     return [targetVersion, currentNodesList]
 }
 
+const isRTL = document.querySelector("html").dir === "rtl";
+
 let pinnedRelations = new Set();
 
 /**
@@ -6355,6 +6361,8 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 )) {
                 let prevText = document.createElement("span")
                 let newText = document.createElement("span")
+                prevText.dir = "auto"
+                newText.dir = "auto"
                 diff.forEach(c => {
                     if (c[0] !== c[1]) {
                         {
@@ -6376,10 +6384,10 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 })
                 valCell.textContent = ""
                 valCell.appendChild(prevText)
-                valCell.appendChild(document.createTextNode(" → "))
+                valCell.appendChild(document.createTextNode(!isRTL ? " → " : " ← "))
                 valCell.appendChild(newText)
             } else {
-                valCell.textContent = prevVersion.tags[key] + " → " + valCell.textContent
+                valCell.textContent = prevVersion.tags[key] + (!isRTL ? " → " : " ← ") + valCell.textContent
             }
             valCell.title = "was: " + prevVersion.tags[key]
             tagsWasChanged = true
