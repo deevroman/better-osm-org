@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.9.6.5
+// @version         0.9.6.6
 // @changelog       v0.9.6: Filter by editor for edits heatmap
 // @changelog       v0.9.5: Adoption to updates osm.org, render camera:direction=*
 // @changelog       v0.9.1: script should work more stably in Chrome
@@ -8042,8 +8042,12 @@ async function processQuickLookInSidebar(changesetID) {
                 }
             }
             pagination.remove();
-            const summaryHeader = document.querySelector(`[changeset-id="${changesetID}"]#changeset_nodes h4`).firstChild;
-            summaryHeader.textContent = summaryHeader.textContent.replace(/\(.*\)/, `(1-${nodes.length})`)
+
+            try {
+                document.querySelector(`[changeset-id="${changesetID}"]#changeset_nodes h4 .count-number`).textContent = `1-${nodes.length}`;
+            } catch (e) {
+                console.error(e)
+            }
 
             nodes.forEach(node => {
                 if (document.getElementById(`${changesetID}n${node.id}`)) {
@@ -8132,8 +8136,13 @@ async function processQuickLookInSidebar(changesetID) {
                 }
             }
             pagination.remove();
-            const summaryHeader = document.querySelector(`[changeset-id="${changesetID}"]#changeset_ways h4`).firstChild;
-            summaryHeader.textContent = summaryHeader.textContent.replace(/\(.*\)/, `(1-${ways.length})`)
+
+            try {
+                document.querySelector(`[changeset-id="${changesetID}"]#changeset_ways h4 .count-number`).textContent = `1-${ways.length}`
+            } catch (e) {
+                console.error(e)
+            }
+
             ways.forEach(way => {
                 if (document.getElementById(`${changesetID}w${way.id}`)) {
                     return
