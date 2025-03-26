@@ -93,7 +93,7 @@
 // @connect      wayback.maptiles.arcgis.com
 // @comment      geocoder
 // @connect      photon.komoot.io
-// @sandbox      JavaScript
+// @sandbox      raw
 // @resource     OAUTH_HTML https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html
 // @resource     OSMCHA_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/osmcha.ico
 // @resource     NODE_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/Osm_element_node.svg
