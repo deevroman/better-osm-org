@@ -12769,7 +12769,7 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
     && !["/edit", "/id"].includes(location.pathname)) {
     function mapHook() {
         console.log("start map intercepting")
-        if (boWindowObject.L.Map) {
+        if (boWindowObject.L && boWindowObject.L.Map) {
             boWindowObject.L.Map.addInitHook(exportFunction((function () {
                     if (this._container?.id === "map") {
                         boGlobalThis.map = this;
@@ -12781,6 +12781,8 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
         } else {
             console.error("the script could not access the L.Map object. Some of the functions will not work")
             console.log(GM_info)
+            console.log(window?.wrappedJSObject)
+            console.log(unsafeWindow)
         }
     }
 
