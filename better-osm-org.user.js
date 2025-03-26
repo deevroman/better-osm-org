@@ -5428,7 +5428,7 @@ function addDiffInHistory() {
                                     }
                                 })
                                 prevValueSpan.appendChild(prevText)
-                                prevValueSpan.appendChild(document.createTextNode(!isRTL ? " → " : " ← "))
+                                prevValueSpan.appendChild(document.createTextNode(` ${arrowSymbolForChanges} `))
                                 newText.classList.add("current-value-span")
                                 newText.style.display = "inline-block"
                                 if (showPreviousTagValue) {
@@ -5444,9 +5444,22 @@ function addDiffInHistory() {
                                     valueLink.title = ""
                                     valueLink.textContent = `${el[1]}`
                                     prevValueSpan.appendChild(valueLink)
-                                    prevValueSpan.appendChild(document.createTextNode(!isRTL ? " → " : " ← "))
+                                    prevValueSpan.appendChild(document.createTextNode(` ${arrowSymbolForChanges} `))
                                 } else {
-                                    prevValueSpan.textContent = !isRTL ? `${el[1]} → ` : ` ← ${el[1]}`
+                                    let prevText = document.createElement("span")
+                                    prevText.appendChild(document.createTextNode(el[1]))
+                                    let newText = document.createElement("span")
+                                    newText.appendChild(document.createTextNode(v))
+
+                                    prevValueSpan.appendChild(prevText)
+                                    prevValueSpan.appendChild(document.createTextNode(` ${arrowSymbolForChanges} `))
+                                    newText.classList.add("current-value-span")
+                                    newText.style.display = "inline-block"
+                                    if (showPreviousTagValue) {
+                                        currentValueSpan.replaceWith(newText)
+                                    } else {
+                                        currentValueSpan.replaceWith(v)
+                                    }
                                 }
                             }
 
@@ -6290,6 +6303,7 @@ async function getWayNodesByTimestamp(targetTimestamp, wayID) {
 }
 
 const isRTL = document.querySelector("html").dir === "rtl";
+const arrowSymbolForChanges = !isRTL ? " → " : " ← ";
 
 let pinnedRelations = new Set();
 
@@ -6384,10 +6398,10 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 })
                 valCell.textContent = ""
                 valCell.appendChild(prevText)
-                valCell.appendChild(document.createTextNode(!isRTL ? " → " : " ← "))
+                valCell.appendChild(document.createTextNode(` ${arrowSymbolForChanges} `))
                 valCell.appendChild(newText)
             } else {
-                valCell.textContent = prevVersion.tags[key] + (!isRTL ? " → " : " ← ") + valCell.textContent
+                valCell.textContent = prevVersion.tags[key] + (` ${arrowSymbolForChanges} `) + valCell.textContent
             }
             valCell.title = "was: " + prevVersion.tags[key]
             tagsWasChanged = true
