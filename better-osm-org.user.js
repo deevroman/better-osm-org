@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.9.6.5
-// @changelog       v0.9.6: Filter by editor for edits heatmap
+// @version         0.9.6.6
+// @changelog       v0.9.6: Filter by editor for edits heatmap, better RTL support, adoption to updates osm.org
 // @changelog       v0.9.5: Adoption to updates osm.org, render camera:direction=*
 // @changelog       v0.9.1: script should work more stably in Chrome
 // @changelog       v0.9.1: display prev value in history diff cell
@@ -33,11 +33,15 @@
 // @exclude      https://www.openstreetmap.org/message/new/*
 // @exclude      https://www.openstreetmap.org/reports/new/*
 // @exclude      https://www.openstreetmap.org/profile/edit
+// @exclude      https://www.openstreetmap.org/messages/*
+// @exclude      https://www.openstreetmap.org/diary/*
 // @exclude      https://www.openstreetmap.org/account*
 // @exclude      https://www.openstreetmap.org/oauth2/*
 // @match        https://master.apis.dev.openstreetmap.org/*
 // @exclude      https://master.apis.dev.openstreetmap.org/api/*
 // @exclude      https://master.apis.dev.openstreetmap.org/account*
+// @exclude      https://master.apis.dev.openstreetmap.org/messages/*
+// @exclude      https://master.apis.dev.openstreetmap.org/diary/*
 // @exclude      https://master.apis.dev.openstreetmap.org/oauth2/*
 // @match        https://taginfo.openstreetmap.org/*
 // @match        https://taginfo.geofabrik.de/*
@@ -5374,6 +5378,9 @@ function addDiffInHistory() {
                         if (el[0] === k && el[1] !== v) {
                             i.querySelector("th").classList.add("history-diff-modified-key")
                             const valCell = i.querySelector("td")
+                            if (isRTLLayout) {
+                                valCell.dir = ""
+                            }
                             valCell.classList.add("history-diff-modified-tag")
                             valCell.innerHTML = "<span class='current-value-span'>" + valCell.innerHTML + "</span>"
                             valCell.onclick = e => {
@@ -5425,7 +5432,7 @@ function addDiffInHistory() {
                                     }
                                 })
                                 prevValueSpan.appendChild(prevText)
-                                prevValueSpan.appendChild(document.createTextNode(" → "))
+                                prevValueSpan.appendChild(document.createTextNode(` ${arrowSymbolForChanges} `))
                                 newText.classList.add("current-value-span")
                                 newText.style.display = "inline-block"
                                 if (showPreviousTagValue) {
@@ -5441,9 +5448,22 @@ function addDiffInHistory() {
                                     valueLink.title = ""
                                     valueLink.textContent = `${el[1]}`
                                     prevValueSpan.appendChild(valueLink)
-                                    prevValueSpan.appendChild(document.createTextNode(" → "))
+                                    prevValueSpan.appendChild(document.createTextNode(` ${arrowSymbolForChanges} `))
                                 } else {
-                                    prevValueSpan.textContent = `${el[1]} → `
+                                    let prevText = document.createElement("span")
+                                    prevText.appendChild(document.createTextNode(el[1]))
+                                    let newText = document.createElement("span")
+                                    newText.appendChild(document.createTextNode(v))
+
+                                    prevValueSpan.appendChild(prevText)
+                                    prevValueSpan.appendChild(document.createTextNode(` ${arrowSymbolForChanges} `))
+                                    newText.classList.add("current-value-span")
+                                    newText.style.display = "inline-block"
+                                    if (showPreviousTagValue) {
+                                        currentValueSpan.replaceWith(newText)
+                                    } else {
+                                        currentValueSpan.replaceWith(v)
+                                    }
                                 }
                             }
 
@@ -5452,6 +5472,7 @@ function addDiffInHistory() {
                             currentValueSpan.style.display = "inline-block"
                             prevValueSpan.style.display = "inline-block"
                             valCell.prepend(prevValueSpan)
+                            valCell.removeAttribute("dir")
                             if (!showPreviousTagValue) {
                                 prevValueSpan.classList.add("hidden")
                             }
@@ -6285,6 +6306,9 @@ async function getWayNodesByTimestamp(targetTimestamp, wayID) {
     return [targetVersion, currentNodesList]
 }
 
+const isRTLLayout = document.querySelector("html").dir === "rtl";
+const arrowSymbolForChanges = !isRTLLayout ? " → " : " ← ";
+
 let pinnedRelations = new Set();
 
 /**
@@ -6355,6 +6379,8 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 )) {
                 let prevText = document.createElement("span")
                 let newText = document.createElement("span")
+                prevText.dir = "auto"
+                newText.dir = "auto"
                 diff.forEach(c => {
                     if (c[0] !== c[1]) {
                         {
@@ -6376,10 +6402,10 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 })
                 valCell.textContent = ""
                 valCell.appendChild(prevText)
-                valCell.appendChild(document.createTextNode(" → "))
+                valCell.appendChild(document.createTextNode(` ${arrowSymbolForChanges} `))
                 valCell.appendChild(newText)
             } else {
-                valCell.textContent = prevVersion.tags[key] + " → " + valCell.textContent
+                valCell.textContent = prevVersion.tags[key] + (` ${arrowSymbolForChanges} `) + valCell.textContent
             }
             valCell.title = "was: " + prevVersion.tags[key]
             tagsWasChanged = true
@@ -8034,8 +8060,12 @@ async function processQuickLookInSidebar(changesetID) {
                 }
             }
             pagination.remove();
-            const summaryHeader = document.querySelector(`[changeset-id="${changesetID}"]#changeset_nodes h4`).firstChild;
-            summaryHeader.textContent = summaryHeader.textContent.replace(/\(.*\)/, `(1-${nodes.length})`)
+
+            try {
+                document.querySelector(`[changeset-id="${changesetID}"]#changeset_nodes h4 .count-number`).textContent = `1-${nodes.length}`;
+            } catch (e) {
+                console.error(e)
+            }
 
             nodes.forEach(node => {
                 if (document.getElementById(`${changesetID}n${node.id}`)) {
@@ -8124,8 +8154,13 @@ async function processQuickLookInSidebar(changesetID) {
                 }
             }
             pagination.remove();
-            const summaryHeader = document.querySelector(`[changeset-id="${changesetID}"]#changeset_ways h4`).firstChild;
-            summaryHeader.textContent = summaryHeader.textContent.replace(/\(.*\)/, `(1-${ways.length})`)
+
+            try {
+                document.querySelector(`[changeset-id="${changesetID}"]#changeset_ways h4 .count-number`).textContent = `1-${ways.length}`
+            } catch (e) {
+                console.error(e)
+            }
+
             ways.forEach(way => {
                 if (document.getElementById(`${changesetID}w${way.id}`)) {
                     return
@@ -12738,7 +12773,7 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
     && !["/edit", "/id"].includes(location.pathname)) {
     function mapHook() {
         console.log("start map intercepting")
-        if (boWindowObject.L.Map) {
+        if (boWindowObject.L && boWindowObject.L.Map) {
             boWindowObject.L.Map.addInitHook(exportFunction((function () {
                     if (this._container?.id === "map") {
                         boGlobalThis.map = this;
@@ -12750,6 +12785,8 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
         } else {
             console.error("the script could not access the L.Map object. Some of the functions will not work")
             console.log(GM_info)
+            console.log(window?.wrappedJSObject)
+            console.log(unsafeWindow)
         }
     }
 
