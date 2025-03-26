@@ -2,7 +2,7 @@
 // @name            Better osm.org
 // @name:ru         Better osm.org
 // @version         0.9.6.6
-// @changelog       v0.9.6: Filter by editor for edits heatmap
+// @changelog       v0.9.6: Filter by editor for edits heatmap, better RTL support, adoption to updates osm.org
 // @changelog       v0.9.5: Adoption to updates osm.org, render camera:direction=*
 // @changelog       v0.9.1: script should work more stably in Chrome
 // @changelog       v0.9.1: display prev value in history diff cell
@@ -5374,7 +5374,7 @@ function addDiffInHistory() {
                         if (el[0] === k && el[1] !== v) {
                             i.querySelector("th").classList.add("history-diff-modified-key")
                             const valCell = i.querySelector("td")
-                            if (isRTL) {
+                            if (isRTLLayout) {
                                 valCell.dir = ""
                             }
                             valCell.classList.add("history-diff-modified-tag")
@@ -6302,8 +6302,8 @@ async function getWayNodesByTimestamp(targetTimestamp, wayID) {
     return [targetVersion, currentNodesList]
 }
 
-const isRTL = document.querySelector("html").dir === "rtl";
-const arrowSymbolForChanges = !isRTL ? " → " : " ← ";
+const isRTLLayout = document.querySelector("html").dir === "rtl";
+const arrowSymbolForChanges = !isRTLLayout ? " → " : " ← ";
 
 let pinnedRelations = new Set();
 
