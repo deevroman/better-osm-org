@@ -109,7 +109,7 @@
 // @resource     DARK_THEME_FOR_ID_CSS https://gist.githubusercontent.com/deevroman/55f35da68ab1efb57b7ba4636bdf013d/raw/7b94e3b7db91d023f1570ae415acd7ac989fffe0/dark.css
 // @run-at       document-end
 // ==/UserScript==
-//<editor-fold desc="config" defaultstate="collapsed">
+//<editor-fold desc="init" defaultstate="collapsed">
 /*global osmAuth*/
 /*global GM*/
 /*global GM_info*/
@@ -206,6 +206,168 @@ function isDarkMode() {
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && !accountForceLightTheme || accountForceDarkTheme;
 }
 
+const isRTLLayout = document.querySelector("html").dir === "rtl";
+const arrowSymbolForChanges = !isRTLLayout ? " → " : " ← ";
+
+const SCRIPT_UPDATE_URL = "https://raw.githubusercontent.com/deevroman/better-osm-org/master/better-osm-org.user.js"
+const DEV_SCRIPT_UPDATE_URL = "https://raw.githubusercontent.com/deevroman/better-osm-org/dev/better-osm-org.user.js"
+
+const prod_server = {
+    apiBase: "https://www.openstreetmap.org/api/0.6/",
+    apiUrl: "https://www.openstreetmap.org/api/0.6",
+    url: "https://www.openstreetmap.org",
+    origin: "https://www.openstreetmap.org"
+}
+
+const ohm_prod_server = {
+    apiBase: "https://www.openhistoricalmap.org/api/0.6/",
+    apiUrl: "https://www.openhistoricalmap.org/api/0.6",
+    url: "https://www.openhistoricalmap.org",
+    origin: "https://www.openhistoricalmap.org"
+}
+
+const dev_server = {
+    apiBase: "https://master.apis.dev.openstreetmap.org/api/0.6/",
+    apiUrl: "https://master.apis.dev.openstreetmap.org/api/0.6",
+    url: "https://master.apis.dev.openstreetmap.org",
+    origin: "https://master.apis.dev.openstreetmap.org",
+}
+
+const local_server = {
+    apiBase: "http://localhost:3000/api/0.6/",
+    apiUrl: "http://localhost:3000/api/0.6",
+    url: "http://localhost:3000",
+    origin: "http://localhost:3000",
+}
+
+let osm_server = dev_server;
+
+const planetOrigin = "https://planet.maps.mail.ru"
+
+const MAIN_OVERPASS_INSTANCE = {
+    name: "overpass-api.de",
+    apiUrl: "https://overpass-api.de/api",
+    url: "https://overpass-turbo.eu/",
+}
+
+const MAILRU_OVERPASS_INSTANCE = {
+    name: "maps.mail.ru/osm/tools/overpass",
+    apiUrl: "https://maps.mail.ru/osm/tools/overpass/api",
+    url: "https://maps.mail.ru/osm/tools/overpass/",
+}
+
+const PRIVATECOFFEE_OVERPASS_INSTANCE = {
+    name: "overpass.private.coffee",
+    apiUrl: "https://overpass.private.coffee/api",
+    url: "https://turbo.overpass.private.coffee/",
+}
+
+let overpass_server = MAIN_OVERPASS_INSTANCE
+
+const boWindowObject = typeof window.wrappedJSObject !== "undefined" ? window.wrappedJSObject : unsafeWindow;
+const boGlobalThis = typeof boWindowObject.globalThis !== "undefined" ? boWindowObject.globalThis : boWindowObject;
+
+let map = null
+let getMap = null
+let getWindow = null
+
+if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)
+    && !["/edit", "/id"].includes(location.pathname)) {
+    function mapHook() {
+        console.log("start map intercepting")
+        if (boWindowObject.L && boWindowObject.L.Map) {
+            boWindowObject.L.Map.addInitHook(exportFunction((function () {
+                    if (this._container?.id === "map") {
+                        boGlobalThis.map = this;
+                        boGlobalThis.mapIntercepted = true
+                        console.log("%cMap intercepted", 'background: #000; color: #0f0')
+                    }
+                }), boWindowObject)
+            )
+        } else {
+            console.error("the script could not access the L.Map object. Some of the functions will not work")
+            console.log(GM_info)
+            console.log(window?.wrappedJSObject)
+            console.log(unsafeWindow)
+        }
+    }
+
+    if (isSafari && GM_info.scriptHandler === "Userscripts") {
+        getMap = () => null
+        getWindow = () => window
+    } else {
+        boWindowObject.mapHook = exportFunction(mapHook, boWindowObject)
+        boWindowObject.mapHook()
+        if (boWindowObject.map instanceof HTMLElement) {
+            console.error("Please, reload page, if something doesn't work")
+        }
+
+        getMap = () => boWindowObject.map
+        getWindow = () => boWindowObject
+    }
+
+    map = getMap()
+    try {
+        interceptRectangle()
+    } catch (e) {
+    }
+
+    setTimeout(() => {
+        console.debug("Settings:", Object.entries(GM_config.fields).map(i => {
+            if (typeof i[1].value === "boolean") {
+                return [i[0], i[1].value]
+            } else {
+                return [i[0], `length: ${i[1].value.length}`]
+            }
+        }))
+    }, 1500)
+
+} else if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)
+    && ["/edit", "/id"].includes(location.pathname) && isDarkMode()) {
+    if (location.pathname === "/edit") {
+        // document.querySelector("#id-embed").style.visibility = "hidden"
+        // window.addEventListener("message", (event) => {
+        //     console.log("making iD visible")
+        //     if (event.origin !== location.origin)
+        //         return;
+        //     if (event.data === "kek") {
+        //         document.querySelector("#id-embed").style.visibility = "visible"
+        //     }
+        // });
+        injectCSSIntoOSMPage(
+            `@media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+                #id-embed {
+                    background: #212529 !important;
+                }
+            }`
+        )
+    } else {
+        injectCSSIntoOSMPage(
+            `@media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+                html {
+                    background: #212529 !important;
+                }
+
+                body {
+                    background: #212529 !important;
+                }
+
+                #id-embed {
+                    background: #212529 !important;
+                }
+
+                #id-container {
+                    background: #212529 !important;
+                }
+            }`
+        )
+        // if (location.pathname === "/id") {
+        //     console.log("post")
+        //     window.parent.postMessage("kek", location.origin);
+        // }
+    }
+}
+
 function makeRow(label, text, without_delete = false) {
     const tr = document.createElement("tr")
     const th = document.createElement("th")
@@ -243,26 +405,6 @@ function makeRow(label, text, without_delete = false) {
     }
     return tr
 }
-
-const MAIN_OVERPASS_INSTANCE = {
-    name: "overpass-api.de",
-    apiUrl: "https://overpass-api.de/api",
-    url: "https://overpass-turbo.eu/",
-}
-
-const MAILRU_OVERPASS_INSTANCE = {
-    name: "maps.mail.ru/osm/tools/overpass",
-    apiUrl: "https://maps.mail.ru/osm/tools/overpass/api",
-    url: "https://maps.mail.ru/osm/tools/overpass/",
-}
-
-const PRIVATECOFFEE_OVERPASS_INSTANCE = {
-    name: "overpass.private.coffee",
-    apiUrl: "https://overpass.private.coffee/api",
-    url: "https://turbo.overpass.private.coffee/",
-}
-
-let overpass_server = MAIN_OVERPASS_INSTANCE
 
 GM_config.init(
     {
@@ -634,54 +776,12 @@ GM_config.init(
         `,
         'events':
             {
+                'init': main,
                 'save': function () {
                     GM_config.close()
                 }
             }
     });
-
-let onInit = config => new Promise(resolve => {
-    let isInit = () => setTimeout(() =>
-        config.isInit ? resolve() : isInit(), 0);
-    isInit();
-});
-
-let init = onInit(GM_config);
-
-let boWindowObject = typeof window.wrappedJSObject !== "undefined" ? window.wrappedJSObject : unsafeWindow;
-let boGlobalThis = typeof boWindowObject.globalThis !== "undefined" ? boWindowObject.globalThis : boWindowObject;
-
-const prod_server = {
-    apiBase: "https://www.openstreetmap.org/api/0.6/",
-    apiUrl: "https://www.openstreetmap.org/api/0.6",
-    url: "https://www.openstreetmap.org",
-    origin: "https://www.openstreetmap.org"
-}
-
-const ohm_prod_server = {
-    apiBase: "https://www.openhistoricalmap.org/api/0.6/",
-    apiUrl: "https://www.openhistoricalmap.org/api/0.6",
-    url: "https://www.openhistoricalmap.org",
-    origin: "https://www.openhistoricalmap.org"
-}
-
-const dev_server = {
-    apiBase: "https://master.apis.dev.openstreetmap.org/api/0.6/",
-    apiUrl: "https://master.apis.dev.openstreetmap.org/api/0.6",
-    url: "https://master.apis.dev.openstreetmap.org",
-    origin: "https://master.apis.dev.openstreetmap.org",
-}
-
-const local_server = {
-    apiBase: "http://localhost:3000/api/0.6/",
-    apiUrl: "http://localhost:3000/api/0.6",
-    url: "http://localhost:3000",
-    origin: "http://localhost:3000",
-}
-
-let osm_server = dev_server;
-
-const planetOrigin = "https://planet.maps.mail.ru"
 
 //</editor-fold>
 
@@ -6355,9 +6455,6 @@ async function getWayNodesByTimestamp(targetTimestamp, wayID) {
     return [targetVersion, currentNodesList]
 }
 
-const isRTLLayout = document.querySelector("html").dir === "rtl";
-const arrowSymbolForChanges = !isRTLLayout ? " → " : " ← ";
-
 let pinnedRelations = new Set();
 
 /**
@@ -7847,7 +7944,7 @@ function addQuickLookStyles() {
 }
 
 function removeEditTagsButton() {
-    if (location.pathname.includes("/changeset/")) {
+    if (location.pathname.startsWith("/changeset/")) {
         if (!document.querySelector(".secondary-actions .edit_tags_class")) {
             const tagsEditorExtensionWaiter = new MutationObserver(() => {
                 document.querySelector(".edit_tags_class")?.previousSibling?.remove()
@@ -8802,8 +8899,13 @@ async function interceptMapManually() {
         )
         `)
         // trigger Layer creation
-        document.querySelector("#export-image #image_filter").click()
-        document.querySelector("#export-image #image_filter").click()
+        let exportImageBtn = document.querySelector("#export-image #image_filter");
+        if (!exportImageBtn) {
+            await sleep(10)
+            exportImageBtn = document.querySelector("#export-image #image_filter")
+        }
+        exportImageBtn.click()
+        exportImageBtn.click()
         console.warn("wait for map intercepting")
         await sleep(200)
     } catch (e) {
@@ -8863,7 +8965,7 @@ async function addChangesetQuickLook() {
 
 function setupChangesetQuickLook(path) {
     if (!path.startsWith("/changeset")) return;
-    let timerId = setInterval(addChangesetQuickLook, 50);
+    let timerId = setInterval(addChangesetQuickLook, 100);
     setTimeout(() => {
         clearInterval(timerId);
         console.debug('stop try add QuickLook');
@@ -8930,27 +9032,6 @@ function setupNewEditorsLinks() {
         coordinatesObserver = new MutationObserver(setupNewEditorsLinks);
         coordinatesObserver.observe(editorsList, {subtree: true, childList: true, attributes: true});
     }
-}
-
-let unDimmed = false;
-
-// legacy
-function setupOffMapDim() {
-    if (!GM_config.get("OffMapDim") || GM_config.get("DarkModeForMap") || unDimmed) {
-        return;
-    }
-    injectCSSIntoOSMPage(`
-    @media (prefers-color-scheme: dark) {
-        .leaflet-tile-container, .mapkey-table-entry td:first-child > * {
-            filter: none !important;
-        }
-
-        .leaflet-tile-container * {
-            filter: none !important;
-        }
-    }
-    `)
-    unDimmed = true
 }
 
 let darkModeForMap = false;
@@ -9395,6 +9476,9 @@ async function setupHDYCInProfile(path) {
     if (!match || path.includes("/history")) {
         return;
     }
+    if (document.getElementById("hdyc-iframe")) {
+        return
+    }
     const user = match[1];
     if (user === "forgot-password" || user === "new") return;
     document.querySelector(".content-body > .content-inner").style.paddingBottom = "0px";
@@ -9440,11 +9524,15 @@ async function setupHDYCInProfile(path) {
         iframe.height = event.data.height + 'px';
     });
 
-    betterUserStat(decodeURI(user))
+    void betterUserStat(decodeURI(user))
+}
+
+function inFrame(){
+    return window.location !== window.parent.location;
 }
 
 function simplifyHDCYIframe() {
-    if (window.location === window.parent.location) {
+    if (!inFrame()) {
         return
     }
     const forceLightTheme = location.hash.includes("forcelighttheme")
@@ -12632,7 +12720,6 @@ async function setupDragAndDropViewers() {
 
 }
 
-
 function setup() {
     if (location.href.startsWith("https://osmcha.org")) {
         setTimeout(async () => {
@@ -12692,10 +12779,16 @@ function setup() {
         }
         lastPath = path + location.search;
         for (const module of modules.filter(module => GM_config.get(module.name.slice('setup'.length)))) {
-            setTimeout(module, 0, path);
+            queueMicrotask(() => {
+                // console.log(module.name)
+                module(path)
+            });
         }
         for (const module of alwaysEnabledModules) {
-            setTimeout(module, 0, path);
+            queueMicrotask(() => {
+                // console.log(module.name)
+                module(path)
+            });
         }
         return fn
     }()).observe(document, {subtree: true, childList: true});
@@ -12704,7 +12797,7 @@ function setup() {
     }
 }
 
-//<editor-fold desc="config" defaultstate="collapsed">
+//<editor-fold desc="snow" defaultstate="collapsed">
 function runSnow() {
     injectJSIntoPage(`
     // This code distributed under MIT license
@@ -12791,23 +12884,18 @@ function runSnow() {
 
 //</editor-fold>
 
-const SCRIPT_UPDATE_URL = "https://raw.githubusercontent.com/deevroman/better-osm-org/master/better-osm-org.user.js"
-const DEV_SCRIPT_UPDATE_URL = "https://raw.githubusercontent.com/deevroman/better-osm-org/dev/better-osm-org.user.js"
-
 function main() {
-    // GM_config.open();
     'use strict';
     if (location.origin === "https://www.hdyc.neis-one.org" || location.origin === "https://hdyc.neis-one.org") {
         simplifyHDCYIframe();
     } else {
         try {
             GM_registerMenuCommand("Settings", function () {
-                if (window.location !== window.parent.location) {
-                    return
+                if (!inFrame()) {
+                    GM_config.open();
                 }
-                GM_config.open();
             });
-            if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || isDebug()) {
+            if (isMobile || isDebug()) {
                 GM_registerMenuCommand("Check script updates", function () {
                     window.open(`${SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`, "_blank")
                 });
@@ -12832,109 +12920,6 @@ function main() {
         setup();
     }
 }
-
-var map = null
-var getMap = null
-var getWindow = null
-
-if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)
-    && !["/edit", "/id"].includes(location.pathname)) {
-    function mapHook() {
-        console.log("start map intercepting")
-        if (boWindowObject.L && boWindowObject.L.Map) {
-            boWindowObject.L.Map.addInitHook(exportFunction((function () {
-                    if (this._container?.id === "map") {
-                        boGlobalThis.map = this;
-                        boGlobalThis.mapIntercepted = true
-                        console.log("%cMap intercepted", 'background: #000; color: #0f0')
-                    }
-                }), boWindowObject)
-            )
-        } else {
-            console.error("the script could not access the L.Map object. Some of the functions will not work")
-            console.log(GM_info)
-            console.log(window?.wrappedJSObject)
-            console.log(unsafeWindow)
-        }
-    }
-
-    if (isSafari && GM_info.scriptHandler === "Userscripts") {
-        getMap = () => null
-        getWindow = () => window
-    } else {
-        boWindowObject.mapHook = exportFunction(mapHook, boWindowObject)
-        boWindowObject.mapHook()
-        if (boWindowObject.map instanceof HTMLElement) {
-            console.error("Please, reload page, if something doesn't work")
-        }
-
-        getMap = () => boWindowObject.map
-        getWindow = () => boWindowObject
-    }
-
-    map = getMap()
-    try {
-        interceptRectangle()
-    } catch (e) {
-    }
-
-    setTimeout(() => {
-        console.debug("Settings:", Object.entries(GM_config.fields).map(i => {
-            if (typeof i[1].value === "boolean") {
-                return [i[0], i[1].value]
-            } else {
-                return [i[0], `length: ${i[1].value.length}`]
-            }
-        }))
-    }, 1500)
-
-} else if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)
-    && ["/edit", "/id"].includes(location.pathname) && isDarkMode()) {
-    if (location.pathname === "/edit") {
-        // document.querySelector("#id-embed").style.visibility = "hidden"
-        // window.addEventListener("message", (event) => {
-        //     console.log("making iD visible")
-        //     if (event.origin !== location.origin)
-        //         return;
-        //     if (event.data === "kek") {
-        //         document.querySelector("#id-embed").style.visibility = "visible"
-        //     }
-        // });
-        injectCSSIntoOSMPage(
-            `@media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
-                #id-embed {
-                    background: #212529 !important;
-                }
-            }`
-        )
-    } else {
-        injectCSSIntoOSMPage(
-            `@media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
-                html {
-                    background: #212529 !important;
-                }
-
-                body {
-                    background: #212529 !important;
-                }
-
-                #id-embed {
-                    background: #212529 !important;
-                }
-
-                #id-container {
-                    background: #212529 !important;
-                }
-            }`
-        )
-        // if (location.pathname === "/id") {
-        //     console.log("post")
-        //     window.parent.postMessage("kek", location.origin);
-        // }
-    }
-}
-
-init.then(main);
 
 setTimeout(async () => {
     if (location.pathname.includes("/user/")) return
