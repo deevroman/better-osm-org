@@ -12425,7 +12425,7 @@ function renderOSMGeoJSON(xml) {
                     }
 
                     if (modifiedKeys.length) {
-                        tagsHint += "Changed " + modifiedKeys.map(k => `${k}=${prevTags[k]}​→​${newTags[k]}`).join(", ") + "; "
+                        tagsHint += "Changed " + modifiedKeys.map(k => `${k}=${prevTags[k]}\u200b→\u200b${newTags[k]}`).join(", ") + "; "
                     }
 
                     if (removedKeys.length) {
