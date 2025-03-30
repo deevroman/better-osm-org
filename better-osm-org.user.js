@@ -1,8 +1,9 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.9.6.6
-// @changelog       v0.9.6: Filter by editor for edits heatmap, better RTL support, adoption to updates osm.org
+// @version         0.9.7
+// @changelog       v0.9.7: Hover for nodes in nodes way list, better RTL support, adoption to updates osm.org
+// @changelog       v0.9.6: Filter by editor for edits heatmap
 // @changelog       v0.9.5: Adoption to updates osm.org, render camera:direction=*
 // @changelog       v0.9.1: script should work more stably in Chrome
 // @changelog       v0.9.1: display prev value in history diff cell
@@ -729,7 +730,7 @@ function makeHashtagsClickable() {
 
 function shortOsmOrgLinksInText(text) {
     return text.replaceAll("https://www.openstreetmap.org", "osm.org")
-        .replaceAll("https://wiki.openstreetmap.org/wiki", "osm.wiki")
+        .replaceAll("https://wiki.openstreetmap.org/wiki/", "osm.wiki/")
         .replaceAll("https://wiki.openstreetmap.org", "osm.wiki")
         .replaceAll("https://community.openstreetmap.org", "c.osm.org")
         .replaceAll("https://openstreetmap.org", "osm.org")
@@ -746,7 +747,7 @@ function shortOsmOrgLinks(elem) {
 const mainTags = ["shop", "building", "amenity", "man_made", "highway", "natural", "aeroway", "historic", "railway", "tourism", "landuse", "leisure"]
 
 function addRevertButton() {
-    if (!location.pathname.includes("/changeset")) return
+    if (!location.pathname.startsWith("/changeset")) return
     if (document.querySelector('#revert_button_class')) return true;
     const sidebar = document.querySelector("#sidebar_content h2");
     if (sidebar) {
@@ -1109,7 +1110,7 @@ function addRevertButton() {
 }
 
 function setupRevertButton() {
-    if (!location.pathname.includes("/changeset")) return;
+    if (!location.pathname.startsWith("/changeset")) return;
     let timerId = setInterval(() => {
         if (addRevertButton()) clearInterval(timerId)
     }, 100);
@@ -1327,6 +1328,16 @@ const compactSidebarStyleText = `
         padding-bottom: 1.3rem !important;
         padding-top: 1.4rem !important;
     }
+    
+    .way-last-version-node:hover {
+        background-color: rgba(223, 223, 223, 0.6);
+    }
+    
+    @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+        .way-last-version-node:hover {
+            background-color: rgb(52,61,67);
+        }  
+    }
     `;
 
 let styleForSidebarApplied = false
@@ -1334,14 +1345,14 @@ let styleForSidebarApplied = false
 async function getChangesetComments(changeset_id) {
     const res = await fetchJSONWithCache(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json?include_discussion=true")
     if (res.status === 509) {
-        await error509Handler(res)
+        error509Handler(res)
     } else {
         return res['changeset']['comments'];
     }
 }
 
 function setupCompactChangesetsHistory() {
-    if (!location.pathname.includes("/history") && !location.pathname.includes("/changeset")) {
+    if (!location.pathname.includes("/history") && !location.pathname.startsWith("/changeset")) {
         if (!styleForSidebarApplied && (location.pathname.includes("/node")
             || location.pathname.includes("/way")
             || location.pathname.includes("/relation"))) {
@@ -1483,7 +1494,7 @@ function setupCompactChangesetsHistory() {
     handleNewChangesets();
     sidebarObserver?.disconnect();
     sidebarObserver = new MutationObserver(handleNewChangesets);
-    if (document.querySelector('#sidebar_content') && !location.pathname.includes("/changeset")) {
+    if (document.querySelector('#sidebar_content') && !location.pathname.startsWith("/changeset")) {
         sidebarObserver.observe(document.querySelector('#sidebar_content'), {childList: true, subtree: true});
     }
 }
@@ -3375,29 +3386,22 @@ const histories = {
     relation: relationsHistories
 }
 
-/**
- *
- * @type {Object.<number, Promise<{
- * data: XMLDocument,
- * nodesWithParentWays: Set<number>,
- * nodesWithOldParentWays: Object
- * }>>}
- */
-const changesetsCache = {}
-
-const fetchWithCache = ((init) => {
+const fetchTextWithCache = (() => {
+    /**@type {Map<string, string | undefined | Promise<string | undefined> >}*/
     const cache = new Map();
 
-    return async url => {
+    return async (url, init) => {
         if (cache.has(url)) {
             return cache.get(url);
         }
 
         const promise = fetch(url, init).then((res) => {
+            if (!res) console.trace()
             if (res.status === 509) {
-                return error509Handler(res)
+                error509Handler(res)
+            } else {
+                return res.text()
             }
-            return res.text()
         });
         cache.set(url, promise);
 
@@ -3412,6 +3416,17 @@ const fetchWithCache = ((init) => {
     };
 })();
 
+
+/**
+ *
+ * @type {Object.<number, {
+ * data: XMLDocument,
+ * nodesWithParentWays: Set<number>,
+ * nodesWithOldParentWays: Set<number>
+ * }>}
+ */
+const changesetsCache = {}
+
 /**
  * @param {string|number} id
  */
@@ -3419,7 +3434,7 @@ async function getChangeset(id) {
     if (changesetsCache[id]) {
         return changesetsCache[id];
     }
-    const text = await fetchWithCache(osm_server.apiBase + "changeset" + "/" + id + "/download", {signal: getAbortController().signal});
+    const text = await fetchTextWithCache(osm_server.apiBase + "changeset" + "/" + id + "/download", {signal: getAbortController().signal});
     const parser = new DOMParser();
     const data = /** @type {XMLDocument} **/ parser.parseFromString(text, "application/xml");
     return changesetsCache[id] = {
@@ -4389,7 +4404,7 @@ async function getRelationHistory(relationID) {
     } else {
         const res = await fetch(osm_server.apiBase + "relation" + "/" + relationID + "/history.json");
         if (res.status === 509) {
-            await error509Handler(res)
+            error509Handler(res)
         } else {
             return relationsHistories[relationID] = (await res.json()).elements;
         }
@@ -5694,6 +5709,37 @@ function setupRelationVersionViewer() {
     addRelationVersionView();
 }
 
+async function addHoverForWayNodes() {
+    if (!location.pathname.match(/^\/way\/(\d+)\/?$/)) {
+        return
+    }
+    const wayData = await loadWayMetadata();
+    if (!wayData) return
+    /*** @type {Map<string, NodeVersion|WayVersion>}*/
+    const nodesMap = new Map(Object.entries(Object.groupBy(wayData.elements, i => i.id)).map(([k, v]) => [k, v[0]]));
+    document.querySelectorAll(`[href^="/node/"]:not(.hover-added)`).forEach(elem => {
+        elem.classList.add("hover-added")
+        const nodeInfo = nodesMap.get(elem.href.match(/node\/(\d+)/)[1]);
+        const nodeLi = elem?.parentElement?.parentElement?.parentElement;
+        nodeLi.classList.add("way-last-version-node")
+        nodeLi.onmouseenter = () => {
+            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), "#ff00e3")
+        }
+        nodeLi.onclick = (e) => {
+            if (e.altKey) return;
+            panTo(nodeInfo.lat.toString(), nodeInfo.lon.toString());
+            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), "#ff00e3");
+        }
+        if (nodeInfo.tags) {
+            Object.entries(nodeInfo.tags).forEach(([k, v]) => {
+                nodeLi.title += `\n${k}=${v}`;
+            })
+            nodeLi.title = nodeLi.title.trim()
+        }
+    })
+    console.log("addHoverForWayNodes finished");
+}
+
 function makeVersionPageBetter() {
     const match = location.pathname.match(/(node|way|relation)\/(\d+)(\/history\/(\d+)\/?$|\/?$)/)
     if (!match) {
@@ -5733,6 +5779,7 @@ function makeVersionPageBetter() {
     makeTimesSwitchable()
     shortOsmOrgLinks(document.querySelector(".browse-section p"));
     addCommentsCount();
+    void addHoverForWayNodes();
 }
 
 function setupMakeVersionPageBetter() {
@@ -5754,7 +5801,7 @@ function setupMakeVersionPageBetter() {
 // - для модулей, которые внедряются черзе setInterval можно сохранить таймер, чтобы предотвратить дублирование вызовов
 // - возможность сохранить результат внедрения
 
-let injectingStarted = false
+let quickLookInjectingStarted = false
 let tagsOfObjectsVisible = true
 
 // Perf test:                                           https://osm.org/changeset/155712128
@@ -5991,10 +6038,12 @@ function escapeHtml(unsafe) {
         .replace(/'/g, "&#039;");
 }
 
-async function error509Handler(res) {
+function error509Handler(res) {
     rateLimitBan = true
     console.error("oops, DOS block")
-    getMap()?.attributionControl?.setPrefix(escapeHtml(await res.text()))
+    setTimeout(async () => {
+        getMap()?.attributionControl?.setPrefix(escapeHtml(await res.text()))
+    })
     // todo sleep
 }
 
@@ -7471,10 +7520,7 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
         })
     }
 
-    if (!changesetsCache[changesetID]) {
-        await getChangeset(changesetID)
-    }
-
+    await getChangeset(changesetID)
 }
 
 
@@ -7488,7 +7534,7 @@ async function getHistoryAndVersionByElem(elem) {
         console.trace(objType, objID, version)
     }
     if (res.status === 509) {
-        await error509Handler(res)
+        error509Handler(res)
     } else {
         return [histories[objType][objID] = (await res.json()).elements, parseInt(version)];
     }
@@ -7514,7 +7560,11 @@ function getPrevTargetLastVersions(objHistory, version) {
 }
 
 
+let quickLookStylesInjected = false
+
 function addQuickLookStyles() {
+    if (quickLookStylesInjected) return
+    quickLookStylesInjected = true
     try {
         const styleText = `
             .edits-wars-log tr:nth-child(even) td, .edits-wars-log tr:nth-child(even) th {
@@ -7817,10 +7867,12 @@ function removeEditTagsButton() {
 
 async function preloadChangeset(changesetID) {
     console.log(`c${changesetID} preloading`)
+    performance.mark("PRELOADING_" + changesetID)
     const ways = (await getChangeset(changesetID)).data.querySelectorAll("way")
     Array.from(ways).slice(0, 5).forEach(way => {
         getWayHistory(way.id)
     })
+    performance.mark("END_PRELOADING_" + changesetID)
     console.log(`c${changesetID} preloaded`)
 }
 
@@ -7847,7 +7899,7 @@ function preloadPrevNextChangesets() {
 async function getParentWays(nodeID) {
     const rawRes = await fetch(osm_server.apiBase + "node/" + nodeID + "/ways.json", {signal: getAbortController().signal});
     if (rawRes.status === 509) {
-        await error509Handler(rawRes)
+        error509Handler(rawRes)
     } else {
         if (!rawRes.ok) {
             console.warn(`fetching parent ways for ${nodeID} failed`)
@@ -8497,7 +8549,7 @@ ${err.stack.replace("`", "\\`").replaceAll(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}
             }
         }
     } finally {
-        injectingStarted = false
+        quickLookInjectingStarted = false
         console.timeEnd(`QuickLook ${changesetID}`)
         console.log("%cSetup QuickLook finished", 'background: #222; color: #bada55')
         // todo mark changeset as reviewed
@@ -8760,25 +8812,24 @@ async function interceptMapManually() {
 }
 
 async function addChangesetQuickLook() {
-    if (!location.pathname.includes("/changeset")) {
+    if (quickLookInjectingStarted) return
+    if (!location.pathname.startsWith("/changeset")) {
         tagsOfObjectsVisible = true
         return
     }
+    addQuickLookStyles();
     if (document.querySelector('.quick-look')) return true;
+    const sidebar = document.querySelector("#sidebar_content h2");
+    if (!sidebar) {
+        return;
+    }
     if (!document.querySelector("turbo-frame")) {
         console.log("changeset is empty")
         return
     }
-
-    let sidebar = document.querySelector("#sidebar_content h2");
-    if (!sidebar) {
-        return;
-    }
-    if (injectingStarted) return
-    injectingStarted = true
-    addQuickLookStyles();
-    addRegionForFirstChangeset();
+    quickLookInjectingStarted = true
     blurSearchField();
+    addRegionForFirstChangeset();
     makeTimesSwitchable()
     if (GM_config.get("ResizableSidebar")) {
         document.querySelector("#sidebar").style.resize = "horizontal"
@@ -8797,7 +8848,7 @@ async function addChangesetQuickLook() {
 
     await interceptMapManually()
     if (!GM_config.get("NavigationViaHotkeys")) {
-        updateCurrentObjectMetadata()
+        setTimeout(loadChangesetMetadata, 0)
     }
     await processQuickLookInSidebar(changesetID);
 
@@ -8812,12 +8863,12 @@ async function addChangesetQuickLook() {
 
 function setupChangesetQuickLook(path) {
     if (!path.includes("/changeset")) return;
-    let timerId = setInterval(addChangesetQuickLook, 100);
+    let timerId = setInterval(addChangesetQuickLook, 50);
     setTimeout(() => {
         clearInterval(timerId);
-        console.debug('stop try add revert button');
+        console.debug('stop try add QuickLook');
     }, 3000);
-    addChangesetQuickLook();
+    void addChangesetQuickLook();
 }
 
 
@@ -10350,7 +10401,7 @@ async function loadChangesetMetadata(changeset_id = null) {
     // prevChangesetMetadata = changesetMetadatas[changeset_id]
     const res = await getChangesetMetadata(changeset_id);
     if (res.status === 509) {
-        await error509Handler(res)
+        error509Handler(res)
     } else if (res.status !== 200) {
         console.error(res)
         debug_alert("metadatas failed")
@@ -10379,7 +10430,7 @@ async function loadChangesetMetadatas(changeset_ids) {
     for (let i = 0; i < changeset_ids.length; i += batchSize) {
         const res = await fetch(osm_server.apiBase + "changesets.json?changesets=" + changeset_ids.slice(i, i + batchSize).join(","));
         if (res.status === 509) {
-            await error509Handler(res)
+            error509Handler(res)
         } else {
             const jsonRes = await res.json();
             jsonRes["changesets"].forEach(i => {
@@ -10402,7 +10453,7 @@ async function loadNoteMetadata() {
     }
     const res = await fetch(osm_server.apiBase + "notes" + "/" + note_id + ".json", {signal: getAbortController().signal});
     if (res.status === 509) {
-        await error509Handler(res)
+        error509Handler(res)
     } else {
         noteMetadata = await res.json()
     }
@@ -10419,15 +10470,18 @@ async function loadNodeMetadata() {
     if (nodeMetadata !== null && nodeMetadata.id === node_id) {
         return;
     }
-    const res = await fetch(osm_server.apiBase + "node" + "/" + node_id + ".json", {signal: getAbortController().signal});
-    if (res.status === 509) {
-        await error509Handler(res)
-    } else if (res.status === 410) {
-        console.warn("node was deleted");
-    } else {
-        const jsonRes = await res.json();
-        nodeMetadata = jsonRes.elements[0]
-    }
+    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "node" + "/" + node_id + ".json", (res) => {
+        if (res.status === 509) {
+            error509Handler(res)
+        } else if (res.status === 410) {
+            console.warn(`node ${node_id} was deleted`);
+        } else {
+            return true
+        }
+    });
+    if (!jsonRes) return;
+    nodeMetadata = jsonRes.elements[0];
+    return jsonRes;
 }
 
 let wayMetadata = null
@@ -10441,21 +10495,25 @@ async function loadWayMetadata() {
     if (wayMetadata !== null && wayMetadata.id === way_id) {
         return;
     }
-    const res = await fetch(osm_server.apiBase + "way" + "/" + way_id + "/full.json", {signal: getAbortController().signal});
-    if (res.status === 509) {
-        await error509Handler(res)
-    } else if (res.status === 410) {
-        console.warn("way was deleted");
-    } else {
-        const jsonRes = await res.json();
-        wayMetadata = jsonRes.elements.filter(i => i.type === "node")
-        wayMetadata.bbox = {
-            min_lat: Math.min(...wayMetadata.map(i => i.lat)),
-            min_lon: Math.min(...wayMetadata.map(i => i.lon)),
-            max_lat: Math.max(...wayMetadata.map(i => i.lat)),
-            max_lon: Math.max(...wayMetadata.map(i => i.lon))
+    /*** @type {{elements: []}|undefined}*/
+    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "way" + "/" + way_id + "/full.json", (res) => {
+        if (res.status === 509) {
+            error509Handler(res)
+        } else if (res.status === 410) {
+            console.warn(`way ${way_id} was deleted`);
+        } else {
+            return true
         }
+    });
+    if (!jsonRes) return;
+    wayMetadata = jsonRes.elements.filter(i => i.type === "node")
+    wayMetadata.bbox = {
+        min_lat: Math.min(...wayMetadata.map(i => i.lat)),
+        min_lon: Math.min(...wayMetadata.map(i => i.lon)),
+        max_lat: Math.max(...wayMetadata.map(i => i.lat)),
+        max_lon: Math.max(...wayMetadata.map(i => i.lon))
     }
+    return jsonRes
 }
 
 let relationMetadata = null
@@ -10469,21 +10527,24 @@ async function loadRelationMetadata() {
     if (relationMetadata !== null && relationMetadata.id === relation_id) {
         return;
     }
-    const res = await fetch(osm_server.apiBase + "relation" + "/" + relation_id + "/full.json", {signal: getAbortController().signal});
-    if (res.status === 509) {
-        await error509Handler(res)
-    } else if (res.status === 410) {
-        console.warn("relation was deleted");
-    } else {
-        const jsonRes = await res.json();
-        relationMetadata = jsonRes.elements.filter(i => i.type === "node")
-        relationMetadata.bbox = {
-            min_lat: Math.min(...relationMetadata.map(i => i.lat)),
-            min_lon: Math.min(...relationMetadata.map(i => i.lon)),
-            max_lat: Math.max(...relationMetadata.map(i => i.lat)),
-            max_lon: Math.max(...relationMetadata.map(i => i.lon))
+    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "relation" + "/" + relation_id + "/full.json", (res) => {
+        if (res.status === 509) {
+            error509Handler(res)
+        } else if (res.status === 410) {
+            console.warn(`relation ${relation_id} was deleted`);
+        } else {
+            return true
         }
+    });
+    if (!jsonRes) return;
+    relationMetadata = jsonRes.elements.filter(i => i.type === "node")
+    relationMetadata.bbox = {
+        min_lat: Math.min(...relationMetadata.map(i => i.lat)),
+        min_lon: Math.min(...relationMetadata.map(i => i.lon)),
+        max_lat: Math.max(...relationMetadata.map(i => i.lat)),
+        max_lon: Math.max(...relationMetadata.map(i => i.lon))
     }
+    return jsonRes;
 }
 
 function updateCurrentObjectMetadata() {
@@ -10895,7 +10956,7 @@ async function zoomToChangesets() {
 function setupNavigationViaHotkeys() {
     if (["/edit", "/id"].includes(location.pathname)) return
     updateCurrentObjectMetadata()
-    // if (!location.pathname.includes("/changeset")) return;
+    // if (!location.pathname.startsWith("/changeset")) return;
     if (hotkeysConfigured) return
     hotkeysConfigured = true
 
@@ -11087,14 +11148,14 @@ function setupNavigationViaHotkeys() {
         } else if (e.code === "KeyZ") {
             if (new URLSearchParams(location.search).has("changesets")) {
                 zoomToChangesets()
-            } else if (location.pathname.includes("/changeset")) {
+            } else if (location.pathname.startsWith("/changeset")) {
                 const changesetMetadata = changesetMetadatas[location.pathname.match(/changeset\/(\d+)/)[1]]
                 if (e.shiftKey && changesetMetadata) {
                     setTimeout(async () => {
                         // todo changesetID => merged BBOX
                         const changesetID = parseInt(location.pathname.match(/changeset\/(\d+)/)[1])
                         const nodesBag = [];
-                        for (const node of Array.from((await changesetsCache[changesetID]).data.querySelectorAll('node'))) {
+                        for (const node of Array.from((await getChangeset(changesetID)).data.querySelectorAll('node'))) {
                             if (node.getAttribute("visible") !== "false") {
                                 nodesBag.push({
                                     lat: parseFloat(node.getAttribute("lat")),
@@ -11113,8 +11174,8 @@ function setupNavigationViaHotkeys() {
                                 }
                             }
                         }
-                        if ((await changesetsCache[changesetID]).data.querySelectorAll("relation").length) {
-                            for (const way of (await changesetsCache[changesetID]).data.querySelectorAll("way")) {
+                        if ((await getChangeset(changesetID)).data.querySelectorAll("relation").length) {
+                            for (const way of (await getChangeset(changesetID)).data.querySelectorAll("way")) {
                                 const targetTime = way.getAttribute("visible") === "false"
                                     ? new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString()
                                     : changesetMetadata.closed_at
@@ -11322,7 +11383,7 @@ function setupNavigationViaHotkeys() {
             document.querySelector("#changesets-filter-btn")?.click()
             document.querySelector("#mass-action-btn")?.click()
         } else if (isDebug() && e.code === "KeyP" && !e.altKey && !e.metaKey && !e.ctrlKey) {
-            if (location.pathname.includes("/changeset")) {
+            if (location.pathname.startsWith("/changeset")) {
                 const params = new URLSearchParams(location.search)
                 let changesetIDs = params.get("changesets")?.split(",") ?? [parseInt(location.pathname.match(/changeset\/(\d+)/)[1])]
                 const objects = []
@@ -11374,7 +11435,7 @@ function setupNavigationViaHotkeys() {
         } else {
             // console.log(e.key, e.code)
         }
-        if (location.pathname.includes("/changeset") && !location.pathname.includes("/changeset_comments")) {
+        if (location.pathname.startsWith("/changeset") && !location.pathname.includes("/changeset_comments")) {
             if (e.code === "Comma") {
                 const link = getPrevChangesetLink()
                 if (link) {
@@ -11560,14 +11621,20 @@ const alwaysEnabledModules = [
 ]
 
 const fetchJSONWithCache = (() => {
+    /**@type {Map<string, Object | Promise<Object>>}*/
     const cache = new Map();
 
-    return async url => {
+    return async (url, init = {}, responseChecker = (_) => true) => {
         if (cache.has(url)) {
             return cache.get(url);
         }
 
-        const promise = fetch(url).then((res) => res.json());
+        const promise = fetch(url, init).then((res) => {
+            if (!res) console.trace()
+            if (responseChecker(res)) {
+                return res.json()
+            }
+        });
         cache.set(url, promise);
 
         try {
