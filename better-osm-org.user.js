@@ -1122,7 +1122,7 @@ function setupRevertButton() {
 }
 
 function hideSearchForm() {
-    if (location.pathname.includes("/search") || location.pathname.includes("/directions")) return;
+    if (location.pathname.startsWith("/search") || location.pathname.startsWith("/directions")) return;
     if (!document.querySelector("#sidebar .search_forms")?.hasAttribute("hidden")) {
         document.querySelector("#sidebar .search_forms")?.setAttribute("hidden", "true")
     }
@@ -1353,16 +1353,16 @@ async function getChangesetComments(changeset_id) {
 
 function setupCompactChangesetsHistory() {
     if (!location.pathname.includes("/history") && !location.pathname.startsWith("/changeset")) {
-        if (!styleForSidebarApplied && (location.pathname.includes("/node")
-            || location.pathname.includes("/way")
-            || location.pathname.includes("/relation"))) {
+        if (!styleForSidebarApplied && (location.pathname.startsWith("/node")
+            || location.pathname.startsWith("/way")
+            || location.pathname.startsWith("/relation"))) {
             styleForSidebarApplied = true
             injectCSSIntoOSMPage(compactSidebarStyleText);
         }
         return;
     }
 
-    if (location.pathname.includes("/changeset/")) {
+    if (location.pathname.startsWith("/changeset")) {
         if (document.querySelector("#sidebar_content ul")) {
             document.querySelector("#sidebar_content ul").querySelectorAll("a:not(.page-link)").forEach(i => i.setAttribute("target", "_blank"));
         }
@@ -1777,7 +1777,7 @@ out meta;
 }
 
 function setupResolveNotesButton(path) {
-    if (!path.includes("/note")) return;
+    if (!path.startsWith("/note")) return;
     let timerId = setInterval(addResolveNotesButton, 100);
     setTimeout(() => {
         clearInterval(timerId);
@@ -1787,7 +1787,7 @@ function setupResolveNotesButton(path) {
 }
 
 function addDeleteButton() {
-    if (!location.pathname.includes("/node/")) return;
+    if (!location.pathname.startsWith("/node/")) return;
     if (location.pathname.includes("/history")) return;
 
     if (document.querySelector('.delete_object_button_class')) return true;
@@ -1929,7 +1929,7 @@ function addDeleteButton() {
 }
 
 function setupDeletor(path) {
-    if (!path.includes("/node/") /*&& !url.includes("/way/")*/) return;
+    if (!path.startsWith("/node/") /*&& !url.includes("/way/")*/) return;
     let timerId = setInterval(addDeleteButton, 100);
     setTimeout(() => {
         clearInterval(timerId);
@@ -1961,7 +1961,7 @@ function hideNoteHighlight() {
 }
 
 function setupHideNoteHighlight(path) {
-    if (!path.includes("/note/")) return;
+    if (!path.startsWith("/note/")) return;
     let timerId = setInterval(hideNoteHighlight, 1000);
     setTimeout(() => {
         clearInterval(timerId);
@@ -2929,9 +2929,9 @@ function makeLinksInTagsClickable() {
 }
 
 function addHistoryLink() {
-    if (!location.pathname.includes("/node")
-        && !location.pathname.includes("/way")
-        && !location.pathname.includes("/relation")
+    if (!location.pathname.startsWith("/node")
+        && !location.pathname.startsWith("/way")
+        && !location.pathname.startsWith("/relation")
         || location.pathname.includes("/history")
     ) return;
     if (document.querySelector('.history_button_class')) return true;
@@ -5335,7 +5335,7 @@ function addDiffInHistory() {
         let visible = true
 
         let coordinates = null
-        if (location.pathname.includes("/node")) {
+        if (location.pathname.startsWith("/node")) {
             coordinates = ver.querySelector("li:nth-child(3) > a")
             if (coordinates) {
                 let locationHTML = ver.querySelector('ul > li:nth-child(3)');
@@ -5347,11 +5347,11 @@ function addDiffInHistory() {
                 wasModifiedObject = true // because sometimes deleted object has tags
                 time.before(document.createTextNode("🗑 "))
             }
-        } else if (location.pathname.includes("/way")) {
+        } else if (location.pathname.startsWith("/way")) {
             if (!ver.querySelector("details")) {
                 time.before(document.createTextNode("🗑 "))
             }
-        } else if (location.pathname.includes("/relation")) {
+        } else if (location.pathname.startsWith("/relation")) {
             if (!ver.querySelector("details")) {
                 time.before(document.createTextNode("🗑 "))
             }
@@ -5528,7 +5528,7 @@ function addDiffInHistory() {
             wasModifiedObject = true
         }
         let childNodes = null
-        if (location.pathname.includes("/way")) {
+        if (location.pathname.startsWith("/way")) {
             childNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent.match(/\d+/)[0])
             let lastChildNodes = versions.slice(-1)[0].nodes
             if (version > 1 &&
@@ -5538,7 +5538,7 @@ function addDiffInHistory() {
                 wasModifiedObject = true
             }
             ver.querySelector("details")?.removeAttribute("open")
-        } else if (location.pathname.includes("/relation")) {
+        } else if (location.pathname.startsWith("/relation")) {
             childNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
             let lastChildMembers = versions.slice(-1)[0].members
             if (version > 1 &&
@@ -5646,9 +5646,9 @@ function addDiffInHistory() {
 
 function setupVersionsDiff(path) {
     if (!path.includes("/history")
-        && !path.includes("/node")
-        && !path.includes("/way")
-        && !path.includes("/relation")) {
+        && !path.startsWith("/node")
+        && !path.startsWith("/way")
+        && !path.startsWith("/relation")) {
         return;
     }
     let timerId = setInterval(addDiffInHistory, 500);
@@ -5968,7 +5968,7 @@ function addSwipes() {
     const sidebar = document.querySelector("#sidebar_content")
     sidebar.style.transform = 'translateX(var(--touch-diff, 0px))'
 
-    if (!location.pathname.includes("/changeset/")) {
+    if (!location.pathname.startsWith("/changeset/")) {
         sidebar.removeEventListener('touchstart', startTouch)
         sidebar.removeEventListener('touchmove', touchMove)
         sidebar.removeEventListener('touchend', touchEnd)
@@ -8862,7 +8862,7 @@ async function addChangesetQuickLook() {
 }
 
 function setupChangesetQuickLook(path) {
-    if (!path.includes("/changeset")) return;
+    if (!path.startsWith("/changeset")) return;
     let timerId = setInterval(addChangesetQuickLook, 50);
     setTimeout(() => {
         clearInterval(timerId);
@@ -11596,6 +11596,7 @@ function setupOverzoomForDataLayer() {
     }
 }
 
+/***@type {((function(string): Promise<void>|void))[]}*/
 const modules = [
     setupDarkModeForMap,
     setupHDYCInProfile,
@@ -12679,7 +12680,7 @@ function setup() {
     new MutationObserver(function fn() {
         const path = location.pathname;
         if (path + location.search === lastPath) return;
-        if (lastPath.includes("/changeset/") && (!path.includes("/changeset/") || lastPath !== path) || lastPath.includes("/history")) {
+        if (lastPath.startsWith("/changeset/") && (!path.startsWith("/changeset/") || lastPath !== path) || lastPath.includes("/history")) {
             try {
                 abortPrevControllers(ABORT_ERROR_WHEN_PAGE_CHANGED)
                 cleanAllObjects()
@@ -12698,7 +12699,7 @@ function setup() {
         }
         return fn
     }()).observe(document, {subtree: true, childList: true});
-    if (location.pathname.includes("/dashboard") || location.pathname.includes("/user/")) {
+    if (location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/user/")) {
         setTimeout(loadFriends, 4000);
     }
 }
