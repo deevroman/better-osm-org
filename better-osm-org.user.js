@@ -1209,6 +1209,7 @@ function addRevertButton() {
             return match.replaceAll(/(\d+)/g, `<a href="/changeset/$1" class="changeset_link_in_comment">$1</a>`)
         }).replaceAll(/>https:\/\/(www\.)?openstreetmap.org\//g, ">osm.org/")
     })
+    makeHeaderPartsClickable()
 }
 
 function setupRevertButton() {
@@ -6019,9 +6020,9 @@ async function addHoverForRelationMembers() {
 }
 
 function makeHeaderPartsClickable() {
-    function makeElemCopyable(elem) {
+    function makeElemCopyable(elem, url = "") {
         if (/^\d+$/.test(elem.textContent)) {
-            elem.title = "Click for copy ID"
+            elem.title = "Click for copy ID\nCtrl + click for copy url"
         } else {
             elem.title = "Click for copy"
         }
@@ -6030,7 +6031,11 @@ function makeHeaderPartsClickable() {
         elem.addEventListener("click", e => {
             if (e.altKey) return;
             if (window.getSelection().type === "Range") return;
-            navigator.clipboard.writeText(elem.textContent).then(() => copyAnimation(e, elem.textContent));
+            if ((e.ctrlKey || e.metaKey) && url !== "") {
+                navigator.clipboard.writeText(url).then(() => copyAnimation(e, url));
+            } else {
+                navigator.clipboard.writeText(elem.textContent).then(() => copyAnimation(e, elem.textContent));
+            }
         })
     }
 
@@ -6038,7 +6043,7 @@ function makeHeaderPartsClickable() {
         makeElemCopyable(i)
     })
     document.querySelectorAll("#sidebar_content h2:not(:has(.copyable))").forEach(i => {
-        if (i.childNodes.length === 1 && i.childNodes[0].nodeName === "#text") {
+        if (i.childNodes.length >= 1 && i.childNodes[0].nodeName === "#text") {
             const match = /\d+/g.exec(i.childNodes[0].textContent);
             if (!match) return;
             i.childNodes[0].splitText(match.index + match[0].length)
@@ -6046,7 +6051,7 @@ function makeHeaderPartsClickable() {
             const span = document.createElement("bdi")
             span.textContent = i.childNodes[1].textContent
             i.childNodes[1].replaceWith(span)
-            makeElemCopyable(span)
+            makeElemCopyable(span, "https://" + shortOsmOrgLinksInText(location.origin + location.pathname))
         }
     })
 }
@@ -11732,7 +11737,7 @@ function setupNavigationViaHotkeys() {
         } else if (e.code === "KeyF" && !e.altKey && !e.metaKey && !e.ctrlKey) {
             document.querySelector("#changesets-filter-btn")?.click()
             document.querySelector("#mass-action-btn")?.click()
-        } else if (isDebug() && e.code === "KeyP" && !e.altKey && !e.metaKey && !e.ctrlKey) {
+        } else if (isDebug() && e.code === "KeyP" && e.altKey) {
             if (location.pathname.startsWith("/changeset")) {
                 const params = new URLSearchParams(location.search)
                 let changesetIDs = params.get("changesets")?.split(",") ?? [parseInt(location.pathname.match(/changeset\/(\d+)/)[1])]
@@ -11782,6 +11787,8 @@ function setupNavigationViaHotkeys() {
             } else {
                 darkMapStyleElement?.remove()
             }
+        } else if (e.code === "KeyP") {
+            navigator.clipboard.writeText(shortOsmOrgLinksInText(location.origin + location.pathname));
         } else {
             // console.log(e.key, e.code)
         }
