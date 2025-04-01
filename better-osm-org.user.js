@@ -9538,16 +9538,16 @@ async function betterUserStat(user) {
             try {
                 regex = new RegExp(searchByComment.value.toLowerCase());
                 searchByComment.style.color = ""
-            } catch (e) {
+            } catch {
                 searchByComment.style.color = "red"
             }
             return selected.some(option => {
                 if (option.getAttribute("all-editors") === "yes") {
-                    return ch.tags?.["comment"]?.toLowerCase()?.match(regex);
+                    return (ch.tags?.["comment"] ?? "").toLowerCase().match(regex);
                 } else if (option.getAttribute("is-editor-name") === "yes") {
-                    return editorOfChangesets[ch.id] === option.value && ch.tags?.["comment"]?.toLowerCase()?.match(regex);
+                    return editorOfChangesets[ch.id] === option.value && (ch.tags?.["comment"] ?? "").toLowerCase().match(regex);
                 } else {
-                    return ch.tags?.["created_by"] === option.value && ch.tags?.["comment"]?.toLowerCase()?.match(regex);
+                    return ch.tags?.["created_by"] === option.value && (ch.tags?.["comment"] ?? "").toLowerCase().match(regex);
                 }
             })
         }
