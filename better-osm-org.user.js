@@ -9448,7 +9448,9 @@ async function makeEditorNormalizer() {
 }
 
 async function betterUserStat(user) {
-    if (!GM_config.get("BetterProfileStat")) return
+    if (!GM_config.get("BetterProfileStat") || !location.pathname.match(/^\/user\/([^/]+)$/)) {
+        return
+    }
     const filterInputByEditor = document.createElement("select")
     filterInputByEditor.id = "filter-input-by-editor"
     filterInputByEditor.setAttribute("disabled", true)
@@ -9755,25 +9757,53 @@ async function setupHDYCInProfile(path) {
                 return;
             }
         }
-        GM.xmlHttpRequest({
-            url: "https://whosthat.osmz.ru/whosthat.php?action=names&id=" + userID,
-            responseType: "json"
-        }).then(async res => {
-            if (res.response[0]['names'].length <= 1) {
-                console.log("prev user's usernames not found")
-                return
+
+        async function updateUserIDInfo(userID) {
+            const res = await GM.xmlHttpRequest({
+                url: "https://whosthat.osmz.ru/whosthat.php?action=names&id=" + userID,
+                responseType: "json"
+            })
+            // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
+            // but here need resolve problem with return promise
+            const userInfo = {
+                data: structuredClone(res.response)
             }
-            const usernames = res.response[0]['names'].filter(i => i !== user).join(", ")
-            const dt = document.createElement("dt")
-            dt.textContent = "Past usernames: "
-            dt.classList.add("list-inline-item", "m-0")
-            const dd = document.createElement("dd")
-            dd.classList.add("list-inline-item", "prev-usernames")
-            dd.textContent = usernames
-            userDetails.appendChild(dt)
-            userDetails.appendChild(document.createTextNode("\xA0"))
-            userDetails.appendChild(dd)
-        })
+            if (userInfo.data[0]['names'].length > 1) {
+                userInfo['cacheTime'] = new Date()
+                await GM.setValue("useridinfo-" + userID, JSON.stringify(userInfo))
+
+                const usernames = userInfo.data[0]['names'].filter(i => i !== user).join(", ")
+                if (document.querySelector(".prev-usernames")) {
+                    document.querySelector(".prev-usernames").textContent = usernames
+                }
+            }
+            return userInfo
+        }
+
+        async function getCachedUserIDInfo(userID) {
+            const localUserInfo = await GM.getValue("useridinfo-" + userID, "")
+            if (localUserInfo) {
+                setTimeout(updateUserIDInfo, 0, userID)
+                return JSON.parse(localUserInfo)
+            }
+            return await updateUserIDInfo(userID)
+        }
+
+        const userIDInfo = await getCachedUserIDInfo(userID)
+        if (userIDInfo.data[0]['names'].length <= 1) {
+            console.log("prev user's usernames not found")
+            return
+        }
+        const usernames = userIDInfo.data[0]['names'].filter(i => i !== user).join(", ")
+        const dt = document.createElement("dt")
+        dt.textContent = "Past usernames: "
+        dt.classList.add("list-inline-item", "m-0")
+        const dd = document.createElement("dd")
+        dd.classList.add("list-inline-item", "prev-usernames")
+        dd.textContent = usernames
+        userDetails.appendChild(dt)
+        userDetails.appendChild(document.createTextNode("\xA0"))
+        userDetails.appendChild(dd)
     })
     const iframe = document.getElementById('hdyc-iframe');
     window.addEventListener('message', function (event) {
@@ -9993,7 +10023,6 @@ async function updateUserInfo(username) {
 }
 
 async function getCachedUserInfo(username) {
-    // TODO async better?
     const localUserInfo = await GM.getValue("userinfo-" + username, "")
     if (localUserInfo) {
         const cacheTime = new Date(localUserInfo['cacheTime'])
@@ -13208,13 +13237,24 @@ setTimeout(async function () {
 
     const keys = GM_listValues();
     for (const i of keys) {
-        try {
-            const userinfo = JSON.parse(await GM.getValue(i))
-            if (userinfo.cacheTime && (new Date(userinfo.cacheTime)).getTime() + 1000 * 60 * 60 * 24 * 14 < Date.now()) {
-                await GM_deleteValue(i);
+        if (i.startsWith("userinfo-")) {
+            try {
+                const userinfo = JSON.parse(await GM.getValue(i))
+                if (userinfo.cacheTime && (new Date(userinfo.cacheTime)).getTime() + 1000 * 60 * 60 * 24 * 14 < Date.now()) {
+                    await GM_deleteValue(i);
+                }
+            } catch { /* empty */
             }
-        } catch { /* empty */
+        } else if (i.startsWith("useridinfo-")) {
+            try {
+                const userIDInfo = JSON.parse(await GM.getValue(i))
+                if (userIDInfo.cacheTime && (new Date(userIDInfo.cacheTime)).getTime() + 1000 * 60 * 60 * 24 * 14 < Date.now()) {
+                    await GM_deleteValue(i);
+                }
+            } catch { /* empty */
+            }
         }
+
     }
     console.log("Old cache cleaned")
 }, 1000 * 12)
