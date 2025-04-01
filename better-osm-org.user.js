@@ -3,7 +3,7 @@
 // @name:ru         Better osm.org
 // @version         0.9.8
 // @changelog       v0.9.8: Hover for nodes/members in nodes way or relation members list, better RTL support
-// @changelog       v0.9.8: Show past usernames of user, adoption to updates osm.org
+// @changelog       v0.9.8: Show past usernames of user, click for copy ID from header, adoption to updates osm.org
 // @changelog       v0.9.6: Filter by editor for edits heatmap
 // @changelog       v0.9.5: Adoption to updates osm.org, render camera:direction=*
 // @changelog       v0.9.1: script should work more stably in Chrome
