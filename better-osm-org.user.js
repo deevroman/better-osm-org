@@ -9461,7 +9461,7 @@ async function makeEditorNormalizer() {
 }
 
 async function betterUserStat(user) {
-    if (!GM_config.get("BetterProfileStat") || !location.pathname.match(/^\/user\/([^/]+)$/)) {
+    if (!GM_config.get("BetterProfileStat") || !location.pathname.match(/^\/user\/([^/]+)\/?$/)) {
         return
     }
     const filterInputByEditor = document.createElement("select")
