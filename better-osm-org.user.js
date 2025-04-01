@@ -1429,13 +1429,13 @@ const compactSidebarStyleText = `
         padding-top: 1.4rem !important;
     }
     
-    .way-last-version-node:hover {
-        background-color: rgba(223, 223, 223, 0.6);
+    .way-last-version-node:hover, .relation-last-version-member:hover, .node-last-version-parent:hover {
+        background-color: rgba(244, 244, 244);
     }
     
     @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
-        .way-last-version-node:hover {
-            background-color: rgb(52,61,67);
+        .way-last-version-node:hover, .relation-last-version-member:hover, .node-last-version-parent:hover {
+            background-color: rgb(14, 17, 19);
         }  
     }
     `;
@@ -2939,7 +2939,7 @@ function makeWikimediaCommonsValue(elem) {
     elem.querySelectorAll('a[href^="//commons.wikimedia.org/wiki/"]:not(.preview-img-link)').forEach(a => {
         a.classList.add("preview-img-link")
         setTimeout(async () => {
-            const res = (await GM.xmlHttpRequest({
+            const wikimediaResponse = (await GM.xmlHttpRequest({
                 url: `https://en.wikipedia.org/w/api.php?` + new URLSearchParams({
                     action: "query",
                     iiprop: "url",
@@ -2950,7 +2950,7 @@ function makeWikimediaCommonsValue(elem) {
                 responseType: "json"
             })).response
             const img = GM_addElement("img", {
-                src: res['query']['pages']["-1"]["imageinfo"][0]['url'],
+                src: wikimediaResponse['query']['pages']["-1"]["imageinfo"][0]['url'],
                 // crossorigin: "anonymous"
             })
             img.style.width = "100%"
@@ -3267,11 +3267,13 @@ function showNodeMarker(a, b, color = "#00a500", infoElemID = null, layerName = 
  * @param {string} lon
  * @param {string} color
  * @param {boolean=true} removeActiveObjects
+ * @param {number} radius
+ * @param {number=} weight
  */
-function showActiveNodeMarker(lat, lon, color, removeActiveObjects = true) {
+function showActiveNodeMarker(lat, lon, color, removeActiveObjects = true, radius = 5, weight = 2.5) {
     const haloStyle = {
-        weight: 2.5,
-        radius: 5,
+        weight: weight,
+        radius: radius,
         fillOpacity: 0,
         color: color
     };
@@ -5163,17 +5165,6 @@ function addCommentsCount() {
                 i.after(a)
                 i.after(document.createTextNode("\xA0"))
                 setTimeout(async () => {
-                    await loadChangesetMetadata(changesetID)
-                    Object.entries(changesetMetadatas[changesetID]["tags"]).forEach(([k, v]) => {
-                        if (k === "comment") return;
-                        i.parentElement.title += `${k}: ${v}\n`
-                    })
-                    const user_link = i.parentElement.parentElement.querySelector(`a[href^="/user/"]`)
-                    if (user_link) {
-                        getCachedUserInfo(user_link.textContent).then((res) => {
-                            user_link.title = `changesets_count: ${res['changesets']['count']}\naccount_created: ${res['account_created']}`
-                        })
-                    }
                     getChangesetComments(changesetID).then(res => {
                         res.forEach(comment => {
                             const shortText = shortOsmOrgLinksInText(comment["text"])
@@ -5183,6 +5174,19 @@ function addCommentsCount() {
                     });
                 })
             }
+            setTimeout(async () => {
+                await loadChangesetMetadata(changesetID)
+                Object.entries(changesetMetadatas[changesetID]["tags"]).forEach(([k, v]) => {
+                    if (k === "comment") return;
+                    i.parentElement.title += `${k}: ${v}\n`
+                })
+                const user_link = i.parentElement.parentElement.querySelector(`a[href^="/user/"]`)
+                if (user_link) {
+                    getCachedUserInfo(user_link.textContent).then((res) => {
+                        user_link.title = `changesets_count: ${res['changesets']['count']}\naccount_created: ${res['account_created']}`
+                    })
+                }
+            })
         })
     })
 }
@@ -5809,27 +5813,67 @@ function setupRelationVersionViewer() {
     addRelationVersionView();
 }
 
+async function addHoverForNodesParents() {
+    if (!location.pathname.match(/^\/node\/(\d+)\/?$/)) {
+        return
+    }
+    document.querySelectorAll(`details [href^="/way/"]:not(.hover-added)`).forEach(elem => {
+        elem.classList.add("hover-added")
+        setTimeout(async () => {
+            const wayID = parseInt(elem.href.match(/way\/(\d+)/)[1])
+            const wayData = await loadWayMetadata(wayID)
+            const wayInfo = wayData.elements.find(i => i.id === wayID)
+            /*** @type {Map<string, NodeVersion>}*/
+            const nodesMap = new Map(Object.entries(Object.groupBy(wayData.elements.filter(i => i.type === "node"), i => i.id)).map(([k, v]) => [k, v[0]]));
+            const wayLi = elem?.parentElement?.parentElement?.parentElement;
+            wayLi.classList.add("node-last-version-parent");
+            wayLi.onmouseenter = () => {
+                const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon]);
+                showActiveWay(cloneInto(currentNodesList, unsafeWindow), darkModeForMap ? "#ff00e3" : "#000000");
+            }
+            wayLi.onclick = (e) => {
+                if (e.altKey) return;
+                if (e.target.tagName === "A") return;
+                const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon]);
+                showActiveWay(cloneInto(currentNodesList, unsafeWindow), darkModeForMap ? "#ff00e3" : "#000000", true);
+            }
+            wayLi.ondblclick = zoomToCurrentObject
+            if (wayInfo.tags) {
+                Object.entries(wayInfo.tags).forEach(([k, v]) => {
+                    wayLi.title += `\n${k}=${v}`;
+                })
+                wayLi.title = wayLi.title.trim()
+            }
+        })
+    })
+    document.querySelector(".node-last-version-parent")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
+        cleanObjectsByKey("activeObjects")
+    })
+    console.log("addHoverForWayNodes finished");
+}
+
 async function addHoverForWayNodes() {
     if (!location.pathname.match(/^\/way\/(\d+)\/?$/)) {
         return
     }
     const wayData = await loadWayMetadata();
     if (!wayData) return
-    /*** @type {Map<string, NodeVersion|WayVersion>}*/
-    const nodesMap = new Map(Object.entries(Object.groupBy(wayData.elements, i => i.id)).map(([k, v]) => [k, v[0]]));
-    document.querySelectorAll(`[href^="/node/"]:not(.hover-added)`).forEach(elem => {
+    /*** @type {Map<string, NodeVersion>}*/
+    const nodesMap = new Map(Object.entries(Object.groupBy(wayData.elements.filter(i => i.type === "node"), i => i.id)).map(([k, v]) => [k, v[0]]));
+    document.querySelectorAll(`details [href^="/node/"]:not(.hover-added)`).forEach(elem => {
         elem.classList.add("hover-added")
         const nodeInfo = nodesMap.get(elem.href.match(/node\/(\d+)/)[1]);
         const nodeLi = elem?.parentElement?.parentElement?.parentElement;
-        nodeLi.classList.add("way-last-version-node")
+        nodeLi.classList.add("way-last-version-node");
         nodeLi.onmouseenter = () => {
-            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), "#ff00e3")
+            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), darkModeForMap ? "#ff00e3" : "#000000", true, 6, 3)
         }
         nodeLi.onclick = (e) => {
             if (e.altKey) return;
             panTo(nodeInfo.lat.toString(), nodeInfo.lon.toString());
-            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), "#ff00e3");
+            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), darkModeForMap ? "#ff00e3" : "#000000", true, 6, 3);
         }
+        nodeLi.ondblclick = zoomToCurrentObject
         if (nodeInfo.tags) {
             Object.entries(nodeInfo.tags).forEach(([k, v]) => {
                 nodeLi.title += `\n${k}=${v}`;
@@ -5837,7 +5881,113 @@ async function addHoverForWayNodes() {
             nodeLi.title = nodeLi.title.trim()
         }
     })
+    document.querySelector(".way-last-version-node")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
+        cleanObjectsByKey("activeObjects")
+    })
     console.log("addHoverForWayNodes finished");
+}
+
+async function addHoverForRelationMembers() {
+    if (!location.pathname.match(/^\/relation\/(\d+)\/?$/)) {
+        return
+    }
+    const relationData = await loadRelationMetadata();
+    if (!relationData) return
+    /*** @type {Map<string, NodeVersion>}*/
+    const nodesMap = new Map(Object.entries(Object.groupBy(relationData.elements.filter(i => i.type === "node"), i => i.id)).map(([k, v]) => [k, v[0]]));
+    /*** @type {Map<string, WayVersion>}*/
+    const waysMap = new Map(Object.entries(Object.groupBy(relationData.elements.filter(i => i.type === "way"), i => i.id)).map(([k, v]) => [k, v[0]]));
+    /*** @type {Map<string, RelationVersion>}*/
+    const relationsMap = new Map(Object.entries(Object.groupBy(relationData.elements.filter(i => i.type === "relation"), i => i.id)).map(([k, v]) => [k, v[0]]));
+    document.querySelectorAll(`details [href^="/node/"]:not(.hover-added)`).forEach(elem => {
+        elem.classList.add("hover-added")
+        const nodeInfo = nodesMap.get(elem.href.match(/node\/(\d+)/)[1]);
+        const nodeLi = elem?.parentElement?.parentElement?.parentElement;
+        nodeLi.classList.add("relation-last-version-member");
+        nodeLi.onmouseenter = () => {
+            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), darkModeForMap ? "#ff00e3" : "#000000", true, 6, 3)
+        }
+        nodeLi.onclick = (e) => {
+            if (e.altKey) return;
+            panTo(nodeInfo.lat.toString(), nodeInfo.lon.toString());
+            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), darkModeForMap ? "#ff00e3" : "#000000", true, 6, 3);
+        }
+        nodeLi.ondblclick = zoomToCurrentObject
+        if (nodeInfo.tags) {
+            Object.entries(nodeInfo.tags).forEach(([k, v]) => {
+                nodeLi.title += `\n${k}=${v}`;
+            })
+            nodeLi.title = nodeLi.title.trim()
+        }
+    })
+    document.querySelectorAll(`details [href^="/way/"]:not(.hover-added)`).forEach(elem => {
+        elem.classList.add("hover-added")
+        const wayInfo = waysMap.get(elem.href.match(/way\/(\d+)/)[1]);
+        const wayLi = elem?.parentElement?.parentElement?.parentElement;
+        wayLi.classList.add("relation-last-version-member");
+        wayLi.onmouseenter = () => {
+            const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon]);
+            showActiveWay(cloneInto(currentNodesList, unsafeWindow), darkModeForMap ? "#ff00e3" : "#000000");
+        }
+        wayLi.onclick = (e) => {
+            if (e.altKey) return;
+            if (e.target.tagName === "A") return;
+            const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon]);
+            showActiveWay(cloneInto(currentNodesList, unsafeWindow), darkModeForMap ? "#ff00e3" : "#000000", true);
+        }
+        wayLi.ondblclick = zoomToCurrentObject
+        if (wayInfo.tags) {
+            Object.entries(wayInfo.tags).forEach(([k, v]) => {
+                wayLi.title += `\n${k}=${v}`;
+            })
+            wayLi.title = wayLi.title.trim()
+        }
+    })
+    document.querySelectorAll(`details:last-of-type [href^="/relation/"]:not(.hover-added)`).forEach(elem => {
+        elem.classList.add("hover-added")
+        const relationInfo = relationsMap.get(elem.href.match(/relation\/(\d+)/)[1]);
+        const relationLi = elem?.parentElement?.parentElement?.parentElement;
+        relationLi.classList.add("relation-last-version-member");
+        relationLi.onmouseenter = () => {
+            relationInfo.members.forEach(i => {
+                if (i.type === "node") {
+                    showActiveNodeMarker(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString(), darkModeForMap ? "#ff00e3" : "#000000", true, 6, 3)
+                } else if (i.type === "way") {
+                    const currentNodesList = waysMap[i.id].nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon]);
+                    showActiveWay(cloneInto(currentNodesList, unsafeWindow), darkModeForMap ? "#ff00e3" : "#000000");
+                } else {
+                    // todo
+                }
+            })
+        }
+        relationLi.onclick = (e) => {
+            if (e.altKey) return;
+            if (e.target.tagName === "A") return;
+            relationInfo.members.forEach(i => {
+                if (i.type === "node") {
+                    if (e.altKey) return;
+                    panTo(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString());
+                    showActiveNodeMarker(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString(), darkModeForMap ? "#ff00e3" : "#000000", true, 6, 3);
+                } else if (i.type === "way") {
+                    const currentNodesList = waysMap[i.id].nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon]);
+                    showActiveWay(cloneInto(currentNodesList, unsafeWindow), darkModeForMap ? "#ff00e3" : "#000000", true);
+                } else {
+                    // todo
+                }
+            })
+        }
+        relationLi.ondblclick = zoomToCurrentObject
+        if (relationInfo.tags) {
+            Object.entries(relationInfo.tags).forEach(([k, v]) => {
+                relationLi.title += `\n${k}=${v}`;
+            })
+            relationLi.title = relationLi.title.trim()
+        }
+    })
+    document.querySelector(".relation-last-version-member")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
+        cleanObjectsByKey("activeObjects")
+    })
+    console.log("addHoverForRelationMembers finished");
 }
 
 function makeVersionPageBetter() {
@@ -5879,7 +6029,9 @@ function makeVersionPageBetter() {
     makeTimesSwitchable()
     shortOsmOrgLinks(document.querySelector(".browse-section p"));
     addCommentsCount();
+    void addHoverForNodesParents();
     void addHoverForWayNodes();
+    void addHoverForRelationMembers();
 }
 
 function setupMakeVersionPageBetter() {
@@ -9527,7 +9679,7 @@ async function setupHDYCInProfile(path) {
     void betterUserStat(decodeURI(user))
 }
 
-function inFrame(){
+function inFrame() {
     return window.location !== window.parent.location;
 }
 
@@ -10574,12 +10726,19 @@ async function loadNodeMetadata() {
 
 let wayMetadata = null
 
-async function loadWayMetadata() {
-    const match = location.pathname.match(/way\/(\d+)/)
-    if (!match) {
-        return;
+/**
+ * @param {number|null=} way_id
+ * @return {Promise<void|{elements: []}>}
+ */
+async function loadWayMetadata(way_id=null) {
+    console.log(`Loading way metadata`)
+    if (!way_id) {
+        const match = location.pathname.match(/way\/(\d+)/)
+        if (!match) {
+            return;
+        }
+        way_id = parseInt(match[1]);
     }
-    const way_id = parseInt(match[1]);
     if (wayMetadata !== null && wayMetadata.id === way_id) {
         return;
     }
@@ -11041,6 +11200,133 @@ async function zoomToChangesets() {
     fitBounds([[bbox.min_lat, bbox.min_lon], [bbox.max_lat, bbox.max_lon]])
 }
 
+function zoomToCurrentObject(e) {
+    if (new URLSearchParams(location.search).has("changesets")) {
+        void zoomToChangesets()
+    } else if (location.pathname.startsWith("/changeset")) {
+        const changesetMetadata = changesetMetadatas[location.pathname.match(/changeset\/(\d+)/)[1]]
+        if (e.shiftKey && changesetMetadata) {
+            setTimeout(async () => {
+                // todo changesetID => merged BBOX
+                const changesetID = parseInt(location.pathname.match(/changeset\/(\d+)/)[1])
+                const nodesBag = [];
+                for (const node of Array.from((await getChangeset(changesetID)).data.querySelectorAll('node'))) {
+                    if (node.getAttribute("visible") !== "false") {
+                        nodesBag.push({
+                            lat: parseFloat(node.getAttribute("lat")),
+                            lon: parseFloat(node.getAttribute("lon"))
+                        });
+                    } else {
+                        const version = searchVersionByTimestamp(
+                            await getNodeHistory(node.getAttribute("id")),
+                            new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString()
+                        )
+                        if (version.visible !== false) {
+                            nodesBag.push({
+                                lat: version.lat,
+                                lon: version.lon
+                            });
+                        }
+                    }
+                }
+                if ((await getChangeset(changesetID)).data.querySelectorAll("relation").length) {
+                    for (const way of (await getChangeset(changesetID)).data.querySelectorAll("way")) {
+                        const targetTime = way.getAttribute("visible") === "false"
+                            ? new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString()
+                            : changesetMetadata.closed_at
+                        const [, currentNodesList] = await getWayNodesByTimestamp(targetTime, way.getAttribute("id"))
+                        currentNodesList.forEach(coords => {
+                            nodesBag.push({
+                                lat: coords[0],
+                                lon: coords[1]
+                            })
+                        })
+                    }
+                }
+                getMap()?.invalidateSize()
+                if (nodesBag.length) {
+                    const bbox = {
+                        min_lat: Math.min(...nodesBag.map(i => i.lat)),
+                        min_lon: Math.min(...nodesBag.map(i => i.lon)),
+                        max_lat: Math.max(...nodesBag.map(i => i.lat)),
+                        max_lon: Math.max(...nodesBag.map(i => i.lon))
+                    }
+                    fitBounds([
+                        [bbox.min_lat, bbox.min_lon],
+                        [bbox.max_lat, bbox.max_lon]
+                    ]) // todo max zoom
+                } else {
+                    fitBounds([
+                        [changesetMetadata.min_lat, changesetMetadata.min_lon],
+                        [changesetMetadata.max_lat, changesetMetadata.max_lon]
+                    ])
+                }
+            })
+        } else {
+            getMap()?.invalidateSize()
+            if (changesetMetadata) {
+                fitBounds([
+                    [changesetMetadata.min_lat, changesetMetadata.min_lon],
+                    [changesetMetadata.max_lat, changesetMetadata.max_lon]
+                ])
+            } else {
+                console.warn("Changeset metadata not downloaded")
+            }
+        }
+    } else if (location.pathname.match(/(node|way|relation|note)\/\d+/)) {
+        if (location.pathname.includes("node")) {
+            if (nodeMetadata) {
+                panTo(nodeMetadata.lat, nodeMetadata.lon)
+            } else {
+                if (location.pathname.includes("history")) {
+                    // panTo last visible version
+                    panTo(
+                        document.querySelector(".browse-node span.latitude").textContent.replace(",", "."),
+                        document.querySelector(".browse-node span.longitude").textContent.replace(",", ".")
+                    )
+                }
+            }
+        } else if (location.pathname.includes("note")) {
+            if (!document.querySelector('#sidebar_content a[href*="/traces/"]') || !trackMetadata) {
+                if (noteMetadata) {
+                    panTo(noteMetadata.geometry.coordinates[1], noteMetadata.geometry.coordinates[0], Math.max(17, getMap().getZoom()))
+                }
+            } else if (trackMetadata) {
+                fitBounds([
+                    [trackMetadata.min_lat, trackMetadata.min_lon],
+                    [trackMetadata.max_lat, trackMetadata.max_lon]
+                ])
+            }
+        } else if (location.pathname.includes("way")) {
+            if (wayMetadata) {
+                fitBounds([
+                    [wayMetadata.bbox.min_lat, wayMetadata.bbox.min_lon],
+                    [wayMetadata.bbox.max_lat, wayMetadata.bbox.max_lon]
+                ])
+            }
+        } else if (location.pathname.includes("relation")) {
+            if (relationMetadata) {
+                fitBounds([
+                    [relationMetadata.bbox.min_lat, relationMetadata.bbox.min_lon],
+                    [relationMetadata.bbox.max_lat, relationMetadata.bbox.max_lon]
+                ])
+            }
+        }
+    } else if (location.search.includes("&display-gpx=")) {
+        if (trackMetadata) {
+            fitBounds([
+                [trackMetadata.min_lat, trackMetadata.min_lon],
+                [trackMetadata.max_lat, trackMetadata.max_lon]
+            ])
+        }
+    } else if (searchResultBBOX) {
+        fitBounds([
+            [searchResultBBOX.min_lat, searchResultBBOX.min_lon],
+            [searchResultBBOX.max_lat, searchResultBBOX.max_lon]
+        ])
+    }
+}
+
 function setupNavigationViaHotkeys() {
     if (["/edit", "/id"].includes(location.pathname)) return
     updateCurrentObjectMetadata()
@@ -11234,130 +11520,7 @@ function setupNavigationViaHotkeys() {
                 })
             })
         } else if (e.code === "KeyZ") {
-            if (new URLSearchParams(location.search).has("changesets")) {
-                zoomToChangesets()
-            } else if (location.pathname.startsWith("/changeset")) {
-                const changesetMetadata = changesetMetadatas[location.pathname.match(/changeset\/(\d+)/)[1]]
-                if (e.shiftKey && changesetMetadata) {
-                    setTimeout(async () => {
-                        // todo changesetID => merged BBOX
-                        const changesetID = parseInt(location.pathname.match(/changeset\/(\d+)/)[1])
-                        const nodesBag = [];
-                        for (const node of Array.from((await getChangeset(changesetID)).data.querySelectorAll('node'))) {
-                            if (node.getAttribute("visible") !== "false") {
-                                nodesBag.push({
-                                    lat: parseFloat(node.getAttribute("lat")),
-                                    lon: parseFloat(node.getAttribute("lon"))
-                                });
-                            } else {
-                                const version = searchVersionByTimestamp(
-                                    await getNodeHistory(node.getAttribute("id")),
-                                    new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString()
-                                )
-                                if (version.visible !== false) {
-                                    nodesBag.push({
-                                        lat: version.lat,
-                                        lon: version.lon
-                                    });
-                                }
-                            }
-                        }
-                        if ((await getChangeset(changesetID)).data.querySelectorAll("relation").length) {
-                            for (const way of (await getChangeset(changesetID)).data.querySelectorAll("way")) {
-                                const targetTime = way.getAttribute("visible") === "false"
-                                    ? new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString()
-                                    : changesetMetadata.closed_at
-                                const [, currentNodesList] = await getWayNodesByTimestamp(targetTime, way.getAttribute("id"))
-                                currentNodesList.forEach(coords => {
-                                    nodesBag.push({
-                                        lat: coords[0],
-                                        lon: coords[1]
-                                    })
-                                })
-                            }
-                        }
-                        getMap()?.invalidateSize()
-                        if (nodesBag.length) {
-                            const bbox = {
-                                min_lat: Math.min(...nodesBag.map(i => i.lat)),
-                                min_lon: Math.min(...nodesBag.map(i => i.lon)),
-                                max_lat: Math.max(...nodesBag.map(i => i.lat)),
-                                max_lon: Math.max(...nodesBag.map(i => i.lon))
-                            }
-                            fitBounds([
-                                [bbox.min_lat, bbox.min_lon],
-                                [bbox.max_lat, bbox.max_lon]
-                            ]) // todo max zoom
-                        } else {
-                            fitBounds([
-                                [changesetMetadata.min_lat, changesetMetadata.min_lon],
-                                [changesetMetadata.max_lat, changesetMetadata.max_lon]
-                            ])
-                        }
-                    })
-                } else {
-                    getMap()?.invalidateSize()
-                    if (changesetMetadata) {
-                        fitBounds([
-                            [changesetMetadata.min_lat, changesetMetadata.min_lon],
-                            [changesetMetadata.max_lat, changesetMetadata.max_lon]
-                        ])
-                    } else {
-                        console.warn("Changeset metadata not downloaded")
-                    }
-                }
-            } else if (location.pathname.match(/(node|way|relation|note)\/\d+/)) {
-                if (location.pathname.includes("node")) {
-                    if (nodeMetadata) {
-                        panTo(nodeMetadata.lat, nodeMetadata.lon)
-                    } else {
-                        if (location.pathname.includes("history")) {
-                            // panTo last visible version
-                            panTo(
-                                document.querySelector(".browse-node span.latitude").textContent.replace(",", "."),
-                                document.querySelector(".browse-node span.longitude").textContent.replace(",", ".")
-                            )
-                        }
-                    }
-                } else if (location.pathname.includes("note")) {
-                    if (!document.querySelector('#sidebar_content a[href*="/traces/"]') || !trackMetadata) {
-                        if (noteMetadata) {
-                            panTo(noteMetadata.geometry.coordinates[1], noteMetadata.geometry.coordinates[0], Math.max(17, getMap().getZoom()))
-                        }
-                    } else if (trackMetadata) {
-                        fitBounds([
-                            [trackMetadata.min_lat, trackMetadata.min_lon],
-                            [trackMetadata.max_lat, trackMetadata.max_lon]
-                        ])
-                    }
-                } else if (location.pathname.includes("way")) {
-                    if (wayMetadata) {
-                        fitBounds([
-                            [wayMetadata.bbox.min_lat, wayMetadata.bbox.min_lon],
-                            [wayMetadata.bbox.max_lat, wayMetadata.bbox.max_lon]
-                        ])
-                    }
-                } else if (location.pathname.includes("relation")) {
-                    if (relationMetadata) {
-                        fitBounds([
-                            [relationMetadata.bbox.min_lat, relationMetadata.bbox.min_lon],
-                            [relationMetadata.bbox.max_lat, relationMetadata.bbox.max_lon]
-                        ])
-                    }
-                }
-            } else if (location.search.includes("&display-gpx=")) {
-                if (trackMetadata) {
-                    fitBounds([
-                        [trackMetadata.min_lat, trackMetadata.min_lon],
-                        [trackMetadata.max_lat, trackMetadata.max_lon]
-                    ])
-                }
-            } else if (searchResultBBOX) {
-                fitBounds([
-                    [searchResultBBOX.min_lat, searchResultBBOX.min_lon],
-                    [searchResultBBOX.max_lat, searchResultBBOX.max_lon]
-                ])
-            }
+            zoomToCurrentObject(e)
         } else if (e.key === "8") {
             if (mapPositionsHistory.length > 1) {
                 mapPositionsNextHistory.push(mapPositionsHistory[mapPositionsHistory.length - 1])
@@ -12767,7 +12930,7 @@ function setup() {
     new MutationObserver(function fn() {
         const path = location.pathname;
         if (path + location.search === lastPath) return;
-        if (lastPath.startsWith("/changeset/") && (!path.startsWith("/changeset/") || lastPath !== path) || lastPath.includes("/history")) {
+        if (lastPath.startsWith("/changeset/") && (!path.startsWith("/changeset/") || lastPath !== path) || lastPath.includes("/history") || path === "/" && lastPath !== "/") {
             try {
                 abortPrevControllers(ABORT_ERROR_WHEN_PAGE_CHANGED)
                 cleanAllObjects()
