@@ -1,8 +1,9 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.9.7
-// @changelog       v0.9.7: Hover for nodes in nodes way list, better RTL support, adoption to updates osm.org
+// @version         0.9.8
+// @changelog       v0.9.8: Hover for nodes/members in nodes way or relation members list, better RTL support
+// @changelog       v0.9.8: Show past usernames of user, adoption to updates osm.org
 // @changelog       v0.9.6: Filter by editor for edits heatmap
 // @changelog       v0.9.5: Adoption to updates osm.org, render camera:direction=*
 // @changelog       v0.9.1: script should work more stably in Chrome
@@ -24,7 +25,7 @@
 // @changelog       New: Comments templates, support ways render in relation members list
 // @changelog       New: Q for close sidebar, shift + Z for real bbox of changeset
 // @changelog       New: displaying the full history of ways (You can disable it in settings)
-// @changelog       https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670/57
+// @changelog       https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670/90
 // @description     Several improvements for advanced users of openstreetmap.org
 // @description:ru  Скрипт, добавляющий на openstreetmap.org полезные картографам функции
 // @author       deevroman
@@ -98,6 +99,7 @@
 // @connect      wayback.maptiles.arcgis.com
 // @comment      geocoder
 // @connect      photon.komoot.io
+// @connect      whosthat.osmz.ru
 // @sandbox      JavaScript
 // @resource     OAUTH_HTML https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html
 // @resource     OSMCHA_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/osmcha.ico
@@ -6031,6 +6033,7 @@ function makeHeaderPartsClickable() {
             navigator.clipboard.writeText(elem.textContent).then(() => copyAnimation(e, elem.textContent));
         })
     }
+
     document.querySelectorAll("#sidebar_content h2 bdi:not(.copyable)").forEach(i => {
         makeElemCopyable(i)
     })
@@ -9730,6 +9733,43 @@ async function setupHDYCInProfile(path) {
             }
         })
     }
+    setTimeout(async () => {
+        if (document.querySelector(".prev-usernames")) return
+        const userDetails = document.querySelector(".content-inner small dl")
+        if (!userDetails) return;
+        // https://www.openstreetmap.org/reports/new?reportable_id=12345&reportable_type=User
+        let userID = document.querySelector('[href*="reportable_id="]')?.getAttribute("href")?.match(/reportable_id=(\d+)/)?.[1]
+        if (!userID) {
+            const res = await fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
+                display_name: user,
+                limit: 1,
+                order: 'oldest'
+            }).toString());
+            userID = res['changesets'][0]['uid']
+            if (!userID) {
+                return;
+            }
+        }
+        GM.xmlHttpRequest({
+            url: "https://whosthat.osmz.ru/whosthat.php?action=names&id=" + userID,
+            responseType: "json"
+        }).then(async res => {
+            if (res.response[0]['names'].length <= 1) {
+                console.log("prev user's usernames not found")
+                return
+            }
+            const usernames = res.response[0]['names'].filter(i => i !== user).join(", ")
+            const dt = document.createElement("dt")
+            dt.textContent = "Past usernames: "
+            dt.classList.add("list-inline-item", "m-0")
+            const dd = document.createElement("dd")
+            dd.classList.add("list-inline-item", "prev-usernames")
+            dd.textContent = usernames
+            userDetails.appendChild(dt)
+            userDetails.appendChild(document.createTextNode("\xA0"))
+            userDetails.appendChild(dd)
+        })
+    })
     const iframe = document.getElementById('hdyc-iframe');
     window.addEventListener('message', function (event) {
         iframe.height = event.data.height + 'px';
@@ -10789,7 +10829,7 @@ let wayMetadata = null
  * @param {number|null=} way_id
  * @return {Promise<void|{elements: []}>}
  */
-async function loadWayMetadata(way_id=null) {
+async function loadWayMetadata(way_id = null) {
     console.log(`Loading way metadata`)
     if (!way_id) {
         const match = location.pathname.match(/way\/(\d+)/)
