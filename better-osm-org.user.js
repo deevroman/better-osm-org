@@ -6770,7 +6770,16 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 valCell.appendChild(document.createTextNode(` ${arrowSymbolForChanges} `))
                 valCell.appendChild(newText)
             } else {
-                valCell.textContent = prevVersion.tags[key] + (` ${arrowSymbolForChanges} `) + valCell.textContent
+                const prevSpan = document.createElement("span")
+                prevSpan.dir = "auto"
+                prevSpan.textContent = prevVersion.tags[key]
+                const newSpan = document.createElement("span")
+                newSpan.dir = "auto"
+                newSpan.textContent = valCell.textContent
+                valCell.textContent = ""
+                valCell.appendChild(prevSpan)
+                valCell.appendChild(document.createTextNode(` ${arrowSymbolForChanges} `))
+                valCell.appendChild(newSpan)
             }
             valCell.title = "was: " + prevVersion.tags[key]
             tagsWasChanged = true
