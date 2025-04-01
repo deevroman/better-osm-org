@@ -6040,7 +6040,11 @@ function makeHeaderPartsClickable() {
     }
 
     document.querySelectorAll("#sidebar_content h2 bdi:not(.copyable)").forEach(i => {
-        makeElemCopyable(i)
+        if (i.textContent.match(/^\d+$/)) {
+            makeElemCopyable(i, "https://" + shortOsmOrgLinksInText(location.origin + location.pathname))
+        } else {
+            makeElemCopyable(i)
+        }
     })
     document.querySelectorAll("#sidebar_content h2:not(:has(.copyable))").forEach(i => {
         if (i.childNodes.length >= 1 && i.childNodes[0].nodeName === "#text") {
