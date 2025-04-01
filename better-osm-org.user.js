@@ -1380,13 +1380,24 @@ const compactSidebarStyleText = `
     
     /*for id copied*/
     .copied {
-      background-color: red;
+      background-color: rgba(9,238,9,0.6);
       transition:all 0.3s;
     }
     .was-copied {
       background-color: initial;
       transition:all 0.3s;
     }
+    @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+        .copied {
+          background-color: rgba(0,255,101,0.6);
+          transition:all 0.3s;
+        }
+        .was-copied {
+          background-color: initial;
+          transition:all 0.3s;
+        }
+    }
+    
     #sidebar_content h2:not(.changeset-header) {
         font-size: 1rem;
     }
@@ -2408,6 +2419,10 @@ function makeHistoryCompact() {
     }
 }
 
+/**
+ * @param {Event} e
+ * @param {string} text
+ */
 function copyAnimation(e, text) {
     console.log(`Copying ${text} to clipboard was successful!`);
     e.target.classList.add("copied");
@@ -5201,6 +5216,7 @@ function addCommentsCount() {
 // https://www.openstreetmap.org/node/12084992837/history
 // https://www.openstreetmap.org/way/1329437422/history
 function addDiffInHistory() {
+    makeHeaderPartsClickable();
     addHistoryLink();
     if (document.querySelector("#sidebar_content table")) {
         document.querySelector("#sidebar_content table").querySelectorAll("a").forEach(i => i.setAttribute("target", "_blank"));
@@ -5309,12 +5325,22 @@ function addDiffInHistory() {
     }
     
     .copied {
-      background-color: red !important;
-      transition:all 0.3s;
+        background-color: rgba(9,238,9,0.6);
+        transition:all 0.3s;
     }
     .was-copied {
-      background-color: unset !important;
-      transition:all 0.3s;
+        background-color: initial;
+        transition:all 0.3s;
+    }
+    @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+        .copied {
+            background-color: rgba(0,255,101,0.6);
+            transition:all 0.3s;
+        }
+        .was-copied {
+            background-color: initial;
+            transition:all 0.3s;
+        }
     }
     
     @media (max-device-width: 640px) and ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
@@ -5990,6 +6016,38 @@ async function addHoverForRelationMembers() {
     console.log("addHoverForRelationMembers finished");
 }
 
+function makeHeaderPartsClickable() {
+    function makeElemCopyable(elem) {
+        if (/^\d+$/.test(elem.textContent)) {
+            elem.title = "Click for copy ID"
+        } else {
+            elem.title = "Click for copy"
+        }
+        elem.style.cursor = "pointer";
+        elem.classList.add("copyable")
+        elem.addEventListener("click", e => {
+            if (e.altKey) return;
+            if (window.getSelection().type === "Range") return;
+            navigator.clipboard.writeText(elem.textContent).then(() => copyAnimation(e, elem.textContent));
+        })
+    }
+    document.querySelectorAll("#sidebar_content h2 bdi:not(.copyable)").forEach(i => {
+        makeElemCopyable(i)
+    })
+    document.querySelectorAll("#sidebar_content h2:not(:has(.copyable))").forEach(i => {
+        if (i.childNodes.length === 1 && i.childNodes[0].nodeName === "#text") {
+            const match = /\d+/g.exec(i.childNodes[0].textContent);
+            if (!match) return;
+            i.childNodes[0].splitText(match.index + match[0].length)
+            i.childNodes[0].splitText(match.index)
+            const span = document.createElement("bdi")
+            span.textContent = i.childNodes[1].textContent
+            i.childNodes[1].replaceWith(span)
+            makeElemCopyable(span)
+        }
+    })
+}
+
 function makeVersionPageBetter() {
     const match = location.pathname.match(/(node|way|relation)\/(\d+)(\/history\/(\d+)\/?$|\/?$)/)
     if (!match) {
@@ -6023,6 +6081,7 @@ function makeVersionPageBetter() {
         }
     }
 
+    makeHeaderPartsClickable()
     addHistoryLink()
     makeLinksInTagsClickable()
     makeHashtagsClickable();
