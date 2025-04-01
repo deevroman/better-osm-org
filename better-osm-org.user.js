@@ -9757,7 +9757,7 @@ async function setupHDYCInProfile(path) {
         let userID = document.querySelector('[href*="reportable_id="]')?.getAttribute("href")?.match(/reportable_id=(\d+)/)?.[1]
         if (!userID) {
             const res = await fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
-                display_name: user,
+                display_name: decodeURI(user),
                 limit: 1,
                 order: 'oldest'
             }).toString());
@@ -9781,7 +9781,7 @@ async function setupHDYCInProfile(path) {
                 userInfo['cacheTime'] = new Date()
                 await GM.setValue("useridinfo-" + userID, JSON.stringify(userInfo))
 
-                const usernames = userInfo.data[0]['names'].filter(i => i !== user).join(", ")
+                const usernames = userInfo.data[0]['names'].filter(i => i !== decodeURI(user)).join(", ")
                 if (document.querySelector(".prev-usernames")) {
                     document.querySelector(".prev-usernames").textContent = usernames
                 }
@@ -9803,7 +9803,7 @@ async function setupHDYCInProfile(path) {
             console.log("prev user's usernames not found")
             return
         }
-        const usernames = userIDInfo.data[0]['names'].filter(i => i !== user).join(", ")
+        const usernames = userIDInfo.data[0]['names'].filter(i => i !== decodeURI(user)).join(", ")
         const dt = document.createElement("dt")
         dt.textContent = "Past usernames: "
         dt.classList.add("list-inline-item", "m-0")
