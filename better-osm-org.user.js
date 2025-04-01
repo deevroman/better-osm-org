@@ -9139,7 +9139,7 @@ async function interceptMapManually() {
         exportImageBtn.click()
         exportImageBtn.click()
         console.warn("wait for map intercepting")
-        await sleep(200)
+        await sleep(10)
     } catch (e) {
         console.error(e)
     }
