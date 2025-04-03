@@ -203,6 +203,7 @@ if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Grease
 
 const accountForceLightTheme = document.querySelector("html")?.getAttribute("data-bs-theme") === "light";
 const accountForceDarkTheme = document.querySelector("html")?.getAttribute("data-bs-theme") === "dark";
+const mediaQueryForWebsiteTheme = `${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""}`;
 
 function isDarkMode() {
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && !accountForceLightTheme || accountForceDarkTheme;
@@ -337,7 +338,7 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
         //     }
         // });
         injectCSSIntoOSMPage(
-            `@media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+            `@media ${mediaQueryForWebsiteTheme} {
                 #id-embed {
                     background: #212529 !important;
                 }
@@ -345,7 +346,7 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
         )
     } else {
         injectCSSIntoOSMPage(
-            `@media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+            `@media ${mediaQueryForWebsiteTheme} {
                 html {
                     background: #212529 !important;
                 }
@@ -738,7 +739,7 @@ GM_config.init(
             #Config .filler {
                 visibility: hidden;
             }
-        @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+        @media ${mediaQueryForWebsiteTheme} {
             #Config {
                 background: #232528;
                 color: white;
@@ -1341,7 +1342,7 @@ const compactSidebarStyleText = `
       font-size: 14px !important;
       font-synthesis: none;
     }
-    @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+    @media ${mediaQueryForWebsiteTheme} {
         .changesets time {
             color: darkgray;
         }
@@ -1390,7 +1391,7 @@ const compactSidebarStyleText = `
       background-color: initial;
       transition:all 0.3s;
     }
-    @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+    @media ${mediaQueryForWebsiteTheme} {
         .copied {
           background-color: rgba(0,255,101,0.6);
           transition:all 0.3s;
@@ -1419,7 +1420,7 @@ const compactSidebarStyleText = `
       font-weight: bold;
     }
   
-    @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+    @media ${mediaQueryForWebsiteTheme} {
       .fixme-tag {
         color: #ff5454 !important;
         font-weight: unset;
@@ -1431,7 +1432,7 @@ const compactSidebarStyleText = `
       }
     }
     
-    @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+    @media ${mediaQueryForWebsiteTheme} {
         table.browse-tag-list tr td[colspan="2"]{
           background: var(--bs-body-bg) !important;
         }
@@ -1447,7 +1448,7 @@ const compactSidebarStyleText = `
         background-color: rgba(244, 244, 244);
     }
     
-    @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+    @media ${mediaQueryForWebsiteTheme} {
         .way-last-version-node:hover, .relation-last-version-member:hover, .node-last-version-parent:hover {
             background-color: rgb(14, 17, 19);
         }  
@@ -5274,7 +5275,7 @@ function addDiffInHistory() {
         background: rgba(255, 144, 144, 0.6);
     }
     
-    @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+    @media ${mediaQueryForWebsiteTheme} {
         .history-diff-new-tag {
           background: rgba(4, 123, 0, 0.6) !important;
         }
@@ -5335,7 +5336,7 @@ function addDiffInHistory() {
         background-color: initial;
         transition:all 0.3s;
     }
-    @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+    @media ${mediaQueryForWebsiteTheme} {
         .copied {
             background-color: rgba(0,255,101,0.6);
             transition:all 0.3s;
@@ -5346,7 +5347,7 @@ function addDiffInHistory() {
         }
     }
     
-    @media (max-device-width: 640px) and ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+    @media (max-device-width: 640px) and ${mediaQueryForWebsiteTheme} {
         td.history-diff-new-tag::selection, /*td.history-diff-modified-tag::selection,*/ td.history-diff-deleted-tag::selection {
             background: black;
         }
@@ -5381,7 +5382,7 @@ function addDiffInHistory() {
         background-color: rgba(244, 244, 244);
     }
     
-    @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+    @media ${mediaQueryForWebsiteTheme} {
         [way-version]:hover {
             background-color: rgb(14, 17, 19);
         }
@@ -5403,7 +5404,7 @@ function addDiffInHistory() {
         background-color: rgba(244, 244, 244);
     }
     
-    @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+    @media ${mediaQueryForWebsiteTheme} {
         [relation-version]:hover {
             background-color: rgb(14, 17, 19);
         }
@@ -5417,7 +5418,7 @@ function addDiffInHistory() {
         font-size: small;
     }
 
-    @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {        
+    @media ${mediaQueryForWebsiteTheme} {        
         path.stroke-polyline {
             filter: drop-shadow(1px 1px 0 #7a7a7a) drop-shadow(-1px -1px 0 #7a7a7a) drop-shadow(1px -1px 0 #7a7a7a) drop-shadow(-1px 1px 0 #7a7a7a);
         }
@@ -7902,7 +7903,7 @@ function addQuickLookStyles() {
                 background-color: color-mix(in srgb, var(--bs-body-bg), black 25%);
             }
             
-            @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+            @media ${mediaQueryForWebsiteTheme} {
             
             .edits-wars-log tr:nth-child(even) td, .edits-wars-log tr:nth-child(even) th {
                 background-color: color-mix(in srgb, var(--bs-body-bg), white 5%);
@@ -7946,7 +7947,7 @@ function addQuickLookStyles() {
                 background: rgba(255, 144, 144, 0.6);
             }
             
-            @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {            
+            @media ${mediaQueryForWebsiteTheme} {            
                 tr.quick-look-new-tag th{
                     /*background: #0f540fde;*/
                     background: rgba(17,238,9,0.3);
@@ -8109,7 +8110,7 @@ function addQuickLookStyles() {
                   background-color: rgba(223, 223, 223, 0.6);;
             }
             
-            @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {            
+            @media ${mediaQueryForWebsiteTheme} {            
                 #sidebar_content #changeset_nodes li:hover {
                     background-color: rgb(14, 17, 19);
                 }
@@ -12367,7 +12368,7 @@ function insertOverlaysStyles() {
                 background-color: color-mix(in srgb, var(--bs-body-bg), black 10%);
             }
 
-            @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+            @media ${mediaQueryForWebsiteTheme} {
 
                 .mode-btn.visible img {
                     filter: invert(0.9);
@@ -13070,7 +13071,7 @@ function setup() {
     if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)
         && ["/id"].includes(location.pathname) && GM_config.get("DarkModeForID")) {
         injectCSSIntoOSMPage(`
-                @media ${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""} {
+                @media ${mediaQueryForWebsiteTheme} {
                     ${GM_getResourceText("DARK_THEME_FOR_ID_CSS")}
                 }`
         )
