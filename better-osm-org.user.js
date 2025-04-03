@@ -1392,11 +1392,11 @@ const compactSidebarStyleText = `
     @media ${mediaQueryForWebsiteTheme} {
         .copied {
           background-color: rgba(0,255,101,0.6);
-          transition:all 0.3s;
+          transition: all 0.3s;
         }
         .was-copied {
           background-color: initial;
-          transition:all 0.3s;
+          transition: all 0.3s;
         }
     }
     
@@ -2823,13 +2823,13 @@ function makePanoramaxValue(elem) {
     // extracting uuid
     elem.innerHTML = elem.innerHTML.replaceAll(/(?<=(^|;))([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(&amp;xyz=-?[0-9]+(\.[0-9]+)?\/-?[0-9]+(\.[0-9]+)?\/-?[0-9]+(\.[0-9]+)?)?/gi, function (match) {
         const a = document.createElement("a")
-        a.textContent = arguments[0].replaceAll("&amp;", "&")
+        a.textContent = match.replaceAll("&amp;", "&")
         a.classList.add("preview-img-link")
         a.target = "_blank"
         const browseSection = elem?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement
         const lat = browseSection?.querySelector(".latitude")?.textContent?.replace(",", ".")
         const lon = browseSection?.querySelector(".longitude")?.textContent?.replace(",", ".")
-        a.href = "https://api.panoramax.xyz/#focus=pic&pic=" + arguments[0].replaceAll("&amp;", "&") + (lat ? (`&map=16/${lat}/${lon}`) : "")
+        a.href = "https://api.panoramax.xyz/#focus=pic&pic=" + match.replaceAll("&amp;", "&") + (lat ? (`&map=16/${lat}/${lon}`) : "")
         return a.outerHTML
     })
     elem.querySelectorAll('a.preview-img-link').forEach(a => {
