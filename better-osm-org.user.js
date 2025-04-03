@@ -118,8 +118,6 @@
 /*global GM_info*/
 /*global GM_config*/
 /*global GM_addElement*/
-/*global GM.getValue*/
-/*global GM.setValue*/
 /*global GM_listValues*/
 /*global GM_deleteValue*/
 /*global GM_getResourceURL*/
@@ -129,7 +127,6 @@
 /*global exportFunction*/
 /*global cloneInto*/
 /*global EXIF*/
-/*global turf*/
 /*global osmtogeojson*/
 /*global opening_hours*/
 /*global runSnowAnimation*/
@@ -272,7 +269,6 @@ let overpass_server = MAIN_OVERPASS_INSTANCE
 const boWindowObject = typeof window.wrappedJSObject !== "undefined" ? window.wrappedJSObject : unsafeWindow;
 const boGlobalThis = typeof boWindowObject.globalThis !== "undefined" ? boWindowObject.globalThis : boWindowObject;
 
-let map = null
 let getMap = null
 let getWindow = null
 
@@ -311,11 +307,10 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
         getWindow = () => boWindowObject
     }
 
-    map = getMap()
-    try {
-        interceptRectangle()
-    } catch (e) {
-    }
+    // try {
+    //     interceptRectangle()
+    // } catch (e) {
+    // }
 
     setTimeout(() => {
         console.debug("Settings:", Object.entries(GM_config.fields).map(i => {
@@ -1336,6 +1331,7 @@ out meta;
 
 }
 
+// noinspection CssUnusedSymbol,CssUnresolvedCustomProperty
 const compactSidebarStyleText = `
     .changesets p {
       margin-bottom: 0;
@@ -3008,7 +3004,7 @@ function makeLinksInTagsClickable() {
                 snowBtn.title = "better-osm-org easter egg"
                 snowBtn.addEventListener("click", (e) => {
                     e.target.style.display = "none"
-                    runSnow()
+                    runSnowAnimation()
                 }, {
                     once: true
                 })
@@ -4778,7 +4774,7 @@ function setupRelationVersionView() {
     if (match === null) return;
     const relationID = match[1];
 
-    async function loadRelationVersion(e, loadMore = true, showWay = true) {
+    async function loadRelationVersion(e, showWay = true) {
         const htmlElem = e.target ? e.target : e
         htmlElem.style.cursor = "progress"
 
@@ -6562,7 +6558,7 @@ function detectEditsWars(prevVersion, targetVersion, objHistory, row, key) {
         const prevIt = (objHistory[j - 1]?.tags ?? {})[key]
         const targetIt = (it.tags ?? {})[key]
         const prevTag = (prevVersion.tags ?? {})[key]
-        const targetTag = (targetVersion.tags ?? {})[key]
+        // const targetTag = (targetVersion.tags ?? {})[key]
 
         if (prevIt === targetIt) {
             continue
@@ -7402,9 +7398,8 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
  * @param {Element} i
  * @param {NodeVersion|WayVersion|RelationVersion} prevVersion
  * @param {NodeVersion|WayVersion|RelationVersion} targetVersion
- * @param {NodeVersion|WayVersion|RelationVersion} lastVersion
  */
-async function processObjectInteractions(changesetID, objType, objectsInComments, i, prevVersion, targetVersion, lastVersion) {
+async function processObjectInteractions(changesetID, objType, objectsInComments, i, prevVersion, targetVersion) {
     let changesetMetadata = changesetMetadatas[targetVersion.changeset];
     if (!GM_config.get("ShowChangesetGeometry")) {
         i.parentElement.parentElement.classList.add("processed-object")
@@ -9040,9 +9035,8 @@ async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) 
     }
 }
 
+/*
 function interceptRectangle() {
-    return
-    /*
     console.log("intercept rectangle");
     injectJSIntoPage(`
     var layers = {}
@@ -9114,13 +9108,13 @@ function interceptRectangle() {
         window.rectangleIntercepted = true
     }
     `)
-     */
 }
+*/
 
 async function interceptMapManually() {
-    if (!getWindow().rectangleIntercepted) {
-        interceptRectangle()
-    }
+    // if (!getWindow().rectangleIntercepted) {
+    //     interceptRectangle()
+    // }
     if (getWindow().mapIntercepted) return
     try {
         console.warn("try intercept map manually")
