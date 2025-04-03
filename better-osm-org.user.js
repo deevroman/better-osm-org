@@ -61,6 +61,7 @@
 // @require      https://raw.githubusercontent.com/deevroman/osm-auth/ad63c40d376593d63ee2d35f60664e28769bf1ba/dist/osm-auth.iife.js#sha256=6f0401639929ca5de4c98e69c07665a82c93a2aa9e3f138ffa8429cecd0f900d
 // @require      https://raw.githubusercontent.com/deevroman/exif-js/53b0c7c1951a23d255e37ed0a883462218a71b6f/exif.js#sha256=2235967d47deadccd9976244743e3a9be5ca5e41803cda65a40b8686ec713b74
 // @require      https://raw.githubusercontent.com/deevroman/osmtogeojson/c97381a0c86c0a021641dd47d7bea01fb5514716/osmtogeojson.js#sha256=663bb5bbae47d5d12bff9cf1c87b8f973e85fab4b1f83453810aae99add54592
+// @require      https://gist.githubusercontent.com/deevroman/d8b7a2176446e321fa6b0b47d0615d6e/raw/57c11b07432890b9a066ef6b6aba970dda9cb5ad/snow-animation.js#sha256=3b6cd76818c5575ea49aceb7bf4dc528eb8a7cb228b701329a41bb50f0800a5d
 // @require      https://openingh.openstreetmap.de/opening_hours.js/opening_hours+deps.min.js#sha256=e9a3213aba77dcf79ff1da9f828532acf1ebf7107ed1ce5f9370b922e023baff
 // @incompatible safari https://github.com/deevroman/better-osm-org/issues/13
 // @grant        GM.getValue
@@ -131,6 +132,7 @@
 /*global turf*/
 /*global osmtogeojson*/
 /*global opening_hours*/
+/*global runSnowAnimation*/
 
 if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Greasemonkey" || GM_info.scriptHandler === "Firemonkey") {
     console.error("YOU ARE USING AN UNSUPPORTED SCRIPT MANAGER")
@@ -11548,6 +11550,7 @@ function setupNavigationViaHotkeys() {
             }
         } else if (e.code === "KeyD") {
             if (e.altKey && isDebug()) {
+                // eslint-disable-next-line no-debugger
                 debugger
                 throw "debug"
             }
@@ -11828,7 +11831,7 @@ function setupNavigationViaHotkeys() {
                                 // await sleep(300)
                                 nodesList.push([object.getAttribute("lat"), object.getAttribute("lon")])
                             } else if (object.nodeName === "way") {
-
+                                // TODO
                             }
                         }
                         showActiveWay(nodesList, "#0022ff", false, null, true, 2)
@@ -13107,8 +13110,7 @@ function setup() {
                 getMap().attributionControl.setPrefix("")
                 addSwipes();
                 document.querySelector("#fixed-rss-feed")?.remove()
-            } catch {
-            }
+            } catch { /* empty */ }
         }
         lastPath = path + location.search;
         for (const module of modules.filter(module => GM_config.get(module.name.slice('setup'.length)))) {
@@ -13130,92 +13132,6 @@ function setup() {
     }
 }
 
-//<editor-fold desc="snow" defaultstate="collapsed">
-function runSnow() {
-    injectJSIntoPage(`
-    // This code distributed under MIT license
-    // Author: https://github.com/DevBubba/Bookmarklets
-    // Code was deminified
-    function snow(t) {
-        function i() {
-            this.D = function () {
-                const t = h.atan(this.i / this.d);
-                l.save(), l.translate(this.b, this.a), l.rotate(-t), l.scale(this.e, this.e * h.max(1, h.pow(this.j, .7) / 15)), l.drawImage(m, -v / 2, -v / 2), l.restore()
-            }
-        }
-
-        window;
-        const h = Math, r = h.random, a = document, o = Date.now;
-        const e = (t => {
-            l.clearRect(0, 0, _, f), l.fill(), requestAnimationFrame(e);
-            const i = .001 * y.et;
-            y.r();
-            const s = L.et * g;
-            for (var n = 0; n < C.length; ++n) {
-                const t = C[n];
-                t.i = h.sin(s + t.g) * t.h, t.j = h.sqrt(t.i * t.i + t.f), t.a += t.d * i, t.b += t.i * i, t.a > w && (t.a = -u), t.b > b && (t.b = -u), t.b < -u && (t.b = b), t.D()
-            }
-        }), s = (t => {
-            for (var e = 0; e < p; ++e) C[e].a = r() * (f + u), C[e].b = r() * _
-        }), n = (t => {
-            c.width = _ = innerWidth, c.height = f = innerHeight, w = f + u, b = _ + u, s()
-        });
-
-        class d {
-            constructor(t, e = !0) {
-                this._ts = o(), this._p = !0, this._pa = o(), this.d = t, e && this.s()
-            }
-
-            get et() {
-                return this.ip ? this._pa - this._ts : o() - this._ts
-            }
-
-            get rt() {
-                return h.max(0, this.d - this.et)
-            }
-
-            get ip() {
-                return this._p
-            }
-
-            get ic() {
-                return this.et >= this.d
-            }
-
-            s() {
-                return this._ts = o() - this.et, this._p = !1, this
-            }
-
-            r() {
-                return this._pa = this._ts = o(), this
-            }
-
-            p() {
-                return this._p = !0, this._pa = o(), this
-            }
-
-            st() {
-                return this._p = !0, this
-            }
-        }
-
-        const c = a.createElement("canvas");
-        H = c.style, H.position = "fixed", H.left = 0, H.top = 0, H.width = "100vw", H.height = "100vh", H.zIndex = "100000", H.pointerEvents = "none", a.body.insertBefore(c, a.body.children[0]);
-        const l = c.getContext("2d"), p = 300, g = 5e-4, u = 20;
-        let _ = c.width = innerWidth, f = c.height = innerHeight, w = f + u, b = _ + u;
-        const v = 15.2, m = a.createElement("canvas"), E = m.getContext("2d"),
-            x = E.createRadialGradient(7.6, 7.6, 0, 7.6, 7.6, 7.6);
-        x.addColorStop(0, "hsla(255,255%,255%,1)"), x.addColorStop(1, "hsla(255,255%,255%,0)"), E.fillStyle = x, E.fillRect(0, 0, v, v);
-        let y = new d(0, !0), C = [], L = new d(0, !0);
-        for (var j = 0; j < p; ++j) {
-            const t = new i;
-            t.a = r() * (f + u), t.b = r() * _, t.c = 1 * (3 * r() + .8), t.d = .1 * h.pow(t.c, 2.5) * 50 * (2 * r() + 1), t.d = t.d < 65 ? 65 : t.d, t.e = t.c / 7.6, t.f = t.d * t.d, t.g = r() * h.PI / 1.3, t.h = 15 * t.c, t.i = 0, t.j = 0, C.push(t)
-        }
-        s(), EL = a.addEventListener, EL("visibilitychange", () => setTimeout(n, 100), !1), EL("resize", n, !1), e()
-    };snow();`)
-}
-
-//</editor-fold>
 
 function main() {
     'use strict';
@@ -13242,7 +13158,7 @@ function main() {
             // New Year Easter egg
             const curDate = new Date()
             if (curDate.getMonth() === 11 && curDate.getDate() >= 18 || curDate.getMonth() === 0 && curDate.getDate() < 10) {
-                GM_registerMenuCommand("☃️", runSnow);
+                GM_registerMenuCommand("☃️", runSnowAnimation);
             }
             // GM_registerMenuCommand("Ask question on forum", function () {
             //     window.open("https://community.openstreetmap.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670")
