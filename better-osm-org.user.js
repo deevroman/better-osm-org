@@ -6669,7 +6669,7 @@ async function getWayNodesByTimestamp(targetTimestamp, wayID) {
     })
 
     let currentNodesList = []
-    targetVersion.nodes.forEach(node => {
+    targetVersion.nodes?.forEach(node => {
         if (node in nodesMap) {
             currentNodesList.push(nodesMap[node])
         } else {
@@ -8721,9 +8721,14 @@ async function processQuickLookInSidebar(changesetID) {
                                 const res2 = await getWayNodesByTimestamp(changesetMetadatas[changesetID].closed_at, objID)
                                 if (!res2) {
                                     // если линия создана после правки
+                                    console.log(`skip parent w${objID} for ${nodeID}`);
                                     return
                                 }
                                 const [targetVersion, currentNodesList] = res2
+                                if (targetVersion.visible === false) {
+                                    console.log(`skip parent w${objID} for ${nodeID} because version not visible`);
+                                    return
+                                }
 
                                 const popup = document.createElement("span")
                                 const link = document.createElement("a")
@@ -9477,7 +9482,12 @@ async function betterUserStat(user) {
     item.textContent = "All editors"
     filterInputByEditor.appendChild(item)
 
-    document.querySelector("#cal-heatmap").parentElement.parentElement.after(filterInputByEditor)
+    const calHeatmap = document.querySelector("#cal-heatmap")
+    if (!calHeatmap) {
+        console.log("osm.org don't show heatmap for this user")
+        return;
+    }
+    calHeatmap.parentElement.parentElement.after(filterInputByEditor)
 
     const searchByComment = document.createElement("input")
     searchByComment.type = "search"
