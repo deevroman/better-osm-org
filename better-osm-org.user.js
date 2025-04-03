@@ -5588,6 +5588,8 @@ function addDiffInHistory() {
                                 } else {
                                     currentValueSpan.replaceWith(v)
                                 }
+                                prevText.dir = "auto"
+                                newText.dir = "auto"
                             } else {
                                 if (valuesLinks.has(el[1])) {
                                     const valueLink = document.createElement("a")
