@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.9.8
+// @version         0.9.8.1
 // @changelog       v0.9.8: Hover for nodes/members in nodes way or relation members list, better RTL support
 // @changelog       v0.9.8: Show past usernames of user, click for copy ID from header, adoption to updates osm.org
 // @changelog       v0.9.6: Filter by editor for edits heatmap
@@ -1493,7 +1493,7 @@ function setupCompactChangesetsHistory() {
 
     function handleNewChangesets() {
         // remove useless
-        document.querySelectorAll("#sidebar .changesets .pt-3").forEach((e) => {
+        document.querySelectorAll("#sidebar ol.changesets .pt-3").forEach((e) => {
             e.childNodes[0].textContent = ""
             e.classList.remove("pt-3")
             e.nextElementSibling.classList.remove("flex-column")
@@ -1509,13 +1509,13 @@ function setupCompactChangesetsHistory() {
         makeTimesSwitchable();
         hideSearchForm();
 
-        document.querySelectorAll(".changesets li a.changeset_id span:not(.compacted)").forEach(description => {
+        document.querySelectorAll("ol.changesets li a.changeset_id span:not(.compacted)").forEach(description => {
             description.classList.add("compacted")
             description.textContent = shortOsmOrgLinksInText(description.textContent)
         })
 
         setTimeout(async () => {
-            for (const elem of document.querySelectorAll(".changesets li:not(:has(.comment)):not(.comments-loaded)")) {
+            for (const elem of document.querySelectorAll("ol.changesets li:not(:has(.comment)):not(.comments-loaded)")) {
                 elem.classList.add("comments-loaded")
                 const commentsBadge = elem.querySelector(".flex-row.text-body-secondary")
                 commentsBadge.querySelector("svg").outerHTML = `<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M2.678 11.894a1 1 0 0 1 .287.801 11 11 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 .71-.074A8 8 0 0 0 8 14c3.996 0 7-2.807 7-6s-3.004-6-7-6-7 2.808-7 6c0 1.468.617 2.83 1.678 3.894m-.493 3.905a22 22 0 0 1-.713.129c-.2.032-.352-.176-.273-.362a10 10 0 0 0 .244-.637l.003-.01c.248-.72.45-1.548.524-2.319C.743 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.52.263-1.639.742-3.468 1.105"></path></svg>`
@@ -10135,7 +10135,7 @@ function makeBottomActionBar() {
     }
     copyIds.classList.add("copy-changesets-ids-btn")
     copyIds.classList.add("buttom-btn")
-    copyIds.classList.add("btn", "btn-primary")
+    copyIds.classList.add("page-link")
     copyIds.onclick = () => {
         const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
         if (ids !== "") {
@@ -10156,14 +10156,15 @@ function makeBottomActionBar() {
         const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
         window.location = "https://revert.monicz.dev/?changesets=" + ids
     }
-    revertButton.classList.add("btn", "btn-primary")
+    revertButton.classList.add("page-link")
     const viewChangesetsButton = document.createElement("button")
     viewChangesetsButton.textContent = "🔍"
     viewChangesetsButton.title = "Display on one map"
     viewChangesetsButton.onclick = openCombinedChangesetsMap
-    viewChangesetsButton.classList.add("btn", "btn-primary")
-    const changesetMore = document.querySelector("#sidebar_content div.changeset_more")
+    viewChangesetsButton.classList.add("page-link")
+    const changesetMore = document.querySelector('#sidebar_content div.changeset_more:has([href*="before"]) li')
     if (changesetMore) {
+        changesetMore.style.display = "inline-flex"
         changesetMore.appendChild(copyIds)
         changesetMore.appendChild(document.createTextNode("\xA0"))
         changesetMore.appendChild(revertButton)
@@ -10171,14 +10172,21 @@ function makeBottomActionBar() {
         changesetMore.appendChild(viewChangesetsButton)
     } else {
         const changesetsList = document.querySelector("#sidebar_content ol");
-        const actionBarWrapper = document.createElement("div")
-        actionBarWrapper.classList.add("mt-3", "text-center")
-        actionBarWrapper.appendChild(copyIds)
-        actionBarWrapper.appendChild(document.createTextNode("\xA0"))
-        actionBarWrapper.appendChild(revertButton)
-        actionBarWrapper.appendChild(document.createTextNode("\xA0"))
-        actionBarWrapper.appendChild(viewChangesetsButton)
-        changesetsList.appendChild(actionBarWrapper)
+        const actionBarWrapper = document.createElement("ul")
+        actionBarWrapper.classList.add("pagination", "justify-content-center")
+        const actionBarWrapperLi = document.createElement("li")
+        actionBarWrapperLi.classList.add("page-item")
+        actionBarWrapperLi.style.display = "inline-flex"
+        actionBarWrapper.appendChild(actionBarWrapperLi)
+
+        actionBarWrapperLi.classList.add("action-bar-wrapper")
+        actionBarWrapperLi.classList.add("text-center")
+        actionBarWrapperLi.appendChild(copyIds)
+        actionBarWrapperLi.appendChild(document.createTextNode("\xA0"))
+        actionBarWrapperLi.appendChild(revertButton)
+        actionBarWrapperLi.appendChild(document.createTextNode("\xA0"))
+        actionBarWrapperLi.appendChild(viewChangesetsButton)
+        changesetsList.after(actionBarWrapper)
     }
 }
 
@@ -10194,10 +10202,10 @@ function addMassActionForUserChangesets() {
     a.onclick = () => {
         if (massModeForUserChangesetsActive === null) {
             massModeForUserChangesetsActive = true
-            document.querySelector("#sidebar .changesets").before(makeTopActionBar())
-            document.querySelector("#sidebar div.changeset_more").after(document.createTextNode("   "))
+            document.querySelector("#sidebar div.changesets").before(makeTopActionBar())
+            document.querySelector('#sidebar div.changeset_more:has([href*="before"])').after(document.createTextNode("   "))
             makeBottomActionBar()
-            document.querySelectorAll(".changesets li").forEach(addChangesetCheckbox)
+            document.querySelectorAll("ol.changesets li").forEach(addChangesetCheckbox)
         } else {
             massModeForUserChangesetsActive = !massModeForUserChangesetsActive
             document.querySelectorAll(".actions-bar").forEach(i => i.toggleAttribute("hidden"))
@@ -10363,8 +10371,8 @@ function filterChangesets(htmlDocument = document) {
 
 function updateMap() {
     needClearLoadMoreRequest++
-    lastLoadMoreURL = document.querySelector(".changeset_more > a").href
-    document.querySelector(".changeset_more > a").click()
+    lastLoadMoreURL = document.querySelector('.changeset_more:has([href*="before"]) a.page-link').href
+    document.querySelector('.changeset_more:has([href*="before"]) a.page-link').click()
 }
 
 /**
@@ -10530,7 +10538,7 @@ function addMassActionForGlobalChangesets() {
             needPatchLoadMoreRequest = true
             if (massModeActive === null) {
                 massModeActive = true
-                document.querySelector("#sidebar .changesets").before(await makeTopFilterBar())
+                document.querySelector("#sidebar div.changesets").before(await makeTopFilterBar())
                 document.querySelectorAll('ol li div > a[href^="/user/"]').forEach(makeUsernamesFilterable)
             } else {
                 massModeActive = !massModeActive
@@ -10585,7 +10593,7 @@ function addMassActionForGlobalChangesets() {
                     const docParser = new DOMParser();
                     const doc = docParser.parseFromString(responseText, "text/html");
                     doc.querySelectorAll("ol > li").forEach(i => i.remove())
-                    doc.querySelector(".changeset_more a").href = lastLoadMoreURL
+                    doc.querySelector('.changeset_more:has([href*="before"]) a.page-link').href = lastLoadMoreURL
                     queriesCache.elems[lastLoadMoreURL] = doc.documentElement.outerHTML;
                     queriesCache.elems[this.responseURL] = doc.documentElement.outerHTML;
                     lastLoadMoreURL = ""
@@ -10670,7 +10678,7 @@ function addMassChangesetsActions() {
             return;
         }
         if (massModeForUserChangesetsActive && location.pathname !== "/history" && location.pathname !== "/history/friends") {
-            document.querySelectorAll(".changesets li").forEach(addChangesetCheckbox)
+            document.querySelectorAll("ol.changesets li").forEach(addChangesetCheckbox)
             makeBottomActionBar()
         }
         if (massModeActive && (location.pathname === "/history" || location.pathname === "/history/friends")) {
@@ -10699,11 +10707,11 @@ function addMassChangesetsActions() {
             }
         })
         if (currentMassDownloadedPages && currentMassDownloadedPages <= MAX_PAGE_FOR_LOAD) {
-            const loader = document.querySelector(".changeset_more > .loader")
+            const loader = document.querySelector('.changeset_more:has([href*="before"]) > [hidden]')
             if (loader === null) {
                 makeBottomActionBar()
             } else if (loader.style.display === "") {
-                document.querySelector(".changeset_more > a").click()
+                document.querySelector('.changeset_more:has([href*="before"]) a.page-link').click()
                 console.log(`Loading page #${currentMassDownloadedPages}`)
                 currentMassDownloadedPages++
             }
@@ -10713,10 +10721,11 @@ function addMassChangesetsActions() {
             document.querySelector("#hidden-changeset-counter").textContent = ` Displayed ${changesetsCount - hiddenChangesetsCount}/${changesetsCount}`
         } else {
             if (!document.querySelector("#infinity-list-btn")) {
-                let moreButton = document.querySelector(".changeset_more > a")
+                let moreButton = document.querySelector('.changeset_more:has([href*="before"]) a.page-link')
                 if (!moreButton) return
+                moreButton.parentElement.style.display = "inline-flex"
                 const infinityList = document.createElement("button")
-                infinityList.classList.add("btn", "btn-primary")
+                infinityList.classList.add("page-link")
                 infinityList.textContent = `Load ${20 * MAX_PAGE_FOR_LOAD}`
                 infinityList.id = "infinity-list-btn"
                 infinityList.onclick = () => {
