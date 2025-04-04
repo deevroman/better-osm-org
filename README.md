@@ -95,7 +95,7 @@ Experimental hotkeys:
 
 - [x] Search deleted author of changeset
 - [x] Template responses when closing notes/changeset 👌/ 👋
-+ [x] Add Rapid & geo: links into Edit menu
++ [x] Add Rapid into Edit menu
 
 - Mass actions with changesets
 -
@@ -106,14 +106,18 @@ Experimental hotkeys:
     + [x] via remote control JOSM
 -
     + [x] load 300 changeset
+-
+    + [x] open multiple changesets on one page 
+- [x] Highlight `fixme=*`, `note=*`
+- [x] opening_hours validator
+- [x] Render `direction=*`
+- [x] Resizable sidebar
 - [x] Settings
 - [x] Hide active note highlight
 - [x] Click on time for show ISO-time
 - [x] Open external links in new tab 
-- [x] Highlight `fixme=*`, `note=*`
-- [x] opening_hours validator
-- [x] Resizable sidebar
 - Clickable:
+- + [x] ID and names in object header
 - + [x] Hashtags in changeset comment
 - + [x] Changeset IDs in comments
 - + [x] `revert:id`, `closed:note`, `redacted_changesets` key in changeset
@@ -125,6 +129,7 @@ Experimental hotkeys:
 - [x] Shortening long URLs in comments: https://www.openstreetmap.org → osm.org
 - [x] Shortening `v:`, `ideditor:` keys in changesets tags and hide `host=https://www.openstreetmap.org/edit`
 - [x] Display number of comments to changesets on the map item page
+- [x] Display the user's previous usernames (via [OSM User Names Database](https://github.com/zverik/whosthat))
 - Bypass OSMF Redactions
 - + [x] Show redacted tags
 - + [ ] Show redacted geometry 
@@ -205,6 +210,7 @@ Maybe
 - [OpenStreetMap Statistics](https://github.com/piebro/openstreetmap-statistics) — The script uses the rules from this project to normalize the names of OSM editors
 - [osmtogeojson](https://github.com/tyrasd/osmtogeojson) — converts OSM data to GeoJSON
 - [osm-auth](https://github.com/osmlab/osm-auth) — for authentication with OpenStreetMap
+- [SVG Spinners](https://github.com/n3r4zzurr0/svg-spinners) — for more beautiful spinner when you upload edits in iD in dark mode
 - ...
 
 p.s. External libraries are hosted in fork repositories (if possible) controlled by me, and imported with [Subresource Integrity](https://www.tampermonkey.net/documentation.php#api:Subresource_Integrity)
