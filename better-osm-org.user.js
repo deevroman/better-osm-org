@@ -101,6 +101,7 @@
 // @comment      geocoder
 // @connect      photon.komoot.io
 // @connect      whosthat.osmz.ru
+// @connect      content-a.strava.com
 // @sandbox      JavaScript
 // @resource     OAUTH_HTML https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html
 // @resource     OSMCHA_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/osmcha.ico
@@ -2093,8 +2094,17 @@ let MAPNIK_MODE = "🗺️"
 let currentTilesMode = MAPNIK_MODE;
 let tilesObserver = undefined;
 
+const OSMGPSPrefix = "https://gps.tile.openstreetmap.org/lines/"
+const StravaPrefix = "https://content-a.strava.com/identified/globalheat/all/blue/"
+let currentOverlayModeIsStrava = false;
+let overlayTilesObserver = undefined;
+
 function invertTilesMode(mode) {
     return mode === "🛰" ? "🗺️" : "🛰";
+}
+
+function invertOverlayMode(mode) {
+    return currentOverlayModeIsStrava = !currentOverlayModeIsStrava;
 }
 
 function parseOSMTileURL(url) {
@@ -2109,8 +2119,32 @@ function parseOSMTileURL(url) {
     }
 }
 
+function parseOSMGPSTileURL(url) {
+    let match = url.match(new RegExp(`${OSMGPSPrefix}(\\d+)\\/(\\d+)\\/(\\d+)\\.png`))
+    if (!match) {
+        return false
+    }
+    return {
+        x: match[2],
+        y: match[3],
+        z: match[1],
+    }
+}
+
 function parseESRITileURL(url) {
     let match = url.match(new RegExp(`${SatellitePrefix}(\\d+)\\/(\\d+)\\/(\\d+)`))
+    if (!match) {
+        return false
+    }
+    return {
+        x: match[3],
+        y: match[2],
+        z: match[1],
+    }
+}
+
+function parseStravaTileURL(url) {
+    let match = url.match(new RegExp(`${StravaPrefix}(\\d+)\\/(\\d+)\\/(\\d+)`))
     if (!match) {
         return false
     }
@@ -2172,7 +2206,7 @@ async function bypassChromeCSPForImagesSrc(imgElem, url) {
         reader.onload = () => resolve(reader.result);
         reader.readAsDataURL(blob);
     });
-    if (currentTilesMode === SAT_MODE) {
+    if (currentTilesMode === SAT_MODE || currentOverlayModeIsStrava) {
         imgElem.src = satTile;
     }
 }
@@ -2187,10 +2221,11 @@ function switchESRIbeta() {
         }
         let xyz = parseESRITileURL(!needBypassSatellite ? i.src : i.getAttribute("real-url") ?? "")
         if (!xyz) return
+        const newUrl = NewSatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix
         if (!needBypassSatellite) {
-            i.src = NewSatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix;
+            i.src = newUrl;
         } else {
-            bypassChromeCSPForImagesSrc(i, NewSatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix);
+            bypassChromeCSPForImagesSrc(i, newUrl);
         }
     })
     SatellitePrefix = NewSatellitePrefix
@@ -2225,6 +2260,24 @@ function tileErrorHandler(e, url = null) {
     }
 }
 
+function makeSatelliteURL(x, y, z) {
+    return SatellitePrefix + z + "/" + y + "/" + x + blankSuffix;
+}
+
+const retina = (window.retina || window.devicePixelRatio > 1);
+
+function makeStravaURL(x, y, z) {
+    return StravaPrefix + z + "/" + x + "/" + y + (retina ? "@2x" : "") + ".png";
+}
+
+function makeOSMURL(x, y, z) {
+    return OSMPrefix + z + "/" + x + "/" + y + ".png";
+}
+
+function makeOSMGPSURL(x, y, z) {
+    return OSMGPSPrefix + z + "/" + x + "/" + y + ".png";
+}
+
 function switchTiles() {
     if (tilesObserver) {
         tilesObserver.disconnect();
@@ -2251,13 +2304,14 @@ function switchTiles() {
                 i.onerror = tileErrorHandler
             } catch { /* empty */
             }
+            const newUrl = makeSatelliteURL(xyz.x, xyz.y, xyz.z)
             if (!needBypassSatellite) {
-                i.src = SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix;
+                i.src = newUrl;
             } else {
-                i.setAttribute("real-url", SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix);
+                i.setAttribute("real-url", newUrl);
             }
             if (needBypassSatellite) {
-                bypassChromeCSPForImagesSrc(i, SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix);
+                bypassChromeCSPForImagesSrc(i, newUrl);
             }
             if (i.complete && !needBypassSatellite) {
                 i.classList.add("no-invert");
@@ -2269,7 +2323,7 @@ function switchTiles() {
         } else {
             let xyz = parseESRITileURL(!needBypassSatellite ? i.src : i.getAttribute("real-url") ?? "")
             if (!xyz) return
-            i.src = OSMPrefix + xyz.z + "/" + xyz.x + "/" + xyz.y + ".png";
+            i.src = makeOSMURL(xyz.x, xyz.y, xyz.z);
             if (i.complete) {
                 i.classList.remove("no-invert");
             } else {
@@ -2293,14 +2347,15 @@ function switchTiles() {
                         node.onerror = tileErrorHandler
                     } catch { /* empty */
                     }
+                    const newURL = makeSatelliteURL(xyz.x, xyz.y, xyz.z)
                     if (!needBypassSatellite) {
-                        node.src = SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix;
+                        node.src = newURL;
                     } else {
                         node.src = "/dev/null";
                     }
-                    node.setAttribute("real-url", SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix);
+                    node.setAttribute("real-url", newURL);
                     if (needBypassSatellite) {
-                        bypassChromeCSPForImagesSrc(node, SatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix)
+                        bypassChromeCSPForImagesSrc(node, newURL)
                     }
                     if (node.complete) {
                         node.classList.add("no-invert");
@@ -2312,7 +2367,7 @@ function switchTiles() {
                 } else {
                     let xyz = parseESRITileURL(!needBypassSatellite ? node.src : node.getAttribute("real-url"))
                     if (!xyz) return
-                    node.src = OSMPrefix + xyz.z + "/" + xyz.x + "/" + xyz.y + ".png";
+                    node.src = makeOSMURL(xyz.x, xyz.y, xyz.z);
                     if (node.complete) {
                         node.classList.remove("no-invert");
                     } else {
@@ -2327,6 +2382,96 @@ function switchTiles() {
     tilesObserver = observer;
     observer.observe(document.body, {childList: true, subtree: true});
 }
+
+function switchOverlayTiles() {
+    if (overlayTilesObserver) {
+        overlayTilesObserver.disconnect();
+    }
+    currentOverlayModeIsStrava = invertOverlayMode(currentOverlayModeIsStrava);
+    if (currentOverlayModeIsStrava) {
+        getMap()?.attributionControl?.setPrefix("Strava")
+    } else {
+        getMap()?.attributionControl?.setPrefix("")
+    }
+    document.querySelectorAll(".leaflet-tile").forEach(i => {
+        if (i.nodeName !== 'IMG') {
+            return;
+        }
+        if (currentOverlayModeIsStrava) {
+            let xyz = parseOSMGPSTileURL(i.src)
+            if (!xyz) return
+            // unsafeWindow.L.DomEvent.off(i, "error") // todo добавить перехватчик 404
+            try {
+                i.onerror = tileErrorHandler
+            } catch { /* empty */
+            }
+            const newUrl = makeStravaURL(xyz.x, xyz.y, xyz.z)
+            i.setAttribute("real-url", newUrl);
+            bypassChromeCSPForImagesSrc(i, newUrl);
+            if (i.complete) {
+                i.classList.add("no-invert");
+            } else {
+                i.addEventListener("load", e => {
+                    e.target.classList.add("no-invert");
+                }, {once: true})
+            }
+        } else {
+            let xyz = parseStravaTileURL(i.getAttribute("real-url") ?? "")
+            if (!xyz) return
+            i.src = makeOSMGPSURL(xyz.x, xyz.y, xyz.z);
+            if (i.complete) {
+                i.classList.remove("no-invert");
+            } else {
+                i.addEventListener("load", e => {
+                    e.target.classList.remove("no-invert");
+                }, {once: true})
+            }
+        }
+    })
+    const observer = new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
+            mutation.addedNodes.forEach(node => {
+                if (node.nodeName !== 'IMG') {
+                    return;
+                }
+                if (currentOverlayModeIsStrava) {
+                    let xyz = parseOSMGPSTileURL(node.src);
+                    if (!xyz) return
+                    // unsafeWindow.L.DomEvent.off(node, "error")
+                    try {
+                        node.onerror = tileErrorHandler
+                    } catch { /* empty */
+                    }
+                    const newURL = makeStravaURL(xyz.x, xyz.y, xyz.z)
+                    node.src = "/dev/null";
+                    node.setAttribute("real-url", newURL);
+                    bypassChromeCSPForImagesSrc(node, newURL)
+                    if (node.complete) {
+                        node.classList.add("no-invert");
+                    } else {
+                        node.addEventListener("load", e => {
+                            e.target.classList.add("no-invert");
+                        }, {once: true})
+                    }
+                } else {
+                    let xyz = parseStravaTileURL(node.getAttribute("real-url"))
+                    if (!xyz) return
+                    node.src = makeOSMGPSURL(xyz.x, xyz.y, xyz.z) ;
+                    if (node.complete) {
+                        node.classList.remove("no-invert");
+                    } else {
+                        node.addEventListener("load", e => {
+                            e.target.classList.remove("no-invert");
+                        }, {once: true})
+                    }
+                }
+            });
+        });
+    });
+    overlayTilesObserver = observer;
+    observer.observe(document.body, {childList: true, subtree: true});
+}
+
 
 function addSatelliteLayers() {
     const btnOnPane = document.createElement("span");
@@ -11573,7 +11718,12 @@ function setupNavigationViaHotkeys() {
                 }
             }
         } else if (e.code === "KeyG") { // gps tracks
-            Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
+            if (e.shiftKey || e.altKey) {
+                enableOverzoom()
+                switchOverlayTiles()
+            } else {
+                Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
+            }
         } else if (e.code === "KeyS") { // satellite
             enableOverzoom()
             if (e.shiftKey) {
@@ -13134,7 +13284,8 @@ function setup() {
                 getMap().attributionControl.setPrefix("")
                 addSwipes();
                 document.querySelector("#fixed-rss-feed")?.remove()
-            } catch { /* empty */ }
+            } catch { /* empty */
+            }
         }
         lastPath = path + location.search;
         for (const module of modules.filter(module => GM_config.get(module.name.slice('setup'.length)))) {
