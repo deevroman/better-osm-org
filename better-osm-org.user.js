@@ -10020,6 +10020,7 @@ async function updateUserInfo(username) {
     }).toString());
     let uid;
     let firstObjectCreationTime;
+    let firstChangesetID;
     if (res['changesets'].length === 0) {
         const res = await fetchJSONWithCache(osm_server.apiBase + "notes/search.json?" + new URLSearchParams({
             display_name: username,
@@ -10032,6 +10033,7 @@ async function updateUserInfo(username) {
     } else {
         uid = res['changesets'][0]['uid']
         firstObjectCreationTime = res['changesets'][0]['created_at']
+        firstChangesetID = res['changesets'][0]['id']
     }
 
     const res2 = await fetchJSONWithCache(osm_server.apiBase + "user/" + uid + ".json");
@@ -10040,10 +10042,17 @@ async function updateUserInfo(username) {
     if (firstObjectCreationTime) {
         userInfo['firstChangesetCreationTime'] = new Date(firstObjectCreationTime)
     }
+    if (firstChangesetID) {
+        userInfo['firstChangesetID'] = firstChangesetID
+    }
     await GM.setValue("userinfo-" + username, JSON.stringify(userInfo))
     return userInfo
 }
 
+/**
+ * @param {string} username
+ * @return {Promise<*>}
+ */
 async function getCachedUserInfo(username) {
     const localUserInfo = await GM.getValue("userinfo-" + username, "")
     if (localUserInfo) {
@@ -11676,6 +11685,18 @@ function setupNavigationViaHotkeys() {
                     getWindow().OSM.router.route(location.pathname.match(/\/(node|way|relation)\/\d+/)[0] + "/history/1")
                 } else {
                     console.debug("skip 1")
+                }
+            } else if (location.pathname.startsWith("/changeset")) {
+                const user_link = document.querySelector('#sidebar_content a[href^="/user/"]')
+                if (user_link) {
+                    const username = decodeURI(user_link.getAttribute("href").match(/\/user\/([^/]+)/)[1])
+                    getCachedUserInfo(username).then(res => {
+                        if (res["firstChangesetID"]) {
+                            getWindow().OSM.router.route(`/changeset/${res["firstChangesetID"]}`)
+                        } else {
+                            console.warn("not found first changeset for " + username)
+                        }
+                    })
                 }
             }
         } else if (e.key === "0") {
