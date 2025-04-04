@@ -10197,6 +10197,15 @@ function makeBottomActionBar() {
     }
 }
 
+function makeOsmchaLinkForUsername(username) {
+    // example: https://osmcha.org?filters={"users":[{"label":"TrickyFoxy","value":"TrickyFoxy"}]}
+    const osmchaFilter = {
+        "users": [{"label": username, "value": username}],
+        "date__gte": [{"label": "", "value": ""}]
+    }
+    return "https://osmcha.org?" + new URLSearchParams({filters: JSON.stringify(osmchaFilter)}).toString()
+}
+
 function addMassActionForUserChangesets() {
     if (!location.pathname.includes("/user/") || document.querySelector("#mass-action-btn")) {
         return;
@@ -10221,16 +10230,11 @@ function addMassActionForUserChangesets() {
             })
         }
     }
-    // example: https://osmcha.org?filters={"users":[{"label":"TrickyFoxy","value":"TrickyFoxy"}]}
     const username = decodeURI(location.pathname.match(/\/user\/(.*)\/history$/)[1])
-    const osmchaFilter = {
-        "users": [{"label": username, "value": username}],
-        "date__gte": [{"label": "", "value": ""}]
-    }
     const osmchaLink = document.createElement("a");
     osmchaLink.id = "osmcha_link"
     osmchaLink.title = "Open profile in OSMCha.org"
-    osmchaLink.href = "https://osmcha.org?" + new URLSearchParams({filters: JSON.stringify(osmchaFilter)}).toString()
+    osmchaLink.href = makeOsmchaLinkForUsername(username)
     osmchaLink.target = "_blank"
     osmchaLink.rel = "noreferrer"
 
@@ -11717,7 +11721,12 @@ function setupNavigationViaHotkeys() {
             if (e.shiftKey) {
                 window.open("https://overpass-api.de/achavi/?changeset=" + location.pathname.match(/\/changeset\/(\d+)/)[1])
             } else {
-                document.querySelector("#osmcha_link")?.click()
+                const usernameMatch = location.pathname.match(/^\/user\/([^/]+)\/?$/)
+                if (usernameMatch) {
+                    window.open(makeOsmchaLinkForUsername(decodeURI(usernameMatch[1])))
+                } else {
+                    document.querySelector("#osmcha_link")?.click()
+                }
             }
         } else if (e.code === "Escape") {
             cleanObjectsByKey("activeObjects")
