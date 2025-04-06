@@ -859,9 +859,21 @@ function addRevertButton() {
                                <a href="https://osmcha.org/changesets/${changeset_id}" target="_blank" rel="noreferrer"><img src="${GM_getResourceURL("OSMCHA_ICON", false)}" id="osmcha_link"></a>`;
 
         document.querySelector("#revert_button_class").onclick = (e) => {
-            if (!e.shiftKey) return
+            if (!e.shiftKey) {
+                if (osm_server !== prod_server) {
+                    e.preventDefault()
+                    alert("osm-revert works only for www.openstreetmap.org\n\nBut you can install reverter plugin in JOSM and use shift+click for other OSM servers.\n\n⚠️Change the osm server in the josm settings!")
+                }
+                return
+            }
+            if (osm_server !== prod_server) {
+                if (!confirm("⚠️This is not the main OSM server!\n\n⚠️To change the OSM server in the JOSM settings!")) {
+                    e.preventDefault()
+                    return
+                }
+            }
             e.preventDefault()
-            window.location = "http://127.0.0.1:8111/revert_changeset?id=" + changeset_id // todo open in new tab
+            window.location = "http://127.0.0.1:8111/revert_changeset?id=" + changeset_id // todo open in new tab. It's broken in Fifefox and open new window
         }
         document.querySelector("#revert_button_class").style.textDecoration = "none"
         const osmcha_link = document.querySelector("#osmcha_link");
