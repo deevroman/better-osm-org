@@ -6046,6 +6046,9 @@ async function addHoverForNodesParents() {
     document.querySelector(".node-last-version-parent")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
         cleanObjectsByKey("activeObjects")
     })
+    document.querySelector(".secondary-actions")?.addEventListener("mouseenter", () => {
+        cleanObjectsByKey("activeObjects")
+    })
     console.log("addHoverForWayNodes finished");
 }
 
@@ -6079,6 +6082,9 @@ async function addHoverForWayNodes() {
         }
     })
     document.querySelector(".way-last-version-node")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
+        cleanObjectsByKey("activeObjects")
+    })
+    document.querySelector(".secondary-actions")?.addEventListener("mouseenter", () => {
         cleanObjectsByKey("activeObjects")
     })
     console.log("addHoverForWayNodes finished");
@@ -6182,6 +6188,9 @@ async function addHoverForRelationMembers() {
         }
     })
     document.querySelector(".relation-last-version-member")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
+        cleanObjectsByKey("activeObjects")
+    })
+    document.querySelector(".secondary-actions")?.addEventListener("mouseenter", () => {
         cleanObjectsByKey("activeObjects")
     })
     console.log("addHoverForRelationMembers finished");
