@@ -859,9 +859,21 @@ function addRevertButton() {
                                <a href="https://osmcha.org/changesets/${changeset_id}" target="_blank" rel="noreferrer"><img src="${GM_getResourceURL("OSMCHA_ICON", false)}" id="osmcha_link"></a>`;
 
         document.querySelector("#revert_button_class").onclick = (e) => {
-            if (!e.shiftKey) return
+            if (!e.shiftKey) {
+                if (osm_server !== prod_server) {
+                    e.preventDefault()
+                    alert("osm-revert works only for www.openstreetmap.org\n\nBut you can install reverter plugin in JOSM and use shift+click for other OSM servers.\n\n⚠️Change the osm server in the josm settings!")
+                }
+                return
+            }
+            if (osm_server !== prod_server) {
+                if (!confirm("⚠️This is not the main OSM server!\n\n⚠️To change the OSM server in the JOSM settings!")) {
+                    e.preventDefault()
+                    return
+                }
+            }
             e.preventDefault()
-            window.location = "http://127.0.0.1:8111/revert_changeset?id=" + changeset_id // todo open in new tab
+            window.location = "http://127.0.0.1:8111/revert_changeset?id=" + changeset_id // todo open in new tab. It's broken in Fifefox and open new window
         }
         document.querySelector("#revert_button_class").style.textDecoration = "none"
         const osmcha_link = document.querySelector("#osmcha_link");
@@ -950,11 +962,21 @@ function addRevertButton() {
                     key.title = key.textContent
                     key.textContent = key.textContent.replace("ideditor:", "iD:")
                 } else if (key.textContent === "revert:id") {
-                    if (i.querySelector("td").textContent.match(/^((\d+(;|$))+$)/)) {
-                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)/g,
-                            `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>`)
+                    if (i.querySelector("td").textContent.match(/^((\d+(;|…?$))+$)/)) {
+                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)(;|$)/g,
+                            `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>$2`)
                     } else if (i.querySelector("td").textContent.match(/https:\/\/(www\.)?openstreetmap.org\/changeset\//g)) {
                         i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/>https:\/\/(www\.)?openstreetmap.org\/changeset\//g, ">")
+                    }
+                } else if (key.textContent === "revert:dmp:relation:id" || key.textContent === "revert:dmp:fail:relation:id") {
+                    if (i.querySelector("td").textContent.match(/^((\d+(;|…?$))+$)/)) {
+                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)(;|$)/g,
+                            `<a href="/relation/$1" class="relation_link_in_changeset_tags">$1</a>$2`)
+                    }
+                } else if (key.textContent === "revert:dmp:way:id" || key.textContent === "revert:dmp:fail:way:id") {
+                    if (i.querySelector("td").textContent.match(/^((\d+(;|…?$))+$)/)) {
+                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)(;|$)/g,
+                            `<a href="/way/$1" class="way_link_in_changeset_tags">$1</a>$2`)
                     }
                 } else if (key.textContent === "redacted_changesets") {
                     if (i.querySelector("td").textContent.match(/^((\d+(,|$))+$)/)) {
@@ -6024,6 +6046,9 @@ async function addHoverForNodesParents() {
     document.querySelector(".node-last-version-parent")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
         cleanObjectsByKey("activeObjects")
     })
+    document.querySelector(".secondary-actions")?.addEventListener("mouseenter", () => {
+        cleanObjectsByKey("activeObjects")
+    })
     console.log("addHoverForWayNodes finished");
 }
 
@@ -6057,6 +6082,9 @@ async function addHoverForWayNodes() {
         }
     })
     document.querySelector(".way-last-version-node")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
+        cleanObjectsByKey("activeObjects")
+    })
+    document.querySelector(".secondary-actions")?.addEventListener("mouseenter", () => {
         cleanObjectsByKey("activeObjects")
     })
     console.log("addHoverForWayNodes finished");
@@ -6160,6 +6188,9 @@ async function addHoverForRelationMembers() {
         }
     })
     document.querySelector(".relation-last-version-member")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
+        cleanObjectsByKey("activeObjects")
+    })
+    document.querySelector(".secondary-actions")?.addEventListener("mouseenter", () => {
         cleanObjectsByKey("activeObjects")
     })
     console.log("addHoverForRelationMembers finished");
