@@ -1514,6 +1514,9 @@ function setupCompactChangesetsHistory() {
     // }
 
     function handleNewChangesets() {
+        if (!location.pathname.includes("/history")) {
+            return
+        }
         // remove useless
         document.querySelectorAll("#sidebar ol.changesets .pt-3").forEach((e) => {
             e.childNodes[0].textContent = ""
