@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.9.8.1
+// @version         0.9.8.2
 // @changelog       v0.9.8: Hover for nodes/members in nodes way or relation members list, better RTL support
 // @changelog       v0.9.8: Show past usernames of user, click for copy ID from header, adoption to updates osm.org
 // @changelog       v0.9.6: Filter by editor for edits heatmap
@@ -12287,8 +12287,8 @@ function setupTaginfo() {
 
     if (instance_text?.includes(" ")) {
         const turboLink = document.querySelector("#turbo_button:not(.fixed-link)")
-        if (turboLink && (turboLink.href.includes("%22+in") || turboLink.href.includes("*+in"))) {
-            turboLink.href = turboLink.href.replace(/(%22|\*)\+in\+(.*)&/, `$1+in+"${instance}"&`)
+        if (turboLink && (turboLink.href.includes("%22+in") || turboLink.href.includes("*+in") || turboLink.href.includes("relation+in"))) {
+            turboLink.href = turboLink.href.replace(/(%22|\*|relation)\+in\+(.*)&/, `$1+in+"${instance}"&`)
             turboLink.classList?.add("fixed-link")
         }
     }
