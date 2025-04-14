@@ -847,6 +847,57 @@ function shortOsmOrgLinks(elem) {
 // todo remove this
 const mainTags = ["shop", "building", "amenity", "man_made", "highway", "natural", "aeroway", "historic", "railway", "tourism", "landuse", "leisure"]
 
+async function getPrevNextChangesetsIDs(changeset_id) {
+    const changesetMetadata = await loadChangesetMetadata(changeset_id)
+    if (!changesetMetadata.uid) return
+
+    /*** @type {{changesets: ChangesetMetadata[]}}*/
+    const prevChangesets = await fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
+        user: changesetMetadata.uid,
+        order: 'newest',
+        from: "2005-01-01T00:00:00Z",
+        to: new Date(new Date(changesetMetadata.created_at).getTime() + 1000).toISOString(), // на случай если в одну секунду созданно несколько пакетов правок
+    }).toString())
+
+    /*** @type {{changesets: ChangesetMetadata[]}}*/
+    const nextChangesets = await fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
+        user: changesetMetadata.uid,
+        order: 'oldest',
+        from: changesetMetadata.created_at,
+        to: new Date().toISOString(),
+    }).toString())
+
+    return [prevChangesets.changesets.find(i => i.id !== changeset_id)?.id, nextChangesets.changesets.find(i => i.id !== changeset_id)?.id];
+}
+
+async function restorePrevNextChangesetButtons(changeset_id) {
+    if (document.querySelector(".restored-secondary-actions")) return;
+    console.log("try restore prev/next deleted user's changesets")
+    const [prevID, nextID] = await getPrevNextChangesetsIDs(changeset_id);
+    if (!prevID && !nextID) return
+    const secondaryActions = document.querySelector("#sidebar_content .secondary-actions")
+    const secondarySecondaryActions = document.createElement("div")
+    secondarySecondaryActions.classList.add("secondary-actions", "restored-secondary-actions")
+    if (prevID) {
+        const prevLink = document.createElement("a")
+        prevLink.classList.add("icon-link")
+        prevLink.href = "/changeset/" + prevID
+        prevLink.innerHTML = '<svg width="8" height="11" viewBox="-8 0 8 11"><path d="M-2,2 l-3.5,3.5 l3.5,3.5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>'
+        prevLink.appendChild(document.createTextNode(prevID))
+        secondarySecondaryActions.appendChild(prevLink)
+    }
+    secondarySecondaryActions.appendChild(document.createTextNode(` · ${(await loadChangesetMetadata(changeset_id)).user} · `))
+    if (nextID) {
+        const nextLink = document.createElement("a")
+        nextLink.classList.add("icon-link")
+        nextLink.href = "/changeset/" + nextID
+        nextLink.innerHTML = '<svg width="8" height="11"><path d="M2,2 l3.5,3.5 l-3.5,3.5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>'
+        nextLink.prepend(document.createTextNode(nextID))
+        secondarySecondaryActions.appendChild(nextLink)
+    }
+    secondaryActions.after(secondarySecondaryActions)
+}
+
 function addRevertButton() {
     if (!location.pathname.startsWith("/changeset")) return
     if (document.querySelector('#revert_button_class')) return true;
@@ -943,6 +994,8 @@ function addRevertButton() {
             findBtn.style.cursor = "pointer"
             findBtn.onclick = findChangesetInDiff
             metainfoHTML.appendChild(findBtn)
+
+            void restorePrevNextChangesetButtons(parseInt(changeset_id))
         }
         // compact changeset tags
         if (!document.querySelector(".browse-tag-list[compacted]")) {
@@ -10979,7 +11032,7 @@ function debug_alert() {
 
 /**
  * @param {number|null=} changeset_id
- * @return {Promise<void>}
+ * @return {Promise<ChangesetMetadata|void>}
  */
 async function loadChangesetMetadata(changeset_id = null) {
     console.log(`Loading changeset metadata`)
@@ -10992,7 +11045,7 @@ async function loadChangesetMetadata(changeset_id = null) {
     }
     console.log(`Loading metadata of changeset #${changeset_id}`)
     if (changesetMetadatas[changeset_id] && changesetMetadatas[changeset_id].id === changeset_id) {
-        return;
+        return changesetMetadatas[changeset_id];
     }
     // prevChangesetMetadata = changesetMetadatas[changeset_id]
     const res = await getChangesetMetadata(changeset_id);
@@ -11004,14 +11057,14 @@ async function loadChangesetMetadata(changeset_id = null) {
     } else {
         const jsonRes = await res.json();
         if (jsonRes.changeset) {
-            changesetMetadatas[changeset_id] = jsonRes.changeset
-            return
+            return changesetMetadatas[changeset_id] = jsonRes.changeset
         }
         changesetMetadatas[changeset_id] = jsonRes.elements[0]
         changesetMetadatas[changeset_id].min_lat = changesetMetadatas[changeset_id].minlat
         changesetMetadatas[changeset_id].min_lon = changesetMetadatas[changeset_id].minlon
         changesetMetadatas[changeset_id].max_lat = changesetMetadatas[changeset_id].maxlat
         changesetMetadatas[changeset_id].max_lon = changesetMetadatas[changeset_id].maxlon
+        return changesetMetadatas[changeset_id]
     }
 }
 
