@@ -907,7 +907,7 @@ function addRevertButton() {
     if (sidebar) {
         hideSearchForm();
         // sidebar.classList.add("changeset-header")
-        const changeset_id = sidebar.innerHTML.match(/(\d+)/)[0];
+        const changeset_id = sidebar.innerHTML.match(/([0-9]+)/)[0];
         sidebar.innerHTML += ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="Open osm-revert\nShift + click for revert via JOSM">↩️</a> 
                                <a href="https://osmcha.org/changesets/${changeset_id}" target="_blank" rel="noreferrer"><img src="${GM_getResourceURL("OSMCHA_ICON", false)}" id="osmcha_link"></a>`;
 
@@ -2183,7 +2183,7 @@ function invertTilesMode(mode) {
     return mode === "🛰" ? "🗺️" : "🛰";
 }
 
-function invertOverlayMode(mode) {
+function invertOverlayMode(mode) { // fixme
     return currentOverlayModeIsStrava = !currentOverlayModeIsStrava;
 }
 
@@ -2536,7 +2536,7 @@ function switchOverlayTiles() {
                 } else {
                     let xyz = parseStravaTileURL(node.getAttribute("real-url"))
                     if (!xyz) return
-                    node.src = makeOSMGPSURL(xyz.x, xyz.y, xyz.z) ;
+                    node.src = makeOSMGPSURL(xyz.x, xyz.y, xyz.z);
                     if (node.complete) {
                         node.classList.remove("no-invert");
                     } else {
