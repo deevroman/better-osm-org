@@ -851,12 +851,11 @@ async function getPrevNextChangesetsIDs(changeset_id) {
     const changesetMetadata = await loadChangesetMetadata(changeset_id)
     if (!changesetMetadata.uid) return
 
-    /*** @type {{changesets: ChangesetMetadata[]}}*/
-    const prevChangesets = await fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
+    const prevChangesetsPromise = fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
         user: changesetMetadata.uid,
         order: 'newest',
         from: "2005-01-01T00:00:00Z",
-        to: new Date(new Date(changesetMetadata.created_at).getTime() + 1000).toISOString(), // на случай если в одну секунду созданно несколько пакетов правок
+        to: new Date(new Date(changesetMetadata.created_at).getTime() + 1000).toISOString(), // на случай если в одну секунду создано несколько пакетов правок
     }).toString())
 
     /*** @type {{changesets: ChangesetMetadata[]}}*/
@@ -867,7 +866,10 @@ async function getPrevNextChangesetsIDs(changeset_id) {
         to: new Date().toISOString(),
     }).toString())
 
-    return [prevChangesets.changesets.find(i => i.id !== changeset_id)?.id, nextChangesets.changesets.find(i => i.id !== changeset_id)?.id];
+    /*** @type {{changesets: ChangesetMetadata[]}}*/
+    const prevChangesets = await prevChangesetsPromise;
+
+    return [prevChangesets.changesets.find(i => i.id < changeset_id)?.id, nextChangesets.changesets.find(i => i.id > changeset_id)?.id];
 }
 
 async function restorePrevNextChangesetButtons(changeset_id) {
