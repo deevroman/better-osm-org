@@ -10063,7 +10063,9 @@ async function setupHDYCInProfile(path) {
     })
     const iframe = document.getElementById('hdyc-iframe');
     window.addEventListener('message', function (event) {
-        iframe.height = event.data.height + 'px';
+        if (event.origin === "https://www.hdyc.neis-one.org") {
+            iframe.height = event.data.height + 'px';
+        }
     });
 
     void betterUserStat(decodeURI(user))
