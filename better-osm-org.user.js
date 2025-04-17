@@ -9355,7 +9355,7 @@ function setupChangesetQuickLook(path) {
 }
 
 
-const rapidLink = "https://mapwith.ai/rapid#background=EsriWorldImagery&map="
+const rapidLink = "https://mapwith.ai/rapid#map="
 let coordinatesObserver = null;
 
 function setupNewEditorsLinks() {
