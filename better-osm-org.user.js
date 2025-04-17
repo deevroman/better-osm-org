@@ -9444,7 +9444,7 @@ function setupChangesetQuickLook(path) {
 }
 
 
-const rapidLink = "https://mapwith.ai/rapid#map="
+const rapidLink = "https://mapwith.ai/rapid#poweruser=true&map="
 let coordinatesObserver = null;
 
 function setupNewEditorsLinks() {
