@@ -1216,7 +1216,7 @@ function addRevertButton() {
 
         async function updateReactions() {
             const res = await GM.xmlHttpRequest({
-                url: "https://osmcha.org/api/v1/changesets/" + changeset_id,
+                url: "https://osmcha.org/api/v1/changesets/" + changeset_id + "/",
                 method: "GET",
                 headers: {
                     "Authorization": "Token " + await GM.getValue("OSMCHA_TOKEN"),
