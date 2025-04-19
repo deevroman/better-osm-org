@@ -11845,7 +11845,23 @@ function setupNavigationViaHotkeys() {
             }
         } else if (e.code === "KeyJ") {
             setTimeout(async () => {
-                if (!location.pathname.includes("changeset")) return
+                if (!location.pathname.includes("changeset")) {
+                    const m = location.pathname.match(/\/(node|way|relation)\/([0-9]+)/)
+                    if (!m) return
+                    const [, type, id] = m
+                    const shortType = type === "node" ? "n" : (type === "way" ? "w" : "r")
+                    if (e.altKey) {
+                        window.open("https://level0.osmz.ru/?" + new URLSearchParams({
+                            url: shortType + id + "!"
+                        }).toString())
+                    } else {
+                        window.open("http://localhost:8111/load_object?" + new URLSearchParams({
+                            objects: [shortType + id],
+                            relation_members: true,
+                        }).toString())
+                    }
+                    return
+                }
 
                 const nodes = new Set()
                 const ways = new Set()
