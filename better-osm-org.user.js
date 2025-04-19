@@ -11780,6 +11780,8 @@ function setupNavigationViaHotkeys() {
         if (e.code === "KeyN") {
             if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
                 document.querySelector('a[href^="/user/"][href$="/notes"]')?.click()
+            } else if (e.altKey && location.pathname.match(/note\/[0-9]+/)) {
+                window.open(document.querySelector('#sidebar_content a[href^="/user/"]').getAttribute("href") + "/notes", "_blank")
             } else {
                 // notes
                 if (e.shiftKey) {
