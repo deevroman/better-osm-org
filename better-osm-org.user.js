@@ -8475,6 +8475,7 @@ async function getParentWays(nodeID) {
 
 
 async function processQuickLookInSidebar(changesetID) {
+    const interceptMapManuallyPromise = interceptMapManually()
     const multipleChangesets = location.search.includes("changesets=")
 
     async function processObjects(objType, uniqTypes) {
@@ -8656,6 +8657,7 @@ async function processQuickLookInSidebar(changesetID) {
             await processObjects(objType, uniqTypes);
         }
         const changesetDataPromise = getChangeset(changesetID);
+        await interceptMapManuallyPromise;
         for (const objType of ["way", "node", "relation"]) {
             await processObjectsInteractions(objType, uniqTypes, changesetID);
         }
@@ -9376,8 +9378,10 @@ async function interceptMapManually() {
         }
         exportImageBtn.click()
         exportImageBtn.click()
-        console.warn("wait for map intercepting")
-        await sleep(10)
+        if (!getWindow().mapIntercepted) {
+            console.warn("wait for map intercepting")
+            await sleep(9)
+        }
     } catch (e) {
         console.error(e)
     }
@@ -9418,7 +9422,6 @@ async function addChangesetQuickLook() {
         changesetIDs = params.get("changesets")?.split(",")?.filter(i => i !== changesetID) ?? []
     }
 
-    await interceptMapManually()
     if (!GM_config.get("NavigationViaHotkeys")) {
         setTimeout(loadChangesetMetadata, 0)
     }
