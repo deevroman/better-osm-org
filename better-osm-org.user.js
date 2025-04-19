@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.9.8.1
+// @version         0.9.8.2
 // @changelog       v0.9.8: Hover for nodes/members in nodes way or relation members list, better RTL support
 // @changelog       v0.9.8: Show past usernames of user, click for copy ID from header, adoption to updates osm.org
 // @changelog       v0.9.6: Filter by editor for edits heatmap
@@ -847,6 +847,59 @@ function shortOsmOrgLinks(elem) {
 // todo remove this
 const mainTags = ["shop", "building", "amenity", "man_made", "highway", "natural", "aeroway", "historic", "railway", "tourism", "landuse", "leisure"]
 
+async function getPrevNextChangesetsIDs(changeset_id) {
+    const changesetMetadata = await loadChangesetMetadata(changeset_id)
+    if (!changesetMetadata.uid) return
+
+    const prevChangesetsPromise = fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
+        user: changesetMetadata.uid,
+        order: 'newest',
+        from: "2005-01-01T00:00:00Z",
+        to: new Date(new Date(changesetMetadata.created_at).getTime() + 1000).toISOString(), // на случай если в одну секунду создано несколько пакетов правок
+    }).toString())
+
+    /*** @type {{changesets: ChangesetMetadata[]}}*/
+    const nextChangesets = await fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
+        user: changesetMetadata.uid,
+        order: 'oldest',
+        from: changesetMetadata.created_at,
+        to: new Date().toISOString(),
+    }).toString())
+
+    /*** @type {{changesets: ChangesetMetadata[]}}*/
+    const prevChangesets = await prevChangesetsPromise;
+
+    return [prevChangesets.changesets.find(i => i.id < changeset_id)?.id, nextChangesets.changesets.find(i => i.id > changeset_id)?.id];
+}
+
+async function restorePrevNextChangesetButtons(changeset_id) {
+    if (document.querySelector(".restored-secondary-actions")) return;
+    console.log("try restore prev/next deleted user's changesets")
+    const [prevID, nextID] = await getPrevNextChangesetsIDs(changeset_id);
+    if (!prevID && !nextID) return
+    const secondaryActions = document.querySelector("#sidebar_content .secondary-actions")
+    const secondarySecondaryActions = document.createElement("div")
+    secondarySecondaryActions.classList.add("secondary-actions", "restored-secondary-actions")
+    if (prevID) {
+        const prevLink = document.createElement("a")
+        prevLink.classList.add("icon-link")
+        prevLink.href = "/changeset/" + prevID
+        prevLink.innerHTML = '<svg width="8" height="11" viewBox="-8 0 8 11"><path d="M-2,2 l-3.5,3.5 l3.5,3.5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>'
+        prevLink.appendChild(document.createTextNode(prevID))
+        secondarySecondaryActions.appendChild(prevLink)
+    }
+    secondarySecondaryActions.appendChild(document.createTextNode(` · ${(await loadChangesetMetadata(changeset_id)).user} · `))
+    if (nextID) {
+        const nextLink = document.createElement("a")
+        nextLink.classList.add("icon-link")
+        nextLink.href = "/changeset/" + nextID
+        nextLink.innerHTML = '<svg width="8" height="11"><path d="M2,2 l3.5,3.5 l-3.5,3.5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>'
+        nextLink.prepend(document.createTextNode(nextID))
+        secondarySecondaryActions.appendChild(nextLink)
+    }
+    secondaryActions.after(secondarySecondaryActions)
+}
+
 function addRevertButton() {
     if (!location.pathname.startsWith("/changeset")) return
     if (document.querySelector('#revert_button_class')) return true;
@@ -854,14 +907,26 @@ function addRevertButton() {
     if (sidebar) {
         hideSearchForm();
         // sidebar.classList.add("changeset-header")
-        const changeset_id = sidebar.innerHTML.match(/(\d+)/)[0];
+        const changeset_id = sidebar.innerHTML.match(/([0-9]+)/)[0];
         sidebar.innerHTML += ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="Open osm-revert\nShift + click for revert via JOSM">↩️</a> 
                                <a href="https://osmcha.org/changesets/${changeset_id}" target="_blank" rel="noreferrer"><img src="${GM_getResourceURL("OSMCHA_ICON", false)}" id="osmcha_link"></a>`;
 
         document.querySelector("#revert_button_class").onclick = (e) => {
-            if (!e.shiftKey) return
+            if (!e.shiftKey) {
+                if (osm_server !== prod_server) {
+                    e.preventDefault()
+                    alert("osm-revert works only for www.openstreetmap.org\n\nBut you can install reverter plugin in JOSM and use shift+click for other OSM servers.\n\n⚠️Change the osm server in the josm settings!")
+                }
+                return
+            }
+            if (osm_server !== prod_server) {
+                if (!confirm("⚠️This is not the main OSM server!\n\n⚠️To change the OSM server in the JOSM settings!")) {
+                    e.preventDefault()
+                    return
+                }
+            }
             e.preventDefault()
-            window.location = "http://127.0.0.1:8111/revert_changeset?id=" + changeset_id // todo open in new tab
+            window.location = "http://127.0.0.1:8111/revert_changeset?id=" + changeset_id // todo open in new tab. It's broken in Fifefox and open new window
         }
         document.querySelector("#revert_button_class").style.textDecoration = "none"
         const osmcha_link = document.querySelector("#osmcha_link");
@@ -931,6 +996,8 @@ function addRevertButton() {
             findBtn.style.cursor = "pointer"
             findBtn.onclick = findChangesetInDiff
             metainfoHTML.appendChild(findBtn)
+
+            void restorePrevNextChangesetButtons(parseInt(changeset_id))
         }
         // compact changeset tags
         if (!document.querySelector(".browse-tag-list[compacted]")) {
@@ -950,11 +1017,21 @@ function addRevertButton() {
                     key.title = key.textContent
                     key.textContent = key.textContent.replace("ideditor:", "iD:")
                 } else if (key.textContent === "revert:id") {
-                    if (i.querySelector("td").textContent.match(/^((\d+(;|$))+$)/)) {
-                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)/g,
-                            `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>`)
+                    if (i.querySelector("td").textContent.match(/^((\d+(;|…?$))+$)/)) {
+                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)(;|$)/g,
+                            `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>$2`)
                     } else if (i.querySelector("td").textContent.match(/https:\/\/(www\.)?openstreetmap.org\/changeset\//g)) {
                         i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/>https:\/\/(www\.)?openstreetmap.org\/changeset\//g, ">")
+                    }
+                } else if (key.textContent === "revert:dmp:relation:id" || key.textContent === "revert:dmp:fail:relation:id") {
+                    if (i.querySelector("td").textContent.match(/^((\d+(;|…?$))+$)/)) {
+                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)(;|$)/g,
+                            `<a href="/relation/$1" class="relation_link_in_changeset_tags">$1</a>$2`)
+                    }
+                } else if (key.textContent === "revert:dmp:way:id" || key.textContent === "revert:dmp:fail:way:id") {
+                    if (i.querySelector("td").textContent.match(/^((\d+(;|…?$))+$)/)) {
+                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)(;|$)/g,
+                            `<a href="/way/$1" class="way_link_in_changeset_tags">$1</a>$2`)
                     }
                 } else if (key.textContent === "redacted_changesets") {
                     if (i.querySelector("td").textContent.match(/^((\d+(,|$))+$)/)) {
@@ -1492,6 +1569,9 @@ function setupCompactChangesetsHistory() {
     // }
 
     function handleNewChangesets() {
+        if (!location.pathname.includes("/history")) {
+            return
+        }
         // remove useless
         document.querySelectorAll("#sidebar ol.changesets .pt-3").forEach((e) => {
             e.childNodes[0].textContent = ""
@@ -2103,7 +2183,7 @@ function invertTilesMode(mode) {
     return mode === "🛰" ? "🗺️" : "🛰";
 }
 
-function invertOverlayMode(mode) {
+function invertOverlayMode(mode) { // fixme
     return currentOverlayModeIsStrava = !currentOverlayModeIsStrava;
 }
 
@@ -2456,7 +2536,7 @@ function switchOverlayTiles() {
                 } else {
                     let xyz = parseStravaTileURL(node.getAttribute("real-url"))
                     if (!xyz) return
-                    node.src = makeOSMGPSURL(xyz.x, xyz.y, xyz.z) ;
+                    node.src = makeOSMGPSURL(xyz.x, xyz.y, xyz.z);
                     if (node.complete) {
                         node.classList.remove("no-invert");
                     } else {
@@ -6024,6 +6104,9 @@ async function addHoverForNodesParents() {
     document.querySelector(".node-last-version-parent")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
         cleanObjectsByKey("activeObjects")
     })
+    document.querySelector(".secondary-actions")?.addEventListener("mouseenter", () => {
+        cleanObjectsByKey("activeObjects")
+    })
     console.log("addHoverForWayNodes finished");
 }
 
@@ -6057,6 +6140,9 @@ async function addHoverForWayNodes() {
         }
     })
     document.querySelector(".way-last-version-node")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
+        cleanObjectsByKey("activeObjects")
+    })
+    document.querySelector(".secondary-actions")?.addEventListener("mouseenter", () => {
         cleanObjectsByKey("activeObjects")
     })
     console.log("addHoverForWayNodes finished");
@@ -6160,6 +6246,9 @@ async function addHoverForRelationMembers() {
         }
     })
     document.querySelector(".relation-last-version-member")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
+        cleanObjectsByKey("activeObjects")
+    })
+    document.querySelector(".secondary-actions")?.addEventListener("mouseenter", () => {
         cleanObjectsByKey("activeObjects")
     })
     console.log("addHoverForRelationMembers finished");
@@ -9355,7 +9444,7 @@ function setupChangesetQuickLook(path) {
 }
 
 
-const rapidLink = "https://mapwith.ai/rapid#background=EsriWorldImagery&map="
+const rapidLink = "https://mapwith.ai/rapid#poweruser=true&map="
 let coordinatesObserver = null;
 
 function setupNewEditorsLinks() {
@@ -9974,7 +10063,9 @@ async function setupHDYCInProfile(path) {
     })
     const iframe = document.getElementById('hdyc-iframe');
     window.addEventListener('message', function (event) {
-        iframe.height = event.data.height + 'px';
+        if (event.origin === "https://www.hdyc.neis-one.org") {
+            iframe.height = event.data.height + 'px';
+        }
     });
 
     void betterUserStat(decodeURI(user))
@@ -10945,7 +11036,7 @@ function debug_alert() {
 
 /**
  * @param {number|null=} changeset_id
- * @return {Promise<void>}
+ * @return {Promise<ChangesetMetadata|void>}
  */
 async function loadChangesetMetadata(changeset_id = null) {
     console.log(`Loading changeset metadata`)
@@ -10958,7 +11049,7 @@ async function loadChangesetMetadata(changeset_id = null) {
     }
     console.log(`Loading metadata of changeset #${changeset_id}`)
     if (changesetMetadatas[changeset_id] && changesetMetadatas[changeset_id].id === changeset_id) {
-        return;
+        return changesetMetadatas[changeset_id];
     }
     // prevChangesetMetadata = changesetMetadatas[changeset_id]
     const res = await getChangesetMetadata(changeset_id);
@@ -10970,14 +11061,14 @@ async function loadChangesetMetadata(changeset_id = null) {
     } else {
         const jsonRes = await res.json();
         if (jsonRes.changeset) {
-            changesetMetadatas[changeset_id] = jsonRes.changeset
-            return
+            return changesetMetadatas[changeset_id] = jsonRes.changeset
         }
         changesetMetadatas[changeset_id] = jsonRes.elements[0]
         changesetMetadatas[changeset_id].min_lat = changesetMetadatas[changeset_id].minlat
         changesetMetadatas[changeset_id].min_lon = changesetMetadatas[changeset_id].minlon
         changesetMetadatas[changeset_id].max_lat = changesetMetadatas[changeset_id].maxlat
         changesetMetadatas[changeset_id].max_lon = changesetMetadatas[changeset_id].maxlon
+        return changesetMetadatas[changeset_id]
     }
 }
 
@@ -11689,6 +11780,8 @@ function setupNavigationViaHotkeys() {
         if (e.code === "KeyN") {
             if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
                 document.querySelector('a[href^="/user/"][href$="/notes"]')?.click()
+            } else if (e.altKey && location.pathname.match(/note\/[0-9]+/)) {
+                window.open(document.querySelector('#sidebar_content a[href^="/user/"]').getAttribute("href") + "/notes", "_blank")
             } else {
                 // notes
                 if (e.shiftKey) {
@@ -11754,7 +11847,23 @@ function setupNavigationViaHotkeys() {
             }
         } else if (e.code === "KeyJ") {
             setTimeout(async () => {
-                if (!location.pathname.includes("changeset")) return
+                if (!location.pathname.includes("changeset")) {
+                    const m = location.pathname.match(/\/(node|way|relation)\/([0-9]+)/)
+                    if (!m) return
+                    const [, type, id] = m
+                    const shortType = type === "node" ? "n" : (type === "way" ? "w" : "r")
+                    if (e.altKey) {
+                        window.open("https://level0.osmz.ru/?" + new URLSearchParams({
+                            url: shortType + id + "!"
+                        }).toString())
+                    } else {
+                        window.open("http://localhost:8111/load_object?" + new URLSearchParams({
+                            objects: [shortType + id],
+                            relation_members: true,
+                        }).toString())
+                    }
+                    return
+                }
 
                 const nodes = new Set()
                 const ways = new Set()
@@ -12253,8 +12362,8 @@ function setupTaginfo() {
 
     if (instance_text?.includes(" ")) {
         const turboLink = document.querySelector("#turbo_button:not(.fixed-link)")
-        if (turboLink && (turboLink.href.includes("%22+in") || turboLink.href.includes("*+in"))) {
-            turboLink.href = turboLink.href.replace(/(%22|\*)\+in\+(.*)&/, `$1+in+"${instance}"&`)
+        if (turboLink && (turboLink.href.includes("%22+in") || turboLink.href.includes("*+in") || turboLink.href.includes("relation+in"))) {
+            turboLink.href = turboLink.href.replace(/(%22|\*|relation)\+in\+(.*)&/, `$1+in+"${instance}"&`)
             turboLink.classList?.add("fixed-link")
         }
     }
