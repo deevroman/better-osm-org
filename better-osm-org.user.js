@@ -11881,7 +11881,7 @@ function setupNavigationViaHotkeys() {
                 document.querySelector("#editanchor")?.click()
             }
         } else if (e.code === "KeyR") {
-            if (changesetObjectsSelectionModeEnabled) {
+            if (changesetObjectsSelectionModeEnabled || e.altKey) {
                 document.querySelector("#revert_button_class").click()
                 return
             }
@@ -11900,13 +11900,36 @@ function setupNavigationViaHotkeys() {
                     checkbox.style.width = "20px"
                     checkbox.style.height = "20px"
                     checkbox.classList.add("align-bottom", "object-fit-none", "browse-icon")
+                    function selectRange() {
+                        let currentCheckboxFound = false
+                        for (const cBox of Array.from(document.querySelectorAll(`#changeset_nodes li input[type=checkbox], #changeset_ways li input[type=checkbox], #changeset_relations li input[type=checkbox]`)).toReversed()) {
+                            if (!currentCheckboxFound) {
+                                if (cBox === checkbox) {
+                                    currentCheckboxFound = true
+                                }
+                            } else {
+                                if (cBox.checked) {
+                                    break
+                                }
+                                cBox.checked = true
+                            }
+                        }
+                    }
                     checkbox.onclick = e => {
                         e.stopPropagation()
                         e.stopImmediatePropagation()
+                        if (e.shiftKey) {
+                            selectRange()
+                        }
                     }
                     checkbox.onkeydown = e => {
-                        if (e.code === "Enter") {
+                        if (e.shiftKey && e.code === "Space") {
+                            selectRange()
+                        } else if (e.code === "Enter") {
                             e.target.click()
+                            if (e.shiftKey) {
+                                selectRange()
+                            }
                         }
                     }
                     const icon = obj.querySelector("img")
