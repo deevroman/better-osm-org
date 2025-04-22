@@ -11440,6 +11440,9 @@ function goToPrevChangesetObject(e) {
                 || !location.search.includes("changesets=")) {
                 trustedEvent = false
                 cur.previousElementSibling.click()
+                if (changesetObjectsSelectionModeEnabled) {
+                    cur.previousElementSibling.querySelector("input")?.focus()
+                }
                 trustedEvent = true
                 cur.previousElementSibling.scrollIntoView({block: "center", behavior: smoothScroll})
                 resetMapHover()
@@ -11462,6 +11465,9 @@ function goToPrevChangesetObject(e) {
                     || !location.search.includes("changesets=")) {
                     trustedEvent = false
                     curFrame.previousElementSibling.querySelector(".active-object").click()
+                    if (changesetObjectsSelectionModeEnabled) {
+                        curFrame.previousElementSibling.querySelector(".active-object input")?.focus()
+                    }
                     trustedEvent = true
                     curFrame.previousElementSibling.querySelector(".active-object").scrollIntoView({
                         block: "center",
@@ -11492,6 +11498,9 @@ function goToPrevChangesetObject(e) {
                         || !location.search.includes("changesets=")) {
                         trustedEvent = false
                         prev.querySelector("li:last-of-type").click()
+                        if (changesetObjectsSelectionModeEnabled) {
+                            prev.querySelector("li:last-of-type input")?.focus()
+                        }
                         trustedEvent = true
                         prev.querySelector("li:last-of-type").scrollIntoView({
                             block: "center",
@@ -11522,6 +11531,9 @@ function goToNextChangesetObject(e) {
         document.querySelector("#changeset_nodes li:not(.page-item), #changeset_ways li:not(.page-item), #changeset_relations li:not(.page-item)").classList.add("active-object")
         trustedEvent = false
         document.querySelector("ul .active-object").click()
+        if (changesetObjectsSelectionModeEnabled) {
+            document.querySelector("ul .active-object input")?.focus()
+        }
         trustedEvent = true
         resetMapHover()
         document.querySelector("ul .active-object").classList.add("map-hover")
@@ -11540,6 +11552,9 @@ function goToNextChangesetObject(e) {
                 || !location.search.includes("changesets=")) {
                 trustedEvent = false
                 cur.nextElementSibling.click()
+                if (changesetObjectsSelectionModeEnabled) {
+                    cur.nextElementSibling.querySelector("input")?.focus()
+                }
                 trustedEvent = true
                 cur.nextElementSibling.scrollIntoView({block: "center", behavior: smoothScroll})
                 resetMapHover()
@@ -11562,6 +11577,9 @@ function goToNextChangesetObject(e) {
                     || !location.search.includes("changesets=")) {
                     trustedEvent = false
                     curFrame.nextElementSibling.querySelector(".active-object").click()
+                    if (changesetObjectsSelectionModeEnabled) {
+                        curFrame.nextElementSibling.querySelector(".active-object input")?.focus()
+                    }
                     trustedEvent = true
                     curFrame.nextElementSibling.querySelector(".active-object").scrollIntoView({
                         block: "center",
@@ -11593,6 +11611,9 @@ function goToNextChangesetObject(e) {
                         || !location.search.includes("changesets=")) {
                         trustedEvent = false
                         next.querySelector("li").click()
+                        if (changesetObjectsSelectionModeEnabled) {
+                            next.querySelector("li input")?.focus()
+                        }
                         trustedEvent = true
                         next.querySelector("li").scrollIntoView({block: "center", behavior: smoothScroll})
                         resetMapHover()
