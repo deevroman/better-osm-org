@@ -13518,7 +13518,7 @@ function setup() {
     let lastPath = "";
     new MutationObserver(function fn() {
         const path = location.pathname;
-        if (path + location.search === lastPath) return;
+        if (path === lastPath) return;
         if (lastPath.startsWith("/changeset/") && (!path.startsWith("/changeset/") || lastPath !== path) || lastPath.includes("/history") || path === "/" && lastPath !== "/") {
             try {
                 abortPrevControllers(ABORT_ERROR_WHEN_PAGE_CHANGED)
@@ -13529,7 +13529,7 @@ function setup() {
             } catch { /* empty */
             }
         }
-        lastPath = path + location.search;
+        lastPath = path;
         for (const module of modules.filter(module => GM_config.get(module.name.slice('setup'.length)))) {
             queueMicrotask(() => {
                 // console.log(module.name)
