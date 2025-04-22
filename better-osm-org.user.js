@@ -900,6 +900,8 @@ async function restorePrevNextChangesetButtons(changeset_id) {
     secondaryActions.after(secondarySecondaryActions)
 }
 
+let changesetObjectsSelectionModeEnabled = false;
+
 function addRevertButton() {
     if (!location.pathname.startsWith("/changeset")) return
     if (document.querySelector('#revert_button_class')) return true;
@@ -908,10 +910,40 @@ function addRevertButton() {
         hideSearchForm();
         // sidebar.classList.add("changeset-header")
         const changeset_id = sidebar.innerHTML.match(/([0-9]+)/)[0];
-        sidebar.innerHTML += ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="Open osm-revert\nShift + click for revert via JOSM">↩️</a> 
+        sidebar.innerHTML += ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="Open osm-revert\nShift + click for revert via JOSM\nPress R for partial revert">↩️</a> 
                                <a href="https://osmcha.org/changesets/${changeset_id}" target="_blank" rel="noreferrer"><img src="${GM_getResourceURL("OSMCHA_ICON", false)}" id="osmcha_link"></a>`;
-
+        changesetObjectsSelectionModeEnabled = false
         document.querySelector("#revert_button_class").onclick = (e) => {
+            if (changesetObjectsSelectionModeEnabled) {
+                e.preventDefault()
+
+                let selector = ""
+
+                const nodes = Array.from(document.querySelectorAll("#changeset_nodes input[type=checkbox]:checked"));
+                if (nodes.length) {
+                    selector += "node(id:" + nodes.map(n => {
+                        return n.parentElement.nextElementSibling.id.match(/[0-9]+n([0-9]+)/)[1]
+                    }).join(",") + ");\n"
+                }
+                const ways = Array.from(document.querySelectorAll("#changeset_ways input[type=checkbox]:checked"));
+                if (ways.length) {
+                    selector += "way(id:" + ways.map(w => {
+                        return w.parentElement.nextElementSibling.id.match(/[0-9]+w([0-9]+)/)[1]
+                    }).join(",") + ");\n"
+                }
+                const relations = Array.from(document.querySelectorAll("#changeset_relations input[type=checkbox]:checked"));
+                if (relations.length) {
+                    selector += "rel(id:" + relations.map(r => {
+                        return r.parentElement.nextElementSibling.id.match(/[0-9]+r([0-9]+)/)[1]
+                    }).join(",") + ");"
+                }
+
+                window.open("https://revert.monicz.dev/?" + new URLSearchParams({
+                    changesets: changeset_id,
+                    "query-filter": selector
+                }).toString(), "_blank")
+                return
+            }
             if (!e.shiftKey) {
                 if (osm_server !== prod_server) {
                     e.preventDefault()
@@ -8672,7 +8704,7 @@ async function processQuickLookInSidebar(changesetID) {
             const nodes = changesetData.querySelectorAll("node")
             const other = changesetData.querySelectorAll("way,relation").length
             if (nodes.length > 1200) {
-                if (nodes.length > 2500 || other > 10 || isMobile) {
+                if (nodes.length > 3500 || other > 10 || isMobile) { // fixme bump
                     return;
                 }
             }
@@ -11848,6 +11880,47 @@ function setupNavigationViaHotkeys() {
             } else {
                 document.querySelector("#editanchor")?.click()
             }
+        } else if (e.code === "KeyR") {
+            if (changesetObjectsSelectionModeEnabled) {
+                document.querySelector("#revert_button_class").click()
+                return
+            }
+            changesetObjectsSelectionModeEnabled = true;
+            document.querySelectorAll("#changeset_nodes, #changeset_ways, #changeset_relations").forEach(i => {
+                i.querySelectorAll('button, input, a, textarea, select, [tabindex]').forEach(el => {
+                    el.setAttribute('tabindex', '-1');
+                })
+            });
+
+            ["#changeset_nodes", "#changeset_ways", "#changeset_relations"].forEach(selector => {
+                document.querySelectorAll(`${selector} li`).forEach(obj => {
+                    const checkbox = document.createElement("input")
+                    checkbox.type = "checkbox"
+                    checkbox.tabIndex = 0
+                    checkbox.style.width = "20px"
+                    checkbox.style.height = "20px"
+                    checkbox.classList.add("align-bottom", "object-fit-none", "browse-icon")
+                    checkbox.onclick = e => {
+                        e.stopPropagation()
+                        e.stopImmediatePropagation()
+                    }
+                    checkbox.onkeydown = e => {
+                        if (e.code === "Enter") {
+                            e.target.click()
+                        }
+                    }
+                    const icon = obj.querySelector("img")
+                    icon.style.display = "none"
+                    const label = document.createElement("label")
+                    label.appendChild(checkbox)
+                    label.onclick = e => {
+                        e.stopPropagation()
+                        e.stopImmediatePropagation()
+                    }
+                    icon.after(label)
+                })
+            })
+            document.querySelector("#changeset_nodes input[type=checkbox], #changeset_ways input[type=checkbox], #changeset_relations input[type=checkbox]").focus()
         } else if (e.code === "KeyJ") {
             setTimeout(async () => {
                 if (!location.pathname.includes("changeset")) {
@@ -11876,9 +11949,21 @@ function setupNavigationViaHotkeys() {
                 const changesetData = (await getChangeset(changesetID)).data
 
                 function processChangeset(data) {
-                    Array.from(data.querySelectorAll("node")).map(i => nodes.add(parseInt(i.getAttribute("id"))))
-                    Array.from(data.querySelectorAll("way")).map(i => ways.add(parseInt(i.getAttribute("id"))))
-                    Array.from(data.querySelectorAll("relation")).map(i => relations.add(parseInt(i.getAttribute("id"))))
+                    if (changesetObjectsSelectionModeEnabled) {
+                        document.querySelectorAll("#changeset_nodes input[type=checkbox]:checked").forEach(n => {
+                            nodes.add(parseInt(n.parentElement.nextElementSibling.id.match(/[0-9]+n([0-9]+)/)[1]))
+                        })
+                        document.querySelectorAll("#changeset_ways input[type=checkbox]:checked").forEach(w => {
+                            ways.add(parseInt(w.parentElement.nextElementSibling.id.match(/[0-9]+w([0-9]+)/)[1]))
+                        })
+                        document.querySelectorAll("#changeset_relations input[type=checkbox]:checked").forEach(r => {
+                            relations.add(parseInt(r.parentElement.nextElementSibling.id.match(/[0-9]+r([0-9]+)/)[1]))
+                        })
+                    } else {
+                        Array.from(data.querySelectorAll("node")).map(i => nodes.add(parseInt(i.getAttribute("id"))))
+                        Array.from(data.querySelectorAll("way")).map(i => ways.add(parseInt(i.getAttribute("id"))))
+                        Array.from(data.querySelectorAll("relation")).map(i => relations.add(parseInt(i.getAttribute("id"))))
+                    }
                 }
 
                 processChangeset(changesetData)
