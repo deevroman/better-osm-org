@@ -11917,6 +11917,7 @@ function setupNavigationViaHotkeys() {
                 document.querySelectorAll(`${selector} li`).forEach(obj => {
                     const checkbox = document.createElement("input")
                     checkbox.type = "checkbox"
+                    checkbox.title = "Click with Shift for select range\nPress R for revert via osm-revert\nPress J for open objects in JOSM\nPress alt + J for open objects in Level0"
                     checkbox.tabIndex = 0
                     checkbox.style.width = "20px"
                     checkbox.style.height = "20px"
