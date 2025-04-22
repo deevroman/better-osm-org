@@ -1561,6 +1561,11 @@ const compactSidebarStyleText = `
             background-color: rgb(14, 17, 19);
         }  
     }
+    
+    .copy-changesets-ids-btn {
+        padding-left: 5px;
+        padding-right: 5px;
+    }
     `;
 
 let styleForSidebarApplied = false
@@ -9161,7 +9166,7 @@ ${err.stack.replace("`", "\\`").replaceAll(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}
 const currentChangesets = [];
 
 
-function drawBBox(bbox) {
+function drawBBox(bbox, options = {color: "#ff7800", weight: 1, fillOpacity: 0}) {
     try {
         const bottomLeft = getMap().project(getWindow().L.latLng(bbox.min_lat, bbox.min_lon));
         const topRight = getMap().project(getWindow().L.latLng(bbox.max_lat, bbox.max_lon));
@@ -9189,7 +9194,7 @@ function drawBBox(bbox) {
                 [b.getSouth(), b.getWest()],
                 [b.getNorth(), b.getEast()]
             ]),
-            intoPage({color: "#ff7800", weight: 1, fillOpacity: 0})
+            intoPage(options)
         );
         bound.on('click', intoPageWithFun(function () {
             const elementById = document.getElementById(bbox.id);
@@ -9201,7 +9206,9 @@ function drawBBox(bbox) {
         bound.addTo(getMap());
         bound.bringToBack()
         layers['changesetBounds'].push(bound)
-    } catch { /* empty */
+        return bound
+    } catch (err) {
+        console.trace(err)
     }
 }
 
@@ -11341,6 +11348,12 @@ function resetMapHover() {
     })
 }
 
+function resetSelectedChangesets() {
+    document.querySelectorAll(".selected").forEach(el => {
+        el.classList.remove("selected")
+    })
+}
+
 let overzoomObserver = null
 
 function enableOverzoom() {
@@ -11636,6 +11649,112 @@ function goToNextChangesetObject(e) {
     console.log("KeyL not found next elem")
 }
 
+function goToPrevChangeset(e) {
+    if (!layers['changesetBounds']) {
+        layers['changesetBounds'] = []
+    }
+    if (!document.querySelector("ol .active-object")) {
+        return;
+    }
+
+    const cur = document.querySelector("ol .active-object")
+    let prev = cur.previousElementSibling
+    while (true) {
+        if (!prev) break
+        if (prev.getAttribute("hidden") === "true") {
+            prev = prev.previousElementSibling
+        } else {
+            break
+        }
+    }
+
+    if (prev) {
+        prev.classList.add("active-object")
+        cur.classList.remove("active-object")
+        let focuced = prev.querySelector("a")
+        focuced.focus()
+        if (massModeForUserChangesetsActive) {
+            focuced = prev.querySelector("input")
+            focuced?.focus()
+        }
+        resetSelectedChangesets()
+        prev.classList.add("selected")
+        prev.scrollIntoView({block: "center", behavior: smoothScroll})
+        const bound = drawBBox(extractBboxFromElem(prev), {color: "#000000", weight: 4, fillOpacity: 0})
+        bound.bringToFront()
+        focuced.addEventListener("focusout", () => {
+            bound.remove()
+        }, {once: true})
+    } else {
+        document.querySelector('.changeset_more a[href*="after"]')?.click()
+    }
+
+}
+
+function extractBboxFromElem(elem) {
+    const bbox = JSON.parse(elem.getAttribute("data-changeset")).bbox
+    bbox.min_lon = bbox.minlon
+    bbox.min_lat = bbox.minlat
+    bbox.max_lon = bbox.maxlon
+    bbox.max_lat = bbox.maxlat
+    return bbox
+}
+
+function goToNextChangeset(e) {
+    if (!layers['changesetBounds']) {
+        layers['changesetBounds'] = []
+    }
+    if (!document.querySelector("ol .active-object")) {
+        document.querySelector("ol li").classList.add("active-object")
+        document.querySelector("ol .active-object a").tabIndex = 0
+        let focused = document.querySelector("ol .active-object a")
+        focused.focus()
+        if (massModeForUserChangesetsActive) {
+            focused = document.querySelector("ol .active-object input")
+            focused?.focus()
+        }
+        resetSelectedChangesets()
+        document.querySelector("ol .active-object").classList.add("selected")
+        const bound = drawBBox(extractBboxFromElem(document.querySelector("ol .active-object")), {color: "#000000", weight: 4, fillOpacity: 0})
+        bound.bringToFront()
+        focused.addEventListener("focusout", () => {
+            bound.remove()
+        }, {once: true})
+        return
+    }
+    const cur = document.querySelector("ol .active-object")
+    let next = cur.nextElementSibling
+    while (true) {
+        if (!next) break
+        if (next.getAttribute("hidden") === "true") {
+            next = next.nextElementSibling
+        } else {
+            break
+        }
+    }
+    if (next) {
+        next.classList.add("active-object")
+        cur.classList.remove("active-object")
+        let focused = next.querySelector("a")
+        focused.focus()
+        if (massModeForUserChangesetsActive) {
+            focused = next.querySelector("input")
+            focused?.focus()
+        }
+        resetSelectedChangesets()
+        next.classList.add("selected")
+        next.scrollIntoView({block: "center", behavior: smoothScroll})
+
+        const bound = drawBBox(extractBboxFromElem(next), {color: "#000000", weight: 4, fillOpacity: 0})
+        bound.bringToFront()
+        focused.addEventListener("focusout", () => {
+            bound.remove()
+        }, {once: true})
+    } else {
+        document.querySelector('.changeset_more a[href*="before"]')?.click()
+    }
+}
+
 const min = Math.min;
 const max = Math.max;
 
@@ -11922,6 +12041,7 @@ function setupNavigationViaHotkeys() {
                     checkbox.style.width = "20px"
                     checkbox.style.height = "20px"
                     checkbox.classList.add("align-bottom", "object-fit-none", "browse-icon")
+
                     function selectRange() {
                         let currentCheckboxFound = false
                         for (const cBox of Array.from(document.querySelectorAll(`#changeset_nodes li input[type=checkbox], #changeset_ways li input[type=checkbox], #changeset_relations li input[type=checkbox]`)).toReversed()) {
@@ -11937,6 +12057,7 @@ function setupNavigationViaHotkeys() {
                             }
                         }
                     }
+
                     checkbox.onclick = e => {
                         e.stopPropagation()
                         e.stopImmediatePropagation()
@@ -12143,10 +12264,12 @@ function setupNavigationViaHotkeys() {
             }
         } else if (e.code === "Escape") {
             cleanObjectsByKey("activeObjects")
-        } else if (e.code === "KeyL") {
-            if (e.shiftKey) {
-                document.getElementsByClassName("geolocate")[0]?.click()
-            }
+        } else if (e.code === "KeyK" && location.pathname.match(/(\/user\/.+)?\/history\/?$/)) {
+            goToPrevChangeset(e);
+        } else if (e.code === "KeyL" && location.pathname.match(/(\/user\/.+)?\/history\/?$/)) {
+            goToNextChangeset(e);
+        } else if (e.code === "KeyL" && e.shiftKey) {
+            document.getElementsByClassName("geolocate")[0]?.click()
         } else if (e.code === "KeyC") {
             if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
                 if (location.pathname.includes("/diary_comments")) {
