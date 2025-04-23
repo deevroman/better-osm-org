@@ -11716,21 +11716,24 @@ function goToPrevChangeset(e) {
     if (prev) {
         prev.classList.add("active-object")
         cur.classList.remove("active-object")
-        let focuced = prev.querySelector("a")
-        focuced.focus()
+        let focused = prev.querySelector("a")
+        focused.focus()
         if (massModeForUserChangesetsActive) {
-            focuced = prev.querySelector("input")
-            focuced?.focus()
+            focused = prev.querySelector("input")
+            focused?.focus()
         }
         resetSelectedChangesets()
         prev.classList.add("selected")
-        prev.scrollIntoView({block: "center", behavior: smoothScroll})
+        prev.scrollIntoView({block: "center", behavior: "instant"})
         cleanObjectsByKey('changesetBounds')
-        const bound = drawBBox(extractBboxFromElem(prev), {color: "#000000", weight: 4, fillOpacity: 0})
-        bound.bringToFront()
-        focuced.addEventListener("focusout", () => {
-            bound.remove()
-        }, {once: true})
+
+        setTimeout(() => {
+            const bound = drawBBox(extractBboxFromElem(prev), {color: "#000000", weight: 4, fillOpacity: 0})
+            bound.bringToFront()
+            focused.addEventListener("focusout", () => {
+                bound.remove()
+            }, {once: true})
+        })
     } else {
         document.querySelector('.changeset_more a[href*="after"]')?.click()
     }
@@ -11794,13 +11797,15 @@ function goToNextChangeset(e) {
         }
         resetSelectedChangesets()
         next.classList.add("selected")
-        next.scrollIntoView({block: "center", behavior: smoothScroll})
+        next.scrollIntoView({block: "center", behavior: "instant"})
 
-        const bound = drawBBox(extractBboxFromElem(next), {color: "#000000", weight: 4, fillOpacity: 0})
-        bound.bringToFront()
-        focused.addEventListener("focusout", () => {
-            bound.remove()
-        }, {once: true})
+        setTimeout(() => {
+            const bound = drawBBox(extractBboxFromElem(next), {color: "#000000", weight: 4, fillOpacity: 0})
+            bound.bringToFront()
+            focused.addEventListener("focusout", () => {
+                bound.remove()
+            }, {once: true})
+        })
     } else {
         document.querySelector('.changeset_more a[href*="before"]')?.click()
     }
