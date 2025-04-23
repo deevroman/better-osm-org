@@ -11733,6 +11733,9 @@ function goToPrevChangeset(e) {
             focused.addEventListener("focusout", () => {
                 bound.remove()
             }, {once: true})
+            setTimeout(() => {
+                bound.bringToFront()
+            }, 20)
         })
     } else {
         document.querySelector('.changeset_more a[href*="after"]')?.click()
@@ -11805,6 +11808,9 @@ function goToNextChangeset(e) {
             focused.addEventListener("focusout", () => {
                 bound.remove()
             }, {once: true})
+            setTimeout(() => {
+                bound.bringToFront()
+            }, 20)
         })
     } else {
         document.querySelector('.changeset_more a[href*="before"]')?.click()
