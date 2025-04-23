@@ -2500,6 +2500,51 @@ function switchTiles() {
     observer.observe(document.body, {childList: true, subtree: true});
 }
 
+
+let osmTilesObserver = undefined;
+
+function bypassCaches() {
+    if (osmTilesObserver) {
+        osmTilesObserver.disconnect();
+    }
+    document.querySelectorAll(".leaflet-tile").forEach(i => {
+        if (i.nodeName !== 'IMG') {
+            return;
+        }
+        let xyz = parseOSMTileURL(i.src)
+        if (!xyz) return
+        const newUrl = makeOSMURL(xyz.x, xyz.y, xyz.z)
+        i.src = newUrl + "?bypassCache=" + new Date().getUTCSeconds();
+        // fetch(newUrl, intoPage({cache: "reload"}))
+        // const img = new Image()
+        // img.src = newUrl + "?bypassCache=" + new Date().getUTCSeconds();
+        // img.onload = () => {
+        //     i.src = img.src
+        // }
+    })
+    const observer = new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
+            mutation.addedNodes.forEach(node => {
+                if (node.nodeName !== 'IMG') {
+                    return;
+                }
+                let xyz = parseOSMTileURL(node.src)
+                if (!xyz) return
+                const newUrl = makeOSMURL(xyz.x, xyz.y, xyz.z)
+                node.src = newUrl + "?bypassCache=" + new Date().getUTCSeconds();
+                // const img = new Image()
+                // img.src = newUrl + "?bypassCache=" + new Date().getUTCSeconds();
+                // img.onload = () => {
+                //     node.src = img.src
+                // }
+            });
+        });
+    });
+    osmTilesObserver = observer;
+    observer.observe(document.body, {childList: true, subtree: true});
+
+}
+
 function switchOverlayTiles() {
     if (overlayTilesObserver) {
         overlayTilesObserver.disconnect();
@@ -11680,6 +11725,7 @@ function goToPrevChangeset(e) {
         resetSelectedChangesets()
         prev.classList.add("selected")
         prev.scrollIntoView({block: "center", behavior: smoothScroll})
+        cleanObjectsByKey('changesetBounds')
         const bound = drawBBox(extractBboxFromElem(prev), {color: "#000000", weight: 4, fillOpacity: 0})
         bound.bringToFront()
         focuced.addEventListener("focusout", () => {
@@ -11715,7 +11761,12 @@ function goToNextChangeset(e) {
         }
         resetSelectedChangesets()
         document.querySelector("ol .active-object").classList.add("selected")
-        const bound = drawBBox(extractBboxFromElem(document.querySelector("ol .active-object")), {color: "#000000", weight: 4, fillOpacity: 0})
+        cleanObjectsByKey('changesetBounds')
+        const bound = drawBBox(extractBboxFromElem(document.querySelector("ol .active-object")), {
+            color: "#000000",
+            weight: 4,
+            fillOpacity: 0
+        })
         bound.bringToFront()
         focused.addEventListener("focusout", () => {
             bound.remove()
@@ -11997,6 +12048,8 @@ function setupNavigationViaHotkeys() {
             if (e.shiftKey) {
                 switchESRIbeta()
                 return
+            } else if (e.altKey) {
+                bypassCaches()
             } else {
                 switchTiles()
                 if (document.querySelector(".turn-on-satellite")) {
