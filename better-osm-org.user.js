@@ -1566,6 +1566,19 @@ const compactSidebarStyleText = `
         padding-left: 5px;
         padding-right: 5px;
     }
+    
+    #mouse-trap {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: auto;
+      cursor: none;
+      z-index: 999999;
+      /* background: rgba(255, 0, 0, 0.3); */
+      background: transparent;
+    }
     `;
 
 let styleForSidebarApplied = false
@@ -11483,6 +11496,9 @@ function goToPrevChangesetObject(e) {
     if (!document.querySelector("ul .active-object")) {
         return;
     }
+    if (document.querySelector("#sidebar").matches(":hover")) {
+        preventHoverEvents()
+    }
 
     const prev = document.querySelector("ul .active-object")
     for (let i = 0; i < 10000; i++) {
@@ -11585,6 +11601,9 @@ function goToPrevChangesetObject(e) {
 
 function goToNextChangesetObject(e) {
     repeatedEvent = e.repeat
+    if (document.querySelector("#sidebar").matches(":hover")){
+        preventHoverEvents()
+    }
     if (!document.querySelector("ul .active-object")) {
         document.querySelector("#changeset_nodes li:not(.page-item), #changeset_ways li:not(.page-item), #changeset_relations li:not(.page-item)").classList.add("active-object")
         trustedEvent = false
@@ -11701,6 +11720,7 @@ function goToPrevChangeset(e) {
     if (!document.querySelector("ol .active-object")) {
         return;
     }
+    preventHoverEvents()
 
     const cur = document.querySelector("ol .active-object")
     let prev = cur.previousElementSibling
@@ -11752,7 +11772,22 @@ function extractBboxFromElem(elem) {
     return bbox
 }
 
+function preventHoverEvents() {
+    if (document.querySelector("#mouse-trap")) return;
+
+    console.log("add mouse trap");
+    const trap = document.createElement('div');
+    trap.id = 'mouse-trap';
+    document.body.appendChild(trap);
+
+    window.addEventListener('mousemove', () => {
+        trap.remove();
+        console.log("remove mouse trap")
+    }, {once: true});
+}
+
 function goToNextChangeset(e) {
+    preventHoverEvents()
     if (!layers['changesetBounds']) {
         layers['changesetBounds'] = []
     }
@@ -11816,6 +11851,61 @@ function goToNextChangeset(e) {
         document.querySelector('.changeset_more a[href*="before"]')?.click()
     }
 }
+
+function goToPrevObjectVersion() {
+    if (document.querySelector("#sidebar").matches(":hover")){
+        preventHoverEvents()
+    }
+    if (!document.querySelector("#sidebar_content .active-object")) {
+        getMap()?.invalidateSize()
+        document.querySelector(".browse-section:not(.hidden-version)").classList.add("active-object")
+        document.querySelector(".browse-section:not(.hidden-version)").click()
+        resetMapHover()
+        document.querySelector(".browse-section:not(.hidden-version)").classList.add("map-hover")
+    } else {
+        const old = document.querySelector(".browse-section.active-object")
+        let cur = old?.previousElementSibling
+        while (cur && (!cur.classList.contains("browse-section") || cur.classList.contains("hidden-version"))) {
+            cur = cur.previousElementSibling
+        }
+        if (cur) {
+            cur.classList.add("active-object")
+            old.classList.remove("active-object")
+            cur.click()
+            cur.scrollIntoView()
+            resetMapHover()
+            cur.classList.add("map-hover")
+        }
+    }
+}
+
+function gotNextObjectVersion() {
+    if (document.querySelector("#sidebar").matches(":hover")){
+        preventHoverEvents()
+    }
+    if (!document.querySelector("#sidebar_content .active-object")) {
+        getMap()?.invalidateSize()
+        document.querySelector(".browse-section").classList.add("active-object")
+        document.querySelector(".browse-section.active-object").click()
+        resetMapHover()
+        document.querySelector(".browse-section.active-object").classList.add("map-hover")
+    } else {
+        const old = document.querySelector(".browse-section.active-object")
+        let cur = old?.nextElementSibling
+        while (cur && (!cur.classList.contains("browse-section") || cur.classList.contains("hidden-version"))) {
+            cur = cur.nextElementSibling
+        }
+        if (cur) {
+            cur.classList.add("active-object")
+            old.classList.remove("active-object")
+            cur.click()
+            cur.scrollIntoView()
+            resetMapHover()
+            cur.classList.add("map-hover")
+        }
+    }
+}
+
 
 const min = Math.min;
 const max = Math.max;
@@ -12328,9 +12418,9 @@ function setupNavigationViaHotkeys() {
             }
         } else if (e.code === "Escape") {
             cleanObjectsByKey("activeObjects")
-        } else if (e.code === "KeyK" && location.pathname.match(/(\/user\/.+)?\/history\/?$/)) {
+        } else if (e.code === "KeyK" && location.pathname.match(/^(\/user\/.+)?\/history\/?$/)) {
             goToPrevChangeset(e);
-        } else if (e.code === "KeyL" && location.pathname.match(/(\/user\/.+)?\/history\/?$/)) {
+        } else if (e.code === "KeyL" && location.pathname.match(/^(\/user\/.+)?\/history\/?$/)) {
             goToNextChangeset(e);
         } else if (e.code === "KeyL" && e.shiftKey) {
             document.getElementsByClassName("geolocate")[0]?.click()
@@ -12509,49 +12599,9 @@ function setupNavigationViaHotkeys() {
             }
             if (location.pathname.match(/\/history$/)) {
                 if (e.code === "KeyK") {
-                    if (!document.querySelector("#sidebar_content .active-object")) {
-                        getMap()?.invalidateSize()
-                        document.querySelector(".browse-section:not(.hidden-version)").classList.add("active-object")
-                        document.querySelector(".browse-section:not(.hidden-version)").click()
-                        resetMapHover()
-                        document.querySelector(".browse-section:not(.hidden-version)").classList.add("map-hover")
-                    } else {
-                        const old = document.querySelector(".browse-section.active-object")
-                        let cur = old?.previousElementSibling
-                        while (cur && (!cur.classList.contains("browse-section") || cur.classList.contains("hidden-version"))) {
-                            cur = cur.previousElementSibling
-                        }
-                        if (cur) {
-                            cur.classList.add("active-object")
-                            old.classList.remove("active-object")
-                            cur.click()
-                            cur.scrollIntoView()
-                            resetMapHover()
-                            cur.classList.add("map-hover")
-                        }
-                    }
+                    goToPrevObjectVersion();
                 } else if (e.code === "KeyL" && !e.shiftKey) {
-                    if (!document.querySelector("#sidebar_content .active-object")) {
-                        getMap()?.invalidateSize()
-                        document.querySelector(".browse-section").classList.add("active-object")
-                        document.querySelector(".browse-section.active-object").click()
-                        resetMapHover()
-                        document.querySelector(".browse-section.active-object").classList.add("map-hover")
-                    } else {
-                        const old = document.querySelector(".browse-section.active-object")
-                        let cur = old?.nextElementSibling
-                        while (cur && (!cur.classList.contains("browse-section") || cur.classList.contains("hidden-version"))) {
-                            cur = cur.nextElementSibling
-                        }
-                        if (cur) {
-                            cur.classList.add("active-object")
-                            old.classList.remove("active-object")
-                            cur.click()
-                            cur.scrollIntoView()
-                            resetMapHover()
-                            cur.classList.add("map-hover")
-                        }
-                    }
+                    gotNextObjectVersion();
                 }
             }
         } else if (location.pathname.match(/user\/.+\/(traces|diary_comments|changeset_comments)/)
