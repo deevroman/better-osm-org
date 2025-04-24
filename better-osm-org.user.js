@@ -2539,31 +2539,18 @@ function setupSatelliteLayers() {
 
 //</editor-fold>
 
-function makeHistoryCompact() {
-    // todo -> toogleAttribute
-    if (document.querySelector(".compact-toggle-btn").textContent === "><") {
-        document.querySelectorAll(".non-modified-tag").forEach((el) => {
-            el.classList.replace("non-modified-tag", "hidden-non-modified-tag")
-        })
-        document.querySelectorAll(".empty-version").forEach((el) => {
-            el.classList.replace("empty-version", "hidden-empty-version")
-        })
-        document.querySelectorAll(".preview-img-link img").forEach(i => {
-            i.style.display = "none"
-        })
-        document.querySelector(".compact-toggle-btn").textContent = "<>"
-    } else {
-        document.querySelectorAll(".hidden-non-modified-tag").forEach((el) => {
-            el.classList.replace("hidden-non-modified-tag", "non-modified-tag")
-        })
-        document.querySelectorAll(".hidden-empty-version").forEach((el) => {
-            el.classList.replace("hidden-empty-version", "empty-version")
-        })
-        document.querySelectorAll(".preview-img-link img").forEach(i => {
-            i.style.display = ""
-        })
-        document.querySelector(".compact-toggle-btn").textContent = "><"
-    }
+function makeElementHistoryCompact() {
+    const shouldBeCompact = document.querySelector(".compact-toggle-btn").textContent === "><";
+    document.querySelectorAll(".non-modified-tag").forEach((el) => {
+        el.classList.toggle("d-none", shouldBeCompact)
+    })
+    document.querySelectorAll(".empty-version").forEach((el) => {
+        el.classList.toggle("d-none", shouldBeCompact)
+    })
+    document.querySelectorAll(".preview-img-link img").forEach(i => {
+        i.classList.toggle("d-none", shouldBeCompact)
+    })
+    document.querySelector(".compact-toggle-btn").textContent = shouldBeCompact ? "<>" : "><"
 }
 
 /**
@@ -4315,7 +4302,7 @@ async function replaceDownloadWayButton(btn, wayID) {
         // для настоящей версии линии
         if (it.type === "way") {
             let forNodesReplace = document.querySelector(`.browse-way[way-version="${it.version}"]`)
-            if (Object.keys(currentChanges).length > 1 && (forNodesReplace.classList?.contains("empty-version") || forNodesReplace.classList?.contains("hidden-empty-version"))) {
+            if (Object.keys(currentChanges).length > 1 && forNodesReplace.classList?.contains("empty-version")) {
                 forNodesReplace.querySelector("summary")?.remove()
                 const div = document.createElement("div")
                 div.innerHTML = forNodesReplace.innerHTML
@@ -4345,7 +4332,7 @@ async function replaceDownloadWayButton(btn, wayID) {
             })
             if (forNodesReplace && currentWayVersion.nodes) {
                 const currentNodes = [];
-                const ulNodes = forNodesReplace.querySelector("details:not(.empty-version):not(.hidden-empty-version) ul")
+                const ulNodes = forNodesReplace.querySelector("details:not(.empty-version) ul")
                 ulNodes.parentElement.classList.add("way-version-nodes")
                 ulNodes.querySelectorAll("li").forEach(li => {
                     li.style.display = "none"
@@ -5264,7 +5251,7 @@ function setupViewRedactions() {
             elem.classList.add("browse-node")
         }
         showUnredactedBtn.remove()
-        const classesForClean = ["history-diff-new-tag", "history-diff-modified-tag", "non-modified-tag", ".empty-version", "hidden-non-modified-tag", "hidden-empty-version"]
+        const classesForClean = ["history-diff-new-tag", "history-diff-modified-tag", "non-modified-tag", ".empty-version"]
         classesForClean.forEach(className => {
             Array.from(document.getElementsByClassName(className)).forEach(i => {
                 i.classList.remove(className)
@@ -5387,7 +5374,8 @@ function addDiffInHistory() {
         compactToggle.title = "Toggle between full and compact tags diff.\nYou can also use the T key."
         compactToggle.textContent = "><"
         compactToggle.classList.add("compact-toggle-btn")
-        compactToggle.onclick = makeHistoryCompact
+        compactToggle.classList.add("btn", "btn-primary", "btn-sm")
+        compactToggle.onclick = makeElementHistoryCompact
         let sidebar = document.querySelector("#sidebar_content h2")
         if (!sidebar) {
             return
@@ -5455,9 +5443,6 @@ function addDiffInHistory() {
     }
     .non-modified-tag .empty-version {
         
-    }
-    .hidden-non-modified-tag, .hidden-empty-version {
-        display: none;
     }
     .hidden-version, .hidden-h4 {
         display: none;
@@ -5913,7 +5898,7 @@ function addDiffInHistory() {
             console.error(e)
         }
     }
-    makeHistoryCompact();
+    makeElementHistoryCompact();
     makeHashtagsClickable();
     shortOsmOrgLinks(document.querySelector(".browse-section p"));
     addCommentsCount();
