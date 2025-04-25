@@ -2726,7 +2726,7 @@ function makeElementHistoryCompact() {
         i.classList.toggle("d-none", shouldBeCompact)
     })
     document.querySelector(".compact-toggle-btn").setAttribute("value", shouldBeCompact ? "<>" : "><")
-    document.querySelector(".compact-toggle-btn").innerHTML = shouldBeCompact ? expandModeSvg : compactModeSvg
+    // document.querySelector(".compact-toggle-btn").innerHTML = shouldBeCompact ? expandModeSvg : compactModeSvg
 }
 
 /**
@@ -5516,8 +5516,12 @@ function addCommentsCount() {
     })
 }
 
-const compactModeSvg = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" height="17" width="17" viewBox="0 0 17 17"><path d="M15 12 l-5-4  5-4"></path><path d="M2 12 l 5-4 -5-4"></path></svg>'
-const expandModeSvg = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" height="17" width="17" viewBox="0 0 17 17"><path d="M7 12 l-5-4  5-4"></path><path d="M10 12 l 5-4 -5-4"></path></svg>'
+const compactModeSvg = '<svg id="compactModeSvg" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" height="17" width="17" viewBox="0 0 17 17">  <path class="arrow-1" d="M15 12 L10 8" />\n' +
+    '  <path class="arrow-2" d="M10 8 L15 4" />\n' +
+    '\n' +
+    '  <path class="arrow-3" d="M2 12 L7 8" />\n' +
+    '  <path class="arrow-4" d="M7 8 L2 4" /></svg>'
+const expandModeSvg = '<svg id="expandModeSvg" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" height="17" width="17" viewBox="0 0 17 17"><path d="M7 12 l-5-4  5-4"></path><path d="M10 12 l 5-4 -5-4"></path></svg>'
 
 // hard cases:
 // https://www.openstreetmap.org/node/1/history
@@ -5555,7 +5559,26 @@ function addDiffInHistory() {
         compactToggle.innerHTML = compactModeSvg
         compactToggle.classList.add("compact-toggle-btn")
         compactToggle.classList.add("btn", "btn-primary", "btn-sm")
-        compactToggle.onclick = makeElementHistoryCompact
+        compactToggle.onclick = function () {
+            const svg = compactToggle.querySelector("svg");
+
+            svg.querySelectorAll('path').forEach(function(path) {
+                path.style.transition = 'd 0.1s ease';
+            });
+
+            if (compactToggle.getAttribute("value") === "<>") {
+                svg.querySelector('.arrow-1').setAttribute('d', 'M15 8 L10 12');
+                svg.querySelector('.arrow-2').setAttribute('d', 'M10 4 L15 8');
+                svg.querySelector('.arrow-3').setAttribute('d', 'M2 8 L7 12');
+                svg.querySelector('.arrow-4').setAttribute('d', 'M7 4 L2 8');
+            } else {
+                svg.querySelector('.arrow-1').setAttribute('d', 'M15 12 L10 8');
+                svg.querySelector('.arrow-2').setAttribute('d', 'M10 8 L15 4');
+                svg.querySelector('.arrow-3').setAttribute('d', 'M2 12 L7 8');
+                svg.querySelector('.arrow-4').setAttribute('d', 'M7 8 L2 4');
+            }
+            makeElementHistoryCompact()
+        }
         let sidebar = document.querySelector("#sidebar_content h2")
         if (!sidebar) {
             return
