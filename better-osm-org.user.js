@@ -2716,8 +2716,15 @@ function setupSatelliteLayers() {
 
 function makeElementHistoryCompact() {
     const shouldBeCompact = document.querySelector(".compact-toggle-btn").getAttribute("value") === "><";
-    document.querySelectorAll("table.browse-tag-list").forEach((el) => {
+    const forToggle = Array.from(document.querySelectorAll("table.browse-tag-list"))
+    // workaround for https://github.com/deevroman/better-osm-org/pull/273#issuecomment-2830047660
+    forToggle.slice(0, 8).forEach((el) => {
         el.classList.toggle("hide-non-modified-tags", shouldBeCompact)
+    })
+    setTimeout(() => {
+        forToggle.slice(8).forEach((el) => {
+            el.classList.toggle("hide-non-modified-tags", shouldBeCompact)
+        })
     })
     document.querySelectorAll(".empty-version").forEach((el) => {
         el.classList.toggle("d-none", shouldBeCompact)
