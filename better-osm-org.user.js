@@ -2715,7 +2715,7 @@ function setupSatelliteLayers() {
 //</editor-fold>
 
 function makeElementHistoryCompact() {
-    const shouldBeCompact = document.querySelector(".compact-toggle-btn").textContent === "><";
+    const shouldBeCompact = document.querySelector(".compact-toggle-btn").getAttribute("value") === "><";
     document.querySelectorAll(".non-modified-tag").forEach((el) => {
         el.classList.toggle("d-none", shouldBeCompact)
     })
@@ -2725,7 +2725,8 @@ function makeElementHistoryCompact() {
     document.querySelectorAll(".preview-img-link img").forEach(i => {
         i.classList.toggle("d-none", shouldBeCompact)
     })
-    document.querySelector(".compact-toggle-btn").textContent = shouldBeCompact ? "<>" : "><"
+    document.querySelector(".compact-toggle-btn").setAttribute("value", shouldBeCompact ? "<>" : "><")
+    document.querySelector(".compact-toggle-btn").innerHTML = shouldBeCompact ? expandModeSvg : compactModeSvg
 }
 
 /**
@@ -5515,6 +5516,9 @@ function addCommentsCount() {
     })
 }
 
+const compactModeSvg = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" height="17" width="17" viewBox="0 0 17 17"><path d="M15 12 l-5-4  5-4"></path><path d="M2 12 l 5-4 -5-4"></path></svg>'
+const expandModeSvg = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" height="17" width="17" viewBox="0 0 17 17"><path d="M7 12 l-5-4  5-4"></path><path d="M10 12 l 5-4 -5-4"></path></svg>'
+
 // hard cases:
 // https://www.openstreetmap.org/node/1/history
 // https://www.openstreetmap.org/node/2/history
@@ -5547,7 +5551,8 @@ function addDiffInHistory() {
     if (!location.pathname.includes("/user/")) {
         let compactToggle = document.createElement("button")
         compactToggle.title = "Toggle between full and compact tags diff.\nYou can also use the T key."
-        compactToggle.textContent = "><"
+        compactToggle.setAttribute("value", "><")
+        compactToggle.innerHTML = compactModeSvg
         compactToggle.classList.add("compact-toggle-btn")
         compactToggle.classList.add("btn", "btn-primary", "btn-sm")
         compactToggle.onclick = makeElementHistoryCompact
@@ -5555,10 +5560,47 @@ function addDiffInHistory() {
         if (!sidebar) {
             return
         }
+        sidebar.appendChild(document.createTextNode("\xA0"))
         sidebar.appendChild(compactToggle)
     }
 
     const styleText = `
+   
+    .compact-toggle-btn {
+        position: relative;
+        top: -2px;
+        cursor: pointer;
+        padding: 0px;
+        padding-left: 2px;
+        padding-right: 2px;
+        line-height: initial;
+        border-top: none;
+        border-bottom: none;
+        height: 1rem;
+    }
+    
+    
+    @media ${mediaQueryForWebsiteTheme} {
+        .compact-toggle-btn {
+            background: var(--bs-gray-800);
+            border-color: var(--bs-gray-800);
+        }
+    
+        .compact-toggle-btn:hover {
+            background: var(--bs-gray-700);
+            border-color: var(--bs-gray-700);
+        }
+        
+        .compact-toggle-btn:active {
+            background: var(--bs-gray-700);
+            border-color: var(--bs-gray-700);
+        }
+    }
+        
+    .compact-toggle-btn svg {
+        display: flex;
+    }
+    
     .history-diff-new-tag {
       background: rgba(17,238,9,0.6) !important;
     }
