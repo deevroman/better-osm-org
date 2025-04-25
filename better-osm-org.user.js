@@ -1568,16 +1568,16 @@ const compactSidebarStyleText = `
     }
     
     #mouse-trap {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      pointer-events: auto;
-      cursor: none;
-      z-index: 999999;
-      /* background: rgba(255, 0, 0, 0.3); */
-      background: transparent;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: auto;
+        cursor: none;
+        z-index: 999999;
+        /* background: rgba(255, 0, 0, 0.3); */
+        background: transparent;
     }
     `;
 
