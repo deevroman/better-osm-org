@@ -5501,7 +5501,7 @@ function addCommentsCount() {
             }
             setTimeout(async () => {
                 await loadChangesetMetadata(changesetID)
-                Object.entries(changesetMetadatas[changesetID]["tags"]).forEach(([k, v]) => {
+                Object.entries(changesetMetadatas[changesetID]?.["tags"] ?? {}).forEach(([k, v]) => { // тегов может не быть
                     if (k === "comment") return;
                     i.parentElement.title += `${k}: ${v}\n`
                 })
@@ -5592,8 +5592,8 @@ function addDiffInHistory() {
         }
         
         .compact-toggle-btn:active {
-            background: var(--bs-gray-700);
-            border-color: var(--bs-gray-700);
+            background: var(--bs-gray-700) !important;
+            border-color: var(--bs-gray-700) !important;
         }
     }
         
