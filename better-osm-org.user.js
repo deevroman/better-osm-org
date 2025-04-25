@@ -8411,7 +8411,7 @@ function addQuickLookStyles() {
             
             ul:has(li[hidden]):after {
                 color: var(--bs-body-color);
-                content: attr(hidden-nodes-count) ' unintersting nodes hidden';
+                content: attr(hidden-nodes-count) ' uninteresting nodes hidden';
                 font-style: italic;
                 font-weight: normal;
                 font-size: small;
