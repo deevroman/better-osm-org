@@ -11634,7 +11634,7 @@ function goToPrevChangesetObject(e) {
 
 function goToNextChangesetObject(e) {
     repeatedEvent = e.repeat
-    if (document.querySelector("#sidebar").matches(":hover")){
+    if (document.querySelector("#sidebar").matches(":hover")) {
         preventHoverEvents()
     }
     if (!document.querySelector("ul .active-object")) {
@@ -11886,7 +11886,7 @@ function goToNextChangeset(e) {
 }
 
 function goToPrevObjectVersion() {
-    if (document.querySelector("#sidebar").matches(":hover")){
+    if (document.querySelector("#sidebar").matches(":hover")) {
         preventHoverEvents()
     }
     if (!document.querySelector("#sidebar_content .active-object")) {
@@ -11913,7 +11913,7 @@ function goToPrevObjectVersion() {
 }
 
 function gotNextObjectVersion() {
-    if (document.querySelector("#sidebar").matches(":hover")){
+    if (document.querySelector("#sidebar").matches(":hover")) {
         preventHoverEvents()
     }
     if (!document.querySelector("#sidebar_content .active-object")) {
