@@ -2716,8 +2716,8 @@ function setupSatelliteLayers() {
 
 function makeElementHistoryCompact() {
     const shouldBeCompact = document.querySelector(".compact-toggle-btn").getAttribute("value") === "><";
-    document.querySelectorAll(".non-modified-tag").forEach((el) => {
-        el.classList.toggle("d-none", shouldBeCompact)
+    document.querySelectorAll("table.browse-tag-list").forEach((el) => {
+        el.classList.toggle("hide-non-modified-tags", shouldBeCompact)
     })
     document.querySelectorAll(".empty-version").forEach((el) => {
         el.classList.toggle("d-none", shouldBeCompact)
@@ -5664,7 +5664,11 @@ function addDiffInHistory() {
     .hidden-version, .hidden-h4 {
         display: none;
     }
-    
+
+    table.browse-tag-list.hide-non-modified-tags > tbody > .non-modified-tag {
+        display: none;
+    }
+
     #sidebar_content h2:not(.changeset-header){
         font-size: 1rem;
     }
@@ -5979,6 +5983,7 @@ function addDiffInHistory() {
                     })
                 }
                 if (!tagWasModified) {
+                    i.classList.add("non-modified-tag")
                     i.querySelector("th").classList.add("non-modified-tag")
                     i.querySelector("td").classList.add("non-modified-tag")
                 }
@@ -8291,7 +8296,11 @@ function addQuickLookStyles() {
             tr.quick-look-deleted-tag td:not(.tag-flag) {
                 background: rgba(238,51,9,0.6);
             }
-            
+
+            table.quick-look.hide-non-modified-tags > tbody > .non-modified-tag-in-quick-view {
+                display: none;
+            }
+
             .new-letter {
                 background: rgba(25, 223, 25, 0.6);
             }
@@ -8698,12 +8707,9 @@ async function processQuickLookInSidebar(changesetID) {
                 }
             })
             tagsOfObjectsVisible = !tagsOfObjectsVisible
-            document.querySelectorAll(".non-modified-tag-in-quick-view").forEach(i => {
-                if (e.target.textContent === "><") {
-                    i.removeAttribute("hidden")
-                } else {
-                    i.setAttribute("hidden", "true")
-                }
+            const shouldBeHidden = e.target.textContent === "<>"
+            document.querySelectorAll("table.quick-look").forEach(el => {
+                el.classList.toggle("hide-non-modified-tags", shouldBeHidden)
             });
             if (needHideNodes) {
                 if (e.target.textContent === "><") {
