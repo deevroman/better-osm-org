@@ -1583,6 +1583,12 @@ const compactSidebarStyleText = `
 
 let styleForSidebarApplied = false
 
+function addCompactSidebarStyle() {
+    if (styleForSidebarApplied) return;
+    styleForSidebarApplied = true;
+    injectCSSIntoOSMPage(compactSidebarStyleText);
+}
+
 async function getChangesetComments(changeset_id) {
     const res = await fetchJSONWithCache(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json?include_discussion=true")
     if (res.status === 509) {
@@ -1597,8 +1603,7 @@ function setupCompactChangesetsHistory() {
         if (!styleForSidebarApplied && (location.pathname.startsWith("/node")
             || location.pathname.startsWith("/way")
             || location.pathname.startsWith("/relation"))) {
-            styleForSidebarApplied = true
-            injectCSSIntoOSMPage(compactSidebarStyleText);
+            addCompactSidebarStyle();
         }
         return;
     }
@@ -1609,8 +1614,7 @@ function setupCompactChangesetsHistory() {
         }
     }
 
-    styleForSidebarApplied = true
-    injectCSSIntoOSMPage(compactSidebarStyleText)
+    addCompactSidebarStyle();
 
     // увы, инвалидация в этом месте ломает зум при загрузке объекте самим сайтом
     // try {
@@ -6434,10 +6438,7 @@ function makeVersionPageBetter() {
     if (!match) {
         return
     }
-    if (!styleForSidebarApplied) {
-        styleForSidebarApplied = true
-        injectCSSIntoOSMPage(compactSidebarStyleText)
-    }
+    addCompactSidebarStyle()
 
     if (!document.querySelector(".find-user-btn")) {
         try {
