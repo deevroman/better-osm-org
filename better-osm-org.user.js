@@ -12449,7 +12449,7 @@ function setupNavigationViaHotkeys() {
         } else if (e.code === "KeyO") {
             if (e.shiftKey) {
                 window.open("https://overpass-api.de/achavi/?changeset=" + location.pathname.match(/\/changeset\/(\d+)/)[1])
-            } else {
+            } else if (!e.altKey) {
                 const usernameMatch = location.pathname.match(/^\/user\/([^/]+)\/?$/)
                 if (usernameMatch) {
                     window.open(makeOsmchaLinkForUsername(decodeURI(usernameMatch[1])))
