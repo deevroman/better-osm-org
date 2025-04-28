@@ -202,6 +202,7 @@ Maybe
 
 ### Projects that are used directly or indirectly in the script
 
+- [Bookmarklet helpers for resolving OSM Notes](https://community.openstreetmap.org/t/bookmarklet-helpers-for-resolving-osm-notes/105805/1)
 - [exif-js](https://github.com/exif-js/exif-js) — to read the coordinates of the photos that you drag using Drag&Drop
 - [GM_config](https://github.com/sizzlemctwizzle/GM_config) — settings framework for UserScripts
 - [LetItSnow](https://github.com/DevBubba/Bookmarklets/blob/main/Screen/LetItSnow.js) — Easter New Year's Egg
