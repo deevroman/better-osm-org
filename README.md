@@ -204,12 +204,14 @@ Maybe
 
 - [Bookmarklet helpers for resolving OSM Notes](https://community.openstreetmap.org/t/bookmarklet-helpers-for-resolving-osm-notes/105805/1)
 - [exif-js](https://github.com/exif-js/exif-js) — to read the coordinates of the photos that you drag using Drag&Drop
+- [ESRI](https://wiki.openstreetmap.org/wiki/Esri) — Satellite images
 - [GM_config](https://github.com/sizzlemctwizzle/GM_config) — settings framework for UserScripts
 - [LetItSnow](https://github.com/DevBubba/Bookmarklets/blob/main/Screen/LetItSnow.js) — Easter New Year's Egg
 - [Lucide](https://lucide.dev/icons/diff) — for changes count icon on /history page
 - [opening_hours.js](https://github.com/opening-hours/opening_hours.js) — for opening_hours tags validation
 - [OpenStreetMap Dark Theme](https://userstyles.world/style/15596/openstreetmap-dark-theme) — dark theme was the foundation based on this style
 - [OpenStreetMap Statistics](https://github.com/piebro/openstreetmap-statistics) — The script uses the rules from this project to normalize the names of OSM editors
+- [OSMBuilding](https://github.com/Beakerboy/OSMBuilding) — 3D viewer for buildings
 - [osmtogeojson](https://github.com/tyrasd/osmtogeojson) — converts OSM data to GeoJSON
 - [osm-auth](https://github.com/osmlab/osm-auth) — for authentication with OpenStreetMap
 - [SVG Spinners](https://github.com/n3r4zzurr0/svg-spinners) — for more beautiful spinner when you upload edits in iD in dark mode
