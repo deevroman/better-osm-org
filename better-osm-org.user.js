@@ -3295,6 +3295,8 @@ function makeWikimediaCommonsValue(elem) {
     })
 }
 
+let buildingViewerIframe = null;
+
 // example https://osm.org/node/6506618057
 function makeLinksInTagsClickable() {
     document.querySelectorAll(".browse-tag-list tr").forEach(row => {
@@ -3356,6 +3358,56 @@ function makeLinksInTagsClickable() {
                     valueCell.classList.add("fixme-tag")
                 }
             }
+        } else if (["building", "building:part"].includes(key) || (key === "type" && valueCell.textContent === "building")) {
+            if (document.querySelector(".view-3d-link")) {
+                return;
+            }
+            if (["building", "building:part"].includes(key) &&
+                !Array.from(document.querySelectorAll(".browse-tag-list tr th"))
+                    .some(i => i.textContent.includes("level") || i.textContent.includes("height") || i.textContent.includes("roof"))) {
+                return
+            }
+            const [, type, id] = location.pathname.match(/\/(way|relation)\/(\d+)/)
+            if (!type) {
+                return
+            }
+            const viewIn3D = document.createElement("span")
+            viewIn3D.classList.add("view-3d-link")
+            viewIn3D.textContent = " 🏯"
+            viewIn3D.style.cursor = "pointer"
+            viewIn3D.title = "Show embedded OSM Building Viewer.\nClick with CTRL for open this viewer in new tab\nClick with Alt for open F4Map"
+            viewIn3D.addEventListener("click", (e) => {
+                if (buildingViewerIframe) {
+                    buildingViewerIframe.remove()
+                    buildingViewerIframe = null
+                    return
+                }
+                const [, z, x, y] = new URL(document.querySelector("#editanchor").href).hash.match(/map=(\d+)\/([0-9.-]+)\/([0-9.-]+)/)
+                const url = e.altKey ? `https://demo.f4map.com/#lat=${x}&lon=${y}&zoom=${z}` : "https://deevroman.github.io/OSMBuilding?" + new URLSearchParams({
+                    type: type,
+                    id: id
+                }).toString()
+                if (e.ctrlKey || e.metaKey) {
+                    window.open(url, "_blank")
+                    return
+                }
+
+                injectCSSIntoOSMPage(`
+                    #building-3d-view {
+                        position: absolute !important;
+                        height: 120% !important;
+                        z-index: 9999 !important;
+                    }
+                `)
+                buildingViewerIframe = GM_addElement("iframe", {
+                    src: url,
+                    width: document.querySelector("#map").clientWidth,
+                    height: "100%",
+                    id: "building-3d-view"
+                })
+                document.querySelector("#map").before(buildingViewerIframe)
+            })
+            document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(viewIn3D)
         }
     })
     const tagsTable = document.querySelector(".browse-tag-list")
@@ -13804,6 +13856,8 @@ function setup() {
                 getMap().attributionControl.setPrefix("")
                 addSwipes();
                 document.querySelector("#fixed-rss-feed")?.remove()
+                buildingViewerIframe?.remove()
+                buildingViewerIframe = null
             } catch { /* empty */
             }
         }
