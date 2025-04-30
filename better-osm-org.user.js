@@ -267,6 +267,52 @@ const PRIVATECOFFEE_OVERPASS_INSTANCE = {
 
 let overpass_server = MAIN_OVERPASS_INSTANCE
 
+const instancesOf3DViewers = [
+    {
+        name: "OSM Building Viewer",
+        url: "https://deevroman.github.io/OSMBuilding/",
+        makeURL: function ({type: type, id: id}) {
+            return `${this.url}?id=${id}&type=${type}`// TODO osmAPIurl
+        }
+    },
+    {
+        name: "F4Map",
+        url: "https://demo.f4map.com/",
+        makeURL: function ({x: x, y: y, z: z}) {
+            return `${this.url}#lat=${x}&lon=${y}&zoom=${z}`;
+        }
+    },
+    {
+        name: "streets.gl",
+        url: "https://streets.gl/",
+        makeURL: function ({x: x, y: y, z: z}) {
+            return `${this.url}#${x},${y},45.00,0.00,2000.00`
+        }
+    },
+    {
+        name: "OSM go",
+        url: "https://www.osmgo.org/go.html",
+        makeURL: function ({x: x, y: y, z: z}) {
+            return `${this.url}?lat=${x}&lon=${y}&view=-50&ele=150`
+        }
+    },
+    {
+        name: "osmbuildings.org",
+        url: "https://osmbuildings.org/",
+        makeURL: function ({x: x, y: y, z: z}) {
+            return `${this.url}?lat=${x}&lon=${y}&zoom=${z}`
+        }
+    },
+    // {
+    //     name: "OSM Building Viewer (fork)",
+    //     url: "https://deevroman.github.io/OSMBuilding/",
+    //     makeURL: function ({type: type, id: id}) {
+    //         return `${this.url}/?id=${id}&type=${type}`
+    //     }
+    // }
+]
+
+
 const boWindowObject = typeof window.wrappedJSObject !== "undefined" ? window.wrappedJSObject : unsafeWindow;
 const boGlobalThis = typeof boWindowObject.globalThis !== "undefined" ? boWindowObject.globalThis : boWindowObject;
 
@@ -596,6 +642,12 @@ GM_config.init(
                     'default': 'checked',
                     'labelPos': 'right'
                 },
+                '3DViewerInNewTab': {
+                    'label': 'Open buildings 3D viewers always in new tab',
+                    'type': 'checkbox',
+                    'default': false,
+                    'labelPos': 'right'
+                },
                 'OverpassInstance': {
                     'label': '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass API server</a>',
                     'labelPos': 'left',
@@ -605,7 +657,11 @@ GM_config.init(
                         MAILRU_OVERPASS_INSTANCE.name,
                         PRIVATECOFFEE_OVERPASS_INSTANCE.name
                     ],
-                }
+                },
+                '3DViewer': {
+                    'type': 'hidden',
+                    'default': "OSM Building Viewer"
+                },
             },
         'types': {
             'menu': {
@@ -3371,34 +3427,133 @@ function makeLinksInTagsClickable() {
             if (!type) {
                 return
             }
-            const viewIn3D = document.createElement("span")
-            viewIn3D.classList.add("view-3d-link")
-            viewIn3D.textContent = " 🏯"
-            viewIn3D.style.cursor = "pointer"
-            viewIn3D.title = "Show embedded OSM Building Viewer.\nClick with CTRL for open this viewer in new tab\nClick with Alt for open F4Map"
-            viewIn3D.addEventListener("click", (e) => {
-                if (buildingViewerIframe) {
-                    buildingViewerIframe.remove()
-                    buildingViewerIframe = null
-                    return
-                }
-                const [, z, x, y] = new URL(document.querySelector("#editanchor").href).hash.match(/map=(\d+)\/([0-9.-]+)\/([0-9.-]+)/)
-                const url = e.altKey ? `https://demo.f4map.com/#lat=${x}&lon=${y}&zoom=${z}` : "https://deevroman.github.io/OSMBuilding?" + new URLSearchParams({
-                    type: type,
-                    id: id
-                }).toString()
-                if (e.ctrlKey || e.metaKey) {
-                    window.open(url, "_blank")
-                    return
-                }
-
-                injectCSSIntoOSMPage(`
+            injectCSSIntoOSMPage(`
                     #building-3d-view {
                         position: absolute !important;
                         height: 120% !important;
                         z-index: 9999 !important;
                     }
-                `)
+                    
+                    #contextMenuFor3DViewers {
+                        position: absolute;
+                        display: "block";
+                        background: var(--bs-body-bg);
+                        border: 1px solid var(--bs-border-color);
+                        box-shadow: 0 2px 5px var(--bs-body-bg);
+                        z-index: 1000;
+                        padding: 5px 0;
+                        border-radius: 4px;
+                        min-width: 150px;
+                    }
+                    #contextMenuFor3DViewers div {
+                        cursor: pointer;
+                        display: flex;
+                    }
+                    #contextMenuFor3DViewers div:hover {
+                        cursor: pointer;
+                        background: var(--bs-secondary-bg);
+                    }
+                    #contextMenuFor3DViewers div a {
+                        display: block;
+                        padding-top: 6px;
+                        padding-right: 12px;
+                        padding-bottom: 6px;
+                        padding-left: 6px;
+                    }
+                    #contextMenuFor3DViewers div .pin {
+                        align-content: center;
+                        padding-right: 8px;
+                    }
+                    #contextMenuFor3DViewers div .pin:hover {
+                        cursor: pointer;
+                        background: var(--bs-secondary-bg);
+                    }
+                    #contextMenuFor3DViewers div .pin {
+                        display: none;
+                    }
+                    #contextMenuFor3DViewers div .pin + label {
+                        align-self: center;
+                        padding-left: 6px;
+                    }
+                    #contextMenuFor3DViewers div .pin:not(:checked) + label {
+                        filter: grayscale(100%);
+                        opacity: 20%;
+                        cursor: pointer;
+                    }
+                    #contextMenuFor3DViewers div .pin:not(:checked) + label:hover {
+                        filter: initial;
+                        opacity: initial;
+                    }
+            `)
+            const viewIn3D = document.createElement("span")
+            viewIn3D.classList.add("view-3d-link")
+            viewIn3D.textContent = " 🏯"
+            viewIn3D.style.cursor = "pointer"
+            viewIn3D.title = "Click for show embedded 3D Viewer.\nRight click for select viewer\nClick with CTRL for open viewer in new tab"
+
+            viewIn3D.addEventListener("contextmenu", function(e) {
+                e.preventDefault();
+
+                const menu = document.createElement("div");
+                menu.id = "contextMenuFor3DViewers";
+                instancesOf3DViewers.forEach(i => {
+                    const listItem = document.createElement("div");
+                    const a = document.createElement("a");
+                    const [x, y, z] = getCurrentXYZ();
+                    a.href = i.makeURL({x, y, z, type, id});
+                    a.textContent = i.name;
+                    a.target = "_blank";
+
+                    const pin = document.createElement("input")
+                    pin.id = i.name
+                    pin.type = "radio"
+                    pin.classList.add("pin")
+                    pin.setAttribute("name", "viewer-selector")
+                    const pinLabel = document.createElement("label");
+                    pinLabel.setAttribute("for", i.name)
+                    pinLabel.classList.add("pin-label")
+                    pinLabel.textContent = "📌"
+                    pinLabel.title = "Set as default for click"
+                    if (i.name === GM_config.get("3DViewer")) {
+                        pin.checked = true
+                        pinLabel.title = "It's default viewer"
+                    }
+                    pin.onchange = () => {
+                        if (pin.checked) {
+                            GM_config.set("3DViewer", i.name)
+                            GM_config.save()
+                        }
+                    }
+                    listItem.appendChild(pin);
+                    listItem.appendChild(pinLabel);
+                    listItem.appendChild(a);
+                    document.addEventListener("click", function fn(e) {
+                        if (e.target.classList.contains("pin-label") || e.target.classList.contains("pin")) {
+                            document.addEventListener("click", fn, {once: true});
+                            return
+                        }
+                        menu.remove()
+                    }, {once: true})
+                    menu.appendChild(listItem);
+                });
+                menu.style.left = `${e.pageX - 30}px`;
+                menu.style.top = `${e.pageY}px`;
+                document.body.appendChild(menu);
+            });
+            function clickHandler(e) {
+                if (buildingViewerIframe) {
+                    buildingViewerIframe.remove()
+                    buildingViewerIframe = null
+                    return
+                }
+                const [x, y, z] = getCurrentXYZ();
+                const viewer = instancesOf3DViewers.find(i => i.name === GM_config.get("3DViewer"))
+                const url = viewer.makeURL({x, y, z, type, id})
+                if (e.ctrlKey || e.metaKey || e.which === 2 || GM_config.get("3DViewerInNewTab")) {
+                    window.open(url, "_blank")
+                    return
+                }
+
                 buildingViewerIframe = GM_addElement("iframe", {
                     src: url,
                     width: document.querySelector("#map").clientWidth,
@@ -3406,6 +3561,11 @@ function makeLinksInTagsClickable() {
                     id: "building-3d-view"
                 })
                 document.querySelector("#map").before(buildingViewerIframe)
+            }
+            viewIn3D.addEventListener("click", clickHandler)
+            viewIn3D.addEventListener("auxclick", e => {
+                if (e.which !== 2) return;
+                clickHandler(e);
             })
             document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(viewIn3D)
         }
@@ -12437,7 +12597,7 @@ function setupNavigationViaHotkeys() {
                 }
             }
         } else if (e.code === "KeyY") {
-            const [, z, x, y] = new URL(document.querySelector("#editanchor").href).hash.match(/map=(\d+)\/([0-9.-]+)\/([0-9.-]+)/)
+            const [x, y, z] = getCurrentXYZ();
             window.open(`https://yandex.ru/maps/?l=stv,sta&ll=${y},${x}&z=${z}`, "_blank", "noreferrer");
         } else if (e.key === "1") {
             if (location.pathname.match(/\/(node|way|relation)\/\d+/)) {
