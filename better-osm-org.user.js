@@ -1399,8 +1399,8 @@ function hideSearchForm() {
         cleanAllObjects()
     }
 
-    document.querySelector("#sidebar_content .btn-close:not(.hotkeyed)")?.addEventListener("click", showSearchForm)
-    document.querySelector("#sidebar_content .btn-close:not(.hotkeyed)")?.classList?.add("hotkeyed")
+    document.querySelector(".sidebar-close-controls .btn-close:not(.hotkeyed)")?.addEventListener("click", showSearchForm)
+    document.querySelector(".sidebar-close-controls .btn-close:not(.hotkeyed)")?.classList?.add("hotkeyed")
     document.querySelector("h1 .icon-link:not(.hotkeyed)")?.addEventListener("click", showSearchForm)
     document.querySelector("h1 .icon-link:not(.hotkeyed)")?.classList?.add("hotkeyed")
 }
@@ -12810,7 +12810,7 @@ function setupNavigationViaHotkeys() {
                 }
             }
         } else if (e.code === "KeyQ" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
-            document.querySelector("#sidebar .btn-close")?.click()
+            document.querySelectorAll(".sidebar-close-controls .btn-close").forEach(i => i?.click())
             document.querySelector(".welcome .btn-close")?.click()
         } else if (e.code === "KeyT" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
             if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
