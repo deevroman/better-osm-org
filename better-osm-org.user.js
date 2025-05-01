@@ -1806,22 +1806,30 @@ function setupCompactChangesetsHistory() {
 /**
  *
  * @param {string} text
+ * @param {boolean} strict
  * @return {Object.<string, string>}
  */
-function buildTags(text) {
+function buildTags(text, strict=false) {
     const lines = text.split('\n');
     let json = {};
-    for (let line of lines) {
+    for (let i = 0; i < lines.length; i++){
+        const line = lines[i];
         let eqPos = line.indexOf('=');
         if (eqPos <= 0 || eqPos === line.length - 1) {
             eqPos = line.indexOf("\t");
             if (eqPos <= 0 || eqPos === line.length - 1) {
+                if (strict && line.trim() !== '') {
+                    throw `Empty key or value in line №${i}: ${line}`;
+                }
                 continue;
             }
         }
         const k = line.substring(0, eqPos).trim();
         const v = line.substring(eqPos + 1).trim();
         if (v === '' || k === '') {
+            if (strict && line.trim() !== '') {
+                throw `Empty key or value in line №${i+1}: ${line}`;
+            }
             continue;
         }
         json[k] = v.replaceAll('\\\\', '\n');
@@ -1872,7 +1880,17 @@ function addResolveNotesButton() {
             console.log("Opening changeset");
 
             let tagsHint = ""
-            const tags = buildTags(document.querySelector("#sidebar_content form textarea").value)
+            let tags;
+            try {
+                 tags = buildTags(document.querySelector("#sidebar_content form textarea").value, true)
+            } catch (e) {
+                alert(e)
+                return
+            }
+            if (Object.entries(tags).length === 0) {
+                alert("Textarea not contains any tag")
+                return
+            }
 
             for (const i of Object.entries(tags)) {
                 if (mainTags.includes(i[0])) {
