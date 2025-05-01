@@ -11966,6 +11966,29 @@ function goToNextChangesetObject(e) {
     console.log("KeyL not found next elem")
 }
 
+function extractBboxFromElem(elem) {
+    const bbox = JSON.parse(elem.getAttribute("data-changeset")).bbox
+    bbox.min_lon = bbox.minlon
+    bbox.min_lat = bbox.minlat
+    bbox.max_lon = bbox.maxlon
+    bbox.max_lat = bbox.maxlat
+    return bbox
+}
+
+function preventHoverEvents() {
+    if (document.querySelector("#mouse-trap")) return;
+
+    console.log("add mouse trap");
+    const trap = document.createElement('div');
+    trap.id = 'mouse-trap';
+    document.body.appendChild(trap);
+
+    window.addEventListener('mousemove', () => {
+        trap.remove();
+        console.log("remove mouse trap")
+    }, {once: true});
+}
+
 function goToPrevChangeset(e) {
     if (!layers['changesetBounds']) {
         layers['changesetBounds'] = []
@@ -12014,29 +12037,6 @@ function goToPrevChangeset(e) {
         document.querySelector('.changeset_more a[href*="after"]')?.click()
     }
 
-}
-
-function extractBboxFromElem(elem) {
-    const bbox = JSON.parse(elem.getAttribute("data-changeset")).bbox
-    bbox.min_lon = bbox.minlon
-    bbox.min_lat = bbox.minlat
-    bbox.max_lon = bbox.maxlon
-    bbox.max_lat = bbox.maxlat
-    return bbox
-}
-
-function preventHoverEvents() {
-    if (document.querySelector("#mouse-trap")) return;
-
-    console.log("add mouse trap");
-    const trap = document.createElement('div');
-    trap.id = 'mouse-trap';
-    document.body.appendChild(trap);
-
-    window.addEventListener('mousemove', () => {
-        trap.remove();
-        console.log("remove mouse trap")
-    }, {once: true});
 }
 
 function goToNextChangeset(e) {
@@ -12102,6 +12102,98 @@ function goToNextChangeset(e) {
         })
     } else {
         document.querySelector('.changeset_more a[href*="before"]')?.click()
+    }
+}
+
+function extractLatLonFromElem(elem) {
+    return [elem.getAttribute("data-lat"), elem.getAttribute("data-lon")]
+}
+
+function goToPrevSearchResult(e) {
+    if (!document.querySelector("#sidebar_content ul .active-object")) {
+        return;
+    }
+    preventHoverEvents()
+
+    const cur = document.querySelector("#sidebar_content ul .active-object")
+    let prev = cur.previousElementSibling
+    while (true) {
+        if (!prev) break
+        if (prev.getAttribute("hidden") === "true") {
+            prev = prev.previousElementSibling
+        } else {
+            break
+        }
+    }
+    if (!prev) {
+        if (cur.parentElement.previousElementSibling.tagName === "UL"){
+            prev = cur.parentElement.previousElementSibling?.querySelector("li:last-of-type")
+        }
+    }
+    if (prev) {
+        prev.classList.add("active-object")
+        cur.classList.remove("active-object")
+        let focused = prev.querySelector("a")
+        focused.focus()
+        prev.scrollIntoView({block: "center", behavior: "instant"})
+
+        const [lat, lon] = extractLatLonFromElem(document.querySelector("#sidebar_content ul .active-object a"))
+        const marker = showNodeMarker(lat, lon)
+        panTo(lat, lon)
+        focused.addEventListener("focusout", () => {
+            marker.remove()
+        }, {once: true})
+    }
+
+}
+
+function goToNextSearchResult(e) {
+    preventHoverEvents()
+    if (!document.querySelector("#sidebar_content ul .active-object")) {
+        document.querySelector("#sidebar_content ul li").classList.add("active-object")
+        document.querySelector("#sidebar_content ul .active-object a").tabIndex = 0
+        let focused = document.querySelector("#sidebar_content .active-object a")
+        focused.focus()
+        const [lat, lon] = extractLatLonFromElem(document.querySelector("#sidebar_content ul .active-object a"))
+        const marker = showNodeMarker(lat, lon)
+        panTo(lat, lon)
+        focused.addEventListener("focusout", () => {
+            marker.remove()
+        }, {once: true})
+        return
+    }
+    const cur = document.querySelector("#sidebar_content ul .active-object")
+    let next = cur.nextElementSibling
+    while (true) {
+        if (!next) break
+        if (next.getAttribute("hidden") === "true") {
+            next = next.nextElementSibling
+        } else {
+            break
+        }
+    }
+    if (!next) {
+        if (cur.parentElement.nextElementSibling.tagName === "UL"){
+            next = cur.parentElement.nextElementSibling?.querySelector("li")
+        }
+    }
+    if (next) {
+        next.classList.add("active-object")
+        cur.classList.remove("active-object")
+        let focused = next.querySelector("a")
+        focused.focus()
+        resetSelectedChangesets()
+        next.scrollIntoView({block: "center", behavior: "instant"})
+
+        const [lat, lon] = extractLatLonFromElem(document.querySelector("#sidebar_content ul .active-object a"))
+        const marker = showNodeMarker(lat, lon)
+        panTo(lat, lon)
+
+        focused.addEventListener("focusout", () => {
+            marker.remove()
+        }, {once: true})
+    } else {
+        document.querySelector('.search_more a')?.click()
     }
 }
 
@@ -12675,6 +12767,10 @@ function setupNavigationViaHotkeys() {
             goToPrevChangeset(e);
         } else if (e.code === "KeyL" && location.pathname.match(/^(\/user\/.+)?\/history\/?$/)) {
             goToNextChangeset(e);
+        } else if (e.code === "KeyK" && location.pathname === "/search") {
+            goToPrevSearchResult(e);
+        } else if (e.code === "KeyL" && location.pathname === "/search") {
+            goToNextSearchResult(e);
         } else if (e.code === "KeyL" && e.shiftKey) {
             document.getElementsByClassName("geolocate")[0]?.click()
         } else if (e.code === "KeyC") {
