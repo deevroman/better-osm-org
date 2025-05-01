@@ -12069,7 +12069,19 @@ function goToNextChangeset(e) {
         layers['changesetBounds'] = []
     }
     if (!document.querySelector("ol .active-object")) {
-        document.querySelector("ol li").classList.add("active-object")
+        let next = document.querySelector("ol li")
+        while (true) {
+            if (next?.getAttribute("hidden") === "true") {
+                next = next.nextElementSibling
+            } else {
+                break
+            }
+        }
+        if (!next) {
+            document.querySelector('.changeset_more a[href*="before"]')?.click()
+            return
+        }
+        next.classList.add("active-object")
         document.querySelector("ol .active-object a").tabIndex = 0
         let focused = document.querySelector("ol .active-object a")
         focused.focus()
