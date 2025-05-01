@@ -3432,6 +3432,7 @@ function makeLinksInTagsClickable() {
             if (key !== "opening_hours:signed") {
                 try {
                     new opening_hours(valueCell.textContent, null, {tag_key: key});
+                    valueCell.title = "opening_hours.js not found errors👍"
                 } catch (e) {
                     valueCell.title = e
                     valueCell.classList.add("fixme-tag")
@@ -3512,7 +3513,7 @@ function makeLinksInTagsClickable() {
             viewIn3D.classList.add("view-3d-link")
             viewIn3D.textContent = " 🏯"
             viewIn3D.style.cursor = "pointer"
-            viewIn3D.title = "Click for show embedded 3D Viewer.\nRight click for select viewer\nClick with CTRL for open viewer in new tab"
+            viewIn3D.title = "Click for show embedded 3D Viewer.\nRight click for select viewer\nClick with CTRL for open viewer in new tab\nIn userscript setting you can set open in tab by default"
 
             viewIn3D.addEventListener("contextmenu", function(e) {
                 e.preventDefault();
