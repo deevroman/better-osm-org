@@ -1,7 +1,12 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.9.8.2
+// @version         0.9.9
+// @changelog       v0.9.9: Button for 3D view building in OSMBuilding, F4map and other viewers
+// @changelog       v0.9.9: Key1 for open first user's changeset, add poweruser=true in Rapid link
+// @changelog       v0.9.9: Restore navigaion links on changeset page of deleted user
+// @changelog       v0.9.9: KeyR select object for partial revert or open in JOSM/Level0 (KeyJ)
+// @changelog       v0.9.9: You can replace iD with JOSM (click on extension icon)
 // @changelog       v0.9.8: Hover for nodes/members in nodes way or relation members list, better RTL support
 // @changelog       v0.9.8: Show past usernames of user, click for copy ID from header, adoption to updates osm.org
 // @changelog       v0.9.6: Filter by editor for edits heatmap
@@ -388,6 +393,15 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
                 }
             }`
         )
+        GM_registerMenuCommand("JOSM!", function () {
+            const iframe = GM_addElement("iframe", {
+                "src": "https://deevroman.github.io/web-josm",
+                "width": "100%",
+                "height": "100%",
+                "id": "josmembed",
+            })
+            document.querySelector("#id-embed").replaceWith(iframe)
+        });
     } else {
         injectCSSIntoOSMPage(
             `@media ${mediaQueryForWebsiteTheme} {
