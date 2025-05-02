@@ -12814,6 +12814,8 @@ function setupNavigationViaHotkeys() {
             }
         } else if (e.code === "Escape") {
             cleanObjectsByKey("activeObjects")
+        } else if (e.code === "KeyL" && e.shiftKey) {
+            document.getElementsByClassName("geolocate")[0]?.click()
         } else if (e.code === "KeyK" && location.pathname.match(/^(\/user\/.+)?\/history\/?$/)) {
             goToPrevChangeset(e);
         } else if (e.code === "KeyL" && location.pathname.match(/^(\/user\/.+)?\/history\/?$/)) {
@@ -12822,8 +12824,6 @@ function setupNavigationViaHotkeys() {
             goToPrevSearchResult(e);
         } else if (e.code === "KeyL" && location.pathname === "/search") {
             goToNextSearchResult(e);
-        } else if (e.code === "KeyL" && e.shiftKey) {
-            document.getElementsByClassName("geolocate")[0]?.click()
         } else if (e.code === "KeyC") {
             if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
                 if (location.pathname.includes("/diary_comments")) {
