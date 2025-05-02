@@ -12462,6 +12462,12 @@ function zoomToCurrentObject(e) {
     }
 }
 
+
+function getCurrentXYZ() {
+    const [, z, x, y] = new URL(document.querySelector("#editanchor").href).hash.match(/map=(\d+)\/([0-9.-]+)\/([0-9.-]+)/);
+    return [x, y, z];
+}
+
 function setupNavigationViaHotkeys() {
     if (["/edit", "/id"].includes(location.pathname)) return
     updateCurrentObjectMetadata()
