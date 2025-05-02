@@ -3458,7 +3458,7 @@ function makeLinksInTagsClickable() {
             }
             if (["building", "building:part"].includes(key) &&
                 !Array.from(document.querySelectorAll(".browse-tag-list tr th"))
-                    .some(i => i.textContent.includes("level") || i.textContent.includes("height") || i.textContent.includes("roof"))) {
+                    .some(i => i.textContent.includes("level") || i.textContent.includes("height") || i.textContent.includes("roof") || i.textContent.includes("name"))) {
                 return
             }
             const [, type, id] = location.pathname.match(/\/(way|relation)\/(\d+)/)
