@@ -14131,6 +14131,14 @@ function setup() {
                     ${GM_getResourceText("DARK_THEME_FOR_ID_CSS")}
                 }`
         )
+        GM_registerMenuCommand("Show iD OAuth token", function () {
+            const token = document.querySelector("#id-container")?.getAttribute("data-token")
+            if (token) {
+                alert(token);
+            } else {
+                alert("Please switch the focus to the Iframe iD.\nJust click anywhere in the editor.")
+            }
+        });
         return
     }
     if (GM_config.get("ResetSearchFormFocus")) {
