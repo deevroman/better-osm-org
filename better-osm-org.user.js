@@ -375,36 +375,28 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
     }, 1500)
 
 } else if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)
-    && ["/edit", "/id"].includes(location.pathname) && isDarkMode()) {
-    if (location.pathname === "/edit") {
-        // document.querySelector("#id-embed").style.visibility = "hidden"
-        // window.addEventListener("message", (event) => {
-        //     console.log("making iD visible")
-        //     if (event.origin !== location.origin)
-        //         return;
-        //     if (event.data === "kek") {
-        //         document.querySelector("#id-embed").style.visibility = "visible"
-        //     }
-        // });
-        injectCSSIntoOSMPage(
-            `@media ${mediaQueryForWebsiteTheme} {
+    && ["/edit", "/id"].includes(location.pathname)) {
+    if (isDarkMode()) {
+        if (location.pathname === "/edit") {
+            // document.querySelector("#id-embed").style.visibility = "hidden"
+            // window.addEventListener("message", (event) => {
+            //     console.log("making iD visible")
+            //     if (event.origin !== location.origin)
+            //         return;
+            //     if (event.data === "kek") {
+            //         document.querySelector("#id-embed").style.visibility = "visible"
+            //     }
+            // });
+            injectCSSIntoOSMPage(
+                `@media ${mediaQueryForWebsiteTheme} {
                 #id-embed {
                     background: #212529 !important;
                 }
             }`
-        )
-        GM_registerMenuCommand("JOSM!", function () {
-            const iframe = GM_addElement("iframe", {
-                "src": "https://deevroman.github.io/web-josm",
-                "width": "100%",
-                "height": "100%",
-                "id": "josmembed",
-            })
-            document.querySelector("#id-embed").replaceWith(iframe)
-        });
-    } else {
-        injectCSSIntoOSMPage(
-            `@media ${mediaQueryForWebsiteTheme} {
+            )
+        } else {
+            injectCSSIntoOSMPage(
+                `@media ${mediaQueryForWebsiteTheme} {
                 html {
                     background: #212529 !important;
                 }
@@ -421,12 +413,22 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
                     background: #212529 !important;
                 }
             }`
-        )
-        // if (location.pathname === "/id") {
-        //     console.log("post")
-        //     window.parent.postMessage("kek", location.origin);
-        // }
+            )
+            // if (location.pathname === "/id") {
+            //     console.log("post")
+            //     window.parent.postMessage("kek", location.origin);
+            // }
+        }
     }
+    GM_registerMenuCommand("JOSM!", function () {
+        const iframe = GM_addElement("iframe", {
+            "src": "https://deevroman.github.io/web-josm",
+            "width": "100%",
+            "height": "100%",
+            "id": "josmembed",
+        })
+        document.querySelector("#id-embed").replaceWith(iframe)
+    });
 }
 
 function makeRow(label, text, without_delete = false) {
