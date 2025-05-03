@@ -144,8 +144,6 @@ if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Grease
 const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const isFirefox = navigator.userAgent.includes("Firefox");
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-const mediumDeviceWidth = window.getComputedStyle(document.documentElement).getPropertyValue("--bs-breakpoint-md");
-const isMediumDevice = window.matchMedia(`(max-width: ${mediumDeviceWidth})`).matches
 
 if (isSafari) {
     console.error("YOU ARE USING AN UNSUPPORTED BROWSER")
@@ -661,7 +659,7 @@ GM_config.init(
                 '3DViewerInNewTab': {
                     'label': 'Open buildings 3D viewers always in new tab',
                     'type': 'checkbox',
-                    'default': isMediumDevice ? 'checked' : false,
+                    'default': isMobile ? 'checked' : false,
                     'labelPos': 'right'
                 },
                 'OverpassInstance': {
@@ -3533,7 +3531,7 @@ function makeLinksInTagsClickable() {
             viewIn3D.style.cursor = "pointer"
             viewIn3D.title = "Click for show embedded 3D Viewer.\nRight click for select viewer\nClick with CTRL for open viewer in new tab\nIn userscript setting you can set open in tab by default"
 
-            viewIn3D.addEventListener("contextmenu", function(e) {
+            function contextMenuHandler(e) {
                 e.preventDefault();
 
                 const menu = document.createElement("div");
@@ -3581,7 +3579,8 @@ function makeLinksInTagsClickable() {
                 menu.style.left = `${e.pageX - 30}px`;
                 menu.style.top = `${e.pageY}px`;
                 document.body.appendChild(menu);
-            });
+            }
+            viewIn3D.addEventListener("contextmenu", contextMenuHandler);
             function clickHandler(e) {
                 if (buildingViewerIframe) {
                     buildingViewerIframe.remove()
@@ -3604,7 +3603,11 @@ function makeLinksInTagsClickable() {
                 })
                 document.querySelector("#map").before(buildingViewerIframe)
             }
-            viewIn3D.addEventListener("click", clickHandler)
+            if (isMobile) {
+                viewIn3D.addEventListener("click", e => contextMenuHandler(e))
+            } else {
+                viewIn3D.addEventListener("click", clickHandler)
+            }
             viewIn3D.addEventListener("auxclick", e => {
                 if (e.which !== 2) return;
                 clickHandler(e);
@@ -12853,6 +12856,8 @@ function setupNavigationViaHotkeys() {
                 }
             }
         } else if (e.code === "KeyQ" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
+            buildingViewerIframe?.remove()
+            buildingViewerIframe = null
             document.querySelectorAll(".sidebar-close-controls .btn-close").forEach(i => i?.click())
             document.querySelector(".welcome .btn-close")?.click()
         } else if (e.code === "KeyT" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
