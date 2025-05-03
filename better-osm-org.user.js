@@ -144,6 +144,8 @@ if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Grease
 const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const isFirefox = navigator.userAgent.includes("Firefox");
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+const mediumDeviceWidth = window.getComputedStyle(document.documentElement).getPropertyValue("--bs-breakpoint-md");
+const isMediumDevice = window.matchMedia(`(max-width: ${mediumDeviceWidth})`).matches
 
 if (isSafari) {
     console.error("YOU ARE USING AN UNSUPPORTED BROWSER")
@@ -659,7 +661,7 @@ GM_config.init(
                 '3DViewerInNewTab': {
                     'label': 'Open buildings 3D viewers always in new tab',
                     'type': 'checkbox',
-                    'default': false,
+                    'default': isMediumDevice ? 'checked' : false,
                     'labelPos': 'right'
                 },
                 'OverpassInstance': {
@@ -3456,13 +3458,15 @@ function makeLinksInTagsClickable() {
             if (document.querySelector(".view-3d-link")) {
                 return;
             }
-            if (["building", "building:part"].includes(key) &&
-                !Array.from(document.querySelectorAll(".browse-tag-list tr th"))
-                    .some(i => i.textContent.includes("level") || i.textContent.includes("height") || i.textContent.includes("roof") || i.textContent.includes("name"))) {
-                return
-            }
             const [, type, id] = location.pathname.match(/\/(way|relation)\/(\d+)/)
             if (!type) {
+                return
+            }
+            if (type === "way" && ["building", "building:part"].includes(key) &&
+                !Array.from(document.querySelectorAll(".browse-tag-list tr th"))
+                    .some(i => i.textContent.includes("level") || i.textContent.includes("height")
+                            || i.textContent.includes("roof") || i.textContent.includes("name")
+                    )) {
                 return
             }
             injectCSSIntoOSMPage(`
