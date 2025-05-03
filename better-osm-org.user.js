@@ -14147,12 +14147,15 @@ function setup() {
                 }`
         )
         GM_registerMenuCommand("Show iD OAuth token", function () {
-            const token = document.querySelector("#id-container")?.getAttribute("data-token")
+            let token = document.querySelector("#id-container")?.getAttribute("data-token")
             if (token) {
-                alert(token);
-            } else {
-                alert("Please switch the focus to the Iframe iD.\nJust click anywhere in the editor.")
+                token = localStorage.getItem("https://www.openstreetmap.orgoauth2_access_token")
+                if (token) {
+                    alert(token);
+                    return;
+                }
             }
+            alert("Please switch the focus to the Iframe iD.\nJust click anywhere in the editor.")
         });
         return
     }
