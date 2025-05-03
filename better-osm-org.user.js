@@ -3590,7 +3590,7 @@ function makeLinksInTagsClickable() {
                 const [x, y, z] = getCurrentXYZ();
                 const viewer = instancesOf3DViewers.find(i => i.name === GM_config.get("3DViewer"))
                 const url = viewer.makeURL({x, y, z, type, id})
-                if (e.ctrlKey || e.metaKey || e.which === 2 || GM_config.get("3DViewerInNewTab")) {
+                if (isMobile || e.ctrlKey || e.metaKey || e.which === 2 || GM_config.get("3DViewerInNewTab")) {
                     window.open(url, "_blank")
                     return
                 }
@@ -3603,11 +3603,7 @@ function makeLinksInTagsClickable() {
                 })
                 document.querySelector("#map").before(buildingViewerIframe)
             }
-            if (isMobile) {
-                viewIn3D.addEventListener("click", e => contextMenuHandler(e))
-            } else {
-                viewIn3D.addEventListener("click", clickHandler)
-            }
+            viewIn3D.addEventListener("click", clickHandler)
             viewIn3D.addEventListener("auxclick", e => {
                 if (e.which !== 2) return;
                 clickHandler(e);
