@@ -14133,12 +14133,14 @@ function setup() {
         return
     }
     if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)
-        && ["/id"].includes(location.pathname) && GM_config.get("DarkModeForID")) {
-        injectCSSIntoOSMPage(`
+        && ["/id"].includes(location.pathname)) {
+        if (GM_config.get("DarkModeForID")) {
+            injectCSSIntoOSMPage(`
                 @media ${mediaQueryForWebsiteTheme} {
                     ${GM_getResourceText("DARK_THEME_FOR_ID_CSS")}
                 }`
-        )
+            )
+        }
         GM_registerMenuCommand("Show iD OAuth token", function () {
             let token = document.querySelector("#id-container")?.getAttribute("data-token")
             if (!token) {
