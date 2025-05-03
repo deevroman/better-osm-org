@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.9.9.2
+// @version         0.9.9.3
 // @changelog       v0.9.9: Button for 3D view building in OSMBuilding, F4map and other viewers
 // @changelog       v0.9.9: Key1 for open first user's changeset, add poweruser=true in Rapid link
 // @changelog       v0.9.9: Restore navigation links on changeset page of deleted user
@@ -671,10 +671,6 @@ GM_config.init(
                         MAILRU_OVERPASS_INSTANCE.name,
                         PRIVATECOFFEE_OVERPASS_INSTANCE.name
                     ],
-                },
-                '3DViewer': {
-                    'type': 'hidden',
-                    'default': "OSM Building Viewer"
                 },
             },
         'types': {
@@ -3531,7 +3527,8 @@ function makeLinksInTagsClickable() {
             viewIn3D.style.cursor = "pointer"
             viewIn3D.title = "Click for show embedded 3D Viewer.\nRight click for select viewer\nClick with CTRL for open viewer in new tab\nIn userscript setting you can set open in tab by default"
 
-            function contextMenuHandler(e) {
+            async function contextMenuHandler(e) {
+                const buildingViewer = await GM.getValue("3DViewer") ?? "OSM Building Viewer";
                 e.preventDefault();
 
                 const menu = document.createElement("div");
@@ -3554,14 +3551,13 @@ function makeLinksInTagsClickable() {
                     pinLabel.classList.add("pin-label")
                     pinLabel.textContent = "📌"
                     pinLabel.title = "Set as default for click"
-                    if (i.name === GM_config.get("3DViewer")) {
+                    if (i.name === buildingViewer) {
                         pin.checked = true
                         pinLabel.title = "It's default viewer"
                     }
-                    pin.onchange = () => {
+                    pin.onchange = async () => {
                         if (pin.checked) {
-                            GM_config.set("3DViewer", i.name)
-                            GM_config.save()
+                            await GM.setValue("3DViewer", i.name)
                         }
                     }
                     listItem.appendChild(pin);
@@ -3581,14 +3577,15 @@ function makeLinksInTagsClickable() {
                 document.body.appendChild(menu);
             }
             viewIn3D.addEventListener("contextmenu", contextMenuHandler);
-            function clickHandler(e) {
+            async function clickHandler(e) {
                 if (buildingViewerIframe) {
                     buildingViewerIframe.remove()
                     buildingViewerIframe = null
                     return
                 }
                 const [x, y, z] = getCurrentXYZ();
-                const viewer = instancesOf3DViewers.find(i => i.name === GM_config.get("3DViewer"))
+                const buildingViewer = await GM.getValue("3DViewer") ?? "OSM Building Viewer";
+                const viewer = instancesOf3DViewers.find(i => i.name === buildingViewer)
                 const url = viewer.makeURL({x, y, z, type, id})
                 if (isMobile || e.ctrlKey || e.metaKey || e.which === 2 || GM_config.get("3DViewerInNewTab")) {
                     window.open(url, "_blank")
