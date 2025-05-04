@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.9.9.3
+// @version         0.9.9.4
 // @changelog       v0.9.9: Button for 3D view building in OSMBuilding, F4map and other viewers
 // @changelog       v0.9.9: Key1 for open first user's changeset, add poweruser=true in Rapid link
 // @changelog       v0.9.9: Restore navigation links on changeset page of deleted user
@@ -1405,20 +1405,25 @@ function setupRevertButton() {
     addRevertButton();
 }
 
+function showSearchForm() {
+    document.querySelector("#sidebar .search_forms")?.removeAttribute("hidden");
+}
+
 function hideSearchForm() {
     if (location.pathname.startsWith("/search") || location.pathname.startsWith("/directions")) return;
     if (!document.querySelector("#sidebar .search_forms")?.hasAttribute("hidden")) {
         document.querySelector("#sidebar .search_forms")?.setAttribute("hidden", "true")
     }
 
-    function showSearchForm() {
-        document.querySelector("#sidebar .search_forms")?.removeAttribute("hidden");
+    document.querySelector(".sidebar-close-controls .btn-close:not(.hotkeyed)")?.addEventListener("click", () => {
+        showSearchForm()
         cleanAllObjects()
-    }
-
-    document.querySelector(".sidebar-close-controls .btn-close:not(.hotkeyed)")?.addEventListener("click", showSearchForm)
+    })
     document.querySelector(".sidebar-close-controls .btn-close:not(.hotkeyed)")?.classList?.add("hotkeyed")
-    document.querySelector("h1 .icon-link:not(.hotkeyed)")?.addEventListener("click", showSearchForm)
+    document.querySelector("h1 .icon-link:not(.hotkeyed)")?.addEventListener("click", () => {
+        showSearchForm()
+        cleanAllObjects()
+    })
     document.querySelector("h1 .icon-link:not(.hotkeyed)")?.classList?.add("hotkeyed")
 }
 
@@ -14119,51 +14124,40 @@ async function setupDragAndDropViewers() {
 
 }
 
-function setup() {
-    if (location.href.startsWith("https://osmcha.org")) {
-        setTimeout(async () => {
-            await GM.setValue("OSMCHA_TOKEN", localStorage.getItem("token"))
-        }, 1000);
-        return
-    }
-    if (location.href.startsWith("https://taginfo.openstreetmap.org")
-        || location.href.startsWith("https://taginfo.geofabrik.de")) {
-        new MutationObserver(function fn() {
-            setTimeout(setupTaginfo, 0);
-            return fn
-        }()).observe(document, {subtree: true, childList: true});
-        return
-    }
-    if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)
-        && ["/id"].includes(location.pathname)) {
-        if (GM_config.get("DarkModeForID")) {
-            injectCSSIntoOSMPage(`
+function setupIDframe(){
+    if (GM_config.get("DarkModeForID")) {
+        injectCSSIntoOSMPage(`
                 @media ${mediaQueryForWebsiteTheme} {
                     ${GM_getResourceText("DARK_THEME_FOR_ID_CSS")}
                 }`
-            )
-        }
-        GM_registerMenuCommand("Show iD OAuth token", function () {
-            let token = document.querySelector("#id-container")?.getAttribute("data-token")
+        )
+    }
+    GM_registerMenuCommand("Show iD OAuth token", function () {
+        let token = document.querySelector("#id-container")?.getAttribute("data-token")
+        if (!token) {
+            token = localStorage.getItem(`${osm_server.url}oauth2_access_token`)
             if (!token) {
-                token = localStorage.getItem(`${osm_server.url}oauth2_access_token`)
-                if (!token) {
-                    alert("Please switch the focus to the Iframe iD.\nJust click anywhere in the editor.")
-                    return;
-                }
+                alert("Please switch the focus to the Iframe iD.\nJust click anywhere in the editor.")
+                return;
             }
-            alert(token);
-        });
+        }
+        alert(token);
+    });
+}
+
+function setupOSMWebsite() {
+    if (location.pathname === "/id") {
+        setupIDframe()
         return
     }
     if (GM_config.get("ResetSearchFormFocus")) {
         resetSearchFormFocus();
     }
-    if (location.href.startsWith(prod_server.origin)) {
+    if (location.origin === prod_server.origin) {
         osm_server = prod_server;
-    } else if (location.href.startsWith(dev_server.origin)) {
+    } else if (location.origin === dev_server.origin) {
         osm_server = dev_server;
-    } else if (location.href.startsWith(ohm_prod_server.origin)) {
+    } else if (location.origin === ohm_prod_server.origin) {
         osm_server = ohm_prod_server
     } else {
         osm_server = local_server;
@@ -14188,6 +14182,9 @@ function setup() {
                 document.querySelector("#fixed-rss-feed")?.remove()
                 buildingViewerIframe?.remove()
                 buildingViewerIframe = null
+                if (path === "/" || path === "/directions") {
+                    showSearchForm()
+                }
             } catch { /* empty */
             }
         }
@@ -14211,41 +14208,60 @@ function setup() {
     }
 }
 
+function makeCommandsMenu() {
+    try {
+        GM_registerMenuCommand("Settings", function () {
+            if (!inFrame()) {
+                GM_config.open();
+            }
+        });
+        if (isMobile || isDebug()) {
+            GM_registerMenuCommand("Check script updates", function () {
+                window.open(`${SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`, "_blank")
+            });
+        }
+        if (isDebug()) {
+            GM_registerMenuCommand("Check dev script updates", function () {
+                window.open(`${DEV_SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`, "_blank")
+            });
+        }
+
+        // New Year Easter egg
+        const curDate = new Date()
+        if (curDate.getMonth() === 11 && curDate.getDate() >= 18 || curDate.getMonth() === 0 && curDate.getDate() < 10) {
+            GM_registerMenuCommand("☃️", runSnowAnimation);
+        }
+        // GM_registerMenuCommand("Ask question on forum", function () {
+        //     window.open("https://community.openstreetmap.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670")
+        // });
+    } catch (e) {
+        console.error(e)
+    }
+}
+
 
 function main() {
     'use strict';
     if (location.origin === "https://www.hdyc.neis-one.org" || location.origin === "https://hdyc.neis-one.org") {
         simplifyHDCYIframe();
-    } else {
-        try {
-            GM_registerMenuCommand("Settings", function () {
-                if (!inFrame()) {
-                    GM_config.open();
-                }
-            });
-            if (isMobile || isDebug()) {
-                GM_registerMenuCommand("Check script updates", function () {
-                    window.open(`${SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`, "_blank")
-                });
-            }
-            if (isDebug()) {
-                GM_registerMenuCommand("Check dev script updates", function () {
-                    window.open(`${DEV_SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`, "_blank")
-                });
-            }
-
-            // New Year Easter egg
-            const curDate = new Date()
-            if (curDate.getMonth() === 11 && curDate.getDate() >= 18 || curDate.getMonth() === 0 && curDate.getDate() < 10) {
-                GM_registerMenuCommand("☃️", runSnowAnimation);
-            }
-            // GM_registerMenuCommand("Ask question on forum", function () {
-            //     window.open("https://community.openstreetmap.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670")
-            // });
-        } catch (e) {
-            console.error(e)
-        }
-        setup();
+        return
+    }
+    if (location.origin === "https://osmcha.org") {
+        setTimeout(async () => {
+            await GM.setValue("OSMCHA_TOKEN", localStorage.getItem("token"))
+        }, 1000);
+        return
+    }
+    makeCommandsMenu();
+    if (location.origin === "https://taginfo.openstreetmap.org" || location.origin === "https://taginfo.geofabrik.de") {
+        new MutationObserver(function fn() {
+            setTimeout(setupTaginfo, 0);
+            return fn
+        }()).observe(document, {subtree: true, childList: true});
+        return
+    }
+    if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)) {
+        setupOSMWebsite();
     }
 }
 
