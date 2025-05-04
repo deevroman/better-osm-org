@@ -6671,7 +6671,12 @@ function makeHeaderPartsClickable() {
 
     document.querySelectorAll("#sidebar_content h2 bdi:not(.copyable)").forEach(i => {
         if (i.textContent.match(/^\d+$/)) {
-            makeElemCopyable(i, "https://" + shortOsmOrgLinksInText(location.origin + location.pathname))
+            const url = shortOsmOrgLinksInText(location.origin + location.pathname)
+            if (url.startsWith("http")) {
+                makeElemCopyable(i, url)
+            } else {
+                makeElemCopyable(i, "https://" + url)
+            }
         } else {
             makeElemCopyable(i)
         }
@@ -6685,7 +6690,12 @@ function makeHeaderPartsClickable() {
             const span = document.createElement("bdi")
             span.textContent = i.childNodes[1].textContent
             i.childNodes[1].replaceWith(span)
-            makeElemCopyable(span, "https://" + shortOsmOrgLinksInText(location.origin + location.pathname))
+            const url = shortOsmOrgLinksInText(location.origin + location.pathname)
+            if (url.startsWith("http")) {
+                makeElemCopyable(span, url)
+            } else {
+                makeElemCopyable(span, "https://" + url)
+            }
         }
     })
 }
