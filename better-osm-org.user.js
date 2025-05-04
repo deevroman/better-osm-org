@@ -14182,7 +14182,9 @@ function setupOSMWebsite() {
                 document.querySelector("#fixed-rss-feed")?.remove()
                 buildingViewerIframe?.remove()
                 buildingViewerIframe = null
-                if (path === "/" || path === "/directions") {
+                if (!path.startsWith("/changeset") && !path.startsWith("/history") &&
+                    !path.startsWith("/node") && !path.startsWith("/way") && path !== "/relation" &&
+                    !path.startsWith("/note")) {
                     showSearchForm()
                 }
             } catch { /* empty */
