@@ -11055,6 +11055,7 @@ function makeUsernamesFilterable(i) {
                 filterByUsersInput.value = e.target.textContent
             } else {
                 filterByUsersInput.value = filterByUsersInput.value + "," + e.target.textContent
+                filterByUsersInput.setSelectionRange(filterByUsersInput.value.length, filterByUsersInput.value.length)
             }
             filterChangesets()
             updateMap()
