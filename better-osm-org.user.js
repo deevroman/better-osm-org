@@ -2410,10 +2410,20 @@ const fetchBlobWithCache = (() => {
     };
 })();
 
-async function bypassChromeCSPForImagesSrc(imgElem, url) {
+let needStravaAuth = false;
+
+async function bypassChromeCSPForImagesSrc(imgElem, url, isStrava=true) {
     const res = await fetchBlobWithCache(url);
     if (res.status !== 200) {
         if (!GM_config.get("OverzoomForDataLayer")) {
+            return
+        }
+        if (isStrava && res.status === 403) {
+            if (!needStravaAuth) {
+                needStravaAuth = true;
+                alert("Need login in Strava for access to heatmap")
+                window.open("https://www.strava.com/maps/global-heatmap", "_blank")
+            }
             return
         }
         if (getMap().getZoom() >= 18) {
@@ -2682,7 +2692,7 @@ function switchOverlayTiles() {
             }
             const newUrl = makeStravaURL(xyz.x, xyz.y, xyz.z)
             i.setAttribute("real-url", newUrl);
-            bypassChromeCSPForImagesSrc(i, newUrl);
+            bypassChromeCSPForImagesSrc(i, newUrl, true);
             if (i.complete) {
                 i.classList.add("no-invert");
             } else {
@@ -2720,7 +2730,7 @@ function switchOverlayTiles() {
                     const newURL = makeStravaURL(xyz.x, xyz.y, xyz.z)
                     node.src = "/dev/null";
                     node.setAttribute("real-url", newURL);
-                    bypassChromeCSPForImagesSrc(node, newURL)
+                    bypassChromeCSPForImagesSrc(node, newURL, true)
                     if (node.complete) {
                         node.classList.add("no-invert");
                     } else {
@@ -12559,6 +12569,10 @@ function setupNavigationViaHotkeys() {
         } else if (e.code === "KeyG") { // gps tracks
             if (e.shiftKey || e.altKey) {
                 enableOverzoom()
+                getMap().setZoom(Math.min(14, getMap().getZoom()))
+                if (!document.querySelectorAll(".overlay-layers label")[2].querySelector("input").checked) {
+                    Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
+                }
                 switchOverlayTiles()
             } else {
                 Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
