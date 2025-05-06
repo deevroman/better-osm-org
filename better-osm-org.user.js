@@ -308,6 +308,14 @@ const instancesOf3DViewers = [
             return `${this.url}?lat=${x}&lon=${y}&zoom=${z}`
         }
     },
+    {
+        name: "labs.mapbox.com",
+        url: "https://labs.mapbox.com/standard-style?lightPreset=day#",
+        makeURL: function ({x: x, y: y, z: z}) {
+            // z-1 looks better
+            return `${this.url}${z-1}/${x}/${y}/0/50`
+        }
+    },
     // {
     //     name: "OSM Building Viewer (fork)",
     //     url: "https://deevroman.github.io/OSMBuilding/",
