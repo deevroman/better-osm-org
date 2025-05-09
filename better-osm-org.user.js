@@ -7350,6 +7350,12 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
     tagsTable.appendChild(tbody)
 
     let tagsWasChanged = false;
+    let changedOnlyUninterestedTags = true;
+
+    const uninterestedTags = new Set([
+        'check_date', 'check_date:opening_hours',
+        'check_date:opening_hours', 'survey:date'
+    ]);
 
     // tags deletion
     if (prevVersion.version !== 0) {
@@ -7359,6 +7365,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 row.classList.add("quick-look-deleted-tag")
                 tbody.appendChild(row)
                 tagsWasChanged = true
+                changedOnlyUninterestedTags = false
                 if (lastVersion.tags && lastVersion.tags[key] === prevVersion.tags[key]) {
                     row.classList.add("restored-tag")
                     row.title = row.title + "The tag is now restored"
@@ -7373,6 +7380,9 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         const row = makeTagRow(key, value, true)
         if (prevVersion.tags === undefined || prevVersion.tags[key] === undefined) {
             tagsWasChanged = true
+            if (!uninterestedTags.has(key)) {
+                changedOnlyUninterestedTags = false;
+            }
             row.classList.add("quick-look-new-tag")
             if (!lastVersion.tags || lastVersion.tags[key] !== targetVersion.tags[key]) {
                 if (lastVersion.tags && lastVersion.tags[key]) {
@@ -7389,6 +7399,9 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         } else if (prevVersion.tags[key] !== value) {
             // todo reverted changes
             const valCell = row.querySelector("td")
+            if (!uninterestedTags.has(key)) {
+                changedOnlyUninterestedTags = false;
+            }
             row.classList.add("quick-look-modified-tag")
             // toReversed is dirty hack for group inserted/deleted symbols https://osm.org/changeset/157338007
             const diff = arraysDiff(Array.from(prevVersion.tags[key]).toReversed(), Array.from(valCell.textContent).toReversed(), 1).toReversed()
@@ -8029,6 +8042,9 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
     // }
     if (tagsWasChanged) {
         i.appendChild(tagsTable)
+        if (changedOnlyUninterestedTags) {
+            i.parentElement.parentElement.classList.add("tags-uninterested-modified")
+        }
     } else {
         i.parentElement.parentElement.classList.add("tags-non-modified")
     }
@@ -8967,12 +8983,18 @@ async function processQuickLookInSidebar(changesetID) {
         }
 
         // reorder non-interesting-objects
+        const objectsList = document.querySelector(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li`).parentElement
+        Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li.tags-uninterested-modified.location-modified`)).forEach(i => {
+            objectsList.appendChild(i)
+        })
+        Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li.tags-uninterested-modified:not(.location-modified)`)).forEach(i => {
+            objectsList.appendChild(i)
+        })
         Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li.tags-non-modified`)).forEach(i => {
-            document.querySelector(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li`).parentElement.appendChild(i)
-            // todo убрать дублирование селекторов
+            objectsList.appendChild(i)
         })
         Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li.tags-non-modified:not(.location-modified)`)).forEach(i => {
-            document.querySelector(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li`).parentElement.appendChild(i)
+            objectsList.appendChild(i)
         })
 
         if (multipleChangesets) {
