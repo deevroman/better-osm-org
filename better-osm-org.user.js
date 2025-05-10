@@ -14157,7 +14157,7 @@ async function setupDragAndDropViewers() {
             url: `${osm_server.url}/traces/${trackID}/data`,
             responseType: "blob"
         });
-        const contentType = res.responseHeaders.split("\r\n").find(i => i.startsWith("content-type:")).split(" ")[1]
+        const contentType = res.responseHeaders.split("\r\n").find(i => i.toLowerCase().startsWith("content-type:")).split(" ")[1]
         if (contentType === "application/gpx+xml") {
             displayGPXTrack(await res.response.text())
         } else if (contentType === "application/gzip") {
