@@ -12883,7 +12883,7 @@ function setupNavigationViaHotkeys() {
         } else if (e.code === "Escape") {
             cleanObjectsByKey("activeObjects")
         } else if (e.code === "KeyL" && e.shiftKey) {
-            document.getElementsByClassName("geolocate")[0]?.click()
+            document.querySelector(".control-locate .control-button").click()
         } else if (e.code === "KeyK" && location.pathname.match(/^(\/user\/.+)?\/history\/?$/)) {
             goToPrevChangeset(e);
         } else if (e.code === "KeyL" && location.pathname.match(/^(\/user\/.+)?\/history\/?$/)) {
