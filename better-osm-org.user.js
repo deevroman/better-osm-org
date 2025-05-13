@@ -2000,7 +2000,7 @@ function addResolveNotesButton() {
     }
     if (document.querySelector('.resolve-note-done')) return true;
     if (document.querySelector('#timeback-btn')) return true;
-    blurSearchField();
+    resetSearchFormFocus();
 
     document.querySelectorAll('#sidebar_content a[href^="/user/"]').forEach(elem => {
         getCachedUserInfo(elem.textContent).then(info => {
@@ -3243,10 +3243,18 @@ out geom;
 }
 
 function blurSearchField() {
-    if (document.querySelector("#query") && !document.querySelector("#query").getAttribute("blured")) {
-        document.querySelector("#query").setAttribute("blured", "true")
+    if (document.querySelector("#sidebar #query") && !document.querySelector("#sidebar #query").getAttribute("blured")) {
+        document.querySelector("#sidebar #query").setAttribute("blured", "true")
+        document.querySelector("#sidebar #query").removeAttribute("autofocus")
         document.activeElement?.blur()
     }
+}
+
+function resetSearchFormFocus() {
+    if (!GM_config.get("ResetSearchFormFocus")) {
+        return;
+    }
+    blurSearchField();
 }
 
 // https://osm.org/node/12559772251
@@ -3660,7 +3668,7 @@ function addHistoryLink() {
         versionInSidebar.after(a)
         versionInSidebar.after(document.createTextNode("\xA0"))
     }
-    blurSearchField();
+    resetSearchFormFocus();
     makeTimesSwitchable();
     if (GM_config.get("ResizableSidebar")) {
         document.querySelector("#sidebar").style.resize = "horizontal"
@@ -9849,7 +9857,7 @@ async function addChangesetQuickLook() {
         return
     }
     quickLookInjectingStarted = true
-    blurSearchField();
+    resetSearchFormFocus();
     addRegionForFirstChangeset();
     makeTimesSwitchable()
     if (GM_config.get("ResizableSidebar")) {
@@ -13096,10 +13104,6 @@ function setupNavigationViaHotkeys() {
 
 //</editor-fold>
 
-function resetSearchFormFocus() {
-    blurSearchField()
-    // document.querySelector("#sidebar .search_form .input-group > button").setAttribute('tabIndex', "-1")
-}
 
 function setupClickableAvatar() {
     const miniAvatar = document.querySelector(".user_thumbnail_tiny:not([patched-for-click])")
@@ -14205,9 +14209,7 @@ function setupOSMWebsite() {
         setupIDframe()
         return
     }
-    if (GM_config.get("ResetSearchFormFocus")) {
-        resetSearchFormFocus();
-    }
+    resetSearchFormFocus();
     if (location.origin === prod_server.origin) {
         osm_server = prod_server;
     } else if (location.origin === dev_server.origin) {
