@@ -6223,6 +6223,8 @@ function addDiffInHistory() {
                                         newText.appendChild(document.createTextNode(c[1]))
                                     }
                                 })
+                                prevText.normalize()
+                                newText.normalize()
                                 prevValueSpan.appendChild(prevText)
                                 prevValueSpan.appendChild(document.createTextNode(` ${arrowSymbolForChanges} `))
                                 newText.classList.add("current-value-span")
@@ -7445,6 +7447,8 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                         newText.appendChild(document.createTextNode(c[1]))
                     }
                 })
+                prevText.normalize()
+                newText.normalize()
                 valCell.textContent = ""
                 valCell.appendChild(prevText)
                 valCell.appendChild(document.createTextNode(` ${arrowSymbolForChanges} `))
