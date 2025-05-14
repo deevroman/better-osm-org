@@ -6206,13 +6206,13 @@ function addDiffInHistory() {
                                 let newText = document.createElement("span")
                                 diff.forEach(c => {
                                     if (c[0] !== c[1]) {
-                                        {
+                                        if (c[1]) {
                                             const colored = document.createElement("span")
                                             colored.classList.add("new-letter")
                                             colored.textContent = c[1]
                                             newText.appendChild(colored)
                                         }
-                                        {
+                                        if (c[0]) {
                                             const colored = document.createElement("span")
                                             colored.classList.add("deleted-letter")
                                             colored.textContent = c[0]
@@ -7428,13 +7428,13 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 newText.dir = "auto"
                 diff.forEach(c => {
                     if (c[0] !== c[1]) {
-                        {
+                        if (c[1]) {
                             const colored = document.createElement("span")
                             colored.classList.add("new-letter")
                             colored.textContent = c[1]
                             newText.appendChild(colored)
                         }
-                        {
+                        if (c[0]) {
                             const colored = document.createElement("span")
                             colored.classList.add("deleted-letter")
                             colored.textContent = c[0]
