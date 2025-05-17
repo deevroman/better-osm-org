@@ -10216,14 +10216,14 @@ async function betterUserStat(user) {
     async function inputHandler() {
         let filter = (_) => true
         const selected = Array.from(filterInputByEditor.options).filter(i => i.selected)
+        let regex;
+        try {
+            regex = new RegExp(searchByComment.value.toLowerCase());
+            searchByComment.style.color = ""
+        } catch {
+            searchByComment.style.color = "red"
+        }
         filter = (ch) => {
-            let regex;
-            try {
-                regex = new RegExp(searchByComment.value.toLowerCase());
-                searchByComment.style.color = ""
-            } catch {
-                searchByComment.style.color = "red"
-            }
             return selected.some(option => {
                 if (option.getAttribute("all-editors") === "yes") {
                     return (ch.tags?.["comment"] ?? "").toLowerCase().match(regex);
