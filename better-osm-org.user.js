@@ -10207,6 +10207,7 @@ async function betterUserStat(user) {
     const searchByComment = document.createElement("input")
     searchByComment.type = "search"
     searchByComment.placeholder = "Regex search by comments"
+    searchByComment.title = "Please wait while user changesets loading"
     searchByComment.setAttribute("disabled", true)
     searchByComment.style.flex = "1"
     searchByComment.style.height = "1.5rem";
@@ -10221,6 +10222,7 @@ async function betterUserStat(user) {
     filterInputByEditor.removeAttribute("disabled")
     searchByComment.removeAttribute("disabled")
     filterInputByEditor.title = "Alt + O for open selected changesets on one page"
+    searchByComment.title = "Not case-sensitive regex search"
 
     async function inputHandler() {
         let filter = (_) => true
@@ -10247,10 +10249,11 @@ async function betterUserStat(user) {
         searchByComment.title = `${changesets_count} changesets filtered`
 
         function replaceElementTag(oldElement, newTagName) {
-            const newElement = document.createElement(newTagName);
+            const attrs = {}
             for (const attr of oldElement.attributes) {
-                newElement.setAttribute(attr.name, attr.value);
+                attrs[attr.name] = attr.value;
             }
+            const newElement = GM_addElement(newTagName, attrs);
             while (oldElement.firstChild) {
                 newElement.appendChild(oldElement.firstChild);
             }
@@ -10336,6 +10339,9 @@ async function betterUserStat(user) {
         e.target.focus()
         filterInputByEditor.setAttribute("size", 7)
         filterInputByEditor.setAttribute("multiple", true)
+        inputHandler()
+    }, {"once": true})
+    searchByComment.addEventListener("mousedown", function (e) {
         inputHandler()
     }, {"once": true})
 
