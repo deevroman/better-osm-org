@@ -2293,7 +2293,7 @@ function setupDeletor(path) {
 let mapDataSwitcherUnderSupervision = false
 
 function hideNoteHighlight() {
-    let g = document.querySelector("g");
+    let g = document.querySelector("#map g");
     if (!g || g.childElementCount === 0) return;
     let mapDataCheckbox = document.querySelector(".layers-ui li:nth-child(2) > label:nth-child(1) > input:nth-child(1)")
     if (!mapDataCheckbox.checked) {
@@ -2312,8 +2312,8 @@ function hideNoteHighlight() {
     }
 }
 
-function setupHideNoteHighlight(path) {
-    if (!path.startsWith("/note/")) return;
+function setupHideNoteHighlight() {
+    if (!location.pathname.startsWith("/note/")) return;
     let timerId = setInterval(hideNoteHighlight, 1000);
     setTimeout(() => {
         clearInterval(timerId);
