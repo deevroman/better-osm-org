@@ -12571,18 +12571,22 @@ function setupNavigationViaHotkeys() {
                 }
             }
         } else if (e.code === "KeyE") {
-            if (e.shiftKey) {
-                if (document.querySelector("#editanchor").getAttribute("data-editor") === "id") {
-                    document.querySelectorAll("#edit_tab .dropdown-menu .editlink")[1]?.click()
+            if (!location.pathname.match(/^\/user\/([^/]+)\/?$/)) {
+                if (e.shiftKey) {
+                    if (document.querySelector("#editanchor").getAttribute("data-editor") === "id") {
+                        document.querySelectorAll("#edit_tab .dropdown-menu .editlink")[1]?.click()
+                    } else {
+                        document.querySelectorAll("#edit_tab .dropdown-menu .editlink")[0]?.click()
+                    }
+                } else if (e.altKey && isDebug()) {
+                    document.querySelectorAll("table.quick-look, table.geojson-props-table:not(.metainfo-table)").forEach(i => {
+                        i.setAttribute("contenteditable", "true")
+                    })
                 } else {
-                    document.querySelectorAll("#edit_tab .dropdown-menu .editlink")[0]?.click()
+                    document.querySelector("#editanchor")?.click()
                 }
-            } else if (e.altKey && isDebug()) {
-                document.querySelectorAll("table.quick-look, table.geojson-props-table:not(.metainfo-table)").forEach(i => {
-                    i.setAttribute("contenteditable", "true")
-                })
             } else {
-                document.querySelector("#editanchor")?.click()
+                document.querySelector('a[href^="/user/"][href$="/history"]')?.click()
             }
         } else if (e.code === "KeyR") {
             if (changesetObjectsSelectionModeEnabled || e.altKey) {
