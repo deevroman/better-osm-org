@@ -10059,7 +10059,7 @@ async function loadChangesets(user) {
 /**
  * @param {ChangesetMetadata[]} changesets
  * @param filter
- * @return {[{date: string, total_changes: number}[], changesets_count: number, maxPerDay: number]}
+ * @return {[Object.<string, [number, number, string]>, number, number]}
  */
 function makeChangesetsStat(changesets, filter) {
     const datesStat = {}
@@ -10073,10 +10073,11 @@ function makeChangesetsStat(changesets, filter) {
         const date = new Date(i.created_at)
         const key = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`
         if (datesStat[key] === undefined) {
-            datesStat[key] = [0, 0]
+            datesStat[key] = [0, 0, []]
         }
         datesStat[key][0] += i.changes_count
         datesStat[key][1] = max(datesStat[key][1], i.id)
+        datesStat[key][2].push(i?.tags?.['comment'] ?? "")
     })
 
     return [Object.fromEntries(Object.entries(datesStat).sort((a, b) => {
@@ -10183,6 +10184,12 @@ async function betterUserStat(user) {
         console.log("osm.org don't show heatmap for this user")
         return;
     }
+    injectCSSIntoOSMPage(`
+    .tooltip-inner {
+        white-space: pre-wrap;
+        text-align: left;
+    }
+    `)
     calHeatmap.parentElement.parentElement.after(filterBar)
     filterBar.appendChild(filterInputByEditor)
 
@@ -10239,17 +10246,16 @@ async function betterUserStat(user) {
             oldElement.parentNode.replaceChild(newElement, oldElement);
             return newElement;
         }
-        function getTooltipText(date, value) {
+        function getTooltipText(date, value, suffix="") {
             const localizedDate = getWindow().OSM.i18n.l("date.formats.long", intoPageWithFun(date));
             if (value > 0) {
-                return getWindow().OSM.i18n.t("javascripts.heatmap.tooltip.contributions", intoPage({ count: value, date: localizedDate }));
+                return getWindow().OSM.i18n.t("javascripts.heatmap.tooltip.contributions", intoPage({ count: value, date: localizedDate })) + suffix;
             }
             return getWindow().OSM.i18n.t("javascripts.heatmap.tooltip.no_contributions", intoPage({date: localizedDate}));
         }
         Array.from(document.querySelectorAll("[data-date]")).forEach(day => {
-            if (day.nodeName === "SPAN") {
-                day = replaceElementTag(day, "a")
-            }
+            day = replaceElementTag(day, "a")
+            getWindow().$('[rel=tooltip]').tooltip('dispose')
             const newData = newHeatmapData[day.getAttribute("data-date")];
             if (newData) {
                 day.setAttribute("data-count", newData[0])
@@ -10259,10 +10265,10 @@ async function betterUserStat(user) {
                 colorDiff.style.opacity = `${Math.sqrt(newData[0] / maxPerDay)}`
                 day.appendChild(colorDiff)
                 getWindow().$(day).tooltip(intoPage({
-                    title: getTooltipText(new Date(day.getAttribute("data-date")), newData[0]),
+                    title: getTooltipText(new Date(day.getAttribute("data-date")), newData[0], "\n" + newData[2].join("\n")),
                     customClass: "wide",
                     delay: { show: 0, hide: 0 }
-                }))
+                }));
             } else {
                 day.setAttribute("data-count", 0)
                 day.setAttribute("href", "")
@@ -10317,9 +10323,9 @@ async function betterUserStat(user) {
         item.value = i
         item.setAttribute("is-editor-name", "yes")
         if (i === 1) {
-            item.textContent = ` ${i} (${counts[i]} edit)`
+            item.textContent = ` ${i} (${counts[i]} contribution)`
         } else {
-            item.textContent = ` ${i} (${counts[i]} edits)`
+            item.textContent = ` ${i} (${counts[i]} contributions)`
         }
         filterInputByEditor.appendChild(item)
     })
