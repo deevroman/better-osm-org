@@ -12513,7 +12513,7 @@ function setupNavigationViaHotkeys() {
                     if (location.pathname.includes("/node") || location.pathname.includes("/way") || location.pathname.includes("/relation")) {
                         newNotePlaceholder = "\n \n" + location.href
                     }
-                    document.querySelector("a:has(span.note)").click()
+                    document.querySelector(".control-note .control-button").click()
                 } else {
                     Array.from(document.querySelectorAll(".overlay-layers label"))[0].click()
                 }
