@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.9.9.5
+// @version         0.9.9.6
 // @changelog       v0.9.9: Button for 3D view building in OSMBuilding, F4map and other viewers
 // @changelog       v0.9.9: Key1 for open first user's changeset, add poweruser=true in Rapid link
 // @changelog       v0.9.9: Restore navigation links on changeset page of deleted user
@@ -10059,13 +10059,15 @@ async function loadChangesets(user) {
 /**
  * @param {ChangesetMetadata[]} changesets
  * @param filter
- * @return {[{date: string, total_changes: number}[], changesets_count: number]}
+ * @return {[{date: string, total_changes: number}[], changesets_count: number, maxPerDay: number]}
  */
 function makeChangesetsStat(changesets, filter) {
     const datesStat = {}
     let changesets_count = 0
+    let maxPerDay = 0
 
     changesets.forEach(i => {
+        maxPerDay = max(maxPerDay, i.changes_count)
         if (!filter(i)) return
         changesets_count++
         const date = new Date(i.created_at)
@@ -10077,7 +10079,7 @@ function makeChangesetsStat(changesets, filter) {
         datesStat[key][1] = max(datesStat[key][1], i.id)
     })
 
-    return [Object.entries(datesStat).sort((a, b) => {
+    return [Object.fromEntries(Object.entries(datesStat).sort((a, b) => {
         if (a[0] < b[0]) {
             return -1;
         }
@@ -10085,9 +10087,7 @@ function makeChangesetsStat(changesets, filter) {
             return 1;
         }
         return 0
-    }).map(([date, [total_changes, max_id]]) => {
-        return {date, total_changes, max_id}
-    }), changesets_count]
+    })), changesets_count, maxPerDay]
 }
 
 async function makeEditorNormalizer() {
@@ -10162,7 +10162,12 @@ async function betterUserStat(user) {
     if (!GM_config.get("BetterProfileStat") || !location.pathname.match(/^\/user\/([^/]+)\/?$/)) {
         return
     }
+    const filterBar = document.createElement("div")
+    filterBar.style.display = "flex"
+    filterBar.style.gap = "3px"
+
     const filterInputByEditor = document.createElement("select")
+    filterInputByEditor.style.flex = "1"
     filterInputByEditor.id = "filter-input-by-editor"
     filterInputByEditor.setAttribute("disabled", true)
     filterInputByEditor.title = "Please wait while user changesets loading"
@@ -10178,12 +10183,16 @@ async function betterUserStat(user) {
         console.log("osm.org don't show heatmap for this user")
         return;
     }
-    calHeatmap.parentElement.parentElement.after(filterInputByEditor)
+    calHeatmap.parentElement.parentElement.after(filterBar)
+    filterBar.appendChild(filterInputByEditor)
 
     const searchByComment = document.createElement("input")
     searchByComment.type = "search"
     searchByComment.placeholder = "Regex search by comments"
-    searchByComment.style.display = "none"
+    searchByComment.setAttribute("disabled", true)
+    searchByComment.style.flex = "1"
+    searchByComment.style.height = "1.5rem";
+    searchByComment.style.boxSizing = "border-box";
     filterInputByEditor.before(searchByComment)
 
     const _replace_with_rules = makeEditorNormalizer()
@@ -10192,128 +10201,8 @@ async function betterUserStat(user) {
     const editorOfChangesets = {}
     changesets.forEach(ch => editorOfChangesets[ch.id] = replace_with_rules(ch.tags?.["created_by"]))
     filterInputByEditor.removeAttribute("disabled")
+    searchByComment.removeAttribute("disabled")
     filterInputByEditor.title = "Alt + O for open selected changesets on one page"
-
-    function heatmapHook() {
-        console.log("start heatmap hook")
-
-        // from openstreetmap-website with disabled animation
-        // todo need some autosync with upstream
-        let cal = new boWindowObject.CalHeatmap();
-
-        boGlobalThis.rerenderCalendar = function () {
-            const heatmapElement = document.querySelector("#cal-heatmap");
-
-            if (!heatmapElement) {
-                return;
-            }
-
-            const heatmapData = heatmapElement.dataset.heatmap ? JSON.parse(heatmapElement.dataset.heatmap) : [];
-            const displayName = heatmapElement.dataset.displayName;
-            const colorScheme = document.documentElement.getAttribute("data-bs-theme") ?? "auto";
-            const rangeColorsDark = ["#14432a", "#4dd05a"];
-            const rangeColorsLight = ["#4dd05a", "#14432a"];
-            const startDate = new Date(Date.now() - (365 * 24 * 60 * 60 * 1000));
-
-            const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
-            let currentTheme = getTheme();
-
-            function renderHeatmap() {
-                // cal.destroy();
-                // cal = new CalHeatmap();
-
-                cal.paint(intoPageWithFun({
-                    itemSelector: "#cal-heatmap",
-                    theme: currentTheme,
-                    domain: {
-                        type: "month",
-                        gutter: 4,
-                        label: {
-                            text: (timestamp) => new Date(timestamp).toLocaleString(getWindow().OSM.i18n.locale, {timeZone: "UTC", month: "short"}),
-                            position: "top",
-                            textAlign: "middle"
-                        },
-                        dynamicDimension: true
-                    },
-                    subDomain: {
-                        type: "ghDay",
-                        radius: 2,
-                        width: 11,
-                        height: 11,
-                        gutter: 4
-                    },
-                    date: {
-                        start: startDate
-                    },
-                    range: 13,
-                    data: {
-                        source: heatmapData,
-                        type: "json",
-                        x: "date",
-                        y: "total_changes"
-                    },
-                    scale: {
-                        color: {
-                            type: "sqrt",
-                            range: currentTheme === "dark" ? rangeColorsDark : rangeColorsLight,
-                            domain: [0, Math.max(0, ...heatmapData.map(d => d.total_changes))]
-                        }
-                    },
-                    animationDuration: 0
-                }), intoPageWithFun([
-                    [intoPageWithFun(getWindow().Tooltip), {
-                        text: (date, value) => getTooltipText(date, value)
-                    }]
-                ]));
-
-                cal.on("mouseover", intoPageWithFun((event, _timestamp, value) => {
-                    if (value) event.target.style.cursor = "pointer";
-                }));
-
-                cal.on("click", intoPageWithFun((_event, timestamp) => {
-                    if (!displayName) return;
-                    for (const {date, max_id} of heatmapData) {
-                        if (!max_id) continue;
-                        if (timestamp !== Date.parse(date)) continue;
-                        const params = new URLSearchParams([["before", max_id + 1]]);
-                        location = "/user/" + encodeURIComponent(displayName) + "/history?" + params;
-                    }
-                }));
-            }
-
-            function getTooltipText(date, value) {
-                const localizedDate = getWindow().OSM.i18n.l("date.formats.long", date);
-
-                if (value > 0) {
-                    return getWindow().OSM.i18n.t("javascripts.heatmap.tooltip.contributions", intoPage({count: value, date: localizedDate}));
-                }
-
-                return getWindow().OSM.i18n.t("javascripts.heatmap.tooltip.no_contributions", intoPage({date: localizedDate}));
-            }
-
-            function getTheme() {
-                if (colorScheme === "auto") {
-                    return mediaQuery.matches ? "dark" : "light";
-                }
-
-                return colorScheme;
-            }
-
-            if (colorScheme === "auto") {
-                mediaQuery.addEventListener("change", intoPageWithFun((e) => {
-                    currentTheme = e.matches ? "dark" : "light";
-                    renderHeatmap();
-                }));
-            }
-
-            renderHeatmap();
-        }
-    }
-
-    exportFunction(heatmapHook, getWindow())()
-
-    let calReplaced = false
 
     async function inputHandler() {
         let filter = (_) => true
@@ -10336,15 +10225,55 @@ async function betterUserStat(user) {
                 }
             })
         }
-        const [newHeatmapData, changesets_count] = makeChangesetsStat(changesets, filter)
+        const [newHeatmapData, changesets_count, maxPerDay] = makeChangesetsStat(changesets, filter)
         searchByComment.title = `${changesets_count} changesets filtered`
-        document.querySelector("#cal-heatmap").setAttribute("data-heatmap", JSON.stringify(newHeatmapData))
 
-        if (!calReplaced) {
-            calReplaced = true
-            document.querySelector("#cal-heatmap .ch-container")?.remove()
+        function replaceElementTag(oldElement, newTagName) {
+            const newElement = document.createElement(newTagName);
+            for (const attr of oldElement.attributes) {
+                newElement.setAttribute(attr.name, attr.value);
+            }
+            while (oldElement.firstChild) {
+                newElement.appendChild(oldElement.firstChild);
+            }
+            oldElement.parentNode.replaceChild(newElement, oldElement);
+            return newElement;
         }
-        getWindow().rerenderCalendar()
+        function getTooltipText(date, value) {
+            const localizedDate = getWindow().OSM.i18n.l("date.formats.long", intoPageWithFun(date));
+            if (value > 0) {
+                return getWindow().OSM.i18n.t("javascripts.heatmap.tooltip.contributions", intoPage({ count: value, date: localizedDate }));
+            }
+            return getWindow().OSM.i18n.t("javascripts.heatmap.tooltip.no_contributions", intoPage({date: localizedDate}));
+        }
+        Array.from(document.querySelectorAll("[data-date]")).forEach(day => {
+            if (day.nodeName === "SPAN") {
+                day = replaceElementTag(day, "a")
+            }
+            const newData = newHeatmapData[day.getAttribute("data-date")];
+            if (newData) {
+                day.setAttribute("data-count", newData[0])
+                day.setAttribute("href", "./history?before=" + (newData[1] + 1))
+                day.innerHTML = ""
+                const colorDiff = document.createElement("div")
+                colorDiff.style.opacity = `${Math.sqrt(newData[0] / maxPerDay)}`
+                day.appendChild(colorDiff)
+                getWindow().$(day).tooltip(intoPage({
+                    title: getTooltipText(new Date(day.getAttribute("data-date")), newData[0]),
+                    customClass: "wide",
+                    delay: { show: 0, hide: 0 }
+                }))
+            } else {
+                day.setAttribute("data-count", 0)
+                day.setAttribute("href", "")
+                day.innerHTML = ""
+                if (day.nodeName === "A") {
+                    day = replaceElementTag(day, "span")
+                }
+                getWindow().$(day).tooltip('disable')
+            }
+        })
+
     }
 
     filterInputByEditor.oninput = inputHandler
@@ -10357,8 +10286,6 @@ async function betterUserStat(user) {
             }).map(i => i.id)
             const idsStr = ids.join(",")
             open(osm_server.url + `/changeset/${ids[0]}?changesets=` + idsStr, "_blank")
-        } else if (e.altKey && e.code === "KeyF") {
-            searchByComment.style.display = ""
         }
     })
 
