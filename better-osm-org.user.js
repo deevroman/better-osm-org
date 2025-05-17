@@ -10021,7 +10021,12 @@ async function loadChangesetsBetween(user, fromTime, toTime) {
 
         curTime = new Date(res.changesets[res.changesets.length - 1].created_at)
     }
-    console.log(`${changesets.length} changsets from ${fromTime} to ${toTime} fetched`)
+    console.log(`${changesets.length} changesets from ${fromTime} to ${toTime} fetched`)
+    changesets.forEach(i => {
+        if (i.comments_count) {
+            void getChangesetComments(i.id)
+        }
+    })
     return changesets
 }
 
@@ -10061,7 +10066,7 @@ async function loadChangesets(user) {
 /**
  * @param {ChangesetMetadata[]} changesets
  * @param filter
- * @return {[Object.<string, [number, number, string]>, number, number]}
+ * @return {[Object.<string, [number, number, {id: number, comment: string, comments_count: number}]>, number, number]}
  */
 function makeChangesetsStat(changesets, filter) {
     const datesStat = {}
@@ -10079,7 +10084,11 @@ function makeChangesetsStat(changesets, filter) {
         }
         datesStat[key][0] += i.changes_count
         datesStat[key][1] = max(datesStat[key][1], i.id)
-        datesStat[key][2].push(i?.tags?.['comment'] ?? "")
+        datesStat[key][2].push({
+            id: i.id,
+            comment: i?.tags?.['comment'] ?? "",
+            comments_count: i.comments_count
+        })
     })
 
     return [Object.fromEntries(Object.entries(datesStat).sort((a, b) => {
@@ -10248,26 +10257,50 @@ async function betterUserStat(user) {
             oldElement.parentNode.replaceChild(newElement, oldElement);
             return newElement;
         }
-        function getTooltipText(date, value, suffix="") {
+        function getTooltipSummary(date, value) {
             const localizedDate = getWindow().OSM.i18n.l("date.formats.long", intoPageWithFun(date));
             if (value > 0) {
-                return getWindow().OSM.i18n.t("javascripts.heatmap.tooltip.contributions", intoPage({ count: value, date: localizedDate })) + suffix;
+                return getWindow().OSM.i18n.t("javascripts.heatmap.tooltip.contributions", intoPage({ count: value, date: localizedDate }));
             }
             return getWindow().OSM.i18n.t("javascripts.heatmap.tooltip.no_contributions", intoPage({date: localizedDate}));
         }
-        Array.from(document.querySelectorAll("[data-date]")).forEach(day => {
+        getWindow().$('[rel=tooltip]').tooltip('dispose')
+        document.querySelectorAll(".tooltip").forEach(i => i.remove())
+        const hrefPrefix = location.href.endsWith("/") ? location.href.slice(0, -1) : location.href
+        for (let day of Array.from(document.querySelectorAll("[data-date]"))) {
             day = replaceElementTag(day, "a")
-            getWindow().$('[rel=tooltip]').tooltip('dispose')
             const newData = newHeatmapData[day.getAttribute("data-date")];
             if (newData) {
                 day.setAttribute("data-count", newData[0])
-                day.setAttribute("href", "./history?before=" + (newData[1] + 1))
+                day.setAttribute("href", hrefPrefix + "/history?before=" + (newData[1] + 1))
                 day.innerHTML = ""
                 const colorDiff = document.createElement("div")
                 colorDiff.style.opacity = `${Math.sqrt(newData[0] / maxPerDay)}`
+                let tooltipText = getTooltipSummary(new Date(day.getAttribute("data-date")), newData[0]);
+                if (newData[0]) {
+                    tooltipText += "\n";
+                    for (let changeset of newData[2]) {
+                        let changesetComment = "";
+                        if (changeset.comments_count) {
+                            colorDiff.style.opacity = `${Math.min(0.7, Math.max(0.35, Math.sqrt(newData[0] / maxPerDay)))}`
+                            colorDiff.style.background = "red"
+                            changesetComment = "💬 " + changeset.comment;
+                            (await getChangesetComments(changeset.id)).forEach(mapperCommentText => {
+                                changesetComment += "\n - " + mapperCommentText['user'] + ": " + shortOsmOrgLinksInText(mapperCommentText['text'])?.slice(0, 500)
+                                if (mapperCommentText['text'].length > 500) {
+                                    changesetComment +=  "..."
+                                }
+                            });
+                        } else {
+                            changesetComment = "• " + changeset.comment
+                        }
+                        tooltipText += changesetComment + "\n";
+                    }
+                }
+
                 day.appendChild(colorDiff)
                 getWindow().$(day).tooltip(intoPage({
-                    title: getTooltipText(new Date(day.getAttribute("data-date")), newData[0], "\n" + newData[2].join("\n")),
+                    title: tooltipText,
                     customClass: "wide",
                     delay: { show: 0, hide: 0 }
                 }));
@@ -10280,7 +10313,7 @@ async function betterUserStat(user) {
                 }
                 getWindow().$(day).tooltip('disable')
             }
-        })
+        }
 
     }
 
@@ -10303,6 +10336,7 @@ async function betterUserStat(user) {
         e.target.focus()
         filterInputByEditor.setAttribute("size", 7)
         filterInputByEditor.setAttribute("multiple", true)
+        inputHandler()
     }, {"once": true})
 
     const counts = {};
