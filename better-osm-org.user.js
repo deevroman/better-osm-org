@@ -3868,15 +3868,17 @@ function showNodeMarker(a, b, color = "#00a500", infoElemID = null, layerName = 
         fillOpacity: 0,
         color: color
     };
-    layers[layerName].push(getWindow().L.circleMarker(getWindow().L.latLng(a, b), intoPage(haloStyle)).addTo(getMap()));
+    const marker = getWindow().L.circleMarker(getWindow().L.latLng(a, b), intoPage(haloStyle)).addTo(getMap())
+    layers[layerName].push(marker);
     if (infoElemID) {
-        layers[layerName][layers[layerName].length - 1].on('click', cloneInto(function () {
+        marker.on('click', cloneInto(function () {
             const elementById = document.getElementById(infoElemID);
             elementById?.scrollIntoView()
             resetMapHover()
             elementById?.parentElement?.parentElement.classList?.add("map-hover")
         }, getWindow(), {cloneFunctions: true}))
     }
+    return marker
 }
 
 /**
