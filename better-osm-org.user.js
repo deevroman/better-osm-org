@@ -10178,7 +10178,7 @@ async function betterUserStat(user) {
     item.textContent = "All editors"
     filterInputByEditor.appendChild(item)
 
-    const calHeatmap = document.querySelector("#cal-heatmap")
+    const calHeatmap = document.querySelector(".heatmap")
     if (!calHeatmap) {
         console.log("osm.org don't show heatmap for this user")
         return;
