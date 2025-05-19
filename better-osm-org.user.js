@@ -10030,6 +10030,10 @@ async function loadChangesetsBetween(user, fromTime, toTime) {
     return changesets
 }
 
+/**
+ * @param user {string}
+ * @return {Promise<ChangesetMetadata[]>}
+ */
 async function loadChangesets(user) {
     console.time(`stat-for-${user}`)
     let startTime = new Date((new Date().getTime()) - 1000 * 60 * 60 * 24 * 365)
@@ -10066,15 +10070,13 @@ async function loadChangesets(user) {
 /**
  * @param {ChangesetMetadata[]} changesets
  * @param filter
- * @return {[Object.<string, [number, number, {id: number, comment: string, comments_count: number}]>, number, number]}
+ * @return {[Object.<string, [number, number, {id: number, comment: string, comments_count: number}]>, number]}
  */
 function makeChangesetsStat(changesets, filter) {
     const datesStat = {}
     let changesets_count = 0
-    let maxPerDay = 0
 
     changesets.forEach(i => {
-        maxPerDay = max(maxPerDay, i.changes_count)
         if (!filter(i)) return
         changesets_count++
         const date = new Date(i.created_at)
@@ -10099,7 +10101,7 @@ function makeChangesetsStat(changesets, filter) {
             return 1;
         }
         return 0
-    })), changesets_count, maxPerDay]
+    })), changesets_count]
 }
 
 async function makeEditorNormalizer() {
@@ -10245,7 +10247,8 @@ async function betterUserStat(user) {
                 }
             })
         }
-        const [newHeatmapData, changesets_count, maxPerDay] = makeChangesetsStat(changesets, filter)
+        const [newHeatmapData, changesets_count] = makeChangesetsStat(changesets, filter)
+        const maxPerDay = Object.values(newHeatmapData).map(i => i[0]).reduce((a, b) => max(a, b), 0);
         searchByComment.title = `${changesets_count} changesets filtered`
 
         function replaceElementTag(oldElement, newTagName) {
@@ -10277,7 +10280,7 @@ async function betterUserStat(user) {
                 day.setAttribute("data-count", newData[0])
                 day.setAttribute("href", hrefPrefix + "/history?before=" + (newData[1] + 1))
                 day.innerHTML = ""
-                const colorDiff = document.createElement("div")
+                const colorDiff = document.createElement("span")
                 colorDiff.style.opacity = `${Math.sqrt(newData[0] / maxPerDay)}`
                 let tooltipText = getTooltipSummary(new Date(day.getAttribute("data-date")), newData[0]);
                 if (newData[0]) {
@@ -10308,7 +10311,7 @@ async function betterUserStat(user) {
                     delay: { show: 0, hide: 0 }
                 }));
             } else {
-                day.setAttribute("data-count", 0)
+                day.removeAttribute("data-count")
                 day.setAttribute("href", "")
                 day.innerHTML = ""
                 if (day.nodeName === "A") {
