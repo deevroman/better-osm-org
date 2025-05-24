@@ -6197,6 +6197,7 @@ function addDiffInHistory() {
 
                             const diff = arraysDiff(Array.from(el[1]).toReversed(), Array.from(v).toReversed(), 1).toReversed()
                             // todo unify with diff in changesets
+                            // todo detect asci -> unicode or less strict cond
                             if (!i.querySelector("td a") && v.length > 1 && el[1].length > 1
                                 && (
                                     diff.length === v.length && el[1].length === v.length
@@ -10176,7 +10177,11 @@ async function betterUserStat(user) {
     if (!GM_config.get("BetterProfileStat") || !location.pathname.match(/^\/user\/([^/]+)\/?$/)) {
         return
     }
+    if (document.getElementById("filter-bar")) {
+        return
+    }
     const filterBar = document.createElement("div")
+    filterBar.id = "filter-bar"
     filterBar.style.display = "flex"
     filterBar.style.gap = "3px"
 
@@ -10506,6 +10511,19 @@ async function setupHDYCInProfile(path) {
         }
     });
 
+}
+
+function setupBetterProfileStat() {
+    let match = location.pathname.match(/^\/user\/([^/]+)\/?$/);
+    if (!match) {
+        return;
+    }
+    const user = match[1];
+    let timerId = setInterval(betterUserStat, 300, decodeURI(user));
+    setTimeout(() => {
+        clearInterval(timerId);
+        console.debug('stop try add heatmap filters');
+    }, 5000);
     void betterUserStat(decodeURI(user))
 }
 
@@ -13137,6 +13155,7 @@ function setupOverzoomForDataLayer() {
 const modules = [
     setupDarkModeForMap,
     setupHDYCInProfile,
+    setupBetterProfileStat,
     setupCompactChangesetsHistory,
     setupMassChangesetsActions,
     setupRevertButton,
