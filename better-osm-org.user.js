@@ -11008,7 +11008,7 @@ function filterChangesets(htmlDocument = document) {
     const commentFilters = document.querySelector("#filter-by-comment-input").value.trim().split(",").filter(i => i.trim() !== "")
     let newHiddenChangesetsCount = 0;
     htmlDocument.querySelectorAll("ol li").forEach(i => {
-        const changesetComment = i.querySelector("p a span").textContent
+        const changesetComment = i.querySelector("p a bdi").textContent
         const changesetAuthor = i.querySelector("div > a").textContent
         let bbox;
         if (i.getAttribute("data-changeset")) {
