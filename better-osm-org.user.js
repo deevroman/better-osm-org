@@ -326,10 +326,25 @@ const instancesOf3DViewers = [
 ]
 
 
-const boWindowObject = typeof window.wrappedJSObject !== "undefined" ? window.wrappedJSObject : unsafeWindow;
+const boWindowObject = typeof window.wrappedJSObject !== "undefined" ? /** {unsafeWindow} **/ window.wrappedJSObject : unsafeWindow;
 const boGlobalThis = typeof boWindowObject.globalThis !== "undefined" ? boWindowObject.globalThis : boWindowObject;
 
+/** @type {null|(function(): null|import('leaflet').Map)}*/
 let getMap = null
+
+/**
+ * @typedef {{
+ *  OSM: {
+ *   router: { stateChange: function(args: Object): Object },
+ *   i18n: {t: Function},
+ *   formatHash: function(hash: string): Object,
+ *   parseHash: function(args: Object): string,
+ *  },
+ *  L: {},
+ * }} windowOSM
+ */
+
+/** @type {null|(function(): null|(boWindowObject & windowOSM)|(window & windowOSM))}*/
 let getWindow = null
 
 if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)
