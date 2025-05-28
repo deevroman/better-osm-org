@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.9.9.9
+// @version         0.9.9.9.1
 // @changelog       v0.9.9: Button for 3D view building in OSMBuilding, F4map and other viewers
 // @changelog       v0.9.9: Key1 for open first user's changeset, add poweruser=true in Rapid link
 // @changelog       v0.9.9: Restore navigation links on changeset page of deleted user
@@ -39,7 +39,7 @@
 // @exclude      https://www.openstreetmap.org/diary/new
 // @exclude      https://www.openstreetmap.org/message/new/*
 // @exclude      https://www.openstreetmap.org/reports/new/*
-// @exclude      https://www.openstreetmap.org/profile/edit
+// @exclude      https://www.openstreetmap.org/profile/*
 // @exclude      https://www.openstreetmap.org/messages/*
 // @exclude      https://www.openstreetmap.org/diary/*
 // @exclude      https://www.openstreetmap.org/account*
@@ -1713,7 +1713,7 @@ function setupCompactChangesetsHistory() {
             return
         }
         // remove useless
-        document.querySelectorAll("#sidebar ol.changesets .pt-3").forEach((e) => {
+        document.querySelectorAll("#sidebar ol .pt-3").forEach((e) => {
             e.childNodes[0].textContent = ""
             e.classList.remove("pt-3")
             e.nextElementSibling.classList.remove("flex-column")
@@ -1729,13 +1729,13 @@ function setupCompactChangesetsHistory() {
         makeTimesSwitchable();
         hideSearchForm();
 
-        document.querySelectorAll("ol.changesets li a.changeset_id span:not(.compacted)").forEach(description => {
+        document.querySelectorAll("ol li a.changeset_id span:not(.compacted)").forEach(description => {
             description.classList.add("compacted")
             description.textContent = shortOsmOrgLinksInText(description.textContent)
         })
 
         setTimeout(async () => {
-            for (const elem of document.querySelectorAll("ol.changesets li:not(:has(.comment)):not(.comments-loaded)")) {
+            for (const elem of document.querySelectorAll("ol li:not(:has(.comment)):not(.comments-loaded)")) {
                 elem.classList.add("comments-loaded")
                 const commentsBadge = elem.querySelector(".flex-row.text-body-secondary")
                 commentsBadge.querySelector("svg").outerHTML = `<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M2.678 11.894a1 1 0 0 1 .287.801 11 11 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 .71-.074A8 8 0 0 0 8 14c3.996 0 7-2.807 7-6s-3.004-6-7-6-7 2.808-7 6c0 1.468.617 2.83 1.678 3.894m-.493 3.905a22 22 0 0 1-.713.129c-.2.032-.352-.176-.273-.362a10 10 0 0 0 .244-.637l.003-.01c.248-.72.45-1.548.524-2.319C.743 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.52.263-1.639.742-3.468 1.105"></path></svg>`
@@ -10922,7 +10922,7 @@ function addMassActionForUserChangesets() {
             document.querySelector("#sidebar div.changesets").before(makeTopActionBar())
             document.querySelector('#sidebar div.changeset_more:has([href*="before"])').after(document.createTextNode("   "))
             makeBottomActionBar()
-            document.querySelectorAll("ol.changesets li").forEach(addChangesetCheckbox)
+            document.querySelectorAll("ol li").forEach(addChangesetCheckbox)
         } else {
             massModeForUserChangesetsActive = !massModeForUserChangesetsActive
             document.querySelectorAll(".actions-bar").forEach(i => i.toggleAttribute("hidden"))
@@ -11391,7 +11391,7 @@ function addMassChangesetsActions() {
             return;
         }
         if (massModeForUserChangesetsActive && location.pathname !== "/history" && location.pathname !== "/history/friends") {
-            document.querySelectorAll("ol.changesets li").forEach(addChangesetCheckbox)
+            document.querySelectorAll("ol li").forEach(addChangesetCheckbox)
             makeBottomActionBar()
         }
         if (massModeActive && (location.pathname === "/history" || location.pathname === "/history/friends")) {
