@@ -1744,7 +1744,7 @@ function setupCompactChangesetsHistory() {
         makeTimesSwitchable();
         hideSearchForm();
 
-        document.querySelectorAll("ol li a.changeset_id span:not(.compacted)").forEach(description => {
+        document.querySelectorAll("ol li a.changeset_id bdi:not(.compacted)").forEach(description => {
             description.classList.add("compacted")
             description.textContent = shortOsmOrgLinksInText(description.textContent)
         })
