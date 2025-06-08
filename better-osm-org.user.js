@@ -2310,7 +2310,7 @@ let mapDataSwitcherUnderSupervision = false
 function hideNoteHighlight() {
     let g = document.querySelector("#map g");
     if (!g || g.childElementCount === 0) return;
-    let mapDataCheckbox = document.querySelector(".layers-ui li:nth-child(2) > label:nth-child(1) > input:nth-child(1)")
+    let mapDataCheckbox = document.querySelector(".layers-ui #label-layers-data input")
     if (!mapDataCheckbox.checked) {
         if (mapDataSwitcherUnderSupervision) return;
         mapDataSwitcherUnderSupervision = true
