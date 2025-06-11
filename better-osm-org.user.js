@@ -12829,6 +12829,7 @@ function setupNavigationViaHotkeys() {
                     }
                 } else if (location.pathname === "/" || location.pathname.includes("/note")) {
                     // document.querySelector("#history_tab")?.click()
+                    addCompactSidebarStyle();
                     document.querySelector('.nav-link[href^="/history"]')?.click()
                 } else if (location.pathname.includes("/user/")) {
                     document.querySelector('a[href^="/user/"][href$="/history"]')?.click()
@@ -14287,6 +14288,13 @@ function setupOSMWebsite() {
     if (location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/user/")) {
         setTimeout(loadFriends, 4000);
     }
+    setTimeout(() => {
+        if (GM_config.get('CompactChangesetsHistory')) {
+            document.querySelector('.nav-link[href^="/history"]').addEventListener("click", () => {
+                addCompactSidebarStyle()
+            }, {once: true});
+        }
+    });
 }
 
 function makeCommandsMenu() {
