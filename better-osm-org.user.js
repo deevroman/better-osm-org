@@ -3345,9 +3345,10 @@ const MAPILLARY_URL_PARAMS = new URLSearchParams({
 
 // https://osm.org/node/7417065297
 // https://osm.org/node/6257534611
+// https://osm.org/way/682528624/history/3
 function makeMapillaryValue(elem) {
     if (!GM_config.get("ImagesAndLinksInTags")) return;
-    elem.innerHTML = elem.innerHTML.replaceAll(/(?<=(^|;))([0-9]+)(&amp;x=-?[0-9]+(\.[0-9]+)?&amp;y=-?[0-9]+(\.[0-9]+)?&amp;zoom=-?[0-9]+(\.[0-9]+)?)?/g, function (match) {
+    elem.innerHTML = elem.innerHTML.replaceAll(/(?<=(^|;))([0-9]+)(?=(;|&|$))(&amp;x=-?[0-9]+(\.[0-9]+)?&amp;y=-?[0-9]+(\.[0-9]+)?&amp;zoom=-?[0-9]+(\.[0-9]+)?)?/g, function (match) {
         const a = document.createElement("a")
         a.textContent = match.replaceAll("&amp;", "&")
         a.classList.add("preview-mapillary-img-link")
