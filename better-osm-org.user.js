@@ -12947,11 +12947,19 @@ function setupNavigationViaHotkeys() {
             } else {
                 const activeObject = document.querySelector(".browse-section.active-object")
                 if (activeObject) {
-                    activeObject.querySelector('a[href^="/changeset/"]')?.click()
+                    if (e.shiftKey) {
+                        window.open(activeObject.querySelector('a[href^="/changeset/"]').href, "_blank")
+                    } else {
+                        activeObject.querySelector('a[href^="/changeset/"]')?.click()
+                    }
                 } else {
                     const changesetsLinks = document.querySelectorAll('a[href^="/changeset/"]')
-                    if (changesetsLinks.length === 1) {
-                        changesetsLinks[0].click()
+                    if (e.shiftKey) {
+                        if (changesetsLinks?.[0]?.href) {
+                            window.open(changesetsLinks?.[0]?.href, "_blank")
+                        }
+                    } else {
+                        changesetsLinks?.[0]?.click()
                     }
                 }
             }
