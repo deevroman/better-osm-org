@@ -12433,6 +12433,8 @@ async function zoomToChangesets() {
     fitBounds([[bbox.min_lat, bbox.min_lon], [bbox.max_lat, bbox.max_lon]])
 }
 
+let keyZClicks = 0
+
 function zoomToCurrentObject(e) {
     if (new URLSearchParams(location.search).has("changesets")) {
         void zoomToChangesets()
@@ -12462,7 +12464,7 @@ function zoomToCurrentObject(e) {
                         }
                     }
                 }
-                if ((await getChangeset(changesetID)).data.querySelectorAll("relation").length) {
+                if ((await getChangeset(changesetID)).data.querySelectorAll("relation").length && keyZClicks === 1) {
                     for (const way of (await getChangeset(changesetID)).data.querySelectorAll("way")) {
                         const targetTime = way.getAttribute("visible") === "false"
                             ? new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString()
@@ -12886,6 +12888,12 @@ function setupNavigationViaHotkeys() {
                 })
             })
         } else if (e.code === "KeyZ") {
+            if (e.shiftKey) {
+                keyZClicks = (keyZClicks + 1) % 2
+                document.addEventListener("mousemove", () => {
+                    keyZClicks = 0
+                }, {once: true})
+            }
             zoomToCurrentObject(e)
         } else if (e.key === "8") {
             if (mapPositionsHistory.length > 1) {
