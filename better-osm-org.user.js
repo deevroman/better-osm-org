@@ -3432,6 +3432,17 @@ function makeWikimediaCommonsValue(elem) {
     })
 }
 
+function makeRefBelpostValue(elem) {
+    if (!GM_config.get("ImagesAndLinksInTags")) return;
+    if (elem.innerHTML.match(/^[0-9]+$/)) {
+        const a = document.createElement("a")
+        a.href = "https://belpost.by/Pochtovyyeyashchiki/" + elem.textContent
+        a.rel = "noreferrer"
+        a.textContent = elem.textContent
+        elem.innerHTML = a.outerHTML
+    }
+}
+
 let buildingViewerIframe = null;
 
 // example https://osm.org/node/6506618057
@@ -3654,6 +3665,11 @@ function makeLinksInTagsClickable() {
                 clickHandler(e);
             })
             document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(viewIn3D)
+        }
+        else if (key === "ref:belpost") {
+            if (!valueCell.querySelector("a")) {
+                makeRefBelpostValue(valueCell)
+            }
         }
     })
     const tagsTable = document.querySelector(".browse-tag-list")
