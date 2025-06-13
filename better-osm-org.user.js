@@ -1994,7 +1994,8 @@ function addResolveNotesButton() {
                     method: 'POST',
                     path: osm_server.apiBase + "nodes",
                     prefix: false,
-                    content: nodeStr
+                    content: nodeStr,
+                    headers: {"Content-Type": "application/xml; charset=utf-8"},
                 }, function (err2) {
                     if (err2) {
                         console.log({changesetError: err2});
@@ -2252,8 +2253,13 @@ function addDeleteButton() {
                 method: 'PUT',
                 path: osm_server.apiBase + 'changeset/create',
                 prefix: false,
-                content: chPayloadStr
+                content: chPayloadStr,
+                headers: {"Content-Type": "application/xml; charset=utf-8"}
             }, function (err1, result) {
+                if (err1) {
+                    console.log({changesetError: err1});
+                    return
+                }
                 const changesetId = result;
                 console.log(changesetId);
                 objectInfo.children[0].children[0].setAttribute('changeset', changesetId);
@@ -2261,7 +2267,8 @@ function addDeleteButton() {
                     method: 'DELETE',
                     path: osm_server.apiBase + object_type + '/' + object_id,
                     prefix: false,
-                    content: objectInfo
+                    content: objectInfo,
+                    headers: {"Content-Type": "application/xml; charset=utf-8"}
                 }, function (err2) {
                     if (err2) {
                         console.log({changesetError: err2});
@@ -2310,7 +2317,7 @@ let mapDataSwitcherUnderSupervision = false
 function hideNoteHighlight() {
     let g = document.querySelector("#map g");
     if (!g || g.childElementCount === 0) return;
-    let mapDataCheckbox = document.querySelector(".layers-ui li:nth-child(2) > label:nth-child(1) > input:nth-child(1)")
+    let mapDataCheckbox = document.querySelector(".layers-ui #label-layers-data input")
     if (!mapDataCheckbox.checked) {
         if (mapDataSwitcherUnderSupervision) return;
         mapDataSwitcherUnderSupervision = true
@@ -3345,9 +3352,10 @@ const MAPILLARY_URL_PARAMS = new URLSearchParams({
 
 // https://osm.org/node/7417065297
 // https://osm.org/node/6257534611
+// https://osm.org/way/682528624/history/3
 function makeMapillaryValue(elem) {
     if (!GM_config.get("ImagesAndLinksInTags")) return;
-    elem.innerHTML = elem.innerHTML.replaceAll(/(?<=(^|;))([0-9]+)(&amp;x=-?[0-9]+(\.[0-9]+)?&amp;y=-?[0-9]+(\.[0-9]+)?&amp;zoom=-?[0-9]+(\.[0-9]+)?)?/g, function (match) {
+    elem.innerHTML = elem.innerHTML.replaceAll(/(?<=(^|;))([0-9]+)(?=(;|&|$))(&amp;x=-?[0-9]+(\.[0-9]+)?&amp;y=-?[0-9]+(\.[0-9]+)?&amp;zoom=-?[0-9]+(\.[0-9]+)?)?/g, function (match) {
         const a = document.createElement("a")
         a.textContent = match.replaceAll("&amp;", "&")
         a.classList.add("preview-mapillary-img-link")
@@ -3430,6 +3438,17 @@ function makeWikimediaCommonsValue(elem) {
             a.appendChild(img)
         })
     })
+}
+
+function makeRefBelpostValue(elem) {
+    if (!GM_config.get("ImagesAndLinksInTags")) return;
+    if (elem.innerHTML.match(/^[0-9]+$/)) {
+        const a = document.createElement("a")
+        a.href = "https://belpost.by/Pochtovyyeyashchiki/" + elem.textContent
+        a.rel = "noreferrer"
+        a.textContent = elem.textContent
+        elem.innerHTML = a.outerHTML
+    }
 }
 
 let buildingViewerIframe = null;
@@ -3654,6 +3673,11 @@ function makeLinksInTagsClickable() {
                 clickHandler(e);
             })
             document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(viewIn3D)
+        }
+        else if (key === "ref:belpost") {
+            if (!valueCell.querySelector("a")) {
+                makeRefBelpostValue(valueCell)
+            }
         }
     })
     const tagsTable = document.querySelector(".browse-tag-list")
@@ -12416,6 +12440,8 @@ async function zoomToChangesets() {
     fitBounds([[bbox.min_lat, bbox.min_lon], [bbox.max_lat, bbox.max_lon]])
 }
 
+let keyZClicks = 0
+
 function zoomToCurrentObject(e) {
     if (new URLSearchParams(location.search).has("changesets")) {
         void zoomToChangesets()
@@ -12445,7 +12471,7 @@ function zoomToCurrentObject(e) {
                         }
                     }
                 }
-                if ((await getChangeset(changesetID)).data.querySelectorAll("relation").length) {
+                if ((await getChangeset(changesetID)).data.querySelectorAll("relation").length && keyZClicks === 1) {
                     for (const way of (await getChangeset(changesetID)).data.querySelectorAll("way")) {
                         const targetTime = way.getAttribute("visible") === "false"
                             ? new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString()
@@ -12829,6 +12855,7 @@ function setupNavigationViaHotkeys() {
                     }
                 } else if (location.pathname === "/" || location.pathname.includes("/note")) {
                     // document.querySelector("#history_tab")?.click()
+                    addCompactSidebarStyle();
                     document.querySelector('.nav-link[href^="/history"]')?.click()
                 } else if (location.pathname.includes("/user/")) {
                     document.querySelector('a[href^="/user/"][href$="/history"]')?.click()
@@ -12868,6 +12895,12 @@ function setupNavigationViaHotkeys() {
                 })
             })
         } else if (e.code === "KeyZ") {
+            if (e.shiftKey) {
+                keyZClicks = (keyZClicks + 1) % 2
+                document.addEventListener("mousemove", () => {
+                    keyZClicks = 0
+                }, {once: true})
+            }
             zoomToCurrentObject(e)
         } else if (e.key === "8") {
             if (mapPositionsHistory.length > 1) {
@@ -12929,11 +12962,19 @@ function setupNavigationViaHotkeys() {
             } else {
                 const activeObject = document.querySelector(".browse-section.active-object")
                 if (activeObject) {
-                    activeObject.querySelector('a[href^="/changeset/"]')?.click()
+                    if (e.shiftKey) {
+                        window.open(activeObject.querySelector('a[href^="/changeset/"]').href, "_blank")
+                    } else {
+                        activeObject.querySelector('a[href^="/changeset/"]')?.click()
+                    }
                 } else {
                     const changesetsLinks = document.querySelectorAll('a[href^="/changeset/"]')
-                    if (changesetsLinks.length === 1) {
-                        changesetsLinks[0].click()
+                    if (e.shiftKey) {
+                        if (changesetsLinks?.[0]?.href) {
+                            window.open(changesetsLinks?.[0]?.href, "_blank")
+                        }
+                    } else {
+                        changesetsLinks?.[0]?.click()
                     }
                 }
             }
@@ -14287,6 +14328,13 @@ function setupOSMWebsite() {
     if (location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/user/")) {
         setTimeout(loadFriends, 4000);
     }
+    setTimeout(() => {
+        if (GM_config.get('CompactChangesetsHistory')) {
+            document.querySelector('.nav-link[href^="/history"]').addEventListener("click", () => {
+                addCompactSidebarStyle()
+            }, {once: true});
+        }
+    });
 }
 
 function makeCommandsMenu() {
