@@ -1994,7 +1994,8 @@ function addResolveNotesButton() {
                     method: 'POST',
                     path: osm_server.apiBase + "nodes",
                     prefix: false,
-                    content: nodeStr
+                    content: nodeStr,
+                    headers: {"Content-Type": "application/xml; charset=utf-8"},
                 }, function (err2) {
                     if (err2) {
                         console.log({changesetError: err2});
@@ -2252,8 +2253,13 @@ function addDeleteButton() {
                 method: 'PUT',
                 path: osm_server.apiBase + 'changeset/create',
                 prefix: false,
-                content: chPayloadStr
+                content: chPayloadStr,
+                headers: {"Content-Type": "application/xml; charset=utf-8"}
             }, function (err1, result) {
+                if (err1) {
+                    console.log({changesetError: err1});
+                    return
+                }
                 const changesetId = result;
                 console.log(changesetId);
                 objectInfo.children[0].children[0].setAttribute('changeset', changesetId);
@@ -2261,7 +2267,8 @@ function addDeleteButton() {
                     method: 'DELETE',
                     path: osm_server.apiBase + object_type + '/' + object_id,
                     prefix: false,
-                    content: objectInfo
+                    content: objectInfo,
+                    headers: {"Content-Type": "application/xml; charset=utf-8"}
                 }, function (err2) {
                     if (err2) {
                         console.log({changesetError: err2});
