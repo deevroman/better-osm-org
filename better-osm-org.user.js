@@ -143,7 +143,7 @@ if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Grease
 
 const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const isFirefox = navigator.userAgent.includes("Firefox");
-const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent)
 
 if (isSafari) {
     console.error("YOU ARE USING AN UNSUPPORTED BROWSER")
@@ -340,12 +340,43 @@ let getMap = null
  *   formatHash: function(hash: string): Object,
  *   parseHash: function(args: Object): string,
  *  },
- *  L: {},
+ *  L: {
+ *      polyline: import('leaflet').polyline,
+ *      marker: import('leaflet').marker,
+ *      circleMarker: import('leaflet').circleMarker,
+ *      latLng: import('leaflet').latLng,
+ *      latLngBounds: import('leaflet').latLngBounds,
+ *      rectangle: import('leaflet').rectangle,
+ *      geoJSON: import('leaflet').geoJSON,
+ *      tooltip: import('leaflet').tooltip,
+ *      point: import('leaflet').point,
+ *      DomEvent: import('leaflet').DomEvent,
+ *  },
+ *  mapIntercepted: boolean,
+ *  map: import('leaflet').Map,
  * }} windowOSM
  */
 
 /** @type {null|(function(): null|(boWindowObject & windowOSM)|(window & windowOSM))}*/
 let getWindow = null
+
+/**
+ * @template T
+ * @param {T} obj
+ * @returns {T}
+ */
+function intoPage(obj) {
+    return cloneInto(obj, getWindow())
+}
+
+/**
+ * @template T
+ * @param {T} obj
+ * @returns {T}
+ */
+function intoPageWithFun(obj) {
+    return cloneInto(obj, getWindow(), {cloneFunctions: true})
+}
 
 if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)
     && !["/edit", "/id"].includes(location.pathname)) {
@@ -877,6 +908,11 @@ GM_config.init(
 
 //</editor-fold>
 
+/**
+ * @param {XMLDocument} doc
+ * @param {HTMLElement} node
+ * @param {Object.<string, string>} tags
+ */
 function tagsToXml(doc, node, tags) {
     for (const [k, v] of Object.entries(tags)) {
         let tag = doc.createElement('tag');
@@ -3764,17 +3800,12 @@ function injectCSSIntoSimplePage(text) {
     });
 }
 
+/**
+ * @type {{customObjects: (import('leaflet').Path)[], activeObjects: (import('leaflet').Path)[]}}
+ */
 const layers = {
     customObjects: [],
     activeObjects: []
-}
-
-function intoPage(obj) {
-    return cloneInto(obj, getWindow())
-}
-
-function intoPageWithFun(obj) {
-    return cloneInto(obj, getWindow(), {cloneFunctions: true})
 }
 
 /**
@@ -5176,6 +5207,9 @@ async function getRelationHistory(relationID) {
 const overpassCache = {}
 const bboxCache = {}
 
+/**
+ * @type {{}}
+ */
 const cachedRelationsGeometry = {}
 
 /**
@@ -5192,6 +5226,26 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
     console.time(`Render ${id} relation`)
     console.log(id, timestamp)
 
+
+    /**
+     * @typedef {[number, number]} LatLonPair
+     */
+
+    /**
+     * @typedef {{lat: number, lon: number}} LatLon
+     */
+
+    /**
+     * @typedef {WayVersion & {geometry: LatLon[]}} ExtendedWayVersion
+     */
+
+    /**
+     * @param id
+     * @param timestamp
+     * @return {Promise<{
+     *   elements: (RelationVersion & {members: (NodeVersion|ExtendedWayVersion|RelationVersion)[]})[]
+     * }>}
+     */
     async function getRelationViaOverpass(id, timestamp) {
         if (overpassCache[[id, timestamp]]) {
             return overpassCache[[id, timestamp]]
@@ -5225,14 +5279,16 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
     let cache = cachedRelationsGeometry[[id, timestamp]];
     if (!cache) {
         let wayCounts = 0
+        /** @type {{LatLonPair}[][]} */
         const mergedGeometry = []
         overpassGeom.elements[0]?.members?.forEach(i => {
             if (i.type === "way") {
+                const w = /** @type {ExtendedWayVersion} */ i;
                 wayCounts++
-                if (i.geometry === undefined || !i.geometry.length) {
+                if (w.geometry === undefined || !w.geometry.length) {
                     return
                 }
-                const nodesList = i.geometry.map(p => [p.lat, p.lon])
+                const nodesList = w.geometry.map(p => [p.lat, p.lon])
                 if (mergedGeometry.length === 0) {
                     mergedGeometry.push(nodesList)
                 } else {
@@ -5263,6 +5319,19 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
     cache.forEach(nodesList => {
         displayWay(nodesList, false, color, 4, null, layer, null, null, addStroke, true)
     })
+
+    if (overpassGeom.elements[0]) {
+        (() => {
+            if (overpassGeom.elements[0].members?.length >= 10) {
+                // hack for prevent potential rendering performance degradation
+                return
+            }
+            if (!Object.entries(overpassGeom.elements[0].tags ?? {}).some(([k]) => k === "restriction" || k === "was:restriction" || k.startsWith("restriction:"))) {
+                return;
+            }
+            renderRestriction(overpassGeom.elements[0], layer)
+        })()
+    }
 
     console.timeEnd(`Render ${id} relation`)
 
@@ -8435,7 +8504,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
         btn.tabIndex = 0
         btn.style.cursor = "pointer"
 
-        async function clickHandler(e) {
+        async function clickForDownloadHandler(e) {
             if (e.altKey) return
             if (window.getSelection().type === "Range") return
             if ((e.target.nodeName === "TH" || e.target.nodeName === "TD") && i.querySelector("[contenteditable]")) return
@@ -8489,8 +8558,8 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             // todo нужна кнопка с глазом чтобы можно было скрывать
         }
 
-        btn.addEventListener("click", clickHandler)
-        btn.addEventListener("keypress", clickHandler)
+        btn.addEventListener("click", clickForDownloadHandler)
+        btn.addEventListener("keypress", clickForDownloadHandler)
         i.querySelector("a:nth-of-type(2)").after(btn)
         i.querySelector("a:nth-of-type(2)").after(document.createTextNode("\xA0"))
     }
