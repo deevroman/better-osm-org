@@ -524,6 +524,27 @@ function makeRow(label, text, without_delete = false, placeholder = "comment tha
     return tr
 }
 
+const copyAnimationStyles = `
+    .copied {
+      background-color: rgba(9,238,9,0.6);
+      transition:all 0.3s;
+    }
+    .was-copied {
+      background-color: initial;
+      transition:all 0.3s;
+    }
+    @media ${mediaQueryForWebsiteTheme} {
+        .copied {
+          background-color: rgba(0,255,101,0.6);
+          transition: all 0.3s;
+        }
+        .was-copied {
+          background-color: initial;
+          transition: all 0.3s;
+        }
+    }
+`;
+
 GM_config.init(
     {
         'id': 'Config',
@@ -861,6 +882,11 @@ GM_config.init(
             #Config .filler {
                 visibility: hidden;
             }
+            #version {
+                position: absolute;
+                left: 12;
+                font-size: small;
+            }
         @media ${mediaQueryForWebsiteTheme} {
             #Config {
                 background: #232528;
@@ -897,13 +923,31 @@ GM_config.init(
             th, td {
                 border-color: white;
             }
+            #version {
+                color: gray !important;
+            }
         }
+        ${copyAnimationStyles}
         `,
         'events':
             {
                 'init': main,
                 'save': function () {
                     GM_config.close()
+                },
+                'open': function (doc) {
+                    const versionSection = document.createElement("span");
+                    versionSection.id = "version";
+                    versionSection.textContent = `Script version: `;
+                    const version = document.createElement("span");
+                    version.textContent = GM_info.script.version;
+                    version.title = "Click for copy"
+                    version.style.cursor = "pointer";
+                    version.onclick = e => {
+                        navigator.clipboard.writeText(GM_info.script.version).then(() => copyAnimation(e, GM_info.script.version));
+                    }
+                    versionSection.appendChild(version);
+                    doc.querySelector(".reset_holder").prepend(versionSection);
                 }
             }
     });
@@ -1629,25 +1673,7 @@ const compactSidebarStyleText = `
         word-wrap: break-word;
     }
     
-    /*for id copied*/
-    .copied {
-      background-color: rgba(9,238,9,0.6);
-      transition:all 0.3s;
-    }
-    .was-copied {
-      background-color: initial;
-      transition:all 0.3s;
-    }
-    @media ${mediaQueryForWebsiteTheme} {
-        .copied {
-          background-color: rgba(0,255,101,0.6);
-          transition: all 0.3s;
-        }
-        .was-copied {
-          background-color: initial;
-          transition: all 0.3s;
-        }
-    }
+${copyAnimationStyles}
     
     #sidebar_content h2:not(.changeset-header) {
         font-size: 1rem;
