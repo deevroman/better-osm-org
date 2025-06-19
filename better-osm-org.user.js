@@ -4214,6 +4214,29 @@ const fetchTextWithCache = (() => {
     /**@type {Map<string, string | undefined | Promise<string | undefined> >}*/
     const cache = new Map();
 
+    return async url => {
+        if (cache.has(url)) {
+            return cache.get(url);
+        }
+
+        const promise = GM.xmlHttpRequest({url: url}).then(r => r.responseText)
+        cache.set(url, promise);
+
+        try {
+            const result = await promise;
+            cache.set(url, result);
+            return result;
+        } catch (error) {
+            cache.delete(url);
+            throw error;
+        }
+    };
+})();
+
+const originalFetchTextWithCache = (() => {
+    /**@type {Map<string, string | undefined | Promise<string | undefined> >}*/
+    const cache = new Map();
+
     return async (url, init) => {
         if (cache.has(url)) {
             return cache.get(url);
@@ -4258,7 +4281,7 @@ async function getChangeset(id) {
     if (changesetsCache[id]) {
         return changesetsCache[id];
     }
-    const text = await fetchTextWithCache(osm_server.apiBase + "changeset" + "/" + id + "/download", {signal: getAbortController().signal});
+    const text = await originalFetchTextWithCache(osm_server.apiBase + "changeset" + "/" + id + "/download", {signal: getAbortController().signal});
     const parser = new DOMParser();
     const data = /** @type {XMLDocument} **/ parser.parseFromString(text, "application/xml");
     return changesetsCache[id] = {
@@ -5424,7 +5447,7 @@ const restrictionColors = {
     no_exit:            "#ff0000",
 }
 
-const restrictionsImagesPrefix = "https://github.com/deevroman/better-osm-org/raw/dev/icons/restrictions/"
+const restrictionsImagesPrefix = "https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/dev/icons/restrictions/"
 
 const restrictionsSignImages = {
     no_left_turn:       restrictionsImagesPrefix + "France_road_sign_B2a.svg",
