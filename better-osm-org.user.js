@@ -5424,7 +5424,7 @@ const restrictionColors = {
     no_exit:            "#ff0000",
 }
 
-const restrictionsImagesPrefix = "https://github.com/deevroman/better-osm-org/raw/dev/"
+const restrictionsImagesPrefix = "https://github.com/deevroman/better-osm-org/raw/dev/icons/restrictions/"
 
 const restrictionsSignImages = {
     no_left_turn:       restrictionsImagesPrefix + "France_road_sign_B2a.svg",
