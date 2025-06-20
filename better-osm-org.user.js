@@ -11552,19 +11552,27 @@ let hiddenChangesetsCount = null;
 let lastLoadMoreURL = "";
 
 function openCombinedChangesetsMap() {
+    const batchSize = 500
+
+    function openIDs(ids){
+        const forOpen = []
+        for (let i = 0; i < ids.length; i += batchSize) {
+            const idsStr = ids.slice(i, i + batchSize).join(",")
+            forOpen.push(osm_server.url + `/changeset/${ids[i]}?changesets=` + idsStr)
+        }
+        forOpen.toReversed().forEach(url => open(url, "_blank"))
+    }
+
     const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value)
     if (ids.length) {
-        const idsStr = ids.join(",")
-        open(osm_server.url + `/changeset/${ids[0]}?changesets=` + idsStr, "_blank")
+        openIDs(ids)
     } else {
         const ids = Array.from(document.querySelectorAll(".mass-action-checkbox")).map(i => i.value)
         if (ids.length) {
-            const idsStr = ids.join(",")
-            open(osm_server.url + `/changeset/${ids[0]}?changesets=` + idsStr, "_blank")
+            openIDs(ids)
         } else {
             const ids = Array.from(document.querySelectorAll(`a[href^="/changeset/"].custom-changeset-id-click`)).map(i => i.getAttribute("href").match(/\/changeset\/([0-9]+)/)[1])
-            const idsStr = ids.join(",")
-            open(osm_server.url + `/changeset/${ids[0]}?changesets=` + idsStr, "_blank")
+            openIDs(ids)
         }
     }
 }
@@ -13928,6 +13936,12 @@ function setupNavigationViaHotkeys() {
                 document.querySelectorAll('.pagination li a')[0]?.click()
             } else if (e.code === "Period") {
                 document.querySelectorAll('.pagination li a')[1]?.click()
+            }
+        } else if (e.code === "KeyH" && location.pathname.includes("/history") && (location.search.includes("after") || location.search.includes("before")) ){
+            try {
+                getWindow().OSM.router.route(location.pathname)
+            } catch {
+                window.location = location.pathname
             }
         }
     }
