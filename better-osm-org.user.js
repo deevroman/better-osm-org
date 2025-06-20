@@ -10579,7 +10579,10 @@ function setupNewEditorsLinks() {
             } else {
                 newElem = document.querySelector(".rapid_btn")
             }
-            newElem.querySelector("a").href = `${rapidLink}${zoom}/${lat}/${lon}`
+            const actualHref = `${rapidLink}${zoom}/${lat}/${lon}`
+            if (newElem.querySelector("a").href !== actualHref) {
+                newElem.querySelector("a").href = actualHref
+            }
             if (firstRun) {
                 editorsList.appendChild(newElem)
             }
