@@ -13058,7 +13058,7 @@ async function zoomToChangesets() {
     fitBounds([[bbox.min_lat, bbox.min_lon], [bbox.max_lat, bbox.max_lon]])
 }
 
-let keyZClicks = 0
+let shiftKeyZClicks = 0
 
 function zoomToCurrentObject(e) {
     if (new URLSearchParams(location.search).has("changesets")) {
@@ -13089,7 +13089,7 @@ function zoomToCurrentObject(e) {
                         }
                     }
                 }
-                if ((await getChangeset(changesetID)).data.querySelectorAll("relation").length && keyZClicks === 1) {
+                if ((await getChangeset(changesetID)).data.querySelectorAll("relation").length && shiftKeyZClicks % 2 === 1) {
                     for (const way of (await getChangeset(changesetID)).data.querySelectorAll("way")) {
                         const targetTime = way.getAttribute("visible") === "false"
                             ? new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString()
@@ -13166,10 +13166,24 @@ function zoomToCurrentObject(e) {
             }
         } else if (location.pathname.includes("relation")) {
             if (relationMetadata) {
-                fitBounds([
-                    [relationMetadata.bbox.min_lat, relationMetadata.bbox.min_lon],
-                    [relationMetadata.bbox.max_lat, relationMetadata.bbox.max_lon]
-                ])
+                const viaNodes = relationMetadata.relation.members.filter(m => m.role === "via").flatMap(m => {
+                    if (m.type === "node") {
+                        return m
+                    } else {
+                        return m.geometry
+                    }
+                })
+                if (e.code === "KeyZ" && e.shiftKey) {
+                    fitBounds([
+                        [Math.min(...viaNodes.map(i => i.lat)), Math.min(...viaNodes.map(i => i.lon))],
+                        [Math.max(...viaNodes.map(i => i.lat)), Math.max(...viaNodes.map(i => i.lon))]
+                    ])
+                } else {
+                    fitBounds([
+                        [relationMetadata.bbox.min_lat, relationMetadata.bbox.min_lon],
+                        [relationMetadata.bbox.max_lat, relationMetadata.bbox.max_lon]
+                    ])
+                }
             }
         }
     } else if (location.search.includes("&display-gpx=")) {
@@ -13514,10 +13528,12 @@ function setupNavigationViaHotkeys() {
             })
         } else if (e.code === "KeyZ") {
             if (e.shiftKey) {
-                keyZClicks = (keyZClicks + 1) % 2
+                shiftKeyZClicks += 1
                 document.addEventListener("mousemove", () => {
-                    keyZClicks = 0
+                    shiftKeyZClicks = 0
                 }, {once: true})
+            } else {
+                shiftKeyZClicks = 0
             }
             zoomToCurrentObject(e)
         } else if (e.key === "8") {
@@ -14912,6 +14928,7 @@ function setupOSMWebsite() {
         const path = location.pathname;
         if (path === lastPath) return;
         try {
+            shiftKeyZClicks = 0
             abortPrevControllers(ABORT_ERROR_WHEN_PAGE_CHANGED)
             cleanAllObjects()
             getMap().attributionControl.setPrefix("")
