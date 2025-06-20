@@ -5243,7 +5243,7 @@ function setupWayVersionView() {
  * @property {number} ref
  * @property {'way'} type
  * @property {string} role
- * @property {LatLonPair[]} geometry
+ * @property {LatLon[]} geometry
  */
 
 // TODO ExtendedRelationRelationMember
@@ -5381,6 +5381,16 @@ function rotateSegment(lat1, lon1, lat2, lon2, angleDeg, lengthMeters) {
     return {lat: lat, lon: lon};
 }
 
+
+/**
+ * @param {{lat: number, lon: number}} latLon1
+ * @param {{lat: number, lon: number}} latLon2
+ * @return {boolean}
+ */
+function isEqualCoordinates(latLon1, latLon2) {
+    return latLon1.lat === latLon2.lat && latLon1.lon === latLon2.lon;
+}
+
 /**
  * @param {ExtendedRelationVersion} rel
  * @return {string[]}
@@ -5395,6 +5405,7 @@ function validateRestriction(rel) {
     /** @type {ExtendedRelationWayMember[]} */
     let to = [];
     const errors = []
+    const {value: restrictionValue} = getRestrictionKeyValue(rel.tags)
     rel.members?.forEach(i => {
         if (i.type === "way" && i.role === "from") {
             from.push(i)
@@ -5417,20 +5428,49 @@ function validateRestriction(rel) {
     if (to.length === 0) {
         errors.push('Missing member with "to" role')
     }
-    if (errors.length) return errors;
 
     [...from, ...to].forEach(i => {
         if (i.geometry?.length < 2) {
             errors.push(`${i.type}/${i.ref} (${i.role}) way contains < 2 nodes`)
         }
     })
+    if (restrictionValue !== "no_exit" && restrictionValue !== "no_entry") {
+        if (from.length > 1) {
+            errors.push('Multiple "from" role')
+        }
+        if (to.length > 1) {
+            errors.push('Multiple "to" role')
+        }
+    }
+    if (errors.length) return errors;
+
     if (viaNodes.length && viaWays.length) {
         errors.push(`Mixed "node" and "way" types for via role`)
     } else if (viaNodes.length > 1) {
         errors.push(`multiple "via" nodes`)
+    } else if (viaWays.length > 0) {
+        let lastNode = from[0].geometry[0]
+        if (isEqualCoordinates(from[0].geometry[0], lastNode)) {
+            lastNode = viaWays[0].geometry[viaWays[0].geometry.length - 1]
+        } else if (isEqualCoordinates(from[0].geometry[from[0].geometry.length - 1], lastNode)) {
+            lastNode = viaWays[0].geometry[0]
+        } else {
+            errors.push(`"from" -> "via" are arranged in the wrong order or torn`)
+        }
+        viaWays.slice(1).forEach(w => {
+            if (isEqualCoordinates(w.geometry[0], lastNode)) {
+                lastNode = w.geometry[w.geometry.length - 1]
+            } else if (isEqualCoordinates(w.geometry[w.geometry.length - 1], lastNode)) {
+                lastNode = w.geometry[0]
+            } else {
+                errors.push(`"via" -> "via" are arranged in the wrong order or torn`)
+            }
+        })
+        if (!isEqualCoordinates(to[0].geometry[0], lastNode) && isEqualCoordinates(to[0].geometry[to[0].geometry.length - 1], lastNode)) {
+            errors.push(`"via" -> "to" are arranged in the wrong order or torn`)
+        }
     }
     if (errors.length) return errors;
-
 
     return errors
 }
@@ -5446,7 +5486,7 @@ const restrictionColors = {
     no_entry:           "#ff0000",
     no_exit:            "#ff0000",
 }
-
+// TODO сделать ресурсами
 const restrictionsImagesPrefix = "https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/dev/icons/restrictions/"
 
 const restrictionsSignImages = {
@@ -5474,6 +5514,14 @@ function azimuth(lat1, lon1, lat2, lon2) {
     return (angleDeg + 360) % 360;
 }
 
+function getRestrictionKeyValue(tags) {
+    const key = Object.keys(tags).find(k => k === "restriction" || k === "was:restriction" || k.startsWith("restriction:"))
+    return {
+        key: key,
+        value: tags[key]
+    }
+}
+
 /**
  * @param {ExtendedRelationVersion} rel
  * @param {string} color
@@ -5481,35 +5529,52 @@ function azimuth(lat1, lon1, lat2, lon2) {
  * @return {[]}
  */
 function renderRestriction(rel, color, layer) {
-    /** @type {ExtendedRelationWayMember} */
-    let from;
-    /** @type {ExtendedRelationNodeMember} */
-    let via;
-    /** @type {ExtendedRelationWayMember} */
-    let to;
+    /** @type {ExtendedRelationWayMember[]} */
+    let from = [];
+    /** @type {ExtendedRelationNodeMember[]} */
+    let viaNodes = [];
+    /** @type {ExtendedRelationWayMember[]} */
+    let viaWays = [];
+    /** @type {ExtendedRelationWayMember[]} */
+    let to = [];
     rel.members?.forEach(i => {
         if (i.type === "way" && i.role === "from") {
-            from = i
+            from.push(i)
         } else if (i.type === "way" && i.role === "to") {
-            to = i
+            to.push(i)
         } else if (i.type === "node" && i.role === "via") {
-            via = i
+            viaNodes.push(i)
+        } else if (i.type === "way" && i.role === "via") {
+            viaWays.push(i)
         }
     })
-    const restrictionKey = Object.keys(rel.tags).find(k => k === "restriction" || k === "was:restriction" || k.startsWith("restriction:"))
-    const restrictionValue = rel.tags[restrictionKey]
-    // const angle = 25
-    // const len = 7
-    const arrows = []
-    let fromAngle = 0.0
-    if (from && from.geometry?.length >= 2) {
-        let startPoint = from.geometry[0]
-        let endPoint = from.geometry[1]
-        if (from.geometry[from.geometry.length - 1].lat === via.lat && from.geometry[from.geometry.length - 1].lon === via.lon) {
-            startPoint = from.geometry[from.geometry.length - 1]
-            endPoint = from.geometry[from.geometry.length - 2]
+    let via = viaNodes?.[0];
+    if (!via) {
+        if (isEqualCoordinates(from[0].geometry[0], viaWays[0].geometry[0])
+            || isEqualCoordinates(from[0].geometry[from[0].geometry.length - 1], viaWays[0].geometry[0])) {
+            via = viaWays[0].geometry[0]
+        } else if (isEqualCoordinates(from[0].geometry[0], viaWays[0].geometry[viaWays[0].geometry.length - 1])
+            || isEqualCoordinates(from[0].geometry[from[0].geometry.length - 1], viaWays[0].geometry[viaWays[0].geometry.length - 1])) {
+            via = viaWays[0].geometry[viaWays[0].geometry.length - 1]
+        } else {
+            console.error("Restriction validation error")
+            debug_alert("Restriction validation error")
         }
-        fromAngle = 360 - azimuth(endPoint.lat, endPoint.lon, startPoint.lat, startPoint.lon)
+    }
+    const {value: restrictionValue} = getRestrictionKeyValue(rel.tags)
+    const angle = 25
+    const len = 7
+    const arrows = []
+    let signAngle = 0.0
+    from.forEach(f => {
+        let startPoint = f.geometry[0]
+        let endPoint = f.geometry[1]
+        if (isEqualCoordinates(f.geometry[f.geometry.length - 1], via)) { // оверпас не даёт айдишники точек геометрии
+            startPoint = f.geometry[f.geometry.length - 1]
+            endPoint = f.geometry[f.geometry.length - 2]
+        }
+        signAngle = 360 - azimuth(endPoint.lat, endPoint.lon, startPoint.lat, startPoint.lon)
+        console.debug(signAngle);
         // const {lat: p1_lat, lon: p1_lon} = startPoint;
         // const {lat: p2_lat, lon: p2_lon} = endPoint
         // const rotated1 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, -angle, len)
@@ -5518,25 +5583,35 @@ function renderRestriction(rel, color, layer) {
         // arrows.push(displayWay(cloneInto([startPoint, rotated2], unsafeWindow), false, "white", 7, null, layer))
         // arrows.push(displayWay(cloneInto([startPoint, rotated1], unsafeWindow), false, color, 4, null, layer))
         // arrows.push(displayWay(cloneInto([startPoint, rotated2], unsafeWindow), false, color, 4, null, layer))
-    }
-    if (to && to.geometry?.length >= 2) {
-        let startPoint = to.geometry[0]
-        let endPoint = to.geometry[1]
-        if (to.geometry[0].lat === via.lat && to.geometry[0].lon === via.lon) {
-            startPoint = to.geometry[to.geometry.length - 1]
-            endPoint = to.geometry[to.geometry.length - 2]
+    })
+    to.forEach(t => {
+        let startPoint = t.geometry[0]
+        let endPoint = t.geometry[1]
+        if (t.geometry[0].lat === via.lat && t.geometry[0].lon === via.lon) {
+            if (from.length > 1) {
+                signAngle = 360 - azimuth(endPoint.lat, endPoint.lon, startPoint.lat, startPoint.lon)
+            }
+            startPoint = t.geometry[t.geometry.length - 1]
+            endPoint = t.geometry[t.geometry.length - 2]
+        } else {
+            if (from.length > 1) {
+                signAngle = 360 - azimuth(
+                    t.geometry[t.geometry.length - 2].lat, t.geometry[t.geometry.length - 2].lon,
+                    t.geometry[t.geometry.length - 1].lat, t.geometry[t.geometry.length - 1].lon
+                )
+            }
         }
-        // const {lat: p1_lat, lon: p1_lon} = startPoint;
-        // const {lat: p2_lat, lon: p2_lon} = endPoint
-        // const rotated1 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, -angle, len)
-        // const rotated2 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, angle, len)
-        // if (restrictionValue !== "no_u_turn") {
-        //     arrows.push(displayWay(cloneInto([startPoint, rotated1], unsafeWindow), false, "white", 7, null, layer))
-        //     arrows.push(displayWay(cloneInto([startPoint, rotated2], unsafeWindow), false, "white", 7, null, layer))
-        //     arrows.push(displayWay(cloneInto([startPoint, rotated1], unsafeWindow), false, color, 4, null, layer))
-        //     arrows.push(displayWay(cloneInto([startPoint, rotated2], unsafeWindow), false, color, 4, null, layer))
-        // }
-    }
+        const {lat: p1_lat, lon: p1_lon} = startPoint;
+        const {lat: p2_lat, lon: p2_lon} = endPoint
+        const rotated1 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, -angle, len)
+        const rotated2 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, angle, len)
+        if (restrictionValue === "no_exit" || restrictionValue === "no_entry") {
+            arrows.push(displayWay(cloneInto([startPoint, rotated1], unsafeWindow), false, "white", 7, null, layer))
+            arrows.push(displayWay(cloneInto([startPoint, rotated2], unsafeWindow), false, "white", 7, null, layer))
+            arrows.push(displayWay(cloneInto([startPoint, rotated1], unsafeWindow), false, color, 4, null, layer))
+            arrows.push(displayWay(cloneInto([startPoint, rotated2], unsafeWindow), false, color, 4, null, layer))
+        }
+    });
     [100, 250, 500, 1000].forEach(t => {
         setTimeout(() => {
             arrows.forEach(i => i.bringToFront())
@@ -5549,7 +5624,7 @@ function renderRestriction(rel, color, layer) {
             return
         }
         let img = await fetchTextWithCache(imageUrl);
-        img = img.replace('viewBox', `style="rotate: -${Math.round(fromAngle)}deg" viewBox`)
+        img = img.replace('version="1.1"', `style="rotate: -${Math.round(signAngle)}deg" version="1.1"`)
 
         function getSquareBounds(center) {
             const {x, y} = toMercator(center.lat, center.lon)
