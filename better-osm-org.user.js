@@ -11126,9 +11126,19 @@ async function setupHDYCInProfile(path) {
                 limit: 1,
                 order: 'oldest'
             }).toString());
-            userID = res['changesets'][0]['uid']
-            if (!userID) {
-                return;
+            if (res['changesets'].length === 0) {
+                const res = await fetchJSONWithCache(osm_server.apiBase + "notes/search.json?" + new URLSearchParams({
+                    display_name: decodeURI(user),
+                    limit: 1,
+                    closed: -1,
+                    order: "oldest"
+                }).toString());
+                userID = res?.['features']?.[0]?.['properties']?.['comments']?.find(i => i['user'] === decodeURI(user))?.['uid']
+                if (!userID) {
+                    return;
+                }
+            } else {
+                userID = res['changesets'][0]['uid']
             }
         }
 
