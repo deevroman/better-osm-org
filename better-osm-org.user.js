@@ -11099,12 +11099,27 @@ async function setupHDYCInProfile(path) {
             }
         })
     }
-    setTimeout(async () => {
+    const isDeletedUser = !document.querySelector(".user_image")
+    const usernameHeader = document.querySelector("#content h1")?.firstChild
+    if (!isDeletedUser && usernameHeader && usernameHeader.nodeType === Node.TEXT_NODE) {
+        const span = document.createElement("span")
+        span.classList.add("copyable-username")
+        span.textContent = usernameHeader.textContent
+        span.title = "Click for copy"
+        span.style.cursor = "pointer"
+        span.onclick = e => {
+            navigator.clipboard.writeText(usernameHeader.textContent.slice(0, -1)).then(() => copyAnimation(e, usernameHeader.textContent.slice(0, -1)));
+        }
+        usernameHeader.replaceWith(span)
+        injectCSSIntoOSMPage(copyAnimationStyles)
+    }
+    queueMicrotask(async () => {
         if (document.querySelector(".prev-usernames")) return
         const userDetails = document.querySelector(".content-inner small dl")
         if (!userDetails) return;
         // https://www.openstreetmap.org/reports/new?reportable_id=12345&reportable_type=User
         let userID = document.querySelector('[href*="reportable_id="]')?.getAttribute("href")?.match(/reportable_id=(\d+)/)?.[1]
+        userID = userID ?? document.head.getAttribute("data-user")
         if (!userID) {
             const res = await fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
                 display_name: decodeURI(user),
@@ -11117,52 +11132,78 @@ async function setupHDYCInProfile(path) {
             }
         }
 
-        async function updateUserIDInfo(userID) {
-            const res = await GM.xmlHttpRequest({
-                url: "https://whosthat.osmz.ru/whosthat.php?action=names&id=" + userID,
-                responseType: "json"
-            })
-            // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
-            // but here need resolve problem with return promise
-            const userInfo = {
-                data: structuredClone(res.response)
-            }
-            if (userInfo.data[0]['names'].length > 1) {
-                userInfo['cacheTime'] = new Date()
-                await GM.setValue("useridinfo-" + userID, JSON.stringify(userInfo))
-
-                const usernames = userInfo.data[0]['names'].filter(i => i !== decodeURI(user)).join(", ")
-                if (document.querySelector(".prev-usernames")) {
-                    document.querySelector(".prev-usernames").textContent = usernames
+        async function addUsernames() {
+            async function updateUserIDInfo(userID) {
+                const res = await GM.xmlHttpRequest({
+                    url: "https://whosthat.osmz.ru/whosthat.php?action=names&id=" + userID,
+                    responseType: "json"
+                })
+                // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
+                // but here need resolve problem with return promise
+                const userInfo = {
+                    data: structuredClone(res.response)
                 }
+                if (userInfo.data[0]['names'].length > 1) {
+                    userInfo['cacheTime'] = new Date()
+                    await GM.setValue("useridinfo-" + userID, JSON.stringify(userInfo))
+
+                    const usernames = userInfo.data[0]['names'].filter(i => i !== decodeURI(user)).join(", ")
+                    if (document.querySelector(".prev-usernames")) {
+                        document.querySelector(".prev-usernames").textContent = usernames
+                    }
+                }
+                return userInfo
             }
-            return userInfo
+
+            async function getCachedUserIDInfo(userID) {
+                const localUserInfo = await GM.getValue("useridinfo-" + userID, "")
+                if (localUserInfo) {
+                    setTimeout(updateUserIDInfo, 0, userID)
+                    return JSON.parse(localUserInfo)
+                }
+                return await updateUserIDInfo(userID)
+            }
+
+            const userIDInfo = await getCachedUserIDInfo(userID)
+            if (userIDInfo.data[0]['names'].length <= 1) {
+                console.log("prev user's usernames not found")
+                return
+            }
+            const usernames = userIDInfo.data[0]['names'].filter(i => i !== decodeURI(user)).join(", ")
+            const dt = document.createElement("dt")
+            dt.textContent = "Past usernames: "
+            dt.classList.add("list-inline-item", "m-0", "prev-usernames-label")
+            const dd = document.createElement("dd")
+            dd.classList.add("list-inline-item", "prev-usernames")
+            dd.textContent = usernames
+            userDetails.appendChild(dt)
+            userDetails.appendChild(document.createTextNode("\xA0"))
+            userDetails.appendChild(dd)
         }
 
-        async function getCachedUserIDInfo(userID) {
-            const localUserInfo = await GM.getValue("useridinfo-" + userID, "")
-            if (localUserInfo) {
-                setTimeout(updateUserIDInfo, 0, userID)
-                return JSON.parse(localUserInfo)
+        await addUsernames()
+
+        function addUserID() {
+            if (!document.querySelector('[href^="/api/0.6/user"]')) {
+                const dt = document.createElement("dt")
+                dt.textContent = "ID: "
+                dt.classList.add("list-inline-item", "m-0")
+                const dd = document.createElement("dd")
+                dd.classList.add("list-inline-item", "user-id")
+                dd.textContent = userID
+                dd.title = "Click for copy"
+                dd.style.cursor = "pointer"
+                dd.onclick = e => {
+                    navigator.clipboard.writeText(userID).then(() => copyAnimation(e, userID));
+                }
+                userDetails.appendChild(dt)
+                userDetails.appendChild(document.createTextNode("\xA0"))
+                userDetails.appendChild(dd)
+                injectCSSIntoOSMPage(copyAnimationStyles)
             }
-            return await updateUserIDInfo(userID)
         }
 
-        const userIDInfo = await getCachedUserIDInfo(userID)
-        if (userIDInfo.data[0]['names'].length <= 1) {
-            console.log("prev user's usernames not found")
-            return
-        }
-        const usernames = userIDInfo.data[0]['names'].filter(i => i !== decodeURI(user)).join(", ")
-        const dt = document.createElement("dt")
-        dt.textContent = "Past usernames: "
-        dt.classList.add("list-inline-item", "m-0")
-        const dd = document.createElement("dd")
-        dd.classList.add("list-inline-item", "prev-usernames")
-        dd.textContent = usernames
-        userDetails.appendChild(dt)
-        userDetails.appendChild(document.createTextNode("\xA0"))
-        userDetails.appendChild(dd)
+        addUserID()
     })
     const iframe = document.getElementById('hdyc-iframe');
     window.addEventListener('message', function (event) {
@@ -11170,7 +11211,80 @@ async function setupHDYCInProfile(path) {
             iframe.height = event.data.height + 'px';
         }
     });
+    if (isDeletedUser) {
+        const content = document.querySelector(".content-body")
+        const div = document.createElement("div")
+        div.classList.add("content-inner", "position-relative", "m-auto")
 
+        const webArchiveLink = document.createElement("a")
+        webArchiveLink.textContent = "WebArchive"
+        webArchiveLink.target = "_blank"
+        webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + decodeURI(user)
+        div.appendChild(webArchiveLink)
+        div.appendChild(document.createElement("br"))
+
+        const res = await GM.xmlHttpRequest({
+            url: "https://whosthat.osmz.ru/whosthat.php?action=info&name=" + user,
+            responseType: "json"
+        })
+        // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
+        // but here need resolve problem with return promise
+        const data = structuredClone(res.response);
+        if (data.length) {
+            const ids = document.createElement("p")
+            ids.textContent = data.length === 1 ? "User ID: " : "User IDs: "
+            ids.title = "via whosthat.osmz.ru"
+            div.appendChild(ids)
+            for (let i = 0; i < data.length; i++) {
+                const id = data[i].id;
+                const idSpan = document.createElement("span")
+                idSpan.textContent = id
+                idSpan.title = "Click for copy"
+                idSpan.style.cursor = "pointer"
+                idSpan.onclick = e => {
+                    navigator.clipboard.writeText(id).then(() => copyAnimation(e, id));
+                }
+                injectCSSIntoOSMPage(copyAnimationStyles)
+                ids.appendChild(idSpan)
+                ids.appendChild(document.createElement("br"))
+
+
+                /*** @type {{changesets: ChangesetMetadata[]}}*/
+                const lastChangesets = await fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
+                    user: id,
+                    order: 'newest',
+                    to: new Date().toISOString(),
+                }).toString())
+                ids.appendChild(document.createTextNode(`Last ${lastChangesets.changesets?.length} changesets:`))
+                lastChangesets.changesets.forEach(ch => {
+                    const changesetLine = document.createElement("div")
+                    const a = document.createElement("a")
+                    a.textContent = "#" + ch.id + ""
+                    a.href = "/changeset/" + ch.id
+                    a.style.fontFamily = "monospace"
+                    changesetLine.appendChild(a)
+
+                    const comment = document.createElement("span")
+                    comment.textContent = " " + (ch.tags?.['comment'] ?? "No comment")
+                    changesetLine.appendChild(comment)
+
+                    if (ch.comments_count) {
+                        const comments = document.createElement("a")
+                        comments.textContent = " " + ch.comments_count + " 💬"
+                        comments.href = "/changeset/" + ch.id
+                        changesetLine.appendChild(comments)
+                    }
+
+                    div.appendChild(changesetLine)
+                })
+            }
+        }
+        // debugger
+
+
+
+        content.appendChild(div)
+    }
 }
 
 function setupBetterProfileStat() {
