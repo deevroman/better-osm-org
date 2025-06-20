@@ -2,6 +2,7 @@
 // @name            Better osm.org
 // @name:ru         Better osm.org
 // @version         0.9.9.11
+// @changelog       v0.9.9.11: type=restriction render, user UI in profile, profile for deleted user
 // @changelog       v0.9.9: Button for 3D view building in OSMBuilding, F4map and other viewers
 // @changelog       v0.9.9: Key1 for open first user's changeset, add poweruser=true in Rapid link
 // @changelog       v0.9.9: Restore navigation links on changeset page of deleted user
@@ -11915,6 +11916,19 @@ let queriesCache = {
     elems: {}
 }
 
+function getScrollbarWidth() {
+    const outer = document.createElement('div');
+    outer.style.visibility = 'hidden';
+    outer.style.overflow = 'scroll';
+    outer.style.msOverflowStyle = 'scrollbar';
+    document.body.appendChild(outer);
+    const inner = document.createElement('div');
+    outer.appendChild(inner);
+    const scrollbarWidth = (outer.offsetWidth - inner.offsetWidth);
+    outer.parentNode.removeChild(outer);
+    return scrollbarWidth;
+}
+
 function addMassActionForGlobalChangesets() {
     if ((location.pathname === "/history" || location.pathname === "/history/friends")
         && document.querySelector("#sidebar_content h2")
@@ -11981,7 +11995,7 @@ function addMassActionForGlobalChangesets() {
                 const filterByUsersInput = document.createElement("input")
                 filterByUsersInput.placeholder = "user1,user2,... and press Enter"
                 filterByUsersInput.id = "filter-by-user-input"
-                filterByUsersInput.style.width = "250px"
+                filterByUsersInput.style.width = 253 - getScrollbarWidth() + "px"
                 filterByUsersInput.style.marginBottom = "3px"
                 filterByUsersInput.addEventListener("keypress", async function (event) {
                     if (event.key === "Enter") {
@@ -12024,7 +12038,7 @@ function addMassActionForGlobalChangesets() {
                 filterByCommentInput.id = "filter-by-comment-input"
                 filterByCommentInput.placeholder = "words1,words2,... and press Enter"
                 filterByCommentInput.title = "Filter by substring in changesets comments"
-                filterByCommentInput.style.width = "250px"
+                filterByCommentInput.style.width = 253 - getScrollbarWidth() + "px"
                 filterByCommentInput.addEventListener("keypress", async function (event) {
                     if (event.key === "Enter") {
                         event.preventDefault();
