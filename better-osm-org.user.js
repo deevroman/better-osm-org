@@ -44,6 +44,7 @@
 // @exclude      https://www.openstreetmap.org/diary/*
 // @exclude      https://www.openstreetmap.org/account*
 // @exclude      https://www.openstreetmap.org/oauth2/*
+// @exclude      https://www.openstreetmap.org/login*
 // @match        https://master.apis.dev.openstreetmap.org/*
 // @exclude      https://master.apis.dev.openstreetmap.org/api/*
 // @exclude      https://master.apis.dev.openstreetmap.org/account*
@@ -325,8 +326,8 @@ const instancesOf3DViewers = [
     // }
 ]
 
-
-const boWindowObject = typeof window.wrappedJSObject !== "undefined" ? /** {unsafeWindow} **/ window.wrappedJSObject : unsafeWindow;
+/** @type {unsafeWindow & windowOSM} **/
+const boWindowObject = typeof window.wrappedJSObject !== "undefined" ? window.wrappedJSObject : unsafeWindow;
 const boGlobalThis = typeof boWindowObject.globalThis !== "undefined" ? boWindowObject.globalThis : boWindowObject;
 
 /** @type {null|(function(): null|import('leaflet').Map)}*/
@@ -354,6 +355,7 @@ let getMap = null
  *      imageOverlay: import('leaflet').imageOverlay,
  *  },
  *  mapIntercepted: boolean,
+ *  scriptInstance: string|undefined,
  *  map: import('leaflet').Map,
  * }} windowOSM
  */
@@ -389,6 +391,11 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
                         boGlobalThis.map = this;
                         boGlobalThis.mapIntercepted = true
                         console.log("%cMap intercepted", 'background: #000; color: #0f0')
+                        if (!boGlobalThis.scriptInstance) {
+                            boGlobalThis.scriptInstance = GM_info.scriptHandler;
+                        } else if (boGlobalThis.scriptInstance !== GM_info.scriptHandler) {
+                            console.error(`Two copies of the script were running simultaneously via ${boGlobalThis.scriptInstance} and ${GM_info.scriptHandler}. Turn off one of them`)
+                        }
                     }
                 }), boWindowObject)
             )
@@ -10463,6 +10470,11 @@ async function interceptMapManually() {
                         console.log("%cMap intercepted with workaround", 'background: #000; color: #0f0')
                         window.mapIntercepted = true
                         window.map = e.target._map;
+                        if (!window.scriptInstance) {
+                            window.scriptInstance = GM_info.scriptHandler;
+                        } else if (window.scriptInstance !== GM_info.scriptHandler) {
+                            console.error(\`Two copies of the script were running simultaneously via ${window.scriptInstance} and ${window.scriptInstance}. Turn off one of them\`)
+                        }
                     })
                 } catch (e) {
                     console.error(e)
