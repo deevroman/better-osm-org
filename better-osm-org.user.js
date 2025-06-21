@@ -7401,8 +7401,8 @@ async function addHoverForRelationMembers() {
         pinSign.classList.add("pinned")
         pinSign.textContent = "📌"
         pinSign.tabIndex = 0
+        pinSign.title = "Pin restriction sign on map.\nYou can hide all the objects that bettet-osm-org adds by pressing ` or ~"
         pinSign.style.cursor = "pointer"
-        pinSign.title = "Pin relation on map"
         pinSign.onkeypress = pinSign.onclick = async (e) => {
             e.preventDefault()
             e.stopImmediatePropagation()
