@@ -1,7 +1,8 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.9.9.10
+// @version         0.9.9.11
+// @changelog       v0.9.9.11: type=restriction render, user UI in profile, profile for deleted user
 // @changelog       v0.9.9: Button for 3D view building in OSMBuilding, F4map and other viewers
 // @changelog       v0.9.9: Key1 for open first user's changeset, add poweruser=true in Rapid link
 // @changelog       v0.9.9: Restore navigation links on changeset page of deleted user
@@ -44,6 +45,7 @@
 // @exclude      https://www.openstreetmap.org/diary/*
 // @exclude      https://www.openstreetmap.org/account*
 // @exclude      https://www.openstreetmap.org/oauth2/*
+// @exclude      https://www.openstreetmap.org/login*
 // @match        https://master.apis.dev.openstreetmap.org/*
 // @exclude      https://master.apis.dev.openstreetmap.org/api/*
 // @exclude      https://master.apis.dev.openstreetmap.org/account*
@@ -143,7 +145,7 @@ if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Grease
 
 const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const isFirefox = navigator.userAgent.includes("Firefox");
-const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent)
 
 if (isSafari) {
     console.error("YOU ARE USING AN UNSUPPORTED BROWSER")
@@ -313,7 +315,7 @@ const instancesOf3DViewers = [
         url: "https://labs.mapbox.com/standard-style?lightPreset=day#",
         makeURL: function ({x: x, y: y, z: z}) {
             // z-1 looks better
-            return `${this.url}${z-1}/${x}/${y}/0/50`
+            return `${this.url}${z - 1}/${x}/${y}/0/50`
         }
     },
     // {
@@ -325,8 +327,8 @@ const instancesOf3DViewers = [
     // }
 ]
 
-
-const boWindowObject = typeof window.wrappedJSObject !== "undefined" ? /** {unsafeWindow} **/ window.wrappedJSObject : unsafeWindow;
+/** @type {unsafeWindow & windowOSM} **/
+const boWindowObject = typeof window.wrappedJSObject !== "undefined" ? window.wrappedJSObject : unsafeWindow;
 const boGlobalThis = typeof boWindowObject.globalThis !== "undefined" ? boWindowObject.globalThis : boWindowObject;
 
 /** @type {null|(function(): null|import('leaflet').Map)}*/
@@ -340,12 +342,45 @@ let getMap = null
  *   formatHash: function(hash: string): Object,
  *   parseHash: function(args: Object): string,
  *  },
- *  L: {},
+ *  L: {
+ *      polyline: import('leaflet').polyline,
+ *      marker: import('leaflet').marker,
+ *      circleMarker: import('leaflet').circleMarker,
+ *      latLng: import('leaflet').latLng,
+ *      latLngBounds: import('leaflet').latLngBounds,
+ *      rectangle: import('leaflet').rectangle,
+ *      geoJSON: import('leaflet').geoJSON,
+ *      tooltip: import('leaflet').tooltip,
+ *      point: import('leaflet').point,
+ *      DomEvent: import('leaflet').DomEvent,
+ *      imageOverlay: import('leaflet').imageOverlay,
+ *  },
+ *  mapIntercepted: boolean,
+ *  scriptInstance: string|undefined,
+ *  map: import('leaflet').Map,
  * }} windowOSM
  */
 
 /** @type {null|(function(): null|(boWindowObject & windowOSM)|(window & windowOSM))}*/
 let getWindow = null
+
+/**
+ * @template T
+ * @param {T} obj
+ * @returns {T}
+ */
+function intoPage(obj) {
+    return cloneInto(obj, getWindow())
+}
+
+/**
+ * @template T
+ * @param {T} obj
+ * @returns {T}
+ */
+function intoPageWithFun(obj) {
+    return cloneInto(obj, getWindow(), {cloneFunctions: true})
+}
 
 if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)
     && !["/edit", "/id"].includes(location.pathname)) {
@@ -357,6 +392,11 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
                         boGlobalThis.map = this;
                         boGlobalThis.mapIntercepted = true
                         console.log("%cMap intercepted", 'background: #000; color: #0f0')
+                        if (!boGlobalThis.scriptInstance) {
+                            boGlobalThis.scriptInstance = GM_info.scriptHandler;
+                        } else if (boGlobalThis.scriptInstance !== GM_info.scriptHandler) {
+                            console.error(`Two copies of the script were running simultaneously via ${boGlobalThis.scriptInstance} and ${GM_info.scriptHandler}. Turn off one of them`)
+                        }
                     }
                 }), boWindowObject)
             )
@@ -454,7 +494,7 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
     });
 }
 
-function makeRow(label, text, without_delete = false) {
+function makeRow(label, text, without_delete = false, placeholder = "comment that will be added when clicked") {
     const tr = document.createElement("tr")
     const th = document.createElement("th")
     const td = document.createElement("td")
@@ -468,7 +508,7 @@ function makeRow(label, text, without_delete = false) {
     td.style.paddingLeft = "4px"
     td.style.paddingRight = "4px"
     td.style.wordWrap = "anywhere"
-    td.setAttribute("placeholder", "comment that will be added when clicked")
+    td.setAttribute("placeholder", placeholder)
 
     td2.textContent = "×"
     td2.title = "remove"
@@ -491,6 +531,27 @@ function makeRow(label, text, without_delete = false) {
     }
     return tr
 }
+
+const copyAnimationStyles = `
+    .copied {
+      background-color: rgba(9,238,9,0.6);
+      transition:all 0.3s;
+    }
+    .was-copied {
+      background-color: initial;
+      transition:all 0.3s;
+    }
+    @media ${mediaQueryForWebsiteTheme} {
+        .copied {
+          background-color: rgba(0,255,101,0.6);
+          transition: all 0.3s;
+        }
+        .was-copied {
+          background-color: initial;
+          transition: all 0.3s;
+        }
+    }
+`;
 
 GM_config.init(
     {
@@ -742,8 +803,9 @@ GM_config.init(
                     const tbody = document.createElement("tbody")
                     table.appendChild(tbody)
 
+                    const placeholder = this.settings.placeholder ?? "comment that will be added when clicked"
                     JSON.parse(templates).forEach(row => {
-                        tbody.appendChild(makeRow(row['label'], row['text']))
+                        tbody.appendChild(makeRow(row['label'], row['text'], false, placeholder))
                     })
 
                     const tr = document.createElement("tr")
@@ -828,6 +890,11 @@ GM_config.init(
             #Config .filler {
                 visibility: hidden;
             }
+            #version {
+                position: absolute;
+                left: 12;
+                font-size: small;
+            }
         @media ${mediaQueryForWebsiteTheme} {
             #Config {
                 background: #232528;
@@ -864,19 +931,42 @@ GM_config.init(
             th, td {
                 border-color: white;
             }
+            #version {
+                color: gray !important;
+            }
         }
+        ${copyAnimationStyles}
         `,
         'events':
             {
                 'init': main,
                 'save': function () {
                     GM_config.close()
+                },
+                'open': function (doc) {
+                    const versionSection = document.createElement("span");
+                    versionSection.id = "version";
+                    versionSection.textContent = `Script version: `;
+                    const version = document.createElement("span");
+                    version.textContent = GM_info.script.version;
+                    version.title = "Click for copy"
+                    version.style.cursor = "pointer";
+                    version.onclick = e => {
+                        navigator.clipboard.writeText(GM_info.script.version).then(() => copyAnimation(e, GM_info.script.version));
+                    }
+                    versionSection.appendChild(version);
+                    doc.querySelector(".reset_holder").prepend(versionSection);
                 }
             }
     });
 
 //</editor-fold>
 
+/**
+ * @param {XMLDocument} doc
+ * @param {HTMLElement} node
+ * @param {Object.<string, string>} tags
+ */
 function tagsToXml(doc, node, tags) {
     for (const [k, v] of Object.entries(tags)) {
         let tag = doc.createElement('tag');
@@ -917,6 +1007,70 @@ function makeHashtagsClickable() {
             return a.outerHTML
         })
         node.replaceWith(span)
+    })
+}
+
+function makeHashtagsInNotesClickable() {
+    if (!GM_config.get("ImagesAndLinksInTags")) return;
+
+    const notesParagraphs = document.querySelectorAll("#sidebar_content h4 ~ div:first-of-type > p")
+    notesParagraphs.forEach(p => {
+        p?.childNodes?.forEach(node => {
+            if (node.nodeType !== Node.TEXT_NODE) return
+            const span = document.createElement("span")
+            span.textContent = node.textContent
+            span.innerHTML = span.innerHTML.replaceAll(/\B(#[\p{L}\d_-]+)\b/gu, function (match) {
+                // const notesReviewLink = "https://ent8r.github.io/NotesReview/?" + new URLSearchParams({
+                //     view: "map",
+                //     status: "open",
+                //     area: "view",
+                //     limit: 30,
+                //     query: match
+                // }).toString()
+
+                const a = document.createElement("a")
+                a.id = "note-link-" + Math.random()
+                a.href = ""
+                a.target = "_blank"
+                a.title = "Click for filter notes by this hashtag.\nClick with CTLR or Shift for search this hashtags in osm-note-viewer"
+                a.textContent = match
+
+                function fixLink() {
+                    const notesReviewLink = "https://antonkhorev.github.io/osm-note-viewer/#" + new URLSearchParams({
+                        mode: "search",
+                        q: match,
+                        bbox: [
+                            Math.round(getMap().getBounds().getWest() * 10000) / 10000, Math.round(getMap().getBounds().getSouth() * 10000) / 10000,
+                            Math.round(getMap().getBounds().getEast() * 10000) / 10000, Math.round(getMap().getBounds().getNorth() * 10000) / 10000
+                        ].join(","),
+                        sort: "created_at",
+                        order: "newest",
+                        closed: 0,
+                        map: `${getMap().getZoom()}/${getMap().getCenter().lat}/${getMap().getCenter().lng}`,
+                    }).toString()
+                    const link = document.getElementById(a.id)
+                    link.href = notesReviewLink
+                    link.onclick = (e) => {
+                        if (e.shiftKey || e.ctrlKey || e.metaKey) {
+                            return
+                        }
+                        e.preventDefault()
+                        document.querySelector(".control-layers a").click()
+                        Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({block: "center"})
+                        document.querySelector("#filter-notes-by-string").value = match
+                        updateNotesLayer()
+                    }
+                    console.log("search link in note was fixed");
+                }
+
+                setTimeout(() => {
+                    interceptMapManually().then(fixLink)
+                })
+                setTimeout(fixLink, 1000)
+                return a.outerHTML
+            })
+            node.replaceWith(span)
+        })
     })
 }
 
@@ -1591,25 +1745,7 @@ const compactSidebarStyleText = `
         word-wrap: break-word;
     }
     
-    /*for id copied*/
-    .copied {
-      background-color: rgba(9,238,9,0.6);
-      transition:all 0.3s;
-    }
-    .was-copied {
-      background-color: initial;
-      transition:all 0.3s;
-    }
-    @media ${mediaQueryForWebsiteTheme} {
-        .copied {
-          background-color: rgba(0,255,101,0.6);
-          transition: all 0.3s;
-        }
-        .was-copied {
-          background-color: initial;
-          transition: all 0.3s;
-        }
-    }
+${copyAnimationStyles}
     
     #sidebar_content h2:not(.changeset-header) {
         font-size: 1rem;
@@ -1854,10 +1990,10 @@ function setupCompactChangesetsHistory() {
  * @param {boolean} strict
  * @return {Object.<string, string>}
  */
-function buildTags(text, strict=false) {
+function buildTags(text, strict = false) {
     const lines = text.split('\n');
     let json = {};
-    for (let i = 0; i < lines.length; i++){
+    for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         let eqPos = line.indexOf('=');
         if (eqPos <= 0 || eqPos === line.length - 1) {
@@ -1873,7 +2009,7 @@ function buildTags(text, strict=false) {
         const v = line.substring(eqPos + 1).trim();
         if (v === '' || k === '') {
             if (strict && line.trim() !== '') {
-                throw `Empty key or value in line №${i+1}: ${line}`;
+                throw `Empty key or value in line №${i + 1}: ${line}`;
             }
             continue;
         }
@@ -1927,7 +2063,7 @@ function addResolveNotesButton() {
             let tagsHint = ""
             let tags;
             try {
-                 tags = buildTags(document.querySelector("#sidebar_content form textarea").value, true)
+                tags = buildTags(document.querySelector("#sidebar_content form textarea").value, true)
             } catch (e) {
                 alert(e)
                 return
@@ -1994,7 +2130,8 @@ function addResolveNotesButton() {
                     method: 'POST',
                     path: osm_server.apiBase + "nodes",
                     prefix: false,
-                    content: nodeStr
+                    content: nodeStr,
+                    headers: {"Content-Type": "application/xml; charset=utf-8"},
                 }, function (err2) {
                     if (err2) {
                         console.log({changesetError: err2});
@@ -2141,6 +2278,8 @@ out meta;
             // hideSearchForm()
         }
     })
+
+    makeHashtagsInNotesClickable()
 }
 
 function setupResolveNotesButton(path) {
@@ -2151,6 +2290,80 @@ function setupResolveNotesButton(path) {
         console.debug('stop try add resolve note button');
     }, 3000);
     addResolveNotesButton();
+}
+
+let updateNotesLayer = null;
+
+function addNotesFiltersButtons() {
+    if (document.getElementById("notes-filter")) {
+        return
+    }
+    const noteLabel = Array.from(document.querySelectorAll(".overlay-layers label"))[0]
+    if (!noteLabel) {
+        return
+    }
+    const checkbox = noteLabel.querySelector("input")
+    const filters = document.createElement("div")
+
+    function updateNotesFilters() {
+        if (checkbox.checked) {
+            filters.style.display = ""
+            getWindow().notesDisplayName = filterByUsername.value;
+            getWindow().notesQFilter = filterByString.value;
+            getWindow().notesClosedFilter = "";
+        } else {
+            filters.style.display = "none"
+            getWindow().notesDisplayName = "";
+            getWindow().notesQFilter = "";
+            getWindow().notesClosedFilter = "";
+        }
+    }
+    updateNotesLayer = function () {
+        updateNotesFilters()
+        getMap().fire("moveend")
+    }
+
+    checkbox.onchange = updateNotesFilters
+    if (!checkbox.checked) {
+        return
+    }
+    filters.id = "notes-filter"
+    filters.style.display = "none"
+
+    const filterByString = document.createElement("input")
+    filterByString.type = "input"
+    filterByString.id = "filter-notes-by-string"
+    filterByString.placeholder = "word in notes"
+    filterByString.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+            updateNotesLayer()
+        }
+    })
+
+    const filterByUsername = document.createElement("input")
+    filterByUsername.type = "input"
+    filterByUsername.placeholder = "username"
+    filterByUsername.id = "filter-notes-by-username"
+    filterByUsername.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+            updateNotesLayer()
+        }
+    })
+
+    filters.appendChild(filterByString)
+    filters.appendChild(filterByUsername)
+
+    noteLabel.after(filters)
+    updateNotesFilters()
+}
+
+function setupNotesFiltersButtons() {
+    let timerId = setInterval(addNotesFiltersButtons, 100);
+    setTimeout(() => {
+        clearInterval(timerId);
+        console.debug('stop try add notes filters buttons');
+    }, 3000);
+    addNotesFiltersButtons();
 }
 
 function addDeleteButton() {
@@ -2252,8 +2465,13 @@ function addDeleteButton() {
                 method: 'PUT',
                 path: osm_server.apiBase + 'changeset/create',
                 prefix: false,
-                content: chPayloadStr
+                content: chPayloadStr,
+                headers: {"Content-Type": "application/xml; charset=utf-8"}
             }, function (err1, result) {
+                if (err1) {
+                    console.log({changesetError: err1});
+                    return
+                }
                 const changesetId = result;
                 console.log(changesetId);
                 objectInfo.children[0].children[0].setAttribute('changeset', changesetId);
@@ -2261,7 +2479,8 @@ function addDeleteButton() {
                     method: 'DELETE',
                     path: osm_server.apiBase + object_type + '/' + object_id,
                     prefix: false,
-                    content: objectInfo
+                    content: objectInfo,
+                    headers: {"Content-Type": "application/xml; charset=utf-8"}
                 }, function (err2) {
                     if (err2) {
                         console.log({changesetError: err2});
@@ -2310,7 +2529,7 @@ let mapDataSwitcherUnderSupervision = false
 function hideNoteHighlight() {
     let g = document.querySelector("#map g");
     if (!g || g.childElementCount === 0) return;
-    let mapDataCheckbox = document.querySelector(".layers-ui li:nth-child(2) > label:nth-child(1) > input:nth-child(1)")
+    let mapDataCheckbox = document.querySelector(".layers-ui #label-layers-data input")
     if (!mapDataCheckbox.checked) {
         if (mapDataSwitcherUnderSupervision) return;
         mapDataSwitcherUnderSupervision = true
@@ -2435,7 +2654,7 @@ const fetchBlobWithCache = (() => {
 
 let needStravaAuth = false;
 
-async function bypassChromeCSPForImagesSrc(imgElem, url, isStrava=true) {
+async function bypassChromeCSPForImagesSrc(imgElem, url, isStrava = true) {
     const res = await fetchBlobWithCache(url);
     if (res.status !== 200) {
         if (!GM_config.get("OverzoomForDataLayer")) {
@@ -3327,8 +3546,9 @@ function makePanoramaxValue(elem) {
     }
 }
 
+const earthRadius = 6378137;
+
 function drawRay(lat, lon, angle, color) {
-    const earthRadius = 6378137;
     const rad = (angle * Math.PI) / 180;
     const length = 7;
     const latOffset = (length * Math.cos(rad)) / earthRadius;
@@ -3345,9 +3565,10 @@ const MAPILLARY_URL_PARAMS = new URLSearchParams({
 
 // https://osm.org/node/7417065297
 // https://osm.org/node/6257534611
+// https://osm.org/way/682528624/history/3
 function makeMapillaryValue(elem) {
     if (!GM_config.get("ImagesAndLinksInTags")) return;
-    elem.innerHTML = elem.innerHTML.replaceAll(/(?<=(^|;))([0-9]+)(&amp;x=-?[0-9]+(\.[0-9]+)?&amp;y=-?[0-9]+(\.[0-9]+)?&amp;zoom=-?[0-9]+(\.[0-9]+)?)?/g, function (match) {
+    elem.innerHTML = elem.innerHTML.replaceAll(/(?<=(^|;))([0-9]+)(?=(;|&|$))(&amp;x=-?[0-9]+(\.[0-9]+)?&amp;y=-?[0-9]+(\.[0-9]+)?&amp;zoom=-?[0-9]+(\.[0-9]+)?)?/g, function (match) {
         const a = document.createElement("a")
         a.textContent = match.replaceAll("&amp;", "&")
         a.classList.add("preview-mapillary-img-link")
@@ -3432,6 +3653,17 @@ function makeWikimediaCommonsValue(elem) {
     })
 }
 
+function makeRefBelpostValue(elem) {
+    if (!GM_config.get("ImagesAndLinksInTags")) return;
+    if (elem.innerHTML.match(/^[0-9]+$/)) {
+        const a = document.createElement("a")
+        a.href = "https://belpost.by/Pochtovyyeyashchiki/" + elem.textContent
+        a.rel = "noreferrer"
+        a.textContent = elem.textContent
+        elem.innerHTML = a.outerHTML
+    }
+}
+
 let buildingViewerIframe = null;
 
 // example https://osm.org/node/6506618057
@@ -3507,7 +3739,7 @@ function makeLinksInTagsClickable() {
             if (type === "way" && ["building", "building:part"].includes(key) &&
                 !Array.from(document.querySelectorAll(".browse-tag-list tr th"))
                     .some(i => i.textContent.includes("level") || i.textContent.includes("height")
-                            || i.textContent.includes("roof") || i.textContent.includes("name")
+                        || i.textContent.includes("roof") || i.textContent.includes("name")
                     )) {
                 return
             }
@@ -3624,7 +3856,9 @@ function makeLinksInTagsClickable() {
                 menu.style.top = `${e.pageY}px`;
                 document.body.appendChild(menu);
             }
+
             viewIn3D.addEventListener("contextmenu", contextMenuHandler);
+
             async function clickHandler(e) {
                 if (buildingViewerIframe) {
                     buildingViewerIframe.remove()
@@ -3648,12 +3882,17 @@ function makeLinksInTagsClickable() {
                 })
                 document.querySelector("#map").before(buildingViewerIframe)
             }
+
             viewIn3D.addEventListener("click", clickHandler)
             viewIn3D.addEventListener("auxclick", e => {
                 if (e.which !== 2) return;
                 clickHandler(e);
             })
             document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(viewIn3D)
+        } else if (key === "ref:belpost") {
+            if (!valueCell.querySelector("a")) {
+                makeRefBelpostValue(valueCell)
+            }
         }
     })
     const tagsTable = document.querySelector(".browse-tag-list")
@@ -3740,17 +3979,12 @@ function injectCSSIntoSimplePage(text) {
     });
 }
 
+/**
+ * @type {{customObjects: (import('leaflet').Path)[], activeObjects: (import('leaflet').Path)[]}}
+ */
 const layers = {
     customObjects: [],
     activeObjects: []
-}
-
-function intoPage(obj) {
-    return cloneInto(obj, getWindow())
-}
-
-function intoPageWithFun(obj) {
-    return cloneInto(obj, getWindow(), {cloneFunctions: true})
 }
 
 /**
@@ -3869,8 +4103,8 @@ function displayWay(nodesList, needFly = false, color = "#000000", width = 4, in
 /**
  * @name showNodeMarker
  * @memberof unsafeWindow
- * @param {string|float} a
- * @param {string|float} b
+ * @param {string|number} a
+ * @param {string|number} b
  * @param {string=} color
  * @param {string|null=null} infoElemID
  * @param {string=} layerName
@@ -4093,8 +4327,8 @@ function abortPrevControllers(reason = null) {
  * @property {boolean} visible
  * @property {string} timestamp
  * @property {'node'|'way'|'relation'} type
- * @property {float} lat
- * @property {float} lon
+ * @property {number} lat
+ * @property {number} lon
  * @property {Object.<string, string>=} tags
  */
 
@@ -4125,6 +4359,29 @@ const histories = {
 }
 
 const fetchTextWithCache = (() => {
+    /**@type {Map<string, string | undefined | Promise<string | undefined> >}*/
+    const cache = new Map();
+
+    return async url => {
+        if (cache.has(url)) {
+            return cache.get(url);
+        }
+
+        const promise = GM.xmlHttpRequest({url: url}).then(r => r.responseText)
+        cache.set(url, promise);
+
+        try {
+            const result = await promise;
+            cache.set(url, result);
+            return result;
+        } catch (error) {
+            cache.delete(url);
+            throw error;
+        }
+    };
+})();
+
+const originalFetchTextWithCache = (() => {
     /**@type {Map<string, string | undefined | Promise<string | undefined> >}*/
     const cache = new Map();
 
@@ -4172,7 +4429,7 @@ async function getChangeset(id) {
     if (changesetsCache[id]) {
         return changesetsCache[id];
     }
-    const text = await fetchTextWithCache(osm_server.apiBase + "changeset" + "/" + id + "/download", {signal: getAbortController().signal});
+    const text = await originalFetchTextWithCache(osm_server.apiBase + "changeset" + "/" + id + "/download", {signal: getAbortController().signal});
     const parser = new DOMParser();
     const data = /** @type {XMLDocument} **/ parser.parseFromString(text, "application/xml");
     return changesetsCache[id] = {
@@ -5086,10 +5343,11 @@ function setupWayVersionView() {
 
     const downloadAllVersionsBtn = document.createElement("a")
     downloadAllVersionsBtn.id = "download-all-versions-btn"
+    downloadAllVersionsBtn.tabIndex = 0
     downloadAllVersionsBtn.textContent = "⏬"
     downloadAllVersionsBtn.style.cursor = "pointer"
     downloadAllVersionsBtn.title = "Download all versions (with intermediate versions)"
-    downloadAllVersionsBtn.addEventListener("click", async () => {
+    const clickHandler = async () => {
         downloadAllVersionsBtn.style.cursor = "progress"
         for (const i of document.querySelectorAll(`.way-version-view:not([hidden])`)) {
             try {
@@ -5105,9 +5363,9 @@ function setupWayVersionView() {
             await showFullWayHistory(wayID)
             console.timeEnd("full history")
         }
-    }, {
-        once: true,
-    })
+    }
+    downloadAllVersionsBtn.addEventListener("click", clickHandler, {once: true})
+    downloadAllVersionsBtn.addEventListener("keypress", clickHandler, {once: true})
     document.querySelector(".compact-toggle-btn")?.after(downloadAllVersionsBtn)
     document.querySelector(".compact-toggle-btn")?.after(document.createTextNode("\xA0"))
 }
@@ -5117,6 +5375,29 @@ function setupWayVersionView() {
  * @property {number} ref
  * @property {'node'|'way'|'relation'} type
  * @property {string} role
+ */
+
+/**
+ * @typedef {Object} ExtendedRelationNodeMember
+ * @property {number} ref
+ * @property {'node'} type
+ * @property {string} role
+ * @property {number} lat
+ * @property {number} lon
+ */
+
+/**
+ * @typedef {Object} ExtendedRelationWayMember
+ * @property {number} ref
+ * @property {'way'} type
+ * @property {string} role
+ * @property {LatLon[]} geometry
+ */
+
+// TODO ExtendedRelationRelationMember
+
+/**
+ * @typedef {ExtendedRelationNodeMember|ExtendedRelationWayMember} ExtendedRelationMember
  */
 
 /**
@@ -5132,6 +5413,21 @@ function setupWayVersionView() {
  * @property {'node'|'way'|'relation'} type
  * @property {Object.<string, string>=} tags
  */
+
+/**
+ * @typedef {Object} ExtendedRelationVersion
+ * @property {number} id
+ * @property {number} changeset
+ * @property {number} uid
+ * @property {string} user
+ * @property {ExtendedRelationMember[]} members
+ * @property {number} version
+ * @property {boolean} visible
+ * @property {string} timestamp
+ * @property {'node'|'way'|'relation'} type
+ * @property {Object.<string, string>=} tags
+ */
+
 /**
  * @param {number|string} relationID
  * @return {Promise<RelationVersion[]>}
@@ -5149,10 +5445,359 @@ async function getRelationHistory(relationID) {
     }
 }
 
+/**
+ * @typedef {[number, number]} LatLonPair
+ */
+
+/**
+ * @typedef {{lat: number, lon: number}} LatLon
+ */
+
+/**
+ * @typedef {WayVersion & {geometry: LatLon[]}} ExtendedWayVersion
+ */
+
 const overpassCache = {}
 const bboxCache = {}
 
+/**
+ * @typedef {{
+ *   geom: LatLonPair[][],
+ *   isRestriction: boolean,
+ *   restrictionRelationErrors: string[]
+ * }} CachedGeom
+ */
+
+/**
+ * @type {Object.<*, CachedGeom>}
+ */
 const cachedRelationsGeometry = {}
+
+/**
+ * @param {number} lat
+ * @param {number} lng
+ * @returns {{x: number, y: number}}
+ */
+function toMercator(lat, lng) {
+    const x = earthRadius * lng * Math.PI / 180;
+    const y = earthRadius * Math.log(Math.tan((lat * Math.PI / 180) / 2 + Math.PI / 4));
+    return {x, y};
+}
+
+/**
+ * @param {number} x
+ * @param {number} y
+ * @returns {{lat: number, lng: number}}
+ */
+function fromMercator(x, y) {
+    const lat = (2 * Math.atan(Math.exp(y / earthRadius)) - Math.PI / 2) * 180 / Math.PI;
+    const lng = x / earthRadius * 180 / Math.PI;
+    return {lat, lng};
+}
+
+
+/**
+ * @param {number} lat1
+ * @param {number} lon1
+ * @param {number} lat2
+ * @param {number} lon2
+ * @param {number} angleDeg
+ * @param {number} lengthMeters
+ * @returns {{lat: number, lon: number}}
+ */
+function rotateSegment(lat1, lon1, lat2, lon2, angleDeg, lengthMeters) {
+    let {x: x1, y: y1} = toMercator(lat1, lon1)
+    let {x: x2, y: y2} = toMercator(lat2, lon2)
+
+    const angleRad = angleDeg * Math.PI / 180;
+
+    const dx = y2 - y1;
+    const dy = x2 - x1;
+
+    const segmentLength = Math.sqrt(dx * dx + dy * dy);
+
+    const ndx = dx / segmentLength;
+    const ndy = dy / segmentLength;
+
+    const scaledDx = ndx * lengthMeters;
+    const scaledDy = ndy * lengthMeters;
+
+    const rotatedDx = scaledDx * Math.cos(angleRad) - scaledDy * Math.sin(angleRad);
+    const rotatedDy = scaledDx * Math.sin(angleRad) + scaledDy * Math.cos(angleRad)
+
+    const {lat: lat, lng: lon} = fromMercator(x1 + rotatedDy, y1 + rotatedDx)
+    return {lat: lat, lon: lon};
+}
+
+
+/**
+ * @param {{lat: number, lon: number}} latLon1
+ * @param {{lat: number, lon: number}} latLon2
+ * @return {boolean}
+ */
+function isEqualCoordinates(latLon1, latLon2) {
+    return latLon1.lat === latLon2.lat && latLon1.lon === latLon2.lon;
+}
+
+/**
+ * @param {ExtendedRelationVersion} rel
+ * @return {string[]}
+ */
+function validateRestriction(rel) {
+    /** @type {ExtendedRelationWayMember[]} */
+    let from = [];
+    /** @type {ExtendedRelationNodeMember[]} */
+    let viaNodes = [];
+    /** @type {ExtendedRelationWayMember[]} */
+    let viaWays = [];
+    /** @type {ExtendedRelationWayMember[]} */
+    let to = [];
+    const errors = []
+    const {value: restrictionValue} = getRestrictionKeyValue(rel.tags)
+    rel.members?.forEach(i => {
+        if (i.type === "way" && i.role === "from") {
+            from.push(i)
+        } else if (i.type === "way" && i.role === "to") {
+            to.push(i)
+        } else if (i.type === "node" && i.role === "via") {
+            viaNodes.push(i)
+        } else if (i.type === "way" && i.role === "via") {
+            viaWays.push(i)
+        } else {
+            errors.push(`Incorrect member: ${i.type}/${i.ref} with "${i.role}" role`)
+        }
+    })
+    if (viaNodes.length + viaWays.length === 0) {
+        errors.push('Missing member with "via" role');
+    }
+    if (from.length === 0) {
+        errors.push('Missing member with "from" role')
+    }
+    if (to.length === 0) {
+        errors.push('Missing member with "to" role')
+    }
+
+    [...from, ...to].forEach(i => {
+        if (i.geometry?.length < 2) {
+            errors.push(`${i.type}/${i.ref} (${i.role}) way contains < 2 nodes`)
+        }
+    })
+    if (restrictionValue !== "no_exit" && restrictionValue !== "no_entry") {
+        if (from.length > 1) {
+            errors.push('Multiple "from" role')
+        }
+        if (to.length > 1) {
+            errors.push('Multiple "to" role')
+        }
+    }
+    if (errors.length) return errors;
+
+    if (viaNodes.length && viaWays.length) {
+        errors.push(`Mixed "node" and "way" types for via role`)
+    } else if (viaNodes.length > 1) {
+        errors.push(`multiple "via" nodes`)
+    } else if (viaWays.length > 0) {
+        let lastNode = from[0].geometry[0]
+        if (isEqualCoordinates(from[0].geometry[0], lastNode)) {
+            lastNode = viaWays[0].geometry[viaWays[0].geometry.length - 1]
+        } else if (isEqualCoordinates(from[0].geometry[from[0].geometry.length - 1], lastNode)) {
+            lastNode = viaWays[0].geometry[0]
+        } else {
+            errors.push(`"from" -> "via" are arranged in the wrong order or torn`)
+        }
+        viaWays.slice(1).forEach(w => {
+            if (isEqualCoordinates(w.geometry[0], lastNode)) {
+                lastNode = w.geometry[w.geometry.length - 1]
+            } else if (isEqualCoordinates(w.geometry[w.geometry.length - 1], lastNode)) {
+                lastNode = w.geometry[0]
+            } else {
+                errors.push(`"via" -> "via" are arranged in the wrong order or torn`)
+            }
+        })
+        if (!isEqualCoordinates(to[0].geometry[0], lastNode) && isEqualCoordinates(to[0].geometry[to[0].geometry.length - 1], lastNode)) {
+            errors.push(`"via" -> "to" are arranged in the wrong order or torn`)
+        }
+    }
+    if (errors.length) return errors;
+
+    return errors
+}
+
+const restrictionColors = {
+    no_left_turn:       "#ff0000",
+    no_right_turn:      "#ff0000",
+    no_straight_on:     "#ff0000",
+    no_u_turn:          "#ff0000",
+    only_right_turn:    "#0000ff",
+    only_left_turn:     "#0000ff",
+    only_straight_on:   "#0000ff",
+    no_entry:           "#ff0000",
+    no_exit:            "#ff0000",
+}
+// TODO сделать ресурсами
+const restrictionsImagesPrefix = "https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/dev/icons/restrictions/"
+
+const restrictionsSignImages = {
+    no_left_turn:       restrictionsImagesPrefix + "France_road_sign_B2a.svg",
+    no_right_turn:      restrictionsImagesPrefix + "France_road_sign_B2b.svg",
+    no_straight_on:     restrictionsImagesPrefix + "MUTCD_R3-27.svg",
+    no_u_turn:          restrictionsImagesPrefix + "France_road_sign_B2c.svg",
+    only_right_turn:    restrictionsImagesPrefix + "France_road_sign_B21c1.svg",
+    only_left_turn:     restrictionsImagesPrefix + "France_road_sign_B21c2.svg",
+    only_straight_on:   restrictionsImagesPrefix + "France_road_sign_B21b.svg",
+    no_entry:           restrictionsImagesPrefix + "RU_road_sign_3.1.svg",
+    no_exit:            restrictionsImagesPrefix + "RU_road_sign_3.1.svg",
+}
+
+function azimuth(lat1, lon1, lat2, lon2) {
+    const p1 = toMercator(lat1, lon1);
+    const p2 = toMercator(lat2, lon2);
+
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+
+    const angleRad = Math.atan2(dx, dy);
+    const angleDeg = angleRad * 180 / Math.PI;
+
+    return (angleDeg + 360) % 360;
+}
+
+function getRestrictionKeyValue(tags) {
+    const key = Object.keys(tags).find(k => k === "restriction" || k === "was:restriction" || k.startsWith("restriction:"))
+    return {
+        key: key,
+        value: tags[key]
+    }
+}
+
+/**
+ * @param {ExtendedRelationVersion} rel
+ * @param {string} color
+ * @param {string} layer
+ * @return {[]}
+ */
+function renderRestriction(rel, color, layer) {
+    /** @type {ExtendedRelationWayMember[]} */
+    let from = [];
+    /** @type {ExtendedRelationNodeMember[]} */
+    let viaNodes = [];
+    /** @type {ExtendedRelationWayMember[]} */
+    let viaWays = [];
+    /** @type {ExtendedRelationWayMember[]} */
+    let to = [];
+    rel.members?.forEach(i => {
+        if (i.type === "way" && i.role === "from") {
+            from.push(i)
+        } else if (i.type === "way" && i.role === "to") {
+            to.push(i)
+        } else if (i.type === "node" && i.role === "via") {
+            viaNodes.push(i)
+        } else if (i.type === "way" && i.role === "via") {
+            viaWays.push(i)
+        }
+    })
+    let via = viaNodes?.[0];
+    if (!via) {
+        if (isEqualCoordinates(from[0].geometry[0], viaWays[0].geometry[0])
+            || isEqualCoordinates(from[0].geometry[from[0].geometry.length - 1], viaWays[0].geometry[0])) {
+            via = viaWays[0].geometry[0]
+        } else if (isEqualCoordinates(from[0].geometry[0], viaWays[0].geometry[viaWays[0].geometry.length - 1])
+            || isEqualCoordinates(from[0].geometry[from[0].geometry.length - 1], viaWays[0].geometry[viaWays[0].geometry.length - 1])) {
+            via = viaWays[0].geometry[viaWays[0].geometry.length - 1]
+        } else {
+            console.error("Restriction validation error")
+            debug_alert("Restriction validation error")
+        }
+    }
+    const {value: restrictionValue} = getRestrictionKeyValue(rel.tags)
+    const angle = 25
+    const len = 7
+    const arrows = []
+    let signAngle = 0.0
+    from.forEach(f => {
+        let startPoint = f.geometry[0]
+        let endPoint = f.geometry[1]
+        if (isEqualCoordinates(f.geometry[f.geometry.length - 1], via)) { // оверпас не даёт айдишники точек геометрии
+            startPoint = f.geometry[f.geometry.length - 1]
+            endPoint = f.geometry[f.geometry.length - 2]
+        }
+        signAngle = 360 - azimuth(endPoint.lat, endPoint.lon, startPoint.lat, startPoint.lon)
+        console.debug(signAngle);
+        // const {lat: p1_lat, lon: p1_lon} = startPoint;
+        // const {lat: p2_lat, lon: p2_lon} = endPoint
+        // const rotated1 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, -angle, len)
+        // const rotated2 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, angle, len)
+        // arrows.push(displayWay(cloneInto([startPoint, rotated1], unsafeWindow), false, "white", 7, null, layer))
+        // arrows.push(displayWay(cloneInto([startPoint, rotated2], unsafeWindow), false, "white", 7, null, layer))
+        // arrows.push(displayWay(cloneInto([startPoint, rotated1], unsafeWindow), false, color, 4, null, layer))
+        // arrows.push(displayWay(cloneInto([startPoint, rotated2], unsafeWindow), false, color, 4, null, layer))
+    })
+    to.forEach(t => {
+        let startPoint = t.geometry[0]
+        let endPoint = t.geometry[1]
+        if (t.geometry[0].lat === via.lat && t.geometry[0].lon === via.lon) {
+            if (from.length > 1) {
+                signAngle = 360 - azimuth(endPoint.lat, endPoint.lon, startPoint.lat, startPoint.lon)
+            }
+            startPoint = t.geometry[t.geometry.length - 1]
+            endPoint = t.geometry[t.geometry.length - 2]
+        } else {
+            if (from.length > 1) {
+                signAngle = 360 - azimuth(
+                    t.geometry[t.geometry.length - 2].lat, t.geometry[t.geometry.length - 2].lon,
+                    t.geometry[t.geometry.length - 1].lat, t.geometry[t.geometry.length - 1].lon
+                )
+            }
+        }
+        const {lat: p1_lat, lon: p1_lon} = startPoint;
+        const {lat: p2_lat, lon: p2_lon} = endPoint
+        const rotated1 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, -angle, len)
+        const rotated2 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, angle, len)
+        if (restrictionValue === "no_exit" || restrictionValue === "no_entry") {
+            arrows.push(displayWay(cloneInto([startPoint, rotated1], unsafeWindow), false, "white", 7, null, layer))
+            arrows.push(displayWay(cloneInto([startPoint, rotated2], unsafeWindow), false, "white", 7, null, layer))
+            arrows.push(displayWay(cloneInto([startPoint, rotated1], unsafeWindow), false, color, 4, null, layer))
+            arrows.push(displayWay(cloneInto([startPoint, rotated2], unsafeWindow), false, color, 4, null, layer))
+        }
+    });
+    [100, 250, 500, 1000].forEach(t => {
+        setTimeout(() => {
+            arrows.forEach(i => i.bringToFront())
+        }, t)
+    })
+
+    queueMicrotask(async () => {
+        const imageUrl = restrictionsSignImages[restrictionValue];
+        if (!imageUrl) {
+            return
+        }
+        let img = await fetchTextWithCache(imageUrl);
+        img = img.replace('version="1.1"', `style="rotate: -${Math.round(signAngle)}deg" version="1.1"`)
+
+        function getSquareBounds(center) {
+            const {x, y} = toMercator(center.lat, center.lon)
+            return [
+                [...Object.values(fromMercator(x - 10, y - 10))],
+                [...Object.values(fromMercator(x + 10, y + 10))]
+            ];
+        }
+
+        const imgLayer = getWindow().L.imageOverlay("data:image/svg+xml;base64," + btoa(img), intoPage(getSquareBounds(via, 0.0002)),
+            intoPage({
+                interactive: true,
+                zIndex: 99999,
+                className: "restriction-img"
+            })).addTo(getMap());
+        arrows.push(imgLayer)
+        arrows.forEach(l => layers[layer].push(l))
+        imgLayer.bringToFront()
+    })
+    return arrows
+}
+
+function isRestrictionObj(tags) {
+    return Object.entries(tags).some(([k]) => k === "restriction" || k === "was:restriction" || k.startsWith("restriction:"))
+}
 
 /**
  *
@@ -5162,12 +5807,19 @@ const cachedRelationsGeometry = {}
  * @param {string=} color=
  * @param {string=} layer=
  * @param {boolean=} addStroke
- * @return {Promise<{}>}
+ * @return {Promise<{bbox: {}, restrictionRelationErrors: []}>}
  */
 async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObjects = true, color = "#000000", layer = "activeObjects", addStroke = null) {
     console.time(`Render ${id} relation`)
     console.log(id, timestamp)
 
+    /**
+     * @param id
+     * @param timestamp
+     * @return {Promise<{
+     *   elements: (ExtendedRelationVersion)[]
+     * }>}
+     */
     async function getRelationViaOverpass(id, timestamp) {
         if (overpassCache[[id, timestamp]]) {
             return overpassCache[[id, timestamp]]
@@ -5196,19 +5848,20 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
     if (!layers[layer]) {
         layers[layer] = []
     }
-    // нужен видимо веш геометрии
-    // GC больно
-    let cache = cachedRelationsGeometry[[id, timestamp]];
+    // GC больно, постоянно передавать в контекст страницы больно
+    let cache = /** @type {CachedGeom} */ cachedRelationsGeometry[[id, timestamp]];
     if (!cache) {
         let wayCounts = 0
+        /** @type {LatLonPair[][]} */
         const mergedGeometry = []
         overpassGeom.elements[0]?.members?.forEach(i => {
             if (i.type === "way") {
+                const w = /** @type {ExtendedWayVersion} */ i;
                 wayCounts++
-                if (i.geometry === undefined || !i.geometry.length) {
+                if (w.geometry === undefined || !w.geometry.length) {
                     return
                 }
-                const nodesList = i.geometry.map(p => [p.lat, p.lon])
+                const nodesList = w.geometry.map(p => [p.lat, p.lon])
                 if (mergedGeometry.length === 0) {
                     mergedGeometry.push(nodesList)
                 } else {
@@ -5226,7 +5879,12 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
                 // todo
             }
         })
-        cache = cachedRelationsGeometry[[id, timestamp]] = mergedGeometry.map(i => intoPage(i))
+        const isRestriction = isRestrictionObj(overpassGeom.elements?.[0].tags ?? {})
+        cache = cachedRelationsGeometry[[id, timestamp]] = {
+            geom: mergedGeometry.map(i => intoPage(i)),
+            isRestriction: isRestriction,
+            restrictionRelationErrors: isRestriction ? validateRestriction(overpassGeom.elements[0]) : [],
+        }
         console.log(`${cache.length}/${wayCounts} for render`)
     } else {
         overpassGeom.elements[0]?.members?.forEach(i => {
@@ -5236,9 +5894,13 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
         })
     }
 
-    cache.forEach(nodesList => {
+    cache.geom.forEach(nodesList => {
         displayWay(nodesList, false, color, 4, null, layer, null, null, addStroke, true)
     })
+
+    if (cache.isRestriction) {
+        renderRestriction(overpassGeom.elements[0], restrictionColors[overpassGeom.elements[0].tags['restriction']] ?? color, layer)
+    }
 
     console.timeEnd(`Render ${id} relation`)
 
@@ -5275,7 +5937,10 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
     }
 
     console.log("relation loaded")
-    return getBbox(id, timestamp)
+    return {
+        bbox: getBbox(id, timestamp),
+        restrictionRelationErrors: cache.restrictionRelationErrors
+    }
 }
 
 async function getNodeViaOverpassXML(id, timestamp) {
@@ -5324,7 +5989,7 @@ async function getRelationViaOverpassXML(id, timestamp) {
 }
 
 /**
- * @typedef {{nodes: NodeVersion[][], ways: [WayVersion, NodeVersion[][]][], relations: RelationVersion[][]}}
+ * @typedef {{nodes: NodeVersion[], ways: [WayVersion, NodeVersion[][]][], relations: RelationVersion[][]}}
  * @name RelationMembersVersions
  */
 
@@ -5348,7 +6013,7 @@ async function loadRelationVersionMembers(relationID, version) {
     }
 
     /**
-     * @type {{nodes: NodeVersion[][], ways: [WayVersion, NodeVersion[][]][]|Promise<[WayVersion, NodeVersion[][]]>[], relations: RelationVersion[][]}}
+     * @type {{nodes: NodeVersion[], ways: [WayVersion, NodeVersion[][]][]|Promise<[WayVersion, NodeVersion[][]]>[], relations: RelationVersion[][]}}
      */
     const membersHistory = {
         nodes: [],
@@ -5359,6 +6024,7 @@ async function loadRelationVersionMembers(relationID, version) {
         if (member.type === "node") {
             const nodeHistory = await getNodeHistory(member.ref)
             const targetTime = new Date(targetVersion.timestamp)
+            /** @type {NodeVersion} */
             let targetWayVersion = nodeHistory[0]
             nodeHistory.forEach(history => {
                 if (new Date(history.timestamp) <= targetTime) {
@@ -5393,7 +6059,7 @@ function setupRelationVersionView() {
     if (match === null) return;
     const relationID = match[1];
 
-    async function loadRelationVersion(e, showWay = true) {
+    async function loadRelationVersion(e, showWay = true) { // TODO fly?
         const htmlElem = e.target ? e.target : e
         htmlElem.style.cursor = "progress"
 
@@ -5422,6 +6088,38 @@ function setupRelationVersionView() {
                     // TODO highlight in member list
                 }
             })
+            if (isRestrictionObj(targetVersion.tags ?? {})) {
+                /** @type {Object<number, NodeVersion>}}*/
+                const nodeIndex = membersHistory.nodes.reduce(((acc, n) => {
+                    acc[n.id] = n;
+                    return acc
+                }), {})
+                /** @type {Object<number, LatLonPair[]>}}*/
+                const wayIndex = membersHistory.ways.reduce(((acc, w) => {
+                    acc[w[0].id] = w[1].map(n => searchVersionByTimestamp(n, targetVersion.timestamp))
+                    return acc
+                }), {})
+                const extendedRelationVersion = targetVersion
+                extendedRelationVersion.members = extendedRelationVersion.members.map(mem => {
+                    if (mem.type === "node") {
+                        mem['lat'] = nodeIndex[mem.ref].lat
+                        mem['lon'] = nodeIndex[mem.ref].lon
+                        return /** @type {ExtendedRelationNodeMember} */ mem
+                    } else if (mem.type === "way") {
+                        mem['geometry'] = wayIndex[mem.ref]
+                        return /** @type {ExtendedRelationWayMember} */ mem
+                    } else if (mem.type === "relation") {
+                        // todo
+                        return /** @type {ExtendedRelationMember} */ mem
+                    }
+                })
+                const errors = validateRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion)
+                if (errors.length) {
+                    showRestrictionValidationStatus(errors, document.querySelector(".browse-relation details summary"))
+                } else {
+                    renderRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion, restrictionColors[extendedRelationVersion.tags['restriction']] ?? "#000000", "customObjects")
+                }
+            }
             if (hasBrokenMembers) {
                 htmlElem.classList.add("broken-version")
                 if (htmlElem.parentElement?.parentElement.classList.contains("browse-section")) {
@@ -5436,13 +6134,17 @@ function setupRelationVersionView() {
                 if (e.target.tagName === "A" || e.target.tagName === "TIME" || e.target.tagName === "SUMMARY") {
                     return
                 }
-                await loadRelationVersion(e) // todo params
+                await loadRelationVersion(versionDiv) // todo params
             }
             versionDiv.setAttribute("relation-version", version.toString())
             htmlElem.style.cursor = "pointer" // todo finally{}
             htmlElem.setAttribute("hidden", "true")
         } else {
-            e.target.style.cursor = "auto"
+            try {
+                e.target.style.cursor = "auto"
+            } catch {
+                e.style.cursor = "auto"
+            }
         }
     }
 
@@ -5455,6 +6157,14 @@ function setupRelationVersionView() {
         btn.setAttribute("relation-version", version)
 
         btn.addEventListener("mouseenter", async e => {
+            i.parentElement.parentElement.querySelectorAll(".browse-tag-list tr").forEach(t => {
+                if (t.querySelector("th")?.textContent?.includes("restriction")) {
+                    const key = t.querySelector("td")?.textContent
+                    if (restrictionsSignImages[key]) {
+                        void fetchTextWithCache(restrictionsSignImages[key]);
+                    }
+                }
+            })
             await loadRelationVersion(e)
         }, {
             once: true,
@@ -5466,19 +6176,20 @@ function setupRelationVersionView() {
     if (document.querySelectorAll(`.relation-version-view:not([hidden])`).length > 1) { // todo remove check after when would full history
         const downloadAllVersionsBtn = document.createElement("a")
         downloadAllVersionsBtn.id = "download-all-versions-btn"
+        downloadAllVersionsBtn.tabIndex = 0
         downloadAllVersionsBtn.textContent = "⏬"
         downloadAllVersionsBtn.style.cursor = "pointer"
         downloadAllVersionsBtn.title = "Download all versions (with intermediate versions)"
 
-        downloadAllVersionsBtn.addEventListener("click", async e => {
+        const clickHandler = async e => {
             downloadAllVersionsBtn.style.cursor = "progress"
             for (const i of document.querySelectorAll(`.relation-version-view:not([hidden])`)) {
                 await loadRelationVersion(i)
             }
             e.target.remove()
-        }, {
-            once: true,
-        })
+        }
+        downloadAllVersionsBtn.addEventListener("click", clickHandler, {once: true})
+        downloadAllVersionsBtn.addEventListener("keypress", clickHandler, {once: true})
         document.querySelector(".compact-toggle-btn")?.after(downloadAllVersionsBtn)
         document.querySelector(".compact-toggle-btn")?.after(document.createTextNode("\xA0"))
     }
@@ -6472,7 +7183,7 @@ function addRelationVersionView() {
     btn.tabIndex = 0
     btn.style.cursor = "pointer"
 
-    async function clickHandler(e) {
+    async function clickForDownloadHandler(e) {
         if (e.type === "keypress" && (e.code === "Space" || e.code === "Enter")) {
             e.preventDefault()
         } else if (e.type === "keypress") {
@@ -6483,7 +7194,8 @@ function addRelationVersionView() {
         const id = parseInt(match[1])
         const timestamp = document.querySelector("time").getAttribute("datetime")
         try {
-            await loadRelationVersionMembersViaOverpass(id, timestamp)
+            const {restrictionRelationErrors} = await loadRelationVersionMembersViaOverpass(id, timestamp);
+            showRestrictionValidationStatus(restrictionRelationErrors, document.querySelector(".browse-relation details summary"))
         } catch (e) {
             btn.style.cursor = "pointer"
             throw e
@@ -6491,8 +7203,8 @@ function addRelationVersionView() {
         btn.style.visibility = "hidden"
     }
 
-    btn.addEventListener("click", clickHandler)
-    btn.addEventListener("keypress", clickHandler)
+    btn.addEventListener("click", clickForDownloadHandler)
+    btn.addEventListener("keypress", clickForDownloadHandler)
     document.querySelector(".browse-relation h4")?.appendChild(btn)
 }
 
@@ -6589,11 +7301,30 @@ async function addHoverForWayNodes() {
     console.log("addHoverForWayNodes finished");
 }
 
-async function addHoverForRelationMembers() {
-    if (!location.pathname.match(/^\/relation\/(\d+)\/?$/)) {
+/**
+ * @param {string[]} restrictionRelationErrors
+ * @param {HTMLElement} targetElem
+ */
+function showRestrictionValidationStatus(restrictionRelationErrors, targetElem) {
+    if (restrictionRelationErrors.length === 0) {
         return
     }
-    const relationData = await loadRelationMetadata();
+    if (!targetElem.querySelector(".validation-status")) {
+        const validationStatus = document.createElement("span")
+        validationStatus.classList.add("validation-status")
+        validationStatus.textContent = " ⚠️"
+        validationStatus.title = restrictionRelationErrors.join("\n")
+        targetElem.appendChild(validationStatus)
+    }
+}
+
+async function addHoverForRelationMembers() {
+    const match = location.pathname.match(/^\/relation\/(\d+)\/?$/)
+    if (!match) {
+        return;
+    }
+    const relation_id = parseInt(match[1]);
+    const relationData = await loadRelationMetadata(relation_id);
     if (!relationData) return
     /*** @type {Map<string, NodeVersion>}*/
     const nodesMap = new Map(Object.entries(Object.groupBy(relationData.elements.filter(i => i.type === "node"), i => i.id)).map(([k, v]) => [k, v[0]]));
@@ -6601,6 +7332,13 @@ async function addHoverForRelationMembers() {
     const waysMap = new Map(Object.entries(Object.groupBy(relationData.elements.filter(i => i.type === "way"), i => i.id)).map(([k, v]) => [k, v[0]]));
     /*** @type {Map<string, RelationVersion>}*/
     const relationsMap = new Map(Object.entries(Object.groupBy(relationData.elements.filter(i => i.type === "relation"), i => i.id)).map(([k, v]) => [k, v[0]]));
+    let restrictionArrows = []
+    const pinSign = document.createElement("span")
+
+    function bringRestrictionArrowsToFront() {
+        restrictionArrows.forEach(i => i.bringToFront())
+    }
+    let isRestriction = false
     document.querySelectorAll(`details [href^="/node/"]:not(.hover-added)`).forEach(elem => {
         elem.classList.add("hover-added")
         const nodeInfo = nodesMap.get(elem.href.match(/node\/(\d+)/)[1]);
@@ -6608,11 +7346,34 @@ async function addHoverForRelationMembers() {
         nodeLi.classList.add("relation-last-version-member");
         nodeLi.onmouseenter = () => {
             showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), darkModeForMap ? "#ff00e3" : "#000000", true, 6, 3)
+            bringRestrictionArrowsToFront();
+            if (isRestriction && pinSign.classList.contains("pinned")) {
+                injectJSIntoPage(`
+                    (() => {
+                        let tmp = document.createElement("span")
+                        tmp.innerHTML = '<svg id="kek" width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="6" stroke="black" stroke-width="3" fill="none" /></svg>'
+                        window.prevdo = {
+                            maxWidth: 10,
+                            maxHeight: 10,
+                            className: "restriction-via-node-workaround",
+                            icon: L.icon({
+                                iconUrl: "data:image/svg+xml;base64," + btoa(tmp.innerHTML),
+                                iconSize: [100, 100],
+                                iconAnchor: [50, 50]
+                            })
+                        };
+                    })()
+                `)
+                const m = getWindow().L.marker(getWindow().L.latLng(nodeInfo.lat, nodeInfo.lon), getWindow().prevdo);
+                layers["activeObjects"].push(m)
+                m.addTo(getMap());
+            }
         }
         nodeLi.onclick = (e) => {
             if (e.altKey) return;
             panTo(nodeInfo.lat.toString(), nodeInfo.lon.toString());
             showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), darkModeForMap ? "#ff00e3" : "#000000", true, 6, 3);
+            bringRestrictionArrowsToFront();
         }
         nodeLi.ondblclick = zoomToCurrentObject
         if (nodeInfo.tags) {
@@ -6630,12 +7391,14 @@ async function addHoverForRelationMembers() {
         wayLi.onmouseenter = () => {
             const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon]);
             showActiveWay(cloneInto(currentNodesList, unsafeWindow), darkModeForMap ? "#ff00e3" : "#000000");
+            bringRestrictionArrowsToFront();
         }
         wayLi.onclick = (e) => {
             if (e.altKey) return;
             if (e.target.tagName === "A") return;
             const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon]);
             showActiveWay(cloneInto(currentNodesList, unsafeWindow), darkModeForMap ? "#ff00e3" : "#000000", true);
+            bringRestrictionArrowsToFront();
         }
         wayLi.ondblclick = zoomToCurrentObject
         if (wayInfo.tags) {
@@ -6661,6 +7424,7 @@ async function addHoverForRelationMembers() {
                     // todo
                 }
             })
+            bringRestrictionArrowsToFront();
         }
         relationLi.onclick = (e) => {
             if (e.altKey) return;
@@ -6677,6 +7441,7 @@ async function addHoverForRelationMembers() {
                     // todo
                 }
             })
+            bringRestrictionArrowsToFront();
         }
         relationLi.ondblclick = zoomToCurrentObject
         if (relationInfo.tags) {
@@ -6692,6 +7457,56 @@ async function addHoverForRelationMembers() {
     document.querySelector(".secondary-actions")?.addEventListener("mouseenter", () => {
         cleanObjectsByKey("activeObjects")
     })
+    if (document.querySelector('#sidebar_content h2:not(.restriction-rendered)') && isRestrictionObj(relationsMap.get(relation_id.toString()).tags ?? {})) {
+        isRestriction = true
+        document.querySelector('#sidebar_content h2').classList.add("restriction-rendered")
+        const extendedRelationVersion = relationsMap.get(relation_id.toString())
+        extendedRelationVersion.members = extendedRelationVersion.members.map(mem => {
+            if (mem.type === "node") {
+                mem['lat'] = nodesMap.get(mem.ref.toString()).lat
+                mem['lon'] = nodesMap.get(mem.ref.toString()).lon
+                return /** @type {ExtendedRelationNodeMember} */ mem
+            } else if (mem.type === "way") {
+                mem['geometry'] = waysMap.get(mem.ref.toString()).nodes.map(n => ({
+                    lat: nodesMap.get(n.toString()).lat,
+                    lon: nodesMap.get(n.toString()).lon
+                }))
+                return /** @type {ExtendedRelationWayMember} */ mem
+            } else if (mem.type === "relation") {
+                // todo
+                return /** @type {ExtendedRelationMember} */ mem
+            }
+        })
+        const errors = validateRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion)
+        if (errors.length) {
+            showRestrictionValidationStatus(errors, document.querySelector(".browse-relation details summary"))
+        } else {
+            restrictionArrows = renderRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion, restrictionColors[extendedRelationVersion.tags['restriction']] ?? "#000", "customObjects")
+        }
+        pinSign.classList.add("pinned")
+        pinSign.textContent = "📌"
+        pinSign.tabIndex = 0
+        pinSign.title = "Pin restriction sign on map.\nYou can hide all the objects that bettet-osm-org adds by pressing ` or ~"
+        pinSign.style.cursor = "pointer"
+        pinSign.onkeypress = pinSign.onclick = async (e) => {
+            e.preventDefault()
+            e.stopImmediatePropagation()
+            if (pinSign.classList.contains("pinned")) {
+                pinSign.style.cursor = "pointer"
+                pinSign.classList.remove("pinned")
+                pinSign.style.filter = "grayscale(1)"
+                pinSign.title = "Hide restriction sign"
+                restrictionArrows.forEach(i => i.getElement().style.display = "none")
+            } else {
+                pinSign.title = "Hide restriction sign"
+                pinSign.classList.add("pinned")
+                pinSign.style.filter = ""
+                restrictionArrows.forEach(i => i.getElement().style.display = "")
+            }
+        }
+        document.querySelector(".browse-relation details summary").appendChild(document.createTextNode(" "))
+        document.querySelector(".browse-relation details summary").appendChild(pinSign)
+    }
     console.log("addHoverForRelationMembers finished");
 }
 
@@ -6797,7 +7612,7 @@ function setupMakeVersionPageBetter() {
     setTimeout(() => {
         clearInterval(timerId);
         console.debug('stop adding MakeVersionPageBetter');
-    }, 2000);
+    }, 3000);
     makeVersionPageBetter();
 }
 
@@ -8070,6 +8885,12 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
     // if (objType === "node") {
     //     i.appendChild(tagsTable)
     // }
+    if (targetVersion.tags?.['type'] === "restriction") {
+        const key = Object.keys(targetVersion.tags).find(k => k === "restriction") ?? Object.keys(targetVersion.tags).find(k => k.startsWith("restriction"))
+        if (key && restrictionsSignImages[key]) {
+            void fetchTextWithCache(restrictionsSignImages[key]);
+        }
+    }
     if (tagsWasChanged) {
         i.appendChild(tagsTable)
         if (changedOnlyUninterestedTags) {
@@ -8411,7 +9232,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
         btn.tabIndex = 0
         btn.style.cursor = "pointer"
 
-        async function clickHandler(e) {
+        async function clickForDownloadHandler(e) {
             if (e.altKey) return
             if (window.getSelection().type === "Range") return
             if ((e.target.nodeName === "TH" || e.target.nodeName === "TD") && i.querySelector("[contenteditable]")) return
@@ -8430,7 +9251,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 targetTimestamp = new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1).toISOString();
             }
             try {
-                const relationMetadata = await loadRelationVersionMembersViaOverpass(parseInt(objID), targetTimestamp, false, "#ff00e3")
+                const relationMetadata = (await loadRelationVersionMembersViaOverpass(parseInt(objID), targetTimestamp, false, "#ff00e3")).bbox
                 i.parentElement.parentElement.onclick = (e) => {
                     if (e.altKey) return
                     fitBounds([
@@ -8465,8 +9286,8 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             // todo нужна кнопка с глазом чтобы можно было скрывать
         }
 
-        btn.addEventListener("click", clickHandler)
-        btn.addEventListener("keypress", clickHandler)
+        btn.addEventListener("click", clickForDownloadHandler)
+        btn.addEventListener("keypress", clickForDownloadHandler)
         i.querySelector("a:nth-of-type(2)").after(btn)
         i.querySelector("a:nth-of-type(2)").after(document.createTextNode("\xA0"))
     }
@@ -9838,6 +10659,11 @@ async function interceptMapManually() {
                         console.log("%cMap intercepted with workaround", 'background: #000; color: #0f0')
                         window.mapIntercepted = true
                         window.map = e.target._map;
+                        if (!window.scriptInstance) {
+                            window.scriptInstance = GM_info.scriptHandler;
+                        } else if (window.scriptInstance !== GM_info.scriptHandler) {
+                            console.error(\`Two copies of the script were running simultaneously via ${window.scriptInstance} and ${window.scriptInstance}. Turn off one of them\`)
+                        }
                     })
                 } catch (e) {
                     console.error(e)
@@ -9850,6 +10676,10 @@ async function interceptMapManually() {
         if (!exportImageBtn) {
             await sleep(10)
             exportImageBtn = document.querySelector("#export-image #image_filter")
+            if (!exportImageBtn) {
+                await sleep(10)
+                exportImageBtn = document.querySelector("#export-image #image_filter")
+            }
         }
         exportImageBtn.click()
         exportImageBtn.click()
@@ -9954,7 +10784,10 @@ function setupNewEditorsLinks() {
             } else {
                 newElem = document.querySelector(".rapid_btn")
             }
-            newElem.querySelector("a").href = `${rapidLink}${zoom}/${lat}/${lon}`
+            const actualHref = `${rapidLink}${zoom}/${lat}/${lon}`
+            if (newElem.querySelector("a").href !== actualHref) {
+                newElem.querySelector("a").href = actualHref
+            }
             if (firstRun) {
                 editorsList.appendChild(newElem)
             }
@@ -10283,13 +11116,18 @@ async function betterUserStat(user) {
             oldElement.parentNode.replaceChild(newElement, oldElement);
             return newElement;
         }
+
         function getTooltipSummary(date, value) {
             const localizedDate = getWindow().OSM.i18n.l("date.formats.long", intoPageWithFun(date));
             if (value > 0) {
-                return getWindow().OSM.i18n.t("javascripts.heatmap.tooltip.contributions", intoPage({ count: value, date: localizedDate }));
+                return getWindow().OSM.i18n.t("javascripts.heatmap.tooltip.contributions", intoPage({
+                    count: value,
+                    date: localizedDate
+                }));
             }
             return getWindow().OSM.i18n.t("javascripts.heatmap.tooltip.no_contributions", intoPage({date: localizedDate}));
         }
+
         getWindow().$('[rel=tooltip]').tooltip('dispose')
         document.querySelectorAll(".tooltip").forEach(i => i.remove())
         const hrefPrefix = location.href.endsWith("/") ? location.href.slice(0, -1) : location.href
@@ -10314,7 +11152,7 @@ async function betterUserStat(user) {
                             (await getChangesetComments(changeset.id)).forEach(mapperCommentText => {
                                 changesetComment += "\n - " + mapperCommentText['user'] + ": " + shortOsmOrgLinksInText(mapperCommentText['text'])?.slice(0, 500)
                                 if (mapperCommentText['text'].length > 500) {
-                                    changesetComment +=  "..."
+                                    changesetComment += "..."
                                 }
                             });
                         } else {
@@ -10328,7 +11166,7 @@ async function betterUserStat(user) {
                 getWindow().$(day).tooltip(intoPage({
                     title: tooltipText,
                     customClass: "wide",
-                    delay: { show: 0, hide: 0 }
+                    delay: {show: 0, hide: 0}
                 }));
             } else {
                 day.removeAttribute("data-count")
@@ -10406,6 +11244,290 @@ async function betterUserStat(user) {
     console.log("setuping filters finished")
 }
 
+// https://osm.org/user/Молотов-Прибой
+// https://osm.org/user/user_14840936
+// https://osm.org/user/Torunianin
+// https://osm.org/user/user_22937564
+// https://osm.org/user/korobkov
+// https://osm.org/user/user_389895
+// https://osm.org/user/user_20965583
+async function makeProfileForDeletedUser(user){
+    const content = document.querySelector(".content-body")
+    const div = document.createElement("div")
+    div.classList.add("content-inner", "position-relative", "m-auto")
+
+    const webArchiveLink = document.createElement("a")
+    webArchiveLink.textContent = "WebArchive"
+    webArchiveLink.target = "_blank"
+    webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + decodeURI(user)
+    div.appendChild(webArchiveLink)
+    div.appendChild(document.createElement("br"))
+
+    async function processIDs(data, elemForResult) {
+        elemForResult.appendChild(document.createTextNode(data.length === 1 ? "User ID: " : "User IDs: "))
+        for (let i = 0; i < data.length; i++) {
+            const id = data[i].id;
+            const idSpan = document.createElement("span")
+            idSpan.textContent = id
+            idSpan.title = "Click for copy"
+            idSpan.style.cursor = "pointer"
+            idSpan.onclick = e => {
+                navigator.clipboard.writeText(id).then(() => copyAnimation(e, id));
+            }
+            injectCSSIntoOSMPage(copyAnimationStyles)
+            elemForResult.appendChild(idSpan)
+            elemForResult.appendChild(document.createElement("br"))
+            if (data[i].names?.length > 1) {
+                const p = document.createElement("p")
+                p.textContent = "Usernames: ";
+                injectCSSIntoOSMPage(copyAnimationStyles)
+                data[i].names.map(i => i.name).forEach(name => {
+                    const usernameSpan = document.createElement("span")
+                    usernameSpan.textContent = name
+                    usernameSpan.title = "Click for copy"
+                    usernameSpan.style.cursor = "pointer"
+                    usernameSpan.onclick = e => {
+                        navigator.clipboard.writeText(name).then(() => copyAnimation(e, name));
+                    }
+                    p.appendChild(usernameSpan)
+                    p.appendChild(document.createTextNode(" "))
+
+                    const webArchiveLink = document.createElement("a")
+                    webArchiveLink.textContent = "[WA] "
+                    webArchiveLink.target = "_blank"
+                    webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + name
+                    p.appendChild(webArchiveLink)
+                })
+                elemForResult.appendChild(p)
+            }
+            setTimeout(async () => {
+                const blocksSpan = document.createElement("span")
+
+                const loadingStatus = document.createElement("span")
+                loadingStatus.textContent = " Finding blocks... "
+                loadingStatus.style.color = "gray"
+                blocksSpan.appendChild(document.createTextNode(" "))
+                blocksSpan.appendChild(loadingStatus)
+
+                idSpan.after(blocksSpan)
+                const startPage = await GM.xmlHttpRequest({
+                    url: "/user_blocks",
+                    // responseType: "xml",
+                    headers: {"turbo-frame": "pagination"}
+                })
+
+                function findBlocks(xml) {
+                    let foundUserBlock = [];
+                    let lastUserBlock;
+                    (new DOMParser().parseFromString(xml, "text/xml")).querySelectorAll("table > tr").forEach(i => {
+                        const username = decodeURI(i.querySelector("td a").getAttribute("href").match(/\/user\/(.*)$/)[1])
+                        lastUserBlock = i.querySelector('td a[href^="/user_blocks/"]').getAttribute("href").match(/\/user_blocks\/([0-9]+)/)[1]
+                        if (username === "user_" + id) {
+                            foundUserBlock.push(lastUserBlock)
+                        }
+                    })
+                    return [foundUserBlock, lastUserBlock]
+                }
+
+                async function getBlockInfo(blockID) {
+                    const blockInfo = (await GM.xmlHttpRequest({
+                        url: "/api/0.6/user_blocks/" + blockID + ".json",
+                        responseType: "json",
+                        headers: {"turbo-frame": "pagination"}
+                    })).response
+                    return `${blockInfo['user_block']['created_at']}\n${blockInfo['user_block']['creator']['user']}: ${blockInfo['user_block']['reason']}`
+                }
+
+                function processFoundedBlocks(foundUserBlock) {
+                    foundUserBlock.forEach(blockId => {
+                        const blockLink = document.createElement("a")
+                        blockLink.href = "/user_blocks/" + blockId
+                        blockLink.target = "_blank"
+                        blockLink.textContent = "🔨/" + blockId
+                        getBlockInfo(blockId).then(res => {
+                            blockLink.title = res
+                        })
+                        blocksSpan.appendChild(blockLink)
+                        blocksSpan.appendChild(document.createTextNode(" "))
+                    })
+                }
+
+                let [foundUserBlock, lastUserBlock] = findBlocks(startPage.response)
+                if (foundUserBlock.length) {
+                    processFoundedBlocks(foundUserBlock)
+                } else {
+                    while (lastUserBlock > 1) {
+                        async function processBlocks(before) {
+                            console.log("download user_block before ", before)
+                            before = Math.max(1, before);
+                            const startPage = await GM.xmlHttpRequest({
+                                url: "/user_blocks?before=" + before,
+                                // responseType: "xml",
+                                headers: {"turbo-frame": "pagination"}
+                            });
+                            [foundUserBlock, before] = findBlocks(startPage.response)
+                            if (!before) {
+                                return
+                            }
+                            if (foundUserBlock.length) {
+                                processFoundedBlocks(foundUserBlock)
+                            }
+                        }
+                        const onPage = 20;
+                        const threads = 10;
+                        console.log("download user_block batch before ", lastUserBlock)
+                        loadingStatus.title = `Scanned all blocks after #${lastUserBlock}`
+                        const batch = []
+                        for (let j = 0; j < threads; j++) {
+                            batch.push(processBlocks(lastUserBlock - onPage * j))
+                        }
+                        await Promise.all(batch);
+                        lastUserBlock -= threads * onPage
+                    }
+                    loadingStatus.style.display = "none"
+                    console.log("All blocks downloaded");
+                }
+            })
+
+
+            /*** @type {{changesets: ChangesetMetadata[]}}*/
+            const lastChangesets = await fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
+                user: id,
+                order: 'newest',
+                to: new Date().toISOString(),
+            }).toString())
+            elemForResult.appendChild(document.createTextNode(`Last ${lastChangesets.changesets?.length} changesets:`))
+            lastChangesets.changesets.forEach(ch => {
+                const changesetLine = document.createElement("div")
+                changesetLine.title = ch['created_at']
+                const a = document.createElement("a")
+                a.textContent = "#" + ch.id + ""
+                a.href = "/changeset/" + ch.id
+                a.target = "_blank"
+                a.style.fontFamily = "monospace"
+                changesetLine.appendChild(a)
+
+                const comment = document.createElement("span")
+                comment.textContent = " " + (ch.tags?.['comment'] ?? "No comment")
+                changesetLine.appendChild(comment)
+
+                if (ch.comments_count) {
+                    const commentsBadge = document.createElement("a")
+                    commentsBadge.textContent = " " + ch.comments_count + " 💬"
+                    commentsBadge.href = "/changeset/" + ch.id
+                    commentsBadge.target = "_blank"
+                    setTimeout(async () => {
+                        getChangesetComments(ch.id).then(res => {
+                            res.forEach(comment => {
+                                const shortText = shortOsmOrgLinksInText(comment["text"])
+                                commentsBadge.title += `${comment["user"]}:\n${shortText}\n\n`
+                            })
+                            commentsBadge.title = commentsBadge.title.trimEnd()
+                        });
+                    })
+                    changesetLine.appendChild(commentsBadge)
+                }
+
+                div.appendChild(changesetLine)
+            })
+        }
+    }
+
+
+    const res = await GM.xmlHttpRequest({
+        url: "https://whosthat.osmz.ru/whosthat.php?action=info&name=" + user,
+        responseType: "json"
+    })
+    // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
+    // but here need resolve problem with return promise
+    const data = structuredClone(res.response);
+    if (data.length) {
+        const result = document.createElement("p")
+        div.appendChild(result)
+        result.title = "via whosthat.osmz.ru"
+        await processIDs(data, result)
+    } else {
+        setTimeout(async () => {
+            const res = (await GM.xmlHttpRequest({
+                url: `${overpass_server.apiUrl}/interpreter?` + new URLSearchParams({
+                    data: `
+                                [out:json];
+                                node(user:"${user.replace('"', '\\"')}")->.b;
+                                node.b(if:lat() == b.min(lat()));
+                                out meta;
+                            `
+                }),
+                responseType: "json"
+            })).response;
+            if (res.elements?.length) {
+                const result = document.createElement("p")
+                div.appendChild(result)
+                result.title = "via Overpass API"
+                await processIDs([{id: res.elements[0].uid}], result)
+            }
+        })
+    }
+
+    if (user.match(/^user_[0-9]+$/)) {
+        const userID = parseInt(user.match(/user_([0-9]+)/)[1])
+        const res = await GM.xmlHttpRequest({
+            url: "https://whosthat.osmz.ru/whosthat.php?action=names&id=" + userID,
+            responseType: "json"
+        })
+        // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
+        // but here need resolve problem with return promise
+        const data = structuredClone(res.response)
+        let names = data[0]['names']
+
+        const p = document.createElement("p")
+        div.appendChild(p)
+        setTimeout(async () => {
+            if (!names.length) {
+                const res = (await GM.xmlHttpRequest({
+                    url: `${overpass_server.apiUrl}/interpreter?` + new URLSearchParams({
+                        data: `
+                            [out:json];
+                            node(uid:${userID})->.b;
+                            node.b(if:lat() == b.min(lat()));
+                            out meta;
+                        `
+                    }),
+                    responseType: "json"
+                })).response;
+                if (res?.elements?.length) {
+                    names = [res.elements[0].user]
+                }
+                div.title = "via Overpass API"
+            } else {
+                div.title = "via whosthat.osmz.ru"
+            }
+            if (names.length) {
+                p.textContent = "Usernames: ";
+                injectCSSIntoOSMPage(copyAnimationStyles)
+                names.forEach(name => {
+                    const usernameSpan = document.createElement("span")
+                    usernameSpan.textContent = name
+                    usernameSpan.title = "Click for copy"
+                    usernameSpan.style.cursor = "pointer"
+                    usernameSpan.onclick = e => {
+                        navigator.clipboard.writeText(name).then(() => copyAnimation(e, name));
+                    }
+                    p.appendChild(usernameSpan)
+                    p.appendChild(document.createTextNode(" "))
+
+                    const webArchiveLink = document.createElement("a")
+                    webArchiveLink.textContent = "[WA] "
+                    webArchiveLink.target = "_blank"
+                    webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + name
+                    p.appendChild(webArchiveLink)
+                })
+            }
+        })
+        await processIDs([{id: userID}], div)
+    }
+    content.appendChild(div)
+}
+
 async function setupHDYCInProfile(path) {
     let match = path.match(/^\/user\/([^/]+)(\/|\/notes)?$/);
     if (!match || path.includes("/history")) {
@@ -10414,6 +11536,7 @@ async function setupHDYCInProfile(path) {
     if (document.getElementById("hdyc-iframe")) {
         return
     }
+    /** @type {string} **/
     const user = match[1];
     if (user === "forgot-password" || user === "new") return;
     document.querySelector(".content-body > .content-inner").style.paddingBottom = "0px";
@@ -10454,70 +11577,121 @@ async function setupHDYCInProfile(path) {
             }
         })
     }
-    setTimeout(async () => {
+    const isDeletedUser = !document.querySelector(".user_image")
+    const usernameHeader = document.querySelector("#content h1")?.firstChild
+    if (!isDeletedUser && usernameHeader && usernameHeader.nodeType === Node.TEXT_NODE) {
+        const span = document.createElement("span")
+        span.classList.add("copyable-username")
+        span.textContent = usernameHeader.textContent
+        span.title = "Click for copy"
+        span.style.cursor = "pointer"
+        span.onclick = e => {
+            navigator.clipboard.writeText(usernameHeader.textContent.slice(0, -1)).then(() => copyAnimation(e, usernameHeader.textContent.slice(0, -1)));
+        }
+        usernameHeader.replaceWith(span)
+        injectCSSIntoOSMPage(copyAnimationStyles)
+    }
+    queueMicrotask(async () => {
         if (document.querySelector(".prev-usernames")) return
         const userDetails = document.querySelector(".content-inner small dl")
         if (!userDetails) return;
         // https://www.openstreetmap.org/reports/new?reportable_id=12345&reportable_type=User
         let userID = document.querySelector('[href*="reportable_id="]')?.getAttribute("href")?.match(/reportable_id=(\d+)/)?.[1]
+        userID = userID ?? document.head.getAttribute("data-user")
         if (!userID) {
             const res = await fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
                 display_name: decodeURI(user),
                 limit: 1,
                 order: 'oldest'
             }).toString());
-            userID = res['changesets'][0]['uid']
-            if (!userID) {
-                return;
-            }
-        }
-
-        async function updateUserIDInfo(userID) {
-            const res = await GM.xmlHttpRequest({
-                url: "https://whosthat.osmz.ru/whosthat.php?action=names&id=" + userID,
-                responseType: "json"
-            })
-            // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
-            // but here need resolve problem with return promise
-            const userInfo = {
-                data: structuredClone(res.response)
-            }
-            if (userInfo.data[0]['names'].length > 1) {
-                userInfo['cacheTime'] = new Date()
-                await GM.setValue("useridinfo-" + userID, JSON.stringify(userInfo))
-
-                const usernames = userInfo.data[0]['names'].filter(i => i !== decodeURI(user)).join(", ")
-                if (document.querySelector(".prev-usernames")) {
-                    document.querySelector(".prev-usernames").textContent = usernames
+            if (res['changesets'].length === 0) {
+                const res = await fetchJSONWithCache(osm_server.apiBase + "notes/search.json?" + new URLSearchParams({
+                    display_name: decodeURI(user),
+                    limit: 1,
+                    closed: -1,
+                    order: "oldest"
+                }).toString());
+                userID = res?.['features']?.[0]?.['properties']?.['comments']?.find(i => i['user'] === decodeURI(user))?.['uid']
+                if (!userID) {
+                    return;
                 }
+            } else {
+                userID = res['changesets'][0]['uid']
             }
-            return userInfo
         }
 
-        async function getCachedUserIDInfo(userID) {
-            const localUserInfo = await GM.getValue("useridinfo-" + userID, "")
-            if (localUserInfo) {
-                setTimeout(updateUserIDInfo, 0, userID)
-                return JSON.parse(localUserInfo)
+        async function addUsernames() {
+            async function updateUserIDInfo(userID) {
+                const res = await GM.xmlHttpRequest({
+                    url: "https://whosthat.osmz.ru/whosthat.php?action=names&id=" + userID,
+                    responseType: "json"
+                })
+                // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
+                // but here need resolve problem with return promise
+                const userInfo = {
+                    data: structuredClone(res.response)
+                }
+                if (userInfo.data[0]['names'].length > 1) {
+                    userInfo['cacheTime'] = new Date()
+                    await GM.setValue("useridinfo-" + userID, JSON.stringify(userInfo))
+
+                    const usernames = userInfo.data[0]['names'].filter(i => i !== decodeURI(user)).join(", ")
+                    if (document.querySelector(".prev-usernames")) {
+                        document.querySelector(".prev-usernames").textContent = usernames
+                    }
+                }
+                return userInfo
             }
-            return await updateUserIDInfo(userID)
+
+            async function getCachedUserIDInfo(userID) {
+                const localUserInfo = await GM.getValue("useridinfo-" + userID, "")
+                if (localUserInfo) {
+                    setTimeout(updateUserIDInfo, 0, userID)
+                    return JSON.parse(localUserInfo)
+                }
+                return await updateUserIDInfo(userID)
+            }
+
+            const userIDInfo = await getCachedUserIDInfo(userID)
+            if (userIDInfo.data[0]['names'].length <= 1) {
+                console.log("prev user's usernames not found")
+                return
+            }
+            const usernames = userIDInfo.data[0]['names'].filter(i => i !== decodeURI(user)).join(", ")
+            const dt = document.createElement("dt")
+            dt.textContent = "Past usernames: "
+            dt.classList.add("list-inline-item", "m-0", "prev-usernames-label")
+            const dd = document.createElement("dd")
+            dd.classList.add("list-inline-item", "prev-usernames")
+            dd.textContent = usernames
+            userDetails.appendChild(dt)
+            userDetails.appendChild(document.createTextNode("\xA0"))
+            userDetails.appendChild(dd)
         }
 
-        const userIDInfo = await getCachedUserIDInfo(userID)
-        if (userIDInfo.data[0]['names'].length <= 1) {
-            console.log("prev user's usernames not found")
-            return
+        await addUsernames()
+
+        function addUserID() {
+            if (!document.querySelector('[href^="/api/0.6/user"]')) {
+                const dt = document.createElement("dt")
+                dt.textContent = "ID: "
+                dt.classList.add("list-inline-item", "m-0")
+                const dd = document.createElement("dd")
+                dd.classList.add("list-inline-item", "user-id")
+                dd.textContent = userID
+                dd.title = "Click for copy"
+                dd.style.cursor = "pointer"
+                dd.onclick = e => {
+                    navigator.clipboard.writeText(userID).then(() => copyAnimation(e, userID));
+                }
+                userDetails.appendChild(dt)
+                userDetails.appendChild(document.createTextNode("\xA0"))
+                userDetails.appendChild(dd)
+                injectCSSIntoOSMPage(copyAnimationStyles)
+            }
         }
-        const usernames = userIDInfo.data[0]['names'].filter(i => i !== decodeURI(user)).join(", ")
-        const dt = document.createElement("dt")
-        dt.textContent = "Past usernames: "
-        dt.classList.add("list-inline-item", "m-0")
-        const dd = document.createElement("dd")
-        dd.classList.add("list-inline-item", "prev-usernames")
-        dd.textContent = usernames
-        userDetails.appendChild(dt)
-        userDetails.appendChild(document.createTextNode("\xA0"))
-        userDetails.appendChild(dd)
+
+        addUserID()
     })
     const iframe = document.getElementById('hdyc-iframe');
     window.addEventListener('message', function (event) {
@@ -10525,7 +11699,9 @@ async function setupHDYCInProfile(path) {
             iframe.height = event.data.height + 'px';
         }
     });
-
+    if (isDeletedUser && !location.pathname.includes("/notes")) {
+        await makeProfileForDeletedUser(user)
+    }
 }
 
 function setupBetterProfileStat() {
@@ -10783,19 +11959,27 @@ let hiddenChangesetsCount = null;
 let lastLoadMoreURL = "";
 
 function openCombinedChangesetsMap() {
+    const batchSize = 500
+
+    function openIDs(ids) {
+        const forOpen = []
+        for (let i = 0; i < ids.length; i += batchSize) {
+            const idsStr = ids.slice(i, i + batchSize).join(",")
+            forOpen.push(osm_server.url + `/changeset/${ids[i]}?changesets=` + idsStr)
+        }
+        forOpen.toReversed().forEach(url => open(url, "_blank"))
+    }
+
     const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value)
     if (ids.length) {
-        const idsStr = ids.join(",")
-        open(osm_server.url + `/changeset/${ids[0]}?changesets=` + idsStr, "_blank")
+        openIDs(ids)
     } else {
         const ids = Array.from(document.querySelectorAll(".mass-action-checkbox")).map(i => i.value)
         if (ids.length) {
-            const idsStr = ids.join(",")
-            open(osm_server.url + `/changeset/${ids[0]}?changesets=` + idsStr, "_blank")
+            openIDs(ids)
         } else {
             const ids = Array.from(document.querySelectorAll(`a[href^="/changeset/"].custom-changeset-id-click`)).map(i => i.getAttribute("href").match(/\/changeset\/([0-9]+)/)[1])
-            const idsStr = ids.join(",")
-            open(osm_server.url + `/changeset/${ids[0]}?changesets=` + idsStr, "_blank")
+            openIDs(ids)
         }
     }
 }
@@ -11138,6 +12322,47 @@ let queriesCache = {
     elems: {}
 }
 
+injectJSIntoPage(`
+const originalFetch = window.fetch;
+
+window.notesDisplayName = "";
+window.notesQFilter = "";
+window.notesClosedFilter = "";
+
+window.fetch = async (...args) => {
+    console.log('Fetch intercepted');
+    if (args[0].includes("notes.json") && (window.notesDisplayName !== "" || window.notesQFilter !== "" || window.notesClosedFilter !== "")) {
+        const url = new URL(args[0], location.origin);
+        url.pathname = url.pathname.replace("notes.json", "notes/search.json")
+        url.searchParams.set("limit", "1000")
+        if (window.notesDisplayName) {
+            url.searchParams.set("display_name", window.notesDisplayName)
+        }
+        if (window.notesQFilter) {
+            url.searchParams.set("q", window.notesQFilter)
+        }
+        // if (window.notesClosedFilter) {
+        //     url.searchParams.set("closed", window.notesClosedFilter)
+        // }
+        args[0] = url.toString()
+    }
+    return originalFetch(...args);
+}
+`)
+
+function getScrollbarWidth() {
+    const outer = document.createElement('div');
+    outer.style.visibility = 'hidden';
+    outer.style.overflow = 'scroll';
+    outer.style.msOverflowStyle = 'scrollbar';
+    document.body.appendChild(outer);
+    const inner = document.createElement('div');
+    outer.appendChild(inner);
+    const scrollbarWidth = (outer.offsetWidth - inner.offsetWidth);
+    outer.parentNode.removeChild(outer);
+    return scrollbarWidth;
+}
+
 function addMassActionForGlobalChangesets() {
     if ((location.pathname === "/history" || location.pathname === "/history/friends")
         && document.querySelector("#sidebar_content h2")
@@ -11204,7 +12429,7 @@ function addMassActionForGlobalChangesets() {
                 const filterByUsersInput = document.createElement("input")
                 filterByUsersInput.placeholder = "user1,user2,... and press Enter"
                 filterByUsersInput.id = "filter-by-user-input"
-                filterByUsersInput.style.width = "250px"
+                filterByUsersInput.style.width = 253 - getScrollbarWidth() + "px"
                 filterByUsersInput.style.marginBottom = "3px"
                 filterByUsersInput.addEventListener("keypress", async function (event) {
                     if (event.key === "Enter") {
@@ -11247,7 +12472,7 @@ function addMassActionForGlobalChangesets() {
                 filterByCommentInput.id = "filter-by-comment-input"
                 filterByCommentInput.placeholder = "words1,words2,... and press Enter"
                 filterByCommentInput.title = "Filter by substring in changesets comments"
-                filterByCommentInput.style.width = "250px"
+                filterByCommentInput.style.width = 253 - getScrollbarWidth() + "px"
                 filterByCommentInput.addEventListener("keypress", async function (event) {
                     if (event.key === "Enter") {
                         event.preventDefault();
@@ -11592,9 +12817,6 @@ async function loadNodeMetadata() {
         return;
     }
     const node_id = parseInt(match[1]);
-    if (nodeMetadata !== null && nodeMetadata.id === node_id) {
-        return;
-    }
     const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "node" + "/" + node_id + ".json", (res) => {
         if (res.status === 509) {
             error509Handler(res)
@@ -11624,9 +12846,6 @@ async function loadWayMetadata(way_id = null) {
         }
         way_id = parseInt(match[1]);
     }
-    if (wayMetadata !== null && wayMetadata.id === way_id) {
-        return;
-    }
     /*** @type {{elements: []}|undefined}*/
     const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "way" + "/" + way_id + "/full.json", (res) => {
         if (res.status === 509) {
@@ -11648,16 +12867,31 @@ async function loadWayMetadata(way_id = null) {
     return jsonRes
 }
 
+/**
+ * @type {{
+ *     relation: RelationVersion,
+ *     bbox: {
+ *         min_lat: number,
+ *         min_lon: number,
+ *         max_lat: number,
+ *         max_lon: number,
+ *     }
+ * } | null}
+ */
 let relationMetadata = null
 
-async function loadRelationMetadata() {
-    const match = location.pathname.match(/relation\/(\d+)/)
-    if (!match) {
-        return;
-    }
-    const relation_id = parseInt(match[1]);
-    if (relationMetadata !== null && relationMetadata.id === relation_id) {
-        return;
+/**
+ * @param {number|null=} relation_id
+ * @return {Promise<{elements: (NodeVersion|WayVersion|RelationVersion)[]}| undefined>}
+ */
+async function loadRelationMetadata(relation_id = null) {
+    console.log(`Loading relation metadata`)
+    if (!relation_id) {
+        const match = location.pathname.match(/relation\/(\d+)/)
+        if (!match) {
+            return;
+        }
+        relation_id = parseInt(match[1]);
     }
     const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "relation" + "/" + relation_id + "/full.json", (res) => {
         if (res.status === 509) {
@@ -11669,12 +12903,15 @@ async function loadRelationMetadata() {
         }
     });
     if (!jsonRes) return;
-    relationMetadata = jsonRes.elements.filter(i => i.type === "node")
-    relationMetadata.bbox = {
-        min_lat: Math.min(...relationMetadata.map(i => i.lat)),
-        min_lon: Math.min(...relationMetadata.map(i => i.lon)),
-        max_lat: Math.max(...relationMetadata.map(i => i.lat)),
-        max_lon: Math.max(...relationMetadata.map(i => i.lon))
+    const nodes = /** @type {NodeVersion[]} */ jsonRes.elements.filter(i => i.type === "node")
+    relationMetadata = {
+        relation: jsonRes.elements.find(i => i.type === "relation" && i.id === relation_id),
+        bbox: {
+            min_lat: Math.min(...nodes.map(i => i.lat)),
+            min_lon: Math.min(...nodes.map(i => i.lon)),
+            max_lat: Math.max(...nodes.map(i => i.lat)),
+            max_lon: Math.max(...nodes.map(i => i.lon)),
+        }
     }
     return jsonRes;
 }
@@ -12257,7 +13494,7 @@ function goToPrevSearchResult(e) {
         }
     }
     if (!prev) {
-        if (cur.parentElement.previousElementSibling.tagName === "UL"){
+        if (cur.parentElement.previousElementSibling.tagName === "UL") {
             prev = cur.parentElement.previousElementSibling?.querySelector("li:last-of-type")
         }
     }
@@ -12304,7 +13541,7 @@ function goToNextSearchResult(e) {
         }
     }
     if (!next) {
-        if (cur.parentElement.nextElementSibling.tagName === "UL"){
+        if (cur.parentElement.nextElementSibling.tagName === "UL") {
             next = cur.parentElement.nextElementSibling?.querySelector("li")
         }
     }
@@ -12416,6 +13653,8 @@ async function zoomToChangesets() {
     fitBounds([[bbox.min_lat, bbox.min_lon], [bbox.max_lat, bbox.max_lon]])
 }
 
+let shiftKeyZClicks = 0
+
 function zoomToCurrentObject(e) {
     if (new URLSearchParams(location.search).has("changesets")) {
         void zoomToChangesets()
@@ -12445,7 +13684,7 @@ function zoomToCurrentObject(e) {
                         }
                     }
                 }
-                if ((await getChangeset(changesetID)).data.querySelectorAll("relation").length) {
+                if ((await getChangeset(changesetID)).data.querySelectorAll("relation").length && shiftKeyZClicks % 2 === 1) {
                     for (const way of (await getChangeset(changesetID)).data.querySelectorAll("way")) {
                         const targetTime = way.getAttribute("visible") === "false"
                             ? new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString()
@@ -12522,10 +13761,24 @@ function zoomToCurrentObject(e) {
             }
         } else if (location.pathname.includes("relation")) {
             if (relationMetadata) {
-                fitBounds([
-                    [relationMetadata.bbox.min_lat, relationMetadata.bbox.min_lon],
-                    [relationMetadata.bbox.max_lat, relationMetadata.bbox.max_lon]
-                ])
+                const viaNodes = relationMetadata.relation.members.filter(m => m.role === "via").flatMap(m => {
+                    if (m.type === "node") {
+                        return m
+                    } else {
+                        return m.geometry
+                    }
+                })
+                if (e.code === "KeyZ" && e.shiftKey) {
+                    fitBounds([
+                        [Math.min(...viaNodes.map(i => i.lat)), Math.min(...viaNodes.map(i => i.lon))],
+                        [Math.max(...viaNodes.map(i => i.lat)), Math.max(...viaNodes.map(i => i.lon))]
+                    ])
+                } else {
+                    fitBounds([
+                        [relationMetadata.bbox.min_lat, relationMetadata.bbox.min_lon],
+                        [relationMetadata.bbox.max_lat, relationMetadata.bbox.max_lon]
+                    ])
+                }
             }
         }
     } else if (location.search.includes("&display-gpx=")) {
@@ -12829,6 +14082,7 @@ function setupNavigationViaHotkeys() {
                     }
                 } else if (location.pathname === "/" || location.pathname.includes("/note")) {
                     // document.querySelector("#history_tab")?.click()
+                    addCompactSidebarStyle();
                     document.querySelector('.nav-link[href^="/history"]')?.click()
                 } else if (location.pathname.includes("/user/")) {
                     document.querySelector('a[href^="/user/"][href$="/history"]')?.click()
@@ -12868,6 +14122,14 @@ function setupNavigationViaHotkeys() {
                 })
             })
         } else if (e.code === "KeyZ") {
+            if (e.shiftKey) {
+                shiftKeyZClicks += 1
+                document.addEventListener("mousemove", () => {
+                    shiftKeyZClicks = 0
+                }, {once: true})
+            } else {
+                shiftKeyZClicks = 0
+            }
             zoomToCurrentObject(e)
         } else if (e.key === "8") {
             if (mapPositionsHistory.length > 1) {
@@ -12929,11 +14191,19 @@ function setupNavigationViaHotkeys() {
             } else {
                 const activeObject = document.querySelector(".browse-section.active-object")
                 if (activeObject) {
-                    activeObject.querySelector('a[href^="/changeset/"]')?.click()
+                    if (e.shiftKey) {
+                        window.open(activeObject.querySelector('a[href^="/changeset/"]').href, "_blank")
+                    } else {
+                        activeObject.querySelector('a[href^="/changeset/"]')?.click()
+                    }
                 } else {
                     const changesetsLinks = document.querySelectorAll('a[href^="/changeset/"]')
-                    if (changesetsLinks.length === 1) {
-                        changesetsLinks[0].click()
+                    if (e.shiftKey) {
+                        if (changesetsLinks?.[0]?.href) {
+                            window.open(changesetsLinks?.[0]?.href, "_blank")
+                        }
+                    } else {
+                        changesetsLinks?.[0]?.click()
                     }
                 }
             }
@@ -13114,6 +14384,12 @@ function setupNavigationViaHotkeys() {
                 document.querySelectorAll('.pagination li a')[0]?.click()
             } else if (e.code === "Period") {
                 document.querySelectorAll('.pagination li a')[1]?.click()
+            }
+        } else if (e.code === "KeyH" && location.pathname.includes("/history") && (location.search.includes("after") || location.search.includes("before")) ){
+            try {
+                getWindow().OSM.router.route(location.pathname)
+            } catch {
+                window.location = location.pathname
             }
         }
     }
@@ -14252,22 +15528,21 @@ function setupOSMWebsite() {
     new MutationObserver(function fn() {
         const path = location.pathname;
         if (path === lastPath) return;
-        if (lastPath.startsWith("/changeset/") && (!path.startsWith("/changeset/") || lastPath !== path) || lastPath.includes("/history") || path === "/" && lastPath !== "/") {
-            try {
-                abortPrevControllers(ABORT_ERROR_WHEN_PAGE_CHANGED)
-                cleanAllObjects()
-                getMap().attributionControl.setPrefix("")
-                addSwipes();
-                document.querySelector("#fixed-rss-feed")?.remove()
-                buildingViewerIframe?.remove()
-                buildingViewerIframe = null
-                if (!path.startsWith("/changeset") && !path.startsWith("/history") &&
-                    !path.startsWith("/node") && !path.startsWith("/way") && path !== "/relation" &&
-                    !path.startsWith("/note")) {
-                    showSearchForm()
-                }
-            } catch { /* empty */
+        try {
+            shiftKeyZClicks = 0
+            abortPrevControllers(ABORT_ERROR_WHEN_PAGE_CHANGED)
+            cleanAllObjects()
+            getMap().attributionControl.setPrefix("")
+            addSwipes();
+            document.querySelector("#fixed-rss-feed")?.remove()
+            buildingViewerIframe?.remove()
+            buildingViewerIframe = null
+            if (!path.startsWith("/changeset") && !path.startsWith("/history") &&
+                !path.startsWith("/node") && !path.startsWith("/way") && path !== "/relation" &&
+                !path.startsWith("/note")) {
+                showSearchForm()
             }
+        } catch { /* empty */
         }
         lastPath = path;
         for (const module of modules.filter(module => GM_config.get(module.name.slice('setup'.length)))) {
@@ -14287,6 +15562,13 @@ function setupOSMWebsite() {
     if (location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/user/")) {
         setTimeout(loadFriends, 4000);
     }
+    setTimeout(() => {
+        if (GM_config.get('CompactChangesetsHistory')) {
+            document.querySelector('.nav-link[href^="/history"]').addEventListener("click", () => {
+                addCompactSidebarStyle()
+            }, {once: true});
+        }
+    });
 }
 
 function makeCommandsMenu() {
