@@ -1034,6 +1034,7 @@ function makeHashtagsInNotesClickable() {
                 a.target = "_blank"
                 a.title = "Search this hashtags in osm-note-viewer"
                 a.textContent = match
+
                 function fixLink() {
                     const notesReviewLink = "https://antonkhorev.github.io/osm-note-viewer/#" + new URLSearchParams({
                         mode: "search",
@@ -1050,6 +1051,7 @@ function makeHashtagsInNotesClickable() {
                     document.getElementById(a.id).href = notesReviewLink
                     console.log("search link in note was fixed");
                 }
+
                 setTimeout(() => {
                     interceptMapManually().then(fixLink)
                 })
@@ -2567,7 +2569,7 @@ const fetchBlobWithCache = (() => {
 
 let needStravaAuth = false;
 
-async function bypassChromeCSPForImagesSrc(imgElem, url, isStrava=true) {
+async function bypassChromeCSPForImagesSrc(imgElem, url, isStrava = true) {
     const res = await fetchBlobWithCache(url);
     if (res.status !== 200) {
         if (!GM_config.get("OverzoomForDataLayer")) {
@@ -7246,9 +7248,11 @@ async function addHoverForRelationMembers() {
     /*** @type {Map<string, RelationVersion>}*/
     const relationsMap = new Map(Object.entries(Object.groupBy(relationData.elements.filter(i => i.type === "relation"), i => i.id)).map(([k, v]) => [k, v[0]]));
     let restrictionArrows = []
+
     function bringRestrictionArrowsToFront() {
         restrictionArrows.forEach(i => i.bringToFront())
     }
+
     document.querySelectorAll(`details [href^="/node/"]:not(.hover-added)`).forEach(elem => {
         elem.classList.add("hover-added")
         const nodeInfo = nodesMap.get(elem.href.match(/node\/(\d+)/)[1]);
@@ -11109,6 +11113,290 @@ async function betterUserStat(user) {
     console.log("setuping filters finished")
 }
 
+// https://osm.org/user/Молотов-Прибой
+// https://osm.org/user/user_14840936
+// https://osm.org/user/Torunianin
+// https://osm.org/user/user_22937564
+// https://osm.org/user/korobkov
+// https://osm.org/user/user_389895
+// https://osm.org/user/user_20965583
+async function makeProfileForDeletedUser(user){
+    const content = document.querySelector(".content-body")
+    const div = document.createElement("div")
+    div.classList.add("content-inner", "position-relative", "m-auto")
+
+    const webArchiveLink = document.createElement("a")
+    webArchiveLink.textContent = "WebArchive"
+    webArchiveLink.target = "_blank"
+    webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + decodeURI(user)
+    div.appendChild(webArchiveLink)
+    div.appendChild(document.createElement("br"))
+
+    async function processIDs(data, elemForResult) {
+        elemForResult.appendChild(document.createTextNode(data.length === 1 ? "User ID: " : "User IDs: "))
+        for (let i = 0; i < data.length; i++) {
+            const id = data[i].id;
+            const idSpan = document.createElement("span")
+            idSpan.textContent = id
+            idSpan.title = "Click for copy"
+            idSpan.style.cursor = "pointer"
+            idSpan.onclick = e => {
+                navigator.clipboard.writeText(id).then(() => copyAnimation(e, id));
+            }
+            injectCSSIntoOSMPage(copyAnimationStyles)
+            elemForResult.appendChild(idSpan)
+            elemForResult.appendChild(document.createElement("br"))
+            if (data[i].names?.length > 1) {
+                const p = document.createElement("p")
+                p.textContent = "Usernames: ";
+                injectCSSIntoOSMPage(copyAnimationStyles)
+                data[i].names.map(i => i.name).forEach(name => {
+                    const usernameSpan = document.createElement("span")
+                    usernameSpan.textContent = name
+                    usernameSpan.title = "Click for copy"
+                    usernameSpan.style.cursor = "pointer"
+                    usernameSpan.onclick = e => {
+                        navigator.clipboard.writeText(name).then(() => copyAnimation(e, name));
+                    }
+                    p.appendChild(usernameSpan)
+                    p.appendChild(document.createTextNode(" "))
+
+                    const webArchiveLink = document.createElement("a")
+                    webArchiveLink.textContent = "[WA] "
+                    webArchiveLink.target = "_blank"
+                    webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + name
+                    p.appendChild(webArchiveLink)
+                })
+                elemForResult.appendChild(p)
+            }
+            setTimeout(async () => {
+                const blocksSpan = document.createElement("span")
+
+                const loadingStatus = document.createElement("span")
+                loadingStatus.textContent = " Finding blocks... "
+                loadingStatus.style.color = "gray"
+                blocksSpan.appendChild(document.createTextNode(" "))
+                blocksSpan.appendChild(loadingStatus)
+
+                idSpan.after(blocksSpan)
+                const startPage = await GM.xmlHttpRequest({
+                    url: "/user_blocks",
+                    // responseType: "xml",
+                    headers: {"turbo-frame": "pagination"}
+                })
+
+                function findBlocks(xml) {
+                    let foundUserBlock = [];
+                    let lastUserBlock;
+                    (new DOMParser().parseFromString(xml, "text/xml")).querySelectorAll("table > tr").forEach(i => {
+                        const username = decodeURI(i.querySelector("td a").getAttribute("href").match(/\/user\/(.*)$/)[1])
+                        lastUserBlock = i.querySelector('td a[href^="/user_blocks/"]').getAttribute("href").match(/\/user_blocks\/([0-9]+)/)[1]
+                        if (username === "user_" + id) {
+                            foundUserBlock.push(lastUserBlock)
+                        }
+                    })
+                    return [foundUserBlock, lastUserBlock]
+                }
+
+                async function getBlockInfo(blockID) {
+                    const blockInfo = (await GM.xmlHttpRequest({
+                        url: "/api/0.6/user_blocks/" + blockID + ".json",
+                        responseType: "json",
+                        headers: {"turbo-frame": "pagination"}
+                    })).response
+                    return `${blockInfo['user_block']['created_at']}\n${blockInfo['user_block']['creator']['user']}: ${blockInfo['user_block']['reason']}`
+                }
+
+                function processFoundedBlocks(foundUserBlock) {
+                    foundUserBlock.forEach(blockId => {
+                        const blockLink = document.createElement("a")
+                        blockLink.href = "/user_blocks/" + blockId
+                        blockLink.target = "_blank"
+                        blockLink.textContent = "🔨/" + blockId
+                        getBlockInfo(blockId).then(res => {
+                            blockLink.title = res
+                        })
+                        blocksSpan.appendChild(blockLink)
+                        blocksSpan.appendChild(document.createTextNode(" "))
+                    })
+                }
+
+                let [foundUserBlock, lastUserBlock] = findBlocks(startPage.response)
+                if (foundUserBlock.length) {
+                    processFoundedBlocks(foundUserBlock)
+                } else {
+                    while (lastUserBlock > 1) {
+                        async function processBlocks(before) {
+                            console.log("download user_block before ", before)
+                            before = Math.max(1, before);
+                            const startPage = await GM.xmlHttpRequest({
+                                url: "/user_blocks?before=" + before,
+                                // responseType: "xml",
+                                headers: {"turbo-frame": "pagination"}
+                            });
+                            [foundUserBlock, before] = findBlocks(startPage.response)
+                            if (!before) {
+                                return
+                            }
+                            if (foundUserBlock.length) {
+                                processFoundedBlocks(foundUserBlock)
+                            }
+                        }
+                        const onPage = 20;
+                        const threads = 10;
+                        console.log("download user_block batch before ", lastUserBlock)
+                        loadingStatus.title = `Scanned all blocks after #${lastUserBlock}`
+                        const batch = []
+                        for (let j = 0; j < threads; j++) {
+                            batch.push(processBlocks(lastUserBlock - onPage * j))
+                        }
+                        await Promise.all(batch);
+                        lastUserBlock -= threads * onPage
+                    }
+                    loadingStatus.style.display = "none"
+                    console.log("All blocks downloaded");
+                }
+            })
+
+
+            /*** @type {{changesets: ChangesetMetadata[]}}*/
+            const lastChangesets = await fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
+                user: id,
+                order: 'newest',
+                to: new Date().toISOString(),
+            }).toString())
+            elemForResult.appendChild(document.createTextNode(`Last ${lastChangesets.changesets?.length} changesets:`))
+            lastChangesets.changesets.forEach(ch => {
+                const changesetLine = document.createElement("div")
+                changesetLine.title = ch['created_at']
+                const a = document.createElement("a")
+                a.textContent = "#" + ch.id + ""
+                a.href = "/changeset/" + ch.id
+                a.target = "_blank"
+                a.style.fontFamily = "monospace"
+                changesetLine.appendChild(a)
+
+                const comment = document.createElement("span")
+                comment.textContent = " " + (ch.tags?.['comment'] ?? "No comment")
+                changesetLine.appendChild(comment)
+
+                if (ch.comments_count) {
+                    const commentsBadge = document.createElement("a")
+                    commentsBadge.textContent = " " + ch.comments_count + " 💬"
+                    commentsBadge.href = "/changeset/" + ch.id
+                    commentsBadge.target = "_blank"
+                    setTimeout(async () => {
+                        getChangesetComments(ch.id).then(res => {
+                            res.forEach(comment => {
+                                const shortText = shortOsmOrgLinksInText(comment["text"])
+                                commentsBadge.title += `${comment["user"]}:\n${shortText}\n\n`
+                            })
+                            commentsBadge.title = commentsBadge.title.trimEnd()
+                        });
+                    })
+                    changesetLine.appendChild(commentsBadge)
+                }
+
+                div.appendChild(changesetLine)
+            })
+        }
+    }
+
+
+    const res = await GM.xmlHttpRequest({
+        url: "https://whosthat.osmz.ru/whosthat.php?action=info&name=" + user,
+        responseType: "json"
+    })
+    // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
+    // but here need resolve problem with return promise
+    const data = structuredClone(res.response);
+    if (data.length) {
+        const result = document.createElement("p")
+        div.appendChild(result)
+        result.title = "via whosthat.osmz.ru"
+        await processIDs(data, result)
+    } else {
+        setTimeout(async () => {
+            const res = (await GM.xmlHttpRequest({
+                url: `${overpass_server.apiUrl}/interpreter?` + new URLSearchParams({
+                    data: `
+                                [out:json];
+                                node(user:"${user.replace('"', '\\"')}")->.b;
+                                node.b(if:lat() == b.min(lat()));
+                                out meta;
+                            `
+                }),
+                responseType: "json"
+            })).response;
+            if (res.elements?.length) {
+                const result = document.createElement("p")
+                div.appendChild(result)
+                result.title = "via Overpass API"
+                await processIDs([{id: res.elements[0].uid}], result)
+            }
+        })
+    }
+
+    if (user.match(/^user_[0-9]+$/)) {
+        const userID = parseInt(user.match(/user_([0-9]+)/)[1])
+        const res = await GM.xmlHttpRequest({
+            url: "https://whosthat.osmz.ru/whosthat.php?action=names&id=" + userID,
+            responseType: "json"
+        })
+        // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
+        // but here need resolve problem with return promise
+        const data = structuredClone(res.response)
+        let names = data[0]['names']
+
+        const p = document.createElement("p")
+        div.appendChild(p)
+        setTimeout(async () => {
+            if (!names.length) {
+                const res = (await GM.xmlHttpRequest({
+                    url: `${overpass_server.apiUrl}/interpreter?` + new URLSearchParams({
+                        data: `
+                            [out:json];
+                            node(uid:${userID})->.b;
+                            node.b(if:lat() == b.min(lat()));
+                            out meta;
+                        `
+                    }),
+                    responseType: "json"
+                })).response;
+                if (res?.elements?.length) {
+                    names = [res.elements[0].user]
+                }
+                div.title = "via Overpass API"
+            } else {
+                div.title = "via whosthat.osmz.ru"
+            }
+            if (names.length) {
+                p.textContent = "Usernames: ";
+                injectCSSIntoOSMPage(copyAnimationStyles)
+                names.forEach(name => {
+                    const usernameSpan = document.createElement("span")
+                    usernameSpan.textContent = name
+                    usernameSpan.title = "Click for copy"
+                    usernameSpan.style.cursor = "pointer"
+                    usernameSpan.onclick = e => {
+                        navigator.clipboard.writeText(name).then(() => copyAnimation(e, name));
+                    }
+                    p.appendChild(usernameSpan)
+                    p.appendChild(document.createTextNode(" "))
+
+                    const webArchiveLink = document.createElement("a")
+                    webArchiveLink.textContent = "[WA] "
+                    webArchiveLink.target = "_blank"
+                    webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + name
+                    p.appendChild(webArchiveLink)
+                })
+            }
+        })
+        await processIDs([{id: userID}], div)
+    }
+    content.appendChild(div)
+}
+
 async function setupHDYCInProfile(path) {
     let match = path.match(/^\/user\/([^/]+)(\/|\/notes)?$/);
     if (!match || path.includes("/history")) {
@@ -11281,115 +11569,7 @@ async function setupHDYCInProfile(path) {
         }
     });
     if (isDeletedUser && !location.pathname.includes("/notes")) {
-        const content = document.querySelector(".content-body")
-        const div = document.createElement("div")
-        div.classList.add("content-inner", "position-relative", "m-auto")
-
-        const webArchiveLink = document.createElement("a")
-        webArchiveLink.textContent = "WebArchive"
-        webArchiveLink.target = "_blank"
-        webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + decodeURI(user)
-        div.appendChild(webArchiveLink)
-        div.appendChild(document.createElement("br"))
-
-        async function processIDs(data, elemForResult) {
-            elemForResult.appendChild(document.createTextNode(data.length === 1 ? "User ID: " : "User IDs: "))
-            elemForResult.title = "via whosthat.osmz.ru"
-            for (let i = 0; i < data.length; i++) {
-                const id = data[i].id;
-                const idSpan = document.createElement("span")
-                idSpan.textContent = id
-                idSpan.title = "Click for copy"
-                idSpan.style.cursor = "pointer"
-                idSpan.onclick = e => {
-                    navigator.clipboard.writeText(id).then(() => copyAnimation(e, id));
-                }
-                injectCSSIntoOSMPage(copyAnimationStyles)
-                elemForResult.appendChild(idSpan)
-                elemForResult.appendChild(document.createElement("br"))
-
-
-                /*** @type {{changesets: ChangesetMetadata[]}}*/
-                const lastChangesets = await fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
-                    user: id,
-                    order: 'newest',
-                    to: new Date().toISOString(),
-                }).toString())
-                elemForResult.appendChild(document.createTextNode(`Last ${lastChangesets.changesets?.length} changesets:`))
-                lastChangesets.changesets.forEach(ch => {
-                    const changesetLine = document.createElement("div")
-                    const a = document.createElement("a")
-                    a.textContent = "#" + ch.id + ""
-                    a.href = "/changeset/" + ch.id
-                    a.style.fontFamily = "monospace"
-                    changesetLine.appendChild(a)
-
-                    const comment = document.createElement("span")
-                    comment.textContent = " " + (ch.tags?.['comment'] ?? "No comment")
-                    changesetLine.appendChild(comment)
-
-                    if (ch.comments_count) {
-                        const comments = document.createElement("a")
-                        comments.textContent = " " + ch.comments_count + " 💬"
-                        comments.href = "/changeset/" + ch.id
-                        changesetLine.appendChild(comments)
-                    }
-
-                    div.appendChild(changesetLine)
-                })
-            }
-        }
-
-
-        const res = await GM.xmlHttpRequest({
-            url: "https://whosthat.osmz.ru/whosthat.php?action=info&name=" + user,
-            responseType: "json"
-        })
-        // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
-        // but here need resolve problem with return promise
-        const data = structuredClone(res.response);
-
-        if (data.length) {
-            const result = document.createElement("p")
-            div.appendChild(result)
-            await processIDs(data, result)
-        }
-
-        if (user.match(/^user_[0-9]+$/)) {
-            const userID = parseInt(user.match(/user_([0-9]+)/)[1])
-            const res = await GM.xmlHttpRequest({
-                url: "https://whosthat.osmz.ru/whosthat.php?action=names&id=" + userID,
-                responseType: "json"
-            })
-            // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
-            // but here need resolve problem with return promise
-            const data = structuredClone(res.response)
-            if (data[0]['names'].length) {
-                const p = document.createElement("p")
-                p.textContent = "Usernames: ";
-                injectCSSIntoOSMPage(copyAnimationStyles)
-                data[0]['names'].forEach(name => {
-                    const usernameSpan = document.createElement("span")
-                    usernameSpan.textContent = name
-                    usernameSpan.title = "Click for copy"
-                    usernameSpan.style.cursor = "pointer"
-                    usernameSpan.onclick = e => {
-                        navigator.clipboard.writeText(name).then(() => copyAnimation(e, name));
-                    }
-                    p.appendChild(usernameSpan)
-                    p.appendChild(document.createTextNode(" "))
-
-                    const webArchiveLink = document.createElement("a")
-                    webArchiveLink.textContent = "[WA] "
-                    webArchiveLink.target = "_blank"
-                    webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + name
-                    p.appendChild(webArchiveLink)
-                })
-                div.appendChild(p)
-            }
-            await processIDs([{id: userID}], div)
-        }
-        content.appendChild(div)
+        await makeProfileForDeletedUser(user)
     }
 }
 
@@ -11650,7 +11830,7 @@ let lastLoadMoreURL = "";
 function openCombinedChangesetsMap() {
     const batchSize = 500
 
-    function openIDs(ids){
+    function openIDs(ids) {
         const forOpen = []
         for (let i = 0; i < ids.length; i += batchSize) {
             const idsStr = ids.slice(i, i + batchSize).join(",")
