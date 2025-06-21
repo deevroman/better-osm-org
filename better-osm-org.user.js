@@ -1032,7 +1032,7 @@ function makeHashtagsInNotesClickable() {
                 a.id = "note-link-" + Math.random()
                 a.href = ""
                 a.target = "_blank"
-                a.title = "Search this hashtags in osm-note-viewer"
+                a.title = "Click for filter notes by this hashtag.\nClick with CTLR or Shift for search this hashtags in osm-note-viewer"
                 a.textContent = match
 
                 function fixLink() {
@@ -1048,7 +1048,18 @@ function makeHashtagsInNotesClickable() {
                         closed: 0,
                         map: `${getMap().getZoom()}/${getMap().getCenter().lat}/${getMap().getCenter().lng}`,
                     }).toString()
-                    document.getElementById(a.id).href = notesReviewLink
+                    const link = document.getElementById(a.id)
+                    link.href = notesReviewLink
+                    link.onclick = (e) => {
+                        if (e.shiftKey || e.ctrlKey || e.metaKey) {
+                            return
+                        }
+                        e.preventDefault()
+                        document.querySelector(".control-layers a").click()
+                        Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({block: "center"})
+                        document.querySelector("#filter-notes-by-string").value = match
+                        updateNotesLayer()
+                    }
                     console.log("search link in note was fixed");
                 }
 
@@ -2279,6 +2290,80 @@ function setupResolveNotesButton(path) {
         console.debug('stop try add resolve note button');
     }, 3000);
     addResolveNotesButton();
+}
+
+let updateNotesLayer = null;
+
+function addNotesFiltersButtons() {
+    if (document.getElementById("notes-filter")) {
+        return
+    }
+    const noteLabel = Array.from(document.querySelectorAll(".overlay-layers label"))[0]
+    if (!noteLabel) {
+        return
+    }
+    const checkbox = noteLabel.querySelector("input")
+    const filters = document.createElement("div")
+
+    function updateNotesFilters() {
+        if (checkbox.checked) {
+            filters.style.display = ""
+            getWindow().notesDisplayName = filterByUsername.value;
+            getWindow().notesQFilter = filterByString.value;
+            getWindow().notesClosedFilter = "";
+        } else {
+            filters.style.display = "none"
+            getWindow().notesDisplayName = "";
+            getWindow().notesQFilter = "";
+            getWindow().notesClosedFilter = "";
+        }
+    }
+    updateNotesLayer = function () {
+        updateNotesFilters()
+        getMap().fire("moveend")
+    }
+
+    checkbox.onchange = updateNotesFilters
+    if (!checkbox.checked) {
+        return
+    }
+    filters.id = "notes-filter"
+    filters.style.display = "none"
+
+    const filterByString = document.createElement("input")
+    filterByString.type = "input"
+    filterByString.id = "filter-notes-by-string"
+    filterByString.placeholder = "word in notes"
+    filterByString.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+            updateNotesLayer()
+        }
+    })
+
+    const filterByUsername = document.createElement("input")
+    filterByUsername.type = "input"
+    filterByUsername.placeholder = "username"
+    filterByUsername.id = "filter-notes-by-username"
+    filterByUsername.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+            updateNotesLayer()
+        }
+    })
+
+    filters.appendChild(filterByString)
+    filters.appendChild(filterByUsername)
+
+    noteLabel.after(filters)
+    updateNotesFilters()
+}
+
+function setupNotesFiltersButtons() {
+    let timerId = setInterval(addNotesFiltersButtons, 100);
+    setTimeout(() => {
+        clearInterval(timerId);
+        console.debug('stop try add notes filters buttons');
+    }, 3000);
+    addNotesFiltersButtons();
 }
 
 function addDeleteButton() {
@@ -12236,6 +12321,34 @@ let queriesCache = {
     cacheTime: Date.now(),
     elems: {}
 }
+
+injectJSIntoPage(`
+const originalFetch = window.fetch;
+
+window.notesDisplayName = "";
+window.notesQFilter = "";
+window.notesClosedFilter = "";
+
+window.fetch = async (...args) => {
+    console.log('Fetch intercepted');
+    if (args[0].includes("notes.json") && (window.notesDisplayName !== "" || window.notesQFilter !== "" || window.notesClosedFilter !== "")) {
+        const url = new URL(args[0], location.origin);
+        url.pathname = url.pathname.replace("notes.json", "notes/search.json")
+        url.searchParams.set("limit", "1000")
+        if (window.notesDisplayName) {
+            url.searchParams.set("display_name", window.notesDisplayName)
+        }
+        if (window.notesQFilter) {
+            url.searchParams.set("q", window.notesQFilter)
+        }
+        // if (window.notesClosedFilter) {
+        //     url.searchParams.set("closed", window.notesClosedFilter)
+        // }
+        args[0] = url.toString()
+    }
+    return originalFetch(...args);
+}
+`)
 
 function getScrollbarWidth() {
     const outer = document.createElement('div');
