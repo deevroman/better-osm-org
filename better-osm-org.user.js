@@ -1010,6 +1010,57 @@ function makeHashtagsClickable() {
     })
 }
 
+function makeHashtagsInNotesClickable() {
+    if (!GM_config.get("ImagesAndLinksInTags")) return;
+
+    const notesParagraphs = document.querySelectorAll("#sidebar_content h4 ~ div:first-of-type > p")
+    notesParagraphs.forEach(p => {
+        p?.childNodes?.forEach(node => {
+            if (node.nodeType !== Node.TEXT_NODE) return
+            const span = document.createElement("span")
+            span.textContent = node.textContent
+            span.innerHTML = span.innerHTML.replaceAll(/\B(#[\p{L}\d_-]+)\b/gu, function (match) {
+                // const notesReviewLink = "https://ent8r.github.io/NotesReview/?" + new URLSearchParams({
+                //     view: "map",
+                //     status: "open",
+                //     area: "view",
+                //     limit: 30,
+                //     query: match
+                // }).toString()
+
+                const a = document.createElement("a")
+                a.id = "note-link-" + Math.random()
+                a.href = ""
+                a.target = "_blank"
+                a.title = "Search this hashtags in osm-note-viewer"
+                a.textContent = match
+                function fixLink() {
+                    const notesReviewLink = "https://antonkhorev.github.io/osm-note-viewer/#" + new URLSearchParams({
+                        mode: "search",
+                        q: match,
+                        bbox: [
+                            Math.round(getMap().getBounds().getWest() * 10000) / 10000, Math.round(getMap().getBounds().getSouth() * 10000) / 10000,
+                            Math.round(getMap().getBounds().getEast() * 10000) / 10000, Math.round(getMap().getBounds().getNorth() * 10000) / 10000
+                        ].join(","),
+                        sort: "created_at",
+                        order: "newest",
+                        closed: 0,
+                        map: `${getMap().getZoom()}/${getMap().getCenter().lat}/${getMap().getCenter().lng}`,
+                    }).toString()
+                    document.getElementById(a.id).href = notesReviewLink
+                    console.log("search link in note was fixed");
+                }
+                setTimeout(() => {
+                    interceptMapManually().then(fixLink)
+                })
+                setTimeout(fixLink, 1000)
+                return a.outerHTML
+            })
+            node.replaceWith(span)
+        })
+    })
+}
+
 function shortOsmOrgLinksInText(text) {
     return text.replaceAll("https://www.openstreetmap.org", "osm.org")
         .replaceAll("https://wiki.openstreetmap.org/wiki/", "osm.wiki/")
@@ -2214,6 +2265,8 @@ out meta;
             // hideSearchForm()
         }
     })
+
+    makeHashtagsInNotesClickable()
 }
 
 function setupResolveNotesButton(path) {
@@ -10488,6 +10541,10 @@ async function interceptMapManually() {
         if (!exportImageBtn) {
             await sleep(10)
             exportImageBtn = document.querySelector("#export-image #image_filter")
+            if (!exportImageBtn) {
+                await sleep(10)
+                exportImageBtn = document.querySelector("#export-image #image_filter")
+            }
         }
         exportImageBtn.click()
         exportImageBtn.click()
