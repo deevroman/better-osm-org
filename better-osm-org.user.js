@@ -5635,7 +5635,7 @@ const restrictionColors = {
     no_exit:            "#ff0000",
 }
 // TODO сделать ресурсами
-const restrictionsImagesPrefix = "https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/dev/icons/restrictions/"
+const restrictionsImagesPrefix = "https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/master/icons/restrictions/"
 
 const restrictionsSignImages = {
     no_left_turn:       restrictionsImagesPrefix + "France_road_sign_B2a.svg",
