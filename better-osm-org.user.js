@@ -11117,6 +11117,7 @@ async function setupHDYCInProfile(path) {
     if (document.getElementById("hdyc-iframe")) {
         return
     }
+    /** @type {string} **/
     const user = match[1];
     if (user === "forgot-password" || user === "new") return;
     document.querySelector(".content-body > .content-inner").style.paddingBottom = "0px";
@@ -11279,7 +11280,7 @@ async function setupHDYCInProfile(path) {
             iframe.height = event.data.height + 'px';
         }
     });
-    if (isDeletedUser) {
+    if (isDeletedUser && !location.pathname.includes("/notes")) {
         const content = document.querySelector(".content-body")
         const div = document.createElement("div")
         div.classList.add("content-inner", "position-relative", "m-auto")
@@ -11291,18 +11292,9 @@ async function setupHDYCInProfile(path) {
         div.appendChild(webArchiveLink)
         div.appendChild(document.createElement("br"))
 
-        const res = await GM.xmlHttpRequest({
-            url: "https://whosthat.osmz.ru/whosthat.php?action=info&name=" + user,
-            responseType: "json"
-        })
-        // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
-        // but here need resolve problem with return promise
-        const data = structuredClone(res.response);
-        if (data.length) {
-            const ids = document.createElement("p")
-            ids.textContent = data.length === 1 ? "User ID: " : "User IDs: "
-            ids.title = "via whosthat.osmz.ru"
-            div.appendChild(ids)
+        async function processIDs(data, elemForResult) {
+            elemForResult.appendChild(document.createTextNode(data.length === 1 ? "User ID: " : "User IDs: "))
+            elemForResult.title = "via whosthat.osmz.ru"
             for (let i = 0; i < data.length; i++) {
                 const id = data[i].id;
                 const idSpan = document.createElement("span")
@@ -11313,8 +11305,8 @@ async function setupHDYCInProfile(path) {
                     navigator.clipboard.writeText(id).then(() => copyAnimation(e, id));
                 }
                 injectCSSIntoOSMPage(copyAnimationStyles)
-                ids.appendChild(idSpan)
-                ids.appendChild(document.createElement("br"))
+                elemForResult.appendChild(idSpan)
+                elemForResult.appendChild(document.createElement("br"))
 
 
                 /*** @type {{changesets: ChangesetMetadata[]}}*/
@@ -11323,7 +11315,7 @@ async function setupHDYCInProfile(path) {
                     order: 'newest',
                     to: new Date().toISOString(),
                 }).toString())
-                ids.appendChild(document.createTextNode(`Last ${lastChangesets.changesets?.length} changesets:`))
+                elemForResult.appendChild(document.createTextNode(`Last ${lastChangesets.changesets?.length} changesets:`))
                 lastChangesets.changesets.forEach(ch => {
                     const changesetLine = document.createElement("div")
                     const a = document.createElement("a")
@@ -11347,10 +11339,56 @@ async function setupHDYCInProfile(path) {
                 })
             }
         }
-        // debugger
 
 
+        const res = await GM.xmlHttpRequest({
+            url: "https://whosthat.osmz.ru/whosthat.php?action=info&name=" + user,
+            responseType: "json"
+        })
+        // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
+        // but here need resolve problem with return promise
+        const data = structuredClone(res.response);
 
+        if (data.length) {
+            const result = document.createElement("p")
+            div.appendChild(result)
+            await processIDs(data, result)
+        }
+
+        if (user.match(/^user_[0-9]+$/)) {
+            const userID = parseInt(user.match(/user_([0-9]+)/)[1])
+            const res = await GM.xmlHttpRequest({
+                url: "https://whosthat.osmz.ru/whosthat.php?action=names&id=" + userID,
+                responseType: "json"
+            })
+            // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
+            // but here need resolve problem with return promise
+            const data = structuredClone(res.response)
+            if (data[0]['names'].length) {
+                const p = document.createElement("p")
+                p.textContent = "Usernames: ";
+                injectCSSIntoOSMPage(copyAnimationStyles)
+                data[0]['names'].forEach(name => {
+                    const usernameSpan = document.createElement("span")
+                    usernameSpan.textContent = name
+                    usernameSpan.title = "Click for copy"
+                    usernameSpan.style.cursor = "pointer"
+                    usernameSpan.onclick = e => {
+                        navigator.clipboard.writeText(name).then(() => copyAnimation(e, name));
+                    }
+                    p.appendChild(usernameSpan)
+                    p.appendChild(document.createTextNode(" "))
+
+                    const webArchiveLink = document.createElement("a")
+                    webArchiveLink.textContent = "[WA] "
+                    webArchiveLink.target = "_blank"
+                    webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + name
+                    p.appendChild(webArchiveLink)
+                })
+                div.appendChild(p)
+            }
+            await processIDs([{id: userID}], div)
+        }
         content.appendChild(div)
     }
 }
