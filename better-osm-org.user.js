@@ -13834,6 +13834,27 @@ function setupNavigationViaHotkeys() {
             && document.activeElement?.parentElement?.parentElement?.hasAttribute("contenteditable")) {
             return
         }
+        if (measuring) {
+            if ((e.ctrlKey || e.metaKey) && e.code === "KeyZ") {
+                if (currentMeasuring.way.length) {
+                    currentMeasuring.way.pop()
+                    currentMeasuring.nodes.pop()?.remove()
+                    currentMeasuring.tempLine?.remove()
+                    currentMeasuring.wayLine?.remove()
+                    if (currentMeasuring.way.length) {
+                        currentMeasuring.wayLine = displayWay(currentMeasuring.way, false, "#000000", 1);
+                        currentMeasuring.tempLine = displayWay([currentMeasuring.way[currentMeasuring.way.length - 1], lastLatLng], false, "#000000", 1)
+                    }
+                }
+            } else if (e.code === "Escape") {
+                endMeasuring()
+            }
+        }
+        if (drawingBuildings) {
+            if (e.code === "Escape") {
+                firstBuilding = null
+            }
+        }
         if (e.metaKey || e.ctrlKey) {
             return;
         }
@@ -14385,7 +14406,7 @@ function setupNavigationViaHotkeys() {
             } else if (e.code === "Period") {
                 document.querySelectorAll('.pagination li a')[1]?.click()
             }
-        } else if (e.code === "KeyH" && location.pathname.includes("/history") && (location.search.includes("after") || location.search.includes("before")) ){
+        } else if (e.code === "KeyH" && location.pathname.includes("/history") && (location.search.includes("after") || location.search.includes("before"))) {
             try {
                 getWindow().OSM.router.route(location.pathname)
             } catch {
@@ -14465,7 +14486,9 @@ const modules = [
 
 const alwaysEnabledModules = [
     setupRelationVersionViewer,
-    setupMakeVersionPageBetter
+    setupMakeVersionPageBetter,
+    setupNotesFiltersButtons,
+    setupMeasurer
 ]
 
 const fetchJSONWithCache = (() => {
@@ -15481,7 +15504,188 @@ async function setupDragAndDropViewers() {
 
 }
 
-function setupIDframe(){
+//<editor-fold desc="measurer" defaultstate="collapsed">
+
+let measurerAdded = false
+let measuring = false
+
+function makeEmptyMeasuring() {
+    return {
+        way: [],
+        nodes: [],
+        wayLine: null,
+        tempLine: null,
+    }
+}
+
+let currentMeasuring = makeEmptyMeasuring()
+
+let lastLatLng = null
+let movingTooltip = null
+
+function getMeasureDistance(way, floatingCoord) {
+    const [res,] = way.reduce(([dist, prev], cur) => {
+        if (prev === null) {
+            return [0.0, cur]
+        }
+        return [dist + getDistanceFromLatLonInKm(
+            prev.lat,
+            prev.lng,
+            cur.lat,
+            cur.lng
+        ), cur]
+    }, [0.0, null])
+    return (Math.round((res + getDistanceFromLatLonInKm(
+        way[way.length - 1].lat,
+        way[way.length - 1].lng,
+        floatingCoord.lat,
+        floatingCoord.lng
+    )) * 100000) / 100.0)
+}
+
+function formatMeasureDistance(distInMeters) {
+    return distInMeters < 2500 ? distInMeters.toString() + "m" : (Math.round(distInMeters) / 1000).toString() + "km"
+}
+
+let measuringMouseDownHandler = null;
+let measuringMouseUpHandler = null;
+let measuringMouseMoveHandler = null;
+let measuringMenuItem = null;
+
+function endMeasuring() {
+    document.querySelector("#map").style.cursor = "drag"
+    measuringMenuItem.textContent = "Measure from here"
+    measuring = false
+
+    getMap().off('mousedown', measuringMouseDownHandler)
+    getMap().off('mouseup', measuringMouseUpHandler)
+    getMap().off('mousemove', measuringMouseMoveHandler)
+    movingTooltip?.remove()
+    const lastNode = currentMeasuring.nodes[currentMeasuring.nodes.length - 1]
+    const distInMeters = getMeasureDistance(currentMeasuring.way, lastNode.getLatLng())
+    const text = formatMeasureDistance(distInMeters)
+    currentMeasuring.nodes[currentMeasuring.nodes.length - 1].bindTooltip(text, intoPage({
+        content: text,
+        sticky: true,
+        permanent: true,
+        offset: getWindow().L.point(10, 0),
+    })).openTooltip()
+    currentMeasuring.tempLine?.remove()
+    currentMeasuring = makeEmptyMeasuring()
+}
+
+async function setupMeasurer() {
+    await sleep(100)
+    if (measurerAdded) return
+    measurerAdded = true
+    const contextMenu = document.querySelector("#map .leaflet-contextmenu")
+    if (!contextMenu) {
+        return;
+    }
+    if (!getMap || !getMap().contextmenu) {
+        await sleep(1000)
+    }
+    // sometime click don't fire when move 1px
+    let lastMouseDownX = 0;
+    let lastMouseDownY = 0;
+    measuringMouseDownHandler = intoPageWithFun(e => {
+        lastMouseDownX = e.originalEvent.clientX;
+        lastMouseDownY = e.originalEvent.clientY;
+    })
+    measuringMouseUpHandler = intoPageWithFun(e => {
+        if (!measuring) {
+            return
+        }
+        if (e.originalEvent.button === 2) {
+            return
+        }
+        if (e.originalEvent.altKey) {
+            currentMeasuring = makeEmptyMeasuring()
+        }
+        const {lat: lat, lng: lng} = e.latlng
+        if (lastMouseDownX - e.originalEvent.clientX > 1 || lastMouseDownY - e.originalEvent.clientY > 1 ||
+            lastMouseDownX - e.originalEvent.clientX < -1 || lastMouseDownY - e.originalEvent.clientY < -1) {
+            console.log("skipped click");
+            console.log(lastMouseDownX - e.originalEvent.clientX);
+            console.log(lastMouseDownY - e.originalEvent.clientY);
+            return
+        }
+        currentMeasuring.way.push({lat: lat, lng: lng})
+        currentMeasuring.nodes.push(showNodeMarker(lat, lng, "#000000"))
+        currentMeasuring.wayLine?.remove()
+
+        const distInMeters = getMeasureDistance(currentMeasuring.way, {lat: lat, lng: lng})
+        const text = formatMeasureDistance(distInMeters)
+        currentMeasuring.wayLine = displayWay(currentMeasuring.way, false, "#000000", 1)
+        movingTooltip?.remove()
+        movingTooltip = getWindow().L.tooltip(getWindow().L.latLng(intoPage({lat: lat, lng: lng})), intoPage({
+            content: text,
+            sticky: true,
+            offset: getWindow().L.point(10, 0),
+        })).addTo(getMap())
+        currentMeasuring.wayLine.bindTooltip(text, intoPage({
+            content: text,
+            sticky: true,
+            offset: getWindow().L.point(10, 0),
+        })).openTooltip()
+    })
+    measuringMouseMoveHandler = intoPageWithFun(e => {
+        if (!measuring) {
+            return
+        }
+        lastLatLng = e.latlng
+        const {lat: lat, lng: lng} = e.latlng
+        currentMeasuring.tempLine?.remove()
+        if (!currentMeasuring.way.length) return
+        const distInMeters = getMeasureDistance(currentMeasuring.way, {lat: lat, lng: lng})
+        const text = formatMeasureDistance(distInMeters)
+        if (!e.originalEvent.altKey) {
+            cleanObjectsByKey("activeObjects")
+            currentMeasuring.tempLine = displayWay([currentMeasuring.way[currentMeasuring.way.length - 1], {
+                lat: lat,
+                lng: lng
+            }], false, "#000000", 1);
+            movingTooltip?.remove()
+            movingTooltip = getWindow().L.tooltip(getWindow().L.latLng(intoPage({lat: lat, lng: lng})), intoPage({
+                content: text,
+                sticky: true,
+                offset: getWindow().L.point(10, 0),
+            })).addTo(getMap())
+        } else {
+            showActiveNodeMarker(e.latlng.lat, e.latlng.lng, "#000000")
+        }
+    })
+
+    measuringMenuItem = getMap().contextmenu.addItem(intoPageWithFun({
+        text: "Measure from here",
+        callback: function startMeasuring(e) {
+            if (measuring) {
+                endMeasuring()
+                return
+            }
+            currentMeasuring = makeEmptyMeasuring()
+            const {lat: initLat, lng: initLng} = e.latlng
+            currentMeasuring.way.push({lat: initLat, lng: initLng})
+            currentMeasuring.nodes.push(showNodeMarker(initLat, initLng, "#000000"))
+            if (currentMeasuring.way.length > 1) {
+                currentMeasuring.wayLine?.remove()
+                currentMeasuring.wayLine = displayWay(currentMeasuring.way)
+            } else {
+                document.querySelector("#map").style.cursor = "pointer"
+                measuring = true
+                measuringMenuItem.textContent = "End measure"
+
+                getMap().on('mousedown', measuringMouseDownHandler)
+                getMap().on('mouseup', measuringMouseUpHandler)
+                getMap().on('mousemove', measuringMouseMoveHandler)
+            }
+        }
+    }));
+}
+
+//</editor-fold>
+
+function setupIDframe() {
     if (GM_config.get("DarkModeForID")) {
         injectCSSIntoOSMPage(`
                 @media ${mediaQueryForWebsiteTheme} {
