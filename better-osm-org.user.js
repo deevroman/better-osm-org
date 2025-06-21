@@ -5700,9 +5700,9 @@ function renderRestriction(rel, color, layer) {
         const imgLayer = getWindow().L.imageOverlay("data:image/svg+xml;base64," + btoa(img), intoPage(getSquareBounds(via, 0.0002)),
             intoPage({
                 interactive: true,
-                zIndex: 99999
+                zIndex: 99999,
+                className: "restriction-img"
             })).addTo(getMap());
-        console.log(layers);
         arrows.push(imgLayer)
         arrows.forEach(l => layers[layer].push(l))
         imgLayer.bringToFront()
@@ -7248,11 +7248,12 @@ async function addHoverForRelationMembers() {
     /*** @type {Map<string, RelationVersion>}*/
     const relationsMap = new Map(Object.entries(Object.groupBy(relationData.elements.filter(i => i.type === "relation"), i => i.id)).map(([k, v]) => [k, v[0]]));
     let restrictionArrows = []
+    const pinSign = document.createElement("span")
 
     function bringRestrictionArrowsToFront() {
         restrictionArrows.forEach(i => i.bringToFront())
     }
-
+    let isRestriction = false
     document.querySelectorAll(`details [href^="/node/"]:not(.hover-added)`).forEach(elem => {
         elem.classList.add("hover-added")
         const nodeInfo = nodesMap.get(elem.href.match(/node\/(\d+)/)[1]);
@@ -7261,6 +7262,27 @@ async function addHoverForRelationMembers() {
         nodeLi.onmouseenter = () => {
             showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), darkModeForMap ? "#ff00e3" : "#000000", true, 6, 3)
             bringRestrictionArrowsToFront();
+            if (isRestriction && pinSign.classList.contains("pinned")) {
+                injectJSIntoPage(`
+                    (() => {
+                        let tmp = document.createElement("span")
+                        tmp.innerHTML = '<svg id="kek" width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="6" stroke="black" stroke-width="3" fill="none" /></svg>'
+                        window.prevdo = {
+                            maxWidth: 10,
+                            maxHeight: 10,
+                            className: "restriction-via-node-workaround",
+                            icon: L.icon({
+                                iconUrl: "data:image/svg+xml;base64," + btoa(tmp.innerHTML),
+                                iconSize: [100, 100],
+                                iconAnchor: [50, 50]
+                            })
+                        };
+                    })()
+                `)
+                const m = getWindow().L.marker(getWindow().L.latLng(nodeInfo.lat, nodeInfo.lon), getWindow().prevdo);
+                layers["activeObjects"].push(m)
+                m.addTo(getMap());
+            }
         }
         nodeLi.onclick = (e) => {
             if (e.altKey) return;
@@ -7351,6 +7373,7 @@ async function addHoverForRelationMembers() {
         cleanObjectsByKey("activeObjects")
     })
     if (document.querySelector('#sidebar_content h2:not(.restriction-rendered)') && isRestrictionObj(relationsMap.get(relation_id.toString()).tags ?? {})) {
+        isRestriction = true
         document.querySelector('#sidebar_content h2').classList.add("restriction-rendered")
         const extendedRelationVersion = relationsMap.get(relation_id.toString())
         extendedRelationVersion.members = extendedRelationVersion.members.map(mem => {
@@ -7375,6 +7398,29 @@ async function addHoverForRelationMembers() {
         } else {
             restrictionArrows = renderRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion, restrictionColors[extendedRelationVersion.tags['restriction']] ?? "#000", "customObjects")
         }
+        pinSign.classList.add("pinned")
+        pinSign.textContent = "📌"
+        pinSign.tabIndex = 0
+        pinSign.style.cursor = "pointer"
+        pinSign.title = "Pin relation on map"
+        pinSign.onkeypress = pinSign.onclick = async (e) => {
+            e.preventDefault()
+            e.stopImmediatePropagation()
+            if (pinSign.classList.contains("pinned")) {
+                pinSign.style.cursor = "pointer"
+                pinSign.classList.remove("pinned")
+                pinSign.style.filter = "grayscale(1)"
+                pinSign.title = "Hide restriction sign"
+                restrictionArrows.forEach(i => i.getElement().style.display = "none")
+            } else {
+                pinSign.title = "Hide restriction sign"
+                pinSign.classList.add("pinned")
+                pinSign.style.filter = ""
+                restrictionArrows.forEach(i => i.getElement().style.display = "")
+            }
+        }
+        document.querySelector(".browse-relation details summary").appendChild(document.createTextNode(" "))
+        document.querySelector(".browse-relation details summary").appendChild(pinSign)
     }
     console.log("addHoverForRelationMembers finished");
 }
