@@ -748,6 +748,12 @@ GM_config.init(
                     'default': isMobile ? 'checked' : false,
                     'labelPos': 'right'
                 },
+                'BetterTaginfo': {
+                    'label': 'Add new button in Taginfo',
+                    'type': 'checkbox',
+                    'default': 'checked',
+                    'labelPos': 'right'
+                },
                 'OverpassInstance': {
                     'label': '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass API server</a>',
                     'labelPos': 'left',
@@ -14602,6 +14608,8 @@ const fetchJSONWithCache = (() => {
 })();
 
 function setupTaginfo() {
+    if (!GM_config.get("BetterTaginfo")) return;
+
     const instance_text = document.querySelector("#instance")?.textContent;
     const instance = instance_text?.replace(/ \(.*\)/, "")
 
@@ -14678,6 +14686,28 @@ out geom;
                     : new URLSearchParams({Q: query, R: ""})).toString()
                 overpassLink.style.cursor = "pointer"
             }
+            i.prepend(document.createTextNode("\xA0"))
+            i.prepend(overpassLink)
+        })
+    } else if (location.hash === "#values") {
+        const key = document.querySelector("h1").textContent
+        document.querySelectorAll(".dt-body[data-col='0']").forEach(i => {
+            if (i.querySelector(".overpass-link")) return
+            const overpassLink = document.createElement("a")
+            overpassLink.classList.add("overpass-link")
+            overpassLink.textContent = "🔍"
+            overpassLink.target = "_blank"
+            const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ''))
+            const value = i.querySelector(".empty") ? "" : i.querySelector("a").textContent
+            overpassLink.href = `${overpass_server.url}?` + (count > 10000
+                ? new URLSearchParams({
+                        w: instance ? `"${key}"="${value}" in "${instance}"` : `"${key}"="${value}"`
+                    }
+                ).toString()
+                : new URLSearchParams({
+                    w: instance ? `"${key}"="${value}" in "${instance}"` : `"${key}"="${value}" global`,
+                    R: ""
+                }).toString())
             i.prepend(document.createTextNode("\xA0"))
             i.prepend(overpassLink)
         })
