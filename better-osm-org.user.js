@@ -13938,11 +13938,11 @@ function setupNavigationViaHotkeys() {
                 endMeasuring()
             }
         }
-        if (drawingBuildings) {
-            if (e.code === "Escape") {
-                firstBuilding = null
-            }
-        }
+        // if (drawingBuildings) {
+        //     if (e.code === "Escape") {
+        //         firstBuilding = null
+        //     }
+        // }
         if (e.metaKey || e.ctrlKey) {
             return;
         }
