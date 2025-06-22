@@ -10738,6 +10738,7 @@ async function interceptMapManually() {
     if (getWindow().mapIntercepted) return
     try {
         console.warn("try intercept map manually")
+        getWindow().scriptHandler = GM_info.scriptHandler
         injectJSIntoPage(`
         L.Layer.addInitHook(function () {
                 if (window.mapIntercepted) return
@@ -10748,8 +10749,8 @@ async function interceptMapManually() {
                         window.mapIntercepted = true
                         window.map = e.target._map;
                         if (!window.scriptInstance) {
-                            window.scriptInstance = GM_info.scriptHandler;
-                        } else if (window.scriptInstance !== GM_info.scriptHandler) {
+                            window.scriptInstance = window.scriptHandler;
+                        } else if (window.scriptInstance !== window.scriptHandler) {
                             console.error(\`Two copies of the script were running simultaneously via ${window.scriptInstance} and ${window.scriptInstance}. Turn off one of them\`)
                         }
                     })
