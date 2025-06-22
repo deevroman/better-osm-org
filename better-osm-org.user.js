@@ -1,8 +1,9 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         0.9.9.12
-// @changelog       v0.9.9.11: type=restriction render, user UI in profile, profile for deleted user
+// @version         1.0.0
+// @changelog       v1.0.0: type=restriction render, user ID in profile, profile for deleted user
+// @changelog       v1.0.0: notes filter, Overpass link in taginfo for key values,
 // @changelog       v0.9.9: Button for 3D view building in OSMBuilding, F4map and other viewers
 // @changelog       v0.9.9: Key1 for open first user's changeset, add poweruser=true in Rapid link
 // @changelog       v0.9.9: Restore navigation links on changeset page of deleted user
@@ -1061,7 +1062,9 @@ function makeHashtagsInNotesClickable() {
                             return
                         }
                         e.preventDefault()
-                        document.querySelector(".control-layers a").click()
+                        if (document.querySelector(".layers-ui").style.display === "none") {
+                            document.querySelector(".control-layers a").click()
+                        }
                         Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({block: "center"})
                         document.querySelector("#filter-notes-by-string").value = match
                         updateNotesLayer()
@@ -5545,20 +5548,29 @@ async function getRelationHistory(relationID) {
  */
 
 const overpassCache = {}
-const bboxCache = {}
+
+/**
+ * @typedef {{
+ *   min_lat: number,
+ *   min_lon: number,
+ *   max_lat: number,
+ *   max_lon: number,
+ * }} BBOX
+ */
 
 /**
  * @typedef {{
  *   geom: LatLonPair[][],
+ *   bbox: BBOX,
  *   isRestriction: boolean,
  *   restrictionRelationErrors: string[]
- * }} CachedGeom
+ * }} CachedRelation
  */
 
 /**
- * @type {Object.<*, CachedGeom>}
+ * @type {Object.<*, CachedRelation>}
  */
-const cachedRelationsGeometry = {}
+const cachedRelations = {}
 
 /**
  * @param {number} lat
@@ -5894,7 +5906,7 @@ function isRestrictionObj(tags) {
  * @param {string=} color=
  * @param {string=} layer=
  * @param {boolean=} addStroke
- * @return {Promise<{bbox: {}, restrictionRelationErrors: []}>}
+ * @return {Promise<CachedRelation>}
  */
 async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObjects = true, color = "#000000", layer = "activeObjects", addStroke = null) {
     console.time(`Render ${id} relation`)
@@ -5935,8 +5947,53 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
     if (!layers[layer]) {
         layers[layer] = []
     }
+
+    /**
+     * @param overpassGeom
+     * @return {{bbox: BBOX, nodesBbox: BBOX}}
+     */
+    function getBbox(overpassGeom) {
+        /** @type {{bbox: BBOX, nodesBbox: BBOX}} */
+        const relationInfo = {
+            bbox:      { min_lat: 10000000, min_lon: 10000000, max_lat: -10000000, max_lon: -100000000 },
+            nodesBbox: { min_lat: 10000000, min_lon: 10000000, max_lat: -10000000, max_lon: -100000000 }
+        }
+
+        const nodesBag = []
+        overpassGeom.elements[0]?.members?.forEach(i => {
+            if (i.type === "way") {
+                nodesBag.push(...i.geometry.map(p => {
+                    return {lat: p.lat, lon: p.lon}
+                }))
+            } else if (i.type === "node") {
+                nodesBag.push({lat: i.lat, lon: i.lon})
+            } else {
+                // ну нинада пожалуйста
+            }
+        })
+
+        overpassGeom.elements[0]?.members?.forEach(i => {
+            if (i.type === "node" && i?.lat) {
+                relationInfo.nodesBbox.min_lat = min(relationInfo.nodesBbox.min_lat, i.lat)
+                relationInfo.nodesBbox.min_lon = min(relationInfo.nodesBbox.min_lon, i.lon)
+                relationInfo.nodesBbox.max_lat = max(relationInfo.nodesBbox.max_lat, i.lat)
+                relationInfo.nodesBbox.max_lon = max(relationInfo.nodesBbox.max_lon, i.lon)
+            }
+        })
+
+        for (const i of nodesBag) {
+            if (i?.lat) {
+                relationInfo.bbox.min_lat = min(relationInfo.bbox.min_lat, i.lat)
+                relationInfo.bbox.min_lon = min(relationInfo.bbox.min_lon, i.lon)
+                relationInfo.bbox.max_lat = max(relationInfo.bbox.max_lat, i.lat)
+                relationInfo.bbox.max_lon = max(relationInfo.bbox.max_lon, i.lon)
+            }
+        }
+        return relationInfo
+    }
+
     // GC больно, постоянно передавать в контекст страницы больно
-    let cache = /** @type {CachedGeom} */ cachedRelationsGeometry[[id, timestamp]];
+    let cache = /** @type {CachedRelation} */ cachedRelations[[id, timestamp]];
     if (!cache) {
         let wayCounts = 0
         /** @type {LatLonPair[][]} */
@@ -5967,8 +6024,11 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
             }
         })
         const isRestriction = isRestrictionObj(overpassGeom.elements?.[0].tags ?? {})
-        cache = cachedRelationsGeometry[[id, timestamp]] = {
+        const {bbox, nodesBbox} = getBbox(overpassGeom)
+        cache = cachedRelations[[id, timestamp]] = {
             geom: mergedGeometry.map(i => intoPage(i)),
+            bbox: bbox,
+            nodesBbox: nodesBbox,
             isRestriction: isRestriction,
             restrictionRelationErrors: isRestriction ? validateRestriction(overpassGeom.elements[0]) : [],
         }
@@ -5985,49 +6045,14 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
         displayWay(nodesList, false, color, 4, null, layer, null, null, addStroke, true)
     })
 
-    if (cache.isRestriction) {
+    if (cache.isRestriction && cache.restrictionRelationErrors.length === 0) {
         renderRestriction(overpassGeom.elements[0], restrictionColors[overpassGeom.elements[0].tags['restriction']] ?? color, layer)
     }
 
     console.timeEnd(`Render ${id} relation`)
 
-    function getBbox(id, timestamp) {
-        if (bboxCache[[id, timestamp]]) {
-            return bboxCache[[id, timestamp]]
-        }
-        const nodesBag = []
-        overpassGeom.elements[0]?.members?.forEach(i => {
-            if (i.type === "way") {
-                nodesBag.push(...i.geometry.map(p => {
-                    return {lat: p.lat, lon: p.lon}
-                }))
-            } else if (i.type === "node") {
-                nodesBag.push({lat: i.lat, lon: i.lon})
-            } else {
-                // ну нинада пожалуйста
-            }
-        })
-        const relationInfo = {}
-        relationInfo.bbox = {
-            min_lat: 10000000, min_lon: 10000000, max_lat: -10000000, max_lon: -100000000,
-        }
-
-        for (const i of nodesBag) {
-            if (i?.lat) {
-                relationInfo.bbox.min_lat = min(relationInfo.bbox.min_lat, i.lat)
-                relationInfo.bbox.min_lon = min(relationInfo.bbox.min_lon, i.lon)
-                relationInfo.bbox.max_lat = max(relationInfo.bbox.max_lat, i.lat)
-                relationInfo.bbox.max_lon = max(relationInfo.bbox.max_lon, i.lon)
-            }
-        }
-        return bboxCache[[id, timestamp]] = relationInfo
-    }
-
     console.log("relation loaded")
-    return {
-        bbox: getBbox(id, timestamp),
-        restrictionRelationErrors: cache.restrictionRelationErrors
-    }
+    return cache;
 }
 
 async function getNodeViaOverpassXML(id, timestamp) {
@@ -7570,30 +7595,30 @@ async function addHoverForRelationMembers() {
             showRestrictionValidationStatus(errors, document.querySelector(".browse-relation details summary"))
         } else {
             restrictionArrows = renderRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion, restrictionColors[extendedRelationVersion.tags['restriction']] ?? "#000", "customObjects")
-        }
-        pinSign.classList.add("pinned")
-        pinSign.textContent = "📌"
-        pinSign.tabIndex = 0
-        pinSign.title = "Pin restriction sign on map.\nYou can hide all the objects that bettet-osm-org adds by pressing ` or ~"
-        pinSign.style.cursor = "pointer"
-        pinSign.onkeypress = pinSign.onclick = async (e) => {
-            e.preventDefault()
-            e.stopImmediatePropagation()
-            if (pinSign.classList.contains("pinned")) {
-                pinSign.style.cursor = "pointer"
-                pinSign.classList.remove("pinned")
-                pinSign.style.filter = "grayscale(1)"
-                pinSign.title = "Hide restriction sign"
-                restrictionArrows.forEach(i => i.getElement().style.display = "none")
-            } else {
-                pinSign.title = "Hide restriction sign"
-                pinSign.classList.add("pinned")
-                pinSign.style.filter = ""
-                restrictionArrows.forEach(i => i.getElement().style.display = "")
+            pinSign.classList.add("pinned")
+            pinSign.textContent = "📌"
+            pinSign.tabIndex = 0
+            pinSign.title = "Pin restriction sign on map.\nYou can hide all the objects that better-osm-org adds by pressing ` or ~"
+            pinSign.style.cursor = "pointer"
+            pinSign.onkeypress = pinSign.onclick = async (e) => {
+                e.preventDefault()
+                e.stopImmediatePropagation()
+                if (pinSign.classList.contains("pinned")) {
+                    pinSign.style.cursor = "pointer"
+                    pinSign.classList.remove("pinned")
+                    pinSign.style.filter = "grayscale(1)"
+                    pinSign.title = "Hide restriction sign"
+                    restrictionArrows.forEach(i => i.getElement().style.display = "none")
+                } else {
+                    pinSign.title = "Hide restriction sign"
+                    pinSign.classList.add("pinned")
+                    pinSign.style.filter = ""
+                    restrictionArrows.forEach(i => i.getElement().style.display = "")
+                }
             }
+            document.querySelector(".browse-relation details summary").appendChild(document.createTextNode(" "))
+            document.querySelector(".browse-relation details summary").appendChild(pinSign)
         }
-        document.querySelector(".browse-relation details summary").appendChild(document.createTextNode(" "))
-        document.querySelector(".browse-relation details summary").appendChild(pinSign)
     }
     console.log("addHoverForRelationMembers finished");
 }
@@ -9339,13 +9364,23 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 targetTimestamp = new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1).toISOString();
             }
             try {
-                const relationMetadata = (await loadRelationVersionMembersViaOverpass(parseInt(objID), targetTimestamp, false, "#ff00e3")).bbox
+                const relationMetadata = (await loadRelationVersionMembersViaOverpass(parseInt(objID), targetTimestamp, false, "#ff00e3"))
+                if (relationMetadata.isRestriction) {
+                    i.parentElement.parentElement.title = 'Click with Shift for zoom to "via" members'
+                }
                 i.parentElement.parentElement.onclick = (e) => {
                     if (e.altKey) return
-                    fitBounds([
-                        [relationMetadata.bbox.min_lat, relationMetadata.bbox.min_lon],
-                        [relationMetadata.bbox.max_lat, relationMetadata.bbox.max_lon]
-                    ])
+                    if (e.shiftKey && relationMetadata.isRestriction) {
+                        fitBounds([
+                            [relationMetadata.nodesBbox.min_lat, relationMetadata.nodesBbox.min_lon],
+                            [relationMetadata.nodesBbox.max_lat, relationMetadata.nodesBbox.max_lon]
+                        ])
+                    } else {
+                        fitBounds([
+                            [relationMetadata.bbox.min_lat, relationMetadata.bbox.min_lon],
+                            [relationMetadata.bbox.max_lat, relationMetadata.bbox.max_lon]
+                        ])
+                    }
                 }
 
                 async function mouseenterHandler() {
