@@ -14657,7 +14657,21 @@ function displayGPXTrack(xml) {
     doc.querySelectorAll("gpx wpt").forEach(wpt => {
         const lat = wpt.getAttribute("lat");
         const lon = wpt.getAttribute("lon");
-        showNodeMarker(lat, lon, "rgb(255,0,47)", null, 'customObjects', 3);
+        const marker = showNodeMarker(lat, lon, "rgb(255,0,47)", null, 'customObjects', 3);
+        const name = wpt.querySelector("name")
+        const desc = wpt.querySelector("desc")
+        if (name || desc) {
+            const popup = document.createElement("span")
+            if (name) {
+                popup.textContent = name.textContent
+            }
+            if (desc) {
+                popup.appendChild(document.createElement("br"))
+                popup.appendChild(document.createTextNode(desc.textContent))
+            }
+            marker.bindTooltip(popup.outerHTML)
+            marker.bindPopup(popup.outerHTML)
+        }
 
         trackMetadata.min_lat = min(trackMetadata.min_lat, lat);
         trackMetadata.min_lon = min(trackMetadata.min_lon, lon);
