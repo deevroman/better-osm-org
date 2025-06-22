@@ -14870,6 +14870,10 @@ function insertOverlaysStyles() {
     const mapHeight = getComputedStyle(document.querySelector("#map")).height
 
     injectCSSIntoOSMPage(`
+            .leaflet-popup-content, .leaflet-tooltip {
+                white-space: pre;
+            }
+            
             .leaflet-popup-content:has(.geojson-props-table) {
                 overflow: scroll;
             }
