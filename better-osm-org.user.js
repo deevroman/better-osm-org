@@ -14691,7 +14691,7 @@ out geom;
         })
     } else if (location.hash === "#values") {
         const key = document.querySelector("h1").textContent
-        document.querySelectorAll(".dt-body[data-col='0']").forEach(i => {
+        document.querySelectorAll("#values .dt-body[data-col='0']").forEach(i => {
             if (i.querySelector(".overpass-link")) return
             const overpassLink = document.createElement("a")
             overpassLink.classList.add("overpass-link")
