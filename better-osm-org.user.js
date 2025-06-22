@@ -2512,6 +2512,87 @@ function addDeleteButton() {
         }
         link.ondblclick = deleteObject
     }
+    setTimeout(async () => {
+        await sleep(110)
+        if (!getMap || !getMap().contextmenu || !measurerAdded) {
+            await sleep(1110)
+        }
+        getMap().contextmenu.addItem(intoPageWithFun({
+            text: "Move node to here",
+            callback: async function moveNode(e) {
+                const auth = makeAuth();
+                if (!confirm("move node?")) {
+                    return
+                }
+                const {lat: newLat, lng: newLon} = e.latlng
+
+                console.log("Opening changeset");
+                const rawObjectInfo = (await (await auth.fetch(osm_server.apiBase + object_type + '/' + object_id, {
+                    method: 'GET',
+                    prefix: false,
+                })).text());
+                const objectInfo = (new DOMParser()).parseFromString(rawObjectInfo, "text/xml")
+                const dist = Math.round(getDistanceFromLatLonInKm(
+                    parseInt(objectInfo.querySelector("node").getAttribute("lat")),
+                    parseInt(objectInfo.querySelector("node").getAttribute("lon")),
+                    newLat,
+                    newLon,
+                ) * 1000) / 1000;
+                if (dist > 50) {
+                    if (!confirm(`⚠️ ${dist} kilometers.\n\nARE YOU SURE?`)) {
+                        return
+                    }
+                }
+                objectInfo.querySelector("node").setAttribute("lat", newLat)
+                objectInfo.querySelector("node").setAttribute("lon", newLon)
+
+                const changesetTags = {
+                    'created_by': `better osm.org v${GM_info.script.version}`,
+                    'comment': "Moving node"
+                };
+
+                let changesetPayload = document.implementation.createDocument(null, 'osm');
+                let cs = changesetPayload.createElement('changeset');
+                changesetPayload.documentElement.appendChild(cs);
+                tagsToXml(changesetPayload, cs, changesetTags);
+                const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload);
+
+                const changesetId = await auth.fetch(osm_server.apiBase + 'changeset/create', {
+                    method: 'PUT',
+                    prefix: false,
+                    body: chPayloadStr
+                }).then((res) => {
+                    if (res.ok) return res.text();
+                    throw new Error(res);
+                });
+                console.log(changesetId);
+
+
+                try {
+                    objectInfo.children[0].children[0].setAttribute('changeset', changesetId);
+
+                    const objectInfoStr = new XMLSerializer().serializeToString(objectInfo).replace(/xmlns="[^"]+"/, '')
+                    console.log(objectInfoStr);
+                    await auth.fetch(osm_server.apiBase + object_type + '/' + object_id, {
+                        method: 'PUT',
+                        prefix: false,
+                        body: objectInfoStr
+                    }).then(async (res) => {
+                        const text = await res.text()
+                        if (res.ok) return text;
+                        alert(text)
+                        throw new Error(text);
+                    });
+                } finally {
+                    await auth.fetch(osm_server.apiBase + 'changeset/' + changesetId + '/close', {
+                        method: 'PUT',
+                        prefix: false
+                    });
+                    window.location.reload();
+                }
+            }
+        }))
+    })
 }
 
 function setupDeletor(path) {
@@ -12330,8 +12411,8 @@ window.notesDisplayName = "";
 window.notesQFilter = "";
 window.notesClosedFilter = "";
 
+console.log('Fetch intercepted');
 window.fetch = async (...args) => {
-    console.log('Fetch intercepted');
     if (args[0].includes("notes.json") && (window.notesDisplayName !== "" || window.notesQFilter !== "" || window.notesClosedFilter !== "")) {
         const url = new URL(args[0], location.origin);
         url.pathname = url.pathname.replace("notes.json", "notes/search.json")
