@@ -7348,6 +7348,7 @@ async function addHoverForRelationMembers() {
             showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), darkModeForMap ? "#ff00e3" : "#000000", true, 6, 3)
             bringRestrictionArrowsToFront();
             if (isRestriction && pinSign.classList.contains("pinned")) {
+                // https://github.com/deevroman/better-osm-org/pull/324#issuecomment-2993733516
                 injectJSIntoPage(`
                     (() => {
                         let tmp = document.createElement("span")
