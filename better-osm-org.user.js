@@ -4070,11 +4070,16 @@ function injectCSSIntoSimplePage(text) {
 }
 
 /**
- * @type {{customObjects: (import('leaflet').Path)[], activeObjects: (import('leaflet').Path)[]}}
+ * @type {{
+ *  customObjects: (import('leaflet').Path)[],
+ *  activeObjects: (import('leaflet').Path)[],
+ *  changesetBounds: (import('leaflet').Path)[]
+ * }}
  */
 const layers = {
     customObjects: [],
-    activeObjects: []
+    activeObjects: [],
+    changesetBounds: []
 }
 
 /**
@@ -10602,9 +10607,6 @@ async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) 
     for (let curID of changesetIDs) {
         currentChangesets.push(changesetMetadatas[curID]);
     }
-    if (!layers['changesetBounds']) {
-        layers['changesetBounds'] = []
-    }
 
     for (let bbox of currentChangesets) {
         drawBBox(bbox)
@@ -13474,9 +13476,6 @@ function preventHoverEvents() {
 }
 
 function goToPrevChangeset(e) {
-    if (!layers['changesetBounds']) {
-        layers['changesetBounds'] = []
-    }
     if (!document.querySelector("ol .active-object")) {
         return;
     }
@@ -13525,9 +13524,6 @@ function goToPrevChangeset(e) {
 
 function goToNextChangeset(e) {
     preventHoverEvents()
-    if (!layers['changesetBounds']) {
-        layers['changesetBounds'] = []
-    }
     if (!document.querySelector("ol .active-object")) {
         let next = document.querySelector("ol li")
         while (true) {
@@ -13585,6 +13581,7 @@ function goToNextChangeset(e) {
         resetSelectedChangesets()
         next.classList.add("selected")
         next.scrollIntoView({block: "center", behavior: "instant"})
+        cleanObjectsByKey('changesetBounds')
 
         setTimeout(() => {
             const bound = drawBBox(extractBboxFromElem(next), {color: "#000000", weight: 4, fillOpacity: 0})
