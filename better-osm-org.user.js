@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.0.0
+// @version         1.0.1
 // @changelog       v1.0.0: type=restriction render, user ID in profile, profile for deleted user
 // @changelog       v1.0.0: notes filter, Overpass link in taginfo for key values, ruler, nodes mover
 // @changelog       v0.9.9: Button for 3D view building in OSMBuilding, F4map and other viewers
@@ -2375,6 +2375,8 @@ function setupNotesFiltersButtons() {
     addNotesFiltersButtons();
 }
 
+let nodeMoverMenuItem;
+
 function addDeleteButton() {
     if (!location.pathname.startsWith("/node/")) return;
     if (location.pathname.includes("/history")) return;
@@ -2522,19 +2524,25 @@ function addDeleteButton() {
         link.ondblclick = deleteObject
     }
     setTimeout(async () => {
+        try {
+            nodeMoverMenuItem = getMap().contextmenu.removeItem(nodeMoverMenuItem)
+        } catch { /* empty */}
         await sleep(110)
         if (!getMap || !getMap().contextmenu || !measurerAdded) {
             await sleep(1110)
         }
-        getMap().contextmenu.addItem(intoPageWithFun({
+        nodeMoverMenuItem = getMap().contextmenu.addItem(intoPageWithFun({
             text: "Move node to here",
             callback: async function moveNode(e) {
+                let match = location.pathname.match(/(node)\/(\d+)/);
+                if (!match) return;
+                let object_type = match[1];
+                let object_id = match[2];
                 const auth = makeAuth();
                 if (!confirm("move node?")) {
                     return
                 }
                 const {lat: newLat, lng: newLon} = e.latlng
-
                 console.log("Opening changeset");
                 const rawObjectInfo = (await (await auth.fetch(osm_server.apiBase + object_type + '/' + object_id, {
                     method: 'GET',
@@ -2542,8 +2550,8 @@ function addDeleteButton() {
                 })).text());
                 const objectInfo = (new DOMParser()).parseFromString(rawObjectInfo, "text/xml")
                 const dist = Math.round(getDistanceFromLatLonInKm(
-                    parseInt(objectInfo.querySelector("node").getAttribute("lat")),
-                    parseInt(objectInfo.querySelector("node").getAttribute("lon")),
+                    parseFloat(objectInfo.querySelector("node").getAttribute("lat")),
+                    parseFloat(objectInfo.querySelector("node").getAttribute("lon")),
                     newLat,
                     newLon,
                 ) * 1000) / 1000;
