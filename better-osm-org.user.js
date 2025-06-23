@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.0.1
+// @version         1.0.2
 // @changelog       v1.0.0: type=restriction render, user ID in profile, profile for deleted user
 // @changelog       v1.0.0: notes filter, Overpass link in taginfo for key values, ruler, nodes mover
 // @changelog       v0.9.9: Button for 3D view building in OSMBuilding, F4map and other viewers
@@ -2377,6 +2377,14 @@ function setupNotesFiltersButtons() {
 
 let nodeMoverMenuItem;
 
+function removePOIMoverMenu() {
+    if (!nodeMoverMenuItem) return
+    try {
+        nodeMoverMenuItem = getMap().contextmenu.removeItem(nodeMoverMenuItem)
+        nodeMoverMenuItem = null
+    } catch { /* empty */}
+}
+
 function addDeleteButton() {
     if (!location.pathname.startsWith("/node/")) return;
     if (location.pathname.includes("/history")) return;
@@ -2524,9 +2532,7 @@ function addDeleteButton() {
         link.ondblclick = deleteObject
     }
     setTimeout(async () => {
-        try {
-            nodeMoverMenuItem = getMap().contextmenu.removeItem(nodeMoverMenuItem)
-        } catch { /* empty */}
+        removePOIMoverMenu()
         await sleep(110)
         if (!getMap || !getMap().contextmenu || !measurerAdded) {
             await sleep(1110)
@@ -15916,6 +15922,7 @@ function setupOSMWebsite() {
             document.querySelector("#fixed-rss-feed")?.remove()
             buildingViewerIframe?.remove()
             buildingViewerIframe = null
+            removePOIMoverMenu()
             if (!path.startsWith("/changeset") && !path.startsWith("/history") &&
                 !path.startsWith("/node") && !path.startsWith("/way") && path !== "/relation" &&
                 !path.startsWith("/note")) {
