@@ -2,7 +2,7 @@
 
 Userscript adding several improvements for experienced osm.org users
 
-1. Install [Tampermonkey](https://www.tampermonkey.net) or [Violentmonkey](https://violentmonkey.github.io/)
+1. Install [Violentmonkey](https://violentmonkey.github.io/) (FOSS) or [Tampermonkey](https://www.tampermonkey.net) (proprietary)
 2. [Install](https://raw.githubusercontent.com/deevroman/better-osm-org/master/better-osm-org.user.js) script
 
 Also works in Firefox for Android
