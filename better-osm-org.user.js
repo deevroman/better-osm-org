@@ -12466,33 +12466,35 @@ let queriesCache = {
     elems: {}
 }
 
-injectJSIntoPage(`
-const originalFetch = window.fetch;
+if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)) {
+    injectJSIntoPage(`
+    const originalFetch = window.fetch;
 
-window.notesDisplayName = "";
-window.notesQFilter = "";
-window.notesClosedFilter = "";
+    window.notesDisplayName = "";
+    window.notesQFilter = "";
+    window.notesClosedFilter = "";
 
-console.log('Fetch intercepted');
-window.fetch = async (...args) => {
-    if (args[0].includes("notes.json") && (window.notesDisplayName !== "" || window.notesQFilter !== "" || window.notesClosedFilter !== "")) {
-        const url = new URL(args[0], location.origin);
-        url.pathname = url.pathname.replace("notes.json", "notes/search.json")
-        url.searchParams.set("limit", "1000")
-        if (window.notesDisplayName) {
-            url.searchParams.set("display_name", window.notesDisplayName)
+    console.log('Fetch intercepted');
+    window.fetch = async (...args) => {
+        if (args[0].includes("notes.json") && (window.notesDisplayName !== "" || window.notesQFilter !== "" || window.notesClosedFilter !== "")) {
+            const url = new URL(args[0], location.origin);
+            url.pathname = url.pathname.replace("notes.json", "notes/search.json")
+            url.searchParams.set("limit", "1000")
+            if (window.notesDisplayName) {
+                url.searchParams.set("display_name", window.notesDisplayName)
+            }
+            if (window.notesQFilter) {
+                url.searchParams.set("q", window.notesQFilter)
+            }
+            // if (window.notesClosedFilter) {
+            //     url.searchParams.set("closed", window.notesClosedFilter)
+            // }
+            args[0] = url.toString()
         }
-        if (window.notesQFilter) {
-            url.searchParams.set("q", window.notesQFilter)
-        }
-        // if (window.notesClosedFilter) {
-        //     url.searchParams.set("closed", window.notesClosedFilter)
-        // }
-        args[0] = url.toString()
+        return originalFetch(...args);
     }
-    return originalFetch(...args);
+    `)
 }
-`)
 
 function getScrollbarWidth() {
     const outer = document.createElement('div');
