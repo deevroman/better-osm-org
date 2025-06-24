@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.0.3
+// @version         1.0.4
 // @changelog       v1.0.0: type=restriction render, user ID in profile, profile for deleted user
 // @changelog       v1.0.0: notes filter, Overpass link in taginfo for key values, ruler, nodes mover
 // @changelog       v0.9.9: Button for 3D view building in OSMBuilding, F4map and other viewers
@@ -3474,8 +3474,8 @@ let searchResultBBOX = null;
 async function processOverpassQuery(query) {
     if (!query.length) return
     await GM.setValue("lastOverpassQuery", query)
-    const bound = getMap().getBounds().wrap()
-    const bboxString = [bound.getSouth(), bound.getWest(), bound.getNorth(), bound.getEast()]
+    const bound = getMap().getBounds()
+    const bboxString = [bound.getSouthWest().wrap().lat, bound.getSouthWest().wrap().lng, bound.getNorthEast().wrap().lat, bound.getNorthEast().wrap().lng]
     const bboxExpr = query[query.length - 1] !== "!" ? "[bbox:" + bboxString + "]" : ""
     if (query[query.length - 1] === "!") {
         query = query.slice(0, -1)
