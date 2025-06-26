@@ -11587,8 +11587,42 @@ async function makeProfileForDeletedUser(user) {
             lastChangesets.changesets.forEach(ch => {
                 const changesetLine = document.createElement("div")
                 changesetLine.title = ch['created_at']
+                const checkbox = document.createElement("input")
+                checkbox.type = "checkbox"
+                checkbox.classList.add("mass-action-checkbox")
+                checkbox.textContent = "#" + ch.id + ""
+                checkbox.title = "Shift + click for select a range of empty checkboxes"
+                checkbox.value = ch.id
+                checkbox.onclick = e => {
+                    if (e.shiftKey) {
+                        let currentCheckboxFound = false
+                        for (const cBox of Array.from(elemForResult.querySelectorAll("input")).toReversed()) {
+                            if (!currentCheckboxFound) {
+                                if (cBox.value === checkbox.value) {
+                                    currentCheckboxFound = true
+                                }
+                            } else {
+                                if (cBox.checked) {
+                                    break
+                                }
+                                cBox.checked = true
+                            }
+                        }
+                    }
+                    const selectedIDsCount = elemForResult.querySelectorAll("input:checked").length
+                    elemForResult.querySelectorAll(".copy-changesets-ids-btn").forEach(i => {
+                        if (selectedIDsCount) {
+                            i.textContent = `Copy ${selectedIDsCount} IDs`
+                        } else {
+                            i.textContent = `Copy IDs`
+                        }
+                    })
+                }
+                changesetLine.appendChild(checkbox)
+                changesetLine.appendChild(document.createTextNode("\xA0"))
+
                 const a = document.createElement("a")
-                a.textContent = "#" + ch.id + ""
+                a.textContent = ch.id
                 a.href = "/changeset/" + ch.id
                 a.target = "_blank"
                 a.style.fontFamily = "monospace"
@@ -11617,6 +11651,25 @@ async function makeProfileForDeletedUser(user) {
 
                 div.appendChild(changesetLine)
             })
+
+            const copyIds = document.createElement("button")
+            copyIds.textContent = "Copy IDs"
+            copyIds.title = ""
+            copyIds.classList.add("copy-changesets-ids-btn")
+            copyIds.onclick = () => {
+                const ids = Array.from(elemForResult.querySelectorAll("input:checked")).map(i => i.value).join(",")
+                if (ids !== "") {
+                    navigator.clipboard.writeText(ids).then(() => {
+                        console.log(ids, "ids copied")
+                    });
+                } else {
+                    const ids = Array.from(elemForResult.querySelectorAll("input")).map(i => i.value).join(",")
+                    navigator.clipboard.writeText(ids).then(() => {
+                        console.log(ids, "ids copied")
+                    });
+                }
+            }
+            elemForResult.appendChild(copyIds)
         }
     }
 
