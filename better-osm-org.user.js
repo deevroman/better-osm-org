@@ -14512,18 +14512,20 @@ function setupNavigationViaHotkeys() {
             }
         } else if (location.pathname.match(/^\/(node|way|relation)\/\d+/)) {
             if (e.code === "Comma") {
-                const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
-                if (navigationLinks && navigationLinks[0].href.includes("/history/")) {
-                    if (location.pathname.includes("history")) {
-                        navigationLinks[0].click()
-                    } else {
-                        Array.from(navigationLinks).at(-1).click()
+                const links = Array.from(document.querySelectorAll("#sidebar_content nav div ul a"))
+                for (let i = 0; i < links.length; i++) {
+                    if (links[i].parentElement.classList.contains("active")) {
+                        links[i-1]?.click()
+                        break
                     }
                 }
             } else if (e.code === "Period") {
-                const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
-                if (navigationLinks && Array.from(navigationLinks).at(-1).href.includes("/history/")) {
-                    Array.from(navigationLinks).at(-1).click()
+                const links = Array.from(document.querySelectorAll("#sidebar_content nav div ul a"))
+                for (let i = 0; i < links.length; i++) {
+                    if (links[i].parentElement.classList.contains("active")) {
+                        links[i+1]?.click()
+                        break
+                    }
                 }
             }
             if (location.pathname.match(/\/history$/)) {
