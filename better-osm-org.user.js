@@ -4617,9 +4617,10 @@ function setupNodeVersionView() {
         let lat = i.textContent.replace(",", ".")
         let lon = i.nextElementSibling.textContent.replace(",", ".")
         nodeHistoryPath.push([lat, lon])
-        i.parentElement.parentElement.onmouseenter = () => {
+        const versionDiv = i.parentElement.parentElement.parentElement.parentElement
+        versionDiv.onmouseenter = () => {
             showActiveNodeMarker(lat, lon, "#ff00e3");
-            i.parentElement.parentElement.parentElement.parentElement.querySelectorAll(".browse-tag-list tr").forEach(row => {
+            versionDiv.querySelectorAll(".browse-tag-list tr").forEach(row => {
                 const key = row.querySelector("th")?.textContent?.toLowerCase()
                 if (!key) return
                 if (key === "direction" || key === "camera:direction") {
@@ -4630,7 +4631,7 @@ function setupNodeVersionView() {
                 }
             })
         }
-        i.parentElement.parentElement.parentElement.parentElement.onclick = (e) => {
+        versionDiv.onclick = (e) => {
             if (e.altKey) return;
             if (e.target.tagName === "A" || e.target.tagName === "TIME" || e.target.tagName === "SUMMARY") {
                 return
@@ -4641,6 +4642,10 @@ function setupNodeVersionView() {
     })
     interceptMapManually().then(() => {
         displayWay(cloneInto(nodeHistoryPath, unsafeWindow), false, "rgba(251,156,112,0.86)", 2);
+    })
+    document.querySelectorAll(".browse-node h4:nth-of-type(1) a").forEach(i => {
+        const version = i.href.match(/\/(\d+)$/)[1];
+        i.parentElement.parentElement.setAttribute("node-version", version)
     })
 }
 
@@ -6898,6 +6903,20 @@ function addDiffInHistory() {
     }
     
     ` + (GM_config.get("ShowChangesetGeometry") ? `
+    .node-version-view:hover {
+        background-color: yellow;
+    }
+    
+    [node-version]:hover {
+        background-color: rgba(244, 244, 244);
+    }
+    
+    @media ${mediaQueryForWebsiteTheme} {
+        [node-version]:hover {
+            background-color: rgb(14, 17, 19);
+        }
+    }
+          
     .way-version-view:hover {
         background-color: yellow;
     }
