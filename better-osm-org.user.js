@@ -1156,6 +1156,23 @@ async function restorePrevNextChangesetButtons(changeset_id) {
 
 let changesetObjectsSelectionModeEnabled = false;
 
+async function validateOsmServerInJOSM() {
+    const res = await(await fetch("http://127.0.0.1:8111/version").catch(() => {
+        alert("JOSM is not running")
+        throw "JOSM is not running"
+    })).json()
+    if (res['osm_server'] === "custom" && osm_server === prod_server) {
+        alert(`You are using custom OSM API server in JOSM.\n\nChange JOSM settings or open other website`)
+        return false
+    }
+    if (res['osm_server'] === "default" && osm_server !== prod_server) {
+        alert(`You are using other OSM instance, but JOSM uses default server.\n\nChange JOSM settings or open other website`)
+        return false
+    }
+    return true
+}
+
+
 function addRevertButton() {
     if (!location.pathname.startsWith("/changeset")) return
     if (document.querySelector('#revert_button_class')) return true;
@@ -1167,7 +1184,7 @@ function addRevertButton() {
         sidebar.innerHTML += ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="Open osm-revert\nShift + click for revert via JOSM\nPress R for partial revert">↩️</a> 
                                <a href="https://osmcha.org/changesets/${changeset_id}" target="_blank" rel="noreferrer"><img src="${GM_getResourceURL("OSMCHA_ICON", false)}" id="osmcha_link"></a>`;
         changesetObjectsSelectionModeEnabled = false
-        document.querySelector("#revert_button_class").onclick = (e) => {
+        document.querySelector("#revert_button_class").onclick = async (e) => {
             if (changesetObjectsSelectionModeEnabled) {
                 e.preventDefault()
                 if (osm_server !== prod_server) {
@@ -1210,13 +1227,16 @@ function addRevertButton() {
                 }
                 return
             }
+            e.preventDefault()
+            if (!await validateOsmServerInJOSM()) {
+                return
+            }
+
             if (osm_server !== prod_server) {
                 if (!confirm("⚠️This is not the main OSM server!\n\n⚠️To change the OSM server in the JOSM settings!")) {
-                    e.preventDefault()
                     return
                 }
             }
-            e.preventDefault()
             window.location = "http://127.0.0.1:8111/revert_changeset?id=" + changeset_id // todo open in new tab. It's broken in Fifefox and open new window
         }
         document.querySelector("#revert_button_class").style.textDecoration = "none"
@@ -2327,6 +2347,7 @@ function addNotesFiltersButtons() {
             getWindow().notesClosedFilter = "";
         }
     }
+
     updateNotesLayer = function () {
         updateNotesFilters()
         getMap().fire("moveend")
@@ -2382,7 +2403,8 @@ function removePOIMoverMenu() {
     try {
         nodeMoverMenuItem = getMap().contextmenu.removeItem(nodeMoverMenuItem)
         nodeMoverMenuItem = null
-    } catch { /* empty */}
+    } catch { /* empty */
+    }
 }
 
 function addDeleteButton() {
@@ -7469,6 +7491,7 @@ async function addHoverForRelationMembers() {
     function bringRestrictionArrowsToFront() {
         restrictionArrows.forEach(i => i.bringToFront())
     }
+
     let isRestriction = false
     document.querySelectorAll(`details [href^="/node/"]:not(.hover-added)`).forEach(elem => {
         elem.classList.add("hover-added")
@@ -7481,20 +7504,20 @@ async function addHoverForRelationMembers() {
             if (isRestriction && pinSign.classList.contains("pinned")) {
                 // https://github.com/deevroman/better-osm-org/pull/324#issuecomment-2993733516
                 injectJSIntoPage(`
-                    (() => {
-                        let tmp = document.createElement("span")
-                        tmp.innerHTML = '<svg id="kek" width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="6" stroke="black" stroke-width="3" fill="none" /></svg>'
-                        window.prevdo = {
-                            maxWidth: 10,
-                            maxHeight: 10,
-                            className: "restriction-via-node-workaround",
-                            icon: L.icon({
-                                iconUrl: "data:image/svg+xml;base64," + btoa(tmp.innerHTML),
-                                iconSize: [100, 100],
-                                iconAnchor: [50, 50]
-                            })
-                        };
-                    })()
+                (() => {
+                    let tmp = document.createElement("span")
+                    tmp.innerHTML = '<svg id="kek" width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="6" stroke="black" stroke-width="3" fill="none" /></svg>'
+                    window.prevdo = {
+                        maxWidth: 10,
+                        maxHeight: 10,
+                        className: "restriction-via-node-workaround",
+                        icon: L.icon({
+                            iconUrl: "data:image/svg+xml;base64," + btoa(tmp.innerHTML),
+                            iconSize: [100, 100],
+                            iconAnchor: [50, 50]
+                        })
+                    };
+                })()
                 `)
                 const m = getWindow().L.marker(getWindow().L.latLng(nodeInfo.lat, nodeInfo.lon), getWindow().prevdo);
                 layers["activeObjects"].push(m)
@@ -11395,7 +11418,7 @@ async function betterUserStat(user) {
 // https://osm.org/user/korobkov
 // https://osm.org/user/user_389895
 // https://osm.org/user/user_20965583
-async function makeProfileForDeletedUser(user){
+async function makeProfileForDeletedUser(user) {
     const content = document.querySelector(".content-body")
     const div = document.createElement("div")
     div.classList.add("content-inner", "position-relative", "m-auto")
@@ -11517,6 +11540,7 @@ async function makeProfileForDeletedUser(user){
                                 processFoundedBlocks(foundUserBlock)
                             }
                         }
+
                         const onPage = 20;
                         const threads = 10;
                         console.log("download user_block batch before ", lastUserBlock)
@@ -14155,10 +14179,17 @@ function setupNavigationViaHotkeys() {
                     const [, type, id] = m
                     const shortType = type === "node" ? "n" : (type === "way" ? "w" : "r")
                     if (e.altKey) {
+                        if (osm_server !== prod_server) {
+                            alert("level0 works only with osm.org")
+                            return
+                        }
                         window.open("https://level0.osmz.ru/?" + new URLSearchParams({
                             url: shortType + id + "!"
                         }).toString())
                     } else {
+                        if (!await validateOsmServerInJOSM()) {
+                            return
+                        }
                         window.open("http://localhost:8111/load_object?" + new URLSearchParams({
                             objects: [shortType + id],
                             relation_members: true,
@@ -14204,6 +14235,10 @@ function setupNavigationViaHotkeys() {
                 }
 
                 if (e.altKey) {
+                    if (osm_server !== prod_server) {
+                        alert("level0 works only with osm.org")
+                        return
+                    }
                     window.open("https://level0.osmz.ru/?" + new URLSearchParams({
                         url: [
                             Array.from(nodes).map(i => "n" + i).join(","),
@@ -14212,6 +14247,9 @@ function setupNavigationViaHotkeys() {
                         ].join(",").replace(/,,/, ",").replace(/,$/, "").replace(/^,/, "")
                     }).toString())
                 } else {
+                    if (!await validateOsmServerInJOSM()) {
+                        return
+                    }
                     window.open("http://localhost:8111/load_object?" + new URLSearchParams({
                         new_layer: "true",
                         objects: [
