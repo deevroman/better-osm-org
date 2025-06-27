@@ -3125,6 +3125,15 @@ function switchOverlayTiles() {
     observer.observe(document.body, {childList: true, subtree: true});
 }
 
+if (isOsmServer() && new URLSearchParams(location.search).has("sat-tiles")) {
+    switchTiles()
+    if (document.querySelector(".turn-on-satellite")) {
+        document.querySelector(".turn-on-satellite").textContent = invertTilesMode(currentTilesMode)
+    }
+    if (document.querySelector(".turn-on-satellite-from-pane")) {
+        document.querySelector(".turn-on-satellite-from-pane").textContent = invertTilesMode(currentTilesMode)
+    }
+}
 
 function addSatelliteLayers() {
     const btnOnPane = document.createElement("span");
@@ -11656,17 +11665,13 @@ async function makeProfileForDeletedUser(user) {
             copyIds.textContent = "Copy IDs"
             copyIds.title = ""
             copyIds.classList.add("copy-changesets-ids-btn")
-            copyIds.onclick = () => {
+            copyIds.onclick = e => {
                 const ids = Array.from(elemForResult.querySelectorAll("input:checked")).map(i => i.value).join(",")
                 if (ids !== "") {
-                    navigator.clipboard.writeText(ids).then(() => {
-                        console.log(ids, "ids copied")
-                    });
+                    navigator.clipboard.writeText(ids).then(() => copyAnimation(e, ids))
                 } else {
                     const ids = Array.from(elemForResult.querySelectorAll("input")).map(i => i.value).join(",")
-                    navigator.clipboard.writeText(ids).then(() => {
-                        console.log(ids, "ids copied")
-                    });
+                    navigator.clipboard.writeText(ids).then(() => copyAnimation(e, ids))
                 }
             }
             elemForResult.appendChild(copyIds)
@@ -12562,7 +12567,11 @@ let queriesCache = {
     elems: {}
 }
 
-if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)) {
+function isOsmServer() {
+    return [prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)
+}
+
+if (isOsmServer()) {
     injectJSIntoPage(`
     const originalFetch = window.fetch;
 
