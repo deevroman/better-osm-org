@@ -2408,29 +2408,36 @@ function removePOIMoverMenu() {
 }
 
 function addDeleteButton() {
-    if (!location.pathname.startsWith("/node/")) return;
+    if (!location.pathname.startsWith("/node/") && !location.pathname.startsWith("/relation/")) return;
     if (location.pathname.includes("/history")) return;
 
     if (document.querySelector('.delete_object_button_class')) return true;
 
-    let match = location.pathname.match(/(node|way)\/(\d+)/);
+    const match = location.pathname.match(/(node|relation)\/(\d+)/);
     if (!match) return;
-    let object_type = match[1];
-    let object_id = match[2];
+    const object_type = match[1];
+    const object_id = match[2];
 
     const auth = makeAuth();
-    let link = document.createElement('a');
+    const link = document.createElement('a');
     link.text = ['ru-RU', 'ru'].includes(navigator.language) ? "Выпилить!" : "Delete";
     link.href = "";
     link.classList.add("delete_object_button_class");
     // skip deleted
-    if (document.querySelectorAll(".browse-section h4").length < 2 && document.querySelector(".browse-section .latitude") === null) {
-        link.setAttribute("hidden", true);
-        return;
+    if (object_type === "node") {
+        if (document.querySelectorAll(".browse-section h4").length < 2 && document.querySelector(".browse-section .latitude") === null) {
+            return;
+        }
+    } else if (object_type === "relation") {
+        if (document.querySelectorAll(".browse-section h4").length < 2) {
+            return;
+        }
     }
     // skip having a parent
-    if (document.querySelectorAll(".browse-section details").length !== 0) {
+    if (object_type === "node" && document.querySelectorAll(".browse-section details").length !== 0) {
         return;
+    } else if (object_type === "relation" && document.querySelectorAll(".browse-section details").length > 1) {
+        return
     }
 
     if (!document.querySelector(".secondary-actions")) return;
@@ -2463,6 +2470,9 @@ function addDeleteButton() {
 
     function deleteObject(e) {
         e.preventDefault();
+        if (object_type === "relation" && !confirm("⚠️ Delete relation?")) {
+            return
+        }
         link.classList.add("dbclicked");
 
         console.log("Opening changeset");
@@ -2483,6 +2493,16 @@ function addDeleteButton() {
                 if (mainTags.includes(i.getAttribute("k"))) {
                     tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`;
                     break
+                }
+            }
+            for (const i of tags) {
+                if (i.getAttribute("k") === "type") {
+                    tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`;
+                }
+            }
+            for (const i of tags) {
+                if (i.getAttribute("k") === "restriction") {
+                    tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`;
                 }
             }
             for (const i of tags) {
@@ -2539,8 +2559,7 @@ function addDeleteButton() {
             });
         });
     }
-
-    if (GM_config.get("OneClickDeletor")) {
+    if (GM_config.get("OneClickDeletor") || object_type === "relation") {
         link.onclick = deleteObject;
     } else {
         link.onclick = (e) => {
@@ -2554,6 +2573,7 @@ function addDeleteButton() {
         link.ondblclick = deleteObject
     }
     setTimeout(async () => {
+        if (object_type !== "node") return
         removePOIMoverMenu()
         await sleep(110)
         if (!getMap || !getMap().contextmenu || !measurerAdded) {
@@ -2567,7 +2587,7 @@ function addDeleteButton() {
                 let object_type = match[1];
                 let object_id = match[2];
                 const auth = makeAuth();
-                if (!confirm("move node?")) {
+                if (!confirm("⚠️ move node?")) {
                     return
                 }
                 const {lat: newLat, lng: newLon} = e.latlng
@@ -2641,7 +2661,7 @@ function addDeleteButton() {
 }
 
 function setupDeletor(path) {
-    if (!path.startsWith("/node/") /*&& !url.includes("/way/")*/) return;
+    if (!path.startsWith("/node/") && !path.startsWith("/relation/")) return;
     let timerId = setInterval(addDeleteButton, 100);
     setTimeout(() => {
         clearInterval(timerId);
@@ -7662,7 +7682,7 @@ async function addHoverForRelationMembers() {
         })
         const errors = validateRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion)
         if (errors.length) {
-            showRestrictionValidationStatus(errors, document.querySelector(".browse-relation details summary"))
+            showRestrictionValidationStatus(errors, document.querySelector(".browse-relation details:last-of-type summary"))
         } else {
             restrictionArrows = renderRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion, restrictionColors[extendedRelationVersion.tags['restriction']] ?? "#000", "customObjects")
             pinSign.classList.add("pinned")
@@ -7686,8 +7706,8 @@ async function addHoverForRelationMembers() {
                     restrictionArrows.forEach(i => i.getElement().style.display = "")
                 }
             }
-            document.querySelector(".browse-relation details summary").appendChild(document.createTextNode(" "))
-            document.querySelector(".browse-relation details summary").appendChild(pinSign)
+            document.querySelector(".browse-relation details:last-of-type summary").appendChild(document.createTextNode(" "))
+            document.querySelector(".browse-relation details:last-of-type summary").appendChild(pinSign)
         }
     }
     console.log("addHoverForRelationMembers finished");
