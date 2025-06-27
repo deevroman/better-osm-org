@@ -14205,6 +14205,10 @@ function setupNavigationViaHotkeys() {
                 document.querySelector('a[href^="/user/"][href$="/history"]')?.click()
             }
         } else if (e.code === "KeyR") {
+            if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
+                document.querySelector('a[href*="/reports/new"]')?.click()
+                return
+            }
             if (changesetObjectsSelectionModeEnabled || e.altKey) {
                 document.querySelector("#revert_button_class").click()
                 return
@@ -14617,6 +14621,11 @@ function setupNavigationViaHotkeys() {
             }
         } else if (e.code === "KeyP") {
             navigator.clipboard.writeText(shortOsmOrgLinksInText(location.origin + location.pathname));
+        } else if (e.code === "KeyB") {
+            if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
+                document.querySelector('a[href^="/user/"][href$="/blocks"]')?.click()
+            }
+            //setupBuildingTools()
         } else {
             // console.log(e.key, e.code)
         }
