@@ -6310,7 +6310,7 @@ function setupRelationVersionView() {
                 })
                 const errors = validateRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion)
                 if (errors.length) {
-                    showRestrictionValidationStatus(errors, document.querySelector(".browse-relation details summary"))
+                    showRestrictionValidationStatus(errors, document.querySelector(".browse-relation details:last-of-type summary"))
                 } else {
                     renderRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion, restrictionColors[extendedRelationVersion.tags['restriction']] ?? "#000000", "customObjects")
                 }
