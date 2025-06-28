@@ -2478,12 +2478,9 @@ function addDeleteButton() {
 
     function deleteObject(e) {
         e.preventDefault();
-        if (object_type === "relation" && !confirm("⚠️ Delete relation?")) {
-            return
-        }
         link.classList.add("dbclicked");
 
-        console.log("Opening changeset");
+        console.log("Getting info");
 
         auth.xhr({
             method: 'GET',
@@ -2524,11 +2521,17 @@ function addDeleteButton() {
                 'comment': tagsHint !== "" ? `Delete${tagsHint}` : `Delete ${object_type} ${object_id}`
             };
 
+            if (object_type === "relation" && !prompt("⚠️ Delete relation?\n\nChangeset comment:", changesetTags['comment'])) {
+                return
+            }
+
             let changesetPayload = document.implementation.createDocument(null, 'osm');
             let cs = changesetPayload.createElement('changeset');
             changesetPayload.documentElement.appendChild(cs);
             tagsToXml(changesetPayload, cs, changesetTags);
             const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload);
+
+            console.log("Opening changeset");
 
             auth.xhr({
                 method: 'PUT',
@@ -5954,12 +5957,7 @@ function renderRestriction(rel, color, layer) {
             return
         }
         let img = await fetchTextWithCache(imageUrl);
-        if (img.includes('style="enable-background:new')) {
-            // for no_straight_on svg
-            img = img.replace('style="enable-background:new', `style="rotate: -${Math.round(signAngle)}deg; enable-background:new`)
-        } else {
-            img = img.replace('version="1.1"', `style="rotate: -${Math.round(signAngle)}deg" version="1.1"`)
-        }
+        img = img.replace('version="1.1"', `style="rotate: -${Math.round(signAngle)}deg" version="1.1"`)
 
         function getSquareBounds(center) {
             const {x, y} = toMercator(center.lat, center.lon)
@@ -7839,7 +7837,7 @@ function setupMakeVersionPageBetter() {
 // - возможность сохранить результат внедрения
 
 let quickLookInjectingStarted = false
-let tagsOfObjectsVisible = true
+let allTagsOfObjectsVisible = true
 
 // Perf test:                                           https://osm.org/changeset/155712128
 // Check way 695574090:                                 https://osm.org/changeset/71014890
@@ -8532,7 +8530,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             detectEditsWars(prevVersion, targetVersion, objHistory, row, key)
         } else {
             row.classList.add("non-modified-tag-in-quick-view")
-            if (!tagsOfObjectsVisible) {
+            if (!allTagsOfObjectsVisible) {
                 row.setAttribute("hidden", "true")
             }
             makeLinksInRowClickable(row)
@@ -9999,6 +9997,12 @@ async function processQuickLookInSidebar(changesetID) {
     const interceptMapManuallyPromise = interceptMapManually()
     const multipleChangesets = location.search.includes("changesets=")
 
+    /**
+     * Загружает историю объектов и показывает дифф тегов. Не использует Overpass API
+     * @param {"node"|"way"|"relation"} objType
+     * @param {0|1|2|3} uniqTypes - сколько различных типов OSM объектов пришло
+     * @return {Promise<void>}
+     */
     async function processObjects(objType, uniqTypes) {
         pinnedRelations = new Set()
         const objects = document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object):not(.object-in-process)`)
@@ -10088,7 +10092,7 @@ async function processQuickLookInSidebar(changesetID) {
         //<editor-fold desc="setup compact mode toggles">
         let compactToggle = document.createElement("button")
         compactToggle.title = "Toggle between full and compact tags diff.\nYou can also use the T key."
-        compactToggle.textContent = tagsOfObjectsVisible ? "><" : "<>"
+        compactToggle.textContent = allTagsOfObjectsVisible ? "><" : "<>"
         compactToggle.classList.add("quick-look-compact-toggle-btn")
         compactToggle.classList.add("btn", "btn-sm", "btn-primary")
         compactToggle.classList.add("quick-look")
@@ -10102,7 +10106,7 @@ async function processQuickLookInSidebar(changesetID) {
                     i.textContent = "><"
                 }
             })
-            tagsOfObjectsVisible = !tagsOfObjectsVisible
+            allTagsOfObjectsVisible = !allTagsOfObjectsVisible
             const shouldBeHidden = e.target.textContent === "<>"
             document.querySelectorAll("table.quick-look").forEach(el => {
                 el.classList.toggle("hide-non-modified-tags", shouldBeHidden)
@@ -10923,7 +10927,7 @@ async function interceptMapManually() {
 async function addChangesetQuickLook() {
     if (quickLookInjectingStarted) return
     if (!location.pathname.startsWith("/changeset")) {
-        tagsOfObjectsVisible = true
+        allTagsOfObjectsVisible = true
         return
     }
     addQuickLookStyles();
