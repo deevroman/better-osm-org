@@ -6455,7 +6455,7 @@ function setupViewRedactions() {
 
         const versionPrefix = document.querySelector(`.browse-${type} h4`)?.textContent?.match(/(^.*#)/gms)?.at(0)
 
-        for (const elem of Array.from(document.getElementsByClassName("browse-section browse-redacted"))) {
+        for (const elem of Array.from(document.querySelectorAll(".browse-section:not(.browse-node):not(.browse-way):not(.browse-relation)"))) {
             const version = elem.textContent.match(/(\d+).*(\d+)/)[1]
             console.log(`Downloading v${version}`)
             elem.childNodes[0].textContent = elem.childNodes[0].textContent.match(/(\..*$)/gm)[0].slice(1)
@@ -6639,7 +6639,7 @@ function setupViewRedactions() {
             }
 
             elem.classList.remove("hidden-version")
-            elem.classList.remove("browse-redacted")
+            // elem.classList.remove("browse-redacted")
             elem.classList.add("browse-unredacted")
             elem.classList.add("browse-node")
         }
@@ -7341,7 +7341,7 @@ function addDiffInHistory() {
         }
     })
     let hasRedacted = false
-    Array.from(document.getElementsByClassName("browse-section browse-redacted")).forEach(
+    Array.from(document.querySelectorAll(".browse-section:not(.browse-node):not(.browse-way):not(.browse-relation)")).forEach(
         x => {
             x.classList.add("hidden-version")
             hasRedacted = true
