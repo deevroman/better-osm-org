@@ -5954,7 +5954,12 @@ function renderRestriction(rel, color, layer) {
             return
         }
         let img = await fetchTextWithCache(imageUrl);
-        img = img.replace('version="1.1"', `style="rotate: -${Math.round(signAngle)}deg" version="1.1"`)
+        if (img.includes('style="enable-background:new')) {
+            // for no_straight_on svg
+            img = img.replace('style="enable-background:new', `style="rotate: -${Math.round(signAngle)}deg; enable-background:new`)
+        } else {
+            img = img.replace('version="1.1"', `style="rotate: -${Math.round(signAngle)}deg" version="1.1"`)
+        }
 
         function getSquareBounds(center) {
             const {x, y} = toMercator(center.lat, center.lon)
