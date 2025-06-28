@@ -2715,6 +2715,7 @@ function setupHideNoteHighlight() {
 
 //<editor-fold desc="satellite switching">
 const OSMPrefix = "https://tile.openstreetmap.org/"
+let BaseLayerPrefix = OSMPrefix
 const ESRIPrefix = "https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
 const ESRIBetaPrefix = "https://clarity.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
 let SatellitePrefix = ESRIPrefix
@@ -2913,6 +2914,10 @@ function makeOSMURL(x, y, z) {
     return OSMPrefix + z + "/" + x + "/" + y + ".png";
 }
 
+function makeBaseLayerURL(x, y, z) {
+    return makeOSMURL(x, y, z);
+}
+
 function makeOSMGPSURL(x, y, z) {
     return OSMGPSPrefix + z + "/" + x + "/" + y + ".png";
 }
@@ -2962,7 +2967,7 @@ function switchTiles() {
         } else {
             let xyz = parseESRITileURL(!needBypassSatellite ? i.src : i.getAttribute("real-url") ?? "")
             if (!xyz) return
-            i.src = makeOSMURL(xyz.x, xyz.y, xyz.z);
+            i.src = makeBaseLayerURL(xyz.x, xyz.y, xyz.z);
             if (i.complete) {
                 i.classList.remove("no-invert");
             } else {
@@ -3006,7 +3011,7 @@ function switchTiles() {
                 } else {
                     let xyz = parseESRITileURL(!needBypassSatellite ? node.src : node.getAttribute("real-url"))
                     if (!xyz) return
-                    node.src = makeOSMURL(xyz.x, xyz.y, xyz.z);
+                    node.src = makeBaseLayerURL(xyz.x, xyz.y, xyz.z);
                     if (node.complete) {
                         node.classList.remove("no-invert");
                     } else {
