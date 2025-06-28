@@ -2436,8 +2436,16 @@ function addDeleteButton() {
     // skip having a parent
     if (object_type === "node" && document.querySelectorAll(".browse-section details").length !== 0) {
         return;
-    } else if (object_type === "relation" && document.querySelectorAll(".browse-section details").length > 1) {
-        return
+    } else if (object_type === "relation") {
+        if (document.querySelectorAll(".browse-section details").length > 1) {
+            return;
+        }
+        if (Array.from(document.querySelectorAll(".browse-tag-list th")).some(i => i.textContent === "wikidata")) {
+            return
+        }
+        if (Array.from(document.querySelectorAll(".browse-tag-list td")).some(i => ["route_master", "route", "multipolygon", "public_transport"].includes(i.textContent))) {
+            return
+        }
     }
 
     if (!document.querySelector(".secondary-actions")) return;
