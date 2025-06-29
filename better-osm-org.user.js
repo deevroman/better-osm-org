@@ -70,7 +70,7 @@
 // @require      https://raw.githubusercontent.com/deevroman/exif-js/53b0c7c1951a23d255e37ed0a883462218a71b6f/exif.js#sha256=2235967d47deadccd9976244743e3a9be5ca5e41803cda65a40b8686ec713b74
 // @require      https://raw.githubusercontent.com/deevroman/osmtogeojson/c97381a0c86c0a021641dd47d7bea01fb5514716/osmtogeojson.js#sha256=663bb5bbae47d5d12bff9cf1c87b8f973e85fab4b1f83453810aae99add54592
 // @require      https://gist.githubusercontent.com/deevroman/d8b7a2176446e321fa6b0b47d0615d6e/raw/57c11b07432890b9a066ef6b6aba970dda9cb5ad/snow-animation.js#sha256=3b6cd76818c5575ea49aceb7bf4dc528eb8a7cb228b701329a41bb50f0800a5d
-// @require      https://openingh.openstreetmap.de/opening_hours.js/opening_hours+deps.min.js#sha256=e9a3213aba77dcf79ff1da9f828532acf1ebf7107ed1ce5f9370b922e023baff
+// @require      https://openingh.openstreetmap.de/opening_hours.js/opening_hours+deps.min.js?random=123#sha256=e9a3213aba77dcf79ff1da9f828532acf1ebf7107ed1ce5f9370b922e023baff
 // @incompatible safari https://github.com/deevroman/better-osm-org/issues/13
 // @grant        GM.getValue
 // @grant        GM.setValue
