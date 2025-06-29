@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.0.6
+// @version         1.0.7
 // @changelog       v1.0.0: type=restriction render, user ID in profile, profile for deleted user
 // @changelog       v1.0.0: notes filter, Overpass link in taginfo for key values, ruler, nodes mover
 // @changelog       v0.9.9: Button for 3D view building in OSMBuilding, F4map and other viewers
@@ -4731,10 +4731,10 @@ async function loadNodesViaHistoryCalls(nodes) {
  */
 async function getNodeHistory(nodeID) {
     if (nodesHistories[nodeID]) {
-        console.count("Node history hit")
+        // console.count("Node history hit")
         return nodesHistories[nodeID];
     } else {
-        console.count("Node history miss")
+        // console.count("Node history miss")
         const res = await fetch(osm_server.apiBase + "node" + "/" + nodeID + "/history.json", {signal: getAbortController().signal});
         return nodesHistories[nodeID] = (await res.json()).elements;
     }
@@ -5129,8 +5129,7 @@ async function replaceDownloadWayButton(btn, wayID) {
             const nodesHistory = nodesHistories[i.id]
             const tagsTable = processObject(div2, "node", curChange[1] ?? curChange[2], curChange[2], nodesHistory[nodesHistory.length - 1], nodesHistory)
             setTimeout(async () => {
-                const nodesLinksInComments = document.querySelectorAll(`#element_versions_list > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="node/"]`)
-                await processObjectInteractions("", "node", {nodes: nodesLinksInComments}, div2, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(div2)))
+                await processObjectInteractions("", "node", {nodes: []}, div2, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(div2)))
             }, 0)
             tagsTable.then((table) => {
                 if (nodeLi.classList.contains("tags-non-modified")) {
@@ -5345,8 +5344,7 @@ async function replaceDownloadWayButton(btn, wayID) {
                     const nodesHistory = nodesHistories[i.id]
                     const tagsTable = processObject(div2, "node", curChange[1] ?? curChange[2], curChange[2], nodesHistory[nodesHistory.length - 1], nodesHistory)
                     setTimeout(async () => {
-                        const nodesLinksInComments = document.querySelectorAll(`#element_versions_list > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="node/"]`)
-                        await processObjectInteractions("", "node", {nodes: nodesLinksInComments}, div2, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(div2)))
+                        await processObjectInteractions("", "node", {nodes: []}, div2, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(div2)))
                     }, 0)
                     tagsTable.then((table) => {
                         if (nodeLi.classList.contains("tags-non-modified")) {
@@ -5512,7 +5510,7 @@ function setupWayVersionView() {
         }
     }
 
-    document.querySelectorAll("#element_versions_list > div h4:nth-of-type(1):not(:has(.relation-version-view)) a:nth-of-type(1)").forEach(i => {
+    document.querySelectorAll("#element_versions_list > div h4:nth-of-type(1):not(:has(.way-version-view)) a:nth-of-type(1)").forEach(i => {
         const version = i.href.match(/\/(\d+)$/)[1];
         const btn = document.createElement("a")
         btn.classList.add("way-version-view")
@@ -5528,34 +5526,36 @@ function setupWayVersionView() {
         i.after(document.createTextNode("\xA0"))
     })
 
-    const downloadAllVersionsBtn = document.createElement("a")
-    downloadAllVersionsBtn.id = "download-all-versions-btn"
-    downloadAllVersionsBtn.tabIndex = 0
-    downloadAllVersionsBtn.textContent = "⏬"
-    downloadAllVersionsBtn.style.cursor = "pointer"
-    downloadAllVersionsBtn.title = "Download all versions (with intermediate versions)"
-    const clickHandler = async () => {
-        await fuckingPaginationInHistory()
-        downloadAllVersionsBtn.style.cursor = "progress"
-        for (const i of document.querySelectorAll(`.way-version-view:not([hidden])`)) {
-            try {
-                await loadWayVersion(i)
-            } catch (e) {
-                console.error(e)
-                console.log("redacted version")
+    if (!document.getElementById("download-all-versions-btn")) {
+        const downloadAllVersionsBtn = document.createElement("a")
+        downloadAllVersionsBtn.id = "download-all-versions-btn"
+        downloadAllVersionsBtn.tabIndex = 0
+        downloadAllVersionsBtn.textContent = "⏬"
+        downloadAllVersionsBtn.style.cursor = "pointer"
+        downloadAllVersionsBtn.title = "Download all versions (with intermediate versions)"
+        const clickHandler = async () => {
+            await unrollPaginationInHistory()
+            downloadAllVersionsBtn.style.cursor = "progress"
+            for (const i of document.querySelectorAll(`.way-version-view:not([hidden])`)) {
+                try {
+                    await loadWayVersion(i)
+                } catch (e) {
+                    console.error(e)
+                    console.log("redacted version")
+                }
+            }
+            if (GM_config.get("FullVersionsDiff")) {
+                console.time("full history")
+                addQuickLookStyles()
+                await showFullWayHistory(wayID)
+                console.timeEnd("full history")
             }
         }
-        if (GM_config.get("FullVersionsDiff")) {
-            console.time("full history")
-            addQuickLookStyles()
-            await showFullWayHistory(wayID)
-            console.timeEnd("full history")
-        }
+        downloadAllVersionsBtn.addEventListener("click", clickHandler, {once: true})
+        downloadAllVersionsBtn.addEventListener("keypress", clickHandler, {once: true})
+        document.querySelector(".compact-toggle-btn")?.after(downloadAllVersionsBtn)
+        document.querySelector(".compact-toggle-btn")?.after(document.createTextNode("\xA0"))
     }
-    downloadAllVersionsBtn.addEventListener("click", clickHandler, {once: true})
-    downloadAllVersionsBtn.addEventListener("keypress", clickHandler, {once: true})
-    document.querySelector(".compact-toggle-btn")?.after(downloadAllVersionsBtn)
-    document.querySelector(".compact-toggle-btn")?.after(document.createTextNode("\xA0"))
 }
 
 /**
@@ -6381,7 +6381,7 @@ function setupRelationVersionView() {
         i.after(document.createTextNode("\xA0"))
     })
 
-    if (document.querySelectorAll(`.relation-version-view:not([hidden])`).length > 1) { // todo remove check after when would full history
+    if (document.querySelectorAll(`.relation-version-view:not([hidden])`).length > 1 && !document.getElementById("download-all-versions-btn")) { // todo remove check after when would full history
         const downloadAllVersionsBtn = document.createElement("a")
         downloadAllVersionsBtn.id = "download-all-versions-btn"
         downloadAllVersionsBtn.tabIndex = 0
@@ -6390,7 +6390,7 @@ function setupRelationVersionView() {
         downloadAllVersionsBtn.title = "Download all versions (with intermediate versions)"
 
         const clickHandler = async e => {
-            await fuckingPaginationInHistory()
+            await unrollPaginationInHistory()
             downloadAllVersionsBtn.style.cursor = "progress"
             for (const i of document.querySelectorAll(`.relation-version-view:not([hidden])`)) {
                 await loadRelationVersion(i)
@@ -6425,6 +6425,7 @@ function setupViewRedactions() {
     }
     showUnredactedBtn.onclick = async e => {
         e.preventDefault()
+        await unrollPaginationInHistory()
         showUnredactedBtn.style.cursor = "progress"
         const type = location.pathname.match(/\/(node|way|relation)/)[1]
         const objID = parseInt(location.pathname.match(/\/(node|way|relation)\/(\d+)/)[2]);
@@ -6747,52 +6748,72 @@ function addCommentsCount() {
 const compactModeSvg = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" height="17" width="17" viewBox="0 0 17 17"><path d="M15 12 l-5-4  5-4"></path><path d="M2 12 l 5-4 -5-4"></path></svg>'
 const expandModeSvg = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" height="17" width="17" viewBox="0 0 17 17"><path d="M7 12 l-5-4  5-4"></path><path d="M10 12 l 5-4 -5-4"></path></svg>'
 
-let historyPagePaginationObserver = null
+/** @type {MutationObserver | null} **/
+let historyPagePaginationDeletingObserver = null
+/** @type {MutationObserver | null} **/
+let paginationInHistoryStepObserver = null
 
-function fuckPaginationInHistory() {
-    if (document.querySelector("#older_element_versions_navigation a")) {
-        if (historyPagePaginationObserver === null) {
-            historyPagePaginationObserver = new MutationObserver(function(mutationsList, observer) {
-                for (let mutationRecord of mutationsList) {
-                    for (let removedNode of mutationRecord.removedNodes ?? []) {
-                        if (removedNode.id === 'older_element_versions_navigation') {
-                            observer.disconnect()
-                            addDiffInHistory("pagination")
-                        }
+function monitorHistoryPaginationMoving() {
+    if (!document.querySelector("#older_element_versions_navigation a")) {
+        return;
+    }
+    if (historyPagePaginationDeletingObserver === null) {
+        historyPagePaginationDeletingObserver = new MutationObserver(function (mutationsList, observer) {
+            for (let mutationRecord of mutationsList) {
+                for (let removedNode of mutationRecord.removedNodes ?? []) {
+                    if (removedNode.id === 'older_element_versions_navigation') {
+                        observer.disconnect()
+                        addDiffInHistory("pagination")
                     }
                 }
-            })
-            historyPagePaginationObserver.observe(document.querySelector("#sidebar_content"), {childList: true, subtree: true, attributes: true});
-        }
-
-        const paginationObserver2 = new MutationObserver(function(mutationsList, observer) {
-            observer.disconnect()
-            addDiffInHistory("pagination")
+            }
         })
-        paginationObserver2.observe(document.querySelector("#older_element_versions_navigation"), {childList: true, subtree: true, attributes: true});
-    }
-}
-
-
-async function fuckingPaginationInHistory() {
-    await new Promise((resolve) => {
-        const paginationObserver2 = new MutationObserver(function (mutationsList, observer) {
-            observer.disconnect()
-            console.log("click");
-            document.querySelector("#older_element_versions_navigation a")?.click()
-        })
-        paginationObserver2.observe(document.querySelector("#older_element_versions_navigation"), {
+        historyPagePaginationDeletingObserver.observe(document.querySelector("#sidebar_content"), {
             childList: true,
             subtree: true,
             attributes: true
         });
+    }
+    paginationInHistoryStepObserver = new MutationObserver(function (mutationsList, observer) {
+        observer.disconnect()
+        addDiffInHistory("pagination")
+    })
+    paginationInHistoryStepObserver.observe(document.querySelector("#older_element_versions_navigation"), {
+        childList: true,
+        subtree: true,
+        attributes: true
+    });
+}
 
+
+async function unrollPaginationInHistory() {
+    if (!document.querySelector("#older_element_versions_navigation")) {
+        return
+    }
+    console.log("start pagination unrolling")
+    await new Promise((resolve) => {
+        if (!paginationInHistoryStepObserver) {
+            paginationInHistoryStepObserver = new MutationObserver(function (mutationsList, observer) {
+                observer.disconnect()
+                console.log("pagination click");
+                document.querySelector("#older_element_versions_navigation a")?.click()
+            })
+            if (!document.querySelector("#older_element_versions_navigation")) {
+                resolve()
+                return;
+            }
+            paginationInHistoryStepObserver.observe(document.querySelector("#older_element_versions_navigation"), {
+                childList: true,
+                subtree: true,
+                attributes: true
+            });
+        }
         const historyPagePaginationObserver = new MutationObserver(function (mutationsList, observer) {
             for (let mutationRecord of mutationsList) {
                 for (let removedNode of mutationRecord.removedNodes ?? []) {
                     if (removedNode.id === 'older_element_versions_navigation') {
                         observer.disconnect()
-                        console.log("finish");
+                        console.log("pagination unrolling finished");
                         resolve()
                     }
                 }
@@ -6808,6 +6829,7 @@ async function fuckingPaginationInHistory() {
         if (!btn) {
             return
         }
+        console.log("pagination first click");
         btn.click()
     })
 }
@@ -7453,7 +7475,9 @@ function addDiffInHistory(reason = "url_change") {
     setupNodeVersionView();
     setupWayVersionView();
     setupRelationVersionView();
-    fuckPaginationInHistory();
+    monitorHistoryPaginationMoving();
+    console.log("Click by pagination from AddDiffInHistory")
+    document.querySelector("#older_element_versions_navigation a")?.click()
 }
 
 
@@ -9211,9 +9235,9 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
 
 /**
  * @typedef {{
- * nodes: [],
- * ways: [],
- * relations: []
+ * nodes: Array<HTMLElement>,
+ * ways: Array<HTMLElement>,
+ * relations: Array<HTMLElement>
  * }}
  * @name ObjectsInComments
  */
@@ -13116,7 +13140,7 @@ function debug_alert() {
  * @return {Promise<ChangesetMetadata|void>}
  */
 async function loadChangesetMetadata(changeset_id = null) {
-    console.log(`Loading changeset metadata`)
+    console.debug(`Loading changeset metadata`)
     if (!changeset_id) {
         const match = location.pathname.match(/changeset\/(\d+)/)
         if (!match) {
@@ -13124,7 +13148,7 @@ async function loadChangesetMetadata(changeset_id = null) {
         }
         changeset_id = parseInt(match[1]);
     }
-    console.log(`Loading metadata of changeset #${changeset_id}`)
+    console.debug(`Loading metadata of changeset #${changeset_id}`)
     if (changesetMetadatas[changeset_id] && changesetMetadatas[changeset_id].id === changeset_id) {
         return changesetMetadatas[changeset_id];
     }
@@ -16187,7 +16211,10 @@ function setupOSMWebsite() {
             document.querySelector("#fixed-rss-feed")?.remove()
             buildingViewerIframe?.remove()
             buildingViewerIframe = null
-            historyPagePaginationObserver = null
+            historyPagePaginationDeletingObserver?.disconnect()
+            historyPagePaginationDeletingObserver = null
+            paginationInHistoryStepObserver?.disconnect()
+            paginationInHistoryStepObserver = null
             removePOIMoverMenu()
             if (!path.startsWith("/changeset") && !path.startsWith("/history") &&
                 !path.startsWith("/node") && !path.startsWith("/way") && path !== "/relation" &&
