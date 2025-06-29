@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.0.5
+// @version         1.0.6
 // @changelog       v1.0.0: type=restriction render, user ID in profile, profile for deleted user
 // @changelog       v1.0.0: notes filter, Overpass link in taginfo for key values, ruler, nodes mover
 // @changelog       v0.9.9: Button for 3D view building in OSMBuilding, F4map and other viewers
@@ -6848,7 +6848,7 @@ function addDiffInHistory(reason = "url_change") {
         compactToggle.innerHTML = compactModeSvg
         compactToggle.classList.add("compact-toggle-btn")
         compactToggle.classList.add("btn", "btn-primary", "btn-sm")
-        compactToggle.onclick = makeElementHistoryCompact
+        compactToggle.onclick = () => makeElementHistoryCompact()
         let sidebar = document.querySelector("#sidebar_content h2")
         if (!sidebar) {
             return
