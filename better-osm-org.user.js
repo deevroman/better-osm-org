@@ -111,13 +111,13 @@
 // @connect      whosthat.osmz.ru
 // @connect      content-a.strava.com
 // @sandbox      JavaScript
-// @resource     OAUTH_HTML https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html
-// @resource     OSMCHA_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/osmcha.ico
-// @resource     NODE_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/Osm_element_node.svg
-// @resource     WAY_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/Osm_element_way.svg
-// @resource     RELATION_ICON https://github.com/deevroman/better-osm-org/raw/master/icons/Taginfo_element_relation.svg
-// @resource     OSMCHA_LIKE https://github.com/OSMCha/osmcha-frontend/raw/94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-up.svg
-// @resource     OSMCHA_DISLIKE https://github.com/OSMCha/osmcha-frontend/raw/94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-down.svg
+// @resource     OAUTH_HTML https://raw.githubusercontent.com/deevroman/better-osm-org/master/finish-oauth.html
+// @resource     OSMCHA_ICON https://raw.githubusercontent.com/deevroman/better-osm-org/master/icons/osmcha.ico
+// @resource     NODE_ICON https://raw.githubusercontent.com/deevroman/better-osm-org/master/icons/Osm_element_node.svg
+// @resource     WAY_ICON https://raw.githubusercontent.com/deevroman/better-osm-org/master/icons/Osm_element_way.svg
+// @resource     RELATION_ICON https://raw.githubusercontent.com/deevroman/better-osm-org/master/icons/Taginfo_element_relation.svg
+// @resource     OSMCHA_LIKE https://raw.githubusercontent.com/OSMCha/osmcha-frontend/94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-up.svg
+// @resource     OSMCHA_DISLIKE https://raw.githubusercontent.com/OSMCha/osmcha-frontend/94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-down.svg
 // @resource     DARK_THEME_FOR_ID_CSS https://gist.githubusercontent.com/deevroman/55f35da68ab1efb57b7ba4636bdf013d/raw/7b94e3b7db91d023f1570ae415acd7ac989fffe0/dark.css
 // @run-at       document-end
 // ==/UserScript==
@@ -998,7 +998,7 @@ function makeAuth() {
 function makeHashtagsClickable() {
     if (!GM_config.get("ImagesAndLinksInTags")) return;
 
-    const comment = document.querySelector(".browse-section p")
+    const comment = document.querySelector("#element_versions_list > div p")
     comment?.childNodes?.forEach(node => {
         if (node.nodeType !== Node.TEXT_NODE) return
         const span = document.createElement("span")
@@ -1251,7 +1251,7 @@ function addRevertButton() {
 
         // find deleted user
         // todo extract
-        let metainfoHTML = document.querySelector(".browse-section > .details")
+        let metainfoHTML = document.querySelector("#sidebar_content h2 ~ div > .details")
         let time = Array.from(metainfoHTML.children).find(i => i.localName === "time")
         if (Array.from(metainfoHTML.children).some(e => e.localName === "a")) {
             let usernameA = Array.from(metainfoHTML.children).find(i => i.localName === "a")
@@ -1313,7 +1313,7 @@ function addRevertButton() {
         // compact changeset tags
         if (!document.querySelector(".browse-tag-list[compacted]")) {
             makeHashtagsClickable()
-            shortOsmOrgLinks(document.querySelector(".browse-section p"));
+            shortOsmOrgLinks(document.querySelector("#sidebar_content h2 ~ div p"));
             let needUnhide = false
             document.querySelectorAll(".browse-tag-list tr").forEach(i => {
                 const key = i.querySelector("th")
@@ -1360,7 +1360,7 @@ function addRevertButton() {
                     i.style.display = "none"
                     i.classList.add("hidden-tag")
                     needUnhide = true
-                } else if (key.textContent === "hashtags" && i.querySelector("td").textContent.includes("#") && document.querySelector(".browse-section p")?.textContent?.includes(i.querySelector("td").textContent)) {
+                } else if (key.textContent === "hashtags" && i.querySelector("td").textContent.includes("#") && document.querySelector("#sidebar_content h2 ~ div p")?.textContent?.includes(i.querySelector("td").textContent)) {
                     i.style.display = "none"
                     i.classList.add("hidden-tag")
                 }
@@ -1591,7 +1591,7 @@ function addRevertButton() {
         })
     })
     // fixme dont work loggined
-    document.querySelectorAll(".browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ article div").forEach(c => {
+    document.querySelectorAll("#sidebar_content h2 ~ div > div:has([name=subscribe],[name=unsubscribe]) ~ article div").forEach(c => {
         c.innerHTML = c.innerHTML.replaceAll(/((changesets )((\d+)([,. ])(\s|$|<\/))+|changeset \d+)/gm, (match) => {
             return match.replaceAll(/(\d+)/g, `<a href="/changeset/$1" class="changeset_link_in_comment">$1</a>`)
         }).replaceAll(/>https:\/\/(www\.)?openstreetmap.org\//g, ">osm.org/")
@@ -1747,7 +1747,13 @@ const compactSidebarStyleText = `
             color: #767676 !important;
         }
     }
-    .browse-section > p:nth-of-type(1) {
+    #sidebar_content h2 ~ div > p:nth-of-type(1) {
+        font-size: 14px !important;
+        font-style: italic;
+        font-synthesis: none;  
+    }
+    
+    #element_versions_list div > p:nth-of-type(1) {
         font-size: 14px !important;
         font-style: italic;
         font-synthesis: none;  
@@ -1816,6 +1822,7 @@ ${copyAnimationStyles}
         padding: 1.5rem !important;
         padding-bottom: 1.3rem !important;
         padding-top: 1.4rem !important;
+        padding-left: 1.3rem !important;
     }
     
     .way-last-version-node:hover, .relation-last-version-member:hover, .node-last-version-parent:hover {
@@ -2005,11 +2012,13 @@ function setupCompactChangesetsHistory() {
         }, 0);
     }
 
-    handleNewChangesets();
-    sidebarObserver?.disconnect();
-    sidebarObserver = new MutationObserver(handleNewChangesets);
-    if (document.querySelector('#sidebar_content') && !location.pathname.startsWith("/changeset")) {
-        sidebarObserver.observe(document.querySelector('#sidebar_content'), {childList: true, subtree: true});
+    if (!location.pathname.startsWith("/node") && !location.pathname.startsWith("/way") && !location.pathname.startsWith("/relation")) {
+        handleNewChangesets();
+        sidebarObserver?.disconnect();
+        sidebarObserver = new MutationObserver(handleNewChangesets);
+        if (document.querySelector('#sidebar_content') && !location.pathname.startsWith("/changeset")) {
+            sidebarObserver.observe(document.querySelector('#sidebar_content'), {childList: true, subtree: true});
+        }
     }
 }
 
@@ -2425,19 +2434,19 @@ function addDeleteButton() {
     link.classList.add("delete_object_button_class");
     // skip deleted
     if (object_type === "node") {
-        if (document.querySelectorAll(".browse-section h4").length < 2 && document.querySelector(".browse-section .latitude") === null) {
+        if (document.querySelectorAll("#sidebar_content > div:first-of-type h4").length < 2 && document.querySelector("#element_versions_list > div .latitude") === null) {
             return;
         }
     } else if (object_type === "relation") {
-        if (document.querySelectorAll(".browse-section h4").length < 2) {
+        if (document.querySelectorAll("#sidebar_content > div:first-of-type h4").length < 2) {
             return;
         }
     }
     // skip having a parent
-    if (object_type === "node" && document.querySelectorAll(".browse-section details").length !== 0) {
+    if (object_type === "node" && document.querySelectorAll("#sidebar_content > div:first-of-type details").length !== 0) {
         return;
     } else if (object_type === "relation") {
-        if (document.querySelectorAll(".browse-section details").length > 1) {
+        if (document.querySelectorAll("#sidebar_content > div:first-of-type details").length > 1) {
             return;
         }
         if (Array.from(document.querySelectorAll(".browse-tag-list th")).some(i => i.textContent === "wikidata")) {
@@ -3237,8 +3246,8 @@ function setupSatelliteLayers() {
 
 //</editor-fold>
 
-function makeElementHistoryCompact() {
-    const shouldBeCompact = document.querySelector(".compact-toggle-btn").getAttribute("value") === "><";
+function makeElementHistoryCompact(forceState = null) {
+    const shouldBeCompact = forceState !== null ? forceState : document.querySelector(".compact-toggle-btn").getAttribute("value") === "><";
     const forToggle = Array.from(document.querySelectorAll("table.browse-tag-list"))
     // workaround for https://github.com/deevroman/better-osm-org/pull/273#issuecomment-2830047660
     forToggle.slice(0, 8).forEach((el) => {
@@ -4100,14 +4109,12 @@ function addHistoryLink() {
     }
     makeLinksInTagsClickable()
     makeHashtagsClickable()
-    shortOsmOrgLinks(document.querySelector(".browse-section p"))
-    setTimeout(() => {
-        injectCSSIntoOSMPage(`
-        table.browse-tag-list tr td[colspan="2"] {
-            background: var(--bs-body-bg) !important;
-        }
-        `);
-    }, 0)
+    document.querySelectorAll("#element_versions_list > div p").forEach(shortOsmOrgLinks)
+    injectCSSIntoOSMPage(`
+    table.browse-tag-list tr td[colspan="2"] {
+        background: var(--bs-body-bg) !important;
+    }
+    `);
 }
 
 
@@ -4658,12 +4665,13 @@ function setupNodeVersionView() {
     const match = location.pathname.match(/\/node\/(\d+)\//);
     if (match === null) return;
     let nodeHistoryPath = []
-    document.querySelectorAll(".browse-node span.latitude").forEach(i => {
+    document.querySelectorAll("#element_versions_list > div span.latitude").forEach(i => {
         let lat = i.textContent.replace(",", ".")
         let lon = i.nextElementSibling.textContent.replace(",", ".")
         nodeHistoryPath.push([lat, lon])
         const versionDiv = i.parentElement.parentElement.parentElement.parentElement
-        versionDiv.onmouseenter = () => {
+        versionDiv.onmouseenter = async () => {
+            await interceptMapManually()
             showActiveNodeMarker(lat, lon, "#ff00e3");
             versionDiv.querySelectorAll(".browse-tag-list tr").forEach(row => {
                 const key = row.querySelector("th")?.textContent?.toLowerCase()
@@ -4688,7 +4696,7 @@ function setupNodeVersionView() {
     interceptMapManually().then(() => {
         displayWay(cloneInto(nodeHistoryPath, unsafeWindow), false, "rgba(251,156,112,0.86)", 2);
     })
-    document.querySelectorAll(".browse-node h4:nth-of-type(1) a").forEach(i => {
+    document.querySelectorAll("#element_versions_list > div h4:nth-of-type(1):not(:has(.relation-version-view)) a:nth-of-type(1)").forEach(i => {
         const version = i.href.match(/\/(\d+)$/)[1];
         i.parentElement.parentElement.setAttribute("node-version", version)
     })
@@ -5030,7 +5038,7 @@ async function replaceDownloadWayButton(btn, wayID) {
 
         const interVersionDiv = document.createElement("div")
         interVersionDiv.setAttribute("way-version", "inter")
-        interVersionDiv.classList.add("browse-section")
+        interVersionDiv.classList.add("mb-3", "border-bottom", "border-secondary-subtle", "pb-3")
 
         const interVersionDivHeader = document.createElement("h4")
         const interVersionDivAbbr = document.createElement("abbr")
@@ -5121,7 +5129,7 @@ async function replaceDownloadWayButton(btn, wayID) {
             const nodesHistory = nodesHistories[i.id]
             const tagsTable = processObject(div2, "node", curChange[1] ?? curChange[2], curChange[2], nodesHistory[nodesHistory.length - 1], nodesHistory)
             setTimeout(async () => {
-                const nodesLinksInComments = document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="node/"]`)
+                const nodesLinksInComments = document.querySelectorAll(`#element_versions_list > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="node/"]`)
                 await processObjectInteractions("", "node", {nodes: nodesLinksInComments}, div2, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(div2)))
             }, 0)
             tagsTable.then((table) => {
@@ -5192,8 +5200,8 @@ async function replaceDownloadWayButton(btn, wayID) {
                 }
             })
         }
-        let insertBeforeThat = document.querySelector(`.browse-way[way-version="${currentWayVersion.version}"]`)
-        while (insertBeforeThat.previousElementSibling.getAttribute("way-version") === "inter") { // fixme O(n^2)
+        let insertBeforeThat = document.querySelector(`#element_versions_list > div[way-version="${currentWayVersion.version}"]`)
+        while (insertBeforeThat.previousElementSibling?.getAttribute("way-version") === "inter") { // fixme O(n^2)
             insertBeforeThat = insertBeforeThat.previousElementSibling
         }
         insertBeforeThat.before(interVersionDiv)
@@ -5226,13 +5234,11 @@ async function replaceDownloadWayButton(btn, wayID) {
         objectStates[uniq_key] = it
         // для настоящей версии линии
         if (it.type === "way") {
-            let forNodesReplace = document.querySelector(`.browse-way[way-version="${it.version}"]`)
+            let forNodesReplace = document.querySelector(`#element_versions_list > div[way-version="${it.version}"]`)
             if (Object.keys(currentChanges).length > 1 && forNodesReplace.classList?.contains("empty-version")) {
                 forNodesReplace.querySelector("summary")?.remove()
                 const div = document.createElement("div")
                 div.innerHTML = forNodesReplace.innerHTML
-                div.classList.add("browse-section")
-                div.classList.add("browse-way")
                 div.setAttribute("way-version", forNodesReplace.getAttribute("way-version"))
                 forNodesReplace.replaceWith(div)
                 forNodesReplace = div
@@ -5266,7 +5272,7 @@ async function replaceDownloadWayButton(btn, wayID) {
                 })
                 if (it.version !== 1) {
                     const changedNodes = Object.values(currentChanges).filter(i => i[2].type === "node" && i[0] !== "location" && i[0] !== "")
-                    document.querySelector(`.browse-way[way-version="${it.version}"]`)?.addEventListener("mouseenter", () => {
+                    document.querySelector(`#element_versions_list > div[way-version="${it.version}"]`)?.addEventListener("mouseenter", () => {
                         changedNodes.forEach(i => {
                             if (i[2].visible === false) {
                                 if (i[1].visible !== false) {
@@ -5282,7 +5288,7 @@ async function replaceDownloadWayButton(btn, wayID) {
                             }
                         })
                     })
-                    document.querySelector(`.browse-way[way-version="${it.version}"]`)?.addEventListener("click", () => {
+                    document.querySelector(`#element_versions_list > div[way-version="${it.version}"]`)?.addEventListener("click", () => {
                         changedNodes.forEach(i => {
                             if (i[2].visible === false) {
                                 if (i[1].visible !== false) {
@@ -5339,7 +5345,7 @@ async function replaceDownloadWayButton(btn, wayID) {
                     const nodesHistory = nodesHistories[i.id]
                     const tagsTable = processObject(div2, "node", curChange[1] ?? curChange[2], curChange[2], nodesHistory[nodesHistory.length - 1], nodesHistory)
                     setTimeout(async () => {
-                        const nodesLinksInComments = document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="node/"]`)
+                        const nodesLinksInComments = document.querySelectorAll(`#element_versions_list > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="node/"]`)
                         await processObjectInteractions("", "node", {nodes: nodesLinksInComments}, div2, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(div2)))
                     }, 0)
                     tagsTable.then((table) => {
@@ -5506,7 +5512,7 @@ function setupWayVersionView() {
         }
     }
 
-    document.querySelectorAll(".browse-way h4:nth-of-type(1) a").forEach(i => {
+    document.querySelectorAll("#element_versions_list > div h4:nth-of-type(1):not(:has(.relation-version-view)) a:nth-of-type(1)").forEach(i => {
         const version = i.href.match(/\/(\d+)$/)[1];
         const btn = document.createElement("a")
         btn.classList.add("way-version-view")
@@ -5529,6 +5535,7 @@ function setupWayVersionView() {
     downloadAllVersionsBtn.style.cursor = "pointer"
     downloadAllVersionsBtn.title = "Download all versions (with intermediate versions)"
     const clickHandler = async () => {
+        await fuckingPaginationInHistory()
         downloadAllVersionsBtn.style.cursor = "progress"
         for (const i of document.querySelectorAll(`.way-version-view:not([hidden])`)) {
             try {
@@ -6318,16 +6325,14 @@ function setupRelationVersionView() {
                 })
                 const errors = validateRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion)
                 if (errors.length) {
-                    showRestrictionValidationStatus(errors, document.querySelector(".browse-relation details:last-of-type summary"))
+                    showRestrictionValidationStatus(errors, document.querySelector("#element_versions_list > div details:last-of-type summary"))
                 } else {
                     renderRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion, restrictionColors[extendedRelationVersion.tags['restriction']] ?? "#000000", "customObjects")
                 }
             }
             if (hasBrokenMembers) {
                 htmlElem.classList.add("broken-version")
-                if (htmlElem.parentElement?.parentElement.classList.contains("browse-section")) {
-                    htmlElem.parentElement.parentElement.classList.add("broken-version")
-                }
+                htmlElem.parentElement.parentElement.classList.add("broken-version")
             }
         }
         if (htmlElem.nodeName === "A") {
@@ -6351,7 +6356,7 @@ function setupRelationVersionView() {
         }
     }
 
-    document.querySelectorAll(".browse-relation h4:nth-of-type(1) a").forEach((i) => {
+    document.querySelectorAll('#element_versions_list > div h4:nth-of-type(1):not(:has(.relation-version-view)) a:nth-of-type(1)').forEach((i) => {
         const version = i.href.match(/\/(\d+)$/)[1];
         const btn = document.createElement("a")
         btn.classList.add("relation-version-view")
@@ -6385,6 +6390,7 @@ function setupRelationVersionView() {
         downloadAllVersionsBtn.title = "Download all versions (with intermediate versions)"
 
         const clickHandler = async e => {
+            await fuckingPaginationInHistory()
             downloadAllVersionsBtn.style.cursor = "progress"
             for (const i of document.querySelectorAll(`.relation-version-view:not([hidden])`)) {
                 await loadRelationVersion(i)
@@ -6453,17 +6459,17 @@ function setupViewRedactions() {
         const data = await downloadArchiveData(url, objID, type === "relation")
 
         const keysLinks = new Map()
-        document.querySelectorAll(".browse-section table th a").forEach(a => {
+        document.querySelectorAll("#element_versions_list > div table th a").forEach(a => {
             keysLinks.set(a.textContent, a.href)
         })
         const valuesLinks = new Map()
-        document.querySelectorAll(".browse-section table td a").forEach(a => {
+        document.querySelectorAll("#element_versions_list > div table td a").forEach(a => {
             valuesLinks.set(a.textContent, a.href)
         })
 
-        const versionPrefix = document.querySelector(`.browse-${type} h4`)?.textContent?.match(/(^.*#)/gms)?.at(0)
+        const versionPrefix = document.querySelector('#element_versions_list > div h4')?.textContent?.match(/(^.*#)/gms)?.at(0)
 
-        for (const elem of Array.from(document.querySelectorAll(".browse-section:not(.browse-node):not(.browse-way):not(.browse-relation)"))) {
+        for (const elem of Array.from(document.querySelectorAll('#element_versions_list > div:has(a[href*="/redactions/"]:not([rel]))'))) {
             const version = elem.textContent.match(/(\d+).*(\d+)/)[1]
             console.log(`Downloading v${version}`)
             elem.childNodes[0].textContent = elem.childNodes[0].textContent.match(/(\..*$)/gm)[0].slice(1)
@@ -6649,10 +6655,10 @@ function setupViewRedactions() {
             elem.classList.remove("hidden-version")
             // elem.classList.remove("browse-redacted")
             elem.classList.add("browse-unredacted")
-            elem.classList.add("browse-node")
+            // elem.classList.add("browse-node")
         }
         showUnredactedBtn.remove()
-        const classesForClean = ["history-diff-new-tag", "history-diff-modified-tag", "non-modified-tag", ".empty-version"]
+        const classesForClean = ["processed", "history-diff-new-tag", "history-diff-modified-tag", "non-modified-tag", ".empty-version"]
         classesForClean.forEach(className => {
             Array.from(document.getElementsByClassName(className)).forEach(i => {
                 i.classList.remove(className)
@@ -6665,16 +6671,13 @@ function setupViewRedactions() {
             })
         })
 
-        Array.from(["browse-node", "browse-way", "browse-relation"]).forEach(typeClass => {
-            Array.from(document.querySelectorAll("details." + typeClass)).forEach(i => {
-                i.querySelector("summary")?.remove()
-                const div = document.createElement("div")
-                div.innerHTML = i.innerHTML
-                div.classList.add("browse-section", typeClass)
-                i.replaceWith(div)
-            })
-
+        Array.from(document.querySelectorAll("details.empty-version")).forEach(i => {
+            i.querySelector("summary")?.remove()
+            const div = document.createElement("div")
+            div.innerHTML = i.innerHTML
+            i.replaceWith(div)
         })
+
         cleanAllObjects()
         document.querySelector(".compact-toggle-btn")?.remove()
         setTimeout(async () => {
@@ -6694,7 +6697,7 @@ function extractChangesetID(s) {
 
 function addCommentsCount() {
     setTimeout(async () => {
-        const links = document.querySelectorAll(`#sidebar_content .browse-section li a[href^="/changeset"]:not(.comments-loaded):not(.comments-link)`)
+        const links = document.querySelectorAll(`#sidebar_content #element_versions_list > div li a[href^="/changeset"]:not(.comments-loaded):not(.comments-link)`)
         await loadChangesetMetadatas(
             Array.from(links).map(i => {
                 i.classList.add("comments-loaded")
@@ -6744,6 +6747,71 @@ function addCommentsCount() {
 const compactModeSvg = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" height="17" width="17" viewBox="0 0 17 17"><path d="M15 12 l-5-4  5-4"></path><path d="M2 12 l 5-4 -5-4"></path></svg>'
 const expandModeSvg = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" height="17" width="17" viewBox="0 0 17 17"><path d="M7 12 l-5-4  5-4"></path><path d="M10 12 l 5-4 -5-4"></path></svg>'
 
+let historyPagePaginationObserver = null
+
+function fuckPaginationInHistory() {
+    if (document.querySelector("#older_element_versions_navigation a")) {
+        if (historyPagePaginationObserver === null) {
+            historyPagePaginationObserver = new MutationObserver(function(mutationsList, observer) {
+                for (let mutationRecord of mutationsList) {
+                    for (let removedNode of mutationRecord.removedNodes ?? []) {
+                        if (removedNode.id === 'older_element_versions_navigation') {
+                            observer.disconnect()
+                            addDiffInHistory("pagination")
+                        }
+                    }
+                }
+            })
+            historyPagePaginationObserver.observe(document.querySelector("#sidebar_content"), {childList: true, subtree: true, attributes: true});
+        }
+
+        const paginationObserver2 = new MutationObserver(function(mutationsList, observer) {
+            observer.disconnect()
+            addDiffInHistory("pagination")
+        })
+        paginationObserver2.observe(document.querySelector("#older_element_versions_navigation"), {childList: true, subtree: true, attributes: true});
+    }
+}
+
+
+async function fuckingPaginationInHistory() {
+    await new Promise((resolve) => {
+        const paginationObserver2 = new MutationObserver(function (mutationsList, observer) {
+            observer.disconnect()
+            console.log("click");
+            document.querySelector("#older_element_versions_navigation a")?.click()
+        })
+        paginationObserver2.observe(document.querySelector("#older_element_versions_navigation"), {
+            childList: true,
+            subtree: true,
+            attributes: true
+        });
+
+        const historyPagePaginationObserver = new MutationObserver(function (mutationsList, observer) {
+            for (let mutationRecord of mutationsList) {
+                for (let removedNode of mutationRecord.removedNodes ?? []) {
+                    if (removedNode.id === 'older_element_versions_navigation') {
+                        observer.disconnect()
+                        console.log("finish");
+                        resolve()
+                    }
+                }
+            }
+        })
+        historyPagePaginationObserver.observe(document.querySelector("#sidebar_content"), {
+            childList: true,
+            subtree: true,
+            attributes: true
+        });
+
+        const btn = document.querySelector("#older_element_versions_navigation a")
+        if (!btn) {
+            return
+        }
+        btn.click()
+    })
+}
+
 // hard cases:
 // https://www.openstreetmap.org/node/1/history
 // https://www.openstreetmap.org/node/2/history
@@ -6753,7 +6821,7 @@ const expandModeSvg = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" strok
 // https://www.openstreetmap.org/relation/16022751/history
 // https://www.openstreetmap.org/node/12084992837/history
 // https://www.openstreetmap.org/way/1329437422/history
-function addDiffInHistory() {
+function addDiffInHistory(reason = "url_change") {
     makeHeaderPartsClickable();
     addHistoryLink();
     if (document.querySelector("#sidebar_content table")) {
@@ -6764,7 +6832,7 @@ function addDiffInHistory() {
         || location.pathname.includes("/history/")
         || location.pathname.includes("/user/")
     ) return;
-    if (document.querySelector(".compact-toggle-btn")) {
+    if (document.querySelector(".compact-toggle-btn") && reason !== "pagination") {
         return;
     }
     cleanAllObjects()
@@ -6773,7 +6841,7 @@ function addDiffInHistory() {
     document.querySelector("#sidebar").focus({focusVisible: false}) // focusVisible работает только в Firefox
     document.querySelector("#sidebar").blur()
     makeLinksInTagsClickable();
-    if (!location.pathname.includes("/user/")) {
+    if (!location.pathname.includes("/user/") && !document.querySelector(".compact-toggle-btn")) {
         let compactToggle = document.createElement("button")
         compactToggle.title = "Toggle between full and compact tags diff.\nYou can also use the T key."
         compactToggle.setAttribute("value", "><")
@@ -6790,6 +6858,10 @@ function addDiffInHistory() {
     }
 
     const styleText = `
+    
+    .turbo-progress-bar {
+        display: none;
+    }
    
     .compact-toggle-btn {
         position: relative;
@@ -7015,8 +7087,9 @@ function addDiffInHistory() {
     injectCSSIntoOSMPage(styleText)
     let versions = [{tags: [], coordinates: "", wasModified: false, nodes: [], members: [], visible: true}];
     // add/modification
-    let versionsHTML = Array.from(document.querySelectorAll(".browse-section.browse-node, .browse-section.browse-way, .browse-section.browse-relation"))
+    let versionsHTML = Array.from(document.querySelectorAll('#element_versions_list > div:not(.processed):not(:has(a[href*="/redactions/"]:not([rel])))'))
     for (let ver of versionsHTML.toReversed()) {
+        ver.classList.add("processed")
         let wasModifiedObject = false;
         let version = ver.children[0].childNodes[1].href.match(/\/(\d+)$/)[1]
         let kv = ver.querySelectorAll("tbody > tr") ?? [];
@@ -7080,7 +7153,7 @@ function addDiffInHistory() {
         }
 
         const valuesLinks = new Map()
-        document.querySelectorAll(".browse-section table td a").forEach(a => {
+        document.querySelectorAll("#element_versions_list > div table td a").forEach(a => {
             valuesLinks.set(a.textContent, a.href)
         })
         const showPreviousTagValue = GM_config.get("ShowPreviousTagValue", true)
@@ -7348,8 +7421,15 @@ function addDiffInHistory() {
             x.replaceWith(spoiler)
         }
     })
+    if (document.querySelector("#older_element_versions_navigation a")) {
+        versionsHTML.toReversed()?.[0].classList.remove("processed")
+        versionsHTML.toReversed()?.[0]?.querySelectorAll(".history-diff-new-tag, .history-diff-modified-tag")?.forEach(elem => {
+            elem.classList.remove("history-diff-new-tag")
+            elem.classList.remove("history-diff-modified-tag")
+        })
+    }
     let hasRedacted = false
-    Array.from(document.querySelectorAll(".browse-section:not(.browse-node):not(.browse-way):not(.browse-relation)")).forEach(
+    Array.from(document.querySelectorAll('#element_versions_list > div:has(a[href*="/redactions/"]:not([rel]))')).forEach(
         x => {
             x.classList.add("hidden-version")
             hasRedacted = true
@@ -7362,13 +7442,18 @@ function addDiffInHistory() {
             console.error(e)
         }
     }
-    makeElementHistoryCompact();
+    if (reason === "pagination") {
+        makeElementHistoryCompact(document.querySelector(".compact-toggle-btn").getAttribute("value") !== "><");
+    } else {
+        makeElementHistoryCompact();
+    }
     makeHashtagsClickable();
-    shortOsmOrgLinks(document.querySelector(".browse-section p"));
+    document.querySelectorAll("#element_versions_list > div p").forEach(shortOsmOrgLinks);
     addCommentsCount();
     setupNodeVersionView();
     setupWayVersionView();
     setupRelationVersionView();
+    fuckPaginationInHistory();
 }
 
 
@@ -7412,7 +7497,7 @@ function addRelationVersionView() {
         const timestamp = document.querySelector("time").getAttribute("datetime")
         try {
             const {restrictionRelationErrors} = await loadRelationVersionMembersViaOverpass(id, timestamp);
-            showRestrictionValidationStatus(restrictionRelationErrors, document.querySelector(".browse-relation details summary"))
+            showRestrictionValidationStatus(restrictionRelationErrors, document.querySelector("#element_versions_list > div details summary"))
         } catch (e) {
             btn.style.cursor = "pointer"
             throw e
@@ -7422,7 +7507,7 @@ function addRelationVersionView() {
 
     btn.addEventListener("click", clickForDownloadHandler)
     btn.addEventListener("keypress", clickForDownloadHandler)
-    document.querySelector(".browse-relation h4")?.appendChild(btn)
+    document.querySelector("#element_versions_list > div h4")?.appendChild(btn)
 }
 
 function setupRelationVersionViewer() {
@@ -7698,7 +7783,7 @@ async function addHoverForRelationMembers() {
         })
         const errors = validateRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion)
         if (errors.length) {
-            showRestrictionValidationStatus(errors, document.querySelector(".browse-relation details:last-of-type summary"))
+            showRestrictionValidationStatus(errors, document.querySelector("#sidebar_content > div:first-of-type details:last-of-type summary"))
         } else {
             restrictionArrows = renderRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion, restrictionColors[extendedRelationVersion.tags['restriction']] ?? "#000", "customObjects")
             pinSign.classList.add("pinned")
@@ -7722,8 +7807,8 @@ async function addHoverForRelationMembers() {
                     restrictionArrows.forEach(i => i.getElement().style.display = "")
                 }
             }
-            document.querySelector(".browse-relation details:last-of-type summary").appendChild(document.createTextNode(" "))
-            document.querySelector(".browse-relation details:last-of-type summary").appendChild(pinSign)
+            document.querySelector("#sidebar_content > div:first-of-type details:last-of-type summary").appendChild(document.createTextNode(" "))
+            document.querySelector("#sidebar_content > div:first-of-type details:last-of-type summary").appendChild(pinSign)
         }
     }
     console.log("addHoverForRelationMembers finished");
@@ -7786,10 +7871,12 @@ function makeVersionPageBetter() {
         return
     }
     addCompactSidebarStyle()
-
+    const browseSectionSelector = document.querySelector("#element_versions_list")
+        ? '#element_versions_list > div:not(:has(a[href*="/redactions/"]:not([rel])))'
+        : "#sidebar_content > div:first-of-type";
     if (!document.querySelector(".find-user-btn")) {
         try {
-            const ver = document.querySelector(".browse-section.browse-node, .browse-section.browse-way, .browse-section.browse-relation")
+            const ver = document.querySelector(browseSectionSelector)
             const metainfoHTML = ver?.querySelector('ul > li:nth-child(1)');
             if (metainfoHTML && !Array.from(metainfoHTML.children).some(e => e.localName === "a" && e.href.includes("/user/"))) {
                 const time = Array.from(metainfoHTML.children).find(i => i.localName === "time")
@@ -7813,9 +7900,9 @@ function makeVersionPageBetter() {
     makeHeaderPartsClickable()
     addHistoryLink()
     makeLinksInTagsClickable()
-    makeHashtagsClickable();
+    makeHashtagsClickable()
     makeTimesSwitchable()
-    shortOsmOrgLinks(document.querySelector(".browse-section p"));
+    document.querySelectorAll(`${browseSectionSelector} p`).forEach(shortOsmOrgLinks)
     addCommentsCount();
     void addHoverForNodesParents();
     void addHoverForWayNodes();
@@ -9204,7 +9291,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             if (window.getSelection().type === "Range") return
             if ((e.target.nodeName === "TH" || e.target.nodeName === "TD") && i.querySelector("[contenteditable]")) return
 
-            document.querySelector(".browse-section.active-object")?.classList?.remove()
+            document.querySelector("#element_versions_list > div.active-object")?.classList?.remove()
             i.parentElement.parentElement.classList.add("active-object")
 
             if (prevVersion.visible !== false && targetVersion.visible !== false) {
@@ -9351,7 +9438,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             if (window.getSelection().type === "Range") return
             if ((e.target.nodeName === "TH" || e.target.nodeName === "TD") && i.querySelector("[contenteditable]")) return
 
-            document.querySelector(".browse-section.active-object")?.classList?.remove()
+            document.querySelector("#element_versions_list > div.active-object")?.classList?.remove()
             i.parentElement.parentElement.classList.add("active-object")
 
             showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", currentNodesList.length !== 0, changesetID + "w" + objID)
@@ -9461,7 +9548,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 return
             }
 
-            document.querySelector(".browse-section.active-object")?.classList?.remove()
+            document.querySelector("#element_versions_list > div.active-object")?.classList?.remove()
             i.parentElement.parentElement.classList.add("active-object")
 
             btn.style.cursor = "progress"
@@ -9547,9 +9634,9 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
     })
 
     const objectsLinksInComments = { // todo can be optimaized
-        nodes: Array.from(document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="node/"]`)),
-        ways: Array.from(document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="way/"]`)),
-        relations: Array.from(document.querySelectorAll(`.browse-section > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="relation/"]`))
+        nodes: Array.from(document.querySelectorAll(`#element_versions_list > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="node/"]`)),
+        ways: Array.from(document.querySelectorAll(`#element_versions_list > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="way/"]`)),
+        relations: Array.from(document.querySelectorAll(`#element_versions_list > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="relation/"]`))
     }
 
     try {
@@ -9845,19 +9932,19 @@ function addQuickLookStyles() {
                   background-color: rgba(223, 223, 223, 0.6);;
             }
                         
-            #sidebar_content .browse-section details.way-version-nodes li:hover {
+            #sidebar_content #element_versions_list > div details.way-version-nodes li:hover {
                 background-color: rgba(223, 223, 223, 0.6);
             }
-            #sidebar_content .browse-section details.way-version-nodes li:hover {
+            #sidebar_content #element_versions_list > div details.way-version-nodes li:hover {
                 background-color: rgba(223, 223, 223, 0.6);
             }
-            #sidebar_content .browse-section details.way-version-nodes li.map-hover {
+            #sidebar_content #element_versions_list > div details.way-version-nodes li.map-hover {
                 background-color: rgba(223, 223, 223, 0.6);
             }
-            #sidebar_content .browse-section details.way-version-nodes li.map-hover {
+            #sidebar_content #element_versions_list > div details.way-version-nodes li.map-hover {
                 background-color: rgba(223, 223, 223, 0.6);
             }
-            #sidebar_content .browse-section details.way-version-nodes li.downloaded:hover {
+            #sidebar_content #element_versions_list > div details.way-version-nodes li.downloaded:hover {
                 background-color: rgba(223, 223, 223, 0.6);
             }
             
@@ -9885,19 +9972,19 @@ function addQuickLookStyles() {
                     background-color: rgb(14, 17, 19);
                 }
                                 
-                #sidebar_content .browse-section details.way-version-nodes li:hover {
+                #sidebar_content #element_versions_list > div details.way-version-nodes li:hover {
                     background-color: rgb(52,61,67);
                 }
-                #sidebar_content .browse-section details.way-version-nodes li:hover {
+                #sidebar_content #element_versions_list > div details.way-version-nodes li:hover {
                     background-color: rgb(52,61,67);
                 }
-                #sidebar_content .browse-section details.way-version-nodes li.map-hover {
+                #sidebar_content #element_versions_list > div details.way-version-nodes li.map-hover {
                     background-color: rgb(52,61,67);
                 }
-                #sidebar_content .browse-section details.way-version-nodes li.map-hover {
+                #sidebar_content #element_versions_list > div details.way-version-nodes li.map-hover {
                     background-color: rgb(52,61,67);
                 }
-                #sidebar_content .browse-section details.way-version-nodes li.downloaded:hover {
+                #sidebar_content #element_versions_list > div details.way-version-nodes li.downloaded:hover {
                     background-color: rgb(52,61,67);
                 }
                     
@@ -13859,12 +13946,12 @@ function goToPrevObjectVersion() {
     }
     if (!document.querySelector("#sidebar_content .active-object")) {
         getMap()?.invalidateSize()
-        document.querySelector(".browse-section:not(.hidden-version)").classList.add("active-object")
-        document.querySelector(".browse-section:not(.hidden-version)").click()
+        document.querySelector("#element_versions_list > div:not(.hidden-version)").classList.add("active-object")
+        document.querySelector("#element_versions_list > div:not(.hidden-version)").click()
         resetMapHover()
-        document.querySelector(".browse-section:not(.hidden-version)").classList.add("map-hover")
+        document.querySelector("#element_versions_list > div:not(.hidden-version)").classList.add("map-hover")
     } else {
-        const old = document.querySelector(".browse-section.active-object")
+        const old = document.querySelector("#element_versions_list > div.active-object")
         let cur = old?.previousElementSibling
         while (cur && (!cur.classList.contains("browse-section") || cur.classList.contains("hidden-version"))) {
             cur = cur.previousElementSibling
@@ -13886,12 +13973,12 @@ function gotNextObjectVersion() {
     }
     if (!document.querySelector("#sidebar_content .active-object")) {
         getMap()?.invalidateSize()
-        document.querySelector(".browse-section").classList.add("active-object")
-        document.querySelector(".browse-section.active-object").click()
+        document.querySelector("#element_versions_list > div").classList.add("active-object")
+        document.querySelector("#element_versions_list > div.active-object").click()
         resetMapHover()
-        document.querySelector(".browse-section.active-object").classList.add("map-hover")
+        document.querySelector("#element_versions_list > div.active-object").classList.add("map-hover")
     } else {
-        const old = document.querySelector(".browse-section.active-object")
+        const old = document.querySelector("#element_versions_list > div.active-object")
         let cur = old?.nextElementSibling
         while (cur && (!cur.classList.contains("browse-section") || cur.classList.contains("hidden-version"))) {
             cur = cur.nextElementSibling
@@ -14024,8 +14111,8 @@ function zoomToCurrentObject(e) {
                 if (location.pathname.includes("history")) {
                     // panTo last visible version
                     panTo(
-                        document.querySelector(".browse-node span.latitude").textContent.replace(",", "."),
-                        document.querySelector(".browse-node span.longitude").textContent.replace(",", ".")
+                        document.querySelector("#element_versions_list > div span.latitude").textContent.replace(",", "."),
+                        document.querySelector("#element_versions_list > div span.longitude").textContent.replace(",", ".")
                     )
                 }
             }
@@ -14516,7 +14603,7 @@ function setupNavigationViaHotkeys() {
                     document.querySelector('a[href^="/user/"][href$="_comments"]')?.click()
                 }
             } else {
-                const activeObject = document.querySelector(".browse-section.active-object")
+                const activeObject = document.querySelector("#element_versions_list > div.active-object")
                 if (activeObject) {
                     if (e.shiftKey) {
                         window.open(activeObject.querySelector('a[href^="/changeset/"]').href, "_blank")
@@ -16088,7 +16175,7 @@ function setupOSMWebsite() {
         overpass_server = MAIN_OVERPASS_INSTANCE
     }
     let lastPath = "";
-    new MutationObserver(function fn() {
+    new MutationObserver(function mainObserverHandler() {
         const path = location.pathname;
         if (path === lastPath) return;
         try {
@@ -16100,6 +16187,7 @@ function setupOSMWebsite() {
             document.querySelector("#fixed-rss-feed")?.remove()
             buildingViewerIframe?.remove()
             buildingViewerIframe = null
+            historyPagePaginationObserver = null
             removePOIMoverMenu()
             if (!path.startsWith("/changeset") && !path.startsWith("/history") &&
                 !path.startsWith("/node") && !path.startsWith("/way") && path !== "/relation" &&
@@ -16121,7 +16209,7 @@ function setupOSMWebsite() {
                 module(path)
             });
         }
-        return fn
+        return mainObserverHandler
     }()).observe(document, {subtree: true, childList: true});
     if (location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/user/")) {
         setTimeout(loadFriends, 4000);
