@@ -2452,8 +2452,15 @@ function addDeleteButton() {
         if (Array.from(document.querySelectorAll(".browse-tag-list th")).some(i => i.textContent === "wikidata")) {
             return
         }
-        if (Array.from(document.querySelectorAll(".browse-tag-list td")).some(i => ["route_master", "route", "multipolygon", "public_transport"].includes(i.textContent))) {
-            return
+        const dangerousType = Array.from(document.querySelectorAll(".browse-tag-list td")).map(i => i.textContent).find(i => ["route_master", "route", "multipolygon", "public_transport"].includes(i))
+        if (dangerousType) {
+            if (dangerousType === "multipolygon") {
+                if (document.querySelectorAll("#sidebar_content > div:first-of-type details li").length > 1) {
+                    return
+                }
+            } else {
+                return
+            }
         }
     }
 
