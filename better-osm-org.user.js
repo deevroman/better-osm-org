@@ -14647,7 +14647,7 @@ function setupNavigationViaHotkeys() {
                         activeObject.querySelector('a[href^="/changeset/"]')?.click()
                     }
                 } else {
-                    const changesetsLinks = document.querySelectorAll('a[href^="/changeset/"]')
+                    const changesetsLinks = document.querySelectorAll('a[href^="/changeset/"]:not([href*="?locale="])')
                     if (e.shiftKey) {
                         if (changesetsLinks?.[0]?.href) {
                             window.open(changesetsLinks?.[0]?.href, "_blank")
