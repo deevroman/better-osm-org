@@ -14969,6 +14969,10 @@ function setupTaginfo() {
         }
     }
 
+    function escapeTaginfoString(s) {
+        return s.replaceAll("\\", "\\\\").replaceAll('"', '\\"').replaceAll("␣", " ")
+    }
+
     if (location.pathname.match(/reports\/key_lengths$/)) {
         document.querySelectorAll(".dt-body[data-col='1']").forEach(i => {
             if (i.querySelector(".overpass-link")) return
@@ -14977,7 +14981,7 @@ function setupTaginfo() {
             overpassLink.textContent = "🔍"
             overpassLink.target = "_blank"
             const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ''))
-            const key = i.querySelector(".empty") ? "" : i.querySelector("a").textContent
+            const key = i.querySelector(".empty") ? "" : escapeTaginfoString(i.querySelector("a"))
             overpassLink.href = `${overpass_server.url}?` + (count > 100000
                 ? new URLSearchParams({
                         w: instance ? `"${key}"=* in "${instance}"` : `"${key}"=*`
@@ -15005,7 +15009,7 @@ function setupTaginfo() {
             overpassLink.textContent = "🔍"
             overpassLink.target = "_blank"
             overpassLink.style.cursor = "progress"
-            const role = i.querySelector(".empty") ? "" : i.textContent.replaceAll("␣", " ")
+            const role = i.querySelector(".empty") ? "" : escapeTaginfoString(i.textContent)
             const type = location.pathname.match(/relations\/(.*$)/)[1]
             const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ''))
             if (instance) {
@@ -15038,7 +15042,7 @@ out geom;
             i.prepend(overpassLink)
         })
     } else if (location.hash === "#values") {
-        const key = document.querySelector("h1").textContent
+        const key = escapeTaginfoString(document.querySelector("h1").textContent)
         document.querySelectorAll("#values .dt-body[data-col='0']").forEach(i => {
             if (i.querySelector(".overpass-link")) return
             const overpassLink = document.createElement("a")
@@ -15046,7 +15050,7 @@ out geom;
             overpassLink.textContent = "🔍"
             overpassLink.target = "_blank"
             const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ''))
-            const value = i.querySelector(".empty") ? "" : i.querySelector("a").textContent
+            const value = i.querySelector(".empty") ? "" : escapeTaginfoString(i.querySelector("a").textContent)
             overpassLink.href = `${overpass_server.url}?` + (count > 10000
                 ? new URLSearchParams({
                         w: instance ? `"${key}"="${value}" in "${instance}"` : `"${key}"="${value}"`
