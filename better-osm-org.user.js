@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.0.9
+// @version         1.1.0
 // @changelog       v1.0.0: type=restriction render, user ID in profile, profile for deleted user
 // @changelog       v1.0.0: notes filter, Overpass link in taginfo for key values, ruler, nodes mover
 // @changelog       v0.9.9: Button for 3D view building in OSMBuilding, F4map and other viewers
@@ -1263,10 +1263,10 @@ function addRevertButton() {
 
         // find deleted user
         // todo extract
-        let metainfoHTML = document.querySelector("#sidebar_content h2 ~ div > .details")
-        let time = Array.from(metainfoHTML.children).find(i => i.localName === "time")
-        if (Array.from(metainfoHTML.children).some(e => e.localName === "a")) {
-            let usernameA = Array.from(metainfoHTML.children).find(i => i.localName === "a")
+        const metainfoHTML = document.querySelector("#sidebar_content h2 ~ div > .details")
+        const time = metainfoHTML.querySelector("time")
+        if (metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')) {
+            let usernameA = metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')
             metainfoHTML.innerHTML = ""
             metainfoHTML.appendChild(time)
             metainfoHTML.appendChild(document.createTextNode(" "))
@@ -1308,7 +1308,7 @@ function addRevertButton() {
             rssfeed.href = `https://www.openstreetmap.org/user/${encodeURI(usernameA.textContent)}/history/feed`
             document.head.appendChild(rssfeed)
         } else {
-            let time = Array.from(metainfoHTML.children).find(i => i.localName === "time")
+            const time = metainfoHTML.querySelector("time")
             metainfoHTML.innerHTML = ""
             metainfoHTML.appendChild(time)
             const findBtn = document.createElement("span")
@@ -1740,7 +1740,7 @@ out meta;
 // noinspection CssUnusedSymbol,CssUnresolvedCustomProperty
 const compactSidebarStyleText = `
     .changesets p {
-      margin-bottom: 0;
+      margin-bottom: 0px !important;
       font-weight: 788;
       font-style: italic;
       font-size: 14px !important;
@@ -1753,6 +1753,10 @@ const compactSidebarStyleText = `
                 
         .changesets p {
             font-weight: 400;
+        }
+        
+        span:has(.changeset_id.custom-changeset-id-click) {
+            color: #767676 !important;
         }
         
         .changeset_id.custom-changeset-id-click {
@@ -1912,18 +1916,35 @@ function setupCompactChangesetsHistory() {
             return
         }
         // remove useless
-        document.querySelectorAll("#sidebar ol .pt-3").forEach((e) => {
+        document.querySelectorAll("#sidebar ol .overflow-hidden:not(.better)").forEach((e) => {
+            e.classList.add("better")
             e.childNodes[0].textContent = ""
             e.classList.remove("pt-3")
-            e.nextElementSibling.classList.remove("flex-column")
-            e.nextElementSibling.classList.add("flex-row")
-            e.nextElementSibling.style.gap = "5px"
-            const changesBadges = e.nextElementSibling.querySelectorAll("svg")
-            if (changesBadges.length >= 2 && !changesBadges[1].classList.contains("better-diff-icon")) {
-                changesBadges[1].outerHTML = "<svg class=\"lucide lucide-diff better-diff-icon\" xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3v14\"/><path d=\"M5 10h14\"/><path d=\"M5 21h14\"/></svg>"
-                changesBadges[1].style.position = "relative";
-                changesBadges[1].style.top = "3px";
+            const badgesDiv = e.nextElementSibling
+            if (badgesDiv) {
+                badgesDiv.classList.remove("flex-column")
+                badgesDiv.classList.add("flex-row")
+                badgesDiv.style.gap = "5px"
+                if (badgesDiv.querySelector(".changeset_line")) {
+                    badgesDiv.querySelector(".changeset_line").style.flexDirection = "row-reverse"
+                }
             }
+            const changesBadge = badgesDiv.querySelector("span:not(.changeset_num_comments) svg")
+            if (changesBadge && !changesBadge.classList.contains("better-diff-icon")) {
+                changesBadge.outerHTML = "<svg class=\"lucide lucide-diff better-diff-icon\" xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3v14\"/><path d=\"M5 10h14\"/><path d=\"M5 21h14\"/></svg>"
+                changesBadge.style.position = "relative";
+                changesBadge.style.top = "3px";
+            }
+            const changesetIDspan = badgesDiv?.querySelector('a[href^="/changeset/"]:not([rel])')?.parentElement
+            if (changesetIDspan) {
+                e.appendChild(document.createTextNode("·"))
+                e.appendChild(changesetIDspan)
+            }
+            const wrapper = document.createElement("div")
+            wrapper.classList.add("d-flex", "flex-nowrap", "gap-3", "justify-content-between", "align-items-end")
+            e.parentElement.appendChild(wrapper)
+            wrapper.appendChild(e)
+            wrapper.appendChild(badgesDiv)
         })
         makeTimesSwitchable();
         hideSearchForm();
@@ -1936,9 +1957,9 @@ function setupCompactChangesetsHistory() {
         setTimeout(async () => {
             for (const elem of document.querySelectorAll("ol li:not(:has(.comment)):not(.comments-loaded)")) {
                 elem.classList.add("comments-loaded")
-                const commentsBadge = elem.querySelector(".flex-row.text-body-secondary")
+                const commentsBadge = elem.querySelector(".changeset_num_comments")
                 commentsBadge.querySelector("svg").outerHTML = `<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M2.678 11.894a1 1 0 0 1 .287.801 11 11 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 .71-.074A8 8 0 0 0 8 14c3.996 0 7-2.807 7-6s-3.004-6-7-6-7 2.808-7 6c0 1.468.617 2.83 1.678 3.894m-.493 3.905a22 22 0 0 1-.713.129c-.2.032-.352-.176-.273-.362a10 10 0 0 0 .244-.637l.003-.01c.248-.72.45-1.548.524-2.319C.743 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.52.263-1.639.742-3.468 1.105"></path></svg>`
-                const commentsCount = parseInt(commentsBadge.firstElementChild.firstChild.textContent.trim());
+                const commentsCount = parseInt(commentsBadge.firstChild.textContent.trim());
                 if (commentsCount) {
                     if (commentsCount > 3) {
                         commentsBadge.firstElementChild.style.setProperty("color", "red", "important")
@@ -2018,15 +2039,15 @@ function setupCompactChangesetsHistory() {
                         commentsBadge.firstElementChild.title = commentsBadge.firstElementChild.title.trimEnd()
                     });
                 } else {
-                    commentsBadge.firstElementChild.classList.add("hidden-comments-badge")
+                    commentsBadge.classList.add("hidden-comments-badge")
                 }
             }
-        }, 0);
+        });
     }
 
     if (!location.pathname.startsWith("/node") && !location.pathname.startsWith("/way") && !location.pathname.startsWith("/relation")) {
-        handleNewChangesets();
         sidebarObserver?.disconnect();
+        handleNewChangesets();
         sidebarObserver = new MutationObserver(handleNewChangesets);
         if (document.querySelector('#sidebar_content') && !location.pathname.startsWith("/changeset")) {
             sidebarObserver.observe(document.querySelector('#sidebar_content'), {childList: true, subtree: true});
@@ -6717,7 +6738,7 @@ function extractChangesetID(s) {
 
 function addCommentsCount() {
     setTimeout(async () => {
-        const links = document.querySelectorAll(`#sidebar_content #element_versions_list > div li a[href^="/changeset"]:not(.comments-loaded):not(.comments-link)`)
+        const links = document.querySelectorAll(`#sidebar_content #element_versions_list > div div:first-of-type a[href^="/changeset"]:not(.comments-loaded):not(.comments-link)`)
         await loadChangesetMetadatas(
             Array.from(links).map(i => {
                 i.classList.add("comments-loaded")
@@ -7128,25 +7149,30 @@ function addDiffInHistory(reason = "url_change") {
     }
     ` : ``);
     injectCSSIntoOSMPage(styleText)
-    let versions = [{tags: [], coordinates: "", wasModified: false, nodes: [], members: [], visible: true}];
+    const versions = [{tags: [], coordinates: "", wasModified: false, nodes: [], members: [], visible: true}];
     // add/modification
-    let versionsHTML = Array.from(document.querySelectorAll('#element_versions_list > div:not(.processed):not(:has(a[href*="/redactions/"]:not([rel])))'))
+    const versionsHTML = Array.from(document.querySelectorAll('#element_versions_list > div:not(.processed):not(:has(a[href*="/redactions/"]:not([rel])))'))
     for (let ver of versionsHTML.toReversed()) {
         ver.classList.add("processed")
         let wasModifiedObject = false;
-        let version = ver.children[0].childNodes[1].href.match(/\/(\d+)$/)[1]
-        let kv = ver.querySelectorAll("tbody > tr") ?? [];
-        let tags = [];
+        const version = ver.children[0].childNodes[1].href.match(/\/(\d+)$/)[1]
+        const kv = ver.querySelectorAll("tbody > tr") ?? [];
+        const tags = [];
 
-        let metainfoHTML = ver.querySelector('ul > li:nth-child(1)');
+        const metainfoHTML = ver.querySelector('div:nth-of-type(1)');
 
-        let changesetHTML = ver.querySelector('ul > li:nth-child(2)');
-        let changesetA = ver.querySelector('ul a[href^="/changeset"]');
+        const changesetHTML = ver.querySelector('div:nth-of-type(2)');
+        const changesetA = ver.querySelector('div a[href^="/changeset/"]:not([rel])');
         const changesetID = changesetA.textContent
 
-        let time = Array.from(metainfoHTML.children).find(i => i.localName === "time")
-        if (Array.from(metainfoHTML.children).some(e => e.localName === "a" && e.href.includes("/user/"))) {
-            let a = Array.from(metainfoHTML.children).find(i => i.localName === "a")
+        const time = metainfoHTML.querySelector("time")
+
+        const coordinates = ver.querySelector("div:nth-of-type(3) > a")
+        const locationHTML = ver.querySelector('div:nth-of-type(3)');
+        const locationA = ver.querySelector('div:nth-of-type(3) > a');
+
+        if (metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')) {
+            const a = metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')
             metainfoHTML.innerHTML = ""
             metainfoHTML.appendChild(time)
             metainfoHTML.appendChild(document.createTextNode(" "))
@@ -7155,7 +7181,7 @@ function addDiffInHistory(reason = "url_change") {
         } else {
             metainfoHTML.innerHTML = ""
             metainfoHTML.appendChild(time)
-            let findBtn = document.createElement("span")
+            const findBtn = document.createElement("span")
             findBtn.classList.add("find-user-btn")
             findBtn.title = "Try find deleted user"
             findBtn.textContent = " 🔍 "
@@ -7172,14 +7198,11 @@ function addDiffInHistory(reason = "url_change") {
         metainfoHTML.appendChild(changesetA)
         let visible = true
 
-        let coordinates = null
         if (location.pathname.startsWith("/node")) {
-            coordinates = ver.querySelector("li:nth-child(3) > a")
             if (coordinates) {
-                let locationHTML = ver.querySelector('ul > li:nth-child(3)');
-                let locationA = ver.querySelector('ul > li:nth-child(3) > a');
                 locationHTML.innerHTML = ''
                 locationHTML.appendChild(locationA)
+                metainfoHTML.appendChild(locationHTML)
             } else {
                 visible = false
                 wasModifiedObject = true // because sometimes deleted object has tags
@@ -7922,10 +7945,10 @@ function makeVersionPageBetter() {
     if (!document.querySelector(".find-user-btn")) {
         try {
             const ver = document.querySelector(browseSectionSelector)
-            const metainfoHTML = ver?.querySelector('ul > li:nth-child(1)');
-            if (metainfoHTML && !Array.from(metainfoHTML.children).some(e => e.localName === "a" && e.href.includes("/user/"))) {
-                const time = Array.from(metainfoHTML.children).find(i => i.localName === "time")
-                const changesetID = ver.querySelector('ul a[href^="/changeset"]').textContent;
+            const metainfoHTML = ver?.querySelector('div:nth-of-type(1)');
+            if (metainfoHTML && !metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')) {
+                const time = metainfoHTML.querySelector("time")
+                const changesetID = ver.querySelector('div a[href^="/changeset/"]:not([rel])').textContent;
 
                 metainfoHTML.lastChild.remove()
                 const findBtn = document.createElement("span")
