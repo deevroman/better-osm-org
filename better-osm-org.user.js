@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.1.1
+// @version         1.1.2
 // @changelog       v1.0.0: type=restriction render, user ID in profile, profile for deleted user
 // @changelog       v1.0.0: notes filter, Overpass link in taginfo for key values, ruler, nodes mover
 // @changelog       v0.9.9: Button for 3D view building in OSMBuilding, F4map and other viewers
@@ -1745,6 +1745,9 @@ const compactSidebarStyleText = `
       font-style: italic;
       font-size: 14px !important;
       font-synthesis: none;
+    }
+    #sidebar_content > div:not(.changesets) .changeset_num_comments {
+        display: none !important;
     }
     @media ${mediaQueryForWebsiteTheme} {
         .changesets time {
@@ -6906,7 +6909,7 @@ function addDiffInHistory(reason = "url_change") {
         return;
     }
     // костыль для KeyK/L и OSM tags editor
-    document.querySelectorAll("#element_versions_list div").forEach(i => i.classList.add("browse-section"))
+    document.querySelectorAll("#element_versions_list > div").forEach(i => i.classList.add("browse-section"))
     cleanAllObjects()
     hideSearchForm();
     // в хроме фокус не выставляется
@@ -7169,15 +7172,15 @@ function addDiffInHistory(reason = "url_change") {
 
         const metainfoHTML = ver.querySelector('div:nth-of-type(1)');
 
-        const changesetHTML = ver.querySelector('div:nth-of-type(2)');
-        const changesetA = ver.querySelector('div a[href^="/changeset/"]:not([rel])');
+        const changesetA = ver.querySelector('div > div a[href^="/changeset/"]:not([rel])');
+        const changesetHTML = changesetA?.parentElement;
         const changesetID = changesetA.textContent
 
         const time = metainfoHTML.querySelector("time")
 
-        const coordinates = ver.querySelector("div:nth-of-type(3) > a")
-        const locationHTML = ver.querySelector('div:nth-of-type(3)');
-        const locationA = ver.querySelector('div:nth-of-type(3) > a');
+        const coordinates = ver.querySelector("div a:has(.latitude)")
+        const locationHTML = coordinates?.parentElement;
+        const locationA = ver.querySelector("div a:has(.latitude)");
 
         if (metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')) {
             const a = metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')
@@ -7203,7 +7206,9 @@ function addDiffInHistory(reason = "url_change") {
         changesetHTML.innerHTML = ''
         let hashtag = document.createTextNode("#")
         metainfoHTML.appendChild(hashtag)
-        metainfoHTML.appendChild(changesetA)
+        const changesetWrapper = document.createElement("span")
+        changesetWrapper.appendChild(changesetA)
+        metainfoHTML.appendChild(changesetWrapper)
         let visible = true
 
         if (location.pathname.startsWith("/node")) {
@@ -7984,8 +7989,8 @@ function makeVersionPageBetter() {
     void addHoverForWayNodes();
     void addHoverForRelationMembers();
     // костыль для KeyK/L и OSM tags editor
-    document.querySelector("#sidebar_content div:first-of-type")?.classList?.add("browse-section")
-    document.querySelectorAll("#element_versions_list div").forEach(i => i.classList.add("browse-section"))
+    document.querySelector("#sidebar_content > div:first-of-type")?.classList?.add("browse-section")
+    document.querySelectorAll("#element_versions_list > div").forEach(i => i.classList.add("browse-section"))
 }
 
 function setupMakeVersionPageBetter() {
@@ -11083,6 +11088,10 @@ async function interceptMapManually() {
                 await sleep(10)
                 exportImageBtn = document.querySelector("#export-image #image_filter")
             }
+        }
+        if (getWindow().mapIntercepted) {
+            console.log("skip manual intercepting: already intercepted")
+            return
         }
         exportImageBtn.click()
         exportImageBtn.click()
