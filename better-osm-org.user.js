@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.1.0
+// @version         1.1.1
 // @changelog       v1.0.0: type=restriction render, user ID in profile, profile for deleted user
 // @changelog       v1.0.0: notes filter, Overpass link in taginfo for key values, ruler, nodes mover
 // @changelog       v0.9.9: Button for 3D view building in OSMBuilding, F4map and other viewers
@@ -6736,9 +6736,17 @@ function extractChangesetID(s) {
     return s.match(/\/changeset\/([0-9]+)/)[1];
 }
 
+function isVersionPage() {
+    return !!location.pathname.match(/\/(node|way|relation)\/[0-9]+\/?(version\/[0-9]+\/?)?/)
+}
+
 function addCommentsCount() {
-    setTimeout(async () => {
-        const links = document.querySelectorAll(`#sidebar_content #element_versions_list > div div:first-of-type a[href^="/changeset"]:not(.comments-loaded):not(.comments-link)`)
+    queueMicrotask(async () => {
+        if (isVersionPage()) {
+            document.querySelectorAll(".changeset_num_comments").forEach(i => i.style.setProperty("display", "none", "important"))
+        }
+        const sectionSelector = isVersionPage() ? "#sidebar_content > div:first-of-type" : "#sidebar_content #element_versions_list > div"
+        const links = document.querySelectorAll(`${sectionSelector} div:first-of-type a[href^="/changeset"]:not(.comments-loaded):not(.comments-link)`)
         await loadChangesetMetadatas(
             Array.from(links).map(i => {
                 i.classList.add("comments-loaded")
