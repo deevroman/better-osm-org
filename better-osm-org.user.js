@@ -14662,6 +14662,7 @@ function setupNavigationViaHotkeys() {
             buildingViewerIframe = null
             document.querySelectorAll(".sidebar-close-controls .btn-close").forEach(i => i?.click())
             document.querySelector(".welcome .btn-close")?.click()
+            document.querySelector("#banner .btn-close")?.click()
         } else if (e.code === "KeyT" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
             if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
                 document.querySelector('a[href="/traces/mine"], a[href$="/traces"]:not(.nav-link):not(.dropdown-item)')?.click()
