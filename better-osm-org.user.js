@@ -140,6 +140,10 @@
 /*global opening_hours*/
 /*global runSnowAnimation*/
 
+if (location.search.includes("&kek")) {
+    throw "better-osm-org disable via url param";
+}
+
 if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Greasemonkey" || GM_info.scriptHandler === "Firemonkey") {
     console.error("YOU ARE USING AN UNSUPPORTED SCRIPT MANAGER")
 }
@@ -251,7 +255,17 @@ const local_server = {
     origin: "http://localhost:3000",
 }
 
-let osm_server = dev_server;
+const osm_server = (() => {
+    if (location.origin === prod_server.origin) return prod_server;
+    else if (location.origin === dev_server.origin) return dev_server;
+    else if (location.origin === ohm_prod_server.origin) return ohm_prod_server;
+    else if (location.origin === local_server.origin) return local_server;
+    else return null;
+})()
+
+function isOsmServer() {
+    return !!osm_server;
+}
 
 const planetOrigin = "https://planet.maps.mail.ru"
 
@@ -383,8 +397,7 @@ function intoPageWithFun(obj) {
     return cloneInto(obj, getWindow(), {cloneFunctions: true})
 }
 
-if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)
-    && !["/edit", "/id"].includes(location.pathname)) {
+if (isOsmServer() && !["/edit", "/id"].includes(location.pathname)) {
     function mapHook() {
         console.log("start map intercepting")
         if (boWindowObject.L && boWindowObject.L.Map) {
@@ -438,8 +451,7 @@ if ([prod_server.origin, dev_server.origin, local_server.origin].includes(locati
         }))
     }, 1500)
 
-} else if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)
-    && ["/edit", "/id"].includes(location.pathname)) {
+} else if (isOsmServer() && ["/edit", "/id"].includes(location.pathname)) {
     if (isDarkMode()) {
         if (location.pathname === "/edit") {
             // document.querySelector("#id-embed").style.visibility = "hidden"
@@ -12347,6 +12359,10 @@ async function updateUserInfo(username) {
  * @return {Promise<*>}
  */
 async function getCachedUserInfo(username) {
+    if (!username) {
+        console.trace("invalid username")
+        return
+    }
     const localUserInfo = await GM.getValue("userinfo-" + username, "")
     if (localUserInfo) {
         const cacheTime = new Date(localUserInfo['cacheTime'])
@@ -12732,10 +12748,6 @@ let queriesCache = {
     elems: {}
 }
 
-function isOsmServer() {
-    return [prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)
-}
-
 if (isOsmServer()) {
     injectJSIntoPage(`
     const originalFetch = window.fetch;
@@ -13068,7 +13080,8 @@ function addMassChangesetsActions() {
             }
             item.title = "Click for copy changeset id"
             if (location.pathname.match(/^\/history(\/?|\/friends)$/)) {
-                getCachedUserInfo(item.previousSibling.previousSibling.textContent).then((res) => {
+                getCachedUserInfo(item.previousSibling?.previousSibling?.textContent).then((res) => {
+                    if (!res) return
                     item.previousSibling.previousSibling.title = `changesets_count: ${res['changesets']['count']}\naccount_created: ${res['account_created']}`
                     item.previousSibling.previousSibling.before(makeBadge(res,
                         new Date(item.parentElement.querySelector("time")?.getAttribute("datetime") ?? new Date())))
@@ -13134,7 +13147,7 @@ async function getChangesetMetadata(changeset_id) {
     return await fetch(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json");
 }
 
-const _isDebug = document.querySelector("head")?.getAttribute("data-user") === "11528195";
+const _isDebug = document.querySelector("head")?.getAttribute("data-user") === "11528195" || osm_server === local_server;
 
 function isDebug() {
     return _isDebug;
@@ -13451,10 +13464,14 @@ function enableOverzoom() {
 
     injectJSIntoPage(`
     (function () {
-        map.options.maxZoom = 22
-        const layers = [];
-        map.eachLayer(i => layers.push(i))
-        layers[0].options.maxZoom = 22
+        if (map && map.options) {
+            map.options.maxZoom = 22
+            const layers = [];
+            map.eachLayer(i => layers.push(i))
+            layers[0].options.maxZoom = 22
+        } else {
+            console.warn("overzoom not enabled")
+        }
     })()
     `)
 
@@ -14292,6 +14309,13 @@ function setupNavigationViaHotkeys() {
                 // eslint-disable-next-line no-debugger
                 debugger
                 throw "debug"
+            }
+            if (e.shiftKey && isDebug()) {
+                location.search += "&kek"
+                return
+            }
+            if (e.altKey || e.shiftKey) {
+                return;
             }
             if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
                 document.querySelector('a[href^="/user/"][href$="/diary"]')?.click()
@@ -16199,15 +16223,6 @@ function setupOSMWebsite() {
         return
     }
     resetSearchFormFocus();
-    if (location.origin === prod_server.origin) {
-        osm_server = prod_server;
-    } else if (location.origin === dev_server.origin) {
-        osm_server = dev_server;
-    } else if (location.origin === ohm_prod_server.origin) {
-        osm_server = ohm_prod_server
-    } else {
-        osm_server = local_server;
-    }
     if (GM_config.get("OverpassInstance") === MAILRU_OVERPASS_INSTANCE.name) {
         overpass_server = MAILRU_OVERPASS_INSTANCE
     } else if (GM_config.get("OverpassInstance") === PRIVATECOFFEE_OVERPASS_INSTANCE.name) {
@@ -16319,7 +16334,7 @@ function main() {
         }()).observe(document, {subtree: true, childList: true});
         return
     }
-    if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)) {
+    if (isOsmServer()) {
         setupOSMWebsite();
     }
 }
