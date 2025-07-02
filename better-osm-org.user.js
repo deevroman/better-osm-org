@@ -15046,7 +15046,7 @@ function setupTaginfo() {
             overpassLink.textContent = "🔍"
             overpassLink.target = "_blank"
             const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ''))
-            const key = i.querySelector(".empty") ? "" : escapeTaginfoString(i.querySelector("a"))
+            const key = i.querySelector(".empty") ? "" : escapeTaginfoString(i.querySelector("a").textContent)
             overpassLink.href = `${overpass_server.url}?` + (count > 100000
                 ? new URLSearchParams({
                         w: instance ? `"${key}"=* in "${instance}"` : `"${key}"=*`
