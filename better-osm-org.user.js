@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.1.2
+// @version         1.1.3
 // @changelog       v1.0.0: type=restriction render, user ID in profile, profile for deleted user
 // @changelog       v1.0.0: notes filter, Overpass link in taginfo for key values, ruler, nodes mover
 // @changelog       v0.9.9: Button for 3D view building in OSMBuilding, F4map and other viewers
@@ -6885,6 +6885,16 @@ async function unrollPaginationInHistory() {
     })
 }
 
+function makeTitleForTagsCount(tagsCount) {
+    if (tagsCount === 1) { // fixme after adding locationzation
+        return tagsCount + (['ru-RU', 'ru'].includes(navigator.language) ? " тег" : " tag")
+    } else if (tagsCount < 10 && tagsCount > 20 && ([2, 3, 4].includes(tagsCount % 10))) {
+        return tagsCount + (['ru-RU', 'ru'].includes(navigator.language) ? " тега" : " tags")
+    } else {
+        return tagsCount + (['ru-RU', 'ru'].includes(navigator.language) ? " тегов" : " tags")
+    }
+}
+
 // hard cases:
 // https://www.openstreetmap.org/node/1/history
 // https://www.openstreetmap.org/node/2/history
@@ -7439,13 +7449,7 @@ function addDiffInHistory(reason = "url_change") {
             visible: visible
         })
         ver.querySelectorAll("h4").forEach((el, index) => (index !== 0) ? el.classList.add("hidden-h4") : null)
-        if (tags.length === 1) { // fixme after adding locationzation
-            ver.title = tags.length + (['ru-RU', 'ru'].includes(navigator.language) ? " тег" : " tag")
-        } else if (tags.length < 10 && tags.length > 20 && ([2, 3, 4].includes(tags.length % 10))) {
-            ver.title = tags.length + (['ru-RU', 'ru'].includes(navigator.language) ? " тега" : " tags")
-        } else {
-            ver.title = tags.length + (['ru-RU', 'ru'].includes(navigator.language) ? " тегов" : " tags")
-        }
+        ver.title = makeTitleForTagsCount(tags.length);
     }
     // deletion
     Array.from(versionsHTML).forEach((x, index) => {
@@ -7958,6 +7962,8 @@ function makeVersionPageBetter() {
     if (!document.querySelector(".find-user-btn")) {
         try {
             const ver = document.querySelector(browseSectionSelector)
+            ver.title = makeTitleForTagsCount(ver.querySelectorAll("#sidebar_content tr:has(th):has(td)").length)
+
             const metainfoHTML = ver?.querySelector('div:nth-of-type(1)');
             if (metainfoHTML && !metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')) {
                 const time = metainfoHTML.querySelector("time")
@@ -7977,7 +7983,6 @@ function makeVersionPageBetter() {
         } catch { /* empty */
         }
     }
-
     makeHeaderPartsClickable()
     addHistoryLink()
     makeLinksInTagsClickable()
