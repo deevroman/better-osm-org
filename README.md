@@ -110,7 +110,7 @@ Experimental hotkeys:
     + [x] open multiple changesets on one page 
 - [x] Highlight `fixme=*`, `note=*`
 - [x] opening_hours validator
-- [x] Render `direction=*`
+- [x] Render `direction=*`, `type=restriction`
 - [x] Resizable sidebar
 - [x] Settings
 - [x] Hide active note highlight
@@ -141,6 +141,14 @@ Experimental hotkeys:
 - + [x] .gpx
 - + [x] .geojson
 - + [x] .osm
+- Notes filters:
+- + [x] by user
+- + [x] by word
+- + [ ] by status
+- Geometry
+- + [x] Ruler
+- + [ ] Calc area size
+- + [ ] Copy coordinates in multiple formats
 
 ### Ideas
 
@@ -152,9 +160,6 @@ Experimental hotkeys:
 - [ ] Public transport viewer and validator
 - [ ] Hide resolved notes
 - [ ] Collapse name tags
-- Measurement
-- + [ ] Calc area size
-- + [ ] Distance between points
 - [ ] Integrate https://github.com/Zverik/osmtags-editor
 - [ ] Edit tags in Overpass Turbo
 - [ ] Tutorial
@@ -173,14 +178,14 @@ Experimental hotkeys:
   + [ ] Photon?
 -
   + [x] Overpass (`shift` + `/`)
-- [ ] Custom overlays for iD
+- [ ] Custom layers and overlays
 -
-    + [ ] Strava (Hard, need bypass CORS)
+    + [ ] Strava for iD (Hard, need workaround for overzoom)
+    + [ ] Any layers on main page
 - [ ] Show nearest example for map legend
 - [ ] website & iD helper for translator (open search query into translation platform)
 - [ ] show in quick look the base way tag
 - [ ] Fast tags copy from wiki
-- [ ] nakarte.me: line drawing
 
 Maybe
 
