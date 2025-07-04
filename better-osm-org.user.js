@@ -7962,7 +7962,10 @@ function makeVersionPageBetter() {
     if (!document.querySelector(".find-user-btn")) {
         try {
             const ver = document.querySelector(browseSectionSelector)
-            ver.title = makeTitleForTagsCount(ver.querySelectorAll("#sidebar_content tr:has(th):has(td)").length)
+            const tagsCount = ver.querySelectorAll("#sidebar_content tr:has(th):has(td)").length
+            if (tagsCount > 5) {
+                ver.title = makeTitleForTagsCount(tagsCount)
+            }
 
             const metainfoHTML = ver?.querySelector('div:nth-of-type(1)');
             if (metainfoHTML && !metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')) {
@@ -14346,6 +14349,7 @@ function setupNavigationViaHotkeys() {
                     }
                     document.querySelector(".control-note .control-button").click()
                 } else {
+                    Array.from(document.querySelectorAll(".overlay-layers label input"))[0].removeAttribute("disabled")
                     Array.from(document.querySelectorAll(".overlay-layers label"))[0].click()
                 }
             }
@@ -14366,6 +14370,7 @@ function setupNavigationViaHotkeys() {
                 document.querySelector('a[href^="/user/"][href$="/diary"]')?.click()
             } else {
                 // map data
+                Array.from(document.querySelectorAll(".overlay-layers label input"))[1].removeAttribute("disabled")
                 Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
                 if (!location.hash.includes("D")) {
                     disableOverzoom()
