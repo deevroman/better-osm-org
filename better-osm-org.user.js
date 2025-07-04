@@ -3955,7 +3955,11 @@ function makeLinksInTagsClickable() {
             if (document.querySelector(".view-3d-link")) {
                 return;
             }
-            const [, type, id] = location.pathname.match(/\/(way|relation)\/(\d+)/)
+            const m = location.pathname.match(/\/(way|relation)\/(\d+)/)
+            if (!m) {
+                return
+            }
+            const [, type, id] = m
             if (!type) {
                 return
             }
