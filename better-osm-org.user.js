@@ -5085,7 +5085,7 @@ async function replaceDownloadWayButton(btn, wayID) {
 
         const interVersionDiv = document.createElement("div")
         interVersionDiv.setAttribute("way-version", "inter")
-        interVersionDiv.classList.add("mb-3", "border-bottom", "border-secondary-subtle", "pb-3")
+        interVersionDiv.classList.add("mb-3", "border-bottom", "border-secondary-subtle", "pb-3", "browse-section")
 
         const interVersionDivHeader = document.createElement("h4")
         const interVersionDivAbbr = document.createElement("abbr")
@@ -7535,6 +7535,7 @@ function addDiffInHistory(reason = "url_change") {
         makeElementHistoryCompact();
     }
     makeHashtagsClickable();
+    makeTimesSwitchable();
     document.querySelectorAll("#element_versions_list > div p").forEach(shortOsmOrgLinks);
     addCommentsCount();
     setupNodeVersionView();
@@ -11171,7 +11172,7 @@ function setupChangesetQuickLook(path) {
     setTimeout(() => {
         clearInterval(timerId);
         console.debug('stop try add QuickLook');
-    }, 3000);
+    }, 4000);
     void addChangesetQuickLook();
 }
 
@@ -11687,6 +11688,17 @@ async function makeProfileForDeletedUser(user) {
     div.appendChild(webArchiveLink)
     div.appendChild(document.createElement("br"))
 
+    function makeOSMChaLink(username) {
+        const osmchaLink = document.createElement("a");
+        osmchaLink.textContent = " [OSMCha] "
+        osmchaLink.id = "osmcha_link"
+        osmchaLink.title = "Open profile in OSMCha.org"
+        osmchaLink.href = makeOsmchaLinkForUsername(username)
+        osmchaLink.target = "_blank"
+        osmchaLink.rel = "noreferrer"
+        return osmchaLink
+    }
+
     async function processIDs(data, elemForResult) {
         elemForResult.appendChild(document.createTextNode(data.length === 1 ? "User ID: " : "User IDs: "))
         for (let i = 0; i < data.length; i++) {
@@ -11721,6 +11733,8 @@ async function makeProfileForDeletedUser(user) {
                     webArchiveLink.target = "_blank"
                     webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + name
                     p.appendChild(webArchiveLink)
+
+                    p.appendChild(makeOSMChaLink(name))
                 })
                 elemForResult.appendChild(p)
             }
@@ -11821,6 +11835,21 @@ async function makeProfileForDeletedUser(user) {
                 order: 'newest',
                 to: new Date().toISOString(),
             }).toString())
+            const processedChangesets = new Set(lastChangesets.changesets.map(c => c.id))
+
+            for(let i = 0; i < 20; i++) {
+                const curTime = lastChangesets.changesets[lastChangesets.changesets.length - 1].created_at
+                const ch  = await fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
+                    user: id,
+                    order: 'newest',
+                    to: new Date(new Date(curTime).getTime() + 1000).toISOString(),
+                    from: "2005-01-01T00:00:00Z",
+                }).toString())
+                ch.changesets = ch.changesets.filter(ch => !processedChangesets.has(ch.id))
+                if (ch.changesets.length === 0) break
+                lastChangesets.changesets.push(...(ch.changesets ?? []))
+            }
+
             elemForResult.appendChild(document.createTextNode(`Last ${lastChangesets.changesets?.length} changesets:`))
             lastChangesets.changesets.forEach(ch => {
                 const changesetLine = document.createElement("div")
@@ -11887,7 +11916,7 @@ async function makeProfileForDeletedUser(user) {
                     changesetLine.appendChild(commentsBadge)
                 }
 
-                div.appendChild(changesetLine)
+                elemForResult.appendChild(changesetLine)
             })
 
             const copyIds = document.createElement("button")
@@ -11916,6 +11945,8 @@ async function makeProfileForDeletedUser(user) {
     // but here need resolve problem with return promise
     const data = structuredClone(res.response);
     if (data.length) {
+        webArchiveLink.after(makeOSMChaLink(decodeURI(user)))
+
         const result = document.createElement("p")
         div.appendChild(result)
         result.title = "via whosthat.osmz.ru"
@@ -11934,6 +11965,8 @@ async function makeProfileForDeletedUser(user) {
                 responseType: "json"
             })).response;
             if (res.elements?.length) {
+                webArchiveLink.after(makeOSMChaLink(decodeURI(user)))
+
                 const result = document.createElement("p")
                 div.appendChild(result)
                 result.title = "via Overpass API"
@@ -11953,8 +11986,8 @@ async function makeProfileForDeletedUser(user) {
         const data = structuredClone(res.response)
         let names = data[0]['names']
 
-        const p = document.createElement("p")
-        div.appendChild(p)
+        const userNamesP = document.createElement("p")
+        div.appendChild(userNamesP)
         setTimeout(async () => {
             if (!names.length) {
                 const res = (await GM.xmlHttpRequest({
@@ -11976,7 +12009,7 @@ async function makeProfileForDeletedUser(user) {
                 div.title = "via whosthat.osmz.ru"
             }
             if (names.length) {
-                p.textContent = "Usernames: ";
+                userNamesP.textContent = "Usernames: ";
                 injectCSSIntoOSMPage(copyAnimationStyles)
                 names.forEach(name => {
                     const usernameSpan = document.createElement("span")
@@ -11986,14 +12019,16 @@ async function makeProfileForDeletedUser(user) {
                     usernameSpan.onclick = e => {
                         navigator.clipboard.writeText(name).then(() => copyAnimation(e, name));
                     }
-                    p.appendChild(usernameSpan)
-                    p.appendChild(document.createTextNode(" "))
+                    userNamesP.appendChild(usernameSpan)
+                    userNamesP.appendChild(document.createTextNode(" "))
 
                     const webArchiveLink = document.createElement("a")
                     webArchiveLink.textContent = "[WA] "
                     webArchiveLink.target = "_blank"
                     webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + name
-                    p.appendChild(webArchiveLink)
+                    userNamesP.appendChild(webArchiveLink)
+
+                    userNamesP.appendChild(makeOSMChaLink(name))
                 })
             }
         })
