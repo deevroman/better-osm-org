@@ -7907,9 +7907,9 @@ async function addHoverForRelationMembers() {
 function makeHeaderPartsClickable() {
     function makeElemCopyable(elem, url = "") {
         if (/^\d+$/.test(elem.textContent)) {
-            elem.title = "Click for copy ID\nCtrl + click for copy url"
+            elem.title = "Click to copy ID\nCtrl (Cmd on macOS) + click to copy URL"
         } else {
-            elem.title = "Click for copy"
+            elem.title = "Click to copy"
         }
         elem.style.cursor = "pointer";
         elem.classList.add("copyable")
