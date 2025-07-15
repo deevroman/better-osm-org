@@ -2,10 +2,10 @@
 <html>
 <head>
 <script>
-window.addEventListener('load', function(e) {
-    opener.authComplete(window.location.href);
+if (new URLSearchParams(location.search).has("code")) {
+    new BroadcastChannel("osm-api-auth-complete").postMessage(location.href);
     window.close();
-});
+}
 </script>
 </head>
 <body>Wait...</body>
