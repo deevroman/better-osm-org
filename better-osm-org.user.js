@@ -14783,6 +14783,18 @@ function setupNavigationViaHotkeys() {
                 document.querySelector(".quick-look-compact-toggle-btn")?.click()
                 document.querySelector(".compact-toggle-btn")?.click()
             }
+        } else if (e.code === "KeyM" && !e.altKey && !e.metaKey && !e.ctrlKey) {
+            if (e.shiftKey) {
+                if (location.pathname.includes("/user/")) {
+                    const username = location.pathname.match(/^\/user\/([^/]+)/)[1]
+                    window.open("/messages/new/" + decodeURI(username))
+                } else {
+                        const username = document.querySelector("#sidebar_content a[href^='/user/']").getAttribute("href").match(/^\/user\/([^/]+)/)[1]
+                    window.open("/messages/new/" + decodeURI(username))
+                }
+            } else if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
+                document.querySelector('a[href^="/messages/new/"]')?.click()
+            }
         } else if (e.code === "KeyU" && !e.altKey && !e.metaKey && !e.ctrlKey) {
             if (e.shiftKey) {
                 window.location = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href")
