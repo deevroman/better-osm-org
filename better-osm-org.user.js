@@ -7969,7 +7969,7 @@ function makeHeaderPartsClickable() {
 function expandWikidata() {
     const links = Array.from(document.querySelectorAll(".wdt-preview:not([disabled])"));
     console.log("Wikilinks count:", links.length);
-    (links.find(i => i.parentElement.classList.contains("history-diff-new-tag") || i.parentElement.classList.contains("history-diff-new-tag")) ?? links?.[0])?.click();
+    (links.find(i => i.parentElement.classList.contains("history-diff-new-tag") || i.parentElement.classList.contains("history-diff-modified-tag")) ?? links?.[0])?.click();
     setTimeout(() => {links.slice(0, 3).forEach(i => i.click())}, 100);
     setTimeout(() => {links.slice(3).forEach(i => i.click())}, 1000);
 }
