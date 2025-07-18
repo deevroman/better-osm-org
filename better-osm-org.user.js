@@ -7262,9 +7262,7 @@ function addDiffInHistory(reason = "url_change") {
                 if (i.querySelector("td .current-value-span")) {
                     i.querySelector("td .current-value-span").classList.remove("current-value-span")
                 }
-                if (i.querySelector(".wdt-preview")) {
-                    i.querySelector(".wdt-preview svg title").remove()
-                }
+                i.querySelector(".wdt-preview svg title")?.remove()
                 let v = i.querySelector("td .wdplugin")?.textContent ?? i.querySelector("td")?.textContent;
                 if (k === undefined) {
                     // todo support multiple wikidata
