@@ -7904,10 +7904,12 @@ async function addHoverForRelationMembers() {
     console.log("addHoverForRelationMembers finished");
 }
 
+const isMac = navigator.platform?.toUpperCase()?.indexOf('MAC') >= 0;
+
 function makeHeaderPartsClickable() {
     function makeElemCopyable(elem, url = "") {
         if (/^\d+$/.test(elem.textContent)) {
-            elem.title = "Click to copy ID\nCtrl (Cmd on macOS) + click to copy URL"
+            elem.title = `Click to copy ID\n${isMac ? "Cmd" : "Ctrl"} + click to copy URL`
         } else {
             elem.title = "Click to copy"
         }
