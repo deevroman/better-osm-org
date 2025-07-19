@@ -3714,6 +3714,7 @@ function resetSearchFormFocus() {
 
 // https://osm.org/node/12559772251
 // https://osm.org/node/10588878341
+// https://osm.org/way/1264114016
 function makePanoramaxValue(elem) {
     if (!GM_config.get("ImagesAndLinksInTags")) return;
     // extracting uuid
