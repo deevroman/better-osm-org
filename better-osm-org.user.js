@@ -1901,6 +1901,7 @@ function setupCompactChangesetsHistory() {
     }
 
     if (location.pathname.startsWith("/changeset")) {
+        externalizeLinks(document.querySelectorAll("#sidebar_content p:first-of-type a"))
         externalizeLinks(document.querySelector("#sidebar_content ul")?.querySelectorAll("a:not(.page-link)"))
     }
 
@@ -6918,7 +6919,8 @@ function externalizeLinks(links) {
 function addDiffInHistory(reason = "url_change") {
     makeHeaderPartsClickable();
     addHistoryLink();
-    externalizeLinks(document.querySelector("#sidebar_content table")?.querySelectorAll("a"))
+    externalizeLinks(document.querySelectorAll("#sidebar_content p a"))
+    externalizeLinks(document.querySelectorAll("#sidebar_content table a"))
     if (!location.pathname.includes("/history")
         || location.pathname === "/history"
         || (location.pathname.includes("/history/") && !location.pathname.endsWith("/history/"))
