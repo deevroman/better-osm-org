@@ -1901,9 +1901,7 @@ function setupCompactChangesetsHistory() {
     }
 
     if (location.pathname.startsWith("/changeset")) {
-        if (document.querySelector("#sidebar_content ul")) {
-            document.querySelector("#sidebar_content ul").querySelectorAll("a:not(.page-link)").forEach(i => i.setAttribute("target", "_blank"));
-        }
+        externalizeLinks(document.querySelector("#sidebar_content ul")?.querySelectorAll("a:not(.page-link)"))
     }
 
     addCompactSidebarStyle();
@@ -2234,9 +2232,7 @@ function addResolveNotesButton() {
             elem.title = `changesets_count: ${info['changesets']['count']}\naccount_created: ${info['account_created']}`
         })
     })
-    document.querySelectorAll(".overflow-hidden a").forEach(i => {
-        i.setAttribute("target", "_blank")
-    })
+    externalizeLinks(document.querySelectorAll(".overflow-hidden a"))
 
     makeTimesSwitchable()
 
@@ -6905,6 +6901,10 @@ function makeTitleForTagsCount(tagsCount) {
     }
 }
 
+function externalizeLinks(links) {
+    links?.forEach(i => i.setAttribute("target", "_blank"));
+}
+
 // hard cases:
 // https://www.openstreetmap.org/node/1/history
 // https://www.openstreetmap.org/node/2/history
@@ -6917,9 +6917,7 @@ function makeTitleForTagsCount(tagsCount) {
 function addDiffInHistory(reason = "url_change") {
     makeHeaderPartsClickable();
     addHistoryLink();
-    if (document.querySelector("#sidebar_content table")) {
-        document.querySelector("#sidebar_content table").querySelectorAll("a").forEach(i => i.setAttribute("target", "_blank"));
-    }
+    externalizeLinks(document.querySelector("#sidebar_content table")?.querySelectorAll("a"))
     if (!location.pathname.includes("/history")
         || location.pathname === "/history"
         || (location.pathname.includes("/history/") && !location.pathname.endsWith("/history/"))
@@ -13274,7 +13272,9 @@ async function getChangesetMetadata(changeset_id) {
     return await fetch(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json");
 }
 
-const _isDebug = document.querySelector("head")?.getAttribute("data-user") === "11528195" || osm_server === local_server;
+const _isDebug = document.querySelector("head")?.getAttribute("data-user") === "11528195"
+    || osm_server === local_server
+    || osm_server === dev_server;
 
 function isDebug() {
     return _isDebug;
