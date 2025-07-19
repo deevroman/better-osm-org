@@ -3754,7 +3754,8 @@ function makePanoramaxValue(elem) {
                 a.onmouseenter = () => {
                     const lat = res['features'][0]['geometry']["coordinates"][1]
                     const lon = res['features'][0]['geometry']["coordinates"][0]
-                    const angle = parseFloat(res['features'][0]["properties"]["exif"]["Exif.GPSInfo.GPSImgDirection"])
+                    const raw_angle = res['features'][0]["properties"]["exif"]["Exif.GPSInfo.GPSImgDirection"]
+                    const angle = raw_angle?.includes("/") ? raw_angle.split("/")[0] / raw_angle.split("/")[1] : parseFloat(raw_angle)
 
                     showActiveNodeMarker(lat, lon, "#0022ff", true)
 
