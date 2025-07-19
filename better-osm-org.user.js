@@ -758,7 +758,7 @@ GM_config.init(
                 '3DViewerInNewTab': {
                     'label': 'Open buildings 3D viewers always in new tab',
                     'type': 'checkbox',
-                    'default': isMobile ? 'checked' : false,
+                    'default': 'checked',
                     'labelPos': 'right'
                 },
                 'BetterTaginfo': {
