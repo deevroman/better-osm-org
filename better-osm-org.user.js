@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.1.3
+// @version         1.1.4
 // @changelog       v1.0.0: type=restriction render, user ID in profile, profile for deleted user
 // @changelog       v1.0.0: notes filter, Overpass link in taginfo for key values, ruler, nodes mover
 // @changelog       v0.9.9: Button for 3D view building in OSMBuilding, F4map and other viewers
@@ -66,11 +66,11 @@
 // @supportURL   https://github.com/deevroman/better-osm-org/issues
 // @icon         https://www.openstreetmap.org/favicon.ico
 // @require      https://raw.githubusercontent.com/deevroman/GM_config/fixed-for-chromium/gm_config.js#sha256=ea04cb4254619543f8bca102756beee3e45e861077a75a5e74d72a5c131c580b
-// @require      https://raw.githubusercontent.com/deevroman/osm-auth/ad63c40d376593d63ee2d35f60664e28769bf1ba/dist/osm-auth.iife.js#sha256=6f0401639929ca5de4c98e69c07665a82c93a2aa9e3f138ffa8429cecd0f900d
+// @require      https://raw.githubusercontent.com/deevroman/osm-auth/d83736efcbec64a87d2c31ffdca3e3efc255f823/dist/osm-auth.iife.js#sha256=f9f85ed6209aa413097a5a4e1a4b6870d3a9ee94f267ac7c3ec35cee99b7dec9
 // @require      https://raw.githubusercontent.com/deevroman/exif-js/53b0c7c1951a23d255e37ed0a883462218a71b6f/exif.js#sha256=2235967d47deadccd9976244743e3a9be5ca5e41803cda65a40b8686ec713b74
 // @require      https://raw.githubusercontent.com/deevroman/osmtogeojson/c97381a0c86c0a021641dd47d7bea01fb5514716/osmtogeojson.js#sha256=663bb5bbae47d5d12bff9cf1c87b8f973e85fab4b1f83453810aae99add54592
 // @require      https://gist.githubusercontent.com/deevroman/d8b7a2176446e321fa6b0b47d0615d6e/raw/57c11b07432890b9a066ef6b6aba970dda9cb5ad/snow-animation.js#sha256=3b6cd76818c5575ea49aceb7bf4dc528eb8a7cb228b701329a41bb50f0800a5d
-// @require      https://openingh.openstreetmap.de/opening_hours.js/opening_hours+deps.min.js#sha256=e9a3213aba77dcf79ff1da9f828532acf1ebf7107ed1ce5f9370b922e023baff
+// @require      https://raw.githubusercontent.com/deevroman/opening_hours.js/f70889c71fcfd6e3ef7ba8df3b1263d8295b3dec/opening_hours+deps.min.js#sha256=e9a3213aba77dcf79ff1da9f828532acf1ebf7107ed1ce5f9370b922e023baff
 // @incompatible safari https://github.com/deevroman/better-osm-org/issues/13
 // @grant        GM.getValue
 // @grant        GM.setValue
@@ -1901,9 +1901,7 @@ function setupCompactChangesetsHistory() {
     }
 
     if (location.pathname.startsWith("/changeset")) {
-        if (document.querySelector("#sidebar_content ul")) {
-            document.querySelector("#sidebar_content ul").querySelectorAll("a:not(.page-link)").forEach(i => i.setAttribute("target", "_blank"));
-        }
+        externalizeLinks(document.querySelector("#sidebar_content ul")?.querySelectorAll("a:not(.page-link)"))
     }
 
     addCompactSidebarStyle();
@@ -2234,9 +2232,7 @@ function addResolveNotesButton() {
             elem.title = `changesets_count: ${info['changesets']['count']}\naccount_created: ${info['account_created']}`
         })
     })
-    document.querySelectorAll(".overflow-hidden a").forEach(i => {
-        i.setAttribute("target", "_blank")
-    })
+    externalizeLinks(document.querySelectorAll(".overflow-hidden a"))
 
     makeTimesSwitchable()
 
@@ -3651,10 +3647,12 @@ out geom;
         } else {
             console.time("render overpass response")
             fitBounds([[bbox.min_lat, bbox.min_lon], [bbox.max_lat, bbox.max_lon]])
+            loadBannedVersions();
+            preloadEditIcons()
             cleanAllObjects()
             getWindow().jsonLayer?.remove()
             jsonLayer?.remove()
-            renderOSMGeoJSON(xml, true)
+            jsonLayer = renderOSMGeoJSON(xml, true)
             console.timeEnd("render overpass response")
 
             let statusPrefix = ""
@@ -3752,7 +3750,8 @@ function makePanoramaxValue(elem) {
                 a.onmouseenter = () => {
                     const lat = res['features'][0]['geometry']["coordinates"][1]
                     const lon = res['features'][0]['geometry']["coordinates"][0]
-                    const angle = parseFloat(res['features'][0]["properties"]["exif"]["Exif.GPSInfo.GPSImgDirection"])
+                    const raw_angle = res['features'][0]["properties"]["exif"]["Exif.GPSInfo.GPSImgDirection"]
+                    const angle = raw_angle?.includes("/") ? raw_angle.split("/")[0] / raw_angle.split("/")[1] : parseFloat(raw_angle)
 
                     showActiveNodeMarker(lat, lon, "#0022ff", true)
 
@@ -3966,7 +3965,7 @@ function makeLinksInTagsClickable() {
             if (type === "way" && ["building", "building:part"].includes(key) &&
                 !Array.from(document.querySelectorAll(".browse-tag-list tr th"))
                     .some(i => i.textContent.includes("level") || i.textContent.includes("height")
-                        || i.textContent.includes("roof") || i.textContent.includes("name")
+                        || i.textContent.includes("roof")
                     )) {
                 return
             }
@@ -4733,7 +4732,7 @@ function setupNodeVersionView() {
         }
         versionDiv.onclick = (e) => {
             if (e.altKey) return;
-            if (e.target.tagName === "A" || e.target.tagName === "TIME" || e.target.tagName === "SUMMARY") {
+            if (e.target.tagName === "A" || e.target.tagName === "TIME" || e.target.tagName === "SUMMARY" || e.target.tagName === "BUTTON") {
                 return
             }
             panTo(lat, lon);
@@ -5511,7 +5510,7 @@ function setupWayVersionView() {
                 loadWayVersion(e);
             }
             versionDiv.onclick = async e => {
-                if (e.target.tagName === "A" || e.target.tagName === "TIME" || e.target.tagName === "SUMMARY") {
+                if (e.target.tagName === "A" || e.target.tagName === "TIME" || e.target.tagName === "SUMMARY" || e.target.tagName === "BUTTON") {
                     return
                 }
                 await loadWayVersion(versionDiv, true, true, true)
@@ -5605,6 +5604,7 @@ function setupWayVersionView() {
     }
 }
 
+//<editor-fold desc="setup compact mode toggles">
 /**
  * @typedef {Object} RelationMember
  * @property {number} ref
@@ -5662,6 +5662,8 @@ function setupWayVersionView() {
  * @property {'node'|'way'|'relation'} type
  * @property {Object.<string, string>=} tags
  */
+
+//</editor-fold>
 
 /**
  * @param {number|string} relationID
@@ -6386,7 +6388,7 @@ function setupRelationVersionView() {
             const versionDiv = htmlElem.parentNode.parentNode
             versionDiv.onmouseenter = loadRelationVersion
             versionDiv.onclick = async (e) => {
-                if (e.target.tagName === "A" || e.target.tagName === "TIME" || e.target.tagName === "SUMMARY") {
+                if (e.target.tagName === "A" || e.target.tagName === "TIME" || e.target.tagName === "SUMMARY" || e.target.tagName === "BUTTON") {
                     return
                 }
                 await loadRelationVersion(versionDiv) // todo params
@@ -6899,6 +6901,10 @@ function makeTitleForTagsCount(tagsCount) {
     }
 }
 
+function externalizeLinks(links) {
+    links?.forEach(i => i.setAttribute("target", "_blank"));
+}
+
 // hard cases:
 // https://www.openstreetmap.org/node/1/history
 // https://www.openstreetmap.org/node/2/history
@@ -6911,9 +6917,7 @@ function makeTitleForTagsCount(tagsCount) {
 function addDiffInHistory(reason = "url_change") {
     makeHeaderPartsClickable();
     addHistoryLink();
-    if (document.querySelector("#sidebar_content table")) {
-        document.querySelector("#sidebar_content table").querySelectorAll("a").forEach(i => i.setAttribute("target", "_blank"));
-    }
+    externalizeLinks(document.querySelector("#sidebar_content table")?.querySelectorAll("a"))
     if (!location.pathname.includes("/history")
         || location.pathname === "/history"
         || (location.pathname.includes("/history/") && !location.pathname.endsWith("/history/"))
@@ -7257,6 +7261,7 @@ function addDiffInHistory(reason = "url_change") {
                 if (i.querySelector("td .current-value-span")) {
                     i.querySelector("td .current-value-span").classList.remove("current-value-span")
                 }
+                i.querySelector(".wdt-preview svg title")?.remove()
                 let v = i.querySelector("td .wdplugin")?.textContent ?? i.querySelector("td")?.textContent;
                 if (k === undefined) {
                     // todo support multiple wikidata
@@ -7541,6 +7546,7 @@ function addDiffInHistory(reason = "url_change") {
     setupNodeVersionView();
     setupWayVersionView();
     setupRelationVersionView();
+    expandWikidata();
     monitorHistoryPaginationMoving();
     console.log("Click by pagination from AddDiffInHistory")
     document.querySelector("#older_element_versions_navigation a")?.click()
@@ -7904,12 +7910,14 @@ async function addHoverForRelationMembers() {
     console.log("addHoverForRelationMembers finished");
 }
 
+const isMac = navigator.platform?.toUpperCase()?.indexOf('MAC') >= 0;
+
 function makeHeaderPartsClickable() {
     function makeElemCopyable(elem, url = "") {
         if (/^\d+$/.test(elem.textContent)) {
-            elem.title = "Click for copy ID\nCtrl + click for copy url"
+            elem.title = `Click to copy ID\n${isMac ? "Cmd" : "Ctrl"} + click to copy URL`
         } else {
-            elem.title = "Click for copy"
+            elem.title = "Click to copy"
         }
         elem.style.cursor = "pointer";
         elem.classList.add("copyable")
@@ -7955,6 +7963,14 @@ function makeHeaderPartsClickable() {
     })
 }
 
+function expandWikidata() {
+    const links = Array.from(document.querySelectorAll(".wdt-preview:not([disabled])"));
+    console.log("Wikilinks count:", links.length);
+    (links.find(i => i.parentElement.classList.contains("history-diff-new-tag") || i.parentElement.classList.contains("history-diff-modified-tag")) ?? links?.[0])?.click();
+    setTimeout(() => {links.slice(0, 3).forEach(i => i.click())}, 100);
+    setTimeout(() => {links.slice(3).forEach(i => i.click())}, 1000);
+}
+
 function makeVersionPageBetter() {
     const match = location.pathname.match(/(node|way|relation)\/(\d+)(\/history\/(\d+)\/?$|\/?$)/)
     if (!match) {
@@ -7998,6 +8014,7 @@ function makeVersionPageBetter() {
     makeTimesSwitchable()
     document.querySelectorAll(`${browseSectionSelector} p`).forEach(shortOsmOrgLinks)
     addCommentsCount();
+    expandWikidata();
     void addHoverForNodesParents();
     void addHoverForWayNodes();
     void addHoverForRelationMembers();
@@ -11305,6 +11322,27 @@ async function loadChangesetsBetween(user, fromTime, toTime) {
 }
 
 /**
+ * @template T
+ * @template X
+ * @param {T[]} items
+ * @param {(T) => X} keyFn
+ * @return {T[]}
+ */
+function uniq(items, keyFn) {
+    const uniqs = new Set()
+    const result = []
+
+    items.forEach(i => {
+        const elem = keyFn(i)
+        if (!uniqs.has(elem)) {
+            uniqs.add(elem)
+            result.push(i)
+        }
+    })
+    return result
+}
+
+/**
  * @param user {string}
  * @return {Promise<ChangesetMetadata[]>}
  */
@@ -13234,7 +13272,9 @@ async function getChangesetMetadata(changeset_id) {
     return await fetch(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json");
 }
 
-const _isDebug = document.querySelector("head")?.getAttribute("data-user") === "11528195" || osm_server === local_server;
+const _isDebug = document.querySelector("head")?.getAttribute("data-user") === "11528195"
+    || osm_server === local_server
+    || osm_server === dev_server;
 
 function isDebug() {
     return _isDebug;
@@ -14783,6 +14823,18 @@ function setupNavigationViaHotkeys() {
                 document.querySelector(".quick-look-compact-toggle-btn")?.click()
                 document.querySelector(".compact-toggle-btn")?.click()
             }
+        } else if (e.code === "KeyM" && !e.altKey && !e.metaKey && !e.ctrlKey) {
+            if (e.shiftKey) {
+                if (location.pathname.includes("/user/")) {
+                    const username = location.pathname.match(/^\/user\/([^/]+)/)[1]
+                    window.open("/messages/new/" + decodeURI(username))
+                } else {
+                        const username = document.querySelector("#sidebar_content a[href^='/user/']").getAttribute("href").match(/^\/user\/([^/]+)/)[1]
+                    window.open("/messages/new/" + decodeURI(username))
+                }
+            } else if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
+                document.querySelector('a[href^="/messages/new/"]')?.click()
+            }
         } else if (e.code === "KeyU" && !e.altKey && !e.metaKey && !e.ctrlKey) {
             if (e.shiftKey) {
                 window.location = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href")
@@ -15441,22 +15493,22 @@ function insertOverlaysStyles() {
 
 }
 
+// todo inline
 const rawEditIcon = "https://raw.githubusercontent.com/openstreetmap/iD/671e9f00699c3b2602b82b291c5cd776445032aa/svg/fontawesome/fas-i-cursor.svg";
 const tableEditIcon = "https://raw.githubusercontent.com/openstreetmap/iD/671e9f00699c3b2602b82b291c5cd776445032aa/svg/fontawesome/fas-th-list.svg";
 
 // const lastVersionsCache = {}
 
-function renderOSMGeoJSON(xml) {
-    const auth = makeAuth();
-
+function loadBannedVersions() {
     GM.xmlHttpRequest({
         url: "https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/master/banned_versions.json",
         responseType: "json"
     }).then(async res => {
         bannedVersions = await res.response
     })
+}
 
-    // preloading
+function preloadEditIcons() {
     GM_addElement("img", {
         src: rawEditIcon,
         height: "14px",
@@ -15467,7 +15519,14 @@ function renderOSMGeoJSON(xml) {
         height: "14px",
         width: "14px"
     })
+}
 
+let osmEditAuth = null;
+
+function renderOSMGeoJSON(xml, options = {}) {
+    if (osmEditAuth === null) {
+        osmEditAuth = makeAuth();
+    }
     /**
      * @param {Object.<string, string>} tags
      * @return {HTMLTableSectionElement}
@@ -15687,7 +15746,7 @@ function renderOSMGeoJSON(xml) {
             let object_version = parseInt(feature.properties.meta.version)
 
             async function syncTags() {
-                const rawObjectInfo = (await (await auth.fetch(osm_server.apiBase + object_type + '/' + object_id, {
+                const rawObjectInfo = (await (await osmEditAuth.fetch(osm_server.apiBase + object_type + '/' + object_id, {
                     method: 'GET',
                     prefix: false,
                 })).text());
@@ -15769,7 +15828,7 @@ function renderOSMGeoJSON(xml) {
                 }
 
                 console.log("Opening changeset");
-                const rawObjectInfo = (await (await auth.fetch(osm_server.apiBase + object_type + '/' + object_id, {
+                const rawObjectInfo = (await (await osmEditAuth.fetch(osm_server.apiBase + object_type + '/' + object_id, {
                     method: 'GET',
                     prefix: false,
                 })).text());
@@ -15870,7 +15929,7 @@ function renderOSMGeoJSON(xml) {
                 tagsToXml(changesetPayload, cs, changesetTags);
                 const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload);
 
-                const changesetId = await auth.fetch(osm_server.apiBase + 'changeset/create', {
+                const changesetId = await osmEditAuth.fetch(osm_server.apiBase + 'changeset/create', {
                     method: 'PUT',
                     prefix: false,
                     body: chPayloadStr
@@ -15886,7 +15945,7 @@ function renderOSMGeoJSON(xml) {
 
                     const objectInfoStr = new XMLSerializer().serializeToString(objectInfo).replace(/xmlns="[^"]+"/, '')
                     console.log(objectInfoStr);
-                    await auth.fetch(osm_server.apiBase + object_type + '/' + object_id, {
+                    await osmEditAuth.fetch(osm_server.apiBase + object_type + '/' + object_id, {
                         method: 'PUT',
                         prefix: false,
                         body: objectInfoStr
@@ -15898,7 +15957,7 @@ function renderOSMGeoJSON(xml) {
                     });
                 } finally {
                     startEditEvent.target.style.cursor = ""
-                    await auth.fetch(osm_server.apiBase + 'changeset/' + changesetId + '/close', {
+                    await osmEditAuth.fetch(osm_server.apiBase + 'changeset/' + changesetId + '/close', {
                         method: 'PUT',
                         prefix: false
                     });
@@ -15970,16 +16029,22 @@ function renderOSMGeoJSON(xml) {
             }
         }, intoPage({once: true})))
     }
-
-    jsonLayer = getWindow().L.geoJSON(intoPage(osmtogeojson(xml, {flatProperties: false})), intoPageWithFun({
+    xml.querySelectorAll("[action=delete]").forEach(i => i.remove())
+    const geojson = osmtogeojson(xml, {flatProperties: false})
+    if (options['skip_tainted']) {
+        geojson.features = geojson.features.filter(f => !f.properties['tainted'])
+    }
+    const pointOptions = intoPage(options['point_options'] ?? {})
+    const jsonLayer = getWindow().L.geoJSON(intoPage(geojson), intoPageWithFun({
+            style: options['style'],
             onEachFeature: intoPageWithFun(onEachFeature),
             pointToLayer: intoPageWithFun(function (feature, latlng) {
-                return getWindow().L.circleMarker(latlng);
+                return getWindow().L.circleMarker(latlng, pointOptions);
             })
         })
     );
     jsonLayer.addTo(getMap());
-
+    return jsonLayer
 }
 
 async function setupDragAndDropViewers() {
@@ -16045,9 +16110,10 @@ async function setupDragAndDropViewers() {
                     } else if (file.type === "application/gpx+xml") {
                         displayGPXTrack(await file.text())
                     } else if (file.type === "application/vnd.openstreetmap.data+xml") {
-                        const diffParser = new DOMParser();
-                        const doc = diffParser.parseFromString(await file.text(), "application/xml");
-                        renderOSMGeoJSON(doc, true)
+                        const doc = (new DOMParser()).parseFromString(await file.text(), "application/xml");
+                        loadBannedVersions();
+                        preloadEditIcons();
+                        jsonLayer = renderOSMGeoJSON(doc, true)
                     }
                 }
             });
@@ -16394,6 +16460,10 @@ function makeCommandsMenu() {
         if (curDate.getMonth() === 11 && curDate.getDate() >= 18 || curDate.getMonth() === 0 && curDate.getDate() < 10) {
             GM_registerMenuCommand("☃️", runSnowAnimation);
         }
+        // todo hotkeys
+        GM_registerMenuCommand("List of hotkeys", function () {
+            window.open("https://github.com/deevroman/better-osm-org/#hotkeys", "_blank")
+        });
         // GM_registerMenuCommand("Ask question on forum", function () {
         //     window.open("https://community.openstreetmap.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670")
         // });
