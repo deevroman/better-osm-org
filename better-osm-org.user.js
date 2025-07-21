@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.1.4
+// @version         1.1.5
 // @changelog       v1.0.0: type=restriction render, user ID in profile, profile for deleted user
 // @changelog       v1.0.0: notes filter, Overpass link in taginfo for key values, ruler, nodes mover
 // @changelog       v0.9.9: Button for 3D view building in OSMBuilding, F4map and other viewers
@@ -14712,6 +14712,18 @@ function setupNavigationViaHotkeys() {
                     getCachedUserInfo(username).then(res => {
                         if (res["firstChangesetID"]) {
                             getWindow().OSM.router.route(`/changeset/${res["firstChangesetID"]}`)
+                        } else {
+                            console.warn("not found first changeset for " + username)
+                        }
+                    })
+                }
+            } else if (location.pathname.match(/\/user\/[^\\]+\/history\/?/)) {
+                const user_link = document.querySelector('#sidebar_content a[href^="/user/"]')
+                if (user_link) {
+                    const username = decodeURI(user_link.getAttribute("href").match(/\/user\/([^/]+)/)[1])
+                    getCachedUserInfo(username).then(res => {
+                        if (res["firstChangesetID"]) {
+                            getWindow().OSM.router.route(`${location.pathname}?after=${res["firstChangesetID"]-1}`)
                         } else {
                             console.warn("not found first changeset for " + username)
                         }
