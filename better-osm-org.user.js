@@ -13208,11 +13208,12 @@ function addMassChangesetsActions() {
             }
             item.title = "Click for copy changeset id"
             if (location.pathname.match(/^\/history(\/?|\/friends)$/)) {
-                getCachedUserInfo(item.previousSibling?.previousSibling?.textContent).then((res) => {
+                const usernameA = item.parentElement.parentElement.querySelector('a[href^="/user/"]')
+                getCachedUserInfo(usernameA?.textContent).then((res) => {
                     if (!res) return
-                    item.previousSibling.previousSibling.title = `changesets_count: ${res['changesets']['count']}\naccount_created: ${res['account_created']}`
-                    item.previousSibling.previousSibling.before(makeBadge(res,
-                        new Date(item.parentElement.querySelector("time")?.getAttribute("datetime") ?? new Date())))
+                    usernameA.title = `changesets_count: ${res['changesets']['count']}\naccount_created: ${res['account_created']}`
+                    usernameA.before(makeBadge(res,
+                        new Date(item.parentElement.parentElement.querySelector("time")?.getAttribute("datetime") ?? new Date())))
                 })
             }
         })
