@@ -16657,9 +16657,11 @@ function main() {
 }
 
 setTimeout(async () => {
-    if (location.pathname.includes("/user/")) return
+    if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) return
     if (getWindow && !getWindow().mapIntercepted) {
         console.log("map not intercepted after 900ms");
+        document.querySelector(".control-share a").click()
+        document.querySelector(".control-share a").click()
         await interceptMapManually()
     }
 }, 900)
