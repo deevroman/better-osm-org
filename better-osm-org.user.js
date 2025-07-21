@@ -111,7 +111,7 @@
 // @connect      whosthat.osmz.ru
 // @connect      content-a.strava.com
 // @sandbox      JavaScript
-// @resource     OAUTH_HTML https://raw.githubusercontent.com/deevroman/better-osm-org/master/finish-oauth.html
+// @resource     OAUTH_HTML https://raw.githubusercontent.com/deevroman/better-osm-org/master/finish-oauth.html?bypass_cache
 // @resource     OSMCHA_ICON https://raw.githubusercontent.com/deevroman/better-osm-org/master/icons/osmcha.ico
 // @resource     NODE_ICON https://raw.githubusercontent.com/deevroman/better-osm-org/master/icons/Osm_element_node.svg
 // @resource     WAY_ICON https://raw.githubusercontent.com/deevroman/better-osm-org/master/icons/Osm_element_way.svg
