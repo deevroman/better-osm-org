@@ -3890,6 +3890,68 @@ function makeRefBelpostValue(elem) {
 
 let buildingViewerIframe = null;
 
+let contextMenuCSSInjected = false;
+
+const contextMenuCSS = `
+    .betterOsmContextMenu {
+        position: absolute;
+        display: "block";
+        background: var(--bs-body-bg);
+        border: 1px solid var(--bs-border-color);
+        box-shadow: 0 2px 5px var(--bs-body-bg);
+        z-index: 1000;
+        padding: 5px 0;
+        border-radius: 4px;
+        min-width: 150px;
+    }
+    .betterOsmContextMenu div {
+        cursor: pointer;
+        display: flex;
+    }
+    .betterOsmContextMenu div:hover {
+        cursor: pointer;
+        background: var(--bs-secondary-bg);
+    }
+    .betterOsmContextMenu div a {
+        display: block;
+        padding-top: 6px;
+        padding-right: 12px;
+        padding-bottom: 6px;
+        padding-left: 6px;
+    }
+    .betterOsmContextMenu div .pin {
+        align-content: center;
+        padding-right: 8px;
+    }
+    .betterOsmContextMenu div .pin:hover {
+        cursor: pointer;
+        background: var(--bs-secondary-bg);
+    }
+    .betterOsmContextMenu div .pin {
+        display: none;
+    }
+    .betterOsmContextMenu div .pin + label {
+        align-self: center;
+        padding-left: 6px;
+    }
+    .betterOsmContextMenu div .pin:not(:checked) + label {
+        filter: grayscale(100%);
+        opacity: 20%;
+        cursor: pointer;
+    }
+    .betterOsmContextMenu div .pin:not(:checked) + label:hover {
+        filter: initial;
+        opacity: initial;
+    }
+`;
+
+function injectContextMenuCSS() {
+    if (contextMenuCSSInjected) return;
+    contextMenuCSSInjected = true;
+    injectCSSIntoOSMPage(contextMenuCSS);
+}
+
+
 // example https://osm.org/node/6506618057
 function makeLinksInTagsClickable() {
     document.querySelectorAll(".browse-tag-list tr").forEach(row => {
@@ -3977,58 +4039,7 @@ function makeLinksInTagsClickable() {
                         height: 120% !important;
                         z-index: 9999 !important;
                     }
-                    
-                    #contextMenuFor3DViewers {
-                        position: absolute;
-                        display: "block";
-                        background: var(--bs-body-bg);
-                        border: 1px solid var(--bs-border-color);
-                        box-shadow: 0 2px 5px var(--bs-body-bg);
-                        z-index: 1000;
-                        padding: 5px 0;
-                        border-radius: 4px;
-                        min-width: 150px;
-                    }
-                    #contextMenuFor3DViewers div {
-                        cursor: pointer;
-                        display: flex;
-                    }
-                    #contextMenuFor3DViewers div:hover {
-                        cursor: pointer;
-                        background: var(--bs-secondary-bg);
-                    }
-                    #contextMenuFor3DViewers div a {
-                        display: block;
-                        padding-top: 6px;
-                        padding-right: 12px;
-                        padding-bottom: 6px;
-                        padding-left: 6px;
-                    }
-                    #contextMenuFor3DViewers div .pin {
-                        align-content: center;
-                        padding-right: 8px;
-                    }
-                    #contextMenuFor3DViewers div .pin:hover {
-                        cursor: pointer;
-                        background: var(--bs-secondary-bg);
-                    }
-                    #contextMenuFor3DViewers div .pin {
-                        display: none;
-                    }
-                    #contextMenuFor3DViewers div .pin + label {
-                        align-self: center;
-                        padding-left: 6px;
-                    }
-                    #contextMenuFor3DViewers div .pin:not(:checked) + label {
-                        filter: grayscale(100%);
-                        opacity: 20%;
-                        cursor: pointer;
-                    }
-                    #contextMenuFor3DViewers div .pin:not(:checked) + label:hover {
-                        filter: initial;
-                        opacity: initial;
-                    }
-            `)
+            ` + contextMenuCSS)
             const viewIn3D = document.createElement("span")
             viewIn3D.classList.add("view-3d-link")
             viewIn3D.textContent = " 🏯"
@@ -4040,7 +4051,7 @@ function makeLinksInTagsClickable() {
                 e.preventDefault();
 
                 const menu = document.createElement("div");
-                menu.id = "contextMenuFor3DViewers";
+                menu.classList.add("betterOsmContextMenu");
                 instancesOf3DViewers.forEach(i => {
                     const listItem = document.createElement("div");
                     const a = document.createElement("a");
@@ -7550,6 +7561,7 @@ function addDiffInHistory(reason = "url_change") {
     setupWayVersionView();
     setupRelationVersionView();
     expandWikidata();
+    addCopyCoordinatesButtons();
     monitorHistoryPaginationMoving();
     console.log("Click by pagination from AddDiffInHistory")
     document.querySelector("#older_element_versions_navigation a")?.click()
@@ -7974,6 +7986,134 @@ function expandWikidata() {
     setTimeout(() => {links.slice(3).forEach(i => i.click())}, 1000);
 }
 
+function addCopyCoordinatesButtons() {
+    const m = location.pathname.match(/^\/(node|way)\/(\d+)/);
+    if (!m) {
+        return;
+    }
+    const type = m[1];
+    function addCopyButton(coordsElem, lat, lon) {
+        const coordinatesFormatters = {
+            "Lat Lon": {getter: () => `${lat} ${lon}`},
+            "Lon Lat": {getter: () => `${lon} ${lat}`},
+            "geo:": {getter: () => `geo:${lat},${lon}`}
+        }
+        if (getMap && getMap()) {
+            coordinatesFormatters["osm.org"] =  {getter: () => `osm.org#map=${getMap().getZoom()}/${lat}/${lon}`}
+        }
+
+        coordsElem.onclick = async e => {
+            e.preventDefault()
+            e.stopPropagation()
+            e.stopImmediatePropagation()
+
+            const coordinatesFormat = await GM.getValue("CoordinatesFormat") ?? "Lat Lon";
+            const text = coordinatesFormatters[coordinatesFormat]['getter']()
+            navigator.clipboard.writeText(text).then(() => copyAnimation({target: coordsElem}, text));
+        }
+        setTimeout(async () => {
+            const coordinatesFormat = await GM.getValue("CoordinatesFormat") ?? "Lat Lon";
+            coordsElem.title = "Click to copy " + coordinatesFormatters[coordinatesFormat]['getter']()
+        })
+        coordsElem.classList.add("copyable")
+        const copyButton = document.createElement("span")
+        copyButton.classList.add("copy-coords-btn")
+        copyButton.textContent = "📄"
+        copyButton.title = "Select coordinates format for copy.\nTo copy just click by coordinates"
+        copyButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-icon lucide-file"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>'
+        copyButton.style.height = "0.9rem"
+        copyButton.style.position = "relative"
+        if (location.pathname.endsWith("/history")) {
+            copyButton.style.top = "-2px"
+        } else {
+            copyButton.style.top = "-1px"
+        }
+        copyButton.style.left = "-1px"
+        copyButton.style.color = "gray"
+        copyButton.style.cursor = "pointer"
+
+        async function contextMenuHandler(e) {
+            const coordinatesFormat = await GM.getValue("CoordinatesFormat") ?? "Lat Lon";
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+
+            injectContextMenuCSS();
+            document.querySelectorAll(".betterOsmContextMenu").forEach(i => i.remove())
+            const menu = document.createElement("div");
+            menu.classList.add("betterOsmContextMenu");
+            Object.entries(coordinatesFormatters).forEach(([format, formatter], ind) => {
+                const listItem = document.createElement("div");
+                const text = formatter.getter()
+                const a = document.createElement("a");
+                a.textContent = text;
+                a.title = "Click to copy " + text;
+                a.onclick = () => {
+                    navigator.clipboard.writeText(text);
+                }
+
+                const pin = document.createElement("input")
+                pin.id = "CoordFormat_" + ind
+                pin.type = "radio"
+                pin.classList.add("pin")
+                pin.setAttribute("name", "viewer-selector")
+                const pinLabel = document.createElement("label");
+                pinLabel.setAttribute("for", "CoordFormat_" + ind)
+                pinLabel.classList.add("pin-label")
+                pinLabel.textContent = "📌"
+                pinLabel.title = "Set as default for copy, when you click by coordinates"
+                if (format === coordinatesFormat) {
+                    pin.checked = true
+                    pinLabel.title = "It's default format, when your click by coordinates"
+                }
+                pin.onchange = async () => {
+                    if (pin.checked) {
+                        await GM.setValue("CoordinatesFormat", format)
+                        coordsElem.title = "Click to copy " + coordinatesFormatters[format]['getter']()
+                    }
+                }
+                listItem.appendChild(pin);
+                listItem.appendChild(pinLabel);
+                listItem.appendChild(a);
+                document.addEventListener("click", function fn(e) {
+                    if (e.target.classList.contains("pin-label") || e.target.classList.contains("pin")) {
+                        document.addEventListener("click", fn, {once: true});
+                        return
+                    }
+                    menu.remove()
+                }, {once: true})
+                menu.appendChild(listItem);
+            });
+            menu.style.left = `${e.pageX - 30}px`;
+            menu.style.top = `${e.pageY}px`;
+            document.body.appendChild(menu);
+        }
+
+        copyButton.addEventListener("click", contextMenuHandler)
+        coordsElem.after(copyButton)
+        coordsElem.after(document.createTextNode("\xA0"))
+    }
+    document.querySelectorAll("#sidebar_content a:has(.longitude):not(.copyable)").forEach(coordsElem => {
+        const lat = coordsElem.querySelector(".latitude").textContent.replace(",", ".")
+        const lon = coordsElem.querySelector(".longitude").textContent.replace(",", ".")
+        addCopyButton(coordsElem, lat, lon)
+    })
+    if (type === "way") {
+
+    }
+    // try {
+    //     const wrapper = document.createElement("span")
+    //     document.querySelector(".share-geo-uri h4:not(.copyable)")?.appendChild(wrapper)
+    //     document.querySelector(".share-geo-uri h4").classList.add("copyable")
+    //
+    //     const lat = getMap().getCenter().lat.toFixed(6)
+    //     const lon = getMap().getCenter().lat.toFixed(6)
+    //     addCopyButton(wrapper, lat, lon)
+    // } catch (e) {
+    //     console.error(e)
+    // }
+}
+
 function makeVersionPageBetter() {
     const match = location.pathname.match(/(node|way|relation)\/(\d+)(\/history\/(\d+)\/?$|\/?$)/)
     if (!match) {
@@ -8018,6 +8158,7 @@ function makeVersionPageBetter() {
     document.querySelectorAll(`${browseSectionSelector} p`).forEach(shortOsmOrgLinks)
     addCommentsCount();
     expandWikidata();
+    addCopyCoordinatesButtons();
     void addHoverForNodesParents();
     void addHoverForWayNodes();
     void addHoverForRelationMembers();
@@ -14790,6 +14931,7 @@ function setupNavigationViaHotkeys() {
             }
         } else if (e.code === "Escape") {
             cleanObjectsByKey("activeObjects")
+            document.querySelectorAll(".betterOsmContextMenu").forEach(i => i.remove())
         } else if (e.code === "KeyL" && e.shiftKey) {
             document.querySelector(".control-locate .control-button").click()
         } else if (e.code === "KeyK" && location.pathname.match(/^(\/user\/.+)?\/history\/?$/)) {
