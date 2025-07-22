@@ -13027,7 +13027,7 @@ if (isOsmServer()) {
 
     console.log('Fetch intercepted');
     window.fetch = async (...args) => {
-        if (args[0].includes("notes.json") && (window.notesDisplayName !== "" || window.notesQFilter !== "" || window.notesClosedFilter !== "")) {
+        if (args[0]?.includes("notes.json") && (window.notesDisplayName !== "" || window.notesQFilter !== "" || window.notesClosedFilter !== "")) {
             const url = new URL(args[0], location.origin);
             url.pathname = url.pathname.replace("notes.json", "notes/search.json")
             url.searchParams.set("limit", "1000")
