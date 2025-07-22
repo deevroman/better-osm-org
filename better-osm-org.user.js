@@ -7992,6 +7992,10 @@ function addCopyCoordinatesButtons() {
         return;
     }
     const type = m[1];
+    if (type === "way") {
+        return;
+    }
+
     function addCopyButton(coordsElem, lat, lon) {
         const coordinatesFormatters = {
             "Lat Lon": {getter: () => `${lat} ${lon}`},
