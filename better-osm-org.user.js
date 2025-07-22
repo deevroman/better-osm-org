@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.1.5
+// @version         1.1.6
 // @changelog       v1.0.0: type=restriction render, user ID in profile, profile for deleted user
 // @changelog       v1.0.0: notes filter, Overpass link in taginfo for key values, ruler, nodes mover
 // @changelog       v0.9.9: Button for 3D view building in OSMBuilding, F4map and other viewers
@@ -13031,7 +13031,7 @@ if (isOsmServer()) {
 
     console.log('Fetch intercepted');
     window.fetch = async (...args) => {
-        if (args[0]?.includes("notes.json") && (window.notesDisplayName !== "" || window.notesQFilter !== "" || window.notesClosedFilter !== "")) {
+        if (args[0]?.includes?.("notes.json") && (window.notesDisplayName !== "" || window.notesQFilter !== "" || window.notesClosedFilter !== "")) {
             const url = new URL(args[0], location.origin);
             url.pathname = url.pathname.replace("notes.json", "notes/search.json")
             url.searchParams.set("limit", "1000")
