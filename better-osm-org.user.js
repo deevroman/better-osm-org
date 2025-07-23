@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.1.7
+// @version         1.1.8
 // @changelog       v1.0.0: type=restriction render, user ID in profile, profile for deleted user
 // @changelog       v1.0.0: notes filter, Overpass link in taginfo for key values, ruler, nodes mover
 // @changelog       v0.9.9: Button for 3D view building in OSMBuilding, F4map and other viewers
@@ -4050,8 +4050,7 @@ function makeLinksInTagsClickable() {
                 const buildingViewer = await GM.getValue("3DViewer") ?? "OSM Building Viewer";
                 e.preventDefault();
 
-                const menu = document.createElement("div");
-                menu.classList.add("betterOsmContextMenu");
+                const menu = makeContextMenuElem(e);
                 instancesOf3DViewers.forEach(i => {
                     const listItem = document.createElement("div");
                     const a = document.createElement("a");
@@ -4091,8 +4090,6 @@ function makeLinksInTagsClickable() {
                     }, {once: true})
                     menu.appendChild(listItem);
                 });
-                menu.style.left = `${e.pageX - 30}px`;
-                menu.style.top = `${e.pageY}px`;
                 document.body.appendChild(menu);
             }
 
@@ -7676,10 +7673,224 @@ async function addHoverForNodesParents() {
     console.log("addHoverForWayNodes finished");
 }
 
+// based on https://github.com/eatgrass/geo-area
+function ringArea(points) {
+    const RADIUS = 6378137;
+    const rad = coord => (coord * Math.PI) / 180;
+
+    let p1;
+    let p2;
+    let p3;
+    let lowerIndex;
+    let middleIndex;
+    let upperIndex;
+    let area = 0;
+
+    if (points.length > 2) {
+        for (let i = 0; i < points.length; i++) {
+            if (i === points.length - 2) {
+                lowerIndex = points.length - 2;
+                middleIndex = points.length - 1;
+                upperIndex = 0;
+            } else if (i === points.length - 1) {
+                lowerIndex = points.length - 1;
+                middleIndex = 0;
+                upperIndex = 1;
+            } else {
+                lowerIndex = i;
+                middleIndex = i + 1;
+                upperIndex = i + 2;
+            }
+            p1 = points[lowerIndex];
+            p2 = points[middleIndex];
+            p3 = points[upperIndex];
+            area += (rad(p3.lon) - rad(p1.lon)) * Math.sin(rad(p2.lat));
+        }
+        area = (area * RADIUS * RADIUS) / 2;
+    }
+
+    return area;
+}
+
+/**
+ * @param {number[]} nodesIds
+ * @param {Map} nodesMap
+ * @return {HTMLDivElement}
+ */
+function makePolygonMeasureButtons(nodesIds, nodesMap) {
+    const nodes = nodesIds.map(i => nodesMap.get(i.toString()))
+    const bbox = {
+        min_lat: Math.min(...nodes.map(i => i.lat)),
+        min_lon: Math.min(...nodes.map(i => i.lon)),
+        max_lat: Math.max(...nodes.map(i => i.lat)),
+        max_lon: Math.max(...nodes.map(i => i.lon))
+    };
+
+    let wayLength = 0.0;
+    for (let i = 1; i < nodes.length; i++) {
+        wayLength += getDistanceFromLatLonInKm(nodes[i-1].lat, nodes[i-1].lon, nodes[i].lat, nodes[i].lon)
+    }
+    wayLength *= 1000;
+
+    let wayArea = null
+    if (nodesIds.length > 2 && nodesIds[0] === nodesIds.at(-1)) {
+        wayArea = Math.abs(ringArea(nodes));
+    }
+
+    const bboxRect = getWindow().L.rectangle(
+        intoPage([
+            [bbox.max_lat, bbox.max_lon],
+            [bbox.min_lat, bbox.min_lon]
+        ]),
+        intoPage({color: "#0022ff", weight: 3, fillOpacity: 0, opacity: 0})
+    ).addTo(getMap());
+    const center = bboxRect.getCenter()
+    bboxRect?.remove()
+    // TODO
+    // Копирование
+    // geojson
+
+    const infos = document.createElement("div");
+    infos.style.display = "none"
+    infos.style.paddingBottom = "5px"
+
+    const lengthElem = document.createElement("span")
+    const lengthText = wayLength < 1000 ? (wayLength.toFixed(2) + " m") : (wayLength.toFixed(0) + " m")
+    lengthElem.textContent = "Length: " + lengthText
+    infos.appendChild(lengthElem)
+
+    if (wayArea !== null) {
+        infos.appendChild(document.createTextNode(",\xA0"))
+        const areaElem = document.createElement("span")
+        const areaText = wayLength < 1000 ? (wayArea.toFixed(2) + " m²") : (wayArea.toFixed(0) + " m²")
+        areaElem.textContent = "Area: " + areaText
+        infos.appendChild(areaElem)
+    }
+
+    const svg1 = '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none" stroke-width="1">\n' +
+        '  <!-- Внешний квадрат -->\n' +
+        '  <rect x="4" y="4" width="16" height="16" stroke-width="1"/>\n' +
+        '  <!-- Центральные линии -->\n' +
+        '  <line x1="12" y1="4" x2="12" y2="20" stroke="currentColor" stroke-width="1"/>\n' +
+        '  <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1"/>\n' +
+        '  <!-- Толстые верхняя и левая стороны -->\n' +
+        '  <line x1="3" y1="4" x2="20.5" y2="4" stroke="red" stroke-width="2"/>\n' +
+        '  <line x1="4" y1="3" x2="4" y2="20.5" stroke="red" stroke-width="2"/>\n' +
+        '</svg>\n';
+    const icon1 = document.createElement("span")
+    icon1.innerHTML = svg1;
+    icon1.style.cursor = "pointer"
+    const text1 = `${bbox.max_lat.toString()} ${bbox.min_lon.toString()}`
+    icon1.title = "Click to copy TopLeft: " + text1
+    icon1.onmouseenter = () => {
+        showActiveNodeMarker(bbox.max_lat.toString(), bbox.min_lon.toString(), "red")
+    }
+    icon1.onclick = e => {
+        navigator.clipboard.writeText(text1).then(() => copyAnimation(e, text1));
+    }
+
+    const svg2 = '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none" stroke-width="1">\n' +
+        '  <!-- Внешний квадрат -->\n' +
+        '  <rect x="4" y="4" width="16" height="16" stroke-width="1"/>\n' +
+        '  <!-- Центральные линии -->\n' +
+        '  <line x1="12" y1="4" x2="12" y2="20" stroke="currentColor" stroke-width="1"/>\n' +
+        '  <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1"/>\n' +
+        '  <!-- Жирная точка в центре -->\n' +
+        '  <circle cx="12" cy="12" r="2" fill="red" stroke="red"/>\n' +
+        '</svg>\n';
+    const icon2 = document.createElement("span")
+    icon2.innerHTML = svg2;
+    icon2.style.cursor = "pointer"
+    const text2 = `${center.lat.toFixed(6)} ${center.lng.toFixed(6)}`
+    icon2.title = "Click to copy center: " + text2
+    icon2.onmouseenter = () => {
+        showActiveNodeMarker(center.lat.toString(), center.lng.toString(), "red")
+    }
+    icon2.onclick = e => {
+        navigator.clipboard.writeText(text2).then(() => copyAnimation(e, text2));
+    }
+
+    const svg3 = '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none" stroke-width="1">\n' +
+        '  <!-- Внешний квадрат -->\n' +
+        '  <rect x="4" y="4" width="16" height="16" stroke-width="1"/>\n' +
+        '  <!-- Центральные линии -->\n' +
+        '  <line x1="12" y1="4" x2="12" y2="20" stroke="currentColor" stroke-width="1"/>\n' +
+        '  <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1"/>\n' +
+        '  <!-- Толстые правая и нижняя стороны -->\n' +
+        '  <line x1="3.5" y1="20" x2="21" y2="20" stroke="red" stroke-width="2"/>\n' +
+        '  <line x1="20" y1="3.5" x2="20" y2="20.5" stroke="red" stroke-width="2"/>\n' +
+        '</svg>\n';
+    const icon3 = document.createElement("span")
+    icon3.innerHTML = svg3;
+    icon3.style.cursor = "pointer"
+    const text3 = `${bbox.min_lat.toString()} ${bbox.max_lon.toString()}`
+    icon3.title = "Click to copy RigthBottom: " + text3;
+    icon3.onmouseenter = () => {
+        showActiveNodeMarker(bbox.min_lat.toString(), bbox.max_lon.toString(), "red")
+    }
+    icon3.onclick = e => {
+        navigator.clipboard.writeText(text3).then(() => copyAnimation(e, text3));
+    }
+
+    const svg4 = '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none">\n' +
+        '  <!-- Внешний прямоугольник жирный -->\n' +
+        '  <!-- Центральные линии -->\n' +
+        '  <line x1="12" y1="4" x2="12" y2="20" stroke="currentColor" stroke-width="1"/>\n' +
+        '  <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1"/>\n' +
+        '  <rect x="4" y="4" width="16" height="16" stroke="red" stroke-width="2"/>\n' +
+        '</svg>\n';
+    const icon4 = document.createElement("span")
+    icon4.innerHTML = svg4;
+    icon4.style.cursor = "pointer"
+    const text4 = `${bbox.min_lat.toString()} ${bbox.min_lon.toString()} ${bbox.max_lat.toString()} ${bbox.max_lon.toString()}`;
+    icon4.title = "Click to copy bbox: " + text4;
+    icon4.onmouseenter = () => {
+        cleanObjectsByKey("activeObjects")
+        const rect = getWindow().L.rectangle(
+            intoPage([
+                [bbox.max_lat, bbox.max_lon],
+                [bbox.min_lat, bbox.min_lon]
+            ]),
+            intoPage({color: "red", weight: 3, fillOpacity: 0})
+        ).addTo(getMap())
+        layers['activeObjects'].push(rect)
+    }
+    icon4.onclick = e => {
+        navigator.clipboard.writeText(text4).then(() => copyAnimation(e, text4));
+    }
+
+    const icons = document.createElement("div")
+    icons.style.paddingTop = "5px"
+    infos.appendChild(icons)
+
+    icons.appendChild(icon1)
+    icons.appendChild(icon2)
+    icons.appendChild(icon3)
+    icons.appendChild(icon4)
+
+    document.querySelector("#sidebar_content h4:last-of-type").after(infos)
+
+    return infos
+}
+
 async function addHoverForWayNodes() {
     if (!location.pathname.match(/^\/way\/(\d+)\/?$/)) {
         return
     }
+    // todo relations
+    let infoBtn;
+    if (!document.querySelector(".way-info-btn")) {
+        infoBtn = document.createElement("span")
+        infoBtn.textContent = "📐"
+        infoBtn.classList.add("way-info-btn")
+        infoBtn.classList.add("completed")
+        infoBtn.style.fontSize = "large"
+        infoBtn.style.cursor = "pointer"
+
+        document.querySelector("#sidebar_content h4:last-of-type").appendChild(document.createTextNode("\xA0"))
+        document.querySelector("#sidebar_content h4:last-of-type").appendChild(infoBtn)
+    }
+
     const wayData = await loadWayMetadata();
     if (!wayData) return
     /*** @type {Map<string, NodeVersion>}*/
@@ -7711,6 +7922,18 @@ async function addHoverForWayNodes() {
     document.querySelector(".secondary-actions")?.addEventListener("mouseenter", () => {
         cleanObjectsByKey("activeObjects")
     })
+
+    if (infoBtn) {
+        const nodesIds = wayData.elements.find(i => i.type === "way").nodes
+        const infos = makePolygonMeasureButtons(nodesIds, nodesMap);
+        document.querySelector("#sidebar_content h4:last-of-type").after(infos);
+
+        infoBtn.onclick = () => {
+            infos.style.display = infos.style.display === "none" ? "" : "none";
+        }
+
+        document.querySelector("#sidebar_content h4:last-of-type").after(infos);
+    }
     console.log("addHoverForWayNodes finished");
 }
 
@@ -7737,6 +7960,18 @@ async function addHoverForRelationMembers() {
         return;
     }
     const relation_id = parseInt(match[1]);
+    let infoBtn;
+    if (false && !document.querySelector(".relation-info-btn")) {
+        infoBtn = document.createElement("span")
+        infoBtn.textContent = "📐"
+        infoBtn.classList.add("relation-info-btn")
+        infoBtn.classList.add("completed")
+        infoBtn.style.fontSize = "large"
+        infoBtn.style.cursor = "pointer"
+
+        document.querySelector("#sidebar_content h4:last-of-type").appendChild(document.createTextNode("\xA0"))
+        document.querySelector("#sidebar_content h4:last-of-type").appendChild(infoBtn)
+    }
     const relationData = await loadRelationMetadata(relation_id);
     if (!relationData) return
     /*** @type {Map<string, NodeVersion>}*/
@@ -7922,6 +8157,16 @@ async function addHoverForRelationMembers() {
             document.querySelector("#sidebar_content > div:first-of-type details:last-of-type summary").appendChild(pinSign)
         }
     }
+
+    if (infoBtn) {
+        const nodesIds = relationData.elements.find(i => i.type === "way").nodes
+        const infos = makePolygonMeasureButtons(nodesIds, nodesMap);
+        document.querySelector("#sidebar_content h4:last-of-type").after(infos);
+
+        infoBtn.onclick = () => {
+            infos.style.display = infos.style.display === "none" ? "" : "none";
+        }
+    }
     console.log("addHoverForRelationMembers finished");
 }
 
@@ -7980,10 +8225,18 @@ function makeHeaderPartsClickable() {
 
 function expandWikidata() {
     const links = Array.from(document.querySelectorAll(".wdt-preview:not([disabled])"));
-    console.log("Wikilinks count:", links.length);
+    console.debug("Wikilinks count:", links.length);
     (links.find(i => i.parentElement.classList.contains("history-diff-new-tag") || i.parentElement.classList.contains("history-diff-modified-tag")) ?? links?.[0])?.click();
     setTimeout(() => {links.slice(0, 3).forEach(i => i.click())}, 100);
     setTimeout(() => {links.slice(3).forEach(i => i.click())}, 1000);
+}
+
+function makeContextMenuElem(e) {
+    const menu = document.createElement("div");
+    menu.classList.add("betterOsmContextMenu");
+    menu.style.left = `${e.pageX - 30}px`;
+    menu.style.top = `${e.pageY}px`;
+    return menu;
 }
 
 function addCopyCoordinatesButtons() {
@@ -8043,9 +8296,8 @@ function addCopyCoordinatesButtons() {
             e.stopImmediatePropagation();
 
             injectContextMenuCSS();
-            document.querySelectorAll(".betterOsmContextMenu").forEach(i => i.remove())
-            const menu = document.createElement("div");
-            menu.classList.add("betterOsmContextMenu");
+            document.querySelectorAll(".betterOsmContextMenu").forEach(i => i.remove());
+            const menu = makeContextMenuElem(e);
             Object.entries(coordinatesFormatters).forEach(([format, formatter], ind) => {
                 const listItem = document.createElement("div");
                 const text = formatter.getter()
@@ -8088,8 +8340,6 @@ function addCopyCoordinatesButtons() {
                 }, {once: true})
                 menu.appendChild(listItem);
             });
-            menu.style.left = `${e.pageX - 30}px`;
-            menu.style.top = `${e.pageY}px`;
             document.body.appendChild(menu);
         }
 
@@ -8097,6 +8347,7 @@ function addCopyCoordinatesButtons() {
         coordsElem.after(copyButton)
         coordsElem.after(document.createTextNode("\xA0"))
     }
+
     document.querySelectorAll("#sidebar_content a:has(.longitude):not(.copyable)").forEach(coordsElem => {
         const lat = coordsElem.querySelector(".latitude").textContent.replace(",", ".")
         const lon = coordsElem.querySelector(".longitude").textContent.replace(",", ".")
@@ -13540,7 +13791,7 @@ let wayMetadata = null
 
 /**
  * @param {number|null=} way_id
- * @return {Promise<void|{elements: []}>}
+ * @return {Promise<void|{elements: (NodeVersion|WayVersion)[]}>}
  */
 async function loadWayMetadata(way_id = null) {
     console.log(`Loading way metadata`)
@@ -13551,7 +13802,7 @@ async function loadWayMetadata(way_id = null) {
         }
         way_id = parseInt(match[1]);
     }
-    /*** @type {{elements: []}|undefined}*/
+    /*** @type {{elements: (NodeVersion|WayVersion)[]}|undefined}*/
     const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "way" + "/" + way_id + "/full.json", (res) => {
         if (res.status === 509) {
             error509Handler(res)
