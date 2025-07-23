@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.1.6
+// @version         1.1.7
 // @changelog       v1.0.0: type=restriction render, user ID in profile, profile for deleted user
 // @changelog       v1.0.0: notes filter, Overpass link in taginfo for key values, ruler, nodes mover
 // @changelog       v0.9.9: Button for 3D view building in OSMBuilding, F4map and other viewers
@@ -13348,7 +13348,7 @@ function addMassChangesetsActions() {
             item.onclick = (e) => {
                 if (!e.isTrusted) return
                 e.preventDefault();
-                let id = e.target.innerText.slice(1);
+                let id = e.target.innerText;
                 navigator.clipboard.writeText(id).then(() => copyAnimation(e, id));
             }
             item.title = "Click for copy changeset id"
