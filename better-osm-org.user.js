@@ -4393,6 +4393,22 @@ function showActiveNodeMarker(lat, lon, color, removeActiveObjects = true, radiu
 }
 
 /**
+ * @name showActiveNodeIconMarker
+ * @memberof unsafeWindow
+ * @param {string} lat
+ * @param {string} lon
+ * @param {string|null=null} color
+ * @param {boolean=true} removeActiveObjects
+ */
+function showActiveNodeIconMarker(lat, lon, color = null, removeActiveObjects = true) {
+    if (removeActiveObjects) {
+        cleanObjectsByKey("activeObjects")
+    }
+    const marker = getWindow().L.marker(intoPage([lat, lon]), intoPage({ draggable: false, icon: getWindow().OSM.getMarker({ color: color ?? "var(--marker-blue)" }) }));
+    layers["activeObjects"].push(marker.addTo(getMap()));
+}
+
+/**
  * @name showActiveWay
  * @memberof unsafeWindow
  * @param {[]} nodesList
@@ -7647,13 +7663,15 @@ async function addHoverForNodesParents() {
             wayLi.classList.add("node-last-version-parent");
             wayLi.onmouseenter = () => {
                 const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon]);
-                showActiveWay(cloneInto(currentNodesList, unsafeWindow), darkModeForMap ? "#ff00e3" : "#000000");
+                const color = (darkModeForMap || isDarkTiles()) ? "#ff00e3" : "#000000";
+                showActiveWay(cloneInto(currentNodesList, unsafeWindow), color);
             }
             wayLi.onclick = (e) => {
                 if (e.altKey) return;
                 if (e.target.tagName === "A") return;
                 const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon]);
-                showActiveWay(cloneInto(currentNodesList, unsafeWindow), darkModeForMap ? "#ff00e3" : "#000000", true);
+                const color = (darkModeForMap || isDarkTiles()) ? "#ff00e3" : "#000000";
+                showActiveWay(cloneInto(currentNodesList, unsafeWindow), color, true);
             }
             wayLi.ondblclick = zoomToCurrentObject
             if (wayInfo.tags) {
@@ -7737,15 +7755,7 @@ function makePolygonMeasureButtons(nodesIds, nodesMap) {
         wayArea = Math.abs(ringArea(nodes));
     }
 
-    const bboxRect = getWindow().L.rectangle(
-        intoPage([
-            [bbox.max_lat, bbox.max_lon],
-            [bbox.min_lat, bbox.min_lon]
-        ]),
-        intoPage({color: "#0022ff", weight: 3, fillOpacity: 0, opacity: 0})
-    ).addTo(getMap());
-    const center = bboxRect.getCenter()
-    bboxRect?.remove()
+    const center = {lat: (bbox.max_lat + bbox.min_lat) / 2, lng: (bbox.max_lon + bbox.min_lon) / 2};
     // TODO
     // Копирование
     // geojson
@@ -7783,7 +7793,8 @@ function makePolygonMeasureButtons(nodesIds, nodesMap) {
     const text1 = `${bbox.max_lat.toString()} ${bbox.min_lon.toString()}`
     icon1.title = "Click to copy TopLeft: " + text1
     icon1.onmouseenter = () => {
-        showActiveNodeMarker(bbox.max_lat.toString(), bbox.min_lon.toString(), "red")
+        showActiveNodeMarker(bbox.max_lat.toString(), bbox.min_lon.toString(), "red", true)
+        showActiveNodeIconMarker(bbox.max_lat.toString(), bbox.min_lon.toString(), null, false)
     }
     icon1.onclick = e => {
         navigator.clipboard.writeText(text1).then(() => copyAnimation(e, text1));
@@ -7805,6 +7816,7 @@ function makePolygonMeasureButtons(nodesIds, nodesMap) {
     icon2.title = "Click to copy center: " + text2
     icon2.onmouseenter = () => {
         showActiveNodeMarker(center.lat.toString(), center.lng.toString(), "red")
+        showActiveNodeIconMarker(center.lat.toString(), center.lng.toString(), null, false)
     }
     icon2.onclick = e => {
         navigator.clipboard.writeText(text2).then(() => copyAnimation(e, text2));
@@ -7824,9 +7836,10 @@ function makePolygonMeasureButtons(nodesIds, nodesMap) {
     icon3.innerHTML = svg3;
     icon3.style.cursor = "pointer"
     const text3 = `${bbox.min_lat.toString()} ${bbox.max_lon.toString()}`
-    icon3.title = "Click to copy RigthBottom: " + text3;
+    icon3.title = "Click to copy RightBottom: " + text3;
     icon3.onmouseenter = () => {
         showActiveNodeMarker(bbox.min_lat.toString(), bbox.max_lon.toString(), "red")
+        showActiveNodeIconMarker(bbox.min_lat.toString(), bbox.max_lon.toString(), null, false)
     }
     icon3.onclick = e => {
         navigator.clipboard.writeText(text3).then(() => copyAnimation(e, text3));
@@ -7873,6 +7886,11 @@ function makePolygonMeasureButtons(nodesIds, nodesMap) {
     return infos
 }
 
+function isDarkTiles() {
+    const layers = new URLSearchParams(location.hash).get("layers");
+    return layers && (layers.includes("S") || layers.includes("T")) && isDarkMode()
+}
+
 async function addHoverForWayNodes() {
     if (!location.pathname.match(/^\/way\/(\d+)\/?$/)) {
         return
@@ -7901,12 +7919,14 @@ async function addHoverForWayNodes() {
         const nodeLi = elem?.parentElement?.parentElement?.parentElement;
         nodeLi.classList.add("way-last-version-node");
         nodeLi.onmouseenter = () => {
-            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), darkModeForMap ? "#ff00e3" : "#000000", true, 6, 3)
+            const color = (darkModeForMap || isDarkTiles()) ? "#ff00e3" : "#000000";
+            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
         }
         nodeLi.onclick = (e) => {
             if (e.altKey) return;
             panTo(nodeInfo.lat.toString(), nodeInfo.lon.toString());
-            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), darkModeForMap ? "#ff00e3" : "#000000", true, 6, 3);
+            const color = (darkModeForMap || isDarkTiles()) ? "#ff00e3" : "#000000";
+            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3);
         }
         nodeLi.ondblclick = zoomToCurrentObject
         if (nodeInfo.tags) {
@@ -7931,8 +7951,6 @@ async function addHoverForWayNodes() {
         infoBtn.onclick = () => {
             infos.style.display = infos.style.display === "none" ? "" : "none";
         }
-
-        document.querySelector("#sidebar_content h4:last-of-type").after(infos);
     }
     console.log("addHoverForWayNodes finished");
 }
@@ -7994,7 +8012,8 @@ async function addHoverForRelationMembers() {
         const nodeLi = elem?.parentElement?.parentElement?.parentElement;
         nodeLi.classList.add("relation-last-version-member");
         nodeLi.onmouseenter = () => {
-            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), darkModeForMap ? "#ff00e3" : "#000000", true, 6, 3)
+            const color = (darkModeForMap || isDarkTiles()) ? "#ff00e3" : "#000000";
+            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
             bringRestrictionArrowsToFront();
             if (isRestriction && pinSign.classList.contains("pinned")) {
                 // https://github.com/deevroman/better-osm-org/pull/324#issuecomment-2993733516
@@ -8022,7 +8041,8 @@ async function addHoverForRelationMembers() {
         nodeLi.onclick = (e) => {
             if (e.altKey) return;
             panTo(nodeInfo.lat.toString(), nodeInfo.lon.toString());
-            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), darkModeForMap ? "#ff00e3" : "#000000", true, 6, 3);
+            const color = (darkModeForMap || isDarkTiles()) ? "#ff00e3" : "#000000";
+            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3);
             bringRestrictionArrowsToFront();
         }
         nodeLi.ondblclick = zoomToCurrentObject
@@ -8040,14 +8060,16 @@ async function addHoverForRelationMembers() {
         wayLi.classList.add("relation-last-version-member");
         wayLi.onmouseenter = () => {
             const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon]);
-            showActiveWay(cloneInto(currentNodesList, unsafeWindow), darkModeForMap ? "#ff00e3" : "#000000");
+            const color = (darkModeForMap || isDarkTiles()) ? "#ff00e3" : "#000000";
+            showActiveWay(cloneInto(currentNodesList, unsafeWindow), color);
             bringRestrictionArrowsToFront();
         }
         wayLi.onclick = (e) => {
             if (e.altKey) return;
             if (e.target.tagName === "A") return;
             const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon]);
-            showActiveWay(cloneInto(currentNodesList, unsafeWindow), darkModeForMap ? "#ff00e3" : "#000000", true);
+            const color = (darkModeForMap || isDarkTiles()) ? "#ff00e3" : "#000000";
+            showActiveWay(cloneInto(currentNodesList, unsafeWindow), color, true);
             bringRestrictionArrowsToFront();
         }
         wayLi.ondblclick = zoomToCurrentObject
@@ -8065,11 +8087,12 @@ async function addHoverForRelationMembers() {
         relationLi.classList.add("relation-last-version-member");
         relationLi.onmouseenter = () => {
             relationInfo.members.forEach(i => {
+                const color = (darkModeForMap || isDarkTiles()) ? "#ff00e3" : "#000000";
                 if (i.type === "node") {
-                    showActiveNodeMarker(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString(), darkModeForMap ? "#ff00e3" : "#000000", true, 6, 3)
+                    showActiveNodeMarker(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString(), color, true, 6, 3)
                 } else if (i.type === "way") {
                     const currentNodesList = waysMap[i.id].nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon]);
-                    showActiveWay(cloneInto(currentNodesList, unsafeWindow), darkModeForMap ? "#ff00e3" : "#000000");
+                    showActiveWay(cloneInto(currentNodesList, unsafeWindow), color);
                 } else {
                     // todo
                 }
@@ -8080,13 +8103,14 @@ async function addHoverForRelationMembers() {
             if (e.altKey) return;
             if (e.target.tagName === "A") return;
             relationInfo.members.forEach(i => {
+                const color = (darkModeForMap || isDarkTiles()) ? "#ff00e3" : "#000000";
                 if (i.type === "node") {
                     if (e.altKey) return;
                     panTo(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString());
-                    showActiveNodeMarker(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString(), darkModeForMap ? "#ff00e3" : "#000000", true, 6, 3);
+                    showActiveNodeMarker(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString(), color, true, 6, 3);
                 } else if (i.type === "way") {
                     const currentNodesList = waysMap[i.id].nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon]);
-                    showActiveWay(cloneInto(currentNodesList, unsafeWindow), darkModeForMap ? "#ff00e3" : "#000000", true);
+                    showActiveWay(cloneInto(currentNodesList, unsafeWindow), color, true);
                 } else {
                     // todo
                 }
