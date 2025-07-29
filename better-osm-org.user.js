@@ -3976,13 +3976,9 @@ function makeLinksInTagsClickable() {
         } else if (key === "note") {
             valueCell.classList.add("note-tag")
         } else if (key.startsWith("panoramax")) {
-            if (!row.querySelector("td a")) {
-                makePanoramaxValue(valueCell)
-            }
+            makePanoramaxValue(valueCell)
         } else if (key.startsWith("mapillary")) {
-            if (!row.querySelector("td a")) {
-                makeMapillaryValue(valueCell)
-            }
+            makeMapillaryValue(valueCell)
         } else if (key === "xmas:feature" && !document.querySelector(".egg-snow-tag") || valueCell.textContent.includes("snow")) {
             const curDate = new Date()
             if (curDate.getMonth() === 11 && curDate.getDate() >= 18 || curDate.getMonth() === 0 && curDate.getDate() < 10) {
