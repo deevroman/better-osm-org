@@ -3719,6 +3719,10 @@ function resetSearchFormFocus() {
 function makePanoramaxValue(elem) {
     if (!GM_config.get("ImagesAndLinksInTags")) return;
     // extracting uuid
+    if (elem.classList.contains("panoramaxed")) {
+        return
+    }
+    elem.classList.add("panoramaxed")
     elem.innerHTML = elem.innerHTML.replaceAll(/(?<=(^|;))([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(&amp;xyz=-?[0-9]+(\.[0-9]+)?\/-?[0-9]+(\.[0-9]+)?\/-?[0-9]+(\.[0-9]+)?)?/gi, function (match) {
         const a = document.createElement("a")
         a.textContent = match.replaceAll("&amp;", "&")
@@ -3730,8 +3734,12 @@ function makePanoramaxValue(elem) {
         a.href = "https://api.panoramax.xyz/#focus=pic&pic=" + match.replaceAll("&amp;", "&") + (lat ? (`&map=16/${lat}/${lon}`) : "")
         return a.outerHTML
     })
-    elem.querySelectorAll('a.preview-img-link').forEach(a => {
+    elem.querySelectorAll('a:not(.added-preview-img)[href^="https://api.panoramax.xyz/"]').forEach(a => {
+        a.classList.add("added-preview-img")
         const uuid = a.textContent.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)
+        if (!uuid) {
+            return
+        }
         const img = GM_addElement("img", {
             src: `https://api.panoramax.xyz/api/pictures/${uuid}/sd.jpg`,
             // crossorigin: "anonymous"
@@ -3792,6 +3800,10 @@ const MAPILLARY_URL_PARAMS = new URLSearchParams({
 // https://osm.org/way/682528624/history/3
 function makeMapillaryValue(elem) {
     if (!GM_config.get("ImagesAndLinksInTags")) return;
+    if (elem.classList.contains("mapillared")) {
+        return
+    }
+    elem.classList.add("mapillared")
     elem.innerHTML = elem.innerHTML.replaceAll(/(?<=(^|;))([0-9]+)(?=(;|&|$))(&amp;x=-?[0-9]+(\.[0-9]+)?&amp;y=-?[0-9]+(\.[0-9]+)?&amp;zoom=-?[0-9]+(\.[0-9]+)?)?/g, function (match) {
         const a = document.createElement("a")
         a.textContent = match.replaceAll("&amp;", "&")
@@ -3804,7 +3816,8 @@ function makeMapillaryValue(elem) {
         return a.outerHTML
     })
     setTimeout(async () => {
-        for (const a of elem.querySelectorAll('a.preview-mapillary-img-link')) {
+        for (const a of elem.querySelectorAll('a:not(.added-preview-mapillary-img-link)[href^="https://www.mapillary.com/app/"]')) {
+            a.classList.add("added-preview-mapillary-img-link")
             const res = (await GM.xmlHttpRequest({
                 url: `https://graph.mapillary.com/${a.textContent.match(/[0-9]+/)}?${MAPILLARY_URL_PARAMS.toString()}`,
                 responseType: "json"
