@@ -12174,8 +12174,19 @@ async function makeProfileForDeletedUser(user) {
     }
 
     async function processIDs(data, elemForResult) {
-        elemForResult.appendChild(document.createTextNode(data.length === 1 ? "User ID: " : "User IDs: "))
+        if (data.length === 1) {
+            elemForResult.appendChild(document.createTextNode("User ID: "))
+        } else {
+            elemForResult.appendChild(document.createTextNode(`⚠️ Found ${data.length} user IDs`))
+            elemForResult.appendChild(document.createElement("br"))
+            elemForResult.appendChild(document.createTextNode(`🆔: `))
+        }
         for (let i = 0; i < data.length; i++) {
+            if (i !== 0) {
+                elemForResult.appendChild(document.createElement("br"))
+                elemForResult.appendChild(document.createElement("hr"))
+                elemForResult.appendChild(document.createTextNode("🆔:"))
+            }
             const id = data[i].id;
             const idSpan = document.createElement("span")
             idSpan.textContent = id
