@@ -1055,6 +1055,8 @@ function makeHashtagsInNotesClickable() {
                 a.textContent = match
 
                 function fixLink() {
+                    const center = getMapCenter()
+                    const zoom = getZoom()
                     const notesReviewLink = "https://antonkhorev.github.io/osm-note-viewer/#" + new URLSearchParams({
                         mode: "search",
                         q: match,
@@ -1065,7 +1067,7 @@ function makeHashtagsInNotesClickable() {
                         sort: "created_at",
                         order: "newest",
                         closed: 0,
-                        map: `${getMap().getZoom()}/${getMap().getCenter().lat}/${getMap().getCenter().lng}`,
+                        map: `${zoom}/${center.lat}/${center.lng}`,
                     }).toString()
                     const link = document.getElementById(a.id)
                     link.href = notesReviewLink
@@ -1645,6 +1647,20 @@ function hideSearchForm() {
     document.querySelector("h1 .icon-link:not(.hotkeyed)")?.classList?.add("hotkeyed")
 }
 
+
+function getMapCenter() {
+    try {
+        return getMap().getCenter()
+    } catch  {
+        console.warn("Couldn't get the map center through the map object. Trying a workaround")
+
+        const curURL = document.querySelector("#edit_tab ul")?.querySelector("li a")?.href;
+        const match = curURL.match(/map=(\d+)\/([-\d.]+)\/([-\d.]+)(&|$)/)
+        console.log("Parsed coordinates link:", match);
+        return {lng: match[3], lat: match[2]}
+    }
+}
+
 let sidebarObserver = null;
 let timestampMode = "natural_text"
 
@@ -1684,7 +1700,7 @@ function makeTimesSwitchable() {
     const isNotePage = location.pathname.includes("note")
 
     function openMapStateInOverpass(elem, adiff = false) {
-        const {lng: lon, lat: lat} = getMap().getCenter()
+        const {lng: lon, lat: lat} = getMapCenter()
         const zoom = getMap().getZoom();
         const query = `// via changeset closing time
 [${adiff ? "adiff" : "date"}:"${elem.getAttribute("datetime")}"]; 
@@ -4527,6 +4543,23 @@ function fitBounds(bound, maxZoom = 19) {
  */
 function fitBoundsWithPadding(bound, padding, maxZoom = 19) {
     getMap().fitBounds(intoPageWithFun(bound), intoPage({padding: [padding, padding], maxZoom: maxZoom}));
+}
+
+/**
+ * @name getZoom
+ * @memberof unsafeWindow
+ */
+function getZoom() {
+    try {
+        return getMap().getZoom();
+    } catch  {
+        console.warn("Couldn't get the map zoom through the map object. Trying a workaround")
+
+        const curURL = document.querySelector("#edit_tab ul")?.querySelector("li a")?.href;
+        const match = curURL.match(/map=(\d+)\/([-\d.]+)\/([-\d.]+)(&|$)/)
+        console.log("Parsed coordinates link:", match);
+        return parseFloat(match[1])
+    }
 }
 
 /**
@@ -7766,7 +7799,6 @@ function makePolygonMeasureButtons(nodesIds, nodesMap) {
 
     const center = {lat: (bbox.max_lat + bbox.min_lat) / 2, lng: (bbox.max_lon + bbox.min_lon) / 2};
     // TODO
-    // Копирование
     // geojson
 
     const infos = document.createElement("div");
@@ -8288,9 +8320,7 @@ function addCopyCoordinatesButtons() {
             "Lon Lat": {getter: () => `${lon} ${lat}`},
             "geo:": {getter: () => `geo:${lat},${lon}`}
         }
-        if (getMap && getMap()) {
-            coordinatesFormatters["osm.org"] =  {getter: () => `osm.org#map=${getMap().getZoom()}/${lat}/${lon}`}
-        }
+        coordinatesFormatters["osm.org"] =  {getter: () => `osm.org#map=${getZoom()}/${lat}/${lon}`}
 
         coordsElem.onclick = async e => {
             e.preventDefault()
@@ -8739,7 +8769,7 @@ function addRegionForFirstChangeset(attempts = 5) {
             }
             return
         }
-        const center = getMap().getCenter()
+        const center = getMapCenter()
         console.time(`Geocoding changeset ${center.lng},${center.lat}`)
         fetch(`https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2&zoom=10`, {signal: getAbortController().signal}).then((res) => {
             res.json().then((r) => {
@@ -15171,7 +15201,7 @@ function setupNavigationViaHotkeys() {
                 }
             }
         } else if (e.key === "0") {
-            const center = getMap().getCenter()
+            const center = getMapCenter()
             setZoom(2)
             fetch(`https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2`).then((res) => {
                 res.json().then((r) => {
