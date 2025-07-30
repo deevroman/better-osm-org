@@ -333,6 +333,13 @@ const instancesOf3DViewers = [
             return `${this.url}${z - 1}/${x}/${y}/0/50`
         }
     },
+    {
+        name: "OSM Building Inspector",
+        url: "https://www.osmgo.org/bevy.html?",
+        makeURL: function ({type: type, id: id}) {
+            return `${this.url}?${type}=${id}`
+        }
+    },
     // {
     //     name: "OSM Building Viewer (fork)",
     //     url: "https://deevroman.github.io/OSMBuilding/",
@@ -4054,7 +4061,7 @@ function makeLinksInTagsClickable() {
             if (type === "way" && ["building", "building:part"].includes(key) &&
                 !Array.from(document.querySelectorAll(".browse-tag-list tr th"))
                     .some(i => i.textContent.includes("level") || i.textContent.includes("height")
-                        || i.textContent.includes("roof")
+                        || i.textContent.includes("roof") || i.textContent.includes("wikidata")
                     )) {
                 return
             }
