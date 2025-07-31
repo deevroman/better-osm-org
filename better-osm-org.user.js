@@ -10130,6 +10130,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             } else if (e.type === "keypress") {
                 return
             }
+            e.preventDefault()
 
             document.querySelector("#element_versions_list > div.active-object")?.classList?.remove()
             i.parentElement.parentElement.classList.add("active-object")
