@@ -1708,7 +1708,7 @@ function makeTimesSwitchable() {
 
     function openMapStateInOverpass(elem, adiff = false) {
         const {lng: lon, lat: lat} = getMapCenter()
-        const zoom = getMap().getZoom();
+        const zoom = getZoom();
         const query = `// via changeset closing time
 [${adiff ? "adiff" : "date"}:"${elem.getAttribute("datetime")}"]; 
 (
