@@ -71,6 +71,7 @@
 // @require      https://raw.githubusercontent.com/deevroman/osmtogeojson/c97381a0c86c0a021641dd47d7bea01fb5514716/osmtogeojson.js#sha256=663bb5bbae47d5d12bff9cf1c87b8f973e85fab4b1f83453810aae99add54592
 // @require      https://gist.githubusercontent.com/deevroman/d8b7a2176446e321fa6b0b47d0615d6e/raw/57c11b07432890b9a066ef6b6aba970dda9cb5ad/snow-animation.js#sha256=3b6cd76818c5575ea49aceb7bf4dc528eb8a7cb228b701329a41bb50f0800a5d
 // @require      https://raw.githubusercontent.com/deevroman/opening_hours.js/f70889c71fcfd6e3ef7ba8df3b1263d8295b3dec/opening_hours+deps.min.js#sha256=e9a3213aba77dcf79ff1da9f828532acf1ebf7107ed1ce5f9370b922e023baff
+// @require      https://raw.githubusercontent.com/deevroman/unzipit/refs/heads/master/dist/unzipit.min.js#sha256=13a41f257bc1fd90adeaf6731e02838cf740299235ece90634f12e117e22e2ff
 // @incompatible safari https://github.com/deevroman/better-osm-org/issues/13
 // @grant        GM.getValue
 // @grant        GM.setValue
@@ -139,6 +140,7 @@
 /*global osmtogeojson*/
 /*global opening_hours*/
 /*global runSnowAnimation*/
+/*global unzipit*/
 
 if (location.search.includes("&kek")) {
     throw "better-osm-org disable via url param";
@@ -6572,8 +6574,7 @@ function setupViewRedactions() {
                 let blob = needUnzip ? await decompressBlob(diffGZ.response) : diffGZ.response;
                 let diffXML = await blob.text()
 
-                const diffParser = new DOMParser();
-                const doc = diffParser.parseFromString(diffXML, "application/xml");
+                const doc = new DOMParser().parseFromString(diffXML, "application/xml");
                 return doc.querySelectorAll(`osm [id='${objID}']`)
             } catch {
                 return null
@@ -14831,6 +14832,11 @@ function zoomToCurrentObject(e) {
             [searchResultBBOX.min_lat, searchResultBBOX.min_lon],
             [searchResultBBOX.max_lat, searchResultBBOX.max_lon]
         ])
+    } else if (trackMetadata) {
+        fitBounds([
+            [trackMetadata.min_lat, trackMetadata.min_lon],
+            [trackMetadata.max_lat, trackMetadata.max_lon]
+        ])
     }
 }
 
@@ -15735,8 +15741,7 @@ let trackMetadata = null;
  * @param {string} xml
  */
 function displayGPXTrack(xml) {
-    const diffParser = new DOMParser();
-    const doc = diffParser.parseFromString(xml, "application/xml");
+    const doc = new DOMParser().parseFromString(xml, "application/xml");
 
     const popup = document.createElement("span")
 
@@ -15805,6 +15810,104 @@ function displayGPXTrack(xml) {
         trackMetadata.max_lon = max(trackMetadata.max_lon, lon);
     });
     console.timeEnd("start gpx track render")
+}
+
+
+/**
+ * @param {string} xml
+ */
+function displayKMLTrack(xml) {
+    const doc = new DOMParser().parseFromString(xml, "application/xml");
+    const error = doc.querySelector("parsererror");
+    if (error) {
+        console.error("Parsing failed:", error.textContent);
+    }
+
+    const popup = document.createElement("span")
+
+    const name = doc.querySelector("Document name")?.textContent
+    const nameSpan = document.createElement("p")
+    nameSpan.textContent = name
+
+    const desc = doc.querySelector("Document description")?.textContent
+    const descSpan = document.createElement("p")
+    descSpan.textContent = desc
+
+    const link = doc.querySelector("Document link")?.getAttribute("href")
+    const linkA = document.createElement("a")
+    linkA.href = link
+    linkA.textContent = link
+
+    popup.appendChild(nameSpan)
+    popup.appendChild(descSpan)
+    popup.appendChild(linkA)
+
+    console.time("start kml track render")
+    const min = Math.min;
+    const max = Math.max;
+    trackMetadata = {
+        min_lat: 10000000,
+        min_lon: 10000000,
+        max_lat: -10000000,
+        max_lon: -100000000,
+    }
+
+    doc.querySelectorAll("Document Placemark:has(LineString)").forEach(trk => {
+        const nodesList = []
+        trk.querySelectorAll("LineString coordinates").forEach(i => {
+            i.firstChild.textContent.trim().split(/\s+/).map(i => i.split(",")).forEach(coord => {
+                const lat = parseFloat(coord[1]);
+                const lon = parseFloat(coord[0]);
+                nodesList.push([lat, lon]);
+
+                trackMetadata.min_lat = min(trackMetadata.min_lat, lat);
+                trackMetadata.min_lon = min(trackMetadata.min_lon, lon);
+                trackMetadata.max_lat = max(trackMetadata.max_lat, lat);
+                trackMetadata.max_lon = max(trackMetadata.max_lon, lon);
+            })
+        });
+        displayWay(cloneInto(nodesList, unsafeWindow), false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML);
+    });
+    doc.querySelectorAll("Document Placemark:has(LinearRing)").forEach(trk => {
+        const nodesList = []
+        trk.querySelectorAll("LinearRing coordinates").forEach(i => {
+            i.firstChild.textContent.trim().split(/\s+/).map(i => i.split(",")).forEach(coord => {
+                const lat = parseFloat(coord[1]);
+                const lon = parseFloat(coord[0]);
+                nodesList.push([lat, lon]);
+
+                trackMetadata.min_lat = min(trackMetadata.min_lat, lat);
+                trackMetadata.min_lon = min(trackMetadata.min_lon, lon);
+                trackMetadata.max_lat = max(trackMetadata.max_lat, lat);
+                trackMetadata.max_lon = max(trackMetadata.max_lon, lon);
+            })
+        });
+        displayWay(cloneInto(nodesList, unsafeWindow), false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML);
+    });
+    doc.querySelectorAll("Document Placemark:has(Point)").forEach(pointXml => {
+        const [lon, lat] = pointXml.querySelector("coordinates").firstChild.textContent.trim().split(",").map(parseFloat).slice(0, 2);
+        const marker = showNodeMarker(lat, lon, "rgb(255,0,47)", null, 'customObjects', 3);
+        const name = pointXml.querySelector("name")
+        const desc = pointXml.querySelector("description")
+        if (name || desc) {
+            const popup = document.createElement("span")
+            if (name) {
+                popup.textContent = name.textContent
+            }
+            if (desc) {
+                popup.appendChild(document.createElement("br"))
+                popup.appendChild(document.createTextNode(desc.textContent))
+            }
+            marker.bindTooltip(popup.outerHTML)
+            marker.bindPopup(popup.outerHTML)
+        }
+
+        trackMetadata.min_lat = min(trackMetadata.min_lat, lat);
+        trackMetadata.min_lon = min(trackMetadata.min_lon, lon);
+        trackMetadata.max_lat = max(trackMetadata.max_lat, lat);
+        trackMetadata.max_lon = max(trackMetadata.max_lon, lon);
+    });
+    console.timeEnd("start kml track render")
 }
 
 
@@ -16610,6 +16713,13 @@ async function setupDragAndDropViewers() {
                         loadBannedVersions();
                         preloadEditIcons();
                         jsonLayer = renderOSMGeoJSON(doc, true)
+                    } else if (file.type === "application/vnd.google-earth.kml+xml") {
+                        displayKMLTrack(await file.text())
+                    } else if (file.type === "application/vnd.google-earth.kmz+xml") {
+                        const {entries} = await unzipit.unzip(await file.arrayBuffer());
+                        displayKMLTrack(await Object.entries(entries).find(i => i[0].endsWith(".kml"))[1].text())
+                    } else {
+                        console.log(file.type)
                     }
                 }
             });
