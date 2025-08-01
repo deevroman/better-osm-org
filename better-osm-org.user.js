@@ -7009,7 +7009,7 @@ function addDiffInHistory(reason = "url_change") {
     // в хроме фокус не выставляется
     document.querySelector("#sidebar").focus({focusVisible: false}) // focusVisible работает только в Firefox
     document.querySelector("#sidebar").blur()
-    makeLinksInTagsClickable();
+
     if (!location.pathname.includes("/user/") && !document.querySelector(".compact-toggle-btn")) {
         let compactToggle = document.createElement("button")
         compactToggle.title = "Toggle between full and compact tags diff.\nYou can also use the T key."
@@ -7615,6 +7615,7 @@ function addDiffInHistory(reason = "url_change") {
     } else {
         makeElementHistoryCompact();
     }
+    makeLinksInTagsClickable();
     makeHashtagsClickable();
     makeTimesSwitchable();
     document.querySelectorAll("#element_versions_list > div p").forEach(shortOsmOrgLinks);
