@@ -771,7 +771,7 @@ GM_config.init(
                     'labelPos': 'right'
                 },
                 'BetterTaginfo': {
-                    'label': 'Add new button in Taginfo',
+                    'label': 'Add new buttons in Taginfo',
                     'type': 'checkbox',
                     'default': 'checked',
                     'labelPos': 'right'
