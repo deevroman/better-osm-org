@@ -2343,6 +2343,13 @@ out meta;
         console.error("setup timeback button fail");
     }
 
+    try {
+        makeHashtagsInNotesClickable()
+        makeUsernameInNotesFilterable()
+    } catch {
+        console.error("fail when setuping filterable links in note");
+    }
+
     document.querySelectorAll('#sidebar_content div:has(h4) a:not(.gpx-displayed)').forEach(i => {
         i.classList.add("gpx-displayed")
         const m = i.href.match(new RegExp(`${osm_server.url}/user/.+/traces/(\\d+)`))
@@ -2410,9 +2417,6 @@ out meta;
             // hideSearchForm()
         }
     })
-
-    makeHashtagsInNotesClickable()
-    makeUsernameInNotesFilterable()
 }
 
 function setupResolveNotesButton(path) {
