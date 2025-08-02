@@ -7316,6 +7316,10 @@ function addDiffInHistory(reason = "url_change") {
     table.browse-tag-list.hide-non-modified-tags > tbody > .non-modified-tag {
         display: none;
     }
+    
+    table.browse-tag-list.hide-non-modified-tags > tbody > .non-modified-tag + tr:not(:has(th)) {
+        display: none;
+    }
 
     #sidebar_content h2:not(.changeset-header){
         font-size: 1rem;
