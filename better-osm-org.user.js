@@ -12544,6 +12544,7 @@ async function makeProfileForDeletedUser(user) {
                 checkbox.textContent = "#" + ch.id + ""
                 checkbox.title = "Shift + click for select a range of empty checkboxes"
                 checkbox.value = ch.id
+                checkbox.setAttribute("user-id", id)
                 checkbox.onclick = e => {
                     if (e.shiftKey) {
                         let currentCheckboxFound = false
@@ -12560,8 +12561,8 @@ async function makeProfileForDeletedUser(user) {
                             }
                         }
                     }
-                    const selectedIDsCount = elemForResult.querySelectorAll("input:checked").length
-                    elemForResult.querySelectorAll(".copy-changesets-ids-btn").forEach(i => {
+                    const selectedIDsCount = elemForResult.querySelectorAll(`input:checked[user-id="${id}"]`).length
+                    elemForResult.querySelectorAll(`.copy-changesets-ids-btn[user-id="${id}"]`).forEach(i => {
                         if (selectedIDsCount) {
                             i.textContent = `Copy ${selectedIDsCount} IDs`
                         } else {
@@ -12607,8 +12608,9 @@ async function makeProfileForDeletedUser(user) {
             copyIds.textContent = "Copy IDs"
             copyIds.title = ""
             copyIds.classList.add("copy-changesets-ids-btn")
+            copyIds.setAttribute("user-id", id)
             copyIds.onclick = e => {
-                const ids = Array.from(elemForResult.querySelectorAll("input:checked")).map(i => i.value).join(",")
+                const ids = Array.from(elemForResult.querySelectorAll(`input:checked[user-id="${id}"]`)).map(i => i.value).join(",")
                 if (ids !== "") {
                     navigator.clipboard.writeText(ids).then(() => copyAnimation(e, ids))
                 } else {
