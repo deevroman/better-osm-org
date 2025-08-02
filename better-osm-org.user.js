@@ -8512,9 +8512,9 @@ function addCopyCoordinatesButtons() {
         const coordinatesFormatters = {
             "Lat Lon": {getter: () => `${lat} ${lon}`},
             "Lon Lat": {getter: () => `${lon} ${lat}`},
-            "geo:": {getter: () => `geo:${lat},${lon}`}
+            "geo:": {getter: () => `geo:${lat},${lon}`},
+            "osm.org": {getter: () => `osm.org#map=${getZoom()}/${lat}/${lon}`}
         }
-        coordinatesFormatters["osm.org"] =  {getter: () => `osm.org#map=${getZoom()}/${lat}/${lon}`}
 
         coordsElem.onclick = async e => {
             e.preventDefault()
@@ -15546,21 +15546,33 @@ function setupNavigationViaHotkeys() {
                     document.querySelector('a[href^="/user/"][href$="_comments"]')?.click()
                 }
             } else {
-                const activeObject = document.querySelector("#element_versions_list > div.active-object")
-                if (activeObject) {
-                    if (e.shiftKey) {
-                        window.open(activeObject.querySelector('a[href^="/changeset/"]').href, "_blank")
-                    } else {
-                        activeObject.querySelector('a[href^="/changeset/"]')?.click()
-                    }
+                if (e.altKey) {
+                    setTimeout(async () => {
+                        const center = getMapCenter()
+                        const format = await GM.getValue("CoordinatesFormat") ?? "Lat Lon"
+                        if (format === "Lon Lat") {
+                            navigator.clipboard.writeText(`${center.lng} ${center.lat}`)
+                        } else {
+                            navigator.clipboard.writeText(`${center.lat} ${center.lng}`)
+                        }
+                    })
                 } else {
-                    const changesetsLinks = document.querySelectorAll('a[href^="/changeset/"]:not([href*="?locale="])')
-                    if (e.shiftKey) {
-                        if (changesetsLinks?.[0]?.href) {
-                            window.open(changesetsLinks?.[0]?.href, "_blank")
+                    const activeObject = document.querySelector("#element_versions_list > div.active-object")
+                    if (activeObject) {
+                        if (e.shiftKey) {
+                            window.open(activeObject.querySelector('a[href^="/changeset/"]').href, "_blank")
+                        } else {
+                            activeObject.querySelector('a[href^="/changeset/"]')?.click()
                         }
                     } else {
-                        changesetsLinks?.[0]?.click()
+                        const changesetsLinks = document.querySelectorAll('a[href^="/changeset/"]:not([href*="?locale="])')
+                        if (e.shiftKey) {
+                            if (changesetsLinks?.[0]?.href) {
+                                window.open(changesetsLinks?.[0]?.href, "_blank")
+                            }
+                        } else {
+                            changesetsLinks?.[0]?.click()
+                        }
                     }
                 }
             }
