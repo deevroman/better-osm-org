@@ -4802,7 +4802,7 @@ function abortPrevControllers(reason = null) {
  */
 
 /**
- * @type {Object.<string, NodeVersion[]>}
+ * @type {Object.<string, NodeHistory>}
  */
 const nodesHistories = {}
 
@@ -4812,12 +4812,12 @@ const nodesHistories = {}
 const waysRedactedVersions = {}
 
 /**
- * @type {Object.<string, WayVersion[]>}
+ * @type {Object.<string, WayHistory>}
  */
 const waysHistories = {}
 
 /**
- * @type {Object.<string, RelationVersion[]>}
+ * @type {Object.<string, RelationHistory>}
  */
 const relationsHistories = {}
 
@@ -5012,8 +5012,13 @@ async function loadNodesViaHistoryCalls(nodes) {
 }
 
 /**
+ * @typedef {NodeVersion[]} NodeHistory
+ * @property {unique symbol} __brand_nodes_history
+ */
+
+/**
  * @param {number|string} nodeID
- * @return {Promise<NodeVersion[]>}
+ * @return {Promise<NodeHistory>}
  */
 async function getNodeHistory(nodeID) {
     if (nodesHistories[nodeID]) {
@@ -5025,6 +5030,10 @@ async function getNodeHistory(nodeID) {
         return nodesHistories[nodeID] = (await res.json()).elements;
     }
 }
+
+/**
+ * @typedef {WayVersion[]} WayHistory
+ */
 
 /**
  * @typedef {Object} WayVersion
@@ -5041,7 +5050,7 @@ async function getNodeHistory(nodeID) {
  */
 /**
  * @param {number|string} wayID
- * @return {Promise<WayVersion[]>}
+ * @return {Promise<WayHistory>}
  */
 async function getWayHistory(wayID) {
     if (waysHistories[wayID]) {
@@ -5230,8 +5239,8 @@ async function sortWayNodesByTimestamp(wayID) {
     objectsBag.sort((a, b) => {
         if (a.timestamp < b.timestamp) return -1;
         if (a.timestamp > b.timestamp) return 1;
-        if (a.type < b.type) return -1;
-        if (a.type > b.type) return 1;
+        if (a.type === "node" && b.type === "way") return -1;
+        if (a.type === "way" && b.type === "node") return 1;
         return 0
     })
     return objectsBag;
@@ -5906,8 +5915,12 @@ function setupWayVersionView() {
 //</editor-fold>
 
 /**
+ * @typedef {RelationVersion[]} RelationHistory
+ */
+
+/**
  * @param {number|string} relationID
- * @return {Promise<RelationVersion[]>}
+ * @return {Promise<RelationHistory>}
  */
 async function getRelationHistory(relationID) {
     if (relationsHistories[relationID]) {
@@ -6488,7 +6501,12 @@ async function getRelationViaOverpassXML(id, timestamp) {
 }
 
 /**
- * @typedef {{nodes: NodeVersion[], ways: [WayVersion, NodeVersion[][]][], relations: RelationVersion[][]}}
+ * @typedef {NodeVersion[]} NodesBag
+ * @property {unique symbol} __brand_nodes_bag
+ */
+
+/**
+ * @typedef {{nodes: NodesBag, ways: [WayVersion, NodeVersion[][]][], relations: RelationVersion[][]}}
  * @name RelationMembersVersions
  */
 
@@ -6512,7 +6530,7 @@ async function loadRelationVersionMembers(relationID, version) {
     }
 
     /**
-     * @type {{nodes: NodeVersion[], ways: [WayVersion, NodeVersion[][]][]|Promise<[WayVersion, NodeVersion[][]]>[], relations: RelationVersion[][]}}
+     * @type {{nodes: NodesBag, ways: [WayVersion, NodeVersion[][]][]|Promise<[WayVersion, NodeVersion[][]]>[], relations: RelationVersion[][]}}
      */
     const membersHistory = {
         nodes: [],
