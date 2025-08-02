@@ -2,6 +2,8 @@
 // @name            Better osm.org
 // @name:ru         Better osm.org
 // @version         1.1.8
+// @changelog       v1.1.8: more filters for notes, initial support for KML/KMZ files, copy coordinates for ways
+// @changelog       v1.1.6: copy coordinates for nodes, autoexpand wikidata preview, Shift + M for send message to user
 // @changelog       v1.0.0: type=restriction render, user ID in profile, profile for deleted user
 // @changelog       v1.0.0: notes filter, Overpass link in taginfo for key values, ruler, nodes mover
 // @changelog       v0.9.9: Button for 3D view building in OSMBuilding, F4map and other viewers
@@ -1090,6 +1092,7 @@ function makeHashtagsInNotesClickable() {
                         }
                         Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({block: "center"})
                         document.querySelector("#filter-notes-by-string").value = match
+                        e.target?.classList?.add("wait-fetch")
                         updateNotesLayer()
                     }
                     console.log("search link in note was fixed");
@@ -1104,6 +1107,39 @@ function makeHashtagsInNotesClickable() {
             node.replaceWith(span)
         })
     })
+}
+
+function makeUsernameInNotesFilterable() {
+    const usernameLink = document.querySelector('#sidebar_content a[href^="/user/"]')
+    if (usernameLink.classList.contains("filterable")) {
+        return
+    }
+    usernameLink.classList.add("filterable")
+    const username = decodeURI(usernameLink.getAttribute("href").match(/\/user\/(.*)$/)[1])
+    const filterIcon = document.createElement("span")
+    filterIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-funnel-icon lucide-funnel"><path d="M 10 20 a 1 1 0 0 0 0.553 0.895 l 2 1 A 1 1 0 0 0 14 21 v -8 a 2 3 0 0 1 1 -2 L 21.74 4.67 A 1 1 0 0 0 21 3 H 3 a 1 1 0 0 0 -0.742 1.67 l 6.742 6.33 A 2 3 0 0 1 10 13 z"/></svg>'
+    filterIcon.style.cursor = "pointer"
+    filterIcon.style.position = "relative"
+    filterIcon.style.top = "-2px"
+    filterIcon.style.marginLeft = "3px"
+    filterIcon.style.marginRight = "3px"
+    filterIcon.onclick = () => {
+        if (document.querySelector(".layers-ui").style.display === "none") {
+            document.querySelector(".control-layers a").click()
+        }
+        Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({block: "center"})
+        if (document.querySelector("#filter-notes-by-username").value === "") {
+            document.querySelector("#filter-notes-by-username").value = username
+        } else {
+            document.querySelector("#filter-notes-by-username").value += "," + username
+        }
+        document.querySelector("#filter-notes-by-username")?.classList?.add("wait-fetch")
+        updateNotesLayer()
+    }
+    usernameLink.after(filterIcon)
+    if (filterIcon.nextSibling?.nodeType === Node.TEXT_NODE) {
+        filterIcon.nextSibling.remove()
+    }
 }
 
 function shortOsmOrgLinksInText(text) {
@@ -1943,7 +1979,7 @@ function setupCompactChangesetsHistory() {
             return
         }
         // remove useless
-        document.querySelectorAll("#sidebar ol .overflow-hidden:not(.better)").forEach((e) => {
+        document.querySelectorAll("#sidebar ol > li > .overflow-hidden:not(.better)").forEach((e) => {
             e.classList.add("better")
             e.childNodes[0].textContent = ""
             e.classList.remove("pt-3")
@@ -1968,7 +2004,7 @@ function setupCompactChangesetsHistory() {
                 e.appendChild(changesetIDspan)
             }
             const wrapper = document.createElement("div")
-            wrapper.classList.add("d-flex", "flex-nowrap", "gap-3", "justify-content-between", "align-items-end")
+            wrapper.classList.add("better-wrapper", "d-flex", "flex-nowrap", "gap-3", "justify-content-between", "align-items-end")
             e.parentElement.appendChild(wrapper)
             wrapper.appendChild(e)
             wrapper.appendChild(badgesDiv)
@@ -2376,6 +2412,7 @@ out meta;
     })
 
     makeHashtagsInNotesClickable()
+    makeUsernameInNotesFilterable()
 }
 
 function setupResolveNotesButton(path) {
@@ -2391,6 +2428,11 @@ function setupResolveNotesButton(path) {
 let updateNotesLayer = null;
 
 function addNotesFiltersButtons() {
+    injectCSSIntoOSMPage(`
+        .wait-fetch {
+            cursor: progress !important;
+        }
+    `)
     if (document.getElementById("notes-filter")) {
         return
     }
@@ -2405,12 +2447,16 @@ function addNotesFiltersButtons() {
         if (checkbox.checked) {
             filters.style.display = ""
             getWindow().notesDisplayName = filterByUsername.value;
+            getWindow().invertDisplayName = inverterForFilterByUsername.checked;
             getWindow().notesQFilter = filterByString.value;
-            getWindow().notesClosedFilter = "";
+            getWindow().invertQ = inverterForFilterByString.checked;
+            getWindow().notesClosedFilter = filterByClosed.value;
         } else {
             filters.style.display = "none"
             getWindow().notesDisplayName = "";
+            getWindow().invertDisplayName = "";
             getWindow().notesQFilter = "";
+            getWindow().invertQ = "";
             getWindow().notesClosedFilter = "";
         }
     }
@@ -2426,32 +2472,145 @@ function addNotesFiltersButtons() {
     }
     filters.id = "notes-filter"
     filters.style.display = "none"
+    filters.style.paddingTop = "4px"
 
     const filterByString = document.createElement("input")
     filterByString.type = "input"
     filterByString.id = "filter-notes-by-string"
+    filterByString.style.width = "100%"
     filterByString.placeholder = "word in notes"
     filterByString.addEventListener("keypress", function (event) {
         if (event.key === "Enter") {
+            filterByString.classList?.add("wait-fetch")
             updateNotesLayer()
         }
     })
+
+    const inverterForFilterByString = document.createElement("span")
+    inverterForFilterByString.textContent = "🚫"
+    const hideWithWordTitle = "Click to hide notes with this word"
+    const onlyWithWordTitle = "Click to show notes only with this word\nFilter works via OSM API and work only with whole word"
+    inverterForFilterByString.title = hideWithWordTitle
+    inverterForFilterByString.style.filter = "grayscale(1)"
+    inverterForFilterByString.style.position = "absolute"
+    inverterForFilterByString.style.cursor = "pointer"
+    inverterForFilterByString.style.marginLeft = "-1.5em"
+    inverterForFilterByString.onclick = () => {
+        inverterForFilterByString.checked = !inverterForFilterByString.checked
+        if (inverterForFilterByString.checked) {
+            inverterForFilterByString.style.filter = ""
+            inverterForFilterByString.title = hideWithWordTitle
+        } else {
+            inverterForFilterByString.style.filter = "grayscale(1)"
+            inverterForFilterByString.title = onlyWithWordTitle
+        }
+        inverterForFilterByString.classList?.add("wait-fetch")
+        updateNotesLayer()
+    }
+
+    const resetFilterByString = document.createElement("button")
+    resetFilterByString.style.all = "unset"
+    resetFilterByString.textContent = "✖"
+    resetFilterByString.style.position = "absolute"
+    resetFilterByString.style.right = "20px"
+    resetFilterByString.style.cursor = "pointer"
+    resetFilterByString.onclick = () => {
+        filterByString.value = ""
+        updateNotesLayer()
+    }
+
+    const wrapperForFilterByString = document.createElement("div")
+    wrapperForFilterByString.style.display = "flex"
+    wrapperForFilterByString.style.alignItems = "center"
+    wrapperForFilterByString.style.marginBottom = "2px"
+    wrapperForFilterByString.appendChild(inverterForFilterByString)
+    wrapperForFilterByString.appendChild(filterByString)
+    wrapperForFilterByString.appendChild(resetFilterByString)
 
     const filterByUsername = document.createElement("input")
     filterByUsername.type = "input"
     filterByUsername.placeholder = "username"
     filterByUsername.id = "filter-notes-by-username"
+    filterByUsername.style.width = "100%"
     filterByUsername.addEventListener("keypress", function (event) {
         if (event.key === "Enter") {
+            filterByUsername.classList?.add("wait-fetch")
             updateNotesLayer()
         }
     })
 
-    filters.appendChild(filterByString)
-    filters.appendChild(filterByUsername)
+    const inverterForFilterByUsername = document.createElement("span")
+    inverterForFilterByUsername.textContent = "🚫"
+    const hideFromUserTitle = "Click to hide notes from this user"
+    const onlyFromUserTitle = "Click to show notes only from this user"
+    inverterForFilterByUsername.title = hideFromUserTitle
+    inverterForFilterByUsername.style.filter = "grayscale(1)"
+    inverterForFilterByUsername.style.position = "absolute"
+    inverterForFilterByUsername.style.cursor = "pointer"
+    inverterForFilterByUsername.style.marginLeft = "-1.5em"
+    inverterForFilterByUsername.checked = false
+    inverterForFilterByUsername.onclick = () => {
+        inverterForFilterByUsername.checked = !inverterForFilterByUsername.checked
+        if (inverterForFilterByUsername.checked) {
+            inverterForFilterByUsername.style.filter = ""
+            inverterForFilterByUsername.title = onlyFromUserTitle
+        } else {
+            inverterForFilterByUsername.style.filter = "grayscale(1)"
+            inverterForFilterByUsername.title = hideFromUserTitle
+        }
+        inverterForFilterByUsername?.classList?.add("wait-fetch")
+        updateNotesLayer()
+    }
+
+    const resetFilterByUsername = document.createElement("button")
+    resetFilterByUsername.textContent = "✖"
+    resetFilterByUsername.style.all = "unset"
+    resetFilterByUsername.style.position = "absolute"
+    resetFilterByUsername.style.right = "20px"
+    resetFilterByUsername.style.cursor = "pointer"
+    resetFilterByUsername.onclick = () => {
+        filterByUsername.value = ""
+        updateNotesLayer()
+    }
+
+    const wrapperForFilterByUsername = document.createElement("div")
+    wrapperForFilterByUsername.style.display = "flex"
+    wrapperForFilterByUsername.style.alignItems = "center"
+    wrapperForFilterByUsername.style.marginBottom = "2px"
+    wrapperForFilterByUsername.appendChild(inverterForFilterByUsername)
+    wrapperForFilterByUsername.appendChild(filterByUsername)
+    wrapperForFilterByUsername.appendChild(resetFilterByUsername)
+
+    const filterByClosed = document.createElement("select")
+    filterByClosed.id = "filter-notes-by-closed"
+    filterByClosed.style.width = "100%"
+    filterByClosed.addEventListener("input", function () {
+        filterByClosed.classList?.add("wait-fetch")
+        updateNotesLayer()
+    });
+    [
+        ["❌ + ✅ at 7 days ago", 7],
+        ["❌ + ✅ at 30 days ago", 30],
+        ["❌ + ✅ at 365 days ago", 365],
+        ["only opened", 0],
+        ["all notes", -1]
+    ].forEach(([title, value]) => {
+        const option = document.createElement("option")
+        option.textContent = title
+        option.value = value
+        filterByClosed.appendChild(option)
+    });
+
+    const wrapperForFilterByClosed = document.createElement("div")
+    wrapperForFilterByClosed.appendChild(filterByClosed)
+
+    filters.appendChild(wrapperForFilterByString)
+    filters.appendChild(wrapperForFilterByUsername)
+    filters.appendChild(wrapperForFilterByClosed)
 
     noteLabel.after(filters)
     updateNotesFilters()
+    document.querySelector(".overlay-layers p").style.display = "none"
 }
 
 function setupNotesFiltersButtons() {
@@ -12986,11 +13145,7 @@ let sidebarObserverForMassActions = null;
 let massModeForUserChangesetsActive = null;
 let massModeActive = null;
 let currentMassDownloadedPages = null;
-let needClearLoadMoreRequest = 0;
-let needPatchLoadMoreRequest = null;
 let needHideBigChangesets = true;
-let hiddenChangesetsCount = null;
-let lastLoadMoreURL = "";
 
 function openCombinedChangesetsMap() {
     const batchSize = 500
@@ -13306,8 +13461,8 @@ function filterChangesets(htmlDocument = document) {
             newHiddenChangesetsCount++;
         }
     })
-    if (hiddenChangesetsCount !== newHiddenChangesetsCount && htmlDocument === document) {
-        hiddenChangesetsCount = newHiddenChangesetsCount
+    if (getWindow().hiddenChangesetsCount !== newHiddenChangesetsCount && htmlDocument === document) {
+        getWindow().hiddenChangesetsCount = newHiddenChangesetsCount
         const changesetsCount = document.querySelectorAll("ol > li").length
         document.querySelector("#hidden-changeset-counter").textContent = ` Displayed ${changesetsCount - newHiddenChangesetsCount}/${changesetsCount}`
         console.log(changesetsCount);
@@ -13315,8 +13470,8 @@ function filterChangesets(htmlDocument = document) {
 }
 
 function updateMap() {
-    needClearLoadMoreRequest++
-    lastLoadMoreURL = document.querySelector('.changeset_more:has([href*="before"]) a.page-link').href
+    getWindow().needClearLoadMoreRequest++
+    getWindow().lastLoadMoreURL = document.querySelector('.changeset_more:has([href*="before"]) a.page-link').href
     document.querySelector('.changeset_more:has([href*="before"]) a.page-link').click()
 }
 
@@ -13360,26 +13515,154 @@ if (isOsmServer()) {
     injectJSIntoPage(`
     const originalFetch = window.fetch;
 
+    window.needClearLoadMoreRequest = 0;
+    window.needPatchLoadMoreRequest = null;
+    window.hiddenChangesetsCount = null;
+
     window.notesDisplayName = "";
     window.notesQFilter = "";
     window.notesClosedFilter = "";
 
     console.log('Fetch intercepted');
     window.fetch = async (...args) => {
-        if (args[0]?.includes?.("notes.json") && (window.notesDisplayName !== "" || window.notesQFilter !== "" || window.notesClosedFilter !== "")) {
-            const url = new URL(args[0], location.origin);
-            url.pathname = url.pathname.replace("notes.json", "notes/search.json")
-            url.searchParams.set("limit", "1000")
-            if (window.notesDisplayName) {
-                url.searchParams.set("display_name", window.notesDisplayName)
+        try {
+            if (args[0]?.includes?.("notes.json") && (
+                window.notesDisplayName !== "" 
+                || window.notesQFilter !== "" 
+                || (window.notesClosedFilter !== "" && window.notesClosedFilter !== "7"))) {
+                const url = new URL(args[0], location.origin);
+                url.pathname = url.pathname.replace("notes.json", "notes/search.json")
+                url.searchParams.set("limit", "1000")
+                if (window.notesDisplayName && !window.invertDisplayName && !window.notesDisplayName.includes(",")) {
+                    url.searchParams.set("display_name", window.notesDisplayName)
+                }
+                if (window.notesQFilter && !window.invertQ && !window.notesQFilter.includes(",")) {
+                    url.searchParams.set("q", window.notesQFilter)
+                }
+                if (window.notesClosedFilter) {
+                    url.searchParams.set("closed", window.notesClosedFilter)
+                }
+                args[0] = url.toString()
+                const response = await originalFetch(...args);
+                if (response.status === 200) {
+                    const originalJSON = await response.json();
+                    originalJSON.features = originalJSON.features?.filter(note => {
+                        if (window.notesDisplayName && window.invertDisplayName) {
+                            const usernames = window.notesDisplayName.split(",")
+                            for (const username of usernames) {
+                                if (note.properties.comments?.[0]?.user === username) {
+                                    return false
+                                }
+                            }
+                        }
+                        if (!window.invertDisplayName && window.notesDisplayName.includes(",")) {
+                            const usernames = window.notesDisplayName.split(",")
+                            let found = false
+                            for (const username of usernames) {
+                                if (note.properties.comments?.[0]?.user === username) {
+                                    found = true
+                                }
+                            }
+                            if (!found) {
+                                return false
+                            }
+                        }
+                        if (window.notesQFilter && window.invertQ) {
+                            const words = window.notesQFilter.split(",")
+                            for (const word of words) {
+                                if (note.properties.comments?.[0]?.text.includes(word)) {
+                                    return false
+                                }
+                            }
+                        }
+                        if (!window.invertQ && window.notesQFilter.includes(",")) {
+                            const words = window.notesQFilter.split(",")
+                            let found = false
+                            for (const word of words) {
+                                if (!note.properties.comments?.[0]?.text.includes(word)) {
+                                    found = true
+                                }
+                            }
+                            if (!found) {
+                                return false
+                            }
+                        }
+                        return true
+                    })
+
+                    return new Response(JSON.stringify(originalJSON), {
+                        status: response.status,
+                        statusText: response.statusText,
+                        headers: response.headers
+                    });
+                }
+                return response
+            } else if (args[0]?.startsWith?.("/history?bbox") && (needClearLoadMoreRequest || needPatchLoadMoreRequest)) {
+                return originalFetch(...args);
+                debugger
+                const response = await originalFetch(...args);
+                const originalText = await response.text();
+                if (needClearLoadMoreRequest) {
+                    console.log("new changesets cleared")
+                    needClearLoadMoreRequest--;
+                    const doc = (new DOMParser()).parseFromString(originalText, "text/html");
+                    doc.querySelectorAll("ol > li").forEach(i => i.remove())
+                    doc.querySelector('.changeset_more:has([href*="before"]) a.page-link').href = window.lastLoadMoreURL
+                    window.lastLoadMoreURL = ""
+                    return new Response(doc.documentElement.outerHTML, {
+                        status: response.status,
+                        statusText: response.statusText,
+                        headers: response.headers
+                    });
+                } else if (needPatchLoadMoreRequest) {
+                    console.log("new changesets patched")
+                    const doc = (new DOMParser()).parseFromString(originalText, "text/html");
+                    filterChangesets(doc)
+                    setTimeout(() => {
+                        const changesetsCount = document.querySelectorAll("ol > li").length
+                        document.querySelector("#hidden-changeset-counter").textContent = " Displayed " + (changesetsCount - getWindow().hiddenChangesetsCount) + "/" + changesetsCount
+                    }, 100)
+                    return new Response(doc.documentElement.outerHTML, {
+                        status: response.status,
+                        statusText: response.statusText,
+                        headers: response.headers
+                    });
+                }
+            } else if (args?.[0]?.url === "https://vector.openstreetmap.org/demo/shortbread/colorful.json"
+                || args?.[0]?.url === "https://vector.openstreetmap.org/demo/shortbread/eclipse.json") {
+                console.log("blya", args)
+                if (!window.vectorStyle) {
+                    console.log("wait external vector style")
+                    await new Promise(r => setTimeout(r, 1000))
+                }
+                // debugger
+                const originalJSON = window.vectorStyle
+                // debugger
+                // const response = await originalFetch(...args);
+                // const originalJSON = await response.json();
+                // originalJSON.layers[originalJSON.layers.findIndex(i => i.id === "water-river")].paint['line-color'] = "red"
+                originalJSON.layers.forEach(i => {
+                    if (i.paint && i.paint['line-color']) {
+                        i.paint['line-color'] = "red"
+                    }
+                    if (i.paint && i.paint['fill-color']) {
+                        i.paint['fill-color'] = "black"
+                    }
+                })
+                // debugger
+                return new Response(JSON.stringify(originalJSON), {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: response.headers
+                });
+            } else {
+                console.log("hui", args[0])
+                // debugger
             }
-            if (window.notesQFilter) {
-                url.searchParams.set("q", window.notesQFilter)
-            }
-            // if (window.notesClosedFilter) {
-            //     url.searchParams.set("closed", window.notesClosedFilter)
-            // }
-            args[0] = url.toString()
+        } catch {
+            return originalFetch(...args);
+        } finally {
+            document.querySelectorAll(".wait-fetch").forEach(elem => elem.classList.remove("wait-fetch"))
         }
         return originalFetch(...args);
     }
@@ -13524,7 +13807,7 @@ function addMassActionForGlobalChangesets() {
                 return filterBar
             }
 
-            needPatchLoadMoreRequest = true
+            getWindow().needPatchLoadMoreRequest = true
             if (massModeActive === null) {
                 massModeActive = true
                 document.querySelector("#sidebar div.changesets").before(await makeTopFilterBar())
@@ -13544,66 +13827,6 @@ function addMassActionForGlobalChangesets() {
         const hiddenChangesetsCounter = document.createElement("span")
         hiddenChangesetsCounter.id = "hidden-changeset-counter"
         document.querySelector("#sidebar_content h2").appendChild(hiddenChangesetsCounter)
-    }
-
-    if (needPatchLoadMoreRequest === null) {
-        // double dirty hack
-        // override XMLHttpRequest.getResponseText
-        // caching queries since .responseText can be called multiple times
-        needPatchLoadMoreRequest = false
-        if (!unsafeWindow.XMLHttpRequest.prototype.getResponseText) {
-            unsafeWindow.XMLHttpRequest.prototype.getResponseText = Object.getOwnPropertyDescriptor(unsafeWindow.XMLHttpRequest.prototype, 'responseText').get;
-        }
-        Object.defineProperty(unsafeWindow.XMLHttpRequest.prototype, 'responseText', {
-            get: exportFunction(function () {
-                if (queriesCache.cacheTime + 2 > Date.now()) {
-                    if (queriesCache.elems[this.responseURL]) {
-                        return queriesCache.elems[this.responseURL]
-                    }
-                } else {
-                    queriesCache.cacheTime = Date.now()
-                    queriesCache.elems = {}
-                }
-                let responseText = unsafeWindow.XMLHttpRequest.prototype.getResponseText.call(this);
-                if (location.pathname !== "/history"
-                    && !(location.pathname.includes("/history") && location.pathname.includes("/user/"))) {
-                    // todo also for node/123/history
-                    // off patching
-                    Object.defineProperty(unsafeWindow.XMLHttpRequest.prototype, 'responseText', {
-                        get: unsafeWindow.XMLHttpRequest.prototype.getResponseText,
-                        enumerable: true,
-                        configurable: true
-                    })
-                    return responseText;
-                }
-                if (needClearLoadMoreRequest) {
-                    console.log("new changesets cleared")
-                    needClearLoadMoreRequest--;
-                    const docParser = new DOMParser();
-                    const doc = docParser.parseFromString(responseText, "text/html");
-                    doc.querySelectorAll("ol > li").forEach(i => i.remove())
-                    doc.querySelector('.changeset_more:has([href*="before"]) a.page-link').href = lastLoadMoreURL
-                    queriesCache.elems[lastLoadMoreURL] = doc.documentElement.outerHTML;
-                    queriesCache.elems[this.responseURL] = doc.documentElement.outerHTML;
-                    lastLoadMoreURL = ""
-                } else if (needPatchLoadMoreRequest) {
-                    console.log("new changesets patched")
-                    const docParser = new DOMParser();
-                    const doc = docParser.parseFromString(responseText, "text/html");
-                    filterChangesets(doc)
-                    setTimeout(() => {
-                        const changesetsCount = document.querySelectorAll("ol > li").length
-                        document.querySelector("#hidden-changeset-counter").textContent = ` Displayed ${changesetsCount - hiddenChangesetsCount}/${changesetsCount}` // hiddenChangesetsCount?
-                    }, 100)
-                    queriesCache.elems[this.responseURL] = doc.documentElement.outerHTML;
-                } else {
-                    queriesCache.elems[this.responseURL] = responseText
-                }
-                return queriesCache.elems[this.responseURL]
-            }, unsafeWindow),
-            enumerable: true,
-            configurable: true
-        });
     }
 
 }
@@ -13658,8 +13881,8 @@ function addMassChangesetsActions() {
         // debugger
         if (!location.pathname.includes("/history")) {
             massModeActive = null
-            needClearLoadMoreRequest = 0
-            needPatchLoadMoreRequest = false
+            getWindow().needClearLoadMoreRequest = 0
+            getWindow().needPatchLoadMoreRequest = false
             needHideBigChangesets = false
             currentMassDownloadedPages = null
             observer.disconnect()
@@ -13709,7 +13932,7 @@ function addMassChangesetsActions() {
         } else if (currentMassDownloadedPages > MAX_PAGE_FOR_LOAD) {
             currentMassDownloadedPages = null
             const changesetsCount = document.querySelectorAll("ol > li").length
-            document.querySelector("#hidden-changeset-counter").textContent = ` Displayed ${changesetsCount - hiddenChangesetsCount}/${changesetsCount}`
+            document.querySelector("#hidden-changeset-counter").textContent = ` Displayed ${changesetsCount - getWindow().hiddenChangesetsCount}/${changesetsCount}`
         } else {
             if (!document.querySelector("#infinity-list-btn")) {
                 let moreButton = document.querySelector('.changeset_more:has([href*="before"]) a.page-link')
