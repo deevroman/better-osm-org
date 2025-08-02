@@ -144,7 +144,7 @@ Experimental hotkeys:
 - Notes filters:
 - + [x] by user
 - + [x] by word
-- + [ ] by status
+- + [x] by status
 - Geometry
 - + [x] Ruler
 - + [ ] Calc area size
@@ -158,7 +158,6 @@ Experimental hotkeys:
 - [ ] Custom links to geo services (like OSM Smart Menu) 
 - [ ] Mark reviewed changesets
 - [ ] Public transport viewer and validator
-- [ ] Hide resolved notes
 - [ ] Collapse name tags
 - [ ] Integrate https://github.com/Zverik/osmtags-editor
 - [ ] Edit tags in Overpass Turbo
@@ -212,7 +211,7 @@ Maybe
 - [ESRI](https://wiki.openstreetmap.org/wiki/Esri) — Satellite images
 - [GM_config](https://github.com/sizzlemctwizzle/GM_config) — settings framework for UserScripts
 - [LetItSnow](https://github.com/DevBubba/Bookmarklets/blob/main/Screen/LetItSnow.js) — Easter New Year's Egg
-- [Lucide](https://lucide.dev/icons/diff) — for changes count icon on /history page and copy button icon
+- [Lucide](https://lucide.dev/icons/diff) — for changes count icon on /history page, copy button icon and filter icon
 - [opening_hours.js](https://github.com/opening-hours/opening_hours.js) — for opening_hours tags validation
 - [OpenStreetMap Dark Theme](https://userstyles.world/style/15596/openstreetmap-dark-theme) — dark theme was the foundation based on this style
 - [OpenStreetMap Statistics](https://github.com/piebro/openstreetmap-statistics) — The script uses the rules from this project to normalize the names of OSM editors
