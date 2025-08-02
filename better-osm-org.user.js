@@ -13654,7 +13654,8 @@ if (isOsmServer()) {
                 }
             } else if (args?.[0]?.url === "https://vector.openstreetmap.org/demo/shortbread/colorful.json"
                 || args?.[0]?.url === "https://vector.openstreetmap.org/demo/shortbread/eclipse.json") {
-                console.log("blya", args)
+                return originalFetch(...args);
+                console.log("vector tiles request", args)
                 if (!window.vectorStyle) {
                     console.log("wait external vector style")
                     await new Promise(r => setTimeout(r, 1000))
@@ -13680,7 +13681,7 @@ if (isOsmServer()) {
                     headers: response.headers
                 });
             } else {
-                console.log("hui", args[0])
+                // console.log("other requets", args[0])
                 // debugger
             }
         } catch {
