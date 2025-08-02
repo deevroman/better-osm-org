@@ -2489,7 +2489,7 @@ function addNotesFiltersButtons() {
     const inverterForFilterByString = document.createElement("span")
     inverterForFilterByString.textContent = "🚫"
     const hideWithWordTitle = "Click to hide notes with this word"
-    const onlyWithWordTitle = "Click to show notes only with this word\nFilter works via OSM API and work only with whole word"
+    const onlyWithWordTitle = "Click to show notes only with this word\nFilter works via OSM API and work only with WHOLE word"
     inverterForFilterByString.title = hideWithWordTitle
     inverterForFilterByString.style.filter = "grayscale(1)"
     inverterForFilterByString.style.position = "absolute"
