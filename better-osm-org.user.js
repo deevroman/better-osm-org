@@ -2313,7 +2313,10 @@ function addResolveNotesButton() {
 
     try {
         // timeback button
-        let timestamp = document.querySelector("#sidebar_content time").dateTime;
+        let timestamp = document.querySelector("#sidebar_content time")?.dateTime;
+        if (!timestamp) {
+            return
+        }
         let timeSource = "note creation date"
         const mapsmeDate = document.querySelector(".overflow-hidden")?.textContent?.match(/OSM data version: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/);
         if (mapsmeDate) {
