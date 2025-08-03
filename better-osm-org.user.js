@@ -8156,7 +8156,7 @@ async function addHoverForWayNodes() {
     }
     // todo relations
     let infoBtn;
-    if (!document.querySelector(".way-info-btn")) {
+    if (!document.querySelector(".way-info-btn") && document.querySelector("#sidebar_content h4:last-of-type")) {
         infoBtn = document.createElement("span")
         infoBtn.textContent = "📐"
         infoBtn.classList.add("way-info-btn")
