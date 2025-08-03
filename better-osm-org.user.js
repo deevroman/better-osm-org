@@ -1984,6 +1984,9 @@ function setupCompactChangesetsHistory() {
         document.querySelectorAll("#sidebar ol > li > .overflow-hidden:not(.better)").forEach((e) => {
             e.classList.add("better")
             e.childNodes[0].textContent = ""
+            if (e.querySelector("time")?.nextSibling?.nodeType === Node.TEXT_NODE) {
+                e.querySelector("time").nextSibling.textContent = "\xA0"
+            }
             e.classList.remove("pt-3")
             const badgesDiv = e.nextElementSibling
             if (badgesDiv) {
@@ -13520,8 +13523,7 @@ function makeUsernamesFilterable(usernameLink) {
     filterIcon.style.cursor = "pointer"
     filterIcon.style.position = "relative"
     filterIcon.style.top = "-2px"
-    filterIcon.style.marginLeft = "3px"
-    filterIcon.style.marginRight = "3px"
+    filterIcon.style.marginLeft = "4px"
     filterIcon.title = "Click for hide this user changesets"
     filterIcon.onclick = async (e) => {
         e.preventDefault()
@@ -13636,8 +13638,6 @@ if (isOsmServer()) {
                 }
                 return response
             } else if (args[0]?.startsWith?.("/history?bbox") && (needClearLoadMoreRequest || needPatchLoadMoreRequest)) {
-                return originalFetch(...args);
-                debugger
                 const response = await originalFetch(...args);
                 const originalText = await response.text();
                 if (needClearLoadMoreRequest) {
@@ -15788,6 +15788,7 @@ function setupNavigationViaHotkeys() {
         } else if (e.code === "KeyH" && location.pathname.includes("/history") && (location.search.includes("after") || location.search.includes("before"))) {
             try {
                 getWindow().OSM.router.route(location.pathname)
+                setupCompactChangesetsHistory()
             } catch {
                 window.location = location.pathname
             }
