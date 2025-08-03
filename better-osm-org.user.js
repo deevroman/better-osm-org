@@ -1233,6 +1233,14 @@ async function validateOsmServerInJOSM() {
     return true
 }
 
+function makeUsernameTitle(userInfo) {
+    let title = `changesets_count: ${userInfo['changesets']['count']}\naccount_created: ${userInfo['account_created']}`
+    if (userInfo['blocks']['received']['count']) {
+        title += `\nreceived_blocks: ${userInfo['blocks']['received']['count']}`
+    }
+    return title
+}
+
 
 function addRevertButton() {
     if (!location.pathname.startsWith("/changeset")) return
@@ -1324,7 +1332,7 @@ function addRevertButton() {
             getCachedUserInfo(usernameA.textContent).then((res) => {
                 usernameA.before(makeBadge(res, new Date(time.getAttribute("datetime"))))
                 usernameA.before(document.createTextNode(" "))
-                usernameA.title = `changesets_count: ${res['changesets']['count']}\naccount_created: ${res['account_created']}`
+                usernameA.title = makeUsernameTitle(res)
 
                 document.querySelectorAll(".browse-tag-list tr").forEach(i => {
                     const key = i.querySelector("th")
@@ -1648,7 +1656,7 @@ function addRevertButton() {
     document.querySelectorAll('#sidebar_content article[id^=c] small > a[href^="/user/"]').forEach(elem => {
         getCachedUserInfo(elem.textContent).then(info => {
             elem.before(makeBadge(info, new Date(elem.nextElementSibling.getAttribute("datetime"))))
-            elem.title = `changesets_count: ${info['changesets']['count']}\naccount_created: ${info['account_created']}`
+            elem.title = makeUsernameTitle(info)
         })
     })
     // fixme dont work loggined
@@ -2296,7 +2304,7 @@ function addResolveNotesButton() {
     document.querySelectorAll('#sidebar_content a[href^="/user/"]').forEach(elem => {
         getCachedUserInfo(elem.textContent).then(info => {
             elem.before(makeBadge(info, new Date(elem.parentElement.querySelector("time")?.getAttribute("datetime") ?? new Date())))
-            elem.title = `changesets_count: ${info['changesets']['count']}\naccount_created: ${info['account_created']}`
+            elem.title = makeUsernameTitle(info)
         })
     })
     externalizeLinks(document.querySelectorAll(".overflow-hidden a"))
@@ -2344,8 +2352,8 @@ out meta;
         btn.onclick = () => {
             window.open(`${overpass_server.url}?Q=${encodeURI(query)}&C=${lat};${lon};${zoom}&R`)
         }
-    } catch {
-        console.error("setup timeback button fail");
+    } catch (e) {
+        console.error("setup timeback button fail", e);
     }
 
     try {
@@ -2508,10 +2516,10 @@ function addNotesFiltersButtons() {
         inverterForFilterByString.checked = !inverterForFilterByString.checked
         if (inverterForFilterByString.checked) {
             inverterForFilterByString.style.filter = ""
-            inverterForFilterByString.title = hideWithWordTitle
+            inverterForFilterByString.title = onlyWithWordTitle
         } else {
             inverterForFilterByString.style.filter = "grayscale(1)"
-            inverterForFilterByString.title = onlyWithWordTitle
+            inverterForFilterByString.title = hideWithWordTitle
         }
         inverterForFilterByString.classList?.add("wait-fetch")
         updateNotesLayer()
@@ -2929,7 +2937,7 @@ function hideNoteHighlight() {
     let g = document.querySelector("#map g");
     if (!g || g.childElementCount === 0) return;
     let mapDataCheckbox = document.querySelector(".layers-ui #label-layers-data input")
-    if (!mapDataCheckbox.checked) {
+    if (mapDataCheckbox && !mapDataCheckbox.checked) {
         if (mapDataSwitcherUnderSupervision) return;
         mapDataSwitcherUnderSupervision = true
         mapDataCheckbox.addEventListener("click", () => {
@@ -7056,7 +7064,7 @@ function addCommentsCount() {
                 const user_link = i.parentElement.parentElement.querySelector(`a[href^="/user/"]`)
                 if (user_link) {
                     getCachedUserInfo(user_link.textContent).then((res) => {
-                        user_link.title = `changesets_count: ${res['changesets']['count']}\naccount_created: ${res['account_created']}`
+                        user_link.title = makeUsernameTitle(res)
                     })
                 }
             })
@@ -13954,7 +13962,7 @@ function addMassChangesetsActions() {
                 const usernameA = item.parentElement.parentElement.querySelector('a[href^="/user/"]')
                 getCachedUserInfo(usernameA?.textContent).then((res) => {
                     if (!res) return
-                    usernameA.title = `changesets_count: ${res['changesets']['count']}\naccount_created: ${res['account_created']}`
+                    usernameA.title = makeUsernameTitle(res)
                     usernameA.before(makeBadge(res,
                         new Date(item.parentElement.parentElement.querySelector("time")?.getAttribute("datetime") ?? new Date())))
                 })
