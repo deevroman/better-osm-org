@@ -2631,6 +2631,14 @@ function addNotesFiltersButtons() {
     noteLabel.after(filters)
     updateNotesFilters()
     document.querySelector(".overlay-layers p").style.display = "none"
+    getMap().noteLayer.on('click', intoPageWithFun((e) => {
+        if (!e.originalEvent.altKey) {
+            return
+        }
+        getWindow().notesIDsFilter.add(e.layer.id);
+        e.propagatedFrom.getElement().style.display = "none";
+        getMap().fire("moveend");
+    }))
 }
 
 function setupNotesFiltersButtons() {
@@ -13573,6 +13581,7 @@ if (isOsmServer()) {
     window.notesDisplayName = "";
     window.notesQFilter = "";
     window.notesClosedFilter = "";
+    window.notesIDsFilter = new Set();
 
     console.log('Fetch intercepted');
     window.fetch = async (...args) => {
@@ -13580,7 +13589,9 @@ if (isOsmServer()) {
             if (args[0]?.includes?.("notes.json") && (
                 window.notesDisplayName !== "" 
                 || window.notesQFilter !== "" 
-                || (window.notesClosedFilter !== "" && window.notesClosedFilter !== "7"))) {
+                || (window.notesClosedFilter !== "" && window.notesClosedFilter !== "7"))
+                || window.notesIDsFilter.size
+            ) {
                 const url = new URL(args[0], location.origin);
                 url.pathname = url.pathname.replace("notes.json", "notes/search.json")
                 url.searchParams.set("limit", "1000")
@@ -13635,6 +13646,11 @@ if (isOsmServer()) {
                                 }
                             }
                             if (!found) {
+                                return false
+                            }
+                        }
+                        if (window.notesIDsFilter.size) {
+                            if (window.notesIDsFilter.has(note.properties.id)) {
                                 return false
                             }
                         }
