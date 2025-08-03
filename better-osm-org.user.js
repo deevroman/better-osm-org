@@ -15655,8 +15655,20 @@ function setupNavigationViaHotkeys() {
             }
             layersHidden = !layersHidden;
         } else if (e.code === "KeyF" && !e.altKey && !e.metaKey && !e.ctrlKey) {
-            document.querySelector("#changesets-filter-btn")?.click()
-            document.querySelector("#mass-action-btn")?.click()
+            if (location.pathname.match(/^\/note\//)) {
+                document.querySelector(".control-layers a").click()
+                if (document.querySelector(".layers-ui").style.display !== "none") {
+                    Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({block: "center"})
+                }
+            } else {
+                if (!document.querySelector("#changesets-filter-btn") && !document.querySelector("#mass-action-btn")) {
+                    document.querySelector(".control-layers a").click()
+                    Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({block: "center"})
+                } else {
+                    document.querySelector("#changesets-filter-btn")?.click()
+                    document.querySelector("#mass-action-btn")?.click()
+                }
+            }
         } else if (isDebug() && e.code === "KeyP" && e.altKey) {
             if (location.pathname.startsWith("/changeset")) {
                 const params = new URLSearchParams(location.search)
