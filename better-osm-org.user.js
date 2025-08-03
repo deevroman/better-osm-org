@@ -2962,6 +2962,16 @@ function hideNoteHighlight() {
         g.childNodes[g.childElementCount - 1].remove();
         document.querySelector("div.leaflet-marker-icon:last-child").style.filter = "contrast(120%)";
     }
+    // getMap().dataLayer.on('click', intoPageWithFun((e) => {
+    //     if (!e.originalEvent.altKey) {
+    //         return
+    //     }
+    //     debugger
+    //     getWindow().mapDataIDsFilter.add(e.layer.id);
+    //     e.propagatedFrom.getElement().style.display = "none";
+    //     getMap().fire("moveend");
+    // }))
+
 }
 
 function setupHideNoteHighlight() {
@@ -13582,6 +13592,8 @@ if (isOsmServer()) {
     window.notesQFilter = "";
     window.notesClosedFilter = "";
     window.notesIDsFilter = new Set();
+    
+    // window.mapDataIDsFilter = new Set();
 
     console.log('Fetch intercepted');
     window.fetch = async (...args) => {
@@ -13721,8 +13733,23 @@ if (isOsmServer()) {
                     statusText: response.statusText,
                     headers: response.headers
                 });
+            // } else if (args[0]?.includes?.("/map.json") && window.mapDataIDsFilter.size) {
+            //     const response = await originalFetch(...args);
+            //     const originalJSON = await response.json();
+            //     originalJSON.elements = originalJSON.elements.filter(obj => {
+            //         if (window.mapDataIDsFilter.has(obj.type + obj.id)) {
+            //             return false
+            //         }
+            //         return true
+            //     })
+            //
+            //     return new Response(JSON.stringify(originalJSON), {
+            //         status: response.status,
+            //         statusText: response.statusText,
+            //         headers: response.headers
+            //     });
             } else {
-                // console.log("other requets", args[0])
+                // console.log("other requests", args[0])
                 // debugger
             }
         } catch {
