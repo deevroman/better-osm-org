@@ -1109,6 +1109,8 @@ function makeHashtagsInNotesClickable() {
     })
 }
 
+const filterIconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-funnel-icon lucide-funnel"><path d="M 10 20 a 1 1 0 0 0 0.553 0.895 l 2 1 A 1 1 0 0 0 14 21 v -8 a 2 3 0 0 1 1 -2 L 21.74 4.67 A 1 1 0 0 0 21 3 H 3 a 1 1 0 0 0 -0.742 1.67 l 6.742 6.33 A 2 3 0 0 1 10 13 z"/></svg>';
+
 function makeUsernameInNotesFilterable() {
     const usernameLink = document.querySelector('#sidebar_content a[href^="/user/"]')
     if (usernameLink.classList.contains("filterable")) {
@@ -1117,7 +1119,7 @@ function makeUsernameInNotesFilterable() {
     usernameLink.classList.add("filterable")
     const username = decodeURI(usernameLink.getAttribute("href").match(/\/user\/(.*)$/)[1])
     const filterIcon = document.createElement("span")
-    filterIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-funnel-icon lucide-funnel"><path d="M 10 20 a 1 1 0 0 0 0.553 0.895 l 2 1 A 1 1 0 0 0 14 21 v -8 a 2 3 0 0 1 1 -2 L 21.74 4.67 A 1 1 0 0 0 21 3 H 3 a 1 1 0 0 0 -0.742 1.67 l 6.742 6.33 A 2 3 0 0 1 10 13 z"/></svg>'
+    filterIcon.innerHTML = filterIconSvg
     filterIcon.style.cursor = "pointer"
     filterIcon.style.position = "relative"
     filterIcon.style.top = "-2px"
@@ -13504,29 +13506,37 @@ function updateMap() {
 }
 
 /**
- * @param {HTMLAnchorElement} i
+ * @param {HTMLAnchorElement} usernameLink
  */
-function makeUsernamesFilterable(i) {
-    if (i.classList.contains("listen-for-filters")) {
+function makeUsernamesFilterable(usernameLink) {
+    if (usernameLink.classList.contains("listen-for-filters")) {
         return
     }
-    i.classList.add("listen-for-filters")
-    i.onclick = async (e) => {
-        if (massModeActive && (!e.metaKey && !e.ctrlKey && e.isTrusted)) {
-            e.preventDefault()
-            const filterByUsersInput = document.querySelector("#filter-by-user-input")
-            if (filterByUsersInput.value === "") {
-                filterByUsersInput.value = e.target.textContent
-            } else {
-                filterByUsersInput.value = filterByUsersInput.value + "," + e.target.textContent
-                filterByUsersInput.setSelectionRange(filterByUsersInput.value.length, filterByUsersInput.value.length)
-            }
-            filterChangesets()
-            updateMap()
-            await GM.setValue("last-user-filter", document.getElementById("filter-by-user-input")?.value)
+    usernameLink.classList.add("listen-for-filters")
+
+    const filterIcon = document.createElement("span")
+    filterIcon.innerHTML = filterIconSvg
+    filterIcon.classList.add("filter-username-btn")
+    filterIcon.style.cursor = "pointer"
+    filterIcon.style.position = "relative"
+    filterIcon.style.top = "-2px"
+    filterIcon.style.marginLeft = "3px"
+    filterIcon.style.marginRight = "3px"
+    filterIcon.title = "Click for hide this user changesets"
+    filterIcon.onclick = async (e) => {
+        e.preventDefault()
+        const filterByUsersInput = document.querySelector("#filter-by-user-input")
+        if (filterByUsersInput.value === "") {
+            filterByUsersInput.value = usernameLink.textContent
+        } else {
+            filterByUsersInput.value = filterByUsersInput.value + "," + usernameLink.textContent
+            filterByUsersInput.setSelectionRange(filterByUsersInput.value.length, filterByUsersInput.value.length)
         }
+        filterChangesets()
+        updateMap()
+        await GM.setValue("last-user-filter", document.getElementById("filter-by-user-input")?.value)
     }
-    i.title = "Click for hide this user changesets. Ctrl + click for open user profile"
+    usernameLink.after(filterIcon)
     // i.style.border = "solid"
     // i.style.borderColor = getWindow()?.makeColor(i.textContent)
     // i.onmouseover = () => {
@@ -13844,6 +13854,7 @@ function addMassActionForGlobalChangesets() {
             } else {
                 massModeActive = !massModeActive
                 document.querySelectorAll(".filter-bar").forEach(i => i.toggleAttribute("hidden"))
+                document.querySelectorAll(".filter-username-btn").forEach(i => i.toggleAttribute("hidden"))
                 document.querySelector("#hidden-changeset-counter")?.toggleAttribute("hidden")
                 // document.querySelectorAll(".mass-action-checkbox").forEach(i => {
                 // i.toggleAttribute("hidden")
