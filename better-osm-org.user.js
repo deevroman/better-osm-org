@@ -408,6 +408,21 @@ function intoPageWithFun(obj) {
     return cloneInto(obj, getWindow(), {cloneFunctions: true})
 }
 
+const _isDebug = document.querySelector("head")?.getAttribute("data-user") === "11528195"
+    || osm_server === local_server
+    || osm_server === dev_server;
+
+function isDebug() {
+    return _isDebug;
+}
+
+function debug_alert() {
+    if (!isDebug()) return
+    alert(arguments)
+    // eslint-disable-next-line
+    debugger
+}
+
 if (isOsmServer() && !["/edit", "/id"].includes(location.pathname)) {
     function mapHook() {
         console.log("start map intercepting")
@@ -8152,6 +8167,10 @@ function makePolygonMeasureButtons(nodesIds, nodesMap) {
 
     document.querySelector("#sidebar_content h4:last-of-type").after(infos)
 
+    infos.onmouseleave = () => {
+        cleanAllObjects()
+    }
+
     return infos
 }
 
@@ -14071,21 +14090,6 @@ let hotkeysConfigured = false
 
 async function getChangesetMetadata(changeset_id) {
     return await fetch(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json");
-}
-
-const _isDebug = document.querySelector("head")?.getAttribute("data-user") === "11528195"
-    || osm_server === local_server
-    || osm_server === dev_server;
-
-function isDebug() {
-    return _isDebug;
-}
-
-function debug_alert() {
-    if (!isDebug()) return
-    alert(arguments)
-    // eslint-disable-next-line
-    debugger
 }
 
 /**
