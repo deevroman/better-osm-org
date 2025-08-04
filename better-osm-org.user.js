@@ -2,7 +2,8 @@
 // @name            Better osm.org
 // @name:ru         Better osm.org
 // @version         1.1.8
-// @changelog       v1.1.8: more filters for notes, initial support for KML/KMZ files, copy coordinates for ways
+// @changelog       v1.1.8: show gpx tracks in current map view, copy coordinates for ways, alt + C for copy map center
+// @changelog       v1.1.8: more filters for notes, alt + click for hide note, initial support for KML/KMZ files
 // @changelog       v1.1.6: copy coordinates for nodes, autoexpand wikidata preview, Shift + M for send message to user
 // @changelog       v1.0.0: type=restriction render, user ID in profile, profile for deleted user
 // @changelog       v1.0.0: notes filter, Overpass link in taginfo for key values, ruler, nodes mover
@@ -2502,9 +2503,6 @@ function addNotesFiltersButtons() {
     }
 
     checkbox.onchange = updateNotesFilters
-    if (!checkbox.checked) {
-        return
-    }
     filters.id = "notes-filter"
     filters.style.display = "none"
     filters.style.paddingTop = "4px"
@@ -2677,8 +2675,10 @@ function addGPXFiltersButtons() {
     filters.id = "gpx-filter"
     filters.style.cursor = "pointer"
 
+    let bbox;
+
     filters.onclick = async () => {
-        document.getElementById("tracks-list")?.remove()
+        const prevTracksList = document.getElementById("tracks-list")
 
         const bounds = getMap().getBounds()
         const lat1 = bounds.getNorthWest().lat
@@ -2690,12 +2690,10 @@ function addGPXFiltersButtons() {
         tracksList.id = "tracks-list"
         filters.after(tracksList)
 
-        let bbox;
 
-        for (let page = 0; page < 20 ; page++) {
-            console.log("Tracks page #" + page)
-            let tracks;
-            try {
+        try {
+            for (let page = 0; page < 30; page++) {
+                console.log("Tracks page #" + page)
                 filters.style.cursor = "progress"
                 filters.setAttribute("disabled", true)
                 const response = (await GM.xmlHttpRequest({
@@ -2704,47 +2702,53 @@ function addGPXFiltersButtons() {
                         page: page
                     })
                 })).responseText;
-                tracks = (new DOMParser()).parseFromString(response, "text/html");
-            } finally {
-                filters.style.cursor = "pointer"
-                filters.removeAttribute("disabled")
-            }
-            const countAllTracks = tracks.querySelectorAll("trkpt").length
-            const goodTracks = tracks.querySelectorAll("trk:has(url)")
-            console.log(`${countAllTracks}/${goodTracks.length}`)
-
-            goodTracks.forEach(trk => {
-                const trackInfo = document.createElement("a")
-                const name = trk.querySelector("name").textContent
-                const desc = trk.querySelector("desc").textContent
-                const url = trk.querySelector("url").textContent
-                const [, username, trackID] = url.match(/\/user\/([^/]+)\/traces\/([0-9]+)/)
-                trackInfo.setAttribute("href", url)
-                trackInfo.setAttribute("target", "_blank")
-                trackInfo.style.display = "block"
-                trackInfo.textContent = decodeURI(username) + "#" + trackID
-                trackInfo.title = `${name}\n\n${desc}`
-                trackInfo.onmouseenter = () => {
-                    bbox?.remove()
-                    bbox = getWindow().L.rectangle(
-                        intoPage([
-                            [lat1, lng1],
-                            [lat2, lng2]
-                        ]),
-                        intoPage({color: "red", weight: 2, fillOpacity: 0, dashArray: "10, 10"})
-                    ).addTo(getMap())
-
-                    let trackForDisplay = document.implementation.createDocument(null, 'gpx');
-                    trackForDisplay.documentElement.appendChild(trk);
-                    cleanAllObjects()
-                    displayGPXTrack(trackForDisplay);
+                if (page === 0) {
+                    prevTracksList?.remove()
                 }
-                tracksList.appendChild(trackInfo)
-            })
-            tracksList.appendChild(document.createElement("hr"))
-            if (countAllTracks === 0) {
-                break
+                const tracks = (new DOMParser()).parseFromString(response, "text/html");
+
+                const countAllTrackPoints = tracks.querySelectorAll("trkpt").length
+                console.log(`Tracks points: ${countAllTrackPoints}`)
+
+                const goodTracks = tracks.querySelectorAll("trk:has(url)")
+                console.log(`Tracks with URL: ${goodTracks.length}`)
+
+                goodTracks.forEach(trk => {
+                    const trackInfo = document.createElement("a")
+                    const name = trk.querySelector("name").textContent
+                    const desc = trk.querySelector("desc").textContent
+                    const url = trk.querySelector("url").textContent
+                    const [, username, trackID] = url.match(/\/user\/([^/]+)\/traces\/([0-9]+)/)
+                    trackInfo.setAttribute("href", url)
+                    trackInfo.setAttribute("target", "_blank")
+                    trackInfo.style.display = "block"
+                    trackInfo.textContent = decodeURI(username) + "#" + trackID
+                    trackInfo.title = `${name}\n\n${desc}`
+                    trackInfo.onmouseenter = () => {
+                        bbox?.remove()
+                        bbox = getWindow().L.rectangle(
+                            intoPage([
+                                [lat1, lng1],
+                                [lat2, lng2]
+                            ]),
+                            intoPage({color: "red", weight: 2, fillOpacity: 0, dashArray: "10, 10"})
+                        ).addTo(getMap())
+
+                        let trackForDisplay = document.implementation.createDocument(null, 'gpx');
+                        trackForDisplay.documentElement.appendChild(trk);
+                        cleanAllObjects()
+                        displayGPXTrack(trackForDisplay);
+                    }
+                    tracksList.appendChild(trackInfo)
+                })
+                tracksList.appendChild(document.createElement("hr"))
+                if (countAllTrackPoints === 0) {
+                    break
+                }
             }
+        } finally {
+            filters.style.cursor = "pointer"
+            filters.removeAttribute("disabled")
         }
         bbox?.remove()
         bbox = getWindow().L.rectangle(
@@ -2757,6 +2761,7 @@ function addGPXFiltersButtons() {
     }
 
     filters.textContent = " 🔍"
+    filters.title = "Show GPX tracks in current map view"
     gpxLabel.after(filters)
 }
 
