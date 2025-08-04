@@ -17109,17 +17109,6 @@ function renderOSMGeoJSON(xml, options = {}) {
 }
 
 async function setupDragAndDropViewers() {
-    // GM_addElement(document.head, "link", {
-    //     href: "https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css",
-    //     rel:'stylesheet'
-    // })
-    // GM_addElement(document.head, "script", {
-    //     src: "https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js",
-    // })
-    // GM_addElement(document.head, "script", {
-    //     src: "https://unpkg.com/@maplibre/maplibre-gl-leaflet/leaflet-maplibre-gl.js",
-    // })
-
     document.querySelector("#map")?.addEventListener("drop", e => {
         if (location.pathname.includes("/directions") || location.pathname.includes("/note/new")) {
             return;
