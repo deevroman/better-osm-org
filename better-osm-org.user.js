@@ -2692,20 +2692,24 @@ function addGPXFiltersButtons() {
 
 
         try {
-            for (let page = 0; page < 30; page++) {
+            for (let page = 0; page < 100; page++) {
                 console.log("Tracks page #" + page)
                 filters.style.cursor = "progress"
                 filters.setAttribute("disabled", true)
-                const response = (await GM.xmlHttpRequest({
+                const response = await GM.xmlHttpRequest({
                     url: osm_server.url + "/api/0.6/trackpoints?" + new URLSearchParams({
                         bbox: [lng1, lat2, lng2, lat1].join(","),
                         page: page
                     })
-                })).responseText;
+                });
+                if (response.status !== 200) {
+                    alert("download failed: " + response.responseText)
+                    throw response.responseText
+                }
                 if (page === 0) {
                     prevTracksList?.remove()
                 }
-                const tracks = (new DOMParser()).parseFromString(response, "text/html");
+                const tracks = (new DOMParser()).parseFromString(response.responseText, "text/html");
 
                 const countAllTrackPoints = tracks.querySelectorAll("trkpt").length
                 console.log(`Tracks points: ${countAllTrackPoints}`)
@@ -2741,7 +2745,9 @@ function addGPXFiltersButtons() {
                     }
                     tracksList.appendChild(trackInfo)
                 })
-                tracksList.appendChild(document.createElement("hr"))
+                const hr = document.createElement("hr")
+                hr.style.margin = "unset"
+                tracksList.appendChild(hr)
                 if (countAllTrackPoints === 0) {
                     break
                 }
