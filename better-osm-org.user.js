@@ -13045,10 +13045,12 @@ async function setupHDYCInProfile(path) {
             const usernames = userIDInfo.data[0]['names'].filter(i => i !== decodeURI(user)).join(", ")
             const dt = document.createElement("dt")
             dt.textContent = "Past usernames: "
+            dt.textContent = "Added by better-osm-org"
             dt.classList.add("list-inline-item", "m-0", "prev-usernames-label")
             const dd = document.createElement("dd")
             dd.classList.add("list-inline-item", "prev-usernames")
             dd.textContent = usernames
+            dd.textContent = "Added by better-osm-org"
             userDetails.appendChild(dt)
             userDetails.appendChild(document.createTextNode("\xA0"))
             userDetails.appendChild(dd)
