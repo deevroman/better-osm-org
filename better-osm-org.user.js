@@ -2821,7 +2821,7 @@ function addGPXFiltersButtons() {
                             '  <path d="M7 21H3V17" stroke-width="2" stroke-linecap="round"/>\n' +
                             '</svg>\n'
                         downloadBtn.style.cursor = "pointer"
-                        downloadBtn.title = "click to zoom"
+                        downloadBtn.title = "click to zoom\nTip: press 8-9 to navigate between previous/next map position"
                         downloadBtn.onclick = () => {
                             fitBounds([
                                 [trackMetadata.min_lat, trackMetadata.min_lon],
