@@ -2665,6 +2665,44 @@ function setupNotesFiltersButtons() {
     addNotesFiltersButtons();
 }
 
+async function getMapBounds() {
+    try {
+        return getMap().getBounds()
+    } catch {
+        console.warn("Couldn't get the map bound through the map object. Trying a workaround")
+
+        document.querySelector("#sidebar").style.display = "none"
+        document.querySelector("#sidebar").style.width = "0px"
+        try {
+            document.querySelector('nav a[href="/export"]').click()
+            for (let i = 0; i < 10; i++) {
+                await sleep(500)
+                if (document.querySelector("#minlat")) {
+                    break
+                }
+            }
+            const res = {
+                getNorthWest: () => ({
+                    lat: document.querySelector("#maxlat").value,
+                    lng: document.querySelector("#minlon").value
+                }),
+                getSouthEast: () => ({
+                    lat: document.querySelector("#minlat").value,
+                    lng: document.querySelector("#maxlon").value
+                })
+            }
+            console.log(res.getNorthWest())
+            console.log(getMap().getBounds().getNorthWest())
+            document.querySelectorAll("#sidebar .sidebar-close-controls .btn-close").forEach(i => i?.click())
+
+            return res
+        } finally {
+            document.querySelector("#sidebar").style.display = ""
+            document.querySelector("#sidebar").style.width = ""
+        }
+    }
+}
+
 function addGPXFiltersButtons() {
     if (document.getElementById("gpx-filter")) {
         return
@@ -2682,7 +2720,7 @@ function addGPXFiltersButtons() {
     filters.onclick = async () => {
         const prevTracksList = document.getElementById("tracks-list")
 
-        const bounds = getMap().getBounds()
+        const bounds = await getMapBounds() // todo try add safari support
         const lat1 = bounds.getNorthWest().lat
         const lng1 = bounds.getNorthWest().lng
         const lat2 = bounds.getSouthEast().lat
@@ -2691,7 +2729,6 @@ function addGPXFiltersButtons() {
         const tracksList = document.createElement("div")
         tracksList.id = "tracks-list"
         filters.after(tracksList)
-
 
         try {
             for (let page = 0; page < 100; page++) {
@@ -2711,14 +2748,18 @@ function addGPXFiltersButtons() {
                 if (page === 0) {
                     prevTracksList?.remove()
                 }
-                bbox?.remove()
-                bbox = getWindow().L.rectangle(
-                    intoPage([
-                        [lat1, lng1],
-                        [lat2, lng2]
-                    ]),
-                    intoPage({color: "red", weight: 2, fillOpacity: 0, dashArray: "10, 10"})
-                ).addTo(getMap())
+                try {
+                    bbox?.remove()
+                    bbox = getWindow().L.rectangle(
+                        intoPage([
+                            [lat1, lng1],
+                            [lat2, lng2]
+                        ]),
+                        intoPage({color: "red", weight: 2, fillOpacity: 0, dashArray: "10, 10"})
+                    ).addTo(getMap())
+                } catch (e) {
+                    console.error(e)
+                }
 
                 const tracks = (new DOMParser()).parseFromString(response.responseText, "text/html");
 
