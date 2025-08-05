@@ -75,6 +75,7 @@
 // @require      https://gist.githubusercontent.com/deevroman/d8b7a2176446e321fa6b0b47d0615d6e/raw/57c11b07432890b9a066ef6b6aba970dda9cb5ad/snow-animation.js#sha256=3b6cd76818c5575ea49aceb7bf4dc528eb8a7cb228b701329a41bb50f0800a5d
 // @require      https://raw.githubusercontent.com/deevroman/opening_hours.js/f70889c71fcfd6e3ef7ba8df3b1263d8295b3dec/opening_hours+deps.min.js#sha256=e9a3213aba77dcf79ff1da9f828532acf1ebf7107ed1ce5f9370b922e023baff
 // @require      https://raw.githubusercontent.com/deevroman/unzipit/refs/heads/master/dist/unzipit.min.js#sha256=13a41f257bc1fd90adeaf6731e02838cf740299235ece90634f12e117e22e2ff
+// @require      https://raw.githubusercontent.com/deevroman/bz2/342be4403bf5ba835bb2c9ba54ad008bba428d60/index.js#sha256=8c19861a31e7fb403824e513e1afd23f75c5024f610671490ebc86f2eca61845
 // @incompatible safari https://github.com/deevroman/better-osm-org/issues/13
 // @grant        GM.getValue
 // @grant        GM.setValue
@@ -144,6 +145,7 @@
 /*global opening_hours*/
 /*global runSnowAnimation*/
 /*global unzipit*/
+/*global bz2*/
 
 if (location.search.includes("&kek")) {
     throw "better-osm-org disable via url param";
@@ -2709,6 +2711,15 @@ function addGPXFiltersButtons() {
                 if (page === 0) {
                     prevTracksList?.remove()
                 }
+                bbox?.remove()
+                bbox = getWindow().L.rectangle(
+                    intoPage([
+                        [lat1, lng1],
+                        [lat2, lng2]
+                    ]),
+                    intoPage({color: "red", weight: 2, fillOpacity: 0, dashArray: "10, 10"})
+                ).addTo(getMap())
+
                 const tracks = (new DOMParser()).parseFromString(response.responseText, "text/html");
 
                 const countAllTrackPoints = tracks.querySelectorAll("trkpt").length
@@ -2743,8 +2754,84 @@ function addGPXFiltersButtons() {
                         cleanAllObjects()
                         displayGPXTrack(trackForDisplay);
                     }
+                    trackInfo.onclick = e => {
+                        if (!e.altKey) {
+                            return
+                        }
+                        fitBounds([
+                            [trackMetadata.min_lat, trackMetadata.min_lon],
+                            [trackMetadata.max_lat, trackMetadata.max_lon]
+                        ])
+                    }
                     tracksList.appendChild(trackInfo)
+
+                    const downloadBtn = document.createElement("span")
+                    downloadBtn.textContent = "📥"
+                    downloadBtn.style.position = "absolute"
+                    downloadBtn.style.marginLeft = "-1.5em"
+                    downloadBtn.style.filter = "grayscale(1)"
+                    downloadBtn.addEventListener("mouseenter", async () => {
+                        downloadBtn.style.cursor = "progress"
+                        downloadBtn.style.filter = ""
+
+                        const res = await GM.xmlHttpRequest({
+                            url: `${osm_server.url}/traces/${trackID}/data`,
+                            responseType: "blob"
+                        });
+                        if (res.status !== 200) {
+                            console.error(`Track #${trackID} not download:`, res.status)
+                            return
+                        }
+                        const contentType = res.response.type
+                        let xml;
+                        if (contentType === "application/gpx+xml") {
+                            xml = new DOMParser().parseFromString(await res.response.text(), "application/xml")
+                        } else if (contentType === "application/gzip") {
+                            xml = new DOMParser().parseFromString(await (await decompressBlob(res.response)).text(), "application/xml")
+                        } else if (contentType === "application/x-bzip2") {
+                            // fuck Tampermonkey, structuredClone for TM
+                            xml = new DOMParser().parseFromString(new TextDecoder().decode(bz2.decompress(structuredClone(await res.response.bytes()))), "application/xml")
+                        } else {
+                            throw `Unknown track #${trackID} format: ` + contentType
+                        }
+                        cleanAllObjects()
+                        displayGPXTrack(xml);
+
+                        function hoverHandler() {
+                            bbox?.remove()
+                            bbox = getWindow().L.rectangle(
+                                intoPage([
+                                    [lat1, lng1],
+                                    [lat2, lng2]
+                                ]),
+                                intoPage({color: "red", weight: 2, fillOpacity: 0, dashArray: "10, 10"})
+                            ).addTo(getMap())
+
+                            cleanAllObjects()
+                            displayGPXTrack(xml);
+                        }
+                        trackInfo.onmouseenter = hoverHandler
+                        downloadBtn.onmouseenter = hoverHandler
+
+                        downloadBtn.textContent = "⧈"
+                        downloadBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">\n' +
+                            '  <path d="M3 7V3H7" stroke-width="2" stroke-linecap="round"/>\n' +
+                            '  <path d="M17 3H21V7" stroke-width="2" stroke-linecap="round"/>\n' +
+                            '  <path d="M21 17V21H17" stroke-width="2" stroke-linecap="round"/>\n' +
+                            '  <path d="M7 21H3V17" stroke-width="2" stroke-linecap="round"/>\n' +
+                            '</svg>\n'
+                        downloadBtn.style.cursor = "pointer"
+                        downloadBtn.title = "click to zoom"
+                        downloadBtn.onclick = () => {
+                            fitBounds([
+                                [trackMetadata.min_lat, trackMetadata.min_lon],
+                                [trackMetadata.max_lat, trackMetadata.max_lon]
+                            ])
+                        }
+                    }, {once: true})
+                    trackInfo.before(downloadBtn)
                 })
+
                 const hr = document.createElement("hr")
                 hr.style.margin = "unset"
                 tracksList.appendChild(hr)
@@ -17203,11 +17290,16 @@ async function setupDragAndDropViewers() {
             url: `${osm_server.url}/traces/${trackID}/data`,
             responseType: "blob"
         });
-        const contentType = res.responseHeaders.split("\r\n").find(i => i.toLowerCase().startsWith("content-type:")).split(" ")[1]
+        const contentType = res.response.type
         if (contentType === "application/gpx+xml") {
             displayGPXTrack(await res.response.text())
         } else if (contentType === "application/gzip") {
             displayGPXTrack(await (await decompressBlob(res.response)).text());
+        } else if (contentType === "application/x-bzip2") {
+            // fuck Tampermonkey, structuredClone for TM
+            displayGPXTrack(new DOMParser().parseFromString(new TextDecoder().decode(bz2.decompress(structuredClone(await res.response.bytes()))), "application/xml"))
+        } else {
+            throw `Unknown track #${trackID} format: ` + contentType
         }
         if (trackMetadata) {
             fitBounds([
