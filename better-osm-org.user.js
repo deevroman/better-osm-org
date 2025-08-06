@@ -17591,7 +17591,7 @@ function setupOSMWebsite() {
             shiftKeyZClicks = 0
             abortPrevControllers(ABORT_ERROR_WHEN_PAGE_CHANGED)
             cleanAllObjects()
-            getMap().attributionControl.setPrefix("")
+            getMap()?.attributionControl?.setPrefix("")
             addSwipes();
             document.querySelector("#fixed-rss-feed")?.remove()
             buildingViewerIframe?.remove()
