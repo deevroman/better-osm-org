@@ -2694,7 +2694,8 @@ async function getMapBounds() {
                 })
             }
             console.log(res.getNorthWest())
-            console.log(getMap().getBounds().getNorthWest())
+            console.log(res.getSouthEast())
+            // console.log(getMap().getBounds().getNorthWest())
             document.querySelectorAll("#sidebar .sidebar-close-controls .btn-close").forEach(i => i?.click())
 
             return res
