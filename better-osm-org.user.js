@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.1.8
+// @version         1.1.9
 // @changelog       v1.1.8: show gpx tracks in current map view, copy coordinates for ways, alt + C for copy map center
 // @changelog       v1.1.8: more filters for notes, alt + click for hide note, initial support for KML/KMZ files
 // @changelog       v1.1.6: copy coordinates for nodes, autoexpand wikidata preview, Shift + M for send message to user
@@ -1818,6 +1818,7 @@ out meta;
         btn.style.display = "none"
         btn.style.userSelect = "none"
         btn.onclick = (e) => {
+            e.preventDefault()
             e.stopPropagation()
             openMapStateInOverpass(i, e.altKey)
         }
@@ -2370,7 +2371,8 @@ out meta;
         btn.textContent = " 🕰";
         btn.style.cursor = "pointer"
         document.querySelector("#sidebar_content time").after(btn);
-        btn.onclick = () => {
+        btn.onclick = e => {
+            e.preventDefault()
             window.open(`${overpass_server.url}?Q=${encodeURI(query)}&C=${lat};${lon};${zoom}&R`)
         }
     } catch (e) {
