@@ -148,15 +148,15 @@
 /*global bz2*/
 
 if (location.search.includes("&kek")) {
-    throw "better-osm-org disable via url param";
+    throw "better-osm-org disable via url param"
 }
 
-if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Greasemonkey" || GM_info.scriptHandler === "Firemonkey") {
+if (["Userscripts", "Greasemonkey", "Firemonkey"].includes(GM_info.scriptHandler)) {
     console.error("YOU ARE USING AN UNSUPPORTED SCRIPT MANAGER")
 }
 
-const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-const isFirefox = navigator.userAgent.includes("Firefox");
+const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+const isFirefox = navigator.userAgent.includes("Firefox")
 const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent)
 
 if (isSafari) {
@@ -167,15 +167,18 @@ if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Grease
     if (typeof GM_getResourceURL === "undefined") {
         const resources = {}
         setTimeout(async () => {
+            const REPO_PREFIX = "https://github.com/deevroman/better-osm-org/raw/master/"
+            const OSMCHA_PREFIX = "https://github.com/OSMCha/osmcha-frontend/raw/"
             const resourcesName = {
-                "OAUTH_HTML": "https://github.com/deevroman/better-osm-org/raw/master/finish-oauth.html",
-                "OSMCHA_ICON": "https://github.com/deevroman/better-osm-org/raw/master/icons/osmcha.ico",
-                "NODE_ICON": "https://github.com/deevroman/better-osm-org/raw/master/icons/Osm_element_node.svg",
-                "WAY_ICON": "https://github.com/deevroman/better-osm-org/raw/master/icons/Osm_element_way.svg",
-                "RELATION_ICON": "https://github.com/deevroman/better-osm-org/raw/master/icons/Taginfo_element_relation.svg",
-                "OSMCHA_LIKE": "https://github.com/OSMCha/osmcha-frontend/raw/94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-up.svg",
-                "OSMCHA_DISLIKE": "https://github.com/OSMCha/osmcha-frontend/raw/94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-down.svg",
-                "DARK_THEME_FOR_ID_CSS": "https://gist.githubusercontent.com/deevroman/55f35da68ab1efb57b7ba4636bdf013d/raw/7b94e3b7db91d023f1570ae415acd7ac989fffe0/dark.css"
+                OAUTH_HTML: REPO_PREFIX + "finish-oauth.html",
+                OSMCHA_ICON: REPO_PREFIX + "icons/osmcha.ico",
+                NODE_ICON: REPO_PREFIX + "icons/Osm_element_node.svg",
+                WAY_ICON: REPO_PREFIX + "icons/Osm_element_way.svg",
+                RELATION_ICON: REPO_PREFIX + "icons/Taginfo_element_relation.svg",
+                OSMCHA_LIKE: OSMCHA_PREFIX + "94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-up.svg",
+                OSMCHA_DISLIKE: OSMCHA_PREFIX + "94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-down.svg",
+                DARK_THEME_FOR_ID_CSS:
+                    "https://gist.githubusercontent.com/deevroman/55f35da68ab1efb57b7ba4636bdf013d/raw/7b94e3b7db91d023f1570ae415acd7ac989fffe0/dark.css",
             }
             for (let resource in resourcesName) {
                 GM.xmlHttpRequest({
@@ -183,17 +186,17 @@ if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Grease
                     url: resourcesName[resource],
                     responseType: "blob",
                     onload: res => {
-                        const a = new FileReader();
+                        const a = new FileReader()
                         a.onload = function (e) {
                             resources[resource] = e.target.result
                         }
-                        a.readAsDataURL(res.response);
-                    }
+                        a.readAsDataURL(res.response)
+                    },
                 })
             }
         })
         window.GM_getResourceURL = (name) => {
-            console.log(resources);
+            console.log(resources)
             return resources[name]
         }
     }
