@@ -2651,7 +2651,7 @@ function addNotesFiltersButtons() {
     noteLabel.after(filters)
     updateNotesFilters()
     document.querySelector(".overlay-layers p").style.display = "none"
-    getMap().noteLayer.on('click', intoPageWithFun((e) => {
+    getMap().noteLayer?.on('click', intoPageWithFun((e) => {
         if (!e.originalEvent.altKey) {
             return
         }
