@@ -9365,6 +9365,7 @@ async function loadCorporateMappersList() {
 }
 
 async function initCorporateMappersList() {
+    return
     if (corporatesList) return
     const cache = await GM.getValue("corporate-mappers", "")
     if (corporatesList) return
