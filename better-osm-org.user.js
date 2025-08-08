@@ -13910,9 +13910,20 @@ function makeUsernamesFilterable(usernameLink) {
     // }
 }
 
-let queriesCache = {
-    cacheTime: Date.now(),
-    elems: {}
+function loadExternalVectorStyle() {
+    try {
+        GM.xmlHttpRequest({
+            url: "",
+            responseType: "json"
+        }).then(async res => {
+            getWindow().vectorStyle = await res.response
+        })
+    } catch (e) {
+    }
+}
+
+if (isDebug()) {
+    loadExternalVectorStyle();
 }
 
 if (isOsmServer()) {
