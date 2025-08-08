@@ -8736,11 +8736,12 @@ async function addHoverForRelationMembers() {
 }
 
 const isMac = navigator.platform?.toUpperCase()?.indexOf('MAC') >= 0;
+const CtrlKeyName = isMac ? "Cmd" : "Ctrl";
 
 function makeHeaderPartsClickable() {
     function makeElemCopyable(elem, url = "") {
         if (/^\d+$/.test(elem.textContent)) {
-            elem.title = `Click to copy ID\n${isMac ? "Cmd" : "Ctrl"} + click to copy URL`
+            elem.title = `Click to copy ID\n${CtrlKeyName} + click to copy URL`
         } else {
             elem.title = "Click to copy"
         }
@@ -13817,9 +13818,15 @@ function filterChangesets(htmlDocument = document) {
             }
         }
         if (!wasHidden) {
-            let invert = document.querySelector("#invert-user-filter-checkbox").getAttribute("checked") === "true"
-            usernameFilters.forEach(username => {
-                if (changesetAuthor.includes(username.trim()) ^ invert) {
+            const invert = document.querySelector("#invert-user-filter-checkbox").getAttribute("checked") === "true"
+            if (invert) {
+                let needHide = true
+                usernameFilters.forEach(username => {
+                    if (changesetAuthor.includes(username.trim()) || username.trim() === "💵" && corporateMappers?.has(changesetAuthor)) {
+                        needHide = false
+                    }
+                })
+                if (needHide) {
                     if (i.getAttribute("data-changeset")) {
                         i.setAttribute("hidden-data-changeset", i.getAttribute("data-changeset"))
                         i.removeAttribute("data-changeset")
@@ -13829,10 +13836,23 @@ function filterChangesets(htmlDocument = document) {
                     }
                     wasHidden = true
                 }
-            })
+            } else {
+                usernameFilters.forEach(username => {
+                    if ((changesetAuthor.includes(username.trim()) || username.trim() === "💵" && corporateMappers?.has(changesetAuthor)) ^ invert) {
+                        if (i.getAttribute("data-changeset")) {
+                            i.setAttribute("hidden-data-changeset", i.getAttribute("data-changeset"))
+                            i.removeAttribute("data-changeset")
+                            i.setAttribute("hidden", true)
+                        } else {
+                            // FIXME
+                        }
+                        wasHidden = true
+                    }
+                })
+            }
         }
         if (!wasHidden) {
-            let invert = document.querySelector("#invert-comment-filter-checkbox").getAttribute("checked") === "true"
+            const invert = document.querySelector("#invert-comment-filter-checkbox").getAttribute("checked") === "true"
             commentFilters.forEach(comment => {
                 if (changesetComment.includes(comment.trim()) ^ invert) {
                     if (i.getAttribute("data-changeset")) {
@@ -13872,6 +13892,19 @@ function updateMap() {
     document.querySelector('.changeset_more:has([href*="before"]) a.page-link').click()
 }
 
+async function addUsernameIntoChangesetsFilter(username) {
+    const filterByUsersInput = document.querySelector("#filter-by-user-input")
+    if (filterByUsersInput.value === "") {
+        filterByUsersInput.value = username
+    } else {
+        filterByUsersInput.value = filterByUsersInput.value + "," + username
+        filterByUsersInput.setSelectionRange(filterByUsersInput.value.length, filterByUsersInput.value.length)
+    }
+    filterChangesets()
+    updateMap()
+    await GM.setValue("last-user-filter", document.getElementById("filter-by-user-input")?.value)
+}
+
 /**
  * @param {HTMLAnchorElement} usernameLink
  */
@@ -13891,16 +13924,14 @@ function makeUsernamesFilterable(usernameLink) {
     filterIcon.title = "Click for hide this user changesets"
     filterIcon.onclick = async (e) => {
         e.preventDefault()
-        const filterByUsersInput = document.querySelector("#filter-by-user-input")
-        if (filterByUsersInput.value === "") {
-            filterByUsersInput.value = usernameLink.textContent
-        } else {
-            filterByUsersInput.value = filterByUsersInput.value + "," + usernameLink.textContent
-            filterByUsersInput.setSelectionRange(filterByUsersInput.value.length, filterByUsersInput.value.length)
+        await addUsernameIntoChangesetsFilter(usernameLink.textContent)
+    }
+    usernameLink.setAttribute("target", "_blank")
+    usernameLink.onclick = async (e) => {
+        if (isDebug()) {
+            e.preventDefault()
+            await addUsernameIntoChangesetsFilter(usernameLink.textContent)
         }
-        filterChangesets()
-        updateMap()
-        await GM.setValue("last-user-filter", document.getElementById("filter-by-user-input")?.value)
     }
     usernameLink.after(filterIcon)
     // i.style.border = "solid"
@@ -14311,9 +14342,13 @@ function makeBadge(userInfo, changesetDate = new Date()) { // todo make changese
             if (e.altKey) {
                 window.open(corporationContributorsSource, "_blank")
             } else {
-                info.forEach(k => {
-                    window.open(corporatesLinks.get(k), "_blank")
-                })
+                if (massModeActive && !e.ctrlKey && !e.metaKey) {
+                    addUsernameIntoChangesetsFilter("💵")
+                } else {
+                    info.forEach(k => {
+                        window.open(corporatesLinks.get(k), "_blank")
+                    })
+                }
             }
         }
     }
