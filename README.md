@@ -2,7 +2,7 @@
 
 Userscript adding several improvements for experienced osm.org users
 
-1. Install [Violentmonkey](https://violentmonkey.github.io/) (FOSS) or [Tampermonkey](https://www.tampermonkey.net) (proprietary)
+1. Install [Violentmonkey](https://violentmonkey.github.io/) (FOSS, but only in Firefox) or [Tampermonkey](https://www.tampermonkey.net) (proprietary)
 2. [Install](https://raw.githubusercontent.com/deevroman/better-osm-org/master/better-osm-org.user.js) script
 
 Also works in Firefox for Android
@@ -86,6 +86,8 @@ Experimental hotkeys:
 - `U` — open user profile
 - `shift` + `U` — open your profile
 - `shift` + `/` — search with Overpass
+- `shift` + `M` — send messega to user
+- `atl` + `C` — copy map center coordinates
 
 ### Other
 
@@ -122,7 +124,6 @@ Experimental hotkeys:
 - + [x] Changeset IDs in comments
 - + [x] `revert:id`, `closed:note`, `redacted_changesets` key in changeset
 - + [x] `panoramax=*`, `mapillary=*` tags
-- + [ ] use tag2link
 - [x] Display GPS photos and tracks in StreetComplete notes
 - [x] Display photos from Panoramax and Wikimedia Commons in tags
 - [x] Display GPS-tracks
