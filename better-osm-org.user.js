@@ -12174,8 +12174,8 @@ async function addChangesetQuickLook() {
         return
     }
     quickLookInjectingStarted = true
-    resetSearchFormFocus();
-    addRegionForFirstChangeset();
+    resetSearchFormFocus()
+    addRegionForFirstChangeset()
     makeTimesSwitchable()
     if (GM_config.get("ResizableSidebar")) {
         document.querySelector("#sidebar").style.resize = "horizontal"
