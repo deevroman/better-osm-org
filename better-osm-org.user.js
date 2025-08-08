@@ -9314,12 +9314,13 @@ async function initPOIIcons() {
     const cache = await GM.getValue("poi-icons", "")
     if (cache) {
         console.log("poi icons cached")
-        const cacheTime = new Date(cache['cacheTime'])
+        const json = JSON.parse(cache)
+        const cacheTime = new Date(json['cacheTime'])
         if (cacheTime.setUTCDate(cacheTime.getUTCDate() + 1) < new Date()) {
             console.log("but cache outdated")
             setTimeout(loadIconsList, 0)
         }
-        iconsList = JSON.parse(cache)['icons']
+        iconsList = json['icons']
         return
     }
     console.log("loading icons")
@@ -9327,14 +9328,29 @@ async function initPOIIcons() {
 }
 
 /** @type {null | Map}*/
-let corporatesList = null
+let corporatesLinks = null
 /** @type {null | Map}*/
-let corporateMappersIndex = null
+let corporateMappers = null
 
 const corporationContributorsURL = "https://raw.githubusercontent.com/deevroman/openstreetmap-statistics/refs/heads/master/assets/corporation_contributors.json"
-const corporationContributorsSource = "https://github.com/piebro/openstreetmap-statistics/blob/master/assets/corporation_contributors.json"
+const corporationContributorsSource = "https://github.com/deevroman/openstreetmap-statistics/blob/master/assets/corporation_contributors.json"
 
-async function loadCorporateMappersList() {
+function makeCorporateMappersData(raw_data) {
+    corporatesLinks = new Map()
+    corporateMappers = new Map()
+    for (let [kontora, [link, mappers]] of Object.entries(raw_data)) {
+        corporatesLinks.set(kontora, link)
+        mappers.forEach(username => {
+            if (corporateMappers.has(username)) {
+                corporateMappers.get(username).push(kontora)
+            } else {
+                corporateMappers.set(username, [kontora])
+            }
+        })
+    }
+}
+
+async function loadAndMakeCorporateMappersList() {
     let raw_data;
     if (GM_info.scriptHandler !== "FireMonkey") {
         raw_data = (await GM.xmlHttpRequest({
@@ -9344,44 +9360,30 @@ async function loadCorporateMappersList() {
     } else {
         raw_data = await (await GM.fetch(corporationContributorsURL)).json
     }
-
-    corporatesList = new Map()
-    corporateMappersIndex = new Map()
-    for (let [kontora, [link, mappers]] of Object.entries(raw_data)) {
-        corporatesList.set(kontora, link)
-        mappers.forEach(username => {
-            if (corporateMappersIndex.has(username)) {
-                corporateMappersIndex.get(username).push(kontora)
-            } else {
-                corporateMappersIndex.set(username, [kontora])
-            }
-        })
-    }
+    makeCorporateMappersData(raw_data)
     await GM.setValue("corporate-mappers", JSON.stringify({
-        mappers: Array.from(corporateMappersIndex.entries()),
-        kontoras: Array.from(corporatesList.entries()),
+        raw_data: raw_data,
         cacheTime: new Date()
     }))
 }
 
 async function initCorporateMappersList() {
-    return
-    if (corporatesList) return
+    if (corporatesLinks) return
     const cache = await GM.getValue("corporate-mappers", "")
-    if (corporatesList) return
+    if (corporatesLinks) return
     if (cache) {
         console.log("corporate mappers cached")
-        const cacheTime = new Date(cache['cacheTime'])
+        const json = JSON.parse(cache)
+        const cacheTime = new Date(json['cacheTime'])
         if (cacheTime.setUTCDate(cacheTime.getUTCDate() + 3) < new Date()) {
             console.log("but cache outdated")
-            setTimeout(loadCorporateMappersList, 0)
+            setTimeout(loadAndMakeCorporateMappersList, 0)
         }
-        corporatesList = new Map(JSON.parse(cache)['kontoras'])
-        corporateMappersIndex = new Map(JSON.parse(cache)['mappers'])
+        makeCorporateMappersData(JSON.parse(cache)['raw_data'])
         return
     }
     console.log("loading corporate mappers")
-    await loadCorporateMappersList()
+    await loadAndMakeCorporateMappersList()
 }
 
 const nodeFallback = "https://raw.githubusercontent.com/openstreetmap/openstreetmap-website/master/app/assets/images/browse/node.svg"
@@ -13477,7 +13479,7 @@ function simplifyHDCYIframe() {
 
 //<editor-fold desc="/history, /user/*/history">
 async function updateUserInfo(username) {
-    const kontorasPromise = initCorporateMappersList()
+    void initCorporateMappersList()
     const res = await fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
         display_name: username,
         limit: 1,
@@ -13509,10 +13511,6 @@ async function updateUserInfo(username) {
     }
     if (firstChangesetID) {
         userInfo['firstChangesetID'] = firstChangesetID
-    }
-    await kontorasPromise
-    if (corporateMappersIndex) {
-        userInfo['kontoras'] = (corporateMappersIndex.get(username) ?? []).map(name => ({name: name, link: corporatesList.get(name)}))
     }
     await GM.setValue("userinfo-" + username, JSON.stringify(userInfo))
     return userInfo
@@ -14263,29 +14261,36 @@ function addMassActionForGlobalChangesets() {
 function makeBadge(userInfo, changesetDate = new Date()) { // todo make changesetDate required
     let userBadge = document.createElement("span")
     userBadge.classList.add("user-badge")
-    if (userInfo['roles'].some(i => i === "moderator")) {
+
+    function makeModeratorBadge() {
         userBadge.style.position = "relative"
         userBadge.style.bottom = "2px"
         userBadge.title = "This user is a moderator"
         userBadge.innerHTML = '<svg width="20" height="20"><path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#447eff" stroke="#447eff" stroke-width="2" stroke-linejoin="round"></path></svg>'
         userBadge.querySelector("svg").style.transform = "scale(0.9)"
-    } else if (userInfo['roles'].some(i => i === "importer")) {
+    }
+
+    function makeImporterBadge() {
         userBadge.style.position = "relative"
         userBadge.style.bottom = "2px"
         userBadge.title = "This user is a importer"
         userBadge.innerHTML = '<svg width="20" height="20"><path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#38e13a" stroke="#38e13a" stroke-width="2" stroke-linejoin="round"></path></svg>'
         userBadge.querySelector("svg").style.transform = "scale(0.9)"
-    } else if (userInfo['blocks']['received']['active']) {
+    }
+
+    function makeBannedUserBadge() {
         userBadge.title = "The user was banned"
         userBadge.textContent = "⛔️"
-    } else if (
-        new Date(userInfo['firstChangesetCreationTime'] ?? userInfo['account_created']).setUTCDate(new Date(userInfo['firstChangesetCreationTime'] ?? userInfo['account_created']).getUTCDate() + 30)
-        > changesetDate
-    ) {
+    }
+
+    function makeNewbieBadge() {
         userBadge.title = "At the time of creating the changeset/note, the user had been editing OpenStreetMap for less than a month"
         userBadge.textContent = "🍼"
-    } else if (userInfo['kontoras']?.length) {
-        userBadge.title = `${userInfo['kontoras'].map(i => i.name).join(", ")} corporate mapper\n\nClick to open wiki page\nClick with alt to open data source`
+    }
+
+    function makeCorporateBadge() {
+        const info = corporateMappers.get(userInfo['display_name'])
+        userBadge.title = `${info.join(", ")} corporate mapper\n\nClick to open wiki page\nClick with Alt to open data source`
         userBadge.textContent = "💵 "
         userBadge.classList.add("corporate-badge")
         userBadge.style.cursor = "pointer"
@@ -14293,18 +14298,47 @@ function makeBadge(userInfo, changesetDate = new Date()) { // todo make changese
             if (e.altKey) {
                 window.open(corporationContributorsSource, "_blank")
             } else {
-                userInfo['kontoras'].forEach(k => {
-                    window.open(k.link, "_blank")
+                info.forEach(k => {
+                    window.open(corporatesLinks.get(k), "_blank")
                 })
             }
         }
-    } else {
+    }
+
+    function makeFriendBadge() {
         getFriends().then(res => {
             if (res.includes(userInfo['display_name'])) { // todo warn if username startsWith 🫂 or use svg
                 userBadge.title = "You are following this user"
                 userBadge.textContent = "🫂 "
             }
         })
+    }
+
+    if (userInfo['roles'].some(i => i === "moderator")) {
+        makeModeratorBadge()
+    } else if (userInfo['roles'].some(i => i === "importer")) {
+        makeImporterBadge()
+    } else if (userInfo['blocks']['received']['active']) {
+        makeBannedUserBadge()
+    } else if (
+        new Date(userInfo['firstChangesetCreationTime'] ?? userInfo['account_created']).setUTCDate(new Date(userInfo['firstChangesetCreationTime'] ?? userInfo['account_created']).getUTCDate() + 30)
+        > changesetDate
+    ) {
+        makeNewbieBadge()
+    } else if (!corporateMappers || corporateMappers?.has(userInfo['display_name'])) {
+        if (!corporateMappers) {
+            initCorporateMappersList().then(() => {
+                if (corporateMappers?.has(userInfo['display_name'])) {
+                    makeCorporateBadge()
+                } else {
+                    makeFriendBadge()
+                }
+            })
+        } else {
+            makeCorporateBadge()
+        }
+    } else {
+        makeFriendBadge()
     }
     return userBadge
 }
