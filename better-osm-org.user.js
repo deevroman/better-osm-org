@@ -8450,8 +8450,17 @@ async function addHoverForWayNodes() {
         document.querySelector("#sidebar_content h4:last-of-type").appendChild(infoBtn)
     }
 
-    const wayData = await loadWayMetadata();
-    if (!wayData) return
+    const wayData = await loadWayMetadata().catch(() => {
+        if (infoBtn) {
+            infoBtn.style.display = "none"
+        }
+    });
+    if (!wayData) {
+        if (infoBtn) {
+            infoBtn.style.display = "none"
+        }
+        return
+    }
     /*** @type {Map<string, NodeVersion>}*/
     const nodesMap = new Map(Object.entries(Object.groupBy(wayData.elements.filter(i => i.type === "node"), i => i.id)).map(([k, v]) => [k, v[0]]));
     document.querySelectorAll(`details [href^="/node/"]:not(.hover-added)`).forEach(elem => {
