@@ -9344,6 +9344,14 @@ function makeCorporateMappersData(raw_data) {
     for (let [kontora, [link, mappers]] of Object.entries(raw_data)) {
         corporatesLinks.set(kontora, link)
         mappers.forEach(username => {
+            // https://github.com/piebro/openstreetmap-statistics/blob/53f9397a066c726b598eec6221a49d57583ddeac/src/save_corporation_contributors.py#L173-L179
+            username = username
+                .replaceAll("%40%", "@")
+                .replaceAll("%40%", "%40")
+                .replaceAll("%21%", "!")
+                .replaceAll("%21%", "%21")
+                .replaceAll("%20%", " ")
+                .replaceAll("%20%", "%20")
             if (corporateMappers.has(username)) {
                 corporateMappers.get(username).push(kontora)
             } else {
