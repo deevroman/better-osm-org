@@ -13178,7 +13178,8 @@ async function setupHDYCInProfile(path) {
         span.title = "Click for copy"
         span.style.cursor = "pointer"
         span.onclick = e => {
-            navigator.clipboard.writeText(usernameHeader.textContent.slice(0, -1)).then(() => copyAnimation(e, usernameHeader.textContent.slice(0, -1)));
+            const username = usernameHeader.textContent.trim()
+            navigator.clipboard.writeText(username).then(() => copyAnimation(e, username));
         }
         usernameHeader.replaceWith(span)
         injectCSSIntoOSMPage(copyAnimationStyles)
