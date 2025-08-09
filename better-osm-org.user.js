@@ -14343,6 +14343,19 @@ function makeBadge(userInfo, changesetDate = new Date()) { // todo make changese
     function makeBannedUserBadge() {
         userBadge.title = "The user was banned"
         userBadge.textContent = "⛔️"
+        setTimeout(async () => {
+            const xml = (await GM.xmlHttpRequest({
+                url: "/user/" + userInfo['display_name'] + "/blocks",
+            })).response
+            const lastBlockLinks = (new DOMParser().parseFromString(xml, "text/html")).querySelector('a[href^="/user_blocks/"]').getAttribute("href")
+            const blockID = lastBlockLinks.match(/\/user_blocks\/([0-9]+)/)[1]
+            const blockInfo = (await GM.xmlHttpRequest({
+                url: "/api/0.6/user_blocks/" + blockID + ".json",
+                responseType: "json",
+                headers: {"turbo-frame": "pagination"}
+            })).response
+            userBadge.title += `\n\n${blockInfo['user_block']['created_at']}\n${blockInfo['user_block']['creator']['user']}: ${blockInfo['user_block']['reason']}`
+        })
     }
 
     function makeNewbieBadge() {
