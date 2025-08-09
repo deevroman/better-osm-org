@@ -12882,7 +12882,7 @@ async function makeProfileForDeletedUser(user) {
                 function findBlocks(xml) {
                     let foundUserBlock = [];
                     let lastUserBlock;
-                    (new DOMParser().parseFromString(xml, "text/xml")).querySelectorAll("table > tr").forEach(i => {
+                    (new DOMParser().parseFromString(xml, "text/html")).querySelectorAll("table tr").forEach(i => {
                         const username = decodeURI(i.querySelector("td a").getAttribute("href").match(/\/user\/(.*)$/)[1])
                         lastUserBlock = i.querySelector('td a[href^="/user_blocks/"]').getAttribute("href").match(/\/user_blocks\/([0-9]+)/)[1]
                         if (username === "user_" + id) {
