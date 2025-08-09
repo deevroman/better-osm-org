@@ -62,6 +62,7 @@
 // @match        https://hdyc.neis-one.org/*
 // @match        https://osmcha.org/*
 // @exclude      https://taginfo.openstreetmap.org/embed/*
+// @match        https://github.com/openstreetmap/openstreetmap-website/issues/new*
 // @license      WTFPL
 // @namespace    https://github.com/deevroman/better-osm-org
 // @updateURL    https://github.com/deevroman/better-osm-org/raw/master/better-osm-org.user.js
@@ -146,6 +147,40 @@
 /*global runSnowAnimation*/
 /*global unzipit*/
 /*global bz2*/
+
+if ((location.origin + location.pathname).startsWith("https://github.com/openstreetmap/openstreetmap-website/issues/new")) {
+    function tryAddWarn() {
+        if (document.querySelector(".better-osm-org-warn")) {
+            return
+        }
+        let result = document.evaluate(
+            "//h1[normalize-space(text())='Create new issue']",
+            document,
+            null,
+            XPathResult.FIRST_ORDERED_NODE_TYPE,
+            null
+        ).singleNodeValue;
+        if (!result) {
+            result = document.evaluate(
+                "//h2[normalize-space(text())='Create new issue']",
+                document,
+                null,
+                XPathResult.FIRST_ORDERED_NODE_TYPE,
+                null
+            ).singleNodeValue;
+        }
+        if (result) {
+            const warn = document.createElement("div")
+            warn.textContent = "⚠️⚠️⚠️️ Disable better-osm-org before reporting bugs or asking questions about features ⚠️⚠️⚠️️"
+            warn.classList.add("better-osm-org-warn")
+            result.before(warn)
+            result.before(document.createElement("br"))
+        }
+    }
+    setInterval(tryAddWarn, 3000)
+    setTimeout(tryAddWarn, 100)
+    throw "skip better-osm-org run on GitHub"
+}
 
 if (location.search.includes("&kek")) {
     throw "better-osm-org disable via url param"
