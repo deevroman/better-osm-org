@@ -171,8 +171,13 @@ if ((location.origin + location.pathname).startsWith("https://github.com/openstr
         }
         if (result) {
             const warn = document.createElement("div")
-            warn.textContent = "⚠️⚠️⚠️️ Disable better-osm-org before reporting bugs or asking questions about features ⚠️⚠️⚠️️"
+            warn.textContent = "⚠️⚠️⚠️️ "
             warn.classList.add("better-osm-org-warn")
+            const subWarn = document.createElement("span")
+            subWarn.textContent = "Disable better-osm-org"
+            subWarn.style.color = "red"
+            warn.appendChild(subWarn)
+            warn.appendChild(document.createTextNode(" before reporting bugs or asking questions about features ⚠️⚠️⚠️"))
             result.before(warn)
             result.before(document.createElement("br"))
         }
