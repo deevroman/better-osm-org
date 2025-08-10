@@ -2057,7 +2057,9 @@ function setupCompactChangesetsHistory() {
             e.classList.add("better")
             e.childNodes[0].textContent = ""
             if (e.querySelector("time")?.nextSibling?.nodeType === Node.TEXT_NODE) {
-                e.querySelector("time").nextSibling.textContent = "\xA0"
+                if (e.querySelector("time").nextSibling.textContent.length < 5) { // hack for deleted users
+                    e.querySelector("time").nextSibling.textContent = "\xA0"
+                }
             }
             e.classList.remove("pt-3")
             const badgesDiv = e.nextElementSibling
@@ -13869,12 +13871,13 @@ function addChangesetCheckbox(chagesetElem) {
 }
 
 function filterChangesets(htmlDocument = document) {
-    const usernameFilters = document.querySelector("#filter-by-user-input").value.trim().split(",").filter(i => i.trim() !== "")
+    const usernameFilters = document.querySelector("#filter-by-user-input").value.trim().split(",").map(i => i.trim()).filter(i => i !== "")
     const commentFilters = document.querySelector("#filter-by-comment-input").value.trim().split(",").filter(i => i.trim() !== "")
     let newHiddenChangesetsCount = 0;
     htmlDocument.querySelectorAll("ol li").forEach(i => {
         const changesetComment = i.querySelector("p a bdi").textContent
-        const changesetAuthor = i.querySelector("div > a").textContent
+        const changesetAuthorLink = i.querySelector("div > a")
+        const changesetAuthor = changesetAuthorLink?.textContent ?? ""
         let bbox;
         if (i.getAttribute("data-changeset")) {
             bbox = Object.values(JSON.parse(i.getAttribute("data-changeset")).bbox)
@@ -13901,7 +13904,12 @@ function filterChangesets(htmlDocument = document) {
             if (invert) {
                 let needHide = true
                 usernameFilters.forEach(username => {
-                    if (changesetAuthor.includes(username.trim()) || username.trim() === "💵" && corporateMappers?.has(changesetAuthor)) {
+                    if (changesetAuthor === "smokystobacco") debugger
+                    if (changesetAuthor.includes(username)) {
+                        needHide = false
+                    } else if (username === "💵" && corporateMappers?.has(changesetAuthor)) {
+                        needHide = false
+                    } else if (username === BAN_EMOJI && changesetAuthorLink?.previousElementSibling?.classList?.contains("banned-badge")) {
                         needHide = false
                     }
                 })
@@ -13917,7 +13925,10 @@ function filterChangesets(htmlDocument = document) {
                 }
             } else {
                 usernameFilters.forEach(username => {
-                    if ((changesetAuthor.includes(username.trim()) || username.trim() === "💵" && corporateMappers?.has(changesetAuthor)) ^ invert) {
+                    if (changesetAuthor.includes(username)
+                        || username === "💵" && corporateMappers?.has(changesetAuthor)
+                        || username === BAN_EMOJI && changesetAuthorLink?.previousElementSibling?.classList?.contains("banned-badge")
+                    ) {
                         if (i.getAttribute("data-changeset")) {
                             i.setAttribute("hidden-data-changeset", i.getAttribute("data-changeset"))
                             i.removeAttribute("data-changeset")
@@ -14381,6 +14392,8 @@ function addMassActionForGlobalChangesets() {
 
 }
 
+const BAN_EMOJI = "⛔️"
+
 function makeBadge(userInfo, changesetDate = new Date()) { // todo make changesetDate required
     let userBadge = document.createElement("span")
     userBadge.classList.add("user-badge")
@@ -14403,7 +14416,16 @@ function makeBadge(userInfo, changesetDate = new Date()) { // todo make changese
 
     function makeBannedUserBadge() {
         userBadge.title = "The user was banned"
-        userBadge.textContent = "⛔️"
+        userBadge.textContent = BAN_EMOJI + " "
+        userBadge.classList.add("banned-badge")
+        userBadge.style.cursor = "pointer"
+        userBadge.onclick = e => {
+            if (massModeActive && !e.ctrlKey && !e.metaKey) {
+                addUsernameIntoChangesetsFilter(BAN_EMOJI)
+            } else {
+                window.open("/user/" + userInfo['display_name'] + "/blocks", "_blank")
+            }
+        }
         setTimeout(async () => {
             const xml = (await GM.xmlHttpRequest({
                 url: "/user/" + userInfo['display_name'] + "/blocks",
@@ -14421,7 +14443,7 @@ function makeBadge(userInfo, changesetDate = new Date()) { // todo make changese
 
     function makeNewbieBadge() {
         userBadge.title = "At the time of creating the changeset/note, the user had been editing OpenStreetMap for less than a month"
-        userBadge.textContent = "🍼"
+        userBadge.textContent = "🍼 "
     }
 
     function makeCorporateBadge() {
