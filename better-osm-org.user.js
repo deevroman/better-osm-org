@@ -12879,11 +12879,21 @@ async function makeProfileForDeletedUser(user) {
                     headers: {"turbo-frame": "pagination"}
                 })
 
+                const blocksCount = new Map()
+
                 function findBlocks(xml) {
                     let foundUserBlock = [];
                     let lastUserBlock;
                     (new DOMParser().parseFromString(xml, "text/html")).querySelectorAll("table tr").forEach(i => {
+                        if (i.querySelector("th")) {
+                            return
+                        }
                         const username = decodeURI(i.querySelector("td a").getAttribute("href").match(/\/user\/(.*)$/)[1])
+                        if (blocksCount.has(username)) {
+                            blocksCount.set(username, blocksCount.get(username) + 1)
+                        } else {
+                            blocksCount.set(username, 1)
+                        }
                         lastUserBlock = i.querySelector('td a[href^="/user_blocks/"]').getAttribute("href").match(/\/user_blocks\/([0-9]+)/)[1]
                         if (username === "user_" + id) {
                             foundUserBlock.push(lastUserBlock)
@@ -12949,6 +12959,17 @@ async function makeProfileForDeletedUser(user) {
                         lastUserBlock -= threads * onPage
                     }
                     loadingStatus.style.display = "none"
+                    const arr = Array.from(blocksCount.entries()).filter(([k, v]) => v >= 10)
+                    arr.sort((a, b) => {
+                        if (a[1] < b[1]) {
+                            return 1
+                        } else if (a[1] > b[1]) {
+                            return -1
+                        } else {
+                            return 0
+                        }
+                    })
+                    console.log("Top banned:", arr);
                     console.log("All blocks downloaded");
                 }
             })
