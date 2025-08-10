@@ -15513,6 +15513,15 @@ async function zoomToChangesets() {
 }
 
 let shiftKeyZClicks = 0
+let ZoomToObjectClicks = 0
+
+function resetZoomClicks() {
+    ZoomToObjectClicks = 0
+}
+
+function setupZKeysReseter() {
+    window.addEventListener('mousemove', resetZoomClicks, {once: true});
+}
 
 function zoomToCurrentObject(e) {
     if (new URLSearchParams(location.search).has("changesets")) {
@@ -15590,20 +15599,42 @@ function zoomToCurrentObject(e) {
     } else if (location.pathname.match(/(node|way|relation|note)\/\d+/)) {
         if (location.pathname.includes("node")) {
             if (nodeMetadata) {
-                panTo(nodeMetadata.lat, nodeMetadata.lon)
+                panTo(nodeMetadata.lat, nodeMetadata.lon, 18 + ZoomToObjectClicks++, ZoomToObjectClicks !== 1)
+                setupZKeysReseter()
             } else {
                 if (location.pathname.includes("history")) {
                     // panTo last visible version
                     panTo(
                         document.querySelector("#element_versions_list > div span.latitude").textContent.replace(",", "."),
-                        document.querySelector("#element_versions_list > div span.longitude").textContent.replace(",", ".")
+                        document.querySelector("#element_versions_list > div span.longitude").textContent.replace(",", "."),
+                        18 + ZoomToObjectClicks++
                     )
                 }
+                setupZKeysReseter()
             }
         } else if (location.pathname.includes("note")) {
             if (!document.querySelector('#sidebar_content a[href*="/traces/"]') || !trackMetadata) {
                 if (noteMetadata) {
-                    panTo(noteMetadata.geometry.coordinates[1], noteMetadata.geometry.coordinates[0], Math.max(17, getMap().getZoom()))
+                    const zoom = getMap().getZoom()
+                    ZoomToObjectClicks++
+                    if (zoom + ZoomToObjectClicks > 19) {
+                        enableOverzoom()
+                    }
+                    if (ZoomToObjectClicks === 1) {
+                        panTo(
+                            noteMetadata.geometry.coordinates[1],
+                            noteMetadata.geometry.coordinates[0],
+                            max(17, zoom),
+                        )
+                    } else {
+                        panTo(
+                            noteMetadata.geometry.coordinates[1],
+                            noteMetadata.geometry.coordinates[0],
+                            max(min(overzoomObserver ? 22 : 19, max(zoom + 1, 17 + ZoomToObjectClicks - 1)), zoom),
+                            true,
+                        )
+                    }
+                    setupZKeysReseter()
                 }
             } else if (trackMetadata) {
                 fitBounds([
@@ -15724,6 +15755,9 @@ function setupNavigationViaHotkeys() {
         }
         console.log("Key: ", e.key)
         console.log("Key code: ", e.code)
+        if (e.code !== "KeyZ" && e.code !== "KeyD" && e.code !== "KeyS" && e.code !== "KeyS") {
+            resetZoomClicks()
+        }
         if (e.code === "KeyN") {
             if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
                 document.querySelector('a[href^="/user/"][href$="/notes"]')?.click()
