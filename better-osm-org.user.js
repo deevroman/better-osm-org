@@ -9323,6 +9323,17 @@ function addRegionForFirstChangeset(attempts = 5) {
         }
         const center = getMapCenter()
         console.time(`Geocoding changeset ${center.lng},${center.lat}`)
+
+        while (true) {
+            // simple rate limiter
+            const lastReqTime = await GM.getValue("last-geocoder-request-time")
+            if (!lastReqTime || (new Date(lastReqTime)).getTime() + 1000 < Date.now()) {
+                await GM.setValue("last-geocoder-request-time", Date.now());
+                break
+            }
+            console.log("wait 1s for geocoder request");
+            await sleep(1000)
+        }
         fetch(`https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2&zoom=10`, {signal: getAbortController().signal}).then((res) => {
             res.json().then((r) => {
                 if (r?.address?.state) {
