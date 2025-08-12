@@ -1929,6 +1929,9 @@ const compactSidebarStyleText = `
     turbo-frame {
         word-wrap: anywhere;
     }
+    .numbered_pagination {
+        word-wrap: initial;
+    }
     
     turbo-frame th {
         min-width: max-content;
@@ -11118,22 +11121,22 @@ function addQuickLookStyles() {
             
             `
             + ((GM_config.get("ShowChangesetGeometry")) ? `
-            #sidebar_content #changeset_nodes li:hover {
+            #sidebar_content #changeset_nodes ul:not(.pagination) li:hover {
                 background-color: rgba(223, 223, 223, 0.6);
             }
-            #sidebar_content #changeset_ways li:hover {
+            #sidebar_content #changeset_ways ul:not(.pagination) li:hover {
                 background-color: rgba(223, 223, 223, 0.6);
             }
-            #sidebar_content #changeset_nodes li.map-hover {
+            #sidebar_content #changeset_nodes ul:not(.pagination) li.map-hover {
                 background-color: rgba(223, 223, 223, 0.6);
             }
-            #sidebar_content #changeset_ways li.map-hover {
+            #sidebar_content #changeset_ways ul:not(.pagination) li.map-hover {
                 background-color: rgba(223, 223, 223, 0.6);
             }
-            #sidebar_content #changeset_relations li.map-hover {
+            #sidebar_content #changeset_relations ul:not(.pagination) li.map-hover {
                 background-color: rgba(223, 223, 223, 0.6);
             }
-            #sidebar_content #changeset_relations li.downloaded:hover {
+            #sidebar_content #changeset_relations ul:not(.pagination) li.downloaded:hover {
                 background-color: rgba(223, 223, 223, 0.6);
             }
             
@@ -11162,22 +11165,22 @@ function addQuickLookStyles() {
             }
             
             @media ${mediaQueryForWebsiteTheme} {            
-                #sidebar_content #changeset_nodes li:hover {
+                #sidebar_content #changeset_nodes ul:not(.pagination) li:hover {
                     background-color: rgb(14, 17, 19);
                 }
-                #sidebar_content #changeset_ways li:hover {
+                #sidebar_content #changeset_ways ul:not(.pagination) li:hover {
                     background-color: rgb(14, 17, 19);
                 }
-                #sidebar_content #changeset_nodes li.map-hover {
+                #sidebar_content #changeset_nodes ul:not(.pagination) li.map-hover {
                     background-color: rgb(14, 17, 19);
                 }
-                #sidebar_content #changeset_ways li.map-hover {
+                #sidebar_content #changeset_ways ul:not(.pagination) li.map-hover {
                     background-color: rgb(14, 17, 19);
                 }
-                #sidebar_content #changeset_relations li.map-hover {
+                #sidebar_content #changeset_relations ul:not(.pagination) li.map-hover {
                     background-color: rgb(14, 17, 19);
                 }
-                #sidebar_content #changeset_relations li.downloaded:hover {
+                #sidebar_content #changeset_relations ul:not(.pagination) li.downloaded:hover {
                     background-color: rgb(14, 17, 19);
                 }
                                 
@@ -11491,9 +11494,10 @@ async function processQuickLookInSidebar(changesetID) {
             await processObjectsInteractions(objType, uniqTypes, changesetID);
         }
         const changesetData = (await changesetDataPromise).data;
+        const paginationSelector = document.querySelector(".numbered_pagination") ? ".numbered_pagination" : ".pagination"
 
         function replaceNodes(changesetData) {
-            const pagination = Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_nodes .pagination`)).find(i => {
+            const pagination = Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_nodes ${paginationSelector}`)).find(i => {
                 return Array.from(i.querySelectorAll("a.page-link")).some(a => a.href?.includes("node"))
             })
             if (!pagination) return
@@ -11582,7 +11586,7 @@ async function processQuickLookInSidebar(changesetID) {
 
         // todo unify
         function replaceWays(changesetData) {
-            const pagination = Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_ways .pagination`)).find(i => {
+            const pagination = Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_ways ${paginationSelector}`)).find(i => {
                 return Array.from(i.querySelectorAll("a.page-link")).some(a => a.href?.includes("way"))
             })
             if (!pagination) return
@@ -11689,17 +11693,19 @@ async function processQuickLookInSidebar(changesetID) {
         await processObjectsInteractions("node", uniqTypes, changesetID);
 
         function observePagination(obs) {
-            if (document.querySelector(`[changeset-id="${changesetID}"]#changeset_nodes .pagination`)) {
+            const paginationSelector = document.querySelector(".numbered_pagination") ? ".numbered_pagination" : ".pagination"
+
+            if (document.querySelector(`[changeset-id="${changesetID}"]#changeset_nodes ${paginationSelector}`)) {
                 obs.observe(document.querySelector(`[changeset-id="${changesetID}"]#changeset_nodes`), {
                     attributes: true
                 })
             }
-            if (document.querySelector(`[changeset-id="${changesetID}"]#changeset_ways .pagination`)) {
+            if (document.querySelector(`[changeset-id="${changesetID}"]#changeset_ways ${paginationSelector}`)) {
                 obs.observe(document.querySelector(`[changeset-id="${changesetID}"]#changeset_ways`), {
                     attributes: true
                 })
             }
-            if (document.querySelector(`[changeset-id="${changesetID}"]#changeset_relations .pagination`)) {
+            if (document.querySelector(`[changeset-id="${changesetID}"]#changeset_relations ${paginationSelector}`)) {
                 obs.observe(document.querySelector(`[changeset-id="${changesetID}"]#changeset_relations`), {
                     attributes: true
                 })
@@ -15901,7 +15907,7 @@ function setupNavigationViaHotkeys() {
             });
 
             ["#changeset_nodes", "#changeset_ways", "#changeset_relations"].forEach(selector => {
-                document.querySelectorAll(`${selector} :not(.pagination) li`).forEach(obj => {
+                document.querySelectorAll(`${selector} .browse-element-list li`).forEach(obj => {
                     const checkbox = document.createElement("input")
                     checkbox.type = "checkbox"
                     checkbox.title = "Click with Shift for select range\nPress R for revert via osm-revert\nPress J for open objects in JOSM\nPress alt + J for open objects in Level0"
