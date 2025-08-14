@@ -3769,7 +3769,7 @@ function addSatelliteLayers() {
             }
             btnOnPane.style.cursor = "pointer";
             btnOnPane.classList.add("turn-on-satellite-from-pane");
-            btnOnPane.title = "Switch between map and satellite images.\nAlso you press key S, press with Shift for ESRI beta"
+            btnOnPane.title = "Switch between map and satellite images (S key)\nPress (Shift+S) for ESRI beta"
             mapnikBtn.appendChild(document.createTextNode("\xA0"));
             mapnikBtn.appendChild(btnOnPane);
 
@@ -4553,7 +4553,7 @@ function makeLinksInTagsClickable() {
             if (key !== "opening_hours:signed" && typeof opening_hours !== "undefined") {
                 try {
                     new opening_hours(valueCell.textContent, null, {tag_key: key});
-                    valueCell.title = "opening_hours.js not found errors👍"
+                    valueCell.title = "no errors were found by opening_hours.js 👍"
                 } catch (e) {
                     valueCell.title = e
                     valueCell.classList.add("fixme-tag")
