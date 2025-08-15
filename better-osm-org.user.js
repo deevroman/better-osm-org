@@ -8576,6 +8576,7 @@ async function addHoverForRelationMembers() {
     }
     const relation_id = parseInt(match[1]);
     let infoBtn;
+// eslint-disable-next-line no-constant-condition no-constant-binary-expression
     if (false && !document.querySelector(".relation-info-btn")) {
         infoBtn = document.createElement("span")
         infoBtn.textContent = "📐"
