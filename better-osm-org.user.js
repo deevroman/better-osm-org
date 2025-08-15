@@ -13925,7 +13925,7 @@ function filterChangesets(htmlDocument = document) {
                     if (changesetAuthor === "smokystobacco") debugger
                     if (changesetAuthor.includes(username)) {
                         needHide = false
-                    } else if (username === "💵" && corporateMappers?.has(changesetAuthor)) {
+                    } else if (username === CORPORATE_EMOJI && corporateMappers?.has(changesetAuthor)) {
                         needHide = false
                     } else if (username === BAN_EMOJI && changesetAuthorLink?.previousElementSibling?.classList?.contains("banned-badge")) {
                         needHide = false
@@ -13944,7 +13944,7 @@ function filterChangesets(htmlDocument = document) {
             } else {
                 usernameFilters.forEach(username => {
                     if (changesetAuthor.includes(username)
-                        || username === "💵" && corporateMappers?.has(changesetAuthor)
+                        || username === CORPORATE_EMOJI && corporateMappers?.has(changesetAuthor)
                         || username === BAN_EMOJI && changesetAuthorLink?.previousElementSibling?.classList?.contains("banned-badge")
                     ) {
                         if (i.getAttribute("data-changeset")) {
@@ -14410,6 +14410,7 @@ function addMassActionForGlobalChangesets() {
 
 }
 
+const CORPORATE_EMOJI = "🏢"
 const BAN_EMOJI = "⛔️"
 
 function makeBadge(userInfo, changesetDate = new Date()) { // todo make changesetDate required
@@ -14467,7 +14468,7 @@ function makeBadge(userInfo, changesetDate = new Date()) { // todo make changese
     function makeCorporateBadge() {
         const info = corporateMappers.get(userInfo['display_name'])
         userBadge.title = `${info.join(", ")} corporate mapper\n\nClick to open wiki page\nClick with Alt to open data source`
-        userBadge.textContent = "💵 "
+        userBadge.textContent = CORPORATE_EMOJI + " "
         userBadge.classList.add("corporate-badge")
         userBadge.style.cursor = "pointer"
         userBadge.onclick = e => {
@@ -14475,7 +14476,7 @@ function makeBadge(userInfo, changesetDate = new Date()) { // todo make changese
                 window.open(corporationContributorsSource, "_blank")
             } else {
                 if (massModeActive && !e.ctrlKey && !e.metaKey) {
-                    addUsernameIntoChangesetsFilter("💵")
+                    addUsernameIntoChangesetsFilter(CORPORATE_EMOJI)
                 } else {
                     info.forEach(k => {
                         window.open(corporatesLinks.get(k), "_blank")
