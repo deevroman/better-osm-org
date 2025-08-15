@@ -17950,7 +17950,7 @@ function setupOSMWebsite() {
         for (const module of alwaysEnabledModules) {
             queueMicrotask(() => {
                 // console.log(module.name)
-                module(path)
+                void module(path)
             });
         }
         return mainObserverHandler
