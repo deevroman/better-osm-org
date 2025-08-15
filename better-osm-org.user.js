@@ -6772,7 +6772,7 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
                 // todo
             }
         })
-        const isRestriction = isRestrictionObj(overpassGeom.elements?.[0].tags ?? {})
+        const isRestriction = isRestrictionObj(overpassGeom.elements?.[0]?.tags ?? {})
         const {bbox, nodesBbox} = getBbox(overpassGeom)
         cache = cachedRelations[[id, timestamp]] = {
             geom: mergedGeometry.map(i => intoPage(i)),
