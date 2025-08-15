@@ -13924,7 +13924,6 @@ function filterChangesets(htmlDocument = document) {
             if (invert) {
                 let needHide = true
                 usernameFilters.forEach(username => {
-                    if (changesetAuthor === "smokystobacco") debugger
                     if (changesetAuthor.includes(username)) {
                         needHide = false
                     } else if (username === CORPORATE_EMOJI && corporateMappers?.has(changesetAuthor)) {
