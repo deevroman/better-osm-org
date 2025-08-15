@@ -4549,7 +4549,8 @@ function makeLinksInTagsClickable() {
                 }
             }
         } else if (key.startsWith("opening_hours") // https://github.com/opening-hours/opening_hours.js/blob/master/scripts/related_tags.txt
-            || ["happy_hours", "delivery_hours", "smoking_hours", "collection_times", "service_times"].includes(key)) {
+            || key.startsWith("happy_hours")
+            || ["delivery_hours", "smoking_hours", "collection_times", "service_times"].includes(key)) {
             if (key !== "opening_hours:signed" && typeof opening_hours !== "undefined") {
                 try {
                     new opening_hours(valueCell.textContent, null, {tag_key: key});
