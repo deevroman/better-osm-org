@@ -10917,7 +10917,7 @@ async function getHistoryAndVersionByElem(elem) {
     if (!res.ok) {
         console.trace(objType, objID, version)
     }
-    if (res.status === 509) {
+    if (res.status === 509 || res.status === 429) {
         error509Handler(res)
     } else {
         return [histories[objType][objID] = (await res.json()).elements, parseInt(version)];
@@ -11498,27 +11498,37 @@ async function processQuickLookInSidebar(changesetID) {
         const changesetData = (await changesetDataPromise).data;
         const paginationSelector = document.querySelector(".numbered_pagination") ? ".numbered_pagination" : ".pagination"
 
-        function replaceNodes(changesetData) {
+        function dropNodesPagination(changesetData) {
             const pagination = Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_nodes ${paginationSelector}`)).find(i => {
                 return Array.from(i.querySelectorAll("a.page-link")).some(a => a.href?.includes("node"))
             })
-            if (!pagination) return
-            const ul = pagination.parentElement.querySelector("ul.list-unstyled")
-            const nodes = changesetData.querySelectorAll("node")
+            if (!pagination) {
+                return false
+            }
+            const nodesUl = pagination.parentElement.querySelector("ul.list-unstyled")
+            const nodes = Array.from(changesetData.querySelectorAll("node"))
             const other = changesetData.querySelectorAll("way,relation").length
             if (nodes.length > 1200) {
-                if (nodes.length > 3500 || other > 10 || isMobile) { // fixme bump
-                    return;
+                if (other > 20 || isMobile) { // fixme bump
+                    return false
+                }
+                if (nodes.length > 3500 && isMobile) {
+                    return false
+                }
+                if (nodes.length > 5000) {
+                    return false
                 }
             }
             pagination.remove();
-
             try {
                 document.querySelector(`[changeset-id="${changesetID}"]#changeset_nodes h4 .count-number`).textContent = `1-${nodes.length}`;
             } catch (e) {
                 console.error(e)
             }
+            return {nodes, nodesUl}
+        }
 
+        function replaceNodes(nodes, nodesUl) {
             nodes.forEach(node => {
                 if (document.getElementById(`${changesetID}n${node.id}`)) {
                     return
@@ -11582,37 +11592,41 @@ async function processQuickLookInSidebar(changesetID) {
                 if (node.getAttribute("visible") === "false") {
                     div2.innerHTML = "<s>" + div2.innerHTML + "</s>"
                 }
-                ul.appendChild(ulItem)
+                nodesUl.appendChild(ulItem)
             })
         }
 
-        // todo unify
-        function replaceWays(changesetData) {
+        function dropWaysPagination(changesetData) {
             const pagination = Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_ways ${paginationSelector}`)).find(i => {
                 return Array.from(i.querySelectorAll("a.page-link")).some(a => a.href?.includes("way"))
             })
-            if (!pagination) return
-            const ul = pagination.parentElement.querySelector("ul.list-unstyled")
-            const ways = changesetData.querySelectorAll("way")
+            if (!pagination) {
+                return false
+            }
+            const waysUl = pagination.parentElement.querySelector("ul.list-unstyled")
+            const ways = Array.from(changesetData.querySelectorAll("way"))
             if (ways.length > 50) {
                 if (ways.length > 200 && changesetData.querySelectorAll("node") > 40) {
-                    return;
+                    return false
                 }
                 if (ways.length > 520 && isMobile) {
-                    return;
+                    return false
                 }
-                if (ways.length > 1520) {
-                    return
+                if (ways.length > 5000) {
+                    return false
                 }
             }
             pagination.remove();
-
             try {
                 document.querySelector(`[changeset-id="${changesetID}"]#changeset_ways h4 .count-number`).textContent = `1-${ways.length}`
             } catch (e) {
                 console.error(e)
             }
+            return {ways, waysUl}
+        }
 
+        // todo unify
+        function replaceWays(ways, waysUl) {
             ways.forEach(way => {
                 if (document.getElementById(`${changesetID}w${way.id}`)) {
                     return
@@ -11675,7 +11689,7 @@ async function processQuickLookInSidebar(changesetID) {
                 if (way.getAttribute("visible") === "false") {
                     div2.innerHTML = "<s>" + div2.innerHTML + "</s>"
                 }
-                ul.appendChild(ulItem)
+                waysUl.appendChild(ulItem)
             })
         }
 
@@ -11686,13 +11700,27 @@ async function processQuickLookInSidebar(changesetID) {
             console.trace()
         }
 
-        replaceWays(changesetData)
-        await processObjects("way", uniqTypes);
-        await processObjectsInteractions("way", uniqTypes, changesetID);
+        const waysRes = dropWaysPagination(changesetData)
+        if (waysRes) {
+            const batchSize = 300
+            for (let i = 0; i < waysRes.ways.length; i += batchSize) {
+                console.log(`Ways batch ${i}-${i + batchSize}`)
+                replaceWays(waysRes.ways.slice(i, i + batchSize), waysRes.waysUl)
+                await processObjects("way", uniqTypes);
+                await processObjectsInteractions("way", uniqTypes, changesetID);
+            }
+        }
 
-        replaceNodes(changesetData)
-        await processObjects("node", uniqTypes);
-        await processObjectsInteractions("node", uniqTypes, changesetID);
+        const nodesRes = dropNodesPagination(changesetData)
+        if (nodesRes) {
+            const batchSize = 3000
+            for (let i = 0; i < nodesRes.nodes.length; i += batchSize) {
+                console.log(`Nodes batch ${i}-${i + batchSize}`)
+                replaceNodes(nodesRes.nodes.slice(i, i + batchSize), nodesRes.nodesUl)
+                await processObjects("node", uniqTypes);
+                await processObjectsInteractions("node", uniqTypes, changesetID);
+            }
+        }
 
         function observePagination(obs) {
             const paginationSelector = document.querySelector(".numbered_pagination") ? ".numbered_pagination" : ".pagination"
