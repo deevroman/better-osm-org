@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.1.9.1
+// @version         1.1.9.2
 // @changelog       v1.1.9: badges for corporate cartographers, ability to press the Z key several times for nodes/notes
 // @changelog       v1.1.8: show gpx tracks in current map view, copy coordinates for ways, alt + C for copy map center
 // @changelog       v1.1.8: more filters for notes, alt + click for hide note, initial support for KML/KMZ files
@@ -1370,7 +1370,7 @@ function addRevertButton() {
                     return
                 }
             }
-            window.location = "http://127.0.0.1:8111/revert_changeset?id=" + changeset_id // todo open in new tab. It's broken in Fifefox and open new window
+            window.location = "http://127.0.0.1:8111/revert_changeset?id=" + changeset_id // todo open in new tab. It's broken in Firefox and open new window
         }
         document.querySelector("#revert_button_class").style.textDecoration = "none"
         const osmcha_link = document.querySelector("#osmcha_link");
@@ -1625,7 +1625,7 @@ function addRevertButton() {
         dislikeBtn.title = "OSMCha review dislike"
         const dislikeImg = document.createElement("img")
         dislikeImg.title = "OSMCha review dislike"
-        dislikeImg.src = likeImgRes // dirty hack for different graystyle colors
+        dislikeImg.src = likeImgRes // dirty hack for different gray style colors
         dislikeImg.style.height = "1.1em"
         dislikeImg.style.cursor = "pointer"
         dislikeImg.style.filter = "grayscale(1)"
@@ -3769,7 +3769,7 @@ function addSatelliteLayers() {
             }
             btnOnPane.style.cursor = "pointer";
             btnOnPane.classList.add("turn-on-satellite-from-pane");
-            btnOnPane.title = "Switch between map and satellite images.\nAlso you press key S, press with Shift for ESRI beta"
+            btnOnPane.title = "Switch between map and satellite images (S key)\nPress (Shift+S) for ESRI beta"
             mapnikBtn.appendChild(document.createTextNode("\xA0"));
             mapnikBtn.appendChild(btnOnPane);
 
@@ -3887,7 +3887,7 @@ async function parseBBB(target, url) {
     const parser = new DOMParser();
     const BBBHTML = parser.parseFromString(response.responseText, "text/html");
 
-    let a = Array.from(BBBHTML.querySelector("pre").childNodes).slice(2)
+    const a = Array.from(BBBHTML.querySelector("pre").childNodes).slice(2);
     let x = 0;
     let found = false;
     for (x; x < a.length; x += 2) {
@@ -4019,7 +4019,7 @@ async function findChangesetInDiff(e) {
         targetTime.setSeconds(0)
         const targetChangesetID = e.target.value;
 
-        let a = Array.from(AAAHTML.querySelector("pre").childNodes).slice(2).slice(0, -4)
+        const a = Array.from(AAAHTML.querySelector("pre").childNodes).slice(2).slice(0, -4)
         a.push(...a.slice(-2))
         let x = 0;
         for (x; x < a.length - 2; x += 2) {
@@ -4549,11 +4549,12 @@ function makeLinksInTagsClickable() {
                 }
             }
         } else if (key.startsWith("opening_hours") // https://github.com/opening-hours/opening_hours.js/blob/master/scripts/related_tags.txt
-            || ["happy_hours", "delivery_hours", "smoking_hours", "collection_times", "service_times"].includes(key)) {
+            || key.startsWith("happy_hours")
+            || ["delivery_hours", "smoking_hours", "collection_times", "service_times"].includes(key)) {
             if (key !== "opening_hours:signed" && typeof opening_hours !== "undefined") {
                 try {
                     new opening_hours(valueCell.textContent, null, {tag_key: key});
-                    valueCell.title = "opening_hours.js not found errors👍"
+                    valueCell.title = "no errors were found by opening_hours.js 👍"
                 } catch (e) {
                     valueCell.title = e
                     valueCell.classList.add("fixme-tag")
@@ -6771,7 +6772,7 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
                 // todo
             }
         })
-        const isRestriction = isRestrictionObj(overpassGeom.elements?.[0].tags ?? {})
+        const isRestriction = isRestrictionObj(overpassGeom.elements?.[0]?.tags ?? {})
         const {bbox, nodesBbox} = getBbox(overpassGeom)
         cache = cachedRelations[[id, timestamp]] = {
             geom: mergedGeometry.map(i => intoPage(i)),
@@ -8575,6 +8576,7 @@ async function addHoverForRelationMembers() {
     }
     const relation_id = parseInt(match[1]);
     let infoBtn;
+// eslint-disable-next-line no-constant-condition no-constant-binary-expression
     if (false && !document.querySelector(".relation-info-btn")) {
         infoBtn = document.createElement("span")
         infoBtn.textContent = "📐"
@@ -10915,7 +10917,7 @@ async function getHistoryAndVersionByElem(elem) {
     if (!res.ok) {
         console.trace(objType, objID, version)
     }
-    if (res.status === 509) {
+    if (res.status === 509 || res.status === 429) {
         error509Handler(res)
     } else {
         return [histories[objType][objID] = (await res.json()).elements, parseInt(version)];
@@ -11496,27 +11498,37 @@ async function processQuickLookInSidebar(changesetID) {
         const changesetData = (await changesetDataPromise).data;
         const paginationSelector = document.querySelector(".numbered_pagination") ? ".numbered_pagination" : ".pagination"
 
-        function replaceNodes(changesetData) {
+        function dropNodesPagination(changesetData) {
             const pagination = Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_nodes ${paginationSelector}`)).find(i => {
                 return Array.from(i.querySelectorAll("a.page-link")).some(a => a.href?.includes("node"))
             })
-            if (!pagination) return
-            const ul = pagination.parentElement.querySelector("ul.list-unstyled")
-            const nodes = changesetData.querySelectorAll("node")
+            if (!pagination) {
+                return false
+            }
+            const nodesUl = pagination.parentElement.querySelector("ul.list-unstyled")
+            const nodes = Array.from(changesetData.querySelectorAll("node"))
             const other = changesetData.querySelectorAll("way,relation").length
             if (nodes.length > 1200) {
-                if (nodes.length > 3500 || other > 10 || isMobile) { // fixme bump
-                    return;
+                if (other > 20 || isMobile) { // fixme bump
+                    return false
+                }
+                if (nodes.length > 3500 && isMobile) {
+                    return false
+                }
+                if (nodes.length > 5000) {
+                    return false
                 }
             }
             pagination.remove();
-
             try {
                 document.querySelector(`[changeset-id="${changesetID}"]#changeset_nodes h4 .count-number`).textContent = `1-${nodes.length}`;
             } catch (e) {
                 console.error(e)
             }
+            return {nodes, nodesUl}
+        }
 
+        function replaceNodes(nodes, nodesUl) {
             nodes.forEach(node => {
                 if (document.getElementById(`${changesetID}n${node.id}`)) {
                     return
@@ -11580,37 +11592,41 @@ async function processQuickLookInSidebar(changesetID) {
                 if (node.getAttribute("visible") === "false") {
                     div2.innerHTML = "<s>" + div2.innerHTML + "</s>"
                 }
-                ul.appendChild(ulItem)
+                nodesUl.appendChild(ulItem)
             })
         }
 
-        // todo unify
-        function replaceWays(changesetData) {
+        function dropWaysPagination(changesetData) {
             const pagination = Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_ways ${paginationSelector}`)).find(i => {
                 return Array.from(i.querySelectorAll("a.page-link")).some(a => a.href?.includes("way"))
             })
-            if (!pagination) return
-            const ul = pagination.parentElement.querySelector("ul.list-unstyled")
-            const ways = changesetData.querySelectorAll("way")
+            if (!pagination) {
+                return false
+            }
+            const waysUl = pagination.parentElement.querySelector("ul.list-unstyled")
+            const ways = Array.from(changesetData.querySelectorAll("way"))
             if (ways.length > 50) {
                 if (ways.length > 200 && changesetData.querySelectorAll("node") > 40) {
-                    return;
+                    return false
                 }
                 if (ways.length > 520 && isMobile) {
-                    return;
+                    return false
                 }
-                if (ways.length > 1520) {
-                    return
+                if (ways.length > 5000) {
+                    return false
                 }
             }
             pagination.remove();
-
             try {
                 document.querySelector(`[changeset-id="${changesetID}"]#changeset_ways h4 .count-number`).textContent = `1-${ways.length}`
             } catch (e) {
                 console.error(e)
             }
+            return {ways, waysUl}
+        }
 
+        // todo unify
+        function replaceWays(ways, waysUl) {
             ways.forEach(way => {
                 if (document.getElementById(`${changesetID}w${way.id}`)) {
                     return
@@ -11673,7 +11689,7 @@ async function processQuickLookInSidebar(changesetID) {
                 if (way.getAttribute("visible") === "false") {
                     div2.innerHTML = "<s>" + div2.innerHTML + "</s>"
                 }
-                ul.appendChild(ulItem)
+                waysUl.appendChild(ulItem)
             })
         }
 
@@ -11684,13 +11700,27 @@ async function processQuickLookInSidebar(changesetID) {
             console.trace()
         }
 
-        replaceWays(changesetData)
-        await processObjects("way", uniqTypes);
-        await processObjectsInteractions("way", uniqTypes, changesetID);
+        const waysRes = dropWaysPagination(changesetData)
+        if (waysRes) {
+            const batchSize = 300
+            for (let i = 0; i < waysRes.ways.length; i += batchSize) {
+                console.log(`Ways batch ${i}-${i + batchSize}`)
+                replaceWays(waysRes.ways.slice(i, i + batchSize), waysRes.waysUl)
+                await processObjects("way", uniqTypes);
+                await processObjectsInteractions("way", uniqTypes, changesetID);
+            }
+        }
 
-        replaceNodes(changesetData)
-        await processObjects("node", uniqTypes);
-        await processObjectsInteractions("node", uniqTypes, changesetID);
+        const nodesRes = dropNodesPagination(changesetData)
+        if (nodesRes) {
+            const batchSize = 3000
+            for (let i = 0; i < nodesRes.nodes.length; i += batchSize) {
+                console.log(`Nodes batch ${i}-${i + batchSize}`)
+                replaceNodes(nodesRes.nodes.slice(i, i + batchSize), nodesRes.nodesUl)
+                await processObjects("node", uniqTypes);
+                await processObjectsInteractions("node", uniqTypes, changesetID);
+            }
+        }
 
         function observePagination(obs) {
             const paginationSelector = document.querySelector(".numbered_pagination") ? ".numbered_pagination" : ".pagination"
@@ -13922,10 +13952,9 @@ function filterChangesets(htmlDocument = document) {
             if (invert) {
                 let needHide = true
                 usernameFilters.forEach(username => {
-                    if (changesetAuthor === "smokystobacco") debugger
                     if (changesetAuthor.includes(username)) {
                         needHide = false
-                    } else if (username === "💵" && corporateMappers?.has(changesetAuthor)) {
+                    } else if (username === CORPORATE_EMOJI && corporateMappers?.has(changesetAuthor)) {
                         needHide = false
                     } else if (username === BAN_EMOJI && changesetAuthorLink?.previousElementSibling?.classList?.contains("banned-badge")) {
                         needHide = false
@@ -13944,7 +13973,7 @@ function filterChangesets(htmlDocument = document) {
             } else {
                 usernameFilters.forEach(username => {
                     if (changesetAuthor.includes(username)
-                        || username === "💵" && corporateMappers?.has(changesetAuthor)
+                        || username === CORPORATE_EMOJI && corporateMappers?.has(changesetAuthor)
                         || username === BAN_EMOJI && changesetAuthorLink?.previousElementSibling?.classList?.contains("banned-badge")
                     ) {
                         if (i.getAttribute("data-changeset")) {
@@ -14410,6 +14439,7 @@ function addMassActionForGlobalChangesets() {
 
 }
 
+const CORPORATE_EMOJI = "🏢"
 const BAN_EMOJI = "⛔️"
 
 function makeBadge(userInfo, changesetDate = new Date()) { // todo make changesetDate required
@@ -14467,7 +14497,7 @@ function makeBadge(userInfo, changesetDate = new Date()) { // todo make changese
     function makeCorporateBadge() {
         const info = corporateMappers.get(userInfo['display_name'])
         userBadge.title = `${info.join(", ")} corporate mapper\n\nClick to open wiki page\nClick with Alt to open data source`
-        userBadge.textContent = "💵 "
+        userBadge.textContent = CORPORATE_EMOJI + " "
         userBadge.classList.add("corporate-badge")
         userBadge.style.cursor = "pointer"
         userBadge.onclick = e => {
@@ -14475,7 +14505,7 @@ function makeBadge(userInfo, changesetDate = new Date()) { // todo make changese
                 window.open(corporationContributorsSource, "_blank")
             } else {
                 if (massModeActive && !e.ctrlKey && !e.metaKey) {
-                    addUsernameIntoChangesetsFilter("💵")
+                    addUsernameIntoChangesetsFilter(CORPORATE_EMOJI)
                 } else {
                     info.forEach(k => {
                         window.open(corporatesLinks.get(k), "_blank")
@@ -17948,7 +17978,7 @@ function setupOSMWebsite() {
         for (const module of alwaysEnabledModules) {
             queueMicrotask(() => {
                 // console.log(module.name)
-                module(path)
+                void module(path)
             });
         }
         return mainObserverHandler
