@@ -1625,7 +1625,7 @@ function addRevertButton() {
         dislikeBtn.title = "OSMCha review dislike"
         const dislikeImg = document.createElement("img")
         dislikeImg.title = "OSMCha review dislike"
-        dislikeImg.src = likeImgRes // dirty hack for different graystyle colors
+        dislikeImg.src = likeImgRes // dirty hack for different gray style colors
         dislikeImg.style.height = "1.1em"
         dislikeImg.style.cursor = "pointer"
         dislikeImg.style.filter = "grayscale(1)"
@@ -3887,7 +3887,7 @@ async function parseBBB(target, url) {
     const parser = new DOMParser();
     const BBBHTML = parser.parseFromString(response.responseText, "text/html");
 
-    let a = Array.from(BBBHTML.querySelector("pre").childNodes).slice(2)
+    const a = Array.from(BBBHTML.querySelector("pre").childNodes).slice(2);
     let x = 0;
     let found = false;
     for (x; x < a.length; x += 2) {
@@ -4019,7 +4019,7 @@ async function findChangesetInDiff(e) {
         targetTime.setSeconds(0)
         const targetChangesetID = e.target.value;
 
-        let a = Array.from(AAAHTML.querySelector("pre").childNodes).slice(2).slice(0, -4)
+        const a = Array.from(AAAHTML.querySelector("pre").childNodes).slice(2).slice(0, -4)
         a.push(...a.slice(-2))
         let x = 0;
         for (x; x < a.length - 2; x += 2) {
