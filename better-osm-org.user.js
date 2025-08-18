@@ -3635,6 +3635,8 @@ function bypassCaches() {
                 "Referer": "https://www.openstreetmap.org/"
             },
             responseType: "blob",
+            nocache: true,
+            revalidate: true
         }).then(async response => {
                 const satTile = await new Promise(resolve => {
                     const reader = new FileReader();
