@@ -3646,13 +3646,6 @@ function bypassCaches() {
                 i.src = satTile;
             }
         );
-        // i.src = newUrl + "?bypassCache=" + new Date().getUTCSeconds();
-        // fetch(newUrl, intoPage({cache: "reload"}))
-        // const img = new Image()
-        // img.src = newUrl + "?bypassCache=" + new Date().getUTCSeconds();
-        // img.onload = () => {
-        //     i.src = img.src
-        // }
     })
     const observer = new MutationObserver(mutations => {
         mutations.forEach(mutation => {
@@ -3683,12 +3676,6 @@ function bypassCaches() {
                         node.src = satTile;
                     }
                 );
-                // node.src = newUrl + "?bypassCache=" + new Date().getUTCSeconds();
-                // const img = new Image()
-                // img.src = newUrl + "?bypassCache=" + new Date().getUTCSeconds();
-                // img.onload = () => {
-                //     node.src = img.src
-                // }
             });
         });
     });
