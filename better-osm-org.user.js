@@ -3625,8 +3625,26 @@ function bypassCaches() {
         }
         let xyz = parseOSMTileURL(i.src)
         if (!xyz) return
-        const newUrl = makeOSMURL(xyz.x, xyz.y, xyz.z)
-        i.src = newUrl + "?bypassCache=" + new Date().getUTCSeconds();
+        const newUrl = makeOSMURL(xyz.x, xyz.y, xyz.z)// + "?bypassCache=" + new Date().getUTCSeconds();
+        GM.xmlHttpRequest({
+            method: "GET",
+            url: newUrl,
+            headers: {
+                "Cache-Control": "no-cache",
+                "Pragma": "no-cache",
+                "Referer": "https://www.openstreetmap.org/"
+            },
+            responseType: "blob",
+        }).then(async response => {
+                const satTile = await new Promise(resolve => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.readAsDataURL(response.response);
+                });
+                i.src = satTile;
+            }
+        );
+        // i.src = newUrl + "?bypassCache=" + new Date().getUTCSeconds();
         // fetch(newUrl, intoPage({cache: "reload"}))
         // const img = new Image()
         // img.src = newUrl + "?bypassCache=" + new Date().getUTCSeconds();
@@ -3642,8 +3660,28 @@ function bypassCaches() {
                 }
                 let xyz = parseOSMTileURL(node.src)
                 if (!xyz) return
-                const newUrl = makeOSMURL(xyz.x, xyz.y, xyz.z)
-                node.src = newUrl + "?bypassCache=" + new Date().getUTCSeconds();
+                const newUrl = makeOSMURL(xyz.x, xyz.y, xyz.z) // + "?bypassCache=" + new Date().getUTCSeconds();
+                GM.xmlHttpRequest({
+                    method: "GET",
+                    url: newUrl,
+                    headers: {
+                        "Cache-Control": "no-cache",
+                        "Pragma": "no-cache",
+                        "Referer": "https://www.openstreetmap.org/"
+                    },
+                    responseType: "blob",
+                    nocache: true,
+                    revalidate: true,
+                }).then(async response => {
+                        const satTile = await new Promise(resolve => {
+                            const reader = new FileReader();
+                            reader.onload = () => resolve(reader.result);
+                            reader.readAsDataURL(response.response);
+                        });
+                        node.src = satTile;
+                    }
+                );
+                // node.src = newUrl + "?bypassCache=" + new Date().getUTCSeconds();
                 // const img = new Image()
                 // img.src = newUrl + "?bypassCache=" + new Date().getUTCSeconds();
                 // img.onload = () => {
