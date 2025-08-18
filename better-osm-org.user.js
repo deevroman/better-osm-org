@@ -3370,31 +3370,6 @@ function parseStravaTileURL(url) {
     }
 }
 
-const fetchBlobWithCache = (() => {
-    const cache = new Map();
-
-    return async url => {
-        if (cache.has(url)) {
-            return cache.get(url);
-        }
-
-        const promise = GM.xmlHttpRequest({
-            url: url,
-            responseType: "blob"
-        })
-        cache.set(url, promise);
-
-        try {
-            const result = await promise;
-            cache.set(url, result);
-            return result;
-        } catch (error) {
-            cache.delete(url);
-            throw error;
-        }
-    };
-})();
-
 let needStravaAuth = false;
 
 async function bypassChromeCSPForImagesSrc(imgElem, url, isStrava = true) {
@@ -16582,6 +16557,31 @@ const alwaysEnabledModules = [
     setupGPXFiltersButtons,
     setupMeasurer
 ]
+
+const fetchBlobWithCache = (() => {
+    const cache = new Map();
+
+    return async url => {
+        if (cache.has(url)) {
+            return cache.get(url);
+        }
+
+        const promise = GM.xmlHttpRequest({
+            url: url,
+            responseType: "blob"
+        })
+        cache.set(url, promise);
+
+        try {
+            const result = await promise;
+            cache.set(url, result);
+            return result;
+        } catch (error) {
+            cache.delete(url);
+            throw error;
+        }
+    };
+})();
 
 const fetchJSONWithCache = (() => {
     /**@type {Map<string, Object | Promise<Object>>}*/
