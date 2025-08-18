@@ -3483,9 +3483,7 @@ function makeOSMGPSURL(x, y, z) {
 }
 
 function switchTiles() {
-    if (tilesObserver) {
-        tilesObserver.disconnect();
-    }
+    tilesObserver?.disconnect();
     currentTilesMode = invertTilesMode(currentTilesMode);
     if (currentTilesMode === SAT_MODE) {
         if (SatellitePrefix === ESRIBetaPrefix) {
@@ -3613,12 +3611,11 @@ function bypassCaches() {
             nocache: true,
             revalidate: true
         }).then(async response => {
-                const satTile = await new Promise(resolve => {
+                i.src = await new Promise(resolve => {
                     const reader = new FileReader();
                     reader.onload = () => resolve(reader.result);
                     reader.readAsDataURL(response.response);
                 });
-                i.src = satTile;
             }
         );
     })
@@ -3643,12 +3640,11 @@ function bypassCaches() {
                     nocache: true,
                     revalidate: true,
                 }).then(async response => {
-                        const satTile = await new Promise(resolve => {
+                    node.src = await new Promise(resolve => {
                             const reader = new FileReader();
                             reader.onload = () => resolve(reader.result);
                             reader.readAsDataURL(response.response);
                         });
-                        node.src = satTile;
                     }
                 );
             });
