@@ -6916,15 +6916,17 @@ async function loadRelationVersionMembers(relationID, version) {
     for (const member of targetVersion.members ?? []) {
         if (member.type === "node") {
             const nodeHistory = await getNodeHistory(member.ref)
+            // nodeHistory.__brand_nodes_history
             const targetTime = new Date(targetVersion.timestamp)
             /** @type {NodeVersion} */
-            let targetWayVersion = nodeHistory[0]
+            let targetNodeVersion = nodeHistory[0]
             nodeHistory.forEach(history => {
                 if (new Date(history.timestamp) <= targetTime) {
-                    targetWayVersion = history;
+                    targetNodeVersion = history;
                 }
             })
-            membersHistory.nodes.push(targetWayVersion)
+            membersHistory.nodes.push(targetNodeVersion)
+            // membersHistory.nodes = nodeHistory
         } else if (member.type === "way") {
             async function loadWay() {
                 let wayHistory = await getWayHistory(member.ref);
