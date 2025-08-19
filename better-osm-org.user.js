@@ -1890,7 +1890,7 @@ const compactSidebarStyleText = `
         span:has(.changeset_id.custom-changeset-id-click) {
             color: #767676 !important;
         }
-        
+
         .changeset_id.custom-changeset-id-click {
             color: #767676 !important;
         }
@@ -2024,10 +2024,11 @@ async function getChangesetComments(changeset_id) {
 
 function setupCompactChangesetsHistory() {
     if (!location.pathname.includes("/history") && !location.pathname.startsWith("/changeset")) {
+        // prettier-ignore
         if (!styleForSidebarApplied && (location.pathname.startsWith("/node")
             || location.pathname.startsWith("/way")
             || location.pathname.startsWith("/relation"))) {
-            addCompactSidebarStyle();
+            addCompactSidebarStyle()
         }
         return
     }
@@ -5818,6 +5819,7 @@ async function replaceDownloadWayButton(btn, wayID) {
         const interVersionDivHeader = document.createElement("h4")
         const interVersionDivAbbr = document.createElement("abbr")
         interVersionDivAbbr.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Промежуточная версия" : "Intermediate version"
+        // prettier-ignore
         interVersionDivAbbr.title = ["ru-RU", "ru"].includes(navigator.language)
             ? "Произошли изменения тегов или координат точек в линии,\nкоторые не увеличили версию линии"
             : "There have been changes to the tags or coordinates of nodes in the way that have not increased the way version"
@@ -6755,13 +6757,15 @@ function renderRestriction(rel, color, layer) {
 
         function getSquareBounds(center) {
             const { x, y } = toMercator(center.lat, center.lon)
+            // prettier-ignore
             return [
                 [...Object.values(fromMercator(x - 10, y - 10))],
                 [...Object.values(fromMercator(x + 10, y + 10))]
             ];
         }
 
-        const imgLayer = getWindow().L.imageOverlay(
+        const imgLayer = getWindow()
+            .L.imageOverlay(
                 "data:image/svg+xml;base64," + btoa(img),
                 intoPage(getSquareBounds(via, 0.0002)),
                 intoPage({
@@ -6841,8 +6845,9 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
     function getBbox(overpassGeom) {
         /** @type {{bbox: BBOX, nodesBbox: BBOX}} */
         const relationInfo = {
+            // prettier-ignore
             bbox:      { min_lat: 10000000, min_lon: 10000000, max_lat: -10000000, max_lon: -100000000 },
-            nodesBbox: { min_lat: 10000000, min_lon: 10000000, max_lat: -10000000, max_lon: -100000000 }
+            nodesBbox: { min_lat: 10000000, min_lon: 10000000, max_lat: -10000000, max_lon: -100000000 },
         }
 
         const nodesBag = []
@@ -8321,6 +8326,7 @@ function addDiffInHistory(reason = "url_change") {
 }
 
 function setupVersionsDiff(path) {
+    // prettier-ignore
     if (!path.includes("/history")
         && !path.startsWith("/node")
         && !path.startsWith("/way")
@@ -8397,9 +8403,16 @@ async function addHoverForNodesParents() {
             const wayData = await loadWayMetadata(wayID)
             const wayInfo = wayData.elements.find(i => i.id === wayID)
             /*** @type {Map<string, NodeVersion>}*/
-            const nodesMap = new Map(Object.entries(Object.groupBy(wayData.elements.filter(i => i.type === "node"), i => i.id)).map(([k, v]) => [k, v[0]]));
-            const wayLi = elem?.parentElement?.parentElement?.parentElement;
-            wayLi.classList.add("node-last-version-parent");
+            const nodesMap = new Map(
+                Object.entries(
+                    Object.groupBy(
+                        wayData.elements.filter(i => i.type === "node"),
+                        i => i.id,
+                    ),
+                ).map(([k, v]) => [k, v[0]]),
+            )
+            const wayLi = elem?.parentElement?.parentElement?.parentElement
+            wayLi.classList.add("node-last-version-parent")
             wayLi.onmouseenter = () => {
                 const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
                 const color = darkModeForMap || isDarkTiles() ? "#ff00e3" : "#000000"
@@ -8586,7 +8599,7 @@ function makePolygonMeasureButtons(nodesIds, nodesMap) {
     icon3.onclick = e => {
         navigator.clipboard.writeText(text3).then(() => copyAnimation(e, text3))
     }
-
+    // prettier-ignore
     const svg4 = '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none">\n' +
         '  <!-- Внешний прямоугольник жирный -->\n' +
         '  <!-- Центральные линии -->\n' +
@@ -8601,14 +8614,16 @@ function makePolygonMeasureButtons(nodesIds, nodesMap) {
     icon4.title = "Click to copy bbox: " + text4
     icon4.onmouseenter = () => {
         cleanObjectsByKey("activeObjects")
-        const rect = getWindow().L.rectangle(
-            intoPage([
-                [bbox.max_lat, bbox.max_lon],
-                [bbox.min_lat, bbox.min_lon]
-            ]),
-            intoPage({color: "red", weight: 3, fillOpacity: 0})
-        ).addTo(getMap())
-        layers['activeObjects'].push(rect)
+        const rect = getWindow()
+            .L.rectangle(
+                intoPage([
+                    [bbox.max_lat, bbox.max_lon],
+                    [bbox.min_lat, bbox.min_lon],
+                ]),
+                intoPage({ color: "red", weight: 3, fillOpacity: 0 }),
+            )
+            .addTo(getMap())
+        layers["activeObjects"].push(rect)
     }
     icon4.onclick = e => {
         navigator.clipboard.writeText(text4).then(() => copyAnimation(e, text4))
@@ -8667,7 +8682,14 @@ async function addHoverForWayNodes() {
         return
     }
     /*** @type {Map<string, NodeVersion>}*/
-    const nodesMap = new Map(Object.entries(Object.groupBy(wayData.elements.filter(i => i.type === "node"), i => i.id)).map(([k, v]) => [k, v[0]]));
+    const nodesMap = new Map(
+        Object.entries(
+            Object.groupBy(
+                wayData.elements.filter(i => i.type === "node"),
+                i => i.id,
+            ),
+        ).map(([k, v]) => [k, v[0]]),
+    )
     document.querySelectorAll(`details [href^="/node/"]:not(.hover-added)`).forEach(elem => {
         elem.classList.add("hover-added")
         const nodeInfo = nodesMap.get(elem.href.match(/node\/(\d+)/)[1])
@@ -8691,6 +8713,7 @@ async function addHoverForWayNodes() {
             nodeLi.title = nodeLi.title.trim()
         }
     })
+    // prettier-ignore
     document.querySelector(".way-last-version-node")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
         cleanObjectsByKey("activeObjects")
     })
@@ -8749,11 +8772,32 @@ async function addHoverForRelationMembers() {
     const relationData = await loadRelationMetadata(relation_id)
     if (!relationData) return
     /*** @type {Map<string, NodeVersion>}*/
-    const nodesMap = new Map(Object.entries(Object.groupBy(relationData.elements.filter(i => i.type === "node"), i => i.id)).map(([k, v]) => [k, v[0]]));
+    const nodesMap = new Map(
+        Object.entries(
+            Object.groupBy(
+                relationData.elements.filter(i => i.type === "node"),
+                i => i.id,
+            ),
+        ).map(([k, v]) => [k, v[0]]),
+    )
     /*** @type {Map<string, WayVersion>}*/
-    const waysMap = new Map(Object.entries(Object.groupBy(relationData.elements.filter(i => i.type === "way"), i => i.id)).map(([k, v]) => [k, v[0]]));
+    const waysMap = new Map(
+        Object.entries(
+            Object.groupBy(
+                relationData.elements.filter(i => i.type === "way"),
+                i => i.id,
+            ),
+        ).map(([k, v]) => [k, v[0]]),
+    )
     /*** @type {Map<string, RelationVersion>}*/
-    const relationsMap = new Map(Object.entries(Object.groupBy(relationData.elements.filter(i => i.type === "relation"), i => i.id)).map(([k, v]) => [k, v[0]]));
+    const relationsMap = new Map(
+        Object.entries(
+            Object.groupBy(
+                relationData.elements.filter(i => i.type === "relation"),
+                i => i.id,
+            ),
+        ).map(([k, v]) => [k, v[0]]),
+    )
     let restrictionArrows = []
     const pinSign = document.createElement("span")
 
@@ -9275,8 +9319,7 @@ function arraysDiff(arg_a, arg_b, one_replace_cost = 2) {
                 const del_cost = dp[i - 1][j]
                 const ins_cost = dp[i][j - 1]
                 const replace_cost = dp[i - 1][j - 1] + (a[i - 1] !== b[j - 1]) * one_replace_cost // replacement is not very desirable
-                const replace_role_cost = dp[i - 1][j - 1] +
-                    ((!(arg_a[i - 1].type === arg_b[j - 1].type && arg_a[i - 1].ref === arg_b[j - 1].ref)) || arg_a[i - 1].role === arg_b[j - 1].role) * one_replace_cost
+                const replace_role_cost = dp[i - 1][j - 1] + (!(arg_a[i - 1].type === arg_b[j - 1].type && arg_a[i - 1].ref === arg_b[j - 1].ref) || arg_a[i - 1].role === arg_b[j - 1].role) * one_replace_cost
                 dp[i][j] = min(min(del_cost, ins_cost) + 1, min(replace_cost, replace_role_cost))
             }
         }
@@ -9455,6 +9498,7 @@ function addSwipes() {
 let rateLimitBan = false
 
 function escapeHtml(unsafe) {
+    // prettier-ignore
     return unsafe
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
@@ -9583,6 +9627,7 @@ function makeCorporateMappersData(raw_data) {
         corporatesLinks.set(kontora, link)
         mappers.forEach(username => {
             // https://github.com/piebro/openstreetmap-statistics/blob/53f9397a066c726b598eec6221a49d57583ddeac/src/save_corporation_contributors.py#L173-L179
+            // prettier-ignore
             username = username
                 .replaceAll("%40%", "@")
                 .replaceAll("%40%", "%40")
@@ -9719,8 +9764,11 @@ function makeLinksInRowClickable(row) {
             makeMapillaryValue(valueCell)
         } else if (key.startsWith("wikimedia_commons")) {
             makeWikimediaCommonsValue(valueCell)
-        } else if (key.startsWith("opening_hours") // https://github.com/opening-hours/opening_hours.js/blob/master/scripts/related_tags.txt
-            || ["happy_hours", "delivery_hours", "smoking_hours", "collection_times", "service_times"].includes(key)) {
+        } else if (
+            key.startsWith("opening_hours") || // https://github.com/opening-hours/opening_hours.js/blob/master/scripts/related_tags.txt
+            key.startsWith("happy_hours") ||
+            ["delivery_hours", "smoking_hours", "collection_times", "service_times"].includes(key)
+        ) {
             if (key !== "opening_hours:signed" && typeof opening_hours !== "undefined") {
                 try {
                     new opening_hours(valueCell.textContent, null, { tag_key: key })
@@ -12703,6 +12751,7 @@ async function loadChangesets(user) {
     let endTime = new Date(new Date().getTime() + 1000 * 60 * 60 * 24)
 
 
+    // prettier-ignore
     const parts = await Promise.all([
         loadChangesetsBetween(user, startTime, startTime2),
         loadChangesetsBetween(user, startTime2, startTime3),
@@ -14290,6 +14339,7 @@ function filterChangesets(htmlDocument = document) {
                 }
             } else {
                 usernameFilters.forEach(username => {
+                    // prettier-ignore
                     if (changesetAuthor.includes(username)
                         || username === CORPORATE_EMOJI && corporateMappers?.has(changesetAuthor)
                         || username === BAN_EMOJI && changesetAuthorLink?.previousElementSibling?.classList?.contains("banned-badge")
@@ -14400,7 +14450,7 @@ function loadExternalVectorStyle() {
     try {
         GM.xmlHttpRequest({
             url: "",
-            responseType: "json"
+            responseType: "json",
         }).then(async res => {
             getWindow().vectorStyle = await res.response
         })
@@ -14918,8 +14968,7 @@ function addMassChangesetsActions() {
                 getCachedUserInfo(usernameA?.textContent).then(res => {
                     if (!res) return
                     usernameA.title = makeUsernameTitle(res)
-                    usernameA.before(makeBadge(res,
-                        new Date(item.parentElement.parentElement.querySelector("time")?.getAttribute("datetime") ?? new Date())))
+                    usernameA.before(makeBadge(res, new Date(item.parentElement.parentElement.querySelector("time")?.getAttribute("datetime") ?? new Date())))
                 })
             }
         })
@@ -15366,7 +15415,7 @@ function goToPrevChangesetObject(e) {
         if (cur.previousElementSibling) {
             cur.previousElementSibling.classList.add("active-object")
             cur.classList.remove("active-object")
-
+            // prettier-ignore
             if (!cur.previousElementSibling.classList.contains('tags-non-modified')
                 || cur.previousElementSibling.classList.contains('location-modified')
                 || cur.previousElementSibling.querySelector('.nodes-changed, .members-changed')
@@ -15388,10 +15437,12 @@ function goToPrevChangesetObject(e) {
             }
         } else {
             const curFrame = cur.parentElement.parentElement
+            // prettier-ignore
             if (curFrame.id === "changeset_nodes" && ["changeset_ways", "changeset_relations"].includes(curFrame.previousElementSibling?.id)
                 || curFrame.id === "changeset_relations" && ["changeset_ways"].includes(curFrame.previousElementSibling?.id)) {
                 cur.classList.remove("active-object")
                 curFrame.previousElementSibling.querySelector("#changeset_ways li:last-of-type, #changeset_relations li:last-of-type").classList.add("active-object")
+                // prettier-ignore
                 if (!curFrame.previousElementSibling.querySelector(".active-object").classList.contains('tags-non-modified')
                     || curFrame.previousElementSibling.querySelector(".active-object").classList.contains('location-modified')
                     || curFrame.previousElementSibling.querySelector(".active-object").querySelector('.nodes-changed, .members-changed')
@@ -15425,6 +15476,7 @@ function goToPrevChangesetObject(e) {
                 if (prev?.nodeName === "TURBO-FRAME") {
                     cur.classList.remove("active-object")
                     prev.querySelector("li:last-of-type").classList.add("active-object")
+                    // prettier-ignore
                     if (!prev.querySelector("li:last-of-type").classList.contains('tags-non-modified')
                         || prev.querySelector("li:last-of-type").classList.contains('location-modified')
                         || prev.querySelector("li:last-of-type")?.querySelector('.nodes-changed, .members-changed')
@@ -15482,6 +15534,7 @@ function goToNextChangesetObject(e) {
         if (cur.nextElementSibling) {
             cur.nextElementSibling.classList.add("active-object")
             cur.classList.remove("active-object")
+            // prettier-ignore
             if (!cur.nextElementSibling.classList.contains('tags-non-modified')
                 || cur.nextElementSibling.classList.contains('location-modified')
                 || cur.nextElementSibling.querySelector('.nodes-changed, .members-changed')
@@ -15506,6 +15559,7 @@ function goToNextChangesetObject(e) {
             if ((curFrame.id === "changeset_ways" && ["changeset_nodes", "changeset_relations"].includes(curFrame.nextElementSibling?.id)) || (curFrame.id === "changeset_relations" && ["changeset_nodes"].includes(curFrame.nextElementSibling?.id))) {
                 cur.classList.remove("active-object")
                 curFrame.nextElementSibling.querySelector("#changeset_nodes li, #changeset_relations li").classList.add("active-object")
+                // prettier-ignore
                 if (!curFrame.nextElementSibling.querySelector(".active-object").classList.contains('tags-non-modified')
                     || curFrame.nextElementSibling.querySelector(".active-object").classList.contains('location-modified')
                     || curFrame.nextElementSibling.querySelector(".active-object").querySelector('.nodes-changed, .members-changed')
@@ -15540,6 +15594,7 @@ function goToNextChangesetObject(e) {
                 if (next?.nodeName === "TURBO-FRAME") {
                     cur.classList.remove("active-object")
                     next.querySelector("li").classList.add("active-object")
+                    // prettier-ignore
                     if (!next.querySelector("li").classList.contains('tags-non-modified')
                         || next.querySelector("li").classList.contains('location-modified')
                         || next.querySelector("li")?.querySelector('.nodes-changed, .members-changed')
@@ -16016,6 +16071,7 @@ function zoomToCurrentObject(e) {
             } else {
                 if (location.pathname.includes("history")) {
                     // panTo last visible version
+                    // prettier-ignore
                     panTo(
                         document.querySelector("#element_versions_list > div span.latitude").textContent.replace(",", "."),
                         document.querySelector("#element_versions_list > div span.longitude").textContent.replace(",", "."),
@@ -16033,12 +16089,14 @@ function zoomToCurrentObject(e) {
                         enableOverzoom()
                     }
                     if (ZoomToObjectClicks === 1) {
+                        // prettier-ignore
                         panTo(
                             noteMetadata.geometry.coordinates[1],
                             noteMetadata.geometry.coordinates[0],
                             max(17, zoom),
                         )
                     } else {
+                        // prettier-ignore
                         panTo(
                             noteMetadata.geometry.coordinates[1],
                             noteMetadata.geometry.coordinates[0],
@@ -16136,10 +16194,12 @@ function setupNavigationViaHotkeys() {
         if (document.activeElement.getAttribute("contenteditable")) {
             return
         }
+        // prettier-ignore
         if (["TH", "TD"].includes(document.activeElement?.nodeName)
             && document.activeElement?.parentElement?.parentElement?.parentElement?.hasAttribute("contenteditable")) {
             return
         }
+        // prettier-ignore
         if (["TR"].includes(document.activeElement?.nodeName)
             && document.activeElement?.parentElement?.parentElement?.hasAttribute("contenteditable")) {
             return
@@ -16888,6 +16948,7 @@ function setupOverzoomForDataLayer() {
 }
 
 /***@type {((function(string): Promise<void>|void))[]}*/
+// prettier-ignore
 const modules = [
     setupDarkModeForMap,
     setupHDYCInProfile,
@@ -16907,7 +16968,7 @@ const modules = [
     setupOverzoomForDataLayer,
     setupDragAndDropViewers
 ];
-
+// prettier-ignore
 const alwaysEnabledModules = [
     setupRelationVersionViewer,
     setupMakeVersionPageBetter,
