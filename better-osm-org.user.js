@@ -154,21 +154,9 @@ if ((location.origin + location.pathname).startsWith("https://github.com/openstr
         if (document.querySelector(".better-osm-org-warn")) {
             return
         }
-        let result = document.evaluate(
-            "//h1[normalize-space(text())='Create new issue']",
-            document,
-            null,
-            XPathResult.FIRST_ORDERED_NODE_TYPE,
-            null
-        ).singleNodeValue;
+        let result = document.evaluate("//h1[normalize-space(text())='Create new issue']", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue
         if (!result) {
-            result = document.evaluate(
-                "//h2[normalize-space(text())='Create new issue']",
-                document,
-                null,
-                XPathResult.FIRST_ORDERED_NODE_TYPE,
-                null
-            ).singleNodeValue;
+            result = document.evaluate("//h2[normalize-space(text())='Create new issue']", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue
         }
         if (result) {
             const warn = document.createElement("div")
@@ -218,8 +206,7 @@ if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Grease
                 RELATION_ICON: REPO_PREFIX + "icons/Taginfo_element_relation.svg",
                 OSMCHA_LIKE: OSMCHA_PREFIX + "94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-up.svg",
                 OSMCHA_DISLIKE: OSMCHA_PREFIX + "94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-down.svg",
-                DARK_THEME_FOR_ID_CSS:
-                    "https://gist.githubusercontent.com/deevroman/55f35da68ab1efb57b7ba4636bdf013d/raw/7b94e3b7db91d023f1570ae415acd7ac989fffe0/dark.css",
+                DARK_THEME_FOR_ID_CSS: "https://gist.githubusercontent.com/deevroman/55f35da68ab1efb57b7ba4636bdf013d/raw/7b94e3b7db91d023f1570ae415acd7ac989fffe0/dark.css",
             }
             for (let resource in resourcesName) {
                 GM.xmlHttpRequest({
@@ -236,7 +223,7 @@ if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Grease
                 })
             }
         })
-        window.GM_getResourceURL = (name) => {
+        window.GM_getResourceURL = name => {
             console.log(resources)
             return resources[name]
         }
@@ -244,11 +231,11 @@ if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Grease
 
     if (typeof GM_addElement === "undefined") {
         window.GM_addElement = function () {
-            let parent, type, attrs;
+            let parent, type, attrs
             if (arguments.length === 3) {
-                [parent, type, attrs] = arguments
+                ;[parent, type, attrs] = arguments
             } else if (arguments.length === 2) {
-                [type, attrs] = arguments
+                ;[type, attrs] = arguments
             } else {
                 return
             }
@@ -264,16 +251,16 @@ if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Grease
     }
 }
 
-const accountForceLightTheme = document.querySelector("html")?.getAttribute("data-bs-theme") === "light";
-const accountForceDarkTheme = document.querySelector("html")?.getAttribute("data-bs-theme") === "dark";
-const mediaQueryForWebsiteTheme = `${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""}`;
+const accountForceLightTheme = document.querySelector("html")?.getAttribute("data-bs-theme") === "light"
+const accountForceDarkTheme = document.querySelector("html")?.getAttribute("data-bs-theme") === "dark"
+const mediaQueryForWebsiteTheme = `${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""}`
 
 function isDarkMode() {
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && !accountForceLightTheme || accountForceDarkTheme;
+    return (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches && !accountForceLightTheme) || accountForceDarkTheme
 }
 
-const isRTLLayout = document.querySelector("html").dir === "rtl";
-const arrowSymbolForChanges = !isRTLLayout ? " → " : " ← ";
+const isRTLLayout = document.querySelector("html").dir === "rtl"
+const arrowSymbolForChanges = !isRTLLayout ? " → " : " ← "
 
 const SCRIPT_UPDATE_URL = "https://raw.githubusercontent.com/deevroman/better-osm-org/master/better-osm-org.user.js"
 const DEV_SCRIPT_UPDATE_URL = "https://raw.githubusercontent.com/deevroman/better-osm-org/dev/better-osm-org.user.js"
@@ -282,14 +269,14 @@ const prod_server = {
     apiBase: "https://www.openstreetmap.org/api/0.6/",
     apiUrl: "https://www.openstreetmap.org/api/0.6",
     url: "https://www.openstreetmap.org",
-    origin: "https://www.openstreetmap.org"
+    origin: "https://www.openstreetmap.org",
 }
 
 const ohm_prod_server = {
     apiBase: "https://www.openhistoricalmap.org/api/0.6/",
     apiUrl: "https://www.openhistoricalmap.org/api/0.6",
     url: "https://www.openhistoricalmap.org",
-    origin: "https://www.openhistoricalmap.org"
+    origin: "https://www.openhistoricalmap.org",
 }
 
 const dev_server = {
@@ -307,15 +294,15 @@ const local_server = {
 }
 
 const osm_server = (() => {
-    if (location.origin === prod_server.origin) return prod_server;
-    else if (location.origin === dev_server.origin) return dev_server;
-    else if (location.origin === ohm_prod_server.origin) return ohm_prod_server;
-    else if (location.origin === local_server.origin) return local_server;
-    else return null;
+    if (location.origin === prod_server.origin) return prod_server
+    else if (location.origin === dev_server.origin) return dev_server
+    else if (location.origin === ohm_prod_server.origin) return ohm_prod_server
+    else if (location.origin === local_server.origin) return local_server
+    else return null
 })()
 
 function isOsmServer() {
-    return !!osm_server;
+    return !!osm_server
 }
 
 const planetOrigin = "https://planet.maps.mail.ru"
@@ -344,52 +331,52 @@ const instancesOf3DViewers = [
     {
         name: "OSM Building Viewer",
         url: "https://deevroman.github.io/OSMBuilding/",
-        makeURL: function ({type: type, id: id}) {
-            return `${this.url}?id=${id}&type=${type}`// TODO osmAPIurl
-        }
+        makeURL: function ({ type: type, id: id }) {
+            return `${this.url}?id=${id}&type=${type}` // TODO osmAPIurl
+        },
     },
     {
         name: "F4Map",
         url: "https://demo.f4map.com/",
-        makeURL: function ({x: x, y: y, z: z}) {
-            return `${this.url}#lat=${x}&lon=${y}&zoom=${z}`;
-        }
+        makeURL: function ({ x: x, y: y, z: z }) {
+            return `${this.url}#lat=${x}&lon=${y}&zoom=${z}`
+        },
     },
     {
         name: "streets.gl",
         url: "https://streets.gl/",
-        makeURL: function ({x: x, y: y, z: z}) {
+        makeURL: function ({ x: x, y: y, z: z }) {
             return `${this.url}#${x},${y},45.00,0.00,2000.00`
-        }
+        },
     },
     {
         name: "OSM go",
         url: "https://www.osmgo.org/go.html",
-        makeURL: function ({x: x, y: y, z: z}) {
+        makeURL: function ({ x: x, y: y, z: z }) {
             return `${this.url}?lat=${x}&lon=${y}&view=-50&ele=150`
-        }
+        },
     },
     {
         name: "osmbuildings.org",
         url: "https://osmbuildings.org/",
-        makeURL: function ({x: x, y: y, z: z}) {
+        makeURL: function ({ x: x, y: y, z: z }) {
             return `${this.url}?lat=${x}&lon=${y}&zoom=${z}`
-        }
+        },
     },
     {
         name: "labs.mapbox.com",
         url: "https://labs.mapbox.com/standard-style?lightPreset=day#",
-        makeURL: function ({x: x, y: y, z: z}) {
+        makeURL: function ({ x: x, y: y, z: z }) {
             // z-1 looks better
             return `${this.url}${z - 1}/${x}/${y}/0/50`
-        }
+        },
     },
     {
         name: "OSM Building Inspector",
         url: "https://www.osmgo.org/bevy.html?",
-        makeURL: function ({type: type, id: id}) {
+        makeURL: function ({ type: type, id: id }) {
             return `${this.url}?${type}=${id}`
-        }
+        },
     },
     // {
     //     name: "OSM Building Viewer (fork)",
@@ -401,8 +388,8 @@ const instancesOf3DViewers = [
 ]
 
 /** @type {unsafeWindow & windowOSM} **/
-const boWindowObject = typeof window.wrappedJSObject !== "undefined" ? window.wrappedJSObject : unsafeWindow;
-const boGlobalThis = typeof boWindowObject.globalThis !== "undefined" ? boWindowObject.globalThis : boWindowObject;
+const boWindowObject = typeof window.wrappedJSObject !== "undefined" ? window.wrappedJSObject : unsafeWindow
+const boGlobalThis = typeof boWindowObject.globalThis !== "undefined" ? boWindowObject.globalThis : boWindowObject
 
 /** @type {null|(function(): null|import('leaflet').Map)}*/
 let getMap = null
@@ -452,15 +439,13 @@ function intoPage(obj) {
  * @returns {T}
  */
 function intoPageWithFun(obj) {
-    return cloneInto(obj, getWindow(), {cloneFunctions: true})
+    return cloneInto(obj, getWindow(), { cloneFunctions: true })
 }
 
-const _isDebug = document.querySelector("head")?.getAttribute("data-user") === "11528195"
-    || osm_server === local_server
-    || osm_server === dev_server;
+const _isDebug = document.querySelector("head")?.getAttribute("data-user") === "11528195" || osm_server === local_server || osm_server === dev_server
 
 function isDebug() {
-    return _isDebug;
+    return _isDebug
 }
 
 function debug_alert() {
@@ -474,18 +459,19 @@ if (isOsmServer() && !["/edit", "/id"].includes(location.pathname)) {
     function mapHook() {
         console.log("start map intercepting")
         if (boWindowObject.L && boWindowObject.L.Map) {
-            boWindowObject.L.Map.addInitHook(exportFunction((function () {
+            boWindowObject.L.Map.addInitHook(
+                exportFunction(function () {
                     if (this._container?.id === "map") {
-                        boGlobalThis.map = this;
+                        boGlobalThis.map = this
                         boGlobalThis.mapIntercepted = true
-                        console.log("%cMap intercepted", 'background: #000; color: #0f0')
+                        console.log("%cMap intercepted", "background: #000; color: #0f0")
                         if (!boGlobalThis.scriptInstance) {
-                            boGlobalThis.scriptInstance = GM_info.scriptHandler;
+                            boGlobalThis.scriptInstance = GM_info.scriptHandler
                         } else if (boGlobalThis.scriptInstance !== GM_info.scriptHandler) {
                             console.error(`Two copies of the script were running simultaneously via ${boGlobalThis.scriptInstance} and ${GM_info.scriptHandler}. Turn off one of them`)
                         }
                     }
-                }), boWindowObject)
+                }, boWindowObject),
             )
         } else {
             console.error("the script could not access the L.Map object. Some of the functions will not work")
@@ -515,15 +501,17 @@ if (isOsmServer() && !["/edit", "/id"].includes(location.pathname)) {
     // }
 
     setTimeout(() => {
-        console.debug("Settings:", Object.entries(GM_config.fields).map(i => {
-            if (typeof i[1].value === "boolean") {
-                return [i[0], i[1].value]
-            } else {
-                return [i[0], `length: ${i[1].value.length}`]
-            }
-        }))
+        console.debug(
+            "Settings:",
+            Object.entries(GM_config.fields).map(i => {
+                if (typeof i[1].value === "boolean") {
+                    return [i[0], i[1].value]
+                } else {
+                    return [i[0], `length: ${i[1].value.length}`]
+                }
+            }),
+        )
     }, 1500)
-
 } else if (isOsmServer() && ["/edit", "/id"].includes(location.pathname)) {
     if (isDarkMode()) {
         if (location.pathname === "/edit") {
@@ -541,7 +529,7 @@ if (isOsmServer() && !["/edit", "/id"].includes(location.pathname)) {
                 #id-embed {
                     background: #212529 !important;
                 }
-            }`
+            }`,
             )
         } else {
             injectCSSIntoOSMPage(
@@ -561,7 +549,7 @@ if (isOsmServer() && !["/edit", "/id"].includes(location.pathname)) {
                 #id-container {
                     background: #212529 !important;
                 }
-            }`
+            }`,
             )
             // if (location.pathname === "/id") {
             //     console.log("post")
@@ -571,13 +559,13 @@ if (isOsmServer() && !["/edit", "/id"].includes(location.pathname)) {
     }
     GM_registerMenuCommand("JOSM!", function () {
         const iframe = GM_addElement("iframe", {
-            "src": "https://deevroman.github.io/web-josm",
-            "width": "100%",
-            "height": "100%",
-            "id": "josmembed",
+            src: "https://deevroman.github.io/web-josm",
+            width: "100%",
+            height: "100%",
+            id: "josmembed",
         })
         document.querySelector("#id-embed").replaceWith(iframe)
-    });
+    })
 }
 
 function makeRow(label, text, without_delete = false, placeholder = "comment that will be added when clicked") {
@@ -602,7 +590,7 @@ function makeRow(label, text, without_delete = false, placeholder = "comment tha
     td2.style.cursor = "pointer"
     td2.style.textAlign = "center"
     td2.onclick = () => {
-        if (label === "" && text === "" || confirm(`Remove "${label}"?`)) {
+        if ((label === "" && text === "") || confirm(`Remove "${label}"?`)) {
             tr.remove()
         }
     }
@@ -637,312 +625,294 @@ const copyAnimationStyles = `
           transition: all 0.3s;
         }
     }
-`;
+`
 
-GM_config.init(
-    {
-        'id': 'Config',
-        'title': ' ',
-        'fields':
-            {
-                'DarkModeForMap': {
-                    'label': 'Invert map colors in dark mode',
-                    'type': 'checkbox',
-                    'default': false,
-                    'labelPos': 'right'
-                },
-                'DarkModeForID': {
-                    'label': 'Dark mode for iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Thanks AlexPS</a>)',
-                    'type': 'checkbox',
-                    'default': false,
-                    'labelPos': 'right'
-                },
-                'CompactChangesetsHistory':
-                    {
-                        'section': ["Viewing edits"],
-                        'label': 'Compact changesets history',
-                        'type': 'checkbox',
-                        'default': 'checked',
-                        'labelPos': 'right',
-                    },
-                'VersionsDiff':
-                    {
-                        'label': 'Add tags diff in history',
-                        'type': 'checkbox',
-                        'default': 'checked',
-                        'labelPos': 'right',
-                    },
-                'ShowPreviousTagValue':
-                    {
-                        'label': 'Show previous tag value',
-                        'type': 'checkbox',
-                        'default': 'checked',
-                        'labelPos': 'right',
-                    },
-                'FullVersionsDiff':
-                    {
-                        'label': 'Add diff with intermediate versions in way history',
-                        'type': 'checkbox',
-                        'default': 'checked',
-                        'labelPos': 'right',
-                    },
-                'ChangesetQuickLook':
-                    {
-                        'label': 'Add QuickLook for small changesets ',
-                        'type': 'checkbox',
-                        'default': 'checked',
-                        'labelPos': 'right'
-                    },
-                'ShowChangesetGeometry':
-                    {
-                        'label': 'Show geometry of objects in changeset',
-                        'type': 'checkbox',
-                        'default': 'checked',
-                        'labelPos': 'right'
-                    },
-                'MassChangesetsActions':
-                    {
-                        'label': 'Add actions for changesets list (mass revert, filtering, ...)',
-                        'type': 'checkbox',
-                        'default': 'checked',
-                        'labelPos': 'right'
-                    },
-                'ImagesAndLinksInTags':
-                    {
-                        'label': 'Make some tags clickable, shorter and display photos',
-                        'type': 'checkbox',
-                        'default': 'checked',
-                        'labelPos': 'right',
-                    },
-                'HideNoteHighlight':
-                    {
-                        'section': ["Working with notes"],
-                        'label': 'Hide note highlight',
-                        'type': 'checkbox',
-                        'default': 'checked',
-                        'labelPos': 'right'
-                    },
-                'SatelliteLayers':
-                    {
-                        'label': 'Add satellite layers for notes page',
-                        'type': 'checkbox',
-                        'default': 'checked',
-                        'labelPos': 'right'
-                    },
-                'ResolveNotesButton':
-                    {
-                        'label': 'Addition resolve buttons:',
-                        'type': 'menu',
-                        'default': '[{"label": "👌", "text": ""}]'
-                    },
-                'RevertButton':
-                    {
-                        'section': ["New actions"],
-                        'label': 'Revert&Osmcha changeset button',
-                        'type': 'checkbox',
-                        'default': 'checked',
-                        'labelPos': 'right'
-                    },
-                'Deletor':
-                    {
-                        'label': 'Button for node deletion',
-                        'type': 'checkbox',
-                        'default': 'checked',
-                        'labelPos': 'right'
-                    },
-                'OneClickDeletor':
-                    {
-                        'label': 'Delete node without confirmation',
-                        'type': 'checkbox',
-                        'default': false,
-                        'labelPos': 'right'
-                    },
-                'ChangesetsTemplates':
-                    {
-                        'label': 'Changesets comments templates <a id="last-comments-link" target="_blank">(your last comments)</a>',
-                        'type': 'menu',
-                        'default': '[{"label": "👋", "text": ""}]'
-                    },
-                'HDYCInProfile':
-                    {
-                        'section': ["Other"],
-                        'label': 'Add HDYC to user profile',
-                        'type': 'checkbox',
-                        'default': 'checked',
-                        'labelPos': 'right'
-                    },
-                'BetterProfileStat':
-                    {
-                        'label': 'Add filters to profile statistics',
-                        'type': 'checkbox',
-                        'default': 'checked',
-                        'labelPos': 'right'
-                    },
-                'NavigationViaHotkeys':
-                    {
-                        'label': 'Add hotkeys <a href="https://github.com/deevroman/better-osm-org#Hotkeys" target="_blank">(List)</a>', // add help button with list
-                        'type': 'checkbox',
-                        'default': 'checked',
-                        'labelPos': 'right'
-                    },
-                'NewEditorsLinks':
-                    {
-                        'label': 'Add new editors (Rapid, ... ?)',
-                        'type': 'checkbox',
-                        'default': 'checked',
-                        'labelPos': 'right'
-                    },
-                'ResetSearchFormFocus': {
-                    'label': 'Reset search form focus',
-                    'type': 'checkbox',
-                    'default': 'checked',
-                    'labelPos': 'right'
-                },
-                'Swipes': {
-                    'label': 'Add swipes between user changesets',
-                    'type': 'checkbox',
-                    'default': false,
-                    'labelPos': 'right'
-                },
-                'ResizableSidebar': {
-                    'label': 'Slider for sidebar width',
-                    'type': 'checkbox',
-                    'default': 'checked',
-                    'labelPos': 'right'
-                },
-                'ClickableAvatar': {
-                    'label': 'Click by avatar for open changesets',
-                    'type': 'checkbox',
-                    'default': 'checked',
-                    'labelPos': 'right'
-                },
-                'OverzoomForDataLayer': {
-                    'label': 'Allow overzoom when data/satellite layer enabled β',
-                    'type': 'checkbox',
-                    'default': false,
-                    'labelPos': 'right'
-                },
-                'DragAndDropViewers': {
-                    'label': 'Drag&Drop for .geojson, .jpg, .gpx β',
-                    'type': 'checkbox',
-                    'default': 'checked',
-                    'labelPos': 'right'
-                },
-                '3DViewerInNewTab': {
-                    'label': 'Open buildings 3D viewers always in new tab',
-                    'type': 'checkbox',
-                    'default': 'checked',
-                    'labelPos': 'right'
-                },
-                'BetterTaginfo': {
-                    'label': 'Add new buttons in Taginfo',
-                    'type': 'checkbox',
-                    'default': 'checked',
-                    'labelPos': 'right'
-                },
-                'OverpassInstance': {
-                    'label': '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass API server</a>',
-                    'labelPos': 'left',
-                    'type': 'select',
-                    'options': [
-                        MAIN_OVERPASS_INSTANCE.name,
-                        MAILRU_OVERPASS_INSTANCE.name,
-                        PRIVATECOFFEE_OVERPASS_INSTANCE.name
-                    ],
-                },
-            },
-        'types': {
-            'menu': {
-                'default': '',
-                toNode: function () {
-                    const templates = this.value || this.settings.default;
-                    const settingNode = this.create('div', {
-                        className: 'config_var',
-                        id: this.configId + '_' + this.id + '_var',
-                    });
+GM_config.init({
+    id: "Config",
+    title: " ",
+    fields: {
+        DarkModeForMap: {
+            label: "Invert map colors in dark mode",
+            type: "checkbox",
+            default: false,
+            labelPos: "right",
+        },
+        DarkModeForID: {
+            label: 'Dark mode for iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Thanks AlexPS</a>)',
+            type: "checkbox",
+            default: false,
+            labelPos: "right",
+        },
+        CompactChangesetsHistory: {
+            section: ["Viewing edits"],
+            label: "Compact changesets history",
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        VersionsDiff: {
+            label: "Add tags diff in history",
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        ShowPreviousTagValue: {
+            label: "Show previous tag value",
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        FullVersionsDiff: {
+            label: "Add diff with intermediate versions in way history",
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        ChangesetQuickLook: {
+            label: "Add QuickLook for small changesets ",
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        ShowChangesetGeometry: {
+            label: "Show geometry of objects in changeset",
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        MassChangesetsActions: {
+            label: "Add actions for changesets list (mass revert, filtering, ...)",
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        ImagesAndLinksInTags: {
+            label: "Make some tags clickable, shorter and display photos",
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        HideNoteHighlight: {
+            section: ["Working with notes"],
+            label: "Hide note highlight",
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        SatelliteLayers: {
+            label: "Add satellite layers for notes page",
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        ResolveNotesButton: {
+            label: "Addition resolve buttons:",
+            type: "menu",
+            default: '[{"label": "👌", "text": ""}]',
+        },
+        RevertButton: {
+            section: ["New actions"],
+            label: "Revert&Osmcha changeset button",
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        Deletor: {
+            label: "Button for node deletion",
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        OneClickDeletor: {
+            label: "Delete node without confirmation",
+            type: "checkbox",
+            default: false,
+            labelPos: "right",
+        },
+        ChangesetsTemplates: {
+            label: 'Changesets comments templates <a id="last-comments-link" target="_blank">(your last comments)</a>',
+            type: "menu",
+            default: '[{"label": "👋", "text": ""}]',
+        },
+        HDYCInProfile: {
+            section: ["Other"],
+            label: "Add HDYC to user profile",
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        BetterProfileStat: {
+            label: "Add filters to profile statistics",
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        NavigationViaHotkeys: {
+            label: 'Add hotkeys <a href="https://github.com/deevroman/better-osm-org#Hotkeys" target="_blank">(List)</a>', // add help button with list
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        NewEditorsLinks: {
+            label: "Add new editors (Rapid, ... ?)",
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        ResetSearchFormFocus: {
+            label: "Reset search form focus",
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        Swipes: {
+            label: "Add swipes between user changesets",
+            type: "checkbox",
+            default: false,
+            labelPos: "right",
+        },
+        ResizableSidebar: {
+            label: "Slider for sidebar width",
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        ClickableAvatar: {
+            label: "Click by avatar for open changesets",
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        OverzoomForDataLayer: {
+            label: "Allow overzoom when data/satellite layer enabled β",
+            type: "checkbox",
+            default: false,
+            labelPos: "right",
+        },
+        DragAndDropViewers: {
+            label: "Drag&Drop for .geojson, .jpg, .gpx β",
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        "3DViewerInNewTab": {
+            label: "Open buildings 3D viewers always in new tab",
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        BetterTaginfo: {
+            label: "Add new buttons in Taginfo",
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        OverpassInstance: {
+            label: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass API server</a>',
+            labelPos: "left",
+            type: "select",
+            options: [MAIN_OVERPASS_INSTANCE.name, MAILRU_OVERPASS_INSTANCE.name, PRIVATECOFFEE_OVERPASS_INSTANCE.name],
+        },
+        CustomLayers: {
+            label: "Custom map layers: β",
+            type: "menu",
+            default: "[]",
+            placeholder: "TMS URL",
+        },
+    },
+    types: {
+        menu: {
+            default: "",
+            toNode: function () {
+                const templates = this.value || this.settings.default
+                const settingNode = this.create("div", {
+                    className: "config_var",
+                    id: this.configId + "_" + this.id + "_var",
+                })
 
-                    this.templates = templates;
+                this.templates = templates
 
-                    settingNode.appendChild(this.create('input', {
+                settingNode.appendChild(
+                    this.create("input", {
                         innerHTML: this.settings.label,
-                        id: this.configId + '_' + this.id + '_field_filler',
-                        className: 'filler',
+                        id: this.configId + "_" + this.id + "_field_filler",
+                        className: "filler",
                         type: "checkbox",
-                    }));
+                    }),
+                )
 
-                    const label = this.create('label', {
-                        innerHTML: this.settings.label,
-                        id: this.configId + '_' + this.id + '_field_label',
-                        for: this.configId + '_field_' + this.id,
-                        className: 'field_label'
-                    })
-                    if (label.querySelector("#last-comments-link")) {
-                        const userId = document.querySelector("head")?.getAttribute("data-user")
-                        if (userId) {
-                            label.querySelector("#last-comments-link").setAttribute("href", `https://resultmaps.neis-one.org/osm-discussion-comments?uid=${userId}&commented`)
-                        } else {
-                            label.querySelector("#last-comments-link").remove()
-                        }
-                    }
-                    settingNode.appendChild(label);
-
-
-                    const table = document.createElement("table")
-                    table.setAttribute("cellspacing", "0")
-                    table.setAttribute("cellpadding", "0")
-                    table.style.width = "100%"
-                    settingNode.appendChild(table)
-                    const tbody = document.createElement("tbody")
-                    table.appendChild(tbody)
-
-                    const placeholder = this.settings.placeholder ?? "comment that will be added when clicked"
-                    JSON.parse(templates).forEach(row => {
-                        tbody.appendChild(makeRow(row['label'], row['text'], false, placeholder))
-                    })
-
-                    const tr = document.createElement("tr")
-                    tr.classList.add("add-tag-row")
-                    tbody.appendChild(tr)
-                    const th = document.createElement("th")
-                    th.textContent = "+"
-                    th.colSpan = 3
-                    th.style.textAlign = "center"
-                    th.style.cursor = "pointer"
-                    tr.appendChild(th)
-                    th.onclick = () => {
-                        tbody.lastElementChild.before(makeRow("", ""))
-                    }
-
-                    return settingNode;
-                },
-                toValue: function () {
-                    let templates = [];
-                    if (this.wrapper) {
-                        for (let row of Array.from(this.wrapper.getElementsByTagName('tr')).slice(0, -1)) {
-                            const forPush = {
-                                label: row.querySelector("th").textContent,
-                                text: row.querySelector("td").textContent
-                            }
-                            if (!(forPush.label.trim() === "" && forPush.text.trim() === "")) {
-                                templates.push(forPush)
-                            }
-                        }
-                    }
-                    return JSON.stringify(templates);
-                },
-                reset: function () {
-                    if (this.wrapper) {
-                        for (let row of Array.from(this.wrapper.getElementsByTagName('tr')).slice(0, -1)) {
-                            row.remove()
-                        }
-                        JSON.parse(this.settings.default).forEach(i => {
-                            this.wrapper.querySelector(`#${this.configId}_${this.id}_var table`).lastElementChild.before(makeRow(i['label'], i['text']));
-                        })
+                const label = this.create("label", {
+                    innerHTML: this.settings.label,
+                    id: this.configId + "_" + this.id + "_field_label",
+                    for: this.configId + "_field_" + this.id,
+                    className: "field_label",
+                })
+                if (label.querySelector("#last-comments-link")) {
+                    const userId = document.querySelector("head")?.getAttribute("data-user")
+                    if (userId) {
+                        label.querySelector("#last-comments-link").setAttribute("href", `https://resultmaps.neis-one.org/osm-discussion-comments?uid=${userId}&commented`)
+                    } else {
+                        label.querySelector("#last-comments-link").remove()
                     }
                 }
-            }
+                settingNode.appendChild(label)
+
+                const table = document.createElement("table")
+                table.setAttribute("cellspacing", "0")
+                table.setAttribute("cellpadding", "0")
+                table.style.width = "100%"
+                settingNode.appendChild(table)
+                const tbody = document.createElement("tbody")
+                table.appendChild(tbody)
+
+                const placeholder = this.settings.placeholder ?? "comment that will be added when clicked"
+                JSON.parse(templates).forEach(row => {
+                    tbody.appendChild(makeRow(row["label"], row["text"], false, placeholder))
+                })
+
+                const tr = document.createElement("tr")
+                tr.classList.add("add-tag-row")
+                tbody.appendChild(tr)
+                const th = document.createElement("th")
+                th.textContent = "+"
+                th.colSpan = 3
+                th.style.textAlign = "center"
+                th.style.cursor = "pointer"
+                tr.appendChild(th)
+                th.onclick = () => {
+                    tbody.lastElementChild.before(makeRow("", ""))
+                }
+
+                return settingNode
+            },
+            toValue: function () {
+                let templates = []
+                if (this.wrapper) {
+                    for (let row of Array.from(this.wrapper.getElementsByTagName("tr")).slice(0, -1)) {
+                        const forPush = {
+                            label: row.querySelector("th").textContent,
+                            text: row.querySelector("td").textContent,
+                        }
+                        if (!(forPush.label.trim() === "" && forPush.text.trim() === "")) {
+                            templates.push(forPush)
+                        }
+                    }
+                }
+                return JSON.stringify(templates)
+            },
+            reset: function () {
+                if (this.wrapper) {
+                    for (let row of Array.from(this.wrapper.getElementsByTagName("tr")).slice(0, -1)) {
+                        row.remove()
+                    }
+                    JSON.parse(this.settings.default).forEach(i => {
+                        this.wrapper.querySelector(`#${this.configId}_${this.id}_var table`).lastElementChild.before(makeRow(i["label"], i["text"]))
+                    })
+                }
+            },
         },
-        frameStyle: `
+    },
+    frameStyle: `
             border: 1px solid #000;
             height: min(85%, 760px);
             width: max(25%, 380px);
@@ -952,7 +922,7 @@ GM_config.init(
             margin-left: auto;
             margin-right: auto;
         `,
-        css: `
+    css: `
             #Config_saveBtn {
                 cursor: pointer;
             }
@@ -972,13 +942,13 @@ GM_config.init(
             }
             #Config [placeholder]:empty::before {
                 content: attr(placeholder);
-                color: #555; 
+                color: #555;
             }
-            
+
             #Config [placeholder]:empty:focus::before {
                 content: "";
             }
-            
+
             #Config .filler {
                 visibility: hidden;
             }
@@ -1029,28 +999,27 @@ GM_config.init(
         }
         ${copyAnimationStyles}
         `,
-        'events':
-            {
-                'init': main,
-                'save': function () {
-                    GM_config.close()
-                },
-                'open': function (doc) {
-                    const versionSection = document.createElement("span");
-                    versionSection.id = "version";
-                    versionSection.textContent = `Script version: `;
-                    const version = document.createElement("span");
-                    version.textContent = GM_info.script.version;
-                    version.title = "Click for copy"
-                    version.style.cursor = "pointer";
-                    version.onclick = e => {
-                        navigator.clipboard.writeText(GM_info.script.version).then(() => copyAnimation(e, GM_info.script.version));
-                    }
-                    versionSection.appendChild(version);
-                    doc.querySelector(".reset_holder").prepend(versionSection);
-                }
+    events: {
+        init: main,
+        save: function () {
+            GM_config.close()
+        },
+        open: function (doc) {
+            const versionSection = document.createElement("span")
+            versionSection.id = "version"
+            versionSection.textContent = `Script version: `
+            const version = document.createElement("span")
+            version.textContent = GM_info.script.version
+            version.title = "Click for copy"
+            version.style.cursor = "pointer"
+            version.onclick = e => {
+                navigator.clipboard.writeText(GM_info.script.version).then(() => copyAnimation(e, GM_info.script.version))
             }
-    });
+            versionSection.appendChild(version)
+            doc.querySelector(".reset_holder").prepend(versionSection)
+        },
+    },
+})
 
 //</editor-fold>
 
@@ -1061,10 +1030,10 @@ GM_config.init(
  */
 function tagsToXml(doc, node, tags) {
     for (const [k, v] of Object.entries(tags)) {
-        let tag = doc.createElement('tag');
-        tag.setAttribute('k', k);
-        tag.setAttribute('v', v);
-        node.appendChild(tag);
+        let tag = doc.createElement("tag")
+        tag.setAttribute("k", k)
+        tag.setAttribute("v", v)
+        node.appendChild(tag)
     }
 }
 
@@ -1076,23 +1045,21 @@ function makeAuth() {
         client_secret: "ZUq",
         redirect_uri: GM_getResourceURL("OAUTH_HTML"),
         scope: "write_api",
-        auto: true
-    });
+        auto: true,
+    })
 }
 
 function makeHashtagsClickable() {
-    if (!GM_config.get("ImagesAndLinksInTags")) return;
+    if (!GM_config.get("ImagesAndLinksInTags")) return
 
-    const comment = document.querySelector("#element_versions_list > div p")
-        ?? document.querySelector(".browse_section > div p")
-        ?? document.querySelector("#sidebar_content h2 + div > p")
+    const comment = document.querySelector("#element_versions_list > div p") ?? document.querySelector(".browse_section > div p") ?? document.querySelector("#sidebar_content h2 + div > p")
     comment?.childNodes?.forEach(node => {
         if (node.nodeType !== Node.TEXT_NODE) return
         const span = document.createElement("span")
         span.textContent = node.textContent
         span.innerHTML = span.innerHTML.replaceAll(/\B(#[\p{L}\d_-]+)\b/gu, function (match) {
-            const osmchaFilter = {"comment": [{"label": match, "value": match}]}
-            const osmchaLink = "https://osmcha.org?" + new URLSearchParams({filters: JSON.stringify(osmchaFilter)}).toString()
+            const osmchaFilter = { comment: [{ label: match, value: match }] }
+            const osmchaLink = "https://osmcha.org?" + new URLSearchParams({ filters: JSON.stringify(osmchaFilter) }).toString()
             const a = document.createElement("a")
             a.href = osmchaLink
             a.target = "_blank"
@@ -1105,7 +1072,7 @@ function makeHashtagsClickable() {
 }
 
 function makeHashtagsInNotesClickable() {
-    if (!GM_config.get("ImagesAndLinksInTags")) return;
+    if (!GM_config.get("ImagesAndLinksInTags")) return
 
     const notesParagraphs = document.querySelectorAll("#sidebar_content h4 ~ div:first-of-type > p")
     notesParagraphs.forEach(p => {
@@ -1132,21 +1099,20 @@ function makeHashtagsInNotesClickable() {
                 function fixLink() {
                     const center = getMapCenter()
                     const zoom = getZoom()
-                    const notesReviewLink = "https://antonkhorev.github.io/osm-note-viewer/#" + new URLSearchParams({
-                        mode: "search",
-                        q: match,
-                        bbox: [
-                            Math.round(getMap().getBounds().getWest() * 10000) / 10000, Math.round(getMap().getBounds().getSouth() * 10000) / 10000,
-                            Math.round(getMap().getBounds().getEast() * 10000) / 10000, Math.round(getMap().getBounds().getNorth() * 10000) / 10000
-                        ].join(","),
-                        sort: "created_at",
-                        order: "newest",
-                        closed: 0,
-                        map: `${zoom}/${center.lat}/${center.lng}`,
-                    }).toString()
+                    const notesReviewLink =
+                        "https://antonkhorev.github.io/osm-note-viewer/#" +
+                        new URLSearchParams({
+                            mode: "search",
+                            q: match,
+                            bbox: [Math.round(getMap().getBounds().getWest() * 10000) / 10000, Math.round(getMap().getBounds().getSouth() * 10000) / 10000, Math.round(getMap().getBounds().getEast() * 10000) / 10000, Math.round(getMap().getBounds().getNorth() * 10000) / 10000].join(","),
+                            sort: "created_at",
+                            order: "newest",
+                            closed: 0,
+                            map: `${zoom}/${center.lat}/${center.lng}`,
+                        }).toString()
                     const link = document.getElementById(a.id)
                     link.href = notesReviewLink
-                    link.onclick = (e) => {
+                    link.onclick = e => {
                         if (e.shiftKey || e.ctrlKey || e.metaKey) {
                             return
                         }
@@ -1154,12 +1120,12 @@ function makeHashtagsInNotesClickable() {
                         if (document.querySelector(".layers-ui").style.display === "none") {
                             document.querySelector(".control-layers a").click()
                         }
-                        Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({block: "center"})
+                        Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({ block: "center" })
                         document.querySelector("#filter-notes-by-string").value = match
                         e.target?.classList?.add("wait-fetch")
                         updateNotesLayer()
                     }
-                    console.log("search link in note was fixed");
+                    console.log("search link in note was fixed")
                 }
 
                 setTimeout(() => {
@@ -1173,7 +1139,7 @@ function makeHashtagsInNotesClickable() {
     })
 }
 
-const filterIconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-funnel-icon lucide-funnel"><path d="M 10 20 a 1 1 0 0 0 0.553 0.895 l 2 1 A 1 1 0 0 0 14 21 v -8 a 2 3 0 0 1 1 -2 L 21.74 4.67 A 1 1 0 0 0 21 3 H 3 a 1 1 0 0 0 -0.742 1.67 l 6.742 6.33 A 2 3 0 0 1 10 13 z"/></svg>';
+const filterIconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-funnel-icon lucide-funnel"><path d="M 10 20 a 1 1 0 0 0 0.553 0.895 l 2 1 A 1 1 0 0 0 14 21 v -8 a 2 3 0 0 1 1 -2 L 21.74 4.67 A 1 1 0 0 0 21 3 H 3 a 1 1 0 0 0 -0.742 1.67 l 6.742 6.33 A 2 3 0 0 1 10 13 z"/></svg>'
 
 function makeUsernameInNotesFilterable() {
     const usernameLink = document.querySelector('#sidebar_content a[href^="/user/"]')
@@ -1193,7 +1159,7 @@ function makeUsernameInNotesFilterable() {
         if (document.querySelector(".layers-ui").style.display === "none") {
             document.querySelector(".control-layers a").click()
         }
-        Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({block: "center"})
+        Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({ block: "center" })
         if (document.querySelector("#filter-notes-by-username").value === "") {
             document.querySelector("#filter-notes-by-username").value = username
         } else {
@@ -1209,52 +1175,63 @@ function makeUsernameInNotesFilterable() {
 }
 
 function shortOsmOrgLinksInText(text) {
-    return text.replaceAll("https://www.openstreetmap.org", "osm.org")
-        .replaceAll("https://wiki.openstreetmap.org/wiki/", "osm.wiki/")
-        .replaceAll("https://wiki.openstreetmap.org", "osm.wiki")
-        .replaceAll("https://community.openstreetmap.org", "c.osm.org")
-        .replaceAll("https://openstreetmap.org", "osm.org")
+    // prettier-ignore
+    return text
+      .replaceAll("https://www.openstreetmap.org", "osm.org")
+      .replaceAll("https://wiki.openstreetmap.org/wiki/", "osm.wiki/")
+      .replaceAll("https://wiki.openstreetmap.org", "osm.wiki")
+      .replaceAll("https://community.openstreetmap.org", "c.osm.org")
+      .replaceAll("https://openstreetmap.org", "osm.org")
 }
 
 function shortOsmOrgLinks(elem) {
-    if (!GM_config.get("ImagesAndLinksInTags")) return;
+    if (!GM_config.get("ImagesAndLinksInTags")) return
     elem?.querySelectorAll('a[href^="https://www.openstreetmap.org"], a[href^="https://wiki.openstreetmap.org"], a[href^="https://community.openstreetmap.org"], a[href^="https://openstreetmap.org"]')?.forEach(i => {
         i.textContent = shortOsmOrgLinksInText(i.textContent)
     })
 }
 
 // todo remove this
+// prettier-ignore
 const mainTags = ["shop", "building", "amenity", "man_made", "highway", "natural", "aeroway", "historic", "railway", "tourism", "landuse", "leisure"]
 
 async function getPrevNextChangesetsIDs(changeset_id) {
     const changesetMetadata = await loadChangesetMetadata(changeset_id)
     if (!changesetMetadata.uid) return
 
-    const prevChangesetsPromise = fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
-        user: changesetMetadata.uid,
-        order: 'newest',
-        from: "2005-01-01T00:00:00Z",
-        to: new Date(new Date(changesetMetadata.created_at).getTime() + 1000).toISOString(), // на случай если в одну секунду создано несколько пакетов правок
-    }).toString())
+    const prevChangesetsPromise = fetchJSONWithCache(
+        osm_server.apiBase +
+            "changesets.json?" +
+            new URLSearchParams({
+                user: changesetMetadata.uid,
+                order: "newest",
+                from: "2005-01-01T00:00:00Z",
+                to: new Date(new Date(changesetMetadata.created_at).getTime() + 1000).toISOString(), // на случай если в одну секунду создано несколько пакетов правок
+            }).toString(),
+    )
 
     /*** @type {{changesets: ChangesetMetadata[]}}*/
-    const nextChangesets = await fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
-        user: changesetMetadata.uid,
-        order: 'oldest',
-        from: changesetMetadata.created_at,
-        to: new Date().toISOString(),
-    }).toString())
+    const nextChangesets = await fetchJSONWithCache(
+        osm_server.apiBase +
+            "changesets.json?" +
+            new URLSearchParams({
+                user: changesetMetadata.uid,
+                order: "oldest",
+                from: changesetMetadata.created_at,
+                to: new Date().toISOString(),
+            }).toString(),
+    )
 
     /*** @type {{changesets: ChangesetMetadata[]}}*/
-    const prevChangesets = await prevChangesetsPromise;
+    const prevChangesets = await prevChangesetsPromise
 
-    return [prevChangesets.changesets.find(i => i.id < changeset_id)?.id, nextChangesets.changesets.find(i => i.id > changeset_id)?.id];
+    return [prevChangesets.changesets.find(i => i.id < changeset_id)?.id, nextChangesets.changesets.find(i => i.id > changeset_id)?.id]
 }
 
 async function restorePrevNextChangesetButtons(changeset_id) {
-    if (document.querySelector(".restored-secondary-actions")) return;
+    if (document.querySelector(".restored-secondary-actions")) return
     console.log("try restore prev/next deleted user's changesets")
-    const [prevID, nextID] = await getPrevNextChangesetsIDs(changeset_id);
+    const [prevID, nextID] = await getPrevNextChangesetsIDs(changeset_id)
     if (!prevID && !nextID) return
     const secondaryActions = document.querySelector("#sidebar_content .secondary-actions")
     const secondarySecondaryActions = document.createElement("div")
@@ -1279,18 +1256,20 @@ async function restorePrevNextChangesetButtons(changeset_id) {
     secondaryActions.after(secondarySecondaryActions)
 }
 
-let changesetObjectsSelectionModeEnabled = false;
+let changesetObjectsSelectionModeEnabled = false
 
 async function validateOsmServerInJOSM() {
-    const res = await(await fetch("http://127.0.0.1:8111/version").catch(() => {
-        alert("JOSM is not running")
-        throw "JOSM is not running"
-    })).json()
-    if (res['osm_server'] === "custom" && osm_server === prod_server) {
+    const res = await (
+        await fetch("http://127.0.0.1:8111/version").catch(() => {
+            alert("JOSM is not running")
+            throw "JOSM is not running"
+        })
+    ).json()
+    if (res["osm_server"] === "custom" && osm_server === prod_server) {
         alert(`You are using custom OSM API server in JOSM.\n\nChange JOSM settings or open other website`)
         return false
     }
-    if (res['osm_server'] === "default" && osm_server !== prod_server) {
+    if (res["osm_server"] === "default" && osm_server !== prod_server) {
         alert(`You are using other OSM instance, but JOSM uses default server.\n\nChange JOSM settings or open other website`)
         return false
     }
@@ -1298,26 +1277,25 @@ async function validateOsmServerInJOSM() {
 }
 
 function makeUsernameTitle(userInfo) {
-    let title = `changesets_count: ${userInfo['changesets']['count']}\naccount_created: ${userInfo['account_created']}`
-    if (userInfo['blocks']['received']['count']) {
-        title += `\nreceived_blocks: ${userInfo['blocks']['received']['count']}`
+    let title = `changesets_count: ${userInfo["changesets"]["count"]}\naccount_created: ${userInfo["account_created"]}`
+    if (userInfo["blocks"]["received"]["count"]) {
+        title += `\nreceived_blocks: ${userInfo["blocks"]["received"]["count"]}`
     }
     return title
 }
 
-
 function addRevertButton() {
     if (!location.pathname.startsWith("/changeset")) return
-    if (document.querySelector('#revert_button_class')) return true;
-    const sidebar = document.querySelector("#sidebar_content h2");
+    if (document.querySelector("#revert_button_class")) return true
+    const sidebar = document.querySelector("#sidebar_content h2")
     if (sidebar) {
-        hideSearchForm();
+        hideSearchForm()
         // sidebar.classList.add("changeset-header")
-        const changeset_id = sidebar.innerHTML.match(/([0-9]+)/)[0];
-        sidebar.innerHTML += ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="Open osm-revert\nShift + click for revert via JOSM\nPress R for partial revert">↩️</a> 
-                               <a href="https://osmcha.org/changesets/${changeset_id}" target="_blank" rel="noreferrer"><img src="${GM_getResourceURL("OSMCHA_ICON", false)}" id="osmcha_link"></a>`;
+        const changeset_id = sidebar.innerHTML.match(/([0-9]+)/)[0]
+        sidebar.innerHTML += ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="Open osm-revert\nShift + click for revert via JOSM\nPress R for partial revert">↩️</a>
+                               <a href="https://osmcha.org/changesets/${changeset_id}" target="_blank" rel="noreferrer"><img src="${GM_getResourceURL("OSMCHA_ICON", false)}" id="osmcha_link"></a>`
         changesetObjectsSelectionModeEnabled = false
-        document.querySelector("#revert_button_class").onclick = async (e) => {
+        document.querySelector("#revert_button_class").onclick = async e => {
             if (changesetObjectsSelectionModeEnabled) {
                 e.preventDefault()
                 if (osm_server !== prod_server) {
@@ -1328,29 +1306,48 @@ function addRevertButton() {
 
                 let selector = ""
 
-                const nodes = Array.from(document.querySelectorAll("#changeset_nodes input[type=checkbox]:checked"));
+                const nodes = Array.from(document.querySelectorAll("#changeset_nodes input[type=checkbox]:checked"))
                 if (nodes.length) {
-                    selector += "node(id:" + nodes.map(n => {
-                        return n.parentElement.nextElementSibling.id.match(/[0-9]+n([0-9]+)/)[1]
-                    }).join(",") + ");\n"
+                    selector +=
+                        "node(id:" +
+                        nodes
+                            .map(n => {
+                                return n.parentElement.nextElementSibling.id.match(/[0-9]+n([0-9]+)/)[1]
+                            })
+                            .join(",") +
+                        ");\n"
                 }
-                const ways = Array.from(document.querySelectorAll("#changeset_ways input[type=checkbox]:checked"));
+                const ways = Array.from(document.querySelectorAll("#changeset_ways input[type=checkbox]:checked"))
                 if (ways.length) {
-                    selector += "way(id:" + ways.map(w => {
-                        return w.parentElement.nextElementSibling.id.match(/[0-9]+w([0-9]+)/)[1]
-                    }).join(",") + ");\n"
+                    selector +=
+                        "way(id:" +
+                        ways
+                            .map(w => {
+                                return w.parentElement.nextElementSibling.id.match(/[0-9]+w([0-9]+)/)[1]
+                            })
+                            .join(",") +
+                        ");\n"
                 }
-                const relations = Array.from(document.querySelectorAll("#changeset_relations input[type=checkbox]:checked"));
+                const relations = Array.from(document.querySelectorAll("#changeset_relations input[type=checkbox]:checked"))
                 if (relations.length) {
-                    selector += "rel(id:" + relations.map(r => {
-                        return r.parentElement.nextElementSibling.id.match(/[0-9]+r([0-9]+)/)[1]
-                    }).join(",") + ");"
+                    selector +=
+                        "rel(id:" +
+                        relations
+                            .map(r => {
+                                return r.parentElement.nextElementSibling.id.match(/[0-9]+r([0-9]+)/)[1]
+                            })
+                            .join(",") +
+                        ");"
                 }
 
-                window.open("https://revert.monicz.dev/?" + new URLSearchParams({
-                    changesets: changeset_id,
-                    "query-filter": selector
-                }).toString(), "_blank")
+                window.open(
+                    "https://revert.monicz.dev/?" +
+                        new URLSearchParams({
+                            changesets: changeset_id,
+                            "query-filter": selector,
+                        }).toString(),
+                    "_blank",
+                )
                 return
             }
             if (!e.shiftKey) {
@@ -1361,7 +1358,7 @@ function addRevertButton() {
                 return
             }
             e.preventDefault()
-            if (!await validateOsmServerInJOSM()) {
+            if (!(await validateOsmServerInJOSM())) {
                 return
             }
 
@@ -1373,13 +1370,13 @@ function addRevertButton() {
             window.location = "http://127.0.0.1:8111/revert_changeset?id=" + changeset_id // todo open in new tab. It's broken in Firefox and open new window
         }
         document.querySelector("#revert_button_class").style.textDecoration = "none"
-        const osmcha_link = document.querySelector("#osmcha_link");
-        osmcha_link.style.height = "1em";
-        osmcha_link.style.cursor = "pointer";
-        osmcha_link.style.marginTop = "-3px";
-        osmcha_link.title = "Open changeset in OSMCha (or press O)\n(shift + O for open Achavi)";
+        const osmcha_link = document.querySelector("#osmcha_link")
+        osmcha_link.style.height = "1em"
+        osmcha_link.style.cursor = "pointer"
+        osmcha_link.style.marginTop = "-3px"
+        osmcha_link.title = "Open changeset in OSMCha (or press O)\n(shift + O for open Achavi)"
         if (isDarkMode()) {
-            osmcha_link.style.filter = "invert(0.7)";
+            osmcha_link.style.filter = "invert(0.7)"
         }
 
         // find deleted user
@@ -1393,7 +1390,7 @@ function addRevertButton() {
             metainfoHTML.appendChild(document.createTextNode(" "))
             metainfoHTML.appendChild(usernameA)
             metainfoHTML.appendChild(document.createTextNode(" "))
-            getCachedUserInfo(usernameA.textContent).then((res) => {
+            getCachedUserInfo(usernameA.textContent).then(res => {
                 usernameA.before(makeBadge(res, new Date(time.getAttribute("datetime"))))
                 usernameA.before(document.createTextNode(" "))
                 usernameA.title = makeUsernameTitle(res)
@@ -1404,14 +1401,14 @@ function addRevertButton() {
                     if (key.textContent === "changesets_count") {
                         function insertAllChangesets(info) {
                             const allChangesets = document.createElement("span")
-                            allChangesets.textContent = `/${info['changesets']['count']}`
+                            allChangesets.textContent = `/${info["changesets"]["count"]}`
                             allChangesets.style.color = "gray"
                             allChangesets.title = "how many changesets does the user have in total"
                             i.querySelector("td").appendChild(allChangesets)
                         }
 
-                        if (parseInt(i.querySelector("td").textContent) >= res['changesets']['count']) {
-                            updateUserInfo(usernameA.textContent).then((res) => {
+                        if (parseInt(i.querySelector("td").textContent) >= res["changesets"]["count"]) {
+                            updateUserInfo(usernameA.textContent).then(res => {
                                 insertAllChangesets(res)
                             })
                         } else {
@@ -1446,12 +1443,12 @@ function addRevertButton() {
         // compact changeset tags
         if (!document.querySelector(".browse-tag-list[compacted]")) {
             makeHashtagsClickable()
-            shortOsmOrgLinks(document.querySelector("#sidebar_content h2 ~ div p"));
+            shortOsmOrgLinks(document.querySelector("#sidebar_content h2 ~ div p"))
             let needUnhide = false
             document.querySelectorAll(".browse-tag-list tr").forEach(i => {
                 const key = i.querySelector("th")
                 if (!key) return
-                i.querySelectorAll("a").forEach(i => i.tabIndex = -1)
+                i.querySelectorAll("a").forEach(i => (i.tabIndex = -1))
                 if (key.textContent === "host") {
                     if (i.querySelector("td").textContent === "https://www.openstreetmap.org/edit") {
                         i.style.display = "none"
@@ -1462,32 +1459,27 @@ function addRevertButton() {
                     key.textContent = key.textContent.replace("ideditor:", "iD:")
                 } else if (key.textContent === "revert:id") {
                     if (i.querySelector("td").textContent.match(/^((\d+(;|…?$))+$)/)) {
-                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)(;|$)/g,
-                            `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>$2`)
+                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)(;|$)/g, `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>$2`)
                     } else if (i.querySelector("td").textContent.match(/https:\/\/(www\.)?openstreetmap.org\/changeset\//g)) {
                         i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/>https:\/\/(www\.)?openstreetmap.org\/changeset\//g, ">")
                     }
                 } else if (key.textContent === "revert:dmp:relation:id" || key.textContent === "revert:dmp:fail:relation:id") {
                     if (i.querySelector("td").textContent.match(/^((\d+(;|…?$))+$)/)) {
-                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)(;|$)/g,
-                            `<a href="/relation/$1" class="relation_link_in_changeset_tags">$1</a>$2`)
+                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)(;|$)/g, `<a href="/relation/$1" class="relation_link_in_changeset_tags">$1</a>$2`)
                     }
                 } else if (key.textContent === "revert:dmp:way:id" || key.textContent === "revert:dmp:fail:way:id") {
                     if (i.querySelector("td").textContent.match(/^((\d+(;|…?$))+$)/)) {
-                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)(;|$)/g,
-                            `<a href="/way/$1" class="way_link_in_changeset_tags">$1</a>$2`)
+                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)(;|$)/g, `<a href="/way/$1" class="way_link_in_changeset_tags">$1</a>$2`)
                     }
                 } else if (key.textContent === "redacted_changesets") {
                     if (i.querySelector("td").textContent.match(/^((\d+(,|$))+$)/)) {
-                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)/g,
-                            `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>`)
+                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)/g, `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>`)
                     } else if (i.querySelector("td").textContent.match(/https:\/\/(www\.)?openstreetmap.org\/changeset\//g)) {
                         i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/>https:\/\/(www\.)?openstreetmap.org\/changeset\//g, ">")
                     }
                 } else if (key.textContent === "closed:note") {
                     if (i.querySelector("td").textContent.match(/^((\d+(;|$))+$)/)) {
-                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)/g,
-                            `<a href="/note/$1" class="note_link_in_changeset_tags">$1</a>`)
+                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)/g, `<a href="/note/$1" class="note_link_in_changeset_tags">$1</a>`)
                     }
                 } else if (key.textContent.startsWith("v:") && GM_config.get("ChangesetQuickLook")) {
                     i.style.display = "none"
@@ -1515,44 +1507,45 @@ function addRevertButton() {
             }
             document.querySelector(".browse-tag-list")?.setAttribute("compacted", "true")
         }
-
     }
-    const textarea = document.querySelector("#sidebar_content textarea");
+    const textarea = document.querySelector("#sidebar_content textarea")
     if (textarea) {
-        textarea.rows = 1;
+        textarea.rows = 1
         let comment = document.querySelector("#sidebar_content button[name=comment]")
         if (comment) {
             comment.parentElement.hidden = true
             textarea.addEventListener("input", () => {
-                    comment.hidden = false
-                }
-            )
-            textarea.addEventListener("click", () => {
+                comment.hidden = false
+            })
+            textarea.addEventListener(
+                "click",
+                () => {
                     textarea.rows = textarea.rows + 5
                     comment.parentElement.hidden = false
-                }, {once: true}
+                },
+                { once: true },
             )
             comment.onclick = () => {
-                [500, 1000, 2000, 4000, 6000].map(i => setTimeout(setupRevertButton, i));
+                ;[500, 1000, 2000, 4000, 6000].map(i => setTimeout(setupRevertButton, i))
             }
             const templates = GM_config.get("ChangesetsTemplates")
             if (templates) {
                 JSON.parse(templates).forEach(row => {
-                    const label = row['label']
+                    const label = row["label"]
                     let text = label
-                    if (row['text'] !== "") {
-                        text = row['text']
+                    if (row["text"] !== "") {
+                        text = row["text"]
                     }
-                    let b = document.createElement("span");
-                    b.classList.add("comment-template", "btn", "btn-primary");
-                    b.textContent = label;
+                    let b = document.createElement("span")
+                    b.classList.add("comment-template", "btn", "btn-primary")
+                    b.textContent = label
                     b.title = `Add into the comment "${text}".\nYou can change text in userscript settings`
-                    document.querySelectorAll("form.mb-3 [name=comment]")[0].parentElement.appendChild(b);
-                    b.after(document.createTextNode("\xA0"));
-                    b.onclick = (e) => {
+                    document.querySelectorAll("form.mb-3 [name=comment]")[0].parentElement.appendChild(b)
+                    b.after(document.createTextNode("\xA0"))
+                    b.onclick = e => {
                         e.stopImmediatePropagation()
                         const textarea = document.querySelector("form.mb-3 textarea")
-                        const prev = textarea.value;
+                        const prev = textarea.value
                         const cursor = textarea.selectionEnd
                         textarea.value = prev.substring(0, cursor) + text + prev.substring(cursor)
                         textarea.focus()
@@ -1561,7 +1554,7 @@ function addRevertButton() {
             }
         }
     }
-    const tagsHeader = document.querySelector("#sidebar_content h4");
+    const tagsHeader = document.querySelector("#sidebar_content h4")
     if (tagsHeader) {
         tagsHeader.remove()
     }
@@ -1570,16 +1563,16 @@ function addRevertButton() {
         primaryButtons.tabIndex = -1
     }
     if (primaryButtons && osm_server.url === prod_server.url) {
-        const changeset_id = sidebar.innerHTML.match(/(\d+)/)[0];
+        const changeset_id = sidebar.innerHTML.match(/(\d+)/)[0]
 
         async function uncheck(changeset_id) {
             return await GM.xmlHttpRequest({
                 url: `https://osmcha.org/api/v1/changesets/${changeset_id}/uncheck/`,
                 headers: {
-                    "Authorization": "Token " + await GM.getValue("OSMCHA_TOKEN"),
+                    Authorization: "Token " + (await GM.getValue("OSMCHA_TOKEN")),
                 },
                 method: "PUT",
-            });
+            })
         }
 
         const likeImgRes = GM_getResourceURL("OSMCHA_LIKE", false)
@@ -1599,7 +1592,7 @@ function addRevertButton() {
             if (!osmchaToken) {
                 alert("Please, login into OSMCha")
                 window.open("https://osmcha.org")
-                return;
+                return
             }
             if (e.target.hasAttribute("active")) {
                 await uncheck(changeset_id)
@@ -1613,10 +1606,10 @@ function addRevertButton() {
             await GM.xmlHttpRequest({
                 url: `https://osmcha.org/api/v1/changesets/${changeset_id}/set-good/`,
                 headers: {
-                    "Authorization": "Token " + await GM.getValue("OSMCHA_TOKEN"),
+                    Authorization: "Token " + (await GM.getValue("OSMCHA_TOKEN")),
                 },
                 method: "PUT",
-            });
+            })
             await updateReactions()
         }
         likeBtn.appendChild(likeImg)
@@ -1637,7 +1630,7 @@ function addRevertButton() {
             if (!osmchaToken) {
                 alert("Please, login into OSMCha")
                 window.open("https://osmcha.org")
-                return;
+                return
             }
             if (e.target.hasAttribute("active")) {
                 await uncheck(changeset_id)
@@ -1651,10 +1644,10 @@ function addRevertButton() {
             await GM.xmlHttpRequest({
                 url: `https://osmcha.org/api/v1/changesets/${changeset_id}/set-harmful/`,
                 headers: {
-                    "Authorization": "Token " + await GM.getValue("OSMCHA_TOKEN"),
+                    Authorization: "Token " + (await GM.getValue("OSMCHA_TOKEN")),
                 },
                 method: "PUT",
-            });
+            })
             await updateReactions()
         }
 
@@ -1663,26 +1656,26 @@ function addRevertButton() {
                 url: "https://osmcha.org/api/v1/changesets/" + changeset_id + "/",
                 method: "GET",
                 headers: {
-                    "Authorization": "Token " + await GM.getValue("OSMCHA_TOKEN"),
+                    Authorization: "Token " + (await GM.getValue("OSMCHA_TOKEN")),
                 },
-                responseType: "json"
+                responseType: "json",
             })
             if (res.status === 404) {
                 likeImg.title = "Changeset not found in OSMCha database.\nEither OSMCha did not have time to process this changeset, or it is too old."
                 dislikeImg.title = "Changeset not found in OSMCha database.\nEither OSMCha did not have time to process this changeset, or it is too old."
                 console.warn("Changeset not found in OSMCha database") // todo show alert/title
-                return;
+                return
             }
-            const json = res.response;
-            if (json['properties']['check_user']) {
+            const json = res.response
+            if (json["properties"]["check_user"]) {
                 document.querySelector(".check_user")?.remove()
                 likeImg.style.filter = "grayscale(1)"
                 dislikeImg.style.filter = "grayscale(1)"
 
                 const username = document.createElement("span")
                 username.classList.add("check_user")
-                username.textContent = json['properties']['check_user']
-                if (json['properties']['harmful'] === true) {
+                username.textContent = json["properties"]["check_user"]
+                if (json["properties"]["harmful"] === true) {
                     dislikeImg.style.filter = ""
                     dislikeImg.style.transform = ""
                     dislikeImg.src = dislikeImgRes
@@ -1710,7 +1703,7 @@ function addRevertButton() {
             }
         }
 
-        setTimeout(updateReactions, 0);
+        setTimeout(updateReactions, 0)
 
         primaryButtons.before(likeBtn)
         primaryButtons.before(document.createTextNode("\xA0"))
@@ -1725,31 +1718,33 @@ function addRevertButton() {
     })
     // fixme dont work loggined
     document.querySelectorAll("#sidebar_content h2 ~ div > div:has([name=subscribe],[name=unsubscribe]) ~ article div").forEach(c => {
-        c.innerHTML = c.innerHTML.replaceAll(/((changesets )((\d+)([,. ])(\s|$|<\/))+|changeset \d+)/gm, (match) => {
-            return match.replaceAll(/(\d+)/g, `<a href="/changeset/$1" class="changeset_link_in_comment">$1</a>`)
-        }).replaceAll(/>https:\/\/(www\.)?openstreetmap.org\//g, ">osm.org/")
+        c.innerHTML = c.innerHTML
+            .replaceAll(/((changesets )((\d+)([,. ])(\s|$|<\/))+|changeset \d+)/gm, match => {
+                return match.replaceAll(/(\d+)/g, `<a href="/changeset/$1" class="changeset_link_in_comment">$1</a>`)
+            })
+            .replaceAll(/>https:\/\/(www\.)?openstreetmap.org\//g, ">osm.org/")
     })
     makeHeaderPartsClickable()
 }
 
 function setupRevertButton() {
-    if (!location.pathname.startsWith("/changeset")) return;
+    if (!location.pathname.startsWith("/changeset")) return
     let timerId = setInterval(() => {
         if (addRevertButton()) clearInterval(timerId)
-    }, 100);
+    }, 100)
     setTimeout(() => {
-        clearInterval(timerId);
-        console.debug('stop try add revert button');
-    }, 3000);
-    addRevertButton();
+        clearInterval(timerId)
+        console.debug("stop try add revert button")
+    }, 3000)
+    addRevertButton()
 }
 
 function showSearchForm() {
-    document.querySelector("#sidebar .search_forms")?.removeAttribute("hidden");
+    document.querySelector("#sidebar .search_forms")?.removeAttribute("hidden")
 }
 
 function hideSearchForm() {
-    if (location.pathname.startsWith("/search") || location.pathname.startsWith("/directions")) return;
+    if (location.pathname.startsWith("/search") || location.pathname.startsWith("/directions")) return
     if (!document.querySelector("#sidebar .search_forms")?.hasAttribute("hidden")) {
         document.querySelector("#sidebar .search_forms")?.setAttribute("hidden", "true")
     }
@@ -1766,21 +1761,20 @@ function hideSearchForm() {
     document.querySelector("h1 .icon-link:not(.hotkeyed)")?.classList?.add("hotkeyed")
 }
 
-
 function getMapCenter() {
     try {
         return getMap().getCenter()
-    } catch  {
+    } catch {
         console.warn("Couldn't get the map center through the map object. Trying a workaround")
 
-        const curURL = document.querySelector("#edit_tab ul")?.querySelector("li a")?.href;
+        const curURL = document.querySelector("#edit_tab ul")?.querySelector("li a")?.href
         const match = curURL.match(/map=(\d+)\/([-\d.]+)\/([-\d.]+)(&|$)/)
-        console.log("Parsed coordinates link:", match);
-        return {lng: match[3], lat: match[2]}
+        console.log("Parsed coordinates link:", match)
+        return { lng: match[3], lat: match[2] }
     }
 }
 
-let sidebarObserver = null;
+let sidebarObserver = null
 let timestampMode = "natural_text"
 
 function makeTimesSwitchable() {
@@ -1819,10 +1813,10 @@ function makeTimesSwitchable() {
     const isNotePage = location.pathname.includes("note")
 
     function openMapStateInOverpass(elem, adiff = false) {
-        const {lng: lon, lat: lat} = getMapCenter()
-        const zoom = getZoom();
+        const { lng: lon, lat: lat } = getMapCenter()
+        const zoom = getZoom()
         const query = `// via changeset closing time
-[${adiff ? "adiff" : "date"}:"${elem.getAttribute("datetime")}"]; 
+[${adiff ? "adiff" : "date"}:"${elem.getAttribute("datetime")}"];
 (
   node({{bbox}});
   way({{bbox}});
@@ -1830,7 +1824,7 @@ function makeTimesSwitchable() {
 );
 (._;>;);
 out meta;
-`;
+`
         window.open(`${overpass_server.url}?Q=${encodeURI(query)}&C=${lat};${lon};${zoom}${zoom > 15 ? "&R" : ""}`, "_blank")
     }
 
@@ -1839,7 +1833,7 @@ out meta;
             i.title += `\n\n`
         }
         i.title += `Click for change time format`
-        i.title += `\nClick with ctrl for open the map state at the time of ${isObjectPage ? "version was created" : (isNotePage ? "note was created" : "changeset was closed")}\nClick with Alt for view adiff`
+        i.title += `\nClick with ctrl for open the map state at the time of ${isObjectPage ? "version was created" : isNotePage ? "note was created" : "changeset was closed"}\nClick with Alt for view adiff`
 
         function clickEvent(e) {
             if (e.metaKey || e.ctrlKey || e.altKey) {
@@ -1852,25 +1846,24 @@ out meta;
             }
         }
 
-        i.addEventListener("click", clickEvent);
+        i.addEventListener("click", clickEvent)
     })
     document.querySelectorAll("time:not([switchable])").forEach(i => {
         i.setAttribute("switchable", "true")
         const btn = document.createElement("a")
-        btn.classList.add("timeback-btn");
+        btn.classList.add("timeback-btn")
         btn.title = `Open the map state at the time of ${isObjectPage ? "version was created" : "changeset was closed"}`
-        btn.textContent = " 🕰";
+        btn.textContent = " 🕰"
         btn.style.cursor = "pointer"
         btn.style.display = "none"
         btn.style.userSelect = "none"
-        btn.onclick = (e) => {
+        btn.onclick = e => {
             e.preventDefault()
             e.stopPropagation()
             openMapStateInOverpass(i, e.altKey)
         }
-        i.appendChild(btn);
+        i.appendChild(btn)
     })
-
 }
 
 // noinspection CssUnusedSymbol,CssUnresolvedCustomProperty
@@ -1889,11 +1882,11 @@ const compactSidebarStyleText = `
         .changesets time {
             color: darkgray;
         }
-                
+
         .changesets p {
             font-weight: 400;
         }
-        
+
         span:has(.changeset_id.custom-changeset-id-click) {
             color: #767676 !important;
         }
@@ -1905,24 +1898,24 @@ const compactSidebarStyleText = `
     #sidebar_content h2 ~ div > p:nth-of-type(1) {
         font-size: 14px !important;
         font-style: italic;
-        font-synthesis: none;  
+        font-synthesis: none;
     }
-    
+
     #element_versions_list div > p:nth-of-type(1) {
         font-size: 14px !important;
         font-style: italic;
-        font-synthesis: none;  
+        font-synthesis: none;
     }
-    
+
     .hidden-comments-badge {
         display: none !important;
     }
-    
+
     .better-diff-icon {
         position: relative;
         top: 2px;
     }
-    
+
     .map-layout #sidebar {
       width: 450px;
     }
@@ -1932,14 +1925,14 @@ const compactSidebarStyleText = `
     .numbered_pagination {
         word-wrap: initial;
     }
-    
+
     turbo-frame th {
         min-width: max-content;
         word-wrap: break-word;
     }
-    
+
 ${copyAnimationStyles}
-    
+
     #sidebar_content h2:not(.changeset-header) {
         font-size: 1rem;
     }
@@ -1948,56 +1941,56 @@ ${copyAnimationStyles}
       border-top-width: 1px;
       border-top-color: rgba(var(--bs-secondary-bg-rgb), var(--bs-bg-opacity)) !important;
     }
-  
+
     .fixme-tag {
       color: red !important;
       font-weight: bold;
     }
-    
+
     .note-tag {
       font-weight: bold;
     }
-  
+
     @media ${mediaQueryForWebsiteTheme} {
       .fixme-tag {
         color: #ff5454 !important;
         font-weight: unset;
       }
-            
+
       .note-tag {
         background: black !important;
         font-weight: unset;
       }
     }
-    
+
     @media ${mediaQueryForWebsiteTheme} {
         table.browse-tag-list tr td[colspan="2"]{
           background: var(--bs-body-bg) !important;
         }
     }
-    
+
     .sidebar-close-controls.position-relative .position-absolute {
         padding: 1.5rem !important;
         padding-bottom: 1.3rem !important;
         padding-top: 1.4rem !important;
         padding-left: 1.3rem !important;
     }
-    
+
     .way-last-version-node:hover, .relation-last-version-member:hover, .node-last-version-parent:hover {
         background-color: rgba(244, 244, 244);
     }
-    
+
     @media ${mediaQueryForWebsiteTheme} {
         .way-last-version-node:hover, .relation-last-version-member:hover, .node-last-version-parent:hover {
             background-color: rgb(14, 17, 19);
-        }  
+        }
     }
-    
+
     .copy-changesets-ids-btn {
         padding-left: 5px;
         padding-right: 5px;
     }
-    
+
     #mouse-trap {
         position: fixed;
         top: 0;
@@ -2010,14 +2003,14 @@ ${copyAnimationStyles}
         /* background: rgba(255, 0, 0, 0.3); */
         background: transparent;
     }
-    `;
+    `
 
 let styleForSidebarApplied = false
 
 function addCompactSidebarStyle() {
-    if (styleForSidebarApplied) return;
-    styleForSidebarApplied = true;
-    injectCSSIntoOSMPage(compactSidebarStyleText);
+    if (styleForSidebarApplied) return
+    styleForSidebarApplied = true
+    injectCSSIntoOSMPage(compactSidebarStyleText)
 }
 
 async function getChangesetComments(changeset_id) {
@@ -2025,7 +2018,7 @@ async function getChangesetComments(changeset_id) {
     if (res.status === 509) {
         error509Handler(res)
     } else {
-        return res['changeset']['comments'];
+        return res["changeset"]["comments"]
     }
 }
 
@@ -2036,7 +2029,7 @@ function setupCompactChangesetsHistory() {
             || location.pathname.startsWith("/relation"))) {
             addCompactSidebarStyle();
         }
-        return;
+        return
     }
 
     if (location.pathname.startsWith("/changeset")) {
@@ -2044,7 +2037,7 @@ function setupCompactChangesetsHistory() {
         externalizeLinks(document.querySelector("#sidebar_content ul")?.querySelectorAll("a:not(.page-link)"))
     }
 
-    addCompactSidebarStyle();
+    addCompactSidebarStyle()
 
     // увы, инвалидация в этом месте ломает зум при загрузке объекте самим сайтом
     // try {
@@ -2057,11 +2050,12 @@ function setupCompactChangesetsHistory() {
             return
         }
         // remove useless
-        document.querySelectorAll("#sidebar ol > li > .overflow-hidden:not(.better)").forEach((e) => {
+        document.querySelectorAll("#sidebar ol > li > .overflow-hidden:not(.better)").forEach(e => {
             e.classList.add("better")
             e.childNodes[0].textContent = ""
             if (e.querySelector("time")?.nextSibling?.nodeType === Node.TEXT_NODE) {
-                if (e.querySelector("time").nextSibling.textContent.length < 5) { // hack for deleted users
+                if (e.querySelector("time").nextSibling.textContent.length < 5) {
+                    // hack for deleted users
                     e.querySelector("time").nextSibling.textContent = "\xA0"
                 }
             }
@@ -2077,9 +2071,9 @@ function setupCompactChangesetsHistory() {
             }
             const changesBadge = badgesDiv.querySelector("span:not(.changeset_num_comments) svg")
             if (changesBadge && !changesBadge.classList.contains("better-diff-icon")) {
-                changesBadge.outerHTML = "<svg class=\"lucide lucide-diff better-diff-icon\" xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3v14\"/><path d=\"M5 10h14\"/><path d=\"M5 21h14\"/></svg>"
-                changesBadge.style.position = "relative";
-                changesBadge.style.top = "3px";
+                changesBadge.outerHTML = '<svg class="lucide lucide-diff better-diff-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v14"/><path d="M5 10h14"/><path d="M5 21h14"/></svg>'
+                changesBadge.style.position = "relative"
+                changesBadge.style.top = "3px"
             }
             const changesetIDspan = badgesDiv?.querySelector('a[href^="/changeset/"]:not([rel])')?.parentElement
             if (changesetIDspan) {
@@ -2092,8 +2086,8 @@ function setupCompactChangesetsHistory() {
             wrapper.appendChild(e)
             wrapper.appendChild(badgesDiv)
         })
-        makeTimesSwitchable();
-        hideSearchForm();
+        makeTimesSwitchable()
+        hideSearchForm()
 
         document.querySelectorAll("ol li a.changeset_id bdi:not(.compacted)").forEach(description => {
             description.classList.add("compacted")
@@ -2104,8 +2098,9 @@ function setupCompactChangesetsHistory() {
             for (const elem of document.querySelectorAll("ol li:not(:has(.comment)):not(.comments-loaded)")) {
                 elem.classList.add("comments-loaded")
                 const commentsBadge = elem.querySelector(".changeset_num_comments")
+                // prettier-ignore
                 commentsBadge.querySelector("svg").outerHTML = `<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M2.678 11.894a1 1 0 0 1 .287.801 11 11 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 .71-.074A8 8 0 0 0 8 14c3.996 0 7-2.807 7-6s-3.004-6-7-6-7 2.808-7 6c0 1.468.617 2.83 1.678 3.894m-.493 3.905a22 22 0 0 1-.713.129c-.2.032-.352-.176-.273-.362a10 10 0 0 0 .244-.637l.003-.01c.248-.72.45-1.548.524-2.319C.743 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.52.263-1.639.742-3.468 1.105"></path></svg>`
-                const commentsCount = parseInt(commentsBadge.firstChild.textContent.trim());
+                const commentsCount = parseInt(commentsBadge.firstChild.textContent.trim())
                 if (commentsCount) {
                     if (commentsCount > 3) {
                         commentsBadge.firstElementChild.style.setProperty("color", "red", "important")
@@ -2115,10 +2110,10 @@ function setupCompactChangesetsHistory() {
                         commentsBadge.firstElementChild.style.setProperty("color", "#ffae00", "important")
                     }
 
-                    const changeset_id = elem.querySelector(".changeset_id").href.match(/\/(\d+)/)[1];
+                    const changeset_id = elem.querySelector(".changeset_id").href.match(/\/(\d+)/)[1]
                     getChangesetComments(changeset_id).then(res => {
                         res.forEach((comment, idx) => {
-                            const commentElem = document.createElement("div");
+                            const commentElem = document.createElement("div")
                             commentElem.classList.add("comment")
                             commentElem.style.fontSize = "0.7rem"
                             commentElem.style.borderTopColor = "#0000"
@@ -2130,16 +2125,16 @@ function setupCompactChangesetsHistory() {
                             elem.appendChild(commentElem)
 
                             const userLink = document.createElement("a")
-                            userLink.href = osm_server.url + "/user/" + encodeURI(comment["user"]);
-                            userLink.textContent = comment["user"];
-                            commentElem.appendChild(userLink);
-                            getCachedUserInfo(comment["user"]).then((res) => {
+                            userLink.href = osm_server.url + "/user/" + encodeURI(comment["user"])
+                            userLink.textContent = comment["user"]
+                            commentElem.appendChild(userLink)
+                            getCachedUserInfo(comment["user"]).then(res => {
                                 const badge = makeBadge(res /* fixme */)
                                 const svg = badge.querySelector("svg")
                                 if (svg) {
                                     badge.style.marginLeft = "-4px"
-                                    badge.style.height = "1rem";
-                                    badge.style.float = "left";
+                                    badge.style.height = "1rem"
+                                    badge.style.float = "left"
                                     svg.style.transform = "scale(0.7)"
                                 }
                                 userLink.before(badge)
@@ -2148,7 +2143,7 @@ function setupCompactChangesetsHistory() {
                             if (shortText.length > 500) {
                                 const text = document.createElement("span")
                                 text.textContent = " " + shortText.slice(0, 500)
-                                commentElem.appendChild(text);
+                                commentElem.appendChild(text)
                                 const more = document.createElement("span")
                                 more.textContent = "..."
                                 more.title = "Click for view more"
@@ -2158,15 +2153,15 @@ function setupCompactChangesetsHistory() {
                                     more.remove()
                                     text.textContent = " " + shortText
                                 }
-                                commentElem.appendChild(more);
+                                commentElem.appendChild(more)
                             } else {
-                                commentElem.appendChild(document.createTextNode(" " + shortText));
+                                commentElem.appendChild(document.createTextNode(" " + shortText))
                             }
                         })
 
                         commentsBadge.firstElementChild.style.cursor = "pointer"
 
-                        let state = (commentsCount === 1 ? "" : "none")
+                        let state = commentsCount === 1 ? "" : "none"
                         commentsBadge.firstElementChild.onclick = () => {
                             elem.querySelectorAll(".comment").forEach(comment => {
                                 if (state === "none") {
@@ -2175,7 +2170,7 @@ function setupCompactChangesetsHistory() {
                                     comment.style.display = "none"
                                 }
                             })
-                            state = (state === "none") ? "" : "none"
+                            state = state === "none" ? "" : "none"
                         }
                         commentsBadge.firstElementChild.title = ""
                         res.forEach(comment => {
@@ -2183,20 +2178,20 @@ function setupCompactChangesetsHistory() {
                             commentsBadge.firstElementChild.title += `${comment["user"]}:\n${shortText}\n\n`
                         })
                         commentsBadge.firstElementChild.title = commentsBadge.firstElementChild.title.trimEnd()
-                    });
+                    })
                 } else {
                     commentsBadge.classList.add("hidden-comments-badge")
                 }
             }
-        });
+        })
     }
 
     if (!location.pathname.startsWith("/node") && !location.pathname.startsWith("/way") && !location.pathname.startsWith("/relation")) {
-        sidebarObserver?.disconnect();
-        handleNewChangesets();
-        sidebarObserver = new MutationObserver(handleNewChangesets);
-        if (document.querySelector('#sidebar_content') && !location.pathname.startsWith("/changeset")) {
-            sidebarObserver.observe(document.querySelector('#sidebar_content'), {childList: true, subtree: true});
+        sidebarObserver?.disconnect()
+        handleNewChangesets()
+        sidebarObserver = new MutationObserver(handleNewChangesets)
+        if (document.querySelector("#sidebar_content") && !location.pathname.startsWith("/changeset")) {
+            sidebarObserver.observe(document.querySelector("#sidebar_content"), { childList: true, subtree: true })
         }
     }
 
@@ -2210,39 +2205,38 @@ function setupCompactChangesetsHistory() {
  * @return {Object.<string, string>}
  */
 function buildTags(text, strict = false) {
-    const lines = text.split('\n');
-    let json = {};
+    const lines = text.split("\n")
+    let json = {}
     for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        let eqPos = line.indexOf('=');
+        const line = lines[i]
+        let eqPos = line.indexOf("=")
         if (eqPos <= 0 || eqPos === line.length - 1) {
-            eqPos = line.indexOf("\t");
+            eqPos = line.indexOf("\t")
             if (eqPos <= 0 || eqPos === line.length - 1) {
-                if (strict && line.trim() !== '') {
-                    throw `Empty key or value in line №${i}: ${line}`;
+                if (strict && line.trim() !== "") {
+                    throw `Empty key or value in line №${i}: ${line}`
                 }
-                continue;
+                continue
             }
         }
-        const k = line.substring(0, eqPos).trim();
-        const v = line.substring(eqPos + 1).trim();
-        if (v === '' || k === '') {
-            if (strict && line.trim() !== '') {
-                throw `Empty key or value in line №${i + 1}: ${line}`;
+        const k = line.substring(0, eqPos).trim()
+        const v = line.substring(eqPos + 1).trim()
+        if (v === "" || k === "") {
+            if (strict && line.trim() !== "") {
+                throw `Empty key or value in line №${i + 1}: ${line}`
             }
-            continue;
+            continue
         }
-        json[k] = v.replaceAll('\\\\', '\n');
+        json[k] = v.replaceAll("\\\\", "\n")
     }
-    return json;
+    return json
 }
-
 
 function makeTextareaFromTagsTable(table) {
     const textarea = document.createElement("textarea")
     table.querySelectorAll("tr:not(.add-tag-row)").forEach(i => {
         if (i.querySelector("th").textContent.trim() === "" || i.querySelector("td").textContent.trim() === "") return
-        textarea.value += `${i.querySelector("th").textContent}=${i.querySelector("td").textContent.replaceAll('\\\\', '\n')}\n`
+        textarea.value += `${i.querySelector("th").textContent}=${i.querySelector("td").textContent.replaceAll("\\\\", "\n")}\n`
     })
     textarea.value = textarea.value.trim()
     textarea.rows = 5
@@ -2261,9 +2255,9 @@ function addResolveNotesButton() {
             newNotePlaceholder = null
         }
         if (document.querySelector(".add-new-object-btn")) return
-        let b = document.createElement("span");
-        b.classList.add("add-new-object-btn", "btn", "btn-primary");
-        b.textContent = "➕";
+        let b = document.createElement("span")
+        b.classList.add("add-new-object-btn", "btn", "btn-primary")
+        b.textContent = "➕"
         if (!getMap() || !getMap().getZoom) {
             b.style.display = "none"
             interceptMapManually().then(() => {
@@ -2271,16 +2265,16 @@ function addResolveNotesButton() {
             })
         }
         b.title = `Add new object on map\nPaste tags in textarea\nkey=value\nkey2=value2\n...`
-        document.querySelector("#sidebar_content form div:has(input)").appendChild(b);
-        b.before(document.createTextNode("\xA0"));
-        b.onclick = (e) => {
+        document.querySelector("#sidebar_content form div:has(input)").appendChild(b)
+        b.before(document.createTextNode("\xA0"))
+        b.onclick = e => {
             e.stopImmediatePropagation()
-            const auth = makeAuth();
+            const auth = makeAuth()
 
-            console.log("Opening changeset");
+            console.log("Opening changeset")
 
             let tagsHint = ""
-            let tags;
+            let tags
             try {
                 tags = buildTags(document.querySelector("#sidebar_content form textarea").value, true)
             } catch (e) {
@@ -2294,84 +2288,90 @@ function addResolveNotesButton() {
 
             for (const i of Object.entries(tags)) {
                 if (mainTags.includes(i[0])) {
-                    tagsHint = tagsHint + ` ${i[0]}=${i[1]}`;
+                    tagsHint = tagsHint + ` ${i[0]}=${i[1]}`
                     break
                 }
             }
             for (const i of Object.entries(tags)) {
                 if (i[0] === "name") {
-                    tagsHint = tagsHint + ` ${i[0]}=${i[1]}`;
+                    tagsHint = tagsHint + ` ${i[0]}=${i[1]}`
                     break
                 }
             }
             const changesetTags = {
-                'created_by': `better osm.org v${GM_info.script.version}`,
-                'comment': tagsHint !== "" ? `Create${tagsHint}` : `Create node`
-            };
+                created_by: `better osm.org v${GM_info.script.version}`,
+                comment: tagsHint !== "" ? `Create${tagsHint}` : `Create node`,
+            }
 
-            let changesetPayload = document.implementation.createDocument(null, 'osm');
-            let cs = changesetPayload.createElement('changeset');
-            changesetPayload.documentElement.appendChild(cs);
-            tagsToXml(changesetPayload, cs, changesetTags);
-            const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload);
+            let changesetPayload = document.implementation.createDocument(null, "osm")
+            let cs = changesetPayload.createElement("changeset")
+            changesetPayload.documentElement.appendChild(cs)
+            tagsToXml(changesetPayload, cs, changesetTags)
+            const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
 
-            auth.xhr({
-                method: 'PUT',
-                path: osm_server.apiBase + 'changeset/create',
-                prefix: false,
-                content: chPayloadStr
-            }, function (err1, result) {
-                const changesetId = result;
-                console.log(changesetId);
-
-                const nodePayload = document.createElement('osm');
-                const node = document.createElement("node")
-                nodePayload.appendChild(node)
-                node.setAttribute("changeset", changesetId)
-
-                const l = [];
-                getMap().eachLayer(intoPageWithFun(i => l.push(i)))
-                const {
-                    lat: lat,
-                    lng: lng
-                } = l.find(i => !!i._icon && i._icon.classList.contains("leaflet-marker-draggable"))._latlng
-                node.setAttribute("lat", lat)
-                node.setAttribute("lon", lng)
-
-                for (const tag of Object.entries(tags)) {
-                    let tagElem = document.createElement("tag")
-                    tagElem.setAttribute("k", tag[0])
-                    tagElem.setAttribute("v", tag[1])
-                    node.appendChild(tagElem)
-                }
-                const nodeStr = new XMLSerializer().serializeToString(nodePayload).replace(/xmlns="[^"]+"/, '');
-                auth.xhr({
-                    method: 'POST',
-                    path: osm_server.apiBase + "nodes",
+            auth.xhr(
+                {
+                    method: "PUT",
+                    path: osm_server.apiBase + "changeset/create",
                     prefix: false,
-                    content: nodeStr,
-                    headers: {"Content-Type": "application/xml; charset=utf-8"},
-                }, function (err2) {
-                    if (err2) {
-                        console.log({changesetError: err2});
+                    content: chPayloadStr,
+                },
+                function (err1, result) {
+                    const changesetId = result
+                    console.log(changesetId)
+
+                    const nodePayload = document.createElement("osm")
+                    const node = document.createElement("node")
+                    nodePayload.appendChild(node)
+                    node.setAttribute("changeset", changesetId)
+
+                    const l = []
+                    getMap().eachLayer(intoPageWithFun(i => l.push(i)))
+                    const { lat: lat, lng: lng } = l.find(i => !!i._icon && i._icon.classList.contains("leaflet-marker-draggable"))._latlng
+                    node.setAttribute("lat", lat)
+                    node.setAttribute("lon", lng)
+
+                    for (const tag of Object.entries(tags)) {
+                        let tagElem = document.createElement("tag")
+                        tagElem.setAttribute("k", tag[0])
+                        tagElem.setAttribute("v", tag[1])
+                        node.appendChild(tagElem)
                     }
-                    auth.xhr({
-                        method: 'PUT',
-                        path: osm_server.apiBase + 'changeset/' + changesetId + '/close',
-                        prefix: false
-                    }, function (err3) {
-                        if (!err3) {
-                            window.location = osm_server.url + '/changeset/' + changesetId
-                        }
-                    });
-                });
-            });
+                    const nodeStr = new XMLSerializer().serializeToString(nodePayload).replace(/xmlns="[^"]+"/, "")
+                    auth.xhr(
+                        {
+                            method: "POST",
+                            path: osm_server.apiBase + "nodes",
+                            prefix: false,
+                            content: nodeStr,
+                            headers: { "Content-Type": "application/xml; charset=utf-8" },
+                        },
+                        function (err2) {
+                            if (err2) {
+                                console.log({ changesetError: err2 })
+                            }
+                            auth.xhr(
+                                {
+                                    method: "PUT",
+                                    path: osm_server.apiBase + "changeset/" + changesetId + "/close",
+                                    prefix: false,
+                                },
+                                function (err3) {
+                                    if (!err3) {
+                                        window.location = osm_server.url + "/changeset/" + changesetId
+                                    }
+                                },
+                            )
+                        },
+                    )
+                },
+            )
         }
         return
     }
-    if (document.querySelector('.resolve-note-done')) return true;
-    if (document.querySelector('#timeback-btn')) return true;
-    resetSearchFormFocus();
+    if (document.querySelector(".resolve-note-done")) return true
+    if (document.querySelector("#timeback-btn")) return true
+    resetSearchFormFocus()
 
     document.querySelectorAll('#sidebar_content a[href^="/user/"]').forEach(elem => {
         getCachedUserInfo(elem.textContent).then(info => {
@@ -2385,27 +2385,26 @@ function addResolveNotesButton() {
 
     try {
         // timeback button
-        let timestamp = document.querySelector("#sidebar_content time")?.dateTime;
+        let timestamp = document.querySelector("#sidebar_content time")?.dateTime
         if (!timestamp) {
             return
         }
         let timeSource = "note creation date"
-        const mapsmeDate = document.querySelector(".overflow-hidden")?.textContent?.match(/OSM data version: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/);
+        const mapsmeDate = document.querySelector(".overflow-hidden")?.textContent?.match(/OSM data version: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/)
         if (mapsmeDate) {
-            timestamp = mapsmeDate[1];
+            timestamp = mapsmeDate[1]
             timeSource = "MAPS.ME snapshot date"
         }
-        const organicmapsDate = document.querySelector(".overflow-hidden")?.textContent?.match(/OSM snapshot date: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/);
+        const organicmapsDate = document.querySelector(".overflow-hidden")?.textContent?.match(/OSM snapshot date: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/)
         if (organicmapsDate) {
-            timestamp = organicmapsDate[1];
+            timestamp = organicmapsDate[1]
             timeSource = "Organic Maps snapshot date"
         }
-        const lat = document.querySelector("#sidebar_content .latitude").textContent.replace(",", ".");
-        const lon = document.querySelector("#sidebar_content .longitude").textContent.replace(",", ".");
-        const zoom = 18;
-        const query =
-            `// via ${timeSource}
-[date:"${timestamp}"]; 
+        const lat = document.querySelector("#sidebar_content .latitude").textContent.replace(",", ".")
+        const lon = document.querySelector("#sidebar_content .longitude").textContent.replace(",", ".")
+        const zoom = 18
+        const query = `// via ${timeSource}
+[date:"${timestamp}"];
 (
   node({{bbox}});
   way({{bbox}});
@@ -2413,33 +2412,33 @@ function addResolveNotesButton() {
 );
 (._;>;);
 out meta;
-    `;
+`
         let btn = document.createElement("a")
-        btn.id = "timeback-btn";
+        btn.id = "timeback-btn"
         if (organicmapsDate || mapsmeDate) {
             btn.title = "Open the map state at the time of map snapshot"
         } else {
             btn.title = "Open the map state at the time of note creation"
         }
-        btn.textContent = " 🕰";
+        btn.textContent = " 🕰"
         btn.style.cursor = "pointer"
-        document.querySelector("#sidebar_content time").after(btn);
+        document.querySelector("#sidebar_content time").after(btn)
         btn.onclick = e => {
             e.preventDefault()
             window.open(`${overpass_server.url}?Q=${encodeURI(query)}&C=${lat};${lon};${zoom}&R`)
         }
     } catch (e) {
-        console.error("setup timeback button fail", e);
+        console.error("setup timeback button fail", e)
     }
 
     try {
         makeHashtagsInNotesClickable()
         makeUsernameInNotesFilterable()
     } catch {
-        console.error("fail when setuping filterable links in note");
+        console.error("fail when setuping filterable links in note")
     }
 
-    document.querySelectorAll('#sidebar_content div:has(h4) a:not(.gpx-displayed)').forEach(i => {
+    document.querySelectorAll("#sidebar_content div:has(h4) a:not(.gpx-displayed)").forEach(i => {
         i.classList.add("gpx-displayed")
         const m = i.href.match(new RegExp(`${osm_server.url}/user/.+/traces/(\\d+)`))
         if (m) {
@@ -2450,50 +2449,57 @@ out meta;
     })
 
     if (!document.querySelector("#sidebar_content textarea.form-control")) {
-        return;
+        return
     }
-    const auth = makeAuth();
-    let note_id = location.pathname.match(/note\/(\d+)/)[1];
+    const auth = makeAuth()
+    let note_id = location.pathname.match(/note\/(\d+)/)[1]
     /** @type {string} */
     const resolveButtonsText = GM_config.get("ResolveNotesButton")
     if (resolveButtonsText) {
         JSON.parse(resolveButtonsText).forEach(row => {
-            const label = row['label']
+            const label = row["label"]
             let text = label
-            if (row['text'] !== "") {
-                text = row['text']
+            if (row["text"] !== "") {
+                text = row["text"]
             }
-            let b = document.createElement("button");
-            b.classList.add("resolve-note-done", "btn", "btn-primary");
-            b.textContent = label;
+            let b = document.createElement("button")
+            b.classList.add("resolve-note-done", "btn", "btn-primary")
+            b.textContent = label
             b.title = `Add to the comment "${text}" and close the note.\nYou can change emoji in userscript settings`
-            document.querySelectorAll("form.mb-3")[0].before(b);
-            b.after(document.createTextNode("\xA0"));
+            document.querySelectorAll("form.mb-3")[0].before(b)
+            b.after(document.createTextNode("\xA0"))
             b.onclick = () => {
                 try {
                     getWindow().OSM.router.stateChange(getWindow().OSM.parseHash(getWindow().OSM.formatHash(getMap())))
                 } catch (e) {
                     console.error(e)
                 }
-                auth.xhr({
-                        method: 'POST',
-                        path: osm_server.apiBase + 'notes/' + note_id + "/close.json?" + new URLSearchParams({
-                            text: text
-                        }).toString(),
+                auth.xhr(
+                    {
+                        method: "POST",
+                        path:
+                            osm_server.apiBase +
+                            "notes/" +
+                            note_id +
+                            "/close.json?" +
+                            new URLSearchParams({
+                                text: text,
+                            }).toString(),
                         prefix: false,
-                    }, (err) => {
+                    },
+                    err => {
                         if (err) {
-                            alert(err);
+                            alert(err)
                         }
-                        window.location.reload();
-                    }
-                );
+                        window.location.reload()
+                    },
+                )
             }
         })
-        document.querySelectorAll("form.mb-3")[0].before(document.createElement("p"));
-        document.querySelector("form.mb-3 .form-control").rows = 3;
+        document.querySelectorAll("form.mb-3")[0].before(document.createElement("p"))
+        document.querySelector("form.mb-3 .form-control").rows = 3
     }
-    document.querySelectorAll('#sidebar_content div:has(h4) a').forEach(i => {
+    document.querySelectorAll("#sidebar_content div:has(h4) a").forEach(i => {
         if (i.href.match(/^(https:\/\/streetcomplete\.app\/|https:\/\/westnordost\.de\/).+\.jpg$/)) {
             const img = GM_addElement("img", {
                 src: i.href,
@@ -2509,16 +2515,16 @@ out meta;
 }
 
 function setupResolveNotesButton(path) {
-    if (!path.startsWith("/note")) return;
-    let timerId = setInterval(addResolveNotesButton, 100);
+    if (!path.startsWith("/note")) return
+    let timerId = setInterval(addResolveNotesButton, 100)
     setTimeout(() => {
-        clearInterval(timerId);
-        console.debug('stop try add resolve note button');
-    }, 3000);
-    addResolveNotesButton();
+        clearInterval(timerId)
+        console.debug("stop try add resolve note button")
+    }, 3000)
+    addResolveNotesButton()
 }
 
-let updateNotesLayer = null;
+let updateNotesLayer = null
 
 function addNotesFiltersButtons() {
     injectCSSIntoOSMPage(`
@@ -2539,18 +2545,18 @@ function addNotesFiltersButtons() {
     function updateNotesFilters() {
         if (checkbox.checked) {
             filters.style.display = ""
-            getWindow().notesDisplayName = filterByUsername.value;
-            getWindow().invertDisplayName = inverterForFilterByUsername.checked;
-            getWindow().notesQFilter = filterByString.value;
-            getWindow().invertQ = inverterForFilterByString.checked;
-            getWindow().notesClosedFilter = filterByClosed.value;
+            getWindow().notesDisplayName = filterByUsername.value
+            getWindow().invertDisplayName = inverterForFilterByUsername.checked
+            getWindow().notesQFilter = filterByString.value
+            getWindow().invertQ = inverterForFilterByString.checked
+            getWindow().notesClosedFilter = filterByClosed.value
         } else {
             filters.style.display = "none"
-            getWindow().notesDisplayName = "";
-            getWindow().invertDisplayName = "";
-            getWindow().notesQFilter = "";
-            getWindow().invertQ = "";
-            getWindow().notesClosedFilter = "";
+            getWindow().notesDisplayName = ""
+            getWindow().invertDisplayName = ""
+            getWindow().notesQFilter = ""
+            getWindow().invertQ = ""
+            getWindow().notesClosedFilter = ""
         }
     }
 
@@ -2677,19 +2683,19 @@ function addNotesFiltersButtons() {
     filterByClosed.addEventListener("input", function () {
         filterByClosed.classList?.add("wait-fetch")
         updateNotesLayer()
-    });
-    [
+    })
+    ;[
         ["❌ + ✅ at 7 days ago", 7],
         ["❌ + ✅ at 30 days ago", 30],
         ["❌ + ✅ at 365 days ago", 365],
         ["only opened", 0],
-        ["all notes", -1]
+        ["all notes", -1],
     ].forEach(([title, value]) => {
         const option = document.createElement("option")
         option.textContent = title
         option.value = value
         filterByClosed.appendChild(option)
-    });
+    })
 
     const wrapperForFilterByClosed = document.createElement("div")
     wrapperForFilterByClosed.appendChild(filterByClosed)
@@ -2701,23 +2707,26 @@ function addNotesFiltersButtons() {
     noteLabel.after(filters)
     updateNotesFilters()
     document.querySelector(".overlay-layers p").style.display = "none"
-    getMap().noteLayer?.on('click', intoPageWithFun((e) => {
-        if (!e.originalEvent.altKey) {
-            return
-        }
-        getWindow().notesIDsFilter.add(e.layer.id);
-        e.propagatedFrom.getElement().style.display = "none";
-        getMap().fire("moveend");
-    }))
+    getMap().noteLayer?.on(
+        "click",
+        intoPageWithFun(e => {
+            if (!e.originalEvent.altKey) {
+                return
+            }
+            getWindow().notesIDsFilter.add(e.layer.id)
+            e.propagatedFrom.getElement().style.display = "none"
+            getMap().fire("moveend")
+        }),
+    )
 }
 
 function setupNotesFiltersButtons() {
-    let timerId = setInterval(addNotesFiltersButtons, 100);
+    let timerId = setInterval(addNotesFiltersButtons, 100)
     setTimeout(() => {
-        clearInterval(timerId);
-        console.debug('stop try add notes filters buttons');
-    }, 3000);
-    addNotesFiltersButtons();
+        clearInterval(timerId)
+        console.debug("stop try add notes filters buttons")
+    }, 3000)
+    addNotesFiltersButtons()
 }
 
 async function getMapBounds() {
@@ -2739,12 +2748,12 @@ async function getMapBounds() {
             const res = {
                 getNorthWest: () => ({
                     lat: document.querySelector("#maxlat").value,
-                    lng: document.querySelector("#minlon").value
+                    lng: document.querySelector("#minlon").value,
                 }),
                 getSouthEast: () => ({
                     lat: document.querySelector("#minlat").value,
-                    lng: document.querySelector("#maxlon").value
-                })
+                    lng: document.querySelector("#maxlon").value,
+                }),
             }
             console.log(res.getNorthWest())
             console.log(res.getSouthEast())
@@ -2771,7 +2780,7 @@ function addGPXFiltersButtons() {
     filters.id = "gpx-filter"
     filters.style.cursor = "pointer"
 
-    let bbox;
+    let bbox
 
     filters.onclick = async () => {
         const prevTracksList = document.getElementById("tracks-list")
@@ -2792,11 +2801,14 @@ function addGPXFiltersButtons() {
                 filters.style.cursor = "progress"
                 filters.setAttribute("disabled", true)
                 const response = await GM.xmlHttpRequest({
-                    url: osm_server.url + "/api/0.6/trackpoints?" + new URLSearchParams({
-                        bbox: [lng1, lat2, lng2, lat1].join(","),
-                        page: page
-                    })
-                });
+                    url:
+                        osm_server.url +
+                        "/api/0.6/trackpoints?" +
+                        new URLSearchParams({
+                            bbox: [lng1, lat2, lng2, lat1].join(","),
+                            page: page,
+                        }),
+                })
                 if (response.status !== 200) {
                     alert("download failed: " + response.responseText)
                     throw response.responseText
@@ -2806,18 +2818,20 @@ function addGPXFiltersButtons() {
                 }
                 try {
                     bbox?.remove()
-                    bbox = getWindow().L.rectangle(
-                        intoPage([
-                            [lat1, lng1],
-                            [lat2, lng2]
-                        ]),
-                        intoPage({color: "red", weight: 2, fillOpacity: 0, dashArray: "10, 10"})
-                    ).addTo(getMap())
+                    bbox = getWindow()
+                        .L.rectangle(
+                            intoPage([
+                                [lat1, lng1],
+                                [lat2, lng2],
+                            ]),
+                            intoPage({ color: "red", weight: 2, fillOpacity: 0, dashArray: "10, 10" }),
+                        )
+                        .addTo(getMap())
                 } catch (e) {
                     console.error(e)
                 }
 
-                const tracks = (new DOMParser()).parseFromString(response.responseText, "text/html");
+                const tracks = new DOMParser().parseFromString(response.responseText, "text/html")
 
                 const countAllTrackPoints = tracks.querySelectorAll("trkpt").length
                 console.log(`Tracks points: ${countAllTrackPoints}`)
@@ -2838,18 +2852,20 @@ function addGPXFiltersButtons() {
                     trackInfo.title = `${name}\n\n${desc}`
                     trackInfo.onmouseenter = () => {
                         bbox?.remove()
-                        bbox = getWindow().L.rectangle(
-                            intoPage([
-                                [lat1, lng1],
-                                [lat2, lng2]
-                            ]),
-                            intoPage({color: "red", weight: 2, fillOpacity: 0, dashArray: "10, 10"})
-                        ).addTo(getMap())
+                        bbox = getWindow()
+                            .L.rectangle(
+                                intoPage([
+                                    [lat1, lng1],
+                                    [lat2, lng2],
+                                ]),
+                                intoPage({ color: "red", weight: 2, fillOpacity: 0, dashArray: "10, 10" }),
+                            )
+                            .addTo(getMap())
 
-                        let trackForDisplay = document.implementation.createDocument(null, 'gpx');
-                        trackForDisplay.documentElement.appendChild(trk);
+                        let trackForDisplay = document.implementation.createDocument(null, "gpx")
+                        trackForDisplay.documentElement.appendChild(trk)
                         cleanAllObjects()
-                        displayGPXTrack(trackForDisplay);
+                        displayGPXTrack(trackForDisplay)
                     }
                     trackInfo.onclick = e => {
                         if (!e.altKey) {
@@ -2857,7 +2873,7 @@ function addGPXFiltersButtons() {
                         }
                         fitBounds([
                             [trackMetadata.min_lat, trackMetadata.min_lon],
-                            [trackMetadata.max_lat, trackMetadata.max_lon]
+                            [trackMetadata.max_lat, trackMetadata.max_lon],
                         ])
                     }
                     tracksList.appendChild(trackInfo)
@@ -2867,65 +2883,67 @@ function addGPXFiltersButtons() {
                     downloadBtn.style.position = "absolute"
                     downloadBtn.style.marginLeft = "-1.5em"
                     downloadBtn.style.filter = "grayscale(1)"
-                    downloadBtn.addEventListener("mouseenter", async () => {
-                        downloadBtn.style.cursor = "progress"
-                        downloadBtn.style.filter = ""
+                    downloadBtn.addEventListener(
+                        "mouseenter",
+                        async () => {
+                            downloadBtn.style.cursor = "progress"
+                            downloadBtn.style.filter = ""
 
-                        const res = await GM.xmlHttpRequest({
-                            url: `${osm_server.url}/traces/${trackID}/data`,
-                            responseType: "blob"
-                        });
-                        if (res.status !== 200) {
-                            console.error(`Track #${trackID} not download:`, res.status)
-                            return
-                        }
-                        const contentType = res.response.type
-                        let xml;
-                        if (contentType === "application/gpx+xml") {
-                            xml = new DOMParser().parseFromString(await res.response.text(), "application/xml")
-                        } else if (contentType === "application/gzip") {
-                            xml = new DOMParser().parseFromString(await (await decompressBlob(res.response)).text(), "application/xml")
-                        } else if (contentType === "application/x-bzip2") {
-                            // fuck Tampermonkey, structuredClone for TM
-                            xml = new DOMParser().parseFromString(new TextDecoder().decode(bz2.decompress(structuredClone(await res.response.bytes()))), "application/xml")
-                        } else {
-                            throw `Unknown track #${trackID} format: ` + contentType
-                        }
-                        cleanAllObjects()
-                        displayGPXTrack(xml);
-
-                        function hoverHandler() {
-                            bbox?.remove()
-                            bbox = getWindow().L.rectangle(
-                                intoPage([
-                                    [lat1, lng1],
-                                    [lat2, lng2]
-                                ]),
-                                intoPage({color: "red", weight: 2, fillOpacity: 0, dashArray: "10, 10"})
-                            ).addTo(getMap())
-
+                            const res = await GM.xmlHttpRequest({
+                                url: `${osm_server.url}/traces/${trackID}/data`,
+                                responseType: "blob",
+                            })
+                            if (res.status !== 200) {
+                                console.error(`Track #${trackID} not download:`, res.status)
+                                return
+                            }
+                            const contentType = res.response.type
+                            let xml
+                            if (contentType === "application/gpx+xml") {
+                                xml = new DOMParser().parseFromString(await res.response.text(), "application/xml")
+                            } else if (contentType === "application/gzip") {
+                                xml = new DOMParser().parseFromString(await (await decompressBlob(res.response)).text(), "application/xml")
+                            } else if (contentType === "application/x-bzip2") {
+                                // fuck Tampermonkey, structuredClone for TM
+                                xml = new DOMParser().parseFromString(new TextDecoder().decode(bz2.decompress(structuredClone(await res.response.bytes()))), "application/xml")
+                            } else {
+                                throw `Unknown track #${trackID} format: ` + contentType
+                            }
                             cleanAllObjects()
-                            displayGPXTrack(xml);
-                        }
-                        trackInfo.onmouseenter = hoverHandler
-                        downloadBtn.onmouseenter = hoverHandler
+                            displayGPXTrack(xml)
 
-                        downloadBtn.textContent = "⧈"
-                        downloadBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">\n' +
-                            '  <path d="M3 7V3H7" stroke-width="2" stroke-linecap="round"/>\n' +
-                            '  <path d="M17 3H21V7" stroke-width="2" stroke-linecap="round"/>\n' +
-                            '  <path d="M21 17V21H17" stroke-width="2" stroke-linecap="round"/>\n' +
-                            '  <path d="M7 21H3V17" stroke-width="2" stroke-linecap="round"/>\n' +
-                            '</svg>\n'
-                        downloadBtn.style.cursor = "pointer"
-                        downloadBtn.title = "click to zoom\nTip: press 8-9 to navigate between previous/next map position"
-                        downloadBtn.onclick = () => {
-                            fitBounds([
-                                [trackMetadata.min_lat, trackMetadata.min_lon],
-                                [trackMetadata.max_lat, trackMetadata.max_lon]
-                            ])
-                        }
-                    }, {once: true})
+                            function hoverHandler() {
+                                bbox?.remove()
+                                bbox = getWindow()
+                                    .L.rectangle(
+                                        intoPage([
+                                            [lat1, lng1],
+                                            [lat2, lng2],
+                                        ]),
+                                        intoPage({ color: "red", weight: 2, fillOpacity: 0, dashArray: "10, 10" }),
+                                    )
+                                    .addTo(getMap())
+
+                                cleanAllObjects()
+                                displayGPXTrack(xml)
+                            }
+                            trackInfo.onmouseenter = hoverHandler
+                            downloadBtn.onmouseenter = hoverHandler
+
+                            downloadBtn.textContent = "⧈"
+                            downloadBtn.innerHTML =
+                                '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">\n' + '  <path d="M3 7V3H7" stroke-width="2" stroke-linecap="round"/>\n' + '  <path d="M17 3H21V7" stroke-width="2" stroke-linecap="round"/>\n' + '  <path d="M21 17V21H17" stroke-width="2" stroke-linecap="round"/>\n' + '  <path d="M7 21H3V17" stroke-width="2" stroke-linecap="round"/>\n' + "</svg>\n"
+                            downloadBtn.style.cursor = "pointer"
+                            downloadBtn.title = "click to zoom\nTip: press 8-9 to navigate between previous/next map position"
+                            downloadBtn.onclick = () => {
+                                fitBounds([
+                                    [trackMetadata.min_lat, trackMetadata.min_lon],
+                                    [trackMetadata.max_lat, trackMetadata.max_lon],
+                                ])
+                            }
+                        },
+                        { once: true },
+                    )
                     trackInfo.before(downloadBtn)
                 })
 
@@ -2941,13 +2959,15 @@ function addGPXFiltersButtons() {
             filters.removeAttribute("disabled")
         }
         bbox?.remove()
-        bbox = getWindow().L.rectangle(
-            intoPage([
-                [lat1, lng1],
-                [lat2, lng2]
-            ]),
-            intoPage({color: "red", weight: 2, fillOpacity: 0, dashArray: "10, 10"})
-        ).addTo(getMap())
+        bbox = getWindow()
+            .L.rectangle(
+                intoPage([
+                    [lat1, lng1],
+                    [lat2, lng2],
+                ]),
+                intoPage({ color: "red", weight: 2, fillOpacity: 0, dashArray: "10, 10" }),
+            )
+            .addTo(getMap())
     }
 
     filters.textContent = " 🔍"
@@ -2956,62 +2976,65 @@ function addGPXFiltersButtons() {
 }
 
 function setupGPXFiltersButtons() {
-    let timerId = setInterval(addGPXFiltersButtons, 100);
+    let timerId = setInterval(addGPXFiltersButtons, 100)
     setTimeout(() => {
-        clearInterval(timerId);
-        console.debug('stop try add gpx filters buttons');
-    }, 3000);
-    addGPXFiltersButtons();
+        clearInterval(timerId)
+        console.debug("stop try add gpx filters buttons")
+    }, 3000)
+    addGPXFiltersButtons()
 }
 
-let nodeMoverMenuItem;
+let nodeMoverMenuItem
 
 function removePOIMoverMenu() {
     if (!nodeMoverMenuItem) return
     try {
         nodeMoverMenuItem = getMap().contextmenu.removeItem(nodeMoverMenuItem)
         nodeMoverMenuItem = null
-    } catch { /* empty */
+    } catch {
+        /* empty */
     }
 }
 
 function addDeleteButton() {
-    if (!location.pathname.startsWith("/node/") && !location.pathname.startsWith("/relation/")) return;
-    if (location.pathname.includes("/history")) return;
+    if (!location.pathname.startsWith("/node/") && !location.pathname.startsWith("/relation/")) return
+    if (location.pathname.includes("/history")) return
 
-    if (document.querySelector('.delete_object_button_class')) return true;
+    if (document.querySelector(".delete_object_button_class")) return true
 
-    const match = location.pathname.match(/(node|relation)\/(\d+)/);
-    if (!match) return;
-    const object_type = match[1];
-    const object_id = match[2];
+    const match = location.pathname.match(/(node|relation)\/(\d+)/)
+    if (!match) return
+    const object_type = match[1]
+    const object_id = match[2]
 
-    const auth = makeAuth();
-    const link = document.createElement('a');
-    link.text = ['ru-RU', 'ru'].includes(navigator.language) ? "Выпилить!" : "Delete";
-    link.href = "";
-    link.classList.add("delete_object_button_class");
+    const auth = makeAuth()
+    const link = document.createElement("a")
+    link.text = ["ru-RU", "ru"].includes(navigator.language) ? "Выпилить!" : "Delete"
+    link.href = ""
+    link.classList.add("delete_object_button_class")
     // skip deleted
     if (object_type === "node") {
         if (document.querySelectorAll("#sidebar_content > div:first-of-type h4").length < 2 && document.querySelector("#element_versions_list > div .latitude") === null) {
-            return;
+            return
         }
     } else if (object_type === "relation") {
         if (document.querySelectorAll("#sidebar_content > div:first-of-type h4").length < 2) {
-            return;
+            return
         }
     }
     // skip having a parent
     if (object_type === "node" && document.querySelectorAll("#sidebar_content > div:first-of-type details").length !== 0) {
-        return;
+        return
     } else if (object_type === "relation") {
         if (document.querySelectorAll("#sidebar_content > div:first-of-type details").length > 1) {
-            return;
+            return
         }
         if (Array.from(document.querySelectorAll(".browse-tag-list th")).some(i => i.textContent === "wikidata")) {
             return
         }
-        const dangerousType = Array.from(document.querySelectorAll(".browse-tag-list td")).map(i => i.textContent).find(i => ["route_master", "route", "multipolygon", "public_transport"].includes(i))
+        const dangerousType = Array.from(document.querySelectorAll(".browse-tag-list td"))
+            .map(i => i.textContent)
+            .find(i => ["route_master", "route", "multipolygon", "public_transport"].includes(i))
         if (dangerousType) {
             if (dangerousType === "multipolygon") {
                 if (document.querySelectorAll("#sidebar_content > div:first-of-type details li").length > 1) {
@@ -3023,17 +3046,17 @@ function addDeleteButton() {
         }
     }
 
-    if (!document.querySelector(".secondary-actions")) return;
-    document.querySelector(".secondary-actions").appendChild(link);
-    link.after(document.createTextNode("\xA0"));
-    link.before(document.createTextNode("\xA0· "));
+    if (!document.querySelector(".secondary-actions")) return
+    document.querySelector(".secondary-actions").appendChild(link)
+    link.after(document.createTextNode("\xA0"))
+    link.before(document.createTextNode("\xA0· "))
 
     if (!document.querySelector(".secondary-actions .edit_tags_class")) {
         const tagsEditorExtensionWaiter = new MutationObserver(() => {
             if (document.querySelector(".secondary-actions .edit_tags_class")) {
                 tagsEditorExtensionWaiter.disconnect()
 
-                const tmp = document.createComment('')
+                const tmp = document.createComment("")
                 const node1 = document.querySelector(".delete_object_button_class")
                 const node2 = document.querySelector(".edit_tags_class")
 
@@ -3046,115 +3069,127 @@ function addDeleteButton() {
         })
         tagsEditorExtensionWaiter.observe(document.querySelector(".secondary-actions"), {
             childList: true,
-            subtree: true
+            subtree: true,
         })
         setTimeout(() => tagsEditorExtensionWaiter.disconnect(), 3000)
     }
 
     function deleteObject(e) {
-        e.preventDefault();
-        link.classList.add("dbclicked");
+        e.preventDefault()
+        link.classList.add("dbclicked")
 
-        console.log("Getting info");
+        console.log("Getting info")
 
-        auth.xhr({
-            method: 'GET',
-            path: osm_server.apiBase + object_type + '/' + object_id,
-            prefix: false,
-        }, function (err, objectInfo) {
-            if (err) {
-                console.log(err);
-                return;
-            }
-
-            let tagsHint = ""
-            const tags = Array.from(objectInfo.children[0].children[0]?.children)
-            for (const i of tags) {
-                if (mainTags.includes(i.getAttribute("k"))) {
-                    tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`;
-                    break
-                }
-            }
-            for (const i of tags) {
-                if (i.getAttribute("k") === "type") {
-                    tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`;
-                }
-            }
-            for (const i of tags) {
-                if (i.getAttribute("k") === "restriction") {
-                    tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`;
-                }
-            }
-            for (const i of tags) {
-                if (i.getAttribute("k") === "name") {
-                    tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`;
-                    break
-                }
-            }
-            const changesetTags = {
-                'created_by': `better osm.org v${GM_info.script.version}`,
-                'comment': tagsHint !== "" ? `Delete${tagsHint}` : `Delete ${object_type} ${object_id}`
-            };
-
-            if (object_type === "relation" && !prompt("⚠️ Delete relation?\n\nChangeset comment:", changesetTags['comment'])) {
-                return
-            }
-
-            let changesetPayload = document.implementation.createDocument(null, 'osm');
-            let cs = changesetPayload.createElement('changeset');
-            changesetPayload.documentElement.appendChild(cs);
-            tagsToXml(changesetPayload, cs, changesetTags);
-            const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload);
-
-            console.log("Opening changeset");
-
-            auth.xhr({
-                method: 'PUT',
-                path: osm_server.apiBase + 'changeset/create',
+        auth.xhr(
+            {
+                method: "GET",
+                path: osm_server.apiBase + object_type + "/" + object_id,
                 prefix: false,
-                content: chPayloadStr,
-                headers: {"Content-Type": "application/xml; charset=utf-8"}
-            }, function (err1, result) {
-                if (err1) {
-                    console.log({changesetError: err1});
+            },
+            function (err, objectInfo) {
+                if (err) {
+                    console.log(err)
                     return
                 }
-                const changesetId = result;
-                console.log(changesetId);
-                objectInfo.children[0].children[0].setAttribute('changeset', changesetId);
-                auth.xhr({
-                    method: 'DELETE',
-                    path: osm_server.apiBase + object_type + '/' + object_id,
-                    prefix: false,
-                    content: objectInfo,
-                    headers: {"Content-Type": "application/xml; charset=utf-8"}
-                }, function (err2) {
-                    if (err2) {
-                        console.log({changesetError: err2});
+
+                let tagsHint = ""
+                const tags = Array.from(objectInfo.children[0].children[0]?.children)
+                for (const i of tags) {
+                    if (mainTags.includes(i.getAttribute("k"))) {
+                        tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
+                        break
                     }
-                    auth.xhr({
-                        method: 'PUT',
-                        path: osm_server.apiBase + 'changeset/' + changesetId + '/close',
-                        prefix: false
-                    }, function (err3) {
-                        if (!err3) {
-                            window.location.reload();
+                }
+                for (const i of tags) {
+                    if (i.getAttribute("k") === "type") {
+                        tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
+                    }
+                }
+                for (const i of tags) {
+                    if (i.getAttribute("k") === "restriction") {
+                        tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
+                    }
+                }
+                for (const i of tags) {
+                    if (i.getAttribute("k") === "name") {
+                        tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
+                        break
+                    }
+                }
+                const changesetTags = {
+                    created_by: `better osm.org v${GM_info.script.version}`,
+                    comment: tagsHint !== "" ? `Delete${tagsHint}` : `Delete ${object_type} ${object_id}`,
+                }
+
+                if (object_type === "relation" && !prompt("⚠️ Delete relation?\n\nChangeset comment:", changesetTags["comment"])) {
+                    return
+                }
+
+                let changesetPayload = document.implementation.createDocument(null, "osm")
+                let cs = changesetPayload.createElement("changeset")
+                changesetPayload.documentElement.appendChild(cs)
+                tagsToXml(changesetPayload, cs, changesetTags)
+                const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
+
+                console.log("Opening changeset")
+
+                auth.xhr(
+                    {
+                        method: "PUT",
+                        path: osm_server.apiBase + "changeset/create",
+                        prefix: false,
+                        content: chPayloadStr,
+                        headers: { "Content-Type": "application/xml; charset=utf-8" },
+                    },
+                    function (err1, result) {
+                        if (err1) {
+                            console.log({ changesetError: err1 })
+                            return
                         }
-                    });
-                });
-            });
-        });
+                        const changesetId = result
+                        console.log(changesetId)
+                        objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
+                        auth.xhr(
+                            {
+                                method: "DELETE",
+                                path: osm_server.apiBase + object_type + "/" + object_id,
+                                prefix: false,
+                                content: objectInfo,
+                                headers: { "Content-Type": "application/xml; charset=utf-8" },
+                            },
+                            function (err2) {
+                                if (err2) {
+                                    console.log({ changesetError: err2 })
+                                }
+                                auth.xhr(
+                                    {
+                                        method: "PUT",
+                                        path: osm_server.apiBase + "changeset/" + changesetId + "/close",
+                                        prefix: false,
+                                    },
+                                    function (err3) {
+                                        if (!err3) {
+                                            window.location.reload()
+                                        }
+                                    },
+                                )
+                            },
+                        )
+                    },
+                )
+            },
+        )
     }
     if (GM_config.get("OneClickDeletor") || object_type === "relation") {
-        link.onclick = deleteObject;
+        link.onclick = deleteObject
     } else {
-        link.onclick = (e) => {
-            e.preventDefault();
+        link.onclick = e => {
+            e.preventDefault()
             setTimeout(() => {
                 if (!link.classList.contains("dbclicked")) {
-                    link.text = "Double click please";
+                    link.text = "Double click please"
                 }
-            }, 200);
+            }, 200)
         }
         link.ondblclick = deleteObject
     }
@@ -3165,116 +3200,121 @@ function addDeleteButton() {
         if (!getMap || !getMap().contextmenu || !measurerAdded) {
             await sleep(1110)
         }
-        nodeMoverMenuItem = getMap().contextmenu.addItem(intoPageWithFun({
-            text: "Move node to here",
-            callback: async function moveNode(e) {
-                let match = location.pathname.match(/(node)\/(\d+)/);
-                if (!match) return;
-                let object_type = match[1];
-                let object_id = match[2];
-                const auth = makeAuth();
-                if (!confirm("⚠️ move node?")) {
-                    return
-                }
-                const {lat: newLat, lng: newLon} = e.latlng
-                console.log("Opening changeset");
-                const rawObjectInfo = (await (await auth.fetch(osm_server.apiBase + object_type + '/' + object_id, {
-                    method: 'GET',
-                    prefix: false,
-                })).text());
-                const objectInfo = (new DOMParser()).parseFromString(rawObjectInfo, "text/xml")
-                const dist = Math.round(getDistanceFromLatLonInKm(
-                    parseFloat(objectInfo.querySelector("node").getAttribute("lat")),
-                    parseFloat(objectInfo.querySelector("node").getAttribute("lon")),
-                    newLat,
-                    newLon,
-                ) * 1000) / 1000;
-                if (dist > 50) {
-                    if (!confirm(`⚠️ ${dist} kilometers.\n\nARE YOU SURE?`)) {
+        nodeMoverMenuItem = getMap().contextmenu.addItem(
+            intoPageWithFun({
+                text: "Move node to here",
+                callback: async function moveNode(e) {
+                    let match = location.pathname.match(/(node)\/(\d+)/)
+                    if (!match) return
+                    let object_type = match[1]
+                    let object_id = match[2]
+                    const auth = makeAuth()
+                    if (!confirm("⚠️ move node?")) {
                         return
                     }
-                }
-                objectInfo.querySelector("node").setAttribute("lat", newLat)
-                objectInfo.querySelector("node").setAttribute("lon", newLon)
+                    const { lat: newLat, lng: newLon } = e.latlng
+                    console.log("Opening changeset")
+                    const rawObjectInfo = await (
+                        await auth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
+                            method: "GET",
+                            prefix: false,
+                        })
+                    ).text()
+                    const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
+                    const dist = Math.round(getDistanceFromLatLonInKm(parseFloat(objectInfo.querySelector("node").getAttribute("lat")), parseFloat(objectInfo.querySelector("node").getAttribute("lon")), newLat, newLon) * 1000) / 1000
+                    if (dist > 50) {
+                        if (!confirm(`⚠️ ${dist} kilometers.\n\nARE YOU SURE?`)) {
+                            return
+                        }
+                    }
+                    objectInfo.querySelector("node").setAttribute("lat", newLat)
+                    objectInfo.querySelector("node").setAttribute("lon", newLon)
 
-                const changesetTags = {
-                    'created_by': `better osm.org v${GM_info.script.version}`,
-                    'comment': "Moving node"
-                };
+                    const changesetTags = {
+                        created_by: `better osm.org v${GM_info.script.version}`,
+                        comment: "Moving node",
+                    }
 
-                let changesetPayload = document.implementation.createDocument(null, 'osm');
-                let cs = changesetPayload.createElement('changeset');
-                changesetPayload.documentElement.appendChild(cs);
-                tagsToXml(changesetPayload, cs, changesetTags);
-                const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload);
+                    let changesetPayload = document.implementation.createDocument(null, "osm")
+                    let cs = changesetPayload.createElement("changeset")
+                    changesetPayload.documentElement.appendChild(cs)
+                    tagsToXml(changesetPayload, cs, changesetTags)
+                    const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
 
-                const changesetId = await auth.fetch(osm_server.apiBase + 'changeset/create', {
-                    method: 'PUT',
-                    prefix: false,
-                    body: chPayloadStr
-                }).then((res) => {
-                    if (res.ok) return res.text();
-                    throw new Error(res);
-                });
-                console.log(changesetId);
+                    const changesetId = await auth
+                        .fetch(osm_server.apiBase + "changeset/create", {
+                            method: "PUT",
+                            prefix: false,
+                            body: chPayloadStr,
+                        })
+                        .then(res => {
+                            if (res.ok) return res.text()
+                            throw new Error(res)
+                        })
+                    console.log(changesetId)
 
+                    try {
+                        objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
 
-                try {
-                    objectInfo.children[0].children[0].setAttribute('changeset', changesetId);
-
-                    const objectInfoStr = new XMLSerializer().serializeToString(objectInfo).replace(/xmlns="[^"]+"/, '')
-                    console.log(objectInfoStr);
-                    await auth.fetch(osm_server.apiBase + object_type + '/' + object_id, {
-                        method: 'PUT',
-                        prefix: false,
-                        body: objectInfoStr
-                    }).then(async (res) => {
-                        const text = await res.text()
-                        if (res.ok) return text;
-                        alert(text)
-                        throw new Error(text);
-                    });
-                } finally {
-                    await auth.fetch(osm_server.apiBase + 'changeset/' + changesetId + '/close', {
-                        method: 'PUT',
-                        prefix: false
-                    });
-                    window.location.reload();
-                }
-            }
-        }))
+                        const objectInfoStr = new XMLSerializer().serializeToString(objectInfo).replace(/xmlns="[^"]+"/, "")
+                        console.log(objectInfoStr)
+                        await auth
+                            .fetch(osm_server.apiBase + object_type + "/" + object_id, {
+                                method: "PUT",
+                                prefix: false,
+                                body: objectInfoStr,
+                            })
+                            .then(async res => {
+                                const text = await res.text()
+                                if (res.ok) return text
+                                alert(text)
+                                throw new Error(text)
+                            })
+                    } finally {
+                        await auth.fetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
+                            method: "PUT",
+                            prefix: false,
+                        })
+                        window.location.reload()
+                    }
+                },
+            }),
+        )
     })
 }
 
 function setupDeletor(path) {
-    if (!path.startsWith("/node/") && !path.startsWith("/relation/")) return;
-    let timerId = setInterval(addDeleteButton, 100);
+    if (!path.startsWith("/node/") && !path.startsWith("/relation/")) return
+    let timerId = setInterval(addDeleteButton, 100)
     setTimeout(() => {
-        clearInterval(timerId);
-        console.debug('stop try add delete button');
-    }, 3000);
-    addDeleteButton();
+        clearInterval(timerId)
+        console.debug("stop try add delete button")
+    }, 3000)
+    addDeleteButton()
 }
 
 let mapDataSwitcherUnderSupervision = false
 
 function hideNoteHighlight() {
-    let g = document.querySelector("#map g");
-    if (!g || g.childElementCount === 0) return;
+    let g = document.querySelector("#map g")
+    if (!g || g.childElementCount === 0) return
     let mapDataCheckbox = document.querySelector(".layers-ui #label-layers-data input")
     if (mapDataCheckbox && !mapDataCheckbox.checked) {
-        if (mapDataSwitcherUnderSupervision) return;
+        if (mapDataSwitcherUnderSupervision) return
         mapDataSwitcherUnderSupervision = true
-        mapDataCheckbox.addEventListener("click", () => {
-            mapDataSwitcherUnderSupervision = false
-            hideNoteHighlight();
-        }, {once: true})
-        return;
+        mapDataCheckbox.addEventListener(
+            "click",
+            () => {
+                mapDataSwitcherUnderSupervision = false
+                hideNoteHighlight()
+            },
+            { once: true },
+        )
+        return
     }
-    if (g.childNodes[g.childElementCount - 1].getAttribute("stroke") === "#FF6200"
-        && g.childNodes[g.childElementCount - 1].getAttribute("d").includes("a20,20 0 1,0 -40,0 ")) {
-        g.childNodes[g.childElementCount - 1].remove();
-        document.querySelector("div.leaflet-marker-icon:last-child").style.filter = "contrast(120%)";
+    if (g.childNodes[g.childElementCount - 1].getAttribute("stroke") === "#FF6200" && g.childNodes[g.childElementCount - 1].getAttribute("d").includes("a20,20 0 1,0 -40,0 ")) {
+        g.childNodes[g.childElementCount - 1].remove()
+        document.querySelector("div.leaflet-marker-icon:last-child").style.filter = "contrast(120%)"
     }
     // getMap().dataLayer.on('click', intoPageWithFun((e) => {
     //     if (!e.originalEvent.altKey) {
@@ -3285,17 +3325,16 @@ function hideNoteHighlight() {
     //     e.propagatedFrom.getElement().style.display = "none";
     //     getMap().fire("moveend");
     // }))
-
 }
 
 function setupHideNoteHighlight() {
-    if (!location.pathname.startsWith("/note/")) return;
-    let timerId = setInterval(hideNoteHighlight, 1000);
+    if (!location.pathname.startsWith("/note/")) return
+    let timerId = setInterval(hideNoteHighlight, 1000)
     setTimeout(() => {
-        clearInterval(timerId);
-        console.debug('stop removing note highlight');
-    }, 5000);
-    hideNoteHighlight();
+        clearInterval(timerId)
+        console.debug("stop removing note highlight")
+    }, 5000)
+    hideNoteHighlight()
 }
 
 //<editor-fold desc="satellite switching">
@@ -3306,20 +3345,21 @@ const ESRIBetaPrefix = "https://clarity.maptiles.arcgis.com/arcgis/rest/services
 let SatellitePrefix = ESRIPrefix
 let SAT_MODE = "🛰"
 let MAPNIK_MODE = "🗺️"
-let currentTilesMode = MAPNIK_MODE;
-let tilesObserver = undefined;
+let currentTilesMode = MAPNIK_MODE
+let tilesObserver = undefined
 
 const OSMGPSPrefix = "https://gps.tile.openstreetmap.org/lines/"
 const StravaPrefix = "https://content-a.strava.com/identified/globalheat/all/blue/"
-let currentOverlayModeIsStrava = false;
-let overlayTilesObserver = undefined;
+let currentOverlayModeIsStrava = false
+let overlayTilesObserver = undefined
 
 function invertTilesMode(mode) {
-    return mode === "🛰" ? "🗺️" : "🛰";
+    return mode === "🛰" ? "🗺️" : "🛰"
 }
 
-function invertOverlayMode(mode) { // fixme
-    return currentOverlayModeIsStrava = !currentOverlayModeIsStrava;
+function invertOverlayMode(mode) {
+    // fixme
+    return (currentOverlayModeIsStrava = !currentOverlayModeIsStrava)
 }
 
 function parseOSMTileURL(url) {
@@ -3370,17 +3410,17 @@ function parseStravaTileURL(url) {
     }
 }
 
-let needStravaAuth = false;
+let needStravaAuth = false
 
 async function bypassChromeCSPForImagesSrc(imgElem, url, isStrava = true) {
-    const res = await fetchBlobWithCache(url);
+    const res = await fetchBlobWithCache(url)
     if (res.status !== 200) {
         if (!GM_config.get("OverzoomForDataLayer")) {
             return
         }
         if (isStrava && res.status === 403) {
             if (!needStravaAuth) {
-                needStravaAuth = true;
+                needStravaAuth = true
                 alert("Need login in Strava for access to heatmap")
                 window.open("https://www.strava.com/maps/global-heatmap", "_blank")
             }
@@ -3390,42 +3430,42 @@ async function bypassChromeCSPForImagesSrc(imgElem, url, isStrava = true) {
             const zoomStr = url.match(/(tile|org)\/([0-9]+)/)[2]
             if (zoomStr) {
                 const tileZoom = parseInt(zoomStr)
-                console.log(tileZoom);
+                console.log(tileZoom)
                 getMap().setZoom(Math.min(19, Math.min(getMap().getZoom(), tileZoom - 1)))
             }
         }
-        tileErrorHandler({currentTarget: imgElem}, url)
-        imgElem.src = "/dev/null";
-        return;
+        tileErrorHandler({ currentTarget: imgElem }, url)
+        imgElem.src = "/dev/null"
+        return
     }
 
-    const blob = res.response;
+    const blob = res.response
 
     const satTile = await new Promise(resolve => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.readAsDataURL(blob);
-    });
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result)
+        reader.readAsDataURL(blob)
+    })
     if (currentTilesMode === SAT_MODE || currentOverlayModeIsStrava) {
-        imgElem.src = satTile;
+        imgElem.src = satTile
     }
 }
 
-let blankSuffix = "";
+let blankSuffix = ""
 
 function switchESRIbeta() {
-    const NewSatellitePrefix = SatellitePrefix === ESRIPrefix ? ESRIBetaPrefix : ESRIPrefix;
+    const NewSatellitePrefix = SatellitePrefix === ESRIPrefix ? ESRIBetaPrefix : ESRIPrefix
     document.querySelectorAll(".leaflet-tile").forEach(i => {
-        if (i.nodeName !== 'IMG') {
-            return;
+        if (i.nodeName !== "IMG") {
+            return
         }
         let xyz = parseESRITileURL(!needBypassSatellite ? i.src : i.getAttribute("real-url") ?? "")
         if (!xyz) return
         const newUrl = NewSatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix
         if (!needBypassSatellite) {
-            i.src = newUrl;
+            i.src = newUrl
         } else {
-            bypassChromeCSPForImagesSrc(i, newUrl);
+            bypassChromeCSPForImagesSrc(i, newUrl)
         }
     })
     SatellitePrefix = NewSatellitePrefix
@@ -3436,7 +3476,7 @@ function switchESRIbeta() {
     }
 }
 
-const needBypassSatellite = !isFirefox || GM_info.scriptHandler === "Violentmonkey";
+const needBypassSatellite = !isFirefox || GM_info.scriptHandler === "Violentmonkey"
 
 function tileErrorHandler(e, url = null) {
     if (!GM_config.get("OverzoomForDataLayer")) {
@@ -3449,42 +3489,44 @@ function tileErrorHandler(e, url = null) {
         let tileURL = e?.currentTarget?.src?.match(/(tile|org)\/([0-9]+)/)
         if (!tileURL) {
             tileURL = e.currentTarget.getAttribute("real-url").match(/(tile|org)\/([0-9]+)/)
-            console.log(e.currentTarget.getAttribute("real-url"));
+            console.log(e.currentTarget.getAttribute("real-url"))
         }
         const zoomStr = tileURL[2]
         if (zoomStr) {
             const tileZoom = parseInt(zoomStr)
-            console.log(tileZoom);
+            console.log(tileZoom)
             getMap().setZoom(Math.min(19, Math.min(getMap().getZoom(), tileZoom - 1)))
         }
     }
 }
 
 function makeSatelliteURL(x, y, z) {
-    return SatellitePrefix + z + "/" + y + "/" + x + blankSuffix;
+    return SatellitePrefix + z + "/" + y + "/" + x + blankSuffix
 }
 
-const retina = (window.retina || window.devicePixelRatio > 1);
+const retina = window.retina || window.devicePixelRatio > 1
 
 function makeStravaURL(x, y, z) {
-    return StravaPrefix + z + "/" + x + "/" + y + (retina ? "@2x" : "") + ".png";
+    return StravaPrefix + z + "/" + x + "/" + y + (retina ? "@2x" : "") + ".png"
 }
 
 function makeOSMURL(x, y, z) {
-    return OSMPrefix + z + "/" + x + "/" + y + ".png";
+    return OSMPrefix + z + "/" + x + "/" + y + ".png"
 }
 
 function makeBaseLayerURL(x, y, z) {
-    return makeOSMURL(x, y, z);
+    return makeOSMURL(x, y, z)
 }
 
 function makeOSMGPSURL(x, y, z) {
-    return OSMGPSPrefix + z + "/" + x + "/" + y + ".png";
+    return OSMGPSPrefix + z + "/" + x + "/" + y + ".png"
 }
 
 function switchTiles() {
-    tilesObserver?.disconnect();
-    currentTilesMode = invertTilesMode(currentTilesMode);
+    if (tilesObserver) {
+        tilesObserver?.disconnect()
+    }
+    currentTilesMode = invertTilesMode(currentTilesMode)
     if (currentTilesMode === SAT_MODE) {
         if (SatellitePrefix === ESRIBetaPrefix) {
             getMap()?.attributionControl?.setPrefix("ESRI Beta")
@@ -3495,8 +3537,8 @@ function switchTiles() {
         getMap()?.attributionControl?.setPrefix("")
     }
     document.querySelectorAll(".leaflet-tile").forEach(i => {
-        if (i.nodeName !== 'IMG') {
-            return;
+        if (i.nodeName !== "IMG") {
+            return
         }
         if (currentTilesMode === SAT_MODE) {
             let xyz = parseOSMTileURL(i.src)
@@ -3504,126 +3546,142 @@ function switchTiles() {
             // unsafeWindow.L.DomEvent.off(i, "error") // todo добавить перехватчик 404
             try {
                 i.onerror = tileErrorHandler
-            } catch { /* empty */
+            } catch {
+                /* empty */
             }
             const newUrl = makeSatelliteURL(xyz.x, xyz.y, xyz.z)
             if (!needBypassSatellite) {
-                i.src = newUrl;
+                i.src = newUrl
             } else {
-                i.setAttribute("real-url", newUrl);
+                i.setAttribute("real-url", newUrl)
             }
             if (needBypassSatellite) {
-                bypassChromeCSPForImagesSrc(i, newUrl);
+                bypassChromeCSPForImagesSrc(i, newUrl)
             }
             if (i.complete && !needBypassSatellite) {
-                i.classList.add("no-invert");
+                i.classList.add("no-invert")
             } else {
-                i.addEventListener("load", e => {
-                    e.target.classList.add("no-invert");
-                }, {once: true})
+                i.addEventListener(
+                    "load",
+                    e => {
+                        e.target.classList.add("no-invert")
+                    },
+                    { once: true },
+                )
             }
         } else {
             let xyz = parseESRITileURL(!needBypassSatellite ? i.src : i.getAttribute("real-url") ?? "")
             if (!xyz) return
-            i.src = makeBaseLayerURL(xyz.x, xyz.y, xyz.z);
+            i.src = makeBaseLayerURL(xyz.x, xyz.y, xyz.z)
             if (i.complete) {
-                i.classList.remove("no-invert");
+                i.classList.remove("no-invert")
             } else {
-                i.addEventListener("load", e => {
-                    e.target.classList.remove("no-invert");
-                }, {once: true})
+                i.addEventListener(
+                    "load",
+                    e => {
+                        e.target.classList.remove("no-invert")
+                    },
+                    { once: true },
+                )
             }
         }
     })
     const observer = new MutationObserver(mutations => {
         mutations.forEach(mutation => {
             mutation.addedNodes.forEach(node => {
-                if (node.nodeName !== 'IMG') {
-                    return;
+                if (node.nodeName !== "IMG") {
+                    return
                 }
                 if (currentTilesMode === SAT_MODE) {
-                    let xyz = parseOSMTileURL(node.src);
+                    let xyz = parseOSMTileURL(node.src)
                     if (!xyz) return
                     // unsafeWindow.L.DomEvent.off(node, "error")
                     try {
                         node.onerror = tileErrorHandler
-                    } catch { /* empty */
+                    } catch {
+                        /* empty */
                     }
                     const newURL = makeSatelliteURL(xyz.x, xyz.y, xyz.z)
                     if (!needBypassSatellite) {
-                        node.src = newURL;
+                        node.src = newURL
                     } else {
-                        node.src = "/dev/null";
+                        node.src = "/dev/null"
                     }
-                    node.setAttribute("real-url", newURL);
+                    node.setAttribute("real-url", newURL)
                     if (needBypassSatellite) {
                         bypassChromeCSPForImagesSrc(node, newURL)
                     }
                     if (node.complete) {
-                        node.classList.add("no-invert");
+                        node.classList.add("no-invert")
                     } else {
-                        node.addEventListener("load", e => {
-                            e.target.classList.add("no-invert");
-                        }, {once: true})
+                        node.addEventListener(
+                            "load",
+                            e => {
+                                e.target.classList.add("no-invert")
+                            },
+                            { once: true },
+                        )
                     }
                 } else {
                     let xyz = parseESRITileURL(!needBypassSatellite ? node.src : node.getAttribute("real-url"))
                     if (!xyz) return
-                    node.src = makeBaseLayerURL(xyz.x, xyz.y, xyz.z);
+                    node.src = makeBaseLayerURL(xyz.x, xyz.y, xyz.z)
                     if (node.complete) {
-                        node.classList.remove("no-invert");
+                        node.classList.remove("no-invert")
                     } else {
-                        node.addEventListener("load", e => {
-                            e.target.classList.remove("no-invert");
-                        }, {once: true})
+                        node.addEventListener(
+                            "load",
+                            e => {
+                                e.target.classList.remove("no-invert")
+                            },
+                            { once: true },
+                        )
                     }
                 }
-            });
-        });
-    });
-    tilesObserver = observer;
-    observer.observe(document.body, {childList: true, subtree: true});
+            })
+        })
+    })
+    tilesObserver = observer
+    observer.observe(document.body, { childList: true, subtree: true })
 }
 
-
-let osmTilesObserver = undefined;
+let osmTilesObserver = undefined
 
 function bypassCaches() {
     if (osmTilesObserver) {
-        osmTilesObserver.disconnect();
+        osmTilesObserver.disconnect()
     }
     document.querySelectorAll(".leaflet-tile").forEach(i => {
-        if (i.nodeName !== 'IMG') {
-            return;
+        if (i.nodeName !== "IMG") {
+            return
         }
         let xyz = parseOSMTileURL(i.src)
         if (!xyz) return
-        const newUrl = makeOSMURL(xyz.x, xyz.y, xyz.z)// + "?bypassCache=" + new Date().getUTCSeconds();
+        const newUrl = makeOSMURL(xyz.x, xyz.y, xyz.z) // + "?bypassCache=" + new Date().getUTCSeconds();
         GM.xmlHttpRequest({
             method: "GET",
             url: newUrl,
             headers: {
                 "Cache-Control": "no-cache",
-                "Pragma": "no-cache",
-                "Referer": "https://www.openstreetmap.org/"
+                Pragma: "no-cache",
+                Referer: "https://www.openstreetmap.org/",
             },
             responseType: "blob",
             nocache: true,
-            revalidate: true
+            revalidate: true,
         }).then(async response => {
-                i.src = await new Promise(resolve => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result);
-                    reader.readAsDataURL(response.response);
-                });
-            }
-        );
+            i.src = await new Promise(resolve => {
+                const reader = new FileReader()
+                reader.onload = () => resolve(reader.result)
+                reader.readAsDataURL(response.response)
+            })
+        })
     })
     const observer = new MutationObserver(mutations => {
         mutations.forEach(mutation => {
             mutation.addedNodes.forEach(node => {
-                if (node.nodeName !== 'IMG') {
-                    return;
+                if (node.nodeName !== "IMG") {
+                    return
                 }
                 let xyz = parseOSMTileURL(node.src)
                 if (!xyz) return
@@ -3633,41 +3691,39 @@ function bypassCaches() {
                     url: newUrl,
                     headers: {
                         "Cache-Control": "no-cache",
-                        "Pragma": "no-cache",
-                        "Referer": "https://www.openstreetmap.org/"
+                        Pragma: "no-cache",
+                        Referer: "https://www.openstreetmap.org/",
                     },
                     responseType: "blob",
                     nocache: true,
                     revalidate: true,
                 }).then(async response => {
                     node.src = await new Promise(resolve => {
-                            const reader = new FileReader();
-                            reader.onload = () => resolve(reader.result);
-                            reader.readAsDataURL(response.response);
-                        });
-                    }
-                );
-            });
-        });
-    });
-    osmTilesObserver = observer;
-    observer.observe(document.body, {childList: true, subtree: true});
-
+                        const reader = new FileReader()
+                        reader.onload = () => resolve(reader.result)
+                        reader.readAsDataURL(response.response)
+                    })
+                })
+            })
+        })
+    })
+    osmTilesObserver = observer
+    observer.observe(document.body, { childList: true, subtree: true })
 }
 
 function switchOverlayTiles() {
     if (overlayTilesObserver) {
-        overlayTilesObserver.disconnect();
+        overlayTilesObserver.disconnect()
     }
-    currentOverlayModeIsStrava = invertOverlayMode(currentOverlayModeIsStrava);
+    currentOverlayModeIsStrava = invertOverlayMode(currentOverlayModeIsStrava)
     if (currentOverlayModeIsStrava) {
         getMap()?.attributionControl?.setPrefix("Strava")
     } else {
         getMap()?.attributionControl?.setPrefix("")
     }
     document.querySelectorAll(".leaflet-tile").forEach(i => {
-        if (i.nodeName !== 'IMG') {
-            return;
+        if (i.nodeName !== "IMG") {
+            return
         }
         if (currentOverlayModeIsStrava) {
             let xyz = parseOSMGPSTileURL(i.src)
@@ -3675,73 +3731,91 @@ function switchOverlayTiles() {
             // unsafeWindow.L.DomEvent.off(i, "error") // todo добавить перехватчик 404
             try {
                 i.onerror = tileErrorHandler
-            } catch { /* empty */
+            } catch {
+                /* empty */
             }
             const newUrl = makeStravaURL(xyz.x, xyz.y, xyz.z)
-            i.setAttribute("real-url", newUrl);
-            bypassChromeCSPForImagesSrc(i, newUrl, true);
+            i.setAttribute("real-url", newUrl)
+            bypassChromeCSPForImagesSrc(i, newUrl, true)
             if (i.complete) {
-                i.classList.add("no-invert");
+                i.classList.add("no-invert")
             } else {
-                i.addEventListener("load", e => {
-                    e.target.classList.add("no-invert");
-                }, {once: true})
+                i.addEventListener(
+                    "load",
+                    e => {
+                        e.target.classList.add("no-invert")
+                    },
+                    { once: true },
+                )
             }
         } else {
             let xyz = parseStravaTileURL(i.getAttribute("real-url") ?? "")
             if (!xyz) return
-            i.src = makeOSMGPSURL(xyz.x, xyz.y, xyz.z);
+            i.src = makeOSMGPSURL(xyz.x, xyz.y, xyz.z)
             if (i.complete) {
-                i.classList.remove("no-invert");
+                i.classList.remove("no-invert")
             } else {
-                i.addEventListener("load", e => {
-                    e.target.classList.remove("no-invert");
-                }, {once: true})
+                i.addEventListener(
+                    "load",
+                    e => {
+                        e.target.classList.remove("no-invert")
+                    },
+                    { once: true },
+                )
             }
         }
     })
     const observer = new MutationObserver(mutations => {
         mutations.forEach(mutation => {
             mutation.addedNodes.forEach(node => {
-                if (node.nodeName !== 'IMG') {
-                    return;
+                if (node.nodeName !== "IMG") {
+                    return
                 }
                 if (currentOverlayModeIsStrava) {
-                    let xyz = parseOSMGPSTileURL(node.src);
+                    let xyz = parseOSMGPSTileURL(node.src)
                     if (!xyz) return
                     // unsafeWindow.L.DomEvent.off(node, "error")
                     try {
                         node.onerror = tileErrorHandler
-                    } catch { /* empty */
+                    } catch {
+                        /* empty */
                     }
                     const newURL = makeStravaURL(xyz.x, xyz.y, xyz.z)
-                    node.src = "/dev/null";
-                    node.setAttribute("real-url", newURL);
+                    node.src = "/dev/null"
+                    node.setAttribute("real-url", newURL)
                     bypassChromeCSPForImagesSrc(node, newURL, true)
                     if (node.complete) {
-                        node.classList.add("no-invert");
+                        node.classList.add("no-invert")
                     } else {
-                        node.addEventListener("load", e => {
-                            e.target.classList.add("no-invert");
-                        }, {once: true})
+                        node.addEventListener(
+                            "load",
+                            e => {
+                                e.target.classList.add("no-invert")
+                            },
+                            { once: true },
+                        )
                     }
                 } else {
                     let xyz = parseStravaTileURL(node.getAttribute("real-url"))
                     if (!xyz) return
-                    node.src = makeOSMGPSURL(xyz.x, xyz.y, xyz.z);
+                    node.src = makeOSMGPSURL(xyz.x, xyz.y, xyz.z)
                     if (node.complete) {
-                        node.classList.remove("no-invert");
+                        node.classList.remove("no-invert")
                     } else {
-                        node.addEventListener("load", e => {
-                            e.target.classList.remove("no-invert");
-                        }, {once: true})
+                        node.addEventListener(
+                            "load",
+                            e => {
+                                e.target.classList.remove("no-invert")
+                            },
+                            { once: true },
+                        )
                     }
                 }
-            });
-        });
-    });
-    overlayTilesObserver = observer;
-    observer.observe(document.body, {childList: true, subtree: true});
+            })
+        })
+    })
+    overlayTilesObserver = observer
+    observer.observe(document.body, { childList: true, subtree: true })
 }
 
 if (isOsmServer() && new URLSearchParams(location.search).has("sat-tiles")) {
@@ -3755,84 +3829,84 @@ if (isOsmServer() && new URLSearchParams(location.search).has("sat-tiles")) {
 }
 
 function addSatelliteLayers() {
-    const btnOnPane = document.createElement("span");
-    let btnOnNotePage = document.createElement("span");
-    if (!document.querySelector('.turn-on-satellite-from-pane')) {
+    const btnOnPane = document.createElement("span")
+    let btnOnNotePage = document.createElement("span")
+    if (!document.querySelector(".turn-on-satellite-from-pane")) {
         const mapnikBtn = document.querySelector(".layers-ui label span")
         if (mapnikBtn) {
             if (!tilesObserver) {
-                btnOnPane.textContent = "🛰";
+                btnOnPane.textContent = "🛰"
             } else {
-                btnOnPane.textContent = invertTilesMode(currentTilesMode);
+                btnOnPane.textContent = invertTilesMode(currentTilesMode)
             }
-            btnOnPane.style.cursor = "pointer";
-            btnOnPane.classList.add("turn-on-satellite-from-pane");
+            btnOnPane.style.cursor = "pointer"
+            btnOnPane.classList.add("turn-on-satellite-from-pane")
             btnOnPane.title = "Switch between map and satellite images (S key)\nPress (Shift+S) for ESRI beta"
-            mapnikBtn.appendChild(document.createTextNode("\xA0"));
-            mapnikBtn.appendChild(btnOnPane);
+            mapnikBtn.appendChild(document.createTextNode("\xA0"))
+            mapnikBtn.appendChild(btnOnPane)
 
-            btnOnPane.onclick = (e) => {
+            btnOnPane.onclick = e => {
                 e.stopImmediatePropagation()
                 enableOverzoom()
                 if (e.shiftKey) {
                     switchESRIbeta()
                     return
                 }
-                switchTiles();
-                btnOnNotePage.textContent = invertTilesMode(currentTilesMode);
-                btnOnPane.textContent = invertTilesMode(currentTilesMode);
+                switchTiles()
+                btnOnNotePage.textContent = invertTilesMode(currentTilesMode)
+                btnOnPane.textContent = invertTilesMode(currentTilesMode)
             }
         }
     }
-    if (!location.pathname.includes("/note")) return;
-    if (document.querySelector('.turn-on-satellite')) return true;
+    if (!location.pathname.includes("/note")) return
+    if (document.querySelector(".turn-on-satellite")) return true
     if (!document.querySelector("#sidebar_content h4")) {
-        return;
+        return
     }
     if (!tilesObserver) {
-        btnOnNotePage.textContent = "🛰";
+        btnOnNotePage.textContent = "🛰"
     } else {
-        btnOnNotePage.textContent = invertTilesMode(currentTilesMode);
+        btnOnNotePage.textContent = invertTilesMode(currentTilesMode)
     }
-    btnOnNotePage.style.cursor = "pointer";
-    btnOnNotePage.classList.add("turn-on-satellite");
+    btnOnNotePage.style.cursor = "pointer"
+    btnOnNotePage.classList.add("turn-on-satellite")
     btnOnNotePage.title = "Switch between map and satellite images"
 
-    document.querySelectorAll("h4")[0].appendChild(document.createTextNode("\xA0"));
-    document.querySelectorAll("h4")[0].appendChild(btnOnNotePage);
+    document.querySelectorAll("h4")[0].appendChild(document.createTextNode("\xA0"))
+    document.querySelectorAll("h4")[0].appendChild(btnOnNotePage)
 
     btnOnNotePage.onclick = () => {
         enableOverzoom()
-        switchTiles();
-        btnOnNotePage.textContent = invertTilesMode(currentTilesMode);
-        btnOnPane.textContent = invertTilesMode(currentTilesMode);
+        switchTiles()
+        btnOnNotePage.textContent = invertTilesMode(currentTilesMode)
+        btnOnPane.textContent = invertTilesMode(currentTilesMode)
     }
 }
 
 function setupSatelliteLayers() {
-    let timerId = setInterval(addSatelliteLayers, 100);
+    let timerId = setInterval(addSatelliteLayers, 100)
     setTimeout(() => {
-        clearInterval(timerId);
-        console.debug('stop try add resolve note button');
-    }, 3000);
-    addSatelliteLayers();
+        clearInterval(timerId)
+        console.debug("stop try add resolve note button")
+    }, 3000)
+    addSatelliteLayers()
 }
 
 //</editor-fold>
 
 function makeElementHistoryCompact(forceState = null) {
-    const shouldBeCompact = forceState !== null ? forceState : document.querySelector(".compact-toggle-btn").getAttribute("value") === "><";
+    const shouldBeCompact = forceState !== null ? forceState : document.querySelector(".compact-toggle-btn").getAttribute("value") === "><"
     const forToggle = Array.from(document.querySelectorAll("table.browse-tag-list"))
     // workaround for https://github.com/deevroman/better-osm-org/pull/273#issuecomment-2830047660
-    forToggle.slice(0, 8).forEach((el) => {
+    forToggle.slice(0, 8).forEach(el => {
         el.classList.toggle("hide-non-modified-tags", shouldBeCompact)
     })
     setTimeout(() => {
-        forToggle.slice(8).forEach((el) => {
+        forToggle.slice(8).forEach(el => {
             el.classList.toggle("hide-non-modified-tags", shouldBeCompact)
         })
     })
-    document.querySelectorAll(".empty-version").forEach((el) => {
+    document.querySelectorAll(".empty-version").forEach(el => {
         el.classList.toggle("d-none", shouldBeCompact)
     })
     document.querySelectorAll(".preview-img-link img").forEach(i => {
@@ -3847,33 +3921,33 @@ function makeElementHistoryCompact(forceState = null) {
  * @param {string} text
  */
 function copyAnimation(e, text) {
-    console.log(`Copying ${text} to clipboard was successful!`);
-    e.target.classList.add("copied");
+    console.log(`Copying ${text} to clipboard was successful!`)
+    e.target.classList.add("copied")
     setTimeout(() => {
-        e.target.classList.remove("copied");
-        e.target.classList.add("was-copied");
-        setTimeout(() => e.target.classList.remove("was-copied"), 300);
-    }, 300);
+        e.target.classList.remove("copied")
+        e.target.classList.add("was-copied")
+        setTimeout(() => e.target.classList.remove("was-copied"), 300)
+    }, 300)
 }
 
 //<editor-fold desc="find deleted user in diffs" defaultstate="collapsed">
 async function decompressBlob(blob) {
-    let ds = new DecompressionStream("gzip");
-    let decompressedStream = blob.stream().pipeThrough(ds);
-    return await new Response(decompressedStream).blob();
+    let ds = new DecompressionStream("gzip")
+    let decompressedStream = blob.stream().pipeThrough(ds)
+    return await new Response(decompressedStream).blob()
 }
 
 async function tryFindChangesetInDiffGZ(gzURL, changesetId) {
     const diffGZ = await GM.xmlHttpRequest({
         method: "GET",
         url: gzURL,
-        responseType: "blob"
-    });
-    let blob = await decompressBlob(diffGZ.response);
+        responseType: "blob",
+    })
+    let blob = await decompressBlob(diffGZ.response)
     let diffXML = await blob.text()
 
-    const diffParser = new DOMParser();
-    const doc = diffParser.parseFromString(diffXML, "application/xml");
+    const diffParser = new DOMParser()
+    const doc = diffParser.parseFromString(diffXML, "application/xml")
     return doc.querySelector(`osm changeset[id='${changesetId}']`)
 }
 
@@ -3881,17 +3955,17 @@ async function parseBBB(target, url) {
     const response = await GM.xmlHttpRequest({
         method: "GET",
         url: planetOrigin + "/replication/changesets/" + url,
-    });
-    const parser = new DOMParser();
-    const BBBHTML = parser.parseFromString(response.responseText, "text/html");
+    })
+    const parser = new DOMParser()
+    const BBBHTML = parser.parseFromString(response.responseText, "text/html")
 
-    const a = Array.from(BBBHTML.querySelector("pre").childNodes).slice(2);
-    let x = 0;
-    let found = false;
+    const a = Array.from(BBBHTML.querySelector("pre").childNodes).slice(2)
+    let x = 0
+    let found = false
     for (x; x < a.length; x += 2) {
         let d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim())
         if (target < d) {
-            found = true;
+            found = true
             break
         }
     }
@@ -3906,13 +3980,13 @@ async function parseCCC(target, url) {
     const response = await GM.xmlHttpRequest({
         method: "GET",
         url: planetOrigin + "/replication/changesets/" + url,
-    });
-    const parser = new DOMParser();
-    const CCCHTML = parser.parseFromString(response.responseText, "text/html");
+    })
+    const parser = new DOMParser()
+    const CCCHTML = parser.parseFromString(response.responseText, "text/html")
 
     let a = Array.from(CCCHTML.querySelector("pre").childNodes).slice(2)
-    let x = 0;
-    let found = false;
+    let x = 0
+    let found = false
     /**
      * HTML format:
      *              xxx.ext         datetime
@@ -3924,11 +3998,9 @@ async function parseCCC(target, url) {
         if (!a[x].textContent.match(/^\d+\.osm\.gz$/)) {
             continue
         }
-        let d = new Date(a[x + 1].textContent
-            .trim().slice(0, -1).trim()
-            .split(" ").slice(0, -1).join(" ").trim() + ' UTC')
+        let d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim().split(" ").slice(0, -1).join(" ").trim() + " UTC")
         if (target <= d) {
-            found = true;
+            found = true
             break
         }
     }
@@ -3943,7 +4015,8 @@ async function parseCCC(target, url) {
         if (a[x + 2].getAttribute("href")?.match(/^\d+\.osm\.gz$/)) {
             return [a[x].getAttribute("href"), a[x + 2].getAttribute("href")]
         }
-    } catch { /* empty */
+    } catch {
+        /* empty */
     }
     if (x + 4 >= a.length) {
         return [a[x].getAttribute("href"), a[x].getAttribute("href")]
@@ -3952,11 +4025,11 @@ async function parseCCC(target, url) {
 }
 
 async function checkBBB(AAA, BBB, targetTime, targetChangesetID) {
-    let CCC = await parseCCC(targetTime, AAA + BBB);
+    let CCC = await parseCCC(targetTime, AAA + BBB)
     if (!CCC) {
-        return;
+        return
     }
-    let gzURL = planetOrigin + "/replication/changesets/" + AAA + BBB;
+    let gzURL = planetOrigin + "/replication/changesets/" + AAA + BBB
 
     let foundedChangeset = await tryFindChangesetInDiffGZ(gzURL + CCC[0], targetChangesetID)
     if (!foundedChangeset) {
@@ -3971,9 +4044,9 @@ async function checkAAA(AAA, targetTime, targetChangesetID) {
         return
     }
 
-    let foundedChangeset = await checkBBB(AAA, BBBs[0], targetTime, targetChangesetID);
+    let foundedChangeset = await checkBBB(AAA, BBBs[0], targetTime, targetChangesetID)
     if (!foundedChangeset) {
-        foundedChangeset = await checkBBB(AAA, BBBs[1], targetTime, targetChangesetID);
+        foundedChangeset = await checkBBB(AAA, BBBs[1], targetTime, targetChangesetID)
     }
     return foundedChangeset
 }
@@ -3990,7 +4063,7 @@ async function findChangesetInDiff(e) {
     e.stopPropagation()
     e.target.style.cursor = "progress"
 
-    let foundedChangeset;
+    let foundedChangeset
     try {
         const match = location.pathname.match(/\/(node|way|relation)\/(\d+)/)
         const [, type, objID] = match
@@ -4010,30 +4083,30 @@ async function findChangesetInDiff(e) {
         const response = await GM.xmlHttpRequest({
             method: "GET",
             url: planetOrigin + "/replication/changesets/",
-        });
-        const parser = new DOMParser();
-        const AAAHTML = parser.parseFromString(response.responseText, "text/html");
+        })
+        const parser = new DOMParser()
+        const AAAHTML = parser.parseFromString(response.responseText, "text/html")
         const targetTime = new Date(e.target.datetime)
         targetTime.setSeconds(0)
-        const targetChangesetID = e.target.value;
+        const targetChangesetID = e.target.value
 
         const a = Array.from(AAAHTML.querySelector("pre").childNodes).slice(2).slice(0, -4)
         a.push(...a.slice(-2))
-        let x = 0;
+        let x = 0
         for (x; x < a.length - 2; x += 2) {
             let d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim())
             if (targetTime < d) break
         }
-        let AAAs;
+        let AAAs
         if (x === 0) {
             AAAs = [a[x].getAttribute("href"), a[x].getAttribute("href")]
         } else {
             AAAs = [a[x - 2].getAttribute("href"), a[x].getAttribute("href")]
         }
 
-        foundedChangeset = await checkAAA(AAAs[0], targetTime, targetChangesetID);
+        foundedChangeset = await checkAAA(AAAs[0], targetTime, targetChangesetID)
         if (!foundedChangeset) {
-            foundedChangeset = await checkAAA(AAAs[1], targetTime, targetChangesetID);
+            foundedChangeset = await checkAAA(AAAs[1], targetTime, targetChangesetID)
         }
         if (!foundedChangeset) {
             alert(":(")
@@ -4051,9 +4124,9 @@ async function findChangesetInDiff(e) {
     userInfo.textContent = foundedChangeset.getAttribute("user")
 
     function clickForCopy(e) {
-        e.preventDefault();
-        let id = e.target.innerText;
-        navigator.clipboard.writeText(id).then(() => copyAnimation(e, id));
+        e.preventDefault()
+        let id = e.target.innerText
+        navigator.clipboard.writeText(id).then(() => copyAnimation(e, id))
     }
 
     userInfo.onclick = clickForCopy
@@ -4096,16 +4169,12 @@ function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
         return deg * (Math.PI / 180)
     }
 
-    const R = 6371;
-    const dLat = deg2rad(lat2 - lat1);
-    const dLon = deg2rad(lon2 - lon1);
-    const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2)
-    ;
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
+    const R = 6371
+    const dLat = deg2rad(lat2 - lat1)
+    const dLon = deg2rad(lon2 - lon1)
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    return R * c
 }
 
 function yetAnotherWizard(s) {
@@ -4119,7 +4188,7 @@ function yetAnotherWizard(s) {
     }
 }
 
-let searchResultBBOX = null;
+let searchResultBBOX = null
 
 async function processOverpassQuery(query) {
     if (!query.length) return
@@ -4140,49 +4209,57 @@ ${yetAnotherWizard(query)}
 //(._;>;);
 out geom;
 `
-        console.log(overpassQuery);
+        console.log(overpassQuery)
 
         console.time("download overpass data")
         const res = await GM.xmlHttpRequest({
             // todo switcher
-            url: overpass_server.apiUrl + "/interpreter?" + new URLSearchParams({
-                data: overpassQuery
-            }),
-            responseType: "xml"
+            url:
+                overpass_server.apiUrl +
+                "/interpreter?" +
+                new URLSearchParams({
+                    data: overpassQuery,
+                }),
+            responseType: "xml",
         })
         console.timeEnd("download overpass data")
 
-        const xml = new DOMParser().parseFromString(res.response, "text/xml");
+        const xml = new DOMParser().parseFromString(res.response, "text/xml")
         const data_age = new Date(xml.querySelector("meta").getAttribute("osm_base"))
-        console.log(data_age);
+        console.log(data_age)
 
         getMap()?.invalidateSize()
-        const bbox = searchResultBBOX = combineBBOXes(Array.from(xml.querySelectorAll("bounds")).map(i => {
-            return {
-                min_lat: i.getAttribute("minlat"),
-                min_lon: i.getAttribute("minlon"),
-                max_lat: i.getAttribute("maxlat"),
-                max_lon: i.getAttribute("maxlon")
-            }
-        }))
+        const bbox = (searchResultBBOX = combineBBOXes(
+            Array.from(xml.querySelectorAll("bounds")).map(i => {
+                return {
+                    min_lat: i.getAttribute("minlat"),
+                    min_lon: i.getAttribute("minlon"),
+                    max_lat: i.getAttribute("maxlat"),
+                    max_lon: i.getAttribute("maxlon"),
+                }
+            }),
+        ))
         // const points = []
         Array.from(xml.querySelectorAll("node")).forEach(n => {
             const lat = parseFloat(n.getAttribute("lat"))
             const lon = parseFloat(n.getAttribute("lon"))
             // points.push([lon, lat])
 
-            bbox.min_lat = min(bbox.min_lat, lat);
-            bbox.min_lon = min(bbox.min_lon, lon);
-            bbox.max_lat = max(bbox.max_lat, lat);
-            bbox.max_lon = max(bbox.max_lon, lon);
+            bbox.min_lat = min(bbox.min_lat, lat)
+            bbox.min_lon = min(bbox.min_lon, lon)
+            bbox.max_lat = max(bbox.max_lat, lat)
+            bbox.max_lon = max(bbox.max_lon, lon)
         })
         console.log(bbox)
         if (bbox.min_lon === 10000000) {
             alert("invalid query")
         } else {
             console.time("render overpass response")
-            fitBounds([[bbox.min_lat, bbox.min_lon], [bbox.max_lat, bbox.max_lon]])
-            loadBannedVersions();
+            fitBounds([
+                [bbox.min_lat, bbox.min_lon],
+                [bbox.max_lat, bbox.max_lon],
+            ])
+            loadBannedVersions()
             preloadEditIcons()
             cleanAllObjects()
             getWindow().jsonLayer?.remove()
@@ -4242,16 +4319,16 @@ function blurSearchField() {
 
 function resetSearchFormFocus() {
     if (!GM_config.get("ResetSearchFormFocus")) {
-        return;
+        return
     }
-    blurSearchField();
+    blurSearchField()
 }
 
 // https://osm.org/node/12559772251
 // https://osm.org/node/10588878341
 // https://osm.org/way/1264114016
 function makePanoramaxValue(elem) {
-    if (!GM_config.get("ImagesAndLinksInTags")) return;
+    if (!GM_config.get("ImagesAndLinksInTags")) return
     // extracting uuid
     if (elem.classList.contains("panoramaxed")) {
         return
@@ -4265,7 +4342,7 @@ function makePanoramaxValue(elem) {
         const browseSection = elem?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement
         const lat = browseSection?.querySelector(".latitude")?.textContent?.replace(",", ".")
         const lon = browseSection?.querySelector(".longitude")?.textContent?.replace(",", ".")
-        a.href = "https://api.panoramax.xyz/#focus=pic&pic=" + match.replaceAll("&amp;", "&") + (lat ? (`&map=16/${lat}/${lon}`) : "")
+        a.href = "https://api.panoramax.xyz/#focus=pic&pic=" + match.replaceAll("&amp;", "&") + (lat ? `&map=16/${lat}/${lon}` : "")
         return a.outerHTML
     })
     elem.querySelectorAll('a:not(.added-preview-img)[href^="https://api.panoramax.xyz/"]').forEach(a => {
@@ -4286,15 +4363,17 @@ function makePanoramaxValue(elem) {
         }
         a.appendChild(img)
         setTimeout(async () => {
-            const res = (await GM.xmlHttpRequest({
-                url: `https://api.panoramax.xyz/api/search?limit=1&ids=${uuid}`,
-                responseType: "json"
-            })).response
-            if (!res['error']) {
+            const res = (
+                await GM.xmlHttpRequest({
+                    url: `https://api.panoramax.xyz/api/search?limit=1&ids=${uuid}`,
+                    responseType: "json",
+                })
+            ).response
+            if (!res["error"]) {
                 a.onmouseenter = () => {
-                    const lat = res['features'][0]['geometry']["coordinates"][1]
-                    const lon = res['features'][0]['geometry']["coordinates"][0]
-                    const raw_angle = res['features'][0]["properties"]["exif"]["Exif.GPSInfo.GPSImgDirection"]
+                    const lat = res["features"][0]["geometry"]["coordinates"][1]
+                    const lon = res["features"][0]["geometry"]["coordinates"][0]
+                    const raw_angle = res["features"][0]["properties"]["exif"]["Exif.GPSInfo.GPSImgDirection"]
                     const angle = raw_angle?.includes("/") ? raw_angle.split("/")[0] / raw_angle.split("/")[1] : parseFloat(raw_angle)
 
                     showActiveNodeMarker(lat, lon, "#0022ff", true)
@@ -4312,28 +4391,37 @@ function makePanoramaxValue(elem) {
     }
 }
 
-const earthRadius = 6378137;
+const earthRadius = 6378137
 
 function drawRay(lat, lon, angle, color) {
-    const rad = (angle * Math.PI) / 180;
-    const length = 7;
-    const latOffset = (length * Math.cos(rad)) / earthRadius;
-    const lonOffset = (length * Math.sin(rad)) / (earthRadius * Math.cos((lat * Math.PI) / 180));
-    showActiveWay([[lat, lon], [lat + (latOffset * 180) / Math.PI, lon + (lonOffset * 180) / Math.PI]], color, false, null, false)
+    const rad = (angle * Math.PI) / 180
+    const length = 7
+    const latOffset = (length * Math.cos(rad)) / earthRadius
+    const lonOffset = (length * Math.sin(rad)) / (earthRadius * Math.cos((lat * Math.PI) / 180))
+    showActiveWay(
+        [
+            [lat, lon],
+            [lat + (latOffset * 180) / Math.PI, lon + (lonOffset * 180) / Math.PI],
+        ],
+        color,
+        false,
+        null,
+        false,
+    )
 }
 
 // https://www.mapillary.com/dashboard/developers
 const MAPILLARY_CLIENT_KEY = "MLY|23980706878196295|56711819158553348b8159429530d931"
 const MAPILLARY_URL_PARAMS = new URLSearchParams({
     access_token: MAPILLARY_CLIENT_KEY,
-    fields: "id,geometry,computed_geometry,compass_angle,computed_compass_angle,thumb_1024_url"
+    fields: "id,geometry,computed_geometry,compass_angle,computed_compass_angle,thumb_1024_url",
 })
 
 // https://osm.org/node/7417065297
 // https://osm.org/node/6257534611
 // https://osm.org/way/682528624/history/3
 function makeMapillaryValue(elem) {
-    if (!GM_config.get("ImagesAndLinksInTags")) return;
+    if (!GM_config.get("ImagesAndLinksInTags")) return
     if (elem.classList.contains("mapillared")) {
         return
     }
@@ -4346,21 +4434,23 @@ function makeMapillaryValue(elem) {
         const browseSection = elem?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement
         const lat = browseSection?.querySelector(".latitude")?.textContent?.replace(",", ".")
         const lon = browseSection?.querySelector(".longitude")?.textContent?.replace(",", ".")
-        a.href = `https://www.mapillary.com/app/?focus=photo${lat ? ("&lat=" + lat + "&lng=" + lon + "&z=16") : ""}&pKey=` + arguments[0].replaceAll("&amp;", "&")
+        a.href = `https://www.mapillary.com/app/?focus=photo${lat ? "&lat=" + lat + "&lng=" + lon + "&z=16" : ""}&pKey=` + arguments[0].replaceAll("&amp;", "&")
         return a.outerHTML
     })
     setTimeout(async () => {
         for (const a of elem.querySelectorAll('a:not(.added-preview-mapillary-img-link)[href^="https://www.mapillary.com/app/"]')) {
             a.classList.add("added-preview-mapillary-img-link")
-            const res = (await GM.xmlHttpRequest({
-                url: `https://graph.mapillary.com/${a.textContent.match(/[0-9]+/)}?${MAPILLARY_URL_PARAMS.toString()}`,
-                responseType: "json"
-            })).response
-            if (!res['error']) {
+            const res = (
+                await GM.xmlHttpRequest({
+                    url: `https://graph.mapillary.com/${a.textContent.match(/[0-9]+/)}?${MAPILLARY_URL_PARAMS.toString()}`,
+                    responseType: "json",
+                })
+            ).response
+            if (!res["error"]) {
                 const img = GM_addElement("img", {
-                    src: res['thumb_1024_url'],
+                    src: res["thumb_1024_url"],
                     alt: "image from Mapillary",
-                    title: "Blue — position from GPS tracker\nOrange — estimated real postion"
+                    title: "Blue — position from GPS tracker\nOrange — estimated real postion",
                     // crossorigin: "anonymous"
                 })
                 img.onerror = () => {
@@ -4371,17 +4461,16 @@ function makeMapillaryValue(elem) {
                 }
                 a.appendChild(img)
                 a.onmouseenter = () => {
-                    const lat = res['geometry']["coordinates"][1]
-                    const lon = res['geometry']["coordinates"][0]
+                    const lat = res["geometry"]["coordinates"][1]
+                    const lon = res["geometry"]["coordinates"][0]
                     const angle = res["compass_angle"]
 
-                    const computed_lat = res['computed_geometry']["coordinates"][1]
-                    const computed_lon = res['computed_geometry']["coordinates"][0]
+                    const computed_lat = res["computed_geometry"]["coordinates"][1]
+                    const computed_lon = res["computed_geometry"]["coordinates"][0]
                     const computed_angle = res["computed_compass_angle"]
 
                     showActiveNodeMarker(lat, lon, "#0022ff", true)
                     showActiveNodeMarker(computed_lat, computed_lon, "#ee9209", false)
-
 
                     drawRay(lat, lon, angle - 30, "#0022ff")
                     drawRay(computed_lat, computed_lon, computed_angle - 25, "#ee9209")
@@ -4400,22 +4489,26 @@ function makeMapillaryValue(elem) {
 }
 
 function makeWikimediaCommonsValue(elem) {
-    if (!GM_config.get("ImagesAndLinksInTags")) return;
+    if (!GM_config.get("ImagesAndLinksInTags")) return
     elem.querySelectorAll('a[href^="//commons.wikimedia.org/wiki/"]:not(.preview-img-link)').forEach(a => {
         a.classList.add("preview-img-link")
         setTimeout(async () => {
-            const wikimediaResponse = (await GM.xmlHttpRequest({
-                url: `https://en.wikipedia.org/w/api.php?` + new URLSearchParams({
-                    action: "query",
-                    iiprop: "url",
-                    prop: "imageinfo",
-                    titles: a.textContent,
-                    format: "json"
-                }).toString(),
-                responseType: "json"
-            })).response
+            const wikimediaResponse = (
+                await GM.xmlHttpRequest({
+                    url:
+                        `https://en.wikipedia.org/w/api.php?` +
+                        new URLSearchParams({
+                            action: "query",
+                            iiprop: "url",
+                            prop: "imageinfo",
+                            titles: a.textContent,
+                            format: "json",
+                        }).toString(),
+                    responseType: "json",
+                })
+            ).response
             const img = GM_addElement("img", {
-                src: wikimediaResponse['query']['pages']["-1"]["imageinfo"][0]['url'],
+                src: wikimediaResponse["query"]["pages"]["-1"]["imageinfo"][0]["url"],
                 // crossorigin: "anonymous"
             })
             img.style.width = "100%"
@@ -4425,7 +4518,7 @@ function makeWikimediaCommonsValue(elem) {
 }
 
 function makeRefBelpostValue(elem) {
-    if (!GM_config.get("ImagesAndLinksInTags")) return;
+    if (!GM_config.get("ImagesAndLinksInTags")) return
     if (elem.innerHTML.match(/^[0-9]+$/)) {
         const a = document.createElement("a")
         a.href = "https://belpost.by/Pochtovyyeyashchiki/" + elem.textContent
@@ -4435,9 +4528,9 @@ function makeRefBelpostValue(elem) {
     }
 }
 
-let buildingViewerIframe = null;
+let buildingViewerIframe = null
 
-let contextMenuCSSInjected = false;
+let contextMenuCSSInjected = false
 
 const contextMenuCSS = `
     .betterOsmContextMenu {
@@ -4490,14 +4583,13 @@ const contextMenuCSS = `
         filter: initial;
         opacity: initial;
     }
-`;
+`
 
 function injectContextMenuCSS() {
-    if (contextMenuCSSInjected) return;
-    contextMenuCSSInjected = true;
-    injectCSSIntoOSMPage(contextMenuCSS);
+    if (contextMenuCSSInjected) return
+    contextMenuCSSInjected = true
+    injectCSSIntoOSMPage(contextMenuCSS)
 }
-
 
 // example https://osm.org/node/6506618057
 function makeLinksInTagsClickable() {
@@ -4513,24 +4605,28 @@ function makeLinksInTagsClickable() {
             makePanoramaxValue(valueCell)
         } else if (key.startsWith("mapillary")) {
             makeMapillaryValue(valueCell)
-        } else if (key === "xmas:feature" && !document.querySelector(".egg-snow-tag") || valueCell.textContent.includes("snow")) {
+        } else if ((key === "xmas:feature" && !document.querySelector(".egg-snow-tag")) || valueCell.textContent.includes("snow")) {
             const curDate = new Date()
-            if (curDate.getMonth() === 11 && curDate.getDate() >= 18 || curDate.getMonth() === 0 && curDate.getDate() < 10) {
+            if ((curDate.getMonth() === 11 && curDate.getDate() >= 18) || (curDate.getMonth() === 0 && curDate.getDate() < 10)) {
                 const snowBtn = document.createElement("span")
                 snowBtn.classList.add("egg-snow-tag")
                 snowBtn.textContent = " ❄️"
                 snowBtn.style.cursor = "pointer"
                 snowBtn.title = "better-osm-org easter egg"
-                snowBtn.addEventListener("click", (e) => {
-                    e.target.style.display = "none"
-                    runSnowAnimation()
-                }, {
-                    once: true
-                })
+                snowBtn.addEventListener(
+                    "click",
+                    e => {
+                        e.target.style.display = "none"
+                        runSnowAnimation()
+                    },
+                    {
+                        once: true,
+                    },
+                )
                 document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(snowBtn)
             }
         } else if (key === "wikimedia_commons") {
-            makeWikimediaCommonsValue(valueCell);
+            makeWikimediaCommonsValue(valueCell)
         } else if (key === "direction" || key === "camera:direction") {
             const coords = row.parentElement.parentElement.parentElement.parentElement.querySelector("span.latitude")
             if (coords) {
@@ -4546,12 +4642,14 @@ function makeLinksInTagsClickable() {
                     renderDirectionTag(parseFloat(lat), parseFloat(lon), valueCell.textContent, "#ff00e3")
                 }
             }
-        } else if (key.startsWith("opening_hours") // https://github.com/opening-hours/opening_hours.js/blob/master/scripts/related_tags.txt
-            || key.startsWith("happy_hours")
-            || ["delivery_hours", "smoking_hours", "collection_times", "service_times"].includes(key)) {
+        } else if (
+            key.startsWith("opening_hours") || // https://github.com/opening-hours/opening_hours.js/blob/master/scripts/related_tags.txt
+            key.startsWith("happy_hours") ||
+            ["delivery_hours", "smoking_hours", "collection_times", "service_times"].includes(key)
+        ) {
             if (key !== "opening_hours:signed" && typeof opening_hours !== "undefined") {
                 try {
-                    new opening_hours(valueCell.textContent, null, {tag_key: key});
+                    new opening_hours(valueCell.textContent, null, { tag_key: key })
                     valueCell.title = "no errors were found by opening_hours.js 👍"
                 } catch (e) {
                     valueCell.title = e
@@ -4560,7 +4658,7 @@ function makeLinksInTagsClickable() {
             }
         } else if (["building", "building:part"].includes(key) || (key === "type" && valueCell.textContent === "building")) {
             if (document.querySelector(".view-3d-link")) {
-                return;
+                return
             }
             const m = location.pathname.match(/\/(way|relation)\/(\d+)/)
             if (!m) {
@@ -4570,20 +4668,18 @@ function makeLinksInTagsClickable() {
             if (!type) {
                 return
             }
-            if (type === "way" && ["building", "building:part"].includes(key) &&
-                !Array.from(document.querySelectorAll(".browse-tag-list tr th"))
-                    .some(i => i.textContent.includes("level") || i.textContent.includes("height")
-                        || i.textContent.includes("roof") || i.textContent.includes("wikidata")
-                    )) {
+            if (type === "way" && ["building", "building:part"].includes(key) && !Array.from(document.querySelectorAll(".browse-tag-list tr th")).some(i => i.textContent.includes("level") || i.textContent.includes("height") || i.textContent.includes("roof") || i.textContent.includes("wikidata"))) {
                 return
             }
-            injectCSSIntoOSMPage(`
+            injectCSSIntoOSMPage(
+                `
                     #building-3d-view {
                         position: absolute !important;
                         height: 120% !important;
                         z-index: 9999 !important;
                     }
-            ` + contextMenuCSS)
+            ` + contextMenuCSS,
+            )
             const viewIn3D = document.createElement("span")
             viewIn3D.classList.add("view-3d-link")
             viewIn3D.textContent = " 🏯"
@@ -4591,24 +4687,24 @@ function makeLinksInTagsClickable() {
             viewIn3D.title = "Click for show embedded 3D Viewer.\nRight click for select viewer\nClick with CTRL for open viewer in new tab\nIn userscript setting you can set open in tab by default"
 
             async function contextMenuHandler(e) {
-                const buildingViewer = await GM.getValue("3DViewer") ?? "OSM Building Viewer";
-                e.preventDefault();
+                const buildingViewer = (await GM.getValue("3DViewer")) ?? "OSM Building Viewer"
+                e.preventDefault()
 
-                const menu = makeContextMenuElem(e);
+                const menu = makeContextMenuElem(e)
                 instancesOf3DViewers.forEach(i => {
-                    const listItem = document.createElement("div");
-                    const a = document.createElement("a");
-                    const [x, y, z] = getCurrentXYZ();
-                    a.href = i.makeURL({x, y, z, type, id});
-                    a.textContent = i.name;
-                    a.target = "_blank";
+                    const listItem = document.createElement("div")
+                    const a = document.createElement("a")
+                    const [x, y, z] = getCurrentXYZ()
+                    a.href = i.makeURL({ x, y, z, type, id })
+                    a.textContent = i.name
+                    a.target = "_blank"
 
                     const pin = document.createElement("input")
                     pin.id = i.name
                     pin.type = "radio"
                     pin.classList.add("pin")
                     pin.setAttribute("name", "viewer-selector")
-                    const pinLabel = document.createElement("label");
+                    const pinLabel = document.createElement("label")
                     pinLabel.setAttribute("for", i.name)
                     pinLabel.classList.add("pin-label")
                     pinLabel.textContent = "📌"
@@ -4622,22 +4718,26 @@ function makeLinksInTagsClickable() {
                             await GM.setValue("3DViewer", i.name)
                         }
                     }
-                    listItem.appendChild(pin);
-                    listItem.appendChild(pinLabel);
-                    listItem.appendChild(a);
-                    document.addEventListener("click", function fn(e) {
-                        if (e.target.classList.contains("pin-label") || e.target.classList.contains("pin")) {
-                            document.addEventListener("click", fn, {once: true});
-                            return
-                        }
-                        menu.remove()
-                    }, {once: true})
-                    menu.appendChild(listItem);
-                });
-                document.body.appendChild(menu);
+                    listItem.appendChild(pin)
+                    listItem.appendChild(pinLabel)
+                    listItem.appendChild(a)
+                    document.addEventListener(
+                        "click",
+                        function fn(e) {
+                            if (e.target.classList.contains("pin-label") || e.target.classList.contains("pin")) {
+                                document.addEventListener("click", fn, { once: true })
+                                return
+                            }
+                            menu.remove()
+                        },
+                        { once: true },
+                    )
+                    menu.appendChild(listItem)
+                })
+                document.body.appendChild(menu)
             }
 
-            viewIn3D.addEventListener("contextmenu", contextMenuHandler);
+            viewIn3D.addEventListener("contextmenu", contextMenuHandler)
 
             async function clickHandler(e) {
                 if (buildingViewerIframe) {
@@ -4645,10 +4745,10 @@ function makeLinksInTagsClickable() {
                     buildingViewerIframe = null
                     return
                 }
-                const [x, y, z] = getCurrentXYZ();
-                const buildingViewer = await GM.getValue("3DViewer") ?? "OSM Building Viewer";
+                const [x, y, z] = getCurrentXYZ()
+                const buildingViewer = (await GM.getValue("3DViewer")) ?? "OSM Building Viewer"
                 const viewer = instancesOf3DViewers.find(i => i.name === buildingViewer)
-                const url = viewer.makeURL({x, y, z, type, id})
+                const url = viewer.makeURL({ x, y, z, type, id })
                 if (isMobile || e.ctrlKey || e.metaKey || e.which === 2 || GM_config.get("3DViewerInNewTab")) {
                     window.open(url, "_blank")
                     return
@@ -4658,15 +4758,15 @@ function makeLinksInTagsClickable() {
                     src: url,
                     width: document.querySelector("#map").clientWidth,
                     height: "100%",
-                    id: "building-3d-view"
+                    id: "building-3d-view",
                 })
                 document.querySelector("#map").before(buildingViewerIframe)
             }
 
             viewIn3D.addEventListener("click", clickHandler)
             viewIn3D.addEventListener("auxclick", e => {
-                if (e.which !== 2) return;
-                clickHandler(e);
+                if (e.which !== 2) return
+                clickHandler(e)
             })
             document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(viewIn3D)
         } else if (key === "ref:belpost") {
@@ -4682,12 +4782,8 @@ function makeLinksInTagsClickable() {
 }
 
 function addHistoryLink() {
-    if (!location.pathname.startsWith("/node")
-        && !location.pathname.startsWith("/way")
-        && !location.pathname.startsWith("/relation")
-        || location.pathname.includes("/history")
-    ) return;
-    if (document.querySelector('.history_button_class')) return true;
+    if ((!location.pathname.startsWith("/node") && !location.pathname.startsWith("/way") && !location.pathname.startsWith("/relation")) || location.pathname.includes("/history")) return
+    if (document.querySelector(".history_button_class")) return true
     let versionInSidebar = document.querySelector("#sidebar_content h4 a")
     if (!versionInSidebar) {
         return
@@ -4702,8 +4798,8 @@ function addHistoryLink() {
         versionInSidebar.after(a)
         versionInSidebar.after(document.createTextNode("\xA0"))
     }
-    resetSearchFormFocus();
-    makeTimesSwitchable();
+    resetSearchFormFocus()
+    makeTimesSwitchable()
     if (GM_config.get("ResizableSidebar")) {
         document.querySelector("#sidebar").style.resize = "horizontal"
     }
@@ -4714,9 +4810,8 @@ function addHistoryLink() {
     table.browse-tag-list tr td[colspan="2"] {
         background: var(--bs-body-bg) !important;
     }
-    `);
+    `)
 }
-
 
 //<editor-fold desc="render functions" defaultstate="collapsed">
 // For WebStorm: Settings | Editor | Language Injections
@@ -4727,7 +4822,7 @@ function addHistoryLink() {
  */
 function injectJSIntoPage(text) {
     GM_addElement("script", {
-        textContent: text
+        textContent: text,
     })
 }
 
@@ -4735,16 +4830,15 @@ function injectJSIntoPage(text) {
  * @param {string} text
  */
 function injectCSSIntoOSMPage(text) {
-    if (GM_info.scriptHandler === "FireMonkey" || GM_info.scriptHandler === "Userscripts"
-        || GM_info.scriptHandler === "Greasemonkey" || isSafari) {
-        document.querySelector("style").innerHTML += text;
+    if (GM_info.scriptHandler === "FireMonkey" || GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Greasemonkey" || isSafari) {
+        document.querySelector("style").innerHTML += text
         if (!isSafari) {
             document.querySelector("style").parentElement.appendChild(document.querySelector("style"))
         }
     } else {
         return GM_addElement(document.head, "style", {
             textContent: text,
-        });
+        })
     }
 }
 
@@ -4754,7 +4848,7 @@ function injectCSSIntoOSMPage(text) {
 function injectCSSIntoSimplePage(text) {
     return GM_addElement(document.head, "style", {
         textContent: text,
-    });
+    })
 }
 
 /**
@@ -4767,7 +4861,7 @@ function injectCSSIntoSimplePage(text) {
 const layers = {
     customObjects: [],
     activeObjects: [],
-    changesetBounds: []
+    changesetBounds: [],
 }
 
 /**
@@ -4780,20 +4874,22 @@ const layers = {
  */
 function showWay(nodesList, color = "#000000", needFly = false, addStroke = false) {
     cleanCustomObjects()
-    const line = getWindow().L.polyline(
-        intoPage(nodesList.map(elem => getWindow().L.latLng(intoPage(elem)))),
-        intoPage({
-            color: color,
-            weight: 4,
-            clickable: false,
-            opacity: 1,
-            fillOpacity: 1
-        })
-    ).addTo(getMap());
+    const line = getWindow()
+        .L.polyline(
+            intoPage(nodesList.map(elem => getWindow().L.latLng(intoPage(elem)))),
+            intoPage({
+                color: color,
+                weight: 4,
+                clickable: false,
+                opacity: 1,
+                fillOpacity: 1,
+            }),
+        )
+        .addTo(getMap())
     if (addStroke) {
         line._path.classList.add("stroke-polyline")
     }
-    layers["customObjects"].push(line);
+    layers["customObjects"].push(line)
     if (needFly) {
         if (nodesList.length) {
             fitBounds(get4Bounds(line))
@@ -4811,20 +4907,21 @@ function showWay(nodesList, color = "#000000", needFly = false, addStroke = fals
 function showWays(ListOfNodesList, layerName = "customObjects", color = "#000000") {
     cleanObjectsByKey(layerName)
     ListOfNodesList.forEach(nodesList => {
-        const line = getWindow().L.polyline(
-            intoPage(nodesList.map(elem => getWindow().L.latLng(intoPage(elem)))),
-            intoPage({
-                color: color,
-                weight: 4,
-                clickable: false,
-                opacity: 1,
-                fillOpacity: 1
-            })
-        ).addTo(getMap());
-        layers[layerName].push(line);
+        const line = getWindow()
+            .L.polyline(
+                intoPage(nodesList.map(elem => getWindow().L.latLng(intoPage(elem)))),
+                intoPage({
+                    color: color,
+                    weight: 4,
+                    clickable: false,
+                    opacity: 1,
+                    fillOpacity: 1,
+                }),
+            )
+            .addTo(getMap())
+        layers[layerName].push(line)
     })
 }
-
 
 /**
  * @name displayWay
@@ -4850,35 +4947,49 @@ function displayWay(nodesList, needFly = false, color = "#000000", width = 4, in
         return line
     }
 
-    const line = bindPopup(getWindow().L.polyline(
-        geometryCached ? nodesList : intoPage(nodesList),
-        intoPage({
-            color: color,
-            weight: width,
-            clickable: false,
-            opacity: 1,
-            fillOpacity: 1,
-            dashArray: dashArray
-        })
-    ), popupContent).addTo(getMap());
-    layers[layerName].push(line);
+    const line = bindPopup(
+        getWindow().L.polyline(
+            geometryCached ? nodesList : intoPage(nodesList),
+            intoPage({
+                color: color,
+                weight: width,
+                clickable: false,
+                opacity: 1,
+                fillOpacity: 1,
+                dashArray: dashArray,
+            }),
+        ),
+        popupContent,
+    ).addTo(getMap())
+    layers[layerName].push(line)
     if (needFly) {
-        getMap().flyTo(intoPage(line.getBounds().getCenter()), 18, intoPage({
-            animate: false,
-            duration: 0.5
-        }));
+        getMap().flyTo(
+            intoPage(line.getBounds().getCenter()),
+            18,
+            intoPage({
+                animate: false,
+                duration: 0.5,
+            }),
+        )
     }
     if (infoElemID) {
-        layers[layerName][layers[layerName].length - 1].on('click', cloneInto(function () {
-            const elementById = document.getElementById(infoElemID);
-            elementById?.scrollIntoView()
-            resetMapHover()
-            elementById?.parentElement?.parentElement?.classList.add("map-hover")
-            cleanObjectsByKey("activeObjects")
-        }, getWindow(), {cloneFunctions: true}))
+        layers[layerName][layers[layerName].length - 1].on(
+            "click",
+            cloneInto(
+                function () {
+                    const elementById = document.getElementById(infoElemID)
+                    elementById?.scrollIntoView()
+                    resetMapHover()
+                    elementById?.parentElement?.parentElement?.classList.add("map-hover")
+                    cleanObjectsByKey("activeObjects")
+                },
+                getWindow(),
+                { cloneFunctions: true },
+            ),
+        )
     }
     if (addStroke) {
-        line._path.classList.add("stroke-polyline");
+        line._path.classList.add("stroke-polyline")
     }
     return line
 }
@@ -4893,22 +5004,29 @@ function displayWay(nodesList, needFly = false, color = "#000000", width = 4, in
  * @param {string=} layerName
  * @param {number=} radius
  */
-function showNodeMarker(a, b, color = "#00a500", infoElemID = null, layerName = 'customObjects', radius = 5) {
+function showNodeMarker(a, b, color = "#00a500", infoElemID = null, layerName = "customObjects", radius = 5) {
     const haloStyle = {
         weight: 2.5,
         radius: radius,
         fillOpacity: 0,
-        color: color
-    };
+        color: color,
+    }
     const marker = getWindow().L.circleMarker(getWindow().L.latLng(a, b), intoPage(haloStyle)).addTo(getMap())
-    layers[layerName].push(marker);
+    layers[layerName].push(marker)
     if (infoElemID) {
-        marker.on('click', cloneInto(function () {
-            const elementById = document.getElementById(infoElemID);
-            elementById?.scrollIntoView()
-            resetMapHover()
-            elementById?.parentElement?.parentElement.classList?.add("map-hover")
-        }, getWindow(), {cloneFunctions: true}))
+        marker.on(
+            "click",
+            cloneInto(
+                function () {
+                    const elementById = document.getElementById(infoElemID)
+                    elementById?.scrollIntoView()
+                    resetMapHover()
+                    elementById?.parentElement?.parentElement.classList?.add("map-hover")
+                },
+                getWindow(),
+                { cloneFunctions: true },
+            ),
+        )
     }
     return marker
 }
@@ -4928,12 +5046,12 @@ function showActiveNodeMarker(lat, lon, color, removeActiveObjects = true, radiu
         weight: weight,
         radius: radius,
         fillOpacity: 0,
-        color: color
-    };
+        color: color,
+    }
     if (removeActiveObjects) {
         cleanObjectsByKey("activeObjects")
     }
-    layers["activeObjects"].push(getWindow().L.circleMarker(getWindow().L.latLng(lat, lon), intoPage(haloStyle)).addTo(getMap()));
+    layers["activeObjects"].push(getWindow().L.circleMarker(getWindow().L.latLng(lat, lon), intoPage(haloStyle)).addTo(getMap()))
 }
 
 /**
@@ -4948,8 +5066,8 @@ function showActiveNodeIconMarker(lat, lon, color = null, removeActiveObjects = 
     if (removeActiveObjects) {
         cleanObjectsByKey("activeObjects")
     }
-    const marker = getWindow().L.marker(intoPage([lat, lon]), intoPage({ draggable: false, icon: getWindow().OSM.getMarker({ color: color ?? "var(--marker-blue)" }) }));
-    layers["activeObjects"].push(marker.addTo(getMap()));
+    const marker = getWindow().L.marker(intoPage([lat, lon]), intoPage({ draggable: false, icon: getWindow().OSM.getMarker({ color: color ?? "var(--marker-blue)" }) }))
+    layers["activeObjects"].push(marker.addTo(getMap()))
 }
 
 /**
@@ -4964,31 +5082,40 @@ function showActiveNodeIconMarker(lat, lon, color = null, removeActiveObjects = 
  * @param {string=} dashArray
  */
 function showActiveWay(nodesList, color = "#ff00e3", needFly = false, infoElemID = null, removeActiveObjects = true, weight = 4, dashArray = null) {
-    const line = getWindow().L.polyline(
-        intoPage(nodesList.map(elem => intoPage(getWindow().L.latLng(intoPage(elem))))),
-        intoPage({
-            color: color,
-            weight: weight,
-            clickable: false,
-            opacity: 1,
-            fillOpacity: 1,
-            dashArray: dashArray
-        })
-    ).addTo(getMap());
+    const line = getWindow()
+        .L.polyline(
+            intoPage(nodesList.map(elem => intoPage(getWindow().L.latLng(intoPage(elem))))),
+            intoPage({
+                color: color,
+                weight: weight,
+                clickable: false,
+                opacity: 1,
+                fillOpacity: 1,
+                dashArray: dashArray,
+            }),
+        )
+        .addTo(getMap())
     if (removeActiveObjects) {
         cleanObjectsByKey("activeObjects")
     }
-    layers["activeObjects"].push(line);
+    layers["activeObjects"].push(line)
     if (needFly) {
         fitBounds(get4Bounds(line))
     }
     if (infoElemID) {
-        layers["activeObjects"][layers["activeObjects"].length - 1].on('click', cloneInto(function () {
-            const elementById = document.getElementById(infoElemID);
-            elementById?.scrollIntoView()
-            resetMapHover()
-            elementById.classList.add("map-hover")
-        }, getWindow(), {cloneFunctions: true}))
+        layers["activeObjects"][layers["activeObjects"].length - 1].on(
+            "click",
+            cloneInto(
+                function () {
+                    const elementById = document.getElementById(infoElemID)
+                    elementById?.scrollIntoView()
+                    resetMapHover()
+                    elementById.classList.add("map-hover")
+                },
+                getWindow(),
+                { cloneFunctions: true },
+            ),
+        )
     }
 }
 
@@ -5022,7 +5149,7 @@ function cleanCustomObjects() {
  * @param {boolean=} animate
  */
 function panTo(lat, lon, zoom = 18, animate = false) {
-    getMap().flyTo(intoPage([lat, lon]), zoom, intoPage({animate: animate}));
+    getMap().flyTo(intoPage([lat, lon]), zoom, intoPage({ animate: animate }))
 }
 
 /**
@@ -5034,14 +5161,14 @@ function panTo(lat, lon, zoom = 18, animate = false) {
  * @param {[]=} padding
  */
 function panInside(lat, lon, animate = false, padding = [0, 0]) {
-    getMap().panInside(intoPage([lat, lon]), intoPage({animate: animate, padding: padding}));
+    getMap().panInside(intoPage([lat, lon]), intoPage({ animate: animate, padding: padding }))
 }
 
 function get4Bounds(b) {
     try {
         return [
             [b.getBounds().getSouth(), b.getBounds().getWest()],
-            [b.getBounds().getNorth(), b.getBounds().getEast()]
+            [b.getBounds().getNorth(), b.getBounds().getEast()],
         ]
     } catch {
         console.error("Please, reload page")
@@ -5053,7 +5180,7 @@ function get4Bounds(b) {
  * @memberof unsafeWindow
  */
 function fitBounds(bound, maxZoom = 19) {
-    getMap().fitBounds(intoPageWithFun(bound), intoPage({maxZoom: maxZoom}));
+    getMap().fitBounds(intoPageWithFun(bound), intoPage({ maxZoom: maxZoom }))
 }
 
 /**
@@ -5061,7 +5188,7 @@ function fitBounds(bound, maxZoom = 19) {
  * @memberof unsafeWindow
  */
 function fitBoundsWithPadding(bound, padding, maxZoom = 19) {
-    getMap().fitBounds(intoPageWithFun(bound), intoPage({padding: [padding, padding], maxZoom: maxZoom}));
+    getMap().fitBounds(intoPageWithFun(bound), intoPage({ padding: [padding, padding], maxZoom: maxZoom }))
 }
 
 /**
@@ -5070,13 +5197,13 @@ function fitBoundsWithPadding(bound, padding, maxZoom = 19) {
  */
 function getZoom() {
     try {
-        return getMap().getZoom();
-    } catch  {
+        return getMap().getZoom()
+    } catch {
         console.warn("Couldn't get the map zoom through the map object. Trying a workaround")
 
-        const curURL = document.querySelector("#edit_tab ul")?.querySelector("li a")?.href;
+        const curURL = document.querySelector("#edit_tab ul")?.querySelector("li a")?.href
         const match = curURL.match(/map=(\d+)\/([-\d.]+)\/([-\d.]+)(&|$)/)
-        console.log("Parsed coordinates link:", match);
+        console.log("Parsed coordinates link:", match)
         return parseFloat(match[1])
     }
 }
@@ -5086,14 +5213,13 @@ function getZoom() {
  * @memberof unsafeWindow
  */
 function setZoom(zoomLevel) {
-    getMap().setZoom(zoomLevel);
+    getMap().setZoom(zoomLevel)
 }
-
 
 function cleanAllObjects() {
     for (let member in layers) {
-        layers[member].forEach((i) => {
-            i.remove();
+        layers[member].forEach(i => {
+            i.remove()
         })
         layers[member] = []
     }
@@ -5105,13 +5231,13 @@ function cleanAllObjects() {
  *
  * @type {Object.<string, AbortController>}
  */
-let abortDownloadingControllers = {};
+let abortDownloadingControllers = {}
 
 function getAbortController() {
     if (abortDownloadingControllers[location.pathname]) {
         return abortDownloadingControllers[location.pathname]
     }
-    return abortDownloadingControllers[location.pathname] = new AbortController()
+    return (abortDownloadingControllers[location.pathname] = new AbortController())
 }
 
 function abortPrevControllers(reason = null) {
@@ -5171,62 +5297,61 @@ const relationsHistories = {}
 const histories = {
     node: nodesHistories,
     way: waysHistories,
-    relation: relationsHistories
+    relation: relationsHistories,
 }
 
 const fetchTextWithCache = (() => {
     /**@type {Map<string, string | undefined | Promise<string | undefined> >}*/
-    const cache = new Map();
+    const cache = new Map()
 
     return async url => {
         if (cache.has(url)) {
-            return cache.get(url);
+            return cache.get(url)
         }
 
-        const promise = GM.xmlHttpRequest({url: url}).then(r => r.responseText)
-        cache.set(url, promise);
+        const promise = GM.xmlHttpRequest({ url: url }).then(r => r.responseText)
+        cache.set(url, promise)
 
         try {
-            const result = await promise;
-            cache.set(url, result);
-            return result;
+            const result = await promise
+            cache.set(url, result)
+            return result
         } catch (error) {
-            cache.delete(url);
-            throw error;
+            cache.delete(url)
+            throw error
         }
-    };
-})();
+    }
+})()
 
 const originalFetchTextWithCache = (() => {
     /**@type {Map<string, string | undefined | Promise<string | undefined> >}*/
-    const cache = new Map();
+    const cache = new Map()
 
     return async (url, init) => {
         if (cache.has(url)) {
-            return cache.get(url);
+            return cache.get(url)
         }
 
-        const promise = fetch(url, init).then((res) => {
+        const promise = fetch(url, init).then(res => {
             if (!res) console.trace()
             if (res.status === 509) {
                 error509Handler(res)
             } else {
                 return res.text()
             }
-        });
-        cache.set(url, promise);
+        })
+        cache.set(url, promise)
 
         try {
-            const result = await promise;
-            cache.set(url, result);
-            return result;
+            const result = await promise
+            cache.set(url, result)
+            return result
         } catch (error) {
-            cache.delete(url);
-            throw error;
+            cache.delete(url)
+            throw error
         }
-    };
-})();
-
+    }
+})()
 
 /**
  *
@@ -5243,16 +5368,18 @@ const changesetsCache = {}
  */
 async function getChangeset(id) {
     if (changesetsCache[id]) {
-        return changesetsCache[id];
+        return changesetsCache[id]
     }
-    const text = await originalFetchTextWithCache(osm_server.apiBase + "changeset" + "/" + id + "/download", {signal: getAbortController().signal});
-    const parser = new DOMParser();
-    const data = /** @type {XMLDocument} **/ parser.parseFromString(text, "application/xml");
-    return changesetsCache[id] = {
+    const text = await originalFetchTextWithCache(osm_server.apiBase + "changeset" + "/" + id + "/download", {
+        signal: getAbortController().signal,
+    })
+    const parser = new DOMParser()
+    const data = /** @type {XMLDocument} **/ parser.parseFromString(text, "application/xml")
+    return (changesetsCache[id] = {
         data: data,
         nodesWithParentWays: new Set(Array.from(data.querySelectorAll("way > nd")).map(i => parseInt(i.getAttribute("ref")))),
-        nodesWithOldParentWays: new Set(Array.from(data.querySelectorAll("way:not([version='1']) > nd")).map(i => parseInt(i.getAttribute("ref"))))
-    }
+        nodesWithOldParentWays: new Set(Array.from(data.querySelectorAll("way:not([version='1']) > nd")).map(i => parseInt(i.getAttribute("ref")))),
+    })
 }
 
 /**
@@ -5264,26 +5391,26 @@ async function getChangeset(id) {
  */
 function renderDirectionTag(lat, lon, values, color = "#ff00e3") {
     const cardinalToAngle = {
-        "N": 0.0,
-        "north": 0.0,
-        "NNE": 22.0,
-        "NE": 45.0,
-        "ENE": 67.0,
-        "E": 90.0,
-        "east": 90.0,
-        "ESE": 112.0,
-        "SE": 135.0,
-        "SSE": 157.0,
-        "S": 180.0,
-        "south": 180.0,
-        "SSW": 202.0,
-        "SW": 225.0,
-        "WSW": 247.0,
-        "W": 270.0,
-        "west": 270.0,
-        "WNW": 292.0,
-        "NW": 315.0,
-        "NNW": 337.0,
+        N: 0.0,
+        north: 0.0,
+        NNE: 22.0,
+        NE: 45.0,
+        ENE: 67.0,
+        E: 90.0,
+        east: 90.0,
+        ESE: 112.0,
+        SE: 135.0,
+        SSE: 157.0,
+        S: 180.0,
+        south: 180.0,
+        SSW: 202.0,
+        SW: 225.0,
+        WSW: 247.0,
+        W: 270.0,
+        west: 270.0,
+        WNW: 292.0,
+        NW: 315.0,
+        NNW: 337.0,
     }
     values.split(";").forEach(angleStr => {
         const angle = cardinalToAngle[angleStr] !== undefined ? cardinalToAngle[angleStr] : parseFloat(angleStr)
@@ -5295,8 +5422,8 @@ function renderDirectionTag(lat, lon, values, color = "#ff00e3") {
 }
 
 function setupNodeVersionView() {
-    const match = location.pathname.match(/\/node\/(\d+)\//);
-    if (match === null) return;
+    const match = location.pathname.match(/\/node\/(\d+)\//)
+    if (match === null) return
     let nodeHistoryPath = []
     document.querySelectorAll("#element_versions_list > div span.latitude").forEach(i => {
         let lat = i.textContent.replace(",", ".")
@@ -5305,7 +5432,7 @@ function setupNodeVersionView() {
         const versionDiv = i.parentElement.parentElement.parentElement.parentElement
         versionDiv.onmouseenter = async () => {
             await interceptMapManually()
-            showActiveNodeMarker(lat, lon, "#ff00e3");
+            showActiveNodeMarker(lat, lon, "#ff00e3")
             versionDiv.querySelectorAll(".browse-tag-list tr").forEach(row => {
                 const key = row.querySelector("th")?.textContent?.toLowerCase()
                 if (!key) return
@@ -5317,24 +5444,23 @@ function setupNodeVersionView() {
                 }
             })
         }
-        versionDiv.onclick = (e) => {
-            if (e.altKey) return;
+        versionDiv.onclick = e => {
+            if (e.altKey) return
             if (e.target.tagName === "A" || e.target.tagName === "TIME" || e.target.tagName === "SUMMARY" || e.target.tagName === "BUTTON") {
                 return
             }
-            panTo(lat, lon);
-            showActiveNodeMarker(lat, lon, "#ff00e3");
+            panTo(lat, lon)
+            showActiveNodeMarker(lat, lon, "#ff00e3")
         }
     })
     interceptMapManually().then(() => {
-        displayWay(cloneInto(nodeHistoryPath, unsafeWindow), false, "rgba(251,156,112,0.86)", 2);
+        displayWay(cloneInto(nodeHistoryPath, unsafeWindow), false, "rgba(251,156,112,0.86)", 2)
     })
     document.querySelectorAll("#element_versions_list > div h4:nth-of-type(1):not(:has(.relation-version-view)) a:nth-of-type(1)").forEach(i => {
-        const version = i.href.match(/\/(\d+)$/)[1];
+        const version = i.href.match(/\/(\d+)$/)[1]
         i.parentElement.parentElement.setAttribute("node-version", version)
     })
 }
-
 
 /**
  * @param {number[]} nodes
@@ -5345,11 +5471,13 @@ async function loadNodesViaHistoryCalls(nodes) {
         const targetNodesHistory = []
         for (const nodeID of nodes) {
             if (nodesHistories[nodeID]) {
-                targetNodesHistory.push(nodesHistories[nodeID]);
+                targetNodesHistory.push(nodesHistories[nodeID])
             } else {
-                const res = await fetch(osm_server.apiBase + "node" + "/" + nodeID + "/history.json", {signal: getAbortController().signal});
+                const res = await fetch(osm_server.apiBase + "node" + "/" + nodeID + "/history.json", {
+                    signal: getAbortController().signal,
+                })
                 nodesHistories[nodeID] = (await res.json()).elements
-                targetNodesHistory.push(nodesHistories[nodeID]);
+                targetNodesHistory.push(nodesHistories[nodeID])
             }
         }
         return targetNodesHistory
@@ -5370,11 +5498,11 @@ async function loadNodesViaHistoryCalls(nodes) {
 async function getNodeHistory(nodeID) {
     if (nodesHistories[nodeID]) {
         // console.count("Node history hit")
-        return nodesHistories[nodeID];
+        return nodesHistories[nodeID]
     } else {
         // console.count("Node history miss")
-        const res = await fetch(osm_server.apiBase + "node" + "/" + nodeID + "/history.json", {signal: getAbortController().signal});
-        return nodesHistories[nodeID] = (await res.json()).elements;
+        const res = await fetch(osm_server.apiBase + "node" + "/" + nodeID + "/history.json", { signal: getAbortController().signal })
+        return (nodesHistories[nodeID] = (await res.json()).elements)
     }
 }
 
@@ -5401,13 +5529,12 @@ async function getNodeHistory(nodeID) {
  */
 async function getWayHistory(wayID) {
     if (waysHistories[wayID]) {
-        return waysHistories[wayID];
+        return waysHistories[wayID]
     } else {
-        const res = await fetch(osm_server.apiBase + "way" + "/" + wayID + "/history.json", {signal: getAbortController().signal});
-        return waysHistories[wayID] = (await res.json()).elements;
+        const res = await fetch(osm_server.apiBase + "way" + "/" + wayID + "/history.json", { signal: getAbortController().signal })
+        return (waysHistories[wayID] = (await res.json()).elements)
     }
 }
-
 
 /**
  * @param {string|number} wayID
@@ -5428,7 +5555,8 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
     }
     const notCached = targetVersion.nodes.filter(nodeID => !nodesHistories[nodeID])
     console.debug("Not cached nodes histories for download:", notCached.length, "/", targetVersion.nodes)
-    if (notCached.length < 2 || osm_server === local_server) { // https://github.com/openstreetmap/openstreetmap-website/issues/5183
+    if (notCached.length < 2 || osm_server === local_server) {
+        // https://github.com/openstreetmap/openstreetmap-website/issues/5183
         return [targetVersion, await loadNodesViaHistoryCalls(targetVersion.nodes)]
     }
     // todo batchSize должен быть динамический
@@ -5442,24 +5570,26 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
         console.debug(`Batch #${i}/${notCached.length}`)
         batches.push(notCached.slice(i, i + batchSize))
     }
-    await Promise.all(batches.map(async (batch) => {
-        const res = await fetch(osm_server.apiBase + "nodes.json?nodes=" + batch.join(","), {signal: getAbortController().signal});
-        if (!res.ok) {
-            console.trace(res)
-        }
-        const nodes = (await res.json()).elements
-        lastVersions.push(...nodes)
-        nodes.forEach(n => {
-            if (n.version === 1) {
-                nodesHistories[n.id] = [n]
+    await Promise.all(
+        batches.map(async batch => {
+            const res = await fetch(osm_server.apiBase + "nodes.json?nodes=" + batch.join(","), { signal: getAbortController().signal })
+            if (!res.ok) {
+                console.trace(res)
             }
-        })
-    }))
+            const nodes = (await res.json()).elements
+            lastVersions.push(...nodes)
+            nodes.forEach(n => {
+                if (n.version === 1) {
+                    nodesHistories[n.id] = [n]
+                }
+            })
+        }),
+    )
 
     const longHistoryNodes = lastVersions.filter(n => n?.version !== 1)
-    const lastVersionsMap = Object.groupBy(lastVersions, ({id}) => id)
+    const lastVersionsMap = Object.groupBy(lastVersions, ({ id }) => id)
 
-    console.debug("Nodes with multiple versions: ", longHistoryNodes.length);
+    console.debug("Nodes with multiple versions: ", longHistoryNodes.length)
     if (longHistoryNodes.length === 0) {
         return [targetVersion, targetVersion.nodes.map(nodeID => nodesHistories[nodeID])]
     }
@@ -5467,7 +5597,8 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
     const queryArgs = [""]
     const maxQueryArgLen = 8213 - (osm_server.apiBase.length + "nodes.json?nodes=".length)
     for (const lastVersion of longHistoryNodes) {
-        for (let v = 1; v < lastVersion.version; v++) { // todo не нужно загружать версию, которая в текущем пакете правок (если уже успели его загрузить)
+        for (let v = 1; v < lastVersion.version; v++) {
+            // todo не нужно загружать версию, которая в текущем пакете правок (если уже успели его загрузить)
             const arg = lastVersion.id + "v" + v
             if (queryArgs[queryArgs.length - 1].length + arg.length + 1 < maxQueryArgLen) {
                 if (queryArgs[queryArgs.length - 1] === "") {
@@ -5489,39 +5620,41 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
     let versions = []
     // console.debug(`w${wayID}v${version}`)
     // console.groupCollapsed(`w${wayID}v${version}`)
-    await Promise.all(queryArgs.map(async args => {
-        const res = await fetch(osm_server.apiBase + "nodes.json?nodes=" + args, {signal: getAbortController().signal});
-        if (res.status === 404) {
-            console.log('%c Some nodes was hidden. Start slow fetching :(', 'background: #222; color: #bada55')
-            let newArgs = args.split(",").map(i => parseInt(i.match(/(\d+)v(\d+)/)[1]));
-            // это нарушает инвариант, что versions не содержит последней версии
-            // важно также сохранять отсортированность,
-            // иначе loadNodesViaHistoryCalls сделает внутри несколько вызовов для одной и той же точки
-            (await loadNodesViaHistoryCalls(newArgs)).forEach(i => {
-                versions.push(...i)
-            })
-        } else if (res.status === 414) {
-            console.error("hmm, the maximum length of the URI is incorrectly calculated")
-            console.trace();
-        } else {
-            if (!res.ok) {
-                console.trace(res)
+    await Promise.all(
+        queryArgs.map(async args => {
+            const res = await fetch(osm_server.apiBase + "nodes.json?nodes=" + args, { signal: getAbortController().signal })
+            if (res.status === 404) {
+                console.log("%c Some nodes was hidden. Start slow fetching :(", "background: #222; color: #bada55")
+                let newArgs = args.split(",").map(i => parseInt(i.match(/(\d+)v(\d+)/)[1]))
+                // это нарушает инвариант, что versions не содержит последней версии
+                // важно также сохранять отсортированность,
+                // иначе loadNodesViaHistoryCalls сделает внутри несколько вызовов для одной и той же точки
+                ;(await loadNodesViaHistoryCalls(newArgs)).forEach(i => {
+                    versions.push(...i)
+                })
+            } else if (res.status === 414) {
+                console.error("hmm, the maximum length of the URI is incorrectly calculated")
+                console.trace()
+            } else {
+                if (!res.ok) {
+                    console.trace(res)
+                }
+                versions.push(...(await res.json()).elements)
             }
-            versions.push(...(await res.json()).elements)
-        }
-    }))
+        }),
+    )
     // console.debug(`end w${wayID}v${version}`)
     // console.groupEnd()
     // из-за возможной ручной докачки историй, нужна дедупликация
-    const seen = {};
-    versions = versions.filter(function ({id: id, version: version}) {
-        return Object.prototype.hasOwnProperty.call(seen, [id, version]) ? false : (seen[[id, version]] = true);
-    });
+    const seen = {}
+    versions = versions.filter(function ({ id: id, version: version }) {
+        return Object.prototype.hasOwnProperty.call(seen, [id, version]) ? false : (seen[[id, version]] = true)
+    })
 
-    Object.entries(Object.groupBy(versions, ({id}) => id)).forEach(([id, history]) => {
+    Object.entries(Object.groupBy(versions, ({ id }) => id)).forEach(([id, history]) => {
         history.sort((a, b) => {
             if (a.version < b.version) return -1
-            if (a.version > b.version) return 1;
+            if (a.version > b.version) return 1
             return 0
         })
         if (history.length && history[history.length - 1].version !== lastVersionsMap[id][0].version) {
@@ -5547,7 +5680,7 @@ function searchVersionByTimestamp(history, timestamp, alwaysReturn = false) {
     }
     for (const v of history) {
         if (new Date(v.timestamp) <= targetTime) {
-            cur = v;
+            cur = v
         }
     }
     return cur
@@ -5570,7 +5703,7 @@ async function sortWayNodesByTimestamp(wayID) {
     /** @type {Set<string>} */
     const objectsSet = new Set()
     for (const i of document.querySelectorAll(`.way-version-view`)) {
-        const [targetVersion, nodesHistory] = await loadWayVersionNodes(wayID, parseInt(i.getAttribute("way-version")));
+        const [targetVersion, nodesHistory] = await loadWayVersionNodes(wayID, parseInt(i.getAttribute("way-version")))
         objectsBag.push(targetVersion)
         nodesHistory.forEach(v => {
             if (v.length === 0) {
@@ -5584,13 +5717,13 @@ async function sortWayNodesByTimestamp(wayID) {
         })
     }
     objectsBag.sort((a, b) => {
-        if (a.timestamp < b.timestamp) return -1;
-        if (a.timestamp > b.timestamp) return 1;
-        if (a.type === "node" && b.type === "way") return -1;
-        if (a.type === "way" && b.type === "node") return 1;
+        if (a.timestamp < b.timestamp) return -1
+        if (a.timestamp > b.timestamp) return 1
+        if (a.type === "node" && b.type === "way") return -1
+        if (a.type === "way" && b.type === "node") return 1
         return 0
     })
-    return objectsBag;
+    return objectsBag
 }
 
 /**
@@ -5599,10 +5732,10 @@ async function sortWayNodesByTimestamp(wayID) {
  * @return {Object.<number, T>}
  */
 function makeObjectVersionsIndex(history) {
-    const wayVersionsIndex = {};
+    const wayVersionsIndex = {}
     history.forEach(i => {
-        wayVersionsIndex[i.version] = i;
-    });
+        wayVersionsIndex[i.version] = i
+    })
     return wayVersionsIndex
 }
 
@@ -5612,7 +5745,7 @@ function makeObjectVersionsIndex(history) {
  * @return {boolean}
  */
 function locationChanged(v1, v2) {
-    return v1.lat !== v2.lat || v1.lon !== v2.lon;
+    return v1.lat !== v2.lat || v1.lon !== v2.lon
 }
 
 /**
@@ -5625,11 +5758,11 @@ function tagsChanged(v1, v2) {
 }
 
 async function replaceDownloadWayButton(btn, wayID) {
-    const objectsBag = await sortWayNodesByTimestamp(wayID);
+    const objectsBag = await sortWayNodesByTimestamp(wayID)
 
-    const wayVersionsIndex = makeObjectVersionsIndex(await getWayHistory(wayID));
+    const wayVersionsIndex = makeObjectVersionsIndex(await getWayHistory(wayID))
     /** @type {Object.<string, NodeVersion|WayVersion>}*/
-    const objectStates = {};
+    const objectStates = {}
     /** @type {Object.<string, [string, NodeVersion|WayVersion, NodeVersion|WayVersion]>} */
     let currentChanges = {}
 
@@ -5638,7 +5771,7 @@ async function replaceDownloadWayButton(btn, wayID) {
      * @param {NodeVersion|WayVersion} newVersion
      */
     function storeChanges(key, newVersion) {
-        const prev = objectStates[key];
+        const prev = objectStates[key]
         if (prev === undefined) {
             currentChanges[key] = ["new", prev, newVersion]
         } else {
@@ -5661,22 +5794,22 @@ async function replaceDownloadWayButton(btn, wayID) {
     /** @type {string|null} */
     let currentTimestamp = null
     /** @type {WayVersion}*/
-    let currentWayVersion = {version: 0, nodes: []}
+    let currentWayVersion = { version: 0, nodes: [] }
     let currentWayNodesSet = new Set()
 
     function renderInterVersion() {
-        const currentNodes = [];
+        const currentNodes = []
         wayVersionsIndex[currentWayVersion.version].nodes.forEach(nodeID => {
             currentNodes.push(objectStates[`node ${nodeID}`])
             const uniq_key = `node ${nodeID}`
-            if (currentChanges[uniq_key] !== undefined) return;
+            if (currentChanges[uniq_key] !== undefined) return
             const curV = objectStates[uniq_key]
             if (curV) {
                 currentChanges[uniq_key] = ["", curV, curV]
             } else {
                 console.warn(`${uniq_key} not found in states`)
             }
-        });
+        })
 
         const interVersionDiv = document.createElement("div")
         interVersionDiv.setAttribute("way-version", "inter")
@@ -5684,8 +5817,8 @@ async function replaceDownloadWayButton(btn, wayID) {
 
         const interVersionDivHeader = document.createElement("h4")
         const interVersionDivAbbr = document.createElement("abbr")
-        interVersionDivAbbr.textContent = ['ru-RU', 'ru'].includes(navigator.language) ? "Промежуточная версия" : "Intermediate version"
-        interVersionDivAbbr.title = ['ru-RU', 'ru'].includes(navigator.language)
+        interVersionDivAbbr.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Промежуточная версия" : "Intermediate version"
+        interVersionDivAbbr.title = ["ru-RU", "ru"].includes(navigator.language)
             ? "Произошли изменения тегов или координат точек в линии,\nкоторые не увеличили версию линии"
             : "There have been changes to the tags or coordinates of nodes in the way that have not increased the way version"
         interVersionDivHeader.appendChild(interVersionDivAbbr)
@@ -5694,10 +5827,10 @@ async function replaceDownloadWayButton(btn, wayID) {
         const p = document.createElement("p")
         interVersionDiv.appendChild(p)
         fetch(osm_server.apiBase + "changeset" + "/" + currentChangeset + ".json").then(async res => {
-            const jsonRes = await res.json();
+            const jsonRes = await res.json()
             /** @type {ChangesetMetadata} */
             const changesetMetadata = jsonRes.changeset ? jsonRes.changeset : jsonRes.elements[0]
-            p.textContent = changesetMetadata.tags['comment'];
+            p.textContent = changesetMetadata.tags["comment"]
         })
 
         const ul = document.createElement("ul")
@@ -5709,7 +5842,7 @@ async function replaceDownloadWayButton(btn, wayID) {
         time.setAttribute("datetime", currentTimestamp)
         time.setAttribute("natural_text", currentTimestamp) // it should server side string :(
         time.setAttribute("title", currentTimestamp) // it should server side string :(
-        time.textContent = (new Date(currentTimestamp).toISOString()).slice(0, -5) + "Z"
+        time.textContent = new Date(currentTimestamp).toISOString().slice(0, -5) + "Z"
         li.appendChild(time)
         li.appendChild(document.createTextNode("\xA0"))
 
@@ -5728,7 +5861,7 @@ async function replaceDownloadWayButton(btn, wayID) {
 
         const nodesDetails = document.createElement("details")
         nodesDetails.classList.add("way-version-nodes")
-        nodesDetails.onclick = (e) => {
+        nodesDetails.onclick = e => {
             e.stopImmediatePropagation()
         }
         const summary = document.createElement("summary")
@@ -5771,9 +5904,9 @@ async function replaceDownloadWayButton(btn, wayID) {
             const nodesHistory = nodesHistories[i.id]
             const tagsTable = processObject(div2, "node", curChange[1] ?? curChange[2], curChange[2], nodesHistory[nodesHistory.length - 1], nodesHistory)
             setTimeout(async () => {
-                await processObjectInteractions("", "node", {nodes: []}, div2, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(div2)))
+                await processObjectInteractions("", "node", { nodes: [] }, div2, ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))))
             }, 0)
-            tagsTable.then((table) => {
+            tagsTable.then(table => {
                 if (nodeLi.classList.contains("tags-non-modified")) {
                     div2.appendChild(table)
                 }
@@ -5797,59 +5930,60 @@ async function replaceDownloadWayButton(btn, wayID) {
             showWay(cloneInto(currentNodes, unsafeWindow), "#000000", false, darkModeForMap && isDarkMode())
             currentNodes.forEach(node => {
                 if (node.tags && Object.keys(node.tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
-                    showNodeMarker(node.lat.toString(), node.lon.toString(), "rgb(161,161,161)", null, 'customObjects', 3)
+                    showNodeMarker(node.lat.toString(), node.lon.toString(), "rgb(161,161,161)", null, "customObjects", 3)
                 }
             })
             changedNodes.forEach(i => {
                 if (i[0] === "") return
                 if (i[2].visible === false) {
                     if (i[1].visible !== false) {
-                        showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, 'customObjects', 3)
+                        showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
                     }
                 } else if (i[0] === "new") {
                     if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
-                        showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, 'customObjects', 3)
+                        showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
                     }
-                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, 'customObjects', 3)
+                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
                 } else {
-                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, 'customObjects', 3)
+                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
                 }
             })
         }
-        interVersionDiv.onclick = (e) => {
+        interVersionDiv.onclick = e => {
             resetMapHover()
             cleanAllObjects()
             showWay(cloneInto(currentNodes, unsafeWindow), "#000000", e.isTrusted, darkModeForMap && isDarkMode())
             currentNodes.forEach(node => {
                 if (node.tags && Object.keys(node.tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
-                    showNodeMarker(node.lat.toString(), node.lon.toString(), "rgb(161,161,161)", null, 'customObjects', 3)
+                    showNodeMarker(node.lat.toString(), node.lon.toString(), "rgb(161,161,161)", null, "customObjects", 3)
                 }
             })
             changedNodes.forEach(i => {
                 if (i[0] === "") return
                 if (i[2].visible === false) {
                     if (i[1].visible !== false) {
-                        showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, 'customObjects', 3)
+                        showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
                     }
                 } else if (i[0] === "new") {
                     if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
-                        showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, 'customObjects', 3)
+                        showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
                     }
-                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, 'customObjects', 3)
+                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
                 } else {
-                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, 'customObjects', 3)
+                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
                 }
             })
         }
         let insertBeforeThat = document.querySelector(`#element_versions_list > div[way-version="${currentWayVersion.version}"]`)
-        while (insertBeforeThat.previousElementSibling?.getAttribute("way-version") === "inter") { // fixme O(n^2)
+        while (insertBeforeThat.previousElementSibling?.getAttribute("way-version") === "inter") {
+            // fixme O(n^2)
             insertBeforeThat = insertBeforeThat.previousElementSibling
         }
         insertBeforeThat.before(interVersionDiv)
     }
 
     for (const it of objectsBag) {
-        console.debug(it);
+        console.debug(it)
         const uniq_key = `${it.type} ${it.id}`
         if (it.type === "node" && currentWayVersion.version > 0 && !currentWayNodesSet.has(it.id)) {
             objectStates[uniq_key] = it
@@ -5903,7 +6037,7 @@ async function replaceDownloadWayButton(btn, wayID) {
                 }
             })
             if (forNodesReplace && currentWayVersion.nodes) {
-                const currentNodes = [];
+                const currentNodes = []
                 const ulNodes = forNodesReplace.querySelector("details:not(.empty-version) ul")
                 ulNodes.parentElement.classList.add("way-version-nodes")
                 ulNodes.querySelectorAll("li").forEach(li => {
@@ -5917,15 +6051,15 @@ async function replaceDownloadWayButton(btn, wayID) {
                         changedNodes.forEach(i => {
                             if (i[2].visible === false) {
                                 if (i[1].visible !== false) {
-                                    showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, 'customObjects', 3)
+                                    showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
                                 }
                             } else if (i[0] === "new") {
                                 if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
-                                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, 'customObjects', 3)
+                                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
                                 }
-                                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, 'customObjects', 3)
+                                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
                             } else {
-                                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, 'customObjects', 3)
+                                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
                             }
                         })
                     })
@@ -5933,15 +6067,15 @@ async function replaceDownloadWayButton(btn, wayID) {
                         changedNodes.forEach(i => {
                             if (i[2].visible === false) {
                                 if (i[1].visible !== false) {
-                                    showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, 'customObjects', 3)
+                                    showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
                                 }
                             } else if (i[0] === "new") {
                                 if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
-                                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, 'customObjects', 3)
+                                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
                                 }
-                                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, 'customObjects', 3)
+                                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
                             } else {
-                                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, 'customObjects', 3)
+                                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
                             }
                         })
                     })
@@ -5986,15 +6120,15 @@ async function replaceDownloadWayButton(btn, wayID) {
                     const nodesHistory = nodesHistories[i.id]
                     const tagsTable = processObject(div2, "node", curChange[1] ?? curChange[2], curChange[2], nodesHistory[nodesHistory.length - 1], nodesHistory)
                     setTimeout(async () => {
-                        await processObjectInteractions("", "node", {nodes: []}, div2, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(div2)))
+                        await processObjectInteractions("", "node", { nodes: [] }, div2, ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))))
                     }, 0)
-                    tagsTable.then((table) => {
+                    tagsTable.then(table => {
                         if (nodeLi.classList.contains("tags-non-modified")) {
                             div2.appendChild(table)
                         }
-//                            table.style.borderColor = "var(--bs-body-color)";
-//                             table.style.borderStyle = "solid";
-//                             table.style.borderWidth = "1px";
+                        //                            table.style.borderColor = "var(--bs-body-color)";
+                        //                             table.style.borderStyle = "solid";
+                        //                             table.style.borderWidth = "1px";
                     })
                     ulNodes.appendChild(nodeLi)
                 })
@@ -6006,13 +6140,17 @@ async function replaceDownloadWayButton(btn, wayID) {
     if (Object.entries(currentChanges).length) {
         renderInterVersion()
     }
-    document.querySelector("#sidebar_content h2").addEventListener("mouseleave", () => {
-        document.querySelector("#sidebar_content h2").onmouseenter = () => {
-            cleanAllObjects()
-        }
-    }, {
-        once: true
-    })
+    document.querySelector("#sidebar_content h2").addEventListener(
+        "mouseleave",
+        () => {
+            document.querySelector("#sidebar_content h2").onmouseenter = () => {
+                cleanAllObjects()
+            }
+        },
+        {
+            once: true,
+        },
+    )
     // making version filter
     if (document.querySelectorAll('[way-version="inter"]').length > 20) {
         const select = document.createElement("select")
@@ -6021,21 +6159,21 @@ async function replaceDownloadWayButton(btn, wayID) {
 
         const allVersions = document.createElement("option")
         allVersions.value = "all-versions"
-        allVersions.textContent = ['ru-RU', 'ru'].includes(navigator.language) ? "Все версии" : "All versions"
+        allVersions.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Все версии" : "All versions"
         select.appendChild(allVersions)
 
         const withGeom = document.createElement("option")
         withGeom.value = "with-geom"
-        withGeom.textContent = ['ru-RU', 'ru'].includes(navigator.language) ? "Все изменения геометрии" : "With geometry changes"
+        withGeom.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Все изменения геометрии" : "With geometry changes"
         withGeom.setAttribute("selected", "selected")
         select.appendChild(withGeom)
 
         const withoutInter = document.createElement("option")
         withoutInter.value = "without-inter"
-        withoutInter.textContent = ['ru-RU', 'ru'].includes(navigator.language) ? "Без промежуточных" : "Without intermediate"
+        withoutInter.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Без промежуточных" : "Without intermediate"
         select.appendChild(withoutInter)
 
-        select.onchange = (e) => {
+        select.onchange = e => {
             if (e.target.value === "all-versions") {
                 document.querySelectorAll('[way-version="inter"]').forEach(i => {
                     i.removeAttribute("hidden")
@@ -6074,15 +6212,15 @@ async function showFullWayHistory(wayID) {
 }
 
 function setupWayVersionView() {
-    const match = location.pathname.match(/\/way\/(\d+)\//);
-    if (match === null) return;
+    const match = location.pathname.match(/\/way\/(\d+)\//)
+    if (match === null) return
     const wayID = match[1]
 
     async function loadWayVersion(e, loadMore = true, needShowWay = true, needFly = false) {
         const htmlElem = e.target ? e.target : e
         htmlElem.style.cursor = "progress"
         const version = parseInt(htmlElem.getAttribute("way-version"))
-        const [targetVersion, nodesHistory] = await loadWayVersionNodes(wayID, version);
+        const [targetVersion, nodesHistory] = await loadWayVersionNodes(wayID, version)
         const nodesList = filterObjectListByTimestamp(nodesHistory, targetVersion.timestamp)
         if (nodesList.some(i => i === null)) {
             htmlElem.parentElement.parentElement.classList.add("broken-version")
@@ -6094,16 +6232,16 @@ function setupWayVersionView() {
                 showWay(cloneInto(nodesList, unsafeWindow), "#000000", needFly, darkModeForMap && isDarkMode())
                 nodesList.forEach(node => {
                     if (node.tags && Object.keys(node.tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
-                        showNodeMarker(node.lat.toString(), node.lon.toString(), "rgb(161,161,161)", null, 'customObjects', 3)
+                        showNodeMarker(node.lat.toString(), node.lon.toString(), "rgb(161,161,161)", null, "customObjects", 3)
                     }
                 })
             }
         }
         if (htmlElem.nodeName === "A") {
             const versionDiv = htmlElem.parentNode.parentNode
-            versionDiv.onmouseenter = (e) => {
+            versionDiv.onmouseenter = e => {
                 resetMapHover()
-                loadWayVersion(e);
+                loadWayVersion(e)
             }
             versionDiv.onclick = async e => {
                 if (e.target.tagName === "A" || e.target.tagName === "TIME" || e.target.tagName === "SUMMARY" || e.target.tagName === "BUTTON") {
@@ -6116,16 +6254,16 @@ function setupWayVersionView() {
             htmlElem.setAttribute("hidden", "true")
             // preload next
             if (version !== 1) {
-                let prevVersionNum = version - 1;
+                let prevVersionNum = version - 1
                 while (prevVersionNum > 0) {
                     try {
-                        console.log(`preloading v${prevVersionNum}`);
+                        console.log(`preloading v${prevVersionNum}`)
                         await loadWayVersionNodes(wayID, prevVersionNum)
-                        console.log(`preloaded v${prevVersionNum}`);
+                        console.log(`preloaded v${prevVersionNum}`)
                         break
                     } catch {
                         console.log(`Skip v${prevVersionNum}`)
-                        prevVersionNum--;
+                        prevVersionNum--
                     }
                 }
                 const loadBtn = document.querySelector(`#sidebar_content a[way-version="${prevVersionNum}"]`)
@@ -6136,9 +6274,9 @@ function setupWayVersionView() {
                     } else {
                         await loadWayVersion(loadBtn, false, false)
                         if (prevVersionNum > 1) {
-                            console.log(`preloading2 v${prevVersionNum - 1}`);
-                            await loadWayVersionNodes(wayID, (prevVersionNum - 1))
-                            console.log(`preloaded v${prevVersionNum - 1}`);
+                            console.log(`preloading2 v${prevVersionNum - 1}`)
+                            await loadWayVersionNodes(wayID, prevVersionNum - 1)
+                            console.log(`preloaded v${prevVersionNum - 1}`)
                         }
                     }
                 }
@@ -6153,7 +6291,7 @@ function setupWayVersionView() {
     }
 
     document.querySelectorAll("#element_versions_list > div h4:nth-of-type(1):not(:has(.way-version-view)) a:nth-of-type(1)").forEach(i => {
-        const version = i.href.match(/\/(\d+)$/)[1];
+        const version = i.href.match(/\/(\d+)$/)[1]
         const btn = document.createElement("a")
         btn.classList.add("way-version-view")
         btn.textContent = "📥"
@@ -6193,8 +6331,8 @@ function setupWayVersionView() {
                 console.timeEnd("full history")
             }
         }
-        downloadAllVersionsBtn.addEventListener("click", clickHandler, {once: true})
-        downloadAllVersionsBtn.addEventListener("keypress", clickHandler, {once: true})
+        downloadAllVersionsBtn.addEventListener("click", clickHandler, { once: true })
+        downloadAllVersionsBtn.addEventListener("keypress", clickHandler, { once: true })
         document.querySelector(".compact-toggle-btn")?.after(downloadAllVersionsBtn)
         document.querySelector(".compact-toggle-btn")?.after(document.createTextNode("\xA0"))
     }
@@ -6271,13 +6409,13 @@ function setupWayVersionView() {
  */
 async function getRelationHistory(relationID) {
     if (relationsHistories[relationID]) {
-        return relationsHistories[relationID];
+        return relationsHistories[relationID]
     } else {
-        const res = await fetch(osm_server.apiBase + "relation" + "/" + relationID + "/history.json");
+        const res = await fetch(osm_server.apiBase + "relation" + "/" + relationID + "/history.json")
         if (res.status === 509) {
             error509Handler(res)
         } else {
-            return relationsHistories[relationID] = (await res.json()).elements;
+            return (relationsHistories[relationID] = (await res.json()).elements)
         }
     }
 }
@@ -6325,9 +6463,9 @@ const cachedRelations = {}
  * @returns {{x: number, y: number}}
  */
 function toMercator(lat, lng) {
-    const x = earthRadius * lng * Math.PI / 180;
-    const y = earthRadius * Math.log(Math.tan((lat * Math.PI / 180) / 2 + Math.PI / 4));
-    return {x, y};
+    const x = (earthRadius * lng * Math.PI) / 180
+    const y = earthRadius * Math.log(Math.tan((lat * Math.PI) / 180 / 2 + Math.PI / 4))
+    return { x, y }
 }
 
 /**
@@ -6336,11 +6474,10 @@ function toMercator(lat, lng) {
  * @returns {{lat: number, lng: number}}
  */
 function fromMercator(x, y) {
-    const lat = (2 * Math.atan(Math.exp(y / earthRadius)) - Math.PI / 2) * 180 / Math.PI;
-    const lng = x / earthRadius * 180 / Math.PI;
-    return {lat, lng};
+    const lat = ((2 * Math.atan(Math.exp(y / earthRadius)) - Math.PI / 2) * 180) / Math.PI
+    const lng = ((x / earthRadius) * 180) / Math.PI
+    return { lat, lng }
 }
-
 
 /**
  * @param {number} lat1
@@ -6352,29 +6489,28 @@ function fromMercator(x, y) {
  * @returns {{lat: number, lon: number}}
  */
 function rotateSegment(lat1, lon1, lat2, lon2, angleDeg, lengthMeters) {
-    let {x: x1, y: y1} = toMercator(lat1, lon1)
-    let {x: x2, y: y2} = toMercator(lat2, lon2)
+    let { x: x1, y: y1 } = toMercator(lat1, lon1)
+    let { x: x2, y: y2 } = toMercator(lat2, lon2)
 
-    const angleRad = angleDeg * Math.PI / 180;
+    const angleRad = (angleDeg * Math.PI) / 180
 
-    const dx = y2 - y1;
-    const dy = x2 - x1;
+    const dx = y2 - y1
+    const dy = x2 - x1
 
-    const segmentLength = Math.sqrt(dx * dx + dy * dy);
+    const segmentLength = Math.sqrt(dx * dx + dy * dy)
 
-    const ndx = dx / segmentLength;
-    const ndy = dy / segmentLength;
+    const ndx = dx / segmentLength
+    const ndy = dy / segmentLength
 
-    const scaledDx = ndx * lengthMeters;
-    const scaledDy = ndy * lengthMeters;
+    const scaledDx = ndx * lengthMeters
+    const scaledDy = ndy * lengthMeters
 
-    const rotatedDx = scaledDx * Math.cos(angleRad) - scaledDy * Math.sin(angleRad);
+    const rotatedDx = scaledDx * Math.cos(angleRad) - scaledDy * Math.sin(angleRad)
     const rotatedDy = scaledDx * Math.sin(angleRad) + scaledDy * Math.cos(angleRad)
 
-    const {lat: lat, lng: lon} = fromMercator(x1 + rotatedDy, y1 + rotatedDx)
-    return {lat: lat, lon: lon};
+    const { lat: lat, lng: lon } = fromMercator(x1 + rotatedDy, y1 + rotatedDx)
+    return { lat: lat, lon: lon }
 }
-
 
 /**
  * @param {{lat: number, lon: number}} latLon1
@@ -6382,7 +6518,7 @@ function rotateSegment(lat1, lon1, lat2, lon2, angleDeg, lengthMeters) {
  * @return {boolean}
  */
 function isEqualCoordinates(latLon1, latLon2) {
-    return latLon1.lat === latLon2.lat && latLon1.lon === latLon2.lon;
+    return latLon1.lat === latLon2.lat && latLon1.lon === latLon2.lon
 }
 
 /**
@@ -6391,15 +6527,15 @@ function isEqualCoordinates(latLon1, latLon2) {
  */
 function validateRestriction(rel) {
     /** @type {ExtendedRelationWayMember[]} */
-    let from = [];
+    let from = []
     /** @type {ExtendedRelationNodeMember[]} */
-    let viaNodes = [];
+    let viaNodes = []
     /** @type {ExtendedRelationWayMember[]} */
-    let viaWays = [];
+    let viaWays = []
     /** @type {ExtendedRelationWayMember[]} */
-    let to = [];
+    let to = []
     const errors = []
-    const {value: restrictionValue} = getRestrictionKeyValue(rel.tags)
+    const { value: restrictionValue } = getRestrictionKeyValue(rel.tags)
     rel.members?.forEach(i => {
         if (i.type === "way" && i.role === "from") {
             from.push(i)
@@ -6414,7 +6550,7 @@ function validateRestriction(rel) {
         }
     })
     if (viaNodes.length + viaWays.length === 0) {
-        errors.push('Missing member with "via" role');
+        errors.push('Missing member with "via" role')
     }
     if (from.length === 0) {
         errors.push('Missing member with "from" role')
@@ -6423,7 +6559,7 @@ function validateRestriction(rel) {
         errors.push('Missing member with "to" role')
     }
 
-    [...from, ...to].forEach(i => {
+    ;[...from, ...to].forEach(i => {
         if (i.geometry?.length < 2) {
             errors.push(`${i.type}/${i.ref} (${i.role}) way contains < 2 nodes`)
         }
@@ -6436,7 +6572,7 @@ function validateRestriction(rel) {
             errors.push('Multiple "to" role')
         }
     }
-    if (errors.length) return errors;
+    if (errors.length) return errors
 
     if (viaNodes.length && viaWays.length) {
         errors.push(`Mixed "node" and "way" types for via role`)
@@ -6464,11 +6600,12 @@ function validateRestriction(rel) {
             errors.push(`"via" -> "to" are arranged in the wrong order or torn`)
         }
     }
-    if (errors.length) return errors;
+    if (errors.length) return errors
 
     return errors
 }
 
+// prettier-ignore
 const restrictionColors = {
     no_left_turn:       "#ff0000",
     no_right_turn:      "#ff0000",
@@ -6482,7 +6619,7 @@ const restrictionColors = {
 }
 // TODO сделать ресурсами
 const restrictionsImagesPrefix = "https://raw.githubusercontent.com/deevroman/better-osm-org/8f4aca194ec701111005a5902fa9380879b811a3/icons/restrictions/"
-
+// prettier-ignore
 const restrictionsSignImages = {
     no_left_turn:       restrictionsImagesPrefix + "France_road_sign_B2a.svg",
     no_right_turn:      restrictionsImagesPrefix + "France_road_sign_B2b.svg",
@@ -6496,23 +6633,23 @@ const restrictionsSignImages = {
 }
 
 function azimuth(lat1, lon1, lat2, lon2) {
-    const p1 = toMercator(lat1, lon1);
-    const p2 = toMercator(lat2, lon2);
+    const p1 = toMercator(lat1, lon1)
+    const p2 = toMercator(lat2, lon2)
 
-    const dx = p2.x - p1.x;
-    const dy = p2.y - p1.y;
+    const dx = p2.x - p1.x
+    const dy = p2.y - p1.y
 
-    const angleRad = Math.atan2(dx, dy);
-    const angleDeg = angleRad * 180 / Math.PI;
+    const angleRad = Math.atan2(dx, dy)
+    const angleDeg = (angleRad * 180) / Math.PI
 
-    return (angleDeg + 360) % 360;
+    return (angleDeg + 360) % 360
 }
 
 function getRestrictionKeyValue(tags) {
     const key = Object.keys(tags).find(k => k === "restriction" || k === "was:restriction" || k.startsWith("restriction:"))
     return {
         key: key,
-        value: tags[key]
+        value: tags[key],
     }
 }
 
@@ -6524,13 +6661,13 @@ function getRestrictionKeyValue(tags) {
  */
 function renderRestriction(rel, color, layer) {
     /** @type {ExtendedRelationWayMember[]} */
-    let from = [];
+    let from = []
     /** @type {ExtendedRelationNodeMember[]} */
-    let viaNodes = [];
+    let viaNodes = []
     /** @type {ExtendedRelationWayMember[]} */
-    let viaWays = [];
+    let viaWays = []
     /** @type {ExtendedRelationWayMember[]} */
-    let to = [];
+    let to = []
     rel.members?.forEach(i => {
         if (i.type === "way" && i.role === "from") {
             from.push(i)
@@ -6542,20 +6679,18 @@ function renderRestriction(rel, color, layer) {
             viaWays.push(i)
         }
     })
-    let via = viaNodes?.[0];
+    let via = viaNodes?.[0]
     if (!via) {
-        if (isEqualCoordinates(from[0].geometry[0], viaWays[0].geometry[0])
-            || isEqualCoordinates(from[0].geometry[from[0].geometry.length - 1], viaWays[0].geometry[0])) {
+        if (isEqualCoordinates(from[0].geometry[0], viaWays[0].geometry[0]) || isEqualCoordinates(from[0].geometry[from[0].geometry.length - 1], viaWays[0].geometry[0])) {
             via = viaWays[0].geometry[0]
-        } else if (isEqualCoordinates(from[0].geometry[0], viaWays[0].geometry[viaWays[0].geometry.length - 1])
-            || isEqualCoordinates(from[0].geometry[from[0].geometry.length - 1], viaWays[0].geometry[viaWays[0].geometry.length - 1])) {
+        } else if (isEqualCoordinates(from[0].geometry[0], viaWays[0].geometry[viaWays[0].geometry.length - 1]) || isEqualCoordinates(from[0].geometry[from[0].geometry.length - 1], viaWays[0].geometry[viaWays[0].geometry.length - 1])) {
             via = viaWays[0].geometry[viaWays[0].geometry.length - 1]
         } else {
             console.error("Restriction validation error")
             debug_alert("Restriction validation error")
         }
     }
-    const {value: restrictionValue} = getRestrictionKeyValue(rel.tags)
+    const { value: restrictionValue } = getRestrictionKeyValue(rel.tags)
     const angle = 25
     const len = 7
     const arrows = []
@@ -6563,12 +6698,13 @@ function renderRestriction(rel, color, layer) {
     from.forEach(f => {
         let startPoint = f.geometry[0]
         let endPoint = f.geometry[1]
-        if (isEqualCoordinates(f.geometry[f.geometry.length - 1], via)) { // оверпас не даёт айдишники точек геометрии
+        // оверпас не даёт айдишники точек геометрии
+        if (isEqualCoordinates(f.geometry[f.geometry.length - 1], via)) {
             startPoint = f.geometry[f.geometry.length - 1]
             endPoint = f.geometry[f.geometry.length - 2]
         }
         signAngle = 360 - azimuth(endPoint.lat, endPoint.lon, startPoint.lat, startPoint.lon)
-        console.debug(signAngle);
+        console.debug(signAngle)
         // const {lat: p1_lat, lon: p1_lon} = startPoint;
         // const {lat: p2_lat, lon: p2_lon} = endPoint
         // const rotated1 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, -angle, len)
@@ -6589,14 +6725,11 @@ function renderRestriction(rel, color, layer) {
             endPoint = t.geometry[t.geometry.length - 2]
         } else {
             if (from.length > 1) {
-                signAngle = 360 - azimuth(
-                    t.geometry[t.geometry.length - 2].lat, t.geometry[t.geometry.length - 2].lon,
-                    t.geometry[t.geometry.length - 1].lat, t.geometry[t.geometry.length - 1].lon
-                )
+                signAngle = 360 - azimuth(t.geometry[t.geometry.length - 2].lat, t.geometry[t.geometry.length - 2].lon, t.geometry[t.geometry.length - 1].lat, t.geometry[t.geometry.length - 1].lon)
             }
         }
-        const {lat: p1_lat, lon: p1_lon} = startPoint;
-        const {lat: p2_lat, lon: p2_lon} = endPoint
+        const { lat: p1_lat, lon: p1_lon } = startPoint
+        const { lat: p2_lat, lon: p2_lon } = endPoint
         const rotated1 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, -angle, len)
         const rotated2 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, angle, len)
         if (restrictionValue === "no_exit" || restrictionValue === "no_entry") {
@@ -6605,35 +6738,39 @@ function renderRestriction(rel, color, layer) {
             arrows.push(displayWay(cloneInto([startPoint, rotated1], unsafeWindow), false, color, 4, null, layer))
             arrows.push(displayWay(cloneInto([startPoint, rotated2], unsafeWindow), false, color, 4, null, layer))
         }
-    });
-    [100, 250, 500, 1000].forEach(t => {
+    })
+    ;[100, 250, 500, 1000].forEach(t => {
         setTimeout(() => {
             arrows.forEach(i => i.bringToFront())
         }, t)
     })
 
     queueMicrotask(async () => {
-        const imageUrl = restrictionsSignImages[restrictionValue];
+        const imageUrl = restrictionsSignImages[restrictionValue]
         if (!imageUrl) {
             return
         }
-        let img = await fetchTextWithCache(imageUrl);
+        let img = await fetchTextWithCache(imageUrl)
         img = img.replace('version="1.1"', `style="rotate: -${Math.round(signAngle)}deg" version="1.1"`)
 
         function getSquareBounds(center) {
-            const {x, y} = toMercator(center.lat, center.lon)
+            const { x, y } = toMercator(center.lat, center.lon)
             return [
                 [...Object.values(fromMercator(x - 10, y - 10))],
                 [...Object.values(fromMercator(x + 10, y + 10))]
             ];
         }
 
-        const imgLayer = getWindow().L.imageOverlay("data:image/svg+xml;base64," + btoa(img), intoPage(getSquareBounds(via, 0.0002)),
-            intoPage({
-                interactive: true,
-                zIndex: 99999,
-                className: "restriction-img"
-            })).addTo(getMap());
+        const imgLayer = getWindow().L.imageOverlay(
+                "data:image/svg+xml;base64," + btoa(img),
+                intoPage(getSquareBounds(via, 0.0002)),
+                intoPage({
+                    interactive: true,
+                    zIndex: 99999,
+                    className: "restriction-img",
+                }),
+            )
+            .addTo(getMap())
         arrows.push(imgLayer)
         arrows.forEach(l => layers[layer].push(l))
         imgLayer.bringToFront()
@@ -6671,17 +6808,19 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
             return overpassCache[[id, timestamp]]
         } else {
             const res = await GM.xmlHttpRequest({
-                url: `${overpass_server.apiUrl}/interpreter?` + new URLSearchParams({
-                    data: `
+                url:
+                    `${overpass_server.apiUrl}/interpreter?` +
+                    new URLSearchParams({
+                        data: `
                             [out:json][date:"${timestamp}"];
                             relation(${id});
                             //(._;>;);
                             out geom;
-                        `
-                }),
-                responseType: "json"
-            });
-            return overpassCache[[id, timestamp]] = res.response
+                        `,
+                    }),
+                responseType: "json",
+            })
+            return (overpassCache[[id, timestamp]] = res.response)
         }
     }
 
@@ -6709,11 +6848,13 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
         const nodesBag = []
         overpassGeom.elements[0]?.members?.forEach(i => {
             if (i.type === "way") {
-                nodesBag.push(...i.geometry.map(p => {
-                    return {lat: p.lat, lon: p.lon}
-                }))
+                nodesBag.push(
+                    ...i.geometry.map(p => {
+                        return { lat: p.lat, lon: p.lon }
+                    }),
+                )
             } else if (i.type === "node") {
-                nodesBag.push({lat: i.lat, lon: i.lon})
+                nodesBag.push({ lat: i.lat, lon: i.lon })
             } else {
                 // ну нинада пожалуйста
             }
@@ -6740,14 +6881,14 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
     }
 
     // GC больно, постоянно передавать в контекст страницы больно
-    let cache = /** @type {CachedRelation} */ cachedRelations[[id, timestamp]];
+    let cache = /** @type {CachedRelation} */ cachedRelations[[id, timestamp]]
     if (!cache) {
         let wayCounts = 0
         /** @type {LatLonPair[][]} */
         const mergedGeometry = []
         overpassGeom.elements[0]?.members?.forEach(i => {
             if (i.type === "way") {
-                const w = /** @type {ExtendedWayVersion} */ i;
+                const w = /** @type {ExtendedWayVersion} */ i
                 wayCounts++
                 if (w.geometry === undefined || !w.geometry.length) {
                     return
@@ -6771,7 +6912,7 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
             }
         })
         const isRestriction = isRestrictionObj(overpassGeom.elements?.[0]?.tags ?? {})
-        const {bbox, nodesBbox} = getBbox(overpassGeom)
+        const { bbox, nodesBbox } = getBbox(overpassGeom)
         cache = cachedRelations[[id, timestamp]] = {
             geom: mergedGeometry.map(i => intoPage(i)),
             bbox: bbox,
@@ -6793,57 +6934,62 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
     })
 
     if (cache.isRestriction && cache.restrictionRelationErrors.length === 0) {
-        renderRestriction(overpassGeom.elements[0], restrictionColors[overpassGeom.elements[0].tags['restriction']] ?? color, layer)
+        renderRestriction(overpassGeom.elements[0], restrictionColors[overpassGeom.elements[0].tags["restriction"]] ?? color, layer)
     }
 
     console.timeEnd(`Render ${id} relation`)
 
     console.log("relation loaded")
-    return cache;
+    return cache
 }
 
 async function getNodeViaOverpassXML(id, timestamp) {
     const res = await GM.xmlHttpRequest({
-        url: `${overpass_server.apiUrl}/interpreter?` + new URLSearchParams({
-            data: `
+        url:
+            `${overpass_server.apiUrl}/interpreter?` +
+            new URLSearchParams({
+                data: `
                 [out:xml][date:"${timestamp}"];
                 node(${id});
                 out meta;
-            `
-        }),
-        responseType: "xml"
-    });
+            `,
+            }),
+        responseType: "xml",
+    })
     return new DOMParser().parseFromString(res.response, "text/xml").querySelector("node")
 }
 
 async function getWayViaOverpassXML(id, timestamp) {
     const res = await GM.xmlHttpRequest({
-        url: `${overpass_server.apiUrl}/interpreter?` + new URLSearchParams({
-            data: `
+        url:
+            `${overpass_server.apiUrl}/interpreter?` +
+            new URLSearchParams({
+                data: `
                 [out:xml][date:"${timestamp}"];
                 way(${id});
                 //(._;>;);
                 out meta;
-            `
-        }),
-        responseType: "xml"
-    });
+            `,
+            }),
+        responseType: "xml",
+    })
     return new DOMParser().parseFromString(res.response, "text/xml").querySelector("way")
 }
 
-
 async function getRelationViaOverpassXML(id, timestamp) {
     const res = await GM.xmlHttpRequest({
-        url: `${overpass_server.apiUrl}/interpreter?` + new URLSearchParams({
-            data: `
+        url:
+            `${overpass_server.apiUrl}/interpreter?` +
+            new URLSearchParams({
+                data: `
                 [out:xml][date:"${timestamp}"];
                 relation(${id});
                 //(._;>;);
                 out meta;
-            `
-        }),
-        responseType: "xml"
-    });
+            `,
+            }),
+        responseType: "xml",
+    })
     return new DOMParser().parseFromString(res.response, "text/xml").querySelector("relation")
 }
 
@@ -6882,7 +7028,7 @@ async function loadRelationVersionMembers(relationID, version) {
     const membersHistory = {
         nodes: [],
         ways: [],
-        relations: []
+        relations: [],
     }
     for (const member of targetVersion.members ?? []) {
         if (member.type === "node") {
@@ -6893,19 +7039,19 @@ async function loadRelationVersionMembers(relationID, version) {
             let targetNodeVersion = nodeHistory[0]
             nodeHistory.forEach(history => {
                 if (new Date(history.timestamp) <= targetTime) {
-                    targetNodeVersion = history;
+                    targetNodeVersion = history
                 }
             })
             membersHistory.nodes.push(targetNodeVersion)
             // membersHistory.nodes = nodeHistory
         } else if (member.type === "way") {
             async function loadWay() {
-                let wayHistory = await getWayHistory(member.ref);
+                let wayHistory = await getWayHistory(member.ref)
                 const targetTime = new Date(targetVersion.timestamp)
                 let targetWayVersion = wayHistory[0]
                 wayHistory.forEach(history => {
                     if (new Date(history.timestamp) <= targetTime) {
-                        targetWayVersion = history;
+                        targetWayVersion = history
                     }
                 })
                 return await loadWayVersionNodes(member.ref, targetWayVersion.version)
@@ -6917,24 +7063,23 @@ async function loadRelationVersionMembers(relationID, version) {
         }
     }
     membersHistory.ways = await Promise.all(membersHistory.ways)
-    return {targetVersion: targetVersion, membersHistory: membersHistory}
+    return { targetVersion: targetVersion, membersHistory: membersHistory }
 }
 
 function setupRelationVersionView() {
-    const match = location.pathname.match(/\/relation\/(\d+)\//);
-    if (match === null) return;
-    const relationID = match[1];
+    const match = location.pathname.match(/\/relation\/(\d+)\//)
+    if (match === null) return
+    const relationID = match[1]
 
-    async function loadRelationVersion(e, showWay = true) { // TODO fly?
+    async function loadRelationVersion(e, showWay = true) {
+        // TODO fly?
         const htmlElem = e.target ? e.target : e
         htmlElem.style.cursor = "progress"
 
         const version = parseInt(htmlElem.getAttribute("relation-version"))
         console.time(`r${relationID} v${version}`)
-        const {
-            targetVersion: targetVersion,
-            membersHistory: membersHistory
-        } = await loadRelationVersionMembers(relationID, version);
+        // debugger
+        const { targetVersion: targetVersion, membersHistory: membersHistory } = await loadRelationVersionMembers(relationID, version)
         console.timeEnd(`r${relationID} v${version}`)
         if (showWay) {
             cleanCustomObjects()
@@ -6945,7 +7090,7 @@ function setupRelationVersionView() {
             membersHistory.ways.forEach(([, nodesVersionsList]) => {
                 try {
                     const nodesList = nodesVersionsList.map(n => {
-                        const {lat: lat, lon: lon} = searchVersionByTimestamp(n, targetVersion.timestamp)
+                        const { lat: lat, lon: lon } = searchVersionByTimestamp(n, targetVersion.timestamp)
                         return [lat, lon]
                     })
                     displayWay(cloneInto(nodesList, unsafeWindow), false, "#000000", 4, null, "customObjects", null, null, darkModeForMap && isDarkMode())
@@ -6956,23 +7101,23 @@ function setupRelationVersionView() {
             })
             if (isRestrictionObj(targetVersion.tags ?? {})) {
                 /** @type {Object<number, NodeVersion>}}*/
-                const nodeIndex = membersHistory.nodes.reduce(((acc, n) => {
-                    acc[n.id] = n;
+                const nodeIndex = membersHistory.nodes.reduce((acc, n) => {
+                    acc[n.id] = n
                     return acc
-                }), {})
+                }, {})
                 /** @type {Object<number, LatLonPair[]>}}*/
-                const wayIndex = membersHistory.ways.reduce(((acc, w) => {
+                const wayIndex = membersHistory.ways.reduce((acc, w) => {
                     acc[w[0].id] = w[1].map(n => searchVersionByTimestamp(n, targetVersion.timestamp))
                     return acc
-                }), {})
+                }, {})
                 const extendedRelationVersion = targetVersion
                 extendedRelationVersion.members = extendedRelationVersion.members.map(mem => {
                     if (mem.type === "node") {
-                        mem['lat'] = nodeIndex[mem.ref].lat
-                        mem['lon'] = nodeIndex[mem.ref].lon
+                        mem["lat"] = nodeIndex[mem.ref].lat
+                        mem["lon"] = nodeIndex[mem.ref].lon
                         return /** @type {ExtendedRelationNodeMember} */ mem
                     } else if (mem.type === "way") {
-                        mem['geometry'] = wayIndex[mem.ref]
+                        mem["geometry"] = wayIndex[mem.ref]
                         return /** @type {ExtendedRelationWayMember} */ mem
                     } else if (mem.type === "relation") {
                         // todo
@@ -6983,7 +7128,7 @@ function setupRelationVersionView() {
                 if (errors.length) {
                     showRestrictionValidationStatus(errors, document.querySelector("#element_versions_list > div details:last-of-type summary"))
                 } else {
-                    renderRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion, restrictionColors[extendedRelationVersion.tags['restriction']] ?? "#000000", "customObjects")
+                    renderRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion, restrictionColors[extendedRelationVersion.tags["restriction"]] ?? "#000000", "customObjects")
                 }
             }
             if (hasBrokenMembers) {
@@ -6994,7 +7139,7 @@ function setupRelationVersionView() {
         if (htmlElem.nodeName === "A") {
             const versionDiv = htmlElem.parentNode.parentNode
             versionDiv.onmouseenter = loadRelationVersion
-            versionDiv.onclick = async (e) => {
+            versionDiv.onclick = async e => {
                 if (e.target.tagName === "A" || e.target.tagName === "TIME" || e.target.tagName === "SUMMARY" || e.target.tagName === "BUTTON") {
                     return
                 }
@@ -7012,32 +7157,37 @@ function setupRelationVersionView() {
         }
     }
 
-    document.querySelectorAll('#element_versions_list > div h4:nth-of-type(1):not(:has(.relation-version-view)) a:nth-of-type(1)').forEach((i) => {
-        const version = i.href.match(/\/(\d+)$/)[1];
+    document.querySelectorAll("#element_versions_list > div h4:nth-of-type(1):not(:has(.relation-version-view)) a:nth-of-type(1)").forEach(i => {
+        const version = i.href.match(/\/(\d+)$/)[1]
         const btn = document.createElement("a")
         btn.classList.add("relation-version-view")
         btn.textContent = "📥"
         btn.style.cursor = "pointer"
         btn.setAttribute("relation-version", version)
 
-        btn.addEventListener("mouseenter", async e => {
-            i.parentElement.parentElement.querySelectorAll(".browse-tag-list tr").forEach(t => {
-                if (t.querySelector("th")?.textContent?.includes("restriction")) {
-                    const key = t.querySelector("td")?.textContent
-                    if (restrictionsSignImages[key]) {
-                        void fetchTextWithCache(restrictionsSignImages[key]);
+        btn.addEventListener(
+            "mouseenter",
+            async e => {
+                i.parentElement.parentElement.querySelectorAll(".browse-tag-list tr").forEach(t => {
+                    if (t.querySelector("th")?.textContent?.includes("restriction")) {
+                        const key = t.querySelector("td")?.textContent
+                        if (restrictionsSignImages[key]) {
+                            void fetchTextWithCache(restrictionsSignImages[key])
+                        }
                     }
-                }
-            })
-            await loadRelationVersion(e)
-        }, {
-            once: true,
-        })
+                })
+                await loadRelationVersion(e)
+            },
+            {
+                once: true,
+            },
+        )
         i.after(btn)
         i.after(document.createTextNode("\xA0"))
     })
 
-    if (document.querySelectorAll(`.relation-version-view:not([hidden])`).length > 1 && !document.getElementById("download-all-versions-btn")) { // todo remove check after when would full history
+    if (document.querySelectorAll(`.relation-version-view:not([hidden])`).length > 1 && !document.getElementById("download-all-versions-btn")) {
+        // todo remove check after when would full history
         const downloadAllVersionsBtn = document.createElement("a")
         downloadAllVersionsBtn.id = "download-all-versions-btn"
         downloadAllVersionsBtn.tabIndex = 0
@@ -7053,13 +7203,12 @@ function setupRelationVersionView() {
             }
             e.target.remove()
         }
-        downloadAllVersionsBtn.addEventListener("click", clickHandler, {once: true})
-        downloadAllVersionsBtn.addEventListener("keypress", clickHandler, {once: true})
+        downloadAllVersionsBtn.addEventListener("click", clickHandler, { once: true })
+        downloadAllVersionsBtn.addEventListener("keypress", clickHandler, { once: true })
         document.querySelector(".compact-toggle-btn")?.after(downloadAllVersionsBtn)
         document.querySelector(".compact-toggle-btn")?.after(document.createTextNode("\xA0"))
     }
 }
-
 
 // tests
 // https://www.openstreetmap.org/relation/100742/history
@@ -7073,7 +7222,7 @@ function setupViewRedactions() {
     }
     let showUnredactedBtn = document.createElement("a")
     showUnredactedBtn.id = "show-unredacted-btn"
-    showUnredactedBtn.textContent = ['ru-RU', 'ru'].includes(navigator.language) ? "Просмотр неотредактированной истории β" : "View Unredacted History β"
+    showUnredactedBtn.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Просмотр неотредактированной истории β" : "View Unredacted History β"
     showUnredactedBtn.style.cursor = "pointer"
     showUnredactedBtn.href = ""
     showUnredactedBtn.onmouseenter = async () => {
@@ -7084,14 +7233,14 @@ function setupViewRedactions() {
         await unrollPaginationInHistory()
         showUnredactedBtn.style.cursor = "progress"
         const type = location.pathname.match(/\/(node|way|relation)/)[1]
-        const objID = parseInt(location.pathname.match(/\/(node|way|relation)\/(\d+)/)[2]);
-        let id_prefix = objID;
+        const objID = parseInt(location.pathname.match(/\/(node|way|relation)\/(\d+)/)[2])
+        let id_prefix = objID
         if (type === "node") {
-            id_prefix = Math.floor(id_prefix / 10000);
+            id_prefix = Math.floor(id_prefix / 10000)
         } else if (type === "way") {
-            id_prefix = Math.floor(id_prefix / 1000);
+            id_prefix = Math.floor(id_prefix / 1000)
         } else if (type === "relation") {
-            id_prefix = Math.floor(id_prefix / 10);
+            id_prefix = Math.floor(id_prefix / 10)
         }
 
         async function downloadArchiveData(url, objID, needUnzip = false) {
@@ -7099,12 +7248,12 @@ function setupViewRedactions() {
                 const diffGZ = await GM.xmlHttpRequest({
                     method: "GET",
                     url: url,
-                    responseType: "blob"
-                });
-                let blob = needUnzip ? await decompressBlob(diffGZ.response) : diffGZ.response;
+                    responseType: "blob",
+                })
+                let blob = needUnzip ? await decompressBlob(diffGZ.response) : diffGZ.response
                 let diffXML = await blob.text()
 
-                const doc = new DOMParser().parseFromString(diffXML, "application/xml");
+                const doc = new DOMParser().parseFromString(diffXML, "application/xml")
                 return doc.querySelectorAll(`osm [id='${objID}']`)
             } catch {
                 return null
@@ -7123,16 +7272,20 @@ function setupViewRedactions() {
             valuesLinks.set(a.textContent, a.href)
         })
 
-        const versionPrefix = document.querySelector('#element_versions_list > div h4')?.textContent?.match(/(^.*#)/gms)?.at(0)
+        const versionPrefix = document
+            .querySelector("#element_versions_list > div h4")
+            ?.textContent?.match(/(^.*#)/gms)
+            ?.at(0)
 
         for (const elem of Array.from(document.querySelectorAll('#element_versions_list > div:has(a[href*="/redactions/"]:not([rel]))'))) {
             const version = elem.textContent.match(/(\d+).*(\d+)/)[1]
             console.log(`Downloading v${version}`)
             elem.childNodes[0].textContent = elem.childNodes[0].textContent.match(/(\..*$)/gm)[0].slice(1)
-            let target;
+            let target
             try {
                 target = Array.from(data).find(i => i.getAttribute("version") === version)
-            } catch { /* empty */
+            } catch {
+                /* empty */
             }
             if (!target) {
                 const prevDatetime = elem.previousElementSibling.querySelector("time").getAttribute("datetime")
@@ -7161,8 +7314,8 @@ function setupViewRedactions() {
             comment.classList.add("fs-6", "overflow-x-auto")
             setTimeout(async () => {
                 if (!target) return
-                const res = await fetch(osm_server.apiBase + "changeset" + "/" + target.getAttribute("changeset") + ".json",);
-                const jsonRes = await res.json();
+                const res = await fetch(osm_server.apiBase + "changeset" + "/" + target.getAttribute("changeset") + ".json")
+                const jsonRes = await res.json()
                 comment.textContent = jsonRes.tags?.comment
             }, 0)
 
@@ -7176,7 +7329,7 @@ function setupViewRedactions() {
             time.setAttribute("datetime", target.getAttribute("timestamp"))
             time.setAttribute("natural_text", target.getAttribute("timestamp")) // it should server side string :(
             time.setAttribute("title", target.getAttribute("timestamp")) // it should server side string :(
-            time.textContent = (new Date(target.getAttribute("timestamp")).toISOString()).slice(0, -5) + "Z"
+            time.textContent = new Date(target.getAttribute("timestamp")).toISOString().slice(0, -5) + "Z"
             timeLi.appendChild(time)
             timeLi.appendChild(document.createTextNode(" "))
 
@@ -7283,7 +7436,7 @@ function setupViewRedactions() {
                     return {
                         ref: i.getAttribute("ref"),
                         type: i.getAttribute("type"),
-                        role: i.getAttribute("role")
+                        role: i.getAttribute("role"),
                     }
                 })
 
@@ -7337,7 +7490,7 @@ function setupViewRedactions() {
         cleanAllObjects()
         document.querySelector(".compact-toggle-btn")?.remove()
         setTimeout(async () => {
-            await addDiffInHistory();
+            await addDiffInHistory()
             addCommentsCount()
         }, 0)
     }
@@ -7348,7 +7501,7 @@ function setupViewRedactions() {
 }
 
 function extractChangesetID(s) {
-    return s.match(/\/changeset\/([0-9]+)/)[1];
+    return s.match(/\/changeset\/([0-9]+)/)[1]
 }
 
 function isVersionPage() {
@@ -7366,7 +7519,7 @@ function addCommentsCount() {
             Array.from(links).map(i => {
                 i.classList.add("comments-loaded")
                 return parseInt(extractChangesetID(i.getAttribute("href")))
-            })
+            }),
         )
         links.forEach(i => {
             const changesetID = extractChangesetID(i.getAttribute("href"))
@@ -7388,18 +7541,19 @@ function addCommentsCount() {
                             a.title += `${comment["user"]}:\n${shortText}\n\n`
                         })
                         a.title = a.title.trimEnd()
-                    });
+                    })
                 })
             }
             setTimeout(async () => {
                 await loadChangesetMetadata(changesetID)
-                Object.entries(changesetMetadatas[changesetID]?.["tags"] ?? {}).forEach(([k, v]) => { // тегов может не быть
-                    if (k === "comment") return;
+                Object.entries(changesetMetadatas[changesetID]?.["tags"] ?? {}).forEach(([k, v]) => {
+                    // тегов может не быть
+                    if (k === "comment") return
                     i.parentElement.title += `${k}: ${v}\n`
                 })
                 const user_link = i.parentElement.parentElement.querySelector(`a[href^="/user/"]`)
                 if (user_link) {
-                    getCachedUserInfo(user_link.textContent).then((res) => {
+                    getCachedUserInfo(user_link.textContent).then(res => {
                         user_link.title = makeUsernameTitle(res)
                     })
                 }
@@ -7418,13 +7572,13 @@ let paginationInHistoryStepObserver = null
 
 function monitorHistoryPaginationMoving() {
     if (!document.querySelector("#older_element_versions_navigation a")) {
-        return;
+        return
     }
     if (historyPagePaginationDeletingObserver === null) {
         historyPagePaginationDeletingObserver = new MutationObserver(function (mutationsList, observer) {
             for (let mutationRecord of mutationsList) {
                 for (let removedNode of mutationRecord.removedNodes ?? []) {
-                    if (removedNode.id === 'older_element_versions_navigation') {
+                    if (removedNode.id === "older_element_versions_navigation") {
                         observer.disconnect()
                         addDiffInHistory("pagination")
                     }
@@ -7434,8 +7588,8 @@ function monitorHistoryPaginationMoving() {
         historyPagePaginationDeletingObserver.observe(document.querySelector("#sidebar_content"), {
             childList: true,
             subtree: true,
-            attributes: true
-        });
+            attributes: true,
+        })
     }
     paginationInHistoryStepObserver = new MutationObserver(function (mutationsList, observer) {
         observer.disconnect()
@@ -7444,39 +7598,38 @@ function monitorHistoryPaginationMoving() {
     paginationInHistoryStepObserver.observe(document.querySelector("#older_element_versions_navigation"), {
         childList: true,
         subtree: true,
-        attributes: true
-    });
+        attributes: true,
+    })
 }
-
 
 async function unrollPaginationInHistory() {
     if (!document.querySelector("#older_element_versions_navigation")) {
         return
     }
     console.log("start pagination unrolling")
-    await new Promise((resolve) => {
+    await new Promise(resolve => {
         if (!paginationInHistoryStepObserver) {
             paginationInHistoryStepObserver = new MutationObserver(function (mutationsList, observer) {
                 observer.disconnect()
-                console.log("pagination click");
+                console.log("pagination click")
                 document.querySelector("#older_element_versions_navigation a")?.click()
             })
             if (!document.querySelector("#older_element_versions_navigation")) {
                 resolve()
-                return;
+                return
             }
             paginationInHistoryStepObserver.observe(document.querySelector("#older_element_versions_navigation"), {
                 childList: true,
                 subtree: true,
-                attributes: true
-            });
+                attributes: true,
+            })
         }
         const historyPagePaginationObserver = new MutationObserver(function (mutationsList, observer) {
             for (let mutationRecord of mutationsList) {
                 for (let removedNode of mutationRecord.removedNodes ?? []) {
-                    if (removedNode.id === 'older_element_versions_navigation') {
+                    if (removedNode.id === "older_element_versions_navigation") {
                         observer.disconnect()
-                        console.log("pagination unrolling finished");
+                        console.log("pagination unrolling finished")
                         resolve()
                     }
                 }
@@ -7485,30 +7638,31 @@ async function unrollPaginationInHistory() {
         historyPagePaginationObserver.observe(document.querySelector("#sidebar_content"), {
             childList: true,
             subtree: true,
-            attributes: true
-        });
+            attributes: true,
+        })
 
         const btn = document.querySelector("#older_element_versions_navigation a")
         if (!btn) {
             return
         }
-        console.log("pagination first click");
+        console.log("pagination first click")
         btn.click()
     })
 }
 
 function makeTitleForTagsCount(tagsCount) {
-    if (tagsCount === 1) { // fixme after adding locationzation
-        return tagsCount + (['ru-RU', 'ru'].includes(navigator.language) ? " тег" : " tag")
-    } else if (tagsCount < 10 && tagsCount > 20 && ([2, 3, 4].includes(tagsCount % 10))) {
-        return tagsCount + (['ru-RU', 'ru'].includes(navigator.language) ? " тега" : " tags")
+    if (tagsCount === 1) {
+        // fixme after adding locationzation
+        return tagsCount + (["ru-RU", "ru"].includes(navigator.language) ? " тег" : " tag")
+    } else if (tagsCount < 10 && tagsCount > 20 && [2, 3, 4].includes(tagsCount % 10)) {
+        return tagsCount + (["ru-RU", "ru"].includes(navigator.language) ? " тега" : " tags")
     } else {
-        return tagsCount + (['ru-RU', 'ru'].includes(navigator.language) ? " тегов" : " tags")
+        return tagsCount + (["ru-RU", "ru"].includes(navigator.language) ? " тегов" : " tags")
     }
 }
 
 function externalizeLinks(links) {
-    links?.forEach(i => i.setAttribute("target", "_blank"));
+    links?.forEach(i => i.setAttribute("target", "_blank"))
 }
 
 // hard cases:
@@ -7521,24 +7675,20 @@ function externalizeLinks(links) {
 // https://www.openstreetmap.org/node/12084992837/history
 // https://www.openstreetmap.org/way/1329437422/history
 function addDiffInHistory(reason = "url_change") {
-    makeHeaderPartsClickable();
-    addHistoryLink();
+    makeHeaderPartsClickable()
+    addHistoryLink()
     externalizeLinks(document.querySelectorAll("#sidebar_content p a"))
     externalizeLinks(document.querySelectorAll("#sidebar_content table a"))
-    if (!location.pathname.includes("/history")
-        || location.pathname === "/history"
-        || (location.pathname.includes("/history/") && !location.pathname.endsWith("/history/"))
-        || location.pathname.includes("/user/")
-    ) return;
+    if (!location.pathname.includes("/history") || location.pathname === "/history" || (location.pathname.includes("/history/") && !location.pathname.endsWith("/history/")) || location.pathname.includes("/user/")) return
     if (document.querySelector(".compact-toggle-btn") && reason !== "pagination") {
-        return;
+        return
     }
     // костыль для KeyK/L и OSM tags editor
     document.querySelectorAll("#element_versions_list > div").forEach(i => i.classList.add("browse-section"))
     cleanAllObjects()
-    hideSearchForm();
+    hideSearchForm()
     // в хроме фокус не выставляется
-    document.querySelector("#sidebar").focus({focusVisible: false}) // focusVisible работает только в Firefox
+    document.querySelector("#sidebar").focus({ focusVisible: false }) // focusVisible работает только в Firefox
     document.querySelector("#sidebar").blur()
 
     if (!location.pathname.includes("/user/") && !document.querySelector(".compact-toggle-btn")) {
@@ -7557,12 +7707,12 @@ function addDiffInHistory(reason = "url_change") {
         sidebar.appendChild(compactToggle)
     }
 
-    const styleText = `
-    
+    const styleText =
+        `
     .turbo-progress-bar {
         display: none;
     }
-   
+
     .compact-toggle-btn {
         position: relative;
         top: -2px;
@@ -7575,29 +7725,29 @@ function addDiffInHistory(reason = "url_change") {
         border-bottom: none;
         height: 1rem;
     }
-    
-    
+
+
     @media ${mediaQueryForWebsiteTheme} {
         .compact-toggle-btn {
             background: var(--bs-gray-800);
             border-color: var(--bs-gray-800);
         }
-    
+
         .compact-toggle-btn:hover {
             background: var(--bs-gray-700);
             border-color: var(--bs-gray-700);
         }
-        
+
         .compact-toggle-btn:active {
             background: var(--bs-gray-700) !important;
             border-color: var(--bs-gray-700) !important;
         }
     }
-        
+
     .compact-toggle-btn svg {
         display: flex;
     }
-    
+
     .history-diff-new-tag {
       background: rgba(17,238,9,0.6) !important;
     }
@@ -7607,19 +7757,19 @@ function addDiffInHistory(reason = "url_change") {
     .history-diff-deleted-tag {
       background: rgba(238,51,9,0.6) !important;
     }
-    
+
     #sidebar_content div.map-hover {
       background-color: rgba(223, 223, 223, 0.6);
     }
-    
+
     .new-letter {
         background: rgba(25, 223, 25, 0.6);
     }
-    
+
     .deleted-letter {
         background: rgba(255, 144, 144, 0.6);
     }
-    
+
     @media ${mediaQueryForWebsiteTheme} {
         .history-diff-new-tag {
           background: rgba(4, 123, 0, 0.6) !important;
@@ -7634,29 +7784,29 @@ function addDiffInHistory(reason = "url_change") {
           color: lightgray !important;
           background: rgba(238,51,9,0.4) !important;
         }
-        
+
         summary.history-diff-modified-tag {
             background: rgba(223,238,9,0.2) !important;
         }
-                
+
         /*li.history-diff-modified-tag {*/
         /*     background: rgba(223,238,9,0.2) !important;*/
         /*}*/
-        
+
         #sidebar_content div.map-hover {
             background-color: rgb(14, 17, 19);
         }
-        
+
         .new-letter {
-            background: rgba(25, 223, 25, 0.9); 
+            background: rgba(25, 223, 25, 0.9);
         }
-    
+
         .deleted-letter {
             background: rgba(253, 83, 83, 0.8);
         }
     }
     .non-modified-tag .empty-version {
-        
+
     }
     .hidden-version, .hidden-h4 {
         display: none;
@@ -7665,7 +7815,7 @@ function addDiffInHistory(reason = "url_change") {
     table.browse-tag-list.hide-non-modified-tags > tbody > .non-modified-tag {
         display: none;
     }
-    
+
     table.browse-tag-list.hide-non-modified-tags > tbody > .non-modified-tag + tr:not(:has(th)) {
         display: none;
     }
@@ -7673,11 +7823,11 @@ function addDiffInHistory(reason = "url_change") {
     #sidebar_content h2:not(.changeset-header){
         font-size: 1rem;
     }
-    
+
     h4 {
         font-size: 1rem;
     }
-    
+
     .copied {
         background-color: rgba(9,238,9,0.6);
         transition:all 0.3s;
@@ -7696,62 +7846,64 @@ function addDiffInHistory(reason = "url_change") {
             transition:all 0.3s;
         }
     }
-    
+
     @media (max-device-width: 640px) and ${mediaQueryForWebsiteTheme} {
         td.history-diff-new-tag::selection, /*td.history-diff-modified-tag::selection,*/ td.history-diff-deleted-tag::selection {
             background: black;
         }
-        
+
         th.history-diff-new-tag::selection, /*th.history-diff-modified-tag::selection,*/ th.history-diff-deleted-tag::selection {
             background: black;
         }
-        
+
         td a.history-diff-new-tag::selection, td a.history-diff-modified-tag::selection, td a.history-diff-deleted-tag::selection {
             background: black;
         }
-        
+
         th a.history-diff-new-tag::selection, th a.history-diff-modified-tag::selection, th a.history-diff-deleted-tag::selection {
             background: black;
         }
     }
-    
+
     table.browse-tag-list tr td[colspan="2"] {
         background: var(--bs-body-bg) !important;
     }
-    
+
     .prev-value-span.hidden {
         display: none !important;
     }
-    
-    ` + (GM_config.get("ShowChangesetGeometry") ? `
+
+    ` +
+        (GM_config.get("ShowChangesetGeometry")
+            ? `
     .node-version-view:hover {
         background-color: yellow;
     }
-    
+
     [node-version]:hover {
         background-color: rgba(244, 244, 244);
     }
-    
+
     @media ${mediaQueryForWebsiteTheme} {
         [node-version]:hover {
             background-color: rgb(14, 17, 19);
         }
     }
-          
+
     .way-version-view:hover {
         background-color: yellow;
     }
-    
+
     [way-version]:hover {
         background-color: rgba(244, 244, 244);
     }
-    
+
     @media ${mediaQueryForWebsiteTheme} {
         [way-version]:hover {
             background-color: rgb(14, 17, 19);
         }
     }
-          
+
     [way-version].broken-version details:before {
         color: var(--bs-body-color);
         content: "Some nodes were hidden by moderators";
@@ -7759,21 +7911,21 @@ function addDiffInHistory(reason = "url_change") {
         font-weight: normal;
         font-size: small;
     }
-    
+
     .relation-version-view:hover {
         background-color: yellow;
     }
-    
+
     [relation-version]:hover {
         background-color: rgba(244, 244, 244);
     }
-    
+
     @media ${mediaQueryForWebsiteTheme} {
         [relation-version]:hover {
             background-color: rgb(14, 17, 19);
         }
     }
-    
+
     [relation-version].broken-version details:before {
         color: var(--bs-body-color);
         content: "Some members were hidden by moderators";
@@ -7782,34 +7934,35 @@ function addDiffInHistory(reason = "url_change") {
         font-size: small;
     }
 
-    @media ${mediaQueryForWebsiteTheme} {        
+    @media ${mediaQueryForWebsiteTheme} {
         path.stroke-polyline {
             filter: drop-shadow(1px 1px 0 #7a7a7a) drop-shadow(-1px -1px 0 #7a7a7a) drop-shadow(1px -1px 0 #7a7a7a) drop-shadow(-1px 1px 0 #7a7a7a);
         }
     }
-    ` : ``);
+    `
+            : ``)
     injectCSSIntoOSMPage(styleText)
-    const versions = [{tags: [], coordinates: "", wasModified: false, nodes: [], members: [], visible: true}];
+    const versions = [{ tags: [], coordinates: "", wasModified: false, nodes: [], members: [], visible: true }]
     // add/modification
     const versionsHTML = Array.from(document.querySelectorAll('#element_versions_list > div:not(.processed):not(:has(a[href*="/redactions/"]:not([rel])))'))
     for (let ver of versionsHTML.toReversed()) {
         ver.classList.add("processed")
-        let wasModifiedObject = false;
+        let wasModifiedObject = false
         const version = ver.children[0].childNodes[1].href.match(/\/(\d+)$/)[1]
-        const kv = ver.querySelectorAll("tbody > tr") ?? [];
-        const tags = [];
+        const kv = ver.querySelectorAll("tbody > tr") ?? []
+        const tags = []
 
-        const metainfoHTML = ver.querySelector('div:nth-of-type(1)');
+        const metainfoHTML = ver.querySelector("div:nth-of-type(1)")
 
-        const changesetA = ver.querySelector('div > div a[href^="/changeset/"]:not([rel])');
-        const changesetHTML = changesetA?.parentElement;
+        const changesetA = ver.querySelector('div > div a[href^="/changeset/"]:not([rel])')
+        const changesetHTML = changesetA?.parentElement
         const changesetID = changesetA.textContent
 
         const time = metainfoHTML.querySelector("time")
 
         const coordinates = ver.querySelector("div a:has(.latitude)")
-        const locationHTML = coordinates?.parentElement;
-        const locationA = ver.querySelector("div a:has(.latitude)");
+        const locationHTML = coordinates?.parentElement
+        const locationA = ver.querySelector("div a:has(.latitude)")
 
         if (metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')) {
             const a = metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')
@@ -7832,7 +7985,7 @@ function addDiffInHistory(reason = "url_change") {
             metainfoHTML.appendChild(findBtn)
         }
 
-        changesetHTML.innerHTML = ''
+        changesetHTML.innerHTML = ""
         let hashtag = document.createTextNode("#")
         metainfoHTML.appendChild(hashtag)
         const changesetWrapper = document.createElement("span")
@@ -7842,7 +7995,7 @@ function addDiffInHistory(reason = "url_change") {
 
         if (location.pathname.startsWith("/node")) {
             if (coordinates) {
-                locationHTML.innerHTML = ''
+                locationHTML.innerHTML = ""
                 locationHTML.appendChild(locationA)
                 metainfoHTML.appendChild(locationHTML)
             } else {
@@ -7865,94 +8018,120 @@ function addDiffInHistory(reason = "url_change") {
             valuesLinks.set(a.textContent, a.href)
         })
         const showPreviousTagValue = GM_config.get("ShowPreviousTagValue", true)
-        kv.forEach(
-            (i) => {
-                let k = i.querySelector("th > a")?.textContent ?? i.querySelector("th")?.textContent;
-                i.querySelector("td .prev-value-span")?.remove()
-                if (i.querySelector("td .current-value-span")) {
-                    i.querySelector("td .current-value-span").classList.remove("current-value-span")
-                }
-                i.querySelector(".wdt-preview svg title")?.remove()
-                let v = i.querySelector("td .wdplugin")?.textContent ?? i.querySelector("td")?.textContent;
-                if (k === undefined) {
-                    // todo support multiple wikidata
-                    // Human-readable Wikidata extension compatibility
-                    return
-                }
-                if (k.includes("colour")) {
-                    const tmpV = i.querySelector("td").cloneNode(true)
-                    tmpV.querySelector("svg")?.remove()
-                    v = tmpV.textContent
-                }
-                tags.push([k, v])
+        kv.forEach(i => {
+            let k = i.querySelector("th > a")?.textContent ?? i.querySelector("th")?.textContent
+            i.querySelector("td .prev-value-span")?.remove()
+            if (i.querySelector("td .current-value-span")) {
+                i.querySelector("td .current-value-span").classList.remove("current-value-span")
+            }
+            i.querySelector(".wdt-preview svg title")?.remove()
+            let v = i.querySelector("td .wdplugin")?.textContent ?? i.querySelector("td")?.textContent
+            if (k === undefined) {
+                // todo support multiple wikidata
+                // Human-readable Wikidata extension compatibility
+                return
+            }
+            if (k.includes("colour")) {
+                const tmpV = i.querySelector("td").cloneNode(true)
+                tmpV.querySelector("svg")?.remove()
+                v = tmpV.textContent
+            }
+            tags.push([k, v])
 
-                let lastTags = versions.slice(-1)[0].tags
-                let tagWasModified = false
-                if (!lastTags.some((elem) => elem[0] === k)) {
-                    i.querySelector("th").classList.add("history-diff-new-tag")
-                    i.querySelector("td").classList.add("history-diff-new-tag")
-                    wasModifiedObject = tagWasModified = true
-                } else if (lastTags.some((elem) => elem[0] === k)) {
-                    lastTags.forEach((el) => {
-                        if (el[0] === k && el[1] !== v) {
-                            i.querySelector("th").classList.add("history-diff-modified-key")
-                            const valCell = i.querySelector("td")
-                            if (isRTLLayout) {
-                                valCell.dir = ""
+            let lastTags = versions.slice(-1)[0].tags
+            let tagWasModified = false
+            if (!lastTags.some(elem => elem[0] === k)) {
+                i.querySelector("th").classList.add("history-diff-new-tag")
+                i.querySelector("td").classList.add("history-diff-new-tag")
+                wasModifiedObject = tagWasModified = true
+            } else if (lastTags.some(elem => elem[0] === k)) {
+                lastTags.forEach(el => {
+                    if (el[0] === k && el[1] !== v) {
+                        i.querySelector("th").classList.add("history-diff-modified-key")
+                        const valCell = i.querySelector("td")
+                        if (isRTLLayout) {
+                            valCell.dir = ""
+                        }
+                        valCell.classList.add("history-diff-modified-tag")
+                        valCell.innerHTML = "<span class='current-value-span'>" + valCell.innerHTML + "</span>"
+                        valCell.onclick = e => {
+                            if (e.altKey) return
+                            if (window.getSelection().type === "Range") return
+                            if (e.target.nodeName === "A") return
+
+                            e.preventDefault()
+                            e.stopPropagation()
+                            if (valCell.querySelector(".prev-value-span").classList.contains("hidden")) {
+                                document.querySelectorAll(".prev-value-span").forEach(span => span.classList.remove("hidden"))
+                            } else {
+                                document.querySelectorAll(".prev-value-span").forEach(span => span.classList.add("hidden"))
                             }
-                            valCell.classList.add("history-diff-modified-tag")
-                            valCell.innerHTML = "<span class='current-value-span'>" + valCell.innerHTML + "</span>"
-                            valCell.onclick = e => {
-                                if (e.altKey) return
-                                if (window.getSelection().type === "Range") return
-                                if (e.target.nodeName === "A") return
+                        }
 
-                                e.preventDefault()
-                                e.stopPropagation()
-                                if (valCell.querySelector(".prev-value-span").classList.contains("hidden")) {
-                                    document.querySelectorAll(".prev-value-span").forEach(span => span.classList.remove("hidden"))
-                                } else {
-                                    document.querySelectorAll(".prev-value-span").forEach(span => span.classList.add("hidden"))
-                                }
-                            }
+                        const currentValueSpan = i.querySelector("td .current-value-span")
+                        const prevValueSpan = document.createElement("span")
+                        prevValueSpan.classList.add("prev-value-span")
 
-                            const currentValueSpan = i.querySelector("td .current-value-span")
-                            const prevValueSpan = document.createElement("span")
-                            prevValueSpan.classList.add("prev-value-span")
-
-                            const diff = arraysDiff(Array.from(el[1]).toReversed(), Array.from(v).toReversed(), 1).toReversed()
-                            // todo unify with diff in changesets
-                            // todo detect asci -> unicode or less strict cond
-                            if (!i.querySelector("td a") && v.length > 1 && el[1].length > 1
-                                && (
-                                    diff.length === v.length && el[1].length === v.length
-                                    && diff.reduce((cnt, b) => cnt + (b[0] !== b[1]), 0) === 1
-                                    || diff.reduce((cnt, b) => cnt + (b[0] !== b[1] && b[0] !== null), 0) === 0
-                                    || diff.reduce((cnt, b) => cnt + (b[0] !== b[1] && b[1] !== null), 0) === 0
-                                )) {
-                                let prevText = document.createElement("span")
-                                let newText = document.createElement("span")
-                                diff.forEach(c => {
-                                    if (c[0] !== c[1]) {
-                                        if (c[1]) {
-                                            const colored = document.createElement("span")
-                                            colored.classList.add("new-letter")
-                                            colored.textContent = c[1]
-                                            newText.appendChild(colored)
-                                        }
-                                        if (c[0]) {
-                                            const colored = document.createElement("span")
-                                            colored.classList.add("deleted-letter")
-                                            colored.textContent = c[0]
-                                            prevText.appendChild(colored)
-                                        }
-                                    } else {
-                                        prevText.appendChild(document.createTextNode(c[0]))
-                                        newText.appendChild(document.createTextNode(c[1]))
+                        const diff = arraysDiff(Array.from(el[1]).toReversed(), Array.from(v).toReversed(), 1).toReversed()
+                        // todo unify with diff in changesets
+                        // todo detect asci -> unicode or less strict cond
+                        // prettier-ignore
+                        if (!i.querySelector("td a") && v.length > 1 && el[1].length > 1
+                            && (
+                                diff.length === v.length && el[1].length === v.length
+                                && diff.reduce((cnt, b) => cnt + (b[0] !== b[1]), 0) === 1
+                                || diff.reduce((cnt, b) => cnt + (b[0] !== b[1] && b[0] !== null), 0) === 0
+                                || diff.reduce((cnt, b) => cnt + (b[0] !== b[1] && b[1] !== null), 0) === 0
+                            )) {
+                            let prevText = document.createElement("span")
+                            let newText = document.createElement("span")
+                            diff.forEach(c => {
+                                if (c[0] !== c[1]) {
+                                    if (c[1]) {
+                                        const colored = document.createElement("span")
+                                        colored.classList.add("new-letter")
+                                        colored.textContent = c[1]
+                                        newText.appendChild(colored)
                                     }
-                                })
-                                prevText.normalize()
-                                newText.normalize()
+                                    if (c[0]) {
+                                        const colored = document.createElement("span")
+                                        colored.classList.add("deleted-letter")
+                                        colored.textContent = c[0]
+                                        prevText.appendChild(colored)
+                                    }
+                                } else {
+                                    prevText.appendChild(document.createTextNode(c[0]))
+                                    newText.appendChild(document.createTextNode(c[1]))
+                                }
+                            })
+                            prevText.normalize()
+                            newText.normalize()
+                            prevValueSpan.appendChild(prevText)
+                            prevValueSpan.appendChild(document.createTextNode(` ${arrowSymbolForChanges} `))
+                            newText.classList.add("current-value-span")
+                            newText.style.display = "inline-block"
+                            if (showPreviousTagValue) {
+                                currentValueSpan.replaceWith(newText)
+                            } else {
+                                currentValueSpan.replaceWith(v)
+                            }
+                            prevText.dir = "auto"
+                            newText.dir = "auto"
+                        } else {
+                            if (valuesLinks.has(el[1])) {
+                                const valueLink = document.createElement("a")
+                                valueLink.href = valuesLinks.get(el[1])
+                                valueLink.target = "_blank"
+                                valueLink.title = ""
+                                valueLink.textContent = `${el[1]}`
+                                prevValueSpan.appendChild(valueLink)
+                                prevValueSpan.appendChild(document.createTextNode(` ${arrowSymbolForChanges} `))
+                            } else {
+                                let prevText = document.createElement("span")
+                                prevText.appendChild(document.createTextNode(el[1]))
+                                let newText = document.createElement("span")
+                                newText.appendChild(document.createTextNode(v))
+
                                 prevValueSpan.appendChild(prevText)
                                 prevValueSpan.appendChild(document.createTextNode(` ${arrowSymbolForChanges} `))
                                 newText.classList.add("current-value-span")
@@ -7962,78 +8141,51 @@ function addDiffInHistory(reason = "url_change") {
                                 } else {
                                     currentValueSpan.replaceWith(v)
                                 }
-                                prevText.dir = "auto"
-                                newText.dir = "auto"
-                            } else {
-                                if (valuesLinks.has(el[1])) {
-                                    const valueLink = document.createElement("a")
-                                    valueLink.href = valuesLinks.get(el[1])
-                                    valueLink.target = "_blank"
-                                    valueLink.title = ""
-                                    valueLink.textContent = `${el[1]}`
-                                    prevValueSpan.appendChild(valueLink)
-                                    prevValueSpan.appendChild(document.createTextNode(` ${arrowSymbolForChanges} `))
-                                } else {
-                                    let prevText = document.createElement("span")
-                                    prevText.appendChild(document.createTextNode(el[1]))
-                                    let newText = document.createElement("span")
-                                    newText.appendChild(document.createTextNode(v))
-
-                                    prevValueSpan.appendChild(prevText)
-                                    prevValueSpan.appendChild(document.createTextNode(` ${arrowSymbolForChanges} `))
-                                    newText.classList.add("current-value-span")
-                                    newText.style.display = "inline-block"
-                                    if (showPreviousTagValue) {
-                                        currentValueSpan.replaceWith(newText)
-                                    } else {
-                                        currentValueSpan.replaceWith(v)
-                                    }
-                                }
                             }
-
-                            currentValueSpan.setAttribute("value", v)
-                            currentValueSpan.classList.add("current-value-span")
-                            currentValueSpan.style.display = "inline-block"
-                            prevValueSpan.style.display = "inline-block"
-                            valCell.prepend(prevValueSpan)
-                            valCell.removeAttribute("dir")
-                            if (!showPreviousTagValue) {
-                                prevValueSpan.classList.add("hidden")
-                            }
-                            i.title = `Click for hide previous value`;
-                            // i.title = `was: "${el[1]}"`;
-                            wasModifiedObject = tagWasModified = true
                         }
-                    })
-                }
-                if (!tagWasModified) {
-                    i.classList.add("non-modified-tag")
-                    i.querySelector("th").classList.add("non-modified-tag")
-                    i.querySelector("td").classList.add("non-modified-tag")
-                }
 
+                        currentValueSpan.setAttribute("value", v)
+                        currentValueSpan.classList.add("current-value-span")
+                        currentValueSpan.style.display = "inline-block"
+                        prevValueSpan.style.display = "inline-block"
+                        valCell.prepend(prevValueSpan)
+                        valCell.removeAttribute("dir")
+                        if (!showPreviousTagValue) {
+                            prevValueSpan.classList.add("hidden")
+                        }
+                        i.title = `Click for hide previous value`
+                        // i.title = `was: "${el[1]}"`;
+                        wasModifiedObject = tagWasModified = true
+                    }
+                })
             }
-        )
+            if (!tagWasModified) {
+                i.classList.add("non-modified-tag")
+                i.querySelector("th").classList.add("non-modified-tag")
+                i.querySelector("td").classList.add("non-modified-tag")
+            }
+        })
         const lastCoordinates = versions.slice(-1)[0].coordinates
         const lastVisible = versions.slice(-1)[0].visible
         if (visible && coordinates && versions.length > 1 && coordinates.href !== lastCoordinates) {
             if (lastCoordinates) {
-                const curLat = coordinates.querySelector(".latitude").textContent.replace(",", ".");
-                const curLon = coordinates.querySelector(".longitude").textContent.replace(",", ".");
-                const lastLat = lastCoordinates.match(/#map=.+\/(.+)\/(.+)$/)[1];
-                const lastLon = lastCoordinates.match(/#map=.+\/(.+)\/(.+)$/)[2];
+                const curLat = coordinates.querySelector(".latitude").textContent.replace(",", ".")
+                const curLon = coordinates.querySelector(".longitude").textContent.replace(",", ".")
+                const lastLat = lastCoordinates.match(/#map=.+\/(.+)\/(.+)$/)[1]
+                const lastLon = lastCoordinates.match(/#map=.+\/(.+)\/(.+)$/)[2]
+                // prettier-ignore
                 const distInMeters = getDistanceFromLatLonInKm(
                     Number.parseFloat(lastLat),
                     Number.parseFloat(lastLon),
                     Number.parseFloat(curLat),
                     Number.parseFloat(curLon)
-                ) * 1000;
+                ) * 1000
                 const distTxt = document.createElement("span")
                 distTxt.textContent = `${distInMeters.toFixed(1)}m`
                 distTxt.classList.add("history-diff-modified-tag")
                 distTxt.classList.add("history-diff-modified-location")
-                coordinates.after(distTxt);
-                coordinates.after(document.createTextNode(" "));
+                coordinates.after(distTxt)
+                coordinates.after(document.createTextNode(" "))
             }
             wasModifiedObject = true
         }
@@ -8041,6 +8193,7 @@ function addDiffInHistory(reason = "url_change") {
         if (location.pathname.startsWith("/way")) {
             childNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent.match(/\d+/)[0])
             let lastChildNodes = versions.slice(-1)[0].nodes
+            // prettier-ignore
             if (version > 1 &&
                 (childNodes.length !== lastChildNodes.length
                     || childNodes.some((el, index) => lastChildNodes[index] !== childNodes[index]))) {
@@ -8051,6 +8204,7 @@ function addDiffInHistory(reason = "url_change") {
         } else if (location.pathname.startsWith("/relation")) {
             childNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
             let lastChildMembers = versions.slice(-1)[0].members
+            // prettier-ignore
             if (version > 1 &&
                 (childNodes.length !== lastChildMembers.length
                     || childNodes.some((el, index) => lastChildMembers[index] !== childNodes[index]))) {
@@ -8066,18 +8220,18 @@ function addDiffInHistory(reason = "url_change") {
             wasModified: wasModifiedObject || (visible && !lastVisible),
             nodes: childNodes,
             members: childNodes,
-            visible: visible
+            visible: visible,
         })
-        ver.querySelectorAll("h4").forEach((el, index) => (index !== 0) ? el.classList.add("hidden-h4") : null)
-        ver.title = makeTitleForTagsCount(tags.length);
+        ver.querySelectorAll("h4").forEach((el, index) => (index !== 0 ? el.classList.add("hidden-h4") : null))
+        ver.title = makeTitleForTagsCount(tags.length)
     }
     // deletion
     Array.from(versionsHTML).forEach((x, index) => {
-        if (versionsHTML.length <= index + 1) return;
-        versions.toReversed()[index + 1].tags.forEach((tag) => {
+        if (versionsHTML.length <= index + 1) return
+        versions.toReversed()[index + 1].tags.forEach(tag => {
             let k = tag[0]
             let v = tag[1]
-            if (!versions.toReversed()[index].tags.some((elem) => elem[0] === k)) {
+            if (!versions.toReversed()[index].tags.some(elem => elem[0] === k)) {
                 let tr = document.createElement("tr")
                 tr.classList.add("history-diff-deleted-tag-tr")
                 let th = document.createElement("th")
@@ -8126,45 +8280,45 @@ function addDiffInHistory(reason = "url_change") {
     })
     if (document.querySelector("#older_element_versions_navigation a")) {
         versionsHTML.toReversed()?.[0].classList.remove("processed")
-        versionsHTML.toReversed()?.[0]?.querySelectorAll(".history-diff-new-tag, .history-diff-modified-tag")?.forEach(elem => {
-            elem.classList.remove("history-diff-new-tag")
-            elem.classList.remove("history-diff-modified-tag")
-        })
+        versionsHTML
+            .toReversed()?.[0]
+            ?.querySelectorAll(".history-diff-new-tag, .history-diff-modified-tag")
+            ?.forEach(elem => {
+                elem.classList.remove("history-diff-new-tag")
+                elem.classList.remove("history-diff-modified-tag")
+            })
     }
     let hasRedacted = false
-    Array.from(document.querySelectorAll('#element_versions_list > div:has(a[href*="/redactions/"]:not([rel]))')).forEach(
-        x => {
-            x.classList.add("hidden-version")
-            hasRedacted = true
-        }
-    )
+    Array.from(document.querySelectorAll('#element_versions_list > div:has(a[href*="/redactions/"]:not([rel]))')).forEach(x => {
+        x.classList.add("hidden-version")
+        hasRedacted = true
+    })
     if (hasRedacted) {
         try {
-            setupViewRedactions();
+            setupViewRedactions()
         } catch (e) {
             console.error(e)
         }
     }
     if (reason === "pagination") {
-        makeElementHistoryCompact(document.querySelector(".compact-toggle-btn").getAttribute("value") !== "><");
+        makeElementHistoryCompact(document.querySelector(".compact-toggle-btn").getAttribute("value") !== "><")
     } else {
-        makeElementHistoryCompact();
+        makeElementHistoryCompact()
     }
-    makeLinksInTagsClickable();
-    makeHashtagsClickable();
-    makeTimesSwitchable();
-    document.querySelectorAll("#element_versions_list > div p").forEach(shortOsmOrgLinks);
-    addCommentsCount();
-    setupNodeVersionView();
-    setupWayVersionView();
-    setupRelationVersionView();
-    expandWikidata();
-    addCopyCoordinatesButtons();
-    monitorHistoryPaginationMoving();
+    makeLinksInTagsClickable()
+    makeHashtagsClickable()
+    makeTimesSwitchable()
+    document.querySelectorAll("#element_versions_list > div p").forEach(shortOsmOrgLinks)
+    addCommentsCount()
+    setupNodeVersionView()
+    setupWayVersionView()
+    setupRelationVersionView()
+    expandWikidata()
+    addCopyCoordinatesButtons()
+    monitorHistoryPaginationMoving()
     console.log("Click by pagination from AddDiffInHistory")
     document.querySelector("#older_element_versions_navigation a")?.click()
 }
-
 
 function setupVersionsDiff(path) {
     if (!path.includes("/history")
@@ -8173,12 +8327,12 @@ function setupVersionsDiff(path) {
         && !path.startsWith("/relation")) {
         return;
     }
-    let timerId = setInterval(addDiffInHistory, 500);
+    let timerId = setInterval(addDiffInHistory, 500)
     setTimeout(() => {
-        clearInterval(timerId);
-        console.debug('stop adding diff in history');
-    }, 25000);
-    addDiffInHistory();
+        clearInterval(timerId)
+        console.debug("stop adding diff in history")
+    }, 25000)
+    addDiffInHistory()
 }
 
 function addRelationVersionView() {
@@ -8205,7 +8359,7 @@ function addRelationVersionView() {
         const id = parseInt(match[1])
         const timestamp = document.querySelector("time").getAttribute("datetime")
         try {
-            const {restrictionRelationErrors} = await loadRelationVersionMembersViaOverpass(id, timestamp);
+            const { restrictionRelationErrors } = await loadRelationVersionMembersViaOverpass(id, timestamp)
             showRestrictionValidationStatus(restrictionRelationErrors, document.querySelector("#element_versions_list > div details summary"))
         } catch (e) {
             btn.style.cursor = "pointer"
@@ -8224,12 +8378,12 @@ function setupRelationVersionViewer() {
     if (!match) {
         return
     }
-    let timerId = setInterval(addRelationVersionView, 500);
+    let timerId = setInterval(addRelationVersionView, 500)
     setTimeout(() => {
-        clearInterval(timerId);
-        console.debug('stop adding RelationVersionView');
-    }, 25000);
-    addRelationVersionView();
+        clearInterval(timerId)
+        console.debug("stop adding RelationVersionView")
+    }, 25000)
+    addRelationVersionView()
 }
 
 async function addHoverForNodesParents() {
@@ -8247,72 +8401,73 @@ async function addHoverForNodesParents() {
             const wayLi = elem?.parentElement?.parentElement?.parentElement;
             wayLi.classList.add("node-last-version-parent");
             wayLi.onmouseenter = () => {
-                const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon]);
-                const color = (darkModeForMap || isDarkTiles()) ? "#ff00e3" : "#000000";
-                showActiveWay(cloneInto(currentNodesList, unsafeWindow), color);
+                const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
+                const color = darkModeForMap || isDarkTiles() ? "#ff00e3" : "#000000"
+                showActiveWay(cloneInto(currentNodesList, unsafeWindow), color)
             }
-            wayLi.onclick = (e) => {
-                if (e.altKey) return;
-                if (e.target.tagName === "A") return;
-                const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon]);
-                const color = (darkModeForMap || isDarkTiles()) ? "#ff00e3" : "#000000";
-                showActiveWay(cloneInto(currentNodesList, unsafeWindow), color, true);
+            wayLi.onclick = e => {
+                if (e.altKey) return
+                if (e.target.tagName === "A") return
+                const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
+                const color = darkModeForMap || isDarkTiles() ? "#ff00e3" : "#000000"
+                showActiveWay(cloneInto(currentNodesList, unsafeWindow), color, true)
             }
             wayLi.ondblclick = zoomToCurrentObject
             if (wayInfo.tags) {
                 Object.entries(wayInfo.tags).forEach(([k, v]) => {
-                    wayLi.title += `\n${k}=${v}`;
+                    wayLi.title += `\n${k}=${v}`
                 })
                 wayLi.title = wayLi.title.trim()
             }
         })
     })
+    // prettier-ignore
     document.querySelector(".node-last-version-parent")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
         cleanObjectsByKey("activeObjects")
     })
     document.querySelector(".secondary-actions")?.addEventListener("mouseenter", () => {
         cleanObjectsByKey("activeObjects")
     })
-    console.log("addHoverForWayNodes finished");
+    console.log("addHoverForWayNodes finished")
 }
 
 // based on https://github.com/eatgrass/geo-area
 function ringArea(points) {
-    const RADIUS = 6378137;
-    const rad = coord => (coord * Math.PI) / 180;
+    const RADIUS = 6378137
+    const rad = coord => (coord * Math.PI) / 180
 
-    let p1;
-    let p2;
-    let p3;
-    let lowerIndex;
-    let middleIndex;
-    let upperIndex;
-    let area = 0;
+    let p1
+    let p2
+    let p3
+    let lowerIndex
+    let middleIndex
+    let upperIndex
+    let area = 0
 
     if (points.length > 2) {
         for (let i = 0; i < points.length; i++) {
             if (i === points.length - 2) {
-                lowerIndex = points.length - 2;
-                middleIndex = points.length - 1;
-                upperIndex = 0;
+                lowerIndex = points.length - 2
+                middleIndex = points.length - 1
+                upperIndex = 0
             } else if (i === points.length - 1) {
-                lowerIndex = points.length - 1;
-                middleIndex = 0;
-                upperIndex = 1;
+                lowerIndex = points.length - 1
+                middleIndex = 0
+                upperIndex = 1
             } else {
-                lowerIndex = i;
-                middleIndex = i + 1;
-                upperIndex = i + 2;
+                lowerIndex = i
+                middleIndex = i + 1
+                upperIndex = i + 2
             }
-            p1 = points[lowerIndex];
-            p2 = points[middleIndex];
-            p3 = points[upperIndex];
-            area += (rad(p3.lon) - rad(p1.lon)) * Math.sin(rad(p2.lat));
+            p1 = points[lowerIndex]
+            p2 = points[middleIndex]
+            p3 = points[upperIndex]
+            area += (rad(p3.lon) - rad(p1.lon)) * Math.sin(rad(p2.lat))
         }
-        area = (area * RADIUS * RADIUS) / 2;
+        area = (area * RADIUS * RADIUS) / 2
     }
 
-    return area;
+    return area
 }
 
 /**
@@ -8326,53 +8481,54 @@ function makePolygonMeasureButtons(nodesIds, nodesMap) {
         min_lat: Math.min(...nodes.map(i => i.lat)),
         min_lon: Math.min(...nodes.map(i => i.lon)),
         max_lat: Math.max(...nodes.map(i => i.lat)),
-        max_lon: Math.max(...nodes.map(i => i.lon))
-    };
-
-    let wayLength = 0.0;
-    for (let i = 1; i < nodes.length; i++) {
-        wayLength += getDistanceFromLatLonInKm(nodes[i-1].lat, nodes[i-1].lon, nodes[i].lat, nodes[i].lon)
+        max_lon: Math.max(...nodes.map(i => i.lon)),
     }
-    wayLength *= 1000;
+
+    let wayLength = 0.0
+    for (let i = 1; i < nodes.length; i++) {
+        wayLength += getDistanceFromLatLonInKm(nodes[i - 1].lat, nodes[i - 1].lon, nodes[i].lat, nodes[i].lon)
+    }
+    wayLength *= 1000
 
     let wayArea = null
     if (nodesIds.length > 2 && nodesIds[0] === nodesIds.at(-1)) {
-        wayArea = Math.abs(ringArea(nodes));
+        wayArea = Math.abs(ringArea(nodes))
     }
 
-    const center = {lat: (bbox.max_lat + bbox.min_lat) / 2, lng: (bbox.max_lon + bbox.min_lon) / 2};
+    const center = { lat: (bbox.max_lat + bbox.min_lat) / 2, lng: (bbox.max_lon + bbox.min_lon) / 2 }
     // TODO
     // geojson
 
-    const infos = document.createElement("div");
+    const infos = document.createElement("div")
     infos.style.display = "none"
     infos.style.paddingBottom = "5px"
 
     const lengthElem = document.createElement("span")
-    const lengthText = wayLength < 1000 ? (wayLength.toFixed(2) + " m") : (wayLength.toFixed(0) + " m")
+    const lengthText = wayLength < 1000 ? wayLength.toFixed(2) + " m" : wayLength.toFixed(0) + " m"
     lengthElem.textContent = "Length: " + lengthText
     infos.appendChild(lengthElem)
 
     if (wayArea !== null) {
         infos.appendChild(document.createTextNode(",\xA0"))
         const areaElem = document.createElement("span")
-        const areaText = wayLength < 1000 ? (wayArea.toFixed(2) + " m²") : (wayArea.toFixed(0) + " m²")
+        const areaText = wayLength < 1000 ? wayArea.toFixed(2) + " m²" : wayArea.toFixed(0) + " m²"
         areaElem.textContent = "Area: " + areaText
         infos.appendChild(areaElem)
     }
 
-    const svg1 = '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none" stroke-width="1">\n' +
-        '  <!-- Внешний квадрат -->\n' +
+    const svg1 =
+        '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none" stroke-width="1">\n' +
+        "  <!-- Внешний квадрат -->\n" +
         '  <rect x="4" y="4" width="16" height="16" stroke-width="1"/>\n' +
-        '  <!-- Центральные линии -->\n' +
+        "  <!-- Центральные линии -->\n" +
         '  <line x1="12" y1="4" x2="12" y2="20" stroke="currentColor" stroke-width="1"/>\n' +
         '  <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1"/>\n' +
-        '  <!-- Толстые верхняя и левая стороны -->\n' +
+        "  <!-- Толстые верхняя и левая стороны -->\n" +
         '  <line x1="3" y1="4" x2="20.5" y2="4" stroke="red" stroke-width="2"/>\n' +
         '  <line x1="4" y1="3" x2="4" y2="20.5" stroke="red" stroke-width="2"/>\n' +
-        '</svg>\n';
+        "</svg>\n"
     const icon1 = document.createElement("span")
-    icon1.innerHTML = svg1;
+    icon1.innerHTML = svg1
     icon1.style.cursor = "pointer"
     const text1 = `${bbox.max_lat.toString()} ${bbox.min_lon.toString()}`
     icon1.title = "Click to copy TopLeft: " + text1
@@ -8381,20 +8537,21 @@ function makePolygonMeasureButtons(nodesIds, nodesMap) {
         showActiveNodeIconMarker(bbox.max_lat.toString(), bbox.min_lon.toString(), null, false)
     }
     icon1.onclick = e => {
-        navigator.clipboard.writeText(text1).then(() => copyAnimation(e, text1));
+        navigator.clipboard.writeText(text1).then(() => copyAnimation(e, text1))
     }
 
-    const svg2 = '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none" stroke-width="1">\n' +
-        '  <!-- Внешний квадрат -->\n' +
+    const svg2 =
+        '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none" stroke-width="1">\n' +
+        "  <!-- Внешний квадрат -->\n" +
         '  <rect x="4" y="4" width="16" height="16" stroke-width="1"/>\n' +
-        '  <!-- Центральные линии -->\n' +
+        "  <!-- Центральные линии -->\n" +
         '  <line x1="12" y1="4" x2="12" y2="20" stroke="currentColor" stroke-width="1"/>\n' +
         '  <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1"/>\n' +
-        '  <!-- Жирная точка в центре -->\n' +
+        "  <!-- Жирная точка в центре -->\n" +
         '  <circle cx="12" cy="12" r="2" fill="red" stroke="red"/>\n' +
-        '</svg>\n';
+        "</svg>\n"
     const icon2 = document.createElement("span")
-    icon2.innerHTML = svg2;
+    icon2.innerHTML = svg2
     icon2.style.cursor = "pointer"
     const text2 = `${center.lat.toFixed(6)} ${center.lng.toFixed(6)}`
     icon2.title = "Click to copy center: " + text2
@@ -8403,30 +8560,31 @@ function makePolygonMeasureButtons(nodesIds, nodesMap) {
         showActiveNodeIconMarker(center.lat.toString(), center.lng.toString(), null, false)
     }
     icon2.onclick = e => {
-        navigator.clipboard.writeText(text2).then(() => copyAnimation(e, text2));
+        navigator.clipboard.writeText(text2).then(() => copyAnimation(e, text2))
     }
 
-    const svg3 = '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none" stroke-width="1">\n' +
-        '  <!-- Внешний квадрат -->\n' +
+    const svg3 =
+        '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none" stroke-width="1">\n' +
+        "  <!-- Внешний квадрат -->\n" +
         '  <rect x="4" y="4" width="16" height="16" stroke-width="1"/>\n' +
-        '  <!-- Центральные линии -->\n' +
+        "  <!-- Центральные линии -->\n" +
         '  <line x1="12" y1="4" x2="12" y2="20" stroke="currentColor" stroke-width="1"/>\n' +
         '  <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1"/>\n' +
-        '  <!-- Толстые правая и нижняя стороны -->\n' +
+        "  <!-- Толстые правая и нижняя стороны -->\n" +
         '  <line x1="3.5" y1="20" x2="21" y2="20" stroke="red" stroke-width="2"/>\n' +
         '  <line x1="20" y1="3.5" x2="20" y2="20.5" stroke="red" stroke-width="2"/>\n' +
-        '</svg>\n';
+        "</svg>\n"
     const icon3 = document.createElement("span")
-    icon3.innerHTML = svg3;
+    icon3.innerHTML = svg3
     icon3.style.cursor = "pointer"
     const text3 = `${bbox.min_lat.toString()} ${bbox.max_lon.toString()}`
-    icon3.title = "Click to copy RightBottom: " + text3;
+    icon3.title = "Click to copy RightBottom: " + text3
     icon3.onmouseenter = () => {
         showActiveNodeMarker(bbox.min_lat.toString(), bbox.max_lon.toString(), "red")
         showActiveNodeIconMarker(bbox.min_lat.toString(), bbox.max_lon.toString(), null, false)
     }
     icon3.onclick = e => {
-        navigator.clipboard.writeText(text3).then(() => copyAnimation(e, text3));
+        navigator.clipboard.writeText(text3).then(() => copyAnimation(e, text3))
     }
 
     const svg4 = '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none">\n' +
@@ -8437,10 +8595,10 @@ function makePolygonMeasureButtons(nodesIds, nodesMap) {
         '  <rect x="4" y="4" width="16" height="16" stroke="red" stroke-width="2"/>\n' +
         '</svg>\n';
     const icon4 = document.createElement("span")
-    icon4.innerHTML = svg4;
+    icon4.innerHTML = svg4
     icon4.style.cursor = "pointer"
-    const text4 = `${bbox.min_lat.toString()} ${bbox.min_lon.toString()} ${bbox.max_lat.toString()} ${bbox.max_lon.toString()}`;
-    icon4.title = "Click to copy bbox: " + text4;
+    const text4 = `${bbox.min_lat.toString()} ${bbox.min_lon.toString()} ${bbox.max_lat.toString()} ${bbox.max_lon.toString()}`
+    icon4.title = "Click to copy bbox: " + text4
     icon4.onmouseenter = () => {
         cleanObjectsByKey("activeObjects")
         const rect = getWindow().L.rectangle(
@@ -8453,7 +8611,7 @@ function makePolygonMeasureButtons(nodesIds, nodesMap) {
         layers['activeObjects'].push(rect)
     }
     icon4.onclick = e => {
-        navigator.clipboard.writeText(text4).then(() => copyAnimation(e, text4));
+        navigator.clipboard.writeText(text4).then(() => copyAnimation(e, text4))
     }
 
     const icons = document.createElement("div")
@@ -8475,7 +8633,7 @@ function makePolygonMeasureButtons(nodesIds, nodesMap) {
 }
 
 function isDarkTiles() {
-    const layers = new URLSearchParams(location.hash).get("layers");
+    const layers = new URLSearchParams(location.hash).get("layers")
     return layers && (layers.includes("S") || layers.includes("T")) && isDarkMode()
 }
 
@@ -8484,7 +8642,7 @@ async function addHoverForWayNodes() {
         return
     }
     // todo relations
-    let infoBtn;
+    let infoBtn
     if (!document.querySelector(".way-info-btn") && document.querySelector("#sidebar_content h4:last-of-type")) {
         infoBtn = document.createElement("span")
         infoBtn.textContent = "📐"
@@ -8501,7 +8659,7 @@ async function addHoverForWayNodes() {
         if (infoBtn) {
             infoBtn.style.display = "none"
         }
-    });
+    })
     if (!wayData) {
         if (infoBtn) {
             infoBtn.style.display = "none"
@@ -8512,23 +8670,23 @@ async function addHoverForWayNodes() {
     const nodesMap = new Map(Object.entries(Object.groupBy(wayData.elements.filter(i => i.type === "node"), i => i.id)).map(([k, v]) => [k, v[0]]));
     document.querySelectorAll(`details [href^="/node/"]:not(.hover-added)`).forEach(elem => {
         elem.classList.add("hover-added")
-        const nodeInfo = nodesMap.get(elem.href.match(/node\/(\d+)/)[1]);
-        const nodeLi = elem?.parentElement?.parentElement?.parentElement;
-        nodeLi.classList.add("way-last-version-node");
+        const nodeInfo = nodesMap.get(elem.href.match(/node\/(\d+)/)[1])
+        const nodeLi = elem?.parentElement?.parentElement?.parentElement
+        nodeLi.classList.add("way-last-version-node")
         nodeLi.onmouseenter = () => {
-            const color = (darkModeForMap || isDarkTiles()) ? "#ff00e3" : "#000000";
+            const color = darkModeForMap || isDarkTiles() ? "#ff00e3" : "#000000"
             showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
         }
-        nodeLi.onclick = (e) => {
-            if (e.altKey) return;
-            panTo(nodeInfo.lat.toString(), nodeInfo.lon.toString());
-            const color = (darkModeForMap || isDarkTiles()) ? "#ff00e3" : "#000000";
-            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3);
+        nodeLi.onclick = e => {
+            if (e.altKey) return
+            panTo(nodeInfo.lat.toString(), nodeInfo.lon.toString())
+            const color = darkModeForMap || isDarkTiles() ? "#ff00e3" : "#000000"
+            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
         }
         nodeLi.ondblclick = zoomToCurrentObject
         if (nodeInfo.tags) {
             Object.entries(nodeInfo.tags).forEach(([k, v]) => {
-                nodeLi.title += `\n${k}=${v}`;
+                nodeLi.title += `\n${k}=${v}`
             })
             nodeLi.title = nodeLi.title.trim()
         }
@@ -8542,14 +8700,14 @@ async function addHoverForWayNodes() {
 
     if (infoBtn) {
         const nodesIds = wayData.elements.find(i => i.type === "way").nodes
-        const infos = makePolygonMeasureButtons(nodesIds, nodesMap);
-        document.querySelector("#sidebar_content h4:last-of-type").after(infos);
+        const infos = makePolygonMeasureButtons(nodesIds, nodesMap)
+        document.querySelector("#sidebar_content h4:last-of-type").after(infos)
 
         infoBtn.onclick = () => {
-            infos.style.display = infos.style.display === "none" ? "" : "none";
+            infos.style.display = infos.style.display === "none" ? "" : "none"
         }
     }
-    console.log("addHoverForWayNodes finished");
+    console.log("addHoverForWayNodes finished")
 }
 
 /**
@@ -8572,11 +8730,11 @@ function showRestrictionValidationStatus(restrictionRelationErrors, targetElem) 
 async function addHoverForRelationMembers() {
     const match = location.pathname.match(/^\/relation\/(\d+)\/?$/)
     if (!match) {
-        return;
+        return
     }
-    const relation_id = parseInt(match[1]);
-    let infoBtn;
-// eslint-disable-next-line no-constant-condition no-constant-binary-expression
+    const relation_id = parseInt(match[1])
+    let infoBtn
+    // eslint-disable-next-line no-constant-condition no-constant-binary-expression
     if (false && !document.querySelector(".relation-info-btn")) {
         infoBtn = document.createElement("span")
         infoBtn.textContent = "📐"
@@ -8588,7 +8746,7 @@ async function addHoverForRelationMembers() {
         document.querySelector("#sidebar_content h4:last-of-type").appendChild(document.createTextNode("\xA0"))
         document.querySelector("#sidebar_content h4:last-of-type").appendChild(infoBtn)
     }
-    const relationData = await loadRelationMetadata(relation_id);
+    const relationData = await loadRelationMetadata(relation_id)
     if (!relationData) return
     /*** @type {Map<string, NodeVersion>}*/
     const nodesMap = new Map(Object.entries(Object.groupBy(relationData.elements.filter(i => i.type === "node"), i => i.id)).map(([k, v]) => [k, v[0]]));
@@ -8606,13 +8764,13 @@ async function addHoverForRelationMembers() {
     let isRestriction = false
     document.querySelectorAll(`details [href^="/node/"]:not(.hover-added)`).forEach(elem => {
         elem.classList.add("hover-added")
-        const nodeInfo = nodesMap.get(elem.href.match(/node\/(\d+)/)[1]);
-        const nodeLi = elem?.parentElement?.parentElement?.parentElement;
-        nodeLi.classList.add("relation-last-version-member");
+        const nodeInfo = nodesMap.get(elem.href.match(/node\/(\d+)/)[1])
+        const nodeLi = elem?.parentElement?.parentElement?.parentElement
+        nodeLi.classList.add("relation-last-version-member")
         nodeLi.onmouseenter = () => {
-            const color = (darkModeForMap || isDarkTiles()) ? "#ff00e3" : "#000000";
+            const color = darkModeForMap || isDarkTiles() ? "#ff00e3" : "#000000"
             showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
-            bringRestrictionArrowsToFront();
+            bringRestrictionArrowsToFront()
             if (isRestriction && pinSign.classList.contains("pinned")) {
                 // https://github.com/deevroman/better-osm-org/pull/324#issuecomment-2993733516
                 injectJSIntoPage(`
@@ -8631,117 +8789,118 @@ async function addHoverForRelationMembers() {
                     };
                 })()
                 `)
-                const m = getWindow().L.marker(getWindow().L.latLng(nodeInfo.lat, nodeInfo.lon), getWindow().prevdo);
+                const m = getWindow().L.marker(getWindow().L.latLng(nodeInfo.lat, nodeInfo.lon), getWindow().prevdo)
                 layers["activeObjects"].push(m)
-                m.addTo(getMap());
+                m.addTo(getMap())
             }
         }
-        nodeLi.onclick = (e) => {
-            if (e.altKey) return;
-            panTo(nodeInfo.lat.toString(), nodeInfo.lon.toString());
-            const color = (darkModeForMap || isDarkTiles()) ? "#ff00e3" : "#000000";
-            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3);
-            bringRestrictionArrowsToFront();
+        nodeLi.onclick = e => {
+            if (e.altKey) return
+            panTo(nodeInfo.lat.toString(), nodeInfo.lon.toString())
+            const color = darkModeForMap || isDarkTiles() ? "#ff00e3" : "#000000"
+            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
+            bringRestrictionArrowsToFront()
         }
         nodeLi.ondblclick = zoomToCurrentObject
         if (nodeInfo.tags) {
             Object.entries(nodeInfo.tags).forEach(([k, v]) => {
-                nodeLi.title += `\n${k}=${v}`;
+                nodeLi.title += `\n${k}=${v}`
             })
             nodeLi.title = nodeLi.title.trim()
         }
     })
     document.querySelectorAll(`details [href^="/way/"]:not(.hover-added)`).forEach(elem => {
         elem.classList.add("hover-added")
-        const wayInfo = waysMap.get(elem.href.match(/way\/(\d+)/)[1]);
-        const wayLi = elem?.parentElement?.parentElement?.parentElement;
-        wayLi.classList.add("relation-last-version-member");
+        const wayInfo = waysMap.get(elem.href.match(/way\/(\d+)/)[1])
+        const wayLi = elem?.parentElement?.parentElement?.parentElement
+        wayLi.classList.add("relation-last-version-member")
         wayLi.onmouseenter = () => {
-            const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon]);
-            const color = (darkModeForMap || isDarkTiles()) ? "#ff00e3" : "#000000";
-            showActiveWay(cloneInto(currentNodesList, unsafeWindow), color);
-            bringRestrictionArrowsToFront();
+            const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
+            const color = darkModeForMap || isDarkTiles() ? "#ff00e3" : "#000000"
+            showActiveWay(cloneInto(currentNodesList, unsafeWindow), color)
+            bringRestrictionArrowsToFront()
         }
-        wayLi.onclick = (e) => {
-            if (e.altKey) return;
-            if (e.target.tagName === "A") return;
-            const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon]);
-            const color = (darkModeForMap || isDarkTiles()) ? "#ff00e3" : "#000000";
-            showActiveWay(cloneInto(currentNodesList, unsafeWindow), color, true);
-            bringRestrictionArrowsToFront();
+        wayLi.onclick = e => {
+            if (e.altKey) return
+            if (e.target.tagName === "A") return
+            const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
+            const color = darkModeForMap || isDarkTiles() ? "#ff00e3" : "#000000"
+            showActiveWay(cloneInto(currentNodesList, unsafeWindow), color, true)
+            bringRestrictionArrowsToFront()
         }
         wayLi.ondblclick = zoomToCurrentObject
         if (wayInfo.tags) {
             Object.entries(wayInfo.tags).forEach(([k, v]) => {
-                wayLi.title += `\n${k}=${v}`;
+                wayLi.title += `\n${k}=${v}`
             })
             wayLi.title = wayLi.title.trim()
         }
     })
     document.querySelectorAll(`details:last-of-type [href^="/relation/"]:not(.hover-added)`).forEach(elem => {
         elem.classList.add("hover-added")
-        const relationInfo = relationsMap.get(elem.href.match(/relation\/(\d+)/)[1]);
-        const relationLi = elem?.parentElement?.parentElement?.parentElement;
-        relationLi.classList.add("relation-last-version-member");
+        const relationInfo = relationsMap.get(elem.href.match(/relation\/(\d+)/)[1])
+        const relationLi = elem?.parentElement?.parentElement?.parentElement
+        relationLi.classList.add("relation-last-version-member")
         relationLi.onmouseenter = () => {
             relationInfo.members.forEach(i => {
-                const color = (darkModeForMap || isDarkTiles()) ? "#ff00e3" : "#000000";
+                const color = darkModeForMap || isDarkTiles() ? "#ff00e3" : "#000000"
                 if (i.type === "node") {
                     showActiveNodeMarker(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString(), color, true, 6, 3)
                 } else if (i.type === "way") {
-                    const currentNodesList = waysMap[i.id].nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon]);
-                    showActiveWay(cloneInto(currentNodesList, unsafeWindow), color);
+                    const currentNodesList = waysMap[i.id].nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
+                    showActiveWay(cloneInto(currentNodesList, unsafeWindow), color)
                 } else {
                     // todo
                 }
             })
-            bringRestrictionArrowsToFront();
+            bringRestrictionArrowsToFront()
         }
-        relationLi.onclick = (e) => {
-            if (e.altKey) return;
-            if (e.target.tagName === "A") return;
+        relationLi.onclick = e => {
+            if (e.altKey) return
+            if (e.target.tagName === "A") return
             relationInfo.members.forEach(i => {
-                const color = (darkModeForMap || isDarkTiles()) ? "#ff00e3" : "#000000";
+                const color = darkModeForMap || isDarkTiles() ? "#ff00e3" : "#000000"
                 if (i.type === "node") {
-                    if (e.altKey) return;
-                    panTo(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString());
-                    showActiveNodeMarker(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString(), color, true, 6, 3);
+                    if (e.altKey) return
+                    panTo(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString())
+                    showActiveNodeMarker(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString(), color, true, 6, 3)
                 } else if (i.type === "way") {
-                    const currentNodesList = waysMap[i.id].nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon]);
-                    showActiveWay(cloneInto(currentNodesList, unsafeWindow), color, true);
+                    const currentNodesList = waysMap[i.id].nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
+                    showActiveWay(cloneInto(currentNodesList, unsafeWindow), color, true)
                 } else {
                     // todo
                 }
             })
-            bringRestrictionArrowsToFront();
+            bringRestrictionArrowsToFront()
         }
         relationLi.ondblclick = zoomToCurrentObject
         if (relationInfo.tags) {
             Object.entries(relationInfo.tags).forEach(([k, v]) => {
-                relationLi.title += `\n${k}=${v}`;
+                relationLi.title += `\n${k}=${v}`
             })
             relationLi.title = relationLi.title.trim()
         }
     })
+    // prettier-ignore
     document.querySelector(".relation-last-version-member")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
         cleanObjectsByKey("activeObjects")
     })
     document.querySelector(".secondary-actions")?.addEventListener("mouseenter", () => {
         cleanObjectsByKey("activeObjects")
     })
-    if (document.querySelector('#sidebar_content h2:not(.restriction-rendered)') && isRestrictionObj(relationsMap.get(relation_id.toString()).tags ?? {})) {
+    if (document.querySelector("#sidebar_content h2:not(.restriction-rendered)") && isRestrictionObj(relationsMap.get(relation_id.toString()).tags ?? {})) {
         isRestriction = true
-        document.querySelector('#sidebar_content h2').classList.add("restriction-rendered")
+        document.querySelector("#sidebar_content h2").classList.add("restriction-rendered")
         const extendedRelationVersion = relationsMap.get(relation_id.toString())
         extendedRelationVersion.members = extendedRelationVersion.members.map(mem => {
             if (mem.type === "node") {
-                mem['lat'] = nodesMap.get(mem.ref.toString()).lat
-                mem['lon'] = nodesMap.get(mem.ref.toString()).lon
+                mem["lat"] = nodesMap.get(mem.ref.toString()).lat
+                mem["lon"] = nodesMap.get(mem.ref.toString()).lon
                 return /** @type {ExtendedRelationNodeMember} */ mem
             } else if (mem.type === "way") {
-                mem['geometry'] = waysMap.get(mem.ref.toString()).nodes.map(n => ({
+                mem["geometry"] = waysMap.get(mem.ref.toString()).nodes.map(n => ({
                     lat: nodesMap.get(n.toString()).lat,
-                    lon: nodesMap.get(n.toString()).lon
+                    lon: nodesMap.get(n.toString()).lon,
                 }))
                 return /** @type {ExtendedRelationWayMember} */ mem
             } else if (mem.type === "relation") {
@@ -8753,13 +8912,13 @@ async function addHoverForRelationMembers() {
         if (errors.length) {
             showRestrictionValidationStatus(errors, document.querySelector("#sidebar_content > div:first-of-type details:last-of-type summary"))
         } else {
-            restrictionArrows = renderRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion, restrictionColors[extendedRelationVersion.tags['restriction']] ?? "#000", "customObjects")
+            restrictionArrows = renderRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion, restrictionColors[extendedRelationVersion.tags["restriction"]] ?? "#000", "customObjects")
             pinSign.classList.add("pinned")
             pinSign.textContent = "📌"
             pinSign.tabIndex = 0
             pinSign.title = "Pin restriction sign on map.\nYou can hide all the objects that better-osm-org adds by pressing ` or ~"
             pinSign.style.cursor = "pointer"
-            pinSign.onkeypress = pinSign.onclick = async (e) => {
+            pinSign.onkeypress = pinSign.onclick = async e => {
                 e.preventDefault()
                 e.stopImmediatePropagation()
                 if (pinSign.classList.contains("pinned")) {
@@ -8767,12 +8926,12 @@ async function addHoverForRelationMembers() {
                     pinSign.classList.remove("pinned")
                     pinSign.style.filter = "grayscale(1)"
                     pinSign.title = "Hide restriction sign"
-                    restrictionArrows.forEach(i => i.getElement().style.display = "none")
+                    restrictionArrows.forEach(i => (i.getElement().style.display = "none"))
                 } else {
                     pinSign.title = "Hide restriction sign"
                     pinSign.classList.add("pinned")
                     pinSign.style.filter = ""
-                    restrictionArrows.forEach(i => i.getElement().style.display = "")
+                    restrictionArrows.forEach(i => (i.getElement().style.display = ""))
                 }
             }
             document.querySelector("#sidebar_content > div:first-of-type details:last-of-type summary").appendChild(document.createTextNode(" "))
@@ -8782,18 +8941,18 @@ async function addHoverForRelationMembers() {
 
     if (infoBtn) {
         const nodesIds = relationData.elements.find(i => i.type === "way").nodes
-        const infos = makePolygonMeasureButtons(nodesIds, nodesMap);
-        document.querySelector("#sidebar_content h4:last-of-type").after(infos);
+        const infos = makePolygonMeasureButtons(nodesIds, nodesMap)
+        document.querySelector("#sidebar_content h4:last-of-type").after(infos)
 
         infoBtn.onclick = () => {
-            infos.style.display = infos.style.display === "none" ? "" : "none";
+            infos.style.display = infos.style.display === "none" ? "" : "none"
         }
     }
-    console.log("addHoverForRelationMembers finished");
+    console.log("addHoverForRelationMembers finished")
 }
 
-const isMac = navigator.platform?.toUpperCase()?.indexOf('MAC') >= 0;
-const CtrlKeyName = isMac ? "Cmd" : "Ctrl";
+const isMac = navigator.platform?.toUpperCase()?.indexOf("MAC") >= 0
+const CtrlKeyName = isMac ? "Cmd" : "Ctrl"
 
 function makeHeaderPartsClickable() {
     function makeElemCopyable(elem, url = "") {
@@ -8802,15 +8961,15 @@ function makeHeaderPartsClickable() {
         } else {
             elem.title = "Click to copy"
         }
-        elem.style.cursor = "pointer";
+        elem.style.cursor = "pointer"
         elem.classList.add("copyable")
         elem.addEventListener("click", e => {
-            if (e.altKey) return;
-            if (window.getSelection().type === "Range") return;
+            if (e.altKey) return
+            if (window.getSelection().type === "Range") return
             if ((e.ctrlKey || e.metaKey) && url !== "") {
-                navigator.clipboard.writeText(url).then(() => copyAnimation(e, url));
+                navigator.clipboard.writeText(url).then(() => copyAnimation(e, url))
             } else {
-                navigator.clipboard.writeText(elem.textContent).then(() => copyAnimation(e, elem.textContent));
+                navigator.clipboard.writeText(elem.textContent).then(() => copyAnimation(e, elem.textContent))
             }
         })
     }
@@ -8829,8 +8988,8 @@ function makeHeaderPartsClickable() {
     })
     document.querySelectorAll("#sidebar_content h2:not(:has(.copyable))").forEach(i => {
         if (i.childNodes.length >= 1 && i.childNodes[0].nodeName === "#text") {
-            const match = /\d+/g.exec(i.childNodes[0].textContent);
-            if (!match) return;
+            const match = /\d+/g.exec(i.childNodes[0].textContent)
+            if (!match) return
             i.childNodes[0].splitText(match.index + match[0].length)
             i.childNodes[0].splitText(match.index)
             const span = document.createElement("bdi")
@@ -8847,37 +9006,41 @@ function makeHeaderPartsClickable() {
 }
 
 function expandWikidata() {
-    const links = Array.from(document.querySelectorAll(".wdt-preview:not([disabled])"));
-    console.debug("Wikilinks count:", links.length);
-    (links.find(i => i.parentElement.classList.contains("history-diff-new-tag") || i.parentElement.classList.contains("history-diff-modified-tag")) ?? links?.[0])?.click();
-    setTimeout(() => {links.slice(0, 3).forEach(i => i.click())}, 100);
-    setTimeout(() => {links.slice(3).forEach(i => i.click())}, 1000);
+    const links = Array.from(document.querySelectorAll(".wdt-preview:not([disabled])"))
+    console.debug("Wikilinks count:", links.length)
+    ;(links.find(i => i.parentElement.classList.contains("history-diff-new-tag") || i.parentElement.classList.contains("history-diff-modified-tag")) ?? links?.[0])?.click()
+    setTimeout(() => {
+        links.slice(0, 3).forEach(i => i.click())
+    }, 100)
+    setTimeout(() => {
+        links.slice(3).forEach(i => i.click())
+    }, 1000)
 }
 
 function makeContextMenuElem(e) {
-    const menu = document.createElement("div");
-    menu.classList.add("betterOsmContextMenu");
-    menu.style.left = `${e.pageX - 30}px`;
-    menu.style.top = `${e.pageY}px`;
-    return menu;
+    const menu = document.createElement("div")
+    menu.classList.add("betterOsmContextMenu")
+    menu.style.left = `${e.pageX - 30}px`
+    menu.style.top = `${e.pageY}px`
+    return menu
 }
 
 function addCopyCoordinatesButtons() {
-    const m = location.pathname.match(/^\/(node|way)\/(\d+)/);
+    const m = location.pathname.match(/^\/(node|way)\/(\d+)/)
     if (!m) {
-        return;
+        return
     }
-    const type = m[1];
+    const type = m[1]
     if (type === "way") {
-        return;
+        return
     }
 
     function addCopyButton(coordsElem, lat, lon) {
         const coordinatesFormatters = {
-            "Lat Lon": {getter: () => `${lat} ${lon}`},
-            "Lon Lat": {getter: () => `${lon} ${lat}`},
-            "geo:": {getter: () => `geo:${lat},${lon}`},
-            "osm.org": {getter: () => `osm.org#map=${getZoom()}/${lat}/${lon}`}
+            "Lat Lon": { getter: () => `${lat} ${lon}` },
+            "Lon Lat": { getter: () => `${lon} ${lat}` },
+            "geo:": { getter: () => `geo:${lat},${lon}` },
+            "osm.org": { getter: () => `osm.org#map=${getZoom()}/${lat}/${lon}` },
         }
 
         coordsElem.onclick = async e => {
@@ -8885,13 +9048,13 @@ function addCopyCoordinatesButtons() {
             e.stopPropagation()
             e.stopImmediatePropagation()
 
-            const coordinatesFormat = await GM.getValue("CoordinatesFormat") ?? "Lat Lon";
-            const text = coordinatesFormatters[coordinatesFormat]['getter']()
-            navigator.clipboard.writeText(text).then(() => copyAnimation({target: coordsElem}, text));
+            const coordinatesFormat = (await GM.getValue("CoordinatesFormat")) ?? "Lat Lon"
+            const text = coordinatesFormatters[coordinatesFormat]["getter"]()
+            navigator.clipboard.writeText(text).then(() => copyAnimation({ target: coordsElem }, text))
         }
         setTimeout(async () => {
-            const coordinatesFormat = await GM.getValue("CoordinatesFormat") ?? "Lat Lon";
-            coordsElem.title = "Click to copy " + coordinatesFormatters[coordinatesFormat]['getter']()
+            const coordinatesFormat = (await GM.getValue("CoordinatesFormat")) ?? "Lat Lon"
+            coordsElem.title = "Click to copy " + coordinatesFormatters[coordinatesFormat]["getter"]()
         })
         coordsElem.classList.add("copyable")
         const copyButton = document.createElement("span")
@@ -8911,22 +9074,22 @@ function addCopyCoordinatesButtons() {
         copyButton.style.cursor = "pointer"
 
         async function contextMenuHandler(e) {
-            const coordinatesFormat = await GM.getValue("CoordinatesFormat") ?? "Lat Lon";
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
+            const coordinatesFormat = (await GM.getValue("CoordinatesFormat")) ?? "Lat Lon"
+            e.preventDefault()
+            e.stopPropagation()
+            e.stopImmediatePropagation()
 
-            injectContextMenuCSS();
-            document.querySelectorAll(".betterOsmContextMenu").forEach(i => i.remove());
-            const menu = makeContextMenuElem(e);
+            injectContextMenuCSS()
+            document.querySelectorAll(".betterOsmContextMenu").forEach(i => i.remove())
+            const menu = makeContextMenuElem(e)
             Object.entries(coordinatesFormatters).forEach(([format, formatter], ind) => {
-                const listItem = document.createElement("div");
+                const listItem = document.createElement("div")
                 const text = formatter.getter()
-                const a = document.createElement("a");
-                a.textContent = text;
-                a.title = "Click to copy " + text;
+                const a = document.createElement("a")
+                a.textContent = text
+                a.title = "Click to copy " + text
                 a.onclick = () => {
-                    navigator.clipboard.writeText(text);
+                    navigator.clipboard.writeText(text)
                 }
 
                 const pin = document.createElement("input")
@@ -8934,7 +9097,7 @@ function addCopyCoordinatesButtons() {
                 pin.type = "radio"
                 pin.classList.add("pin")
                 pin.setAttribute("name", "viewer-selector")
-                const pinLabel = document.createElement("label");
+                const pinLabel = document.createElement("label")
                 pinLabel.setAttribute("for", "CoordFormat_" + ind)
                 pinLabel.classList.add("pin-label")
                 pinLabel.textContent = "📌"
@@ -8946,22 +9109,26 @@ function addCopyCoordinatesButtons() {
                 pin.onchange = async () => {
                     if (pin.checked) {
                         await GM.setValue("CoordinatesFormat", format)
-                        coordsElem.title = "Click to copy " + coordinatesFormatters[format]['getter']()
+                        coordsElem.title = "Click to copy " + coordinatesFormatters[format]["getter"]()
                     }
                 }
-                listItem.appendChild(pin);
-                listItem.appendChild(pinLabel);
-                listItem.appendChild(a);
-                document.addEventListener("click", function fn(e) {
-                    if (e.target.classList.contains("pin-label") || e.target.classList.contains("pin")) {
-                        document.addEventListener("click", fn, {once: true});
-                        return
-                    }
-                    menu.remove()
-                }, {once: true})
-                menu.appendChild(listItem);
-            });
-            document.body.appendChild(menu);
+                listItem.appendChild(pin)
+                listItem.appendChild(pinLabel)
+                listItem.appendChild(a)
+                document.addEventListener(
+                    "click",
+                    function fn(e) {
+                        if (e.target.classList.contains("pin-label") || e.target.classList.contains("pin")) {
+                            document.addEventListener("click", fn, { once: true })
+                            return
+                        }
+                        menu.remove()
+                    },
+                    { once: true },
+                )
+                menu.appendChild(listItem)
+            })
+            document.body.appendChild(menu)
         }
 
         copyButton.addEventListener("click", contextMenuHandler)
@@ -8975,7 +9142,6 @@ function addCopyCoordinatesButtons() {
         addCopyButton(coordsElem, lat, lon)
     })
     if (type === "way") {
-
     }
     // try {
     //     const wrapper = document.createElement("span")
@@ -8996,9 +9162,7 @@ function makeVersionPageBetter() {
         return
     }
     addCompactSidebarStyle()
-    const browseSectionSelector = document.querySelector("#element_versions_list")
-        ? '#element_versions_list > div:not(:has(a[href*="/redactions/"]:not([rel])))'
-        : "#sidebar_content > div:first-of-type";
+    const browseSectionSelector = document.querySelector("#element_versions_list") ? '#element_versions_list > div:not(:has(a[href*="/redactions/"]:not([rel])))' : "#sidebar_content > div:first-of-type"
     if (!document.querySelector(".find-user-btn")) {
         try {
             const ver = document.querySelector(browseSectionSelector)
@@ -9007,10 +9171,10 @@ function makeVersionPageBetter() {
                 ver.title = makeTitleForTagsCount(tagsCount)
             }
 
-            const metainfoHTML = ver?.querySelector('div:nth-of-type(1)');
+            const metainfoHTML = ver?.querySelector("div:nth-of-type(1)")
             if (metainfoHTML && !metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')) {
                 const time = metainfoHTML.querySelector("time")
-                const changesetID = ver.querySelector('div a[href^="/changeset/"]:not([rel])').textContent;
+                const changesetID = ver.querySelector('div a[href^="/changeset/"]:not([rel])').textContent
 
                 metainfoHTML.lastChild.remove()
                 const findBtn = document.createElement("span")
@@ -9023,7 +9187,8 @@ function makeVersionPageBetter() {
                 findBtn.onclick = findChangesetInDiff
                 metainfoHTML.appendChild(findBtn)
             }
-        } catch { /* empty */
+        } catch {
+            /* empty */
         }
     }
     makeHeaderPartsClickable()
@@ -9032,12 +9197,12 @@ function makeVersionPageBetter() {
     makeHashtagsClickable()
     makeTimesSwitchable()
     document.querySelectorAll(`${browseSectionSelector} p`).forEach(shortOsmOrgLinks)
-    addCommentsCount();
-    expandWikidata();
-    addCopyCoordinatesButtons();
-    void addHoverForNodesParents();
-    void addHoverForWayNodes();
-    void addHoverForRelationMembers();
+    addCommentsCount()
+    expandWikidata()
+    addCopyCoordinatesButtons()
+    void addHoverForNodesParents()
+    void addHoverForWayNodes()
+    void addHoverForRelationMembers()
     // костыль для KeyK/L и OSM tags editor
     document.querySelector("#sidebar_content > div:first-of-type")?.classList?.add("browse-section")
     document.querySelectorAll("#element_versions_list > div").forEach(i => i.classList.add("browse-section"))
@@ -9048,12 +9213,12 @@ function setupMakeVersionPageBetter() {
     if (!match) {
         return
     }
-    let timerId = setInterval(makeVersionPageBetter, 500);
+    let timerId = setInterval(makeVersionPageBetter, 500)
     setTimeout(() => {
-        clearInterval(timerId);
-        console.debug('stop adding MakeVersionPageBetter');
-    }, 3000);
-    makeVersionPageBetter();
+        clearInterval(timerId)
+        console.debug("stop adding MakeVersionPageBetter")
+    }, 3000)
+    makeVersionPageBetter()
 }
 
 // Модули должны стать классами
@@ -9090,7 +9255,7 @@ function arraysDiff(arg_a, arg_b, one_replace_cost = 2) {
     let b = arg_b.map(i => JSON.stringify(i))
     const dp = []
     for (let i = 0; i < a.length + 1; i++) {
-        dp[i] = new Uint32Array(b.length + 1);
+        dp[i] = new Uint32Array(b.length + 1)
     }
 
     for (let i = 0; i <= a.length; i++) {
@@ -9101,7 +9266,7 @@ function arraysDiff(arg_a, arg_b, one_replace_cost = 2) {
         dp[0][i] = i
     }
 
-    const min = Math.min; // fuck Tampermonkey
+    const min = Math.min // fuck Tampermonkey
     // for some fucking reason every math.min call goes through TM wrapper code
     // that is not optimised by the JIT compiler
     if (arg_a.length && Object.prototype.hasOwnProperty.call(arg_a[0], "role")) {
@@ -9136,15 +9301,15 @@ function arraysDiff(arg_a, arg_b, one_replace_cost = 2) {
     while (true) {
         if (i === 0 || j === 0) {
             if (i === 0 && j === 0) {
-                break;
+                break
             } else if (i === 0) {
                 answer.push([null, b[j - 1]])
                 j = j - 1
-                continue;
+                continue
             } else {
                 answer.push([a[i - 1], null])
                 i = i - 1
-                continue;
+                continue
             }
         }
 
@@ -9152,7 +9317,7 @@ function arraysDiff(arg_a, arg_b, one_replace_cost = 2) {
         const ins_cost = dp[i][j - 1]
         let replace_cost = dp[i - 1][j - 1] + (JSON.stringify(a[i - 1]) !== JSON.stringify(b[j - 1])) * one_replace_cost
         if (arg_a.length && Object.prototype.hasOwnProperty.call(arg_a[0], "role")) {
-            replace_cost = min(replace_cost, dp[i - 1][j - 1] + ((!(arg_a[i - 1].type === arg_b[j - 1].type && arg_a[i - 1].ref === arg_b[j - 1].ref)) || arg_a[i - 1].role === arg_b[j - 1].role) * one_replace_cost)
+            replace_cost = min(replace_cost, dp[i - 1][j - 1] + (!(arg_a[i - 1].type === arg_b[j - 1].type && arg_a[i - 1].ref === arg_b[j - 1].ref) || arg_a[i - 1].role === arg_b[j - 1].role) * one_replace_cost)
         }
 
         if (del_cost <= ins_cost && del_cost + 1 <= replace_cost) {
@@ -9167,7 +9332,7 @@ function arraysDiff(arg_a, arg_b, one_replace_cost = 2) {
             j = j - 1
         }
     }
-    return answer.toReversed();
+    return answer.toReversed()
 }
 
 /**
@@ -9176,12 +9341,12 @@ function arraysDiff(arg_a, arg_b, one_replace_cost = 2) {
  * @return {[]}
  */
 function arraySplit(arr, N = 2) {
-    const chunkSize = Math.max(1, Math.floor(arr.length / N)); // todo это неправильно, но и так сойдёт
-    const res = [];
+    const chunkSize = Math.max(1, Math.floor(arr.length / N)) // todo это неправильно, но и так сойдёт
+    const res = []
     for (let i = 0; i < arr.length; i += chunkSize) {
-        res.push(arr.slice(i, i + chunkSize));
+        res.push(arr.slice(i, i + chunkSize))
     }
-    return res;
+    return res
 }
 
 /**
@@ -9214,38 +9379,38 @@ function arraySplit(arr, N = 2) {
 /**
  * @type {Object.<string, ChangesetMetadata>}|null
  **/
-let changesetMetadatas = {};
-let startTouch = null;
-let touchMove = null;
-let touchEnd = null;
+let changesetMetadatas = {}
+let startTouch = null
+let touchMove = null
+let touchEnd = null
 
 function addSwipes() {
     if (!GM_config.get("Swipes")) {
-        return;
+        return
     }
     let startX = 0
     let startY = 0
     let direction = null
     const sidebar = document.querySelector("#sidebar_content")
-    sidebar.style.transform = 'translateX(var(--touch-diff, 0px))'
+    sidebar.style.transform = "translateX(var(--touch-diff, 0px))"
 
     if (!location.pathname.startsWith("/changeset/")) {
-        sidebar.removeEventListener('touchstart', startTouch)
-        sidebar.removeEventListener('touchmove', touchMove)
-        sidebar.removeEventListener('touchend', touchEnd)
-        startTouch = null;
-        touchMove = null;
-        touchEnd = null;
+        sidebar.removeEventListener("touchstart", startTouch)
+        sidebar.removeEventListener("touchmove", touchMove)
+        sidebar.removeEventListener("touchend", touchEnd)
+        startTouch = null
+        touchMove = null
+        touchEnd = null
     } else {
         if (startTouch !== null) return
         startTouch = e => {
             startX = e.touches[0].clientX
             startY = e.touches[0].clientY
-        };
+        }
 
         touchMove = e => {
-            const diffY = e.changedTouches[0].clientY - startY;
-            const diffX = e.changedTouches[0].clientX - startX;
+            const diffY = e.changedTouches[0].clientY - startY
+            const diffX = e.changedTouches[0].clientX - startX
             if (direction == null) {
                 if (diffY >= 10 || diffY <= -10) {
                     direction = "v"
@@ -9255,14 +9420,14 @@ function addSwipes() {
                 }
             } else if (direction === "h") {
                 e.preventDefault()
-                sidebar.style.setProperty('--touch-diff', `${diffX}px`)
+                sidebar.style.setProperty("--touch-diff", `${diffX}px`)
             }
-        };
+        }
 
         touchEnd = e => {
             const diffX = startX - e.changedTouches[0].clientX
 
-            sidebar.style.removeProperty('--touch-diff')
+            sidebar.style.removeProperty("--touch-diff")
             if (direction === "h") {
                 if (diffX > sidebar.offsetWidth / 3) {
                     const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
@@ -9279,14 +9444,13 @@ function addSwipes() {
                 }
             }
             direction = null
-        };
+        }
 
-        sidebar.addEventListener('touchstart', startTouch)
-        sidebar.addEventListener('touchmove', touchMove)
-        sidebar.addEventListener('touchend', touchEnd)
+        sidebar.addEventListener("touchstart", startTouch)
+        sidebar.addEventListener("touchmove", touchMove)
+        sidebar.addEventListener("touchend", touchEnd)
     }
 }
-
 
 let rateLimitBan = false
 
@@ -9309,7 +9473,7 @@ function error509Handler(res) {
 }
 
 function addRegionForFirstChangeset(attempts = 5) {
-    if (location.search.includes("changesets")) return;
+    if (location.search.includes("changesets")) return
     setTimeout(async () => {
         if (rateLimitBan) {
             return
@@ -9333,36 +9497,42 @@ function addRegionForFirstChangeset(attempts = 5) {
         while (true) {
             // simple rate limiter
             const lastReqTime = await GM.getValue("last-geocoder-request-time")
-            if (!lastReqTime || (new Date(lastReqTime)).getTime() + 1000 < Date.now()) {
-                await GM.setValue("last-geocoder-request-time", Date.now());
+            if (!lastReqTime || new Date(lastReqTime).getTime() + 1000 < Date.now()) {
+                await GM.setValue("last-geocoder-request-time", Date.now())
                 break
             }
-            console.log("wait 1s for geocoder request");
+            console.log("wait 1s for geocoder request")
             await sleep(1000)
         }
-        fetch(`https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2&zoom=10`, {signal: getAbortController().signal}).then((res) => {
-            res.json().then((r) => {
-                if (r?.address?.state) {
-                    getMap().attributionControl.setPrefix(`${r.address.state}`)
-                    console.timeEnd(`Geocoding changeset ${center.lng},${center.lat}`)
-                }
-            })
-        }).catch(e => {
-            console.debug("Nominatim fail")
-            console.debug(e)
+        fetch(`https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2&zoom=10`, {
+            signal: getAbortController().signal,
         })
+            .then(res => {
+                res.json().then(r => {
+                    if (r?.address?.state) {
+                        getMap().attributionControl.setPrefix(`${r.address.state}`)
+                        console.timeEnd(`Geocoding changeset ${center.lng},${center.lat}`)
+                    }
+                })
+            })
+            .catch(e => {
+                console.debug("Nominatim fail")
+                console.debug(e)
+            })
     })
 }
 
 let iconsList = null
 
 async function loadIconsList() {
-    let yml;
-    const url = `https://raw.githubusercontent.com/openstreetmap/openstreetmap-website/refs/heads/master/config/browse_icons.yml`;
+    let yml
+    const url = `https://raw.githubusercontent.com/openstreetmap/openstreetmap-website/refs/heads/master/config/browse_icons.yml`
     if (GM_info.scriptHandler !== "FireMonkey") {
-        yml = (await GM.xmlHttpRequest({
-            url: url,
-        })).responseText
+        yml = (
+            await GM.xmlHttpRequest({
+                url: url,
+            })
+        ).responseText
     } else {
         yml = await (await GM.fetch(url)).text
     }
@@ -9372,12 +9542,12 @@ async function loadIconsList() {
         const lines = tags.split("\n")
         lines.slice(1).forEach(i => {
             const line = i.trim()
-            if (line === "") return;
+            if (line === "") return
             const [, value, jsonValue] = line.match(/(:\*|\w+): (\{.*})/)
             iconsList[lines[0].slice(0, -1) + "=" + value] = JSON.parse(jsonValue.replaceAll(/(\w+):/g, '"$1":'))
         })
     })
-    await GM.setValue("poi-icons", JSON.stringify({icons: iconsList, cacheTime: new Date()}))
+    await GM.setValue("poi-icons", JSON.stringify({ icons: iconsList, cacheTime: new Date() }))
     return iconsList
 }
 
@@ -9386,12 +9556,12 @@ async function initPOIIcons() {
     if (cache) {
         console.log("poi icons cached")
         const json = JSON.parse(cache)
-        const cacheTime = new Date(json['cacheTime'])
+        const cacheTime = new Date(json["cacheTime"])
         if (cacheTime.setUTCDate(cacheTime.getUTCDate() + 1) < new Date()) {
             console.log("but cache outdated")
             setTimeout(loadIconsList, 0)
         }
-        iconsList = json['icons']
+        iconsList = json["icons"]
         return
     }
     console.log("loading icons")
@@ -9430,20 +9600,25 @@ function makeCorporateMappersData(raw_data) {
 }
 
 async function loadAndMakeCorporateMappersList() {
-    let raw_data;
+    let raw_data
     if (GM_info.scriptHandler !== "FireMonkey") {
-        raw_data = (await GM.xmlHttpRequest({
-            url: corporationContributorsURL,
-            responseType: "json",
-        })).response
+        raw_data = (
+            await GM.xmlHttpRequest({
+                url: corporationContributorsURL,
+                responseType: "json",
+            })
+        ).response
     } else {
         raw_data = await (await GM.fetch(corporationContributorsURL)).json
     }
     makeCorporateMappersData(raw_data)
-    await GM.setValue("corporate-mappers", JSON.stringify({
-        raw_data: raw_data,
-        cacheTime: new Date()
-    }))
+    await GM.setValue(
+        "corporate-mappers",
+        JSON.stringify({
+            raw_data: raw_data,
+            cacheTime: new Date(),
+        }),
+    )
 }
 
 async function initCorporateMappersList() {
@@ -9453,12 +9628,12 @@ async function initCorporateMappersList() {
     if (cache) {
         console.log("corporate mappers cached")
         const json = JSON.parse(cache)
-        const cacheTime = new Date(json['cacheTime'])
+        const cacheTime = new Date(json["cacheTime"])
         if (cacheTime.setUTCDate(cacheTime.getUTCDate() + 3) < new Date()) {
             console.log("but cache outdated")
             setTimeout(loadAndMakeCorporateMappersList, 0)
         }
-        makeCorporateMappersData(JSON.parse(cache)['raw_data'])
+        makeCorporateMappersData(JSON.parse(cache)["raw_data"])
         return
     }
     console.log("loading corporate mappers")
@@ -9507,7 +9682,6 @@ function getPOIIconURL(type, tags) {
     return result ?? [getFallback(type), false]
 }
 
-
 function makeTagRow(key, value, addTd = false) {
     const tagRow = document.createElement("tr")
     const tagTh = document.createElement("th")
@@ -9523,7 +9697,6 @@ function makeTagRow(key, value, addTd = false) {
     tagTd.textContent = value
     return tagRow
 }
-
 
 function makeLinksInRowClickable(row) {
     if (row.querySelector("td").textContent.match(/^https?:\/\//)) {
@@ -9550,7 +9723,7 @@ function makeLinksInRowClickable(row) {
             || ["happy_hours", "delivery_hours", "smoking_hours", "collection_times", "service_times"].includes(key)) {
             if (key !== "opening_hours:signed" && typeof opening_hours !== "undefined") {
                 try {
-                    new opening_hours(valueCell.textContent, null, {tag_key: key});
+                    new opening_hours(valueCell.textContent, null, { tag_key: key })
                 } catch (e) {
                     valueCell.title = e
                     valueCell.classList.add("fixme-tag")
@@ -9563,13 +9736,13 @@ function makeLinksInRowClickable(row) {
 function detectEditsWars(prevVersion, targetVersion, objHistory, row, key) {
     let revertsCounter = 0
     let warLog = document.createElement("table")
-    warLog.style.borderColor = "var(--bs-body-color)";
-    warLog.style.borderStyle = "solid";
-    warLog.style.borderWidth = "1px";
+    warLog.style.borderColor = "var(--bs-body-color)"
+    warLog.style.borderStyle = "solid"
+    warLog.style.borderWidth = "1px"
     warLog.title = ""
     warLog.classList.add("edits-wars-log")
     for (let j = 0; j < objHistory.length; j++) {
-        const it = objHistory[j];
+        const it = objHistory[j]
 
         const prevIt = (objHistory[j - 1]?.tags ?? {})[key]
         const targetIt = (it.tags ?? {})[key]
@@ -9643,7 +9816,7 @@ function detectEditsWars(prevVersion, targetVersion, objHistory, row, key) {
 
     row.after(tr)
     row.querySelector("td.tag-flag").style.cursor = "pointer"
-    row.querySelector("td.tag-flag").onclick = (e) => {
+    row.querySelector("td.tag-flag").onclick = e => {
         e.stopPropagation()
         e.stopImmediatePropagation()
         if (e.target.getAttribute("open")) {
@@ -9661,9 +9834,8 @@ const emptyVersion = {
     version: 0,
     lat: null,
     lon: null,
-    visible: false
+    visible: false,
 }
-
 
 /**
  * @param {string} targetTimestamp
@@ -9671,7 +9843,7 @@ const emptyVersion = {
  * @return {Promise<(*[])[]>}
  */
 async function getWayNodesByTimestamp(targetTimestamp, wayID) {
-    const targetVersion = searchVersionByTimestamp(await getWayHistory(wayID), targetTimestamp);
+    const targetVersion = searchVersionByTimestamp(await getWayHistory(wayID), targetTimestamp)
     if (targetVersion === null) {
         return
     }
@@ -9695,7 +9867,7 @@ async function getWayNodesByTimestamp(targetTimestamp, wayID) {
     return [targetVersion, currentNodesList]
 }
 
-let pinnedRelations = new Set();
+let pinnedRelations = new Set()
 
 /**
  * @param {Element} i
@@ -9711,13 +9883,10 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
     const tbody = document.createElement("tbody")
     tagsTable.appendChild(tbody)
 
-    let tagsWasChanged = false;
-    let changedOnlyUninterestedTags = true;
+    let tagsWasChanged = false
+    let changedOnlyUninterestedTags = true
 
-    const uninterestedTags = new Set([
-        'check_date', 'check_date:opening_hours',
-        'check_date:opening_hours', 'survey:date'
-    ]);
+    const uninterestedTags = new Set(["check_date", "check_date:opening_hours", "check_date:opening_hours", "survey:date"])
 
     // tags deletion
     if (prevVersion.version !== 0) {
@@ -9743,7 +9912,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         if (prevVersion.tags === undefined || prevVersion.tags[key] === undefined) {
             tagsWasChanged = true
             if (!uninterestedTags.has(key)) {
-                changedOnlyUninterestedTags = false;
+                changedOnlyUninterestedTags = false
             }
             row.classList.add("quick-look-new-tag")
             if (!lastVersion.tags || lastVersion.tags[key] !== targetVersion.tags[key]) {
@@ -9762,13 +9931,14 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             // todo reverted changes
             const valCell = row.querySelector("td")
             if (!uninterestedTags.has(key)) {
-                changedOnlyUninterestedTags = false;
+                changedOnlyUninterestedTags = false
             }
             row.classList.add("quick-look-modified-tag")
             // toReversed is dirty hack for group inserted/deleted symbols https://osm.org/changeset/157338007
             const diff = arraysDiff(Array.from(prevVersion.tags[key]).toReversed(), Array.from(valCell.textContent).toReversed(), 1).toReversed()
             // for one character diff
             // example: https://osm.org/changeset/157002657
+            // prettier-ignore
             if (valCell.textContent.length > 1 && prevVersion.tags[key].length > 1
                 && (
                     diff.length === valCell.textContent.length && prevVersion.tags[key].length === valCell.textContent.length
@@ -9881,13 +10051,13 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 tagTd.onmouseenter = async e => {
                     e.stopPropagation() // fixme
                     e.target.classList.add("way-version-node")
-                    const targetTimestamp = (new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1)).toISOString()
+                    const targetTimestamp = new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1).toISOString()
                     const version = searchVersionByTimestamp(await getNodeHistory(left), targetTimestamp)
                     showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
                 }
                 tagTd.onclick = async e => {
                     e.stopPropagation() // fixme
-                    const targetTimestamp = (new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1)).toISOString()
+                    const targetTimestamp = new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1).toISOString()
                     const version = searchVersionByTimestamp(await getNodeHistory(left), targetTimestamp)
                     panTo(version.lat.toString(), version.lon.toString())
                 }
@@ -9930,7 +10100,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         const lineWasReversed = JSON.stringify(prevVersion.nodes.toReversed()) === JSON.stringify(targetVersion.nodes)
         if (lineWasReversed) {
             const row = makeWayDiffRow("", "🔃")
-            row.querySelectorAll("td").forEach(i => i.style.textAlign = "center")
+            row.querySelectorAll("td").forEach(i => (i.style.textAlign = "center"))
             row.querySelector("td:nth-of-type(2)").title = "Nodes of the way were reversed"
             tbody.appendChild(row)
 
@@ -10006,9 +10176,8 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         geomChangedFlag.after(nodesTable)
         geomChangedFlag.after(tagsTable)
         if (lineWasReversed) {
-            geomChangedFlag.after(document.createTextNode(['ru-RU', 'ru'].includes(navigator.language) ? " ⓘ Линию перевернули" : "ⓘ The line has been reversed"))
+            geomChangedFlag.after(document.createTextNode(["ru-RU", "ru"].includes(navigator.language) ? " ⓘ Линию перевернули" : "ⓘ The line has been reversed"))
         }
-
     }
     if (objType === "way" && targetVersion.visible !== false) {
         if (prevVersion.nodes && prevVersion.nodes.length !== targetVersion.nodes?.length) {
@@ -10040,7 +10209,6 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         }
         memChangedFlag.style.cursor = "pointer"
 
-
         const membersTable = document.createElement("table")
         membersTable.classList.add("relation-members-table")
         membersTable.style.display = "none"
@@ -10048,7 +10216,6 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         membersTable.style.borderWidth = "2px"
         tbody.style.borderWidth = "2px"
         membersTable.appendChild(tbody)
-
 
         const nodeIcon = GM_getResourceURL("NODE_ICON", false)
         const wayIcon = GM_getResourceURL("WAY_ICON", false)
@@ -10068,8 +10235,8 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             } else if (member?.type === "relation") {
                 return relationIcon
             } else {
-                console.error(member);
-                console.trace();
+                console.error(member)
+                console.trace()
             }
         }
 
@@ -10124,7 +10291,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 icon.style.marginTop = "-3px"
                 tagTd2.appendChild(icon)
             }
-            tagTd2.style.cursor = "";
+            tagTd2.style.cursor = ""
             tagTd.style.textAlign = "right"
             tagTd2.style.textAlign = "right"
 
@@ -10132,13 +10299,13 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 tagTd.onmouseenter = async e => {
                     e.stopPropagation()
                     e.target.classList.add("relation-version-node")
-                    const targetTimestamp = (new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1)).toISOString()
+                    const targetTimestamp = new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1).toISOString()
                     if (left.type === "node") {
                         const version = searchVersionByTimestamp(await getNodeHistory(left.ref), targetTimestamp)
                         showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
                         tagTd.title = ""
                         for (let tagsKey in version.tags ?? {}) {
-                            tagTd.title += `${tagsKey}=${version.tags[tagsKey]}\n`;
+                            tagTd.title += `${tagsKey}=${version.tags[tagsKey]}\n`
                         }
                     } else if (left.type === "way") {
                         const [, currentNodesList] = await getWayNodesByTimestamp(targetTimestamp, left.ref)
@@ -10146,7 +10313,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                         const version = searchVersionByTimestamp(await getWayHistory(left.ref), targetTimestamp)
                         tagTd.title = ""
                         for (let tagsKey in version.tags ?? {}) {
-                            tagTd.title += `${tagsKey}=${version.tags[tagsKey]}\n`;
+                            tagTd.title += `${tagsKey}=${version.tags[tagsKey]}\n`
                         }
                     } else if (left.type === "relation") {
                         // todo
@@ -10158,7 +10325,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 }
                 tagTd.onclick = async e => {
                     e.stopPropagation()
-                    const targetTimestamp = (new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1)).toISOString()
+                    const targetTimestamp = new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1).toISOString()
                     if (left.type === "node") {
                         const version = searchVersionByTimestamp(await getNodeHistory(left.ref), targetTimestamp)
                         panTo(version.lat.toString(), version.lon.toString())
@@ -10173,13 +10340,13 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 tagTd2.onmouseenter = async e => {
                     e.stopPropagation() // fixme
                     e.target.classList.add("relation-version-node")
-                    const targetTimestamp = (new Date(changesetMetadatas[targetVersion.changeset].closed_at ?? new Date())).toISOString()
+                    const targetTimestamp = new Date(changesetMetadatas[targetVersion.changeset].closed_at ?? new Date()).toISOString()
                     if (right.type === "node") {
                         const version = searchVersionByTimestamp(await getNodeHistory(right.ref), targetTimestamp)
                         showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
                         tagTd2.title = ""
                         for (let tagsKey in version.tags ?? {}) {
-                            tagTd2.title += `${tagsKey}=${version.tags[tagsKey]}\n`;
+                            tagTd2.title += `${tagsKey}=${version.tags[tagsKey]}\n`
                         }
                     } else if (right.type === "way") {
                         const [, currentNodesList] = await getWayNodesByTimestamp(targetTimestamp, right.ref)
@@ -10187,7 +10354,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                         const version = searchVersionByTimestamp(await getWayHistory(right.ref), targetTimestamp)
                         tagTd2.title = ""
                         for (let tagsKey in version.tags ?? {}) {
-                            tagTd2.title += `${tagsKey}=${version.tags[tagsKey]}\n`;
+                            tagTd2.title += `${tagsKey}=${version.tags[tagsKey]}\n`
                         }
                     } else if (right.type === "relation") {
                         // todo
@@ -10198,7 +10365,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 }
                 tagTd2.onclick = async e => {
                     e.stopPropagation()
-                    const targetTimestamp = (new Date(changesetMetadatas[targetVersion.changeset].closed_at ?? new Date())).toISOString()
+                    const targetTimestamp = new Date(changesetMetadatas[targetVersion.changeset].closed_at ?? new Date()).toISOString()
                     if (right.type === "node") {
                         const version = searchVersionByTimestamp(await getNodeHistory(right.ref), targetTimestamp)
                         panTo(version.lat.toString(), version.lon.toString())
@@ -10234,7 +10401,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         if (JSON.stringify((prevVersion?.members ?? []).toReversed()) === JSON.stringify(targetVersion.members)) {
             // members reversed
             const row = makeRelationDiffRow("", "🔃")
-            row.querySelectorAll("td").forEach(i => i.style.textAlign = "center")
+            row.querySelectorAll("td").forEach(i => (i.style.textAlign = "center"))
             row.querySelector("td:nth-of-type(2)").title = "Members of the relation were reversed"
             tbody.appendChild(row)
 
@@ -10319,7 +10486,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         pinRelation.style.cursor = "pointer"
         pinRelation.style.display = "none"
         pinRelation.title = "Pin relation on map"
-        pinRelation.onkeypress = pinRelation.onclick = async (e) => {
+        pinRelation.onkeypress = pinRelation.onclick = async e => {
             if (e.type === "keypress" && (e.code === "Space" || e.code === "Enter")) {
                 e.preventDefault()
             } else if (e.type === "keypress") {
@@ -10329,7 +10496,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             if (!pinRelation.classList.contains("pinned")) {
                 pinnedRelations.add(targetVersion.id)
                 pinRelation.style.cursor = "progress"
-                const color = (darkModeForMap && isDarkMode()) ? "#000" : "#373737";
+                const color = darkModeForMap && isDarkMode() ? "#000" : "#373737"
                 await loadRelationVersionMembersViaOverpass(targetVersion.id, targetVersion.timestamp, false, color, `customObjects/${targetVersion.id}`, darkModeForMap && isDarkMode())
                 pinRelation.style.cursor = "pointer"
                 pinRelation.classList.add("pinned")
@@ -10353,6 +10520,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
     if (targetVersion.lat && prevVersion.lat && (prevVersion.lat !== targetVersion.lat || prevVersion.lon !== targetVersion.lon)) {
         i.parentElement.parentElement.classList.add("location-modified")
         const locationChangedFlag = document.createElement("span")
+        // prettier-ignore
         const distInMeters = getDistanceFromLatLonInKm(
             prevVersion.lat,
             prevVersion.lon,
@@ -10379,15 +10547,18 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3")
             showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", false)
         }
-        locationChangedFlag.onclick = (e) => {
+        locationChangedFlag.onclick = e => {
             e.stopPropagation()
             e.stopImmediatePropagation()
-            fitBoundsWithPadding([
-                [prevVersion.lat.toString(), prevVersion.lon.toString()],
-                [targetVersion.lat.toString(), targetVersion.lon.toString()]
-            ], 30)
+            fitBoundsWithPadding(
+                [
+                    [prevVersion.lat.toString(), prevVersion.lon.toString()],
+                    [targetVersion.lat.toString(), targetVersion.lon.toString()],
+                ],
+                30,
+            )
         }
-        if (lastVersion.visible !== false && (prevVersion.lat === lastVersion.lat && prevVersion.lon === lastVersion.lon)) {
+        if (lastVersion.visible !== false && prevVersion.lat === lastVersion.lat && prevVersion.lon === lastVersion.lon) {
             locationChangedFlag.classList.add("reverted-coordinates")
             locationChangedFlag.title += ",\nbut now they have been restored."
         }
@@ -10396,18 +10567,18 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         i.parentElement.parentElement.classList.add("removed-object")
     }
     if (targetVersion.version !== lastVersion.version && lastVersion.visible === false) {
-        i.appendChild(document.createTextNode(['ru-RU', 'ru'].includes(navigator.language) ? " ⓘ Объект уже удалён" : " ⓘ The object is now deleted"))
+        i.appendChild(document.createTextNode(["ru-RU", "ru"].includes(navigator.language) ? " ⓘ Объект уже удалён" : " ⓘ The object is now deleted"))
     }
     if (targetVersion.visible === false && lastVersion.visible !== false) {
-        i.appendChild(document.createTextNode(['ru-RU', 'ru'].includes(navigator.language) ? " ⓘ Объект сейчас восстановлен" : " ⓘ The object is now restored"))
+        i.appendChild(document.createTextNode(["ru-RU", "ru"].includes(navigator.language) ? " ⓘ Объект сейчас восстановлен" : " ⓘ The object is now restored"))
     }
     // if (objType === "node") {
     //     i.appendChild(tagsTable)
     // }
-    if (targetVersion.tags?.['type'] === "restriction") {
+    if (targetVersion.tags?.["type"] === "restriction") {
         const key = Object.keys(targetVersion.tags).find(k => k === "restriction") ?? Object.keys(targetVersion.tags).find(k => k.startsWith("restriction"))
         if (key && restrictionsSignImages[key]) {
-            void fetchTextWithCache(restrictionsSignImages[key]);
+            void fetchTextWithCache(restrictionsSignImages[key])
         }
     }
     if (tagsWasChanged) {
@@ -10440,7 +10611,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
  * @param {NodeVersion|WayVersion|RelationVersion} targetVersion
  */
 async function processObjectInteractions(changesetID, objType, objectsInComments, i, prevVersion, targetVersion) {
-    let changesetMetadata = changesetMetadatas[targetVersion.changeset];
+    let changesetMetadata = changesetMetadatas[targetVersion.changeset]
     if (!GM_config.get("ShowChangesetGeometry")) {
         i.parentElement.parentElement.classList.add("processed-object")
         return
@@ -10448,16 +10619,16 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
     /**
      * @type {[string, string, string, string]}
      */
-    const m = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
+    const m = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
     const [, , objID, strVersion] = m
     const version = parseInt(strVersion)
-    i.parentElement.parentElement.ondblclick = (e) => {
+    i.parentElement.parentElement.ondblclick = e => {
         if (e.altKey) return
         if ((e.target.nodeName === "TH" || e.target.nodeName === "TD") && i.querySelector("[contenteditable]")) return
         if (changesetMetadatas[targetVersion.changeset]) {
             fitBounds([
                 [changesetMetadatas[targetVersion.changeset].min_lat, changesetMetadatas[targetVersion.changeset].min_lon],
-                [changesetMetadatas[targetVersion.changeset].max_lat, changesetMetadatas[targetVersion.changeset].max_lon]
+                [changesetMetadatas[targetVersion.changeset].max_lat, changesetMetadatas[targetVersion.changeset].max_lon],
             ])
         }
     }
@@ -10472,14 +10643,14 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             if (targetVersion.visible === false) {
                 if (prevVersion.visible !== false) {
                     showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff")
-                    const direction = prevVersion.tags?.['direction'] ?? prevVersion.tags?.['camera:direction']
+                    const direction = prevVersion.tags?.["direction"] ?? prevVersion.tags?.["camera:direction"]
                     if (direction) {
                         renderDirectionTag(prevVersion.lat, prevVersion.lon, direction, "#0022ff")
                     }
                 }
             } else {
                 showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3")
-                const direction = targetVersion.tags?.['direction'] ?? targetVersion.tags?.['camera:direction']
+                const direction = targetVersion.tags?.["direction"] ?? targetVersion.tags?.["camera:direction"]
                 if (direction) {
                     renderDirectionTag(targetVersion.lat, targetVersion.lon, direction, "#ff00e3")
                 }
@@ -10488,18 +10659,20 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
         }
 
         i.parentElement.parentElement.onmouseover = mouseoverHandler
-        if ((prevVersion.tags && Object.keys(prevVersion.tags).length) || (targetVersion.tags && Object.keys(targetVersion.tags).length)) { // todo temp hack for potential speed up // fixme remove comment
-            objectsInComments.nodes.filter(i => i.href.includes(`node/${objID}`)).forEach(link => {
-                // link.title = "Alt + click for scroll into object list"
-                link.onmouseenter = mouseoverHandler
-                link.onclick = (e) => {
-                    if (!e.altKey) return
-                    i.scrollIntoView()
-                }
-
-            })
+        if ((prevVersion.tags && Object.keys(prevVersion.tags).length) || (targetVersion.tags && Object.keys(targetVersion.tags).length)) {
+            // todo temp hack for potential speed up // fixme remove comment
+            objectsInComments.nodes
+                .filter(i => i.href.includes(`node/${objID}`))
+                .forEach(link => {
+                    // link.title = "Alt + click for scroll into object list"
+                    link.onmouseenter = mouseoverHandler
+                    link.onclick = e => {
+                        if (!e.altKey) return
+                        i.scrollIntoView()
+                    }
+                })
         }
-        i.parentElement.parentElement.onclick = (e) => {
+        i.parentElement.parentElement.onclick = e => {
             if (e.altKey) return
             if (window.getSelection().type === "Range") return
             if ((e.target.nodeName === "TH" || e.target.nodeName === "TD") && i.querySelector("[contenteditable]")) return
@@ -10508,29 +10681,33 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             i.parentElement.parentElement.classList.add("active-object")
 
             if (prevVersion.visible !== false && targetVersion.visible !== false) {
-                fitBoundsWithPadding([
-                    [prevVersion.lat.toString(), prevVersion.lon.toString()],
-                    [targetVersion.lat.toString(), targetVersion.lon.toString()]
-                ], 30)
+                fitBoundsWithPadding(
+                    [
+                        [prevVersion.lat.toString(), prevVersion.lon.toString()],
+                        [targetVersion.lat.toString(), targetVersion.lon.toString()],
+                    ],
+                    30,
+                )
                 showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", true)
                 showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3", false)
-                const direction = prevVersion.tags?.['direction'] ?? prevVersion.tags?.['camera:direction']
+                const direction = prevVersion.tags?.["direction"] ?? prevVersion.tags?.["camera:direction"]
                 if (direction) {
                     renderDirectionTag(prevVersion.lat, prevVersion.lon, direction, "#0022ff")
                 }
-                const newDirection = targetVersion.tags?.['direction'] ?? targetVersion.tags?.['camera:direction']
+                const newDirection = targetVersion.tags?.["direction"] ?? targetVersion.tags?.["camera:direction"]
                 if (direction) {
                     renderDirectionTag(targetVersion.lat, targetVersion.lon, newDirection, "#ff00e3")
                 }
             } else if (targetVersion.visible === false) {
                 panTo(prevVersion.lat.toString(), prevVersion.lon.toString(), 18, false)
                 showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", true)
-                const direction = prevVersion.tags?.['direction'] ?? prevVersion.tags?.['camera:direction']
+                const direction = prevVersion.tags?.["direction"] ?? prevVersion.tags?.["camera:direction"]
                 if (direction) {
                     renderDirectionTag(prevVersion.lat, prevVersion.lon, direction, "#0022ff")
                 }
             } else {
-                if (!repeatedEvent && trustedEvent) { // todo
+                if (!repeatedEvent && trustedEvent) {
+                    // todo
                     panTo(targetVersion.lat.toString(), targetVersion.lon.toString(), 18, false)
                 } else {
                     /*
@@ -10564,7 +10741,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                     panTo(targetVersion.lat.toString(), targetVersion.lon.toString(), 18, false)
                 }
                 showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3", true)
-                const direction = targetVersion.tags?.['direction'] ?? targetVersion.tags?.['camera:direction']
+                const direction = targetVersion.tags?.["direction"] ?? targetVersion.tags?.["camera:direction"]
                 if (direction) {
                     renderDirectionTag(targetVersion.lat, targetVersion.lon, direction, "#ff00e3")
                 }
@@ -10574,7 +10751,8 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             return
         }
         if (targetVersion.visible === false) {
-            if (targetVersion.version !== 1 && prevVersion.visible !== false) { // даа, такое есть https://www.openstreetmap.org/node/300524/history
+            if (targetVersion.version !== 1 && prevVersion.visible !== false) {
+                // даа, такое есть https://www.openstreetmap.org/node/300524/history
                 if (prevVersion.tags) {
                     showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#FF0000", changesetID + "n" + prevVersion.id)
                 } else {
@@ -10590,9 +10768,9 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 if ((await getChangeset(parseInt(changesetID))).nodesWithOldParentWays.has(parseInt(objID))) {
                     showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#00a500", changesetID + "n" + targetVersion.id)
                 }
-            }, 0); // dirty hack for https://osm.org/changeset/162017882
+            }, 0) // dirty hack for https://osm.org/changeset/162017882
         } else if (prevVersion?.visible === false && targetVersion?.visible !== false) {
-            showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "rgba(89,170,9,0.6)", changesetID + "n" + targetVersion.id, 'customObjects', 2)
+            showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "rgba(89,170,9,0.6)", changesetID + "n" + targetVersion.id, "customObjects", 2)
         } else {
             showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "rgb(255,245,41)", changesetID + "n" + targetVersion.id)
         }
@@ -10601,11 +10779,11 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
     async function processWay() {
         i.id = `${changesetID}w${objID}`
 
-        const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/full.json", {signal: getAbortController().signal});
+        const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/full.json", { signal: getAbortController().signal })
         // todo по-хорошему нужно проверять, а не успела ли измениться история линии
         // будет более актуально после добавление предзагрузки
-        const nowDeleted = !res.ok;
-        const dashArray = nowDeleted ? "4, 4" : null;
+        const nowDeleted = !res.ok
+        const dashArray = nowDeleted ? "4, 4" : null
         let lineWidth = nowDeleted ? 4 : 3
 
         if (!nowDeleted) {
@@ -10645,8 +10823,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             })
         }
 
-
-        i.parentElement.parentElement.onclick = async (e) => {
+        i.parentElement.parentElement.onclick = async e => {
             if (e.altKey) return
             if (window.getSelection().type === "Range") return
             if ((e.target.nodeName === "TH" || e.target.nodeName === "TD") && i.querySelector("[contenteditable]")) return
@@ -10658,17 +10835,17 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
 
             if (version > 1) {
                 // show prev version
-                const [, nodesHistory] = await loadWayVersionNodes(objID, version - 1);
-                const targetTimestamp = (new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1)).toISOString()
+                const [, nodesHistory] = await loadWayVersionNodes(objID, version - 1)
+                const targetTimestamp = new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1).toISOString()
                 const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
                 showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", currentNodesList.length === 0, changesetID + "w" + objID, false, 4, "4, 4")
 
                 showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, changesetID + "w" + objID, false)
             } else {
-                const targetTimestamp = (new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1)).toISOString()
-                const prevVersion = searchVersionByTimestamp(await getWayHistory(objID), targetTimestamp);
+                const targetTimestamp = new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1).toISOString()
+                const prevVersion = searchVersionByTimestamp(await getWayHistory(objID), targetTimestamp)
                 if (prevVersion) {
-                    const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
+                    const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version)
                     const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
                     showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", currentNodesList.length === 0, changesetID + "w" + objID, false, 4, "4, 4")
                 }
@@ -10683,11 +10860,11 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             changesetMetadata = changesetMetadatas[targetVersion.changeset]
         }
         if (targetVersion.visible === false) {
-            const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
-            const targetTimestamp = (new Date(new Date(changesetMetadata.created_at).getTime() - 1)).toISOString()
+            const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version)
+            const targetTimestamp = new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString()
             const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
             if (!nodesList.some(i => i.visible === false)) {
-                const closedTime = (new Date(changesetMetadata.closed_at ?? new Date())).toISOString()
+                const closedTime = new Date(changesetMetadata.closed_at ?? new Date()).toISOString()
                 const nodesAfterChangeset = filterObjectListByTimestamp(nodesHistory, closedTime)
                 if (nodesAfterChangeset.some(i => i.visible === false)) {
                     displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 3, changesetID + "w" + objID, "customObjects", dashArray)
@@ -10713,17 +10890,17 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             resetMapHover()
             if (version > 1) {
                 // show prev version
-                const [, nodesHistory] = await loadWayVersionNodes(objID, version - 1);
-                const targetTimestamp = (new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1)).toISOString()
+                const [, nodesHistory] = await loadWayVersionNodes(objID, version - 1)
+                const targetTimestamp = new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1).toISOString()
                 const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
                 showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, changesetID + "w" + objID, false, 4, "4, 4")
 
                 showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, changesetID + "w" + objID, false, lineWidth)
             } else {
-                const targetTimestamp = (new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1)).toISOString()
-                const prevVersion = searchVersionByTimestamp(await getWayHistory(objID), targetTimestamp);
+                const targetTimestamp = new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1).toISOString()
+                const prevVersion = searchVersionByTimestamp(await getWayHistory(objID), targetTimestamp)
                 if (prevVersion) {
-                    const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
+                    const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version)
                     const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
                     showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, changesetID + "w" + objID, false, 4, "4, 4")
                 }
@@ -10732,14 +10909,16 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
         }
 
         i.parentElement.parentElement.onmouseenter = mouseenterHandler
-        objectsInComments.ways.filter(i => i.href.includes(`way/${objID}`)).forEach(link => {
-            // link.title = "Alt + click for scroll into object list"
-            link.onmouseenter = mouseenterHandler
-            link.onclick = (e) => {
-                if (!e.altKey) return
-                i.scrollIntoView()
-            }
-        })
+        objectsInComments.ways
+            .filter(i => i.href.includes(`way/${objID}`))
+            .forEach(link => {
+                // link.title = "Alt + click for scroll into object list"
+                link.onmouseenter = mouseenterHandler
+                link.onclick = e => {
+                    if (!e.altKey) return
+                    i.scrollIntoView()
+                }
+            })
     }
 
     function processRelation() {
@@ -10766,12 +10945,12 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             i.parentElement.parentElement.classList.add("active-object")
 
             btn.style.cursor = "progress"
-            let targetTimestamp = (new Date(changesetMetadatas[targetVersion.changeset].closed_at ?? new Date())).toISOString()
+            let targetTimestamp = new Date(changesetMetadatas[targetVersion.changeset].closed_at ?? new Date()).toISOString()
             if (targetVersion.visible === false) {
-                targetTimestamp = new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1).toISOString();
+                targetTimestamp = new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1).toISOString()
             }
             try {
-                const relationMetadata = (await loadRelationVersionMembersViaOverpass(parseInt(objID), targetTimestamp, false, "#ff00e3"))
+                const relationMetadata = await loadRelationVersionMembersViaOverpass(parseInt(objID), targetTimestamp, false, "#ff00e3")
                 if (relationMetadata.restrictionRelationErrors.length) {
                     showRestrictionValidationStatus(relationMetadata.restrictionRelationErrors, i.parentElement)
                 } else {
@@ -10779,17 +10958,17 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                         i.parentElement.parentElement.title = 'Click with Shift for zoom to "via" members'
                     }
                 }
-                i.parentElement.parentElement.onclick = (e) => {
+                i.parentElement.parentElement.onclick = e => {
                     if (e.altKey) return
                     if (e.shiftKey && relationMetadata.isRestriction) {
                         fitBounds([
                             [relationMetadata.nodesBbox.min_lat, relationMetadata.nodesBbox.min_lon],
-                            [relationMetadata.nodesBbox.max_lat, relationMetadata.nodesBbox.max_lon]
+                            [relationMetadata.nodesBbox.max_lat, relationMetadata.nodesBbox.max_lon],
                         ])
                     } else {
                         fitBounds([
                             [relationMetadata.bbox.min_lat, relationMetadata.bbox.min_lon],
-                            [relationMetadata.bbox.max_lat, relationMetadata.bbox.max_lon]
+                            [relationMetadata.bbox.max_lat, relationMetadata.bbox.max_lon],
                         ])
                     }
                 }
@@ -10801,14 +10980,16 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 }
 
                 i.parentElement.parentElement.onmouseenter = mouseenterHandler
-                objectsInComments.relations.filter(i => i.href.includes(`relation/${objID}`)).forEach(link => {
-                    // link.title = "Alt + click for scroll into object list"
-                    link.onmouseenter = mouseenterHandler
-                    link.onclick = (e) => {
-                        if (!e.altKey) return
-                        i.scrollIntoView()
-                    }
-                })
+                objectsInComments.relations
+                    .filter(i => i.href.includes(`relation/${objID}`))
+                    .forEach(link => {
+                        // link.title = "Alt + click for scroll into object list"
+                        link.onmouseenter = mouseenterHandler
+                        link.onclick = e => {
+                            if (!e.altKey) return
+                            i.scrollIntoView()
+                        }
+                    })
 
                 i.parentElement.parentElement.classList.add("downloaded")
                 i.parentElement.querySelector(".pin-relation").style.display = ""
@@ -10826,7 +11007,6 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
         i.querySelector("a:nth-of-type(2)").after(document.createTextNode("\xA0"))
     }
 
-
     if (objType === "node") {
         processNode()
     } else if (objType === "way") {
@@ -10837,20 +11017,20 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
     i.parentElement.parentElement.classList.add("processed-object")
 }
 
-
 async function processObjectsInteractions(objType, uniqTypes, changesetID) {
     const objects = document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object):not(.object-in-process)`)
     if (objects.length === 0) {
-        return;
+        return
     }
     objects.forEach(i => {
         i.classList.add("object-in-process")
     })
 
-    const objectsLinksInComments = { // todo can be optimaized
+    const objectsLinksInComments = {
+        // todo can be optimaized
         nodes: Array.from(document.querySelectorAll(`#element_versions_list > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="node/"]`)),
         ways: Array.from(document.querySelectorAll(`#element_versions_list > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="way/"]`)),
-        relations: Array.from(document.querySelectorAll(`#element_versions_list > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="relation/"]`))
+        relations: Array.from(document.querySelectorAll(`#element_versions_list > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="relation/"]`)),
     }
 
     try {
@@ -10858,7 +11038,7 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
 
         if (objType === "relation" && objects.length >= 2) {
             for (let i of document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)) {
-                const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
+                const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
                 const version = parseInt(strVersion)
                 if (version === 1) {
                     needFetch.push(objID + "v" + version)
@@ -10869,10 +11049,12 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
                     needFetch.push(objID)
                 }
             }
-            const res = await fetch(osm_server.apiBase + `${objType}s.json?${objType}s=` + needFetch.join(","), {signal: getAbortController().signal});
+            const res = await fetch(osm_server.apiBase + `${objType}s.json?${objType}s=` + needFetch.join(","), {
+                signal: getAbortController().signal,
+            })
             if (res.status === 404) {
                 for (let i of document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)) {
-                    await processObjectInteractions(changesetID, objType, objectsLinksInComments, i, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(i)))
+                    await processObjectInteractions(changesetID, objType, objectsLinksInComments, i, ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(i))))
                 }
             } else {
                 /**
@@ -10884,19 +11066,20 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
                  */
                 const objectsVersions = {}
                 Object.entries(Object.groupBy(Array.from(versions), i => i.id)).forEach(([id, history]) => {
-                        objectsVersions[id] = Object.fromEntries(Object.entries(Object.groupBy(history, i => i.version)).map(([version, val]) => [version, val[0]]))
-                    }
-                )
+                    objectsVersions[id] = Object.fromEntries(Object.entries(Object.groupBy(history, i => i.version)).map(([version, val]) => [version, val[0]]))
+                })
                 for (let i of document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)) {
-                    const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
+                    const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
                     const version = parseInt(strVersion)
                     await processObjectInteractions(changesetID, objType, objectsLinksInComments, i, ...getPrevTargetLastVersions(Object.values(objectsVersions[objID]), version))
                 }
             }
         } else {
-            await Promise.all(Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)).map(async function (i) {
-                await processObjectInteractions(changesetID, objType, objectsLinksInComments, i, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(i)))
-            }))
+            await Promise.all(
+                Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)).map(async function (i) {
+                    await processObjectInteractions(changesetID, objType, objectsLinksInComments, i, ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(i))))
+                }),
+            )
         }
     } finally {
         objects.forEach(i => {
@@ -10907,20 +11090,19 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
     await getChangeset(changesetID)
 }
 
-
 async function getHistoryAndVersionByElem(elem) {
-    const [, objType, objID, version] = elem.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
+    const [, objType, objID, version] = elem.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
     if (histories[objType][objID]) {
         return [histories[objType][objID], parseInt(version)]
     }
-    const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/history.json", {signal: getAbortController().signal});
+    const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/history.json", { signal: getAbortController().signal })
     if (!res.ok) {
         console.trace(objType, objID, version)
     }
     if (res.status === 509 || res.status === 429) {
         error509Handler(res)
     } else {
-        return [histories[objType][objID] = (await res.json()).elements, parseInt(version)];
+        return [(histories[objType][objID] = (await res.json()).elements), parseInt(version)]
     }
 }
 
@@ -10929,9 +11111,9 @@ async function getHistoryAndVersionByElem(elem) {
  * @param {number} version
  */
 function getPrevTargetLastVersions(objHistory, version) {
-    let prevVersion = emptyVersion;
-    let targetVersion = prevVersion;
-    let lastVersion = objHistory.at(-1);
+    let prevVersion = emptyVersion
+    let targetVersion = prevVersion
+    let lastVersion = objHistory.at(-1)
 
     for (const objVersion of objHistory) {
         prevVersion = targetVersion
@@ -10943,50 +11125,50 @@ function getPrevTargetLastVersions(objHistory, version) {
     return [prevVersion, targetVersion, lastVersion, objHistory]
 }
 
-
 let quickLookStylesInjected = false
 
 function addQuickLookStyles() {
     if (quickLookStylesInjected) return
     quickLookStylesInjected = true
     try {
-        const styleText = `
+        const styleText =
+            `
             .edits-wars-log tr:nth-child(even) td, .edits-wars-log tr:nth-child(even) th {
                 background-color: color-mix(in srgb, var(--bs-body-bg), black 25%);
             }
-            
+
             @media ${mediaQueryForWebsiteTheme} {
-            
+
             .edits-wars-log tr:nth-child(even) td, .edits-wars-log tr:nth-child(even) th {
                 background-color: color-mix(in srgb, var(--bs-body-bg), white 5%);
             }
-            
+
             }
-            
+
             tr.quick-look-new-tag th {
                 background: rgba(17,238,9,0.6);
             }
-            
+
             table[contenteditable] th:not(.tag-flag) {
                 border: solid 2px black;
             }
-            
+
             table[contenteditable] td:not(.tag-flag) {
                 border: solid 2px black;
             }
-            
+
             tr.quick-look-modified-tag td:nth-of-type(1){
                 background: rgba(223,238,9,0.6);
             }
-            
+
             tr.quick-look-deleted-tag th {
                 background: rgba(238,51,9,0.6);
             }
-                        
+
             tr.quick-look-new-tag td:not(.tag-flag) {
                 background: rgba(17,238,9,0.6);
             }
-            
+
             tr.quick-look-deleted-tag td:not(.tag-flag) {
                 background: rgba(238,51,9,0.6);
             }
@@ -10998,68 +11180,68 @@ function addQuickLookStyles() {
             .new-letter {
                 background: rgba(25, 223, 25, 0.6);
             }
-            
+
             .deleted-letter {
                 background: rgba(255, 144, 144, 0.6);
             }
-            
-            @media ${mediaQueryForWebsiteTheme} {            
+
+            @media ${mediaQueryForWebsiteTheme} {
                 tr.quick-look-new-tag th{
                     /*background: #0f540fde;*/
                     background: rgba(17,238,9,0.3);
                     /*background: rgba(87, 171, 90, 0.3);*/
                 }
-                                
+
                 tr.quick-look-new-tag td:not(.tag-flag){
                     /*background: #0f540fde;*/
                     background: rgba(17,238,9,0.3);
                     /*background: rgba(87, 171, 90, 0.3);*/
                 }
-                
+
                 tr.quick-look-modified-tag td {
                     color: black;
                 }
-                            
+
                 tr.quick-look-deleted-tag th:not(.tag-flag) { /* dirty hack for zebra colors override */
                     /*background: #692113;*/
                     background: rgba(238,51,9,0.4);
                     /*background: rgba(229, 83, 75, 0.3);*/
                 }
-                                
+
                 tr.quick-look-deleted-tag td:not(.tag-flag) {
                     /*background: #692113;*/
                     background: rgba(238,51,9,0.4);
                     /*background: rgba(229, 83, 75, 0.3);*/
                 }
-                                
+
                 tr.quick-look-new-tag th::selection {
                     background: black !important;
                 }
-                
+
                 tr.quick-look-modified-tag th::selection {
                     background: black !important;
                 }
-                            
+
                 tr.quick-look-deleted-tag th::selection {
                     background: black !important;
                 }
-                              
+
                 tr.quick-look-new-tag td::selection {
                     background: black !important;
                 }
-                
+
                 /*tr.quick-look-modified-tag td::selection {*/
                 /*    background: black !important;*/
                 /*}*/
-                            
+
                 tr.quick-look-deleted-tag td::selection {
                     background: black !important;
                 }
-                
+
                 .new-letter {
-                    background: rgba(25, 223, 25, 0.9); 
+                    background: rgba(25, 223, 25, 0.9);
                 }
-            
+
                 .deleted-letter {
                     background: rgba(253, 83, 83, 0.8);
                 }
@@ -11106,12 +11288,12 @@ function addQuickLookStyles() {
               position: absolute;
               color: var(--bs-body-color);
             }
-            
-            
+
+
             table.browse-tag-list tr td[colspan="2"]{
                 background: var(--bs-body-bg) !important;
             }
-            
+
             ul:has(li[hidden]):after {
                 color: var(--bs-body-color);
                 content: attr(hidden-nodes-count) ' uninteresting nodes hidden';
@@ -11120,9 +11302,10 @@ function addQuickLookStyles() {
                 font-size: small;
                 opacity: 0.5;
             }
-            
-            `
-            + ((GM_config.get("ShowChangesetGeometry")) ? `
+
+            ` +
+            (GM_config.get("ShowChangesetGeometry")
+                ? `
             #sidebar_content #changeset_nodes ul:not(.pagination) li:hover {
                 background-color: rgba(223, 223, 223, 0.6);
             }
@@ -11141,11 +11324,11 @@ function addQuickLookStyles() {
             #sidebar_content #changeset_relations ul:not(.pagination) li.downloaded:hover {
                 background-color: rgba(223, 223, 223, 0.6);
             }
-            
+
             .location-modified-marker-warn::after:hover {
                   background-color: rgba(223, 223, 223, 0.6);;
             }
-                        
+
             #sidebar_content #element_versions_list > div details.way-version-nodes li:hover {
                 background-color: rgba(223, 223, 223, 0.6);
             }
@@ -11161,12 +11344,12 @@ function addQuickLookStyles() {
             #sidebar_content #element_versions_list > div details.way-version-nodes li.downloaded:hover {
                 background-color: rgba(223, 223, 223, 0.6);
             }
-            
+
             .location-modified-marker-warn::after:hover {
                   background-color: rgba(223, 223, 223, 0.6);;
             }
-            
-            @media ${mediaQueryForWebsiteTheme} {            
+
+            @media ${mediaQueryForWebsiteTheme} {
                 #sidebar_content #changeset_nodes ul:not(.pagination) li:hover {
                     background-color: rgb(14, 17, 19);
                 }
@@ -11185,7 +11368,7 @@ function addQuickLookStyles() {
                 #sidebar_content #changeset_relations ul:not(.pagination) li.downloaded:hover {
                     background-color: rgb(14, 17, 19);
                 }
-                                
+
                 #sidebar_content #element_versions_list > div details.way-version-nodes li:hover {
                     background-color: rgb(52,61,67);
                 }
@@ -11201,7 +11384,7 @@ function addQuickLookStyles() {
                 #sidebar_content #element_versions_list > div details.way-version-nodes li.downloaded:hover {
                     background-color: rgb(52,61,67);
                 }
-                    
+
                 .location-modified-marker-warn::after:hover {
                     background-color: rgb(14, 17, 19);
                 }
@@ -11222,15 +11405,17 @@ function addQuickLookStyles() {
             .leaflet-fade-anim .leaflet-popup {
                 transition: none;
             }
-            
-            @media (prefers-color-scheme: dark) {        
+
+            @media (prefers-color-scheme: dark) {
                 path.stroke-polyline {
                     filter: drop-shadow(1px 1px 0 #7a7a7a) drop-shadow(-1px -1px 0 #7a7a7a) drop-shadow(1px -1px 0 #7a7a7a) drop-shadow(-1px 1px 0 #7a7a7a);
                 }
             }
-            ` : "");
+            `
+                : "")
         injectCSSIntoOSMPage(styleText)
-    } catch { /* empty */
+    } catch {
+        /* empty */
     }
 }
 
@@ -11243,7 +11428,7 @@ function removeEditTagsButton() {
             })
             tagsEditorExtensionWaiter.observe(document.querySelector(".secondary-actions"), {
                 childList: true,
-                subtree: true
+                subtree: true,
             })
             setTimeout(() => tagsEditorExtensionWaiter.disconnect(), 3000)
         } else {
@@ -11257,9 +11442,11 @@ async function preloadChangeset(changesetID) {
     console.log(`c${changesetID} preloading`)
     performance.mark("PRELOADING_" + changesetID)
     const ways = (await getChangeset(changesetID)).data.querySelectorAll("way")
-    Array.from(ways).slice(0, 5).forEach(way => {
-        getWayHistory(way.id)
-    })
+    Array.from(ways)
+        .slice(0, 5)
+        .forEach(way => {
+            getWayHistory(way.id)
+        })
     performance.mark("END_PRELOADING_" + changesetID)
     console.log(`c${changesetID} preloaded`)
 }
@@ -11279,13 +11466,12 @@ function preloadPrevNextChangesets() {
     needPreloadChangesets = false
 }
 
-
 /**
  * @param {number|string} nodeID
  * @return {Promise<WayVersion[]>}
  */
 async function getParentWays(nodeID) {
-    const rawRes = await fetch(osm_server.apiBase + "node/" + nodeID + "/ways.json", {signal: getAbortController().signal});
+    const rawRes = await fetch(osm_server.apiBase + "node/" + nodeID + "/ways.json", { signal: getAbortController().signal })
     if (rawRes.status === 509) {
         error509Handler(rawRes)
     } else {
@@ -11294,10 +11480,9 @@ async function getParentWays(nodeID) {
             console.trace()
             return []
         }
-        return (await rawRes.json()).elements;
+        return (await rawRes.json()).elements
     }
 }
-
 
 async function processQuickLookInSidebar(changesetID) {
     const interceptMapManuallyPromise = interceptMapManually()
@@ -11313,7 +11498,7 @@ async function processQuickLookInSidebar(changesetID) {
         pinnedRelations = new Set()
         const objects = document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object):not(.object-in-process)`)
         if (objects.length === 0) {
-            return;
+            return
         }
         objects.forEach(i => {
             i.classList.add("object-in-process")
@@ -11324,7 +11509,7 @@ async function processQuickLookInSidebar(changesetID) {
         try {
             if (objType === "relation") {
                 for (let i of document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)) {
-                    const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
+                    const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
                     const version = parseInt(strVersion)
                     if (version === 1) {
                         needFetch.push(objID + "v" + version)
@@ -11335,10 +11520,12 @@ async function processQuickLookInSidebar(changesetID) {
                         needFetch.push(objID)
                     }
                 }
-                const res = await fetch(osm_server.apiBase + `${objType}s.json?${objType}s=` + needFetch.join(","), {signal: getAbortController().signal});
+                const res = await fetch(osm_server.apiBase + `${objType}s.json?${objType}s=` + needFetch.join(","), {
+                    signal: getAbortController().signal,
+                })
                 if (res.status === 404) {
                     for (let i of document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)) {
-                        await processObject(i, objType, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(i)))
+                        await processObject(i, objType, ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(i))))
                     }
                 } else {
                     /**
@@ -11350,21 +11537,22 @@ async function processQuickLookInSidebar(changesetID) {
                      */
                     const objectsVersions = {}
                     Object.entries(Object.groupBy(Array.from(versions), i => i.id)).forEach(([id, history]) => {
-                            objectsVersions[id] = Object.fromEntries(Object.entries(Object.groupBy(history, i => i.version)).map(([version, val]) => [version, val[0]]))
-                        }
-                    )
+                        objectsVersions[id] = Object.fromEntries(Object.entries(Object.groupBy(history, i => i.version)).map(([version, val]) => [version, val[0]]))
+                    })
                     for (let i of document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)) {
-                        const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/);
+                        const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
                         const version = parseInt(strVersion)
                         await processObject(i, objType, ...getPrevTargetLastVersions(Object.values(objectsVersions[objID]), version))
                     }
                 }
             } else {
-                const elems = Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`));
+                const elems = Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`))
                 for (const elem of arraySplit(elems, elems.length > 520 ? 10 : 1)) {
-                    await Promise.all(elem.map(async function (i) {
-                        await processObject(i, objType, ...getPrevTargetLastVersions(...await getHistoryAndVersionByElem(i)))
-                    }))
+                    await Promise.all(
+                        elem.map(async function (i) {
+                            await processObject(i, objType, ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(i))))
+                        }),
+                    )
                 }
             }
         } finally {
@@ -11394,7 +11582,6 @@ async function processQuickLookInSidebar(changesetID) {
             })
         }
 
-
         //<editor-fold desc="setup compact mode toggles">
         let compactToggle = document.createElement("button")
         compactToggle.title = "Toggle between full and compact tags diff.\nYou can also use the T key."
@@ -11402,7 +11589,7 @@ async function processQuickLookInSidebar(changesetID) {
         compactToggle.classList.add("quick-look-compact-toggle-btn")
         compactToggle.classList.add("btn", "btn-sm", "btn-primary")
         compactToggle.classList.add("quick-look")
-        compactToggle.onclick = (e) => {
+        compactToggle.onclick = e => {
             const needHideNodes = location.search.includes("changesets=")
             const state = e.target.textContent === "><"
             document.querySelectorAll(".quick-look-compact-toggle-btn").forEach(i => {
@@ -11416,7 +11603,7 @@ async function processQuickLookInSidebar(changesetID) {
             const shouldBeHidden = e.target.textContent === "<>"
             document.querySelectorAll("table.quick-look").forEach(el => {
                 el.classList.toggle("hide-non-modified-tags", shouldBeHidden)
-            });
+            })
             if (needHideNodes) {
                 if (e.target.textContent === "><") {
                     document.querySelectorAll("#changeset_nodes .tags-non-modified:not(.location-modified)").forEach(i => {
@@ -11459,11 +11646,11 @@ async function processQuickLookInSidebar(changesetID) {
             compactToggle.style.display = "none"
             document.querySelectorAll(".non-modified-tag-in-quick-view").forEach(i => {
                 i.removeAttribute("hidden")
-            });
+            })
         }
         if (multipleChangesets && compactToggle.style.display !== "none") {
             document.querySelectorAll(`[changeset-id="${changesetID}"]`).forEach(changeset => {
-                const forHide = document.querySelectorAll(`[changeset-id="${changeset.getAttribute("changeset-id")}"]#changeset_nodes .tags-non-modified:not(.location-modified)`);
+                const forHide = document.querySelectorAll(`[changeset-id="${changeset.getAttribute("changeset-id")}"]#changeset_nodes .tags-non-modified:not(.location-modified)`)
                 forHide.forEach(i => {
                     i.setAttribute("hidden", "true")
                 })
@@ -11479,23 +11666,23 @@ async function processQuickLookInSidebar(changesetID) {
 
     try {
         console.time(`QuickLook ${changesetID}`)
-        console.log(`%cQuickLook for ${changesetID}`, 'background: #222; color: #bada55')
+        console.log(`%cQuickLook for ${changesetID}`, "background: #222; color: #bada55")
         let uniqTypes = 0
         for (const objType of ["way", "node", "relation"]) {
             if (document.querySelectorAll(`.list-unstyled li.${objType}`).length > 0) {
-                uniqTypes++;
+                uniqTypes++
             }
         }
 
         for (const objType of ["way", "node", "relation"]) {
-            await processObjects(objType, uniqTypes);
+            await processObjects(objType, uniqTypes)
         }
-        const changesetDataPromise = getChangeset(changesetID);
-        await interceptMapManuallyPromise;
+        const changesetDataPromise = getChangeset(changesetID)
+        await interceptMapManuallyPromise
         for (const objType of ["way", "node", "relation"]) {
-            await processObjectsInteractions(objType, uniqTypes, changesetID);
+            await processObjectsInteractions(objType, uniqTypes, changesetID)
         }
-        const changesetData = (await changesetDataPromise).data;
+        const changesetData = (await changesetDataPromise).data
         const paginationSelector = document.querySelector(".numbered_pagination") ? ".numbered_pagination" : ".pagination"
 
         function dropNodesPagination(changesetData) {
@@ -11509,7 +11696,8 @@ async function processQuickLookInSidebar(changesetID) {
             const nodes = Array.from(changesetData.querySelectorAll("node"))
             const other = changesetData.querySelectorAll("way,relation").length
             if (nodes.length > 1200) {
-                if (other > 20 || isMobile) { // fixme bump
+                if (other > 20 || isMobile) {
+                    // fixme bump
                     return false
                 }
                 if (nodes.length > 3500 && isMobile) {
@@ -11519,13 +11707,13 @@ async function processQuickLookInSidebar(changesetID) {
                     return false
                 }
             }
-            pagination.remove();
+            pagination.remove()
             try {
-                document.querySelector(`[changeset-id="${changesetID}"]#changeset_nodes h4 .count-number`).textContent = `1-${nodes.length}`;
+                document.querySelector(`[changeset-id="${changesetID}"]#changeset_nodes h4 .count-number`).textContent = `1-${nodes.length}`
             } catch (e) {
                 console.error(e)
             }
-            return {nodes, nodesUl}
+            return { nodes, nodesUl }
         }
 
         function replaceNodes(nodes, nodesUl) {
@@ -11533,20 +11721,23 @@ async function processQuickLookInSidebar(changesetID) {
                 if (document.getElementById(`${changesetID}n${node.id}`)) {
                     return
                 }
-                const ulItem = document.createElement("li");
+                const ulItem = document.createElement("li")
                 const div1 = document.createElement("div")
                 div1.classList.add("d-flex", "gap-1")
                 ulItem.appendChild(div1)
 
-
                 try {
-                    const [iconSrc, invert] = getPOIIconURL("node", Array.from(node.querySelectorAll('tag[k]')).map(i => [i.getAttribute("k"), i.getAttribute("v")]))
-                    div1.appendChild(GM_addElement("img", {
+                    const [iconSrc, invert] = getPOIIconURL(
+                        "node",
+                        Array.from(node.querySelectorAll("tag[k]")).map(i => [i.getAttribute("k"), i.getAttribute("v")]),
+                    )
+                    div1.appendChild(
+                        GM_addElement("img", {
                             src: iconSrc,
                             height: 20,
                             width: 20,
-                            class: "align-bottom object-fit-none browse-icon" + (invert ? " browse-icon-invertible" : "")
-                        })
+                            class: "align-bottom object-fit-none browse-icon" + (invert ? " browse-icon-invertible" : ""),
+                        }),
                     )
                 } catch (e) {
                     console.error(e)
@@ -11561,7 +11752,7 @@ async function processQuickLookInSidebar(changesetID) {
                 div2.classList.add("align-self-center")
                 div1.appendChild(div2)
 
-                div2.classList.add("node");
+                div2.classList.add("node")
                 div2.id = `${changesetID}n${node.id}`
 
                 const nodeLink = document.createElement("a")
@@ -11616,13 +11807,13 @@ async function processQuickLookInSidebar(changesetID) {
                     return false
                 }
             }
-            pagination.remove();
+            pagination.remove()
             try {
                 document.querySelector(`[changeset-id="${changesetID}"]#changeset_ways h4 .count-number`).textContent = `1-${ways.length}`
             } catch (e) {
                 console.error(e)
             }
-            return {ways, waysUl}
+            return { ways, waysUl }
         }
 
         // todo unify
@@ -11631,19 +11822,23 @@ async function processQuickLookInSidebar(changesetID) {
                 if (document.getElementById(`${changesetID}w${way.id}`)) {
                     return
                 }
-                const ulItem = document.createElement("li");
+                const ulItem = document.createElement("li")
                 const div1 = document.createElement("div")
                 div1.classList.add("d-flex", "gap-1")
                 ulItem.appendChild(div1)
 
                 try {
-                    const [iconSrc, invert] = getPOIIconURL("way", Array.from(way.querySelectorAll('tag[k]')).map(i => [i.getAttribute("k"), i.getAttribute("v")]))
-                    div1.appendChild(GM_addElement("img", {
+                    const [iconSrc, invert] = getPOIIconURL(
+                        "way",
+                        Array.from(way.querySelectorAll("tag[k]")).map(i => [i.getAttribute("k"), i.getAttribute("v")]),
+                    )
+                    div1.appendChild(
+                        GM_addElement("img", {
                             src: iconSrc,
                             height: 20,
                             width: 20,
-                            class: "align-bottom object-fit-none browse-icon" + (invert ? " browse-icon-invertible" : "")
-                        })
+                            class: "align-bottom object-fit-none browse-icon" + (invert ? " browse-icon-invertible" : ""),
+                        }),
                     )
                 } catch (e) {
                     console.error(e)
@@ -11658,7 +11853,7 @@ async function processQuickLookInSidebar(changesetID) {
                 div2.classList.add("align-self-center")
                 div1.appendChild(div2)
 
-                div2.classList.add("way");
+                div2.classList.add("way")
                 div2.id = `${changesetID}w${way.id}`
 
                 const wayLink = document.createElement("a")
@@ -11706,8 +11901,8 @@ async function processQuickLookInSidebar(changesetID) {
             for (let i = 0; i < waysRes.ways.length; i += batchSize) {
                 console.log(`Ways batch ${i}-${i + batchSize}`)
                 replaceWays(waysRes.ways.slice(i, i + batchSize), waysRes.waysUl)
-                await processObjects("way", uniqTypes);
-                await processObjectsInteractions("way", uniqTypes, changesetID);
+                await processObjects("way", uniqTypes)
+                await processObjectsInteractions("way", uniqTypes, changesetID)
             }
         }
 
@@ -11717,8 +11912,8 @@ async function processQuickLookInSidebar(changesetID) {
             for (let i = 0; i < nodesRes.nodes.length; i += batchSize) {
                 console.log(`Nodes batch ${i}-${i + batchSize}`)
                 replaceNodes(nodesRes.nodes.slice(i, i + batchSize), nodesRes.nodesUl)
-                await processObjects("node", uniqTypes);
-                await processObjectsInteractions("node", uniqTypes, changesetID);
+                await processObjects("node", uniqTypes)
+                await processObjectsInteractions("node", uniqTypes, changesetID)
             }
         }
 
@@ -11727,30 +11922,29 @@ async function processQuickLookInSidebar(changesetID) {
 
             if (document.querySelector(`[changeset-id="${changesetID}"]#changeset_nodes ${paginationSelector}`)) {
                 obs.observe(document.querySelector(`[changeset-id="${changesetID}"]#changeset_nodes`), {
-                    attributes: true
+                    attributes: true,
                 })
             }
             if (document.querySelector(`[changeset-id="${changesetID}"]#changeset_ways ${paginationSelector}`)) {
                 obs.observe(document.querySelector(`[changeset-id="${changesetID}"]#changeset_ways`), {
-                    attributes: true
+                    attributes: true,
                 })
             }
             if (document.querySelector(`[changeset-id="${changesetID}"]#changeset_relations ${paginationSelector}`)) {
                 obs.observe(document.querySelector(`[changeset-id="${changesetID}"]#changeset_relations`), {
-                    attributes: true
+                    attributes: true,
                 })
             }
         }
-
 
         const obs = new MutationObserver(async (mutationList, observer) => {
             observer.disconnect()
             observer.takeRecords()
             for (const objType of ["way", "node", "relation"]) {
-                await processObjects(objType, uniqTypes);
+                await processObjects(objType, uniqTypes)
             }
             for (const objType of ["way", "node", "relation"]) {
-                await processObjectsInteractions(objType, uniqTypes, changesetID);
+                await processObjectsInteractions(objType, uniqTypes, changesetID)
             }
             observePagination(obs)
         })
@@ -11774,171 +11968,178 @@ async function processQuickLookInSidebar(changesetID) {
             /**
              * @type {Set<number>}
              */
-            const processedNodes = new Set();
+            const processedNodes = new Set()
             /**
              * @type {Set<number>}
              */
-            const processedWays = new Set();
+            const processedWays = new Set()
             // fixme
             const changesetWaysSet = new Set(Array.from(changesetData.querySelectorAll(`way`)).map(i => parseInt(i.id)))
             const loadNodesParents = async nodes => {
                 for (const nodeID of nodes) {
-                    if ((await getChangeset(parseInt(changesetID))).nodesWithParentWays.has(nodeID) && nodesCount > 30 || processedNodes.has(parseInt(nodeID))) {
-                        continue;
+                    if (((await getChangeset(parseInt(changesetID))).nodesWithParentWays.has(nodeID) && nodesCount > 30) || processedNodes.has(parseInt(nodeID))) {
+                        continue
                     }
                     const parents = await getParentWays(nodeID)
 
-                    await Promise.all(parents.map(
-                            async way => {
-                                if (processedWays.has(way.id) || changesetWaysSet.has(way.id)) {
-                                    return
-                                }
-                                processedWays.add(way.id)
-                                way.nodes.forEach(node => {
-                                    processedNodes.add(node)
-                                })
-                                const objID = way.id
+                    await Promise.all(
+                        parents.map(async way => {
+                            if (processedWays.has(way.id) || changesetWaysSet.has(way.id)) {
+                                return
+                            }
+                            processedWays.add(way.id)
+                            way.nodes.forEach(node => {
+                                processedNodes.add(node)
+                            })
+                            const objID = way.id
 
-                                const res = await fetch(osm_server.apiBase + "way" + "/" + way.id + "/full.json", {signal: getAbortController().signal});
-                                if (!res.ok) {
-                                    // крааайне маловероятно
-                                    return;
+                            const res = await fetch(osm_server.apiBase + "way" + "/" + way.id + "/full.json", {
+                                signal: getAbortController().signal,
+                            })
+                            if (!res.ok) {
+                                // крааайне маловероятно
+                                return
+                            }
+                            const lastElements = (await res.json()).elements
+                            lastElements.forEach(n => {
+                                if (n.type !== "node") return
+                                if (n.version === 1) {
+                                    nodesHistories[n.id] = [n]
                                 }
-                                const lastElements = (await res.json()).elements
-                                lastElements.forEach(n => {
-                                    if (n.type !== "node") return
-                                    if (n.version === 1) {
-                                        nodesHistories[n.id] = [n]
+                            })
+
+                            if (!changesetMetadatas[changesetID]) {
+                                console.log(`changesetMetadata[${changesetID}] not ready. Wait second...`)
+                                await abortableSleep(1000, getAbortController()) // todo нужно поретраить
+                            }
+
+                            const res2 = await getWayNodesByTimestamp(changesetMetadatas[changesetID].closed_at, objID)
+                            if (!res2) {
+                                // если линия создана после правки
+                                console.log(`skip parent w${objID} for ${nodeID}`)
+                                return
+                            }
+                            const [targetVersion, currentNodesList] = res2
+                            if (targetVersion.visible === false) {
+                                console.log(`skip parent w${objID} for ${nodeID} because version not visible`)
+                                return
+                            }
+
+                            const popup = document.createElement("span")
+                            const link = document.createElement("a")
+                            link.href = `/way/${way.id}`
+                            link.target = "_blank"
+                            link.textContent = "w" + way.id
+
+                            const tagsTable = document.createElement("table")
+                            const tbody = document.createElement("tbody")
+                            Object.entries(way.tags ?? {}).forEach(tag => {
+                                const row = document.createElement("tr")
+                                const tagTd = document.createElement("th")
+                                const tagTd2 = document.createElement("td")
+                                tagTd.style.borderWidth = "2px"
+                                tagTd2.style.borderWidth = "2px"
+                                row.style.borderWidth = "2px"
+                                row.appendChild(tagTd)
+                                row.appendChild(tagTd2)
+                                tagTd.textContent = tag[0]
+                                tagTd2.textContent = tag[1]
+                                tagTd.style.textAlign = "right"
+                                tagTd2.style.textAlign = "right"
+                                tbody.appendChild(row)
+                            })
+                            tagsTable.appendChild(tbody)
+                            popup.appendChild(link)
+                            popup.appendChild(tagsTable)
+                            // todo показать по ховеру прошлую версию?
+
+                            const line = displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(55,55,55,0.5)", 4, changesetID + "n" + nodeID, "customObjects", null, popup.outerHTML, darkModeForMap && isDarkMode())
+                            if (layersHidden) {
+                                line.getElement().style.visibility = "hidden"
+                            }
+
+                            // ховер в списке объектов, который показывает родительскую линию
+                            way.nodes.forEach(n => {
+                                if (!document.getElementById(`${changesetID}n${n}`)) return
+                                document.getElementById(`${changesetID}n${n}`).parentElement.parentElement.addEventListener("mouseover", async e => {
+                                    if (e.relatedTarget?.parentElement === e.target) {
+                                        return
                                     }
-                                })
+                                    showActiveWay(cloneInto(currentNodesList, unsafeWindow))
+                                    resetMapHover()
+                                    const targetTimestamp = new Date(new Date(changesetMetadatas[changesetID].created_at).getTime() - 1).toISOString()
+                                    if (targetVersion.version > 1) {
+                                        // show prev version
+                                        const prevVersion = searchVersionByTimestamp(await getWayHistory(way.id), targetTimestamp)
+                                        const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version)
+                                        const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
+                                        showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, changesetID + "w" + objID, false, 4, "4, 4")
 
-                                if (!changesetMetadatas[changesetID]) {
-                                    console.log(`changesetMetadata[${changesetID}] not ready. Wait second...`)
-                                    await abortableSleep(1000, getAbortController()) // todo нужно поретраить
-                                }
-
-                                const res2 = await getWayNodesByTimestamp(changesetMetadatas[changesetID].closed_at, objID)
-                                if (!res2) {
-                                    // если линия создана после правки
-                                    console.log(`skip parent w${objID} for ${nodeID}`);
-                                    return
-                                }
-                                const [targetVersion, currentNodesList] = res2
-                                if (targetVersion.visible === false) {
-                                    console.log(`skip parent w${objID} for ${nodeID} because version not visible`);
-                                    return
-                                }
-
-                                const popup = document.createElement("span")
-                                const link = document.createElement("a")
-                                link.href = `/way/${way.id}`
-                                link.target = "_blank"
-                                link.textContent = "w" + way.id
-
-                                const tagsTable = document.createElement("table")
-                                const tbody = document.createElement("tbody")
-                                Object.entries(way.tags ?? {}).forEach(tag => {
-                                    const row = document.createElement("tr")
-                                    const tagTd = document.createElement("th")
-                                    const tagTd2 = document.createElement("td")
-                                    tagTd.style.borderWidth = "2px"
-                                    tagTd2.style.borderWidth = "2px"
-                                    row.style.borderWidth = "2px"
-                                    row.appendChild(tagTd)
-                                    row.appendChild(tagTd2)
-                                    tagTd.textContent = tag[0]
-                                    tagTd2.textContent = tag[1]
-                                    tagTd.style.textAlign = "right"
-                                    tagTd2.style.textAlign = "right"
-                                    tbody.appendChild(row)
-                                })
-                                tagsTable.appendChild(tbody)
-                                popup.appendChild(link)
-                                popup.appendChild(tagsTable)
-                                // todo показать по ховеру прошлую версию?
-
-                                const line = displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(55,55,55,0.5)", 4, changesetID + "n" + nodeID, "customObjects", null, popup.outerHTML, darkModeForMap && isDarkMode())
-                                if (layersHidden) {
-                                    line.getElement().style.visibility = "hidden"
-                                }
-
-                                // ховер в списке объектов, который показывает родительскую линию
-                                way.nodes.forEach(n => {
-                                    if (!document.getElementById(`${changesetID}n${n}`)) return
-                                    document.getElementById(`${changesetID}n${n}`).parentElement.parentElement.addEventListener('mouseover', async (e) => {
-                                        if (e.relatedTarget?.parentElement === e.target) {
-                                            return
-                                        }
-                                        showActiveWay(cloneInto(currentNodesList, unsafeWindow))
-                                        resetMapHover()
-                                        const targetTimestamp = (new Date(new Date(changesetMetadatas[changesetID].created_at).getTime() - 1)).toISOString()
-                                        if (targetVersion.version > 1) {
-                                            // show prev version
-                                            const prevVersion = searchVersionByTimestamp(await getWayHistory(way.id), targetTimestamp);
-                                            const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
+                                        // showActiveWay(cloneInto(currentNodesList, unsafeWindow), "rgba(55,55,55,0.5)", false, objID, false)
+                                    } else {
+                                        const prevVersion = searchVersionByTimestamp(await getWayHistory(way.id), targetTimestamp)
+                                        if (prevVersion) {
+                                            const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version)
                                             const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
                                             showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, changesetID + "w" + objID, false, 4, "4, 4")
 
                                             // showActiveWay(cloneInto(currentNodesList, unsafeWindow), "rgba(55,55,55,0.5)", false, objID, false)
-                                        } else {
-                                            const prevVersion = searchVersionByTimestamp(await getWayHistory(way.id), targetTimestamp);
-                                            if (prevVersion) {
-                                                const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version);
-                                                const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                                                showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, changesetID + "w" + objID, false, 4, "4, 4")
-
-                                                // showActiveWay(cloneInto(currentNodesList, unsafeWindow), "rgba(55,55,55,0.5)", false, objID, false)
-                                            }
                                         }
-                                        const curVersion = searchVersionByTimestamp(await getNodeHistory(n), changesetMetadatas[changesetID].closed_at ?? new Date())
-                                        if (curVersion.version > 1) {
-                                            const prevVersion = searchVersionByTimestamp(await getNodeHistory(n), targetTimestamp)
-                                            showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", false)
-                                        }
-                                        showActiveNodeMarker(curVersion.lat.toString(), curVersion.lon.toString(), "#ff00e3", false)
-                                    })
+                                    }
+                                    const curVersion = searchVersionByTimestamp(await getNodeHistory(n), changesetMetadatas[changesetID].closed_at ?? new Date())
+                                    if (curVersion.version > 1) {
+                                        const prevVersion = searchVersionByTimestamp(await getNodeHistory(n), targetTimestamp)
+                                        showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", false)
+                                    }
+                                    showActiveNodeMarker(curVersion.lat.toString(), curVersion.lon.toString(), "#ff00e3", false)
                                 })
-                            }
-                        )
+                            })
+                        }),
                     )
                 }
-            };
+            }
             const nodesWithModifiedLocation = Array.from(document.querySelectorAll("#changeset_nodes .location-modified div div")).map(i => parseInt(i.id.match(/n(\d+)/)[1]))
             await Promise.all(arraySplit(nodesWithModifiedLocation, 4).map(loadNodesParents))
             // fast hack
             // const someInterestingNodes = Array.from(changesetData.querySelectorAll("node")).filter(i => i.querySelector("tag[k=power],tag[k=entrance]")).map(i => parseInt(i.id))
             // await Promise.all(arraySplit(someInterestingNodes, 4).map(loadNodesParents))
             performance.mark("FIND_PARENTS_END_" + changesetID)
-            console.debug(performance.measure("FIND_PARENTS", {
-                start: "FIND_PARENTS_BEGIN_" + changesetID
-            }), "FIND_PARENTS_END_" + changesetID);
+            console.debug(
+                performance.measure("FIND_PARENTS", {
+                    start: "FIND_PARENTS_BEGIN_" + changesetID,
+                }),
+                "FIND_PARENTS_END_" + changesetID,
+            )
         }
 
         if (GM_config.get("ShowChangesetGeometry")) {
-            console.log("%cTry find parents ways", 'background: #222; color: #bada55')
-            if (multipleChangesets) { // todo не стоит если пакетов мало?
+            console.log("%cTry find parents ways", "background: #222; color: #bada55")
+            if (multipleChangesets) {
+                // todo не стоит если пакетов мало?
                 findParents().then(() => {
-                    console.log(`Parents with ${changesetID} loaded`);
+                    console.log(`Parents with ${changesetID} loaded`)
                 })
             } else {
                 await findParents()
             }
         }
-    } catch (err) { // TODO notify user
+    } catch (err) {
+        // TODO notify user
         if (err.name === "AbortError") {
             console.debug("Some requests was aborted")
         } else {
             console.error(err)
-            console.log("%cSetup QuickLook finished with error ⚠️", 'background: #222; color: #bada55')
+            console.log("%cSetup QuickLook finished with error ⚠️", "background: #222; color: #bada55")
 
             function makeGithubIssueLink(text) {
                 const a = document.createElement("a")
                 a.classList.add("crash-report-link")
-                a.href = "https://github.com/deevroman/better-osm-org/issues/new?"
-                    + new URLSearchParams({
+                a.href =
+                    "https://github.com/deevroman/better-osm-org/issues/new?" +
+                    new URLSearchParams({
                         body: text,
                         title: "Crash Report",
-                        labels: "bug,crash"
+                        labels: "bug,crash",
                     }).toString()
                 a.target = "_blank"
                 a.appendChild(document.createTextNode("Send Bug Report"))
@@ -11964,7 +12165,7 @@ ${err.stack.replace("`", "\\`").replaceAll(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}
 **Script handler:** \`${GM_info.scriptHandler} v${GM_info.version}\`
 
 **UserAgent:** \`${JSON.stringify(GM_info.userAgentData)}\`
-                                   
+
                     `
                     if (!document.querySelector(".crash-report-link")) {
                         document.querySelector("#sidebar_content .secondary-actions").appendChild(document.createTextNode(" · "))
@@ -11973,7 +12174,8 @@ ${err.stack.replace("`", "\\`").replaceAll(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}
                     if (isDebug()) {
                         getMap()?.attributionControl?.setPrefix("⚠️")
                     }
-                } catch { /* empty */
+                } catch {
+                    /* empty */
                 }
                 if (isDebug()) {
                     alert("⚠ read logs.\nOnly the script developer should see this message")
@@ -11986,54 +12188,53 @@ ${err.stack.replace("`", "\\`").replaceAll(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}
     } finally {
         quickLookInjectingStarted = false
         console.timeEnd(`QuickLook ${changesetID}`)
-        console.log("%cSetup QuickLook finished", 'background: #222; color: #bada55')
+        console.log("%cSetup QuickLook finished", "background: #222; color: #bada55")
         // todo mark changeset as reviewed
     }
 }
 
-const currentChangesets = [];
+const currentChangesets = []
 
-
-function drawBBox(bbox, options = {color: "#ff7800", weight: 1, fillOpacity: 0}) {
+function drawBBox(bbox, options = { color: "#ff7800", weight: 1, fillOpacity: 0 }) {
     try {
-        const bottomLeft = getMap().project(getWindow().L.latLng(bbox.min_lat, bbox.min_lon));
-        const topRight = getMap().project(getWindow().L.latLng(bbox.max_lat, bbox.max_lon));
-        const width = topRight.x - bottomLeft.x;
-        const height = bottomLeft.y - topRight.y;
-        const minSize = 10;
+        const bottomLeft = getMap().project(getWindow().L.latLng(bbox.min_lat, bbox.min_lon))
+        const topRight = getMap().project(getWindow().L.latLng(bbox.max_lat, bbox.max_lon))
+        const width = topRight.x - bottomLeft.x
+        const height = bottomLeft.y - topRight.y
+        const minSize = 10
 
         if (width < minSize) {
-            bottomLeft.x -= ((minSize - width) / 2);
-            topRight.x += ((minSize - width) / 2);
+            bottomLeft.x -= (minSize - width) / 2
+            topRight.x += (minSize - width) / 2
         }
 
         if (height < minSize) {
-            bottomLeft.y += ((minSize - height) / 2);
-            topRight.y -= ((minSize - height) / 2);
+            bottomLeft.y += (minSize - height) / 2
+            topRight.y -= (minSize - height) / 2
         }
 
-        const b = getWindow().L.latLngBounds(
-            getMap().unproject(intoPage(bottomLeft)),
-            getMap().unproject(intoPage(topRight))
-        )
+        const b = getWindow().L.latLngBounds(getMap().unproject(intoPage(bottomLeft)), getMap().unproject(intoPage(topRight)))
 
         const bound = getWindow().L.rectangle(
             intoPage([
                 [b.getSouth(), b.getWest()],
-                [b.getNorth(), b.getEast()]
+                [b.getNorth(), b.getEast()],
             ]),
-            intoPage(options)
-        );
-        bound.on('click', intoPageWithFun(function () {
-            const elementById = document.getElementById(bbox.id);
-            elementById?.scrollIntoView()
-            resetMapHover()
-            elementById?.parentElement?.parentElement?.classList.add("map-hover")
-            cleanObjectsByKey("activeObjects")
-        }))
-        bound.addTo(getMap());
+            intoPage(options),
+        )
+        bound.on(
+            "click",
+            intoPageWithFun(function () {
+                const elementById = document.getElementById(bbox.id)
+                elementById?.scrollIntoView()
+                resetMapHover()
+                elementById?.parentElement?.parentElement?.classList.add("map-hover")
+                cleanObjectsByKey("activeObjects")
+            }),
+        )
+        bound.addTo(getMap())
         bound.bringToBack()
-        layers['changesetBounds'].push(bound)
+        layers["changesetBounds"].push(bound)
         return bound
     } catch (err) {
         console.trace(err)
@@ -12044,46 +12245,53 @@ async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) 
     await loadChangesetMetadatas(changesetIDs)
     await zoomToChangesets()
     for (let curID of changesetIDs) {
-        currentChangesets.push(changesetMetadatas[curID]);
+        currentChangesets.push(changesetMetadatas[curID])
     }
 
     for (let bbox of currentChangesets) {
         drawBBox(bbox)
     }
     drawBBox(changesetMetadatas[changesetID])
-    getMap().on("moveend zoomend", intoPageWithFun(function () {
-        if (layersHidden) return
-        for (let bound of layers["changesetBounds"]) {
-            bound.remove()
-        }
-        layers["changesetBounds"] = []
-        for (let bbox of currentChangesets) {
-            drawBBox(bbox)
-        }
-        drawBBox(changesetMetadatas[changesetID])
-    }))
+    getMap().on(
+        "moveend zoomend",
+        intoPageWithFun(function () {
+            if (layersHidden) return
+            for (let bound of layers["changesetBounds"]) {
+                bound.remove()
+            }
+            layers["changesetBounds"] = []
+            for (let bbox of currentChangesets) {
+                drawBBox(bbox)
+            }
+            drawBBox(changesetMetadatas[changesetID])
+        }),
+    )
 
     const step = 10
     const changesetsQueue = []
     if (changesetIDs.length) {
         // preloading
         changesetIDs.slice(0, step).forEach(i => {
-            changesetsQueue.push(GM.xmlHttpRequest({
-                url: osm_server.url + "/changeset/" + i
-            }))
+            changesetsQueue.push(
+                GM.xmlHttpRequest({
+                    url: osm_server.url + "/changeset/" + i,
+                }),
+            )
         })
     }
     // MORE PRELOADING
     const waysForPreload = []
-    await Promise.all(changesetIDs.map(async i => {
-        const data = (await getChangeset(i)).data
-        Array.from(data.querySelectorAll("way:not([version='1'])")).map(i => waysForPreload.push(parseInt(i.getAttribute("id"))))
-    }))
+    await Promise.all(
+        changesetIDs.map(async i => {
+            const data = (await getChangeset(i)).data
+            Array.from(data.querySelectorAll("way:not([version='1'])")).map(i => waysForPreload.push(parseInt(i.getAttribute("id"))))
+        }),
+    )
     await Promise.all(Array.from(new Set(waysForPreload)).map(i => getWayHistory(i)))
 
     for (let i = 0; i < changesetIDs.length; i++) {
         console.log(`${i + 1} / ${changesetIDs.length}`)
-        let curID = changesetIDs[i];
+        let curID = changesetIDs[i]
 
         let res = await changesetsQueue.shift()
 
@@ -12106,7 +12314,7 @@ async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) 
         divID.style.color = "var(--bs-body-color)"
         // todo add comment
         document.querySelector("turbo-frame:last-of-type").after(divID)
-        let prevFrame = null;
+        let prevFrame = null
         doc.querySelectorAll("turbo-frame").forEach(frame => {
             frame.setAttribute("changeset-id", curID)
             if (prevFrame) {
@@ -12125,13 +12333,15 @@ async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) 
             divID.after(span)
         })
 
-        const promise = processQuickLookInSidebar(curID);
+        const promise = processQuickLookInSidebar(curID)
         if (i + step < changesetIDs.length) {
-            changesetsQueue.push(GM.xmlHttpRequest({
-                url: osm_server.url + "/changeset/" + changesetIDs[i + step]
-            }))
+            changesetsQueue.push(
+                GM.xmlHttpRequest({
+                    url: osm_server.url + "/changeset/" + changesetIDs[i + step],
+                }),
+            )
         }
-        await promise;
+        await promise
     }
 }
 
@@ -12241,7 +12451,7 @@ async function interceptMapManually() {
         )
         `)
         // trigger Layer creation
-        let exportImageBtn = document.querySelector("#export-image #image_filter");
+        let exportImageBtn = document.querySelector("#export-image #image_filter")
         if (!exportImageBtn) {
             await sleep(10)
             exportImageBtn = document.querySelector("#export-image #image_filter")
@@ -12271,11 +12481,11 @@ async function addChangesetQuickLook() {
         allTagsOfObjectsVisible = true
         return
     }
-    addQuickLookStyles();
-    if (document.querySelector('.quick-look')) return true;
-    const sidebar = document.querySelector("#sidebar_content h2");
+    addQuickLookStyles()
+    if (document.querySelector(".quick-look")) return true
+    const sidebar = document.querySelector("#sidebar_content h2")
     if (!sidebar) {
-        return;
+        return
     }
     if (!document.querySelector("turbo-frame")) {
         console.log("changeset is empty")
@@ -12288,51 +12498,54 @@ async function addChangesetQuickLook() {
     if (GM_config.get("ResizableSidebar")) {
         document.querySelector("#sidebar").style.resize = "horizontal"
     }
-    addSwipes();
-    removeEditTagsButton();
+    addSwipes()
+    removeEditTagsButton()
 
     const changesetID = location.pathname.match(/changeset\/(\d+)/)[1]
     document.querySelectorAll("turbo-frame").forEach(i => i.setAttribute("changeset-id", changesetID))
 
     const params = new URLSearchParams(location.search)
-    let changesetIDs = [];
+    let changesetIDs = []
     if (params.get("changesets")) {
-        changesetIDs = params.get("changesets")?.split(",")?.filter(i => i !== changesetID) ?? []
+        changesetIDs =
+            params
+                .get("changesets")
+                ?.split(",")
+                ?.filter(i => i !== changesetID) ?? []
     }
 
     if (!GM_config.get("NavigationViaHotkeys")) {
         setTimeout(loadChangesetMetadata, 0)
     }
-    await processQuickLookInSidebar(changesetID);
+    await processQuickLookInSidebar(changesetID)
 
     if (changesetIDs.length) {
-        await processQuickLookForCombinedChangesets(changesetID, changesetIDs);
+        await processQuickLookForCombinedChangesets(changesetID, changesetIDs)
     }
 
     if (needPreloadChangesets) {
-        preloadPrevNextChangesets(changesetID);
+        preloadPrevNextChangesets(changesetID)
     }
 }
 
 function setupChangesetQuickLook(path) {
-    if (!path.startsWith("/changeset")) return;
-    let timerId = setInterval(addChangesetQuickLook, 100);
+    if (!path.startsWith("/changeset")) return
+    let timerId = setInterval(addChangesetQuickLook, 100)
     setTimeout(() => {
-        clearInterval(timerId);
-        console.debug('stop try add QuickLook');
-    }, 4000);
-    void addChangesetQuickLook();
+        clearInterval(timerId)
+        console.debug("stop try add QuickLook")
+    }, 4000)
+    void addChangesetQuickLook()
 }
 
-
 const rapidLink = "https://mapwith.ai/rapid#poweruser=true&map="
-let coordinatesObserver = null;
+let coordinatesObserver = null
 
 function setupNewEditorsLinks() {
     const firstRun = document.getElementsByClassName("custom_editors").length === 0
-    let editorsList = document.querySelector("#edit_tab ul");
+    let editorsList = document.querySelector("#edit_tab ul")
     if (!editorsList) {
-        return;
+        return
     }
     const curURL = editorsList.querySelector("li a").href
     const match = curURL.match(/map=(\d+)\/([-\d.]+)\/([-\d.]+)(&|$)/)
@@ -12342,16 +12555,16 @@ function setupNewEditorsLinks() {
     try {
         coordinatesObserver?.disconnect()
         if (!curURL.includes("edit?editor=id#") || !match) {
-            return;
+            return
         }
         const zoom = match[1]
         const lat = match[2]
         const lon = match[3]
         {
             // Rapid
-            let newElem;
+            let newElem
             if (firstRun) {
-                newElem = editorsList.querySelector("li").cloneNode(true);
+                newElem = editorsList.querySelector("li").cloneNode(true)
                 newElem.classList.add("custom_editors", "rapid_btn")
                 newElem.querySelector("a").textContent = "Edit with Rapid"
             } else {
@@ -12383,13 +12596,13 @@ function setupNewEditorsLinks() {
         }
         */
     } finally {
-        coordinatesObserver = new MutationObserver(setupNewEditorsLinks);
-        coordinatesObserver.observe(editorsList, {subtree: true, childList: true, attributes: true});
+        coordinatesObserver = new MutationObserver(setupNewEditorsLinks)
+        coordinatesObserver.observe(editorsList, { subtree: true, childList: true, attributes: true })
     }
 }
 
-let darkModeForMap = false;
-let darkMapStyleElement = false;
+let darkModeForMap = false
+let darkMapStyleElement = false
 
 function injectDarkMapStyle() {
     darkMapStyleElement = injectCSSIntoOSMPage(`
@@ -12411,7 +12624,7 @@ function injectDarkMapStyle() {
 
 function setupDarkModeForMap() {
     if (!GM_config.get("DarkModeForMap") || darkModeForMap) {
-        return;
+        return
     }
     injectDarkMapStyle()
     darkModeForMap = true
@@ -12425,13 +12638,17 @@ async function loadChangesetsBetween(user, fromTime, toTime) {
 
     while (true) {
         /*** @type {{changesets: ChangesetMetadata[]}}*/
-        const res = await fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
-            display_name: user,
-            order: 'oldest',
-            from: curTime.toISOString(),
-            to: toTime.toISOString()
-        }).toString())
-        console.log(res);
+        const res = await fetchJSONWithCache(
+            osm_server.apiBase +
+                "changesets.json?" +
+                new URLSearchParams({
+                    display_name: user,
+                    order: "oldest",
+                    from: curTime.toISOString(),
+                    to: toTime.toISOString(),
+                }).toString(),
+        )
+        console.log(res)
 
         res.changesets = res.changesets.filter(i => !processedChangesets.has(i.id))
         if (res.changesets.length === 0) break
@@ -12479,11 +12696,11 @@ function uniq(items, keyFn) {
  */
 async function loadChangesets(user) {
     console.time(`stat-for-${user}`)
-    let startTime = new Date((new Date().getTime()) - 1000 * 60 * 60 * 24 * 365)
-    let startTime2 = new Date((new Date().getTime()) - 1000 * 60 * 60 * 24 * 365 * 3 / 4)
-    let startTime3 = new Date((new Date().getTime()) - 1000 * 60 * 60 * 24 * 365 * 2 / 4)
-    let startTime4 = new Date((new Date().getTime()) - 1000 * 60 * 60 * 24 * 365 / 4)
-    let endTime = new Date((new Date().getTime()) + 1000 * 60 * 60 * 24)
+    let startTime = new Date(new Date().getTime() - 1000 * 60 * 60 * 24 * 365)
+    let startTime2 = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 365 * 3) / 4)
+    let startTime3 = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 365 * 2) / 4)
+    let startTime4 = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 365) / 4)
+    let endTime = new Date(new Date().getTime() + 1000 * 60 * 60 * 24)
 
 
     const parts = await Promise.all([
@@ -12506,7 +12723,7 @@ async function loadChangesets(user) {
     })
 
     console.timeEnd(`stat-for-${user}`)
-    console.log("Changesets for the last year:", changesets.length);
+    console.log("Changesets for the last year:", changesets.length)
     return changesets
 }
 
@@ -12531,29 +12748,36 @@ function makeChangesetsStat(changesets, filter) {
         datesStat[key][1] = max(datesStat[key][1], i.id)
         datesStat[key][2].push({
             id: i.id,
-            comment: i?.tags?.['comment'] ?? "",
-            comments_count: i.comments_count
+            comment: i?.tags?.["comment"] ?? "",
+            comments_count: i.comments_count,
         })
     })
 
-    return [Object.fromEntries(Object.entries(datesStat).sort((a, b) => {
-        if (a[0] < b[0]) {
-            return -1;
-        }
-        if (a[0] > b[0]) {
-            return 1;
-        }
-        return 0
-    })), changesets_count]
+    return [
+        Object.fromEntries(
+            Object.entries(datesStat).sort((a, b) => {
+                if (a[0] < b[0]) {
+                    return -1
+                }
+                if (a[0] > b[0]) {
+                    return 1
+                }
+                return 0
+            }),
+        ),
+        changesets_count,
+    ]
 }
 
 async function makeEditorNormalizer() {
-    let rawReplaceRules;
-    const url = "https://raw.githubusercontent.com/deevroman/openstreetmap-statistics/refs/heads/master/src/replace_rules_created_by.json";
+    let rawReplaceRules
+    const url = "https://raw.githubusercontent.com/deevroman/openstreetmap-statistics/refs/heads/master/src/replace_rules_created_by.json"
     if (GM_info.scriptHandler !== "FireMonkey") {
-        rawReplaceRules = (await GM.xmlHttpRequest({
-            url: url,
-        })).responseText
+        rawReplaceRules = (
+            await GM.xmlHttpRequest({
+                url: url,
+            })
+        ).responseText
     } else {
         rawReplaceRules = await (await GM.fetch(url)).text
     }
@@ -12586,7 +12810,7 @@ async function makeEditorNormalizer() {
         }
     })
 
-    return (tag) => {
+    return tag => {
         if (!tag) return tag
 
         if (tag_to_name[tag]) {
@@ -12642,7 +12866,7 @@ async function betterUserStat(user) {
     const calHeatmap = document.querySelector(".heatmap")
     if (!calHeatmap) {
         console.log("osm.org don't show heatmap for this user")
-        return;
+        return
     }
     injectCSSIntoOSMPage(`
     .tooltip-inner {
@@ -12659,109 +12883,118 @@ async function betterUserStat(user) {
     searchByComment.title = "Please wait while user changesets loading"
     searchByComment.setAttribute("disabled", true)
     searchByComment.style.flex = "1"
-    searchByComment.style.height = "1.5rem";
-    searchByComment.style.boxSizing = "border-box";
+    searchByComment.style.height = "1.5rem"
+    searchByComment.style.boxSizing = "border-box"
     filterInputByEditor.before(searchByComment)
 
     const _replace_with_rules = makeEditorNormalizer()
     const changesets = await loadChangesets(user)
     const replace_with_rules = await _replace_with_rules
     const editorOfChangesets = {}
-    changesets.forEach(ch => editorOfChangesets[ch.id] = replace_with_rules(ch.tags?.["created_by"]))
+    changesets.forEach(ch => (editorOfChangesets[ch.id] = replace_with_rules(ch.tags?.["created_by"])))
     filterInputByEditor.removeAttribute("disabled")
     searchByComment.removeAttribute("disabled")
     filterInputByEditor.title = "Alt + O for open selected changesets on one page"
     searchByComment.title = "Not case-sensitive regex search"
 
     async function inputHandler() {
-        let filter = (_) => true
+        let filter = _ => true
         const selected = Array.from(filterInputByEditor.options).filter(i => i.selected)
-        let regex;
+        let regex
         try {
-            regex = new RegExp(searchByComment.value.toLowerCase());
+            regex = new RegExp(searchByComment.value.toLowerCase())
             searchByComment.style.color = ""
         } catch {
             searchByComment.style.color = "red"
         }
-        filter = (ch) => {
+        filter = ch => {
             return selected.some(option => {
                 if (option.getAttribute("all-editors") === "yes") {
-                    return (ch.tags?.["comment"] ?? "").toLowerCase().match(regex);
+                    return (ch.tags?.["comment"] ?? "").toLowerCase().match(regex)
                 } else if (option.getAttribute("is-editor-name") === "yes") {
-                    return editorOfChangesets[ch.id] === option.value && (ch.tags?.["comment"] ?? "").toLowerCase().match(regex);
+                    return editorOfChangesets[ch.id] === option.value && (ch.tags?.["comment"] ?? "").toLowerCase().match(regex)
                 } else {
-                    return ch.tags?.["created_by"] === option.value && (ch.tags?.["comment"] ?? "").toLowerCase().match(regex);
+                    return ch.tags?.["created_by"] === option.value && (ch.tags?.["comment"] ?? "").toLowerCase().match(regex)
                 }
             })
         }
         const [newHeatmapData, changesets_count] = makeChangesetsStat(changesets, filter)
-        const maxPerDay = Object.values(newHeatmapData).map(i => i[0]).reduce((a, b) => max(a, b), 0);
+        const maxPerDay = Object.values(newHeatmapData)
+            .map(i => i[0])
+            .reduce((a, b) => max(a, b), 0)
         searchByComment.title = `${changesets_count} changesets filtered`
 
         function replaceElementTag(oldElement, newTagName) {
             const attrs = {}
             for (const attr of oldElement.attributes) {
-                attrs[attr.name] = attr.value;
+                attrs[attr.name] = attr.value
             }
-            const newElement = GM_addElement(newTagName, attrs);
+            const newElement = GM_addElement(newTagName, attrs)
             while (oldElement.firstChild) {
-                newElement.appendChild(oldElement.firstChild);
+                newElement.appendChild(oldElement.firstChild)
             }
-            oldElement.parentNode.replaceChild(newElement, oldElement);
-            return newElement;
+            oldElement.parentNode.replaceChild(newElement, oldElement)
+            return newElement
         }
 
         function getTooltipSummary(date, value) {
-            const localizedDate = getWindow().OSM.i18n.l("date.formats.long", intoPageWithFun(date));
+            const localizedDate = getWindow().OSM.i18n.l("date.formats.long", intoPageWithFun(date))
             if (value > 0) {
-                return getWindow().OSM.i18n.t("javascripts.heatmap.tooltip.contributions", intoPage({
-                    count: value,
-                    date: localizedDate
-                }));
+                return getWindow().OSM.i18n.t(
+                    "javascripts.heatmap.tooltip.contributions",
+                    intoPage({
+                        count: value,
+                        date: localizedDate,
+                    }),
+                )
             }
-            return getWindow().OSM.i18n.t("javascripts.heatmap.tooltip.no_contributions", intoPage({date: localizedDate}));
+            return getWindow().OSM.i18n.t("javascripts.heatmap.tooltip.no_contributions", intoPage({ date: localizedDate }))
         }
 
-        getWindow().$('[rel=tooltip]').tooltip('dispose')
+        getWindow().$("[rel=tooltip]").tooltip("dispose")
         document.querySelectorAll(".tooltip").forEach(i => i.remove())
         const hrefPrefix = location.href.endsWith("/") ? location.href.slice(0, -1) : location.href
         for (let day of Array.from(document.querySelectorAll("[data-date]"))) {
             day = replaceElementTag(day, "a")
-            const newData = newHeatmapData[day.getAttribute("data-date")];
+            const newData = newHeatmapData[day.getAttribute("data-date")]
             if (newData) {
                 day.setAttribute("data-count", newData[0])
                 day.setAttribute("href", hrefPrefix + "/history?before=" + (newData[1] + 1))
                 day.innerHTML = ""
                 const colorDiff = document.createElement("span")
                 colorDiff.style.opacity = `${Math.sqrt(newData[0] / maxPerDay)}`
-                let tooltipText = getTooltipSummary(new Date(day.getAttribute("data-date")), newData[0]);
+                let tooltipText = getTooltipSummary(new Date(day.getAttribute("data-date")), newData[0])
                 if (newData[0]) {
-                    tooltipText += "\n";
+                    tooltipText += "\n"
                     for (let changeset of newData[2]) {
-                        let changesetComment = "";
+                        let changesetComment = ""
                         if (changeset.comments_count) {
                             colorDiff.style.opacity = `${Math.min(0.7, Math.max(0.35, Math.sqrt(newData[0] / maxPerDay)))}`
                             colorDiff.style.background = "red"
-                            changesetComment = "💬 " + changeset.comment;
-                            (await getChangesetComments(changeset.id)).forEach(mapperCommentText => {
-                                changesetComment += "\n - " + mapperCommentText['user'] + ": " + shortOsmOrgLinksInText(mapperCommentText['text'])?.slice(0, 500)
-                                if (mapperCommentText['text'].length > 500) {
+                            changesetComment = "💬 " + changeset.comment
+                            ;(await getChangesetComments(changeset.id)).forEach(mapperCommentText => {
+                                changesetComment += "\n - " + mapperCommentText["user"] + ": " + shortOsmOrgLinksInText(mapperCommentText["text"])?.slice(0, 500)
+                                if (mapperCommentText["text"].length > 500) {
                                     changesetComment += "..."
                                 }
-                            });
+                            })
                         } else {
                             changesetComment = "• " + changeset.comment
                         }
-                        tooltipText += changesetComment + "\n";
+                        tooltipText += changesetComment + "\n"
                     }
                 }
 
                 day.appendChild(colorDiff)
-                getWindow().$(day).tooltip(intoPage({
-                    title: tooltipText,
-                    customClass: "wide",
-                    delay: {show: 0, hide: 0}
-                }));
+                getWindow()
+                    .$(day)
+                    .tooltip(
+                        intoPage({
+                            title: tooltipText,
+                            customClass: "wide",
+                            delay: { show: 0, hide: 0 },
+                        }),
+                    )
             } else {
                 day.removeAttribute("data-count")
                 day.setAttribute("href", "")
@@ -12769,70 +13002,83 @@ async function betterUserStat(user) {
                 if (day.nodeName === "A") {
                     day = replaceElementTag(day, "span")
                 }
-                getWindow().$(day).tooltip('disable')
+                getWindow().$(day).tooltip("disable")
             }
         }
-
     }
 
     filterInputByEditor.oninput = inputHandler
     searchByComment.oninput = inputHandler
-    document.addEventListener("keydown", (e) => {
+    document.addEventListener("keydown", e => {
         if (e.altKey && e.code === "KeyO") {
             const selected = Array.from(filterInputByEditor.options).filter(i => i.selected)
-            const ids = changesets.filter((ch) => {
-                return selected.some(i => ch?.tags?.["created_by"]?.includes(i.value))
-            }).map(i => i.id)
+            const ids = changesets
+                .filter(ch => {
+                    return selected.some(i => ch?.tags?.["created_by"]?.includes(i.value))
+                })
+                .map(i => i.id)
             const idsStr = ids.join(",")
             open(osm_server.url + `/changeset/${ids[0]}?changesets=` + idsStr, "_blank")
         }
     })
 
     filterInputByEditor.id = "editors"
-    filterInputByEditor.addEventListener("mousedown", function (e) {
-        e.preventDefault()
-        e.target.focus()
-        filterInputByEditor.setAttribute("size", 7)
-        filterInputByEditor.setAttribute("multiple", true)
-        inputHandler()
-    }, {"once": true})
-    searchByComment.addEventListener("mousedown", function (e) {
-        inputHandler()
-    }, {"once": true})
+    filterInputByEditor.addEventListener(
+        "mousedown",
+        function (e) {
+            e.preventDefault()
+            e.target.focus()
+            filterInputByEditor.setAttribute("size", 7)
+            filterInputByEditor.setAttribute("multiple", true)
+            inputHandler()
+        },
+        { once: true },
+    )
+    searchByComment.addEventListener(
+        "mousedown",
+        function (e) {
+            inputHandler()
+        },
+        { once: true },
+    )
 
-    const counts = {};
+    const counts = {}
 
     changesets.forEach(i => {
         const editor = editorOfChangesets[i.id]
-        counts[editor] = counts[editor] ? counts[editor] + i.changes_count : i.changes_count;
+        counts[editor] = counts[editor] ? counts[editor] + i.changes_count : i.changes_count
     })
 
-    Array.from(new Set(changesets.map(i => editorOfChangesets[i.id]))).sort((a, b) => {
-        if (counts[a] < counts[b]) {
-            return 1
-        }
-        if (counts[a] > counts[b]) {
-            return -1
-        }
-        return 0
-    }).forEach(i => {
-        const item = document.createElement("option")
-        item.value = i
-        item.setAttribute("is-editor-name", "yes")
-        if (i === 1) {
-            item.textContent = ` ${i} (${counts[i]} contribution)`
-        } else {
-            item.textContent = ` ${i} (${counts[i]} contributions)`
-        }
-        filterInputByEditor.appendChild(item)
-    })
+    Array.from(new Set(changesets.map(i => editorOfChangesets[i.id])))
+        .sort((a, b) => {
+            if (counts[a] < counts[b]) {
+                return 1
+            }
+            if (counts[a] > counts[b]) {
+                return -1
+            }
+            return 0
+        })
+        .forEach(i => {
+            const item = document.createElement("option")
+            item.value = i
+            item.setAttribute("is-editor-name", "yes")
+            if (i === 1) {
+                item.textContent = ` ${i} (${counts[i]} contribution)`
+            } else {
+                item.textContent = ` ${i} (${counts[i]} contributions)`
+            }
+            filterInputByEditor.appendChild(item)
+        })
 
-    Array.from(new Set(changesets.map(i => i.tags?.["created_by"]))).sort().forEach(i => {
-        const item = document.createElement("option")
-        item.value = i
-        item.textContent = i
-        filterInputByEditor.appendChild(item)
-    })
+    Array.from(new Set(changesets.map(i => i.tags?.["created_by"])))
+        .sort()
+        .forEach(i => {
+            const item = document.createElement("option")
+            item.value = i
+            item.textContent = i
+            filterInputByEditor.appendChild(item)
+        })
 
     filterInputByEditor.after(filterInputByEditor)
     console.log("setuping filters finished")
@@ -12858,7 +13104,7 @@ async function makeProfileForDeletedUser(user) {
     div.appendChild(document.createElement("br"))
 
     function makeOSMChaLink(username) {
-        const osmchaLink = document.createElement("a");
+        const osmchaLink = document.createElement("a")
         osmchaLink.textContent = " [OSMCha] "
         osmchaLink.id = "osmcha_link"
         osmchaLink.title = "Open profile in OSMCha.org"
@@ -12882,40 +13128,42 @@ async function makeProfileForDeletedUser(user) {
                 elemForResult.appendChild(document.createElement("hr"))
                 elemForResult.appendChild(document.createTextNode("🆔:"))
             }
-            const id = data[i].id;
+            const id = data[i].id
             const idSpan = document.createElement("span")
             idSpan.textContent = id
             idSpan.title = "Click for copy"
             idSpan.style.cursor = "pointer"
             idSpan.onclick = e => {
-                navigator.clipboard.writeText(id).then(() => copyAnimation(e, id));
+                navigator.clipboard.writeText(id).then(() => copyAnimation(e, id))
             }
             injectCSSIntoOSMPage(copyAnimationStyles)
             elemForResult.appendChild(idSpan)
             elemForResult.appendChild(document.createElement("br"))
             if (data[i].names?.length > 1) {
                 const p = document.createElement("p")
-                p.textContent = "Usernames: ";
+                p.textContent = "Usernames: "
                 injectCSSIntoOSMPage(copyAnimationStyles)
-                data[i].names.map(i => i.name).forEach(name => {
-                    const usernameSpan = document.createElement("span")
-                    usernameSpan.textContent = name
-                    usernameSpan.title = "Click for copy"
-                    usernameSpan.style.cursor = "pointer"
-                    usernameSpan.onclick = e => {
-                        navigator.clipboard.writeText(name).then(() => copyAnimation(e, name));
-                    }
-                    p.appendChild(usernameSpan)
-                    p.appendChild(document.createTextNode(" "))
+                data[i].names
+                    .map(i => i.name)
+                    .forEach(name => {
+                        const usernameSpan = document.createElement("span")
+                        usernameSpan.textContent = name
+                        usernameSpan.title = "Click for copy"
+                        usernameSpan.style.cursor = "pointer"
+                        usernameSpan.onclick = e => {
+                            navigator.clipboard.writeText(name).then(() => copyAnimation(e, name))
+                        }
+                        p.appendChild(usernameSpan)
+                        p.appendChild(document.createTextNode(" "))
 
-                    const webArchiveLink = document.createElement("a")
-                    webArchiveLink.textContent = "[WA] "
-                    webArchiveLink.target = "_blank"
-                    webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + name
-                    p.appendChild(webArchiveLink)
+                        const webArchiveLink = document.createElement("a")
+                        webArchiveLink.textContent = "[WA] "
+                        webArchiveLink.target = "_blank"
+                        webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + name
+                        p.appendChild(webArchiveLink)
 
-                    p.appendChild(makeOSMChaLink(name))
-                })
+                        p.appendChild(makeOSMChaLink(name))
+                    })
                 elemForResult.appendChild(p)
             }
             setTimeout(async () => {
@@ -12931,39 +13179,52 @@ async function makeProfileForDeletedUser(user) {
                 const startPage = await GM.xmlHttpRequest({
                     url: "/user_blocks",
                     // responseType: "xml",
-                    headers: {"turbo-frame": "pagination"}
+                    headers: { "turbo-frame": "pagination" },
                 })
 
                 const blocksCount = new Map()
 
                 function findBlocks(xml) {
-                    let foundUserBlock = [];
-                    let lastUserBlock;
-                    (new DOMParser().parseFromString(xml, "text/html")).querySelectorAll("table tr").forEach(i => {
-                        if (i.querySelector("th")) {
-                            return
-                        }
-                        const username = decodeURI(i.querySelector("td a").getAttribute("href").match(/\/user\/(.*)$/)[1])
-                        if (blocksCount.has(username)) {
-                            blocksCount.set(username, blocksCount.get(username) + 1)
-                        } else {
-                            blocksCount.set(username, 1)
-                        }
-                        lastUserBlock = i.querySelector('td a[href^="/user_blocks/"]').getAttribute("href").match(/\/user_blocks\/([0-9]+)/)[1]
-                        if (username === "user_" + id) {
-                            foundUserBlock.push(lastUserBlock)
-                        }
-                    })
+                    let foundUserBlock = []
+                    let lastUserBlock
+                    new DOMParser()
+                        .parseFromString(xml, "text/html")
+                        .querySelectorAll("table tr")
+                        .forEach(i => {
+                            if (i.querySelector("th")) {
+                                return
+                            }
+                            const username = decodeURI(
+                                i
+                                    .querySelector("td a")
+                                    .getAttribute("href")
+                                    .match(/\/user\/(.*)$/)[1],
+                            )
+                            if (blocksCount.has(username)) {
+                                blocksCount.set(username, blocksCount.get(username) + 1)
+                            } else {
+                                blocksCount.set(username, 1)
+                            }
+                            lastUserBlock = i
+                                .querySelector('td a[href^="/user_blocks/"]')
+                                .getAttribute("href")
+                                .match(/\/user_blocks\/([0-9]+)/)[1]
+                            if (username === "user_" + id) {
+                                foundUserBlock.push(lastUserBlock)
+                            }
+                        })
                     return [foundUserBlock, lastUserBlock]
                 }
 
                 async function getBlockInfo(blockID) {
-                    const blockInfo = (await GM.xmlHttpRequest({
-                        url: "/api/0.6/user_blocks/" + blockID + ".json",
-                        responseType: "json",
-                        headers: {"turbo-frame": "pagination"}
-                    })).response
-                    return `${blockInfo['user_block']['created_at']}\n${blockInfo['user_block']['creator']['user']}: ${blockInfo['user_block']['reason']}`
+                    const blockInfo = (
+                        await GM.xmlHttpRequest({
+                            url: "/api/0.6/user_blocks/" + blockID + ".json",
+                            responseType: "json",
+                            headers: { "turbo-frame": "pagination" },
+                        })
+                    ).response
+                    return `${blockInfo["user_block"]["created_at"]}\n${blockInfo["user_block"]["creator"]["user"]}: ${blockInfo["user_block"]["reason"]}`
                 }
 
                 function processFoundedBlocks(foundUserBlock) {
@@ -12987,13 +13248,13 @@ async function makeProfileForDeletedUser(user) {
                     while (lastUserBlock > 1) {
                         async function processBlocks(before) {
                             console.log("download user_block before ", before)
-                            before = Math.max(1, before);
+                            before = Math.max(1, before)
                             const startPage = await GM.xmlHttpRequest({
                                 url: "/user_blocks?before=" + before,
                                 // responseType: "xml",
-                                headers: {"turbo-frame": "pagination"}
-                            });
-                            [foundUserBlock, before] = findBlocks(startPage.response)
+                                headers: { "turbo-frame": "pagination" },
+                            })
+                            ;[foundUserBlock, before] = findBlocks(startPage.response)
                             if (!before) {
                                 return
                             }
@@ -13002,15 +13263,15 @@ async function makeProfileForDeletedUser(user) {
                             }
                         }
 
-                        const onPage = 20;
-                        const threads = 10;
+                        const onPage = 20
+                        const threads = 10
                         console.log("download user_block batch before ", lastUserBlock)
                         loadingStatus.title = `Scanned all blocks after #${lastUserBlock}`
                         const batch = []
                         for (let j = 0; j < threads; j++) {
                             batch.push(processBlocks(lastUserBlock - onPage * j))
                         }
-                        await Promise.all(batch);
+                        await Promise.all(batch)
                         lastUserBlock -= threads * onPage
                     }
                     loadingStatus.style.display = "none"
@@ -13024,28 +13285,35 @@ async function makeProfileForDeletedUser(user) {
                             return 0
                         }
                     })
-                    console.log("Top banned:", arr);
-                    console.log("All blocks downloaded");
+                    console.log("Top banned:", arr)
+                    console.log("All blocks downloaded")
                 }
             })
 
-
             /*** @type {{changesets: ChangesetMetadata[]}}*/
-            const lastChangesets = await fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
-                user: id,
-                order: 'newest',
-                to: new Date().toISOString(),
-            }).toString())
+            const lastChangesets = await fetchJSONWithCache(
+                osm_server.apiBase +
+                    "changesets.json?" +
+                    new URLSearchParams({
+                        user: id,
+                        order: "newest",
+                        to: new Date().toISOString(),
+                    }).toString(),
+            )
             const processedChangesets = new Set(lastChangesets.changesets.map(c => c.id))
 
-            for(let i = 0; i < 20; i++) {
+            for (let i = 0; i < 20; i++) {
                 const curTime = lastChangesets.changesets[lastChangesets.changesets.length - 1].created_at
-                const ch  = await fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
-                    user: id,
-                    order: 'newest',
-                    to: new Date(new Date(curTime).getTime() + 1000).toISOString(),
-                    from: "2005-01-01T00:00:00Z",
-                }).toString())
+                const ch = await fetchJSONWithCache(
+                    osm_server.apiBase +
+                        "changesets.json?" +
+                        new URLSearchParams({
+                            user: id,
+                            order: "newest",
+                            to: new Date(new Date(curTime).getTime() + 1000).toISOString(),
+                            from: "2005-01-01T00:00:00Z",
+                        }).toString(),
+                )
                 ch.changesets = ch.changesets.filter(ch => !processedChangesets.has(ch.id))
                 if (ch.changesets.length === 0) break
                 lastChangesets.changesets.push(...(ch.changesets ?? []))
@@ -13054,7 +13322,7 @@ async function makeProfileForDeletedUser(user) {
             elemForResult.appendChild(document.createTextNode(`Last ${lastChangesets.changesets?.length} changesets:`))
             lastChangesets.changesets.forEach(ch => {
                 const changesetLine = document.createElement("div")
-                changesetLine.title = ch['created_at']
+                changesetLine.title = ch["created_at"]
                 const checkbox = document.createElement("input")
                 checkbox.type = "checkbox"
                 checkbox.classList.add("mass-action-checkbox")
@@ -13098,7 +13366,7 @@ async function makeProfileForDeletedUser(user) {
                 changesetLine.appendChild(a)
 
                 const comment = document.createElement("span")
-                comment.textContent = " " + (ch.tags?.['comment'] ?? "No comment")
+                comment.textContent = " " + (ch.tags?.["comment"] ?? "No comment")
                 changesetLine.appendChild(comment)
 
                 if (ch.comments_count) {
@@ -13113,7 +13381,7 @@ async function makeProfileForDeletedUser(user) {
                                 commentsBadge.title += `${comment["user"]}:\n${shortText}\n\n`
                             })
                             commentsBadge.title = commentsBadge.title.trimEnd()
-                        });
+                        })
                     })
                     changesetLine.appendChild(commentsBadge)
                 }
@@ -13127,11 +13395,15 @@ async function makeProfileForDeletedUser(user) {
             copyIds.classList.add("copy-changesets-ids-btn")
             copyIds.setAttribute("user-id", id)
             copyIds.onclick = e => {
-                const ids = Array.from(elemForResult.querySelectorAll(`input:checked[user-id="${id}"]`)).map(i => i.value).join(",")
+                const ids = Array.from(elemForResult.querySelectorAll(`input:checked[user-id="${id}"]`))
+                    .map(i => i.value)
+                    .join(",")
                 if (ids !== "") {
                     navigator.clipboard.writeText(ids).then(() => copyAnimation(e, ids))
                 } else {
-                    const ids = Array.from(elemForResult.querySelectorAll("input")).map(i => i.value).join(",")
+                    const ids = Array.from(elemForResult.querySelectorAll("input"))
+                        .map(i => i.value)
+                        .join(",")
                     navigator.clipboard.writeText(ids).then(() => copyAnimation(e, ids))
                 }
             }
@@ -13139,14 +13411,13 @@ async function makeProfileForDeletedUser(user) {
         }
     }
 
-
     const res = await GM.xmlHttpRequest({
         url: "https://whosthat.osmz.ru/whosthat.php?action=info&name=" + user,
-        responseType: "json"
+        responseType: "json",
     })
     // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
     // but here need resolve problem with return promise
-    const data = structuredClone(res.response);
+    const data = structuredClone(res.response)
     if (data.length) {
         webArchiveLink.after(makeOSMChaLink(decodeURI(user)))
 
@@ -13156,24 +13427,28 @@ async function makeProfileForDeletedUser(user) {
         await processIDs(data, result)
     } else {
         setTimeout(async () => {
-            const res = (await GM.xmlHttpRequest({
-                url: `${overpass_server.apiUrl}/interpreter?` + new URLSearchParams({
-                    data: `
+            const res = (
+                await GM.xmlHttpRequest({
+                    url:
+                        `${overpass_server.apiUrl}/interpreter?` +
+                        new URLSearchParams({
+                            data: `
                                 [out:json];
                                 node(user:"${user.replace('"', '\\"')}")->.b;
                                 node.b(if:lat() == b.min(lat()));
                                 out meta;
-                            `
-                }),
-                responseType: "json"
-            })).response;
+                            `,
+                        }),
+                    responseType: "json",
+                })
+            ).response
             if (res.elements?.length) {
                 webArchiveLink.after(makeOSMChaLink(decodeURI(user)))
 
                 const result = document.createElement("p")
                 div.appendChild(result)
                 result.title = "via Overpass API"
-                await processIDs([{id: res.elements[0].uid}], result)
+                await processIDs([{ id: res.elements[0].uid }], result)
             }
         })
     }
@@ -13182,28 +13457,32 @@ async function makeProfileForDeletedUser(user) {
         const userID = parseInt(user.match(/user_([0-9]+)/)[1])
         const res = await GM.xmlHttpRequest({
             url: "https://whosthat.osmz.ru/whosthat.php?action=names&id=" + userID,
-            responseType: "json"
+            responseType: "json",
         })
         // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
         // but here need resolve problem with return promise
         const data = structuredClone(res.response)
-        let names = data[0]['names']
+        let names = data[0]["names"]
 
         const userNamesP = document.createElement("p")
         div.appendChild(userNamesP)
         setTimeout(async () => {
             if (!names.length) {
-                const res = (await GM.xmlHttpRequest({
-                    url: `${overpass_server.apiUrl}/interpreter?` + new URLSearchParams({
-                        data: `
+                const res = (
+                    await GM.xmlHttpRequest({
+                        url:
+                            `${overpass_server.apiUrl}/interpreter?` +
+                            new URLSearchParams({
+                                data: `
                             [out:json];
                             node(uid:${userID})->.b;
                             node.b(if:lat() == b.min(lat()));
                             out meta;
-                        `
-                    }),
-                    responseType: "json"
-                })).response;
+                        `,
+                            }),
+                        responseType: "json",
+                    })
+                ).response
                 if (res?.elements?.length) {
                     names = [res.elements[0].user]
                 }
@@ -13212,7 +13491,7 @@ async function makeProfileForDeletedUser(user) {
                 div.title = "via whosthat.osmz.ru"
             }
             if (names.length) {
-                userNamesP.textContent = "Usernames: ";
+                userNamesP.textContent = "Usernames: "
                 injectCSSIntoOSMPage(copyAnimationStyles)
                 names.forEach(name => {
                     const usernameSpan = document.createElement("span")
@@ -13220,7 +13499,7 @@ async function makeProfileForDeletedUser(user) {
                     usernameSpan.title = "Click for copy"
                     usernameSpan.style.cursor = "pointer"
                     usernameSpan.onclick = e => {
-                        navigator.clipboard.writeText(name).then(() => copyAnimation(e, name));
+                        navigator.clipboard.writeText(name).then(() => copyAnimation(e, name))
                     }
                     userNamesP.appendChild(usernameSpan)
                     userNamesP.appendChild(document.createTextNode(" "))
@@ -13235,23 +13514,23 @@ async function makeProfileForDeletedUser(user) {
                 })
             }
         })
-        await processIDs([{id: userID}], div)
+        await processIDs([{ id: userID }], div)
     }
     content.appendChild(div)
 }
 
 async function setupHDYCInProfile(path) {
-    let match = path.match(/^\/user\/([^/]+)(\/|\/notes)?$/);
+    let match = path.match(/^\/user\/([^/]+)(\/|\/notes)?$/)
     if (!match || path.includes("/history")) {
-        return;
+        return
     }
     if (document.getElementById("hdyc-iframe")) {
         return
     }
     /** @type {string} **/
-    const user = match[1];
-    if (user === "forgot-password" || user === "new") return;
-    document.querySelector(".content-body > .content-inner").style.paddingBottom = "0px";
+    const user = match[1]
+    if (user === "forgot-password" || user === "new") return
+    document.querySelector(".content-body > .content-inner").style.paddingBottom = "0px"
     if (isDarkMode()) {
         GM_addElement(document.querySelector("#content"), "iframe", {
             src: "https://www.hdyc.neis-one.org/?" + user + "#forcedarktheme",
@@ -13260,9 +13539,9 @@ async function setupHDYCInProfile(path) {
             scrolling: "no",
             background: "rgb(49, 54, 59)",
             style: "visibility:hidden;background-color: rgb(49, 54, 59);",
-        });
+        })
         setTimeout(() => {
-            document.getElementById("hdyc-iframe").style.visibility = 'visible';
+            document.getElementById("hdyc-iframe").style.visibility = "visible"
         }, 1500)
     } else {
         GM_addElement(document.querySelector("#content"), "iframe", {
@@ -13270,7 +13549,7 @@ async function setupHDYCInProfile(path) {
             width: "100%",
             id: "hdyc-iframe",
             scrolling: "no",
-        });
+        })
     }
     if (document.querySelector('a[href$="/blocks"]')?.nextElementSibling?.textContent > 0) {
         document.querySelector('a[href$="/blocks"]').nextElementSibling.style.background = "rgba(255, 0, 0, 0.3)"
@@ -13278,13 +13557,13 @@ async function setupHDYCInProfile(path) {
             document.querySelector('a[href$="/blocks"]').nextElementSibling.style.color = "white"
         }
         getCachedUserInfo(decodeURI(user)).then(userInfo => {
-            if (userInfo['blocks']['received']['active'] === 0) {
+            if (userInfo["blocks"]["received"]["active"] === 0) {
                 updateUserInfo(decodeURI(user))
             }
         })
     } else if (document.querySelector('a[href$="/blocks"]')?.nextElementSibling?.textContent === "0") {
         getCachedUserInfo(decodeURI(user)).then(userInfo => {
-            if (userInfo['blocks']['received']['active'] !== 0) {
+            if (userInfo["blocks"]["received"]["active"] !== 0) {
                 updateUserInfo(decodeURI(user))
             }
         })
@@ -13299,7 +13578,7 @@ async function setupHDYCInProfile(path) {
         span.style.cursor = "pointer"
         span.onclick = e => {
             const username = usernameHeader.textContent.trim()
-            navigator.clipboard.writeText(username).then(() => copyAnimation(e, username));
+            navigator.clipboard.writeText(username).then(() => copyAnimation(e, username))
         }
         usernameHeader.replaceWith(span)
         injectCSSIntoOSMPage(copyAnimationStyles)
@@ -13307,29 +13586,40 @@ async function setupHDYCInProfile(path) {
     queueMicrotask(async () => {
         if (document.querySelector(".prev-usernames")) return
         const userDetails = document.querySelector(".content-inner small dl")
-        if (!userDetails) return;
+        if (!userDetails) return
         // https://www.openstreetmap.org/reports/new?reportable_id=12345&reportable_type=User
-        let userID = document.querySelector('[href*="reportable_id="]')?.getAttribute("href")?.match(/reportable_id=(\d+)/)?.[1]
+        let userID = document
+            .querySelector('[href*="reportable_id="]')
+            ?.getAttribute("href")
+            ?.match(/reportable_id=(\d+)/)?.[1]
         userID = userID ?? document.head.getAttribute("data-user")
         if (!userID) {
-            const res = await fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
-                display_name: decodeURI(user),
-                limit: 1,
-                order: 'oldest'
-            }).toString());
-            if (res['changesets'].length === 0) {
-                const res = await fetchJSONWithCache(osm_server.apiBase + "notes/search.json?" + new URLSearchParams({
-                    display_name: decodeURI(user),
-                    limit: 1,
-                    closed: -1,
-                    order: "oldest"
-                }).toString());
-                userID = res?.['features']?.[0]?.['properties']?.['comments']?.find(i => i['user'] === decodeURI(user))?.['uid']
+            const res = await fetchJSONWithCache(
+                osm_server.apiBase +
+                    "changesets.json?" +
+                    new URLSearchParams({
+                        display_name: decodeURI(user),
+                        limit: 1,
+                        order: "oldest",
+                    }).toString(),
+            )
+            if (res["changesets"].length === 0) {
+                const res = await fetchJSONWithCache(
+                    osm_server.apiBase +
+                        "notes/search.json?" +
+                        new URLSearchParams({
+                            display_name: decodeURI(user),
+                            limit: 1,
+                            closed: -1,
+                            order: "oldest",
+                        }).toString(),
+                )
+                userID = res?.["features"]?.[0]?.["properties"]?.["comments"]?.find(i => i["user"] === decodeURI(user))?.["uid"]
                 if (!userID) {
-                    return;
+                    return
                 }
             } else {
-                userID = res['changesets'][0]['uid']
+                userID = res["changesets"][0]["uid"]
             }
         }
 
@@ -13337,18 +13627,18 @@ async function setupHDYCInProfile(path) {
             async function updateUserIDInfo(userID) {
                 const res = await GM.xmlHttpRequest({
                     url: "https://whosthat.osmz.ru/whosthat.php?action=names&id=" + userID,
-                    responseType: "json"
+                    responseType: "json",
                 })
                 // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
                 // but here need resolve problem with return promise
                 const userInfo = {
-                    data: structuredClone(res.response)
+                    data: structuredClone(res.response),
                 }
-                if (userInfo.data[0]['names'].length > 1) {
-                    userInfo['cacheTime'] = new Date()
+                if (userInfo.data[0]["names"].length > 1) {
+                    userInfo["cacheTime"] = new Date()
                     await GM.setValue("useridinfo-" + userID, JSON.stringify(userInfo))
 
-                    const usernames = userInfo.data[0]['names'].filter(i => i !== decodeURI(user)).join(", ")
+                    const usernames = userInfo.data[0]["names"].filter(i => i !== decodeURI(user)).join(", ")
                     if (document.querySelector(".prev-usernames")) {
                         document.querySelector(".prev-usernames").textContent = usernames
                     }
@@ -13366,11 +13656,11 @@ async function setupHDYCInProfile(path) {
             }
 
             const userIDInfo = await getCachedUserIDInfo(userID)
-            if (userIDInfo.data[0]['names'].length <= 1) {
+            if (userIDInfo.data[0]["names"].length <= 1) {
                 console.log("prev user's usernames not found")
                 return
             }
-            const usernames = userIDInfo.data[0]['names'].filter(i => i !== decodeURI(user)).join(", ")
+            const usernames = userIDInfo.data[0]["names"].filter(i => i !== decodeURI(user)).join(", ")
             const dt = document.createElement("dt")
             dt.textContent = "Past usernames: "
             dt.title = "Added by better-osm-org"
@@ -13397,7 +13687,7 @@ async function setupHDYCInProfile(path) {
                 dd.title = "Click for copy"
                 dd.style.cursor = "pointer"
                 dd.onclick = e => {
-                    navigator.clipboard.writeText(userID).then(() => copyAnimation(e, userID));
+                    navigator.clipboard.writeText(userID).then(() => copyAnimation(e, userID))
                 }
                 userDetails.appendChild(dt)
                 userDetails.appendChild(document.createTextNode("\xA0"))
@@ -13408,33 +13698,33 @@ async function setupHDYCInProfile(path) {
 
         addUserID()
     })
-    const iframe = document.getElementById('hdyc-iframe');
-    window.addEventListener('message', function (event) {
+    const iframe = document.getElementById("hdyc-iframe")
+    window.addEventListener("message", function (event) {
         if (event.origin === "https://www.hdyc.neis-one.org") {
-            iframe.height = event.data.height + 'px';
+            iframe.height = event.data.height + "px"
         }
-    });
+    })
     if (isDeletedUser && !location.pathname.includes("/notes")) {
         await makeProfileForDeletedUser(user)
     }
 }
 
 function setupBetterProfileStat() {
-    let match = location.pathname.match(/^\/user\/([^/]+)\/?$/);
+    let match = location.pathname.match(/^\/user\/([^/]+)\/?$/)
     if (!match) {
-        return;
+        return
     }
-    const user = match[1];
-    let timerId = setInterval(betterUserStat, 300, decodeURI(user));
+    const user = match[1]
+    let timerId = setInterval(betterUserStat, 300, decodeURI(user))
     setTimeout(() => {
-        clearInterval(timerId);
-        console.debug('stop try add heatmap filters');
-    }, 5000);
+        clearInterval(timerId)
+        console.debug("stop try add heatmap filters")
+    }, 5000)
     void betterUserStat(decodeURI(user))
 }
 
 function inFrame() {
-    return window.location !== window.parent.location;
+    return window.location !== window.parent.location
 }
 
 function simplifyHDCYIframe() {
@@ -13528,8 +13818,7 @@ function simplifyHDCYIframe() {
                     border-bottom-color: #8c8273;
                 }
             }
-        `
-    );
+        `)
     const loginLink = document.getElementById("loginLink")
     if (loginLink) {
         let warn = document.createElement("div")
@@ -13542,14 +13831,13 @@ function simplifyHDCYIframe() {
                     left: 35%;
                     right: 33%;
                 }
-            `,
-        );
+            `)
         if (isFirefox) {
             warn.textContent = "Please disable tracking protection so that the HDYC account login works"
 
             document.getElementById("authenticate").before(warn)
             let hdycLink = document.createElement("a")
-            const match = location.pathname.match(/^\/user\/([^/]+)$/);
+            const match = location.pathname.match(/^\/user\/([^/]+)$/)
             hdycLink.href = "https://www.hdyc.neis-one.org/" + (match ? match[1] : "")
             hdycLink.textContent = "Go to https://www.hdyc.neis-one.org/"
             hdycLink.target = "_blank"
@@ -13557,7 +13845,7 @@ function simplifyHDCYIframe() {
             document.getElementById("authenticate").before(document.createElement("br"))
             document.getElementById("authenticate").before(hdycLink)
             document.getElementById("authenticate").remove()
-            window.parent.postMessage({height: document.body.scrollHeight}, '*')
+            window.parent.postMessage({ height: document.body.scrollHeight }, "*")
         } else {
             warn.innerHTML = `To see more than just public profiles, do the following:<br/>
 0. Turn off tracking protection if your browser has it (for example in Brave or Vivaldi)<br/>
@@ -13569,7 +13857,7 @@ function simplifyHDCYIframe() {
             document.getElementById("authenticate").before(warn)
             const img_help = document.createElement("img")
             img_help.onload = () => {
-                window.parent.postMessage({height: document.body.scrollHeight}, '*')
+                window.parent.postMessage({ height: document.body.scrollHeight }, "*")
             }
             img_help.src = "https://raw.githubusercontent.com/deevroman/better-osm-org/master/img/hdyc-fix-in-chrome.png"
             img_help.style.width = "90%"
@@ -13606,43 +13894,51 @@ function simplifyHDCYIframe() {
         }
         childNodesKey.remove()
     }
-    window.parent.postMessage({height: document.body.scrollHeight}, '*');
+    window.parent.postMessage({ height: document.body.scrollHeight }, "*")
 }
 
 //<editor-fold desc="/history, /user/*/history">
 async function updateUserInfo(username) {
     void initCorporateMappersList()
-    const res = await fetchJSONWithCache(osm_server.apiBase + "changesets.json?" + new URLSearchParams({
-        display_name: username,
-        limit: 1,
-        order: 'oldest'
-    }).toString());
-    let uid;
-    let firstObjectCreationTime;
-    let firstChangesetID;
-    if (res['changesets'].length === 0) {
-        const res = await fetchJSONWithCache(osm_server.apiBase + "notes/search.json?" + new URLSearchParams({
-            display_name: username,
-            limit: 1,
-            closed: -1,
-            order: "oldest"
-        }).toString());
-        uid = res['features'][0]['properties']['comments'].find(i => i['user'] === username)['uid']
-        firstObjectCreationTime = res['features'][0]['properties']['comments'].find(i => i['user'] === username)['date']
+    const res = await fetchJSONWithCache(
+        osm_server.apiBase +
+            "changesets.json?" +
+            new URLSearchParams({
+                display_name: username,
+                limit: 1,
+                order: "oldest",
+            }).toString(),
+    )
+    let uid
+    let firstObjectCreationTime
+    let firstChangesetID
+    if (res["changesets"].length === 0) {
+        const res = await fetchJSONWithCache(
+            osm_server.apiBase +
+                "notes/search.json?" +
+                new URLSearchParams({
+                    display_name: username,
+                    limit: 1,
+                    closed: -1,
+                    order: "oldest",
+                }).toString(),
+        )
+        uid = res["features"][0]["properties"]["comments"].find(i => i["user"] === username)["uid"]
+        firstObjectCreationTime = res["features"][0]["properties"]["comments"].find(i => i["user"] === username)["date"]
     } else {
-        uid = res['changesets'][0]['uid']
-        firstObjectCreationTime = res['changesets'][0]['created_at']
-        firstChangesetID = res['changesets'][0]['id']
+        uid = res["changesets"][0]["uid"]
+        firstObjectCreationTime = res["changesets"][0]["created_at"]
+        firstChangesetID = res["changesets"][0]["id"]
     }
 
-    const res2 = await fetchJSONWithCache(osm_server.apiBase + "user/" + uid + ".json");
+    const res2 = await fetchJSONWithCache(osm_server.apiBase + "user/" + uid + ".json")
     const userInfo = structuredClone(res2.user) // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
-    userInfo['cacheTime'] = new Date()
+    userInfo["cacheTime"] = new Date()
     if (firstObjectCreationTime) {
-        userInfo['firstChangesetCreationTime'] = new Date(firstObjectCreationTime)
+        userInfo["firstChangesetCreationTime"] = new Date(firstObjectCreationTime)
     }
     if (firstChangesetID) {
-        userInfo['firstChangesetID'] = firstChangesetID
+        userInfo["firstChangesetID"] = firstChangesetID
     }
     await GM.setValue("userinfo-" + username, JSON.stringify(userInfo))
     return userInfo
@@ -13659,8 +13955,8 @@ async function getCachedUserInfo(username) {
     }
     const localUserInfo = await GM.getValue("userinfo-" + username, "")
     if (localUserInfo) {
-        const cacheTime = new Date(localUserInfo['cacheTime'])
-        if (cacheTime.setUTCDate(cacheTime.getUTCDate() + 3) < new Date() || localUserInfo['kontoras'] === undefined) {
+        const cacheTime = new Date(localUserInfo["cacheTime"])
+        if (cacheTime.setUTCDate(cacheTime.getUTCDate() + 3) < new Date() || localUserInfo["kontoras"] === undefined) {
             setTimeout(updateUserInfo, 0, username)
         }
         return JSON.parse(localUserInfo)
@@ -13668,11 +13964,11 @@ async function getCachedUserInfo(username) {
     return await updateUserInfo(username)
 }
 
-let sidebarObserverForMassActions = null;
-let massModeForUserChangesetsActive = null;
-let massModeActive = null;
-let currentMassDownloadedPages = null;
-let needHideBigChangesets = true;
+let sidebarObserverForMassActions = null
+let massModeForUserChangesetsActive = null
+let massModeActive = null
+let currentMassDownloadedPages = null
+let needHideBigChangesets = true
 
 function openCombinedChangesetsMap() {
     const batchSize = 500
@@ -13707,29 +14003,37 @@ function makeTopActionBar() {
     copyIds.textContent = "Copy IDs"
     copyIds.classList.add("copy-changesets-ids-btn")
     copyIds.onclick = () => {
-        const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
+        const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked"))
+            .map(i => i.value)
+            .join(",")
         if (ids !== "") {
             navigator.clipboard.writeText(ids).then(() => {
                 console.log(ids, "ids copied")
-            });
+            })
         } else {
-            const ids = Array.from(document.querySelectorAll(".mass-action-checkbox")).map(i => i.value).join(",")
+            const ids = Array.from(document.querySelectorAll(".mass-action-checkbox"))
+                .map(i => i.value)
+                .join(",")
             navigator.clipboard.writeText(ids).then(() => {
                 console.log(ids, "ids copied")
-            });
+            })
         }
     }
     const revertButton = document.createElement("button")
     revertButton.textContent = "↩️"
     revertButton.title = "revert via osm-revert"
     revertButton.onclick = () => {
-        const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
+        const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked"))
+            .map(i => i.value)
+            .join(",")
         open("https://revert.monicz.dev/?changesets=" + ids, "_blank")
     }
     const revertViaJOSMButton = document.createElement("button")
     revertViaJOSMButton.textContent = "↩️ via JOSM"
     revertViaJOSMButton.onclick = () => {
-        const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
+        const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked"))
+            .map(i => i.value)
+            .join(",")
         open("http://127.0.0.1:8111/revert_changeset?id=" + ids, "_blank")
     }
     const viewChangesetsButton = document.createElement("button")
@@ -13743,7 +14047,7 @@ function makeTopActionBar() {
     actionsBar.appendChild(revertViaJOSMButton)
     actionsBar.appendChild(document.createTextNode("\xA0"))
     actionsBar.appendChild(viewChangesetsButton)
-    return actionsBar;
+    return actionsBar
 }
 
 function makeBottomActionBar() {
@@ -13760,23 +14064,29 @@ function makeBottomActionBar() {
     copyIds.classList.add("buttom-btn")
     copyIds.classList.add("page-link")
     copyIds.onclick = () => {
-        const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
+        const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked"))
+            .map(i => i.value)
+            .join(",")
         if (ids !== "") {
             navigator.clipboard.writeText(ids).then(() => {
                 console.log(ids, "ids copied")
-            });
+            })
         } else {
-            const ids = Array.from(document.querySelectorAll(".mass-action-checkbox")).map(i => i.value).join(",")
+            const ids = Array.from(document.querySelectorAll(".mass-action-checkbox"))
+                .map(i => i.value)
+                .join(",")
             navigator.clipboard.writeText(ids).then(() => {
                 console.log(ids, "ids copied")
-            });
+            })
         }
     }
     const revertButton = document.createElement("button")
     revertButton.textContent = "↩️"
     revertButton.title = "revert via osm-revert"
     revertButton.onclick = () => {
-        const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked")).map(i => i.value).join(",")
+        const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked"))
+            .map(i => i.value)
+            .join(",")
         window.location = "https://revert.monicz.dev/?changesets=" + ids
     }
     revertButton.classList.add("page-link")
@@ -13794,7 +14104,7 @@ function makeBottomActionBar() {
         changesetMore.appendChild(document.createTextNode("\xA0"))
         changesetMore.appendChild(viewChangesetsButton)
     } else {
-        const changesetsList = document.querySelector("#sidebar_content ol");
+        const changesetsList = document.querySelector("#sidebar_content ol")
         const actionBarWrapper = document.createElement("ul")
         actionBarWrapper.classList.add("pagination", "justify-content-center")
         const actionBarWrapperLi = document.createElement("li")
@@ -13816,15 +14126,15 @@ function makeBottomActionBar() {
 function makeOsmchaLinkForUsername(username) {
     // example: https://osmcha.org?filters={"users":[{"label":"TrickyFoxy","value":"TrickyFoxy"}]}
     const osmchaFilter = {
-        "users": [{"label": username, "value": username}],
-        "date__gte": [{"label": "", "value": ""}]
+        users: [{ label: username, value: username }],
+        date__gte: [{ label: "", value: "" }],
     }
-    return "https://osmcha.org?" + new URLSearchParams({filters: JSON.stringify(osmchaFilter)}).toString()
+    return "https://osmcha.org?" + new URLSearchParams({ filters: JSON.stringify(osmchaFilter) }).toString()
 }
 
 function addMassActionForUserChangesets() {
     if (!location.pathname.includes("/user/") || document.querySelector("#mass-action-btn")) {
-        return;
+        return
     }
     const a = document.createElement("a")
     a.title = "Add checkboxes for mass actions with changesets"
@@ -13847,7 +14157,7 @@ function addMassActionForUserChangesets() {
         }
     }
     const username = decodeURI(location.pathname.match(/\/user\/(.*)\/history$/)[1])
-    const osmchaLink = document.createElement("a");
+    const osmchaLink = document.createElement("a")
     osmchaLink.id = "osmcha_link"
     osmchaLink.title = "Open profile in OSMCha.org"
     osmchaLink.href = makeOsmchaLinkForUsername(username)
@@ -13856,14 +14166,13 @@ function addMassActionForUserChangesets() {
 
     const osmchaIcon = document.createElement("img")
     osmchaIcon.src = GM_getResourceURL("OSMCHA_ICON", false)
-    osmchaIcon.style.height = "1em";
-    osmchaIcon.style.cursor = "pointer";
-    osmchaIcon.style.marginTop = "-3px";
+    osmchaIcon.style.height = "1em"
+    osmchaIcon.style.cursor = "pointer"
+    osmchaIcon.style.marginTop = "-3px"
     if (isDarkMode()) {
-        osmchaIcon.style.filter = "invert(0.7)";
+        osmchaIcon.style.filter = "invert(0.7)"
     }
     osmchaLink.appendChild(osmchaIcon)
-
 
     document.querySelector("#sidebar_content h2").appendChild(a)
     document.querySelector("#sidebar_content h2").appendChild(document.createTextNode("\xA0"))
@@ -13872,9 +14181,9 @@ function addMassActionForUserChangesets() {
 
 function addChangesetCheckbox(chagesetElem) {
     if (chagesetElem.querySelector(".mass-action-checkbox")) {
-        return;
+        return
     }
-    const a = document.createElement("a");
+    const a = document.createElement("a")
     a.classList.add("mass-action-wrapper")
     const checkbox = document.createElement("input")
     checkbox.type = "checkbox"
@@ -13909,8 +14218,8 @@ function addChangesetCheckbox(chagesetElem) {
     }
     a.appendChild(checkbox)
     chagesetElem.querySelector("p").prepend(a)
-    chagesetElem.querySelectorAll("a.changeset_id").forEach((i) => {
-        i.onclick = (e) => {
+    chagesetElem.querySelectorAll("a.changeset_id").forEach(i => {
+        i.onclick = e => {
             if (massModeActive) {
                 e.preventDefault()
             }
@@ -13919,14 +14228,23 @@ function addChangesetCheckbox(chagesetElem) {
 }
 
 function filterChangesets(htmlDocument = document) {
-    const usernameFilters = document.querySelector("#filter-by-user-input").value.trim().split(",").map(i => i.trim()).filter(i => i !== "")
-    const commentFilters = document.querySelector("#filter-by-comment-input").value.trim().split(",").filter(i => i.trim() !== "")
-    let newHiddenChangesetsCount = 0;
+    const usernameFilters = document
+        .querySelector("#filter-by-user-input")
+        .value.trim()
+        .split(",")
+        .map(i => i.trim())
+        .filter(i => i !== "")
+    const commentFilters = document
+        .querySelector("#filter-by-comment-input")
+        .value.trim()
+        .split(",")
+        .filter(i => i.trim() !== "")
+    let newHiddenChangesetsCount = 0
     htmlDocument.querySelectorAll("ol li").forEach(i => {
         const changesetComment = i.querySelector("p a bdi").textContent
         const changesetAuthorLink = i.querySelector("div > a")
         const changesetAuthor = changesetAuthorLink?.textContent ?? ""
-        let bbox;
+        let bbox
         if (i.getAttribute("data-changeset")) {
             bbox = Object.values(JSON.parse(i.getAttribute("data-changeset")).bbox)
         } else {
@@ -14012,14 +14330,14 @@ function filterChangesets(htmlDocument = document) {
                 // FIXME
             }
         } else {
-            newHiddenChangesetsCount++;
+            newHiddenChangesetsCount++
         }
     })
     if (getWindow().hiddenChangesetsCount !== newHiddenChangesetsCount && htmlDocument === document) {
         getWindow().hiddenChangesetsCount = newHiddenChangesetsCount
         const changesetsCount = document.querySelectorAll("ol > li").length
         document.querySelector("#hidden-changeset-counter").textContent = ` Displayed ${changesetsCount - newHiddenChangesetsCount}/${changesetsCount}`
-        console.log(changesetsCount);
+        console.log(changesetsCount)
     }
 }
 
@@ -14059,12 +14377,12 @@ function makeUsernamesFilterable(usernameLink) {
     filterIcon.style.top = "-2px"
     filterIcon.style.marginLeft = "4px"
     filterIcon.title = "Click for hide this user changesets"
-    filterIcon.onclick = async (e) => {
+    filterIcon.onclick = async e => {
         e.preventDefault()
         await addUsernameIntoChangesetsFilter(usernameLink.textContent)
     }
     usernameLink.setAttribute("target", "_blank")
-    usernameLink.onclick = async (e) => {
+    usernameLink.onclick = async e => {
         if (isDebug()) {
             e.preventDefault()
             await addUsernameIntoChangesetsFilter(usernameLink.textContent)
@@ -14086,12 +14404,11 @@ function loadExternalVectorStyle() {
         }).then(async res => {
             getWindow().vectorStyle = await res.response
         })
-    } catch (e) {
-    }
+    } catch (e) {}
 }
 
 if (isDebug()) {
-    loadExternalVectorStyle();
+    loadExternalVectorStyle()
 }
 
 if (isOsmServer()) {
@@ -14106,15 +14423,15 @@ if (isOsmServer()) {
     window.notesQFilter = "";
     window.notesClosedFilter = "";
     window.notesIDsFilter = new Set();
-    
+
     // window.mapDataIDsFilter = new Set();
 
     console.log('Fetch intercepted');
     window.fetch = async (...args) => {
         try {
             if (args[0]?.includes?.("notes.json") && (
-                window.notesDisplayName !== "" 
-                || window.notesQFilter !== "" 
+                window.notesDisplayName !== ""
+                || window.notesQFilter !== ""
                 || (window.notesClosedFilter !== "" && window.notesClosedFilter !== "7"))
                 || window.notesIDsFilter.size
             ) {
@@ -14277,22 +14594,20 @@ if (isOsmServer()) {
 }
 
 function getScrollbarWidth() {
-    const outer = document.createElement('div');
-    outer.style.visibility = 'hidden';
-    outer.style.overflow = 'scroll';
-    outer.style.msOverflowStyle = 'scrollbar';
-    document.body.appendChild(outer);
-    const inner = document.createElement('div');
-    outer.appendChild(inner);
-    const scrollbarWidth = (outer.offsetWidth - inner.offsetWidth);
-    outer.parentNode.removeChild(outer);
-    return scrollbarWidth;
+    const outer = document.createElement("div")
+    outer.style.visibility = "hidden"
+    outer.style.overflow = "scroll"
+    outer.style.msOverflowStyle = "scrollbar"
+    document.body.appendChild(outer)
+    const inner = document.createElement("div")
+    outer.appendChild(inner)
+    const scrollbarWidth = outer.offsetWidth - inner.offsetWidth
+    outer.parentNode.removeChild(outer)
+    return scrollbarWidth
 }
 
 function addMassActionForGlobalChangesets() {
-    if ((location.pathname === "/history" || location.pathname === "/history/friends")
-        && document.querySelector("#sidebar_content h2")
-        && !document.querySelector("#changesets-filter-btn")) {
+    if ((location.pathname === "/history" || location.pathname === "/history/friends") && document.querySelector("#sidebar_content h2") && !document.querySelector("#changesets-filter-btn")) {
         const a = document.createElement("a")
         a.textContent = " 🔎"
         a.style.cursor = "pointer"
@@ -14317,7 +14632,7 @@ function addMassActionForGlobalChangesets() {
                 hideBigChangesetLabel.style.marginBottom = "4px"
                 hideBigChangesetLabel.style.cursor = "pointer"
                 hideBigChangesetsCheckbox.onchange = async () => {
-                    needHideBigChangesets = hideBigChangesetsCheckbox.checked;
+                    needHideBigChangesets = hideBigChangesetsCheckbox.checked
                     filterChangesets()
                     updateMap()
                     await GM.setValue("last-big-changesets-filter", hideBigChangesetsCheckbox.checked)
@@ -14326,12 +14641,11 @@ function addMassActionForGlobalChangesets() {
                 filterBar.appendChild(hideBigChangesetLabel)
                 filterBar.appendChild(document.createElement("br"))
 
-
                 const label = document.createElement("span")
                 label.textContent = "🔄Hide changesets from "
                 label.title = "Click for invert"
-                label.style.minWidth = "165px";
-                label.style.display = "inline-block";
+                label.style.minWidth = "165px"
+                label.style.display = "inline-block"
                 label.style.cursor = "pointer"
                 label.setAttribute("checked", false)
                 label.id = "invert-user-filter-checkbox"
@@ -14347,8 +14661,8 @@ function addMassActionForGlobalChangesets() {
                         e.target.setAttribute("checked", false)
                     }
                     if (document.querySelector("#filter-by-user-input").value !== "") {
-                        filterChangesets();
-                        updateMap();
+                        filterChangesets()
+                        updateMap()
                     }
                 }
                 filterBar.appendChild(label)
@@ -14359,21 +14673,21 @@ function addMassActionForGlobalChangesets() {
                 filterByUsersInput.style.marginBottom = "3px"
                 filterByUsersInput.addEventListener("keypress", async function (event) {
                     if (event.key === "Enter") {
-                        event.preventDefault();
-                        filterChangesets();
+                        event.preventDefault()
+                        filterChangesets()
                         updateMap()
                         await GM.setValue("last-user-filter", filterByUsersInput.value)
                         await GM.setValue("last-comment-filter", filterByCommentInput.value)
                     }
-                });
+                })
                 filterByUsersInput.value = await GM.getValue("last-user-filter", "")
                 filterBar.appendChild(filterByUsersInput)
 
                 const label2 = document.createElement("span")
                 label2.textContent = "🔄Hide changesets with "
                 label2.title = "Click for invert"
-                label2.style.minWidth = "165px";
-                label2.style.display = "inline-block";
+                label2.style.minWidth = "165px"
+                label2.style.display = "inline-block"
                 label2.style.cursor = "pointer"
                 label2.id = "invert-comment-filter-checkbox"
                 label2.setAttribute("checked", false)
@@ -14389,7 +14703,7 @@ function addMassActionForGlobalChangesets() {
                         e.target.setAttribute("checked", false)
                     }
                     if (document.querySelector("#filter-by-comment-input").value !== "") {
-                        filterChangesets();
+                        filterChangesets()
                         updateMap()
                     }
                 }
@@ -14401,13 +14715,13 @@ function addMassActionForGlobalChangesets() {
                 filterByCommentInput.style.width = 253 - getScrollbarWidth() + "px"
                 filterByCommentInput.addEventListener("keypress", async function (event) {
                     if (event.key === "Enter") {
-                        event.preventDefault();
-                        filterChangesets();
+                        event.preventDefault()
+                        filterChangesets()
                         updateMap()
                         await GM.setValue("last-user-filter", filterByUsersInput.value)
                         await GM.setValue("last-comment-filter", filterByCommentInput.value)
                     }
-                });
+                })
                 filterByCommentInput.value = await GM.getValue("last-comment-filter", "")
                 filterBar.appendChild(filterByCommentInput)
 
@@ -14436,13 +14750,13 @@ function addMassActionForGlobalChangesets() {
         hiddenChangesetsCounter.id = "hidden-changeset-counter"
         document.querySelector("#sidebar_content h2").appendChild(hiddenChangesetsCounter)
     }
-
 }
 
 const CORPORATE_EMOJI = "🏢"
 const BAN_EMOJI = "⛔️"
 
-function makeBadge(userInfo, changesetDate = new Date()) { // todo make changesetDate required
+function makeBadge(userInfo, changesetDate = new Date()) {
+    // todo make changesetDate required
     let userBadge = document.createElement("span")
     userBadge.classList.add("user-badge")
 
@@ -14471,21 +14785,25 @@ function makeBadge(userInfo, changesetDate = new Date()) { // todo make changese
             if (massModeActive && !e.ctrlKey && !e.metaKey) {
                 addUsernameIntoChangesetsFilter(BAN_EMOJI)
             } else {
-                window.open("/user/" + userInfo['display_name'] + "/blocks", "_blank")
+                window.open("/user/" + userInfo["display_name"] + "/blocks", "_blank")
             }
         }
         setTimeout(async () => {
-            const xml = (await GM.xmlHttpRequest({
-                url: "/user/" + userInfo['display_name'] + "/blocks",
-            })).response
-            const lastBlockLinks = (new DOMParser().parseFromString(xml, "text/html")).querySelector('a[href^="/user_blocks/"]').getAttribute("href")
+            const xml = (
+                await GM.xmlHttpRequest({
+                    url: "/user/" + userInfo["display_name"] + "/blocks",
+                })
+            ).response
+            const lastBlockLinks = new DOMParser().parseFromString(xml, "text/html").querySelector('a[href^="/user_blocks/"]').getAttribute("href")
             const blockID = lastBlockLinks.match(/\/user_blocks\/([0-9]+)/)[1]
-            const blockInfo = (await GM.xmlHttpRequest({
-                url: "/api/0.6/user_blocks/" + blockID + ".json",
-                responseType: "json",
-                headers: {"turbo-frame": "pagination"}
-            })).response
-            userBadge.title += `\n\n${blockInfo['user_block']['created_at']}\n${blockInfo['user_block']['creator']['user']}: ${blockInfo['user_block']['reason']}`
+            const blockInfo = (
+                await GM.xmlHttpRequest({
+                    url: "/api/0.6/user_blocks/" + blockID + ".json",
+                    responseType: "json",
+                    headers: { "turbo-frame": "pagination" },
+                })
+            ).response
+            userBadge.title += `\n\n${blockInfo["user_block"]["created_at"]}\n${blockInfo["user_block"]["creator"]["user"]}: ${blockInfo["user_block"]["reason"]}`
         })
     }
 
@@ -14495,7 +14813,7 @@ function makeBadge(userInfo, changesetDate = new Date()) { // todo make changese
     }
 
     function makeCorporateBadge() {
-        const info = corporateMappers.get(userInfo['display_name'])
+        const info = corporateMappers.get(userInfo["display_name"])
         userBadge.title = `${info.join(", ")} corporate mapper\n\nClick to open wiki page\nClick with Alt to open data source`
         userBadge.textContent = CORPORATE_EMOJI + " "
         userBadge.classList.add("corporate-badge")
@@ -14517,28 +14835,26 @@ function makeBadge(userInfo, changesetDate = new Date()) { // todo make changese
 
     function makeFriendBadge() {
         getFriends().then(res => {
-            if (res.includes(userInfo['display_name'])) { // todo warn if username startsWith 🫂 or use svg
+            if (res.includes(userInfo["display_name"])) {
+                // todo warn if username startsWith 🫂 or use svg
                 userBadge.title = "You are following this user"
                 userBadge.textContent = "🫂 "
             }
         })
     }
 
-    if (userInfo['roles'].some(i => i === "moderator")) {
+    if (userInfo["roles"].some(i => i === "moderator")) {
         makeModeratorBadge()
-    } else if (userInfo['roles'].some(i => i === "importer")) {
+    } else if (userInfo["roles"].some(i => i === "importer")) {
         makeImporterBadge()
-    } else if (userInfo['blocks']['received']['active']) {
+    } else if (userInfo["blocks"]["received"]["active"]) {
         makeBannedUserBadge()
-    } else if (
-        new Date(userInfo['firstChangesetCreationTime'] ?? userInfo['account_created']).setUTCDate(new Date(userInfo['firstChangesetCreationTime'] ?? userInfo['account_created']).getUTCDate() + 30)
-        > changesetDate
-    ) {
+    } else if (new Date(userInfo["firstChangesetCreationTime"] ?? userInfo["account_created"]).setUTCDate(new Date(userInfo["firstChangesetCreationTime"] ?? userInfo["account_created"]).getUTCDate() + 30) > changesetDate) {
         makeNewbieBadge()
-    } else if (!corporateMappers || corporateMappers?.has(userInfo['display_name'])) {
+    } else if (!corporateMappers || corporateMappers?.has(userInfo["display_name"])) {
         if (!corporateMappers) {
             initCorporateMappersList().then(() => {
-                if (corporateMappers?.has(userInfo['display_name'])) {
+                if (corporateMappers?.has(userInfo["display_name"])) {
                     makeCorporateBadge()
                 } else {
                     makeFriendBadge()
@@ -14554,13 +14870,13 @@ function makeBadge(userInfo, changesetDate = new Date()) { // todo make changese
 }
 
 function addMassChangesetsActions() {
-    if (!location.pathname.includes("/history")) return;
+    if (!location.pathname.includes("/history")) return
     if (!document.querySelector("#sidebar_content h2")) return
 
-    addMassActionForUserChangesets();
-    addMassActionForGlobalChangesets();
+    addMassActionForUserChangesets()
+    addMassActionForGlobalChangesets()
 
-    const MAX_PAGE_FOR_LOAD = 15;
+    const MAX_PAGE_FOR_LOAD = 15
     sidebarObserverForMassActions?.disconnect()
 
     function observerHandler(mutationsList, observer) {
@@ -14574,7 +14890,7 @@ function addMassChangesetsActions() {
             currentMassDownloadedPages = null
             observer.disconnect()
             sidebarObserverForMassActions = null
-            return;
+            return
         }
         if (massModeForUserChangesetsActive && location.pathname !== "/history" && location.pathname !== "/history/friends") {
             document.querySelectorAll("ol li").forEach(addChangesetCheckbox)
@@ -14587,19 +14903,19 @@ function addMassChangesetsActions() {
             // todo
             // sidebarObserverForMassActions.observe(document.querySelector('#sidebar'), {childList: true, subtree: true});
         }
-        document.querySelectorAll('#sidebar ol li div .changeset_id').forEach((item) => {
+        document.querySelectorAll("#sidebar ol li div .changeset_id").forEach(item => {
             if (item.classList.contains("custom-changeset-id-click")) return
             item.classList.add("custom-changeset-id-click")
-            item.onclick = (e) => {
+            item.onclick = e => {
                 if (!e.isTrusted) return
-                e.preventDefault();
-                let id = e.target.innerText;
-                navigator.clipboard.writeText(id).then(() => copyAnimation(e, id));
+                e.preventDefault()
+                let id = e.target.innerText
+                navigator.clipboard.writeText(id).then(() => copyAnimation(e, id))
             }
             item.title = "Click for copy changeset id"
             if (location.pathname.match(/^\/history(\/?|\/friends)$/)) {
                 const usernameA = item.parentElement.parentElement.querySelector('a[href^="/user/"]')
-                getCachedUserInfo(usernameA?.textContent).then((res) => {
+                getCachedUserInfo(usernameA?.textContent).then(res => {
                     if (!res) return
                     usernameA.title = makeUsernameTitle(res)
                     usernameA.before(makeBadge(res,
@@ -14630,7 +14946,7 @@ function addMassChangesetsActions() {
                 infinityList.textContent = `Load ${20 * MAX_PAGE_FOR_LOAD}`
                 infinityList.id = "infinity-list-btn"
                 infinityList.onclick = () => {
-                    currentMassDownloadedPages = 1;
+                    currentMassDownloadedPages = 1
                     moreButton.click()
                     infinityList.remove()
                 }
@@ -14641,29 +14957,26 @@ function addMassChangesetsActions() {
     }
 
     sidebarObserverForMassActions = new MutationObserver(observerHandler)
-    sidebarObserverForMassActions.observe(document.querySelector('#sidebar'), {childList: true, subtree: true});
+    sidebarObserverForMassActions.observe(document.querySelector("#sidebar"), { childList: true, subtree: true })
 }
 
 function setupMassChangesetsActions() {
-    if (location.pathname !== "/history" && location.pathname !== "/history/friends"
-        && !(location.pathname.includes("/history") && location.pathname.includes("/user/"))) return;
-    let timerId = setInterval(addMassChangesetsActions, 300);
+    if (location.pathname !== "/history" && location.pathname !== "/history/friends" && !(location.pathname.includes("/history") && location.pathname.includes("/user/"))) return
+    let timerId = setInterval(addMassChangesetsActions, 300)
     setTimeout(() => {
-        clearInterval(timerId);
-        console.debug('stop try add mass changesets actions');
-    }, 5000);
-    addMassChangesetsActions();
+        clearInterval(timerId)
+        console.debug("stop try add mass changesets actions")
+    }, 5000)
+    addMassChangesetsActions()
 }
 
 //</editor-fold>
 
-
 //<editor-fold desc="hotkeys">
 let hotkeysConfigured = false
 
-
 async function getChangesetMetadata(changeset_id) {
-    return await fetch(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json");
+    return await fetch(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json")
 }
 
 /**
@@ -14675,25 +14988,25 @@ async function loadChangesetMetadata(changeset_id = null) {
     if (!changeset_id) {
         const match = location.pathname.match(/changeset\/(\d+)/)
         if (!match) {
-            return;
+            return
         }
-        changeset_id = parseInt(match[1]);
+        changeset_id = parseInt(match[1])
     }
     console.debug(`Loading metadata of changeset #${changeset_id}`)
     if (changesetMetadatas[changeset_id] && changesetMetadatas[changeset_id].id === changeset_id) {
-        return changesetMetadatas[changeset_id];
+        return changesetMetadatas[changeset_id]
     }
     // prevChangesetMetadata = changesetMetadatas[changeset_id]
-    const res = await getChangesetMetadata(changeset_id);
+    const res = await getChangesetMetadata(changeset_id)
     if (res.status === 509) {
         error509Handler(res)
     } else if (res.status !== 200) {
         console.error(res)
         debug_alert("metadatas failed")
     } else {
-        const jsonRes = await res.json();
+        const jsonRes = await res.json()
         if (jsonRes.changeset) {
-            return changesetMetadatas[changeset_id] = jsonRes.changeset
+            return (changesetMetadatas[changeset_id] = jsonRes.changeset)
         }
         changesetMetadatas[changeset_id] = jsonRes.elements[0]
         changesetMetadatas[changeset_id].min_lat = changesetMetadatas[changeset_id].minlat
@@ -14713,11 +15026,11 @@ async function loadChangesetMetadatas(changeset_ids) {
     }
     const batchSize = 100
     for (let i = 0; i < changeset_ids.length; i += batchSize) {
-        const res = await fetch(osm_server.apiBase + "changesets.json?changesets=" + changeset_ids.slice(i, i + batchSize).join(","));
+        const res = await fetch(osm_server.apiBase + "changesets.json?changesets=" + changeset_ids.slice(i, i + batchSize).join(","))
         if (res.status === 509) {
             error509Handler(res)
         } else {
-            const jsonRes = await res.json();
+            const jsonRes = await res.json()
             jsonRes["changesets"].forEach(i => {
                 changesetMetadatas[i.id] = i
             })
@@ -14730,13 +15043,13 @@ let noteMetadata = null
 async function loadNoteMetadata() {
     const match = location.pathname.match(/note\/(\d+)/)
     if (!match) {
-        return;
+        return
     }
-    const note_id = parseInt(match[1]);
+    const note_id = parseInt(match[1])
     if (noteMetadata !== null && noteMetadata.id === note_id) {
-        return;
+        return
     }
-    const res = await fetch(osm_server.apiBase + "notes" + "/" + note_id + ".json", {signal: getAbortController().signal});
+    const res = await fetch(osm_server.apiBase + "notes" + "/" + note_id + ".json", { signal: getAbortController().signal })
     if (res.status === 509) {
         error509Handler(res)
     } else {
@@ -14749,21 +15062,21 @@ let nodeMetadata = null
 async function loadNodeMetadata() {
     const match = location.pathname.match(/node\/(\d+)/)
     if (!match) {
-        return;
+        return
     }
-    const node_id = parseInt(match[1]);
-    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "node" + "/" + node_id + ".json", (res) => {
+    const node_id = parseInt(match[1])
+    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "node" + "/" + node_id + ".json", res => {
         if (res.status === 509) {
             error509Handler(res)
         } else if (res.status === 410) {
-            console.warn(`node ${node_id} was deleted`);
+            console.warn(`node ${node_id} was deleted`)
         } else {
             return true
         }
-    });
-    if (!jsonRes) return;
-    nodeMetadata = jsonRes.elements[0];
-    return jsonRes;
+    })
+    if (!jsonRes) return
+    nodeMetadata = jsonRes.elements[0]
+    return jsonRes
 }
 
 let wayMetadata = null
@@ -14777,27 +15090,27 @@ async function loadWayMetadata(way_id = null) {
     if (!way_id) {
         const match = location.pathname.match(/way\/(\d+)/)
         if (!match) {
-            return;
+            return
         }
-        way_id = parseInt(match[1]);
+        way_id = parseInt(match[1])
     }
     /*** @type {{elements: (NodeVersion|WayVersion)[]}|undefined}*/
-    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "way" + "/" + way_id + "/full.json", (res) => {
+    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "way" + "/" + way_id + "/full.json", res => {
         if (res.status === 509) {
             error509Handler(res)
         } else if (res.status === 410) {
-            console.warn(`way ${way_id} was deleted`);
+            console.warn(`way ${way_id} was deleted`)
         } else {
             return true
         }
-    });
-    if (!jsonRes) return;
+    })
+    if (!jsonRes) return
     wayMetadata = jsonRes.elements.filter(i => i.type === "node")
     wayMetadata.bbox = {
         min_lat: Math.min(...wayMetadata.map(i => i.lat)),
         min_lon: Math.min(...wayMetadata.map(i => i.lon)),
         max_lat: Math.max(...wayMetadata.map(i => i.lat)),
-        max_lon: Math.max(...wayMetadata.map(i => i.lon))
+        max_lon: Math.max(...wayMetadata.map(i => i.lon)),
     }
     return jsonRes
 }
@@ -14824,20 +15137,20 @@ async function loadRelationMetadata(relation_id = null) {
     if (!relation_id) {
         const match = location.pathname.match(/relation\/(\d+)/)
         if (!match) {
-            return;
+            return
         }
-        relation_id = parseInt(match[1]);
+        relation_id = parseInt(match[1])
     }
-    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "relation" + "/" + relation_id + "/full.json", (res) => {
+    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "relation" + "/" + relation_id + "/full.json", res => {
         if (res.status === 509) {
             error509Handler(res)
         } else if (res.status === 410) {
-            console.warn(`relation ${relation_id} was deleted`);
+            console.warn(`relation ${relation_id} was deleted`)
         } else {
             return true
         }
-    });
-    if (!jsonRes) return;
+    })
+    if (!jsonRes) return
     const nodes = /** @type {NodeVersion[]} */ jsonRes.elements.filter(i => i.type === "node")
     relationMetadata = {
         relation: jsonRes.elements.find(i => i.type === "relation" && i.id === relation_id),
@@ -14846,9 +15159,9 @@ async function loadRelationMetadata(relation_id = null) {
             min_lon: Math.min(...nodes.map(i => i.lon)),
             max_lat: Math.max(...nodes.map(i => i.lat)),
             max_lon: Math.max(...nodes.map(i => i.lon)),
-        }
+        },
     }
-    return jsonRes;
+    return jsonRes
 }
 
 function updateCurrentObjectMetadata() {
@@ -14859,27 +15172,26 @@ function updateCurrentObjectMetadata() {
     setTimeout(loadRelationMetadata, 0)
 }
 
-async function abortableSleep(ms, {signal}) {
+async function abortableSleep(ms, { signal }) {
     console.debug(`sleep ${ms}ms`)
     await new Promise((resolve, reject) => {
-        signal?.throwIfAborted();
+        signal?.throwIfAborted()
 
         function done() {
-            resolve();
-            signal?.removeEventListener("abort", stop);
+            resolve()
+            signal?.removeEventListener("abort", stop)
         }
 
         function stop() {
             console.debug("sleep aborted")
-            reject(this.reason);
-            clearTimeout(timer);
+            reject(this.reason)
+            clearTimeout(timer)
         }
 
-        const timer = setTimeout(done, ms);
-        signal?.addEventListener("abort", stop);
-    });
+        const timer = setTimeout(done, ms)
+        signal?.addEventListener("abort", stop)
+    })
 }
-
 
 async function sleep(ms) {
     console.debug(`sleep ${ms}ms`)
@@ -14888,7 +15200,7 @@ async function sleep(ms) {
 
 async function loadFriends() {
     console.debug("Loading friends list")
-    const res = await ((await fetch(osm_server.url + "/dashboard")).text())
+    const res = await (await fetch(osm_server.url + "/dashboard")).text()
     const parser = new DOMParser()
     const doc = parser.parseFromString(res, "text/html")
     const friends = []
@@ -14901,7 +15213,7 @@ async function loadFriends() {
     return friends
 }
 
-let friendsLoadingLock = false;
+let friendsLoadingLock = false
 
 async function getFriends() {
     const friendsStr = await GM.getValue("friends")
@@ -14926,12 +15238,12 @@ function runPositionTracker() {
         if (!getMap()) return
         const bound = get4Bounds(getMap())
         if (JSON.stringify(mapPositionsHistory[mapPositionsHistory.length - 1]) === JSON.stringify(bound)) {
-            return;
+            return
         }
         // in case of a transition between positions
         // via timeout?
         if (JSON.stringify(mapPositionsNextHistory[mapPositionsNextHistory.length - 1]) === JSON.stringify(bound)) {
-            return;
+            return
         }
         mapPositionsNextHistory.length = 0
         mapPositionsHistory.push(bound)
@@ -14939,7 +15251,7 @@ function runPositionTracker() {
             mapPositionsHistory.shift()
             mapPositionsHistory.shift()
         }
-    }, 1000);
+    }, 1000)
 }
 
 let newNotePlaceholder = null
@@ -14984,15 +15296,15 @@ function enableOverzoom() {
     const observer = new MutationObserver(mutations => {
         mutations.forEach(mutation => {
             mutation.addedNodes.forEach(node => {
-                if (node.nodeName !== 'IMG') {
-                    return;
+                if (node.nodeName !== "IMG") {
+                    return
                 }
                 getWindow().L.DomEvent.off(node, "error")
-            });
-        });
-    });
-    overzoomObserver = observer;
-    observer.observe(document.body, {childList: true, subtree: true});
+            })
+        })
+    })
+    overzoomObserver = observer
+    observer.observe(document.body, { childList: true, subtree: true })
 
     // it's unstable
     console.log("Overzoom enabled")
@@ -15012,14 +15324,14 @@ function disableOverzoom() {
     `)
 }
 
-const ABORT_ERROR_PREV = "Abort requests for moving to prev changeset";
-const ABORT_ERROR_NEXT = "Abort requests for moving to next changeset";
-const ABORT_ERROR_USER_CHANGESETS = "Abort requests for moving to user changesets";
-const ABORT_ERROR_WHEN_PAGE_CHANGED = "Abort requests. Reason: page changed";
+const ABORT_ERROR_PREV = "Abort requests for moving to prev changeset"
+const ABORT_ERROR_NEXT = "Abort requests for moving to next changeset"
+const ABORT_ERROR_USER_CHANGESETS = "Abort requests for moving to user changesets"
+const ABORT_ERROR_WHEN_PAGE_CHANGED = "Abort requests. Reason: page changed"
 
-let layersHidden = false;
+let layersHidden = false
 
-let needPreloadChangesets = false;
+let needPreloadChangesets = false
 
 function getPrevChangesetLink(doc = document) {
     const navigationLinks = doc.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
@@ -15031,7 +15343,7 @@ function getPrevChangesetLink(doc = document) {
 function getNextChangesetLink(doc = document) {
     const navigationLinks = doc.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
     if (navigationLinks && Array.from(navigationLinks).at(-1).href.includes("/changeset/")) {
-        return Array.from(navigationLinks).at(-1);
+        return Array.from(navigationLinks).at(-1)
     }
 }
 
@@ -15042,7 +15354,7 @@ const smoothScroll = "auto"
 function goToPrevChangesetObject(e) {
     repeatedEvent = e.repeat
     if (!document.querySelector("ul .active-object")) {
-        return;
+        return
     }
     if (document.querySelector("#sidebar").matches(":hover")) {
         preventHoverEvents()
@@ -15066,7 +15378,7 @@ function goToPrevChangesetObject(e) {
                     cur.previousElementSibling.querySelector("input")?.focus()
                 }
                 trustedEvent = true
-                cur.previousElementSibling.scrollIntoView({block: "center", behavior: smoothScroll})
+                cur.previousElementSibling.scrollIntoView({ block: "center", behavior: smoothScroll })
                 resetMapHover()
                 cur.previousElementSibling.classList.add("map-hover")
                 if (cur.previousElementSibling.querySelector(".load-relation-version")) {
@@ -15093,7 +15405,7 @@ function goToPrevChangesetObject(e) {
                     trustedEvent = true
                     curFrame.previousElementSibling.querySelector(".active-object").scrollIntoView({
                         block: "center",
-                        behavior: smoothScroll
+                        behavior: smoothScroll,
                     })
                     resetMapHover()
                     curFrame.previousElementSibling.querySelector(".active-object").classList.add("map-hover")
@@ -15108,7 +15420,7 @@ function goToPrevChangesetObject(e) {
             } else {
                 let prev = curFrame?.previousElementSibling?.previousElementSibling
                 if (prev?.nodeName !== "TURBO-FRAME" && prev?.previousElementSibling?.nodeName === "TURBO-FRAME") {
-                    prev = prev.previousElementSibling;
+                    prev = prev.previousElementSibling
                 }
                 if (prev?.nodeName === "TURBO-FRAME") {
                     cur.classList.remove("active-object")
@@ -15126,7 +15438,7 @@ function goToPrevChangesetObject(e) {
                         trustedEvent = true
                         prev.querySelector("li:last-of-type").scrollIntoView({
                             block: "center",
-                            behavior: smoothScroll
+                            behavior: smoothScroll,
                         })
                         resetMapHover()
                         prev.querySelector("li:last-of-type").classList.add("map-hover")
@@ -15142,7 +15454,7 @@ function goToPrevChangesetObject(e) {
         if (cur === document.querySelector("ul .active-object")) {
             cur.classList.remove("active-object")
             prev.classList.add("active-object")
-            return;
+            return
         }
     }
 }
@@ -15181,7 +15493,7 @@ function goToNextChangesetObject(e) {
                     cur.nextElementSibling.querySelector("input")?.focus()
                 }
                 trustedEvent = true
-                cur.nextElementSibling.scrollIntoView({block: "center", behavior: smoothScroll})
+                cur.nextElementSibling.scrollIntoView({ block: "center", behavior: smoothScroll })
                 resetMapHover()
                 cur.nextElementSibling.classList.add("map-hover")
                 if (cur.nextElementSibling.querySelector(".load-relation-version")) {
@@ -15191,8 +15503,7 @@ function goToNextChangesetObject(e) {
             }
         } else {
             const curFrame = cur.parentElement.parentElement
-            if (curFrame.id === "changeset_ways" && ["changeset_nodes", "changeset_relations"].includes(curFrame.nextElementSibling?.id)
-                || curFrame.id === "changeset_relations" && ["changeset_nodes"].includes(curFrame.nextElementSibling?.id)) {
+            if ((curFrame.id === "changeset_ways" && ["changeset_nodes", "changeset_relations"].includes(curFrame.nextElementSibling?.id)) || (curFrame.id === "changeset_relations" && ["changeset_nodes"].includes(curFrame.nextElementSibling?.id))) {
                 cur.classList.remove("active-object")
                 curFrame.nextElementSibling.querySelector("#changeset_nodes li, #changeset_relations li").classList.add("active-object")
                 if (!curFrame.nextElementSibling.querySelector(".active-object").classList.contains('tags-non-modified')
@@ -15208,10 +15519,10 @@ function goToNextChangesetObject(e) {
                     trustedEvent = true
                     curFrame.nextElementSibling.querySelector(".active-object").scrollIntoView({
                         block: "center",
-                        behavior: smoothScroll
+                        behavior: smoothScroll,
                     })
 
-                    resetMapHover();
+                    resetMapHover()
                     curFrame.nextElementSibling.querySelector(".active-object").classList.add("map-hover")
                     if (curFrame.nextElementSibling?.querySelector(".load-relation-version")) {
                         curFrame.nextElementSibling.querySelector(".load-relation-version").focus()
@@ -15219,12 +15530,12 @@ function goToNextChangesetObject(e) {
                     if (curFrame.id === "changeset_relations") {
                         document.activeElement.blur()
                     }
-                    return;
+                    return
                 }
             } else {
                 let next = curFrame?.nextElementSibling?.nextElementSibling
                 if (next?.nodeName !== "TURBO-FRAME" && next?.nextElementSibling?.nodeName === "TURBO-FRAME") {
-                    next = next.nextElementSibling;
+                    next = next.nextElementSibling
                 }
                 if (next?.nodeName === "TURBO-FRAME") {
                     cur.classList.remove("active-object")
@@ -15240,7 +15551,7 @@ function goToNextChangesetObject(e) {
                             next.querySelector("li input")?.focus()
                         }
                         trustedEvent = true
-                        next.querySelector("li").scrollIntoView({block: "center", behavior: smoothScroll})
+                        next.querySelector("li").scrollIntoView({ block: "center", behavior: smoothScroll })
                         resetMapHover()
                         next.querySelector("li").classList.add("map-hover")
                         if (next.querySelector("li").querySelector(".load-relation-version")) {
@@ -15255,7 +15566,7 @@ function goToNextChangesetObject(e) {
         if (cur === document.querySelector("ul .active-object")) {
             cur.classList.remove("active-object")
             prev.classList.add("active-object")
-            return;
+            return
         }
     }
     console.log("KeyL not found next elem")
@@ -15271,22 +15582,26 @@ function extractBboxFromElem(elem) {
 }
 
 function preventHoverEvents() {
-    if (document.querySelector("#mouse-trap")) return;
+    if (document.querySelector("#mouse-trap")) return
 
-    console.log("add mouse trap");
-    const trap = document.createElement('div');
-    trap.id = 'mouse-trap';
-    document.body.appendChild(trap);
+    console.log("add mouse trap")
+    const trap = document.createElement("div")
+    trap.id = "mouse-trap"
+    document.body.appendChild(trap)
 
-    window.addEventListener('mousemove', () => {
-        trap.remove();
-        console.log("remove mouse trap")
-    }, {once: true});
+    window.addEventListener(
+        "mousemove",
+        () => {
+            trap.remove()
+            console.log("remove mouse trap")
+        },
+        { once: true },
+    )
 }
 
 function goToPrevChangeset(e) {
     if (!document.querySelector("ol .active-object")) {
-        return;
+        return
     }
     preventHoverEvents()
 
@@ -15312,15 +15627,19 @@ function goToPrevChangeset(e) {
         }
         resetSelectedChangesets()
         prev.classList.add("selected")
-        prev.scrollIntoView({block: "center", behavior: "instant"})
-        cleanObjectsByKey('changesetBounds')
+        prev.scrollIntoView({ block: "center", behavior: "instant" })
+        cleanObjectsByKey("changesetBounds")
 
         setTimeout(() => {
-            const bound = drawBBox(extractBboxFromElem(prev), {color: "#000000", weight: 4, fillOpacity: 0})
+            const bound = drawBBox(extractBboxFromElem(prev), { color: "#000000", weight: 4, fillOpacity: 0 })
             bound.bringToFront()
-            focused.addEventListener("focusout", () => {
-                bound.remove()
-            }, {once: true})
+            focused.addEventListener(
+                "focusout",
+                () => {
+                    bound.remove()
+                },
+                { once: true },
+            )
             setTimeout(() => {
                 bound.bringToFront()
             }, 20)
@@ -15328,7 +15647,6 @@ function goToPrevChangeset(e) {
     } else {
         document.querySelector('.changeset_more a[href*="after"]')?.click()
     }
-
 }
 
 function goToNextChangeset(e) {
@@ -15356,16 +15674,20 @@ function goToNextChangeset(e) {
         }
         resetSelectedChangesets()
         document.querySelector("ol .active-object").classList.add("selected")
-        cleanObjectsByKey('changesetBounds')
+        cleanObjectsByKey("changesetBounds")
         const bound = drawBBox(extractBboxFromElem(document.querySelector("ol .active-object")), {
             color: "#000000",
             weight: 4,
-            fillOpacity: 0
+            fillOpacity: 0,
         })
         bound.bringToFront()
-        focused.addEventListener("focusout", () => {
-            bound.remove()
-        }, {once: true})
+        focused.addEventListener(
+            "focusout",
+            () => {
+                bound.remove()
+            },
+            { once: true },
+        )
         return
     }
     const cur = document.querySelector("ol .active-object")
@@ -15389,15 +15711,19 @@ function goToNextChangeset(e) {
         }
         resetSelectedChangesets()
         next.classList.add("selected")
-        next.scrollIntoView({block: "center", behavior: "instant"})
-        cleanObjectsByKey('changesetBounds')
+        next.scrollIntoView({ block: "center", behavior: "instant" })
+        cleanObjectsByKey("changesetBounds")
 
         setTimeout(() => {
-            const bound = drawBBox(extractBboxFromElem(next), {color: "#000000", weight: 4, fillOpacity: 0})
+            const bound = drawBBox(extractBboxFromElem(next), { color: "#000000", weight: 4, fillOpacity: 0 })
             bound.bringToFront()
-            focused.addEventListener("focusout", () => {
-                bound.remove()
-            }, {once: true})
+            focused.addEventListener(
+                "focusout",
+                () => {
+                    bound.remove()
+                },
+                { once: true },
+            )
             setTimeout(() => {
                 bound.bringToFront()
             }, 20)
@@ -15413,7 +15739,7 @@ function extractLatLonFromElem(elem) {
 
 function goToPrevSearchResult(e) {
     if (!document.querySelector("#sidebar_content ul .active-object")) {
-        return;
+        return
     }
     preventHoverEvents()
 
@@ -15437,16 +15763,19 @@ function goToPrevSearchResult(e) {
         cur.classList.remove("active-object")
         let focused = prev.querySelector("a")
         focused.focus()
-        prev.scrollIntoView({block: "center", behavior: "instant"})
+        prev.scrollIntoView({ block: "center", behavior: "instant" })
 
         const [lat, lon] = extractLatLonFromElem(document.querySelector("#sidebar_content ul .active-object a"))
         const marker = showNodeMarker(lat, lon)
         panTo(lat, lon)
-        focused.addEventListener("focusout", () => {
-            marker.remove()
-        }, {once: true})
+        focused.addEventListener(
+            "focusout",
+            () => {
+                marker.remove()
+            },
+            { once: true },
+        )
     }
-
 }
 
 function goToNextSearchResult(e) {
@@ -15459,9 +15788,13 @@ function goToNextSearchResult(e) {
         const [lat, lon] = extractLatLonFromElem(document.querySelector("#sidebar_content ul .active-object a"))
         const marker = showNodeMarker(lat, lon)
         panTo(lat, lon)
-        focused.addEventListener("focusout", () => {
-            marker.remove()
-        }, {once: true})
+        focused.addEventListener(
+            "focusout",
+            () => {
+                marker.remove()
+            },
+            { once: true },
+        )
         return
     }
     const cur = document.querySelector("#sidebar_content ul .active-object")
@@ -15485,17 +15818,21 @@ function goToNextSearchResult(e) {
         let focused = next.querySelector("a")
         focused.focus()
         resetSelectedChangesets()
-        next.scrollIntoView({block: "center", behavior: "instant"})
+        next.scrollIntoView({ block: "center", behavior: "instant" })
 
         const [lat, lon] = extractLatLonFromElem(document.querySelector("#sidebar_content ul .active-object a"))
         const marker = showNodeMarker(lat, lon)
         panTo(lat, lon)
 
-        focused.addEventListener("focusout", () => {
-            marker.remove()
-        }, {once: true})
+        focused.addEventListener(
+            "focusout",
+            () => {
+                marker.remove()
+            },
+            { once: true },
+        )
     } else {
-        document.querySelector('.search_more a')?.click()
+        document.querySelector(".search_more a")?.click()
     }
 }
 
@@ -15553,38 +15890,43 @@ function gotNextObjectVersion() {
     }
 }
 
-
-const min = Math.min;
-const max = Math.max;
+const min = Math.min
+const max = Math.max
 
 function combineBBOXes(bboxes) {
     const bbox = {
-        min_lat: 10000000, min_lon: 10000000, max_lat: -10000000, max_lon: -100000000,
+        min_lat: 10000000,
+        min_lon: 10000000,
+        max_lat: -10000000,
+        max_lon: -100000000,
     }
     for (const i of bboxes) {
         if (i?.min_lat) {
-            bbox.min_lat = min(bbox.min_lat, i.min_lat);
-            bbox.min_lon = min(bbox.min_lon, i.min_lon);
-            bbox.max_lat = max(bbox.max_lat, i.max_lat);
-            bbox.max_lon = max(bbox.max_lon, i.max_lon);
+            bbox.min_lat = min(bbox.min_lat, i.min_lat)
+            bbox.min_lon = min(bbox.min_lon, i.min_lon)
+            bbox.max_lat = max(bbox.max_lat, i.max_lat)
+            bbox.max_lon = max(bbox.max_lon, i.max_lon)
         }
     }
-    return bbox;
+    return bbox
 }
 
 async function zoomToChangesets() {
     const params = new URLSearchParams(location.search)
     let changesetIDs = params.get("changesets")?.split(",")
     if (!changesetIDs) {
-        return;
+        return
     }
 
     for (const i of changesetIDs) {
-        await loadChangesetMetadata(parseInt(i));
+        await loadChangesetMetadata(parseInt(i))
     }
     getMap()?.invalidateSize()
     const bbox = combineBBOXes(changesetIDs.map(i => changesetMetadatas[i]))
-    fitBounds([[bbox.min_lat, bbox.min_lon], [bbox.max_lat, bbox.max_lon]])
+    fitBounds([
+        [bbox.min_lat, bbox.min_lon],
+        [bbox.max_lat, bbox.max_lon],
+    ])
 }
 
 let shiftKeyZClicks = 0
@@ -15595,7 +15937,7 @@ function resetZoomClicks() {
 }
 
 function setupZKeysReseter() {
-    window.addEventListener('mousemove', resetZoomClicks, {once: true});
+    window.addEventListener("mousemove", resetZoomClicks, { once: true })
 }
 
 function zoomToCurrentObject(e) {
@@ -15607,36 +15949,31 @@ function zoomToCurrentObject(e) {
             setTimeout(async () => {
                 // todo changesetID => merged BBOX
                 const changesetID = parseInt(location.pathname.match(/changeset\/(\d+)/)[1])
-                const nodesBag = [];
-                for (const node of Array.from((await getChangeset(changesetID)).data.querySelectorAll('node'))) {
+                const nodesBag = []
+                for (const node of Array.from((await getChangeset(changesetID)).data.querySelectorAll("node"))) {
                     if (node.getAttribute("visible") !== "false") {
                         nodesBag.push({
                             lat: parseFloat(node.getAttribute("lat")),
-                            lon: parseFloat(node.getAttribute("lon"))
-                        });
+                            lon: parseFloat(node.getAttribute("lon")),
+                        })
                     } else {
-                        const version = searchVersionByTimestamp(
-                            await getNodeHistory(node.getAttribute("id")),
-                            new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString()
-                        )
+                        const version = searchVersionByTimestamp(await getNodeHistory(node.getAttribute("id")), new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString())
                         if (version.visible !== false) {
                             nodesBag.push({
                                 lat: version.lat,
-                                lon: version.lon
-                            });
+                                lon: version.lon,
+                            })
                         }
                     }
                 }
                 if ((await getChangeset(changesetID)).data.querySelectorAll("relation").length && shiftKeyZClicks % 2 === 1) {
                     for (const way of (await getChangeset(changesetID)).data.querySelectorAll("way")) {
-                        const targetTime = way.getAttribute("visible") === "false"
-                            ? new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString()
-                            : changesetMetadata.closed_at
+                        const targetTime = way.getAttribute("visible") === "false" ? new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString() : changesetMetadata.closed_at
                         const [, currentNodesList] = await getWayNodesByTimestamp(targetTime, way.getAttribute("id"))
                         currentNodesList.forEach(coords => {
                             nodesBag.push({
                                 lat: coords[0],
-                                lon: coords[1]
+                                lon: coords[1],
                             })
                         })
                     }
@@ -15647,16 +15984,16 @@ function zoomToCurrentObject(e) {
                         min_lat: Math.min(...nodesBag.map(i => i.lat)),
                         min_lon: Math.min(...nodesBag.map(i => i.lon)),
                         max_lat: Math.max(...nodesBag.map(i => i.lat)),
-                        max_lon: Math.max(...nodesBag.map(i => i.lon))
+                        max_lon: Math.max(...nodesBag.map(i => i.lon)),
                     }
                     fitBounds([
                         [bbox.min_lat, bbox.min_lon],
-                        [bbox.max_lat, bbox.max_lon]
+                        [bbox.max_lat, bbox.max_lon],
                     ]) // todo max zoom
                 } else {
                     fitBounds([
                         [changesetMetadata.min_lat, changesetMetadata.min_lon],
-                        [changesetMetadata.max_lat, changesetMetadata.max_lon]
+                        [changesetMetadata.max_lat, changesetMetadata.max_lon],
                     ])
                 }
             })
@@ -15665,7 +16002,7 @@ function zoomToCurrentObject(e) {
             if (changesetMetadata) {
                 fitBounds([
                     [changesetMetadata.min_lat, changesetMetadata.min_lon],
-                    [changesetMetadata.max_lat, changesetMetadata.max_lon]
+                    [changesetMetadata.max_lat, changesetMetadata.max_lon],
                 ])
             } else {
                 console.warn("Changeset metadata not downloaded")
@@ -15714,34 +16051,36 @@ function zoomToCurrentObject(e) {
             } else if (trackMetadata) {
                 fitBounds([
                     [trackMetadata.min_lat, trackMetadata.min_lon],
-                    [trackMetadata.max_lat, trackMetadata.max_lon]
+                    [trackMetadata.max_lat, trackMetadata.max_lon],
                 ])
             }
         } else if (location.pathname.includes("way")) {
             if (wayMetadata) {
                 fitBounds([
                     [wayMetadata.bbox.min_lat, wayMetadata.bbox.min_lon],
-                    [wayMetadata.bbox.max_lat, wayMetadata.bbox.max_lon]
+                    [wayMetadata.bbox.max_lat, wayMetadata.bbox.max_lon],
                 ])
             }
         } else if (location.pathname.includes("relation")) {
             if (relationMetadata) {
-                const viaNodes = relationMetadata.relation.members.filter(m => m.role === "via").flatMap(m => {
-                    if (m.type === "node") {
-                        return m
-                    } else {
-                        return m.geometry
-                    }
-                })
+                const viaNodes = relationMetadata.relation.members
+                    .filter(m => m.role === "via")
+                    .flatMap(m => {
+                        if (m.type === "node") {
+                            return m
+                        } else {
+                            return m.geometry
+                        }
+                    })
                 if (e.code === "KeyZ" && e.shiftKey) {
                     fitBounds([
                         [Math.min(...viaNodes.map(i => i.lat)), Math.min(...viaNodes.map(i => i.lon))],
-                        [Math.max(...viaNodes.map(i => i.lat)), Math.max(...viaNodes.map(i => i.lon))]
+                        [Math.max(...viaNodes.map(i => i.lat)), Math.max(...viaNodes.map(i => i.lon))],
                     ])
                 } else {
                     fitBounds([
                         [relationMetadata.bbox.min_lat, relationMetadata.bbox.min_lon],
-                        [relationMetadata.bbox.max_lat, relationMetadata.bbox.max_lon]
+                        [relationMetadata.bbox.max_lat, relationMetadata.bbox.max_lon],
                     ])
                 }
             }
@@ -15750,26 +16089,26 @@ function zoomToCurrentObject(e) {
         if (trackMetadata) {
             fitBounds([
                 [trackMetadata.min_lat, trackMetadata.min_lon],
-                [trackMetadata.max_lat, trackMetadata.max_lon]
+                [trackMetadata.max_lat, trackMetadata.max_lon],
             ])
         }
     } else if (searchResultBBOX) {
         fitBounds([
             [searchResultBBOX.min_lat, searchResultBBOX.min_lon],
-            [searchResultBBOX.max_lat, searchResultBBOX.max_lon]
+            [searchResultBBOX.max_lat, searchResultBBOX.max_lon],
         ])
     } else if (trackMetadata) {
         fitBounds([
             [trackMetadata.min_lat, trackMetadata.min_lon],
-            [trackMetadata.max_lat, trackMetadata.max_lon]
+            [trackMetadata.max_lat, trackMetadata.max_lon],
         ])
     }
 }
 
 
 function getCurrentXYZ() {
-    const [, z, x, y] = new URL(document.querySelector("#editanchor").href).hash.match(/map=(\d+)\/([0-9.-]+)\/([0-9.-]+)/);
-    return [x, y, z];
+    const [, z, x, y] = new URL(document.querySelector("#editanchor").href).hash.match(/map=(\d+)\/([0-9.-]+)\/([0-9.-]+)/)
+    return [x, y, z]
 }
 
 function setupNavigationViaHotkeys() {
@@ -15784,14 +16123,15 @@ function setupNavigationViaHotkeys() {
     function keydownHandler(e) {
         if (e.repeat && !["KeyK", "KeyL"].includes(e.code)) return
         if (document.activeElement?.name === "text") return
-        if (document.activeElement?.name === "query") { // todo расширить для любого поля
+        if (document.activeElement?.name === "query") {
+            // todo расширить для любого поля
             if (e.code === "Escape") {
                 document.activeElement.blur()
             }
             return
         }
         if (["TEXTAREA", "INPUT", "SELECT"].includes(document.activeElement?.nodeName) && document.activeElement?.getAttribute("type") !== "checkbox") {
-            return;
+            return
         }
         if (document.activeElement.getAttribute("contenteditable")) {
             return
@@ -15812,7 +16152,7 @@ function setupNavigationViaHotkeys() {
                     currentMeasuring.tempLine?.remove()
                     currentMeasuring.wayLine?.remove()
                     if (currentMeasuring.way.length) {
-                        currentMeasuring.wayLine = displayWay(currentMeasuring.way, false, "#000000", 1);
+                        currentMeasuring.wayLine = displayWay(currentMeasuring.way, false, "#000000", 1)
                         currentMeasuring.tempLine = displayWay([currentMeasuring.way[currentMeasuring.way.length - 1], lastLatLng], false, "#000000", 1)
                     }
                 }
@@ -15826,7 +16166,7 @@ function setupNavigationViaHotkeys() {
         //     }
         // }
         if (e.metaKey || e.ctrlKey) {
-            return;
+            return
         }
         console.log("Key: ", e.key)
         console.log("Key code: ", e.code)
@@ -15861,7 +16201,7 @@ function setupNavigationViaHotkeys() {
                 return
             }
             if (e.altKey || e.shiftKey) {
-                return;
+                return
             }
             if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
                 document.querySelector('a[href^="/user/"][href$="/diary"]')?.click()
@@ -15875,7 +16215,8 @@ function setupNavigationViaHotkeys() {
                     enableOverzoom()
                 }
             }
-        } else if (e.code === "KeyG") { // gps tracks
+        } else if (e.code === "KeyG") {
+            // gps tracks
             if (e.shiftKey || e.altKey) {
                 enableOverzoom()
                 getMap().setZoom(Math.min(14, getMap().getZoom()))
@@ -15886,7 +16227,8 @@ function setupNavigationViaHotkeys() {
             } else {
                 Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
             }
-        } else if (e.code === "KeyS") { // satellite
+        } else if (e.code === "KeyS") {
+            // satellite
             enableOverzoom()
             if (e.shiftKey) {
                 switchESRIbeta()
@@ -15929,14 +16271,13 @@ function setupNavigationViaHotkeys() {
                 document.querySelector("#revert_button_class").click()
                 return
             }
-            changesetObjectsSelectionModeEnabled = true;
+            changesetObjectsSelectionModeEnabled = true
             document.querySelectorAll("#changeset_nodes, #changeset_ways, #changeset_relations").forEach(i => {
-                i.querySelectorAll('button, input, a, textarea, select, [tabindex]').forEach(el => {
-                    el.setAttribute('tabindex', '-1');
+                i.querySelectorAll("button, input, a, textarea, select, [tabindex]").forEach(el => {
+                    el.setAttribute("tabindex", "-1")
                 })
-            });
-
-            ["#changeset_nodes", "#changeset_ways", "#changeset_relations"].forEach(selector => {
+            })
+            ;["#changeset_nodes", "#changeset_ways", "#changeset_relations"].forEach(selector => {
                 document.querySelectorAll(`${selector} .browse-element-list li`).forEach(obj => {
                     const checkbox = document.createElement("input")
                     checkbox.type = "checkbox"
@@ -15998,23 +16339,29 @@ function setupNavigationViaHotkeys() {
                     const m = location.pathname.match(/\/(node|way|relation)\/([0-9]+)/)
                     if (!m) return
                     const [, type, id] = m
-                    const shortType = type === "node" ? "n" : (type === "way" ? "w" : "r")
+                    const shortType = type === "node" ? "n" : type === "way" ? "w" : "r"
                     if (e.altKey) {
                         if (osm_server !== prod_server) {
                             alert("level0 works only with osm.org")
                             return
                         }
-                        window.open("https://level0.osmz.ru/?" + new URLSearchParams({
-                            url: shortType + id + "!"
-                        }).toString())
+                        window.open(
+                            "https://level0.osmz.ru/?" +
+                                new URLSearchParams({
+                                    url: shortType + id + "!",
+                                }).toString(),
+                        )
                     } else {
-                        if (!await validateOsmServerInJOSM()) {
+                        if (!(await validateOsmServerInJOSM())) {
                             return
                         }
-                        window.open("http://localhost:8111/load_object?" + new URLSearchParams({
-                            objects: [shortType + id],
-                            relation_members: true,
-                        }).toString())
+                        window.open(
+                            "http://localhost:8111/load_object?" +
+                                new URLSearchParams({
+                                    objects: [shortType + id],
+                                    relation_members: true,
+                                }).toString(),
+                        )
                     }
                     return
                 }
@@ -16048,11 +16395,17 @@ function setupNavigationViaHotkeys() {
 
                 if (location.search.includes("changesets=")) {
                     const params = new URLSearchParams(location.search)
-                    const changesetIDs = params.get("changesets")?.split(",")?.filter(i => i !== changesetID) ?? []
-                    await Promise.all(changesetIDs.map(async i => {
-                        if (i === changesetID) return
-                        processChangeset((await getChangeset(i)).data)
-                    }))
+                    const changesetIDs =
+                        params
+                            .get("changesets")
+                            ?.split(",")
+                            ?.filter(i => i !== changesetID) ?? []
+                    await Promise.all(
+                        changesetIDs.map(async i => {
+                            if (i === changesetID) return
+                            processChangeset((await getChangeset(i)).data)
+                        }),
+                    )
                 }
 
                 if (e.altKey) {
@@ -16060,6 +16413,7 @@ function setupNavigationViaHotkeys() {
                         alert("level0 works only with osm.org")
                         return
                     }
+                    // prettier-ignore
                     window.open("https://level0.osmz.ru/?" + new URLSearchParams({
                         url: [
                             Array.from(nodes).map(i => "n" + i).join(","),
@@ -16068,9 +16422,10 @@ function setupNavigationViaHotkeys() {
                         ].join(",").replace(/,,/, ",").replace(/,$/, "").replace(/^,/, "")
                     }).toString())
                 } else {
-                    if (!await validateOsmServerInJOSM()) {
+                    if (!(await validateOsmServerInJOSM())) {
                         return
                     }
+                    // prettier-ignore
                     window.open("http://localhost:8111/load_object?" + new URLSearchParams({
                         new_layer: "true",
                         objects: [
@@ -16103,15 +16458,15 @@ function setupNavigationViaHotkeys() {
                     }
                 } else if (location.pathname === "/" || location.pathname.includes("/note")) {
                     // document.querySelector("#history_tab")?.click()
-                    addCompactSidebarStyle();
+                    addCompactSidebarStyle()
                     document.querySelector('.nav-link[href^="/history"]')?.click()
                 } else if (location.pathname.includes("/user/")) {
                     document.querySelector('a[href^="/user/"][href$="/history"]')?.click()
                 }
             }
         } else if (e.code === "KeyY") {
-            const [x, y, z] = getCurrentXYZ();
-            window.open(`https://yandex.ru/maps/?l=stv,sta&ll=${y},${x}&z=${z}`, "_blank", "noreferrer");
+            const [x, y, z] = getCurrentXYZ()
+            window.open(`https://yandex.ru/maps/?l=stv,sta&ll=${y},${x}&z=${z}`, "_blank", "noreferrer")
         } else if (e.key === "1") {
             if (location.pathname.match(/\/(node|way|relation)\/\d+/)) {
                 if (location.pathname.match(/\/(node|way|relation)\/\d+/)) {
@@ -16137,7 +16492,7 @@ function setupNavigationViaHotkeys() {
                     const username = decodeURI(user_link.getAttribute("href").match(/\/user\/([^/]+)/)[1])
                     getCachedUserInfo(username).then(res => {
                         if (res["firstChangesetID"]) {
-                            getWindow().OSM.router.route(`${location.pathname}?after=${res["firstChangesetID"]-1}`)
+                            getWindow().OSM.router.route(`${location.pathname}?after=${res["firstChangesetID"] - 1}`)
                         } else {
                             console.warn("not found first changeset for " + username)
                         }
@@ -16147,8 +16502,8 @@ function setupNavigationViaHotkeys() {
         } else if (e.key === "0") {
             const center = getMapCenter()
             setZoom(2)
-            fetch(`https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2`).then((res) => {
-                res.json().then((r) => {
+            fetch(`https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2`).then(res => {
+                res.json().then(r => {
                     if (r?.address?.state) {
                         getMap().attributionControl.setPrefix(`${r.address.state}`)
                     }
@@ -16157,9 +16512,13 @@ function setupNavigationViaHotkeys() {
         } else if (e.code === "KeyZ") {
             if (e.shiftKey) {
                 shiftKeyZClicks += 1
-                document.addEventListener("mousemove", () => {
-                    shiftKeyZClicks = 0
-                }, {once: true})
+                document.addEventListener(
+                    "mousemove",
+                    () => {
+                        shiftKeyZClicks = 0
+                    },
+                    { once: true },
+                )
             } else {
                 shiftKeyZClicks = 0
             }
@@ -16208,13 +16567,13 @@ function setupNavigationViaHotkeys() {
         } else if (e.code === "KeyL" && e.shiftKey) {
             document.querySelector(".control-locate .control-button").click()
         } else if (e.code === "KeyK" && location.pathname.match(/^(\/user\/.+)?\/history\/?$/)) {
-            goToPrevChangeset(e);
+            goToPrevChangeset(e)
         } else if (e.code === "KeyL" && location.pathname.match(/^(\/user\/.+)?\/history\/?$/)) {
-            goToNextChangeset(e);
+            goToNextChangeset(e)
         } else if (e.code === "KeyK" && location.pathname === "/search") {
-            goToPrevSearchResult(e);
+            goToPrevSearchResult(e)
         } else if (e.code === "KeyL" && location.pathname === "/search") {
-            goToNextSearchResult(e);
+            goToNextSearchResult(e)
         } else if (e.code === "KeyC") {
             if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
                 if (location.pathname.includes("/diary_comments")) {
@@ -16226,7 +16585,7 @@ function setupNavigationViaHotkeys() {
                 if (e.altKey) {
                     setTimeout(async () => {
                         const center = getMapCenter()
-                        const format = await GM.getValue("CoordinatesFormat") ?? "Lat Lon"
+                        const format = (await GM.getValue("CoordinatesFormat")) ?? "Lat Lon"
                         if (format === "Lon Lat") {
                             navigator.clipboard.writeText(`${center.lng} ${center.lat}`)
                         } else {
@@ -16276,7 +16635,10 @@ function setupNavigationViaHotkeys() {
                     const username = location.pathname.match(/^\/user\/([^/]+)/)[1]
                     window.open("/messages/new/" + decodeURI(username))
                 } else {
-                        const username = document.querySelector("#sidebar_content a[href^='/user/']").getAttribute("href").match(/^\/user\/([^/]+)/)[1]
+                    const username = document
+                        .querySelector("#sidebar_content a[href^='/user/']")
+                        .getAttribute("href")
+                        .match(/^\/user\/([^/]+)/)[1]
                     window.open("/messages/new/" + decodeURI(username))
                 }
             } else if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
@@ -16302,7 +16664,7 @@ function setupNavigationViaHotkeys() {
             if (!getWindow().mapIntercepted) return
             e.preventDefault()
             for (let member in layers) {
-                layers[member].forEach((i) => {
+                layers[member].forEach(i => {
                     if (layersHidden) {
                         i.getElement().style.visibility = ""
                     } else {
@@ -16318,22 +16680,22 @@ function setupNavigationViaHotkeys() {
                 }
             } else if (jsonLayer) {
                 if (layersHidden) {
-                    jsonLayer.eachLayer(intoPageWithFun(i => getMap()._layers[i._leaflet_id].getElement().style.visibility = ""))
+                    jsonLayer.eachLayer(intoPageWithFun(i => (getMap()._layers[i._leaflet_id].getElement().style.visibility = "")))
                 } else {
-                    jsonLayer.eachLayer(intoPageWithFun(i => getMap()._layers[i._leaflet_id].getElement().style.visibility = "hidden"))
+                    jsonLayer.eachLayer(intoPageWithFun(i => (getMap()._layers[i._leaflet_id].getElement().style.visibility = "hidden")))
                 }
             }
-            layersHidden = !layersHidden;
+            layersHidden = !layersHidden
         } else if (e.code === "KeyF" && !e.altKey && !e.metaKey && !e.ctrlKey) {
             if (location.pathname.match(/^\/note\//)) {
                 document.querySelector(".control-layers a").click()
                 if (document.querySelector(".layers-ui").style.display !== "none") {
-                    Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({block: "center"})
+                    Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({ block: "center" })
                 }
             } else {
                 if (!document.querySelector("#changesets-filter-btn") && !document.querySelector("#mass-action-btn")) {
                     document.querySelector(".control-layers a").click()
-                    Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({block: "center"})
+                    Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({ block: "center" })
                 } else {
                     document.querySelector("#changesets-filter-btn")?.click()
                     document.querySelector("#mass-action-btn")?.click()
@@ -16347,16 +16709,16 @@ function setupNavigationViaHotkeys() {
                 if (changesetIDs) {
                     setTimeout(async () => {
                         for (const i of changesetIDs) {
-                            (await getChangeset(i)).data.querySelectorAll("node,way,relation").forEach(obj => {
+                            ;(await getChangeset(i)).data.querySelectorAll("node,way,relation").forEach(obj => {
                                 objects.push(obj)
                             })
                         }
                         objects.sort((a, b) => {
                             const A = new Date(a.getAttribute("timestamp"))
                             const B = new Date(b.getAttribute("timestamp"))
-                            if (A < B) return -1;
-                            if (A > B) return 1;
-                            return 0;
+                            if (A < B) return -1
+                            if (A > B) return 1
+                            return 0
                         })
                         const nodesList = []
                         for (let object of objects) {
@@ -16381,7 +16743,7 @@ function setupNavigationViaHotkeys() {
                     insertOverlaysStyles()
                     processOverpassQuery(query)
                 }
-            }, 0);
+            }, 0)
         } else if (e.altKey && e.code === "Backquote") {
             darkModeForMap = !darkModeForMap
             if (darkModeForMap) {
@@ -16390,7 +16752,7 @@ function setupNavigationViaHotkeys() {
                 darkMapStyleElement?.remove()
             }
         } else if (e.code === "KeyP") {
-            navigator.clipboard.writeText(shortOsmOrgLinksInText(location.origin + location.pathname));
+            navigator.clipboard.writeText(shortOsmOrgLinksInText(location.origin + location.pathname))
         } else if (e.code === "KeyB") {
             if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
                 document.querySelector('a[href^="/user/"][href$="/blocks"]')?.click()
@@ -16424,16 +16786,16 @@ function setupNavigationViaHotkeys() {
                     userChangesetsLink.click()
                 }
             } else if (e.code === "KeyK") {
-                goToPrevChangesetObject(e);
+                goToPrevChangesetObject(e)
             } else if (e.code === "KeyL" && !e.shiftKey) {
-                goToNextChangesetObject(e);
+                goToNextChangesetObject(e)
             }
         } else if (location.pathname.match(/^\/(node|way|relation)\/\d+/)) {
             if (e.code === "Comma") {
                 const links = Array.from(document.querySelectorAll("#sidebar_content nav div ul a"))
                 for (let i = 0; i < links.length; i++) {
                     if (links[i].parentElement.classList.contains("active")) {
-                        links[i-1]?.click()
+                        links[i - 1]?.click()
                         break
                     }
                 }
@@ -16441,18 +16803,19 @@ function setupNavigationViaHotkeys() {
                 const links = Array.from(document.querySelectorAll("#sidebar_content nav div ul a"))
                 for (let i = 0; i < links.length; i++) {
                     if (links[i].parentElement.classList.contains("active")) {
-                        links[i+1]?.click()
+                        links[i + 1]?.click()
                         break
                     }
                 }
             }
             if (location.pathname.match(/\/history$/)) {
                 if (e.code === "KeyK") {
-                    goToPrevObjectVersion();
+                    goToPrevObjectVersion()
                 } else if (e.code === "KeyL" && !e.shiftKey) {
-                    gotNextObjectVersion();
+                    gotNextObjectVersion()
                 }
             }
+        // prettier-ignore
         } else if (location.pathname.match(/user\/.+\/(traces|diary_comments|changeset_comments)/)
             || location.pathname.match(/\/user_blocks($|\/)/)
             || location.pathname.match(/\/blocks_by$/)) {
@@ -16463,9 +16826,9 @@ function setupNavigationViaHotkeys() {
             }
         } else if (location.pathname.match(/user\/.+\/(notes)/)) {
             if (e.code === "Comma") {
-                document.querySelectorAll('.pagination li a')[0]?.click()
+                document.querySelectorAll(".pagination li a")[0]?.click()
             } else if (e.code === "Period") {
-                document.querySelectorAll('.pagination li a')[1]?.click()
+                document.querySelectorAll(".pagination li a")[1]?.click()
             }
         } else if (e.code === "KeyH" && location.pathname.includes("/history") && (location.search.includes("after") || location.search.includes("before"))) {
             try {
@@ -16477,18 +16840,17 @@ function setupNavigationViaHotkeys() {
         }
     }
 
-    document.addEventListener('keydown', keydownHandler, false);
+    document.addEventListener("keydown", keydownHandler, false)
 }
 
 //</editor-fold>
 
-
 function setupClickableAvatar() {
     const miniAvatar = document.querySelector(".user_thumbnail_tiny:not([patched-for-click])")
     if (!miniAvatar || miniAvatar.setAttribute("patched-for-click", "true")) {
-        return;
+        return
     }
-    miniAvatar.onclick = (e) => {
+    miniAvatar.onclick = e => {
         if (!e.isTrusted) return
         e.preventDefault()
         e.stopPropagation()
@@ -16555,62 +16917,62 @@ const alwaysEnabledModules = [
 ]
 
 const fetchBlobWithCache = (() => {
-    const cache = new Map();
+    const cache = new Map()
 
     return async url => {
         if (cache.has(url)) {
-            return cache.get(url);
+            return cache.get(url)
         }
 
         const promise = GM.xmlHttpRequest({
             url: url,
-            responseType: "blob"
+            responseType: "blob",
         })
-        cache.set(url, promise);
+        cache.set(url, promise)
 
         try {
-            const result = await promise;
-            cache.set(url, result);
-            return result;
+            const result = await promise
+            cache.set(url, result)
+            return result
         } catch (error) {
-            cache.delete(url);
-            throw error;
+            cache.delete(url)
+            throw error
         }
-    };
-})();
+    }
+})()
 
 const fetchJSONWithCache = (() => {
     /**@type {Map<string, Object | Promise<Object>>}*/
-    const cache = new Map();
+    const cache = new Map()
 
-    return async (url, init = {}, responseChecker = (_) => true) => {
+    return async (url, init = {}, responseChecker = _ => true) => {
         if (cache.has(url)) {
-            return cache.get(url);
+            return cache.get(url)
         }
 
-        const promise = fetch(url, init).then((res) => {
+        const promise = fetch(url, init).then(res => {
             if (!res) console.trace()
             if (responseChecker(res)) {
                 return res.json()
             }
-        });
-        cache.set(url, promise);
+        })
+        cache.set(url, promise)
 
         try {
-            const result = await promise;
-            cache.set(url, result);
-            return result;
+            const result = await promise
+            cache.set(url, result)
+            return result
         } catch (error) {
-            cache.delete(url);
-            throw error;
+            cache.delete(url)
+            throw error
         }
-    };
-})();
+    }
+})()
 
 function setupTaginfo() {
-    if (!GM_config.get("BetterTaginfo")) return;
+    if (!GM_config.get("BetterTaginfo")) return
 
-    const instance_text = document.querySelector("#instance")?.textContent;
+    const instance_text = document.querySelector("#instance")?.textContent
     const instance = instance_text?.replace(/ \(.*\)/, "")
 
     if (instance_text?.includes(" ")) {
@@ -16632,17 +16994,18 @@ function setupTaginfo() {
             overpassLink.classList.add("overpass-link")
             overpassLink.textContent = "🔍"
             overpassLink.target = "_blank"
-            const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ''))
+            const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ""))
             const key = i.querySelector(".empty") ? "" : escapeTaginfoString(i.querySelector("a").textContent)
-            overpassLink.href = `${overpass_server.url}?` + (count > 100000
-                ? new URLSearchParams({
-                        w: instance ? `"${key}"=* in "${instance}"` : `"${key}"=*`
-                    }
-                ).toString()
-                : new URLSearchParams({
-                    w: instance ? `"${key}"=* in "${instance}"` : `"${key}"=* global`,
-                    R: ""
-                }).toString())
+            overpassLink.href =
+                `${overpass_server.url}?` +
+                (count > 100000
+                    ? new URLSearchParams({
+                          w: instance ? `"${key}"=* in "${instance}"` : `"${key}"=*`,
+                      }).toString()
+                    : new URLSearchParams({
+                          w: instance ? `"${key}"=* in "${instance}"` : `"${key}"=* global`,
+                          R: "",
+                      }).toString())
             i.prepend(document.createTextNode("\xA0"))
             i.prepend(overpassLink)
         })
@@ -16663,18 +17026,22 @@ function setupTaginfo() {
             overpassLink.style.cursor = "progress"
             const role = i.querySelector(".empty") ? "" : escapeTaginfoString(i.textContent)
             const type = location.pathname.match(/relations\/(.*$)/)[1]
-            const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ''))
+            const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ""))
             if (instance) {
-                fetchJSONWithCache("https://nominatim.openstreetmap.org/search?" + new URLSearchParams({
-                    format: "json",
-                    q: instance
-                }).toString()).then((r) => {
-                    if (r[0]['osm_id']) {
+                fetchJSONWithCache(
+                    "https://nominatim.openstreetmap.org/search?" +
+                        new URLSearchParams({
+                            format: "json",
+                            q: instance,
+                        }).toString(),
+                ).then(r => {
+                    if (r[0]["osm_id"]) {
                         const query = `// ${instance}
-area(id:${3600000000 + parseInt(r[0]['osm_id'])})->.a;
+area(id:${3600000000 + parseInt(r[0]["osm_id"])})->.a;
 rel[type=${type}](if:count_by_role("${role}") > 0)(area.a);
 out geom;
-`;
+`
+                        // prettier-ignore
                         overpassLink.href = `${overpass_server.url}?` + (count > 1000
                             ? new URLSearchParams({Q: query})
                             : new URLSearchParams({Q: query, R: ""})).toString()
@@ -16685,6 +17052,7 @@ out geom;
                 })
             } else {
                 const query = `rel[type=${type}](if:count_by_role("${role}") > 0)${count > 1000 ? "({{bbox}})" : ""};\nout geom;`
+                // prettier-ignore
                 overpassLink.href = `${overpass_server.url}?` + (count > 1000
                     ? new URLSearchParams({Q: query})
                     : new URLSearchParams({Q: query, R: ""})).toString()
@@ -16701,31 +17069,31 @@ out geom;
             overpassLink.classList.add("overpass-link")
             overpassLink.textContent = "🔍"
             overpassLink.target = "_blank"
-            const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ''))
+            const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ""))
             const value = i.querySelector(".empty") ? "" : escapeTaginfoString(i.querySelector("a").textContent)
-            overpassLink.href = `${overpass_server.url}?` + (count > 10000
-                ? new URLSearchParams({
-                        w: instance ? `"${key}"="${value}" in "${instance}"` : `"${key}"="${value}"`
-                    }
-                ).toString()
-                : new URLSearchParams({
-                    w: instance ? `"${key}"="${value}" in "${instance}"` : `"${key}"="${value}" global`,
-                    R: ""
-                }).toString())
+            overpassLink.href =
+                `${overpass_server.url}?` +
+                (count > 10000
+                    ? new URLSearchParams({
+                          w: instance ? `"${key}"="${value}" in "${instance}"` : `"${key}"="${value}"`,
+                      }).toString()
+                    : new URLSearchParams({
+                          w: instance ? `"${key}"="${value}" in "${instance}"` : `"${key}"="${value}" global`,
+                          R: "",
+                      }).toString())
             i.prepend(document.createTextNode("\xA0"))
             i.prepend(overpassLink)
         })
     }
 }
 
-
-let trackMetadata = null;
+let trackMetadata = null
 
 /**
  * @param {string|Document} xml
  */
 function displayGPXTrack(xml) {
-    const doc = typeof xml === "string" ? new DOMParser().parseFromString(xml, "application/xml") : xml;
+    const doc = typeof xml === "string" ? new DOMParser().parseFromString(xml, "application/xml") : xml
 
     const popup = document.createElement("span")
 
@@ -16747,8 +17115,8 @@ function displayGPXTrack(xml) {
     popup.appendChild(linkA)
 
     console.time("start gpx track render")
-    const min = Math.min;
-    const max = Math.max;
+    const min = Math.min
+    const max = Math.max
     trackMetadata = {
         min_lat: 10000000,
         min_lon: 10000000,
@@ -16758,21 +17126,21 @@ function displayGPXTrack(xml) {
     doc.querySelectorAll("gpx trk").forEach(trk => {
         const nodesList = []
         trk.querySelectorAll("trkseg trkpt").forEach(i => {
-            const lat = parseFloat(i.getAttribute("lat"));
-            const lon = parseFloat(i.getAttribute("lon"));
-            nodesList.push([lat, lon]);
+            const lat = parseFloat(i.getAttribute("lat"))
+            const lon = parseFloat(i.getAttribute("lon"))
+            nodesList.push([lat, lon])
 
-            trackMetadata.min_lat = min(trackMetadata.min_lat, lat);
-            trackMetadata.min_lon = min(trackMetadata.min_lon, lon);
-            trackMetadata.max_lat = max(trackMetadata.max_lat, lat);
-            trackMetadata.max_lon = max(trackMetadata.max_lon, lon);
-        });
-        displayWay(cloneInto(nodesList, unsafeWindow), false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML);
-    });
+            trackMetadata.min_lat = min(trackMetadata.min_lat, lat)
+            trackMetadata.min_lon = min(trackMetadata.min_lon, lon)
+            trackMetadata.max_lat = max(trackMetadata.max_lat, lat)
+            trackMetadata.max_lon = max(trackMetadata.max_lon, lon)
+        })
+        displayWay(cloneInto(nodesList, unsafeWindow), false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML)
+    })
     doc.querySelectorAll("gpx wpt").forEach(wpt => {
-        const lat = wpt.getAttribute("lat");
-        const lon = wpt.getAttribute("lon");
-        const marker = showNodeMarker(lat, lon, "rgb(255,0,47)", null, 'customObjects', 3);
+        const lat = wpt.getAttribute("lat")
+        const lon = wpt.getAttribute("lon")
+        const marker = showNodeMarker(lat, lon, "rgb(255,0,47)", null, "customObjects", 3)
         const name = wpt.querySelector("name")
         const desc = wpt.querySelector("desc")
         if (name || desc) {
@@ -16788,23 +17156,22 @@ function displayGPXTrack(xml) {
             marker.bindPopup(popup.outerHTML)
         }
 
-        trackMetadata.min_lat = min(trackMetadata.min_lat, lat);
-        trackMetadata.min_lon = min(trackMetadata.min_lon, lon);
-        trackMetadata.max_lat = max(trackMetadata.max_lat, lat);
-        trackMetadata.max_lon = max(trackMetadata.max_lon, lon);
-    });
+        trackMetadata.min_lat = min(trackMetadata.min_lat, lat)
+        trackMetadata.min_lon = min(trackMetadata.min_lon, lon)
+        trackMetadata.max_lat = max(trackMetadata.max_lat, lat)
+        trackMetadata.max_lon = max(trackMetadata.max_lon, lon)
+    })
     console.timeEnd("start gpx track render")
 }
-
 
 /**
  * @param {string} xml
  */
 function displayKMLTrack(xml) {
-    const doc = new DOMParser().parseFromString(xml, "application/xml");
-    const error = doc.querySelector("parsererror");
+    const doc = new DOMParser().parseFromString(xml, "application/xml")
+    const error = doc.querySelector("parsererror")
     if (error) {
-        console.error("Parsing failed:", error.textContent);
+        console.error("Parsing failed:", error.textContent)
     }
 
     const popup = document.createElement("span")
@@ -16827,8 +17194,8 @@ function displayKMLTrack(xml) {
     popup.appendChild(linkA)
 
     console.time("start kml track render")
-    const min = Math.min;
-    const max = Math.max;
+    const min = Math.min
+    const max = Math.max
     trackMetadata = {
         min_lat: 10000000,
         min_lon: 10000000,
@@ -16839,38 +17206,46 @@ function displayKMLTrack(xml) {
     doc.querySelectorAll("Document Placemark:has(LineString)").forEach(trk => {
         const nodesList = []
         trk.querySelectorAll("LineString coordinates").forEach(i => {
-            i.firstChild.textContent.trim().split(/\s+/).map(i => i.split(",")).forEach(coord => {
-                const lat = parseFloat(coord[1]);
-                const lon = parseFloat(coord[0]);
-                nodesList.push([lat, lon]);
+            i.firstChild.textContent
+                .trim()
+                .split(/\s+/)
+                .map(i => i.split(","))
+                .forEach(coord => {
+                    const lat = parseFloat(coord[1])
+                    const lon = parseFloat(coord[0])
+                    nodesList.push([lat, lon])
 
-                trackMetadata.min_lat = min(trackMetadata.min_lat, lat);
-                trackMetadata.min_lon = min(trackMetadata.min_lon, lon);
-                trackMetadata.max_lat = max(trackMetadata.max_lat, lat);
-                trackMetadata.max_lon = max(trackMetadata.max_lon, lon);
-            })
-        });
-        displayWay(cloneInto(nodesList, unsafeWindow), false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML);
-    });
+                    trackMetadata.min_lat = min(trackMetadata.min_lat, lat)
+                    trackMetadata.min_lon = min(trackMetadata.min_lon, lon)
+                    trackMetadata.max_lat = max(trackMetadata.max_lat, lat)
+                    trackMetadata.max_lon = max(trackMetadata.max_lon, lon)
+                })
+        })
+        displayWay(cloneInto(nodesList, unsafeWindow), false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML)
+    })
     doc.querySelectorAll("Document Placemark:has(LinearRing)").forEach(trk => {
         const nodesList = []
         trk.querySelectorAll("LinearRing coordinates").forEach(i => {
-            i.firstChild.textContent.trim().split(/\s+/).map(i => i.split(",")).forEach(coord => {
-                const lat = parseFloat(coord[1]);
-                const lon = parseFloat(coord[0]);
-                nodesList.push([lat, lon]);
+            i.firstChild.textContent
+                .trim()
+                .split(/\s+/)
+                .map(i => i.split(","))
+                .forEach(coord => {
+                    const lat = parseFloat(coord[1])
+                    const lon = parseFloat(coord[0])
+                    nodesList.push([lat, lon])
 
-                trackMetadata.min_lat = min(trackMetadata.min_lat, lat);
-                trackMetadata.min_lon = min(trackMetadata.min_lon, lon);
-                trackMetadata.max_lat = max(trackMetadata.max_lat, lat);
-                trackMetadata.max_lon = max(trackMetadata.max_lon, lon);
-            })
-        });
-        displayWay(cloneInto(nodesList, unsafeWindow), false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML);
-    });
+                    trackMetadata.min_lat = min(trackMetadata.min_lat, lat)
+                    trackMetadata.min_lon = min(trackMetadata.min_lon, lon)
+                    trackMetadata.max_lat = max(trackMetadata.max_lat, lat)
+                    trackMetadata.max_lon = max(trackMetadata.max_lon, lon)
+                })
+        })
+        displayWay(cloneInto(nodesList, unsafeWindow), false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML)
+    })
     doc.querySelectorAll("Document Placemark:has(Point)").forEach(pointXml => {
-        const [lon, lat] = pointXml.querySelector("coordinates").firstChild.textContent.trim().split(",").map(parseFloat).slice(0, 2);
-        const marker = showNodeMarker(lat, lon, "rgb(255,0,47)", null, 'customObjects', 3);
+        const [lon, lat] = pointXml.querySelector("coordinates").firstChild.textContent.trim().split(",").map(parseFloat).slice(0, 2)
+        const marker = showNodeMarker(lat, lon, "rgb(255,0,47)", null, "customObjects", 3)
         const name = pointXml.querySelector("name")
         const desc = pointXml.querySelector("description")
         if (name || desc) {
@@ -16886,14 +17261,13 @@ function displayKMLTrack(xml) {
             marker.bindPopup(popup.outerHTML)
         }
 
-        trackMetadata.min_lat = min(trackMetadata.min_lat, lat);
-        trackMetadata.min_lon = min(trackMetadata.min_lon, lon);
-        trackMetadata.max_lat = max(trackMetadata.max_lat, lat);
-        trackMetadata.max_lon = max(trackMetadata.max_lon, lon);
-    });
+        trackMetadata.min_lat = min(trackMetadata.min_lat, lat)
+        trackMetadata.min_lon = min(trackMetadata.min_lon, lon)
+        trackMetadata.max_lat = max(trackMetadata.max_lat, lat)
+        trackMetadata.max_lon = max(trackMetadata.max_lon, lon)
+    })
     console.timeEnd("start kml track render")
 }
-
 
 function renderGeoJSONwrapper(geojson) {
     injectJSIntoPage(`
@@ -16953,11 +17327,11 @@ function renderGeoJSONwrapper(geojson) {
     getWindow().renderGeoJSON(intoPage(geojson))
 }
 
-var jsonLayer = null;
+var jsonLayer = null
 let bannedVersions = null
 
 function currentVersionBanned(module) {
-    if (!bannedVersions) return false;
+    if (!bannedVersions) return false
     if (bannedVersions[GM_info.script.version]) {
         if (bannedVersions[GM_info.script.version][module]) {
             return bannedVersions[GM_info.script.version][module]
@@ -16974,7 +17348,7 @@ function insertOverlaysStyles() {
             .leaflet-popup-content, .leaflet-tooltip {
                 white-space: pre;
             }
-            
+
             .leaflet-popup-content:has(.geojson-props-table) {
                 overflow: scroll;
             }
@@ -17071,21 +17445,19 @@ function insertOverlaysStyles() {
                 height: auto;
                 overflow-y: scroll;
             }
-        `
-    );
-
+        `)
 }
 
 // todo inline
-const rawEditIcon = "https://raw.githubusercontent.com/openstreetmap/iD/671e9f00699c3b2602b82b291c5cd776445032aa/svg/fontawesome/fas-i-cursor.svg";
-const tableEditIcon = "https://raw.githubusercontent.com/openstreetmap/iD/671e9f00699c3b2602b82b291c5cd776445032aa/svg/fontawesome/fas-th-list.svg";
+const rawEditIcon = "https://raw.githubusercontent.com/openstreetmap/iD/671e9f00699c3b2602b82b291c5cd776445032aa/svg/fontawesome/fas-i-cursor.svg"
+const tableEditIcon = "https://raw.githubusercontent.com/openstreetmap/iD/671e9f00699c3b2602b82b291c5cd776445032aa/svg/fontawesome/fas-th-list.svg"
 
 // const lastVersionsCache = {}
 
 function loadBannedVersions() {
     GM.xmlHttpRequest({
         url: "https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/master/banned_versions.json",
-        responseType: "json"
+        responseType: "json",
     }).then(async res => {
         bannedVersions = await res.response
     })
@@ -17095,20 +17467,20 @@ function preloadEditIcons() {
     GM_addElement("img", {
         src: rawEditIcon,
         height: "14px",
-        width: "14px"
+        width: "14px",
     })
     GM_addElement("img", {
         src: tableEditIcon,
         height: "14px",
-        width: "14px"
+        width: "14px",
     })
 }
 
-let osmEditAuth = null;
+let osmEditAuth = null
 
 function renderOSMGeoJSON(xml, options = {}) {
     if (osmEditAuth === null) {
-        osmEditAuth = makeAuth();
+        osmEditAuth = makeAuth()
     }
     /**
      * @param {Object.<string, string>} tags
@@ -17171,7 +17543,7 @@ function renderOSMGeoJSON(xml, options = {}) {
 
         const versionLink = document.createElement("a")
         versionLink.classList.add("version-link")
-        versionLink.textContent = feature.properties.meta.version ? ("v" + feature.properties.meta.version) : ""
+        versionLink.textContent = feature.properties.meta.version ? "v" + feature.properties.meta.version : ""
         versionLink.href = "/" + feature.type + "/" + feature.id + "history/" + feature.properties.meta.version
         popupBody.appendChild(versionLink)
 
@@ -17238,21 +17610,25 @@ function renderOSMGeoJSON(xml, options = {}) {
 
     function onEachFeature(feature, layer) {
         if (!feature.properties) {
-            return;
+            return
         }
 
-        getWindow().L.DomEvent.on(layer, "click", intoPageWithFun((e) => {
-            const layer = getMap()._layers[e.target._leaflet_id]
-            if (e.originalEvent.altKey) {
-                layer.remove()
-                e.originalEvent.stopPropagation()
-                e.originalEvent.stopImmediatePropagation()
-            } else {
-                if (!layer.getPopup()) {
-                    layer.bindPopup(makePopupHTML(feature).outerHTML, intoPage({minWidth: 300})).openPopup()
+        getWindow().L.DomEvent.on(
+            layer,
+            "click",
+            intoPageWithFun(e => {
+                const layer = getMap()._layers[e.target._leaflet_id]
+                if (e.originalEvent.altKey) {
+                    layer.remove()
+                    e.originalEvent.stopPropagation()
+                    e.originalEvent.stopImmediatePropagation()
+                } else {
+                    if (!layer.getPopup()) {
+                        layer.bindPopup(makePopupHTML(feature).outerHTML, intoPage({ minWidth: 300 })).openPopup()
+                    }
                 }
-            }
-        }))
+            }),
+        )
 
         const startEdit = intoPageWithFun(async startEditEvent => {
             let lastEditMode = await GM.getValue("lastEditMode", "table")
@@ -17275,13 +17651,13 @@ function renderOSMGeoJSON(xml, options = {}) {
             const tableModeBtnImg = GM_addElement("img", {
                 src: tableEditIcon,
                 height: "14px",
-                width: "14px"
+                width: "14px",
             })
             tableModeBtnImg.style.marginTop = "-3px"
             const rawModeBtnImg = GM_addElement("img", {
                 src: rawEditIcon,
                 height: "14px",
-                width: "14px"
+                width: "14px",
             })
             rawModeBtnImg.style.marginTop = "-3px"
 
@@ -17294,13 +17670,13 @@ function renderOSMGeoJSON(xml, options = {}) {
                 textarea.value = ""
                 textarea.rows = 5
                 Object.entries(feature.properties?.tags).forEach(([k, v]) => {
-                    textarea.value += `${k}=${v.replaceAll('\\\\', '\n')}\n`
+                    textarea.value += `${k}=${v.replaceAll("\\\\", "\n")}\n`
                 })
                 textarea.value = textarea.value.trim()
                 table.appendChild(textarea)
             }
 
-            modeBtn.onclick = async (e) => {
+            modeBtn.onclick = async e => {
                 e.stopPropagation()
                 modeBtn.querySelector("img").remove()
                 if (lastEditMode === "table") {
@@ -17329,18 +17705,20 @@ function renderOSMGeoJSON(xml, options = {}) {
             let object_version = parseInt(feature.properties.meta.version)
 
             async function syncTags() {
-                const rawObjectInfo = (await (await osmEditAuth.fetch(osm_server.apiBase + object_type + '/' + object_id, {
-                    method: 'GET',
-                    prefix: false,
-                })).text());
-                const objectInfo = (new DOMParser()).parseFromString(rawObjectInfo, "text/xml")
+                const rawObjectInfo = await (
+                    await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
+                        method: "GET",
+                        prefix: false,
+                    })
+                ).text()
+                const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
                 // lastVersionsCache[`${object_type}_${object_id}`] = objectInfo
                 const lastTags = {}
                 objectInfo.querySelectorAll("tag").forEach(i => {
                     lastTags[i.getAttribute("k")] = i.getAttribute("v")
                 })
                 const new_object_version = parseInt(objectInfo.querySelector("[version]:not(osm)").getAttribute("version"))
-                if (JSON.stringify(lastTags) !== JSON.stringify(oldTags) || object_version && object_version + 1 !== new_object_version) {
+                if (JSON.stringify(lastTags) !== JSON.stringify(oldTags) || (object_version && object_version + 1 !== new_object_version)) {
                     console.log("applying new tags")
                     if (lastEditMode === "table") {
                         table.querySelector("tbody").remove()
@@ -17351,32 +17729,34 @@ function renderOSMGeoJSON(xml, options = {}) {
                         textarea.value = ""
                         textarea.rows = 5
                         Object.entries(lastTags).forEach(([k, v]) => {
-                            textarea.value += `${k}=${v.replaceAll('\\\\', '\n')}\n`
+                            textarea.value += `${k}=${v.replaceAll("\\\\", "\n")}\n`
                         })
                         textarea.value = textarea.value.trim()
                         table.appendChild(textarea)
                     }
                 }
                 object_version = new_object_version
-                startEditEvent.target.parentElement.querySelector(".version-link").textContent = (object_version ? "v" + object_version : "")
+                startEditEvent.target.parentElement.querySelector(".version-link").textContent = object_version ? "v" + object_version : ""
                 startEditEvent.target.parentElement.querySelector(".version-link").href = `/${object_type}/${object_id}/history/${object_version}`
 
                 metaTable.querySelector("tbody")?.remove()
 
                 const metaTBody = document.createElement("tbody")
                 metaTable.appendChild(metaTBody)
-                Array.from(objectInfo.querySelector("node,way,relation").attributes).map(i => [i.name, i.value]).forEach(([key, value]) => {
-                    if (key === "visible" || key === "nodes" || key === "members" || key === "id") return
-                    const th = document.createElement("th")
-                    th.textContent = key
-                    const td = document.createElement("td")
-                    td.textContent = value
+                Array.from(objectInfo.querySelector("node,way,relation").attributes)
+                    .map(i => [i.name, i.value])
+                    .forEach(([key, value]) => {
+                        if (key === "visible" || key === "nodes" || key === "members" || key === "id") return
+                        const th = document.createElement("th")
+                        th.textContent = key
+                        const td = document.createElement("td")
+                        td.textContent = value
 
-                    const tr = document.createElement("tr")
-                    tr.appendChild(th)
-                    tr.appendChild(td)
-                    metaTBody.appendChild(tr)
-                })
+                        const tr = document.createElement("tr")
+                        tr.appendChild(th)
+                        tr.appendChild(td)
+                        metaTBody.appendChild(tr)
+                    })
             }
 
             await syncTags()
@@ -17392,316 +17772,356 @@ function renderOSMGeoJSON(xml, options = {}) {
             })
             startEditEvent.target.textContent = "📤"
             startEditEvent.target.setAttribute("disabled", true)
-            startEditEvent.target.addEventListener("click", async function upload() {
-                startEditEvent.target.style.cursor = "progress"
-                /** @type {Object.<string, string>}*/
-                let newTags = {}
-                const lastEditMode = await GM.getValue("lastEditMode", "table")
-                if (lastEditMode === "table") {
-                    table.querySelectorAll("tr:not(.add-tag-row)").forEach(i => {
-                        const key = i.querySelector("th").textContent.trim()
-                        const value = i.querySelector("td").textContent.trim()
-                        if (key === "" || value === "") { // todo notify about error
-                            return;
-                        }
-                        newTags[key] = value
+            startEditEvent.target.addEventListener(
+                "click",
+                async function upload() {
+                    startEditEvent.target.style.cursor = "progress"
+                    /** @type {Object.<string, string>}*/
+                    let newTags = {}
+                    const lastEditMode = await GM.getValue("lastEditMode", "table")
+                    if (lastEditMode === "table") {
+                        table.querySelectorAll("tr:not(.add-tag-row)").forEach(i => {
+                            const key = i.querySelector("th").textContent.trim()
+                            const value = i.querySelector("td").textContent.trim()
+                            if (key === "" || value === "") {
+                                // todo notify about error
+                                return
+                            }
+                            newTags[key] = value
+                        })
+                    } else {
+                        newTags = buildTags(table.querySelector("textarea").value)
+                    }
+
+                    console.log("Opening changeset")
+                    const rawObjectInfo = await (
+                        await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
+                            method: "GET",
+                            prefix: false,
+                        })
+                    ).text()
+                    const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
+                    const lastVersion = parseInt(objectInfo.querySelector("[version]:not(osm)").getAttribute("version"))
+                    if (lastVersion !== object_version) {
+                        startEditEvent.target.textContent = "🔄"
+                        alert("Conflict")
+                        throw ""
+                    }
+
+                    const objectXML = objectInfo.querySelector("node,way,relation")
+                    const prevTags = {}
+                    objectXML.querySelectorAll("tag").forEach(i => {
+                        prevTags[i.getAttribute("k")] = i.getAttribute("v")
+                        i.remove()
                     })
-                } else {
-                    newTags = buildTags(table.querySelector("textarea").value)
-                }
+                    Object.entries(newTags).forEach(([k, v]) => {
+                        const tag = objectInfo.createElement("tag")
+                        tag.setAttribute("k", k)
+                        tag.setAttribute("v", v)
+                        objectXML.appendChild(tag)
+                    })
 
-                console.log("Opening changeset");
-                const rawObjectInfo = (await (await osmEditAuth.fetch(osm_server.apiBase + object_type + '/' + object_id, {
-                    method: 'GET',
-                    prefix: false,
-                })).text());
-                const objectInfo = (new DOMParser()).parseFromString(rawObjectInfo, "text/xml")
-                const lastVersion = parseInt(objectInfo.querySelector("[version]:not(osm)").getAttribute("version"))
-                if (lastVersion !== object_version) {
-                    startEditEvent.target.textContent = "🔄"
-                    alert("Conflict")
-                    throw ""
-                }
+                    function makeComment(object_type, object_id, prevTags, newTags) {
+                        const removedKeys = Object.entries(prevTags)
+                            .map(([k]) => k)
+                            .filter(k => newTags[k] === undefined)
+                        const addedKeys = Object.entries(newTags)
+                            .map(([k]) => k)
+                            .filter(k => prevTags[k] === undefined)
+                        const modifiedKeys = Object.entries(prevTags)
+                            .filter(([k, v]) => newTags[k] !== undefined && newTags[k] !== v)
+                            .map(([k]) => k)
 
-                const objectXML = objectInfo.querySelector("node,way,relation")
-                const prevTags = {}
-                objectXML.querySelectorAll("tag").forEach(i => {
-                    prevTags[i.getAttribute("k")] = i.getAttribute("v")
-                    i.remove()
-                })
-                Object.entries(newTags).forEach(([k, v]) => {
-                    const tag = objectInfo.createElement("tag")
-                    tag.setAttribute("k", k)
-                    tag.setAttribute("v", v)
-                    objectXML.appendChild(tag)
-                })
-
-                function makeComment(object_type, object_id, prevTags, newTags) {
-                    const removedKeys = Object.entries(prevTags).map(([k,]) => k).filter(k => newTags[k] === undefined)
-                    const addedKeys = Object.entries(newTags).map(([k,]) => k).filter(k => prevTags[k] === undefined)
-                    const modifiedKeys = Object.entries(prevTags).filter(([k, v]) => newTags[k] !== undefined && newTags[k] !== v).map(([k,]) => k)
-
-                    let tagsHint = ""
-                    if (addedKeys.length) {
-                        tagsHint += "Add " + addedKeys.map(k => `${k}=${newTags[k]}`).join(", ") + "; "
-                    }
-
-                    if (modifiedKeys.length) {
-                        tagsHint += "Changed " + modifiedKeys.map(k => `${k}=${prevTags[k]}\u200b→\u200b${newTags[k]}`).join(", ") + "; "
-                    }
-
-                    if (removedKeys.length) {
-                        tagsHint += "Removed " + removedKeys.map(k => `${k}=${prevTags[k]}`).join(", ") + "; "
-                    }
-
-                    if (tagsHint.length > 200 || modifiedKeys.length > 1) {
-                        tagsHint = ""
+                        let tagsHint = ""
                         if (addedKeys.length) {
-                            tagsHint += "Add " + addedKeys.join(", ") + "; "
+                            tagsHint += "Add " + addedKeys.map(k => `${k}=${newTags[k]}`).join(", ") + "; "
                         }
 
                         if (modifiedKeys.length) {
-                            tagsHint += "Changed " + modifiedKeys.join(", ") + "; "
+                            tagsHint += "Changed " + modifiedKeys.map(k => `${k}=${prevTags[k]}\u200b→\u200b${newTags[k]}`).join(", ") + "; "
                         }
 
                         if (removedKeys.length) {
-                            tagsHint += "Removed " + removedKeys.join(", ") + "; "
+                            tagsHint += "Removed " + removedKeys.map(k => `${k}=${prevTags[k]}`).join(", ") + "; "
                         }
+
+                        if (tagsHint.length > 200 || modifiedKeys.length > 1) {
+                            tagsHint = ""
+                            if (addedKeys.length) {
+                                tagsHint += "Add " + addedKeys.join(", ") + "; "
+                            }
+
+                            if (modifiedKeys.length) {
+                                tagsHint += "Changed " + modifiedKeys.join(", ") + "; "
+                            }
+
+                            if (removedKeys.length) {
+                                tagsHint += "Removed " + removedKeys.join(", ") + "; "
+                            }
+                        }
+
+                        tagsHint = tagsHint.match(/(.*); /)[1]
+
+                        let mainTagsHint = ""
+
+                        for (const i of Object.entries(prevTags)) {
+                            if (mainTags.includes(i[0]) && !removedKeys.includes(i[0]) && !modifiedKeys.includes(i[0])) {
+                                mainTagsHint += ` ${i[0]}=${i[1]}`
+                                break
+                            }
+                        }
+                        for (const i of Object.entries(prevTags)) {
+                            if (i[0] === "name" && !removedKeys.includes("name") && !modifiedKeys.includes("name")) {
+                                mainTagsHint += ` ${i[0]}=${i[1]}`
+                                break
+                            }
+                        }
+
+                        if (mainTagsHint !== "") {
+                            if (removedKeys.length) {
+                                tagsHint += " from" + mainTagsHint
+                            } else if (modifiedKeys.length) {
+                                tagsHint += " of" + mainTagsHint
+                            } else if (addedKeys.length) {
+                                tagsHint += " to" + mainTagsHint
+                            }
+                        } else {
+                            tagsHint += ` for ${object_type} ${object_id}`
+                        }
+
+                        return tagsHint !== "" ? tagsHint.slice(0, 255) : `Update tags of ${object_type} ${object_id}`
                     }
 
-                    tagsHint = tagsHint.match(/(.*); /)[1]
-
-                    let mainTagsHint = ""
-
-                    for (const i of Object.entries(prevTags)) {
-                        if (mainTags.includes(i[0]) && !removedKeys.includes(i[0]) && !modifiedKeys.includes(i[0])) {
-                            mainTagsHint += ` ${i[0]}=${i[1]}`;
-                            break
-                        }
-                    }
-                    for (const i of Object.entries(prevTags)) {
-                        if (i[0] === "name" && !removedKeys.includes("name") && !modifiedKeys.includes("name")) {
-                            mainTagsHint += ` ${i[0]}=${i[1]}`;
-                            break
-                        }
+                    const changesetTags = {
+                        created_by: `better osm.org v${GM_info.script.version}`,
+                        comment: makeComment(object_type, object_id, prevTags, newTags),
                     }
 
-                    if (mainTagsHint !== "") {
-                        if (removedKeys.length) {
-                            tagsHint += " from" + mainTagsHint
-                        } else if (modifiedKeys.length) {
-                            tagsHint += " of" + mainTagsHint
-                        } else if (addedKeys.length) {
-                            tagsHint += " to" + mainTagsHint
-                        }
-                    } else {
-                        tagsHint += ` for ${object_type} ${object_id}`
+                    let changesetPayload = document.implementation.createDocument(null, "osm")
+                    let cs = changesetPayload.createElement("changeset")
+                    changesetPayload.documentElement.appendChild(cs)
+                    tagsToXml(changesetPayload, cs, changesetTags)
+                    const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
+
+                    const changesetId = await osmEditAuth
+                        .fetch(osm_server.apiBase + "changeset/create", {
+                            method: "PUT",
+                            prefix: false,
+                            body: chPayloadStr,
+                        })
+                        .then(res => {
+                            if (res.ok) return res.text()
+                            throw new Error(res)
+                        })
+                    console.log(changesetId)
+
+                    try {
+                        objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
+
+                        const objectInfoStr = new XMLSerializer().serializeToString(objectInfo).replace(/xmlns="[^"]+"/, "")
+                        console.log(objectInfoStr)
+                        await osmEditAuth
+                            .fetch(osm_server.apiBase + object_type + "/" + object_id, {
+                                method: "PUT",
+                                prefix: false,
+                                body: objectInfoStr,
+                            })
+                            .then(async res => {
+                                const text = await res.text()
+                                if (res.ok) return text
+                                alert(text)
+                                throw new Error(text)
+                            })
+                    } finally {
+                        startEditEvent.target.style.cursor = ""
+                        await osmEditAuth.fetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
+                            method: "PUT",
+                            prefix: false,
+                        })
                     }
 
-                    return tagsHint !== "" ? tagsHint.slice(0, 255) : `Update tags of ${object_type} ${object_id}`
-                }
+                    startEditEvent.target.textContent = "#" + changesetId
+                    startEditEvent.target.style.color = "green"
 
-                const changesetTags = {
-                    'created_by': `better osm.org v${GM_info.script.version}`,
-                    'comment': makeComment(object_type, object_id, prevTags, newTags)
-                };
+                    startEditEvent.target.onclick = () => {
+                        window.open("/changeset/" + changesetId, "_blank")
+                    }
 
-                let changesetPayload = document.implementation.createDocument(null, 'osm');
-                let cs = changesetPayload.createElement('changeset');
-                changesetPayload.documentElement.appendChild(cs);
-                tagsToXml(changesetPayload, cs, changesetTags);
-                const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload);
+                    table.addEventListener(
+                        "input",
+                        () => {
+                            startEditEvent.target.removeAttribute("disabled")
+                            startEditEvent.target.textContent = "📤"
+                            startEditEvent.target.onclick = null
+                        },
+                        { once: true },
+                    )
 
-                const changesetId = await osmEditAuth.fetch(osm_server.apiBase + 'changeset/create', {
-                    method: 'PUT',
-                    prefix: false,
-                    body: chPayloadStr
-                }).then((res) => {
-                    if (res.ok) return res.text();
-                    throw new Error(res);
-                });
-                console.log(changesetId);
-
-
-                try {
-                    objectInfo.children[0].children[0].setAttribute('changeset', changesetId);
-
-                    const objectInfoStr = new XMLSerializer().serializeToString(objectInfo).replace(/xmlns="[^"]+"/, '')
-                    console.log(objectInfoStr);
-                    await osmEditAuth.fetch(osm_server.apiBase + object_type + '/' + object_id, {
-                        method: 'PUT',
-                        prefix: false,
-                        body: objectInfoStr
-                    }).then(async (res) => {
-                        const text = await res.text()
-                        if (res.ok) return text;
-                        alert(text)
-                        throw new Error(text);
-                    });
-                } finally {
-                    startEditEvent.target.style.cursor = ""
-                    await osmEditAuth.fetch(osm_server.apiBase + 'changeset/' + changesetId + '/close', {
-                        method: 'PUT',
-                        prefix: false
-                    });
-                }
-
-                startEditEvent.target.textContent = "#" + changesetId
-                startEditEvent.target.style.color = "green"
-
-                startEditEvent.target.onclick = () => {
-                    window.open("/changeset/" + changesetId, "_blank")
-                }
-
-                table.addEventListener("input", () => {
-                    startEditEvent.target.removeAttribute("disabled")
-                    startEditEvent.target.textContent = "📤"
-                    startEditEvent.target.onclick = null
-                }, {once: true})
-
-                oldTags = {}
-                objectInfo.querySelectorAll("tag").forEach(i => {
-                    oldTags[i.getAttribute("k")] = i.getAttribute("v")
-                })
-                await syncTags()
-
-                console.log(objectInfo);
-
-            }, {once: true})
-            table.addEventListener('keydown', (e) => {
-                if (e.code === "Enter" && (e.metaKey || e.ctrlKey)) {
-                    e.preventDefault()
-                    const tr = document.createElement("tr")
-                    const th = document.createElement("th")
-                    const td = document.createElement("td")
-                    tr.appendChild(th)
-                    tr.appendChild(td)
-                    tr.style.height = "1rem"
-                    tr.tabIndex = 0
-                    e.target.after(tr)
-                    tr.focus()
-                }
-            }, false);
-        })
-        getWindow().L.DomEvent.on(layer, "popupopen", intoPageWithFun(async (openEvent) => {
-            const layer = getMap()._layers[openEvent.target._leaflet_id]
-            const editButton = layer.getPopup().getElement().querySelector(".edit-tags-btn")
-            if (currentVersionBanned("overpass_tags_editor")) {
-                editButton.classList.add("banned-feature")
-                editButton.textContent = "Need update better-osm-org"
-                editButton.title = "Please click for update better-osm-org script.\nThe current version contains a bug that may corrupt OSM data."
-                editButton.addEventListener("click", intoPageWithFun(() => {
-                    window.open(SCRIPT_UPDATE_URL, "_blank")
-                }), intoPage({once: true}))
-            } else {
-                editButton.addEventListener("click", startEdit, intoPage({once: true}))
-
-                if (await GM.getValue("lastEditMode", "table") === "raw") {
-                    const textarea = document.createElement("textarea")
-                    textarea.setAttribute("disabled", "true")
-                    Object.entries(feature.properties?.tags).forEach(([k, v]) => {
-                        if (k === "" && v === "") return
-                        textarea.value += `${k}=${v.replaceAll('\\\\', '\n')}\n`
+                    oldTags = {}
+                    objectInfo.querySelectorAll("tag").forEach(i => {
+                        oldTags[i.getAttribute("k")] = i.getAttribute("v")
                     })
-                    textarea.value = textarea.value.trim()
-                    textarea.rows = 5
-                    layer.getPopup().getElement().querySelector(".tags-table").appendChild(textarea)
-                } else {
-                    layer.getPopup().getElement().querySelector(".tags-table").appendChild(makeTBody(feature.properties?.tags))
-                }
-            }
-        }, intoPage({once: true})))
+                    await syncTags()
+
+                    console.log(objectInfo)
+                },
+                { once: true },
+            )
+            table.addEventListener(
+                "keydown",
+                e => {
+                    if (e.code === "Enter" && (e.metaKey || e.ctrlKey)) {
+                        e.preventDefault()
+                        const tr = document.createElement("tr")
+                        const th = document.createElement("th")
+                        const td = document.createElement("td")
+                        tr.appendChild(th)
+                        tr.appendChild(td)
+                        tr.style.height = "1rem"
+                        tr.tabIndex = 0
+                        e.target.after(tr)
+                        tr.focus()
+                    }
+                },
+                false,
+            )
+        })
+        getWindow().L.DomEvent.on(
+            layer,
+            "popupopen",
+            intoPageWithFun(
+                async openEvent => {
+                    const layer = getMap()._layers[openEvent.target._leaflet_id]
+                    const editButton = layer.getPopup().getElement().querySelector(".edit-tags-btn")
+                    if (currentVersionBanned("overpass_tags_editor")) {
+                        editButton.classList.add("banned-feature")
+                        editButton.textContent = "Need update better-osm-org"
+                        editButton.title = "Please click for update better-osm-org script.\nThe current version contains a bug that may corrupt OSM data."
+                        editButton.addEventListener(
+                            "click",
+                            intoPageWithFun(() => {
+                                window.open(SCRIPT_UPDATE_URL, "_blank")
+                            }),
+                            intoPage({ once: true }),
+                        )
+                    } else {
+                        editButton.addEventListener("click", startEdit, intoPage({ once: true }))
+
+                        if ((await GM.getValue("lastEditMode", "table")) === "raw") {
+                            const textarea = document.createElement("textarea")
+                            textarea.setAttribute("disabled", "true")
+                            Object.entries(feature.properties?.tags).forEach(([k, v]) => {
+                                if (k === "" && v === "") return
+                                textarea.value += `${k}=${v.replaceAll("\\\\", "\n")}\n`
+                            })
+                            textarea.value = textarea.value.trim()
+                            textarea.rows = 5
+                            layer.getPopup().getElement().querySelector(".tags-table").appendChild(textarea)
+                        } else {
+                            layer.getPopup().getElement().querySelector(".tags-table").appendChild(makeTBody(feature.properties?.tags))
+                        }
+                    }
+                },
+                intoPage({ once: true }),
+            ),
+        )
     }
     xml.querySelectorAll("[action=delete]").forEach(i => i.remove())
-    const geojson = osmtogeojson(xml, {flatProperties: false})
-    if (options['skip_tainted']) {
-        geojson.features = geojson.features.filter(f => !f.properties['tainted'])
+    const geojson = osmtogeojson(xml, { flatProperties: false })
+    if (options["skip_tainted"]) {
+        geojson.features = geojson.features.filter(f => !f.properties["tainted"])
     }
-    const pointOptions = intoPage(options['point_options'] ?? {})
-    const jsonLayer = getWindow().L.geoJSON(intoPage(geojson), intoPageWithFun({
-            style: options['style'],
+    const pointOptions = intoPage(options["point_options"] ?? {})
+    const jsonLayer = getWindow().L.geoJSON(
+        intoPage(geojson),
+        intoPageWithFun({
+            style: options["style"],
             onEachFeature: intoPageWithFun(onEachFeature),
             pointToLayer: intoPageWithFun(function (feature, latlng) {
-                return getWindow().L.circleMarker(latlng, pointOptions);
-            })
-        })
-    );
-    jsonLayer.addTo(getMap());
+                return getWindow().L.circleMarker(latlng, pointOptions)
+            }),
+        }),
+    )
+    jsonLayer.addTo(getMap())
     return jsonLayer
 }
 
 async function setupDragAndDropViewers() {
     document.querySelector("#map")?.addEventListener("drop", e => {
         if (location.pathname.includes("/directions") || location.pathname.includes("/note/new")) {
-            return;
+            return
         }
         e.preventDefault()
         e.stopPropagation()
-        e.stopImmediatePropagation();
+        e.stopImmediatePropagation()
         e.target.style.cursor = "progress"
         try {
             const mapWidth = getComputedStyle(document.querySelector("#map")).width
             const mapHeight = getComputedStyle(document.querySelector("#map")).height
-            insertOverlaysStyles();
-            [...e.dataTransfer.items].forEach(async (item, _) => {
+            insertOverlaysStyles()
+            ;[...e.dataTransfer.items].forEach(async (item, _) => {
                 if (item.kind === "file") {
-                    const file = item.getAsFile();
+                    const file = item.getAsFile()
                     if (file.type.startsWith("image/jpeg")) {
                         const metadata = EXIF.readFromBinaryFile(await file.arrayBuffer())
                         console.log(metadata)
                         console.log(metadata.GPSLatitude, metadata.GPSLongitude)
-                        let lat = parseFloat(metadata.GPSLatitude[0]) + parseFloat(metadata.GPSLatitude[1]) / 60 + parseFloat(metadata.GPSLatitude[2]) / 3600;
-                        let lon = parseFloat(metadata.GPSLongitude[0]) + parseFloat(metadata.GPSLongitude[1]) / 60 + parseFloat(metadata.GPSLongitude[2]) / 3600;
+                        let lat = parseFloat(metadata.GPSLatitude[0]) + parseFloat(metadata.GPSLatitude[1]) / 60 + parseFloat(metadata.GPSLatitude[2]) / 3600
+                        let lon = parseFloat(metadata.GPSLongitude[0]) + parseFloat(metadata.GPSLongitude[1]) / 60 + parseFloat(metadata.GPSLongitude[2]) / 3600
 
                         if (metadata.GPSLatitudeRef === "S") {
-                            lat = parseFloat(lat) * -1;
+                            lat = parseFloat(lat) * -1
                         }
 
                         if (metadata.GPSLongitudeRef === "W") {
-                            lon = parseFloat(lon) * -1;
+                            lon = parseFloat(lon) * -1
                         }
 
-                        const marker = getWindow().L.marker(getWindow().L.latLng(lat, lon), intoPage({
-                            maxWidth: mapWidth,
-                            maxHeight: mapHeight,
-                            className: "map-img-preview-popup"
-                        }));
+                        const marker = getWindow().L.marker(
+                            getWindow().L.latLng(lat, lon),
+                            intoPage({
+                                maxWidth: mapWidth,
+                                maxHeight: mapHeight,
+                                className: "map-img-preview-popup",
+                            }),
+                        )
                         const img = document.createElement("img")
                         img.classList.add("geotagged-img")
                         img.setAttribute("width", "100%")
-                        const fr = new FileReader();
+                        const fr = new FileReader()
                         fr.onload = function () {
-                            img.src = fr.result;
-                            marker.bindPopup(img.outerHTML);
+                            img.src = fr.result
+                            marker.bindPopup(img.outerHTML)
                         }
-                        fr.readAsDataURL(file);
-                        marker.addTo(getMap());
+                        fr.readAsDataURL(file)
+                        marker.addTo(getMap())
                     } else if (file.type === "application/json" || file.type === "application/geo+json") {
                         const geojson = JSON.parse(await file.text())
                         renderGeoJSONwrapper(geojson)
                     } else if (file.type === "application/gpx+xml") {
                         displayGPXTrack(await file.text())
                     } else if (file.type === "application/vnd.openstreetmap.data+xml") {
-                        const doc = (new DOMParser()).parseFromString(await file.text(), "application/xml");
-                        loadBannedVersions();
-                        preloadEditIcons();
+                        const doc = new DOMParser().parseFromString(await file.text(), "application/xml")
+                        loadBannedVersions()
+                        preloadEditIcons()
                         jsonLayer = renderOSMGeoJSON(doc, true)
                     } else if (file.type === "application/vnd.google-earth.kml+xml") {
                         displayKMLTrack(await file.text())
                     } else if (file.type === "application/vnd.google-earth.kmz+xml") {
-                        const {entries} = await unzipit.unzip(await file.arrayBuffer());
-                        displayKMLTrack(await Object.entries(entries).find(i => i[0].endsWith(".kml"))[1].text())
+                        const { entries } = await unzipit.unzip(await file.arrayBuffer())
+                        displayKMLTrack(
+                            await Object.entries(entries)
+                                .find(i => i[0].endsWith(".kml"))[1]
+                                .text(),
+                        )
                     } else {
                         console.log(file.type)
                     }
                 }
-            });
-
+            })
         } finally {
             e.target.style.cursor = "grab"
         }
-
-
     })
     document.querySelector("#map")?.addEventListener("dragover", e => {
         if (!location.pathname.includes("/directions") && !location.pathname.includes("/note/new")) {
@@ -17713,7 +18133,7 @@ async function setupDragAndDropViewers() {
         document.querySelectorAll('a[href*="edit?gpx="]').forEach(i => {
             const trackID = i.getAttribute("href").match(/edit\?gpx=(\d+)/)[1]
             const editLink = i.parentElement.parentElement.querySelector('a:not([href*="display-gpx"])')
-            const url = new URL(editLink.href);
+            const url = new URL(editLink.href)
             url.search += "&display-gpx=" + trackID
             editLink.href = url.toString()
         })
@@ -17721,13 +18141,13 @@ async function setupDragAndDropViewers() {
         const trackID = location.search.match(/&display-gpx=(\d+)/)[1]
         const res = await GM.xmlHttpRequest({
             url: `${osm_server.url}/traces/${trackID}/data`,
-            responseType: "blob"
-        });
+            responseType: "blob",
+        })
         const contentType = res.response.type
         if (contentType === "application/gpx+xml") {
             displayGPXTrack(await res.response.text())
         } else if (contentType === "application/gzip") {
-            displayGPXTrack(await (await decompressBlob(res.response)).text());
+            displayGPXTrack(await (await decompressBlob(res.response)).text())
         } else if (contentType === "application/x-bzip2") {
             // fuck Tampermonkey, structuredClone for TM
             displayGPXTrack(new DOMParser().parseFromString(new TextDecoder().decode(bz2.decompress(structuredClone(await res.response.bytes()))), "application/xml"))
@@ -17737,7 +18157,7 @@ async function setupDragAndDropViewers() {
         if (trackMetadata) {
             fitBounds([
                 [trackMetadata.min_lat, trackMetadata.min_lon],
-                [trackMetadata.max_lat, trackMetadata.max_lon]
+                [trackMetadata.max_lat, trackMetadata.max_lon],
             ])
         }
     }
@@ -17747,7 +18167,6 @@ async function setupDragAndDropViewers() {
     if (createNoteButton && !createNoteButton.getAttribute("data-bs-original-title").includes(" (shift + N)")) {
         createNoteButton.setAttribute("data-bs-original-title", createNoteButton.getAttribute("data-bs-original-title") + " (shift + N)")
     }
-
 }
 
 //<editor-fold desc="measurer" defaultstate="collapsed">
@@ -17770,17 +18189,22 @@ let lastLatLng = null
 let movingTooltip = null
 
 function getMeasureDistance(way, floatingCoord) {
-    const [res,] = way.reduce(([dist, prev], cur) => {
-        if (prev === null) {
-            return [0.0, cur]
-        }
-        return [dist + getDistanceFromLatLonInKm(
-            prev.lat,
-            prev.lng,
-            cur.lat,
-            cur.lng
-        ), cur]
-    }, [0.0, null])
+    const [res] = way.reduce(
+        ([dist, prev], cur) => {
+            if (prev === null) {
+                return [0.0, cur]
+            }
+            // prettier-ignore
+            return [dist + getDistanceFromLatLonInKm(
+                prev.lat,
+                prev.lng,
+                cur.lat,
+                cur.lng
+            ), cur]
+        },
+        [0.0, null],
+    )
+    // prettier-ignore
     return (Math.round((res + getDistanceFromLatLonInKm(
         way[way.length - 1].lat,
         way[way.length - 1].lng,
@@ -17793,29 +18217,34 @@ function formatMeasureDistance(distInMeters) {
     return distInMeters < 2500 ? distInMeters.toString() + "m" : (Math.round(distInMeters) / 1000).toString() + "km"
 }
 
-let measuringMouseDownHandler = null;
-let measuringMouseUpHandler = null;
-let measuringMouseMoveHandler = null;
-let measuringMenuItem = null;
+let measuringMouseDownHandler = null
+let measuringMouseUpHandler = null
+let measuringMouseMoveHandler = null
+let measuringMenuItem = null
 
 function endMeasuring() {
     document.querySelector("#map").style.cursor = "drag"
     measuringMenuItem.textContent = "Measure from here"
     measuring = false
 
-    getMap().off('mousedown', measuringMouseDownHandler)
-    getMap().off('mouseup', measuringMouseUpHandler)
-    getMap().off('mousemove', measuringMouseMoveHandler)
+    getMap().off("mousedown", measuringMouseDownHandler)
+    getMap().off("mouseup", measuringMouseUpHandler)
+    getMap().off("mousemove", measuringMouseMoveHandler)
     movingTooltip?.remove()
     const lastNode = currentMeasuring.nodes[currentMeasuring.nodes.length - 1]
     const distInMeters = getMeasureDistance(currentMeasuring.way, lastNode.getLatLng())
     const text = formatMeasureDistance(distInMeters)
-    currentMeasuring.nodes[currentMeasuring.nodes.length - 1].bindTooltip(text, intoPage({
-        content: text,
-        sticky: true,
-        permanent: true,
-        offset: getWindow().L.point(10, 0),
-    })).openTooltip()
+    currentMeasuring.nodes[currentMeasuring.nodes.length - 1]
+        .bindTooltip(
+            text,
+            intoPage({
+                content: text,
+                sticky: true,
+                permanent: true,
+                offset: getWindow().L.point(10, 0),
+            }),
+        )
+        .openTooltip()
     currentMeasuring.tempLine?.remove()
     currentMeasuring = makeEmptyMeasuring()
 }
@@ -17826,7 +18255,7 @@ async function setupMeasurer() {
     measurerAdded = true
     const contextMenu = document.querySelector("#map .leaflet-contextmenu")
     if (!contextMenu) {
-        return;
+        return
     }
     if (!getMap || !getMap().contextmenu) {
         await sleep(1000)
@@ -17835,11 +18264,11 @@ async function setupMeasurer() {
         console.error("Ruler can't be configured: map object not available")
     }
     // sometime click don't fire when move 1px
-    let lastMouseDownX = 0;
-    let lastMouseDownY = 0;
+    let lastMouseDownX = 0
+    let lastMouseDownY = 0
     measuringMouseDownHandler = intoPageWithFun(e => {
-        lastMouseDownX = e.originalEvent.clientX;
-        lastMouseDownY = e.originalEvent.clientY;
+        lastMouseDownX = e.originalEvent.clientX
+        lastMouseDownY = e.originalEvent.clientY
     })
     measuringMouseUpHandler = intoPageWithFun(e => {
         if (!measuring) {
@@ -17851,7 +18280,8 @@ async function setupMeasurer() {
         if (e.originalEvent.altKey) {
             currentMeasuring = makeEmptyMeasuring()
         }
-        const {lat: lat, lng: lng} = e.latlng
+        const { lat: lat, lng: lng } = e.latlng
+        // prettier-ignore
         if (lastMouseDownX - e.originalEvent.clientX > 1 || lastMouseDownY - e.originalEvent.clientY > 1 ||
             lastMouseDownX - e.originalEvent.clientX < -1 || lastMouseDownY - e.originalEvent.clientY < -1) {
             console.log("skipped click");
@@ -17859,81 +18289,108 @@ async function setupMeasurer() {
             console.log(lastMouseDownY - e.originalEvent.clientY);
             return
         }
-        currentMeasuring.way.push({lat: lat, lng: lng})
+        currentMeasuring.way.push({ lat: lat, lng: lng })
         currentMeasuring.nodes.push(showNodeMarker(lat, lng, "#000000"))
         currentMeasuring.wayLine?.remove()
 
-        const distInMeters = getMeasureDistance(currentMeasuring.way, {lat: lat, lng: lng})
+        const distInMeters = getMeasureDistance(currentMeasuring.way, { lat: lat, lng: lng })
         const text = formatMeasureDistance(distInMeters)
         currentMeasuring.wayLine = displayWay(currentMeasuring.way, false, "#000000", 1)
         movingTooltip?.remove()
-        movingTooltip = getWindow().L.tooltip(getWindow().L.latLng(intoPage({lat: lat, lng: lng})), intoPage({
-            content: text,
-            sticky: true,
-            offset: getWindow().L.point(10, 0),
-        })).addTo(getMap())
-        currentMeasuring.wayLine.bindTooltip(text, intoPage({
-            content: text,
-            sticky: true,
-            offset: getWindow().L.point(10, 0),
-        })).openTooltip()
+        movingTooltip = getWindow()
+            .L.tooltip(
+                getWindow().L.latLng(intoPage({ lat: lat, lng: lng })),
+                intoPage({
+                    content: text,
+                    sticky: true,
+                    offset: getWindow().L.point(10, 0),
+                }),
+            )
+            .addTo(getMap())
+        currentMeasuring.wayLine
+            .bindTooltip(
+                text,
+                intoPage({
+                    content: text,
+                    sticky: true,
+                    offset: getWindow().L.point(10, 0),
+                }),
+            )
+            .openTooltip()
     })
     measuringMouseMoveHandler = intoPageWithFun(e => {
         if (!measuring) {
             return
         }
         lastLatLng = e.latlng
-        const {lat: lat, lng: lng} = e.latlng
+        const { lat: lat, lng: lng } = e.latlng
         currentMeasuring.tempLine?.remove()
         if (!currentMeasuring.way.length) return
-        const distInMeters = getMeasureDistance(currentMeasuring.way, {lat: lat, lng: lng})
+        const distInMeters = getMeasureDistance(currentMeasuring.way, { lat: lat, lng: lng })
         const text = formatMeasureDistance(distInMeters)
         if (!e.originalEvent.altKey) {
             cleanObjectsByKey("activeObjects")
-            currentMeasuring.tempLine = displayWay([currentMeasuring.way[currentMeasuring.way.length - 1], {
-                lat: lat,
-                lng: lng
-            }], false, "#000000", 1);
+            currentMeasuring.tempLine = displayWay(
+                [
+                    currentMeasuring.way[currentMeasuring.way.length - 1],
+                    {
+                        lat: lat,
+                        lng: lng,
+                    },
+                ],
+                false,
+                "#000000",
+                1,
+            )
             movingTooltip?.remove()
-            movingTooltip = getWindow().L.tooltip(getWindow().L.latLng(intoPage({lat: lat, lng: lng})), intoPage({
-                content: text,
-                sticky: true,
-                offset: getWindow().L.point(10, 0),
-            })).addTo(getMap())
+            movingTooltip = getWindow()
+                .L.tooltip(
+                    getWindow().L.latLng(intoPage({ lat: lat, lng: lng })),
+                    intoPage({
+                        content: text,
+                        sticky: true,
+                        offset: getWindow().L.point(10, 0),
+                    }),
+                )
+                .addTo(getMap())
         } else {
             showActiveNodeMarker(e.latlng.lat, e.latlng.lng, "#000000")
         }
     })
 
-    getMap().contextmenu.addItem(intoPageWithFun({
-        separator: true,
-        index: 1
-    }))
-    measuringMenuItem = getMap().contextmenu.addItem(intoPageWithFun({
-        text: "Measure from here",
-        callback: function startMeasuring(e) {
-            if (measuring) {
-                endMeasuring()
-                return
-            }
-            currentMeasuring = makeEmptyMeasuring()
-            const {lat: initLat, lng: initLng} = e.latlng
-            currentMeasuring.way.push({lat: initLat, lng: initLng})
-            currentMeasuring.nodes.push(showNodeMarker(initLat, initLng, "#000000"))
-            if (currentMeasuring.way.length > 1) {
-                currentMeasuring.wayLine?.remove()
-                currentMeasuring.wayLine = displayWay(currentMeasuring.way)
-            } else {
-                document.querySelector("#map").style.cursor = "pointer"
-                measuring = true
-                measuringMenuItem.textContent = "End measure"
+    getMap().contextmenu.addItem(
+        intoPageWithFun({
+            separator: true,
+            index: 1,
+        }),
+    )
+    measuringMenuItem = getMap().contextmenu.addItem(
+        intoPageWithFun({
+            text: "Measure from here",
+            callback: function startMeasuring(e) {
+                if (measuring) {
+                    endMeasuring()
+                    return
+                }
+                currentMeasuring = makeEmptyMeasuring()
+                const { lat: initLat, lng: initLng } = e.latlng
+                currentMeasuring.way.push({ lat: initLat, lng: initLng })
+                currentMeasuring.nodes.push(showNodeMarker(initLat, initLng, "#000000"))
+                if (currentMeasuring.way.length > 1) {
+                    currentMeasuring.wayLine?.remove()
+                    currentMeasuring.wayLine = displayWay(currentMeasuring.way)
+                } else {
+                    document.querySelector("#map").style.cursor = "pointer"
+                    measuring = true
+                    measuringMenuItem.textContent = "End measure"
 
-                getMap().on('mousedown', measuringMouseDownHandler)
-                getMap().on('mouseup', measuringMouseUpHandler)
-                getMap().on('mousemove', measuringMouseMoveHandler)
-            }
-        }
-    }));
+                    getMap().on("mousedown", measuringMouseDownHandler)
+                    getMap().on("mouseup", measuringMouseUpHandler)
+                    getMap().on("mousemove", measuringMouseMoveHandler)
+                }
+            },
+        }),
+    )
 }
 
 //</editor-fold>
@@ -17943,8 +18400,7 @@ function setupIDframe() {
         injectCSSIntoOSMPage(`
                 @media ${mediaQueryForWebsiteTheme} {
                     ${GM_getResourceText("DARK_THEME_FOR_ID_CSS")}
-                }`
-        )
+                }`)
     }
     GM_registerMenuCommand("Show iD OAuth token", function () {
         let token = document.querySelector("#id-container")?.getAttribute("data-token")
@@ -17952,11 +18408,11 @@ function setupIDframe() {
             token = localStorage.getItem(`${osm_server.url}oauth2_access_token`)
             if (!token) {
                 alert("Please switch the focus to the Iframe iD.\nJust click anywhere in the editor.")
-                return;
+                return
             }
         }
-        alert(token);
-    });
+        alert(token)
+    })
 }
 
 function setupOSMWebsite() {
@@ -17964,7 +18420,7 @@ function setupOSMWebsite() {
         setupIDframe()
         return
     }
-    resetSearchFormFocus();
+    resetSearchFormFocus()
     if (GM_config.get("OverpassInstance") === MAILRU_OVERPASS_INSTANCE.name) {
         overpass_server = MAILRU_OVERPASS_INSTANCE
     } else if (GM_config.get("OverpassInstance") === PRIVATECOFFEE_OVERPASS_INSTANCE.name) {
@@ -17972,85 +18428,93 @@ function setupOSMWebsite() {
     } else {
         overpass_server = MAIN_OVERPASS_INSTANCE
     }
-    let lastPath = "";
-    new MutationObserver(function mainObserverHandler() {
-        const path = location.pathname;
-        if (path === lastPath) return;
-        try {
-            shiftKeyZClicks = 0
-            abortPrevControllers(ABORT_ERROR_WHEN_PAGE_CHANGED)
-            cleanAllObjects()
-            getMap()?.attributionControl?.setPrefix("")
-            addSwipes();
-            document.querySelector("#fixed-rss-feed")?.remove()
-            buildingViewerIframe?.remove()
-            buildingViewerIframe = null
-            historyPagePaginationDeletingObserver?.disconnect()
-            historyPagePaginationDeletingObserver = null
-            paginationInHistoryStepObserver?.disconnect()
-            paginationInHistoryStepObserver = null
-            removePOIMoverMenu()
-            if (!path.startsWith("/changeset") && !path.startsWith("/history") &&
-                !path.startsWith("/node") && !path.startsWith("/way") && path !== "/relation" &&
-                !path.startsWith("/note")) {
-                showSearchForm()
+    let lastPath = ""
+    new MutationObserver(
+        (function mainObserverHandler() {
+            const path = location.pathname
+            if (path === lastPath) return
+            try {
+                shiftKeyZClicks = 0
+                abortPrevControllers(ABORT_ERROR_WHEN_PAGE_CHANGED)
+                cleanAllObjects()
+                getMap()?.attributionControl?.setPrefix("")
+                addSwipes()
+                document.querySelector("#fixed-rss-feed")?.remove()
+                buildingViewerIframe?.remove()
+                buildingViewerIframe = null
+                historyPagePaginationDeletingObserver?.disconnect()
+                historyPagePaginationDeletingObserver = null
+                paginationInHistoryStepObserver?.disconnect()
+                paginationInHistoryStepObserver = null
+                removePOIMoverMenu()
+                // prettier-ignore
+                if (!path.startsWith("/changeset") && !path.startsWith("/history") &&
+                    !path.startsWith("/node") && !path.startsWith("/way") && path !== "/relation" &&
+                    !path.startsWith("/note")) {
+                    showSearchForm()
+                }
+            } catch {
+                /* empty */
             }
-        } catch { /* empty */
-        }
-        lastPath = path;
-        for (const module of modules.filter(module => GM_config.get(module.name.slice('setup'.length)))) {
-            queueMicrotask(() => {
-                // console.log(module.name)
-                module(path)
-            });
-        }
-        for (const module of alwaysEnabledModules) {
-            queueMicrotask(() => {
-                // console.log(module.name)
-                void module(path)
-            });
-        }
-        return mainObserverHandler
-    }()).observe(document, {subtree: true, childList: true});
+            lastPath = path
+            for (const module of modules.filter(module => GM_config.get(module.name.slice("setup".length)))) {
+                queueMicrotask(() => {
+                    // console.log(module.name)
+                    module(path)
+                })
+            }
+            for (const module of alwaysEnabledModules) {
+                queueMicrotask(() => {
+                    // console.log(module.name)
+                    void module(path)
+                })
+            }
+            return mainObserverHandler
+        })(),
+    ).observe(document, { subtree: true, childList: true })
     if (location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/user/")) {
-        setTimeout(loadFriends, 4000);
+        setTimeout(loadFriends, 4000)
     }
     setTimeout(() => {
-        if (GM_config.get('CompactChangesetsHistory')) {
-            document.querySelector('.nav-link[href^="/history"]').addEventListener("click", () => {
-                addCompactSidebarStyle()
-            }, {once: true});
+        if (GM_config.get("CompactChangesetsHistory")) {
+            document.querySelector('.nav-link[href^="/history"]').addEventListener(
+                "click",
+                () => {
+                    addCompactSidebarStyle()
+                },
+                { once: true },
+            )
         }
-    });
+    })
 }
 
 function makeCommandsMenu() {
     try {
         GM_registerMenuCommand("Settings", function () {
             if (!inFrame()) {
-                GM_config.open();
+                GM_config.open()
             }
-        });
+        })
         if (isMobile || isDebug()) {
             GM_registerMenuCommand("Check script updates", function () {
                 window.open(`${SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`, "_blank")
-            });
+            })
         }
         if (isDebug()) {
             GM_registerMenuCommand("Check dev script updates", function () {
                 window.open(`${DEV_SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`, "_blank")
-            });
+            })
         }
 
         // New Year Easter egg
         const curDate = new Date()
-        if (curDate.getMonth() === 11 && curDate.getDate() >= 18 || curDate.getMonth() === 0 && curDate.getDate() < 10) {
-            GM_registerMenuCommand("☃️", runSnowAnimation);
+        if ((curDate.getMonth() === 11 && curDate.getDate() >= 18) || (curDate.getMonth() === 0 && curDate.getDate() < 10)) {
+            GM_registerMenuCommand("☃️", runSnowAnimation)
         }
         // todo hotkeys
         GM_registerMenuCommand("List of hotkeys", function () {
             window.open("https://github.com/deevroman/better-osm-org/#hotkeys", "_blank")
-        });
+        })
         // GM_registerMenuCommand("Ask question on forum", function () {
         //     window.open("https://community.openstreetmap.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670")
         // });
@@ -18059,36 +18523,37 @@ function makeCommandsMenu() {
     }
 }
 
-
 function main() {
-    'use strict';
+    "use strict"
     if (location.origin === "https://www.hdyc.neis-one.org" || location.origin === "https://hdyc.neis-one.org") {
-        simplifyHDCYIframe();
+        simplifyHDCYIframe()
         return
     }
     if (location.origin === "https://osmcha.org") {
         setTimeout(async () => {
             await GM.setValue("OSMCHA_TOKEN", localStorage.getItem("token"))
-        }, 1000);
+        }, 1000)
         return
     }
-    makeCommandsMenu();
+    makeCommandsMenu()
     if (location.origin === "https://taginfo.openstreetmap.org" || location.origin === "https://taginfo.geofabrik.de") {
-        new MutationObserver(function fn() {
-            setTimeout(setupTaginfo, 0);
-            return fn
-        }()).observe(document, {subtree: true, childList: true});
+        new MutationObserver(
+            (function fn() {
+                setTimeout(setupTaginfo, 0)
+                return fn
+            })(),
+        ).observe(document, { subtree: true, childList: true })
         return
     }
     if (isOsmServer()) {
-        setupOSMWebsite();
+        setupOSMWebsite()
     }
 }
 
 setTimeout(async () => {
     if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) return
     if (getWindow && !getWindow().mapIntercepted) {
-        console.log("map not intercepted after 900ms");
+        console.log("map not intercepted after 900ms")
         document.querySelector(".control-share a").click()
         document.querySelector(".control-share a").click()
         await interceptMapManually()
@@ -18100,29 +18565,30 @@ setTimeout(async function () {
     if (Math.random() > 0.5) return
     if (!location.pathname.includes("/history") && !location.pathname.includes("/note")) return
     const lastGC = await GM.getValue("last-garbage-collection-time")
-    if (lastGC && (new Date(lastGC)).getTime() + 1000 * 60 * 60 * 24 * 2 > Date.now()) return
-    await GM.setValue("last-garbage-collection-time", Date.now());
+    if (lastGC && new Date(lastGC).getTime() + 1000 * 60 * 60 * 24 * 2 > Date.now()) return
+    await GM.setValue("last-garbage-collection-time", Date.now())
 
-    const keys = GM_listValues();
+    const keys = GM_listValues()
     for (const i of keys) {
         if (i.startsWith("userinfo-")) {
             try {
                 const userinfo = JSON.parse(await GM.getValue(i))
-                if (userinfo.cacheTime && (new Date(userinfo.cacheTime)).getTime() + 1000 * 60 * 60 * 24 * 14 < Date.now()) {
-                    await GM_deleteValue(i);
+                if (userinfo.cacheTime && new Date(userinfo.cacheTime).getTime() + 1000 * 60 * 60 * 24 * 14 < Date.now()) {
+                    await GM_deleteValue(i)
                 }
-            } catch { /* empty */
+            } catch {
+                /* empty */
             }
         } else if (i.startsWith("useridinfo-")) {
             try {
                 const userIDInfo = JSON.parse(await GM.getValue(i))
-                if (userIDInfo.cacheTime && (new Date(userIDInfo.cacheTime)).getTime() + 1000 * 60 * 60 * 24 * 14 < Date.now()) {
-                    await GM_deleteValue(i);
+                if (userIDInfo.cacheTime && new Date(userIDInfo.cacheTime).getTime() + 1000 * 60 * 60 * 24 * 14 < Date.now()) {
+                    await GM_deleteValue(i)
                 }
-            } catch { /* empty */
+            } catch {
+                /* empty */
             }
         }
-
     }
     console.log("Old cache cleaned")
 }, 1000 * 12)
