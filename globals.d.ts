@@ -2,11 +2,11 @@ declare function exportFunction<T extends Function>(
     func: T,
     targetScope: object,
     options?: {
-        defineAs?: string;
-        allowCallbacks?: boolean;
-        allowCrossOriginArguments?: boolean;
-    }
-): T;
+        defineAs?: string
+        allowCallbacks?: boolean
+        allowCrossOriginArguments?: boolean
+    },
+): T
 
 declare function cloneInto<T>(
     obj: T,
@@ -16,3 +16,8 @@ declare function cloneInto<T>(
         wrapReflectors?: boolean;
     }
 ): T;
+        cloneFunctions?: boolean
+        wrapReflectors?: boolean
+): T
+
+import "typed-query-selector/strict"
