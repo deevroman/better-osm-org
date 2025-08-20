@@ -8774,6 +8774,7 @@ function showRestrictionValidationStatus(restrictionRelationErrors, targetElem) 
 }
 
 async function addHoverForRelationMembers() {
+    // todo make async safe
     const match = location.pathname.match(/^\/relation\/(\d+)\/?$/)
     if (!match) {
         return
@@ -8794,6 +8795,10 @@ async function addHoverForRelationMembers() {
     }
     const relationData = await loadRelationMetadata(relation_id)
     if (!relationData) return
+    while (document.querySelector("details turbo-frame .spinner-border")) {
+        console.log("wait members list loading")
+        await sleep(1000)
+    }
     /*** @type {Map<string, NodeVersion>}*/
     const nodesMap = new Map(
         Object.entries(
