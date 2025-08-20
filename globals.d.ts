@@ -1,3 +1,7 @@
+// import "typed-query-selector/strict"
+// import "types/tampermonkey"
+// import "GM_config.d.ts"
+
 declare function exportFunction<T extends Function>(
     func: T,
     targetScope: object,
@@ -17,18 +21,16 @@ declare function cloneInto<T>(
     },
 ): T
 
-import "typed-query-selector/strict"
-
 declare const osmAuth
-declare const GM
-declare const GM_info
-declare const GM_config
-declare const GM_addElement
-declare const GM_listValues
-declare const GM_deleteValue
-declare const GM_getResourceURL
-declare const GM_getResourceText
-declare const GM_registerMenuCommand
+// declare const GM: Tampermonkey.GM & { fetch: (url: string) => Response }
+// declare const GM_info: Tampermonkey.ScriptInfo
+// declare const GM_config: GM_configStruct
+// declare const GM_addElement: Tampermonkey.GM_addElement
+// declare const GM_listValues
+// declare const GM_deleteValue
+// declare const GM_getResourceURL
+// declare const GM_getResourceText
+// declare const GM_registerMenuCommand
 declare const unsafeWindow
 declare const EXIF
 declare const osmtogeojson
