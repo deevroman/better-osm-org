@@ -148,7 +148,6 @@
 /*global runSnowAnimation*/
 /*global unzipit*/
 /*global bz2*/
-
 if ((location.origin + location.pathname).startsWith("https://github.com/openstreetmap/openstreetmap-website/issues/new")) {
     function tryAddWarn() {
         if (document.querySelector(".better-osm-org-warn")) {
@@ -345,14 +344,14 @@ const instancesOf3DViewers = [
     {
         name: "streets.gl",
         url: "https://streets.gl/",
-        makeURL: function ({ x: x, y: y, z: z }) {
+        makeURL: function ({ x: x, y: y }) {
             return `${this.url}#${x},${y},45.00,0.00,2000.00`
         },
     },
     {
         name: "OSM go",
         url: "https://www.osmgo.org/go.html",
-        makeURL: function ({ x: x, y: y, z: z }) {
+        makeURL: function ({ x: x, y: y }) {
             return `${this.url}?lat=${x}&lon=${y}&view=-50&ele=150`
         },
     },
@@ -397,10 +396,10 @@ let getMap = null
 /**
  * @typedef {{
  *  OSM: {
- *   router: { stateChange: function(args: Object): Object },
+ *   router: { stateChange: (args: Object.<string, any>) => Object.<string, any> },
  *   i18n: {t: Function},
- *   formatHash: function(hash: string): Object,
- *   parseHash: function(args: Object): string,
+ *   formatHash: (hash: string) => Object.<string, any>,
+ *   parseHash: (args: Object.<string, any>) => string,
  *  },
  *  L: {
  *      polyline: import('leaflet').polyline,
@@ -504,7 +503,7 @@ if (isOsmServer() && !["/edit", "/id"].includes(location.pathname)) {
         console.debug(
             "Settings:",
             Object.entries(GM_config.fields).map(i => {
-                if (typeof i[1].value === "boolean") {
+                if (typeof i[1].value === "boolean" || typeof i[1].value === "number") {
                     return [i[0], i[1].value]
                 } else {
                     return [i[0], `length: ${i[1].value.length}`]
@@ -824,7 +823,7 @@ GM_config.init({
         menu: {
             default: "",
             toNode: function () {
-                const templates = this.value || this.settings.default
+                const templates = /** @type {string} */ (this.value || this.settings.default)
                 const settingNode = this.create("div", {
                     className: "config_var",
                     id: this.configId + "_" + this.id + "_var",
@@ -905,7 +904,7 @@ GM_config.init({
                     for (let row of Array.from(this.wrapper.getElementsByTagName("tr")).slice(0, -1)) {
                         row.remove()
                     }
-                    JSON.parse(this.settings.default).forEach(i => {
+                    JSON.parse(/** @type {string} */ (this.settings.default)).forEach(i => {
                         this.wrapper.querySelector(`#${this.configId}_${this.id}_var table`).lastElementChild.before(makeRow(i["label"], i["text"]))
                     })
                 }
@@ -1099,15 +1098,21 @@ function makeHashtagsInNotesClickable() {
                 function fixLink() {
                     const center = getMapCenter()
                     const zoom = getZoom()
+                    // prettier-ignore
                     const notesReviewLink =
                         "https://antonkhorev.github.io/osm-note-viewer/#" +
                         new URLSearchParams({
                             mode: "search",
                             q: match,
-                            bbox: [Math.round(getMap().getBounds().getWest() * 10000) / 10000, Math.round(getMap().getBounds().getSouth() * 10000) / 10000, Math.round(getMap().getBounds().getEast() * 10000) / 10000, Math.round(getMap().getBounds().getNorth() * 10000) / 10000].join(","),
+                            bbox: [
+                              Math.round(getMap().getBounds().getWest() * 10000) / 10000,
+                              Math.round(getMap().getBounds().getSouth() * 10000) / 10000,
+                              Math.round(getMap().getBounds().getEast() * 10000) / 10000,
+                              Math.round(getMap().getBounds().getNorth() * 10000) / 10000
+                            ].join(","),
                             sort: "created_at",
                             order: "newest",
-                            closed: 0,
+                            closed: "0",
                             map: `${zoom}/${center.lat}/${center.lng}`,
                         }).toString()
                     const link = document.getElementById(a.id)
@@ -1174,6 +1179,10 @@ function makeUsernameInNotesFilterable() {
     }
 }
 
+/**
+ * @param {string} text
+ * @returns {string}
+ */
 function shortOsmOrgLinksInText(text) {
     // prettier-ignore
     return text
@@ -1197,13 +1206,13 @@ const mainTags = ["shop", "building", "amenity", "man_made", "highway", "natural
 
 async function getPrevNextChangesetsIDs(changeset_id) {
     const changesetMetadata = await loadChangesetMetadata(changeset_id)
-    if (!changesetMetadata.uid) return
+    if (!changesetMetadata || !changesetMetadata.uid) return
 
     const prevChangesetsPromise = fetchJSONWithCache(
         osm_server.apiBase +
             "changesets.json?" +
             new URLSearchParams({
-                user: changesetMetadata.uid,
+                user: changesetMetadata.uid.toString(),
                 order: "newest",
                 from: "2005-01-01T00:00:00Z",
                 to: new Date(new Date(changesetMetadata.created_at).getTime() + 1000).toISOString(), // на случай если в одну секунду создано несколько пакетов правок
@@ -1241,7 +1250,7 @@ async function restorePrevNextChangesetButtons(changeset_id) {
         prevLink.classList.add("icon-link")
         prevLink.href = "/changeset/" + prevID
         prevLink.innerHTML = '<svg width="8" height="11" viewBox="-8 0 8 11"><path d="M-2,2 l-3.5,3.5 l3.5,3.5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>'
-        prevLink.appendChild(document.createTextNode(prevID))
+        prevLink.appendChild(document.createTextNode(prevID.toString()))
         secondarySecondaryActions.appendChild(prevLink)
     }
     secondarySecondaryActions.appendChild(document.createTextNode(` · ${(await loadChangesetMetadata(changeset_id)).user} · `))
@@ -1250,7 +1259,7 @@ async function restorePrevNextChangesetButtons(changeset_id) {
         nextLink.classList.add("icon-link")
         nextLink.href = "/changeset/" + nextID
         nextLink.innerHTML = '<svg width="8" height="11"><path d="M2,2 l3.5,3.5 l-3.5,3.5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>'
-        nextLink.prepend(document.createTextNode(nextID))
+        nextLink.prepend(document.createTextNode(nextID.toString()))
         secondarySecondaryActions.appendChild(nextLink)
     }
     secondaryActions.after(secondarySecondaryActions)
@@ -1528,7 +1537,7 @@ function addRevertButton() {
             comment.onclick = () => {
                 ;[500, 1000, 2000, 4000, 6000].map(i => setTimeout(setupRevertButton, i))
             }
-            const templates = GM_config.get("ChangesetsTemplates")
+            const templates = /** @type {string} */ (GM_config.get("ChangesetsTemplates"))
             if (templates) {
                 JSON.parse(templates).forEach(row => {
                     const label = row["label"]
@@ -3656,6 +3665,7 @@ function bypassCaches() {
         if (i.nodeName !== "IMG") {
             return
         }
+        // todo support multiple press
         let xyz = parseOSMTileURL(i.src)
         if (!xyz) return
         const newUrl = makeOSMURL(xyz.x, xyz.y, xyz.z) // + "?bypassCache=" + new Date().getUTCSeconds();
@@ -4927,12 +4937,12 @@ function showWays(ListOfNodesList, layerName = "customObjects", color = "#000000
 /**
  * @name displayWay
  * @memberof unsafeWindow
- * @param {[]} nodesList
+ * @param {any[]} nodesList
  * @param {boolean=} needFly
  * @param {string=} color
  * @param {number=} width
  * @param {string|null=} infoElemID
- * @param {string=null} layerName
+ * @param {string=} layerName
  * @param {string|null=} dashArray
  * @param {string|null=} popupContent
  * @param {boolean|null=} addStroke
@@ -5001,7 +5011,7 @@ function displayWay(nodesList, needFly = false, color = "#000000", width = 4, in
  * @param {string|number} a
  * @param {string|number} b
  * @param {string=} color
- * @param {string|null=null} infoElemID
+ * @param {string|null=} infoElemID
  * @param {string=} layerName
  * @param {number=} radius
  */
@@ -5038,7 +5048,7 @@ function showNodeMarker(a, b, color = "#00a500", infoElemID = null, layerName = 
  * @param {string} lat
  * @param {string} lon
  * @param {string} color
- * @param {boolean=true} removeActiveObjects
+ * @param {boolean=} removeActiveObjects
  * @param {number} radius
  * @param {number=} weight
  */
@@ -5060,8 +5070,8 @@ function showActiveNodeMarker(lat, lon, color, removeActiveObjects = true, radiu
  * @memberof unsafeWindow
  * @param {string} lat
  * @param {string} lon
- * @param {string|null=null} color
- * @param {boolean=true} removeActiveObjects
+ * @param {string|null=} color
+ * @param {boolean=} removeActiveObjects
  */
 function showActiveNodeIconMarker(lat, lon, color = null, removeActiveObjects = true) {
     if (removeActiveObjects) {
@@ -5074,11 +5084,11 @@ function showActiveNodeIconMarker(lat, lon, color = null, removeActiveObjects = 
 /**
  * @name showActiveWay
  * @memberof unsafeWindow
- * @param {[]} nodesList
+ * @param {any[]} nodesList
  * @param {string=} color
  * @param {boolean=} needFly
  * @param {string|null=} infoElemID
- * @param {boolean=true} removeActiveObjects
+ * @param {boolean=} removeActiveObjects
  * @param {number=} weight
  * @param {string=} dashArray
  */
@@ -5159,7 +5169,7 @@ function panTo(lat, lon, zoom = 18, animate = false) {
  * @param {string} lat
  * @param {string} lon
  * @param {boolean=} animate
- * @param {[]=} padding
+ * @param {[number, number]=} padding
  */
 function panInside(lat, lon, animate = false, padding = [0, 0]) {
     getMap().panInside(intoPage([lat, lon]), intoPage({ animate: animate, padding: padding }))
@@ -5178,6 +5188,8 @@ function get4Bounds(b) {
 
 /**
  * @name fitBounds
+ * @param {import('leaflet').LatLngBoundsExpression} bound
+ * @param {number} maxZoom
  * @memberof unsafeWindow
  */
 function fitBounds(bound, maxZoom = 19) {
@@ -5186,6 +5198,9 @@ function fitBounds(bound, maxZoom = 19) {
 
 /**
  * @name fitBoundsWithPadding
+ * @param {import('leaflet').LatLngBoundsExpression} bound
+ * @param {number} padding
+ * @param {number} maxZoom
  * @memberof unsafeWindow
  */
 function fitBoundsWithPadding(bound, padding, maxZoom = 19) {
@@ -5211,6 +5226,7 @@ function getZoom() {
 
 /**
  * @name setZoom
+ * @param {number} zoomLevel
  * @memberof unsafeWindow
  */
 function setZoom(zoomLevel) {
@@ -5304,7 +5320,10 @@ const histories = {
 const fetchTextWithCache = (() => {
     /**@type {Map<string, string | undefined | Promise<string | undefined> >}*/
     const cache = new Map()
-
+    /**
+     * @param {string} url
+     * @return {Promise<string>}
+     */
     return async url => {
         if (cache.has(url)) {
             return cache.get(url)
@@ -5328,6 +5347,10 @@ const originalFetchTextWithCache = (() => {
     /**@type {Map<string, string | undefined | Promise<string | undefined> >}*/
     const cache = new Map()
 
+    /**
+     * @param {string} url
+     * @param {RequestInit} init
+     */
     return async (url, init) => {
         if (cache.has(url)) {
             return cache.get(url)
@@ -5755,7 +5778,8 @@ function locationChanged(v1, v2) {
  * @return {boolean}
  */
 function tagsChanged(v1, v2) {
-    return JSON.stringify(v1.tags) !== JSON.stringify(v2.tags);
+    return JSON.stringify(v1.tags) !== JSON.stringify(v2.tags)
+}
 }
 
 async function replaceDownloadWayButton(btn, wayID) {
@@ -7004,8 +7028,7 @@ async function getRelationViaOverpassXML(id, timestamp) {
  */
 
 /**
- * @typedef {{nodes: NodesBag, ways: [WayVersion, NodeVersion[][]][], relations: RelationVersion[][]}}
- * @name RelationMembersVersions
+ * @typedef {{nodes: NodesBag, ways: [WayVersion, NodeVersion[][]][], relations: RelationVersion[][]}} RelationMembersVersions
  */
 
 /**
@@ -9379,9 +9402,10 @@ function arraysDiff(arg_a, arg_b, one_replace_cost = 2) {
 }
 
 /**
- * @param {[]} arr
+ * @template T
+ * @param {T[]} arr
  * @param N
- * @return {[]}
+ * @return {T[][]}
  */
 function arraySplit(arr, N = 2) {
     const chunkSize = Math.max(1, Math.floor(arr.length / N)) // todo это неправильно, но и так сойдёт
@@ -9411,8 +9435,7 @@ function arraySplit(arr, N = 2) {
  * id: number,
  * min_lat: number,
  * user: string,
- * open: boolean}}
- * @name ChangesetMetadata
+ * open: boolean}} ChangesetMetadata
  */
 
 // /**
@@ -9497,6 +9520,10 @@ function addSwipes() {
 
 let rateLimitBan = false
 
+/**
+ * @param {string} unsafe
+ * @returns {string}
+ */
 function escapeHtml(unsafe) {
     // prettier-ignore
     return unsafe
@@ -9507,6 +9534,9 @@ function escapeHtml(unsafe) {
         .replace(/'/g, "&#039;");
 }
 
+/**
+ * @param {Response} res
+ */
 function error509Handler(res) {
     rateLimitBan = true
     console.error("oops, DOS block")
@@ -9569,7 +9599,7 @@ function addRegionForFirstChangeset(attempts = 5) {
 let iconsList = null
 
 async function loadIconsList() {
-    let yml
+    let yml = ""
     const url = `https://raw.githubusercontent.com/openstreetmap/openstreetmap-website/refs/heads/master/config/browse_icons.yml`
     if (GM_info.scriptHandler !== "FireMonkey") {
         yml = (
@@ -9578,7 +9608,8 @@ async function loadIconsList() {
             })
         ).responseText
     } else {
-        yml = await (await GM.fetch(url)).text
+        // @ts-ignore
+        yml = await (await GM.fetch(url)).tex
     }
     iconsList = {}
     // не, ну а почему бы и нет
@@ -9654,6 +9685,7 @@ async function loadAndMakeCorporateMappersList() {
             })
         ).response
     } else {
+        // @ts-ignore
         raw_data = await (await GM.fetch(corporationContributorsURL)).json
     }
     makeCorporateMappersData(raw_data)
@@ -10646,8 +10678,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
  * nodes: Array<HTMLElement>,
  * ways: Array<HTMLElement>,
  * relations: Array<HTMLElement>
- * }}
- * @name ObjectsInComments
+ * }} ObjectsInComments
  */
 
 /**
@@ -11715,6 +11746,7 @@ async function processQuickLookInSidebar(changesetID) {
     try {
         console.time(`QuickLook ${changesetID}`)
         console.log(`%cQuickLook for ${changesetID}`, "background: #222; color: #bada55")
+        /** @type {0|1|2|3} */
         let uniqTypes = 0
         for (const objType of ["way", "node", "relation"]) {
             if (document.querySelectorAll(`.list-unstyled li.${objType}`).length > 0) {
@@ -12749,7 +12781,6 @@ async function loadChangesets(user) {
     let startTime3 = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 365 * 2) / 4)
     let startTime4 = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 365) / 4)
     let endTime = new Date(new Date().getTime() + 1000 * 60 * 60 * 24)
-
 
     // prettier-ignore
     const parts = await Promise.all([
