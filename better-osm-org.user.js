@@ -5780,7 +5780,7 @@ function locationChanged(v1, v2) {
 function tagsChanged(v1, v2) {
     return JSON.stringify(v1.tags) !== JSON.stringify(v2.tags)
 }
-}
+
 
 async function replaceDownloadWayButton(btn, wayID) {
     const objectsBag = await sortWayNodesByTimestamp(wayID)
