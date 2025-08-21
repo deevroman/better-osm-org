@@ -11788,7 +11788,7 @@ async function processQuickLookInSidebar(changesetID) {
                 if (nodes.length > 3500 && isMobile) {
                     return false
                 }
-                if (nodes.length > 5000) {
+                if (nodes.length > 6000) {
                     return false
                 }
             }
