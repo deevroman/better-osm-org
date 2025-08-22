@@ -3088,7 +3088,7 @@ function addDeleteButton() {
         e.preventDefault()
         link.classList.add("dbclicked")
 
-        console.log("Getting info")
+        console.log("Delete clicked. Getting info")
 
         auth.xhr(
             {
