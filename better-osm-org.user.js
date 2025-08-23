@@ -812,12 +812,12 @@ GM_config.init({
             type: "select",
             options: [MAIN_OVERPASS_INSTANCE.name, MAILRU_OVERPASS_INSTANCE.name, PRIVATECOFFEE_OVERPASS_INSTANCE.name],
         },
-        CustomLayers: {
-            label: "Custom map layers: β",
-            type: "menu",
-            default: "[]",
-            placeholder: "TMS URL",
-        },
+        // CustomLayers: {
+        //     label: "Custom map layers: β",
+        //     type: "menu",
+        //     default: "[]",
+        //     placeholder: "TMS URL",
+        // },
     },
     types: {
         menu: {
