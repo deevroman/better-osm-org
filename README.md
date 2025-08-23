@@ -122,7 +122,7 @@ Experimental hotkeys:
 - + [x] ID and names in object header
 - + [x] Hashtags in changeset comment
 - + [x] Changeset IDs in comments
-- + [x] `revert:id`, `closed:note`, `redacted_changesets` key in changeset
+- + [x] `revert:id`, `redacted_changesets` key in changeset
 - + [x] `panoramax=*`, `mapillary=*` tags
 - [x] Display GPS photos and tracks in StreetComplete notes
 - [x] Display photos from Panoramax and Wikimedia Commons in tags
