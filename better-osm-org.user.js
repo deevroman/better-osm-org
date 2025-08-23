@@ -1467,24 +1467,28 @@ function addRevertButton() {
                     key.title = key.textContent
                     key.textContent = key.textContent.replace("ideditor:", "iD:")
                 } else if (key.textContent === "revert:id") {
-                    if (i.querySelector("td").textContent.match(/^((\d+(;|…?$))+$)/)) {
-                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)(;|$)/g, `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>$2`)
-                    } else if (i.querySelector("td").textContent.match(/https:\/\/(www\.)?openstreetmap.org\/changeset\//g)) {
-                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/>https:\/\/(www\.)?openstreetmap.org\/changeset\//g, ">")
+                    const cell = i.querySelector("td")
+                    if (cell.textContent.match(/^((\d+(;|…?$))+$)/)) {
+                        cell.innerHTML = cell.innerHTML.replaceAll(/(\d+)(;|$)/g, `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>$2`)
+                    } else if (cell.textContent.match(/https:\/\/(www\.)?openstreetmap.org\/changeset\//g)) {
+                        cell.innerHTML = cell.innerHTML.replaceAll(/>https:\/\/(www\.)?openstreetmap.org\/changeset\//g, ">")
                     }
                 } else if (key.textContent === "revert:dmp:relation:id" || key.textContent === "revert:dmp:fail:relation:id") {
-                    if (i.querySelector("td").textContent.match(/^((\d+(;|…?$))+$)/)) {
-                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)(;|$)/g, `<a href="/relation/$1" class="relation_link_in_changeset_tags">$1</a>$2`)
+                    const cell = i.querySelector("td")
+                    if (cell.textContent.match(/^((\d+(;|…?$))+$)/)) {
+                        cell.innerHTML = cell.innerHTML.replaceAll(/(\d+)(;|$)/g, `<a href="/relation/$1" class="relation_link_in_changeset_tags">$1</a>$2`)
                     }
                 } else if (key.textContent === "revert:dmp:way:id" || key.textContent === "revert:dmp:fail:way:id") {
-                    if (i.querySelector("td").textContent.match(/^((\d+(;|…?$))+$)/)) {
-                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)(;|$)/g, `<a href="/way/$1" class="way_link_in_changeset_tags">$1</a>$2`)
+                    const cell = i.querySelector("td")
+                    if (cell.textContent.match(/^((\d+(;|…?$))+$)/)) {
+                        cell.innerHTML = cell.innerHTML.replaceAll(/(\d+)(;|$)/g, `<a href="/way/$1" class="way_link_in_changeset_tags">$1</a>$2`)
                     }
                 } else if (key.textContent === "redacted_changesets") {
-                    if (i.querySelector("td").textContent.match(/^((\d+(,|$))+$)/)) {
-                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)/g, `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>`)
-                    } else if (i.querySelector("td").textContent.match(/https:\/\/(www\.)?openstreetmap.org\/changeset\//g)) {
-                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/>https:\/\/(www\.)?openstreetmap.org\/changeset\//g, ">")
+                    const cell = i.querySelector("td")
+                    if (cell.textContent.match(/^((\d+(,|$))+$)/)) {
+                        cell.innerHTML = cell.innerHTML.replaceAll(/(\d+)/g, `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>`)
+                    } else if (cell.textContent.match(/https:\/\/(www\.)?openstreetmap.org\/changeset\//g)) {
+                        cell.innerHTML = cell.innerHTML.replaceAll(/>https:\/\/(www\.)?openstreetmap.org\/changeset\//g, ">")
                     }
                 } else if (key.textContent.startsWith("v:") && GM_config.get("ChangesetQuickLook")) {
                     i.style.display = "none"
