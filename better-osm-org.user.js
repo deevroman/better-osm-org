@@ -1486,10 +1486,6 @@ function addRevertButton() {
                     } else if (i.querySelector("td").textContent.match(/https:\/\/(www\.)?openstreetmap.org\/changeset\//g)) {
                         i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/>https:\/\/(www\.)?openstreetmap.org\/changeset\//g, ">")
                     }
-                } else if (key.textContent === "closed:note") {
-                    if (i.querySelector("td").textContent.match(/^((\d+(;|$))+$)/)) {
-                        i.querySelector("td").innerHTML = i.querySelector("td").innerHTML.replaceAll(/(\d+)/g, `<a href="/note/$1" class="note_link_in_changeset_tags">$1</a>`)
-                    }
                 } else if (key.textContent.startsWith("v:") && GM_config.get("ChangesetQuickLook")) {
                     i.style.display = "none"
                     i.classList.add("hidden-tag")
