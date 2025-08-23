@@ -1454,6 +1454,11 @@ function addRevertButton() {
             makeHashtagsClickable()
             shortOsmOrgLinks(document.querySelector("#sidebar_content h2 ~ div p"))
             let needUnhide = false
+
+            function isSimpleNode(elem) {
+                return elem.childNodes.length === 1 && elem.childNodes[0].nodeType === Node.TEXT_NODE
+            }
+
             document.querySelectorAll(".browse-tag-list tr").forEach(i => {
                 const key = i.querySelector("th")
                 if (!key) return
@@ -1468,24 +1473,24 @@ function addRevertButton() {
                     key.textContent = key.textContent.replace("ideditor:", "iD:")
                 } else if (key.textContent === "revert:id") {
                     const cell = i.querySelector("td")
-                    if (cell.textContent.match(/^((\d+(;|…?$))+$)/)) {
+                    if (isSimpleNode(cell) && cell.textContent.match(/^((\d+(;|…?$))+$)/)) {
                         cell.innerHTML = cell.innerHTML.replaceAll(/(\d+)(;|$)/g, `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>$2`)
                     } else if (cell.textContent.match(/https:\/\/(www\.)?openstreetmap.org\/changeset\//g)) {
                         cell.innerHTML = cell.innerHTML.replaceAll(/>https:\/\/(www\.)?openstreetmap.org\/changeset\//g, ">")
                     }
                 } else if (key.textContent === "revert:dmp:relation:id" || key.textContent === "revert:dmp:fail:relation:id") {
                     const cell = i.querySelector("td")
-                    if (cell.textContent.match(/^((\d+(;|…?$))+$)/)) {
+                    if (isSimpleNode(cell) && cell.textContent.match(/^((\d+(;|…?$))+$)/)) {
                         cell.innerHTML = cell.innerHTML.replaceAll(/(\d+)(;|$)/g, `<a href="/relation/$1" class="relation_link_in_changeset_tags">$1</a>$2`)
                     }
                 } else if (key.textContent === "revert:dmp:way:id" || key.textContent === "revert:dmp:fail:way:id") {
                     const cell = i.querySelector("td")
-                    if (cell.textContent.match(/^((\d+(;|…?$))+$)/)) {
+                    if (isSimpleNode(cell) && cell.textContent.match(/^((\d+(;|…?$))+$)/)) {
                         cell.innerHTML = cell.innerHTML.replaceAll(/(\d+)(;|$)/g, `<a href="/way/$1" class="way_link_in_changeset_tags">$1</a>$2`)
                     }
                 } else if (key.textContent === "redacted_changesets") {
                     const cell = i.querySelector("td")
-                    if (cell.textContent.match(/^((\d+(,|$))+$)/)) {
+                    if (isSimpleNode(cell) && cell.textContent.match(/^((\d+(,|$))+$)/)) {
                         cell.innerHTML = cell.innerHTML.replaceAll(/(\d+)/g, `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>`)
                     } else if (cell.textContent.match(/https:\/\/(www\.)?openstreetmap.org\/changeset\//g)) {
                         cell.innerHTML = cell.innerHTML.replaceAll(/>https:\/\/(www\.)?openstreetmap.org\/changeset\//g, ">")
