@@ -806,6 +806,13 @@ GM_config.init({
             default: "checked",
             labelPos: "right",
         },
+        DefaultZoomKeysbehaviour: {
+            label: "Do not double the zoom step of the buttons +/-",
+            type: "checkbox",
+            default: false,
+            labelPos: "right",
+        },
+
         OverpassInstance: {
             label: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass API server</a>',
             labelPos: "left",
@@ -16219,6 +16226,11 @@ function setupNavigationViaHotkeys() {
 
     runPositionTracker()
 
+    let defaultZoomKeysbehaviour = false
+    setTimeout(async () => {
+        defaultZoomKeysbehaviour = await GM_config.get("DefaultZoomKeysbehaviour")
+    })
+
     function keydownHandler(e) {
         if (e.repeat && !["KeyK", "KeyL"].includes(e.code)) return
         if (document.activeElement?.name === "text") return
@@ -16635,22 +16647,30 @@ function setupNavigationViaHotkeys() {
                 mapPositionsHistory.push(mapPositionsNextHistory.pop())
                 fitBounds(mapPositionsHistory[mapPositionsHistory.length - 1])
             }
-        } else if (e.code === "Minus") {
-            if (document.activeElement?.id !== "map") {
-                if (!e.altKey) {
-                    getMap().setZoom(getMap().getZoom() - 2)
-                } else {
-                    getMap().setZoom(getMap().getZoom() - 1)
-                }
+        } else if (e.code === "Minus" && !defaultZoomKeysbehaviour) {
+            if (document.activeElement?.id === "map") {
+                e.preventDefault()
+                e.stopImmediatePropagation()
+                e.stopPropagation()
             }
-        } else if (e.code === "Equal") {
-            if (document.activeElement?.id !== "map") {
-                if (!e.altKey) {
-                    getMap().setZoom(getMap().getZoom() + 2)
-                } else {
-                    getMap().setZoom(getMap().getZoom() + 1)
-                }
+            if (!e.altKey) {
+                getMap().setZoom(getMap().getZoom() - 2)
+            } else {
+                getMap().setZoom(getMap().getZoom() - 1)
             }
+            document.querySelector("#map").focus()
+        } else if (e.code === "Equal" && !defaultZoomKeysbehaviour) {
+            if (document.activeElement?.id === "map") {
+                e.preventDefault()
+                e.stopImmediatePropagation()
+                e.stopPropagation()
+            }
+            if (!e.altKey) {
+                getMap().setZoom(getMap().getZoom() + 2)
+            } else {
+                getMap().setZoom(getMap().getZoom() + 1)
+            }
+            document.querySelector("#map").focus()
         } else if (e.code === "KeyO") {
             if (e.shiftKey) {
                 window.open("https://overpass-api.de/achavi/?changeset=" + location.pathname.match(/\/changeset\/(\d+)/)[1])
