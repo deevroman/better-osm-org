@@ -454,7 +454,8 @@ function debug_alert() {
     debugger
 }
 
-if (isOsmServer() && !["/edit", "/id"].includes(location.pathname)) {
+
+if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id-embed")) {
     function mapHook() {
         console.log("start map intercepting")
         if (boWindowObject.L && boWindowObject.L.Map) {
@@ -16235,7 +16236,7 @@ function getCurrentXYZ() {
 }
 
 function setupNavigationViaHotkeys() {
-    if (["/edit", "/id"].includes(location.pathname)) return
+    if ("/id" === location.pathname || document.querySelector("#id-embed")) return
     updateCurrentObjectMetadata()
     // if (!location.pathname.startsWith("/changeset")) return;
     if (hotkeysConfigured) return
