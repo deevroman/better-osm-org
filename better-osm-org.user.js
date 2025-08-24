@@ -10664,10 +10664,27 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         i.parentElement.parentElement.classList.add("removed-object")
     }
     if (targetVersion.version !== lastVersion.version && lastVersion.visible === false) {
-        i.appendChild(document.createTextNode(["ru-RU", "ru"].includes(navigator.language) ? " ⓘ Объект уже удалён" : " ⓘ The object is now deleted"))
+        const objDeletedBadge = document.createElement("span")
+        objDeletedBadge.textContent = ["ru-RU", "ru"].includes(navigator.language) ? " ⓘ Объект уже удалён" : " ⓘ The object is now deleted"
+        objDeletedBadge.title = ["ru-RU", "ru"].includes(navigator.language) ? `${lastVersion.user} удалил этот объект` : `${lastVersion.user} deleted this object`
+        i.appendChild(objDeletedBadge)
     }
     if (targetVersion.visible === false && lastVersion.visible !== false) {
-        i.appendChild(document.createTextNode(["ru-RU", "ru"].includes(navigator.language) ? " ⓘ Объект сейчас восстановлен" : " ⓘ The object is now restored"))
+        const objDeletedBadge = document.createElement("span")
+        objDeletedBadge.textContent = ["ru-RU", "ru"].includes(navigator.language) ? " ⓘ Объект сейчас восстановлен" : " ⓘ The object is now restored"
+        let lastRestoredVersion;
+        for (let versionInd = 1; versionInd < objHistory.length; versionInd++) {
+            if (objHistory[versionInd].version <= targetVersion.version) {
+                continue
+            }
+            if (objHistory[versionInd - 1].visible === false && objHistory[versionInd].visible !== false) {
+                lastRestoredVersion = objHistory[versionInd]
+            }
+        }
+        if (lastRestoredVersion) {
+            objDeletedBadge.title = ["ru-RU", "ru"].includes(navigator.language) ? `${lastVersion.user} восстановил этот объект` : `${lastVersion.user} restored this object`
+        }
+        i.appendChild(objDeletedBadge)
     }
     // if (objType === "node") {
     //     i.appendChild(tagsTable)
