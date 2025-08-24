@@ -12014,10 +12014,19 @@ async function processQuickLookInSidebar(changesetID) {
         if (waysRes) {
             const batchSize = 300
             for (let i = 0; i < waysRes.ways.length; i += batchSize) {
-                console.log(`Ways batch ${i}-${i + batchSize}`)
+                console.log(`Ways batch ${i}-${i + batchSize} / ${waysRes.ways.length}`)
                 replaceWays(waysRes.ways.slice(i, i + batchSize), waysRes.waysUl)
                 await processObjects("way", uniqTypes)
-                await processObjectsInteractions("way", uniqTypes, changesetID)
+                try {
+                    await processObjectsInteractions("way", uniqTypes, changesetID)
+                } catch (e) {
+                    console.error(e)
+                    if (!isSafari) {
+                        throw e
+                    } else {
+                        console.warn("suppressing map errors for safari")
+                    }
+                }
             }
         }
 
@@ -12025,10 +12034,19 @@ async function processQuickLookInSidebar(changesetID) {
         if (nodesRes) {
             const batchSize = 3000
             for (let i = 0; i < nodesRes.nodes.length; i += batchSize) {
-                console.log(`Nodes batch ${i}-${i + batchSize}`)
+                console.log(`Nodes batch ${i}-${i + batchSize} / ${nodesRes.nodes.length}`)
                 replaceNodes(nodesRes.nodes.slice(i, i + batchSize), nodesRes.nodesUl)
                 await processObjects("node", uniqTypes)
-                await processObjectsInteractions("node", uniqTypes, changesetID)
+                try {
+                    await processObjectsInteractions("node", uniqTypes, changesetID)
+                } catch (e) {
+                    console.error(e)
+                    if (!isSafari) {
+                        throw e
+                    } else {
+                        console.warn("suppressing map errors for safari")
+                    }
+                }
             }
         }
 
