@@ -441,7 +441,7 @@ function intoPageWithFun(obj) {
     return cloneInto(obj, getWindow(), { cloneFunctions: true })
 }
 
-const _isDebug = document.querySelector("head")?.getAttribute("data-user") === "11528195" || osm_server === local_server || osm_server === dev_server
+let _isDebug = document.querySelector("head")?.getAttribute("data-user") === "11528195" || osm_server === local_server || osm_server === dev_server
 
 function isDebug() {
     return _isDebug
@@ -791,7 +791,7 @@ GM_config.init({
             labelPos: "right",
         },
         DragAndDropViewers: {
-            label: "Drag&Drop for .geojson, .jpg, .gpx β",
+            label: "Drag&Drop for .geojson, .jpg, .gpx, .osm",
             type: "checkbox",
             default: "checked",
             labelPos: "right",
@@ -814,12 +814,17 @@ GM_config.init({
             default: false,
             labelPos: "right",
         },
-
         OverpassInstance: {
             label: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass API server</a>',
             labelPos: "left",
             type: "select",
             options: [MAIN_OVERPASS_INSTANCE.name, MAILRU_OVERPASS_INSTANCE.name, PRIVATECOFFEE_OVERPASS_INSTANCE.name],
+        },
+        DebugMode: {
+            label: "Enable debug and experimental features",
+            type: "checkbox",
+            default: false,
+            labelPos: "right",
         },
         // CustomLayers: {
         //     label: "Custom map layers: β",
@@ -1233,7 +1238,7 @@ async function getPrevNextChangesetsIDs(changeset_id) {
         osm_server.apiBase +
             "changesets.json?" +
             new URLSearchParams({
-                user: changesetMetadata.uid,
+                user: changesetMetadata.uid.toString(),
                 order: "oldest",
                 from: changesetMetadata.created_at,
                 to: new Date().toISOString(),
@@ -9658,7 +9663,8 @@ async function initPOIIcons() {
         console.log("poi icons cached")
         const json = JSON.parse(cache)
         const cacheTime = new Date(json["cacheTime"])
-        if (cacheTime.setUTCDate(cacheTime.getUTCDate() + 1) < new Date()) {
+        const oneDayLater = new Date(cacheTime.getTime() + 24 * 60 * 60 * 1000)
+        if (oneDayLater < new Date()) {
             console.log("but cache outdated")
             setTimeout(loadIconsList, 0)
         }
@@ -9677,6 +9683,9 @@ let corporateMappers = null
 const corporationContributorsURL = "https://raw.githubusercontent.com/deevroman/openstreetmap-statistics/refs/heads/master/assets/corporation_contributors.json"
 const corporationContributorsSource = "https://github.com/deevroman/openstreetmap-statistics/blob/master/assets/corporation_contributors.json"
 
+/**
+ * @param {Object} raw_data
+ */
 function makeCorporateMappersData(raw_data) {
     corporatesLinks = new Map()
     corporateMappers = new Map()
@@ -9732,7 +9741,8 @@ async function initCorporateMappersList() {
         console.log("corporate mappers cached")
         const json = JSON.parse(cache)
         const cacheTime = new Date(json["cacheTime"])
-        if (cacheTime.setUTCDate(cacheTime.getUTCDate() + 3) < new Date()) {
+        const threeDaysLater = new Date(cacheTime.getTime() + 3 * 24 * 60 * 60 * 1000)
+        if (threeDaysLater < new Date()) {
             console.log("but cache outdated")
             setTimeout(loadAndMakeCorporateMappersList, 0)
         }
@@ -11628,6 +11638,29 @@ async function safeCallForSafari(fn) {
     }
 }
 
+function makeCrashReportText(err) {
+    return `
+  **Page:** ${location.origin}${location.pathname}
+
+  **Error:** \`${err.toString().replace("`", "\\`")}\`
+
+  **StackTrace:**
+
+  \`\`\`
+  ${err.stack.replace("`", "\\`").replaceAll(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gm, "<hidden>")}
+  \`\`\`
+
+  **Script handler:** \`${GM_info.scriptHandler} v${GM_info.version}\`
+
+  **UserAgent:** \`${JSON.stringify(GM_info.userAgentData)}\`
+
+                      `
+}
+
+function isAbortError(err) {
+    return [ABORT_ERROR_PREV, ABORT_ERROR_NEXT, ABORT_ERROR_USER_CHANGESETS, ABORT_ERROR_WHEN_PAGE_CHANGED].includes(err)
+}
+
 async function processQuickLookInSidebar(changesetID) {
     const interceptMapManuallyPromise = interceptMapManually()
     const multipleChangesets = location.search.includes("changesets=")
@@ -11811,21 +11844,25 @@ async function processQuickLookInSidebar(changesetID) {
     try {
         console.time(`QuickLook ${changesetID}`)
         console.log(`%cQuickLook for ${changesetID}`, "background: #222; color: #bada55")
+
+        /** @type {("way" | "node" | "relation")[]} */
+        const osmTypesOrder = ["way", "node", "relation"]
+
         /** @type {0|1|2|3} */
         let uniqTypes = 0
-        for (const objType of ["way", "node", "relation"]) {
+        for (const objType of osmTypesOrder) {
             if (document.querySelectorAll(`.list-unstyled li.${objType}`).length > 0) {
                 uniqTypes++
             }
         }
 
-        for (const objType of ["way", "node", "relation"]) {
+        for (const objType of osmTypesOrder) {
             await processObjects(objType, uniqTypes)
         }
         const changesetDataPromise = getChangeset(changesetID)
         await interceptMapManuallyPromise
         await safeCallForSafari(async () => {
-            for (const objType of ["way", "node", "relation"]) {
+            for (const objType of osmTypesOrder) {
                 await processObjectsInteractions(objType, uniqTypes, changesetID)
             }
         })
@@ -12298,26 +12335,11 @@ async function processQuickLookInSidebar(changesetID) {
                 return a
             }
 
-            if (![ABORT_ERROR_PREV, ABORT_ERROR_NEXT, ABORT_ERROR_USER_CHANGESETS, ABORT_ERROR_WHEN_PAGE_CHANGED].includes(err) && getMap().getZoom) {
+            if (!isAbortError(err) && getMap().getZoom) {
                 // eslint-disable-next-line no-debugger
                 debugger
                 try {
-                    const reportText = `
-**Page:** ${location.origin}${location.pathname}
-
-**Error:** \`${err.toString().replace("`", "\\`")}\`
-
-**StackTrace:**
-
-\`\`\`
-${err.stack.replace("`", "\\`").replaceAll(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gm, "<hidden>")}
-\`\`\`
-
-**Script handler:** \`${GM_info.scriptHandler} v${GM_info.version}\`
-
-**UserAgent:** \`${JSON.stringify(GM_info.userAgentData)}\`
-
-                    `
+                    const reportText = makeCrashReportText(err)
                     if (!document.querySelector(".crash-report-link")) {
                         document.querySelector("#sidebar_content .secondary-actions").appendChild(document.createTextNode(" · "))
                         document.querySelector("#sidebar_content .secondary-actions").appendChild(makeGithubIssueLink(reportText))
@@ -12753,7 +12775,7 @@ function setupNewEditorsLinks() {
 }
 
 let darkModeForMap = false
-let darkMapStyleElement = false
+let darkMapStyleElement = null
 
 function injectDarkMapStyle() {
     darkMapStyleElement = injectCSSIntoOSMPage(`
@@ -14107,7 +14129,8 @@ async function getCachedUserInfo(username) {
     const localUserInfo = await GM.getValue("userinfo-" + username, "")
     if (localUserInfo) {
         const cacheTime = new Date(localUserInfo["cacheTime"])
-        if (cacheTime.setUTCDate(cacheTime.getUTCDate() + 3) < new Date() || localUserInfo["kontoras"] === undefined) {
+        const threeDaysLater = new Date(cacheTime.getTime() + 3 * 24 * 60 * 60 * 1000)
+        if (threeDaysLater < new Date() || localUserInfo["kontoras"] === undefined) {
             setTimeout(updateUserInfo, 0, username)
         }
         return JSON.parse(localUserInfo)
@@ -18701,6 +18724,9 @@ function makeCommandsMenu() {
 
 function main() {
     "use strict"
+    if (GM_config.get("DebugMode")) {
+        _isDebug = true
+    }
     if (location.origin === "https://www.hdyc.neis-one.org" || location.origin === "https://hdyc.neis-one.org") {
         simplifyHDCYIframe()
         return
