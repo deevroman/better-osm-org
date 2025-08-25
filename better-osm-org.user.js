@@ -1689,6 +1689,9 @@ function addRevertButton() {
                 console.warn("Changeset not found in OSMCha database") // todo show alert/title
                 return
             }
+            if (res.status !== 200) {
+                console.trace(res)
+            }
             const json = res.response
             if (json["properties"]["check_user"]) {
                 document.querySelector(".check_user")?.remove()
@@ -4856,9 +4859,13 @@ function injectJSIntoPage(text) {
  */
 function injectCSSIntoOSMPage(text) {
     if (GM_info.scriptHandler === "FireMonkey" || GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Greasemonkey" || isSafari) {
-        document.querySelector("style").innerHTML += text
+        const styleElem = document.querySelector("style")
+        if (!styleElem) {
+            console.trace("<style> elem empty")
+        }
+        styleElem.innerHTML += text
         if (!isSafari) {
-            document.querySelector("style").parentElement.appendChild(document.querySelector("style"))
+            styleElem.parentElement.appendChild(styleElem)
         }
     } else {
         return GM_addElement(document.head, "style", {
@@ -11608,6 +11615,19 @@ async function getParentWays(nodeID) {
     }
 }
 
+async function safeCallForSafari(fn) {
+    try {
+        await fn()
+    } catch (e) {
+        console.error(e)
+        if (!isSafari) {
+            throw e
+        } else {
+            console.trace("suppressing errors for safari")
+        }
+    }
+}
+
 async function processQuickLookInSidebar(changesetID) {
     const interceptMapManuallyPromise = interceptMapManually()
     const multipleChangesets = location.search.includes("changesets=")
@@ -11804,9 +11824,11 @@ async function processQuickLookInSidebar(changesetID) {
         }
         const changesetDataPromise = getChangeset(changesetID)
         await interceptMapManuallyPromise
-        for (const objType of ["way", "node", "relation"]) {
-            await processObjectsInteractions(objType, uniqTypes, changesetID)
-        }
+        await safeCallForSafari(async () => {
+            for (const objType of ["way", "node", "relation"]) {
+                await processObjectsInteractions(objType, uniqTypes, changesetID)
+            }
+        })
         const changesetData = (await changesetDataPromise).data
         const paginationSelector = document.querySelector(".numbered_pagination") ? ".numbered_pagination" : ".pagination"
 
@@ -12027,16 +12049,9 @@ async function processQuickLookInSidebar(changesetID) {
                 console.log(`Ways batch ${i}-${i + batchSize} / ${waysRes.ways.length}`)
                 replaceWays(waysRes.ways.slice(i, i + batchSize), waysRes.waysUl)
                 await processObjects("way", uniqTypes)
-                try {
+                await safeCallForSafari(async () => {
                     await processObjectsInteractions("way", uniqTypes, changesetID)
-                } catch (e) {
-                    console.error(e)
-                    if (!isSafari) {
-                        throw e
-                    } else {
-                        console.warn("suppressing map errors for safari")
-                    }
-                }
+                })
             }
         }
 
@@ -12047,16 +12062,9 @@ async function processQuickLookInSidebar(changesetID) {
                 console.log(`Nodes batch ${i}-${i + batchSize} / ${nodesRes.nodes.length}`)
                 replaceNodes(nodesRes.nodes.slice(i, i + batchSize), nodesRes.nodesUl)
                 await processObjects("node", uniqTypes)
-                try {
+                await safeCallForSafari(async () => {
                     await processObjectsInteractions("node", uniqTypes, changesetID)
-                } catch (e) {
-                    console.error(e)
-                    if (!isSafari) {
-                        throw e
-                    } else {
-                        console.warn("suppressing map errors for safari")
-                    }
-                }
+                })
             }
         }
 
