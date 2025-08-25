@@ -501,6 +501,7 @@ if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id
     // }
 
     setTimeout(() => {
+        console.log(`Script version: ${GM_info.script.version}`)
         console.debug(
             "Settings:",
             Object.entries(GM_config.fields).map(i => {
