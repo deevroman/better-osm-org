@@ -14648,9 +14648,9 @@ if (isOsmServer()) {
                             }
                         }
                         if (window.notesQFilter && window.invertQ) {
-                            const words = window.notesQFilter.split(",")
+                            const words = window.notesQFilter.split(",").map(i => i.trim())
                             for (const word of words) {
-                                if (note.properties.comments?.[0]?.text.includes(word)) {
+                                if (word !== "" && note.properties.comments?.[0]?.text.includes(word)) {
                                     return false
                                 }
                             }
