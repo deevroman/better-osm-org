@@ -14616,9 +14616,9 @@ if (isOsmServer()) {
                 if (window.notesDisplayName && !window.invertDisplayName && !window.notesDisplayName.includes(",")) {
                     url.searchParams.set("display_name", window.notesDisplayName)
                 }
-                if (window.notesQFilter && !window.invertQ && !window.notesQFilter.includes(",")) {
-                    url.searchParams.set("q", window.notesQFilter)
-                }
+                // if (window.notesQFilter && !window.invertQ && !window.notesQFilter.includes(",")) {
+                //     url.searchParams.set("q", window.notesQFilter)
+                // }
                 if (window.notesClosedFilter) {
                     url.searchParams.set("closed", window.notesClosedFilter)
                 }
@@ -14655,7 +14655,7 @@ if (isOsmServer()) {
                                 }
                             }
                         }
-                        if (!window.invertQ && window.notesQFilter.includes(",")) {
+                        if (!window.invertQ /*&& window.notesQFilter.includes(",")*/) {
                             const words = window.notesQFilter.split(",").map(i => i.trim())
                             let found = false
                             for (const word of words) {
