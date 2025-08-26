@@ -14656,10 +14656,10 @@ if (isOsmServer()) {
                             }
                         }
                         if (!window.invertQ && window.notesQFilter.includes(",")) {
-                            const words = window.notesQFilter.split(",")
+                            const words = window.notesQFilter.split(",").map(i => i.trim())
                             let found = false
                             for (const word of words) {
-                                if (!note.properties.comments?.[0]?.text.includes(word)) {
+                                if (word !== "" && note.properties.comments?.[0]?.text.includes(word)) {
                                     found = true
                                 }
                             }
