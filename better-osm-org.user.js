@@ -808,10 +808,16 @@ GM_config.init({
             default: "checked",
             labelPos: "right",
         },
-        DefaultZoomKeysbehaviour: {
+        DefaultZoomKeysBehaviour: {
             label: "Do not double the zoom step of the buttons +/-",
             type: "checkbox",
             default: false,
+            labelPos: "right",
+        },
+        AddLocationFromNominatim: {
+            label: "Add location from Nominatim for changesets and notes",
+            type: "checkbox",
+            default: "checked",
             labelPos: "right",
         },
         OverpassInstance: {
@@ -2408,6 +2414,7 @@ function addResolveNotesButton() {
     if (document.querySelector(".resolve-note-done")) return true
     if (document.querySelector("#timeback-btn")) return true
     resetSearchFormFocus()
+    geocodeCurrentView()
 
     document.querySelectorAll('#sidebar_content a[href^="/user/"]').forEach(elem => {
         getCachedUserInfo(elem.textContent).then(info => {
@@ -3348,6 +3355,7 @@ function hideNoteHighlight() {
         )
         return
     }
+    console.log("hide halo around note")
     if (g.childNodes[g.childElementCount - 1].getAttribute("stroke") === "#FF6200" && g.childNodes[g.childElementCount - 1].getAttribute("d").includes("a20,20 0 1,0 -40,0 ")) {
         g.childNodes[g.childElementCount - 1].remove()
         document.querySelector("div.leaflet-marker-icon:last-child").style.filter = "contrast(120%)"
@@ -9581,7 +9589,27 @@ function error509Handler(res) {
     // todo sleep
 }
 
-function addRegionForFirstChangeset(attempts = 5) {
+/**
+ *
+ * @param {string} key
+ * @param {number} ms
+ * @return {Promise<void>}
+ */
+async function globalRateLimitByKey(key, ms) {
+    // simple rate limiter
+    while (true) {
+        const lastReqTime = await GM.getValue(key)
+        if (!lastReqTime || new Date(lastReqTime).getTime() + ms < Date.now()) {
+            await GM.setValue(key, Date.now())
+            break
+        }
+        console.log(`wait 1s for "${key}" key`)
+        await sleep(1000)
+    }
+}
+
+function geocodeCurrentView(attempts = 5) {
+    if (!GM_config.get("AddLocationFromNominatim")) return
     if (location.search.includes("changesets")) return
     setTimeout(async () => {
         if (rateLimitBan) {
@@ -9592,9 +9620,7 @@ function addRegionForFirstChangeset(attempts = 5) {
             getMap().attributionControl.setPrefix("")
             if (attempts > 0) {
                 console.log(`Attempt №${7 - attempts} for geocoding`)
-                setTimeout(() => {
-                    addRegionForFirstChangeset(attempts - 1)
-                }, 100)
+                setTimeout(geocodeCurrentView, 100, attempts - 1)
             } else {
                 console.log("Skip geocoding")
             }
@@ -9602,17 +9628,8 @@ function addRegionForFirstChangeset(attempts = 5) {
         }
         const center = getMapCenter()
         console.time(`Geocoding changeset ${center.lng},${center.lat}`)
+        await globalRateLimitByKey("last-geocoder-request-time", 1000)
 
-        while (true) {
-            // simple rate limiter
-            const lastReqTime = await GM.getValue("last-geocoder-request-time")
-            if (!lastReqTime || new Date(lastReqTime).getTime() + 1000 < Date.now()) {
-                await GM.setValue("last-geocoder-request-time", Date.now())
-                break
-            }
-            console.log("wait 1s for geocoder request")
-            await sleep(1000)
-        }
         fetch(`https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2&zoom=10`, {
             signal: getAbortController().signal,
         })
@@ -12670,7 +12687,7 @@ async function addChangesetQuickLook() {
     }
     quickLookInjectingStarted = true
     resetSearchFormFocus()
-    addRegionForFirstChangeset()
+    geocodeCurrentView()
     makeTimesSwitchable()
     if (GM_config.get("ResizableSidebar")) {
         document.querySelector("#sidebar").style.resize = "horizontal"
@@ -16307,10 +16324,7 @@ function setupNavigationViaHotkeys() {
 
     runPositionTracker()
 
-    let defaultZoomKeysbehaviour = false
-    setTimeout(async () => {
-        defaultZoomKeysbehaviour = await GM_config.get("DefaultZoomKeysbehaviour")
-    })
+    const defaultZoomKeysBehaviour = GM_config.get("DefaultZoomKeysBehaviour")
 
     function keydownHandler(e) {
         if (e.repeat && !["KeyK", "KeyL"].includes(e.code)) return
@@ -16728,7 +16742,7 @@ function setupNavigationViaHotkeys() {
                 mapPositionsHistory.push(mapPositionsNextHistory.pop())
                 fitBounds(mapPositionsHistory[mapPositionsHistory.length - 1])
             }
-        } else if (e.code === "Minus" && !defaultZoomKeysbehaviour) {
+        } else if (e.code === "Minus" && !defaultZoomKeysBehaviour) {
             if (document.activeElement?.id === "map") {
                 e.preventDefault()
                 e.stopImmediatePropagation()
@@ -16740,7 +16754,7 @@ function setupNavigationViaHotkeys() {
                 getMap().setZoom(getMap().getZoom() - 1)
             }
             document.querySelector("#map").focus()
-        } else if (e.code === "Equal" && !defaultZoomKeysbehaviour) {
+        } else if (e.code === "Equal" && !defaultZoomKeysBehaviour) {
             if (document.activeElement?.id === "map") {
                 e.preventDefault()
                 e.stopImmediatePropagation()
