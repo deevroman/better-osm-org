@@ -2275,130 +2275,134 @@ function makeTextareaFromTagsTable(table) {
     return textarea
 }
 
+function addCreateNewPOIButton() {
+    if (!document.querySelector("#sidebar_content form")) {
+        return
+    }
+    if (newNotePlaceholder && document.querySelector(".note form textarea")) {
+        document.querySelector(".note form textarea").textContent = newNotePlaceholder
+        document.querySelector(".note form textarea").selectionEnd = 0
+        newNotePlaceholder = null
+    }
+    if (document.querySelector(".add-new-object-btn")) return
+    let b = document.createElement("span")
+    b.classList.add("add-new-object-btn", "btn", "btn-primary")
+    b.textContent = "➕"
+    if (!getMap() || !getMap().getZoom) {
+        b.style.display = "none"
+        interceptMapManually().then(() => {
+            b.style.display = ""
+        })
+    }
+    b.title = `Add new object on map\nPaste tags in textarea\nkey=value\nkey2=value2\n...`
+    document.querySelector("#sidebar_content form div:has(input)").appendChild(b)
+    b.before(document.createTextNode("\xA0"))
+    b.onclick = e => {
+        e.stopImmediatePropagation()
+        const auth = makeAuth()
+
+        console.log("Opening changeset")
+
+        let tagsHint = ""
+        let tags
+        try {
+            tags = buildTags(document.querySelector("#sidebar_content form textarea").value, true)
+        } catch (e) {
+            alert(e)
+            return
+        }
+        if (Object.entries(tags).length === 0) {
+            alert("Textarea not contains any tag")
+            return
+        }
+
+        for (const i of Object.entries(tags)) {
+            if (mainTags.includes(i[0])) {
+                tagsHint = tagsHint + ` ${i[0]}=${i[1]}`
+                break
+            }
+        }
+        for (const i of Object.entries(tags)) {
+            if (i[0] === "name") {
+                tagsHint = tagsHint + ` ${i[0]}=${i[1]}`
+                break
+            }
+        }
+        const changesetTags = {
+            created_by: `better osm.org v${GM_info.script.version}`,
+            comment: tagsHint !== "" ? `Create${tagsHint}` : `Create node`,
+        }
+
+        let changesetPayload = document.implementation.createDocument(null, "osm")
+        let cs = changesetPayload.createElement("changeset")
+        changesetPayload.documentElement.appendChild(cs)
+        tagsToXml(changesetPayload, cs, changesetTags)
+        const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
+
+        auth.xhr(
+            {
+                method: "PUT",
+                path: osm_server.apiBase + "changeset/create",
+                prefix: false,
+                content: chPayloadStr,
+            },
+            function (err1, result) {
+                const changesetId = result
+                console.log(changesetId)
+
+                const nodePayload = document.createElement("osm")
+                const node = document.createElement("node")
+                nodePayload.appendChild(node)
+                node.setAttribute("changeset", changesetId)
+
+                const l = []
+                getMap().eachLayer(intoPageWithFun(i => l.push(i)))
+                const { lat: lat, lng: lng } = l.find(i => !!i._icon && i._icon.classList.contains("leaflet-marker-draggable"))._latlng
+                node.setAttribute("lat", lat)
+                node.setAttribute("lon", lng)
+
+                for (const tag of Object.entries(tags)) {
+                    let tagElem = document.createElement("tag")
+                    tagElem.setAttribute("k", tag[0])
+                    tagElem.setAttribute("v", tag[1])
+                    node.appendChild(tagElem)
+                }
+                const nodeStr = new XMLSerializer().serializeToString(nodePayload).replace(/xmlns="[^"]+"/, "")
+                auth.xhr(
+                    {
+                        method: "POST",
+                        path: osm_server.apiBase + "nodes",
+                        prefix: false,
+                        content: nodeStr,
+                        headers: { "Content-Type": "application/xml; charset=utf-8" },
+                    },
+                    function (err2) {
+                        if (err2) {
+                            console.log({ changesetError: err2 })
+                        }
+                        auth.xhr(
+                            {
+                                method: "PUT",
+                                path: osm_server.apiBase + "changeset/" + changesetId + "/close",
+                                prefix: false,
+                            },
+                            function (err3) {
+                                if (!err3) {
+                                    window.location = osm_server.url + "/changeset/" + changesetId
+                                }
+                            },
+                        )
+                    },
+                )
+            },
+        )
+    }
+}
+
 function addResolveNotesButton() {
     if (!location.pathname.includes("/note")) return
     if (location.pathname.includes("/note/new")) {
-        if (!document.querySelector("#sidebar_content form")) {
-            return
-        }
-        if (newNotePlaceholder && document.querySelector(".note form textarea")) {
-            document.querySelector(".note form textarea").textContent = newNotePlaceholder
-            document.querySelector(".note form textarea").selectionEnd = 0
-            newNotePlaceholder = null
-        }
-        if (document.querySelector(".add-new-object-btn")) return
-        let b = document.createElement("span")
-        b.classList.add("add-new-object-btn", "btn", "btn-primary")
-        b.textContent = "➕"
-        if (!getMap() || !getMap().getZoom) {
-            b.style.display = "none"
-            interceptMapManually().then(() => {
-                b.style.display = ""
-            })
-        }
-        b.title = `Add new object on map\nPaste tags in textarea\nkey=value\nkey2=value2\n...`
-        document.querySelector("#sidebar_content form div:has(input)").appendChild(b)
-        b.before(document.createTextNode("\xA0"))
-        b.onclick = e => {
-            e.stopImmediatePropagation()
-            const auth = makeAuth()
-
-            console.log("Opening changeset")
-
-            let tagsHint = ""
-            let tags
-            try {
-                tags = buildTags(document.querySelector("#sidebar_content form textarea").value, true)
-            } catch (e) {
-                alert(e)
-                return
-            }
-            if (Object.entries(tags).length === 0) {
-                alert("Textarea not contains any tag")
-                return
-            }
-
-            for (const i of Object.entries(tags)) {
-                if (mainTags.includes(i[0])) {
-                    tagsHint = tagsHint + ` ${i[0]}=${i[1]}`
-                    break
-                }
-            }
-            for (const i of Object.entries(tags)) {
-                if (i[0] === "name") {
-                    tagsHint = tagsHint + ` ${i[0]}=${i[1]}`
-                    break
-                }
-            }
-            const changesetTags = {
-                created_by: `better osm.org v${GM_info.script.version}`,
-                comment: tagsHint !== "" ? `Create${tagsHint}` : `Create node`,
-            }
-
-            let changesetPayload = document.implementation.createDocument(null, "osm")
-            let cs = changesetPayload.createElement("changeset")
-            changesetPayload.documentElement.appendChild(cs)
-            tagsToXml(changesetPayload, cs, changesetTags)
-            const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
-
-            auth.xhr(
-                {
-                    method: "PUT",
-                    path: osm_server.apiBase + "changeset/create",
-                    prefix: false,
-                    content: chPayloadStr,
-                },
-                function (err1, result) {
-                    const changesetId = result
-                    console.log(changesetId)
-
-                    const nodePayload = document.createElement("osm")
-                    const node = document.createElement("node")
-                    nodePayload.appendChild(node)
-                    node.setAttribute("changeset", changesetId)
-
-                    const l = []
-                    getMap().eachLayer(intoPageWithFun(i => l.push(i)))
-                    const { lat: lat, lng: lng } = l.find(i => !!i._icon && i._icon.classList.contains("leaflet-marker-draggable"))._latlng
-                    node.setAttribute("lat", lat)
-                    node.setAttribute("lon", lng)
-
-                    for (const tag of Object.entries(tags)) {
-                        let tagElem = document.createElement("tag")
-                        tagElem.setAttribute("k", tag[0])
-                        tagElem.setAttribute("v", tag[1])
-                        node.appendChild(tagElem)
-                    }
-                    const nodeStr = new XMLSerializer().serializeToString(nodePayload).replace(/xmlns="[^"]+"/, "")
-                    auth.xhr(
-                        {
-                            method: "POST",
-                            path: osm_server.apiBase + "nodes",
-                            prefix: false,
-                            content: nodeStr,
-                            headers: { "Content-Type": "application/xml; charset=utf-8" },
-                        },
-                        function (err2) {
-                            if (err2) {
-                                console.log({ changesetError: err2 })
-                            }
-                            auth.xhr(
-                                {
-                                    method: "PUT",
-                                    path: osm_server.apiBase + "changeset/" + changesetId + "/close",
-                                    prefix: false,
-                                },
-                                function (err3) {
-                                    if (!err3) {
-                                        window.location = osm_server.url + "/changeset/" + changesetId
-                                    }
-                                },
-                            )
-                        },
-                    )
-                },
-            )
-        }
+        addCreateNewPOIButton()
         return
     }
     if (document.querySelector(".resolve-note-done")) return true
