@@ -18497,6 +18497,7 @@ async function setupMeasurer() {
     }
     if (!getMap().contextmenu) {
         console.error("Ruler can't be configured: map object not available")
+        return
     }
     // sometime click don't fire when move 1px
     let lastMouseDownX = 0
