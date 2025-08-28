@@ -4713,8 +4713,12 @@ function makeLinksInTagsClickable() {
             if (!type) {
                 return
             }
-            if (type === "way" && ["building", "building:part"].includes(key) && !Array.from(document.querySelectorAll(".browse-tag-list tr th")).some(i => i.textContent.includes("level") || i.textContent.includes("height") || i.textContent.includes("roof") || i.textContent.includes("wikidata"))) {
-                return
+            if (type === "way" && ["building", "building:part"].includes(key)) {
+                if (!Array.from(document.querySelectorAll(".browse-tag-list tr th")).some(i => i.textContent.includes("level") || i.textContent.includes("height") || i.textContent.includes("roof") || i.textContent.includes("wikidata"))) {
+                    if (document.querySelectorAll('a[href^="/node/"]').length <= 5) {
+                        return
+                    }
+                }
             }
             injectCSSIntoOSMPage(
                 `
