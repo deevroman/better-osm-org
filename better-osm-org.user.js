@@ -4882,7 +4882,18 @@ function injectCSSIntoOSMPage(text) {
     if (GM_info.scriptHandler === "FireMonkey" || GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Greasemonkey" || isSafari) {
         const styleElem = document.querySelector("style")
         if (!styleElem) {
-            console.trace("<style> elem empty")
+            console.trace("<style> elem not found. Try wait this elem")
+            setTimeout(async () => {
+                for (let i = 0; i < 20; i++) {
+                    const styleElem = document.querySelector("style")
+                    if (!styleElem) {
+                        await sleep(100)
+                        continue
+                    }
+                    styleElem.innerHTML += text
+                }
+            }, 100)
+            return
         }
         styleElem.innerHTML += text
         if (!isSafari) {
