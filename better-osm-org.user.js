@@ -1686,11 +1686,16 @@ function addRevertButton() {
         }
 
         async function updateReactions() {
+            const osmchaToken = await GM.getValue("OSMCHA_TOKEN")
+            if (!osmchaToken) {
+                // todo
+                throw "Open Osmcha for get access to reactions"
+            }
             const res = await GM.xmlHttpRequest({
                 url: "https://osmcha.org/api/v1/changesets/" + changeset_id + "/",
                 method: "GET",
                 headers: {
-                    Authorization: "Token " + (await GM.getValue("OSMCHA_TOKEN")),
+                    Authorization: "Token " + osmchaToken,
                 },
                 responseType: "json",
             })
