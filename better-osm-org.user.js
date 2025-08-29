@@ -2582,6 +2582,9 @@ function addNotesFiltersButtons() {
     if (!noteLabel) {
         return
     }
+    if (!getWindow().fetchIntercepterScriptInited) {
+        return
+    }
     injectCSSIntoOSMPage(`
         .wait-fetch {
             cursor: progress !important;
@@ -12376,7 +12379,7 @@ async function processQuickLookInSidebar(changesetID) {
                 return a
             }
 
-            if (!isAbortError(err) && getMap().getZoom) {
+            if (!isAbortError(err) && getMap()?.getZoom) {
                 // eslint-disable-next-line no-debugger
                 debugger
                 try {
@@ -14631,6 +14634,7 @@ if (isOsmServer()) {
     injectJSIntoPage(`
     const originalFetch = window.fetch;
 
+    window.fetchIntercepterScriptInited = true;
     window.needClearLoadMoreRequest = 0;
     window.needPatchLoadMoreRequest = null;
     window.hiddenChangesetsCount = null;
