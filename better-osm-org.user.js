@@ -1949,7 +1949,7 @@ const compactSidebarStyleText = `
         font-synthesis: none;
     }
 
-    .hidden-comments-badge {
+    .hidden-comments-badge:not(.increased-specificity-for-fucked-safari) {
         display: none !important;
     }
 
