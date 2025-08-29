@@ -17074,7 +17074,11 @@ function setupNavigationViaHotkeys() {
                 getWindow().OSM.router.route(location.pathname)
                 setupCompactChangesetsHistory()
             } catch {
-                window.location = location.pathname
+                if (isSafari) {
+                    window.location.search = ""
+                } else {
+                    window.location = location.pathname
+                }
             }
         }
     }
