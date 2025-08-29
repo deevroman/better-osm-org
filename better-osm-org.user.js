@@ -1959,7 +1959,7 @@ const compactSidebarStyleText = `
     }
 
     .map-layout #sidebar {
-      width: 450px;
+      width: 450px !important;
     }
     turbo-frame {
         word-wrap: anywhere;
@@ -2299,7 +2299,7 @@ function addCreateNewPOIButton() {
     let b = document.createElement("span")
     b.classList.add("add-new-object-btn", "btn", "btn-primary")
     b.textContent = "➕"
-    if (!getMap() || !getMap().getZoom) {
+    if (!getMap()?.getZoom) {
         b.style.display = "none"
         interceptMapManually().then(() => {
             b.style.display = ""
@@ -2575,11 +2575,6 @@ function setupResolveNotesButton(path) {
 let updateNotesLayer = null
 
 function addNotesFiltersButtons() {
-    injectCSSIntoOSMPage(`
-        .wait-fetch {
-            cursor: progress !important;
-        }
-    `)
     if (document.getElementById("notes-filter")) {
         return
     }
@@ -2587,6 +2582,11 @@ function addNotesFiltersButtons() {
     if (!noteLabel) {
         return
     }
+    injectCSSIntoOSMPage(`
+        .wait-fetch {
+            cursor: progress !important;
+        }
+    `)
     const checkbox = noteLabel.querySelector("input")
     const filters = document.createElement("div")
 
@@ -2755,7 +2755,7 @@ function addNotesFiltersButtons() {
     noteLabel.after(filters)
     updateNotesFilters()
     document.querySelector(".overlay-layers p").style.display = "none"
-    getMap().noteLayer?.on(
+    getMap()?.noteLayer?.on(
         "click",
         intoPageWithFun(e => {
             if (!e.originalEvent.altKey) {
@@ -3245,7 +3245,7 @@ function addDeleteButton() {
         if (object_type !== "node") return
         removePOIMoverMenu()
         await sleep(110)
-        if (!getMap || !getMap().contextmenu || !measurerAdded) {
+        if (!getMap || !getMap()?.contextmenu || !measurerAdded) {
             await sleep(1110)
         }
         nodeMoverMenuItem = getMap().contextmenu.addItem(
@@ -9636,7 +9636,7 @@ function geocodeCurrentView(attempts = 5) {
             return
         }
         await interceptMapManually()
-        if (getMap().getZoom() <= 10) {
+        if (getZoom() <= 10) {
             getMap().attributionControl.setPrefix("")
             if (attempts > 0) {
                 console.log(`Attempt №${7 - attempts} for geocoding`)
@@ -15449,11 +15449,11 @@ const mapPositionsHistory = []
 const mapPositionsNextHistory = []
 
 function runPositionTracker() {
-    if (!getMap() || !getMap().getBounds) {
+    if (!getMap || !getMap()?.getBounds) {
         console.error("Please, reload page, if something doesn't work")
     }
     setInterval(() => {
-        if (!getMap() || !getMap().getBounds) return
+        if (getMap || !getMap()?.getBounds) return
         const bound = get4Bounds(getMap())
         if (JSON.stringify(mapPositionsHistory[mapPositionsHistory.length - 1]) === JSON.stringify(bound)) {
             return
@@ -18501,10 +18501,10 @@ async function setupMeasurer() {
     if (!contextMenu) {
         return
     }
-    if (!getMap || !getMap().contextmenu) {
+    if (!getMap || !getMap()?.contextmenu) {
         await sleep(1000)
     }
-    if (!getMap().contextmenu) {
+    if (!getMap()?.contextmenu) {
         console.error("Ruler can't be configured: map object not available")
         return
     }
