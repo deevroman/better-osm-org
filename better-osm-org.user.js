@@ -13592,6 +13592,12 @@ async function makeProfileForDeletedUser(user) {
                 a.style.fontFamily = "monospace"
                 changesetLine.appendChild(a)
 
+                // const changesetDate = document.createElement("span")
+                // changesetDate.textContent = " " + ch["created_at"]
+                // changesetDate.style.fontFamily = "monospace"
+                // changesetDate.style.color = "gray"
+                // changesetLine.appendChild(changesetDate)
+
                 const comment = document.createElement("span")
                 comment.textContent = " " + (ch.tags?.["comment"] ?? "No comment")
                 changesetLine.appendChild(comment)
