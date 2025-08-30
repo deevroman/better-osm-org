@@ -2438,15 +2438,17 @@ function addResolveNotesButton() {
             return
         }
         let timeSource = "note creation date"
-        const mapsmeDate = document.querySelector(".overflow-hidden")?.textContent?.match(/OSM data version: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/)
+        const noteText = document.querySelector(".overflow-hidden")?.textContent
+        const mapsmeDate = noteText?.match(/OSM data version: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/)
         if (mapsmeDate) {
             timestamp = mapsmeDate[1]
             timeSource = "MAPS.ME snapshot date"
         }
-        const organicmapsDate = document.querySelector(".overflow-hidden")?.textContent?.match(/OSM snapshot date: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/)
+        const organicmapsDate = noteText?.match(/OSM snapshot date: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/)
         if (organicmapsDate) {
             timestamp = organicmapsDate[1]
-            timeSource = "Organic Maps snapshot date"
+            const appName = noteText.includes("CoMaps") ? "CoMaps" : "OrganicMaps"
+            timeSource = appName + " snapshot date"
         }
         const lat = document.querySelector("#sidebar_content .latitude").textContent.replace(",", ".")
         const lon = document.querySelector("#sidebar_content .longitude").textContent.replace(",", ".")
