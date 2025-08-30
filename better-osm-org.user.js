@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.1.9.5
+// @version         1.1.9.6
 // @changelog       v1.1.9: badges for corporate cartographers, ability to press the Z key several times for nodes/notes
 // @changelog       v1.1.8: show gpx tracks in current map view, copy coordinates for ways, alt + C for copy map center
 // @changelog       v1.1.8: more filters for notes, alt + click for hide note, initial support for KML/KMZ files
@@ -2438,15 +2438,17 @@ function addResolveNotesButton() {
             return
         }
         let timeSource = "note creation date"
-        const mapsmeDate = document.querySelector(".overflow-hidden")?.textContent?.match(/OSM data version: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/)
+        const noteText = document.querySelector(".overflow-hidden")?.textContent
+        const mapsmeDate = noteText?.match(/OSM data version: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/)
         if (mapsmeDate) {
             timestamp = mapsmeDate[1]
             timeSource = "MAPS.ME snapshot date"
         }
-        const organicmapsDate = document.querySelector(".overflow-hidden")?.textContent?.match(/OSM snapshot date: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/)
+        const organicmapsDate = noteText?.match(/OSM snapshot date: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/)
         if (organicmapsDate) {
             timestamp = organicmapsDate[1]
-            timeSource = "Organic Maps snapshot date"
+            const appName = noteText.includes("CoMaps") ? "CoMaps" : "OrganicMaps"
+            timeSource = appName + " snapshot date"
         }
         const lat = document.querySelector("#sidebar_content .latitude").textContent.replace(",", ".")
         const lon = document.querySelector("#sidebar_content .longitude").textContent.replace(",", ".")
@@ -2772,11 +2774,11 @@ function addNotesFiltersButtons() {
 }
 
 function setupNotesFiltersButtons() {
-    let timerId = setInterval(addNotesFiltersButtons, 100)
+    let timerId = setInterval(addNotesFiltersButtons, 200)
     setTimeout(() => {
         clearInterval(timerId)
         console.debug("stop try add notes filters buttons")
-    }, 3000)
+    }, 5000)
     addNotesFiltersButtons()
 }
 
@@ -4367,6 +4369,14 @@ function blurSearchField() {
         document.querySelector("#sidebar #query").setAttribute("blured", "true")
         document.querySelector("#sidebar #query").removeAttribute("autofocus")
         document.activeElement?.blur()
+        // dirty hack. If your one multiple tabs focus would reseted only on active tab
+        // In the case of Safari, this is generally a necessity.
+        // Sometimes it still doesn't help
+        ;[50, 100, 250, 500].forEach(ms => {
+            setTimeout(() => {
+                document.activeElement?.blur()
+            }, ms)
+        })
     }
 }
 
@@ -16930,10 +16940,12 @@ function setupNavigationViaHotkeys() {
             }
             layersHidden = !layersHidden
         } else if (e.code === "KeyF" && !e.altKey && !e.metaKey && !e.ctrlKey) {
-            if (location.pathname.match(/^\/note\//)) {
+            if (location.pathname.match(/^\/note\//) || location.pathname === "/") {
                 document.querySelector(".control-layers a").click()
                 if (document.querySelector(".layers-ui").style.display !== "none") {
                     Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({ block: "center" })
+                    e.preventDefault()
+                    document.querySelector("#filter-notes-by-string").focus()
                 }
             } else {
                 if (!document.querySelector("#changesets-filter-btn") && !document.querySelector("#mass-action-btn")) {
