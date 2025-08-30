@@ -2772,11 +2772,11 @@ function addNotesFiltersButtons() {
 }
 
 function setupNotesFiltersButtons() {
-    let timerId = setInterval(addNotesFiltersButtons, 100)
+    let timerId = setInterval(addNotesFiltersButtons, 200)
     setTimeout(() => {
         clearInterval(timerId)
         console.debug("stop try add notes filters buttons")
-    }, 3000)
+    }, 5000)
     addNotesFiltersButtons()
 }
 
@@ -4367,6 +4367,14 @@ function blurSearchField() {
         document.querySelector("#sidebar #query").setAttribute("blured", "true")
         document.querySelector("#sidebar #query").removeAttribute("autofocus")
         document.activeElement?.blur()
+        // dirty hack. If your one multiple tabs focus would reseted only on active tab
+        // In the case of Safari, this is generally a necessity.
+        // Sometimes it still doesn't help
+        ;[50, 100, 250, 500].forEach(ms => {
+            setTimeout(() => {
+                document.activeElement?.blur()
+            }, ms)
+        })
     }
 }
 
@@ -16930,10 +16938,12 @@ function setupNavigationViaHotkeys() {
             }
             layersHidden = !layersHidden
         } else if (e.code === "KeyF" && !e.altKey && !e.metaKey && !e.ctrlKey) {
-            if (location.pathname.match(/^\/note\//)) {
+            if (location.pathname.match(/^\/note\//) || location.pathname === "/") {
                 document.querySelector(".control-layers a").click()
                 if (document.querySelector(".layers-ui").style.display !== "none") {
                     Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({ block: "center" })
+                    e.preventDefault()
+                    document.querySelector("#filter-notes-by-string").focus()
                 }
             } else {
                 if (!document.querySelector("#changesets-filter-btn") && !document.querySelector("#mass-action-btn")) {
