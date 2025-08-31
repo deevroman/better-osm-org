@@ -13606,7 +13606,7 @@ async function makeProfileForDeletedUser(user) {
                 changesetLine.appendChild(a)
 
                 const changesetDate = document.createElement("span")
-                changesetDate.textContent = changesetTime
+                changesetDate.textContent = " " + changesetTime + " "
                 changesetDate.style.fontFamily = "monospace"
                 changesetDate.style.color = "gray"
                 changesetDate.style.cursor = "pointer"
