@@ -13562,7 +13562,7 @@ async function makeProfileForDeletedUser(user) {
             elemForResult.appendChild(document.createTextNode(`Last ${lastChangesets.changesets?.length} changesets:`))
             lastChangesets.changesets.forEach(ch => {
                 const changesetLine = document.createElement("div")
-                changesetLine.title = ch["created_at"]
+                const changesetTime = ch["created_at"]
                 const checkbox = document.createElement("input")
                 checkbox.type = "checkbox"
                 checkbox.classList.add("mass-action-checkbox")
@@ -13605,11 +13605,17 @@ async function makeProfileForDeletedUser(user) {
                 a.style.fontFamily = "monospace"
                 changesetLine.appendChild(a)
 
-                // const changesetDate = document.createElement("span")
-                // changesetDate.textContent = " " + ch["created_at"]
-                // changesetDate.style.fontFamily = "monospace"
-                // changesetDate.style.color = "gray"
-                // changesetLine.appendChild(changesetDate)
+                const changesetDate = document.createElement("span")
+                changesetDate.textContent = changesetTime
+                changesetDate.style.fontFamily = "monospace"
+                changesetDate.style.color = "gray"
+                changesetDate.style.cursor = "pointer"
+                changesetDate.setAttribute("datetime", changesetTime)
+                changesetDate.onclick = e => {
+                    navigator.clipboard.writeText(changesetTime).then(() => copyAnimation(e, changesetTime))
+                }
+                changesetLine.appendChild(document.createTextNode("\xA0"))
+                changesetLine.appendChild(changesetDate)
 
                 const comment = document.createElement("span")
                 comment.textContent = " " + (ch.tags?.["comment"] ?? "No comment")
