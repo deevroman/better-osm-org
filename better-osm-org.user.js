@@ -3480,12 +3480,12 @@ async function bypassChromeCSPForImagesSrc(imgElem, url, isStrava = true) {
             }
             return
         }
-        if (getMap().getZoom() >= 18) {
+        if (getZoom() >= 18) {
             const zoomStr = url.match(/(tile|org)\/([0-9]+)/)[2]
             if (zoomStr) {
                 const tileZoom = parseInt(zoomStr)
                 console.log(tileZoom)
-                getMap().setZoom(Math.min(19, Math.min(getMap().getZoom(), tileZoom - 1)))
+                setZoom(Math.min(19, Math.min(getZoom(), tileZoom - 1)))
             }
         }
         tileErrorHandler({ currentTarget: imgElem }, url)
@@ -3536,7 +3536,7 @@ function tileErrorHandler(e, url = null) {
     if (!GM_config.get("OverzoomForDataLayer")) {
         return
     }
-    if (getMap().getZoom() >= 18) {
+    if (getZoom() >= 18) {
         if (e?.currentTarget?.src?.endsWith("/dev/null") && !url) {
             return
         }
@@ -3549,7 +3549,7 @@ function tileErrorHandler(e, url = null) {
         if (zoomStr) {
             const tileZoom = parseInt(zoomStr)
             console.log(tileZoom)
-            getMap().setZoom(Math.min(19, Math.min(getMap().getZoom(), tileZoom - 1)))
+            setZoom(Math.min(19, Math.min(getZoom(), tileZoom - 1)))
         }
     }
 }
@@ -5301,7 +5301,20 @@ function getZoom() {
  * @memberof unsafeWindow
  */
 function setZoom(zoomLevel) {
-    getMap().setZoom(zoomLevel)
+    try {
+        getMap().setZoom(zoomLevel)
+    } catch {
+        console.warn("Couldn't set the map zoom through the map object. Trying a workaround")
+
+        const curURL = document.querySelector("#edit_tab ul")?.querySelector("li a")?.href
+        const match = curURL.match(/map=(\d+)\/([-\d.]+)\/([-\d.]+)(&|$)/)
+        if (match){
+            location.hash = location.hash.replace(/map=(\d+)\//, `map=${zoomLevel}/`)
+        } else {
+            const [x, y, ] = getCurrentXYZ()
+            location.hash = `map=${zoomLevel}/${x}/${y}`
+        }
+    }
 }
 
 function cleanAllObjects() {
@@ -16272,7 +16285,7 @@ function zoomToCurrentObject(e) {
         } else if (location.pathname.includes("note")) {
             if (!document.querySelector('#sidebar_content a[href*="/traces/"]') || !trackMetadata) {
                 if (noteMetadata) {
-                    const zoom = getMap().getZoom()
+                    const zoom = getZoom()
                     ZoomToObjectClicks++
                     if (zoom + ZoomToObjectClicks > 19) {
                         enableOverzoom()
@@ -16470,7 +16483,7 @@ function setupNavigationViaHotkeys() {
             // gps tracks
             if (e.shiftKey || e.altKey) {
                 enableOverzoom()
-                getMap().setZoom(Math.min(14, getMap().getZoom()))
+                setZoom(Math.min(14, getZoom()))
                 if (!document.querySelectorAll(".overlay-layers label")[2].querySelector("input").checked) {
                     Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
                 }
@@ -16792,9 +16805,9 @@ function setupNavigationViaHotkeys() {
                 e.stopPropagation()
             }
             if (!e.altKey) {
-                getMap().setZoom(getMap().getZoom() - 2)
+                setZoom(getZoom() - 2)
             } else {
-                getMap().setZoom(getMap().getZoom() - 1)
+                setZoom(getZoom() - 1)
             }
             document.querySelector("#map").focus()
         } else if (e.code === "Equal" && !defaultZoomKeysBehaviour) {
@@ -16804,9 +16817,9 @@ function setupNavigationViaHotkeys() {
                 e.stopPropagation()
             }
             if (!e.altKey) {
-                getMap().setZoom(getMap().getZoom() + 2)
+                setZoom(getZoom() + 2)
             } else {
-                getMap().setZoom(getMap().getZoom() + 1)
+                setZoom(getZoom() + 1)
             }
             document.querySelector("#map").focus()
         } else if (e.code === "KeyO") {
