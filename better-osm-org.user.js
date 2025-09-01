@@ -17095,10 +17095,12 @@ function setupNavigationViaHotkeys() {
                     gotNextObjectVersion()
                 }
             }
-        // prettier-ignore
-        } else if (location.pathname.match(/user\/.+\/(traces|diary_comments|changeset_comments)/)
+        } else if (
+            // prettier-ignore
+            location.pathname.match(/user\/.+\/(traces|diary_comments|changeset_comments)/)
             || location.pathname.match(/\/user_blocks($|\/)/)
-            || location.pathname.match(/\/blocks_by$/)) {
+            || location.pathname.match(/\/blocks_by$/)
+        ) {
             if (e.code === "Comma") {
                 document.querySelector('.pagination a[href*="after"]')?.click()
             } else if (e.code === "Period") {
