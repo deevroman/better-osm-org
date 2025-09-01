@@ -5308,10 +5308,10 @@ function setZoom(zoomLevel) {
 
         const curURL = document.querySelector("#edit_tab ul")?.querySelector("li a")?.href
         const match = curURL.match(/map=(\d+)\/([-\d.]+)\/([-\d.]+)(&|$)/)
-        if (match){
+        if (match) {
             location.hash = location.hash.replace(/map=(\d+)\//, `map=${zoomLevel}/`)
         } else {
-            const [x, y, ] = getCurrentXYZ()
+            const [x, y] = getCurrentXYZ()
             location.hash = `map=${zoomLevel}/${x}/${y}`
         }
     }
