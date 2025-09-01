@@ -11965,6 +11965,7 @@ async function processQuickLookInSidebar(changesetID) {
         const changesetData = (await changesetDataPromise).data
         const paginationSelector = document.querySelector(".numbered_pagination") ? ".numbered_pagination" : ".pagination"
 
+        // osm.org/changeset/170309417
         function dropNodesPagination(changesetData) {
             const pagination = Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_nodes ${paginationSelector}`)).find(i => {
                 return Array.from(i.querySelectorAll("a.page-link")).some(a => a.href?.includes("node"))
