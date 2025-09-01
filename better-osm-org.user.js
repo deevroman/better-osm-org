@@ -14130,26 +14130,30 @@ function simplifyHDCYIframe() {
         // debugger
         return
     }
-    document.getElementById("header").remove()
-    document.getElementById("user").remove()
-    document.getElementById("searchfield").remove()
-    document.querySelector(".mapper_img").remove()
-    let bCnt = 0
-    for (let childNodesKey of Array.from(document.querySelector(".since").childNodes)) {
-        if (childNodesKey.nodeName === "#text") {
-            childNodesKey.remove()
-            continue
-        }
-        if (childNodesKey.classList.contains("image")) {
-            continue
-        }
-        if (childNodesKey.localName === "b") {
-            if (bCnt === 2) {
-                break
+    try {
+        document.getElementById("header").remove()
+        document.getElementById("user").remove()
+        document.getElementById("searchfield").remove()
+        document.querySelector(".mapper_img").remove()
+        let bCnt = 0
+        for (let childNodesKey of Array.from(document.querySelector(".since").childNodes)) {
+            if (childNodesKey.nodeName === "#text") {
+                childNodesKey.remove()
+                continue
             }
-            bCnt++
+            if (childNodesKey.classList.contains("image")) {
+                continue
+            }
+            if (childNodesKey.localName === "b") {
+                if (bCnt === 2) {
+                    break
+                }
+                bCnt++
+            }
+            childNodesKey.remove()
         }
-        childNodesKey.remove()
+    } catch (e) {
+        console.error(e)
     }
     window.parent.postMessage({ height: document.body.scrollHeight }, "*")
 }
