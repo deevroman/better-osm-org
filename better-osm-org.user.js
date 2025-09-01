@@ -104,9 +104,16 @@
 // @connect      www.openstreetmap.org
 // @connect      osmcha.org
 // @connect      raw.githubusercontent.com
+// @comment      for images preview from Wikimedia Commons, Panoramax, Mapillary
 // @connect      en.wikipedia.org
 // @connect      graph.mapillary.com
+// @connect      fbcdn.net
 // @connect      api.panoramax.xyz
+// @connect      panoramax.openstreetmap.fr
+// @connect      panoramax.ign.fr
+// @connect      panoramax.mapcomplete.org
+// @connect      panoramax.multimob.be
+// @connect      panoramax.liswu.me
 // @comment      for downloading gps-tracks — osm stores tracks in AWS
 // @connect      amazonaws.com
 // @comment      for satellite images
@@ -4414,17 +4421,27 @@ function makePanoramaxValue(elem) {
         if (!uuid) {
             return
         }
-        const img = GM_addElement("img", {
-            src: `https://api.panoramax.xyz/api/pictures/${uuid}/sd.jpg`,
-            // crossorigin: "anonymous"
-        })
-        img.onerror = () => {
-            img.style.display = "none"
+        const imgSrc = `https://api.panoramax.xyz/api/pictures/${uuid}/sd.jpg`
+        if (isSafari) {
+            fetchImageWithCache(imgSrc).then(async imgData => {
+                const img = document.createElement("img")
+                img.src = imgData
+                img.style.width = "100%"
+                a.appendChild(img)
+            })
+        } else {
+            const img = GM_addElement("img", {
+                src: imgSrc,
+                // crossorigin: "anonymous"
+            })
+            img.onerror = () => {
+                img.style.display = "none"
+            }
+            img.onload = () => {
+                img.style.width = "100%"
+            }
+            a.appendChild(img)
         }
-        img.onload = () => {
-            img.style.width = "100%"
-        }
-        a.appendChild(img)
         setTimeout(async () => {
             const res = (
                 await GM.xmlHttpRequest({
@@ -4510,19 +4527,31 @@ function makeMapillaryValue(elem) {
                 })
             ).response
             if (!res["error"]) {
-                const img = GM_addElement("img", {
-                    src: res["thumb_1024_url"],
-                    alt: "image from Mapillary",
-                    title: "Blue — position from GPS tracker\nOrange — estimated real postion",
-                    // crossorigin: "anonymous"
-                })
-                img.onerror = () => {
-                    img.style.display = "none"
+                const imgSrc = res["thumb_1024_url"]
+                if (isSafari) {
+                    fetchImageWithCache(imgSrc).then(async imgData => {
+                        const img = document.createElement("img")
+                        img.src = imgData
+                        img.alt = "image from Mapillary"
+                        img.title = "Blue — position from GPS tracker\nOrange — estimated real postion"
+                        img.style.width = "100%"
+                        a.appendChild(img)
+                    })
+                } else {
+                    const img = GM_addElement("img", {
+                        src: imgSrc,
+                        alt: "image from Mapillary",
+                        title: "Blue — position from GPS tracker\nOrange — estimated real postion",
+                        // crossorigin: "anonymous"
+                    })
+                    img.onerror = () => {
+                        img.style.display = "none"
+                    }
+                    img.onload = () => {
+                        img.style.width = "100%"
+                    }
+                    a.appendChild(img)
                 }
-                img.onload = () => {
-                    img.style.width = "100%"
-                }
-                a.appendChild(img)
                 a.onmouseenter = () => {
                     const lat = res["geometry"]["coordinates"][1]
                     const lon = res["geometry"]["coordinates"][0]
