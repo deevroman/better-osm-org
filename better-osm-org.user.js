@@ -9747,8 +9747,8 @@ let corporatesLinks = null
 /** @type {null | Map}*/
 let corporateMappers = null
 
-const corporationContributorsURL = "https://raw.githubusercontent.com/deevroman/openstreetmap-statistics/refs/heads/master/assets/corporation_contributors.json"
-const corporationContributorsSource = "https://github.com/deevroman/openstreetmap-statistics/blob/master/assets/corporation_contributors.json"
+const corporationContributorsURL = "https://raw.githubusercontent.com/deevroman/openstreetmap-statistics/refs/heads/master/assets/organised_teams_contributors.json"
+const corporationContributorsSource = "https://github.com/deevroman/openstreetmap-statistics/blob/master/assets/organised_teams_contributors.json"
 
 /**
  * @param {Object} raw_data
