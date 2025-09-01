@@ -12129,7 +12129,7 @@ async function processQuickLookInSidebar(changesetID) {
                 ulItem.appendChild(div1)
 
                 insertPOIIcon(
-                        div1,
+                    div1,
                     "way",
                     Array.from(way.querySelectorAll("tag[k]")).map(i => [i.getAttribute("k"), i.getAttribute("v")]),
                 )
