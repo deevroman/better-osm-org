@@ -104,7 +104,7 @@
 // @connect      www.openstreetmap.org
 // @connect      osmcha.org
 // @connect      raw.githubusercontent.com
-// @comment      for images preview from Wikimedia Commons, Panoramax, Mapillary
+// @comment      for images preview from Wikimedia Commons, Panoramax, Mapillary, StreetComplete
 // @connect      en.wikipedia.org
 // @connect      graph.mapillary.com
 // @connect      fbcdn.net
@@ -114,6 +114,8 @@
 // @connect      panoramax.mapcomplete.org
 // @connect      panoramax.multimob.be
 // @connect      panoramax.liswu.me
+// @connect      westnordost.de
+// @connect      streetcomplete.app
 // @comment      for downloading gps-tracks — osm stores tracks in AWS
 // @connect      amazonaws.com
 // @comment      for satellite images
@@ -2504,8 +2506,57 @@ out meta;
             }).then(res => displayGPXTrack(res.response))
         }
     })
+    try {
+        addAltClickHandlerForNotes()
+    } catch (e) {
+        console.error("fail add alt clicks handlers for note layer")
+    }
 
-    if (!document.querySelector("#sidebar_content textarea.form-control")) {
+    function isClosedNote() {
+        return !document.querySelector("#sidebar_content textarea.form-control")
+    }
+
+    document.querySelectorAll("#sidebar_content div:has(h4) a").forEach(i => {
+        if (i.href?.match(/^(https:\/\/streetcomplete\.app\/|https:\/\/westnordost\.de\/).+\.jpg$/)) {
+            const imgSrc = i.href
+            if (isSafari) {
+                fetchImageWithCache(imgSrc).then(async imgData => {
+                    const img = document.createElement("img")
+                    img.src = imgData
+                    if (!isClosedNote()) {
+                        img.style.width = "100%"
+                    }
+                    img.onerror = () => {
+                        img.style.display = "none"
+                    }
+                    img.onload = () => {
+                        img.style.width = "100%"
+                    }
+                    i.after(img)
+                })
+            } else {
+                const img = GM_addElement("img", {
+                    src: imgSrc,
+                    // crossorigin: "anonymous"
+                })
+                if (!isClosedNote()) {
+                    img.style.width = "100%"
+                }
+                img.onerror = () => {
+                    img.style.display = "none"
+                }
+                img.onload = () => {
+                    img.style.width = "100%"
+                }
+                i.after(img)
+            }
+            document.querySelector("#sidebar").style.resize = "horizontal"
+            document.querySelector("#sidebar").style.width = "450px"
+            // hideSearchForm()
+        }
+    })
+
+    if (isClosedNote()) {
         return
     }
     const auth = makeAuth()
@@ -2556,19 +2607,6 @@ out meta;
         document.querySelectorAll("form.mb-3")[0].before(document.createElement("p"))
         document.querySelector("form.mb-3 .form-control").rows = 3
     }
-    document.querySelectorAll("#sidebar_content div:has(h4) a").forEach(i => {
-        if (i.href.match(/^(https:\/\/streetcomplete\.app\/|https:\/\/westnordost\.de\/).+\.jpg$/)) {
-            const img = GM_addElement("img", {
-                src: i.href,
-                // crossorigin: "anonymous"
-            })
-            img.style.width = "100%"
-            i.after(img)
-            document.querySelector("#sidebar").style.resize = "horizontal"
-            document.querySelector("#sidebar").style.width = "450px"
-            // hideSearchForm()
-        }
-    })
 }
 
 function setupResolveNotesButton(path) {
@@ -2582,6 +2620,41 @@ function setupResolveNotesButton(path) {
 }
 
 let updateNotesLayer = null
+
+function addAltClickHandlerForNotes() {
+    getMap()?.noteLayer?.on(
+        "click",
+        intoPageWithFun(e => {
+            if (!e.originalEvent.altKey) {
+                return
+            }
+            console.log("removing current note", e.layer.id)
+            getWindow().notesIDsFilter.add(e.layer.id)
+            e.propagatedFrom.getElement().style.display = "none"
+            getMap().fire("moveend")
+            const match = location.pathname.match(/note\/(\d+)/)
+            if (match && parseInt(match[1]) === e.layer.id) {
+                console.log("removing also current note layer")
+                map._objectLayer.remove()
+            }
+        }),
+    )
+    getMap()?._objectLayer?.on(
+        "click",
+        intoPageWithFun(e => {
+            if (!e.originalEvent.altKey) {
+                return
+            }
+            console.log("removing current note", map._object.id)
+            e.originalEvent.stopPropagation()
+            e.originalEvent.stopImmediatePropagation()
+            getWindow().notesIDsFilter.add(map._object.id)
+            map._objectLayer.remove()
+            // e.propagatedFrom.getElement().style.display = "none"
+            getMap().fire("moveend")
+        }),
+    )
+}
 
 function addNotesFiltersButtons() {
     if (document.getElementById("notes-filter")) {
@@ -2767,17 +2840,7 @@ function addNotesFiltersButtons() {
     noteLabel.after(filters)
     updateNotesFilters()
     document.querySelector(".overlay-layers p").style.display = "none"
-    getMap()?.noteLayer?.on(
-        "click",
-        intoPageWithFun(e => {
-            if (!e.originalEvent.altKey) {
-                return
-            }
-            getWindow().notesIDsFilter.add(e.layer.id)
-            e.propagatedFrom.getElement().style.display = "none"
-            getMap().fire("moveend")
-        }),
-    )
+    addAltClickHandlerForNotes()
 }
 
 function setupNotesFiltersButtons() {
@@ -16501,6 +16564,7 @@ function setupNavigationViaHotkeys() {
         if (e.code === "KeyN") {
             if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
                 document.querySelector('a[href^="/user/"][href$="/notes"]')?.click()
+                addAltClickHandlerForNotes()
             } else if (e.altKey && location.pathname.match(/note\/[0-9]+/)) {
                 window.open(document.querySelector('#sidebar_content a[href^="/user/"]').getAttribute("href") + "/notes", "_blank")
             } else {
