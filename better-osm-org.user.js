@@ -1958,8 +1958,8 @@ const compactSidebarStyleText = `
         top: 2px;
     }
 
-    .map-layout #sidebar {
-      width: 450px !important;
+    .map-layout #sidebar:not(.increased-specificity-for-fucked-safari) {
+      width: 450px;
     }
     turbo-frame {
         word-wrap: anywhere;
