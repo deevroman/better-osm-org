@@ -11967,6 +11967,43 @@ async function processQuickLookInSidebar(changesetID) {
             return { nodes, nodesUl }
         }
 
+        function insertPOIIcon(parentElem, objType, tags) {
+            try {
+                const [iconSrc, invert] = getPOIIconURL(objType, tags)
+                if (isSafari) {
+                    const tmpElem = document.createElement("span")
+                    parentElem.appendChild(tmpElem)
+                    fetchImageWithCache(iconSrc).then(async imgData => {
+                        const img = document.createElement("img")
+                        img.src = imgData
+                        img.height = 20
+                        img.width = 20
+                        img.classList.add("align-bottom", "object-fit-none", "browse-icon")
+                        if (invert) {
+                            img.classList.add("browse-icon-invertible")
+                        }
+                        tmpElem.replaceWith(img)
+                    })
+                } else {
+                    parentElem.appendChild(
+                        GM_addElement("img", {
+                            src: iconSrc,
+                            height: 20,
+                            width: 20,
+                            class: "align-bottom object-fit-none browse-icon" + (invert ? " browse-icon-invertible" : ""),
+                        }),
+                    )
+                }
+            } catch (e) {
+                console.error(e)
+                const img = document.createElement("img")
+                img.height = 20
+                img.width = 20
+                img.style.visibility = "hidden"
+                parentElem.appendChild(img)
+            }
+        }
+
         function replaceNodes(nodes, nodesUl) {
             nodes.forEach(node => {
                 if (document.getElementById(`${changesetID}n${node.id}`)) {
@@ -11977,27 +12014,11 @@ async function processQuickLookInSidebar(changesetID) {
                 div1.classList.add("d-flex", "gap-1")
                 ulItem.appendChild(div1)
 
-                try {
-                    const [iconSrc, invert] = getPOIIconURL(
-                        "node",
-                        Array.from(node.querySelectorAll("tag[k]")).map(i => [i.getAttribute("k"), i.getAttribute("v")]),
-                    )
-                    div1.appendChild(
-                        GM_addElement("img", {
-                            src: iconSrc,
-                            height: 20,
-                            width: 20,
-                            class: "align-bottom object-fit-none browse-icon" + (invert ? " browse-icon-invertible" : ""),
-                        }),
-                    )
-                } catch (e) {
-                    console.error(e)
-                    const img = document.createElement("img")
-                    img.height = 20
-                    img.width = 20
-                    img.style.visibility = "hidden"
-                    div1.appendChild(img)
-                }
+                insertPOIIcon(
+                    div1,
+                    "node",
+                    Array.from(node.querySelectorAll("tag[k]")).map(i => [i.getAttribute("k"), i.getAttribute("v")]),
+                )
 
                 const div2 = document.createElement("div")
                 div2.classList.add("align-self-center")
@@ -12078,27 +12099,11 @@ async function processQuickLookInSidebar(changesetID) {
                 div1.classList.add("d-flex", "gap-1")
                 ulItem.appendChild(div1)
 
-                try {
-                    const [iconSrc, invert] = getPOIIconURL(
-                        "way",
-                        Array.from(way.querySelectorAll("tag[k]")).map(i => [i.getAttribute("k"), i.getAttribute("v")]),
-                    )
-                    div1.appendChild(
-                        GM_addElement("img", {
-                            src: iconSrc,
-                            height: 20,
-                            width: 20,
-                            class: "align-bottom object-fit-none browse-icon" + (invert ? " browse-icon-invertible" : ""),
-                        }),
-                    )
-                } catch (e) {
-                    console.error(e)
-                    const img = document.createElement("img")
-                    img.height = 20
-                    img.width = 20
-                    img.style.visibility = "hidden"
-                    div1.appendChild(img)
-                }
+                insertPOIIcon(
+                        div1,
+                    "way",
+                    Array.from(way.querySelectorAll("tag[k]")).map(i => [i.getAttribute("k"), i.getAttribute("v")]),
+                )
 
                 const div2 = document.createElement("div")
                 div2.classList.add("align-self-center")
@@ -17227,6 +17232,21 @@ const fetchBlobWithCache = (() => {
         }
     }
 })()
+
+/**
+ * @param imgSrc {string}
+ * @return {Promise<string>}
+ */
+async function fetchImageWithCache(imgSrc) {
+    const res = await fetchBlobWithCache(imgSrc)
+    const blob = res.response
+
+    return await new Promise(resolve => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result)
+        reader.readAsDataURL(blob)
+    })
+}
 
 const fetchJSONWithCache = (() => {
     /**@type {Map<string, Object | Promise<Object>>}*/
