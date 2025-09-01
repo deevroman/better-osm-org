@@ -14730,7 +14730,7 @@ if (isOsmServer()) {
                         if (window.notesQFilter && window.invertQ) {
                             const words = window.notesQFilter.split(",").map(i => i.trim()).filter(i => i !== "")
                             for (const word of words) {
-                                if (note.properties.comments?.[0]?.text.includes(word)) {
+                                if (note.properties.comments?.[0]?.text?.toLowerCase()?.includes(word.toLowerCase())) {
                                     return false
                                 }
                             }
@@ -14739,7 +14739,7 @@ if (isOsmServer()) {
                             const words = window.notesQFilter.split(",").map(i => i.trim()).filter(i => i !== "")
                             let found = false
                             for (const word of words) {
-                                if (note.properties.comments?.[0]?.text.includes(word)) {
+                                if (note.properties.comments?.[0]?.text?.toLowerCase()?.includes(word.toLowerCase())) {
                                     found = true
                                 }
                             }
