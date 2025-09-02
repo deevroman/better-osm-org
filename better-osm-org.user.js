@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.1.9.6
+// @version         1.1.9.7
 // @changelog       v1.1.9: badges for corporate cartographers, ability to press the Z key several times for nodes/notes
 // @changelog       v1.1.8: show gpx tracks in current map view, copy coordinates for ways, alt + C for copy map center
 // @changelog       v1.1.8: more filters for notes, alt + click for hide note, initial support for KML/KMZ files
@@ -9785,19 +9785,17 @@ function geocodeCurrentView(attempts = 5) {
             return
         }
         const center = getMapCenter()
-        console.time(`Geocoding changeset ${center.lng},${center.lat}`)
+        console.time(`Geocoding ${center.lng},${center.lat}`)
         await globalRateLimitByKey("last-geocoder-request-time", 1000)
 
-        fetch(`https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2&zoom=10`, {
+        fetchJSONWithCache(`https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2&zoom=10`, {
             signal: getAbortController().signal,
         })
-            .then(res => {
-                res.json().then(r => {
-                    if (r?.address?.state) {
-                        getMap().attributionControl.setPrefix(`${r.address.state}`)
-                        console.timeEnd(`Geocoding changeset ${center.lng},${center.lat}`)
-                    }
-                })
+            .then(r => {
+                if (r?.address?.state) {
+                    getMap().attributionControl.setPrefix(`${r.address.state}`)
+                    console.timeEnd(`Geocoding changeset ${center.lng},${center.lat}`)
+                }
             })
             .catch(e => {
                 console.debug("Nominatim fail")
