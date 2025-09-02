@@ -2650,7 +2650,11 @@ function addAltClickHandlerForNotes() {
             e.originalEvent.stopImmediatePropagation()
             getWindow().notesIDsFilter.add(map._object.id)
             map._objectLayer.remove()
-            // e.propagatedFrom.getElement().style.display = "none"
+            map.noteLayer?.eachLayer(l => {
+                if (l.id === map._object.id) {
+                    l.remove()
+                }
+            })
             getMap().fire("moveend")
         }),
     )
