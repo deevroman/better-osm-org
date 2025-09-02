@@ -67,6 +67,7 @@ Photos are also displayed in the tags `panoramax=*` and `wikimedia_commons=*`
 - `8`/`9` — prev/next map position
 - `O`— open OSMCha
 - `shift` + `O` — open Achavi
+- `Q` — Close sidebar or alert
 
 Experimental hotkeys:
 - `K` `L` — navigation between changeset elements
@@ -78,7 +79,6 @@ Experimental hotkeys:
 - `shift` + `E` — open second editor
 - `shift` + `N` — create new note
 - `C` — Open changeset of object version
-- `Q` — Close sidebar
 - `shift + Z` — pan to real changeset bbox (without relations bboxes)
 - `0` — zoom to global view
 - ` — hide geometry from map
