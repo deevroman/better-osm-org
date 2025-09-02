@@ -12055,7 +12055,7 @@ async function processQuickLookInSidebar(changesetID) {
             const nodesUl = pagination.parentElement.querySelector("ul.list-unstyled")
             const nodes = Array.from(changesetData.querySelectorAll("node"))
             const other = changesetData.querySelectorAll("way,relation").length
-            if (nodes.length > 1200) {
+            if (nodes.length > 1200 && !isDebug()) {
                 if (other > 20 || isMobile) {
                     // fixme bump
                     return false
@@ -12177,7 +12177,7 @@ async function processQuickLookInSidebar(changesetID) {
             }
             const waysUl = pagination.parentElement.querySelector("ul.list-unstyled")
             const ways = Array.from(changesetData.querySelectorAll("way"))
-            if (ways.length > 50) {
+            if (ways.length > 50 && !isDebug()) {
                 if (ways.length > 200 && changesetData.querySelectorAll("node") > 40) {
                     return false
                 }
