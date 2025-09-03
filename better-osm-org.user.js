@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.1.9.7
+// @version         1.1.9.8
 // @changelog       v1.1.9: badges for corporate cartographers, ability to press the Z key several times for nodes/notes
 // @changelog       v1.1.8: show gpx tracks in current map view, copy coordinates for ways, alt + C for copy map center
 // @changelog       v1.1.8: more filters for notes, alt + click for hide note, initial support for KML/KMZ files
@@ -1967,7 +1967,7 @@ const compactSidebarStyleText = `
         top: 2px;
     }
 
-    .map-layout #sidebar:not(.increased-specificity-for-fucked-safari) {
+    .map-layout #sidebar${isSafari ? ":not(.increased-specificity-for-fucked-safari)" : ""} {
       width: 450px;
     }
     turbo-frame {
