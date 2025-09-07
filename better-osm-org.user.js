@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.1.9.8
+// @version         1.1.9.9
 // @changelog       v1.1.9: badges for corporate cartographers, ability to press the Z key several times for nodes/notes
 // @changelog       v1.1.8: show gpx tracks in current map view, copy coordinates for ways, alt + C for copy map center
 // @changelog       v1.1.8: more filters for notes, alt + click for hide note, initial support for KML/KMZ files
@@ -2630,7 +2630,11 @@ function addAltClickHandlerForNotes() {
             }
             console.log("removing current note", e.layer.id)
             getWindow().notesIDsFilter.add(e.layer.id)
-            e.propagatedFrom.getElement().style.display = "none"
+            try {
+                e.propagatedFrom.getElement().style.display = "none"
+            } catch (err) {
+                console.error(err)
+            }
             getMap().fire("moveend")
             const match = location.pathname.match(/note\/(\d+)/)
             if (match && parseInt(match[1]) === e.layer.id) {
