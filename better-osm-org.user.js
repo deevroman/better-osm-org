@@ -2639,7 +2639,7 @@ function addAltClickHandlerForNotes() {
             const match = location.pathname.match(/note\/(\d+)/)
             if (match && parseInt(match[1]) === e.layer.id) {
                 console.log("removing also current note layer")
-                map._objectLayer.remove()
+                getMap()._objectLayer.remove()
             }
         }),
     )
@@ -2649,13 +2649,13 @@ function addAltClickHandlerForNotes() {
             if (!e.originalEvent.altKey) {
                 return
             }
-            console.log("removing current note", map._object.id)
+            console.log("removing current note", getMap()._object.id)
             e.originalEvent.stopPropagation()
             e.originalEvent.stopImmediatePropagation()
-            getWindow().notesIDsFilter.add(map._object.id)
-            map._objectLayer.remove()
-            map.noteLayer?.eachLayer(l => {
-                if (l.id === map._object.id) {
+            getWindow().notesIDsFilter.add(getMap()._object.id)
+            getMap()._objectLayer.remove()
+            getMap().noteLayer?.eachLayer(l => {
+                if (l.id === getMap()._object.id) {
                     l.remove()
                 }
             })
