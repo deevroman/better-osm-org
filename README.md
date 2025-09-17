@@ -161,9 +161,16 @@ Experimental hotkeys:
 - [ ] Public transport viewer and validator
 - [ ] Collapse name tags
 - [ ] Integrate https://github.com/Zverik/osmtags-editor
-- [ ] Edit tags in Overpass Turbo
+- Overpass Turbo (maybe in [Overpass beta](https://github.com/deevroman/overpass-beta))
+- + [ ] Edit tags in Overpass Turbo
+- + [ ] {{bbox}} on/off in Overpass Turbo
+- + [ ] remove comment and extra quotes from query
+- + [ ] fast `out meta/center/...` switch
+- + [ ] explain expressions
+- + [ ] autocompletion from taginfo 
+- + [ ] split window
+- + [ ] Javascript postfilters
 - [ ] Tutorial
-- [ ] {{bbox}} on/off in Overpass Turbo
 - [ ] Improve data view
 - + [ ] Hide ways
 - + [ ] Filters
