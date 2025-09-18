@@ -1,0 +1,140 @@
+{
+  "$schema": "https://raw.githubusercontent.com/taginfo/taginfo-projects/refs/heads/master/taginfo-project-schema.json",
+  "data_format": 1,
+  "data_url": "https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/taginfo.json",
+  "project": {
+    "name": "better-osm-org",
+    "description": "A userscript that adds several useful features to osm.org",
+    "project_url": "https://github.com/deevroman/better-osm-org",
+    "contact_name": "Roman Deev",
+    "contact_email": "roman.deev06@gmail.com"
+  },
+  "tags": [
+    {
+      "key": "panoramax",
+      "description": "to display photos in the tag values field"
+    },
+    {
+      "key": "mapillary",
+      "description": "to display photos in the tag values field"
+    },
+    {
+      "key": "wikimedia_commons",
+      "description": "to display photos in the tag values field"
+    },
+    {
+      "key": "direction",
+      "description": "rendering the direction of an object on the map"
+    },
+    {
+      "key": "camera:direction",
+      "description": "rendering the direction of the surveillance camera on the map"
+    },
+    {
+      "key": "opening_hours",
+      "description": "highlighting errors in tag syntax via opeining_hours.js"
+    },
+    {
+      "key": "delivery_hours",
+      "description": "highlighting errors in tag syntax via opeining_hours.js"
+    },
+    {
+      "key": "smoking_hours",
+      "description": "highlighting errors in tag syntax via opeining_hours.js"
+    },
+    {
+      "key": "collection_times",
+      "description": "highlighting errors in tag syntax via opeining_hours.js"
+    },
+    {
+      "key": "service_times",
+      "description": "highlighting errors in tag syntax via opeining_hours.js"
+    },
+    {
+      "key": "happy_hours",
+      "description": "highlighting errors in tag syntax via opeining_hours.js"
+    },
+    {
+      "key": "type",
+      "value": "building",
+      "description": "displaying links to 3D building viewers",
+      "object_types": ["relation"]
+    },
+    {
+      "key": "building",
+      "description": "displaying links to 3D building viewers",
+      "object_types": ["area"]
+    },
+    {
+      "key": "building:part",
+      "description": "displaying links to 3D building viewers",
+      "object_types": ["area"]
+    },
+    {
+      "key": "ref:belpost",
+      "description": "linkify tag value"
+    },
+    {
+      "key": "restriction",
+      "value": "no_left_turn",
+      "description": "displaying traffic restriction signs on the map",
+      "object_types": ["relation"]
+    },
+    {
+      "key": "restriction",
+      "value": "no_right_turn",
+      "description": "displaying traffic restriction signs on the map",
+      "object_types": ["relation"]
+    },
+    {
+      "key": "restriction",
+      "value": "no_straight_on",
+      "description": "displaying traffic restriction signs on the map",
+      "object_types": ["relation"]
+    },
+    {
+      "key": "restriction",
+      "value": "no_u_turn",
+      "description": "displaying traffic restriction signs on the map",
+      "object_types": ["relation"]
+    },
+    {
+      "key": "restriction",
+      "value": "only_right_turn",
+      "description": "displaying traffic restriction signs on the map",
+      "object_types": ["relation"]
+    },
+    {
+      "key": "restriction",
+      "value": "only_left_turn",
+      "description": "displaying traffic restriction signs on the map",
+      "object_types": ["relation"]
+    },
+    {
+      "key": "restriction",
+      "value": "only_straight_on",
+      "description": "displaying traffic restriction signs on the map",
+      "object_types": ["relation"]
+    },
+    {
+      "key": "restriction",
+      "value": "no_entry",
+      "description": "displaying traffic restriction signs on the map",
+      "object_types": ["relation"]
+    },
+    {
+      "key": "restriction",
+      "value": "no_exit",
+      "description": "displaying traffic restriction signs on the map",
+      "object_types": ["relation"]
+    },
+    {
+      "key": "fixme",
+      "description": "Highlighting a tag in a tag list"
+    },
+    {
+      "key": "note",
+      "description": "Highlighting a tag in a tag list"
+    }
+  ]
+}
