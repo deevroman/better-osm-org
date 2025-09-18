@@ -15616,7 +15616,7 @@ function runPositionTracker() {
         console.error("Please, reload page, if something doesn't work")
     }
     setInterval(() => {
-        if (getMap || !getMap()?.getBounds) return
+        if (!getMap || !getMap()?.getBounds) return
         const bound = get4Bounds(getMap())
         if (JSON.stringify(mapPositionsHistory[mapPositionsHistory.length - 1]) === JSON.stringify(bound)) {
             return
