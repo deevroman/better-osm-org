@@ -9,11 +9,11 @@ Also works in Firefox for Android
 
 ### Tags diff in object history
 
-  <img src="img/diff.png" width="50%">
+  <img src="misc/img/diff.png" width="50%">
 
 ### QuickLook for simple changesets
 
-  <img src="img/changeset-quicklook.jpg">
+  <img src="misc/img/changeset-quicklook.jpg">
 
 ### Improved history tab
 
@@ -21,35 +21,35 @@ Also works in Firefox for Android
 - Show users roles and status
 - Show first comment
 
-<img src="img/changesets-filter.png">
+<img src="misc/img/changesets-filter.png">
 
 ### Node deletion
 
-  <img src="img/delete.png" width="50%">
+  <img src="misc/img/delete.png" width="50%">
 
 ### Satellite layer
 
-  <img src="img/notes-sat.jpg" width="50%">
+  <img src="misc/img/notes-sat.jpg" width="50%">
 
 ### Stat HDYC in profile (Firefox only)
 
-  <img src="img/hdyc.jpg" width="50%">
+  <img src="misc/img/hdyc.jpg" width="50%">
 
 ### Dark mode for map and iD
 
-<img src="img/dark-map.png" width="50%">
+<img src="misc/img/dark-map.png" width="50%">
 
-<img src="img/dark-id.png" width="50%">
+<img src="misc/img/dark-id.png" width="50%">
 
 Based on [OpenStreetMap Dark Theme by AlexPS](https://userstyles.world/style/15596/openstreetmap-dark-theme)
 
 ### Edit war detector
 
-<img src="img/edit-war-detector.png" width="50%">
+<img src="misc/img/edit-war-detector.png" width="50%">
 
 ### Display photos and traces in notes
 
-<img src="img/photos-and-traces-in-notes.png" width="50%">
+<img src="misc/img/photos-and-traces-in-notes.png" width="50%">
 
 Photos are also displayed in the tags `panoramax=*` and `wikimedia_commons=*`
 
