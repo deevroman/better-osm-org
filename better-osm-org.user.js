@@ -128,10 +128,10 @@
 // @connect      content-a.strava.com
 // @sandbox      JavaScript
 // @resource     OAUTH_HTML https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/assets/finish-oauth.html?bypass_cache
-// @resource     OSMCHA_ICON https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/icons/osmcha.ico
-// @resource     NODE_ICON https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/icons/Osm_element_node.svg
-// @resource     WAY_ICON https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/icons/Osm_element_way.svg
-// @resource     RELATION_ICON https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/icons/Taginfo_element_relation.svg
+// @resource     OSMCHA_ICON https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/assets/icons/osmcha.ico
+// @resource     NODE_ICON https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/assets/icons/Osm_element_node.svg
+// @resource     WAY_ICON https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/assets/icons/Osm_element_way.svg
+// @resource     RELATION_ICON https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/assets/icons/Taginfo_element_relation.svg
 // @resource     OSMCHA_LIKE https://raw.githubusercontent.com/OSMCha/osmcha-frontend/94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-up.svg
 // @resource     OSMCHA_DISLIKE https://raw.githubusercontent.com/OSMCha/osmcha-frontend/94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-down.svg
 // @resource     DARK_THEME_FOR_ID_CSS https://gist.githubusercontent.com/deevroman/55f35da68ab1efb57b7ba4636bdf013d/raw/1e91d589ca8cb51c693a119424a45d9f773c265e/dark.css
