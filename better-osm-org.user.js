@@ -4120,7 +4120,15 @@ async function parseBBB(target, url) {
     let x = 0
     let found = false
     for (x; x < a.length; x += 2) {
+        const num = parseInt(a[x].textContent)
         let d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim())
+        if (url === "003/") {
+            if (num === 115) {
+                d = new Date("2018-10-1918T01:21:00Z")
+            } else if (num === 116) {
+                d = new Date("2018-10-1918T13:25:00Z")
+            }
+        }
         if (target < d) {
             found = true
             break
