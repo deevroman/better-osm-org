@@ -335,6 +335,29 @@ const PRIVATECOFFEE_OVERPASS_INSTANCE = {
 
 let overpass_server = MAIN_OVERPASS_INSTANCE
 
+/**
+ * @typedef {{
+ *     [type]: "node"|"way"|"relation",
+ *     [id]: number|string,
+ *     [x]: string,
+ *     [y]: string,
+ *     [z]: string,
+ *     [waymarkedtrails_type]: "hiking"|"cycling"|"mtb"|"riding"|"skating"|"slopes",
+ * }} externalURLParams
+ */
+
+/**
+ * @typedef {{
+ *     name: string,
+ *     url: string,
+ *     makeURL: (externalURLParams) => string,
+ * }} externalURL
+ */
+
+/**
+ *
+ * @type {externalURL[]}
+ */
 const instancesOf3DViewers = [
     {
         name: "OSM Building Viewer",
@@ -394,6 +417,15 @@ const instancesOf3DViewers = [
     //     }
     // }
 ]
+
+/** @type {externalURL} */
+const waymarkedtrailsLink = {
+    name: "Waymarked Trails",
+    url: "https://{type}.waymarkedtrails.org/",
+    makeURL: function ({ x, y, z, id, waymarkedtrails_type }) {
+        return `${this.url.replace("{type}", waymarkedtrails_type)}#route?id=${id}&map=${z}/${x}/${y}`
+    },
+}
 
 /** @type {unsafeWindow & windowOSM} **/
 const boWindowObject = typeof window.wrappedJSObject !== "undefined" ? window.wrappedJSObject : unsafeWindow
@@ -4962,6 +4994,46 @@ function makeLinksInTagsClickable() {
                 clickHandler(e)
             })
             document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(viewIn3D)
+        } else if (
+            // pretier-ignore
+            (key === "route" || key === "superroute") &&
+            ["hiking", "foot", "bicycle", "mtb", "horse", "inline_skates", "ski", "piste"].includes(valueCell.textContent)
+        ) {
+            if (document.querySelector(".route-viewer-link")) {
+                return
+            }
+            const m = location.pathname.match(/\/(relation)\/(\d+)/)
+            if (!m) {
+                return
+            }
+            const [, type, id] = m
+            if (!type) {
+                return
+            }
+            const waymarkedtrails_type = {
+                hiking: "hiking",
+                foot: "hiking",
+                bicycle: "cycling",
+                mtb: "mtb",
+                horse: "riding",
+                inline_skates: "skating",
+                ski: "slopes",
+                piste: "slopes",
+            }[valueCell.textContent]
+            const relationViewer = document.createElement("a")
+            relationViewer.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link-icon lucide-external-link" width="16" height="16"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg>'
+            relationViewer.classList.add("route-viewer-link")
+            relationViewer.style.cursor = "pointer"
+            relationViewer.style.paddingLeft = "5px"
+            relationViewer.style.paddingRight = "10px"
+            relationViewer.title = `Open ${waymarkedtrails_type}.waymarkedtrails.org.\nRight click for select viewer`
+
+            const [x, y, z] = getCurrentXYZ()
+            relationViewer.href = waymarkedtrailsLink.makeURL({ x, y, z, type, id, waymarkedtrails_type })
+            relationViewer.target = "_blank"
+            relationViewer.rel = "noreferrer"
+
+            document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(relationViewer)
         } else if (key === "ref:belpost") {
             if (!valueCell.querySelector("a")) {
                 makeRefBelpostValue(valueCell)
