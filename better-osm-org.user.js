@@ -1108,27 +1108,28 @@ function makeHashtagsInNotesClickable() {
             if (node.nodeType !== Node.TEXT_NODE) return
             const span = document.createElement("span")
             span.textContent = node.textContent
-            span.innerHTML = span.innerHTML.replaceAll(/\B(#[\p{L}\d_-]+)\b/gu, function (match) {
-                // const notesReviewLink = "https://ent8r.github.io/NotesReview/?" + new URLSearchParams({
-                //     view: "map",
-                //     status: "open",
-                //     area: "view",
-                //     limit: 30,
-                //     query: match
-                // }).toString()
+            span.innerHTML = span.innerHTML
+                .replaceAll(/\B(#[\p{L}\d_-]+)\b/gu, function (match) {
+                    // const notesReviewLink = "https://ent8r.github.io/NotesReview/?" + new URLSearchParams({
+                    //     view: "map",
+                    //     status: "open",
+                    //     area: "view",
+                    //     limit: 30,
+                    //     query: match
+                    // }).toString()
 
-                const a = document.createElement("a")
-                a.id = "note-link-" + Math.random()
-                a.href = ""
-                a.target = "_blank"
-                a.title = "Click for filter notes by this hashtag.\nClick with CTLR or Shift for search this hashtags in osm-note-viewer"
-                a.textContent = match
+                    const a = document.createElement("a")
+                    a.id = "note-link-" + Math.random()
+                    a.href = ""
+                    a.target = "_blank"
+                    a.title = "Click for filter notes by this hashtag.\nClick with CTLR or Shift for search this hashtags in osm-note-viewer"
+                    a.textContent = match
 
-                function fixLink() {
-                    const center = getMapCenter()
-                    const zoom = getZoom()
-                    // prettier-ignore
-                    const notesReviewLink =
+                    function fixLink() {
+                        const center = getMapCenter()
+                        const zoom = getZoom()
+                        // prettier-ignore
+                        const notesReviewLink =
                         "https://antonkhorev.github.io/osm-note-viewer/#" +
                         new URLSearchParams({
                             mode: "search",
@@ -1144,29 +1145,52 @@ function makeHashtagsInNotesClickable() {
                             closed: "0",
                             map: `${zoom}/${center.lat}/${center.lng}`,
                         }).toString()
-                    const link = document.getElementById(a.id)
-                    link.href = notesReviewLink
-                    link.onclick = e => {
-                        if (e.shiftKey || e.ctrlKey || e.metaKey) {
-                            return
+                        const link = document.getElementById(a.id)
+                        link.href = notesReviewLink
+                        link.onclick = e => {
+                            if (e.shiftKey || e.ctrlKey || e.metaKey) {
+                                return
+                            }
+                            e.preventDefault()
+                            if (document.querySelector(".layers-ui").style.display === "none") {
+                                document.querySelector(".control-layers a").click()
+                            }
+                            Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({ block: "center" })
+                            document.querySelector("#filter-notes-by-string").value = match
+                            e.target?.classList?.add("wait-fetch")
+                            updateNotesLayer()
                         }
-                        e.preventDefault()
-                        if (document.querySelector(".layers-ui").style.display === "none") {
-                            document.querySelector(".control-layers a").click()
-                        }
-                        Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({ block: "center" })
-                        document.querySelector("#filter-notes-by-string").value = match
-                        e.target?.classList?.add("wait-fetch")
-                        updateNotesLayer()
+                        console.log("search link in note was fixed")
                     }
-                    console.log("search link in note was fixed")
-                }
 
-                setTimeout(() => {
-                    interceptMapManually().then(fixLink)
+                    setTimeout(() => {
+                        interceptMapManually().then(fixLink)
+                    })
+                    setTimeout(fixLink, 1000)
+                    return a.outerHTML
                 })
-                setTimeout(fixLink, 1000)
-                return a.outerHTML
+                .replaceAll(/(?<=(POI name: ))(.+)/gu, function (match) {
+                    const span = document.createElement("span")
+                    span.classList.add("poi-name-in-note")
+                    span.title = "Click to copy name"
+                    span.setAttribute("data-name", match)
+                    span.textContent = match
+                    return span.outerHTML
+                }).replaceAll(/(?<=(POI types: ))(.+)/gu, function (match) {
+                    injectCSSIntoOSMPage(copyAnimationStyles)
+                    const span = document.createElement("span")
+                    span.classList.add("poi-name-in-note")
+                    span.title = "Click to copy type"
+                    span.setAttribute("data-name", match)
+                    span.textContent = match
+                    return span.outerHTML
+                })
+            document.querySelectorAll(".poi-name-in-note").forEach(elem => {
+                elem.style.cursor = "pointer"
+                elem.addEventListener("click", e => {
+                    const name = e.target.getAttribute("data-name")
+                    navigator.clipboard.writeText(name).then(() => copyAnimation(e, name))
+                })
             })
             node.replaceWith(span)
         })
