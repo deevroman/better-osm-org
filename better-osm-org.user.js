@@ -1176,7 +1176,8 @@ function makeHashtagsInNotesClickable() {
                     span.setAttribute("data-name", match)
                     span.textContent = match
                     return span.outerHTML
-                }).replaceAll(/(?<=(POI types: ))(.+)/gu, function (match) {
+                })
+                .replaceAll(/(?<=(POI types: ))(.+)/gu, function (match) {
                     injectCSSIntoOSMPage(copyAnimationStyles)
                     const span = document.createElement("span")
                     span.classList.add("poi-name-in-note")
@@ -4113,8 +4114,7 @@ async function parseBBB(target, url) {
         method: "GET",
         url: planetOrigin + "/replication/changesets/" + url,
     })
-    const parser = new DOMParser()
-    const BBBHTML = parser.parseFromString(response.responseText, "text/html")
+    const BBBHTML = new DOMParser().parseFromString(response.responseText, "text/html")
 
     const a = Array.from(BBBHTML.querySelector("pre").childNodes).slice(2)
     let x = 0
@@ -4146,8 +4146,7 @@ async function parseCCC(target, url) {
         method: "GET",
         url: planetOrigin + "/replication/changesets/" + url,
     })
-    const parser = new DOMParser()
-    const CCCHTML = parser.parseFromString(response.responseText, "text/html")
+    const CCCHTML = new DOMParser().parseFromString(response.responseText, "text/html")
 
     let a = Array.from(CCCHTML.querySelector("pre").childNodes).slice(2)
     let x = 0
@@ -4230,8 +4229,13 @@ async function findChangesetInDiff(e) {
 
     let foundedChangeset
     try {
-        const match = location.pathname.match(/\/(node|way|relation)\/(\d+)/)
-        const [, type, objID] = match
+        const match = location.pathname.match(/\/(node|way|relation|changeset)\/(\d+)/)
+        let [, type, objID] = match
+        if (type === "changeset") {
+            const ch = (await getChangeset(objID)).data
+            type = ch.querySelector(`[changeset="${objID}"]`).nodeName
+            objID = ch.querySelector(`[changeset="${objID}"]`).getAttribute("id")
+        }
         if (type === "node") {
             foundedChangeset = await getNodeViaOverpassXML(objID, e.target.datetime)
         } else if (type === "way") {
@@ -4239,7 +4243,7 @@ async function findChangesetInDiff(e) {
         } else if (type === "relation") {
             foundedChangeset = await getRelationViaOverpassXML(objID, e.target.datetime)
         }
-        if (!foundedChangeset.getAttribute("user")) {
+        if (!foundedChangeset?.getAttribute("user")) {
             foundedChangeset = null
             console.log("Loading via overpass failed. Try via diffs")
             throw ""
@@ -4279,35 +4283,25 @@ async function findChangesetInDiff(e) {
         }
     }
 
-    let userInfo = document.createElement("span")
+    const userInfo = document.createElement("a")
+    userInfo.setAttribute("href", "/user/" + foundedChangeset.getAttribute("user"))
     userInfo.style.cursor = "pointer"
-    userInfo.style.background = "#fff181"
-    userInfo.title = "Click for copy username"
-    if (isDarkMode()) {
-        userInfo.style.color = "black"
-    }
     userInfo.textContent = foundedChangeset.getAttribute("user")
 
-    function clickForCopy(e) {
-        e.preventDefault()
-        let id = e.target.innerText
-        navigator.clipboard.writeText(id).then(() => copyAnimation(e, id))
-    }
-
-    userInfo.onclick = clickForCopy
     e.target.before(document.createTextNode("\xA0"))
     e.target.before(userInfo)
     e.target.before(document.createTextNode("\xA0"))
 
-    let uid = document.createElement("span")
-    uid.style.background = "#9cff81"
+    const uid = document.createElement("span")
     uid.style.cursor = "pointer"
     uid.title = "Click for copy user ID"
-    if (isDarkMode()) {
-        uid.style.color = "black"
+    uid.onclick = e => {
+        const text = foundedChangeset.getAttribute("uid")
+        navigator.clipboard.writeText(text).then(() => copyAnimation(e, text))
     }
-    uid.onclick = clickForCopy
     uid.textContent = `${foundedChangeset.getAttribute("uid")}`
+
+    e.target.before(document.createTextNode("ID: "))
     e.target.before(uid)
     e.target.before(document.createTextNode("\xA0"))
 
@@ -9329,6 +9323,8 @@ function makeContextMenuElem(e) {
     return menu
 }
 
+const copyBtnSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-icon lucide-file"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>'
+
 function addCopyCoordinatesButtons() {
     const m = location.pathname.match(/^\/(node|way)\/(\d+)/)
     if (!m) {
@@ -9365,7 +9361,7 @@ function addCopyCoordinatesButtons() {
         copyButton.classList.add("copy-coords-btn")
         copyButton.textContent = "📄"
         copyButton.title = "Select coordinates format for copy.\nTo copy just click by coordinates"
-        copyButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-icon lucide-file"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>'
+        copyButton.innerHTML = copyBtnSvg
         copyButton.style.height = "0.9rem"
         copyButton.style.position = "relative"
         if (location.pathname.endsWith("/history")) {
