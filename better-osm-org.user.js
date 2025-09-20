@@ -12264,7 +12264,11 @@ async function processQuickLookInSidebar(changesetID) {
                     // todo
                     if (mainTags.includes(i.getAttribute("k"))) {
                         div2.classList.add(i.getAttribute("k"))
-                        div2.classList.add(i.getAttribute("v"))
+                        try {
+                            div2.classList.add(i.getAttribute("v"))
+                        } catch {
+                            console.log(`skip tag with value: ${i.getAttribute("v")}`)
+                        }
                     }
                 })
                 if (node.getAttribute("visible") === "false") {
@@ -12346,10 +12350,13 @@ async function processQuickLookInSidebar(changesetID) {
                 div2.appendChild(versionLink)
 
                 Array.from(way.children).forEach(i => {
-                    // todo
-                    if (["shop", "building", "amenity", "man_made", "highway", "natural"].includes(i.getAttribute("k"))) {
+                    if (mainTags.includes(i.getAttribute("k"))) {
                         div2.classList.add(i.getAttribute("k"))
-                        div2.classList.add(i.getAttribute("v"))
+                        try {
+                            div2.classList.add(i.getAttribute("v"))
+                        } catch {
+                            console.log(`skip tag with value: ${i.getAttribute("v")}`)
+                        }
                     }
                 })
                 if (way.getAttribute("visible") === "false") {
