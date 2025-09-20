@@ -335,6 +335,29 @@ const PRIVATECOFFEE_OVERPASS_INSTANCE = {
 
 let overpass_server = MAIN_OVERPASS_INSTANCE
 
+/**
+ * @typedef {{
+ *     [type]: "node"|"way"|"relation",
+ *     [id]: number|string,
+ *     [x]: string,
+ *     [y]: string,
+ *     [z]: string,
+ *     [waymarkedtrails_type]: "hiking"|"cycling"|"mtb"|"riding"|"skating"|"slopes",
+ * }} externalURLParams
+ */
+
+/**
+ * @typedef {{
+ *     name: string,
+ *     url: string,
+ *     makeURL: (externalURLParams) => string,
+ * }} externalURL
+ */
+
+/**
+ *
+ * @type {externalURL[]}
+ */
 const instancesOf3DViewers = [
     {
         name: "OSM Building Viewer",
@@ -394,6 +417,15 @@ const instancesOf3DViewers = [
     //     }
     // }
 ]
+
+/** @type {externalURL} */
+const waymarkedtrailsLink = {
+    name: "Waymarked Trails",
+    url: "https://{type}.waymarkedtrails.org/",
+    makeURL: function ({ x, y, z, id, waymarkedtrails_type }) {
+        return `${this.url.replace("{type}", waymarkedtrails_type)}#route?id=${id}&map=${z}/${x}/${y}`
+    },
+}
 
 /** @type {unsafeWindow & windowOSM} **/
 const boWindowObject = typeof window.wrappedJSObject !== "undefined" ? window.wrappedJSObject : unsafeWindow
@@ -1108,27 +1140,28 @@ function makeHashtagsInNotesClickable() {
             if (node.nodeType !== Node.TEXT_NODE) return
             const span = document.createElement("span")
             span.textContent = node.textContent
-            span.innerHTML = span.innerHTML.replaceAll(/\B(#[\p{L}\d_-]+)\b/gu, function (match) {
-                // const notesReviewLink = "https://ent8r.github.io/NotesReview/?" + new URLSearchParams({
-                //     view: "map",
-                //     status: "open",
-                //     area: "view",
-                //     limit: 30,
-                //     query: match
-                // }).toString()
+            span.innerHTML = span.innerHTML
+                .replaceAll(/\B(#[\p{L}\d_-]+)\b/gu, function (match) {
+                    // const notesReviewLink = "https://ent8r.github.io/NotesReview/?" + new URLSearchParams({
+                    //     view: "map",
+                    //     status: "open",
+                    //     area: "view",
+                    //     limit: 30,
+                    //     query: match
+                    // }).toString()
 
-                const a = document.createElement("a")
-                a.id = "note-link-" + Math.random()
-                a.href = ""
-                a.target = "_blank"
-                a.title = "Click for filter notes by this hashtag.\nClick with CTLR or Shift for search this hashtags in osm-note-viewer"
-                a.textContent = match
+                    const a = document.createElement("a")
+                    a.id = "note-link-" + Math.random()
+                    a.href = ""
+                    a.target = "_blank"
+                    a.title = "Click for filter notes by this hashtag.\nClick with CTLR or Shift for search this hashtags in osm-note-viewer"
+                    a.textContent = match
 
-                function fixLink() {
-                    const center = getMapCenter()
-                    const zoom = getZoom()
-                    // prettier-ignore
-                    const notesReviewLink =
+                    function fixLink() {
+                        const center = getMapCenter()
+                        const zoom = getZoom()
+                        // prettier-ignore
+                        const notesReviewLink =
                         "https://antonkhorev.github.io/osm-note-viewer/#" +
                         new URLSearchParams({
                             mode: "search",
@@ -1144,29 +1177,53 @@ function makeHashtagsInNotesClickable() {
                             closed: "0",
                             map: `${zoom}/${center.lat}/${center.lng}`,
                         }).toString()
-                    const link = document.getElementById(a.id)
-                    link.href = notesReviewLink
-                    link.onclick = e => {
-                        if (e.shiftKey || e.ctrlKey || e.metaKey) {
-                            return
+                        const link = document.getElementById(a.id)
+                        link.href = notesReviewLink
+                        link.onclick = e => {
+                            if (e.shiftKey || e.ctrlKey || e.metaKey) {
+                                return
+                            }
+                            e.preventDefault()
+                            if (document.querySelector(".layers-ui").style.display === "none") {
+                                document.querySelector(".control-layers a").click()
+                            }
+                            Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({ block: "center" })
+                            document.querySelector("#filter-notes-by-string").value = match
+                            e.target?.classList?.add("wait-fetch")
+                            updateNotesLayer()
                         }
-                        e.preventDefault()
-                        if (document.querySelector(".layers-ui").style.display === "none") {
-                            document.querySelector(".control-layers a").click()
-                        }
-                        Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({ block: "center" })
-                        document.querySelector("#filter-notes-by-string").value = match
-                        e.target?.classList?.add("wait-fetch")
-                        updateNotesLayer()
+                        console.log("search link in note was fixed")
                     }
-                    console.log("search link in note was fixed")
-                }
 
-                setTimeout(() => {
-                    interceptMapManually().then(fixLink)
+                    setTimeout(() => {
+                        interceptMapManually().then(fixLink)
+                    })
+                    setTimeout(fixLink, 1000)
+                    return a.outerHTML
                 })
-                setTimeout(fixLink, 1000)
-                return a.outerHTML
+                .replaceAll(/(?<=(POI name: ))(.+)/gu, function (match) {
+                    const span = document.createElement("span")
+                    span.classList.add("poi-name-in-note")
+                    span.title = "Click to copy name"
+                    span.setAttribute("data-name", match)
+                    span.textContent = match
+                    return span.outerHTML
+                })
+                .replaceAll(/(?<=(POI types: ))(.+)/gu, function (match) {
+                    injectCSSIntoOSMPage(copyAnimationStyles)
+                    const span = document.createElement("span")
+                    span.classList.add("poi-name-in-note")
+                    span.title = "Click to copy type"
+                    span.setAttribute("data-name", match)
+                    span.textContent = match
+                    return span.outerHTML
+                })
+            document.querySelectorAll(".poi-name-in-note").forEach(elem => {
+                elem.style.cursor = "pointer"
+                elem.addEventListener("click", e => {
+                    const name = e.target.getAttribute("data-name")
+                    navigator.clipboard.writeText(name).then(() => copyAnimation(e, name))
+                })
             })
             node.replaceWith(span)
         })
@@ -4089,14 +4146,21 @@ async function parseBBB(target, url) {
         method: "GET",
         url: planetOrigin + "/replication/changesets/" + url,
     })
-    const parser = new DOMParser()
-    const BBBHTML = parser.parseFromString(response.responseText, "text/html")
+    const BBBHTML = new DOMParser().parseFromString(response.responseText, "text/html")
 
     const a = Array.from(BBBHTML.querySelector("pre").childNodes).slice(2)
     let x = 0
     let found = false
     for (x; x < a.length; x += 2) {
+        const num = parseInt(a[x].textContent)
         let d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim())
+        if (url === "003/") {
+            if (num === 115) {
+                d = new Date("2018-10-1918T01:21:00Z")
+            } else if (num === 116) {
+                d = new Date("2018-10-1918T13:25:00Z")
+            }
+        }
         if (target < d) {
             found = true
             break
@@ -4114,8 +4178,7 @@ async function parseCCC(target, url) {
         method: "GET",
         url: planetOrigin + "/replication/changesets/" + url,
     })
-    const parser = new DOMParser()
-    const CCCHTML = parser.parseFromString(response.responseText, "text/html")
+    const CCCHTML = new DOMParser().parseFromString(response.responseText, "text/html")
 
     let a = Array.from(CCCHTML.querySelector("pre").childNodes).slice(2)
     let x = 0
@@ -4198,8 +4261,13 @@ async function findChangesetInDiff(e) {
 
     let foundedChangeset
     try {
-        const match = location.pathname.match(/\/(node|way|relation)\/(\d+)/)
-        const [, type, objID] = match
+        const match = location.pathname.match(/\/(node|way|relation|changeset)\/(\d+)/)
+        let [, type, objID] = match
+        if (type === "changeset") {
+            const ch = (await getChangeset(objID)).data
+            type = ch.querySelector(`[changeset="${objID}"]`).nodeName
+            objID = ch.querySelector(`[changeset="${objID}"]`).getAttribute("id")
+        }
         if (type === "node") {
             foundedChangeset = await getNodeViaOverpassXML(objID, e.target.datetime)
         } else if (type === "way") {
@@ -4207,7 +4275,7 @@ async function findChangesetInDiff(e) {
         } else if (type === "relation") {
             foundedChangeset = await getRelationViaOverpassXML(objID, e.target.datetime)
         }
-        if (!foundedChangeset.getAttribute("user")) {
+        if (!foundedChangeset?.getAttribute("user")) {
             foundedChangeset = null
             console.log("Loading via overpass failed. Try via diffs")
             throw ""
@@ -4247,35 +4315,25 @@ async function findChangesetInDiff(e) {
         }
     }
 
-    let userInfo = document.createElement("span")
+    const userInfo = document.createElement("a")
+    userInfo.setAttribute("href", "/user/" + foundedChangeset.getAttribute("user"))
     userInfo.style.cursor = "pointer"
-    userInfo.style.background = "#fff181"
-    userInfo.title = "Click for copy username"
-    if (isDarkMode()) {
-        userInfo.style.color = "black"
-    }
     userInfo.textContent = foundedChangeset.getAttribute("user")
 
-    function clickForCopy(e) {
-        e.preventDefault()
-        let id = e.target.innerText
-        navigator.clipboard.writeText(id).then(() => copyAnimation(e, id))
-    }
-
-    userInfo.onclick = clickForCopy
     e.target.before(document.createTextNode("\xA0"))
     e.target.before(userInfo)
     e.target.before(document.createTextNode("\xA0"))
 
-    let uid = document.createElement("span")
-    uid.style.background = "#9cff81"
+    const uid = document.createElement("span")
     uid.style.cursor = "pointer"
     uid.title = "Click for copy user ID"
-    if (isDarkMode()) {
-        uid.style.color = "black"
+    uid.onclick = e => {
+        const text = foundedChangeset.getAttribute("uid")
+        navigator.clipboard.writeText(text).then(() => copyAnimation(e, text))
     }
-    uid.onclick = clickForCopy
     uid.textContent = `${foundedChangeset.getAttribute("uid")}`
+
+    e.target.before(document.createTextNode("ID: "))
     e.target.before(uid)
     e.target.before(document.createTextNode("\xA0"))
 
@@ -4936,6 +4994,46 @@ function makeLinksInTagsClickable() {
                 clickHandler(e)
             })
             document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(viewIn3D)
+        } else if (
+            // pretier-ignore
+            (key === "route" || key === "superroute") &&
+            ["hiking", "foot", "bicycle", "mtb", "horse", "inline_skates", "ski", "piste"].includes(valueCell.textContent)
+        ) {
+            if (document.querySelector(".route-viewer-link")) {
+                return
+            }
+            const m = location.pathname.match(/\/(relation)\/(\d+)/)
+            if (!m) {
+                return
+            }
+            const [, type, id] = m
+            if (!type) {
+                return
+            }
+            const waymarkedtrails_type = {
+                hiking: "hiking",
+                foot: "hiking",
+                bicycle: "cycling",
+                mtb: "mtb",
+                horse: "riding",
+                inline_skates: "skating",
+                ski: "slopes",
+                piste: "slopes",
+            }[valueCell.textContent]
+            const relationViewer = document.createElement("a")
+            relationViewer.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link-icon lucide-external-link" width="16" height="16"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg>'
+            relationViewer.classList.add("route-viewer-link")
+            relationViewer.style.cursor = "pointer"
+            relationViewer.style.paddingLeft = "5px"
+            relationViewer.style.paddingRight = "10px"
+            relationViewer.title = `Open ${waymarkedtrails_type}.waymarkedtrails.org.\nRight click for select viewer`
+
+            const [x, y, z] = getCurrentXYZ()
+            relationViewer.href = waymarkedtrailsLink.makeURL({ x, y, z, type, id, waymarkedtrails_type })
+            relationViewer.target = "_blank"
+            relationViewer.rel = "noreferrer"
+
+            document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(relationViewer)
         } else if (key === "ref:belpost") {
             if (!valueCell.querySelector("a")) {
                 makeRefBelpostValue(valueCell)
@@ -9297,6 +9395,8 @@ function makeContextMenuElem(e) {
     return menu
 }
 
+const copyBtnSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-icon lucide-file"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>'
+
 function addCopyCoordinatesButtons() {
     const m = location.pathname.match(/^\/(node|way)\/(\d+)/)
     if (!m) {
@@ -9333,7 +9433,7 @@ function addCopyCoordinatesButtons() {
         copyButton.classList.add("copy-coords-btn")
         copyButton.textContent = "📄"
         copyButton.title = "Select coordinates format for copy.\nTo copy just click by coordinates"
-        copyButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-icon lucide-file"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>'
+        copyButton.innerHTML = copyBtnSvg
         copyButton.style.height = "0.9rem"
         copyButton.style.position = "relative"
         if (location.pathname.endsWith("/history")) {
@@ -12164,7 +12264,11 @@ async function processQuickLookInSidebar(changesetID) {
                     // todo
                     if (mainTags.includes(i.getAttribute("k"))) {
                         div2.classList.add(i.getAttribute("k"))
-                        div2.classList.add(i.getAttribute("v"))
+                        try {
+                            div2.classList.add(i.getAttribute("v"))
+                        } catch {
+                            console.log(`skip tag with value: ${i.getAttribute("v")}`)
+                        }
                     }
                 })
                 if (node.getAttribute("visible") === "false") {
@@ -12246,10 +12350,13 @@ async function processQuickLookInSidebar(changesetID) {
                 div2.appendChild(versionLink)
 
                 Array.from(way.children).forEach(i => {
-                    // todo
-                    if (["shop", "building", "amenity", "man_made", "highway", "natural"].includes(i.getAttribute("k"))) {
+                    if (mainTags.includes(i.getAttribute("k"))) {
                         div2.classList.add(i.getAttribute("k"))
-                        div2.classList.add(i.getAttribute("v"))
+                        try {
+                            div2.classList.add(i.getAttribute("v"))
+                        } catch {
+                            console.log(`skip tag with value: ${i.getAttribute("v")}`)
+                        }
                     }
                 })
                 if (way.getAttribute("visible") === "false") {
