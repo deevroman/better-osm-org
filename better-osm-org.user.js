@@ -16747,7 +16747,9 @@ function setupNavigationViaHotkeys() {
                 }
             }
         } else if (e.code === "KeyE") {
-            if (!location.pathname.match(/^\/user\/([^/]+)\/?$/)) {
+            if (e.altKey) {
+                document.querySelector(".edit_tags_class").click()
+            } else if (!location.pathname.match(/^\/user\/([^/]+)\/?$/)) {
                 if (e.shiftKey) {
                     if (document.querySelector("#editanchor").getAttribute("data-editor") === "id") {
                         document.querySelectorAll("#edit_tab .dropdown-menu .editlink")[1]?.click()
