@@ -1354,6 +1354,17 @@ async function restorePrevNextChangesetButtons(changeset_id) {
 let changesetObjectsSelectionModeEnabled = false
 
 async function validateOsmServerInJOSM() {
+    /**
+     * @type {{
+     *     application: string
+     *     version: number
+     *     osm_server: "custom"|"default"|undefined
+     *     protocolversion: {
+     *         major: number,
+     *         minor: number
+     *     }
+     * }}
+     */
     const res = await (
         await fetch("http://127.0.0.1:8111/version").catch(() => {
             alert("JOSM is not running")
