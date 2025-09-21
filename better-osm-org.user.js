@@ -16759,7 +16759,12 @@ function setupNavigationViaHotkeys() {
             }
         } else if (e.code === "KeyE") {
             if (e.altKey) {
-                document.querySelector(".edit_tags_class").click()
+                if (location.pathname.startsWith("/changeset/")) {
+                    const activeObjectUrl = document.querySelector(".active-object").querySelector("a").getAttribute("href")
+                    window.open(activeObjectUrl, "_blank")
+                } else {
+                    document.querySelector(".edit_tags_class").click()
+                }
             } else if (!location.pathname.match(/^\/user\/([^/]+)\/?$/)) {
                 if (e.shiftKey) {
                     if (document.querySelector("#editanchor").getAttribute("data-editor") === "id") {
