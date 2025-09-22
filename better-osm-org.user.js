@@ -1233,7 +1233,7 @@ function makeHashtagsInNotesClickable() {
 const filterIconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-funnel-icon lucide-funnel"><path d="M 10 20 a 1 1 0 0 0 0.553 0.895 l 2 1 A 1 1 0 0 0 14 21 v -8 a 2 3 0 0 1 1 -2 L 21.74 4.67 A 1 1 0 0 0 21 3 H 3 a 1 1 0 0 0 -0.742 1.67 l 6.742 6.33 A 2 3 0 0 1 10 13 z"/></svg>'
 
 function makeUsernameInNotesFilterable() {
-    const usernameLink = document.querySelector('#sidebar_content a[href^="/user/"]')
+    const usernameLink = document.querySelector('#sidebar_content .details a[href^="/user/"]')
     if (usernameLink.classList.contains("filterable")) {
         return
     }
