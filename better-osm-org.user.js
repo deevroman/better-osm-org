@@ -2778,6 +2778,11 @@ function addNotesFiltersButtons() {
             getWindow().notesClosedFilter = ""
             getWindow().notesCommentsFilter = ""
         }
+        if (filterByComment.value === "") {
+            filterByComment.style.color = "gray"
+        } else {
+            filterByComment.style.removeProperty("color")
+        }
     }
 
     updateNotesLayer = function () {
@@ -2942,6 +2947,7 @@ function addNotesFiltersButtons() {
         filterByComment.id = "filter-notes-by-closed"
         filterByComment.placeholder = "word in comments"
         filterByComment.style.width = "100%"
+        filterByComment.style.color = "gray"
         filterByComment.setAttribute("list", "comments-filters")
         filterByComment.addEventListener("click", function(e) {
             if (e.isTrusted) {
@@ -2953,7 +2959,7 @@ function addNotesFiltersButtons() {
             updateNotesLayer()
         })
         ;[
-            ["with comments", ""],
+            ["comments filters", ""],
             ["only with comments", "only with comments"],
             ["only with my comments", "only with my comments"],
             ["without comments", "without comments"],
