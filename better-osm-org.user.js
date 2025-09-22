@@ -16640,6 +16640,14 @@ function setupNavigationViaHotkeys() {
             }
             return
         }
+        if (document.activeElement?.nodeName === "TEXTAREA" && e.code === "Enter") {
+            if (document.activeElement.parentElement?.parentElement?.querySelector(".btn-wrapper")) {
+                if (e.metaKey || e.ctrlKey) {
+                    document.activeElement.parentElement.parentElement.querySelector(".btn-wrapper .btn-primary").click()
+                    return
+                }
+            }
+        }
         if (["TEXTAREA", "INPUT", "SELECT"].includes(document.activeElement?.nodeName) && document.activeElement?.getAttribute("type") !== "checkbox") {
             return
         }
