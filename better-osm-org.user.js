@@ -1,7 +1,8 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.1.9.9
+// @version         1.2.0
+// @changelog       v1.2.0: notes word also check comments text, filter by notes comments count
 // @changelog       v1.1.9: badges for corporate cartographers, ability to press the Z key several times for nodes/notes
 // @changelog       v1.1.8: show gpx tracks in current map view, copy coordinates for ways, alt + C for copy map center
 // @changelog       v1.1.8: more filters for notes, alt + click for hide note, initial support for KML/KMZ files
@@ -2804,6 +2805,7 @@ function addNotesFiltersButtons() {
         filterByString.id = "filter-notes-by-string"
         filterByString.style.width = "100%"
         filterByString.placeholder = "word in notes"
+        filterByString.title = "comma-separated substrings\nfilter also works by comments"
         filterByString.addEventListener("keypress", function (event) {
             if (event.key === "Enter") {
                 filterByString.classList?.add("wait-fetch")
@@ -2860,6 +2862,7 @@ function addNotesFiltersButtons() {
     function makeFilterByUsernameWrapper() {
         filterByUsername.type = "input"
         filterByUsername.placeholder = "username"
+        filterByString.title = "comma-separated usernames"
         filterByUsername.id = "filter-notes-by-username"
         filterByUsername.style.width = "100%"
         filterByUsername.addEventListener("keypress", function (event) {
