@@ -2768,6 +2768,7 @@ function addNotesFiltersButtons() {
             getWindow().notesQFilter = filterByString.value
             getWindow().invertQ = inverterForFilterByString.checked
             getWindow().notesClosedFilter = filterByClosed.value
+            getWindow().notesCommentsFilter = filterByComment.value
         } else {
             filters.style.display = "none"
             getWindow().notesDisplayName = ""
@@ -2775,6 +2776,7 @@ function addNotesFiltersButtons() {
             getWindow().notesQFilter = ""
             getWindow().invertQ = ""
             getWindow().notesClosedFilter = ""
+            getWindow().notesCommentsFilter = ""
         }
     }
 
@@ -2824,26 +2826,26 @@ function addNotesFiltersButtons() {
             updateNotesLayer()
         }
 
-        const resetFilterByString = document.createElement("button")
-        resetFilterByString.style.all = "unset"
-        resetFilterByString.textContent = "✖"
-        resetFilterByString.style.position = "absolute"
-        resetFilterByString.style.right = "20px"
-        resetFilterByString.style.cursor = "pointer"
-        resetFilterByString.onclick = () => {
+        const resetFilter = document.createElement("button")
+        resetFilter.style.all = "unset"
+        resetFilter.textContent = "✖"
+        resetFilter.style.position = "absolute"
+        resetFilter.style.right = "20px"
+        resetFilter.style.cursor = "pointer"
+        resetFilter.onclick = () => {
             filterByString.value = ""
             updateNotesLayer()
         }
 
-        const wrapperForFilterByString = document.createElement("div")
-        wrapperForFilterByString.style.display = "flex"
-        wrapperForFilterByString.style.alignItems = "center"
-        wrapperForFilterByString.style.marginBottom = "2px"
-        wrapperForFilterByString.appendChild(inverterForFilterByString)
-        wrapperForFilterByString.appendChild(filterByString)
-        wrapperForFilterByString.appendChild(resetFilterByString)
+        const wrapper = document.createElement("div")
+        wrapper.style.display = "flex"
+        wrapper.style.alignItems = "center"
+        wrapper.style.marginBottom = "2px"
+        wrapper.appendChild(inverterForFilterByString)
+        wrapper.appendChild(filterByString)
+        wrapper.appendChild(resetFilter)
 
-        return wrapperForFilterByString
+        return wrapper
     }
 
     const filterByUsername = document.createElement("input")
@@ -2883,32 +2885,32 @@ function addNotesFiltersButtons() {
             updateNotesLayer()
         }
 
-        const resetFilterByUsername = document.createElement("button")
-        resetFilterByUsername.textContent = "✖"
-        resetFilterByUsername.style.all = "unset"
-        resetFilterByUsername.style.position = "absolute"
-        resetFilterByUsername.style.right = "20px"
-        resetFilterByUsername.style.cursor = "pointer"
-        resetFilterByUsername.onclick = () => {
+        const resetFilter = document.createElement("button")
+        resetFilter.textContent = "✖"
+        resetFilter.style.all = "unset"
+        resetFilter.style.position = "absolute"
+        resetFilter.style.right = "20px"
+        resetFilter.style.cursor = "pointer"
+        resetFilter.onclick = () => {
             filterByUsername.value = ""
             updateNotesLayer()
         }
 
-        const wrapperForFilterByUsername = document.createElement("div")
-        wrapperForFilterByUsername.style.display = "flex"
-        wrapperForFilterByUsername.style.alignItems = "center"
-        wrapperForFilterByUsername.style.marginBottom = "2px"
-        wrapperForFilterByUsername.appendChild(inverterForFilterByUsername)
-        wrapperForFilterByUsername.appendChild(filterByUsername)
-        wrapperForFilterByUsername.appendChild(resetFilterByUsername)
+        const wrapper = document.createElement("div")
+        wrapper.style.display = "flex"
+        wrapper.style.alignItems = "center"
+        wrapper.style.marginBottom = "2px"
+        wrapper.appendChild(inverterForFilterByUsername)
+        wrapper.appendChild(filterByUsername)
+        wrapper.appendChild(resetFilter)
 
-        return wrapperForFilterByUsername
+        return wrapper
     }
 
     const filterByClosed = document.createElement("select")
 
     function makeFilterByClosedWrapper() {
-        filterByClosed.id = "filter-notes-by-closed"
+        filterByClosed.id = "filter-notes-by-comments"
         filterByClosed.style.width = "100%"
         filterByClosed.addEventListener("input", function () {
             filterByClosed.classList?.add("wait-fetch")
@@ -2927,27 +2929,36 @@ function addNotesFiltersButtons() {
             filterByClosed.appendChild(option)
         })
 
-        const wrapperForFilterByClosed = document.createElement("div")
-        wrapperForFilterByClosed.appendChild(filterByClosed)
+        const wrapper = document.createElement("div")
+        wrapper.style.marginBottom = "2px"
+        wrapper.appendChild(filterByClosed)
 
-        return wrapperForFilterByClosed
+        return wrapper
     }
 
     const filterByComment = document.createElement("select")
 
     function makeFilterByCommentsWrapper() {
         filterByComment.id = "filter-notes-by-closed"
+        filterByComment.placeholder = "word in comments"
         filterByComment.style.width = "100%"
+        filterByComment.setAttribute("list", "comments-filters")
+        filterByComment.addEventListener("click", function(e) {
+            if (e.isTrusted) {
+                filterByComment.click()
+            }
+        })
         filterByComment.addEventListener("input", function () {
             filterByComment.classList?.add("wait-fetch")
             updateNotesLayer()
         })
         ;[
-            ["❌ + ✅ at 7 days ago", 7],
-            ["❌ + ✅ at 30 days ago", 30],
-            ["❌ + ✅ at 365 days ago", 365],
-            ["only opened", 0],
-            ["all notes", -1],
+            ["with comments", ""],
+            ["only with comments", "only with comments"],
+            ["only with my comments", "only with my comments"],
+            ["without comments", "without comments"],
+            ["without my comments", "without my comments"],
+            ["commented by other users", "commented by other users"],
         ].forEach(([title, value]) => {
             const option = document.createElement("option")
             option.textContent = title
@@ -2964,7 +2975,7 @@ function addNotesFiltersButtons() {
     filters.appendChild(makeFilterByStringWrapper())
     filters.appendChild(makeFilterByUsernameWrapper())
     filters.appendChild(makeFilterByClosedWrapper())
-    // filters.appendChild(makeFilterByCommentsWrapper())
+    filters.appendChild(makeFilterByCommentsWrapper())
 
     noteLabel.after(filters)
     updateNotesFilters()
@@ -14973,6 +14984,7 @@ if (isOsmServer()) {
     window.notesDisplayName = "";
     window.notesQFilter = "";
     window.notesClosedFilter = "";
+    window.notesCommentsFilter = "";
     window.notesIDsFilter = new Set();
 
     // window.mapDataIDsFilter = new Set();
@@ -14984,6 +14996,7 @@ if (isOsmServer()) {
                 window.notesDisplayName !== ""
                 || window.notesQFilter !== ""
                 || (window.notesClosedFilter !== "" && window.notesClosedFilter !== "7"))
+                || window.notesCommentsFilter !== ""
                 || window.notesIDsFilter.size
             ) {
                 const url = new URL(args[0], location.origin);
@@ -15007,6 +15020,47 @@ if (isOsmServer()) {
                 }
                 const originalJSON = await response.json();
                 originalJSON.features = originalJSON.features?.filter(note => {
+                    if (window.notesCommentsFilter) {
+                        const currentUserID = document.head.getAttribute("data-user")
+                        switch (window.notesCommentsFilter) {
+                            case "only with comments":
+                                if (note.properties.comments.length <= 1) {
+                                    return false
+                                }
+                                break
+                            case "only with my comments":
+                                if (currentUserID) {
+                                    if (!note.properties.comments.slice(1).some(c => c.uid == currentUserID)) {
+                                        return false
+                                    }
+                                }
+                                break
+                            case "without comments":
+                                if (note.properties.comments.length > 1) {
+                                    return false
+                                }
+                                break
+                            case "without my comments":
+                                if (currentUserID) {
+                                    if (note.properties.comments.slice(1)?.some(c => c.uid == currentUserID)) {
+                                        return false
+                                    }
+                                }
+                                break
+                            case "commented by other users":
+                                if (currentUserID) {
+                                    if (note.properties.comments.length <= 1) {
+                                        return false
+                                    }
+                                    if (!note.properties.comments.slice(1).some(c => c.uid == currentUserID)) {
+                                        return false
+                                    }
+                                }
+                                break
+                            default:
+                                console.error("unsupported comments filter", window.notesCommentsFilter)
+                        }
+                    }
                     if (window.notesDisplayName) {
                         if (window.invertDisplayName) {
                             const usernames = window.notesDisplayName.split(",")
@@ -15036,16 +15090,20 @@ if (isOsmServer()) {
                         if (window.invertQ) {
                             const words = window.notesQFilter.split(",").map(i => i.trim()).filter(i => i !== "")
                             for (const word of words) {
-                                if (note.properties.comments?.[0]?.text?.toLowerCase()?.includes(word.toLowerCase())) {
-                                    return false
+                                for (const comment of note.properties.comments ?? []) {
+                                    if (comment.text?.toLowerCase()?.includes(word.toLowerCase())) {
+                                        return false
+                                    }
                                 }
                             }
                         } else {
                             const words = window.notesQFilter.split(",").map(i => i.trim()).filter(i => i !== "")
                             let found = false
                             for (const word of words) {
-                                if (note.properties.comments?.[0]?.text?.toLowerCase()?.includes(word.toLowerCase())) {
-                                    found = true
+                                for (const comment of note.properties.comments ?? []) {
+                                    if (comment.text?.toLowerCase()?.includes(word.toLowerCase())) {
+                                        found = true
+                                    }
                                 }
                             }
                             if (!found && words.length) {
