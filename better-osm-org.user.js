@@ -15007,48 +15007,50 @@ if (isOsmServer()) {
                 }
                 const originalJSON = await response.json();
                 originalJSON.features = originalJSON.features?.filter(note => {
-                    if (window.notesDisplayName && window.invertDisplayName) {
-                        const usernames = window.notesDisplayName.split(",")
-                        for (const username of usernames) {
-                            if (username === "anon" && !note.properties.comments?.[0]?.user) {
-                                return false
-                            } else if (note.properties.comments?.[0]?.user === username) {
-                                return false
+                    if (window.notesDisplayName) {
+                        if (window.invertDisplayName) {
+                            const usernames = window.notesDisplayName.split(",")
+                            for (const username of usernames) {
+                                if (username === "anon" && !note.properties.comments?.[0]?.user) {
+                                    return false
+                                } else if (note.properties.comments?.[0]?.user === username) {
+                                    return false
+                                }
                             }
-                        }
-                    }
-                    if (!window.invertDisplayName && window.notesDisplayName) {
-                        const usernames = window.notesDisplayName.split(",")
-                        let found = false
-                        for (const username of usernames) {
-                            if (username === "anon" && !note.properties.comments?.[0]?.user) {
-                                found = true
-                            } else if (note.properties.comments?.[0]?.user === username) {
-                                found = true
+                        } else {
+                            const usernames = window.notesDisplayName.split(",")
+                            let found = false
+                            for (const username of usernames) {
+                                if (username === "anon" && !note.properties.comments?.[0]?.user) {
+                                    found = true
+                                } else if (note.properties.comments?.[0]?.user === username) {
+                                    found = true
+                                }
                             }
-                        }
-                        if (!found) {
-                            return false
-                        }
-                    }
-                    if (window.notesQFilter && window.invertQ) {
-                        const words = window.notesQFilter.split(",").map(i => i.trim()).filter(i => i !== "")
-                        for (const word of words) {
-                            if (note.properties.comments?.[0]?.text?.toLowerCase()?.includes(word.toLowerCase())) {
+                            if (!found) {
                                 return false
                             }
                         }
                     }
-                    if (!window.invertQ /*&& window.notesQFilter.includes(",")*/) {
-                        const words = window.notesQFilter.split(",").map(i => i.trim()).filter(i => i !== "")
-                        let found = false
-                        for (const word of words) {
-                            if (note.properties.comments?.[0]?.text?.toLowerCase()?.includes(word.toLowerCase())) {
-                                found = true
+                    if (window.notesQFilter) {
+                        if (window.invertQ) {
+                            const words = window.notesQFilter.split(",").map(i => i.trim()).filter(i => i !== "")
+                            for (const word of words) {
+                                if (note.properties.comments?.[0]?.text?.toLowerCase()?.includes(word.toLowerCase())) {
+                                    return false
+                                }
                             }
-                        }
-                        if (!found && words.length) {
-                            return false
+                        } else {
+                            const words = window.notesQFilter.split(",").map(i => i.trim()).filter(i => i !== "")
+                            let found = false
+                            for (const word of words) {
+                                if (note.properties.comments?.[0]?.text?.toLowerCase()?.includes(word.toLowerCase())) {
+                                    found = true
+                                }
+                            }
+                            if (!found && words.length) {
+                                return false
+                            }
                         }
                     }
                     if (window.notesIDsFilter.size) {
