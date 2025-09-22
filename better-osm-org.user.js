@@ -1134,14 +1134,15 @@ function makeHashtagsClickable() {
 function makeHashtagsInNotesClickable() {
     if (!GM_config.get("ImagesAndLinksInTags")) return
 
-    const notesParagraphs = document.querySelectorAll("#sidebar_content h4 ~ div:first-of-type > p")
-    notesParagraphs.forEach(p => {
+    const notesParagraphs = Array.from(document.querySelectorAll("#sidebar_content h4 ~ div:first-of-type > p"))
+    const commentsParagraphs = Array.from(document.querySelectorAll("#sidebar_content article p"))
+    ;[...commentsParagraphs, ...notesParagraphs].forEach(p => {
         p?.childNodes?.forEach(node => {
             if (node.nodeType !== Node.TEXT_NODE) return
             const span = document.createElement("span")
             span.textContent = node.textContent
             span.innerHTML = span.innerHTML
-                .replaceAll(/\B(#[\p{L}\d_-]+)\b/gu, function (match) {
+                .replaceAll(/(^|\B)(#[\p{L}\d_-]+)(\b|$)/gu, function (match) {
                     // const notesReviewLink = "https://ent8r.github.io/NotesReview/?" + new URLSearchParams({
                     //     view: "map",
                     //     status: "open",
