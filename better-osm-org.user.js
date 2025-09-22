@@ -1233,7 +1233,16 @@ function makeHashtagsInNotesClickable() {
 const filterIconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-funnel-icon lucide-funnel"><path d="M 10 20 a 1 1 0 0 0 0.553 0.895 l 2 1 A 1 1 0 0 0 14 21 v -8 a 2 3 0 0 1 1 -2 L 21.74 4.67 A 1 1 0 0 0 21 3 H 3 a 1 1 0 0 0 -0.742 1.67 l 6.742 6.33 A 2 3 0 0 1 10 13 z"/></svg>'
 
 function makeUsernameInNotesFilterable() {
-    const usernameLink = document.querySelector('#sidebar_content .details a[href^="/user/"]')
+    let usernameLink = document.querySelector('#sidebar_content .details a[href^="/user/"]')
+    if (!usernameLink) {
+        usernameLink = document.createElement("a")
+        usernameLink.setAttribute("href", "/user/anon")
+        usernameLink.style.display = "none"
+        document.querySelector(".details time").before(usernameLink)
+        if (usernameLink.previousSibling?.nodeType === Node.TEXT_NODE) {
+            usernameLink.previousSibling.textContent = usernameLink.previousSibling.textContent.trim()
+        }
+    }
     if (usernameLink.classList.contains("filterable")) {
         return
     }
@@ -2780,143 +2789,188 @@ function addNotesFiltersButtons() {
     filters.style.paddingTop = "4px"
 
     const filterByString = document.createElement("input")
-    filterByString.type = "input"
-    filterByString.id = "filter-notes-by-string"
-    filterByString.style.width = "100%"
-    filterByString.placeholder = "word in notes"
-    filterByString.addEventListener("keypress", function (event) {
-        if (event.key === "Enter") {
-            filterByString.classList?.add("wait-fetch")
+    const inverterForFilterByString = document.createElement("span")
+
+    function makeFilterByStringWrapper() {
+        filterByString.type = "input"
+        filterByString.id = "filter-notes-by-string"
+        filterByString.style.width = "100%"
+        filterByString.placeholder = "word in notes"
+        filterByString.addEventListener("keypress", function (event) {
+            if (event.key === "Enter") {
+                filterByString.classList?.add("wait-fetch")
+                updateNotesLayer()
+            }
+        })
+
+        inverterForFilterByString.textContent = "🚫"
+        const hideWithWordTitle = "Click to hide notes with this word"
+        const onlyWithWordTitle = "Click to show notes only with this word"
+        inverterForFilterByString.title = hideWithWordTitle
+        inverterForFilterByString.style.filter = "grayscale(1)"
+        inverterForFilterByString.style.position = "absolute"
+        inverterForFilterByString.style.cursor = "pointer"
+        inverterForFilterByString.style.marginLeft = "-1.5em"
+        inverterForFilterByString.onclick = () => {
+            inverterForFilterByString.checked = !inverterForFilterByString.checked
+            if (inverterForFilterByString.checked) {
+                inverterForFilterByString.style.filter = ""
+                inverterForFilterByString.title = onlyWithWordTitle
+            } else {
+                inverterForFilterByString.style.filter = "grayscale(1)"
+                inverterForFilterByString.title = hideWithWordTitle
+            }
+            inverterForFilterByString.classList?.add("wait-fetch")
             updateNotesLayer()
         }
-    })
 
-    const inverterForFilterByString = document.createElement("span")
-    inverterForFilterByString.textContent = "🚫"
-    const hideWithWordTitle = "Click to hide notes with this word"
-    const onlyWithWordTitle = "Click to show notes only with this word"
-    inverterForFilterByString.title = hideWithWordTitle
-    inverterForFilterByString.style.filter = "grayscale(1)"
-    inverterForFilterByString.style.position = "absolute"
-    inverterForFilterByString.style.cursor = "pointer"
-    inverterForFilterByString.style.marginLeft = "-1.5em"
-    inverterForFilterByString.onclick = () => {
-        inverterForFilterByString.checked = !inverterForFilterByString.checked
-        if (inverterForFilterByString.checked) {
-            inverterForFilterByString.style.filter = ""
-            inverterForFilterByString.title = onlyWithWordTitle
-        } else {
-            inverterForFilterByString.style.filter = "grayscale(1)"
-            inverterForFilterByString.title = hideWithWordTitle
+        const resetFilterByString = document.createElement("button")
+        resetFilterByString.style.all = "unset"
+        resetFilterByString.textContent = "✖"
+        resetFilterByString.style.position = "absolute"
+        resetFilterByString.style.right = "20px"
+        resetFilterByString.style.cursor = "pointer"
+        resetFilterByString.onclick = () => {
+            filterByString.value = ""
+            updateNotesLayer()
         }
-        inverterForFilterByString.classList?.add("wait-fetch")
-        updateNotesLayer()
-    }
 
-    const resetFilterByString = document.createElement("button")
-    resetFilterByString.style.all = "unset"
-    resetFilterByString.textContent = "✖"
-    resetFilterByString.style.position = "absolute"
-    resetFilterByString.style.right = "20px"
-    resetFilterByString.style.cursor = "pointer"
-    resetFilterByString.onclick = () => {
-        filterByString.value = ""
-        updateNotesLayer()
-    }
+        const wrapperForFilterByString = document.createElement("div")
+        wrapperForFilterByString.style.display = "flex"
+        wrapperForFilterByString.style.alignItems = "center"
+        wrapperForFilterByString.style.marginBottom = "2px"
+        wrapperForFilterByString.appendChild(inverterForFilterByString)
+        wrapperForFilterByString.appendChild(filterByString)
+        wrapperForFilterByString.appendChild(resetFilterByString)
 
-    const wrapperForFilterByString = document.createElement("div")
-    wrapperForFilterByString.style.display = "flex"
-    wrapperForFilterByString.style.alignItems = "center"
-    wrapperForFilterByString.style.marginBottom = "2px"
-    wrapperForFilterByString.appendChild(inverterForFilterByString)
-    wrapperForFilterByString.appendChild(filterByString)
-    wrapperForFilterByString.appendChild(resetFilterByString)
+        return wrapperForFilterByString
+    }
 
     const filterByUsername = document.createElement("input")
-    filterByUsername.type = "input"
-    filterByUsername.placeholder = "username"
-    filterByUsername.id = "filter-notes-by-username"
-    filterByUsername.style.width = "100%"
-    filterByUsername.addEventListener("keypress", function (event) {
-        if (event.key === "Enter") {
-            filterByUsername.classList?.add("wait-fetch")
+    const inverterForFilterByUsername = document.createElement("span")
+
+    function makeFilterByUsernameWrapper() {
+        filterByUsername.type = "input"
+        filterByUsername.placeholder = "username"
+        filterByUsername.id = "filter-notes-by-username"
+        filterByUsername.style.width = "100%"
+        filterByUsername.addEventListener("keypress", function (event) {
+            if (event.key === "Enter") {
+                filterByUsername.classList?.add("wait-fetch")
+                updateNotesLayer()
+            }
+        })
+
+        inverterForFilterByUsername.textContent = "🚫"
+        const hideFromUserTitle = "Click to hide notes from this user"
+        const onlyFromUserTitle = "Click to show notes only from this user"
+        inverterForFilterByUsername.title = hideFromUserTitle
+        inverterForFilterByUsername.style.filter = "grayscale(1)"
+        inverterForFilterByUsername.style.position = "absolute"
+        inverterForFilterByUsername.style.cursor = "pointer"
+        inverterForFilterByUsername.style.marginLeft = "-1.5em"
+        inverterForFilterByUsername.checked = false
+        inverterForFilterByUsername.onclick = () => {
+            inverterForFilterByUsername.checked = !inverterForFilterByUsername.checked
+            if (inverterForFilterByUsername.checked) {
+                inverterForFilterByUsername.style.filter = ""
+                inverterForFilterByUsername.title = onlyFromUserTitle
+            } else {
+                inverterForFilterByUsername.style.filter = "grayscale(1)"
+                inverterForFilterByUsername.title = hideFromUserTitle
+            }
+            inverterForFilterByUsername?.classList?.add("wait-fetch")
             updateNotesLayer()
         }
-    })
 
-    const inverterForFilterByUsername = document.createElement("span")
-    inverterForFilterByUsername.textContent = "🚫"
-    const hideFromUserTitle = "Click to hide notes from this user"
-    const onlyFromUserTitle = "Click to show notes only from this user"
-    inverterForFilterByUsername.title = hideFromUserTitle
-    inverterForFilterByUsername.style.filter = "grayscale(1)"
-    inverterForFilterByUsername.style.position = "absolute"
-    inverterForFilterByUsername.style.cursor = "pointer"
-    inverterForFilterByUsername.style.marginLeft = "-1.5em"
-    inverterForFilterByUsername.checked = false
-    inverterForFilterByUsername.onclick = () => {
-        inverterForFilterByUsername.checked = !inverterForFilterByUsername.checked
-        if (inverterForFilterByUsername.checked) {
-            inverterForFilterByUsername.style.filter = ""
-            inverterForFilterByUsername.title = onlyFromUserTitle
-        } else {
-            inverterForFilterByUsername.style.filter = "grayscale(1)"
-            inverterForFilterByUsername.title = hideFromUserTitle
+        const resetFilterByUsername = document.createElement("button")
+        resetFilterByUsername.textContent = "✖"
+        resetFilterByUsername.style.all = "unset"
+        resetFilterByUsername.style.position = "absolute"
+        resetFilterByUsername.style.right = "20px"
+        resetFilterByUsername.style.cursor = "pointer"
+        resetFilterByUsername.onclick = () => {
+            filterByUsername.value = ""
+            updateNotesLayer()
         }
-        inverterForFilterByUsername?.classList?.add("wait-fetch")
-        updateNotesLayer()
-    }
 
-    const resetFilterByUsername = document.createElement("button")
-    resetFilterByUsername.textContent = "✖"
-    resetFilterByUsername.style.all = "unset"
-    resetFilterByUsername.style.position = "absolute"
-    resetFilterByUsername.style.right = "20px"
-    resetFilterByUsername.style.cursor = "pointer"
-    resetFilterByUsername.onclick = () => {
-        filterByUsername.value = ""
-        updateNotesLayer()
-    }
+        const wrapperForFilterByUsername = document.createElement("div")
+        wrapperForFilterByUsername.style.display = "flex"
+        wrapperForFilterByUsername.style.alignItems = "center"
+        wrapperForFilterByUsername.style.marginBottom = "2px"
+        wrapperForFilterByUsername.appendChild(inverterForFilterByUsername)
+        wrapperForFilterByUsername.appendChild(filterByUsername)
+        wrapperForFilterByUsername.appendChild(resetFilterByUsername)
 
-    const wrapperForFilterByUsername = document.createElement("div")
-    wrapperForFilterByUsername.style.display = "flex"
-    wrapperForFilterByUsername.style.alignItems = "center"
-    wrapperForFilterByUsername.style.marginBottom = "2px"
-    wrapperForFilterByUsername.appendChild(inverterForFilterByUsername)
-    wrapperForFilterByUsername.appendChild(filterByUsername)
-    wrapperForFilterByUsername.appendChild(resetFilterByUsername)
+        return wrapperForFilterByUsername
+    }
 
     const filterByClosed = document.createElement("select")
-    filterByClosed.id = "filter-notes-by-closed"
-    filterByClosed.style.width = "100%"
-    filterByClosed.addEventListener("input", function () {
-        filterByClosed.classList?.add("wait-fetch")
-        updateNotesLayer()
-    })
-    ;[
-        ["❌ + ✅ at 7 days ago", 7],
-        ["❌ + ✅ at 30 days ago", 30],
-        ["❌ + ✅ at 365 days ago", 365],
-        ["only opened", 0],
-        ["all notes", -1],
-    ].forEach(([title, value]) => {
-        const option = document.createElement("option")
-        option.textContent = title
-        option.value = value
-        filterByClosed.appendChild(option)
-    })
 
-    const wrapperForFilterByClosed = document.createElement("div")
-    wrapperForFilterByClosed.appendChild(filterByClosed)
+    function makeFilterByClosedWrapper() {
+        filterByClosed.id = "filter-notes-by-closed"
+        filterByClosed.style.width = "100%"
+        filterByClosed.addEventListener("input", function () {
+            filterByClosed.classList?.add("wait-fetch")
+            updateNotesLayer()
+        })
+        ;[
+            ["❌ + ✅ at 7 days ago", 7],
+            ["❌ + ✅ at 30 days ago", 30],
+            ["❌ + ✅ at 365 days ago", 365],
+            ["only opened", 0],
+            ["all notes", -1],
+        ].forEach(([title, value]) => {
+            const option = document.createElement("option")
+            option.textContent = title
+            option.value = value
+            filterByClosed.appendChild(option)
+        })
 
-    filters.appendChild(wrapperForFilterByString)
-    filters.appendChild(wrapperForFilterByUsername)
-    filters.appendChild(wrapperForFilterByClosed)
+        const wrapperForFilterByClosed = document.createElement("div")
+        wrapperForFilterByClosed.appendChild(filterByClosed)
+
+        return wrapperForFilterByClosed
+    }
+
+    const filterByComment = document.createElement("select")
+
+    function makeFilterByCommentsWrapper() {
+        filterByComment.id = "filter-notes-by-closed"
+        filterByComment.style.width = "100%"
+        filterByComment.addEventListener("input", function () {
+            filterByComment.classList?.add("wait-fetch")
+            updateNotesLayer()
+        })
+        ;[
+            ["❌ + ✅ at 7 days ago", 7],
+            ["❌ + ✅ at 30 days ago", 30],
+            ["❌ + ✅ at 365 days ago", 365],
+            ["only opened", 0],
+            ["all notes", -1],
+        ].forEach(([title, value]) => {
+            const option = document.createElement("option")
+            option.textContent = title
+            option.value = value
+            filterByComment.appendChild(option)
+        })
+
+        const wrapperForFilterByClosed = document.createElement("div")
+        wrapperForFilterByClosed.appendChild(filterByComment)
+
+        return wrapperForFilterByClosed
+    }
+
+    filters.appendChild(makeFilterByStringWrapper())
+    filters.appendChild(makeFilterByUsernameWrapper())
+    filters.appendChild(makeFilterByClosedWrapper())
+    // filters.appendChild(makeFilterByCommentsWrapper())
 
     noteLabel.after(filters)
     updateNotesFilters()
-    document.querySelector(".overlay-layers p").style.display = "none"
     addAltClickHandlerForNotes()
+    document.querySelector(".overlay-layers p").style.display = "none"
+    document.querySelector(".layers-ui h2").style.fontSize = "20px"
 }
 
 function setupNotesFiltersButtons() {
@@ -14936,7 +14990,9 @@ if (isOsmServer()) {
                 url.pathname = url.pathname.replace("notes.json", "notes/search.json")
                 url.searchParams.set("limit", "1000")
                 if (window.notesDisplayName && !window.invertDisplayName && !window.notesDisplayName.includes(",")) {
-                    url.searchParams.set("display_name", window.notesDisplayName)
+                    if (window.notesDisplayName !== "anon") {
+                        url.searchParams.set("display_name", window.notesDisplayName)
+                    }
                 }
                 // if (window.notesQFilter && !window.invertQ && !window.notesQFilter.includes(",")) {
                 //     url.searchParams.set("q", window.notesQFilter)
@@ -14946,64 +15002,68 @@ if (isOsmServer()) {
                 }
                 args[0] = url.toString()
                 const response = await originalFetch(...args);
-                if (response.status === 200) {
-                    const originalJSON = await response.json();
-                    originalJSON.features = originalJSON.features?.filter(note => {
-                        if (window.notesDisplayName && window.invertDisplayName) {
-                            const usernames = window.notesDisplayName.split(",")
-                            for (const username of usernames) {
-                                if (note.properties.comments?.[0]?.user === username) {
-                                    return false
-                                }
-                            }
-                        }
-                        if (!window.invertDisplayName && window.notesDisplayName.includes(",")) {
-                            const usernames = window.notesDisplayName.split(",")
-                            let found = false
-                            for (const username of usernames) {
-                                if (note.properties.comments?.[0]?.user === username) {
-                                    found = true
-                                }
-                            }
-                            if (!found) {
-                                return false
-                            }
-                        }
-                        if (window.notesQFilter && window.invertQ) {
-                            const words = window.notesQFilter.split(",").map(i => i.trim()).filter(i => i !== "")
-                            for (const word of words) {
-                                if (note.properties.comments?.[0]?.text?.toLowerCase()?.includes(word.toLowerCase())) {
-                                    return false
-                                }
-                            }
-                        }
-                        if (!window.invertQ /*&& window.notesQFilter.includes(",")*/) {
-                            const words = window.notesQFilter.split(",").map(i => i.trim()).filter(i => i !== "")
-                            let found = false
-                            for (const word of words) {
-                                if (note.properties.comments?.[0]?.text?.toLowerCase()?.includes(word.toLowerCase())) {
-                                    found = true
-                                }
-                            }
-                            if (!found && words.length) {
-                                return false
-                            }
-                        }
-                        if (window.notesIDsFilter.size) {
-                            if (window.notesIDsFilter.has(note.properties.id)) {
-                                return false
-                            }
-                        }
-                        return true
-                    })
-
-                    return new Response(JSON.stringify(originalJSON), {
-                        status: response.status,
-                        statusText: response.statusText,
-                        headers: response.headers
-                    });
+                if (response.status !== 200) {
+                    return response
                 }
-                return response
+                const originalJSON = await response.json();
+                originalJSON.features = originalJSON.features?.filter(note => {
+                    if (window.notesDisplayName && window.invertDisplayName) {
+                        const usernames = window.notesDisplayName.split(",")
+                        for (const username of usernames) {
+                            if (username === "anon" && !note.properties.comments?.[0]?.user) {
+                                return false
+                            } else if (note.properties.comments?.[0]?.user === username) {
+                                return false
+                            }
+                        }
+                    }
+                    if (!window.invertDisplayName) {
+                        const usernames = window.notesDisplayName.split(",")
+                        let found = false
+                        for (const username of usernames) {
+                            if (username === "anon" && !note.properties.comments?.[0]?.user) {
+                                found = true
+                            } else if (note.properties.comments?.[0]?.user === username) {
+                                found = true
+                            }
+                        }
+                        if (!found) {
+                            return false
+                        }
+                    }
+                    if (window.notesQFilter && window.invertQ) {
+                        const words = window.notesQFilter.split(",").map(i => i.trim()).filter(i => i !== "")
+                        for (const word of words) {
+                            if (note.properties.comments?.[0]?.text?.toLowerCase()?.includes(word.toLowerCase())) {
+                                return false
+                            }
+                        }
+                    }
+                    if (!window.invertQ /*&& window.notesQFilter.includes(",")*/) {
+                        const words = window.notesQFilter.split(",").map(i => i.trim()).filter(i => i !== "")
+                        let found = false
+                        for (const word of words) {
+                            if (note.properties.comments?.[0]?.text?.toLowerCase()?.includes(word.toLowerCase())) {
+                                found = true
+                            }
+                        }
+                        if (!found && words.length) {
+                            return false
+                        }
+                    }
+                    if (window.notesIDsFilter.size) {
+                        if (window.notesIDsFilter.has(note.properties.id)) {
+                            return false
+                        }
+                    }
+                    return true
+                })
+
+                return new Response(JSON.stringify(originalJSON), {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: response.headers
+                });
             } else if (args[0]?.startsWith?.("/history?bbox") && (needClearLoadMoreRequest || needPatchLoadMoreRequest)) {
                 const response = await originalFetch(...args);
                 const originalText = await response.text();
