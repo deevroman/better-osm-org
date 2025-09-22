@@ -4899,7 +4899,7 @@ function injectContextMenuCSS() {
 }
 
 // example https://osm.org/node/6506618057
-function makeLinksInTagsClickable() {
+function makeLinksInVersionTagsClickable() {
     document.querySelectorAll(".browse-tag-list tr").forEach(row => {
         const key = row.querySelector("th")?.textContent?.toLowerCase()
         if (!key) return
@@ -5154,7 +5154,7 @@ function addHistoryLink() {
     if (GM_config.get("ResizableSidebar")) {
         document.querySelector("#sidebar").style.resize = "horizontal"
     }
-    makeLinksInTagsClickable()
+    makeLinksInVersionTagsClickable()
     makeHashtagsClickable()
     document.querySelectorAll("#element_versions_list > div p").forEach(shortOsmOrgLinks)
     injectCSSIntoOSMPage(`
@@ -8717,7 +8717,7 @@ function addDiffInHistory(reason = "url_change") {
     } else {
         makeElementHistoryCompact()
     }
-    makeLinksInTagsClickable()
+    makeLinksInVersionTagsClickable()
     makeHashtagsClickable()
     makeTimesSwitchable()
     document.querySelectorAll("#element_versions_list > div p").forEach(shortOsmOrgLinks)
@@ -9651,7 +9651,7 @@ function makeVersionPageBetter() {
     }
     makeHeaderPartsClickable()
     addHistoryLink()
-    makeLinksInTagsClickable()
+    makeLinksInVersionTagsClickable()
     makeHashtagsClickable()
     makeTimesSwitchable()
     document.querySelectorAll(`${browseSectionSelector} p`).forEach(shortOsmOrgLinks)
@@ -10178,7 +10178,7 @@ function makeTagRow(key, value, addTd = false) {
     return tagRow
 }
 
-function makeLinksInRowClickable(row) {
+function makeLinksInChangesetObjectRowClickable(row) {
     if (row.querySelector("td").textContent.match(/^https?:\/\//)) {
         const a = document.createElement("a")
         a.textContent = row.querySelector("td").textContent
@@ -10384,7 +10384,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                     row.classList.add("restored-tag")
                     row.title = row.title + "The tag is now restored"
                 }
-                makeLinksInRowClickable(row)
+                makeLinksInChangesetObjectRowClickable(row)
                 detectEditsWars(prevVersion, targetVersion, objHistory, row, key)
             }
         }
@@ -10407,7 +10407,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                     row.title = `The tag is now deleted`
                 }
             }
-            makeLinksInRowClickable(row)
+            makeLinksInChangesetObjectRowClickable(row)
             tbody.appendChild(row)
             detectEditsWars(prevVersion, targetVersion, objHistory, row, key)
         } else if (prevVersion.tags[key] !== value) {
@@ -10491,7 +10491,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             if (!allTagsOfObjectsVisible) {
                 row.setAttribute("hidden", "true")
             }
-            makeLinksInRowClickable(row)
+            makeLinksInChangesetObjectRowClickable(row)
             tbody.appendChild(row)
         }
     }
@@ -10634,7 +10634,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
 
         Object.entries(targetVersion.tags ?? {}).forEach(([k, v]) => {
             const row = makeTagRow(k, v)
-            makeLinksInRowClickable(row)
+            makeLinksInChangesetObjectRowClickable(row)
             tbodyForTags.appendChild(row)
         })
 
@@ -10940,7 +10940,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
 
         Object.entries(targetVersion.tags ?? {}).forEach(([k, v]) => {
             const row = makeTagRow(k, v)
-            makeLinksInRowClickable(row)
+            makeLinksInChangesetObjectRowClickable(row)
             tbodyForTags.appendChild(row)
         })
 
