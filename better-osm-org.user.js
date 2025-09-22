@@ -15017,7 +15017,7 @@ if (isOsmServer()) {
                             }
                         }
                     }
-                    if (!window.invertDisplayName) {
+                    if (!window.invertDisplayName && window.notesDisplayName) {
                         const usernames = window.notesDisplayName.split(",")
                         let found = false
                         for (const username of usernames) {
