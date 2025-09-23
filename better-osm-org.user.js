@@ -1861,7 +1861,6 @@ function addRevertButton() {
             .replaceAll(/((changesets )((\d+)([,. ])(\s|$|<\/))+|changeset \d+)/gm, match => {
                 return match.replaceAll(/(\d+)/g, `<a href="/changeset/$1" class="changeset_link_in_comment">$1</a>`)
             })
-            .replaceAll(/>https:\/\/(www\.)?openstreetmap.org\//g, ">osm.org/")
     })
     makeHeaderPartsClickable()
 }
