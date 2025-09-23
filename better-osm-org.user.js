@@ -1856,11 +1856,16 @@ function addRevertButton() {
         })
     })
     // fixme dont work loggined
-    document.querySelectorAll("#sidebar_content h2 ~ div > div:has([name=subscribe],[name=unsubscribe]) ~ article div").forEach(c => {
-        c.innerHTML = c.innerHTML
-            .replaceAll(/((changesets )((\d+)([,. ])(\s|$|<\/))+|changeset \d+)/gm, match => {
+    document.querySelectorAll("#sidebar_content h2 ~ div article p").forEach(c => {
+        c.childNodes?.forEach(node => {
+            if (node.nodeType !== Node.TEXT_NODE) return
+            const span = document.createElement("span")
+            span.textContent = node.textContent
+            span.innerHTML = span.innerHTML.replaceAll(/((changesets )((\d+)([,. ])(\s|$|<\/))+|changeset \d+)/gm, match => {
                 return match.replaceAll(/(\d+)/g, `<a href="/changeset/$1" class="changeset_link_in_comment">$1</a>`)
             })
+            node.replaceWith(span)
+        })
     })
     makeHeaderPartsClickable()
 }
