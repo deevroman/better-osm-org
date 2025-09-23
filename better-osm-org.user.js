@@ -2966,7 +2966,7 @@ function addNotesFiltersButtons() {
         filterByComment.style.width = "100%"
         filterByComment.style.color = "gray"
         filterByComment.setAttribute("list", "comments-filters")
-        filterByComment.addEventListener("click", function(e) {
+        filterByComment.addEventListener("click", function (e) {
             if (e.isTrusted) {
                 filterByComment.click()
             }
