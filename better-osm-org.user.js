@@ -1410,6 +1410,355 @@ function makeUsernameTitle(userInfo) {
     return title
 }
 
+function addOsmchaButtons(changeset_id, reactionsContainer) {
+    // https://osmcha.org/api/v1/tags/
+    const osmchaTags = [
+        {
+            id: 1,
+            name: "Intentional",
+            description: "to capture the intent of the user. This is contextual information subjective to the edits and users.",
+            is_visible: true,
+            for_changeset: true,
+            for_feature: true,
+        },
+        {
+            id: 2,
+            name: "Unintentional",
+            description: "to capture the intent of the user. This is contextual information subjective to the edits and users.",
+            is_visible: true,
+            for_changeset: true,
+            for_feature: true,
+        },
+        {
+            id: 6,
+            name: "Severity: Low",
+            description: "to estimate how bad do these edits on a changeset affect OpenStreetMap data",
+            is_visible: true,
+            for_changeset: true,
+            for_feature: true,
+        },
+        {
+            id: 7,
+            name: "Severity: High",
+            description: "to estimate how bad do these edits on a changeset affect OpenStreetMap data",
+            is_visible: true,
+            for_changeset: true,
+            for_feature: true,
+        },
+        {
+            id: 8,
+            name: "Severity: Critical",
+            description: "to estimate how bad do these edits on a changeset affect OpenStreetMap data",
+            is_visible: true,
+            for_changeset: true,
+            for_feature: true,
+        },
+        {
+            id: 9,
+            name: "Resolved",
+            description: "Resolved",
+            is_visible: true,
+            for_changeset: true,
+            for_feature: true,
+        },
+        {
+            id: 10,
+            name: "Unresolved",
+            description: "Unresolved: To input action taken by the you (reviewer) on a changeset. It is unresolved when the you (reviewer) have commented on the changeset to inform the mapper for corrections or no action has been taken by the you (reviewer) to correct the map data.",
+            is_visible: true,
+            for_changeset: true,
+            for_feature: true,
+        },
+        {
+            id: 11,
+            name: "DWG",
+            description: "When a changeset needs to be reported to the Data Working Group", // changed
+            is_visible: true,
+            for_changeset: true,
+            for_feature: true,
+        },
+    ]
+
+    const likeTitle = "OSMCha review like\n\nRight click to add review tags"
+    const dislikeTitle = "OSMCha review dislike\n\nRight click to add review tags"
+
+    async function uncheck(changeset_id) {
+        return await GM.xmlHttpRequest({
+            url: `https://osmcha.org/api/v1/changesets/${changeset_id}/uncheck/`,
+            headers: {
+                Authorization: "Token " + (await GM.getValue("OSMCHA_TOKEN")),
+            },
+            method: "PUT",
+        })
+    }
+
+    const likeImgRes = GM_getResourceURL("OSMCHA_LIKE", false)
+    const dislikeImgRes = GM_getResourceURL("OSMCHA_DISLIKE", false)
+
+    const likeBtn = document.createElement("span")
+    likeBtn.title = likeTitle
+    const likeImg = document.createElement("img")
+    likeImg.title = likeTitle
+    likeImg.src = likeImgRes
+    likeImg.style.height = "1.1em"
+    likeImg.style.cursor = "pointer"
+    likeImg.style.filter = "grayscale(1)"
+    likeImg.style.marginTop = "-8px"
+    likeBtn.onclick = async e => {
+        const osmchaToken = await GM.getValue("OSMCHA_TOKEN")
+        if (!osmchaToken) {
+            alert("Please, login into OSMCha")
+            window.open("https://osmcha.org")
+            return
+        }
+        if (e.target.hasAttribute("active")) {
+            await uncheck(changeset_id)
+            await updateReactions()
+            return
+        }
+        if (document.querySelector(".check_user")) {
+            await uncheck(changeset_id)
+            await updateReactions()
+        }
+        await GM.xmlHttpRequest({
+            url: `https://osmcha.org/api/v1/changesets/${changeset_id}/set-good/`,
+            headers: {
+                Authorization: "Token " + (await GM.getValue("OSMCHA_TOKEN")),
+            },
+            method: "PUT",
+        })
+        await updateReactions()
+    }
+    likeBtn.appendChild(likeImg)
+
+    const dislikeBtn = document.createElement("span")
+    dislikeBtn.title = dislikeTitle
+    const dislikeImg = document.createElement("img")
+    dislikeImg.title = dislikeTitle
+    dislikeImg.src = likeImgRes // dirty hack for different gray style colors
+    dislikeImg.style.height = "1.1em"
+    dislikeImg.style.cursor = "pointer"
+    dislikeImg.style.filter = "grayscale(1)"
+    dislikeImg.style.transform = "rotate(180deg)"
+    dislikeImg.style.marginTop = "3px"
+    dislikeBtn.appendChild(dislikeImg)
+    dislikeBtn.onclick = async e => {
+        const osmchaToken = await GM.getValue("OSMCHA_TOKEN")
+        if (!osmchaToken) {
+            alert("Please, login into OSMCha")
+            window.open("https://osmcha.org")
+            return
+        }
+        if (e.target.hasAttribute("active")) {
+            await uncheck(changeset_id)
+            await updateReactions()
+            return
+        }
+        if (document.querySelector(".check_user")) {
+            await uncheck(changeset_id)
+            await updateReactions()
+        }
+        await GM.xmlHttpRequest({
+            url: `https://osmcha.org/api/v1/changesets/${changeset_id}/set-harmful/`,
+            headers: {
+                Authorization: "Token " + (await GM.getValue("OSMCHA_TOKEN")),
+            },
+            method: "PUT",
+        })
+        await updateReactions()
+    }
+
+    let changesetProps = {}
+
+    async function updateReactions() {
+        const osmchaToken = await GM.getValue("OSMCHA_TOKEN")
+        if (!osmchaToken) {
+            // todo
+            throw "Open Osmcha for get access to reactions"
+        }
+        const res = await GM.xmlHttpRequest({
+            url: "https://osmcha.org/api/v1/changesets/" + changeset_id + "/",
+            method: "GET",
+            headers: {
+                Authorization: "Token " + osmchaToken,
+            },
+            responseType: "json",
+        })
+        if (res.status === 404) {
+            likeImg.title = "Changeset not found in OSMCha database.\nEither OSMCha did not have time to process this changeset, or it is too old."
+            dislikeImg.title = "Changeset not found in OSMCha database.\nEither OSMCha did not have time to process this changeset, or it is too old."
+            console.warn("Changeset not found in OSMCha database") // todo show alert/title
+            return
+        }
+        if (res.status !== 200) {
+            console.trace(res)
+        }
+        const json = res.response
+        changesetProps = json["properties"]
+        if (json["properties"]["check_user"]) {
+            document.querySelector(".check_user")?.remove()
+            likeImg.style.filter = "grayscale(1)"
+            dislikeImg.style.filter = "grayscale(1)"
+
+            const username = document.createElement("span")
+            username.classList.add("check_user")
+            username.textContent = json["properties"]["check_user"]
+            if (json["properties"]["harmful"] === true) {
+                dislikeImg.style.filter = ""
+                dislikeImg.style.transform = ""
+                dislikeImg.src = dislikeImgRes
+                dislikeImg.setAttribute("active", "true")
+                dislikeImg.title = dislikeTitle
+                username.style.color = "red"
+                dislikeBtn.after(username)
+            } else {
+                likeImg.style.filter = ""
+                likeImg.setAttribute("active", "true")
+                likeImg.title = likeTitle
+                username.style.color = "green"
+                likeBtn.after(username)
+            }
+        } else {
+            likeImg.style.filter = "grayscale(1)"
+            dislikeImg.style.filter = "grayscale(1)"
+            dislikeImg.style.transform = "rotate(180deg)"
+            dislikeImg.src = likeImgRes
+            dislikeImg.title = dislikeTitle
+            likeImg.title = likeTitle
+            likeImg.removeAttribute("active")
+            dislikeImg.removeAttribute("active")
+            document.querySelector(".check_user")?.remove()
+        }
+        document.querySelector(".review-tags")?.remove()
+        if (changesetProps["tags"].length) {
+            const spanWrapper = document.createElement("span")
+            spanWrapper.classList.add("review-tags")
+            spanWrapper.title = "OSMCha review tag. Right click to change\n"
+            spanWrapper.style.marginBottom = "3px"
+            spanWrapper.style.position = "relative"
+            spanWrapper.innerHTML =
+                '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tag-icon lucide-tag"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg>'
+            const svg = spanWrapper.querySelector("svg")
+            svg.style.position = "absolute"
+            svg.style.top = json["properties"]["check_user"] ? "20px" : "24px"
+            svg.style.left = "-10px"
+            svg.style.color = "gray"
+
+            const span = document.createElement("span")
+            span.style.top = json["properties"]["check_user"] ? "20px" : "24px"
+            span.style.left = "6px"
+            span.style.position = "absolute"
+            span.style.fontSize = "smaller"
+            span.style.color = "gray"
+            span.textContent = " "
+            changesetProps['tags'].forEach(({ id, name }) => {
+                span.textContent += name + " "
+                const desc = osmchaTags.find(i => i.id === id)?.description
+                if (desc) {
+                    spanWrapper.title += `\n${name}: ${desc}`
+                }
+            })
+            spanWrapper.appendChild(span)
+            dislikeBtn.after(spanWrapper)
+        }
+    }
+
+    setTimeout(updateReactions, 0)
+
+    reactionsContainer.appendChild(likeBtn)
+    reactionsContainer.appendChild(document.createTextNode("\xA0"))
+    reactionsContainer.appendChild(dislikeBtn)
+    reactionsContainer.appendChild(document.createTextNode("\xA0"))
+
+    async function contextMenuHandler(e) {
+        e.preventDefault()
+        const currentUser = decodeURI(document.querySelector('.user-menu [href^="/user/"]').getAttribute("href").match(/\/user\/(.*)$/)[1])
+        if (changesetProps['check_user'] !== currentUser) {
+            return
+        }
+        injectContextMenuCSS()
+
+        const menu = makeContextMenuElem(e)
+        osmchaTags.forEach(i => {
+            const listItem = document.createElement("div")
+
+            const ch = document.createElement("input")
+            ch.id = i.name
+            ch.type = "checkbox"
+            ch.style.margin = "4px"
+            ch.classList.add("review-checkbox")
+            ch.setAttribute("name", "review-tag")
+            const label = document.createElement("label")
+            label.setAttribute("for", i.name)
+            label.textContent = i.name
+            label.classList.add("review-label")
+            label.style.padding = "4px"
+            label.style.cursor = "pointer"
+            if (changesetProps['tags'].some(t => t.name === i.name)) {
+                ch.checked = true
+            }
+
+            ch.onchange = async () => {
+                const osmchaToken = await GM.getValue("OSMCHA_TOKEN")
+                if (ch.checked) {
+                    const res = await GM.xmlHttpRequest({
+                        url: "https://osmcha.org/api/v1/changesets/" + changeset_id + "/tags/" + i.id + "/",
+                        method: "POST",
+                        headers: {
+                            Authorization: "Token " + osmchaToken,
+                        },
+                        responseType: "json",
+                    })
+                    if (res.status !== 200) {
+                        console.trace(res)
+                        ch.checked = "false"
+                    } else {
+                        console.log(`${i.name} applyied`)
+                    }
+                } else {
+                    const res = await GM.xmlHttpRequest({
+                        url: "https://osmcha.org/api/v1/changesets/" + changeset_id + "/tags/" + i.id + "/",
+                        method: "DELETE",
+                        headers: {
+                            Authorization: "Token " + osmchaToken,
+                        },
+                        responseType: "json",
+                    })
+                    if (res.status !== 200) {
+                        console.trace(res)
+                        ch.checked = "true"
+                    } else {
+                        console.log(`${i.name} removed`)
+                    }
+                }
+                await updateReactions()
+            }
+            listItem.appendChild(ch)
+            listItem.appendChild(label)
+            document.addEventListener(
+                "click",
+                function fn(e) {
+                    if (
+                        // prettier-ignore
+                        e.target.classList.contains("review-label")
+                        || e.target.classList.contains("review-checkbox")
+                        || e.target.classList.contains("betterOsmContextMenu")
+                    ) {
+                        document.addEventListener("click", fn, { once: true })
+                        return
+                    }
+                    menu.remove()
+                },
+                { once: true },
+            )
+            menu.appendChild(listItem)
+        })
+        document.body.appendChild(menu)
+    }
+
+    reactionsContainer.addEventListener("contextmenu", contextMenuHandler)
+}
+
 function addRevertButton() {
     if (!location.pathname.startsWith("/changeset")) return
     if (document.querySelector("#revert_button_class")) return true
@@ -1695,159 +2044,9 @@ function addRevertButton() {
     }
     if (primaryButtons && osm_server.url === prod_server.url) {
         const changeset_id = sidebar.innerHTML.match(/(\d+)/)[0]
-
-        async function uncheck(changeset_id) {
-            return await GM.xmlHttpRequest({
-                url: `https://osmcha.org/api/v1/changesets/${changeset_id}/uncheck/`,
-                headers: {
-                    Authorization: "Token " + (await GM.getValue("OSMCHA_TOKEN")),
-                },
-                method: "PUT",
-            })
-        }
-
-        const likeImgRes = GM_getResourceURL("OSMCHA_LIKE", false)
-        const dislikeImgRes = GM_getResourceURL("OSMCHA_DISLIKE", false)
-
-        const likeBtn = document.createElement("span")
-        likeBtn.title = "OSMCha review like"
-        const likeImg = document.createElement("img")
-        likeImg.title = "OSMCha review like"
-        likeImg.src = likeImgRes
-        likeImg.style.height = "1.1em"
-        likeImg.style.cursor = "pointer"
-        likeImg.style.filter = "grayscale(1)"
-        likeImg.style.marginTop = "-8px"
-        likeBtn.onclick = async e => {
-            const osmchaToken = await GM.getValue("OSMCHA_TOKEN")
-            if (!osmchaToken) {
-                alert("Please, login into OSMCha")
-                window.open("https://osmcha.org")
-                return
-            }
-            if (e.target.hasAttribute("active")) {
-                await uncheck(changeset_id)
-                await updateReactions()
-                return
-            }
-            if (document.querySelector(".check_user")) {
-                await uncheck(changeset_id)
-                await updateReactions()
-            }
-            await GM.xmlHttpRequest({
-                url: `https://osmcha.org/api/v1/changesets/${changeset_id}/set-good/`,
-                headers: {
-                    Authorization: "Token " + (await GM.getValue("OSMCHA_TOKEN")),
-                },
-                method: "PUT",
-            })
-            await updateReactions()
-        }
-        likeBtn.appendChild(likeImg)
-
-        const dislikeBtn = document.createElement("span")
-        dislikeBtn.title = "OSMCha review dislike"
-        const dislikeImg = document.createElement("img")
-        dislikeImg.title = "OSMCha review dislike"
-        dislikeImg.src = likeImgRes // dirty hack for different gray style colors
-        dislikeImg.style.height = "1.1em"
-        dislikeImg.style.cursor = "pointer"
-        dislikeImg.style.filter = "grayscale(1)"
-        dislikeImg.style.transform = "rotate(180deg)"
-        dislikeImg.style.marginTop = "3px"
-        dislikeBtn.appendChild(dislikeImg)
-        dislikeBtn.onclick = async e => {
-            const osmchaToken = await GM.getValue("OSMCHA_TOKEN")
-            if (!osmchaToken) {
-                alert("Please, login into OSMCha")
-                window.open("https://osmcha.org")
-                return
-            }
-            if (e.target.hasAttribute("active")) {
-                await uncheck(changeset_id)
-                await updateReactions()
-                return
-            }
-            if (document.querySelector(".check_user")) {
-                await uncheck(changeset_id)
-                await updateReactions()
-            }
-            await GM.xmlHttpRequest({
-                url: `https://osmcha.org/api/v1/changesets/${changeset_id}/set-harmful/`,
-                headers: {
-                    Authorization: "Token " + (await GM.getValue("OSMCHA_TOKEN")),
-                },
-                method: "PUT",
-            })
-            await updateReactions()
-        }
-
-        async function updateReactions() {
-            const osmchaToken = await GM.getValue("OSMCHA_TOKEN")
-            if (!osmchaToken) {
-                // todo
-                throw "Open Osmcha for get access to reactions"
-            }
-            const res = await GM.xmlHttpRequest({
-                url: "https://osmcha.org/api/v1/changesets/" + changeset_id + "/",
-                method: "GET",
-                headers: {
-                    Authorization: "Token " + osmchaToken,
-                },
-                responseType: "json",
-            })
-            if (res.status === 404) {
-                likeImg.title = "Changeset not found in OSMCha database.\nEither OSMCha did not have time to process this changeset, or it is too old."
-                dislikeImg.title = "Changeset not found in OSMCha database.\nEither OSMCha did not have time to process this changeset, or it is too old."
-                console.warn("Changeset not found in OSMCha database") // todo show alert/title
-                return
-            }
-            if (res.status !== 200) {
-                console.trace(res)
-            }
-            const json = res.response
-            if (json["properties"]["check_user"]) {
-                document.querySelector(".check_user")?.remove()
-                likeImg.style.filter = "grayscale(1)"
-                dislikeImg.style.filter = "grayscale(1)"
-
-                const username = document.createElement("span")
-                username.classList.add("check_user")
-                username.textContent = json["properties"]["check_user"]
-                if (json["properties"]["harmful"] === true) {
-                    dislikeImg.style.filter = ""
-                    dislikeImg.style.transform = ""
-                    dislikeImg.src = dislikeImgRes
-                    dislikeImg.setAttribute("active", "true")
-                    dislikeImg.title = "OSMCha review dislike"
-                    username.style.color = "red"
-                    dislikeBtn.after(username)
-                } else {
-                    likeImg.style.filter = ""
-                    likeImg.setAttribute("active", "true")
-                    likeImg.title = "OSMCha review like"
-                    username.style.color = "green"
-                    likeBtn.after(username)
-                }
-            } else {
-                likeImg.style.filter = "grayscale(1)"
-                dislikeImg.style.filter = "grayscale(1)"
-                dislikeImg.style.transform = "rotate(180deg)"
-                dislikeImg.src = likeImgRes
-                dislikeImg.title = "OSMCha review dislike"
-                likeImg.title = "OSMCha review like"
-                likeImg.removeAttribute("active")
-                dislikeImg.removeAttribute("active")
-                document.querySelector(".check_user")?.remove()
-            }
-        }
-
-        setTimeout(updateReactions, 0)
-
-        primaryButtons.before(likeBtn)
-        primaryButtons.before(document.createTextNode("\xA0"))
-        primaryButtons.before(dislikeBtn)
-        primaryButtons.before(document.createTextNode("\xA0"))
+        const reactionsContainer = document.createElement("span")
+        primaryButtons.before(reactionsContainer)
+        addOsmchaButtons(changeset_id, reactionsContainer)
     }
     document.querySelectorAll('#sidebar_content article[id^=c] small > a[href^="/user/"]').forEach(elem => {
         getCachedUserInfo(elem.textContent).then(info => {
@@ -1855,7 +2054,6 @@ function addRevertButton() {
             elem.title = makeUsernameTitle(info)
         })
     })
-    // fixme dont work loggined
     document.querySelectorAll("#sidebar_content h2 ~ div article p").forEach(c => {
         c.childNodes?.forEach(node => {
             if (node.nodeType !== Node.TEXT_NODE) return
@@ -10130,7 +10328,11 @@ async function initCorporateMappersList() {
         return
     }
     console.log("loading corporate mappers")
-    await loadAndMakeCorporateMappersList()
+    try {
+        await loadAndMakeCorporateMappersList()
+    } catch (e) {
+        console.log("loading corporate mappers list failed", e)
+    }
 }
 
 const nodeFallback = "https://raw.githubusercontent.com/openstreetmap/openstreetmap-website/master/app/assets/images/browse/node.svg"
