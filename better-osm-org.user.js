@@ -427,6 +427,15 @@ const waymarkedtrailsLink = {
         return `${this.url.replace("{type}", waymarkedtrails_type)}#route?id=${id}&map=${z}/${x}/${y}`
     },
 }
+//
+// /** @type {externalURL} */
+// const relatifyLink = {
+//     name: "OSM Relatify",
+//     url: "https://relatify.monicz.dev/",
+//     makeURL: function ({ id }) {
+//         return `${this.url}?load=1&relation=${id}`
+//     },
+// }
 
 /** @type {unsafeWindow & windowOSM} **/
 const boWindowObject = typeof window.wrappedJSObject !== "undefined" ? window.wrappedJSObject : unsafeWindow
