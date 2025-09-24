@@ -1241,7 +1241,12 @@ function makeHashtagsInNotesClickable() {
     })
 }
 
-const filterIconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-funnel-icon lucide-funnel"><path d="M 10 20 a 1 1 0 0 0 0.553 0.895 l 2 1 A 1 1 0 0 0 14 21 v -8 a 2 3 0 0 1 1 -2 L 21.74 4.67 A 1 1 0 0 0 21 3 H 3 a 1 1 0 0 0 -0.742 1.67 l 6.742 6.33 A 2 3 0 0 1 10 13 z"/></svg>'
+// prettier-ignore
+const filterIconSvg =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" ' +
+    'stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-funnel-icon lucide-funnel">' +
+    '<path d="M 10 20 a 1 1 0 0 0 0.553 0.895 l 2 1 A 1 1 0 0 0 14 21 v -8 a 2 3 0 0 1 1 -2 L 21.74 4.67 A 1 1 0 0 0 21 3 H 3 a 1 1 0 0 0 -0.742 1.67 l 6.742 6.33 A 2 3 0 0 1 10 13 z"/>' +
+    '</svg>'
 
 function makeUsernameInNotesFilterable() {
     let usernameLink = document.querySelector('#sidebar_content .details a[href^="/user/"]')
@@ -1410,6 +1415,14 @@ function makeUsernameTitle(userInfo) {
     return title
 }
 
+// prettier-ignore
+const tagSvg =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" ' +
+    'stroke="currentColor" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tag-icon lucide-tag">' +
+    '<path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/>' +
+    '<circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/>' +
+    '</svg>'
+
 function addOsmchaButtons(changeset_id, reactionsContainer) {
     // https://osmcha.org/api/v1/tags/
     const osmchaTags = [
@@ -1417,65 +1430,42 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             id: 1,
             name: "Intentional",
             description: "to capture the intent of the user. This is contextual information subjective to the edits and users.",
-            is_visible: true,
-            for_changeset: true,
-            for_feature: true,
         },
         {
             id: 2,
             name: "Unintentional",
             description: "to capture the intent of the user. This is contextual information subjective to the edits and users.",
-            is_visible: true,
-            for_changeset: true,
-            for_feature: true,
         },
         {
             id: 6,
             name: "Severity: Low",
             description: "to estimate how bad do these edits on a changeset affect OpenStreetMap data",
-            is_visible: true,
-            for_changeset: true,
-            for_feature: true,
         },
         {
             id: 7,
             name: "Severity: High",
             description: "to estimate how bad do these edits on a changeset affect OpenStreetMap data",
-            is_visible: true,
-            for_changeset: true,
-            for_feature: true,
         },
         {
             id: 8,
             name: "Severity: Critical",
             description: "to estimate how bad do these edits on a changeset affect OpenStreetMap data",
-            is_visible: true,
-            for_changeset: true,
-            for_feature: true,
         },
         {
             id: 9,
             name: "Resolved",
             description: "Resolved",
-            is_visible: true,
-            for_changeset: true,
-            for_feature: true,
         },
         {
             id: 10,
             name: "Unresolved",
-            description: "Unresolved: To input action taken by the you (reviewer) on a changeset. It is unresolved when the you (reviewer) have commented on the changeset to inform the mapper for corrections or no action has been taken by the you (reviewer) to correct the map data.",
-            is_visible: true,
-            for_changeset: true,
-            for_feature: true,
+            description: "Unresolved: To input action taken by the you (reviewer) on a changeset. " +
+                "It is unresolved when the you (reviewer) have commented on the changeset to inform the mapper for corrections or no action has been taken by the you (reviewer) to correct the map data.",
         },
         {
             id: 11,
             name: "DWG",
             description: "When a changeset needs to be reported to the Data Working Group", // changed
-            is_visible: true,
-            for_changeset: true,
-            for_feature: true,
         },
     ]
 
@@ -1636,8 +1626,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             spanWrapper.title = "OSMCha review tag. Right click to change\n"
             spanWrapper.style.marginBottom = "3px"
             spanWrapper.style.position = "relative"
-            spanWrapper.innerHTML =
-                '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tag-icon lucide-tag"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg>'
+            spanWrapper.innerHTML = tagSvg
             const svg = spanWrapper.querySelector("svg")
             svg.style.position = "absolute"
             svg.style.top = json["properties"]["check_user"] ? "20px" : "24px"
@@ -1651,7 +1640,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             span.style.fontSize = "smaller"
             span.style.color = "gray"
             span.textContent = " "
-            changesetProps['tags'].forEach(({ id, name }) => {
+            changesetProps["tags"].forEach(({ id, name }) => {
                 span.textContent += name + " "
                 const desc = osmchaTags.find(i => i.id === id)?.description
                 if (desc) {
@@ -1672,8 +1661,13 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
 
     async function contextMenuHandler(e) {
         e.preventDefault()
-        const currentUser = decodeURI(document.querySelector('.user-menu [href^="/user/"]').getAttribute("href").match(/\/user\/(.*)$/)[1])
-        if (changesetProps['check_user'] !== currentUser) {
+        const currentUser = decodeURI(
+            document
+                .querySelector('.user-menu [href^="/user/"]')
+                .getAttribute("href")
+                .match(/\/user\/(.*)$/)[1],
+        )
+        if (changesetProps["check_user"] !== currentUser) {
             return
         }
         injectContextMenuCSS()
@@ -1694,7 +1688,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             label.classList.add("review-label")
             label.style.padding = "4px"
             label.style.cursor = "pointer"
-            if (changesetProps['tags'].some(t => t.name === i.name)) {
+            if (changesetProps["tags"].some(t => t.name === i.name)) {
                 ch.checked = true
             }
 
@@ -1767,8 +1761,10 @@ function addRevertButton() {
         hideSearchForm()
         // sidebar.classList.add("changeset-header")
         const changeset_id = sidebar.innerHTML.match(/([0-9]+)/)[0]
-        sidebar.innerHTML += ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="Open osm-revert\nShift + click for revert via JOSM\nPress R for partial revert">↩️</a>
-                               <a href="https://osmcha.org/changesets/${changeset_id}" target="_blank" rel="noreferrer"><img src="${GM_getResourceURL("OSMCHA_ICON", false)}" id="osmcha_link"></a>`
+        // prettier-ignore
+        sidebar.innerHTML +=
+            ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="Open osm-revert\nShift + click for revert via JOSM\nPress R for partial revert">↩️</a>
+              <a href="https://osmcha.org/changesets/${changeset_id}" target="_blank" rel="noreferrer"><img src="${GM_getResourceURL("OSMCHA_ICON", false)}" id="osmcha_link"></a>`
         changesetObjectsSelectionModeEnabled = false
         document.querySelector("#revert_button_class").onclick = async e => {
             if (changesetObjectsSelectionModeEnabled) {
@@ -2363,6 +2359,23 @@ async function getChangesetComments(changeset_id) {
     }
 }
 
+// prettier-ignore
+const commentSvg =
+    '<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">' +
+    '<path d="M2.678 11.894a1 1 0 0 1 .287.801 11 11 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 ' +
+    '.71-.074A8 8 0 0 0 8 14c3.996 0 7-2.807 7-6s-3.004-6-7-6-7 2.808-7 6c0 1.468.617 2.83 1.678 3.894m-.493 ' +
+    '3.905a22 22 0 0 1-.713.129c-.2.032-.352-.176-.273-.362a10 10 0 0 0 .244-.637l.003-.01c.248-.72.45-1.548.524-2.319C.743 ' +
+    '11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.52.263-1.639.742-3.468 1.105">' +
+    '</path>' +
+    "</svg>"
+
+// prettier-ignore
+const diffSvg =
+    '<svg class="lucide lucide-diff better-diff-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M12 3v14"/><path d="M5 10h14"/>' +
+    '<path d="M5 21h14"/>' +
+    '</svg>'
+
 function setupCompactChangesetsHistory() {
     if (!location.pathname.includes("/history") && !location.pathname.startsWith("/changeset")) {
         // prettier-ignore
@@ -2413,7 +2426,7 @@ function setupCompactChangesetsHistory() {
             }
             const changesBadge = badgesDiv.querySelector("span:not(.changeset_num_comments) svg")
             if (changesBadge && !changesBadge.classList.contains("better-diff-icon")) {
-                changesBadge.outerHTML = '<svg class="lucide lucide-diff better-diff-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v14"/><path d="M5 10h14"/><path d="M5 21h14"/></svg>'
+                changesBadge.outerHTML = diffSvg
                 changesBadge.style.position = "relative"
                 changesBadge.style.top = "3px"
             }
@@ -2441,7 +2454,7 @@ function setupCompactChangesetsHistory() {
                 elem.classList.add("comments-loaded")
                 const commentsBadge = elem.querySelector(".changeset_num_comments")
                 // prettier-ignore
-                commentsBadge.querySelector("svg").outerHTML = `<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M2.678 11.894a1 1 0 0 1 .287.801 11 11 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 .71-.074A8 8 0 0 0 8 14c3.996 0 7-2.807 7-6s-3.004-6-7-6-7 2.808-7 6c0 1.468.617 2.83 1.678 3.894m-.493 3.905a22 22 0 0 1-.713.129c-.2.032-.352-.176-.273-.362a10 10 0 0 0 .244-.637l.003-.01c.248-.72.45-1.548.524-2.319C.743 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.52.263-1.639.742-3.468 1.105"></path></svg>`
+                commentsBadge.querySelector("svg").outerHTML = commentSvg
                 const commentsCount = parseInt(commentsBadge.firstChild.textContent.trim())
                 if (commentsCount) {
                     if (commentsCount > 3) {
@@ -3253,6 +3266,13 @@ async function getMapBounds() {
     }
 }
 
+// prettier-ignore
+const fitToObjectSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">\n' +
+    '  <path d="M3 7V3H7" stroke-width="2" stroke-linecap="round"/>\n' +
+    '  <path d="M17 3H21V7" stroke-width="2" stroke-linecap="round"/>\n' +
+    '  <path d="M21 17V21H17" stroke-width="2" stroke-linecap="round"/>\n' +
+    '  <path d="M7 21H3V17" stroke-width="2" stroke-linecap="round"/>\n' + "</svg>\n"
+
 function addGPXFiltersButtons() {
     if (document.getElementById("gpx-filter")) {
         return
@@ -3416,8 +3436,7 @@ function addGPXFiltersButtons() {
                             downloadBtn.onmouseenter = hoverHandler
 
                             downloadBtn.textContent = "⧈"
-                            downloadBtn.innerHTML =
-                                '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">\n' + '  <path d="M3 7V3H7" stroke-width="2" stroke-linecap="round"/>\n' + '  <path d="M17 3H21V7" stroke-width="2" stroke-linecap="round"/>\n' + '  <path d="M21 17V21H17" stroke-width="2" stroke-linecap="round"/>\n' + '  <path d="M7 21H3V17" stroke-width="2" stroke-linecap="round"/>\n' + "</svg>\n"
+                            downloadBtn.innerHTML = fitToObjectSvg
                             downloadBtn.style.cursor = "pointer"
                             downloadBtn.title = "click to zoom\nTip: press 8-9 to navigate between previous/next map position"
                             downloadBtn.onclick = () => {
@@ -5109,6 +5128,14 @@ function injectContextMenuCSS() {
     injectCSSIntoOSMPage(contextMenuCSS)
 }
 
+// prettier-ignore
+const externalLinkSvg =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" ' +
+    'class="lucide lucide-external-link-icon lucide-external-link" width="16" height="16">' +
+    '<path d="M15 3h6v6"></path><path d="M10 14 21 3"></path>' +
+    '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>' +
+    '</svg>'
+
 // example https://osm.org/node/6506618057
 function makeLinksInVersionTagsClickable() {
     document.querySelectorAll(".browse-tag-list tr").forEach(row => {
@@ -5187,7 +5214,14 @@ function makeLinksInVersionTagsClickable() {
                 return
             }
             if (type === "way" && ["building", "building:part"].includes(key)) {
-                if (!Array.from(document.querySelectorAll(".browse-tag-list tr th")).some(i => i.textContent.includes("level") || i.textContent.includes("height") || i.textContent.includes("roof") || i.textContent.includes("wikidata"))) {
+                const has3DTags = !Array.from(document.querySelectorAll(".browse-tag-list tr th")).some(i => {
+                    // prettier-ignore
+                    return i.textContent.includes("level")
+                        || i.textContent.includes("height")
+                        || i.textContent.includes("roof")
+                        || i.textContent.includes("wikidata")
+                })
+                if (has3DTags) {
                     if (document.querySelectorAll('a[href^="/node/"]').length <= 5) {
                         return
                     }
@@ -5318,7 +5352,7 @@ function makeLinksInVersionTagsClickable() {
                 piste: "slopes",
             }[valueCell.textContent]
             const relationViewer = document.createElement("a")
-            relationViewer.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link-icon lucide-external-link" width="16" height="16"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg>'
+            relationViewer.innerHTML = externalLinkSvg
             relationViewer.classList.add("route-viewer-link")
             relationViewer.style.cursor = "pointer"
             relationViewer.style.paddingLeft = "5px"
@@ -8185,8 +8219,17 @@ function addCommentsCount() {
     })
 }
 
-const compactModeSvg = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" height="17" width="17" viewBox="0 0 17 17"><path d="M15 12 l-5-4  5-4"></path><path d="M2 12 l 5-4 -5-4"></path></svg>'
-const expandModeSvg = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" height="17" width="17" viewBox="0 0 17 17"><path d="M7 12 l-5-4  5-4"></path><path d="M10 12 l 5-4 -5-4"></path></svg>'
+// prettier-ignore
+const compactModeSvg =
+    '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" height="17" width="17" viewBox="0 0 17 17">' +
+    '<path d="M15 12 l-5-4  5-4"></path><path d="M2 12 l 5-4 -5-4"></path>' +
+    '</svg>'
+// prettier-ignore
+const expandModeSvg =
+    '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" height="17" width="17" viewBox="0 0 17 17">' +
+    '<path d="M7 12 l-5-4  5-4"></path>' +
+    '<path d="M10 12 l 5-4 -5-4"></path>' +
+    '</svg>'
 
 /** @type {MutationObserver | null} **/
 let historyPagePaginationDeletingObserver = null
@@ -9692,7 +9735,12 @@ function makeContextMenuElem(e) {
     return menu
 }
 
-const copyBtnSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-icon lucide-file"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>'
+// prettier-ignore
+const copyBtnSvg =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-icon lucide-file">' +
+    '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>' +
+    '<path d="M14 2v4a2 2 0 0 0 2 2h4"/>' +
+    '</svg>'
 
 function addCopyCoordinatesButtons() {
     const m = location.pathname.match(/^\/(node|way)\/(\d+)/)
@@ -12836,7 +12884,17 @@ async function processQuickLookInSidebar(changesetID) {
                             popup.appendChild(tagsTable)
                             // todo показать по ховеру прошлую версию?
 
-                            const line = displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(55,55,55,0.5)", 4, changesetID + "n" + nodeID, "customObjects", null, popup.outerHTML, darkModeForMap && isDarkMode())
+                            const line = displayWay(
+                                cloneInto(currentNodesList, unsafeWindow),
+                                false,
+                                "rgba(55,55,55,0.5)",
+                                4,
+                                changesetID + "n" + nodeID,
+                                "customObjects",
+                                null,
+                                popup.outerHTML,
+                                darkModeForMap && isDarkMode(),
+                            )
                             if (layersHidden) {
                                 line.getElement().style.visibility = "hidden"
                             }
@@ -15597,6 +15655,15 @@ function addMassActionForGlobalChangesets() {
 const CORPORATE_EMOJI = "🏢"
 const BAN_EMOJI = "⛔️"
 
+const moderatorBadgeSvg =
+    '<svg width="20" height="20">' +
+    '<path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#447eff" stroke="#447eff" stroke-width="2" stroke-linejoin="round"></path>' +
+    '</svg>'
+const importerBadgeSvg =
+    '<svg width="20" height="20">' +
+    '<path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#38e13a" stroke="#38e13a" stroke-width="2" stroke-linejoin="round"></path>' +
+    '</svg>'
+
 function makeBadge(userInfo, changesetDate = new Date()) {
     // todo make changesetDate required
     let userBadge = document.createElement("span")
@@ -15606,7 +15673,7 @@ function makeBadge(userInfo, changesetDate = new Date()) {
         userBadge.style.position = "relative"
         userBadge.style.bottom = "2px"
         userBadge.title = "This user is a moderator"
-        userBadge.innerHTML = '<svg width="20" height="20"><path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#447eff" stroke="#447eff" stroke-width="2" stroke-linejoin="round"></path></svg>'
+        userBadge.innerHTML = moderatorBadgeSvg
         userBadge.querySelector("svg").style.transform = "scale(0.9)"
     }
 
@@ -15614,7 +15681,7 @@ function makeBadge(userInfo, changesetDate = new Date()) {
         userBadge.style.position = "relative"
         userBadge.style.bottom = "2px"
         userBadge.title = "This user is a importer"
-        userBadge.innerHTML = '<svg width="20" height="20"><path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#38e13a" stroke="#38e13a" stroke-width="2" stroke-linejoin="round"></path></svg>'
+        userBadge.innerHTML = importerBadgeSvg
         userBadge.querySelector("svg").style.transform = "scale(0.9)"
     }
 
@@ -16351,7 +16418,11 @@ function goToNextChangesetObject(e) {
             }
         } else {
             const curFrame = cur.parentElement.parentElement
-            if ((curFrame.id === "changeset_ways" && ["changeset_nodes", "changeset_relations"].includes(curFrame.nextElementSibling?.id)) || (curFrame.id === "changeset_relations" && ["changeset_nodes"].includes(curFrame.nextElementSibling?.id))) {
+            if (
+                // prettier-ignore
+                (curFrame.id === "changeset_ways" && ["changeset_nodes", "changeset_relations"].includes(curFrame.nextElementSibling?.id))
+                || (curFrame.id === "changeset_relations" && ["changeset_nodes"].includes(curFrame.nextElementSibling?.id))
+            ) {
                 cur.classList.remove("active-object")
                 curFrame.nextElementSibling.querySelector("#changeset_nodes li, #changeset_relations li").classList.add("active-object")
                 // prettier-ignore
@@ -17163,7 +17234,8 @@ function setupNavigationViaHotkeys() {
 
                     function selectRange() {
                         let currentCheckboxFound = false
-                        for (const cBox of Array.from(document.querySelectorAll(`#changeset_nodes li input[type=checkbox], #changeset_ways li input[type=checkbox], #changeset_relations li input[type=checkbox]`)).toReversed()) {
+                        const checkboxes = Array.from(document.querySelectorAll(`#changeset_nodes li input[type=checkbox], #changeset_ways li input[type=checkbox], #changeset_relations li input[type=checkbox]`))
+                        for (const cBox of checkboxes.toReversed()) {
                             if (!currentCheckboxFound) {
                                 if (cBox === checkbox) {
                                     currentCheckboxFound = true
@@ -17621,7 +17693,8 @@ function setupNavigationViaHotkeys() {
         } else if ((e.code === "Slash" || e.code === "Backslash" || e.code === "NumpadDivide" || e.key === "/") && e.shiftKey) {
             setTimeout(async () => {
                 getMap().getBounds()
-                const query = prompt(`Type overpass selector:\n\tkey\n\tkey=value\n\tkey~val,i\n\tway[footway=crossing](if: length() > 150)\nEnd with ! for global search\n⚠this is a simple prototype of search`, await GM.getValue("lastOverpassQuery", ""))
+                const message = `Type overpass selector:\n\tkey\n\tkey=value\n\tkey~val,i\n\tway[footway=crossing](if: length() > 150)\nEnd with ! for global search\n⚠this is a simple prototype of search`
+                const query = prompt(message, await GM.getValue("lastOverpassQuery", ""))
                 if (query) {
                     insertOverlaysStyles()
                     processOverpassQuery(query)
