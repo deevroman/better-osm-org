@@ -8565,7 +8565,7 @@ function addDiffInHistoryStyle() {
         font-size: 1rem;
     }
 
-    h4 {
+    #element_versions_list h4 {
         font-size: 1rem;
     }
 
