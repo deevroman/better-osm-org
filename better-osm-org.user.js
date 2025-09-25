@@ -5187,6 +5187,9 @@ const colorblindFriendlyPalette = {
     "rgba(238, 51, 9, 0.6)": "#F80000",              // .quick-look-deleted-tag
     "#000.quick-look-deleted-tag": "#fff",           // color.quick-look-deleted-tag
 
+    "rgba(25, 223, 25, 0.6)": "#8EA5FFC4",           // .new-letter
+    "rgba(255, 144, 144, 0.6)": "#FFB7B7",           // .deleted-letter
+
     "rgba(25, 223, 25, 0.9)": "#8EA5FFC4",           // dark.new-letter
     "rgba(253, 83, 83, 0.8)": "#FFB7B7",             // dark.deleted-letter
 
