@@ -1637,24 +1637,31 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             spanWrapper.innerHTML = tagSvg
             const svg = spanWrapper.querySelector("svg")
             svg.style.position = "absolute"
-            svg.style.top = json["properties"]["check_user"] ? "20px" : "24px"
+            svg.style.top = json["properties"]["check_user"] ? "24px" : "24px"
             svg.style.left = "-10px"
             svg.style.color = "gray"
 
             const span = document.createElement("span")
-            span.style.top = json["properties"]["check_user"] ? "20px" : "24px"
+            span.style.top = json["properties"]["check_user"] ? "24px" : "24px"
             span.style.left = "6px"
             span.style.position = "absolute"
             span.style.fontSize = "smaller"
             span.style.color = "gray"
             span.textContent = " "
             changesetProps["tags"].forEach(({ id, name }) => {
-                span.textContent += name + " "
+                span.textContent += name.replace(" ", " ") + " "
                 const desc = osmchaTags.find(i => i.id === id)?.description
                 if (desc) {
                     spanWrapper.title += `\n${name}: ${desc}`
                 }
             })
+            if (changesetProps["tags"].length > 2) {
+                const firstComment = document.querySelector("#sidebar_content article")
+                if (firstComment) {
+                    // https://www.openstreetmap.org/changeset/172368459
+                    firstComment.style.marginTop = 3 + 17 * (changesetProps["tags"].length - 2) + "px"
+                }
+            }
             spanWrapper.appendChild(span)
             dislikeBtn.after(spanWrapper)
         }
@@ -1675,7 +1682,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
                 .getAttribute("href")
                 .match(/\/user\/(.*)$/)[1],
         )
-        if (changesetProps["check_user"] !== currentUser) {
+        if (changesetProps["check_user"] && changesetProps["check_user"] !== currentUser) {
             return
         }
         injectContextMenuCSS()
