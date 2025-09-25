@@ -1467,7 +1467,8 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
         {
             id: 10,
             name: "Unresolved",
-            description: "Unresolved: To input action taken by the you (reviewer) on a changeset. " +
+            description:
+                "Unresolved: To input action taken by the you (reviewer) on a changeset. " +
                 "It is unresolved when the you (reviewer) have commented on the changeset to inform the mapper for corrections or no action has been taken by the you (reviewer) to correct the map data.",
         },
         {
@@ -3740,7 +3741,13 @@ function addDeleteButton() {
                         })
                     ).text()
                     const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
-                    const dist = Math.round(getDistanceFromLatLonInKm(parseFloat(objectInfo.querySelector("node").getAttribute("lat")), parseFloat(objectInfo.querySelector("node").getAttribute("lon")), newLat, newLon) * 1000) / 1000
+                    // prettier-ignore
+                    const dist = Math.round(getDistanceFromLatLonInKm(
+                            parseFloat(objectInfo.querySelector("node").getAttribute("lat")),
+                            parseFloat(objectInfo.querySelector("node").getAttribute("lon")),
+                            newLat,
+                            newLon
+                        ) * 1000) / 1000
                     if (dist > 50) {
                         if (!confirm(`⚠️ ${dist} kilometers.\n\nARE YOU SURE?`)) {
                             return
@@ -7461,7 +7468,10 @@ function renderRestriction(rel, color, layer) {
     if (!via) {
         if (isEqualCoordinates(from[0].geometry[0], viaWays[0].geometry[0]) || isEqualCoordinates(from[0].geometry[from[0].geometry.length - 1], viaWays[0].geometry[0])) {
             via = viaWays[0].geometry[0]
-        } else if (isEqualCoordinates(from[0].geometry[0], viaWays[0].geometry[viaWays[0].geometry.length - 1]) || isEqualCoordinates(from[0].geometry[from[0].geometry.length - 1], viaWays[0].geometry[viaWays[0].geometry.length - 1])) {
+        } else if (
+            isEqualCoordinates(from[0].geometry[0], viaWays[0].geometry[viaWays[0].geometry.length - 1]) ||
+            isEqualCoordinates(from[0].geometry[from[0].geometry.length - 1], viaWays[0].geometry[viaWays[0].geometry.length - 1])
+        ) {
             via = viaWays[0].geometry[viaWays[0].geometry.length - 1]
         } else {
             console.error("Restriction validation error")
@@ -13014,7 +13024,7 @@ async function processQuickLookInSidebar(changesetID) {
                             popup.appendChild(link)
                             popup.appendChild(tagsTable)
                             // todo показать по ховеру прошлую версию?
-
+                            // prettier-ignore
                             const line = displayWay(
                                 cloneInto(currentNodesList, unsafeWindow),
                                 false,
