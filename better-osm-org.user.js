@@ -5194,7 +5194,7 @@ const colorblindFriendlyPalette = {
     "rgba(253, 83, 83, 0.8)": "#FFB7B7",             // dark.deleted-letter
 
     "rgba(17, 238, 9, 0.3)": "#1A385C",              // dark.quick-look-new-tag
-    "rgba(238, 51, 9, 0.4)": "#4B2D1C",              // dark.quick-look-deleted-tag
+    "rgba(238, 51, 9, 0.4)": "#732a1d",              // dark.quick-look-deleted-tag
 
     "rgba(0, 128, 0, 0.6)": "#0074FF75",                     // displayWay for version 1
     "rgba(120, 238, 9, 0.6)": "rgba(64,152,255,0.46)",       // displayWay for restored way
@@ -5221,7 +5221,7 @@ const colorblindFriendlyPalette = {
     "rgba(238, 51, 9, 0.6).nodes-changed-row": "rgb(242, 0, 0)",
 
     "rgba(4, 123, 0, 0.6).history-diff-new-tag" : "#1A385C",
-    "rgba(238, 51, 9, 0.4).history-diff-deleted-tag": "#4B2D1C"
+    "rgba(238, 51, 9, 0.4).history-diff-deleted-tag": "#732a1d"
 }
 
 function setColorblindFriendlyPalette() {
