@@ -2,7 +2,9 @@
 // @name            Better osm.org
 // @name:ru         Better osm.org
 // @version         1.2.0
-// @changelog       v1.2.0: notes word also check comments text, filter by notes comments count
+// @changelog       v1.2.0: Colorblind-friendly palette in settings
+// @changelog       v1.2.0: Osmcha review tags, links to waymarkedtrails.org for type=route, alt + E to click Edits tags
+// @changelog       v1.2.0: notes word also check comments text, filter by notes comments count and anon authors
 // @changelog       v1.1.9: badges for corporate cartographers, ability to press the Z key several times for nodes/notes
 // @changelog       v1.1.8: show gpx tracks in current map view, copy coordinates for ways, alt + C for copy map center
 // @changelog       v1.1.8: more filters for notes, alt + click for hide note, initial support for KML/KMZ files
@@ -500,7 +502,7 @@ function isDebug() {
 
 function debug_alert() {
     if (!isDebug()) return
-    alert(arguments)
+    alert(JSON.stringify(arguments))
     // eslint-disable-next-line
     debugger
 }
@@ -693,6 +695,12 @@ GM_config.init({
             label: 'Dark mode for iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Thanks AlexPS</a>)',
             type: "checkbox",
             default: false,
+            labelPos: "right",
+        },
+        ColorblindFriendlyPalette: {
+            label: "Colorblind-friendly palette β",
+            type: "checkbox",
+            default: true,
             labelPos: "right",
         },
         CompactChangesetsHistory: {
@@ -5127,6 +5135,104 @@ function injectContextMenuCSS() {
     contextMenuCSSInjected = true
     injectCSSIntoOSMPage(contextMenuCSS)
 }
+// prettier-ignore
+const colorsPalette = {
+    "#ff00e3" : "#ff00e3",
+    "#0022ff": "#0022ff",
+
+    "rgba(17, 238, 9, 0.6)": "rgba(17, 238, 9, 0.6)",              // .quick-look-new-tag
+    "rgba(223, 238, 9, 0.6)": "rgba(223, 238, 9, 0.6)",            // .quick-look-modified-tag
+    "rgba(238, 51, 9, 0.6)": "rgba(238, 51, 9, 0.6)",              // .quick-look-deleted-tag
+    "#000.quick-look-deleted-tag": "#000",                   // color.quick-look-deleted-tag
+    "#fff.quick-look-deleted-tag": "#fff",                   // color.quick-look-deleted-tag
+    "rgba(25, 223, 25, 0.6)": "rgba(25, 223, 25, 0.6)",      // .new-letter
+    "rgba(255, 144, 144, 0.6)": "rgba(255, 144, 144, 0.6)",  // .deleted-letter
+
+    "rgba(17, 238, 9, 0.3)": "rgba(17, 238, 9, 0.3)",              // dark.quick-look-new-tag
+    "rgba(238, 51, 9, 0.4)": "rgba(238, 51, 9, 0.4)",              // dark.quick-look-deleted-tag
+    "rgba(25, 223, 25, 0.9)": "rgba(25, 223, 25, 0.9)",      // dark.new-letter
+    "rgba(253, 83, 83, 0.8)": "rgba(253, 83, 83, 0.8)",      // dark.deleted-letter
+
+    "rgba(0, 128, 0, 0.6)": "rgba(0, 128, 0, 0.6)",                // displayWay for version 1
+    "rgba(120, 238, 9, 0.6)": "rgba(120, 238, 9, 0.6)",            // displayWay for restored way
+    "#ff0000.deleted-way-geom": "#ff0000",                   // displayWay for deleted
+
+    "#00a500.first-node-version": "#00a500",                 // showNodeMarker for version 1
+    "rgba(89, 170, 9, 0.6).restored-node-version": "#00a500",   // showNodeMarker for version 1
+    "#ff0000.deleted-node-geom": "#ff0000",                  // showNodeMarker for deleted
+
+    "rgba(17, 238, 9, 0.3).members-changed-flag": "rgba(17, 238, 9, 0.3)",  // dark
+    "rgba(101, 238, 9, 0.6).members-changed-flag": "rgba(101, 238, 9, 0.6)",
+    "rgba(238, 51, 9, 0.4).members-changed-flag": "rgba(238, 51, 9, 0.4)",  // dark
+    "rgba(238, 9, 9, 0.42).members-changed-flag": "rgba(238, 9, 9, 0.42)",
+
+    "rgba(17, 238, 9, 0.6).members-changed-row": "rgba(17, 238, 9, 0.6)",
+    "rgba(238, 51, 9, 0.6).members-changed-row": "rgba(238, 51, 9, 0.6)",
+
+    "rgba(17, 238, 9, 0.3).nodes-changed-flag": "rgba(17, 238, 9, 0.3)",  // dark
+    "rgba(101, 238, 9, 0.6).nodes-changed-flag": "rgba(101, 238, 9, 0.6)",
+    "rgba(238, 51, 9, 0.4).nodes-changed-flag": "rgba(238, 51, 9, 0.4)",  // dark
+    "rgba(238, 9, 9, 0.42).nodes-changed-flag": "rgba(238, 9, 9, 0.42)",
+
+    "rgba(17, 238, 9, 0.6).nodes-changed-row": "rgba(17, 238, 9, 0.6)",
+    "rgba(238, 51, 9, 0.6).nodes-changed-row": "rgba(238, 51, 9, 0.6)",
+
+}
+
+// prettier-ignore
+const colorblindFriendlyPalette = {
+    "rgba(17, 238, 9, 0.6)": "#0074FF75",            // .quick-look-new-tag
+    "rgba(238, 51, 9, 0.6)": "#F80000",              // .quick-look-deleted-tag
+    "#000.quick-look-deleted-tag": "#fff",           // color.quick-look-deleted-tag
+
+    "rgba(17, 238, 9, 0.3)": "#1A385C",              // dark.quick-look-new-tag
+    "rgba(238, 51, 9, 0.4)": "#4B2D1C",              // dark.quick-look-deleted-tag
+
+    "rgba(0, 128, 0, 0.6)": "#0074FF75",                // displayWay for version 1
+    "rgba(120, 238, 9, 0.6)": "rgba(64,152,255,0.46)",            // displayWay for restored way
+    "#ff0000.deleted-way-geom": "#f34c4c",                   // displayWay for deleted
+
+    "#00a500.first-node-version": "#0074FF75",                 // showNodeMarker for version 1
+    "rgba(89, 170, 9, 0.6).restored-node-version": "rgba(64,152,255,0.46)",   // showNodeMarker for version 1
+    "#ff0000.deleted-node-geom": "#f34c4c",                  // showNodeMarker for deleted
+
+    "rgba(17, 238, 9, 0.3).members-changed-flag": "#0074FF75",   // dark
+    "rgba(101, 238, 9, 0.6).members-changed-flag": "#0074FF75",
+    "rgba(238, 51, 9, 0.4).members-changed-flag": "#f34c4c",     // dark
+    "rgba(238, 9, 9, 0.42).members-changed-flag": "rgb(242, 0, 0)",
+
+    "rgba(17, 238, 9, 0.6).members-changed-row": "#0074FF75",
+    "rgba(238, 51, 9, 0.6).members-changed-row": "rgb(242, 0, 0)",
+
+    "rgba(17, 238, 9, 0.3).nodes-changed-flag": "#0074FF75",       // dark
+    "rgba(101, 238, 9, 0.6).nodes-changed-flag": "#0074FF75",
+    "rgba(238, 51, 9, 0.4).nodes-changed-flag": "rgb(242, 0, 0)",  // dark
+    "rgba(238, 9, 9, 0.42).nodes-changed-flag": "rgb(242, 0, 0)",
+
+    "rgba(17, 238, 9, 0.6).nodes-changed-row": "#0074FF75",
+    "rgba(238, 51, 9, 0.6).nodes-changed-row": "rgb(242, 0, 0)",
+
+}
+
+function setColorblindFriendlyPalette() {
+    Object.entries(colorblindFriendlyPalette).forEach(([k, v]) => {
+        colorsPalette[k] = v
+    })
+}
+
+/**
+ * @param color {string}
+ * @param context {string}
+ * @return {string}
+ */
+function c(color, context = "") {
+    const res = colorsPalette[color + context]
+    if (res) {
+        return res
+    }
+    debug_alert(`color ${color + context} not found in palette`)
+    return color
+}
 
 // prettier-ignore
 const externalLinkSvg =
@@ -5180,11 +5286,11 @@ function makeLinksInVersionTagsClickable() {
                 const match = location.pathname.match(/(node|way|relation)\/(\d+)\/history\/(\d+)\/?$/)
                 if (match || document.querySelector(".browse-tag-list") === row.parentElement.parentElement) {
                     cleanObjectsByKey("activeObjects")
-                    renderDirectionTag(parseFloat(lat), parseFloat(lon), valueCell.textContent, "#ff00e3")
+                    renderDirectionTag(parseFloat(lat), parseFloat(lon), valueCell.textContent, c("#ff00e3"))
                 }
                 row.onmouseenter = () => {
                     cleanObjectsByKey("activeObjects")
-                    renderDirectionTag(parseFloat(lat), parseFloat(lon), valueCell.textContent, "#ff00e3")
+                    renderDirectionTag(parseFloat(lat), parseFloat(lon), valueCell.textContent, c("#ff00e3"))
                 }
             }
         } else if (
@@ -5692,7 +5798,7 @@ function showActiveNodeIconMarker(lat, lon, color = null, removeActiveObjects = 
  * @param {number=} weight
  * @param {string=} dashArray
  */
-function showActiveWay(nodesList, color = "#ff00e3", needFly = false, infoElemID = null, removeActiveObjects = true, weight = 4, dashArray = null) {
+function showActiveWay(nodesList, color = c("#ff00e3"), needFly = false, infoElemID = null, removeActiveObjects = true, weight = 4, dashArray = null) {
     const line = getWindow()
         .L.polyline(
             intoPage(nodesList.map(elem => intoPage(getWindow().L.latLng(intoPage(elem))))),
@@ -6042,7 +6148,7 @@ async function getChangeset(id) {
  * @param {string} values
  * @param {string} color
  */
-function renderDirectionTag(lat, lon, values, color = "#ff00e3") {
+function renderDirectionTag(lat, lon, values, color = c("#ff00e3")) {
     const cardinalToAngle = {
         N: 0.0,
         north: 0.0,
@@ -6085,14 +6191,14 @@ function setupNodeVersionView() {
         const versionDiv = i.parentElement.parentElement.parentElement.parentElement
         versionDiv.onmouseenter = async () => {
             await interceptMapManually()
-            showActiveNodeMarker(lat, lon, "#ff00e3")
+            showActiveNodeMarker(lat, lon, c("#ff00e3"))
             versionDiv.querySelectorAll(".browse-tag-list tr").forEach(row => {
                 const key = row.querySelector("th")?.textContent?.toLowerCase()
                 if (!key) return
                 if (key === "direction" || key === "camera:direction") {
-                    renderDirectionTag(parseFloat(lat), parseFloat(lon), row.querySelector("td").textContent, "#ff00e3")
+                    renderDirectionTag(parseFloat(lat), parseFloat(lon), row.querySelector("td").textContent, c("#ff00e3"))
                     row.onmouseenter = () => {
-                        renderDirectionTag(parseFloat(lat), parseFloat(lon), row.querySelector("td").textContent, "#ff00e3")
+                        renderDirectionTag(parseFloat(lat), parseFloat(lon), row.querySelector("td").textContent, c("#ff00e3"))
                     }
                 }
             })
@@ -6103,7 +6209,7 @@ function setupNodeVersionView() {
                 return
             }
             panTo(lat, lon)
-            showActiveNodeMarker(lat, lon, "#ff00e3")
+            showActiveNodeMarker(lat, lon, c("#ff00e3"))
         }
     })
     interceptMapManually().then(() => {
@@ -8331,48 +8437,7 @@ function externalizeLinks(links) {
     links?.forEach(i => i.setAttribute("target", "_blank"))
 }
 
-// hard cases:
-// https://www.openstreetmap.org/node/1/history
-// https://www.openstreetmap.org/node/2/history
-// https://www.openstreetmap.org/node/9286365017/history
-// https://www.openstreetmap.org/relation/72639/history
-// https://www.openstreetmap.org/node/10173297169/history
-// https://www.openstreetmap.org/relation/16022751/history
-// https://www.openstreetmap.org/node/12084992837/history
-// https://www.openstreetmap.org/way/1329437422/history
-function addDiffInHistory(reason = "url_change") {
-    makeHeaderPartsClickable()
-    addHistoryLink()
-    externalizeLinks(document.querySelectorAll("#sidebar_content p a"))
-    externalizeLinks(document.querySelectorAll("#sidebar_content table a"))
-    if (!location.pathname.includes("/history") || location.pathname === "/history" || (location.pathname.includes("/history/") && !location.pathname.endsWith("/history/")) || location.pathname.includes("/user/")) return
-    if (document.querySelector(".compact-toggle-btn") && reason !== "pagination") {
-        return
-    }
-    // костыль для KeyK/L и OSM tags editor
-    document.querySelectorAll("#element_versions_list > div").forEach(i => i.classList.add("browse-section"))
-    cleanAllObjects()
-    hideSearchForm()
-    // в хроме фокус не выставляется
-    document.querySelector("#sidebar").focus({ focusVisible: false }) // focusVisible работает только в Firefox
-    document.querySelector("#sidebar").blur()
-
-    if (!location.pathname.includes("/user/") && !document.querySelector(".compact-toggle-btn")) {
-        let compactToggle = document.createElement("button")
-        compactToggle.title = "Toggle between full and compact tags diff.\nYou can also use the T key."
-        compactToggle.setAttribute("value", "><")
-        compactToggle.innerHTML = compactModeSvg
-        compactToggle.classList.add("compact-toggle-btn")
-        compactToggle.classList.add("btn", "btn-primary", "btn-sm")
-        compactToggle.onclick = () => makeElementHistoryCompact()
-        let sidebar = document.querySelector("#sidebar_content h2")
-        if (!sidebar) {
-            return
-        }
-        sidebar.appendChild(document.createTextNode("\xA0"))
-        sidebar.appendChild(compactToggle)
-    }
-
+function addDiffInHistoryStyle() {
     const styleText =
         `
     .turbo-progress-bar {
@@ -8415,13 +8480,13 @@ function addDiffInHistory(reason = "url_change") {
     }
 
     .history-diff-new-tag {
-      background: rgba(17,238,9,0.6) !important;
+      background: ${c("rgba(17, 238, 9, 0.6)")} !important;
     }
     .history-diff-modified-tag {
-      background: rgba(223,238,9,0.6) !important;
+      background: rgba(223, 238, 9, 0.6) !important;
     }
     .history-diff-deleted-tag {
-      background: rgba(238,51,9,0.6) !important;
+      background: ${c("rgba(238, 51, 9, 0.6)")} !important;
     }
 
     #sidebar_content div.map-hover {
@@ -8448,7 +8513,7 @@ function addDiffInHistory(reason = "url_change") {
         }
         .history-diff-deleted-tag {
           color: lightgray !important;
-          background: rgba(238,51,9,0.4) !important;
+          background: rgba(238, 51, 9, 0.4) !important;
         }
 
         summary.history-diff-modified-tag {
@@ -8464,11 +8529,11 @@ function addDiffInHistory(reason = "url_change") {
         }
 
         .new-letter {
-            background: rgba(25, 223, 25, 0.9);
+            background: ${c("rgba(25, 223, 25, 0.9)")};
         }
 
         .deleted-letter {
-            background: rgba(253, 83, 83, 0.8);
+            background: ${c("rgba(253, 83, 83, 0.8)")};
         }
     }
     .non-modified-tag .empty-version {
@@ -8608,6 +8673,51 @@ function addDiffInHistory(reason = "url_change") {
     `
             : ``)
     injectCSSIntoOSMPage(styleText)
+}
+
+// hard cases:
+// https://www.openstreetmap.org/node/1/history
+// https://www.openstreetmap.org/node/2/history
+// https://www.openstreetmap.org/node/9286365017/history
+// https://www.openstreetmap.org/relation/72639/history
+// https://www.openstreetmap.org/node/10173297169/history
+// https://www.openstreetmap.org/relation/16022751/history
+// https://www.openstreetmap.org/node/12084992837/history
+// https://www.openstreetmap.org/way/1329437422/history
+function addDiffInHistory(reason = "url_change") {
+    makeHeaderPartsClickable()
+    addHistoryLink()
+    externalizeLinks(document.querySelectorAll("#sidebar_content p a"))
+    externalizeLinks(document.querySelectorAll("#sidebar_content table a"))
+    if (!location.pathname.includes("/history") || location.pathname === "/history" || (location.pathname.includes("/history/") && !location.pathname.endsWith("/history/")) || location.pathname.includes("/user/")) return
+    if (document.querySelector(".compact-toggle-btn") && reason !== "pagination") {
+        return
+    }
+    // костыль для KeyK/L и OSM tags editor
+    document.querySelectorAll("#element_versions_list > div").forEach(i => i.classList.add("browse-section"))
+    cleanAllObjects()
+    hideSearchForm()
+    // в хроме фокус не выставляется
+    document.querySelector("#sidebar").focus({ focusVisible: false }) // focusVisible работает только в Firefox
+    document.querySelector("#sidebar").blur()
+
+    if (!location.pathname.includes("/user/") && !document.querySelector(".compact-toggle-btn")) {
+        let compactToggle = document.createElement("button")
+        compactToggle.title = "Toggle between full and compact tags diff.\nYou can also use the T key."
+        compactToggle.setAttribute("value", "><")
+        compactToggle.innerHTML = compactModeSvg
+        compactToggle.classList.add("compact-toggle-btn")
+        compactToggle.classList.add("btn", "btn-primary", "btn-sm")
+        compactToggle.onclick = () => makeElementHistoryCompact()
+        let sidebar = document.querySelector("#sidebar_content h2")
+        if (!sidebar) {
+            return
+        }
+        sidebar.appendChild(document.createTextNode("\xA0"))
+        sidebar.appendChild(compactToggle)
+    }
+
+    addDiffInHistoryStyle()
     const versions = [{ tags: [], coordinates: "", wasModified: false, nodes: [], members: [], visible: true }]
     // add/modification
     const versionsHTML = Array.from(document.querySelectorAll('#element_versions_list > div:not(.processed):not(:has(a[href*="/redactions/"]:not([rel])))'))
@@ -9076,14 +9186,14 @@ async function addHoverForNodesParents() {
             wayLi.classList.add("node-last-version-parent")
             wayLi.onmouseenter = () => {
                 const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
-                const color = darkModeForMap || isDarkTiles() ? "#ff00e3" : "#000000"
+                const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
                 showActiveWay(cloneInto(currentNodesList, unsafeWindow), color)
             }
             wayLi.onclick = e => {
                 if (e.altKey) return
                 if (e.target.tagName === "A") return
                 const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
-                const color = darkModeForMap || isDarkTiles() ? "#ff00e3" : "#000000"
+                const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
                 showActiveWay(cloneInto(currentNodesList, unsafeWindow), color, true)
             }
             wayLi.ondblclick = zoomToCurrentObject
@@ -9357,13 +9467,13 @@ async function addHoverForWayNodes() {
         const nodeLi = elem?.parentElement?.parentElement?.parentElement
         nodeLi.classList.add("way-last-version-node")
         nodeLi.onmouseenter = () => {
-            const color = darkModeForMap || isDarkTiles() ? "#ff00e3" : "#000000"
+            const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
             showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
         }
         nodeLi.onclick = e => {
             if (e.altKey) return
             panTo(nodeInfo.lat.toString(), nodeInfo.lon.toString())
-            const color = darkModeForMap || isDarkTiles() ? "#ff00e3" : "#000000"
+            const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
             showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
         }
         nodeLi.ondblclick = zoomToCurrentObject
@@ -9478,7 +9588,7 @@ async function addHoverForRelationMembers() {
         const nodeLi = elem?.parentElement?.parentElement?.parentElement
         nodeLi.classList.add("relation-last-version-member")
         nodeLi.onmouseenter = () => {
-            const color = darkModeForMap || isDarkTiles() ? "#ff00e3" : "#000000"
+            const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
             showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
             bringRestrictionArrowsToFront()
             if (isRestriction && pinSign.classList.contains("pinned")) {
@@ -9507,7 +9617,7 @@ async function addHoverForRelationMembers() {
         nodeLi.onclick = e => {
             if (e.altKey) return
             panTo(nodeInfo.lat.toString(), nodeInfo.lon.toString())
-            const color = darkModeForMap || isDarkTiles() ? "#ff00e3" : "#000000"
+            const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
             showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
             bringRestrictionArrowsToFront()
         }
@@ -9526,7 +9636,7 @@ async function addHoverForRelationMembers() {
         wayLi.classList.add("relation-last-version-member")
         wayLi.onmouseenter = () => {
             const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
-            const color = darkModeForMap || isDarkTiles() ? "#ff00e3" : "#000000"
+            const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
             showActiveWay(cloneInto(currentNodesList, unsafeWindow), color)
             bringRestrictionArrowsToFront()
         }
@@ -9534,7 +9644,7 @@ async function addHoverForRelationMembers() {
             if (e.altKey) return
             if (e.target.tagName === "A") return
             const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
-            const color = darkModeForMap || isDarkTiles() ? "#ff00e3" : "#000000"
+            const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
             showActiveWay(cloneInto(currentNodesList, unsafeWindow), color, true)
             bringRestrictionArrowsToFront()
         }
@@ -9553,7 +9663,7 @@ async function addHoverForRelationMembers() {
         relationLi.classList.add("relation-last-version-member")
         relationLi.onmouseenter = () => {
             relationInfo.members.forEach(i => {
-                const color = darkModeForMap || isDarkTiles() ? "#ff00e3" : "#000000"
+                const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
                 if (i.type === "node") {
                     showActiveNodeMarker(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString(), color, true, 6, 3)
                 } else if (i.type === "way") {
@@ -9569,7 +9679,7 @@ async function addHoverForRelationMembers() {
             if (e.altKey) return
             if (e.target.tagName === "A") return
             relationInfo.members.forEach(i => {
-                const color = darkModeForMap || isDarkTiles() ? "#ff00e3" : "#000000"
+                const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
                 if (i.type === "node") {
                     if (e.altKey) return
                     panTo(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString())
@@ -10765,7 +10875,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         geomChangedFlag.classList.add("nodes-changed")
         geomChangedFlag.title = "List of way nodes has been changed"
         geomChangedFlag.style.userSelect = "none"
-        geomChangedFlag.style.background = "rgba(223,238,9,0.6)"
+        geomChangedFlag.style.background = "rgba(223, 238, 9, 0.6)"
         geomChangedFlag.style.cursor = "pointer"
 
         const nodesTable = document.createElement("table")
@@ -10799,7 +10909,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                     e.target.classList.add("way-version-node")
                     const targetTimestamp = new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1).toISOString()
                     const version = searchVersionByTimestamp(await getNodeHistory(left), targetTimestamp)
-                    showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
+                    showActiveNodeMarker(version.lat.toString(), version.lon.toString(), c("#ff00e3"))
                 }
                 tagTd.onclick = async e => {
                     e.stopPropagation() // fixme
@@ -10821,7 +10931,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                     e.stopPropagation() // fixme
                     e.target.classList.add("way-version-node")
                     const version = searchVersionByTimestamp(await getNodeHistory(right), changesetMetadatas[targetVersion.changeset].closed_at ?? new Date().toISOString())
-                    showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
+                    showActiveNodeMarker(version.lat.toString(), version.lon.toString(), c("#ff00e3"))
                 }
                 tagTd2.onclick = async e => {
                     e.stopPropagation() // fixme
@@ -10852,7 +10962,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
 
             prevVersion.nodes.forEach((i, index) => {
                 const row = makeWayDiffRow(i, targetVersion.nodes[index])
-                row.querySelector("td:nth-of-type(2)").style.background = "rgba(223,238,9,0.6)"
+                row.querySelector("td:nth-of-type(2)").style.background = "rgba(223, 238, 9, 0.6)"
                 row.style.fontFamily = "monospace"
                 tbody.appendChild(row)
             })
@@ -10862,13 +10972,13 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             arraysDiff(prevVersion.nodes ?? [], targetVersion.nodes ?? []).forEach(i => {
                 const row = makeWayDiffRow(i[0], i[1])
                 if (i[0] === null) {
-                    row.style.background = "rgba(17,238,9,0.6)"
+                    row.style.background = c("rgba(17, 238, 9, 0.6)", ".nodes-changed-row")
                     haveOnlyDeletion = false
                 } else if (i[1] === null) {
-                    row.style.background = "rgba(238,51,9,0.6)"
+                    row.style.background = c("rgba(238, 51, 9, 0.6)", ".nodes-changed-row")
                     haveOnlyInsertion = false
                 } else if (i[0] !== i[1]) {
-                    row.style.background = "rgba(223,238,9,0.6)" // never executed?
+                    row.style.background = "rgba(223, 238, 9, 0.6)" // never executed?
                     haveOnlyInsertion = false
                     haveOnlyDeletion = false
                 }
@@ -10878,15 +10988,15 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         }
         if (haveOnlyInsertion) {
             if (isDarkMode()) {
-                geomChangedFlag.style.background = "rgba(17, 238, 9, 0.3)"
+                geomChangedFlag.style.background = c("rgba(17, 238, 9, 0.3)", ".nodes-changed-flag")
             } else {
-                geomChangedFlag.style.background = "rgba(101,238,9,0.6)"
+                geomChangedFlag.style.background = c("rgba(101, 238, 9, 0.6)", ".nodes-changed-flag")
             }
         } else if (haveOnlyDeletion) {
             if (isDarkMode()) {
-                geomChangedFlag.style.background = "rgba(238, 51, 9, 0.4)"
+                geomChangedFlag.style.background = c("rgba(238, 51, 9, 0.4)", ".nodes-changed-flag")
             } else {
-                geomChangedFlag.style.background = "rgba(238, 9, 9, 0.42)"
+                geomChangedFlag.style.background = c("rgba(238, 9, 9, 0.42)", ".nodes-changed-flag")
             }
         }
 
@@ -10947,7 +11057,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         memChangedFlag.style.userSelect = "none"
         let membersChanged = false
         if (JSON.stringify(prevVersion?.members ?? []) !== JSON.stringify(targetVersion.members) && targetVersion.version !== 1) {
-            memChangedFlag.style.background = "rgba(223,238,9,0.6)"
+            memChangedFlag.style.background = "rgba(223, 238, 9, 0.6)"
             memChangedFlag.title = "List of relation members has been changed.\nСlick to see more details"
             membersChanged = true
         } else {
@@ -11048,7 +11158,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                     const targetTimestamp = new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1).toISOString()
                     if (left.type === "node") {
                         const version = searchVersionByTimestamp(await getNodeHistory(left.ref), targetTimestamp)
-                        showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
+                        showActiveNodeMarker(version.lat.toString(), version.lon.toString(), c("#ff00e3"))
                         tagTd.title = ""
                         for (let tagsKey in version.tags ?? {}) {
                             tagTd.title += `${tagsKey}=${version.tags[tagsKey]}\n`
@@ -11077,7 +11187,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                         panTo(version.lat.toString(), version.lon.toString())
                     } else if (left.type === "way") {
                         const [, currentNodesList] = await getWayNodesByTimestamp(targetTimestamp, left.ref)
-                        showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", true)
+                        showActiveWay(cloneInto(currentNodesList, unsafeWindow), c("#ff00e3"), true)
                     }
                 }
             }
@@ -11089,7 +11199,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                     const targetTimestamp = new Date(changesetMetadatas[targetVersion.changeset].closed_at ?? new Date()).toISOString()
                     if (right.type === "node") {
                         const version = searchVersionByTimestamp(await getNodeHistory(right.ref), targetTimestamp)
-                        showActiveNodeMarker(version.lat.toString(), version.lon.toString(), "#ff00e3")
+                        showActiveNodeMarker(version.lat.toString(), version.lon.toString(), c("#ff00e3"))
                         tagTd2.title = ""
                         for (let tagsKey in version.tags ?? {}) {
                             tagTd2.title += `${tagsKey}=${version.tags[tagsKey]}\n`
@@ -11117,7 +11227,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                         panTo(version.lat.toString(), version.lon.toString())
                     } else if (right.type === "way") {
                         const [, currentNodesList] = await getWayNodesByTimestamp(targetTimestamp, right.ref)
-                        showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", true)
+                        showActiveWay(cloneInto(currentNodesList, unsafeWindow), c("#ff00e3"), true)
                     }
                 }
             }
@@ -11131,15 +11241,15 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         function colorizeFlag() {
             if (haveOnlyInsertion && membersChanged && targetVersion.version !== 1) {
                 if (isDarkMode()) {
-                    memChangedFlag.style.background = "rgba(17, 238, 9, 0.3)"
+                    memChangedFlag.style.background = c("rgba(17, 238, 9, 0.3)", ".members-changed-flag")
                 } else {
-                    memChangedFlag.style.background = "rgba(101,238,9,0.6)"
+                    memChangedFlag.style.background = c("rgba(101, 238, 9, 0.6)", ".members-changed-flag")
                 }
             } else if (haveOnlyDeletion && membersChanged) {
                 if (isDarkMode()) {
-                    memChangedFlag.style.background = "rgba(238, 51, 9, 0.4)"
+                    memChangedFlag.style.background = c("rgba(238, 51, 9, 0.4)", ".members-changed-flag")
                 } else {
-                    memChangedFlag.style.background = "rgba(238, 9, 9, 0.42)"
+                    memChangedFlag.style.background = c("rgba(238, 9, 9, 0.42)", ".members-changed-flag")
                 }
             }
         }
@@ -11153,7 +11263,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
 
             prevVersion?.members?.forEach((i, index) => {
                 const row = makeRelationDiffRow(i, targetVersion.members[index])
-                row.querySelector("td:nth-of-type(2)").style.background = "rgba(223,238,9,0.6)"
+                row.querySelector("td:nth-of-type(2)").style.background = "rgba(223, 238, 9, 0.6)"
                 row.style.fontFamily = "monospace"
                 tbody.appendChild(row)
             })
@@ -11166,21 +11276,21 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 arraysDiff(prevVersion?.members ?? [], targetVersion.members ?? []).forEach(i => {
                     const row = makeRelationDiffRow(i[0], i[1])
                     if (i[0] === null) {
-                        row.style.background = "rgba(17,238,9,0.6)"
+                        row.style.background = c("rgba(17, 238, 9, 0.6)", ".members-changed-row")
                         haveOnlyDeletion = false
                     } else if (i[1] === null) {
-                        row.style.background = "rgba(238,51,9,0.6)"
+                        row.style.background = c("rgba(238, 51, 9, 0.6)", ".members-changed-row")
                         haveOnlyInsertion = false
                     } else if (JSON.stringify(i[0]) !== JSON.stringify(i[1])) {
                         if (i[0].ref === i[1].ref && i[0].type === i[1].type) {
                             row.querySelectorAll(".rel-role").forEach(i => {
-                                i.style.background = "rgba(223,238,9,0.6)"
+                                i.style.background = "rgba(223, 238, 9, 0.6)"
                                 if (isDarkMode()) {
                                     i.style.color = "black"
                                 }
                             })
                         } else {
-                            row.style.background = "rgba(223,238,9,0.6)"
+                            row.style.background = "rgba(223, 238, 9, 0.6)"
                             if (isDarkMode()) {
                                 row.style.color = "black"
                             }
@@ -11284,14 +11394,14 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             locationChangedFlag.style.background = "rgba(223, 238, 9, 0.6)"
             locationChangedFlag.style.color = "black"
         } else {
-            locationChangedFlag.style.background = "rgba(223,238,9,0.6)"
+            locationChangedFlag.style.background = "rgba(223, 238, 9, 0.6)"
         }
         i.appendChild(locationChangedFlag)
         locationChangedFlag.onmouseover = e => {
             e.stopPropagation()
             e.stopImmediatePropagation()
-            showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3")
-            showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", false)
+            showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), c("#ff00e3"))
+            showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), c("#0022ff"), false)
         }
         locationChangedFlag.onclick = e => {
             e.stopPropagation()
@@ -11413,17 +11523,17 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             }
             if (targetVersion.visible === false) {
                 if (prevVersion.visible !== false) {
-                    showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff")
+                    showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), c("#0022ff"))
                     const direction = prevVersion.tags?.["direction"] ?? prevVersion.tags?.["camera:direction"]
                     if (direction) {
-                        renderDirectionTag(prevVersion.lat, prevVersion.lon, direction, "#0022ff")
+                        renderDirectionTag(prevVersion.lat, prevVersion.lon, direction, c("#0022ff"))
                     }
                 }
             } else {
-                showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3")
+                showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), c("#ff00e3"))
                 const direction = targetVersion.tags?.["direction"] ?? targetVersion.tags?.["camera:direction"]
                 if (direction) {
-                    renderDirectionTag(targetVersion.lat, targetVersion.lon, direction, "#ff00e3")
+                    renderDirectionTag(targetVersion.lat, targetVersion.lon, direction, c("#ff00e3"))
                 }
             }
             resetMapHover()
@@ -11459,22 +11569,22 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                     ],
                     30,
                 )
-                showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", true)
-                showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3", false)
+                showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), c("#0022ff"), true)
+                showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), c("#ff00e3"), false)
                 const direction = prevVersion.tags?.["direction"] ?? prevVersion.tags?.["camera:direction"]
                 if (direction) {
-                    renderDirectionTag(prevVersion.lat, prevVersion.lon, direction, "#0022ff")
+                    renderDirectionTag(prevVersion.lat, prevVersion.lon, direction, c("#0022ff"))
                 }
                 const newDirection = targetVersion.tags?.["direction"] ?? targetVersion.tags?.["camera:direction"]
                 if (direction) {
-                    renderDirectionTag(targetVersion.lat, targetVersion.lon, newDirection, "#ff00e3")
+                    renderDirectionTag(targetVersion.lat, targetVersion.lon, newDirection, c("#ff00e3"))
                 }
             } else if (targetVersion.visible === false) {
                 panTo(prevVersion.lat.toString(), prevVersion.lon.toString(), 18, false)
-                showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", true)
+                showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), c("#0022ff"), true)
                 const direction = prevVersion.tags?.["direction"] ?? prevVersion.tags?.["camera:direction"]
                 if (direction) {
-                    renderDirectionTag(prevVersion.lat, prevVersion.lon, direction, "#0022ff")
+                    renderDirectionTag(prevVersion.lat, prevVersion.lon, direction, c("#0022ff"))
                 }
             } else {
                 if (!repeatedEvent && trustedEvent) {
@@ -11511,10 +11621,10 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                     // panInside(targetVersion.lat.toString(), targetVersion.lon.toString(), false, [70, 70])
                     panTo(targetVersion.lat.toString(), targetVersion.lon.toString(), 18, false)
                 }
-                showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#ff00e3", true)
+                showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), c("#ff00e3"), true)
                 const direction = targetVersion.tags?.["direction"] ?? targetVersion.tags?.["camera:direction"]
                 if (direction) {
-                    renderDirectionTag(targetVersion.lat, targetVersion.lon, direction, "#ff00e3")
+                    renderDirectionTag(targetVersion.lat, targetVersion.lon, direction, c("#ff00e3"))
                 }
             }
         }
@@ -11525,23 +11635,23 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             if (targetVersion.version !== 1 && prevVersion.visible !== false) {
                 // даа, такое есть https://www.openstreetmap.org/node/300524/history
                 if (prevVersion.tags) {
-                    showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#FF0000", changesetID + "n" + prevVersion.id)
+                    showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), c("#ff0000", ".deleted-node-geom"), changesetID + "n" + prevVersion.id)
                 } else {
-                    showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#FF0000", changesetID + "n" + prevVersion.id, "customObjects", 2)
+                    showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), c("#ff0000", ".deleted-node-geom"), changesetID + "n" + prevVersion.id, "customObjects", 2)
                     // todo show prev parent ways
                 }
             }
         } else if (targetVersion.version === 1) {
             if (targetVersion.tags) {
-                showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#00a500", changesetID + "n" + targetVersion.id)
+                showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), c("#00a500", ".first-node-version"), changesetID + "n" + targetVersion.id)
             }
             setTimeout(async () => {
                 if ((await getChangeset(parseInt(changesetID))).nodesWithOldParentWays.has(parseInt(objID))) {
-                    showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "#00a500", changesetID + "n" + targetVersion.id)
+                    showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), c("#00a500", ".first-node-version"), changesetID + "n" + targetVersion.id)
                 }
             }, 0) // dirty hack for https://osm.org/changeset/162017882
         } else if (prevVersion?.visible === false && targetVersion?.visible !== false) {
-            showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "rgba(89,170,9,0.6)", changesetID + "n" + targetVersion.id, "customObjects", 2)
+            showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), c("rgba(89, 170, 9, 0.6)", ".restored-node-version"), changesetID + "n" + targetVersion.id, "customObjects", 2)
         } else {
             showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "rgb(255,245,41)", changesetID + "n" + targetVersion.id)
         }
@@ -11602,7 +11712,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             document.querySelector("#element_versions_list > div.active-object")?.classList?.remove()
             i.parentElement.parentElement.classList.add("active-object")
 
-            showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", currentNodesList.length !== 0, changesetID + "w" + objID)
+            showActiveWay(cloneInto(currentNodesList, unsafeWindow), c("#ff00e3"), currentNodesList.length !== 0, changesetID + "w" + objID)
 
             if (version > 1) {
                 // show prev version
@@ -11611,7 +11721,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
                 showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", currentNodesList.length === 0, changesetID + "w" + objID, false, 4, "4, 4")
 
-                showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, changesetID + "w" + objID, false)
+                showActiveWay(cloneInto(currentNodesList, unsafeWindow), c("#ff00e3"), false, changesetID + "w" + objID, false)
             } else {
                 const targetTimestamp = new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1).toISOString()
                 const prevVersion = searchVersionByTimestamp(await getWayHistory(objID), targetTimestamp)
@@ -11620,7 +11730,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                     const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
                     showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", currentNodesList.length === 0, changesetID + "w" + objID, false, 4, "4, 4")
                 }
-                showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, changesetID + "w" + objID, false)
+                showActiveWay(cloneInto(currentNodesList, unsafeWindow), c("#ff00e3"), false, changesetID + "w" + objID, false)
             }
         }
         let attempts = 0
@@ -11638,10 +11748,10 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 const closedTime = new Date(changesetMetadata.closed_at ?? new Date()).toISOString()
                 const nodesAfterChangeset = filterObjectListByTimestamp(nodesHistory, closedTime)
                 if (nodesAfterChangeset.some(i => i.visible === false)) {
-                    displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 3, changesetID + "w" + objID, "customObjects", dashArray)
+                    displayWay(cloneInto(nodesList, unsafeWindow), false, c("#ff0000", ".deleted-way-geom"), 3, changesetID + "w" + objID, "customObjects", dashArray)
                 } else {
                     // скорее всего это объединение линий, поэтому эту удаление линии нужно отправить на задний план
-                    const layer = displayWay(cloneInto(nodesList, unsafeWindow), false, "#ff0000", 7, changesetID + "w" + objID, "customObjects", dashArray)
+                    const layer = displayWay(cloneInto(nodesList, unsafeWindow), false, c("#ff0000", ".deleted-way-geom"), 7, changesetID + "w" + objID, "customObjects", dashArray)
                     layer.bringToBack()
                     lineWidth = 8
                 }
@@ -11649,9 +11759,9 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 console.error(`broken way: ${objID}`, nodesList) // todo retray
             }
         } else if (version === 1 && targetVersion.changeset === parseInt(changesetID)) {
-            displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(0,128,0,0.6)", lineWidth, changesetID + "w" + objID, "customObjects", dashArray)
+            displayWay(cloneInto(currentNodesList, unsafeWindow), false, c("rgba(0, 128, 0, 0.6)"), lineWidth, changesetID + "w" + objID, "customObjects", dashArray)
         } else if (prevVersion?.visible === false) {
-            displayWay(cloneInto(currentNodesList, unsafeWindow), false, "rgba(120,238,9,0.6)", lineWidth, changesetID + "w" + objID, "customObjects", dashArray)
+            displayWay(cloneInto(currentNodesList, unsafeWindow), false, c("rgba(120, 238, 9, 0.6)"), lineWidth, changesetID + "w" + objID, "customObjects", dashArray)
         } else {
             displayWay(cloneInto(currentNodesList, unsafeWindow), false, nowDeleted ? "rgb(0,0,0)" : "#373737", lineWidth, changesetID + "w" + objID, "customObjects", null, null, darkModeForMap && isDarkMode())
         }
@@ -11666,7 +11776,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
                 showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, changesetID + "w" + objID, false, 4, "4, 4")
 
-                showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, changesetID + "w" + objID, false, lineWidth)
+                showActiveWay(cloneInto(currentNodesList, unsafeWindow), c("#ff00e3"), false, changesetID + "w" + objID, false, lineWidth)
             } else {
                 const targetTimestamp = new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1).toISOString()
                 const prevVersion = searchVersionByTimestamp(await getWayHistory(objID), targetTimestamp)
@@ -11675,7 +11785,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                     const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
                     showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, changesetID + "w" + objID, false, 4, "4, 4")
                 }
-                showActiveWay(cloneInto(currentNodesList, unsafeWindow), "#ff00e3", false, changesetID + "w" + objID, false, lineWidth)
+                showActiveWay(cloneInto(currentNodesList, unsafeWindow), c("#ff00e3"), false, changesetID + "w" + objID, false, lineWidth)
             }
         }
 
@@ -11721,7 +11831,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 targetTimestamp = new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1).toISOString()
             }
             try {
-                const relationMetadata = await loadRelationVersionMembersViaOverpass(parseInt(objID), targetTimestamp, false, "#ff00e3")
+                const relationMetadata = await loadRelationVersionMembersViaOverpass(parseInt(objID), targetTimestamp, false, c("#ff00e3"))
                 if (relationMetadata.restrictionRelationErrors.length) {
                     showRestrictionValidationStatus(relationMetadata.restrictionRelationErrors, i.parentElement)
                 } else {
@@ -11746,7 +11856,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
 
                 async function mouseenterHandler() {
                     if (!pinnedRelations.has(parseInt(objID))) {
-                        await loadRelationVersionMembersViaOverpass(parseInt(objID), targetTimestamp, false, "#ff00e3")
+                        await loadRelationVersionMembersViaOverpass(parseInt(objID), targetTimestamp, false, c("#ff00e3"))
                     }
                 }
 
@@ -11901,289 +12011,293 @@ let quickLookStylesInjected = false
 function addQuickLookStyles() {
     if (quickLookStylesInjected) return
     quickLookStylesInjected = true
-    try {
-        const styleText =
-            `
-            .edits-wars-log tr:nth-child(even) td, .edits-wars-log tr:nth-child(even) th {
-                background-color: color-mix(in srgb, var(--bs-body-bg), black 25%);
+    const styleText =
+        `
+        .edits-wars-log tr:nth-child(even) td, .edits-wars-log tr:nth-child(even) th {
+            background-color: color-mix(in srgb, var(--bs-body-bg), black 25%);
+        }
+
+        @media ${mediaQueryForWebsiteTheme} {
+
+        .edits-wars-log tr:nth-child(even) td, .edits-wars-log tr:nth-child(even) th {
+            background-color: color-mix(in srgb, var(--bs-body-bg), white 5%);
+        }
+
+        }
+
+        tr.quick-look-new-tag th {
+            background: ${c("rgba(17, 238, 9, 0.6)")};
+        }
+
+        table[contenteditable] th:not(.tag-flag) {
+            border: solid 2px black;
+        }
+
+        table[contenteditable] td:not(.tag-flag) {
+            border: solid 2px black;
+        }
+
+        tr.quick-look-modified-tag td:nth-of-type(1){
+            background: ${c("rgba(223, 238, 9, 0.6)")};
+        }
+        
+        tr.quick-look-deleted-tag th {
+            background: ${c("rgba(238, 51, 9, 0.6)")};
+            color: ${c("#000", ".quick-look-deleted-tag")};
+        }
+
+        tr.quick-look-new-tag td:not(.tag-flag) {
+            background: ${c("rgba(17, 238, 9, 0.6)")};
+        }
+
+        tr.quick-look-deleted-tag td:not(.tag-flag) {
+            background: ${c("rgba(238, 51, 9, 0.6)")};
+            color: ${c("#000", ".quick-look-deleted-tag")};
+        }
+
+        table.quick-look.hide-non-modified-tags > tbody > .non-modified-tag-in-quick-view {
+            display: none;
+        }
+
+        .new-letter {
+            background: ${c("rgba(25, 223, 25, 0.6)")};
+        }
+
+        .deleted-letter {
+            background: ${c("rgba(255, 144, 144, 0.6)")};
+        }
+
+        @media ${mediaQueryForWebsiteTheme} {
+            tr.quick-look-new-tag th{
+                /*background: #0f540fde;*/
+                background: ${c("rgba(17, 238, 9, 0.3)")};
+                /*background: rgba(87, 171, 90, 0.3);*/
             }
 
-            @media ${mediaQueryForWebsiteTheme} {
-
-            .edits-wars-log tr:nth-child(even) td, .edits-wars-log tr:nth-child(even) th {
-                background-color: color-mix(in srgb, var(--bs-body-bg), white 5%);
+            tr.quick-look-new-tag td:not(.tag-flag){
+                /*background: #0f540fde;*/
+                background: ${c("rgba(17, 238, 9, 0.3)")};
+                /*background: rgba(87, 171, 90, 0.3);*/
             }
 
+            tr.quick-look-modified-tag td {
+                color: black;
             }
 
-            tr.quick-look-new-tag th {
-                background: rgba(17,238,9,0.6);
-            }
-
-            table[contenteditable] th:not(.tag-flag) {
-                border: solid 2px black;
-            }
-
-            table[contenteditable] td:not(.tag-flag) {
-                border: solid 2px black;
-            }
-
-            tr.quick-look-modified-tag td:nth-of-type(1){
-                background: rgba(223,238,9,0.6);
-            }
-
-            tr.quick-look-deleted-tag th {
-                background: rgba(238,51,9,0.6);
-            }
-
-            tr.quick-look-new-tag td:not(.tag-flag) {
-                background: rgba(17,238,9,0.6);
+            tr.quick-look-deleted-tag th:not(.tag-flag) { /* dirty hack for zebra colors override */
+                /*background: #692113;*/
+                background: ${c("rgba(238, 51, 9, 0.4)")};
+                /*background: rgba(229, 83, 75, 0.3);*/
+                color: ${c("#fff", ".quick-look-deleted-tag")};
             }
 
             tr.quick-look-deleted-tag td:not(.tag-flag) {
-                background: rgba(238,51,9,0.6);
+                /*background: #692113;*/
+                background: ${c("rgba(238, 51, 9, 0.4)")};
+                /*background: rgba(229, 83, 75, 0.3);*/
+                color: ${c("#fff", ".quick-look-deleted-tag")};
             }
 
-            table.quick-look.hide-non-modified-tags > tbody > .non-modified-tag-in-quick-view {
-                display: none;
+            tr.quick-look-new-tag th::selection {
+                background: black !important;
+            }
+
+            tr.quick-look-modified-tag th::selection {
+                background: black !important;
+            }
+
+            tr.quick-look-deleted-tag th::selection {
+                background: black !important;
+            }
+
+            tr.quick-look-new-tag td::selection {
+                background: black !important;
+            }
+
+            /*tr.quick-look-modified-tag td::selection {*/
+            /*    background: black !important;*/
+            /*}*/
+
+            tr.quick-look-deleted-tag td::selection {
+                background: black !important;
             }
 
             .new-letter {
-                background: rgba(25, 223, 25, 0.6);
+                background: rgba(25, 223, 25, 0.9);
             }
 
             .deleted-letter {
-                background: rgba(255, 144, 144, 0.6);
+                background: rgba(253, 83, 83, 0.8);
             }
+        }
+        .edits-wars-tag td:nth-of-type(2)::after{
+          content: " ⚔️";
+          margin-top: 2px
+        }
+        tr.restored-tag td:nth-of-type(2)::after {
+          content: " ♻️";
+          margin-top: 2px
+        }
+        tr.restored-tag.edits-wars-tag td:nth-of-type(2)::after {
+          content: " ♻️⚔️";
+          margin-top: 2px
+        }
+        tr.removed-tag td:nth-of-type(2)::after {
+          content: " 🗑";
+          margin-top: 2px
+        }
+        tr.removed-tag.edits-wars-tag td:nth-of-type(2)::after {
+          content: " 🗑⚔️";
+          margin-top: 2px
+        }
+        tr.replaced-tag td:nth-of-type(2)::after {
+          content: " ⇄";
+          color: var(--bs-body-color);
+        }
+        tr.replaced-tag.edits-wars-tag td:nth-of-type(2)::after {
+          content: " ⇄⚔️";
+          color: var(--bs-body-color);
+        }
+        tr.reverted-tag td:nth-of-type(2)::after {
+          content: " ↻";
+          color: var(--bs-body-color);
+        }
 
-            @media ${mediaQueryForWebsiteTheme} {
-                tr.quick-look-new-tag th{
-                    /*background: #0f540fde;*/
-                    background: rgba(17,238,9,0.3);
-                    /*background: rgba(87, 171, 90, 0.3);*/
-                }
-
-                tr.quick-look-new-tag td:not(.tag-flag){
-                    /*background: #0f540fde;*/
-                    background: rgba(17,238,9,0.3);
-                    /*background: rgba(87, 171, 90, 0.3);*/
-                }
-
-                tr.quick-look-modified-tag td {
-                    color: black;
-                }
-
-                tr.quick-look-deleted-tag th:not(.tag-flag) { /* dirty hack for zebra colors override */
-                    /*background: #692113;*/
-                    background: rgba(238,51,9,0.4);
-                    /*background: rgba(229, 83, 75, 0.3);*/
-                }
-
-                tr.quick-look-deleted-tag td:not(.tag-flag) {
-                    /*background: #692113;*/
-                    background: rgba(238,51,9,0.4);
-                    /*background: rgba(229, 83, 75, 0.3);*/
-                }
-
-                tr.quick-look-new-tag th::selection {
-                    background: black !important;
-                }
-
-                tr.quick-look-modified-tag th::selection {
-                    background: black !important;
-                }
-
-                tr.quick-look-deleted-tag th::selection {
-                    background: black !important;
-                }
-
-                tr.quick-look-new-tag td::selection {
-                    background: black !important;
-                }
-
-                /*tr.quick-look-modified-tag td::selection {*/
-                /*    background: black !important;*/
-                /*}*/
-
-                tr.quick-look-deleted-tag td::selection {
-                    background: black !important;
-                }
-
-                .new-letter {
-                    background: rgba(25, 223, 25, 0.9);
-                }
-
-                .deleted-letter {
-                    background: rgba(253, 83, 83, 0.8);
-                }
-            }
-            .edits-wars-tag td:nth-of-type(2)::after{
-              content: " ⚔️";
-              margin-top: 2px
-            }
-            tr.restored-tag td:nth-of-type(2)::after {
-              content: " ♻️";
-              margin-top: 2px
-            }
-            tr.restored-tag.edits-wars-tag td:nth-of-type(2)::after {
-              content: " ♻️⚔️";
-              margin-top: 2px
-            }
-            tr.removed-tag td:nth-of-type(2)::after {
-              content: " 🗑";
-              margin-top: 2px
-            }
-            tr.removed-tag.edits-wars-tag td:nth-of-type(2)::after {
-              content: " 🗑⚔️";
-              margin-top: 2px
-            }
-            tr.replaced-tag td:nth-of-type(2)::after {
-              content: " ⇄";
-              color: var(--bs-body-color);
-            }
-            tr.replaced-tag.edits-wars-tag td:nth-of-type(2)::after {
-              content: " ⇄⚔️";
-              color: var(--bs-body-color);
-            }
-            tr.reverted-tag td:nth-of-type(2)::after {
-              content: " ↻";
-              color: var(--bs-body-color);
-            }
-
-            tr.reverted-tag.edits-wars-tag td:nth-of-type(2)::after {
-              content: " ↻⚔️";
-              color: var(--bs-body-color);
-            }
-            span.reverted-coordinates::after {
-              content: " ↻";
-              position: absolute;
-              color: var(--bs-body-color);
-            }
+        tr.reverted-tag.edits-wars-tag td:nth-of-type(2)::after {
+          content: " ↻⚔️";
+          color: var(--bs-body-color);
+        }
+        span.reverted-coordinates::after {
+          content: " ↻";
+          position: absolute;
+          color: var(--bs-body-color);
+        }
 
 
-            table.browse-tag-list tr td[colspan="2"]{
-                background: var(--bs-body-bg) !important;
-            }
+        table.browse-tag-list tr td[colspan="2"]{
+            background: var(--bs-body-bg) !important;
+        }
 
-            ul:has(li[hidden]):after {
-                color: var(--bs-body-color);
-                content: attr(hidden-nodes-count) ' uninteresting nodes hidden';
-                font-style: italic;
-                font-weight: normal;
-                font-size: small;
-                opacity: 0.5;
-            }
+        ul:has(li[hidden]):after {
+            color: var(--bs-body-color);
+            content: attr(hidden-nodes-count) ' uninteresting nodes hidden';
+            font-style: italic;
+            font-weight: normal;
+            font-size: small;
+            opacity: 0.5;
+        }
 
-            ` +
-            (GM_config.get("ShowChangesetGeometry")
-                ? `
+        ` +
+        (GM_config.get("ShowChangesetGeometry")
+            ? `
+        #sidebar_content #changeset_nodes ul:not(.pagination) li:hover {
+            background-color: rgba(223, 223, 223, 0.6);
+        }
+        #sidebar_content #changeset_ways ul:not(.pagination) li:hover {
+            background-color: rgba(223, 223, 223, 0.6);
+        }
+        #sidebar_content #changeset_nodes ul:not(.pagination) li.map-hover {
+            background-color: rgba(223, 223, 223, 0.6);
+        }
+        #sidebar_content #changeset_ways ul:not(.pagination) li.map-hover {
+            background-color: rgba(223, 223, 223, 0.6);
+        }
+        #sidebar_content #changeset_relations ul:not(.pagination) li.map-hover {
+            background-color: rgba(223, 223, 223, 0.6);
+        }
+        #sidebar_content #changeset_relations ul:not(.pagination) li.downloaded:hover {
+            background-color: rgba(223, 223, 223, 0.6);
+        }
+
+        .location-modified-marker-warn::after:hover {
+            background-color: rgba(223, 223, 223, 0.6);
+        }
+
+        #sidebar_content #element_versions_list > div details.way-version-nodes li:hover {
+            background-color: rgba(223, 223, 223, 0.6);
+        }
+        #sidebar_content #element_versions_list > div details.way-version-nodes li:hover {
+            background-color: rgba(223, 223, 223, 0.6);
+        }
+        #sidebar_content #element_versions_list > div details.way-version-nodes li.map-hover {
+            background-color: rgba(223, 223, 223, 0.6);
+        }
+        #sidebar_content #element_versions_list > div details.way-version-nodes li.map-hover {
+            background-color: rgba(223, 223, 223, 0.6);
+        }
+        #sidebar_content #element_versions_list > div details.way-version-nodes li.downloaded:hover {
+            background-color: rgba(223, 223, 223, 0.6);
+        }
+
+        .location-modified-marker-warn::after:hover {
+              background-color: rgba(223, 223, 223, 0.6);;
+        }
+
+        @media ${mediaQueryForWebsiteTheme} {
             #sidebar_content #changeset_nodes ul:not(.pagination) li:hover {
-                background-color: rgba(223, 223, 223, 0.6);
+                background-color: rgb(14, 17, 19);
             }
             #sidebar_content #changeset_ways ul:not(.pagination) li:hover {
-                background-color: rgba(223, 223, 223, 0.6);
+                background-color: rgb(14, 17, 19);
             }
             #sidebar_content #changeset_nodes ul:not(.pagination) li.map-hover {
-                background-color: rgba(223, 223, 223, 0.6);
+                background-color: rgb(14, 17, 19);
             }
             #sidebar_content #changeset_ways ul:not(.pagination) li.map-hover {
-                background-color: rgba(223, 223, 223, 0.6);
+                background-color: rgb(14, 17, 19);
             }
             #sidebar_content #changeset_relations ul:not(.pagination) li.map-hover {
-                background-color: rgba(223, 223, 223, 0.6);
+                background-color: rgb(14, 17, 19);
             }
             #sidebar_content #changeset_relations ul:not(.pagination) li.downloaded:hover {
-                background-color: rgba(223, 223, 223, 0.6);
-            }
-
-            .location-modified-marker-warn::after:hover {
-                  background-color: rgba(223, 223, 223, 0.6);;
+                background-color: rgb(14, 17, 19);
             }
 
             #sidebar_content #element_versions_list > div details.way-version-nodes li:hover {
-                background-color: rgba(223, 223, 223, 0.6);
+                background-color: rgb(52,61,67);
             }
             #sidebar_content #element_versions_list > div details.way-version-nodes li:hover {
-                background-color: rgba(223, 223, 223, 0.6);
+                background-color: rgb(52,61,67);
             }
             #sidebar_content #element_versions_list > div details.way-version-nodes li.map-hover {
-                background-color: rgba(223, 223, 223, 0.6);
+                background-color: rgb(52,61,67);
             }
             #sidebar_content #element_versions_list > div details.way-version-nodes li.map-hover {
-                background-color: rgba(223, 223, 223, 0.6);
+                background-color: rgb(52,61,67);
             }
             #sidebar_content #element_versions_list > div details.way-version-nodes li.downloaded:hover {
-                background-color: rgba(223, 223, 223, 0.6);
+                background-color: rgb(52,61,67);
             }
 
             .location-modified-marker-warn::after:hover {
-                  background-color: rgba(223, 223, 223, 0.6);;
+                background-color: rgb(14, 17, 19);
             }
+        }
+        .location-modified-marker-warn::after {
+          content: " ⚠️";
+          background: var(--bs-body-bg);
+        }
+        .location-modified-marker:hover {
+            background: #0022ff82 !important;
+        }
+        .way-version-node:hover {
+            background-color: #ff00e3 !important;
+        }
+        .relation-version-node:hover {
+            background-color: #ff00e3 !important;
+        }
+        .leaflet-fade-anim .leaflet-popup {
+            transition: none;
+        }
 
-            @media ${mediaQueryForWebsiteTheme} {
-                #sidebar_content #changeset_nodes ul:not(.pagination) li:hover {
-                    background-color: rgb(14, 17, 19);
-                }
-                #sidebar_content #changeset_ways ul:not(.pagination) li:hover {
-                    background-color: rgb(14, 17, 19);
-                }
-                #sidebar_content #changeset_nodes ul:not(.pagination) li.map-hover {
-                    background-color: rgb(14, 17, 19);
-                }
-                #sidebar_content #changeset_ways ul:not(.pagination) li.map-hover {
-                    background-color: rgb(14, 17, 19);
-                }
-                #sidebar_content #changeset_relations ul:not(.pagination) li.map-hover {
-                    background-color: rgb(14, 17, 19);
-                }
-                #sidebar_content #changeset_relations ul:not(.pagination) li.downloaded:hover {
-                    background-color: rgb(14, 17, 19);
-                }
-
-                #sidebar_content #element_versions_list > div details.way-version-nodes li:hover {
-                    background-color: rgb(52,61,67);
-                }
-                #sidebar_content #element_versions_list > div details.way-version-nodes li:hover {
-                    background-color: rgb(52,61,67);
-                }
-                #sidebar_content #element_versions_list > div details.way-version-nodes li.map-hover {
-                    background-color: rgb(52,61,67);
-                }
-                #sidebar_content #element_versions_list > div details.way-version-nodes li.map-hover {
-                    background-color: rgb(52,61,67);
-                }
-                #sidebar_content #element_versions_list > div details.way-version-nodes li.downloaded:hover {
-                    background-color: rgb(52,61,67);
-                }
-
-                .location-modified-marker-warn::after:hover {
-                    background-color: rgb(14, 17, 19);
-                }
+        @media (prefers-color-scheme: dark) {
+            path.stroke-polyline {
+                filter: drop-shadow(1px 1px 0 #7a7a7a) drop-shadow(-1px -1px 0 #7a7a7a) drop-shadow(1px -1px 0 #7a7a7a) drop-shadow(-1px 1px 0 #7a7a7a);
             }
-            .location-modified-marker-warn::after {
-              content: " ⚠️";
-              background: var(--bs-body-bg);
-            }
-            .location-modified-marker:hover {
-                background: #0022ff82 !important;
-            }
-            .way-version-node:hover {
-                background-color: #ff00e3 !important;
-            }
-            .relation-version-node:hover {
-                background-color: #ff00e3 !important;
-            }
-            .leaflet-fade-anim .leaflet-popup {
-                transition: none;
-            }
-
-            @media (prefers-color-scheme: dark) {
-                path.stroke-polyline {
-                    filter: drop-shadow(1px 1px 0 #7a7a7a) drop-shadow(-1px -1px 0 #7a7a7a) drop-shadow(1px -1px 0 #7a7a7a) drop-shadow(-1px 1px 0 #7a7a7a);
-                }
-            }
-            `
-                : "")
+        }
+        `
+            : "")
+    try {
         injectCSSIntoOSMPage(styleText)
     } catch {
         /* empty */
@@ -12930,9 +13044,9 @@ async function processQuickLookInSidebar(changesetID) {
                                     const curVersion = searchVersionByTimestamp(await getNodeHistory(n), changesetMetadatas[changesetID].closed_at ?? new Date())
                                     if (curVersion.version > 1) {
                                         const prevVersion = searchVersionByTimestamp(await getNodeHistory(n), targetTimestamp)
-                                        showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), "#0022ff", false)
+                                        showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), c("#0022ff"), false)
                                     }
-                                    showActiveNodeMarker(curVersion.lat.toString(), curVersion.lon.toString(), "#ff00e3", false)
+                                    showActiveNodeMarker(curVersion.lat.toString(), curVersion.lon.toString(), c("#ff00e3"), false)
                                 })
                             })
                         }),
@@ -17686,7 +17800,7 @@ function setupNavigationViaHotkeys() {
                                 // TODO
                             }
                         }
-                        showActiveWay(nodesList, "#0022ff", false, null, true, 2)
+                        showActiveWay(nodesList, c("#0022ff"), false, null, true, 2)
                     })
                 }
             }
@@ -19506,6 +19620,9 @@ function main() {
     "use strict"
     if (GM_config.get("DebugMode")) {
         _isDebug = true
+    }
+    if (GM_config.get("ColorblindFriendlyPalette")) {
+        setColorblindFriendlyPalette()
     }
     if (location.origin === "https://www.hdyc.neis-one.org" || location.origin === "https://hdyc.neis-one.org") {
         simplifyHDCYIframe()
