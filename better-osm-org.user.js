@@ -6319,6 +6319,33 @@ async function getWayHistory(wayID) {
     }
 }
 
+async function loadHiddenWayVersionViaOverpass(wayID, version) {
+    const query = `
+[out:json];
+timeline(way, ${wayID}, ${version});
+for (t["created"])
+{
+  retro (_.val)
+  {
+    way(${wayID});
+    out meta;
+  }
+}
+`
+    console.time("download overpass data")
+    const res = await GM.xmlHttpRequest({
+        url:
+            overpass_server.apiUrl +
+            "/interpreter?" +
+            new URLSearchParams({
+                data: query,
+            }),
+        responseType: "json",
+    })
+    console.timeEnd("download overpass data")
+    return res.response.elements[0]
+}
+
 /**
  * @param {string|number} wayID
  * @param {number} version
@@ -6329,7 +6356,7 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
     console.debug("Loading way", wayID, version)
     const wayHistory = await getWayHistory(wayID)
 
-    const targetVersion = Array.from(wayHistory).find(v => v.version === version)
+    const targetVersion = wayHistory.find(v => v.version === version) ?? loadHiddenWayVersionViaOverpass(wayID, version)
     if (!targetVersion) {
         throw `loadWayVersionNodes failed ${wayID}, ${version}`
     }
@@ -6759,7 +6786,7 @@ async function replaceDownloadWayButton(btn, wayID) {
                 }
             })
         }
-        let insertBeforeThat = document.querySelector(`#element_versions_list > div[way-version="${currentWayVersion.version}"]`)
+        let insertBeforeThat = document.querySelector(`#element_versions_list > :where(div, details)[way-version="${currentWayVersion.version}"]`)
         while (insertBeforeThat.previousElementSibling?.getAttribute("way-version") === "inter") {
             // fixme O(n^2)
             insertBeforeThat = insertBeforeThat.previousElementSibling
