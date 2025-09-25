@@ -9029,7 +9029,7 @@ function addDiffInHistory(reason = "url_change") {
                 tr.classList.add("history-diff-deleted-tag-tr")
                 let th = document.createElement("th")
                 th.textContent = k
-                th.classList.add("history-diff-deleted-tag", "py-1", "border-grey", "table-light", "fw-normal")
+                th.classList.add("history-diff-deleted-tag", "py-1", "border-grey", "table-light", "fw-normal", "border-start", "border-secondary-subtle")
                 let td = document.createElement("td")
                 if (k.includes("colour")) {
                     td.innerHTML = `<svg width="14" height="14" class="float-end m-1"><title></title><rect x="0.5" y="0.5" width="13" height="13" fill="" stroke="#2222"></rect></svg>`
@@ -9038,7 +9038,7 @@ function addDiffInHistory(reason = "url_change") {
                 } else {
                     td.textContent = v
                 }
-                td.classList.add("history-diff-deleted-tag", "py-1", "border-grey", "table-light", "fw-normal")
+                td.classList.add("history-diff-deleted-tag", "py-1", "border-grey", "table-light", "fw-normal", "border-start", "border-secondary-subtle")
                 tr.appendChild(th)
                 tr.appendChild(td)
                 if (!x.querySelector("tbody")) {
