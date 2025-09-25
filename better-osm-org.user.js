@@ -5177,6 +5177,8 @@ const colorsPalette = {
     "rgba(17, 238, 9, 0.6).nodes-changed-row": "rgba(17, 238, 9, 0.6)",
     "rgba(238, 51, 9, 0.6).nodes-changed-row": "rgba(238, 51, 9, 0.6)",
 
+    "rgba(4, 123, 0, 0.6).history-diff-new-tag" : "rgba(4, 123, 0, 0.6)",
+    "rgba(238, 51, 9, 0.4).history-diff-deleted-tag": "rgba(238, 51, 9, 0.4)"
 }
 
 // prettier-ignore
@@ -5185,16 +5187,19 @@ const colorblindFriendlyPalette = {
     "rgba(238, 51, 9, 0.6)": "#F80000",              // .quick-look-deleted-tag
     "#000.quick-look-deleted-tag": "#fff",           // color.quick-look-deleted-tag
 
+    "rgba(25, 223, 25, 0.9)": "#8EA5FFC4",           // dark.new-letter
+    "rgba(253, 83, 83, 0.8)": "#FFB7B7",             // dark.deleted-letter
+
     "rgba(17, 238, 9, 0.3)": "#1A385C",              // dark.quick-look-new-tag
     "rgba(238, 51, 9, 0.4)": "#4B2D1C",              // dark.quick-look-deleted-tag
 
-    "rgba(0, 128, 0, 0.6)": "#0074FF75",                // displayWay for version 1
-    "rgba(120, 238, 9, 0.6)": "rgba(64,152,255,0.46)",            // displayWay for restored way
+    "rgba(0, 128, 0, 0.6)": "#0074FF75",                     // displayWay for version 1
+    "rgba(120, 238, 9, 0.6)": "rgba(64,152,255,0.46)",       // displayWay for restored way
     "#ff0000.deleted-way-geom": "#f34c4c",                   // displayWay for deleted
 
-    "#00a500.first-node-version": "#0074FF75",                 // showNodeMarker for version 1
+    "#00a500.first-node-version": "#0074FF75",                                // showNodeMarker for version 1
     "rgba(89, 170, 9, 0.6).restored-node-version": "rgba(64,152,255,0.46)",   // showNodeMarker for version 1
-    "#ff0000.deleted-node-geom": "#f34c4c",                  // showNodeMarker for deleted
+    "#ff0000.deleted-node-geom": "#f34c4c",                                   // showNodeMarker for deleted
 
     "rgba(17, 238, 9, 0.3).members-changed-flag": "#0074FF75",   // dark
     "rgba(101, 238, 9, 0.6).members-changed-flag": "#0074FF75",
@@ -5212,6 +5217,8 @@ const colorblindFriendlyPalette = {
     "rgba(17, 238, 9, 0.6).nodes-changed-row": "#0074FF75",
     "rgba(238, 51, 9, 0.6).nodes-changed-row": "rgb(242, 0, 0)",
 
+    "rgba(4, 123, 0, 0.6).history-diff-new-tag" : "#1A385C",
+    "rgba(238, 51, 9, 0.4).history-diff-deleted-tag": "#4B2D1C"
 }
 
 function setColorblindFriendlyPalette() {
@@ -8494,16 +8501,16 @@ function addDiffInHistoryStyle() {
     }
 
     .new-letter {
-        background: rgba(25, 223, 25, 0.6);
+        background: ${c("rgba(25, 223, 25, 0.6)")};
     }
 
     .deleted-letter {
-        background: rgba(255, 144, 144, 0.6);
+        background: ${c("rgba(255, 144, 144, 0.6)")};
     }
 
     @media ${mediaQueryForWebsiteTheme} {
         .history-diff-new-tag {
-          background: rgba(4, 123, 0, 0.6) !important;
+          background: ${c("rgba(4, 123, 0, 0.6)", ".history-diff-new-tag")} !important;
         }
         .history-diff-modified-tag {
           color: black !important;
@@ -8513,7 +8520,7 @@ function addDiffInHistoryStyle() {
         }
         .history-diff-deleted-tag {
           color: lightgray !important;
-          background: rgba(238, 51, 9, 0.4) !important;
+          background: ${c("rgba(238, 51, 9, 0.4)", ".history-diff-deleted-tag")} !important;
         }
 
         summary.history-diff-modified-tag {
@@ -12123,11 +12130,11 @@ function addQuickLookStyles() {
             }
 
             .new-letter {
-                background: rgba(25, 223, 25, 0.9);
+                background: ${c("rgba(25, 223, 25, 0.9)")};
             }
 
             .deleted-letter {
-                background: rgba(253, 83, 83, 0.8);
+                background: ${c("rgba(253, 83, 83, 0.8)")};
             }
         }
         .edits-wars-tag td:nth-of-type(2)::after{
