@@ -7774,6 +7774,9 @@ async function getNodeViaOverpassXML(id, timestamp) {
             }),
         responseType: "xml",
     })
+    if (res.status !== 200) {
+        console.trace(res)
+    }
     return new DOMParser().parseFromString(res.response, "text/xml").querySelector("node")
 }
 
@@ -7791,6 +7794,9 @@ async function getWayViaOverpassXML(id, timestamp) {
             }),
         responseType: "xml",
     })
+    if (res.status !== 200) {
+        console.trace(res)
+    }
     return new DOMParser().parseFromString(res.response, "text/xml").querySelector("way")
 }
 
@@ -7808,6 +7814,9 @@ async function getRelationViaOverpassXML(id, timestamp) {
             }),
         responseType: "xml",
     })
+    if (res.status !== 200) {
+        console.trace(res)
+    }
     return new DOMParser().parseFromString(res.response, "text/xml").querySelector("relation")
 }
 
@@ -8029,6 +8038,7 @@ function setupRelationVersionView() {
 
 // tests
 // https://www.openstreetmap.org/relation/100742/history
+// todo https://www.openstreetmap.org/way/217858945/history
 function setupViewRedactions() {
     // TODO дозагрузку нужно делать только если есть аргументы в URL?
     // if (!location.pathname.includes("/node")) {
@@ -8047,6 +8057,8 @@ function setupViewRedactions() {
     }
     showUnredactedBtn.onclick = async e => {
         e.preventDefault()
+        e.stopPropagation()
+        e.stopImmediatePropagation()
         await unrollPaginationInHistory()
         showUnredactedBtn.style.cursor = "progress"
         const type = location.pathname.match(/\/(node|way|relation)/)[1]
@@ -8115,7 +8127,7 @@ function setupViewRedactions() {
                     target = await getRelationViaOverpassXML(objID, targetDatetime)
                 }
                 if (!target) {
-                    console.error(`v${version} not founded`)
+                    console.error(`v${version} not founded`, objID, targetDatetime)
                     continue
                 }
                 // todo попробовать заменить на оператор timeline в overpass api
@@ -8774,7 +8786,7 @@ function addDiffInHistory(reason = "url_change") {
     addDiffInHistoryStyle()
     const versions = [{ tags: [], coordinates: "", wasModified: false, nodes: [], members: [], visible: true }]
     // add/modification
-    const versionsHTML = Array.from(document.querySelectorAll('#element_versions_list > div:not(.processed):not(:has(a[href*="/redactions/"]:not([rel])))'))
+    const versionsHTML = Array.from(document.querySelectorAll('#element_versions_list > div:not(.processed):not([way-version="inter"]):not(:has(a[href*="/redactions/"]:not([rel])))'))
     for (let ver of versionsHTML.toReversed()) {
         ver.classList.add("processed")
         let wasModifiedObject = false
