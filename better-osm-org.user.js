@@ -10117,7 +10117,7 @@ function setupMakeVersionPageBetter() {
 // Модули должны стать классами
 // - поддерживается всеми браузерами, в которых есть TM
 // - изоляция функций и глобальных переменных
-// - для модулей, которые внедряются черзе setInterval можно сохранить таймер, чтобы предотвратить дублирование вызовов
+// - для модулей, которые внедряются через setInterval можно сохранить таймер, чтобы предотвратить дублирование вызовов
 // - возможность сохранить результат внедрения
 
 let quickLookInjectingStarted = false
@@ -10802,6 +10802,8 @@ let pinnedRelations = new Set()
 async function processObject(i, objType, prevVersion, targetVersion, lastVersion, objHistory) {
     const tagsTable = document.createElement("table")
     tagsTable.classList.add("quick-look")
+    tagsTable.classList.toggle("hide-non-modified-tags", !allTagsOfObjectsVisible)
+
     const tbody = document.createElement("tbody")
     tagsTable.appendChild(tbody)
 
@@ -10927,9 +10929,6 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             detectEditsWars(prevVersion, targetVersion, objHistory, row, key)
         } else {
             row.classList.add("non-modified-tag-in-quick-view")
-            if (!allTagsOfObjectsVisible) {
-                row.setAttribute("hidden", "true")
-            }
             makeLinksInChangesetObjectRowClickable(row)
             tbody.appendChild(row)
         }
@@ -12592,7 +12591,7 @@ async function processQuickLookInSidebar(changesetID) {
                 el.classList.toggle("hide-non-modified-tags", shouldBeHidden)
             })
             if (needHideNodes) {
-                if (e.target.textContent === "><") {
+                if (e.target.textContent === "<>") {
                     document.querySelectorAll("#changeset_nodes .tags-non-modified:not(.location-modified)").forEach(i => {
                         i.setAttribute("hidden", "true")
                     })
