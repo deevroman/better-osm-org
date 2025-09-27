@@ -18452,7 +18452,7 @@ function renderGeoJSONwrapper(geojson) {
                     const th = document.createElement("th")
                     th.textContent = key
                     const td = document.createElement("td")
-                    if (key === "id" && typeof value(value.startsWith("node/") || value.startsWith("way/") || value.startsWith("relation/"))) {
+                    if (key === "id" && typeof value === "string" && (value.startsWith("node/") || value.startsWith("way/") || value.startsWith("relation/"))) {
                         const a = document.createElement("a")
                         a.textContent = value
                         a.href = "/" + value
@@ -18478,7 +18478,10 @@ function renderGeoJSONwrapper(geojson) {
         }
 
         jsonLayer = L.geoJSON(data, {
-            onEachFeature: onEachFeature
+            onEachFeature: onEachFeature,
+            pointToLayer: function (feature, latlng) {
+                return L.circleMarker(latlng)
+            }
         });
         jsonLayer.addTo(map);
     }
