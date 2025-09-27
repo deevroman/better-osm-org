@@ -2094,12 +2094,14 @@ function setupRevertButton() {
 
 function showSearchForm() {
     document.querySelector("#sidebar .search_forms")?.removeAttribute("hidden")
+    document.querySelector("#sidebar .search_forms")?.style?.removeProperty("display")  // quick fix
 }
 
 function hideSearchForm() {
     if (location.pathname.startsWith("/search") || location.pathname.startsWith("/directions")) return
     if (!document.querySelector("#sidebar .search_forms")?.hasAttribute("hidden")) {
         document.querySelector("#sidebar .search_forms")?.setAttribute("hidden", "true")
+        document.querySelector("#sidebar .search_forms")?.style?.setProperty("display", "none", "important") // quick fix
     }
 
     document.querySelector(".sidebar-close-controls .btn-close:not(.hotkeyed)")?.addEventListener("click", () => {
