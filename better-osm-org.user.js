@@ -700,7 +700,7 @@ GM_config.init({
         ColorblindFriendlyPalette: {
             label: "Colorblind-friendly palette β",
             type: "checkbox",
-            default: "checked",
+            default: false,
             labelPos: "right",
         },
         CompactChangesetsHistory: {
