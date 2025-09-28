@@ -407,9 +407,9 @@ const instancesOf3DViewers = [
     },
     {
         name: "OSM Building Inspector",
-        url: "https://www.osmgo.org/bevy.html?",
+        url: "https://www.osmgo.org/bevy.html",
         makeURL: function ({ type: type, id: id }) {
-            return `${this.url}?${type}=${id}`
+            return `${this.url}?${type}=${id}` // todo relation don't work?
         },
     },
     // {
