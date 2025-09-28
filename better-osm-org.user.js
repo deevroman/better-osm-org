@@ -10389,7 +10389,7 @@ async function globalRateLimitByKey(key, ms) {
             break
         }
         console.log(`wait 1s for "${key}" key`)
-        await sleep(1000)
+        await abortableSleep(1000, getAbortController()) // todo extract const
     }
 }
 
@@ -10397,9 +10397,6 @@ function geocodeCurrentView(attempts = 5) {
     if (!GM_config.get("AddLocationFromNominatim")) return
     if (location.search.includes("changesets")) return
     setTimeout(async () => {
-        if (rateLimitBan) {
-            return
-        }
         await interceptMapManually()
         if (getZoom() <= 10) {
             getMap().attributionControl.setPrefix("")
@@ -10415,7 +10412,8 @@ function geocodeCurrentView(attempts = 5) {
         console.time(`Geocoding ${center.lng},${center.lat}`)
         await globalRateLimitByKey("last-geocoder-request-time", 1000)
 
-        fetchJSONWithCache(`https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2&zoom=10`, {
+        const url = `https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2&zoom=10`
+        fetchJSONWithCache(url, {
             signal: getAbortController().signal,
         })
             .then(r => {
