@@ -2749,7 +2749,7 @@ function addResolveNotesButton() {
     if (document.querySelector(".resolve-note-done")) return true
     if (document.querySelector("#timeback-btn")) return true
     resetSearchFormFocus()
-    geocodeCurrentView()
+    void geocodeCurrentView()
 
     document.querySelectorAll('#sidebar_content a[href^="/user/"]').forEach(elem => {
         getCachedUserInfo(elem.textContent).then(info => {
@@ -10392,41 +10392,49 @@ async function globalRateLimitByKey(key, ms) {
         await abortableSleep(1000, getAbortController()) // todo extract const
     }
 }
+const cachedNominatimRequests = new Set()
 
-function geocodeCurrentView(attempts = 5) {
+async function geocodeCurrentView(attempts = 5) {
     if (!GM_config.get("AddLocationFromNominatim")) return
     if (location.search.includes("changesets")) return
-    setTimeout(async () => {
-        await interceptMapManually()
-        if (getZoom() <= 10) {
-            getMap().attributionControl.setPrefix("")
-            if (attempts > 0) {
-                console.log(`Attempt №${7 - attempts} for geocoding`)
-                setTimeout(geocodeCurrentView, 100, attempts - 1)
-            } else {
-                console.log("Skip geocoding")
-            }
-            return
+    await interceptMapManually()
+    if (getZoom() <= 10) {
+        getMap().attributionControl.setPrefix("")
+        if (attempts > 0) {
+            console.log(`Attempt №${7 - attempts} for geocoding`)
+            setTimeout(geocodeCurrentView, 100, attempts - 1)
+        } else {
+            console.log("Skip geocoding")
         }
-        const center = getMapCenter()
-        console.time(`Geocoding ${center.lng},${center.lat}`)
-        await globalRateLimitByKey("last-geocoder-request-time", 1000)
+        return
+    }
+    const center = getMapCenter()
+    const precision = getZoom() <= 15 ? 5 : 6
+    const latStr = center.lat.toString().slice(0, precision)
+    const lngStr = center.lng.toString().slice(0, precision)
+    const url = `https://nominatim.openstreetmap.org/reverse.php?lat=${latStr}&lon=${lngStr}&format=jsonv2&zoom=10`
 
-        const url = `https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2&zoom=10`
-        fetchJSONWithCache(url, {
-            signal: getAbortController().signal,
-        })
-            .then(r => {
-                if (r?.address?.state) {
-                    getMap().attributionControl.setPrefix(`${r.address.state}`)
-                    console.timeEnd(`Geocoding changeset ${center.lng},${center.lat}`)
-                }
-            })
-            .catch(e => {
-                console.debug("Nominatim fail")
-                console.debug(e)
-            })
+    console.time(`Geocoding ${latStr}, ${lngStr}`)
+    if (!cachedNominatimRequests.has(url)) {
+        await globalRateLimitByKey("last-geocoder-request-time", 1000)
+    } else {
+        console.debug(`%c${url} should be cached`, "background: #222; color: #00ff00")
+    }
+
+    fetchJSONWithCache(url, {
+        signal: getAbortController().signal,
     })
+        .then(r => {
+            cachedNominatimRequests.add(url)
+            if (r?.address?.state) {
+                getMap().attributionControl.setPrefix(`${r.address.state}`)
+                console.timeEnd(`Geocoding ${latStr}, ${lngStr}`)
+            }
+        })
+        .catch(e => {
+            console.debug("Nominatim fail")
+            console.debug(e)
+        })
 }
 
 let iconsList = null
@@ -13498,7 +13506,7 @@ async function addChangesetQuickLook() {
     }
     quickLookInjectingStarted = true
     resetSearchFormFocus()
-    geocodeCurrentView()
+    void geocodeCurrentView()
     makeTimesSwitchable()
     if (GM_config.get("ResizableSidebar")) {
         document.querySelector("#sidebar").style.resize = "horizontal"
