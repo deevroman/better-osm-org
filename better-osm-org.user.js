@@ -1488,14 +1488,19 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
     const likeTitle = "OSMCha review like\n\nRight click to add review tags"
     const dislikeTitle = "OSMCha review dislike\n\nRight click to add review tags"
 
-    async function uncheck(changeset_id) {
+    async function osmchaRequest(url, method) {
         return await GM.xmlHttpRequest({
-            url: `https://osmcha.org/api/v1/changesets/${changeset_id}/uncheck/`,
+            url: url,
             headers: {
                 Authorization: "Token " + (await GM.getValue("OSMCHA_TOKEN")),
             },
-            method: "PUT",
+            method: method,
+            responseType: "json",
         })
+    }
+
+    async function uncheck(changeset_id) {
+        return await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/uncheck/`, "PUT")
     }
 
     const likeImgRes = GM_getResourceURL("OSMCHA_LIKE", false)
@@ -1526,13 +1531,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             await uncheck(changeset_id)
             await updateReactions()
         }
-        await GM.xmlHttpRequest({
-            url: `https://osmcha.org/api/v1/changesets/${changeset_id}/set-good/`,
-            headers: {
-                Authorization: "Token " + (await GM.getValue("OSMCHA_TOKEN")),
-            },
-            method: "PUT",
-        })
+        await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/set-good/`, "PUT")
         await updateReactions()
     }
     likeBtn.appendChild(likeImg)
@@ -1564,13 +1563,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             await uncheck(changeset_id)
             await updateReactions()
         }
-        await GM.xmlHttpRequest({
-            url: `https://osmcha.org/api/v1/changesets/${changeset_id}/set-harmful/`,
-            headers: {
-                Authorization: "Token " + (await GM.getValue("OSMCHA_TOKEN")),
-            },
-            method: "PUT",
-        })
+        await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/set-harmful/`, "PUT")
         await updateReactions()
     }
 
@@ -1582,14 +1575,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             // todo
             throw "Open Osmcha for get access to reactions"
         }
-        const res = await GM.xmlHttpRequest({
-            url: "https://osmcha.org/api/v1/changesets/" + changeset_id + "/",
-            method: "GET",
-            headers: {
-                Authorization: "Token " + osmchaToken,
-            },
-            responseType: "json",
-        })
+        const res = await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/`, "GET")
         if (res.status === 404) {
             likeImg.title = "Changeset not found in OSMCha database.\nEither OSMCha did not have time to process this changeset, or it is too old."
             dislikeImg.title = "Changeset not found in OSMCha database.\nEither OSMCha did not have time to process this changeset, or it is too old."
@@ -1716,16 +1702,8 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             }
 
             ch.onchange = async () => {
-                const osmchaToken = await GM.getValue("OSMCHA_TOKEN")
                 if (ch.checked) {
-                    const res = await GM.xmlHttpRequest({
-                        url: "https://osmcha.org/api/v1/changesets/" + changeset_id + "/tags/" + i.id + "/",
-                        method: "POST",
-                        headers: {
-                            Authorization: "Token " + osmchaToken,
-                        },
-                        responseType: "json",
-                    })
+                    const res = await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/tags/${i.id}/`, "POST")
                     if (res.status !== 200) {
                         console.trace(res)
                         ch.checked = "false"
@@ -1733,14 +1711,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
                         console.log(`${i.name} applyied`)
                     }
                 } else {
-                    const res = await GM.xmlHttpRequest({
-                        url: "https://osmcha.org/api/v1/changesets/" + changeset_id + "/tags/" + i.id + "/",
-                        method: "DELETE",
-                        headers: {
-                            Authorization: "Token " + osmchaToken,
-                        },
-                        responseType: "json",
-                    })
+                    const res = await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/tags/${i.id}/`, "DELETE")
                     if (res.status !== 200) {
                         console.trace(res)
                         ch.checked = "true"
