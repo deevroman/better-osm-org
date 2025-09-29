@@ -416,7 +416,7 @@ const instancesOf3DViewers = [
         name: "ArcGIS 3D Buildings & Trees",
         url: "https://arcgis.com/home/webscene/viewer.html",
         makeURL: function ({ x: x, y: y, z: z }) {
-            return `${this.url}?webscene=037cceb0e24440179dbd00846d2a8c4f&viewpoint=cam:${y},${parseFloat(x)-0.0015},150;0,50` // todo relation don't work?
+            return `${this.url}?webscene=037cceb0e24440179dbd00846d2a8c4f&viewpoint=cam:${y},${parseFloat(x) - 0.0015},150;0,50` // todo relation don't work?
         },
     },
     // {
@@ -2101,7 +2101,7 @@ function setupRevertButton() {
 
 function showSearchForm() {
     document.querySelector("#sidebar .search_forms")?.removeAttribute("hidden")
-    document.querySelector("#sidebar .search_forms")?.style?.removeProperty("display")  // quick fix
+    document.querySelector("#sidebar .search_forms")?.style?.removeProperty("display") // quick fix
 }
 
 function hideSearchForm() {
@@ -6021,7 +6021,7 @@ let abortDownloadingControllers = {}
  * @return {AbortController}
  */
 function getAbortController() {
-    return abortDownloadingControllers[location.pathname] ??= new AbortController()
+    return (abortDownloadingControllers[location.pathname] ??= new AbortController())
 }
 
 function abortPrevControllers(reason = null) {
