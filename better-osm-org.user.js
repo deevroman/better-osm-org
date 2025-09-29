@@ -6013,16 +6013,15 @@ function cleanAllObjects() {
 //</editor-fold>
 
 /**
- *
  * @type {Object.<string, AbortController>}
  */
 let abortDownloadingControllers = {}
 
+/**
+ * @return {AbortController}
+ */
 function getAbortController() {
-    if (abortDownloadingControllers[location.pathname]) {
-        return abortDownloadingControllers[location.pathname]
-    }
-    return (abortDownloadingControllers[location.pathname] = new AbortController())
+    return abortDownloadingControllers[location.pathname] ??= new AbortController()
 }
 
 function abortPrevControllers(reason = null) {
@@ -16276,6 +16275,11 @@ function updateCurrentObjectMetadata() {
     setTimeout(loadRelationMetadata, 0)
 }
 
+/**
+ * @param ms {number}
+ * @param signal {AbortSignal}
+ * @return {Promise<void>}
+ */
 async function abortableSleep(ms, { signal }) {
     console.debug(`sleep ${ms}ms`)
     await new Promise((resolve, reject) => {
