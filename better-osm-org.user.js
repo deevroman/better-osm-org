@@ -2961,7 +2961,7 @@ function addAltClickHandlerForNotes() {
             try {
                 e.propagatedFrom.getElement().style.display = "none"
             } catch (err) {
-                console.error(err)
+                console.error(err, "when e.propagatedFrom.getElement()")
             }
             getMap().fire("moveend")
             const match = location.pathname.match(/note\/(\d+)/)
@@ -2981,12 +2981,16 @@ function addAltClickHandlerForNotes() {
             e.originalEvent.stopPropagation()
             e.originalEvent.stopImmediatePropagation()
             getWindow().notesIDsFilter.add(getMap()._object.id)
-            getMap()._objectLayer.remove()
-            getMap().noteLayer?.eachLayer(l => {
-                if (l.id === getMap()._object.id) {
-                    l.remove()
-                }
-            })
+            try {
+                getMap()._objectLayer.remove()
+                getMap().noteLayer?.eachLayer(l => {
+                    if (l.id === getMap()._object.id) {
+                        l.remove()
+                    }
+                })
+            } catch (err) {
+                console.error(err, "when click for _objectLayer ")
+            }
             getMap().fire("moveend")
         }),
     )
