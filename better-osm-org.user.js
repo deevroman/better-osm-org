@@ -2377,11 +2377,7 @@ function addCompactSidebarStyle() {
 
 async function getChangesetComments(changeset_id) {
     const res = await fetchJSONWithCache(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json?include_discussion=true")
-    if (res.status === 509) {
-        error509Handler(res)
-    } else {
-        return res["changeset"]["comments"]
-    }
+    return res["changeset"]["comments"]
 }
 
 // prettier-ignore
@@ -6127,13 +6123,9 @@ const originalFetchTextWithCache = (() => {
             return cache.get(url)
         }
 
-        const promise = fetch(url, init).then(res => {
+        const promise = fetchRetry(url, init).then(res => {
             if (!res) console.trace()
-            if (res.status === 509) {
-                error509Handler(res)
-            } else {
-                return res.text()
-            }
+            return res.text()
         })
         cache.set(url, promise)
 
@@ -6268,7 +6260,7 @@ async function loadNodesViaHistoryCalls(nodes) {
             if (nodesHistories[nodeID]) {
                 targetNodesHistory.push(nodesHistories[nodeID])
             } else {
-                const res = await fetch(osm_server.apiBase + "node" + "/" + nodeID + "/history.json", {
+                const res = await fetchRetry(osm_server.apiBase + "node" + "/" + nodeID + "/history.json", {
                     signal: getAbortController().signal,
                 })
                 nodesHistories[nodeID] = (await res.json()).elements
@@ -6296,7 +6288,7 @@ async function getNodeHistory(nodeID) {
         return nodesHistories[nodeID]
     } else {
         // console.count("Node history miss")
-        const res = await fetch(osm_server.apiBase + "node" + "/" + nodeID + "/history.json", { signal: getAbortController().signal })
+        const res = await fetchRetry(osm_server.apiBase + "node" + "/" + nodeID + "/history.json", { signal: getAbortController().signal })
         return (nodesHistories[nodeID] = (await res.json()).elements)
     }
 }
@@ -6326,7 +6318,7 @@ async function getWayHistory(wayID) {
     if (waysHistories[wayID]) {
         return waysHistories[wayID]
     } else {
-        const res = await fetch(osm_server.apiBase + "way" + "/" + wayID + "/history.json", { signal: getAbortController().signal })
+        const res = await fetchRetry(osm_server.apiBase + "way" + "/" + wayID + "/history.json", { signal: getAbortController().signal })
         return (waysHistories[wayID] = (await res.json()).elements)
     }
 }
@@ -6394,7 +6386,7 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
     }
     await Promise.all(
         batches.map(async batch => {
-            const res = await fetch(osm_server.apiBase + "nodes.json?nodes=" + batch.join(","), { signal: getAbortController().signal })
+            const res = await fetchRetry(osm_server.apiBase + "nodes.json?nodes=" + batch.join(","), { signal: getAbortController().signal })
             if (!res.ok) {
                 console.trace(res)
             }
@@ -6444,7 +6436,7 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
     // console.groupCollapsed(`w${wayID}v${version}`)
     await Promise.all(
         queryArgs.map(async args => {
-            const res = await fetch(osm_server.apiBase + "nodes.json?nodes=" + args, { signal: getAbortController().signal })
+            const res = await fetchRetry(osm_server.apiBase + "nodes.json?nodes=" + args, { signal: getAbortController().signal })
             if (res.status === 404) {
                 console.log("%c Some nodes was hidden. Start slow fetching :(", "background: #222; color: #bada55")
                 let newArgs = args.split(",").map(i => parseInt(i.match(/(\d+)v(\d+)/)[1]))
@@ -6650,7 +6642,7 @@ async function replaceDownloadWayButton(btn, wayID) {
 
         const p = document.createElement("p")
         interVersionDiv.appendChild(p)
-        fetch(osm_server.apiBase + "changeset" + "/" + currentChangeset + ".json").then(async res => {
+        fetchRetry(osm_server.apiBase + "changeset" + "/" + currentChangeset + ".json").then(async res => {
             const jsonRes = await res.json()
             /** @type {ChangesetMetadata} */
             const changesetMetadata = jsonRes.changeset ? jsonRes.changeset : jsonRes.elements[0]
@@ -7235,12 +7227,8 @@ async function getRelationHistory(relationID) {
     if (relationsHistories[relationID]) {
         return relationsHistories[relationID]
     } else {
-        const res = await fetch(osm_server.apiBase + "relation" + "/" + relationID + "/history.json")
-        if (res.status === 509) {
-            error509Handler(res)
-        } else {
-            return (relationsHistories[relationID] = (await res.json()).elements)
-        }
+        const res = await fetchRetry(osm_server.apiBase + "relation" + "/" + relationID + "/history.json")
+        return (relationsHistories[relationID] = (await res.json()).elements)
     }
 }
 
@@ -8155,7 +8143,7 @@ function setupViewRedactions() {
             comment.classList.add("fs-6", "overflow-x-auto")
             setTimeout(async () => {
                 if (!target) return
-                const res = await fetch(osm_server.apiBase + "changeset" + "/" + target.getAttribute("changeset") + ".json")
+                const res = await fetchRetry(osm_server.apiBase + "changeset" + "/" + target.getAttribute("changeset") + ".json")
                 const jsonRes = await res.json()
                 comment.textContent = jsonRes.tags?.comment
             }, 0)
@@ -10358,8 +10346,6 @@ function addSwipes() {
     }
 }
 
-let rateLimitBan = false
-
 /**
  * @param {string} unsafe
  * @returns {string}
@@ -10372,18 +10358,6 @@ function escapeHtml(unsafe) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
-}
-
-/**
- * @param {Response} res
- */
-function error509Handler(res) {
-    rateLimitBan = true
-    console.error("oops, DOS block")
-    setTimeout(async () => {
-        getMap()?.attributionControl?.setPrefix(escapeHtml(await res.text()))
-    })
-    // todo sleep
 }
 
 /**
@@ -11745,7 +11719,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
     async function processWay() {
         i.id = `${changesetID}w${objID}`
 
-        const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/full.json", { signal: getAbortController().signal })
+        const res = await fetchRetry(osm_server.apiBase + objType + "/" + objID + "/full.json", { signal: getAbortController().signal })
         // todo по-хорошему нужно проверять, а не успела ли измениться история линии
         // будет более актуально после добавление предзагрузки
         const nowDeleted = !res.ok
@@ -12015,7 +11989,7 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
                     needFetch.push(objID)
                 }
             }
-            const res = await fetch(osm_server.apiBase + `${objType}s.json?${objType}s=` + needFetch.join(","), {
+            const res = await fetchRetry(osm_server.apiBase + `${objType}s.json?${objType}s=` + needFetch.join(","), {
                 signal: getAbortController().signal,
             })
             if (res.status === 404) {
@@ -12056,20 +12030,79 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
     await getChangeset(changesetID)
 }
 
+/**
+ * @param X {number}
+ * @param signal {AbortSignal}
+ * @return {Promise<unknown>}
+ */
+async function abortableSleepUntilNextXthSeconds(X, { signal }) {
+    const nowTime = new Date().getTime()
+    const nextTime = new Date(Math.ceil(nowTime / 1000 / X) * X * 1000)
+    const delay = nextTime - nowTime
+    return await abortableSleep(delay, { signal })
+}
+
+async function fetchRetry(...args) {
+    const RETRY_COUNT = 10
+    let count = RETRY_COUNT
+    while (count > 0) {
+        try {
+            const res = await fetch(...args)
+            if (res.status === 509 || res.status === 429) {
+                console.warn(`HTTP ${res.status}. Waiting before retry`)
+                if (res.headers.get("retry-after")) {
+                    await abortableSleep((parseInt(res.headers.get("retry-after")) + 1) * 1000, getAbortController())
+                } else {
+                    await abortableSleep((60 + Math.random() * 10) * 1000, getAbortController())
+                }
+                count -= 1
+                if (count === 0) {
+                    console.error("oops, DOS block")
+                    setTimeout(async () => {
+                        getMap()?.attributionControl?.setPrefix(escapeHtml(await res.text()))
+                    })
+                    throw "rate limit ban is too long"
+                }
+                continue
+            }
+            return res
+        } catch (error) {
+            if (!error?.message || !error.message.startsWith("NetworkError")) {
+                throw error
+            }
+            console.error(error, "fetch. Remain retries:", count)
+            await abortableSleepUntilNextXthSeconds(10, getAbortController())
+        }
+        count -= 1
+        if (!navigator.onLine) {
+            console.log("wait online")
+            await new Promise((resolve) => {
+                window.addEventListener("online", () => {
+                    console.log("online")
+                    resolve()
+                })
+            })
+            console.log("online")
+            continue
+        }
+        if (count === 0) {
+            console.error("Big wait before new retries")
+            await abortableSleep(60 * 1000, getAbortController())
+            count = RETRY_COUNT
+        }
+    }
+}
+
 async function getHistoryAndVersionByElem(elem) {
     const [, objType, objID, version] = elem.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
     if (histories[objType][objID]) {
         return [histories[objType][objID], parseInt(version)]
     }
-    const res = await fetch(osm_server.apiBase + objType + "/" + objID + "/history.json", { signal: getAbortController().signal })
+    const res = await fetchRetry(osm_server.apiBase + objType + "/" + objID + "/history.json", { signal: getAbortController().signal })
     if (!res.ok) {
         console.trace(objType, objID, version)
     }
-    if (res.status === 509 || res.status === 429) {
-        error509Handler(res)
-    } else {
-        return [(histories[objType][objID] = (await res.json()).elements), parseInt(version)]
-    }
+    return [(histories[objType][objID] = (await res.json()).elements), parseInt(version)]
 }
 
 /**
@@ -12441,17 +12474,13 @@ function preloadPrevNextChangesets() {
  * @return {Promise<WayVersion[]>}
  */
 async function getParentWays(nodeID) {
-    const rawRes = await fetch(osm_server.apiBase + "node/" + nodeID + "/ways.json", { signal: getAbortController().signal })
-    if (rawRes.status === 509) {
-        error509Handler(rawRes)
-    } else {
-        if (!rawRes.ok) {
-            console.warn(`fetching parent ways for ${nodeID} failed`)
-            console.trace()
-            return []
-        }
-        return (await rawRes.json()).elements
+    const rawRes = await fetchRetry(osm_server.apiBase + "node/" + nodeID + "/ways.json", { signal: getAbortController().signal })
+    if (!rawRes.ok) {
+        console.warn(`fetching parent ways for ${nodeID} failed`)
+        console.trace()
+        return []
     }
+    return (await rawRes.json()).elements
 }
 
 async function safeCallForSafari(fn) {
@@ -12526,7 +12555,7 @@ async function processQuickLookInSidebar(changesetID) {
                         needFetch.push(objID)
                     }
                 }
-                const res = await fetch(osm_server.apiBase + `${objType}s.json?${objType}s=` + needFetch.join(","), {
+                const res = await fetchRetry(osm_server.apiBase + `${objType}s.json?${objType}s=` + needFetch.join(","), {
                     signal: getAbortController().signal,
                 })
                 if (res.status === 404) {
@@ -13023,7 +13052,7 @@ async function processQuickLookInSidebar(changesetID) {
                             })
                             const objID = way.id
 
-                            const res = await fetch(osm_server.apiBase + "way" + "/" + way.id + "/full.json", {
+                            const res = await fetchRetry(osm_server.apiBase + "way" + "/" + way.id + "/full.json", {
                                 signal: getAbortController().signal,
                             })
                             if (!res.ok) {
@@ -16085,7 +16114,7 @@ function setupMassChangesetsActions() {
 let hotkeysConfigured = false
 
 async function getChangesetMetadata(changeset_id) {
-    return await fetch(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json")
+    return await fetchRetry(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json")
 }
 
 /**
@@ -16107,9 +16136,7 @@ async function loadChangesetMetadata(changeset_id = null) {
     }
     // prevChangesetMetadata = changesetMetadatas[changeset_id]
     const res = await getChangesetMetadata(changeset_id)
-    if (res.status === 509) {
-        error509Handler(res)
-    } else if (res.status !== 200) {
+    if (res.status !== 200) {
         console.error(res)
         debug_alert("metadatas failed")
     } else {
@@ -16135,15 +16162,11 @@ async function loadChangesetMetadatas(changeset_ids) {
     }
     const batchSize = 100
     for (let i = 0; i < changeset_ids.length; i += batchSize) {
-        const res = await fetch(osm_server.apiBase + "changesets.json?changesets=" + changeset_ids.slice(i, i + batchSize).join(","))
-        if (res.status === 509) {
-            error509Handler(res)
-        } else {
-            const jsonRes = await res.json()
-            jsonRes["changesets"].forEach(i => {
-                changesetMetadatas[i.id] = i
-            })
-        }
+        const res = await fetchRetry(osm_server.apiBase + "changesets.json?changesets=" + changeset_ids.slice(i, i + batchSize).join(","))
+        const jsonRes = await res.json()
+        jsonRes["changesets"].forEach(i => {
+            changesetMetadatas[i.id] = i
+        })
     }
 }
 
@@ -16158,12 +16181,8 @@ async function loadNoteMetadata() {
     if (noteMetadata !== null && noteMetadata.id === note_id) {
         return
     }
-    const res = await fetch(osm_server.apiBase + "notes" + "/" + note_id + ".json", { signal: getAbortController().signal })
-    if (res.status === 509) {
-        error509Handler(res)
-    } else {
-        noteMetadata = await res.json()
-    }
+    const res = await fetchRetry(osm_server.apiBase + "notes" + "/" + note_id + ".json", { signal: getAbortController().signal })
+    noteMetadata = await res.json()
 }
 
 let nodeMetadata = null
@@ -16175,9 +16194,7 @@ async function loadNodeMetadata() {
     }
     const node_id = parseInt(match[1])
     const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "node" + "/" + node_id + ".json", res => {
-        if (res.status === 509) {
-            error509Handler(res)
-        } else if (res.status === 410) {
+        if (res.status === 410) {
             console.warn(`node ${node_id} was deleted`)
         } else {
             return true
@@ -16205,9 +16222,7 @@ async function loadWayMetadata(way_id = null) {
     }
     /*** @type {{elements: (NodeVersion|WayVersion)[]}|undefined}*/
     const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "way" + "/" + way_id + "/full.json", res => {
-        if (res.status === 509) {
-            error509Handler(res)
-        } else if (res.status === 410) {
+        if (res.status === 410) {
             console.warn(`way ${way_id} was deleted`)
         } else {
             return true
@@ -16251,9 +16266,7 @@ async function loadRelationMetadata(relation_id = null) {
         relation_id = parseInt(match[1])
     }
     const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "relation" + "/" + relation_id + "/full.json", res => {
-        if (res.status === 509) {
-            error509Handler(res)
-        } else if (res.status === 410) {
+        if (res.status === 410) {
             console.warn(`relation ${relation_id} was deleted`)
         } else {
             return true
@@ -18134,7 +18147,7 @@ const fetchJSONWithCache = (() => {
             return cache.get(url)
         }
 
-        const promise = fetch(url, init).then(res => {
+        const promise = fetchRetry(url, init).then(res => {
             if (!res) console.trace()
             if (responseChecker(res)) {
                 return res.json()
