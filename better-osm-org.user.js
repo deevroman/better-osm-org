@@ -1106,6 +1106,135 @@ GM_config.init({
 
 //</editor-fold>
 
+//<editor-fold desc="utils" defaultstate="collapsed">
+
+// In Tampermonkey access to Math.* very slow
+const min = Math.min
+const max = Math.max
+
+/**
+ * @param ms {number}
+ * @param signal {AbortSignal}
+ * @return {Promise<void>}
+ */
+async function abortableSleep(ms, { signal }) {
+    console.debug(`sleep ${ms}ms`)
+    await new Promise((resolve, reject) => {
+        signal?.throwIfAborted()
+
+        function done() {
+            resolve()
+            signal?.removeEventListener("abort", stop)
+        }
+
+        function stop() {
+            console.debug("sleep aborted")
+            reject(this.reason)
+            clearTimeout(timer)
+        }
+
+        const timer = setTimeout(done, ms)
+        signal?.addEventListener("abort", stop)
+    })
+}
+
+async function sleep(ms) {
+    console.debug(`sleep ${ms}ms`)
+    await new Promise(r => setTimeout(r, ms))
+}
+
+/**
+ * @param X {number}
+ * @param signal {AbortSignal}
+ * @return {Promise<unknown>}
+ */
+async function abortableSleepUntilNextXthSeconds(X, { signal }) {
+    const nowTime = new Date().getTime()
+    const nextTime = new Date(Math.ceil(nowTime / 1000 / X) * X * 1000)
+    const delay = nextTime - nowTime
+    return await abortableSleep(delay, { signal })
+}
+
+/**
+ * @param details {Tampermonkey.Request}
+ * @return {Promise<Tampermonkey.Response>}
+ */
+async function externalFetchRetry(details) {
+    if (GM_info.scriptHandler !== "FireMonkey") {
+        return await _fetchRetry(GM.xmlHttpRequest, details)
+    } else {
+        const res = await _fetchRetry(GM.fetch, details.url, details)
+        if (details['responseType'] === "json") {
+            res.response = res.json
+        } else {
+            res.response = res.text
+        }
+        return res
+    }
+}
+
+/**
+ * @param input {string | Request}
+ * @param [init] {RequestInit}
+ * @return {Promise<Response>}
+ */
+async function fetchRetry(input, init) {
+    return await _fetchRetry(fetch, input, init)
+}
+
+async function _fetchRetry(fetchImpl, ...args) {
+    const RETRY_COUNT = 10
+    let count = RETRY_COUNT
+    while (count > 0) {
+        try {
+            const res = await fetchImpl(...args)
+            if (res.status === 509 || res.status === 429) {
+                console.warn(`HTTP ${res.status}. Waiting before retry`)
+                if (res.headers.get("retry-after")) {
+                    await abortableSleep((parseInt(res.headers.get("retry-after")) + 1) * 1000, getAbortController())
+                } else {
+                    await abortableSleep((60 + Math.random() * 10) * 1000, getAbortController())
+                }
+                count -= 1
+                if (count === 0) {
+                    console.error("oops, DOS block")
+                    setTimeout(async () => {
+                        getMap()?.attributionControl?.setPrefix(escapeHtml(await res.text()))
+                    })
+                    throw "rate limit ban is too long"
+                }
+                continue
+            }
+            return res
+        } catch (error) {
+            if (!error?.message || !error.message.startsWith("NetworkError")) {
+                throw error
+            }
+            console.error(error, "fetch. Remain retries:", count)
+            await abortableSleepUntilNextXthSeconds(10, getAbortController())
+        }
+        count -= 1
+        if (!navigator.onLine) {
+            console.log("wait online")
+            await new Promise((resolve) => {
+                window.addEventListener("online", () => {
+                    console.log("online")
+                    resolve()
+                })
+            })
+            console.log("online")
+            continue
+        }
+        if (count === 0) {
+            console.error("Big wait before new retries")
+            await abortableSleep(60 * 1000, getAbortController())
+            count = RETRY_COUNT
+        }
+    }
+}
+
+//</editor-fold>
+
 /**
  * @param {XMLDocument} doc
  * @param {HTMLElement} node
@@ -1487,7 +1616,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
     const dislikeTitle = "OSMCha review dislike\n\nRight click to add review tags"
 
     async function osmchaRequest(url, method) {
-        return await GM.xmlHttpRequest({
+        return await externalFetchRetry({
             url: url,
             headers: {
                 Authorization: "Token " + (await GM.getValue("OSMCHA_TOKEN")),
@@ -2799,7 +2928,7 @@ out meta;
         i.classList.add("gpx-displayed")
         const m = i.href.match(new RegExp(`${osm_server.url}/user/.+/traces/(\\d+)`))
         if (m) {
-            GM.xmlHttpRequest({
+            externalFetchRetry({
                 url: `${osm_server.url}/traces/${m[1]}/data`,
             }).then(res => displayGPXTrack(res.response))
         }
@@ -3304,7 +3433,7 @@ function addGPXFiltersButtons() {
                 console.log("Tracks page #" + page)
                 filters.style.cursor = "progress"
                 filters.setAttribute("disabled", true)
-                const response = await GM.xmlHttpRequest({
+                const response = await externalFetchRetry({
                     url:
                         osm_server.url +
                         "/api/0.6/trackpoints?" +
@@ -3393,7 +3522,7 @@ function addGPXFiltersButtons() {
                             downloadBtn.style.cursor = "progress"
                             downloadBtn.style.filter = ""
 
-                            const res = await GM.xmlHttpRequest({
+                            const res = await externalFetchRetry({
                                 url: `${osm_server.url}/traces/${trackID}/data`,
                                 responseType: "blob",
                             })
@@ -4169,7 +4298,7 @@ function bypassCaches() {
         let xyz = parseOSMTileURL(i.src)
         if (!xyz) return
         const newUrl = makeOSMURL(xyz.x, xyz.y, xyz.z) // + "?bypassCache=" + new Date().getUTCSeconds();
-        GM.xmlHttpRequest({
+        externalFetchRetry({
             method: "GET",
             url: newUrl,
             headers: {
@@ -4197,7 +4326,7 @@ function bypassCaches() {
                 let xyz = parseOSMTileURL(node.src)
                 if (!xyz) return
                 const newUrl = makeOSMURL(xyz.x, xyz.y, xyz.z) // + "?bypassCache=" + new Date().getUTCSeconds();
-                GM.xmlHttpRequest({
+                externalFetchRetry({
                     method: "GET",
                     url: newUrl,
                     headers: {
@@ -4449,7 +4578,7 @@ async function decompressBlob(blob) {
 }
 
 async function tryFindChangesetInDiffGZ(gzURL, changesetId) {
-    const diffGZ = await GM.xmlHttpRequest({
+    const diffGZ = await externalFetchRetry({
         method: "GET",
         url: gzURL,
         responseType: "blob",
@@ -4463,7 +4592,7 @@ async function tryFindChangesetInDiffGZ(gzURL, changesetId) {
 }
 
 async function parseBBB(target, url) {
-    const response = await GM.xmlHttpRequest({
+    const response = await externalFetchRetry({
         method: "GET",
         url: planetOrigin + "/replication/changesets/" + url,
     })
@@ -4495,7 +4624,7 @@ async function parseBBB(target, url) {
 }
 
 async function parseCCC(target, url) {
-    const response = await GM.xmlHttpRequest({
+    const response = await externalFetchRetry({
         method: "GET",
         url: planetOrigin + "/replication/changesets/" + url,
     })
@@ -4602,7 +4731,7 @@ async function findChangesetInDiff(e) {
             throw ""
         }
     } catch {
-        const response = await GM.xmlHttpRequest({
+        const response = await externalFetchRetry({
             method: "GET",
             url: planetOrigin + "/replication/changesets/",
         })
@@ -4724,7 +4853,7 @@ out geom;
         console.log(overpassQuery)
 
         console.time("download overpass data")
-        const res = await GM.xmlHttpRequest({
+        const res = await externalFetchRetry({
             // todo switcher
             url:
                 overpass_server.apiUrl +
@@ -4894,7 +5023,7 @@ function makePanoramaxValue(elem) {
         }
         setTimeout(async () => {
             const res = (
-                await GM.xmlHttpRequest({
+                await externalFetchRetry({
                     url: `https://api.panoramax.xyz/api/search?limit=1&ids=${uuid}`,
                     responseType: "json",
                 })
@@ -4971,7 +5100,7 @@ function makeMapillaryValue(elem) {
         for (const a of elem.querySelectorAll('a:not(.added-preview-mapillary-img-link)[href^="https://www.mapillary.com/app/"]')) {
             a.classList.add("added-preview-mapillary-img-link")
             const res = (
-                await GM.xmlHttpRequest({
+                await externalFetchRetry({
                     url: `https://graph.mapillary.com/${a.textContent.match(/[0-9]+/)}?${MAPILLARY_URL_PARAMS.toString()}`,
                     responseType: "json",
                 })
@@ -5036,7 +5165,7 @@ function makeWikimediaCommonsValue(elem) {
         a.classList.add("preview-img-link")
         setTimeout(async () => {
             const wikimediaResponse = (
-                await GM.xmlHttpRequest({
+                await externalFetchRetry({
                     url:
                         `https://en.wikipedia.org/w/api.php?` +
                         new URLSearchParams({
@@ -6088,7 +6217,7 @@ const fetchTextWithCache = (() => {
             return cache.get(url)
         }
 
-        const promise = GM.xmlHttpRequest({ url: url }).then(r => r.responseText)
+        const promise = externalFetchRetry({ url: url }).then(r => r.responseText)
         cache.set(url, promise)
 
         try {
@@ -6329,7 +6458,7 @@ for (t["created"])
 }
 `
     console.time("download overpass data")
-    const res = await GM.xmlHttpRequest({
+    const res = await externalFetchRetry({
         url:
             overpass_server.apiUrl +
             "/interpreter?" +
@@ -7616,7 +7745,7 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
         if (overpassCache[[id, timestamp]]) {
             return overpassCache[[id, timestamp]]
         } else {
-            const res = await GM.xmlHttpRequest({
+            const res = await externalFetchRetry({
                 url:
                     `${overpass_server.apiUrl}/interpreter?` +
                     new URLSearchParams({
@@ -7754,7 +7883,7 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
 }
 
 async function getNodeViaOverpassXML(id, timestamp) {
-    const res = await GM.xmlHttpRequest({
+    const res = await externalFetchRetry({
         url:
             `${overpass_server.apiUrl}/interpreter?` +
             new URLSearchParams({
@@ -7773,7 +7902,7 @@ async function getNodeViaOverpassXML(id, timestamp) {
 }
 
 async function getWayViaOverpassXML(id, timestamp) {
-    const res = await GM.xmlHttpRequest({
+    const res = await externalFetchRetry({
         url:
             `${overpass_server.apiUrl}/interpreter?` +
             new URLSearchParams({
@@ -7793,7 +7922,7 @@ async function getWayViaOverpassXML(id, timestamp) {
 }
 
 async function getRelationViaOverpassXML(id, timestamp) {
-    const res = await GM.xmlHttpRequest({
+    const res = await externalFetchRetry({
         url:
             `${overpass_server.apiUrl}/interpreter?` +
             new URLSearchParams({
@@ -8066,7 +8195,7 @@ function setupViewRedactions() {
 
         async function downloadArchiveData(url, objID, needUnzip = false) {
             try {
-                const diffGZ = await GM.xmlHttpRequest({
+                const diffGZ = await externalFetchRetry({
                     method: "GET",
                     url: url,
                     responseType: "blob",
@@ -10377,7 +10506,7 @@ async function geocodeCurrentView(attempts = 5) {
     if (location.search.includes("changesets")) return
     await interceptMapManually()
     if (getZoom() <= 10) {
-        getMap().attributionControl.setPrefix("")
+        getMap().attributionControl?.setPrefix("")
         if (attempts > 0) {
             console.log(`Attempt №${7 - attempts} for geocoding`)
             setTimeout(geocodeCurrentView, 100, attempts - 1)
@@ -10405,7 +10534,7 @@ async function geocodeCurrentView(attempts = 5) {
         .then(r => {
             cachedNominatimRequests.add(url)
             if (r?.address?.state) {
-                getMap().attributionControl.setPrefix(`${r.address.state}`)
+                getMap().attributionControl?.setPrefix(`${r.address.state}`)
                 console.timeEnd(`Geocoding ${latStr}, ${lngStr}`)
             }
         })
@@ -10418,18 +10547,12 @@ async function geocodeCurrentView(attempts = 5) {
 let iconsList = null
 
 async function loadIconsList() {
-    let yml = ""
     const url = `https://raw.githubusercontent.com/openstreetmap/openstreetmap-website/refs/heads/master/config/browse_icons.yml`
-    if (GM_info.scriptHandler !== "FireMonkey") {
-        yml = (
-            await GM.xmlHttpRequest({
-                url: url,
-            })
-        ).responseText
-    } else {
-        // @ts-ignore
-        yml = await (await GM.fetch(url)).tex
-    }
+    const yml = (
+        await externalFetchRetry({
+            url: url,
+        })
+    ).responseText
     iconsList = {}
     // не, ну а почему бы и нет
     yml.match(/[\w_-]+:\s*(([\w_-]|:\*)+:(\s+{.*}\s+))*/g).forEach(tags => {
@@ -10499,18 +10622,10 @@ function makeCorporateMappersData(raw_data) {
 }
 
 async function loadAndMakeCorporateMappersList() {
-    let raw_data
-    if (GM_info.scriptHandler !== "FireMonkey") {
-        raw_data = (
-            await GM.xmlHttpRequest({
-                url: corporationContributorsURL,
-                responseType: "json",
-            })
-        ).response
-    } else {
-        // @ts-ignore
-        raw_data = await (await GM.fetch(corporationContributorsURL)).json
-    }
+    const raw_data = (await externalFetchRetry({
+        url: corporationContributorsURL,
+        responseType: "json",
+    })).response
     makeCorporateMappersData(raw_data)
     await GM.setValue(
         "corporate-mappers",
@@ -12022,69 +12137,6 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
     await getChangeset(changesetID)
 }
 
-/**
- * @param X {number}
- * @param signal {AbortSignal}
- * @return {Promise<unknown>}
- */
-async function abortableSleepUntilNextXthSeconds(X, { signal }) {
-    const nowTime = new Date().getTime()
-    const nextTime = new Date(Math.ceil(nowTime / 1000 / X) * X * 1000)
-    const delay = nextTime - nowTime
-    return await abortableSleep(delay, { signal })
-}
-
-async function fetchRetry(...args) {
-    const RETRY_COUNT = 10
-    let count = RETRY_COUNT
-    while (count > 0) {
-        try {
-            const res = await fetch(...args)
-            if (res.status === 509 || res.status === 429) {
-                console.warn(`HTTP ${res.status}. Waiting before retry`)
-                if (res.headers.get("retry-after")) {
-                    await abortableSleep((parseInt(res.headers.get("retry-after")) + 1) * 1000, getAbortController())
-                } else {
-                    await abortableSleep((60 + Math.random() * 10) * 1000, getAbortController())
-                }
-                count -= 1
-                if (count === 0) {
-                    console.error("oops, DOS block")
-                    setTimeout(async () => {
-                        getMap()?.attributionControl?.setPrefix(escapeHtml(await res.text()))
-                    })
-                    throw "rate limit ban is too long"
-                }
-                continue
-            }
-            return res
-        } catch (error) {
-            if (!error?.message || !error.message.startsWith("NetworkError")) {
-                throw error
-            }
-            console.error(error, "fetch. Remain retries:", count)
-            await abortableSleepUntilNextXthSeconds(10, getAbortController())
-        }
-        count -= 1
-        if (!navigator.onLine) {
-            console.log("wait online")
-            await new Promise((resolve) => {
-                window.addEventListener("online", () => {
-                    console.log("online")
-                    resolve()
-                })
-            })
-            console.log("online")
-            continue
-        }
-        if (count === 0) {
-            console.error("Big wait before new retries")
-            await abortableSleep(60 * 1000, getAbortController())
-            count = RETRY_COUNT
-        }
-    }
-}
-
 async function getHistoryAndVersionByElem(elem) {
     const [, objType, objID, version] = elem.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
     if (histories[objType][objID]) {
@@ -13319,9 +13371,7 @@ async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) 
         // preloading
         changesetIDs.slice(0, step).forEach(i => {
             changesetsQueue.push(
-                GM.xmlHttpRequest({
-                    url: osm_server.url + "/changeset/" + i,
-                }),
+                fetchRetry(osm_server.url + "/changeset/" + i)
             )
         })
     }
@@ -13382,9 +13432,7 @@ async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) 
         const promise = processQuickLookInSidebar(curID)
         if (i + step < changesetIDs.length) {
             changesetsQueue.push(
-                GM.xmlHttpRequest({
-                    url: osm_server.url + "/changeset/" + changesetIDs[i + step],
-                }),
+                fetchRetry(osm_server.url + "/changeset/" + changesetIDs[i + step])
             )
         }
         await promise
@@ -13483,6 +13531,7 @@ async function interceptMapManually() {
                         if (window.mapIntercepted) return;
                         console.log("%cMap intercepted with workaround", 'background: #000; color: #0f0')
                         window.mapIntercepted = true
+                        alert("hui")
                         window.map = e.target._map;
                         if (!window.scriptInstance) {
                             window.scriptInstance = window.scriptHandler;
@@ -13816,17 +13865,12 @@ function makeChangesetsStat(changesets, filter) {
 }
 
 async function makeEditorNormalizer() {
-    let rawReplaceRules
+    const rawReplaceRules = (
+        await externalFetchRetry({
+            url: url,
+        })
+    ).responseText
     const url = "https://raw.githubusercontent.com/deevroman/openstreetmap-statistics/refs/heads/master/src/replace_rules_created_by.json"
-    if (GM_info.scriptHandler !== "FireMonkey") {
-        rawReplaceRules = (
-            await GM.xmlHttpRequest({
-                url: url,
-            })
-        ).responseText
-    } else {
-        rawReplaceRules = await (await GM.fetch(url)).text
-    }
     console.log("replace rules loaded")
 
     const tag_to_name = {}
@@ -14222,7 +14266,7 @@ async function makeProfileForDeletedUser(user) {
                 blocksSpan.appendChild(loadingStatus)
 
                 idSpan.after(blocksSpan)
-                const startPage = await GM.xmlHttpRequest({
+                const startPage = await externalFetchRetry({
                     url: "/user_blocks",
                     // responseType: "xml",
                     headers: { "turbo-frame": "pagination" },
@@ -14264,7 +14308,7 @@ async function makeProfileForDeletedUser(user) {
 
                 async function getBlockInfo(blockID) {
                     const blockInfo = (
-                        await GM.xmlHttpRequest({
+                        await externalFetchRetry({
                             url: "/api/0.6/user_blocks/" + blockID + ".json",
                             responseType: "json",
                             headers: { "turbo-frame": "pagination" },
@@ -14295,7 +14339,7 @@ async function makeProfileForDeletedUser(user) {
                         async function processBlocks(before) {
                             console.log("download user_block before ", before)
                             before = Math.max(1, before)
-                            const startPage = await GM.xmlHttpRequest({
+                            const startPage = await externalFetchRetry({
                                 url: "/user_blocks?before=" + before,
                                 // responseType: "xml",
                                 headers: { "turbo-frame": "pagination" },
@@ -14469,7 +14513,7 @@ async function makeProfileForDeletedUser(user) {
         }
     }
 
-    const res = await GM.xmlHttpRequest({
+    const res = await externalFetchRetry({
         url: "https://whosthat.osmz.ru/whosthat.php?action=info&name=" + user,
         responseType: "json",
     })
@@ -14486,7 +14530,7 @@ async function makeProfileForDeletedUser(user) {
     } else {
         setTimeout(async () => {
             const res = (
-                await GM.xmlHttpRequest({
+                await externalFetchRetry({
                     url:
                         `${overpass_server.apiUrl}/interpreter?` +
                         new URLSearchParams({
@@ -14513,7 +14557,7 @@ async function makeProfileForDeletedUser(user) {
 
     if (user.match(/^user_[0-9]+$/)) {
         const userID = parseInt(user.match(/user_([0-9]+)/)[1])
-        const res = await GM.xmlHttpRequest({
+        const res = await externalFetchRetry({
             url: "https://whosthat.osmz.ru/whosthat.php?action=names&id=" + userID,
             responseType: "json",
         })
@@ -14527,7 +14571,7 @@ async function makeProfileForDeletedUser(user) {
         setTimeout(async () => {
             if (!names.length) {
                 const res = (
-                    await GM.xmlHttpRequest({
+                    await externalFetchRetry({
                         url:
                             `${overpass_server.apiUrl}/interpreter?` +
                             new URLSearchParams({
@@ -14683,7 +14727,7 @@ async function setupHDYCInProfile(path) {
 
         async function addUsernames() {
             async function updateUserIDInfo(userID) {
-                const res = await GM.xmlHttpRequest({
+                const res = await externalFetchRetry({
                     url: "https://whosthat.osmz.ru/whosthat.php?action=names&id=" + userID,
                     responseType: "json",
                 })
@@ -15462,7 +15506,7 @@ function makeUsernamesFilterable(usernameLink) {
 
 function loadExternalVectorStyle() {
     try {
-        GM.xmlHttpRequest({
+        externalFetchRetry({
             url: "",
             responseType: "json",
         }).then(async res => {
@@ -15472,7 +15516,7 @@ function loadExternalVectorStyle() {
 }
 
 if (isDebug()) {
-    loadExternalVectorStyle()
+    // loadExternalVectorStyle()
 }
 
 if (isOsmServer()) {
@@ -15921,14 +15965,14 @@ function makeBadge(userInfo, changesetDate = new Date()) {
         }
         setTimeout(async () => {
             const xml = (
-                await GM.xmlHttpRequest({
+                await externalFetchRetry({
                     url: "/user/" + userInfo["display_name"] + "/blocks",
                 })
             ).response
             const lastBlockLinks = new DOMParser().parseFromString(xml, "text/html").querySelector('a[href^="/user_blocks/"]').getAttribute("href")
             const blockID = lastBlockLinks.match(/\/user_blocks\/([0-9]+)/)[1]
             const blockInfo = (
-                await GM.xmlHttpRequest({
+                await externalFetchRetry({
                     url: "/api/0.6/user_blocks/" + blockID + ".json",
                     responseType: "json",
                     headers: { "turbo-frame": "pagination" },
@@ -16284,37 +16328,6 @@ function updateCurrentObjectMetadata() {
     setTimeout(loadNodeMetadata, 0)
     setTimeout(loadWayMetadata, 0)
     setTimeout(loadRelationMetadata, 0)
-}
-
-/**
- * @param ms {number}
- * @param signal {AbortSignal}
- * @return {Promise<void>}
- */
-async function abortableSleep(ms, { signal }) {
-    console.debug(`sleep ${ms}ms`)
-    await new Promise((resolve, reject) => {
-        signal?.throwIfAborted()
-
-        function done() {
-            resolve()
-            signal?.removeEventListener("abort", stop)
-        }
-
-        function stop() {
-            console.debug("sleep aborted")
-            reject(this.reason)
-            clearTimeout(timer)
-        }
-
-        const timer = setTimeout(done, ms)
-        signal?.addEventListener("abort", stop)
-    })
-}
-
-async function sleep(ms) {
-    console.debug(`sleep ${ms}ms`)
-    await new Promise(r => setTimeout(r, ms))
 }
 
 async function loadFriends() {
@@ -17022,9 +17035,6 @@ function gotNextObjectVersion() {
     }
 }
 
-const min = Math.min
-const max = Math.max
-
 function combineBBOXes(bboxes) {
     const bbox = {
         min_lat: 10000000,
@@ -17661,7 +17671,7 @@ function setupNavigationViaHotkeys() {
             fetch(`https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2`).then(res => {
                 res.json().then(r => {
                     if (r?.address?.state) {
-                        getMap().attributionControl.setPrefix(`${r.address.state}`)
+                        getMap().attributionControl?.setPrefix(`${r.address.state}`)
                     }
                 })
             })
@@ -18098,7 +18108,7 @@ const fetchBlobWithCache = (() => {
             return cache.get(url)
         }
 
-        const promise = GM.xmlHttpRequest({
+        const promise = externalFetchRetry({
             url: url,
             responseType: "blob",
         })
@@ -18647,7 +18657,7 @@ const tableEditIcon = "https://raw.githubusercontent.com/openstreetmap/iD/671e9f
 // const lastVersionsCache = {}
 
 function loadBannedVersions() {
-    GM.xmlHttpRequest({
+    externalFetchRetry({
         url: "https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/master/misc/assets/banned_versions.json",
         responseType: "json",
     }).then(async res => {
@@ -19331,7 +19341,7 @@ async function setupDragAndDropViewers() {
         })
     } else if (location.search.includes("&display-gpx=")) {
         const trackID = location.search.match(/&display-gpx=(\d+)/)[1]
-        const res = await GM.xmlHttpRequest({
+        const res = await externalFetchRetry({
             url: `${osm_server.url}/traces/${trackID}/data`,
             responseType: "blob",
         })
