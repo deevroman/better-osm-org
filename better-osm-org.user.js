@@ -131,9 +131,6 @@
 // @connect      content-a.strava.com
 // @sandbox      JavaScript
 // @resource     OAUTH_HTML https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/assets/finish-oauth.html?bypass_cache
-// @resource     NODE_ICON https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/assets/icons/Osm_element_node.svg
-// @resource     WAY_ICON https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/assets/icons/Osm_element_way.svg
-// @resource     RELATION_ICON https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/assets/icons/Taginfo_element_relation.svg
 // @resource     OSMCHA_LIKE https://raw.githubusercontent.com/OSMCha/osmcha-frontend/94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-up.svg
 // @resource     OSMCHA_DISLIKE https://raw.githubusercontent.com/OSMCha/osmcha-frontend/94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-down.svg
 // @resource     DARK_THEME_FOR_ID_CSS https://gist.githubusercontent.com/deevroman/55f35da68ab1efb57b7ba4636bdf013d/raw/1e91d589ca8cb51c693a119424a45d9f773c265e/dark.css
@@ -210,9 +207,6 @@ if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Grease
             const OSMCHA_PREFIX = "https://github.com/OSMCha/osmcha-frontend/raw/"
             const resourcesName = {
                 OAUTH_HTML: REPO_PREFIX + "finish-oauth.html",
-                NODE_ICON: REPO_PREFIX + "icons/Osm_element_node.svg",
-                WAY_ICON: REPO_PREFIX + "icons/Osm_element_way.svg",
-                RELATION_ICON: REPO_PREFIX + "icons/Taginfo_element_relation.svg",
                 OSMCHA_LIKE: OSMCHA_PREFIX + "94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-up.svg",
                 OSMCHA_DISLIKE: OSMCHA_PREFIX + "94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-down.svg",
                 DARK_THEME_FOR_ID_CSS: "https://gist.githubusercontent.com/deevroman/55f35da68ab1efb57b7ba4636bdf013d/raw/7b94e3b7db91d023f1570ae415acd7ac989fffe0/dark.css",
@@ -1164,7 +1158,7 @@ async function externalFetchRetry(details) {
         return await _fetchRetry(GM.xmlHttpRequest, details)
     } else {
         const res = await _fetchRetry(GM.fetch, details.url, details)
-        if (details['responseType'] === "json") {
+        if (details["responseType"] === "json") {
             res.response = res.json
         } else {
             res.response = res.text
@@ -1216,7 +1210,7 @@ async function _fetchRetry(fetchImpl, ...args) {
         count -= 1
         if (!navigator.onLine) {
             console.log("wait online")
-            await new Promise((resolve) => {
+            await new Promise(resolve => {
                 window.addEventListener("online", () => {
                     console.log("online")
                     resolve()
@@ -10622,10 +10616,12 @@ function makeCorporateMappersData(raw_data) {
 }
 
 async function loadAndMakeCorporateMappersList() {
-    const raw_data = (await externalFetchRetry({
-        url: corporationContributorsURL,
-        responseType: "json",
-    })).response
+    const raw_data = (
+        await externalFetchRetry({
+            url: corporationContributorsURL,
+            responseType: "json",
+        })
+    ).response
     makeCorporateMappersData(raw_data)
     await GM.setValue(
         "corporate-mappers",
@@ -10891,6 +10887,40 @@ async function getWayNodesByTimestamp(targetTimestamp, wayID) {
 }
 
 let pinnedRelations = new Set()
+// TODO without encode
+const nodeIcon =
+    "data:image/svg+xml;base64," +
+    btoa(
+        '<svg xmlns="http://www.w3.org/2000/svg" height="256" width="256">' +
+            '<rect width="242" height="242" fill="#fff" ry="32" x="7" y="7"/>' +
+            '<circle cx="128" cy="128" r="24" fill="#bee6be" stroke="#000" stroke-width="10"/>' +
+            '<rect width="242" height="242" stroke="#000" fill="none" stroke-width="12" ry="32" x="7" y="7"/></svg>',
+    )
+
+const wayIcon =
+    "data:image/svg+xml;base64," +
+    btoa(
+        '<svg xmlns="http://www.w3.org/2000/svg" height="256" width="256">' +
+            '<rect width="242" height="242" fill="#fff" ry="32" x="7" y="7"/>' +
+            '<path stroke="#ccc" fill="none" stroke-width="16" d="M169 58 57 145l138 54"/>' +
+            '<circle cx="169" cy="58" r="24"/>' +
+            '<circle cx="57" cy="145" r="24"/>' +
+            '<circle cx="195" cy="199" r="24"/>' +
+            '<rect width="242" height="242" stroke="#000" fill="none" stroke-width="12" ry="32" x="7" y="7"/></svg>',
+    )
+
+const relationIcon =
+    "data:image/svg+xml;base64," +
+    btoa(
+        '<svg xmlns="http://www.w3.org/2000/svg" height="256" width="256" viewBox="0 0 256 256">' +
+            '<rect width="242" height="242" stroke="#000" fill="#f0f0f0" stroke-width="12" ry="32" x="7" y="7"/>' +
+            '<path d="m68 68 128-6M68 68l128 74M68 68l-6 128" stroke-width="16" stroke="#ccc"/>' +
+            '<circle cx="196" cy="62" r="24"/><circle cx="196" cy="142" r="24"/>' +
+            '<circle cx="62" cy="196" r="24"/>' +
+            '<path d="m68 68 74 128" stroke-width="16" stroke="#ccc"/>' +
+            '<circle cx="142" cy="196" r="24"/>' +
+            '<circle cx="72" cy="72" r="32" fill="#bee6be" stroke="#000" stroke-width="8"/></svg>',
+    )
 
 /**
  * @param {Element} i
@@ -11238,13 +11268,6 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         membersTable.style.borderWidth = "2px"
         tbody.style.borderWidth = "2px"
         membersTable.appendChild(tbody)
-
-        const nodeIcon = GM_getResourceURL("NODE_ICON", false)
-        const wayIcon = GM_getResourceURL("WAY_ICON", false)
-        const relationIcon = GM_getResourceURL("RELATION_ICON", false)
-        // const nodeIcon = nodeFallback
-        // const wayIcon = wayFallback
-        // const relationIcon = relationFallback
 
         /**
          * @param {RelationMember} member
@@ -13370,9 +13393,7 @@ async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) 
     if (changesetIDs.length) {
         // preloading
         changesetIDs.slice(0, step).forEach(i => {
-            changesetsQueue.push(
-                fetchRetry(osm_server.url + "/changeset/" + i)
-            )
+            changesetsQueue.push(fetchRetry(osm_server.url + "/changeset/" + i))
         })
     }
     // MORE PRELOADING
@@ -13431,9 +13452,7 @@ async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) 
 
         const promise = processQuickLookInSidebar(curID)
         if (i + step < changesetIDs.length) {
-            changesetsQueue.push(
-                fetchRetry(osm_server.url + "/changeset/" + changesetIDs[i + step])
-            )
+            changesetsQueue.push(fetchRetry(osm_server.url + "/changeset/" + changesetIDs[i + step]))
         }
         await promise
     }
