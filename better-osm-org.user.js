@@ -5870,7 +5870,24 @@ function cleanCustomObjects() {
  * @param {boolean=} animate
  */
 function panTo(lat, lon, zoom = 18, animate = false) {
-    getMap().flyTo(intoPage([lat, lon]), zoom, intoPage({ animate: animate }))
+    if (!getMap()?.flyTo) {
+        // todo initial implementation
+        const maxZoom = 19
+        console.log("try workaround. TODO")
+        const curURL = document.querySelector("#edit_tab ul")?.querySelector("li a")?.href
+        const match = curURL.match(/map=(\d+)\/([-\d.]+)\/([-\d.]+)(&|$)/)
+        if (match) {
+            const zoomLevel = parseInt(match[1])
+            let newHash = location.hash.replace(/map=(\d+)\//, `map=${min(zoomLevel + 1, maxZoom)}/`)
+            newHash = newHash.replace(/map=(\d+)\/(\d+)\/(\d+)/, `map=$1/${lat}/${lon}`)
+            location.hash = newHash
+        } else {
+            const [x, y, z] = getCurrentXYZ()
+            location.hash = `map=${min(parseInt(z) + 1, maxZoom)}/${x}/${y}`
+        }
+    } else {
+        getMap().flyTo(intoPage([lat, lon]), zoom, intoPage({ animate: animate }))
+    }
 }
 
 /**
@@ -5915,6 +5932,7 @@ function fitBounds(bound, maxZoom = 19) {
  */
 function fitBoundsWithPadding(bound, padding, maxZoom = 19) {
     if (!getMap()?.fitBounds) {
+        // todo initial implementation
         console.log("try workaround. TODO")
         const curURL = document.querySelector("#edit_tab ul")?.querySelector("li a")?.href
         const match = curURL.match(/map=(\d+)\/([-\d.]+)\/([-\d.]+)(&|$)/)
