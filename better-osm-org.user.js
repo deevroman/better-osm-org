@@ -17628,7 +17628,7 @@ function setupNavigationViaHotkeys() {
                     try {
                         getWindow().OSM.router.route(targetURL)
                     } catch {
-                        window.location = targetURL
+                        window.location.pathname = targetURL
                     }
                 }
             } else {
@@ -17839,7 +17839,7 @@ function setupNavigationViaHotkeys() {
             }
         } else if (e.code === "KeyU" && !e.altKey && !e.metaKey && !e.ctrlKey) {
             if (e.shiftKey) {
-                window.location = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href")
+                window.location.pathname = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href")
             } else {
                 const user_link = document.querySelector('#sidebar_content a[href^="/user/"]')
                 if (user_link) {
@@ -18062,7 +18062,7 @@ function setupClickableAvatar() {
             if (e.ctrlKey || e.metaKey) {
                 window.open(targetURL, "_blank")
             } else {
-                window.location = targetURL
+                window.location.pathname = targetURL
             }
             miniAvatar.click() // dirty hack for hide dropdown
         } else {
@@ -18074,7 +18074,7 @@ function setupClickableAvatar() {
                     try {
                         getWindow().OSM.router.route(targetURL)
                     } catch {
-                        window.location = targetURL
+                        window.location.pathname = targetURL
                     }
                 }
                 miniAvatar.click() // dirty hack for hide dropdown
