@@ -131,7 +131,6 @@
 // @connect      content-a.strava.com
 // @sandbox      JavaScript
 // @resource     OAUTH_HTML https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/assets/finish-oauth.html?bypass_cache
-// @resource     OSMCHA_ICON https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/assets/icons/osmcha.ico
 // @resource     NODE_ICON https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/assets/icons/Osm_element_node.svg
 // @resource     WAY_ICON https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/assets/icons/Osm_element_way.svg
 // @resource     RELATION_ICON https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/assets/icons/Taginfo_element_relation.svg
@@ -211,7 +210,6 @@ if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Grease
             const OSMCHA_PREFIX = "https://github.com/OSMCha/osmcha-frontend/raw/"
             const resourcesName = {
                 OAUTH_HTML: REPO_PREFIX + "finish-oauth.html",
-                OSMCHA_ICON: REPO_PREFIX + "icons/osmcha.ico",
                 NODE_ICON: REPO_PREFIX + "icons/Osm_element_node.svg",
                 WAY_ICON: REPO_PREFIX + "icons/Osm_element_way.svg",
                 RELATION_ICON: REPO_PREFIX + "icons/Taginfo_element_relation.svg",
@@ -1747,6 +1745,11 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
     reactionsContainer.addEventListener("contextmenu", contextMenuHandler)
 }
 
+const osmchaSvgLogo =
+    '<svg id="osmcha_link" viewBox="2.5 2.5 13 13" xmlns="http://www.w3.org/2000/svg">' +
+    '<path d="M2.5 2.5l1 4-1 2 1 3-1 3h1l4-4c-.6-.8-1-1.9-1-3 0-1.9 1.1-3.5 2.6-4.4l-.6-.6-3 1-3-1zM15 11c-.9.9-2.2 1.5-3.5 1.5-1.1 0-2.2-.4-3-1l-4 4h2l2-1 2 1 4-1 1-3-.5-.5z"></path>' +
+    '<path d="M15 7.5c0 1.9-1.6 3.5-3.5 3.5S8 9.4 8 7.5 9.6 4 11.5 4 15 5.6 15 7.5"></path></svg>'
+
 function addRevertButton() {
     if (!location.pathname.startsWith("/changeset")) return
     if (document.querySelector("#revert_button_class")) return true
@@ -1758,7 +1761,7 @@ function addRevertButton() {
         // prettier-ignore
         sidebar.innerHTML +=
             ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="Open osm-revert\nShift + click for revert via JOSM\nPress R for partial revert">↩️</a>
-              <a href="https://osmcha.org/changesets/${changeset_id}" target="_blank" rel="noreferrer"><img src="${GM_getResourceURL("OSMCHA_ICON", false)}" id="osmcha_link"></a>`
+              <a href="https://osmcha.org/changesets/${changeset_id}" target="_blank" rel="noreferrer">${osmchaSvgLogo}</a>`
         changesetObjectsSelectionModeEnabled = false
         document.querySelector("#revert_button_class").onclick = async e => {
             if (changesetObjectsSelectionModeEnabled) {
@@ -15218,14 +15221,14 @@ function addMassActionForUserChangesets() {
     }
     const username = decodeURI(location.pathname.match(/\/user\/(.*)\/history$/)[1])
     const osmchaLink = document.createElement("a")
+    osmchaLink.innerHTML = osmchaSvgLogo
     osmchaLink.id = "osmcha_link"
     osmchaLink.title = "Open profile in OSMCha.org"
     osmchaLink.href = makeOsmchaLinkForUsername(username)
     osmchaLink.target = "_blank"
     osmchaLink.rel = "noreferrer"
 
-    const osmchaIcon = document.createElement("img")
-    osmchaIcon.src = GM_getResourceURL("OSMCHA_ICON", false)
+    const osmchaIcon = osmchaLink.querySelector("svg")
     osmchaIcon.style.height = "1em"
     osmchaIcon.style.cursor = "pointer"
     osmchaIcon.style.marginTop = "-3px"
