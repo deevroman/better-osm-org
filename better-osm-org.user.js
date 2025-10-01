@@ -131,8 +131,6 @@
 // @connect      content-a.strava.com
 // @sandbox      JavaScript
 // @resource     OAUTH_HTML https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/assets/finish-oauth.html?bypass_cache
-// @resource     OSMCHA_LIKE https://raw.githubusercontent.com/OSMCha/osmcha-frontend/94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-up.svg
-// @resource     OSMCHA_DISLIKE https://raw.githubusercontent.com/OSMCha/osmcha-frontend/94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-down.svg
 // @resource     DARK_THEME_FOR_ID_CSS https://gist.githubusercontent.com/deevroman/55f35da68ab1efb57b7ba4636bdf013d/raw/1e91d589ca8cb51c693a119424a45d9f773c265e/dark.css
 // @run-at       document-end
 // ==/UserScript==
@@ -204,11 +202,8 @@ if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Grease
         const resources = {}
         setTimeout(async () => {
             const REPO_PREFIX = "https://github.com/deevroman/better-osm-org/raw/master/misc/assets/"
-            const OSMCHA_PREFIX = "https://github.com/OSMCha/osmcha-frontend/raw/"
             const resourcesName = {
                 OAUTH_HTML: REPO_PREFIX + "finish-oauth.html",
-                OSMCHA_LIKE: OSMCHA_PREFIX + "94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-up.svg",
-                OSMCHA_DISLIKE: OSMCHA_PREFIX + "94f091d01ce5ea2f42eb41e70cdb9f3b2d67db88/src/assets/thumbs-down.svg",
                 DARK_THEME_FOR_ID_CSS: "https://gist.githubusercontent.com/deevroman/55f35da68ab1efb57b7ba4636bdf013d/raw/7b94e3b7db91d023f1570ae415acd7ac989fffe0/dark.css",
             }
             for (let resource in resourcesName) {
@@ -1559,6 +1554,28 @@ const tagSvg =
     '<circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/>' +
     '</svg>'
 
+const osmchaLikeSvg =
+    "data:image/svg+xml;base64," +
+    btoa(
+        '<svg width="100" height="99" viewBox="0 0 100 99" xmlns="http://www.w3.org/2000/svg">' +
+            '<g fill="#39DBC0" fill-rule="evenodd">' +
+            '<path d="M41.817 42H8.65a8 8 0 0 0-7.862 9.483l6.981 37A8 8 0 0 0 15.632 95H92a8 8 0 0 0 ' +
+            "8-8V50a8 8 0 0 0-8-8H64.814c.034-.66.012-1.334-.072-2.013L61.086 10.21C60.312 3.906 " +
+            '54.574-.576 48.27.198c-6.303.774-10.786 6.511-10.012 12.815z" fill-opacity=".3"/>' +
+            '<rect fill-opacity=".9" x="76" y="37" width="24" height="62" rx="8"/></g></svg>',
+    )
+// todo is equal with rotate and color
+const osmchaDislikeSvg =
+    "data:image/svg+xml;base64," +
+    btoa(
+        '<svg width="100" height="99" viewBox="0 0 100 99" xmlns="http://www.w3.org/2000/svg">' +
+            '<g transform="rotate(-180 50 49.5)" fill="#CC2C47" fill-rule="evenodd">' +
+            '<path d="M41.817 42H8.65a8 8 0 0 0-7.862 9.483l6.981 37A8 8 0 0 0 15.632 95H92a8 8 0 0 0 ' +
+            "8-8V50a8 8 0 0 0-8-8H64.814c.034-.66.012-1.334-.072-2.013L61.086 10.21C60.312 3.906 " +
+            '54.574-.576 48.27.198c-6.303.774-10.786 6.511-10.012 12.815z" fill-opacity=".3"/>' +
+            '<rect fill-opacity=".9" x="76" y="37" width="24" height="62" rx="8"/></g></svg>',
+    )
+
 function addOsmchaButtons(changeset_id, reactionsContainer) {
     // https://osmcha.org/api/v1/tags/
     const osmchaTags = [
@@ -1624,14 +1641,11 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
         return await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/uncheck/`, "PUT")
     }
 
-    const likeImgRes = GM_getResourceURL("OSMCHA_LIKE", false)
-    const dislikeImgRes = GM_getResourceURL("OSMCHA_DISLIKE", false)
-
     const likeBtn = document.createElement("span")
     likeBtn.title = likeTitle
     const likeImg = document.createElement("img")
     likeImg.title = likeTitle
-    likeImg.src = likeImgRes
+    likeImg.src = osmchaLikeSvg
     likeImg.style.height = "1.1em"
     likeImg.style.cursor = "pointer"
     likeImg.style.filter = "grayscale(1)"
@@ -1661,7 +1675,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
     dislikeBtn.title = dislikeTitle
     const dislikeImg = document.createElement("img")
     dislikeImg.title = dislikeTitle
-    dislikeImg.src = likeImgRes // dirty hack for different gray style colors
+    dislikeImg.src = osmchaLikeSvg // dirty hack for different gray style colors
     dislikeImg.style.height = "1.1em"
     dislikeImg.style.cursor = "pointer"
     dislikeImg.style.filter = "grayscale(1)"
@@ -1719,7 +1733,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             if (json["properties"]["harmful"] === true) {
                 dislikeImg.style.filter = ""
                 dislikeImg.style.transform = ""
-                dislikeImg.src = dislikeImgRes
+                dislikeImg.src = osmchaDislikeSvg
                 dislikeImg.setAttribute("active", "true")
                 dislikeImg.title = dislikeTitle
                 username.style.color = "red"
@@ -1735,7 +1749,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             likeImg.style.filter = "grayscale(1)"
             dislikeImg.style.filter = "grayscale(1)"
             dislikeImg.style.transform = "rotate(180deg)"
-            dislikeImg.src = likeImgRes
+            dislikeImg.src = osmchaLikeSvg
             dislikeImg.title = dislikeTitle
             likeImg.title = likeTitle
             likeImg.removeAttribute("active")
