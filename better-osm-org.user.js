@@ -1097,6 +1097,58 @@ GM_config.init({
 
 //<editor-fold desc="utils" defaultstate="collapsed">
 
+// For WebStorm: Settings | Editor | Language Injections
+// Places Patterns + jsLiteralExpression(jsArgument(jsReferenceExpression().withQualifiedName("injectJSIntoPage"), 0))
+
+/**
+ * @param {string} text
+ */
+function injectJSIntoPage(text) {
+    GM_addElement("script", {
+        textContent: text,
+    })
+}
+
+/**
+ * @param {string} text
+ */
+function injectCSSIntoOSMPage(text) {
+    if (GM_info.scriptHandler === "FireMonkey" || GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Greasemonkey" || isSafari) {
+        const styleElem = document.querySelector("style")
+        if (!styleElem) {
+            console.trace("<style> elem not found. Try wait this elem")
+            setTimeout(async () => {
+                for (let i = 0; i < 20; i++) {
+                    const styleElem = document.querySelector("style")
+                    if (!styleElem) {
+                        await sleep(100)
+                        continue
+                    }
+                    styleElem.innerHTML += text
+                }
+            }, 100)
+            return
+        }
+        styleElem.innerHTML += text
+        if (!isSafari) {
+            styleElem.parentElement.appendChild(styleElem)
+        }
+    } else {
+        return GM_addElement(document.head, "style", {
+            textContent: text,
+        })
+    }
+}
+
+/**
+ * @param {string} text
+ */
+function injectCSSIntoSimplePage(text) {
+    return GM_addElement(document.head, "style", {
+        textContent: text,
+    })
+}
+
 // In Tampermonkey access to Math.* very slow
 const min = Math.min
 const max = Math.max
@@ -5664,57 +5716,6 @@ function addHistoryLink() {
 }
 
 //<editor-fold desc="render functions" defaultstate="collapsed">
-// For WebStorm: Settings | Editor | Language Injections
-// Places Patterns + jsLiteralExpression(jsArgument(jsReferenceExpression().withQualifiedName("injectJSIntoPage"), 0))
-
-/**
- * @param {string} text
- */
-function injectJSIntoPage(text) {
-    GM_addElement("script", {
-        textContent: text,
-    })
-}
-
-/**
- * @param {string} text
- */
-function injectCSSIntoOSMPage(text) {
-    if (GM_info.scriptHandler === "FireMonkey" || GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Greasemonkey" || isSafari) {
-        const styleElem = document.querySelector("style")
-        if (!styleElem) {
-            console.trace("<style> elem not found. Try wait this elem")
-            setTimeout(async () => {
-                for (let i = 0; i < 20; i++) {
-                    const styleElem = document.querySelector("style")
-                    if (!styleElem) {
-                        await sleep(100)
-                        continue
-                    }
-                    styleElem.innerHTML += text
-                }
-            }, 100)
-            return
-        }
-        styleElem.innerHTML += text
-        if (!isSafari) {
-            styleElem.parentElement.appendChild(styleElem)
-        }
-    } else {
-        return GM_addElement(document.head, "style", {
-            textContent: text,
-        })
-    }
-}
-
-/**
- * @param {string} text
- */
-function injectCSSIntoSimplePage(text) {
-    return GM_addElement(document.head, "style", {
-        textContent: text,
-    })
-}
 
 /**
  * @type {{
