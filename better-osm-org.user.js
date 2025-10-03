@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.2.0
+// @version         1.2.1
 // @changelog       v1.2.0: Colorblind-friendly palette in settings
 // @changelog       v1.2.0: Osmcha review tags, links to waymarkedtrails.org for type=route, alt + E to click Edits tags
 // @changelog       v1.2.0: notes word also check comments text, filter by notes comments count and anon authors
