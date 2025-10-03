@@ -3286,6 +3286,7 @@ function addNotesFiltersButtons() {
             updateNotesLayer()
         })
         ;[
+            ["❌ + ✅ at 1 days ago", 1],
             ["❌ + ✅ at 7 days ago", 7],
             ["❌ + ✅ at 30 days ago", 30],
             ["❌ + ✅ at 365 days ago", 365],
@@ -3295,6 +3296,9 @@ function addNotesFiltersButtons() {
             const option = document.createElement("option")
             option.textContent = title
             option.value = value
+            if (value === 7) {
+                option.selected = "selected"
+            }
             filterByClosed.appendChild(option)
         })
 
