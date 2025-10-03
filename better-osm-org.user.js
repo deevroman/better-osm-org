@@ -9014,7 +9014,7 @@ function addDiffInHistory(reason = "url_change") {
             }
             tags.push([k, v])
 
-            let lastTags = versions.slice(-1)[0].tags
+            let lastTags = versions.at(-1).tags
             let tagWasModified = false
             if (!lastTags.some(elem => elem[0] === k)) {
                 i.querySelector("th").classList.add("history-diff-new-tag")
@@ -9141,8 +9141,8 @@ function addDiffInHistory(reason = "url_change") {
                 i.querySelector("td").classList.add("non-modified-tag")
             }
         })
-        const lastCoordinates = versions.slice(-1)[0].coordinates
-        const lastVisible = versions.slice(-1)[0].visible
+        const lastCoordinates = versions.at(-1).coordinates
+        const lastVisible = versions.at(-1).visible
         if (visible && coordinates && versions.length > 1 && coordinates.href !== lastCoordinates) {
             if (lastCoordinates) {
                 const curLat = coordinates.querySelector(".latitude").textContent.replace(",", ".")
@@ -9169,7 +9169,7 @@ function addDiffInHistory(reason = "url_change") {
         let childNodes = null
         if (location.pathname.startsWith("/way")) {
             childNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent.match(/\d+/)[0])
-            const lastChildNodes = versions.slice(-1)[0].nodes
+            const lastChildNodes = versions.at(-1).nodes
             // prettier-ignore
             if (version > 1 &&
                 (childNodes.length !== lastChildNodes.length
@@ -9182,8 +9182,8 @@ function addDiffInHistory(reason = "url_change") {
             membersCount = ver.querySelector("details summary")?.textContent?.match(/(\d+)/)?.[0] ?? 0
             childNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
 
-            const lastChildMembersCount = versions.slice(-1)[0].membersCount
-            const lastChildMembers = versions.slice(-1)[0].members
+            const lastChildMembersCount = versions.at(-1).membersCount
+            const lastChildMembers = versions.at(-1).members
 
             // prettier-ignore
             if (version > 1 &&
