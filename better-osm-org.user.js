@@ -1156,7 +1156,7 @@ async function externalFetchRetry(details) {
         if (details["responseType"] === "json") {
             res.response = res.json
         } else {
-            res.response = res.text
+            res.responseText = res.text
         }
         return res
     }
