@@ -5181,7 +5181,7 @@ function makeMapillaryValue(elem) {
                         const img = document.createElement("img")
                         img.src = imgData
                         img.alt = "image from Mapillary"
-                        img.title = "Blue — position from GPS tracker\nOrange — estimated real postion"
+                        img.title = "Blue — position from GPS tracker\nOrange — estimated real position"
                         img.style.width = "100%"
                         a.appendChild(img)
                     })
@@ -5189,7 +5189,7 @@ function makeMapillaryValue(elem) {
                     const img = GM_addElement("img", {
                         src: imgSrc,
                         alt: "image from Mapillary",
-                        title: "Blue — position from GPS tracker\nOrange — estimated real postion",
+                        title: "Blue — position from GPS tracker\nOrange — estimated real position",
                         // crossorigin: "anonymous"
                     })
                     img.onerror = () => {
@@ -5637,7 +5637,7 @@ function makeLinksInVersionTagsClickable() {
             })
             document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(viewIn3D)
         } else if (
-            // pretier-ignore
+            // prettier-ignore
             (key === "route" || key === "superroute") &&
             ["hiking", "foot", "bicycle", "mtb", "horse", "inline_skates", "ski", "piste"].includes(valueCell.textContent)
         ) {
@@ -8629,7 +8629,7 @@ async function unrollPaginationInHistory() {
 
 function makeTitleForTagsCount(tagsCount) {
     if (tagsCount === 1) {
-        // fixme after adding locationzation
+        // fixme after adding localization
         return tagsCount + (["ru-RU", "ru"].includes(navigator.language) ? " тег" : " tag")
     } else if (tagsCount < 10 && tagsCount > 20 && [2, 3, 4].includes(tagsCount % 10)) {
         return tagsCount + (["ru-RU", "ru"].includes(navigator.language) ? " тега" : " tags")
@@ -11285,7 +11285,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         let membersChanged = false
         if (JSON.stringify(prevVersion?.members ?? []) !== JSON.stringify(targetVersion.members) && targetVersion.version !== 1) {
             memChangedFlag.style.background = "rgba(223, 238, 9, 0.6)"
-            memChangedFlag.title = "List of relation members has been changed.\nСlick to see more details"
+            memChangedFlag.title = "List of relation members has been changed.\nClick to see more details"
             membersChanged = true
         } else {
             memChangedFlag.title = "Show list of relation members"
@@ -13107,7 +13107,7 @@ async function processQuickLookInSidebar(changesetID) {
         })
         observePagination(obs)
 
-        // try find parent ways
+        // try to find parent ways
 
         async function findParents() {
             performance.mark("FIND_PARENTS_BEGIN_" + changesetID)
