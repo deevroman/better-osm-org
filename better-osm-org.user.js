@@ -5668,7 +5668,7 @@ function makeLinksInVersionTagsClickable() {
             relationViewer.style.cursor = "pointer"
             relationViewer.style.paddingLeft = "5px"
             relationViewer.style.paddingRight = "10px"
-            relationViewer.title = `Open ${waymarkedtrails_type}.waymarkedtrails.org.`// `\nRight click for select viewer`
+            relationViewer.title = `Open ${waymarkedtrails_type}.waymarkedtrails.org`// `\nRight click for select viewer`
 
             const [x, y, z] = getCurrentXYZ()
             relationViewer.href = waymarkedtrailsLink.makeURL({ x, y, z, type, id, waymarkedtrails_type })
