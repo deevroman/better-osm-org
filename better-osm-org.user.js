@@ -1432,7 +1432,7 @@ const filterIconSvg =
     '</svg>'
 
 function makeUsernameInNotesFilterable() {
-    let usernameLink = document.querySelector('#sidebar_content .details a[href^="/user/"]')
+    let usernameLink = document.querySelector('#sidebar_content .details p')?.querySelector('a[href^="/user/"]')
     if (!usernameLink) {
         usernameLink = document.createElement("a")
         usernameLink.setAttribute("href", "/user/anon")
