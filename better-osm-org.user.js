@@ -402,7 +402,7 @@ const instancesOf3DViewers = [
     {
         name: "ArcGIS 3D Buildings & Trees",
         url: "https://arcgis.com/home/webscene/viewer.html",
-        makeURL: function ({ x: x, y: y, z: z }) {
+        makeURL: function ({ x: x, y: y}) {
             return `${this.url}?webscene=037cceb0e24440179dbd00846d2a8c4f&viewpoint=cam:${y},${parseFloat(x) - 0.0015},150;0,50` // todo relation don't work?
         },
     },
@@ -2995,8 +2995,8 @@ out meta;
     })
     try {
         addAltClickHandlerForNotes()
-    } catch (e) {
-        console.error("fail add alt clicks handlers for note layer")
+    } catch (err) {
+        console.error(err, "fail add alt clicks handlers for note layer")
     }
 
     function isClosedNote() {
@@ -8962,7 +8962,7 @@ function addDiffInHistory(reason = "url_change") {
         }
 
         changesetHTML.innerHTML = ""
-        let hashtag = document.createTextNode("#")
+        const hashtag = document.createTextNode("#")
         metainfoHTML.appendChild(hashtag)
         const changesetWrapper = document.createElement("span")
         changesetWrapper.appendChild(changesetA)
@@ -9165,10 +9165,11 @@ function addDiffInHistory(reason = "url_change") {
             }
             wasModifiedObject = true
         }
+        let membersCount = 0 // dirty attempt to bypass lazy loading
         let childNodes = null
         if (location.pathname.startsWith("/way")) {
             childNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent.match(/\d+/)[0])
-            let lastChildNodes = versions.slice(-1)[0].nodes
+            const lastChildNodes = versions.slice(-1)[0].nodes
             // prettier-ignore
             if (version > 1 &&
                 (childNodes.length !== lastChildNodes.length
@@ -9178,11 +9179,16 @@ function addDiffInHistory(reason = "url_change") {
             }
             ver.querySelector("details")?.removeAttribute("open")
         } else if (location.pathname.startsWith("/relation")) {
+            membersCount = ver.querySelector("details summary")?.textContent?.match(/(\d+)/)?.[0] ?? 0
             childNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
-            let lastChildMembers = versions.slice(-1)[0].members
+
+            const lastChildMembersCount = versions.slice(-1)[0].membersCount
+            const lastChildMembers = versions.slice(-1)[0].members
+
             // prettier-ignore
             if (version > 1 &&
-                (childNodes.length !== lastChildMembers.length
+                (membersCount !== lastChildMembersCount
+                    || childNodes.length !== lastChildMembers.length
                     || childNodes.some((el, index) => lastChildMembers[index] !== childNodes[index]))) {
                 // todo непонятно как подружить отображением редакшнов
                 ver.querySelector("details > summary")?.classList.add("history-diff-modified-tag")
@@ -9195,6 +9201,7 @@ function addDiffInHistory(reason = "url_change") {
             coordinates: coordinates?.href ?? lastCoordinates,
             wasModified: wasModifiedObject || (visible && !lastVisible),
             nodes: childNodes,
+            membersCount: membersCount,
             members: childNodes,
             visible: visible,
         })
@@ -14163,7 +14170,7 @@ async function betterUserStat(user) {
     )
     searchByComment.addEventListener(
         "mousedown",
-        function (e) {
+        function () {
             inputHandler()
         },
         { once: true },
@@ -15614,7 +15621,7 @@ if (isOsmServer()) {
                                 break
                             case "only with my comments":
                                 if (currentUserID) {
-                                    if (!note.properties.comments.slice(1).some(c => c.uid == currentUserID)) {
+                                    if (!note.properties.comments.slice(1).some(c => c.uid === currentUserID)) {
                                         return false
                                     }
                                 }
@@ -15626,7 +15633,7 @@ if (isOsmServer()) {
                                 break
                             case "without my comments":
                                 if (currentUserID) {
-                                    if (note.properties.comments.slice(1)?.some(c => c.uid == currentUserID)) {
+                                    if (note.properties.comments.slice(1)?.some(c => c.uid === currentUserID)) {
                                         return false
                                     }
                                 }
@@ -15636,7 +15643,7 @@ if (isOsmServer()) {
                                     if (note.properties.comments.length <= 1) {
                                         return false
                                     }
-                                    if (!note.properties.comments.slice(1).some(c => c.uid == currentUserID)) {
+                                    if (!note.properties.comments.slice(1).some(c => c.uid === currentUserID)) {
                                         return false
                                     }
                                 }
@@ -16781,7 +16788,7 @@ function preventHoverEvents() {
     )
 }
 
-function goToPrevChangeset(e) {
+function goToPrevChangeset() {
     if (!document.querySelector("ol .active-object")) {
         return
     }
@@ -16831,7 +16838,7 @@ function goToPrevChangeset(e) {
     }
 }
 
-function goToNextChangeset(e) {
+function goToNextChangeset() {
     preventHoverEvents()
     if (!document.querySelector("ol .active-object")) {
         let next = document.querySelector("ol li")
@@ -16919,7 +16926,7 @@ function extractLatLonFromElem(elem) {
     return [elem.getAttribute("data-lat"), elem.getAttribute("data-lon")]
 }
 
-function goToPrevSearchResult(e) {
+function goToPrevSearchResult() {
     if (!document.querySelector("#sidebar_content ul .active-object")) {
         return
     }
@@ -16960,7 +16967,7 @@ function goToPrevSearchResult(e) {
     }
 }
 
-function goToNextSearchResult(e) {
+function goToNextSearchResult() {
     preventHoverEvents()
     if (!document.querySelector("#sidebar_content ul .active-object")) {
         document.querySelector("#sidebar_content ul li").classList.add("active-object")
@@ -18508,7 +18515,7 @@ function displayKMLTrack(xml) {
 function renderGeoJSONwrapper(geojson) {
     injectJSIntoPage(`
     var jsonLayer = null;
-
+    // noinspection JSUnusedLocalSymbols
     function renderGeoJSON(data) {
         function onEachFeature(feature, layer) {
             if (feature.properties) {
