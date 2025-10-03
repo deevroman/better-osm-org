@@ -1836,12 +1836,17 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
                     spanWrapper.title += `\n${name}: ${desc}`
                 }
             })
+            const firstComment = document.querySelector("#sidebar_content article")
             if (changesetProps["tags"].length > 2) {
-                const firstComment = document.querySelector("#sidebar_content article")
                 if (firstComment) {
                     // https://www.openstreetmap.org/changeset/172368459
                     firstComment.style.marginTop = 3 + 17 * (changesetProps["tags"].length - 2) + "px"
                 }
+            }
+            if (changesetProps["tags"].length > 0 && !firstComment) {
+                const textarea = document.querySelector("#sidebar_content form")
+                // not good because layout jumps :(
+                textarea.style.marginTop = 3 + 17 * (changesetProps["tags"].length) + "px"
             }
             spanWrapper.appendChild(span)
             dislikeBtn.after(spanWrapper)
