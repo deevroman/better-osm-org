@@ -1900,7 +1900,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
                         console.trace(res)
                         ch.checked = "false"
                     } else {
-                        console.log(`${i.name} applyied`)
+                        console.log(`${i.name} applied`)
                     }
                 } else {
                     const res = await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/tags/${i.id}/`, "DELETE")
@@ -11987,7 +11987,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                     lineWidth = 8
                 }
             } else {
-                console.error(`broken way: ${objID}`, nodesList) // todo retray
+                console.error(`broken way: ${objID}`, nodesList) // todo retry
             }
         } else if (version === 1 && targetVersion.changeset === parseInt(changesetID)) {
             displayWay(cloneInto(currentNodesList, unsafeWindow), false, c("rgba(0, 128, 0, 0.6)"), lineWidth, changesetID + "w" + objID, "customObjects", dashArray)
@@ -12139,7 +12139,7 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
     })
 
     const objectsLinksInComments = {
-        // todo can be optimaized
+        // todo can be optimized
         nodes: Array.from(document.querySelectorAll(`#element_versions_list > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="node/"]`)),
         ways: Array.from(document.querySelectorAll(`#element_versions_list > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="way/"]`)),
         relations: Array.from(document.querySelectorAll(`#element_versions_list > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="relation/"]`)),
