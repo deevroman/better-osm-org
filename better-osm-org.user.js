@@ -8894,10 +8894,16 @@ function addDiffInHistory(reason = "url_change") {
     addHistoryLink()
     externalizeLinks(document.querySelectorAll("#sidebar_content p a"))
     externalizeLinks(document.querySelectorAll("#sidebar_content table a"))
-    if (!location.pathname.includes("/history") || location.pathname === "/history" || (location.pathname.includes("/history/") && !location.pathname.endsWith("/history/")) || location.pathname.includes("/user/")) return
+    if (!location.pathname.match(/\/(node|way|relation)\/[0-9]+\/history\/?$/)) {
+        return
+    }
     if (document.querySelector(".compact-toggle-btn") && reason !== "pagination") {
         return
     }
+    const isNode = location.pathname.startsWith("/node")
+    const isWay = location.pathname.startsWith("/way")
+    const isRelation = location.pathname.startsWith("/relation")
+
     // костыль для KeyK/L и OSM tags editor
     document.querySelectorAll("#element_versions_list > div").forEach(i => i.classList.add("browse-section"))
     cleanAllObjects()
@@ -8906,7 +8912,7 @@ function addDiffInHistory(reason = "url_change") {
     document.querySelector("#sidebar").focus({ focusVisible: false }) // focusVisible работает только в Firefox
     document.querySelector("#sidebar").blur()
 
-    if (!location.pathname.includes("/user/") && !document.querySelector(".compact-toggle-btn")) {
+    if (!document.querySelector(".compact-toggle-btn")) {
         let compactToggle = document.createElement("button")
         compactToggle.title = "Toggle between full and compact tags diff.\nYou can also use the T key."
         compactToggle.setAttribute("value", "><")
@@ -8974,7 +8980,7 @@ function addDiffInHistory(reason = "url_change") {
         metainfoHTML.appendChild(changesetWrapper)
         let visible = true
 
-        if (location.pathname.startsWith("/node")) {
+        if (isNode) {
             if (coordinates) {
                 locationHTML.innerHTML = ""
                 locationHTML.appendChild(locationA)
@@ -8984,11 +8990,11 @@ function addDiffInHistory(reason = "url_change") {
                 wasModifiedObject = true // because sometimes deleted object has tags
                 time.before(document.createTextNode("🗑 "))
             }
-        } else if (location.pathname.startsWith("/way")) {
+        } else if (isWay) {
             if (!ver.querySelector("details")) {
                 time.before(document.createTextNode("🗑 "))
             }
-        } else if (location.pathname.startsWith("/relation")) {
+        } else if (isRelation) {
             if (!ver.querySelector("details")) {
                 time.before(document.createTextNode("🗑 "))
             }
@@ -9172,7 +9178,7 @@ function addDiffInHistory(reason = "url_change") {
         }
         let membersCount = 0 // dirty attempt to bypass lazy loading
         let childNodes = null
-        if (location.pathname.startsWith("/way")) {
+        if (isWay) {
             childNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent.match(/\d+/)[0])
             const lastChildNodes = versions.at(-1).nodes
             // prettier-ignore
@@ -9183,7 +9189,7 @@ function addDiffInHistory(reason = "url_change") {
                 wasModifiedObject = true
             }
             ver.querySelector("details")?.removeAttribute("open")
-        } else if (location.pathname.startsWith("/relation")) {
+        } else if (isRelation) {
             membersCount = ver.querySelector("details summary")?.textContent?.match(/(\d+)/)?.[0] ?? 0
             childNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
 
@@ -9255,7 +9261,7 @@ function addDiffInHistory(reason = "url_change") {
                 versions[versions.length - index - 1].wasModified = true
             }
         })
-        if (!versions[versions.length - index - 1].wasModified) {
+        if (!versions[versions.length - index - 1].wasModified && !isRelation) {
             let spoiler = document.createElement("details")
             let summary = document.createElement("summary")
             summary.textContent = x.querySelector("a").textContent
@@ -9311,7 +9317,7 @@ function addDiffInHistory(reason = "url_change") {
 function setupVersionsDiff(path) {
     // prettier-ignore
     if (!path.includes("/history")
-        && !path.startsWith("/node")
+        || !path.startsWith("/node")
         && !path.startsWith("/way")
         && !path.startsWith("/relation")) {
         return;
