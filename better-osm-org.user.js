@@ -402,7 +402,7 @@ const instancesOf3DViewers = [
     {
         name: "ArcGIS 3D Buildings & Trees",
         url: "https://arcgis.com/home/webscene/viewer.html",
-        makeURL: function ({ x: x, y: y}) {
+        makeURL: function ({ x: x, y: y }) {
             return `${this.url}?webscene=037cceb0e24440179dbd00846d2a8c4f&viewpoint=cam:${y},${parseFloat(x) - 0.0015},150;0,50` // todo relation don't work?
         },
     },
@@ -1432,7 +1432,7 @@ const filterIconSvg =
     '</svg>'
 
 function makeUsernameInNotesFilterable() {
-    let usernameLink = document.querySelector('#sidebar_content .details p')?.querySelector('a[href^="/user/"]')
+    let usernameLink = document.querySelector("#sidebar_content .details p")?.querySelector('a[href^="/user/"]')
     if (!usernameLink) {
         usernameLink = document.createElement("a")
         usernameLink.setAttribute("href", "/user/anon")
@@ -1846,7 +1846,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             if (changesetProps["tags"].length > 0 && !firstComment) {
                 const textarea = document.querySelector("#sidebar_content form")
                 // not good because layout jumps :(
-                textarea.style.marginTop = 3 + 17 * (changesetProps["tags"].length) + "px"
+                textarea.style.marginTop = 3 + 17 * changesetProps["tags"].length + "px"
             }
             spanWrapper.appendChild(span)
             dislikeBtn.after(spanWrapper)
@@ -5668,7 +5668,7 @@ function makeLinksInVersionTagsClickable() {
             relationViewer.style.cursor = "pointer"
             relationViewer.style.paddingLeft = "5px"
             relationViewer.style.paddingRight = "10px"
-            relationViewer.title = `Open ${waymarkedtrails_type}.waymarkedtrails.org`// `\nRight click for select viewer`
+            relationViewer.title = `Open ${waymarkedtrails_type}.waymarkedtrails.org` // `\nRight click for select viewer`
 
             const [x, y, z] = getCurrentXYZ()
             relationViewer.href = waymarkedtrailsLink.makeURL({ x, y, z, type, id, waymarkedtrails_type })
@@ -8913,7 +8913,7 @@ function addDiffInHistory(reason = "url_change") {
     document.querySelector("#sidebar").blur()
 
     if (!document.querySelector(".compact-toggle-btn")) {
-        let compactToggle = document.createElement("button")
+        const compactToggle = document.createElement("button")
         compactToggle.title = "Toggle between full and compact tags diff.\nYou can also use the T key."
         compactToggle.setAttribute("value", "><")
         compactToggle.innerHTML = compactModeSvg
@@ -8929,7 +8929,7 @@ function addDiffInHistory(reason = "url_change") {
     }
 
     addDiffInHistoryStyle()
-    const versions = [{ tags: [], coordinates: "", wasModified: false, nodes: [], members: [], visible: true }]
+    const versions = [{ tags: [], coordinates: "", wasModified: false, nodes: [], members: [], visible: true, membersCount: 0 }]
     // add/modification
     const versionsHTML = Array.from(document.querySelectorAll('#element_versions_list > div:not(.processed):not([way-version="inter"]):not(:has(a[href*="/redactions/"]:not([rel])))'))
     for (let ver of versionsHTML.toReversed()) {
