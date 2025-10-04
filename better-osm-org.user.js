@@ -2152,7 +2152,11 @@ function addRevertButton() {
                     i.style.display = "none"
                     i.classList.add("hidden-tag")
                     needUnhide = true
-                } else if (key.textContent === "hashtags" && i.querySelector("td").textContent.includes("#") && document.querySelector("#sidebar_content h2 ~ div p")?.textContent?.includes(i.querySelector("td").textContent)) {
+                } else if (
+                    key.textContent === "hashtags" &&
+                    i.querySelector("td").textContent.includes("#") &&
+                    document.querySelector("#sidebar_content h2 ~ div p")?.textContent?.includes(i.querySelector("td").textContent)
+                ) {
                     i.style.display = "none"
                     i.classList.add("hidden-tag")
                 }
@@ -8228,7 +8232,8 @@ function setupViewRedactions() {
             }
         }
 
-        const url = `https://raw.githubusercontent.com/osm-cc-by-sa/data/refs/heads/main/versions_affected_by_disagreed_users_and_all_after_with_redaction_period/${type}/${id_prefix}.osm` + (type === "relation" ? ".gz" : "")
+        const urlPrefix = "https://raw.githubusercontent.com/osm-cc-by-sa/data/refs/heads/main/versions_affected_by_disagreed_users_and_all_after_with_redaction_period"
+        const url = `${urlPrefix}/${type}/${id_prefix}.osm` + (type === "relation" ? ".gz" : "")
         const data = await downloadArchiveData(url, objID, type === "relation")
 
         const keysLinks = new Map()
@@ -16079,7 +16084,9 @@ function makeBadge(userInfo, changesetDate = new Date()) {
         makeImporterBadge()
     } else if (userInfo["blocks"]["received"]["active"]) {
         makeBannedUserBadge()
-    } else if (new Date(userInfo["firstChangesetCreationTime"] ?? userInfo["account_created"]).setUTCDate(new Date(userInfo["firstChangesetCreationTime"] ?? userInfo["account_created"]).getUTCDate() + 30) > changesetDate) {
+    } else if (
+        new Date(userInfo["firstChangesetCreationTime"] ?? userInfo["account_created"]).setUTCDate(new Date(userInfo["firstChangesetCreationTime"] ?? userInfo["account_created"]).getUTCDate() + 30) > changesetDate
+    ) {
         makeNewbieBadge()
     } else if (!corporateMappers || corporateMappers?.has(userInfo["display_name"])) {
         if (!corporateMappers) {
