@@ -10214,6 +10214,8 @@ function makeVersionPageBetter() {
         return
     }
     addCompactSidebarStyle()
+    externalizeLinks(document.querySelectorAll("#sidebar_content p a"))
+    externalizeLinks(document.querySelectorAll("#sidebar_content table a"))
     const browseSectionSelector = document.querySelector("#element_versions_list") ? '#element_versions_list > div:not(:has(a[href*="/redactions/"]:not([rel])))' : "#sidebar_content > div:first-of-type"
     if (!document.querySelector(".find-user-btn")) {
         try {
