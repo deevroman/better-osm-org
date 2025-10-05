@@ -536,6 +536,10 @@ if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id
         boWindowObject.mapHook()
         if (boWindowObject.map instanceof HTMLElement) {
             console.error("Please, reload page, if something doesn't work")
+            // todo
+            // getMap = () => null
+            // } else {
+            //     getMap = () => boWindowObject.map
         }
 
         getMap = () => boWindowObject.map
