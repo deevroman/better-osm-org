@@ -2020,7 +2020,11 @@ function addRevertButton() {
             if (!e.shiftKey) {
                 if (osm_server !== prod_server) {
                     e.preventDefault()
-                    alert("osm-revert works only for www.openstreetmap.org\n\nBut you can install reverter plugin in JOSM and use shift+click for other OSM servers.\n\n⚠️Change the osm server in the josm settings!")
+                    alert(
+                        "osm-revert works only for www.openstreetmap.org\n\n" +
+                            "But you can install reverter plugin in JOSM and use shift+click for other OSM servers.\n\n" +
+                            "⚠️Change the osm server in the josm settings!",
+                    )
                 }
                 return
             }
@@ -10282,7 +10286,7 @@ function setupMakeVersionPageBetter() {
 }
 
 // Модули должны стать классами
-// - поддерживается всеми браузерами, в которых есть TM
+// - поддерживается всеми браузерами, в которых есть TM.
 // - изоляция функций и глобальных переменных
 // - для модулей, которые внедряются через setInterval можно сохранить таймер, чтобы предотвратить дублирование вызовов
 // - возможность сохранить результат внедрения
@@ -11989,7 +11993,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 if (nodesAfterChangeset.some(i => i.visible === false)) {
                     displayWay(cloneInto(nodesList, unsafeWindow), false, c("#ff0000", ".deleted-way-geom"), 3, changesetID + "w" + objID, "customObjects", dashArray)
                 } else {
-                    // скорее всего это объединение линий, поэтому эту удаление линии нужно отправить на задний план
+                    // скорее всего это объединение линий, поэтому это удаление линии нужно отправить на задний план
                     const layer = displayWay(cloneInto(nodesList, unsafeWindow), false, c("#ff0000", ".deleted-way-geom"), 7, changesetID + "w" + objID, "customObjects", dashArray)
                     layer.bringToBack()
                     lineWidth = 8
