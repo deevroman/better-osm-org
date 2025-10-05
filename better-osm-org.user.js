@@ -6670,11 +6670,12 @@ async function sortWayNodesByTimestamp(wayID) {
     /** @type {Set<string>} */
     const objectsSet = new Set()
     for (const i of document.querySelectorAll(`.way-version-view`)) {
-        const [targetVersion, nodesHistory] = await loadWayVersionNodes(wayID, parseInt(i.getAttribute("way-version")))
+        const versionNum = parseInt(i.getAttribute("way-version"))
+        const [targetVersion, nodesHistory] = await loadWayVersionNodes(wayID, versionNum)
         objectsBag.push(targetVersion)
         nodesHistory.forEach(v => {
             if (v.length === 0) {
-                console.error(`${wayID}, v${parseInt(i.getAttribute("way-version"))} has node with empty history`)
+                console.error(`${wayID}, v${versionNum} has node with empty history`)
             }
             const uniq_key = `${v[0].type} ${v[0].id}`
             if (!objectsSet.has(uniq_key)) {
