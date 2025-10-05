@@ -8046,6 +8046,19 @@ async function loadRelationVersionMembers(relationID, version) {
     return { targetVersion: targetVersion, membersHistory: membersHistory }
 }
 
+
+async function showFullRelationHistory(relationID) {
+    const btn = document.querySelector("#download-all-versions-btn")
+    try {
+        // await replaceDownloadRelationButton(btn, relationID)
+    } catch (err) {
+        console.error(err)
+        btn.title = "Please try reload page.\nIf the error persists, a message about it in the better-osm-org repository"
+        btn.style.background = "red"
+        btn.style.cursor = "auto"
+    }
+}
+
 function setupRelationVersionView() {
     const match = location.pathname.match(/\/relation\/(\d+)\//)
     if (match === null) return
@@ -8180,6 +8193,12 @@ function setupRelationVersionView() {
             downloadAllVersionsBtn.style.cursor = "progress"
             for (const i of document.querySelectorAll(`.relation-version-view:not([hidden])`)) {
                 await loadRelationVersion(i)
+            }
+            if (isDebug() && GM_config.get("FullVersionsDiff")) {
+                console.time("full history")
+                addQuickLookStyles()
+                await showFullRelationHistory(relationID)
+                console.timeEnd("full history")
             }
             e.target.remove()
         }
