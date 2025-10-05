@@ -1952,9 +1952,10 @@ function addRevertButton() {
         hideSearchForm()
         // sidebar.classList.add("changeset-header")
         const changeset_id = sidebar.innerHTML.match(/([0-9]+)/)[0]
+        const reverterTitle = "Open osm-revert\nShift + click for revert via JOSM\nPress R for partial revert"
         // prettier-ignore
         sidebar.innerHTML +=
-            ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="Open osm-revert\nShift + click for revert via JOSM\nPress R for partial revert">↩️</a>
+            ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="${reverterTitle}">↩️</a>
               <a href="https://osmcha.org/changesets/${changeset_id}" target="_blank" rel="noreferrer">${osmchaSvgLogo}</a>`
         changesetObjectsSelectionModeEnabled = false
         document.querySelector("#revert_button_class").onclick = async e => {
@@ -2564,7 +2565,8 @@ const commentSvg =
 
 // prettier-ignore
 const diffSvg =
-    '<svg class="lucide lucide-diff better-diff-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">' +
+    '<svg class="lucide lucide-diff better-diff-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" ' +
+    'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">' +
     '<path d="M12 3v14"/><path d="M5 10h14"/>' +
     '<path d="M5 21h14"/>' +
     '</svg>'
