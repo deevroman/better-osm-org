@@ -8944,13 +8944,34 @@ function addDiffInHistory(reason = "url_change") {
     }
 
     addDiffInHistoryStyle()
-    const versions = [{ tags: [], coordinates: "", wasModified: false, nodes: [], members: [], visible: true, membersCount: 0 }]
+
+    function convertVersionIntoSpoiler(elem) {
+        const spoiler = document.createElement("details")
+        const summary = document.createElement("summary")
+        summary.textContent = elem.querySelector("a").textContent
+        spoiler.innerHTML = elem.innerHTML
+        spoiler.prepend(summary)
+        spoiler.classList.add("empty-version")
+        spoiler.classList.add("browse-" + location.pathname.match(/(node|way|relation)/)[1])
+        elem.replaceWith(spoiler)
+        return spoiler
+    }
+
+    const versions = [{ tags: [], coordinates: "", wasModified: false, nodes: [], members: [], visible: true, membersCount: 0, versionNumber: 0 }]
     // add/modification
-    const versionsHTML = Array.from(document.querySelectorAll('#element_versions_list > div:not(.processed):not([way-version="inter"]):not(:has(a[href*="/redactions/"]:not([rel])))'))
-    for (let ver of versionsHTML.toReversed()) {
+    const oldToNewHtmlVersions = Array.from(document.querySelectorAll('#element_versions_list > div:not(.processed):not([way-version="inter"]):not(:has(a[href*="/redactions/"]:not([rel])))')).toReversed()
+
+    for (let verInd = 0; verInd < oldToNewHtmlVersions.length; verInd++) {
+        const ver = oldToNewHtmlVersions[verInd]
+
         ver.classList.add("processed")
         let wasModifiedObject = false
-        const version = ver.children[0].childNodes[1].href.match(/\/(\d+)$/)[1]
+        const version = parseInt(
+            ver
+                .querySelector("a")
+                .getAttribute("href")
+                .match(/\/history\/(\d+)$/)[1],
+        )
         const kv = ver.querySelectorAll("tbody > tr") ?? []
         const tags = []
 
@@ -9021,7 +9042,7 @@ function addDiffInHistory(reason = "url_change") {
         })
         const showPreviousTagValue = GM_config.get("ShowPreviousTagValue", true)
         kv.forEach(i => {
-            let k = i.querySelector("th > a")?.textContent ?? i.querySelector("th")?.textContent
+            const k = i.querySelector("th > a")?.textContent ?? i.querySelector("th")?.textContent
             i.querySelector("td .prev-value-span")?.remove()
             if (i.querySelector("td .current-value-span")) {
                 i.querySelector("td .current-value-span").classList.remove("current-value-span")
@@ -9040,7 +9061,7 @@ function addDiffInHistory(reason = "url_change") {
             }
             tags.push([k, v])
 
-            let lastTags = versions.at(-1).tags
+            const lastTags = versions.at(-1).tags
             let tagWasModified = false
             if (!lastTags.some(elem => elem[0] === k)) {
                 i.querySelector("th").classList.add("history-diff-new-tag")
@@ -9191,7 +9212,7 @@ function addDiffInHistory(reason = "url_change") {
             }
             wasModifiedObject = true
         }
-        let membersCount = 0 // dirty attempt to bypass lazy loading
+        let membersCount = 0 // quick workaround for lazy versions
         let childNodes = null
         if (isWay) {
             childNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent.match(/\d+/)[0])
@@ -9205,24 +9226,88 @@ function addDiffInHistory(reason = "url_change") {
             }
             ver.querySelector("details")?.removeAttribute("open")
         } else if (isRelation) {
-            membersCount = ver.querySelector("details summary")?.textContent?.match(/(\d+)/)?.[0] ?? 0
-            childNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
+            membersCount = parseInt(ver.querySelector("details:not(.empty-version) summary")?.textContent?.match(/(\d+)/)?.[0]) ?? 0
+            childNodes = Array.from(ver.querySelectorAll("details:not(.empty-version) ul.list-unstyled li")).map(el => el.textContent)
 
-            const lastChildMembersCount = versions.at(-1).membersCount
-            const lastChildMembers = versions.at(-1).members
+            const olderMembersCount = versions.at(-1).membersCount
+            const olderMembers = versions.at(-1).members
 
-            // prettier-ignore
-            if (version > 1 &&
-                (membersCount !== lastChildMembersCount
-                    || childNodes.length !== lastChildMembers.length
-                    || childNodes.some((el, index) => lastChildMembers[index] !== childNodes[index]))) {
-                // todo непонятно как подружить отображением редакшнов
-                ver.querySelector("details > summary")?.classList.add("history-diff-modified-tag")
+            const unloadedMembersList = ver.querySelector("turbo-frame:has(.spinner-border)")
+            const olderUnloadedMembersList = oldToNewHtmlVersions[verInd - 1]?.querySelector("turbo-frame:has(.spinner-border)")
+            // https://osm.org/relation/9425522/history
+            if (version > 1 && membersCount !== olderMembersCount) {
+                ver.querySelector("details:not(.empty-version) > summary")?.classList.add("history-diff-modified-tag")
                 wasModifiedObject = true
+            } else if (version > 1 && !unloadedMembersList && !olderUnloadedMembersList) {
+                if (childNodes.length !== olderMembers.length || childNodes.some((el, index) => olderMembers[index] !== childNodes[index])) {
+                    ver.querySelector("details:not(.empty-version) > summary")?.classList.add("history-diff-modified-tag")
+                    wasModifiedObject = true
+                } else {
+                    oldToNewHtmlVersions[verInd] = convertVersionIntoSpoiler(ver)
+                }
+            }
+            if (unloadedMembersList) {
+                function repairVersions() {
+                    const ver = oldToNewHtmlVersions[verInd]
+                    const olderVersion = oldToNewHtmlVersions[verInd - 1]
+                    const nextVersion = oldToNewHtmlVersions[verInd + 1]
+                    if (version === 11 || version === 9) {
+                        console.log(version, olderVersion, olderVersion.querySelector("turbo-frame:has(.spinner-border)")?.innerHTML, nextVersion, nextVersion.querySelector("turbo-frame:has(.spinner-border)")?.innerHTML)
+                    }
+                    if (olderVersion && !olderVersion.querySelector("turbo-frame:has(.spinner-border)")) {
+                        const curChildNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
+                        const oldChildMembers = Array.from(olderVersion.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
+                        if (version === 11 || version === 9) {
+                            console.log(version, olderVersion, ver, nextVersion, curChildNodes, oldChildMembers)
+                            debugger
+                        }
+                        if (version > 1 && (curChildNodes.length !== oldChildMembers.length || curChildNodes.some((el, index) => curChildNodes[index] !== oldChildMembers[index]))) {
+                            ver.querySelector("details:not(.empty-version) > summary")?.classList.add("history-diff-modified-tag")
+                            wasModifiedObject = true
+                        } else if (!wasModifiedObject) {
+                            oldToNewHtmlVersions[verInd] = convertVersionIntoSpoiler(ver)
+                        }
+                    }
+                    if (nextVersion && !nextVersion.querySelector("turbo-frame:has(.spinner-border)")) {
+                        const nextChildMembers = Array.from(nextVersion.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
+                        const curChildNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
+
+                        if (nextChildMembers.length !== curChildNodes.length || curChildNodes.some((el, index) => curChildNodes[index] !== nextChildMembers[index])) {
+                            nextVersion.querySelector("details:not(.empty-version) > summary")?.classList.add("history-diff-modified-tag")
+                        } else {
+                            const nextVersionNumber = parseInt(
+                                nextVersion
+                                    .querySelector("a")
+                                    .getAttribute("href")
+                                    .match(/\/history\/(\d+)$/)[1],
+                            )
+                            if (versions.find(i => i.versionNumber === nextVersionNumber)?.wasModified === false) {
+                                oldToNewHtmlVersions[verInd + 1] = convertVersionIntoSpoiler(nextVersion)
+                            }
+                        }
+                    }
+                }
+
+                const lazyMembersObserver = new MutationObserver(function (mutationsList, observer) {
+                    for (let mutationRecord of mutationsList) {
+                        for (let newNode of mutationRecord.addedNodes ?? []) {
+                            if (newNode.nodeName === "UL") {
+                                console.log("lazy version loaded")
+                                observer.disconnect()
+                                repairVersions()
+                            }
+                        }
+                    }
+                })
+                lazyMembersObserver.observe(unloadedMembersList, {
+                    childList: true,
+                    subtree: true,
+                })
             }
             ver.querySelector("details")?.removeAttribute("open")
         }
         versions.push({
+            versionNumber: version,
             tags: tags,
             coordinates: coordinates?.href ?? lastCoordinates,
             wasModified: wasModifiedObject || (visible && !lastVisible),
@@ -9235,8 +9320,8 @@ function addDiffInHistory(reason = "url_change") {
         ver.title = makeTitleForTagsCount(tags.length)
     }
     // deletion
-    Array.from(versionsHTML).forEach((x, index) => {
-        if (versionsHTML.length <= index + 1) return
+    oldToNewHtmlVersions.toReversed().forEach((x, index) => {
+        if (oldToNewHtmlVersions.length <= index + 1) return
         versions.toReversed()[index + 1].tags.forEach(tag => {
             let k = tag[0]
             let v = tag[1]
@@ -9277,25 +9362,15 @@ function addDiffInHistory(reason = "url_change") {
             }
         })
         if (!versions[versions.length - index - 1].wasModified && !isRelation) {
-            let spoiler = document.createElement("details")
-            let summary = document.createElement("summary")
-            summary.textContent = x.querySelector("a").textContent
-            spoiler.innerHTML = x.innerHTML
-            spoiler.prepend(summary)
-            spoiler.classList.add("empty-version")
-            spoiler.classList.add("browse-" + location.pathname.match(/(node|way|relation)/)[1])
-            x.replaceWith(spoiler)
+            convertVersionIntoSpoiler(x)
         }
     })
     if (document.querySelector("#older_element_versions_navigation a")) {
-        versionsHTML.toReversed()?.[0].classList.remove("processed")
-        versionsHTML
-            .toReversed()?.[0]
-            ?.querySelectorAll(".history-diff-new-tag, .history-diff-modified-tag")
-            ?.forEach(elem => {
-                elem.classList.remove("history-diff-new-tag")
-                elem.classList.remove("history-diff-modified-tag")
-            })
+        oldToNewHtmlVersions[0]?.classList?.remove("processed")
+        oldToNewHtmlVersions[0]?.querySelectorAll(".history-diff-new-tag, .history-diff-modified-tag")?.forEach(elem => {
+            elem.classList.remove("history-diff-new-tag")
+            elem.classList.remove("history-diff-modified-tag")
+        })
     }
     let hasRedacted = false
     Array.from(document.querySelectorAll('#element_versions_list > div:has(a[href*="/redactions/"]:not([rel]))')).forEach(x => {
