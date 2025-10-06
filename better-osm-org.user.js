@@ -6432,7 +6432,7 @@ async function loadNodesViaHistoryCalls(nodes) {
 
 /**
  * @typedef {NodeVersion[]} NodeHistory
- * @property {unique symbol} __brand_nodes_history
+ * @property {unique symbol} brand_node_history
  */
 
 /**
@@ -6511,7 +6511,7 @@ for (t["created"])
  * @param {string|number} wayID
  * @param {number} version
  * @param {string|number|null=} changesetID
- * @return {Promise<[WayVersion, NodeVersion[][]]>}
+ * @return {Promise<[WayVersion, NodeHistory[]]>}
  */
 async function loadWayVersionNodes(wayID, version, changesetID = null) {
     console.debug("Loading way", wayID, version)
@@ -6783,6 +6783,7 @@ async function sortRelationMembersByTimestamp(relationID) {
 async function replaceDownloadWayButton(btn, wayID) {
     const objectsBag = await sortWayNodesByTimestamp(wayID)
 
+    /** @type {Object<number, WayVersion>} */
     const wayVersionsIndex = makeObjectVersionsIndex(await getWayHistory(wayID))
     /** @type {Object.<string, NodeVersion|WayVersion>}*/
     const objectStates = {}
@@ -7425,6 +7426,7 @@ function setupWayVersionView() {
 
 /**
  * @typedef {RelationVersion[]} RelationHistory
+ * @property {unique symbol} __brand_relation_history
  */
 
 /**
@@ -8034,11 +8036,17 @@ async function getRelationViaOverpassXML(id, timestamp) {
  */
 
 /**
- * @typedef {{nodes: NodesBag, ways: [WayVersion, NodeVersion[][]][], relations: RelationVersion[][]}} RelationMembersVersions
+ * @typedef {{
+ * nodes: NodeHistory[],
+ * ways: [WayVersion, WayHistory, NodeHistory[]][],
+ * relations: RelationHistory[]
+ * }} RelationMembersVersions
  */
 
 /**
- *
+ * Возвращает нужную версию
+ * + точки на момент версии
+ * + версию линии на момент версии со все необходимые историями точек в линиях
  * @param {string|number} relationID
  * @param {number} version
  * @throws {string}
@@ -8057,7 +8065,11 @@ async function loadRelationVersionMembers(relationID, version) {
     }
 
     /**
-     * @type {{nodes: NodesBag, ways: [WayVersion, NodeVersion[][]][]|Promise<[WayVersion, NodeVersion[][]]>[], relations: RelationVersion[][]}}
+     * @type {{
+     * nodes: NodeHistory[],
+     * ways: [WayVersion, WayHistory, NodeHistory[]][]|Promise<[WayVersion, WayHistory, NodeHistory[]]>[],
+     * relations: [RelationVersion, RelationHistory[]]
+     * }}
      */
     const membersHistory = {
         nodes: [],
@@ -8066,21 +8078,10 @@ async function loadRelationVersionMembers(relationID, version) {
     }
     for (const member of targetVersion.members ?? []) {
         if (member.type === "node") {
-            const nodeHistory = await getNodeHistory(member.ref)
-            // nodeHistory.__brand_nodes_history
-            const targetTime = new Date(targetVersion.timestamp)
-            /** @type {NodeVersion} */
-            let targetNodeVersion = nodeHistory[0]
-            nodeHistory.forEach(history => {
-                if (new Date(history.timestamp) <= targetTime) {
-                    targetNodeVersion = history
-                }
-            })
-            membersHistory.nodes.push(targetNodeVersion)
-            // membersHistory.nodes = nodeHistory
+            membersHistory.nodes.push(await getNodeHistory(member.ref))
         } else if (member.type === "way") {
             async function loadWay() {
-                let wayHistory = await getWayHistory(member.ref)
+                const wayHistory = await getWayHistory(member.ref)
                 const targetTime = new Date(targetVersion.timestamp)
                 let targetWayVersion = wayHistory[0]
                 wayHistory.forEach(history => {
@@ -8088,12 +8089,23 @@ async function loadRelationVersionMembers(relationID, version) {
                         targetWayVersion = history
                     }
                 })
-                return await loadWayVersionNodes(member.ref, targetWayVersion.version)
+                const [target, nodes] = await loadWayVersionNodes(member.ref, targetWayVersion.version)
+                return [target, wayHistory, nodes]
             }
-
             membersHistory.ways.push(loadWay())
         } else if (member.type === "relation") {
             // TODO может нинада? :(
+            const relationHistory = await getRelationHistory(member.ref)
+            const targetTime = new Date(targetVersion.timestamp)
+            let targetRelationVersion = relationHistory[0]
+            relationHistory.forEach(history => {
+                if (new Date(history.timestamp) <= targetTime) {
+                    targetRelationVersion = history
+                }
+            })
+            // todo рекурсивный вызов + защита от зацикливания
+            // fixme targetRelationVersion может быть другим из-за редакшнов
+            membersHistory.relations.push([targetRelationVersion, relationHistory])
         }
     }
     membersHistory.ways = await Promise.all(membersHistory.ways)
@@ -8131,10 +8143,22 @@ function setupRelationVersionView() {
         if (showWay) {
             cleanCustomObjects()
             let hasBrokenMembers = false
-            membersHistory.nodes.forEach(n => {
+            const nodes = []
+            membersHistory.nodes.forEach(nodeHistory => {
+                const targetTime = new Date(targetVersion.timestamp)
+                /** @type {NodeVersion} */
+                let targetNodeVersion = nodeHistory[0]
+                nodeHistory.forEach(history => {
+                    if (new Date(history.timestamp) <= targetTime) {
+                        targetNodeVersion = history
+                    }
+                })
+                nodes.push(targetNodeVersion)
+            })
+            nodes.forEach(n => {
                 showNodeMarker(n.lat, n.lon, "#000")
             })
-            membersHistory.ways.forEach(([, nodesVersionsList]) => {
+            membersHistory.ways.forEach(([, , nodesVersionsList]) => {
                 try {
                     const nodesList = nodesVersionsList.map(n => {
                         const { lat: lat, lon: lon } = searchVersionByTimestamp(n, targetVersion.timestamp)
@@ -8148,13 +8172,13 @@ function setupRelationVersionView() {
             })
             if (isRestrictionObj(targetVersion.tags ?? {})) {
                 /** @type {Object<number, NodeVersion>}}*/
-                const nodeIndex = membersHistory.nodes.reduce((acc, n) => {
+                const nodeIndex = nodes.reduce((acc, n) => {
                     acc[n.id] = n
                     return acc
                 }, {})
                 /** @type {Object<number, LatLonPair[]>}}*/
                 const wayIndex = membersHistory.ways.reduce((acc, w) => {
-                    acc[w[0].id] = w[1].map(n => searchVersionByTimestamp(n, targetVersion.timestamp))
+                    acc[w[0].id] = w[2].map(n => searchVersionByTimestamp(n, targetVersion.timestamp))
                     return acc
                 }, {})
                 const extendedRelationVersion = targetVersion
