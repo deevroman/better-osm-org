@@ -6729,6 +6729,56 @@ function tagsChanged(v1, v2) {
     return JSON.stringify(v1.tags) !== JSON.stringify(v2.tags)
 }
 
+async function sortRelationMembersByTimestamp(relationID) {
+    /** @type {(NodeVersion|WayVersion|RelationVersion)[]} */
+    const objectsBag = []
+    /** @type {Set<string>} */
+    const objectsSet = new Set()
+    for (const i of document.querySelectorAll(`.relation-version-view`)) {
+        const versionNum = parseInt(i.getAttribute("relation-version"))
+        const { targetVersion: targetVersion, membersHistory: membersHistory } = await loadRelationVersionMembers(relationID, versionNum)
+        objectsBag.push(targetVersion)
+        membersHistory.nodes.forEach(nodeHistory => {
+            const uniq_key = `${nodeHistory[0].type} ${nodeHistory[0].id}`
+            if (!objectsSet.has(uniq_key)) {
+                objectsBag.push(...nodeHistory)
+                objectsSet.add(uniq_key)
+            }
+        })
+        membersHistory.ways.forEach(([wayVersion, wayHistory, nodesHistories]) => {
+            const uniq_key = `${wayVersion.type} ${wayVersion.id}`
+            if (!objectsSet.has(uniq_key)) {
+                objectsBag.push(...wayHistory)
+                objectsSet.add(uniq_key)
+            }
+            nodesHistories.forEach(history => {
+                const uniq_key = `${history[0].type} ${history[0].id}`
+                if (!objectsSet.has(uniq_key)) {
+                    objectsBag.push(...history)
+                    objectsSet.add(uniq_key)
+                }
+            })
+        })
+        membersHistory.relations.forEach(([relationVersion, history]) => {
+            // todo
+            const uniq_key = `${history[0].type} ${history[0].id}`
+            if (!objectsSet.has(uniq_key)) {
+                objectsBag.push(...history)
+                objectsSet.add(uniq_key)
+            }
+        })
+    }
+    objectsBag.sort((a, b) => {
+        if (a.timestamp < b.timestamp) return -1
+        if (a.timestamp > b.timestamp) return 1
+        if (a.type === "node" && b.type !== "node") return -1
+        if (a.type === "way" && b.type === "relation") return -1
+        if (a.type !== "node" && b.type === "node") return 1
+        if (a.type === "relation" && b.type === "way") return 1
+        return 0
+    })
+    return objectsBag
+}
 
 async function replaceDownloadWayButton(btn, wayID) {
     const objectsBag = await sortWayNodesByTimestamp(wayID)
