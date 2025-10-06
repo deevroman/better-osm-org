@@ -1233,12 +1233,16 @@ async function _fetchRetry(fetchImpl, ...args) {
     while (count > 0) {
         try {
             const res = await fetchImpl(...args)
-            if (res.status === 509 || res.status === 429) {
+            if (res.status === 509 || res.status === 429 || res.status === 504) {
                 console.warn(`HTTP ${res.status}. Waiting before retry`)
                 if (res.headers.get("retry-after")) {
                     await abortableSleep((parseInt(res.headers.get("retry-after")) + 1) * 1000, getAbortController())
                 } else {
-                    await abortableSleep((60 + Math.random() * 10) * 1000, getAbortController())
+                    if (res.status === 504) {
+                        await abortableSleep((10 + Math.random() * 10) * 1000, getAbortController())
+                    } else {
+                        await abortableSleep((60 + Math.random() * 10) * 1000, getAbortController())
+                    }
                 }
                 count -= 1
                 if (count === 0) {
