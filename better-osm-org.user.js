@@ -9349,16 +9349,9 @@ function addDiffInHistory(reason = "url_change") {
                     const ver = oldToNewHtmlVersions[verInd]
                     const olderVersion = oldToNewHtmlVersions[verInd - 1]
                     const nextVersion = oldToNewHtmlVersions[verInd + 1]
-                    if (version === 11 || version === 9) {
-                        console.log(version, olderVersion, olderVersion.querySelector("turbo-frame:has(.spinner-border)")?.innerHTML, nextVersion, nextVersion.querySelector("turbo-frame:has(.spinner-border)")?.innerHTML)
-                    }
                     if (olderVersion && !olderVersion.querySelector("turbo-frame:has(.spinner-border)")) {
                         const curChildNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
                         const oldChildMembers = Array.from(olderVersion.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
-                        if (version === 11 || version === 9) {
-                            console.log(version, olderVersion, ver, nextVersion, curChildNodes, oldChildMembers)
-                            debugger
-                        }
                         if (version > 1 && (curChildNodes.length !== oldChildMembers.length || curChildNodes.some((el, index) => curChildNodes[index] !== oldChildMembers[index]))) {
                             ver.querySelector("details:not(.empty-version) > summary")?.classList.add("history-diff-modified-tag")
                             wasModifiedObject = true
