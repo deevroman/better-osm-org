@@ -12084,12 +12084,8 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                     nodesHistories[n.id] = [n]
                 }
             })
-            let attempts = 0
-            while (!changesetMetadata && attempts < 60) {
-                attempts++
-                console.log(`changesetMetadata[${targetVersion.changeset}] not ready. Wait second...`)
-                await abortableSleep(1000, getAbortController()) // todo нужно поретраить
-                changesetMetadata = changesetMetadatas[targetVersion.changeset]
+            if (!changesetMetadata) {
+                changesetMetadata = await loadChangesetMetadata(targetVersion.changeset)
             }
         }
 
@@ -12142,12 +12138,8 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 showActiveWay(cloneInto(currentNodesList, unsafeWindow), c("#ff00e3"), false, changesetID + "w" + objID, false)
             }
         }
-        let attempts = 0
-        while (!changesetMetadata && attempts < 60) {
-            attempts++
-            console.log(`changesetMetadata[${targetVersion.changeset}] not ready. Wait second...`)
-            await abortableSleep(1000, getAbortController()) // todo нужно поретраить
-            changesetMetadata = changesetMetadatas[targetVersion.changeset]
+        if (!changesetMetadata) {
+            changesetMetadata = await loadChangesetMetadata(targetVersion.changeset)
         }
         if (targetVersion.visible === false) {
             const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version)
@@ -16389,13 +16381,9 @@ function setupMassChangesetsActions() {
 //<editor-fold desc="hotkeys">
 let hotkeysConfigured = false
 
-async function getChangesetMetadata(changeset_id) {
-    return await fetchRetry(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json")
-}
-
 /**
  * @param {number|null=} changeset_id
- * @return {Promise<ChangesetMetadata|void>}
+ * @return {Promise<ChangesetMetadata>}
  */
 async function loadChangesetMetadata(changeset_id = null) {
     console.debug(`Loading changeset metadata`)
@@ -16411,22 +16399,16 @@ async function loadChangesetMetadata(changeset_id = null) {
         return changesetMetadatas[changeset_id]
     }
     // prevChangesetMetadata = changesetMetadatas[changeset_id]
-    const res = await getChangesetMetadata(changeset_id)
-    if (res.status !== 200) {
-        console.error(res)
-        debug_alert("metadatas failed")
-    } else {
-        const jsonRes = await res.json()
-        if (jsonRes.changeset) {
-            return (changesetMetadatas[changeset_id] = jsonRes.changeset)
-        }
-        changesetMetadatas[changeset_id] = jsonRes.elements[0]
-        changesetMetadatas[changeset_id].min_lat = changesetMetadatas[changeset_id].minlat
-        changesetMetadatas[changeset_id].min_lon = changesetMetadatas[changeset_id].minlon
-        changesetMetadatas[changeset_id].max_lat = changesetMetadatas[changeset_id].maxlat
-        changesetMetadatas[changeset_id].max_lon = changesetMetadatas[changeset_id].maxlon
-        return changesetMetadatas[changeset_id]
+    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json")
+    if (jsonRes.changeset) {
+        return (changesetMetadatas[changeset_id] = jsonRes.changeset)
     }
+    changesetMetadatas[changeset_id] = jsonRes.elements[0]
+    changesetMetadatas[changeset_id].min_lat = changesetMetadatas[changeset_id].minlat
+    changesetMetadatas[changeset_id].min_lon = changesetMetadatas[changeset_id].minlon
+    changesetMetadatas[changeset_id].max_lat = changesetMetadatas[changeset_id].maxlat
+    changesetMetadatas[changeset_id].max_lon = changesetMetadatas[changeset_id].maxlon
+    return changesetMetadatas[changeset_id]
 }
 
 /**
