@@ -3275,6 +3275,7 @@ function addNotesFiltersButtons() {
         resetFilter.style.position = "absolute"
         resetFilter.style.right = "20px"
         resetFilter.style.cursor = "pointer"
+        resetFilter.tabIndex = -1
         resetFilter.onclick = () => {
             filterByString.value = ""
             updateNotesLayer()
@@ -3335,6 +3336,7 @@ function addNotesFiltersButtons() {
         resetFilter.style.position = "absolute"
         resetFilter.style.right = "20px"
         resetFilter.style.cursor = "pointer"
+        resetFilter.tabIndex = -1
         resetFilter.onclick = () => {
             filterByUsername.value = ""
             updateNotesLayer()
