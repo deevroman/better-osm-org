@@ -965,7 +965,7 @@ GM_config.init({
                 return settingNode
             },
             toValue: function () {
-                let templates = []
+                const templates = []
                 if (this.wrapper) {
                     for (let row of Array.from(this.wrapper.getElementsByTagName("tr")).slice(0, -1)) {
                         const forPush = {
@@ -1294,7 +1294,7 @@ async function _fetchRetry(fetchImpl, ...args) {
  */
 function tagsToXml(doc, node, tags) {
     for (const [k, v] of Object.entries(tags)) {
-        let tag = doc.createElement("tag")
+        const tag = doc.createElement("tag")
         tag.setAttribute("k", k)
         tag.setAttribute("v", v)
         node.appendChild(tag)
@@ -2062,7 +2062,7 @@ function addRevertButton() {
         const metainfoHTML = document.querySelector("#sidebar_content h2 ~ div > .details")
         const time = metainfoHTML.querySelector("time")
         if (metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')) {
-            let usernameA = metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')
+            const usernameA = metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')
             metainfoHTML.innerHTML = ""
             metainfoHTML.appendChild(time)
             metainfoHTML.appendChild(document.createTextNode(" "))
@@ -2198,7 +2198,7 @@ function addRevertButton() {
     const textarea = document.querySelector("#sidebar_content textarea")
     if (textarea) {
         textarea.rows = 1
-        let comment = document.querySelector("#sidebar_content button[name=comment]")
+        const comment = document.querySelector("#sidebar_content button[name=comment]")
         if (comment) {
             comment.parentElement.hidden = true
             textarea.addEventListener("input", () => {
@@ -2223,7 +2223,7 @@ function addRevertButton() {
                     if (row["text"] !== "") {
                         text = row["text"]
                     }
-                    let b = document.createElement("span")
+                    const b = document.createElement("span")
                     b.classList.add("comment-template", "btn", "btn-primary")
                     b.textContent = label
                     b.title = `Add into the comment "${text}".\nYou can change text in userscript settings`
@@ -2277,7 +2277,7 @@ function addRevertButton() {
 
 function setupRevertButton() {
     if (!location.pathname.startsWith("/changeset")) return
-    let timerId = setInterval(() => {
+    const timerId = setInterval(() => {
         if (addRevertButton()) clearInterval(timerId)
     }, 100)
     setTimeout(() => {
@@ -2704,7 +2704,7 @@ function setupCompactChangesetsHistory() {
                                 }
                                 userLink.before(badge)
                             })
-                            let shortText = shortOsmOrgLinksInText(comment["text"])
+                            const shortText = shortOsmOrgLinksInText(comment["text"])
                             if (shortText.length > 500) {
                                 const text = document.createElement("span")
                                 text.textContent = " " + shortText.slice(0, 500)
@@ -2771,7 +2771,7 @@ function setupCompactChangesetsHistory() {
  */
 function buildTags(text, strict = false) {
     const lines = text.split("\n")
-    let json = {}
+    const json = {}
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i]
         let eqPos = line.indexOf("=")
@@ -2818,7 +2818,7 @@ function addCreateNewPOIButton() {
         newNotePlaceholder = null
     }
     if (document.querySelector(".add-new-object-btn")) return
-    let b = document.createElement("span")
+    const b = document.createElement("span")
     b.classList.add("add-new-object-btn", "btn", "btn-primary")
     b.textContent = "➕"
     if (!getMap()?.getZoom) {
@@ -2866,8 +2866,8 @@ function addCreateNewPOIButton() {
             comment: tagsHint !== "" ? `Create${tagsHint}` : `Create node`,
         }
 
-        let changesetPayload = document.implementation.createDocument(null, "osm")
-        let cs = changesetPayload.createElement("changeset")
+        const changesetPayload = document.implementation.createDocument(null, "osm")
+        const cs = changesetPayload.createElement("changeset")
         changesetPayload.documentElement.appendChild(cs)
         tagsToXml(changesetPayload, cs, changesetTags)
         const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
@@ -2895,7 +2895,7 @@ function addCreateNewPOIButton() {
                 node.setAttribute("lon", lng)
 
                 for (const tag of Object.entries(tags)) {
-                    let tagElem = document.createElement("tag")
+                    const tagElem = document.createElement("tag")
                     tagElem.setAttribute("k", tag[0])
                     tagElem.setAttribute("v", tag[1])
                     node.appendChild(tagElem)
@@ -2985,7 +2985,7 @@ function addResolveNotesButton() {
 (._;>;);
 out meta;
 `
-        let btn = document.createElement("a")
+        const btn = document.createElement("a")
         btn.id = "timeback-btn"
         if (organicmapsDate || mapsmeDate) {
             btn.title = "Open the map state at the time of map snapshot"
@@ -3073,7 +3073,7 @@ out meta;
         return
     }
     const auth = makeAuth()
-    let note_id = location.pathname.match(/note\/(\d+)/)[1]
+    const note_id = location.pathname.match(/note\/(\d+)/)[1]
     /** @type {string} */
     const resolveButtonsText = GM_config.get("ResolveNotesButton")
     if (resolveButtonsText) {
@@ -3083,7 +3083,7 @@ out meta;
             if (row["text"] !== "") {
                 text = row["text"]
             }
-            let b = document.createElement("button")
+            const b = document.createElement("button")
             b.classList.add("resolve-note-done", "btn", "btn-primary")
             b.textContent = label
             b.title = `Add to the comment "${text}" and close the note.\nYou can change emoji in userscript settings`
@@ -3124,7 +3124,7 @@ out meta;
 
 function setupResolveNotesButton(path) {
     if (!path.startsWith("/note")) return
-    let timerId = setInterval(addResolveNotesButton, 100)
+    const timerId = setInterval(addResolveNotesButton, 100)
     setTimeout(() => {
         clearInterval(timerId)
         console.debug("stop try add resolve note button")
@@ -3439,7 +3439,7 @@ function addNotesFiltersButtons() {
 }
 
 function setupNotesFiltersButtons() {
-    let timerId = setInterval(addNotesFiltersButtons, 200)
+    const timerId = setInterval(addNotesFiltersButtons, 200)
     setTimeout(() => {
         clearInterval(timerId)
         console.debug("stop try add notes filters buttons")
@@ -3587,7 +3587,7 @@ function addGPXFiltersButtons() {
                             )
                             .addTo(getMap())
 
-                        let trackForDisplay = document.implementation.createDocument(null, "gpx")
+                        const trackForDisplay = document.implementation.createDocument(null, "gpx")
                         trackForDisplay.documentElement.appendChild(trk)
                         cleanAllObjects()
                         displayGPXTrack(trackForDisplay)
@@ -3700,7 +3700,7 @@ function addGPXFiltersButtons() {
 }
 
 function setupGPXFiltersButtons() {
-    let timerId = setInterval(addGPXFiltersButtons, 100)
+    const timerId = setInterval(addGPXFiltersButtons, 100)
     setTimeout(() => {
         clearInterval(timerId)
         console.debug("stop try add gpx filters buttons")
@@ -3849,8 +3849,8 @@ function addDeleteButton() {
                     return
                 }
 
-                let changesetPayload = document.implementation.createDocument(null, "osm")
-                let cs = changesetPayload.createElement("changeset")
+                const changesetPayload = document.implementation.createDocument(null, "osm")
+                const cs = changesetPayload.createElement("changeset")
                 changesetPayload.documentElement.appendChild(cs)
                 tagsToXml(changesetPayload, cs, changesetTags)
                 const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
@@ -3928,10 +3928,10 @@ function addDeleteButton() {
             intoPageWithFun({
                 text: "Move node to here",
                 callback: async function moveNode(e) {
-                    let match = location.pathname.match(/(node)\/(\d+)/)
+                    const match = location.pathname.match(/(node)\/(\d+)/)
                     if (!match) return
-                    let object_type = match[1]
-                    let object_id = match[2]
+                    const object_type = match[1]
+                    const object_id = match[2]
                     const auth = makeAuth()
                     if (!confirm("⚠️ move node?")) {
                         return
@@ -3965,8 +3965,8 @@ function addDeleteButton() {
                         comment: "Moving node",
                     }
 
-                    let changesetPayload = document.implementation.createDocument(null, "osm")
-                    let cs = changesetPayload.createElement("changeset")
+                    const changesetPayload = document.implementation.createDocument(null, "osm")
+                    const cs = changesetPayload.createElement("changeset")
                     changesetPayload.documentElement.appendChild(cs)
                     tagsToXml(changesetPayload, cs, changesetTags)
                     const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
@@ -4015,7 +4015,7 @@ function addDeleteButton() {
 
 function setupDeletor(path) {
     if (!path.startsWith("/node/") && !path.startsWith("/relation/")) return
-    let timerId = setInterval(addDeleteButton, 100)
+    const timerId = setInterval(addDeleteButton, 100)
     setTimeout(() => {
         clearInterval(timerId)
         console.debug("stop try add delete button")
@@ -4026,9 +4026,9 @@ function setupDeletor(path) {
 let mapDataSwitcherUnderSupervision = false
 
 function hideNoteHighlight() {
-    let g = document.querySelector("#map g")
+    const g = document.querySelector("#map g")
     if (!g || g.childElementCount === 0) return
-    let mapDataCheckbox = document.querySelector(".layers-ui #label-layers-data input")
+    const mapDataCheckbox = document.querySelector(".layers-ui #label-layers-data input")
     if (mapDataCheckbox && !mapDataCheckbox.checked) {
         if (mapDataSwitcherUnderSupervision) return
         mapDataSwitcherUnderSupervision = true
@@ -4060,7 +4060,7 @@ function hideNoteHighlight() {
 
 function setupHideNoteHighlight() {
     if (!location.pathname.startsWith("/note/")) return
-    let timerId = setInterval(hideNoteHighlight, 1000)
+    const timerId = setInterval(hideNoteHighlight, 1000)
     setTimeout(() => {
         clearInterval(timerId)
         console.debug("stop removing note highlight")
@@ -4074,8 +4074,8 @@ let BaseLayerPrefix = OSMPrefix
 const ESRIPrefix = "https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
 const ESRIBetaPrefix = "https://clarity.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
 let SatellitePrefix = ESRIPrefix
-let SAT_MODE = "🛰"
-let MAPNIK_MODE = "🗺️"
+const SAT_MODE = "🛰"
+const MAPNIK_MODE = "🗺️"
 let currentTilesMode = MAPNIK_MODE
 let tilesObserver = undefined
 
@@ -4094,7 +4094,7 @@ function invertOverlayMode(mode) {
 }
 
 function parseOSMTileURL(url) {
-    let match = url.match(new RegExp(`${OSMPrefix}(\\d+)\\/(\\d+)\\/(\\d+)\\.png`))
+    const match = url.match(new RegExp(`${OSMPrefix}(\\d+)\\/(\\d+)\\/(\\d+)\\.png`))
     if (!match) {
         return false
     }
@@ -4106,7 +4106,7 @@ function parseOSMTileURL(url) {
 }
 
 function parseOSMGPSTileURL(url) {
-    let match = url.match(new RegExp(`${OSMGPSPrefix}(\\d+)\\/(\\d+)\\/(\\d+)\\.png`))
+    const match = url.match(new RegExp(`${OSMGPSPrefix}(\\d+)\\/(\\d+)\\/(\\d+)\\.png`))
     if (!match) {
         return false
     }
@@ -4118,7 +4118,7 @@ function parseOSMGPSTileURL(url) {
 }
 
 function parseESRITileURL(url) {
-    let match = url.match(new RegExp(`${SatellitePrefix}(\\d+)\\/(\\d+)\\/(\\d+)`))
+    const match = url.match(new RegExp(`${SatellitePrefix}(\\d+)\\/(\\d+)\\/(\\d+)`))
     if (!match) {
         return false
     }
@@ -4130,7 +4130,7 @@ function parseESRITileURL(url) {
 }
 
 function parseStravaTileURL(url) {
-    let match = url.match(new RegExp(`${StravaPrefix}(\\d+)\\/(\\d+)\\/(\\d+)`))
+    const match = url.match(new RegExp(`${StravaPrefix}(\\d+)\\/(\\d+)\\/(\\d+)`))
     if (!match) {
         return false
     }
@@ -4190,7 +4190,7 @@ function switchESRIbeta() {
         if (i.nodeName !== "IMG") {
             return
         }
-        let xyz = parseESRITileURL(!needBypassSatellite ? i.src : i.getAttribute("real-url") ?? "")
+        const xyz = parseESRITileURL(!needBypassSatellite ? i.src : i.getAttribute("real-url") ?? "")
         if (!xyz) return
         const newUrl = NewSatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix
         if (!needBypassSatellite) {
@@ -4272,7 +4272,7 @@ function switchTiles() {
             return
         }
         if (currentTilesMode === SAT_MODE) {
-            let xyz = parseOSMTileURL(i.src)
+            const xyz = parseOSMTileURL(i.src)
             if (!xyz) return
             // unsafeWindow.L.DomEvent.off(i, "error") // todo добавить перехватчик 404
             try {
@@ -4301,7 +4301,7 @@ function switchTiles() {
                 )
             }
         } else {
-            let xyz = parseESRITileURL(!needBypassSatellite ? i.src : i.getAttribute("real-url") ?? "")
+            const xyz = parseESRITileURL(!needBypassSatellite ? i.src : i.getAttribute("real-url") ?? "")
             if (!xyz) return
             i.src = makeBaseLayerURL(xyz.x, xyz.y, xyz.z)
             if (i.complete) {
@@ -4324,7 +4324,7 @@ function switchTiles() {
                     return
                 }
                 if (currentTilesMode === SAT_MODE) {
-                    let xyz = parseOSMTileURL(node.src)
+                    const xyz = parseOSMTileURL(node.src)
                     if (!xyz) return
                     // unsafeWindow.L.DomEvent.off(node, "error")
                     try {
@@ -4354,7 +4354,7 @@ function switchTiles() {
                         )
                     }
                 } else {
-                    let xyz = parseESRITileURL(!needBypassSatellite ? node.src : node.getAttribute("real-url"))
+                    const xyz = parseESRITileURL(!needBypassSatellite ? node.src : node.getAttribute("real-url"))
                     if (!xyz) return
                     node.src = makeBaseLayerURL(xyz.x, xyz.y, xyz.z)
                     if (node.complete) {
@@ -4387,7 +4387,7 @@ function bypassCaches() {
             return
         }
         // todo support multiple press
-        let xyz = parseOSMTileURL(i.src)
+        const xyz = parseOSMTileURL(i.src)
         if (!xyz) return
         const newUrl = makeOSMURL(xyz.x, xyz.y, xyz.z) // + "?bypassCache=" + new Date().getUTCSeconds();
         externalFetchRetry({
@@ -4415,7 +4415,7 @@ function bypassCaches() {
                 if (node.nodeName !== "IMG") {
                     return
                 }
-                let xyz = parseOSMTileURL(node.src)
+                const xyz = parseOSMTileURL(node.src)
                 if (!xyz) return
                 const newUrl = makeOSMURL(xyz.x, xyz.y, xyz.z) // + "?bypassCache=" + new Date().getUTCSeconds();
                 externalFetchRetry({
@@ -4458,7 +4458,7 @@ function switchOverlayTiles() {
             return
         }
         if (currentOverlayModeIsStrava) {
-            let xyz = parseOSMGPSTileURL(i.src)
+            const xyz = parseOSMGPSTileURL(i.src)
             if (!xyz) return
             // unsafeWindow.L.DomEvent.off(i, "error") // todo добавить перехватчик 404
             try {
@@ -4481,7 +4481,7 @@ function switchOverlayTiles() {
                 )
             }
         } else {
-            let xyz = parseStravaTileURL(i.getAttribute("real-url") ?? "")
+            const xyz = parseStravaTileURL(i.getAttribute("real-url") ?? "")
             if (!xyz) return
             i.src = makeOSMGPSURL(xyz.x, xyz.y, xyz.z)
             if (i.complete) {
@@ -4504,7 +4504,7 @@ function switchOverlayTiles() {
                     return
                 }
                 if (currentOverlayModeIsStrava) {
-                    let xyz = parseOSMGPSTileURL(node.src)
+                    const xyz = parseOSMGPSTileURL(node.src)
                     if (!xyz) return
                     // unsafeWindow.L.DomEvent.off(node, "error")
                     try {
@@ -4528,7 +4528,7 @@ function switchOverlayTiles() {
                         )
                     }
                 } else {
-                    let xyz = parseStravaTileURL(node.getAttribute("real-url"))
+                    const xyz = parseStravaTileURL(node.getAttribute("real-url"))
                     if (!xyz) return
                     node.src = makeOSMGPSURL(xyz.x, xyz.y, xyz.z)
                     if (node.complete) {
@@ -4562,7 +4562,7 @@ if (isOsmServer() && new URLSearchParams(location.search).has("sat-tiles")) {
 
 function addSatelliteLayers() {
     const btnOnPane = document.createElement("span")
-    let btnOnNotePage = document.createElement("span")
+    const btnOnNotePage = document.createElement("span")
     if (!document.querySelector(".turn-on-satellite-from-pane")) {
         const mapnikBtn = document.querySelector(".layers-ui label span")
         if (mapnikBtn) {
@@ -4616,7 +4616,7 @@ function addSatelliteLayers() {
 }
 
 function setupSatelliteLayers() {
-    let timerId = setInterval(addSatelliteLayers, 100)
+    const timerId = setInterval(addSatelliteLayers, 100)
     setTimeout(() => {
         clearInterval(timerId)
         console.debug("stop try add resolve note button")
@@ -4664,8 +4664,8 @@ function copyAnimation(e, text) {
 
 //<editor-fold desc="find deleted user in diffs" defaultstate="collapsed">
 async function decompressBlob(blob) {
-    let ds = new DecompressionStream("gzip")
-    let decompressedStream = blob.stream().pipeThrough(ds)
+    const ds = new DecompressionStream("gzip")
+    const decompressedStream = blob.stream().pipeThrough(ds)
     return await new Response(decompressedStream).blob()
 }
 
@@ -4675,8 +4675,8 @@ async function tryFindChangesetInDiffGZ(gzURL, changesetId) {
         url: gzURL,
         responseType: "blob",
     })
-    let blob = await decompressBlob(diffGZ.response)
-    let diffXML = await blob.text()
+    const blob = await decompressBlob(diffGZ.response)
+    const diffXML = await blob.text()
 
     const diffParser = new DOMParser()
     const doc = diffParser.parseFromString(diffXML, "application/xml")
@@ -4722,7 +4722,7 @@ async function parseCCC(target, url) {
     })
     const CCCHTML = new DOMParser().parseFromString(response.responseText, "text/html")
 
-    let a = Array.from(CCCHTML.querySelector("pre").childNodes).slice(2)
+    const a = Array.from(CCCHTML.querySelector("pre").childNodes).slice(2)
     let x = 0
     let found = false
     /**
@@ -4736,7 +4736,7 @@ async function parseCCC(target, url) {
         if (!a[x].textContent.match(/^\d+\.osm\.gz$/)) {
             continue
         }
-        let d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim().split(" ").slice(0, -1).join(" ").trim() + " UTC")
+        const d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim().split(" ").slice(0, -1).join(" ").trim() + " UTC")
         if (target <= d) {
             found = true
             break
@@ -4763,11 +4763,11 @@ async function parseCCC(target, url) {
 }
 
 async function checkBBB(AAA, BBB, targetTime, targetChangesetID) {
-    let CCC = await parseCCC(targetTime, AAA + BBB)
+    const CCC = await parseCCC(targetTime, AAA + BBB)
     if (!CCC) {
         return
     }
-    let gzURL = planetOrigin + "/replication/changesets/" + AAA + BBB
+    const gzURL = planetOrigin + "/replication/changesets/" + AAA + BBB
 
     let foundedChangeset = await tryFindChangesetInDiffGZ(gzURL + CCC[0], targetChangesetID)
     if (!foundedChangeset) {
@@ -4777,7 +4777,7 @@ async function checkBBB(AAA, BBB, targetTime, targetChangesetID) {
 }
 
 async function checkAAA(AAA, targetTime, targetChangesetID) {
-    let BBBs = await parseBBB(targetTime, AAA)
+    const BBBs = await parseBBB(targetTime, AAA)
     if (!BBBs) {
         return
     }
@@ -4837,7 +4837,7 @@ async function findChangesetInDiff(e) {
         a.push(...a.slice(-2))
         let x = 0
         for (x; x < a.length - 2; x += 2) {
-            let d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim())
+            const d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim())
             if (targetTime < d) break
         }
         let AAAs
@@ -5714,12 +5714,12 @@ function makeLinksInVersionTagsClickable() {
 function addHistoryLink() {
     if ((!location.pathname.startsWith("/node") && !location.pathname.startsWith("/way") && !location.pathname.startsWith("/relation")) || location.pathname.includes("/history")) return
     if (document.querySelector(".history_button_class")) return true
-    let versionInSidebar = document.querySelector("#sidebar_content h4 a")
+    const versionInSidebar = document.querySelector("#sidebar_content h4 a")
     if (!versionInSidebar) {
         return
     }
-    let a = document.createElement("a")
-    let curHref = document.querySelector("#sidebar_content h4 a").href.match(/(.*)\/(\d+)$/)
+    const a = document.createElement("a")
+    const curHref = document.querySelector("#sidebar_content h4 a").href.match(/(.*)\/(\d+)$/)
     a.href = curHref[1]
     a.textContent = "🕒"
     a.title = "Click for open object history page\nOr press key H"
@@ -6177,7 +6177,7 @@ function cleanAllObjects() {
 /**
  * @type {Object.<string, AbortController>}
  */
-let abortDownloadingControllers = {}
+const abortDownloadingControllers = {}
 
 /**
  * @return {AbortController}
@@ -6373,10 +6373,10 @@ function renderDirectionTag(lat, lon, values, color = c("#ff00e3")) {
 function setupNodeVersionView() {
     const match = location.pathname.match(/\/node\/(\d+)\//)
     if (match === null) return
-    let nodeHistoryPath = []
+    const nodeHistoryPath = []
     document.querySelectorAll("#element_versions_list > div span.latitude").forEach(i => {
-        let lat = i.textContent.replace(",", ".")
-        let lon = i.nextElementSibling.textContent.replace(",", ".")
+        const lat = i.textContent.replace(",", ".")
+        const lon = i.nextElementSibling.textContent.replace(",", ".")
         nodeHistoryPath.push([lat, lon])
         const versionDiv = i.parentElement.parentElement.parentElement.parentElement
         versionDiv.onmouseenter = async () => {
@@ -6601,7 +6601,7 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
             const res = await fetchRetry(osm_server.apiBase + "nodes.json?nodes=" + args, { signal: getAbortController().signal })
             if (res.status === 404) {
                 console.log("%c Some nodes was hidden. Start slow fetching :(", "background: #222; color: #bada55")
-                let newArgs = args.split(",").map(i => parseInt(i.match(/(\d+)v(\d+)/)[1]))
+                const newArgs = args.split(",").map(i => parseInt(i.match(/(\d+)v(\d+)/)[1]))
                 // это нарушает инвариант, что versions не содержит последней версии
                 // важно также сохранять отсортированность,
                 // иначе loadNodesViaHistoryCalls сделает внутри несколько вызовов для одной и той же точки
@@ -7567,8 +7567,8 @@ function fromMercator(x, y) {
  * @returns {{lat: number, lon: number}}
  */
 function rotateSegment(lat1, lon1, lat2, lon2, angleDeg, lengthMeters) {
-    let { x: x1, y: y1 } = toMercator(lat1, lon1)
-    let { x: x2, y: y2 } = toMercator(lat2, lon2)
+    const { x: x1, y: y1 } = toMercator(lat1, lon1)
+    const { x: x2, y: y2 } = toMercator(lat2, lon2)
 
     const angleRad = (angleDeg * Math.PI) / 180
 
@@ -7605,13 +7605,13 @@ function isEqualCoordinates(latLon1, latLon2) {
  */
 function validateRestriction(rel) {
     /** @type {ExtendedRelationWayMember[]} */
-    let from = []
+    const from = []
     /** @type {ExtendedRelationNodeMember[]} */
-    let viaNodes = []
+    const viaNodes = []
     /** @type {ExtendedRelationWayMember[]} */
-    let viaWays = []
+    const viaWays = []
     /** @type {ExtendedRelationWayMember[]} */
-    let to = []
+    const to = []
     const errors = []
     const { value: restrictionValue } = getRestrictionKeyValue(rel.tags)
     rel.members?.forEach(i => {
@@ -7739,13 +7739,13 @@ function getRestrictionKeyValue(tags) {
  */
 function renderRestriction(rel, color, layer) {
     /** @type {ExtendedRelationWayMember[]} */
-    let from = []
+    const from = []
     /** @type {ExtendedRelationNodeMember[]} */
-    let viaNodes = []
+    const viaNodes = []
     /** @type {ExtendedRelationWayMember[]} */
-    let viaWays = []
+    const viaWays = []
     /** @type {ExtendedRelationWayMember[]} */
-    let to = []
+    const to = []
     rel.members?.forEach(i => {
         if (i.type === "way" && i.role === "from") {
             from.push(i)
@@ -8859,7 +8859,7 @@ function setupViewRedactions() {
     if (document.getElementById("show-unredacted-btn")) {
         return
     }
-    let showUnredactedBtn = document.createElement("a")
+    const showUnredactedBtn = document.createElement("a")
     showUnredactedBtn.id = "show-unredacted-btn"
     showUnredactedBtn.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Просмотр неотредактированной истории β" : "View Unredacted History β"
     showUnredactedBtn.style.cursor = "pointer"
@@ -8891,8 +8891,8 @@ function setupViewRedactions() {
                     url: url,
                     responseType: "blob",
                 })
-                let blob = needUnzip ? await decompressBlob(diffGZ.response) : diffGZ.response
-                let diffXML = await blob.text()
+                const blob = needUnzip ? await decompressBlob(diffGZ.response) : diffGZ.response
+                const diffXML = await blob.text()
 
                 const doc = new DOMParser().parseFromString(diffXML, "application/xml")
                 return doc.querySelectorAll(`osm [id='${objID}']`)
@@ -9607,7 +9607,7 @@ function addDiffInHistory(reason = "url_change") {
         compactToggle.classList.add("compact-toggle-btn")
         compactToggle.classList.add("btn", "btn-primary", "btn-sm")
         compactToggle.onclick = () => makeElementHistoryCompact()
-        let sidebar = document.querySelector("#sidebar_content h2")
+        const sidebar = document.querySelector("#sidebar_content h2")
         if (!sidebar) {
             return
         }
@@ -9778,8 +9778,8 @@ function addDiffInHistory(reason = "url_change") {
                                 || diff.reduce((cnt, b) => cnt + (b[0] !== b[1] && b[0] !== null), 0) === 0
                                 || diff.reduce((cnt, b) => cnt + (b[0] !== b[1] && b[1] !== null), 0) === 0
                             )) {
-                            let prevText = document.createElement("span")
-                            let newText = document.createElement("span")
+                            const prevText = document.createElement("span")
+                            const newText = document.createElement("span")
                             diff.forEach(c => {
                                 if (c[0] !== c[1]) {
                                     if (c[1]) {
@@ -9822,9 +9822,9 @@ function addDiffInHistory(reason = "url_change") {
                                 prevValueSpan.appendChild(valueLink)
                                 prevValueSpan.appendChild(document.createTextNode(` ${arrowSymbolForChanges} `))
                             } else {
-                                let prevText = document.createElement("span")
+                                const prevText = document.createElement("span")
                                 prevText.appendChild(document.createTextNode(el[1]))
-                                let newText = document.createElement("span")
+                                const newText = document.createElement("span")
                                 newText.appendChild(document.createTextNode(v))
 
                                 prevValueSpan.appendChild(prevText)
@@ -9988,15 +9988,15 @@ function addDiffInHistory(reason = "url_change") {
     oldToNewHtmlVersions.toReversed().forEach((x, index) => {
         if (oldToNewHtmlVersions.length <= index + 1) return
         versions.toReversed()[index + 1].tags.forEach(tag => {
-            let k = tag[0]
-            let v = tag[1]
+            const k = tag[0]
+            const v = tag[1]
             if (!versions.toReversed()[index].tags.some(elem => elem[0] === k)) {
-                let tr = document.createElement("tr")
+                const tr = document.createElement("tr")
                 tr.classList.add("history-diff-deleted-tag-tr")
-                let th = document.createElement("th")
+                const th = document.createElement("th")
                 th.textContent = k
                 th.classList.add("history-diff-deleted-tag", "py-1", "border-grey", "table-light", "fw-normal", "border-start", "border-secondary-subtle")
-                let td = document.createElement("td")
+                const td = document.createElement("td")
                 if (k.includes("colour")) {
                     td.innerHTML = `<svg width="14" height="14" class="float-end m-1"><title></title><rect x="0.5" y="0.5" width="13" height="13" fill="" stroke="#2222"></rect></svg>`
                     td.querySelector("svg rect").setAttribute("fill", v)
@@ -10008,11 +10008,11 @@ function addDiffInHistory(reason = "url_change") {
                 tr.appendChild(th)
                 tr.appendChild(td)
                 if (!x.querySelector("tbody")) {
-                    let tableDiv = document.createElement("table")
+                    const tableDiv = document.createElement("table")
                     tableDiv.classList.add("mb-3", "border", "border-secondary-subtle", "rounded", "overflow-hidden")
-                    let table = document.createElement("table")
+                    const table = document.createElement("table")
                     table.classList.add("mb-0", "browse-tag-list", "table", "align-middle")
-                    let tbody = document.createElement("tbody")
+                    const tbody = document.createElement("tbody")
                     table.appendChild(tbody)
                     tableDiv.appendChild(table)
                     x.appendChild(tableDiv)
@@ -10080,7 +10080,7 @@ function setupVersionsDiff(path) {
         && !path.startsWith("/relation")) {
         return;
     }
-    let timerId = setInterval(addDiffInHistory, 500)
+    const timerId = setInterval(addDiffInHistory, 500)
     setTimeout(() => {
         clearInterval(timerId)
         console.debug("stop adding diff in history")
@@ -10133,7 +10133,7 @@ function setupRelationVersionViewer() {
     if (!match) {
         return
     }
-    let timerId = setInterval(addRelationVersionView, 500)
+    const timerId = setInterval(addRelationVersionView, 500)
     setTimeout(() => {
         clearInterval(timerId)
         console.debug("stop adding RelationVersionView")
@@ -11027,7 +11027,7 @@ function setupMakeVersionPageBetter() {
     if (!match) {
         return
     }
-    let timerId = setInterval(makeVersionPageBetter, 500)
+    const timerId = setInterval(makeVersionPageBetter, 500)
     setTimeout(() => {
         clearInterval(timerId)
         console.debug("stop adding MakeVersionPageBetter")
@@ -11192,7 +11192,7 @@ function arraySplit(arr, N = 2) {
 /**
  * @type {Object.<string, ChangesetMetadata>}|null
  **/
-let changesetMetadatas = {}
+const changesetMetadatas = {}
 let startTouch = null
 let touchMove = null
 let touchEnd = null
@@ -11558,7 +11558,7 @@ function makeLinksInChangesetObjectRowClickable(row) {
 
 function detectEditsWars(prevVersion, targetVersion, objHistory, row, key) {
     let revertsCounter = 0
-    let warLog = document.createElement("table")
+    const warLog = document.createElement("table")
     warLog.style.borderColor = "var(--bs-body-color)"
     warLog.style.borderStyle = "solid"
     warLog.style.borderWidth = "1px"
@@ -11678,7 +11678,7 @@ async function getWayNodesByTimestamp(targetTimestamp, wayID) {
         nodesMap[elem.id] = [elem.lat, elem.lon]
     })
 
-    let currentNodesList = []
+    const currentNodesList = []
     targetVersion.nodes?.forEach(node => {
         if (node in nodesMap) {
             currentNodesList.push(nodesMap[node])
@@ -11805,8 +11805,8 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                     || diff.reduce((cnt, b) => cnt + (b[0] !== b[1] && b[0] !== null), 0) === 0
                     || diff.reduce((cnt, b) => cnt + (b[0] !== b[1] && b[1] !== null), 0) === 0
                 )) {
-                let prevText = document.createElement("span")
-                let newText = document.createElement("span")
+                const prevText = document.createElement("span")
+                const newText = document.createElement("span")
                 prevText.dir = "auto"
                 newText.dir = "auto"
                 diff.forEach(c => {
@@ -11869,7 +11869,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         }
     }
     if (targetVersion.visible !== false && prevVersion?.nodes && prevVersion.nodes.toString() !== targetVersion.nodes?.toString()) {
-        let geomChangedFlag = document.createElement("span")
+        const geomChangedFlag = document.createElement("span")
         geomChangedFlag.textContent = " 📐"
         geomChangedFlag.tabIndex = 0
         geomChangedFlag.classList.add("nodes-changed")
@@ -12043,14 +12043,14 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         }
     }
     if (prevVersion.visible === false && targetVersion?.visible !== false && targetVersion.version !== 1) {
-        let restoredElemFlag = document.createElement("span")
+        const restoredElemFlag = document.createElement("span")
         restoredElemFlag.textContent = " ♻️"
         restoredElemFlag.title = "Object was restored"
         restoredElemFlag.style.userSelect = "none"
         i.appendChild(restoredElemFlag)
     }
     if (objType === "relation") {
-        let memChangedFlag = document.createElement("span")
+        const memChangedFlag = document.createElement("span")
         memChangedFlag.textContent = " 👥"
         memChangedFlag.tabIndex = 0
         memChangedFlag.classList.add("members-changed")
@@ -12678,12 +12678,12 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
         const [, wayNodesHistories] = await loadWayVersionNodes(objID, version)
         const targetNodes = filterObjectListByTimestamp(wayNodesHistories, targetVersion.timestamp) // fixme what if changeset was long opened anf nodes changed after way?
 
-        let nodesMap = {}
+        const nodesMap = {}
         targetNodes.forEach(elem => {
             nodesMap[elem.id] = [elem.lat, elem.lon]
         })
 
-        let currentNodesList = []
+        const currentNodesList = []
         if (targetVersion.visible !== false) {
             targetVersion.nodes?.forEach(node => {
                 if (node in nodesMap) {
@@ -13483,7 +13483,7 @@ async function processQuickLookInSidebar(changesetID) {
         }
 
         //<editor-fold desc="setup compact mode toggles">
-        let compactToggle = document.createElement("button")
+        const compactToggle = document.createElement("button")
         compactToggle.title = "Toggle between full and compact tags diff.\nYou can also use the T key."
         compactToggle.textContent = allTagsOfObjectsVisible ? "><" : "<>"
         compactToggle.classList.add("quick-look-compact-toggle-btn")
@@ -14206,9 +14206,9 @@ async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) 
 
     for (let i = 0; i < changesetIDs.length; i++) {
         console.log(`${i + 1} / ${changesetIDs.length}`)
-        let curID = changesetIDs[i]
+        const curID = changesetIDs[i]
 
-        let res = await changesetsQueue.shift()
+        const res = await changesetsQueue.shift()
 
         const parser = new DOMParser()
         const doc = parser.parseFromString(res.response, "text/html")
@@ -14441,7 +14441,7 @@ async function addChangesetQuickLook() {
 
 function setupChangesetQuickLook(path) {
     if (!path.startsWith("/changeset")) return
-    let timerId = setInterval(addChangesetQuickLook, 100)
+    const timerId = setInterval(addChangesetQuickLook, 100)
     setTimeout(() => {
         clearInterval(timerId)
         console.debug("stop try add QuickLook")
@@ -14454,7 +14454,7 @@ let coordinatesObserver = null
 
 function setupNewEditorsLinks() {
     const firstRun = document.getElementsByClassName("custom_editors").length === 0
-    let editorsList = document.querySelector("#edit_tab ul")
+    const editorsList = document.querySelector("#edit_tab ul")
     if (!editorsList) {
         return
     }
@@ -14607,11 +14607,11 @@ function uniq(items, keyFn) {
  */
 async function loadChangesets(user) {
     console.time(`stat-for-${user}`)
-    let startTime = new Date(new Date().getTime() - 1000 * 60 * 60 * 24 * 365)
-    let startTime2 = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 365 * 3) / 4)
-    let startTime3 = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 365 * 2) / 4)
-    let startTime4 = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 365) / 4)
-    let endTime = new Date(new Date().getTime() + 1000 * 60 * 60 * 24)
+    const startTime = new Date(new Date().getTime() - 1000 * 60 * 60 * 24 * 365)
+    const startTime2 = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 365 * 3) / 4)
+    const startTime3 = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 365 * 2) / 4)
+    const startTime4 = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 365) / 4)
+    const endTime = new Date(new Date().getTime() + 1000 * 60 * 60 * 24)
 
     // prettier-ignore
     const parts = await Promise.all([
@@ -15091,7 +15091,7 @@ async function makeProfileForDeletedUser(user) {
                 const blocksCount = new Map()
 
                 function findBlocks(xml) {
-                    let foundUserBlock = []
+                    const foundUserBlock = []
                     let lastUserBlock
                     new DOMParser()
                         .parseFromString(xml, "text/html")
@@ -15438,7 +15438,7 @@ async function makeProfileForDeletedUser(user) {
 }
 
 async function setupHDYCInProfile(path) {
-    let match = path.match(/^\/user\/([^/]+)(\/|\/notes)?$/)
+    const match = path.match(/^\/user\/([^/]+)(\/|\/notes)?$/)
     if (!match || path.includes("/history")) {
         return
     }
@@ -15628,12 +15628,12 @@ async function setupHDYCInProfile(path) {
 }
 
 function setupBetterProfileStat() {
-    let match = location.pathname.match(/^\/user\/([^/]+)\/?$/)
+    const match = location.pathname.match(/^\/user\/([^/]+)\/?$/)
     if (!match) {
         return
     }
     const user = match[1]
-    let timerId = setInterval(betterUserStat, 300, decodeURI(user))
+    const timerId = setInterval(betterUserStat, 300, decodeURI(user))
     setTimeout(() => {
         clearInterval(timerId)
         console.debug("stop try add heatmap filters")
@@ -15739,7 +15739,7 @@ function simplifyHDCYIframe() {
         `)
     const loginLink = document.getElementById("loginLink")
     if (loginLink) {
-        let warn = document.createElement("div")
+        const warn = document.createElement("div")
         warn.id = "hdyc-warn"
         injectCSSIntoSimplePage(`
                 #hdyc-warn, #hdycLink {
@@ -15754,7 +15754,7 @@ function simplifyHDCYIframe() {
             warn.textContent = "Please disable tracking protection so that the HDYC account login works"
 
             document.getElementById("authenticate").before(warn)
-            let hdycLink = document.createElement("a")
+            const hdycLink = document.createElement("a")
             const match = location.pathname.match(/^\/user\/([^/]+)$/)
             hdycLink.href = "https://www.hdyc.neis-one.org/" + (match ? match[1] : "")
             hdycLink.textContent = "Go to https://www.hdyc.neis-one.org/"
@@ -16752,7 +16752,7 @@ const importerBadgeSvg =
 
 function makeBadge(userInfo, changesetDate = new Date()) {
     // todo make changesetDate required
-    let userBadge = document.createElement("span")
+    const userBadge = document.createElement("span")
     userBadge.classList.add("user-badge")
 
     function makeModeratorBadge() {
@@ -16906,7 +16906,7 @@ function addMassChangesetsActions() {
             item.onclick = e => {
                 if (!e.isTrusted) return
                 e.preventDefault()
-                let id = e.target.innerText
+                const id = e.target.innerText
                 navigator.clipboard.writeText(id).then(() => copyAnimation(e, id))
             }
             item.title = "Click for copy changeset id"
@@ -16934,7 +16934,7 @@ function addMassChangesetsActions() {
             document.querySelector("#hidden-changeset-counter").textContent = ` Displayed ${changesetsCount - getWindow().hiddenChangesetsCount}/${changesetsCount}`
         } else {
             if (!document.querySelector("#infinity-list-btn")) {
-                let moreButton = document.querySelector('.changeset_more:has([href*="before"]) a.page-link')
+                const moreButton = document.querySelector('.changeset_more:has([href*="before"]) a.page-link')
                 if (!moreButton) return
                 moreButton.parentElement.style.display = "inline-flex"
                 const infinityList = document.createElement("button")
@@ -16958,7 +16958,7 @@ function addMassChangesetsActions() {
 
 function setupMassChangesetsActions() {
     if (location.pathname !== "/history" && location.pathname !== "/history/friends" && !(location.pathname.includes("/history") && location.pathname.includes("/user/"))) return
-    let timerId = setInterval(addMassChangesetsActions, 300)
+    const timerId = setInterval(addMassChangesetsActions, 300)
     setTimeout(() => {
         clearInterval(timerId)
         console.debug("stop try add mass changesets actions")
@@ -17718,7 +17718,7 @@ function goToPrevSearchResult() {
     if (prev) {
         prev.classList.add("active-object")
         cur.classList.remove("active-object")
-        let focused = prev.querySelector("a")
+        const focused = prev.querySelector("a")
         focused.focus()
         prev.scrollIntoView({ block: "center", behavior: "instant" })
 
@@ -17740,7 +17740,7 @@ function goToNextSearchResult() {
     if (!document.querySelector("#sidebar_content ul .active-object")) {
         document.querySelector("#sidebar_content ul li").classList.add("active-object")
         document.querySelector("#sidebar_content ul .active-object a").tabIndex = 0
-        let focused = document.querySelector("#sidebar_content .active-object a")
+        const focused = document.querySelector("#sidebar_content .active-object a")
         focused.focus()
         const [lat, lon] = extractLatLonFromElem(document.querySelector("#sidebar_content ul .active-object a"))
         const marker = showNodeMarker(lat, lon)
@@ -17772,7 +17772,7 @@ function goToNextSearchResult() {
     if (next) {
         next.classList.add("active-object")
         cur.classList.remove("active-object")
-        let focused = next.querySelector("a")
+        const focused = next.querySelector("a")
         focused.focus()
         resetSelectedChangesets()
         next.scrollIntoView({ block: "center", behavior: "instant" })
@@ -17867,7 +17867,7 @@ function combineBBOXes(bboxes) {
 
 async function zoomToChangesets() {
     const params = new URLSearchParams(location.search)
-    let changesetIDs = params.get("changesets")?.split(",")
+    const changesetIDs = params.get("changesets")?.split(",")
     if (!changesetIDs) {
         return
     }
@@ -18348,7 +18348,7 @@ function setupNavigationViaHotkeys() {
                 const ways = new Set()
                 const relations = new Set()
 
-                let changesetID = parseInt(location.pathname.match(/changeset\/(\d+)/)[1])
+                const changesetID = parseInt(location.pathname.match(/changeset\/(\d+)/)[1])
                 const changesetData = (await getChangeset(changesetID)).data
 
                 function processChangeset(data) {
@@ -18692,7 +18692,7 @@ function setupNavigationViaHotkeys() {
         } else if (isDebug() && e.code === "KeyP" && e.altKey) {
             if (location.pathname.startsWith("/changeset")) {
                 const params = new URLSearchParams(location.search)
-                let changesetIDs = params.get("changesets")?.split(",") ?? [parseInt(location.pathname.match(/changeset\/(\d+)/)[1])]
+                const changesetIDs = params.get("changesets")?.split(",") ?? [parseInt(location.pathname.match(/changeset\/(\d+)/)[1])]
                 const objects = []
                 if (changesetIDs) {
                     setTimeout(async () => {
@@ -19965,8 +19965,8 @@ function renderOSMGeoJSON(xml, options = {}) {
                         comment: makeComment(object_type, object_id, prevTags, newTags),
                     }
 
-                    let changesetPayload = document.implementation.createDocument(null, "osm")
-                    let cs = changesetPayload.createElement("changeset")
+                    const changesetPayload = document.implementation.createDocument(null, "osm")
+                    const cs = changesetPayload.createElement("changeset")
                     changesetPayload.documentElement.appendChild(cs)
                     tagsToXml(changesetPayload, cs, changesetTags)
                     const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
