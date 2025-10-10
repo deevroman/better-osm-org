@@ -14097,12 +14097,12 @@ function makeChangesetsStat(changesets, filter) {
 }
 
 async function makeEditorNormalizer() {
+    const url = "https://raw.githubusercontent.com/deevroman/openstreetmap-statistics/refs/heads/master/src/replace_rules_created_by.json"
     const rawReplaceRules = (
         await externalFetchRetry({
             url: url,
         })
     ).responseText
-    const url = "https://raw.githubusercontent.com/deevroman/openstreetmap-statistics/refs/heads/master/src/replace_rules_created_by.json"
     console.log("replace rules loaded")
 
     const tag_to_name = {}
