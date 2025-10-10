@@ -9561,6 +9561,12 @@ function addDiffInHistoryStyle() {
     injectCSSIntoOSMPage(styleText)
 }
 
+function historyPaginationClick() {
+    const paginationBtn = document.querySelector("#older_element_versions_navigation a")
+    console.log("Click by pagination from AddDiffInHistory", paginationBtn?.href)
+    paginationBtn?.click()
+}
+
 // hard cases:
 // https://www.openstreetmap.org/node/1/history
 // https://www.openstreetmap.org/node/2/history
@@ -10059,8 +10065,11 @@ function addDiffInHistory(reason = "url_change") {
     expandWikidata()
     addCopyCoordinatesButtons()
     monitorHistoryPaginationMoving()
-    console.log("Click by pagination from AddDiffInHistory")
-    document.querySelector("#older_element_versions_navigation a")?.click()
+    if (isRelation) {
+        sleep(200).then(() => historyPaginationClick())
+    } else {
+        historyPaginationClick()
+    }
 }
 
 function setupVersionsDiff(path) {
@@ -10796,6 +10805,11 @@ function makeHeaderPartsClickable() {
 
 function expandWikidata() {
     const links = Array.from(document.querySelectorAll(".wdt-preview:not([disabled])"))
+    // fuck Bootstrap. When page contains many HTML elemenets, him querySelector iterates over all elements
+    // This is especially noticeable on the relationship pages.
+    if (links.length > 50) {
+        return
+    }
     console.debug("Wikilinks count:", links.length)
     ;(links.find(i => i.parentElement.classList.contains("history-diff-new-tag") || i.parentElement.classList.contains("history-diff-modified-tag")) ?? links?.[0])?.click()
     setTimeout(() => {
@@ -16530,6 +16544,10 @@ if (isOsmServer()) {
                     statusText: response.statusText,
                     headers: response.headers
                 });
+            } else if (args[0]?.includes?.("/members")) {
+                // console.log("freeeeeze", args[0])
+                // await new Promise(() => setTimeout(() => true, 1000 * 1000))
+            }
             // } else if (args[0]?.includes?.("/map.json") && window.mapDataIDsFilter.size) {
             //     const response = await originalFetch(...args);
             //     const originalJSON = await response.json();
@@ -16545,7 +16563,7 @@ if (isOsmServer()) {
             //         statusText: response.statusText,
             //         headers: response.headers
             //     });
-            } else {
+            else {
                 // console.log("other requests", args[0])
                 // debugger
             }
