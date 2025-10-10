@@ -501,6 +501,9 @@ function debug_alert() {
     debugger
 }
 
+//<editor-fold desc="i18n. Work In Progress!" defaultstate="collapsed">
+
+//</editor-fold>
 
 if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id-embed")) {
     function mapHook() {
