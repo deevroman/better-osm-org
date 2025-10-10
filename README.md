@@ -219,11 +219,11 @@ Maybe
 - [ESRI](https://wiki.openstreetmap.org/wiki/Esri) — Satellite images
 - [GM_config](https://github.com/sizzlemctwizzle/GM_config) — settings framework for UserScripts
 - [LetItSnow](https://github.com/DevBubba/Bookmarklets/blob/main/Screen/LetItSnow.js) — Easter New Year's Egg
-- [Lucide](https://lucide.dev/icons/diff) — for changes count icon on /history page, copy button icon and filter icon
+- [Lucide](https://lucide.dev/icons/diff) — for changes count icon on /history page, copy button icon, filter icon and other
 - [Moresby/Element graphics](https://wiki.openstreetmap.org/wiki/User:Moresby/Element_graphics) - OSM object types SVGs  
 - [opening_hours.js](https://github.com/opening-hours/opening_hours.js) — for opening_hours tags validation
 - [OpenStreetMap Dark Theme](https://userstyles.world/style/15596/openstreetmap-dark-theme) — dark theme was the foundation based on this style
-- [OpenStreetMap Statistics](https://github.com/piebro/openstreetmap-statistics) — The script uses the rules from this project to normalize the names of OSM editors
+- [OpenStreetMap Statistics](https://github.com/piebro/openstreetmap-statistics) — The script uses the rules from this project to normalize the names of OSM editors and list of the list of organised teams contributors
 - [OSMBuilding](https://github.com/Beakerboy/OSMBuilding) — 3D viewer for buildings
 - [osmtogeojson](https://github.com/tyrasd/osmtogeojson) — converts OSM data to GeoJSON
 - [osm-auth](https://github.com/osmlab/osm-auth) — for authentication with OpenStreetMap

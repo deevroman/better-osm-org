@@ -1,7 +1,8 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.2.0
+// @version         1.2.1
+// @changelog       v1.2.1: Linkify Node/Way/Relation on tag page in taginfo, link to ptna.openstreetmap.de for route=*
 // @changelog       v1.2.0: Colorblind-friendly palette in settings
 // @changelog       v1.2.0: Osmcha review tags, links to waymarkedtrails.org for type=route, alt + E to click Edits tags
 // @changelog       v1.2.0: notes word also check comments text, filter by notes comments count and anon authors
@@ -77,7 +78,7 @@
 // @require      https://raw.githubusercontent.com/deevroman/osm-auth/d83736efcbec64a87d2c31ffdca3e3efc255f823/dist/osm-auth.iife.js#sha256=f9f85ed6209aa413097a5a4e1a4b6870d3a9ee94f267ac7c3ec35cee99b7dec9
 // @require      https://raw.githubusercontent.com/deevroman/exif-js/53b0c7c1951a23d255e37ed0a883462218a71b6f/exif.js#sha256=2235967d47deadccd9976244743e3a9be5ca5e41803cda65a40b8686ec713b74
 // @require      https://raw.githubusercontent.com/deevroman/osmtogeojson/c97381a0c86c0a021641dd47d7bea01fb5514716/osmtogeojson.js#sha256=663bb5bbae47d5d12bff9cf1c87b8f973e85fab4b1f83453810aae99add54592
-// @require      https://gist.githubusercontent.com/deevroman/d8b7a2176446e321fa6b0b47d0615d6e/raw/57c11b07432890b9a066ef6b6aba970dda9cb5ad/snow-animation.js#sha256=3b6cd76818c5575ea49aceb7bf4dc528eb8a7cb228b701329a41bb50f0800a5d
+// @require      https://raw.githubusercontent.com/deevroman/better-osm-org/5a949d7b1b0897472396758dd5c1aaa514bba6c6/misc/assets/snow-animation.js#sha256=3b6cd76818c5575ea49aceb7bf4dc528eb8a7cb228b701329a41bb50f0800a5d
 // @require      https://raw.githubusercontent.com/deevroman/opening_hours.js/f70889c71fcfd6e3ef7ba8df3b1263d8295b3dec/opening_hours+deps.min.js#sha256=e9a3213aba77dcf79ff1da9f828532acf1ebf7107ed1ce5f9370b922e023baff
 // @require      https://raw.githubusercontent.com/deevroman/unzipit/refs/heads/master/dist/unzipit.min.js#sha256=13a41f257bc1fd90adeaf6731e02838cf740299235ece90634f12e117e22e2ff
 // @require      https://raw.githubusercontent.com/deevroman/bz2/342be4403bf5ba835bb2c9ba54ad008bba428d60/index.js#sha256=8c19861a31e7fb403824e513e1afd23f75c5024f610671490ebc86f2eca61845
@@ -402,7 +403,7 @@ const instancesOf3DViewers = [
     {
         name: "ArcGIS 3D Buildings & Trees",
         url: "https://arcgis.com/home/webscene/viewer.html",
-        makeURL: function ({ x: x, y: y}) {
+        makeURL: function ({ x: x, y: y }) {
             return `${this.url}?webscene=037cceb0e24440179dbd00846d2a8c4f&viewpoint=cam:${y},${parseFloat(x) - 0.0015},150;0,50` // todo relation don't work?
         },
     },
@@ -421,6 +422,15 @@ const waymarkedtrailsLink = {
     url: "https://{type}.waymarkedtrails.org/",
     makeURL: function ({ x, y, z, id, waymarkedtrails_type }) {
         return `${this.url.replace("{type}", waymarkedtrails_type)}#route?id=${id}&map=${z}/${x}/${y}`
+    },
+}
+
+/** @type {externalURL} */
+const publicTransportNetworkAnalysisLink = {
+    name: "Public Transport Network Analysis",
+    url: "https://ptna.openstreetmap.de/relation.php",
+    makeURL: function ({ id}) {
+        return `${this.url}?id=${id}`
     },
 }
 //
@@ -501,6 +511,9 @@ function debug_alert() {
     debugger
 }
 
+//<editor-fold desc="i18n. Work In Progress!" defaultstate="collapsed">
+
+//</editor-fold>
 
 if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id-embed")) {
     function mapHook() {
@@ -536,6 +549,10 @@ if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id
         boWindowObject.mapHook()
         if (boWindowObject.map instanceof HTMLElement) {
             console.error("Please, reload page, if something doesn't work")
+            // todo
+            // getMap = () => null
+            // } else {
+            //     getMap = () => boWindowObject.map
         }
 
         getMap = () => boWindowObject.map
@@ -958,7 +975,7 @@ GM_config.init({
                 return settingNode
             },
             toValue: function () {
-                let templates = []
+                const templates = []
                 if (this.wrapper) {
                     for (let row of Array.from(this.wrapper.getElementsByTagName("tr")).slice(0, -1)) {
                         const forPush = {
@@ -1229,12 +1246,16 @@ async function _fetchRetry(fetchImpl, ...args) {
     while (count > 0) {
         try {
             const res = await fetchImpl(...args)
-            if (res.status === 509 || res.status === 429) {
+            if (res.status === 509 || res.status === 429 || res.status === 504) {
                 console.warn(`HTTP ${res.status}. Waiting before retry`)
                 if (res.headers.get("retry-after")) {
                     await abortableSleep((parseInt(res.headers.get("retry-after")) + 1) * 1000, getAbortController())
                 } else {
-                    await abortableSleep((60 + Math.random() * 10) * 1000, getAbortController())
+                    if (res.status === 504) {
+                        await abortableSleep((10 + Math.random() * 10) * 1000, getAbortController())
+                    } else {
+                        await abortableSleep((60 + Math.random() * 10) * 1000, getAbortController())
+                    }
                 }
                 count -= 1
                 if (count === 0) {
@@ -1283,7 +1304,7 @@ async function _fetchRetry(fetchImpl, ...args) {
  */
 function tagsToXml(doc, node, tags) {
     for (const [k, v] of Object.entries(tags)) {
-        let tag = doc.createElement("tag")
+        const tag = doc.createElement("tag")
         tag.setAttribute("k", k)
         tag.setAttribute("v", v)
         node.appendChild(tag)
@@ -1432,7 +1453,7 @@ const filterIconSvg =
     '</svg>'
 
 function makeUsernameInNotesFilterable() {
-    let usernameLink = document.querySelector('#sidebar_content .details p')?.querySelector('a[href^="/user/"]')
+    let usernameLink = document.querySelector("#sidebar_content .details p")?.querySelector('a[href^="/user/"]')
     if (!usernameLink) {
         usernameLink = document.createElement("a")
         usernameLink.setAttribute("href", "/user/anon")
@@ -1846,7 +1867,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             if (changesetProps["tags"].length > 0 && !firstComment) {
                 const textarea = document.querySelector("#sidebar_content form")
                 // not good because layout jumps :(
-                textarea.style.marginTop = 3 + 17 * (changesetProps["tags"].length) + "px"
+                textarea.style.marginTop = 3 + 17 * changesetProps["tags"].length + "px"
             }
             spanWrapper.appendChild(span)
             dislikeBtn.after(spanWrapper)
@@ -1900,7 +1921,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
                         console.trace(res)
                         ch.checked = "false"
                     } else {
-                        console.log(`${i.name} applyied`)
+                        console.log(`${i.name} applied`)
                     }
                 } else {
                     const res = await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/tags/${i.id}/`, "DELETE")
@@ -1952,9 +1973,10 @@ function addRevertButton() {
         hideSearchForm()
         // sidebar.classList.add("changeset-header")
         const changeset_id = sidebar.innerHTML.match(/([0-9]+)/)[0]
+        const reverterTitle = "Open osm-revert\nShift + click for revert via JOSM\nPress R for partial revert"
         // prettier-ignore
         sidebar.innerHTML +=
-            ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="Open osm-revert\nShift + click for revert via JOSM\nPress R for partial revert">↩️</a>
+            ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="${reverterTitle}">↩️</a>
               <a href="https://osmcha.org/changesets/${changeset_id}" target="_blank" rel="noreferrer">${osmchaSvgLogo}</a>`
         changesetObjectsSelectionModeEnabled = false
         document.querySelector("#revert_button_class").onclick = async e => {
@@ -2015,7 +2037,11 @@ function addRevertButton() {
             if (!e.shiftKey) {
                 if (osm_server !== prod_server) {
                     e.preventDefault()
-                    alert("osm-revert works only for www.openstreetmap.org\n\nBut you can install reverter plugin in JOSM and use shift+click for other OSM servers.\n\n⚠️Change the osm server in the josm settings!")
+                    alert(
+                        "osm-revert works only for www.openstreetmap.org\n\n" +
+                            "But you can install reverter plugin in JOSM and use shift+click for other OSM servers.\n\n" +
+                            "⚠️Change the osm server in the josm settings!",
+                    )
                 }
                 return
             }
@@ -2046,7 +2072,7 @@ function addRevertButton() {
         const metainfoHTML = document.querySelector("#sidebar_content h2 ~ div > .details")
         const time = metainfoHTML.querySelector("time")
         if (metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')) {
-            let usernameA = metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')
+            const usernameA = metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')
             metainfoHTML.innerHTML = ""
             metainfoHTML.appendChild(time)
             metainfoHTML.appendChild(document.createTextNode(" "))
@@ -2152,7 +2178,11 @@ function addRevertButton() {
                     i.style.display = "none"
                     i.classList.add("hidden-tag")
                     needUnhide = true
-                } else if (key.textContent === "hashtags" && i.querySelector("td").textContent.includes("#") && document.querySelector("#sidebar_content h2 ~ div p")?.textContent?.includes(i.querySelector("td").textContent)) {
+                } else if (
+                    key.textContent === "hashtags" &&
+                    i.querySelector("td").textContent.includes("#") &&
+                    document.querySelector("#sidebar_content h2 ~ div p")?.textContent?.includes(i.querySelector("td").textContent)
+                ) {
                     i.style.display = "none"
                     i.classList.add("hidden-tag")
                 }
@@ -2178,7 +2208,7 @@ function addRevertButton() {
     const textarea = document.querySelector("#sidebar_content textarea")
     if (textarea) {
         textarea.rows = 1
-        let comment = document.querySelector("#sidebar_content button[name=comment]")
+        const comment = document.querySelector("#sidebar_content button[name=comment]")
         if (comment) {
             comment.parentElement.hidden = true
             textarea.addEventListener("input", () => {
@@ -2203,7 +2233,7 @@ function addRevertButton() {
                     if (row["text"] !== "") {
                         text = row["text"]
                     }
-                    let b = document.createElement("span")
+                    const b = document.createElement("span")
                     b.classList.add("comment-template", "btn", "btn-primary")
                     b.textContent = label
                     b.title = `Add into the comment "${text}".\nYou can change text in userscript settings`
@@ -2257,7 +2287,7 @@ function addRevertButton() {
 
 function setupRevertButton() {
     if (!location.pathname.startsWith("/changeset")) return
-    let timerId = setInterval(() => {
+    const timerId = setInterval(() => {
         if (addRevertButton()) clearInterval(timerId)
     }, 100)
     setTimeout(() => {
@@ -2560,7 +2590,8 @@ const commentSvg =
 
 // prettier-ignore
 const diffSvg =
-    '<svg class="lucide lucide-diff better-diff-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">' +
+    '<svg class="lucide lucide-diff better-diff-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" ' +
+    'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">' +
     '<path d="M12 3v14"/><path d="M5 10h14"/>' +
     '<path d="M5 21h14"/>' +
     '</svg>'
@@ -2683,7 +2714,7 @@ function setupCompactChangesetsHistory() {
                                 }
                                 userLink.before(badge)
                             })
-                            let shortText = shortOsmOrgLinksInText(comment["text"])
+                            const shortText = shortOsmOrgLinksInText(comment["text"])
                             if (shortText.length > 500) {
                                 const text = document.createElement("span")
                                 text.textContent = " " + shortText.slice(0, 500)
@@ -2750,7 +2781,7 @@ function setupCompactChangesetsHistory() {
  */
 function buildTags(text, strict = false) {
     const lines = text.split("\n")
-    let json = {}
+    const json = {}
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i]
         let eqPos = line.indexOf("=")
@@ -2797,7 +2828,7 @@ function addCreateNewPOIButton() {
         newNotePlaceholder = null
     }
     if (document.querySelector(".add-new-object-btn")) return
-    let b = document.createElement("span")
+    const b = document.createElement("span")
     b.classList.add("add-new-object-btn", "btn", "btn-primary")
     b.textContent = "➕"
     if (!getMap()?.getZoom) {
@@ -2845,8 +2876,8 @@ function addCreateNewPOIButton() {
             comment: tagsHint !== "" ? `Create${tagsHint}` : `Create node`,
         }
 
-        let changesetPayload = document.implementation.createDocument(null, "osm")
-        let cs = changesetPayload.createElement("changeset")
+        const changesetPayload = document.implementation.createDocument(null, "osm")
+        const cs = changesetPayload.createElement("changeset")
         changesetPayload.documentElement.appendChild(cs)
         tagsToXml(changesetPayload, cs, changesetTags)
         const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
@@ -2874,7 +2905,7 @@ function addCreateNewPOIButton() {
                 node.setAttribute("lon", lng)
 
                 for (const tag of Object.entries(tags)) {
-                    let tagElem = document.createElement("tag")
+                    const tagElem = document.createElement("tag")
                     tagElem.setAttribute("k", tag[0])
                     tagElem.setAttribute("v", tag[1])
                     node.appendChild(tagElem)
@@ -2964,7 +2995,7 @@ function addResolveNotesButton() {
 (._;>;);
 out meta;
 `
-        let btn = document.createElement("a")
+        const btn = document.createElement("a")
         btn.id = "timeback-btn"
         if (organicmapsDate || mapsmeDate) {
             btn.title = "Open the map state at the time of map snapshot"
@@ -3052,7 +3083,7 @@ out meta;
         return
     }
     const auth = makeAuth()
-    let note_id = location.pathname.match(/note\/(\d+)/)[1]
+    const note_id = location.pathname.match(/note\/(\d+)/)[1]
     /** @type {string} */
     const resolveButtonsText = GM_config.get("ResolveNotesButton")
     if (resolveButtonsText) {
@@ -3062,7 +3093,7 @@ out meta;
             if (row["text"] !== "") {
                 text = row["text"]
             }
-            let b = document.createElement("button")
+            const b = document.createElement("button")
             b.classList.add("resolve-note-done", "btn", "btn-primary")
             b.textContent = label
             b.title = `Add to the comment "${text}" and close the note.\nYou can change emoji in userscript settings`
@@ -3103,7 +3134,7 @@ out meta;
 
 function setupResolveNotesButton(path) {
     if (!path.startsWith("/note")) return
-    let timerId = setInterval(addResolveNotesButton, 100)
+    const timerId = setInterval(addResolveNotesButton, 100)
     setTimeout(() => {
         clearInterval(timerId)
         console.debug("stop try add resolve note button")
@@ -3257,6 +3288,7 @@ function addNotesFiltersButtons() {
         resetFilter.style.position = "absolute"
         resetFilter.style.right = "20px"
         resetFilter.style.cursor = "pointer"
+        resetFilter.tabIndex = -1
         resetFilter.onclick = () => {
             filterByString.value = ""
             updateNotesLayer()
@@ -3317,6 +3349,7 @@ function addNotesFiltersButtons() {
         resetFilter.style.position = "absolute"
         resetFilter.style.right = "20px"
         resetFilter.style.cursor = "pointer"
+        resetFilter.tabIndex = -1
         resetFilter.onclick = () => {
             filterByUsername.value = ""
             updateNotesLayer()
@@ -3416,7 +3449,7 @@ function addNotesFiltersButtons() {
 }
 
 function setupNotesFiltersButtons() {
-    let timerId = setInterval(addNotesFiltersButtons, 200)
+    const timerId = setInterval(addNotesFiltersButtons, 200)
     setTimeout(() => {
         clearInterval(timerId)
         console.debug("stop try add notes filters buttons")
@@ -3564,7 +3597,7 @@ function addGPXFiltersButtons() {
                             )
                             .addTo(getMap())
 
-                        let trackForDisplay = document.implementation.createDocument(null, "gpx")
+                        const trackForDisplay = document.implementation.createDocument(null, "gpx")
                         trackForDisplay.documentElement.appendChild(trk)
                         cleanAllObjects()
                         displayGPXTrack(trackForDisplay)
@@ -3677,7 +3710,7 @@ function addGPXFiltersButtons() {
 }
 
 function setupGPXFiltersButtons() {
-    let timerId = setInterval(addGPXFiltersButtons, 100)
+    const timerId = setInterval(addGPXFiltersButtons, 100)
     setTimeout(() => {
         clearInterval(timerId)
         console.debug("stop try add gpx filters buttons")
@@ -3826,8 +3859,8 @@ function addDeleteButton() {
                     return
                 }
 
-                let changesetPayload = document.implementation.createDocument(null, "osm")
-                let cs = changesetPayload.createElement("changeset")
+                const changesetPayload = document.implementation.createDocument(null, "osm")
+                const cs = changesetPayload.createElement("changeset")
                 changesetPayload.documentElement.appendChild(cs)
                 tagsToXml(changesetPayload, cs, changesetTags)
                 const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
@@ -3905,10 +3938,10 @@ function addDeleteButton() {
             intoPageWithFun({
                 text: "Move node to here",
                 callback: async function moveNode(e) {
-                    let match = location.pathname.match(/(node)\/(\d+)/)
+                    const match = location.pathname.match(/(node)\/(\d+)/)
                     if (!match) return
-                    let object_type = match[1]
-                    let object_id = match[2]
+                    const object_type = match[1]
+                    const object_id = match[2]
                     const auth = makeAuth()
                     if (!confirm("⚠️ move node?")) {
                         return
@@ -3942,8 +3975,8 @@ function addDeleteButton() {
                         comment: "Moving node",
                     }
 
-                    let changesetPayload = document.implementation.createDocument(null, "osm")
-                    let cs = changesetPayload.createElement("changeset")
+                    const changesetPayload = document.implementation.createDocument(null, "osm")
+                    const cs = changesetPayload.createElement("changeset")
                     changesetPayload.documentElement.appendChild(cs)
                     tagsToXml(changesetPayload, cs, changesetTags)
                     const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
@@ -3992,7 +4025,7 @@ function addDeleteButton() {
 
 function setupDeletor(path) {
     if (!path.startsWith("/node/") && !path.startsWith("/relation/")) return
-    let timerId = setInterval(addDeleteButton, 100)
+    const timerId = setInterval(addDeleteButton, 100)
     setTimeout(() => {
         clearInterval(timerId)
         console.debug("stop try add delete button")
@@ -4003,9 +4036,9 @@ function setupDeletor(path) {
 let mapDataSwitcherUnderSupervision = false
 
 function hideNoteHighlight() {
-    let g = document.querySelector("#map g")
+    const g = document.querySelector("#map g")
     if (!g || g.childElementCount === 0) return
-    let mapDataCheckbox = document.querySelector(".layers-ui #label-layers-data input")
+    const mapDataCheckbox = document.querySelector(".layers-ui #label-layers-data input")
     if (mapDataCheckbox && !mapDataCheckbox.checked) {
         if (mapDataSwitcherUnderSupervision) return
         mapDataSwitcherUnderSupervision = true
@@ -4037,7 +4070,7 @@ function hideNoteHighlight() {
 
 function setupHideNoteHighlight() {
     if (!location.pathname.startsWith("/note/")) return
-    let timerId = setInterval(hideNoteHighlight, 1000)
+    const timerId = setInterval(hideNoteHighlight, 1000)
     setTimeout(() => {
         clearInterval(timerId)
         console.debug("stop removing note highlight")
@@ -4051,8 +4084,8 @@ let BaseLayerPrefix = OSMPrefix
 const ESRIPrefix = "https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
 const ESRIBetaPrefix = "https://clarity.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
 let SatellitePrefix = ESRIPrefix
-let SAT_MODE = "🛰"
-let MAPNIK_MODE = "🗺️"
+const SAT_MODE = "🛰"
+const MAPNIK_MODE = "🗺️"
 let currentTilesMode = MAPNIK_MODE
 let tilesObserver = undefined
 
@@ -4071,7 +4104,7 @@ function invertOverlayMode(mode) {
 }
 
 function parseOSMTileURL(url) {
-    let match = url.match(new RegExp(`${OSMPrefix}(\\d+)\\/(\\d+)\\/(\\d+)\\.png`))
+    const match = url.match(new RegExp(`${OSMPrefix}(\\d+)\\/(\\d+)\\/(\\d+)\\.png`))
     if (!match) {
         return false
     }
@@ -4083,7 +4116,7 @@ function parseOSMTileURL(url) {
 }
 
 function parseOSMGPSTileURL(url) {
-    let match = url.match(new RegExp(`${OSMGPSPrefix}(\\d+)\\/(\\d+)\\/(\\d+)\\.png`))
+    const match = url.match(new RegExp(`${OSMGPSPrefix}(\\d+)\\/(\\d+)\\/(\\d+)\\.png`))
     if (!match) {
         return false
     }
@@ -4095,7 +4128,7 @@ function parseOSMGPSTileURL(url) {
 }
 
 function parseESRITileURL(url) {
-    let match = url.match(new RegExp(`${SatellitePrefix}(\\d+)\\/(\\d+)\\/(\\d+)`))
+    const match = url.match(new RegExp(`${SatellitePrefix}(\\d+)\\/(\\d+)\\/(\\d+)`))
     if (!match) {
         return false
     }
@@ -4107,7 +4140,7 @@ function parseESRITileURL(url) {
 }
 
 function parseStravaTileURL(url) {
-    let match = url.match(new RegExp(`${StravaPrefix}(\\d+)\\/(\\d+)\\/(\\d+)`))
+    const match = url.match(new RegExp(`${StravaPrefix}(\\d+)\\/(\\d+)\\/(\\d+)`))
     if (!match) {
         return false
     }
@@ -4167,7 +4200,7 @@ function switchESRIbeta() {
         if (i.nodeName !== "IMG") {
             return
         }
-        let xyz = parseESRITileURL(!needBypassSatellite ? i.src : i.getAttribute("real-url") ?? "")
+        const xyz = parseESRITileURL(!needBypassSatellite ? i.src : i.getAttribute("real-url") ?? "")
         if (!xyz) return
         const newUrl = NewSatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix
         if (!needBypassSatellite) {
@@ -4249,7 +4282,7 @@ function switchTiles() {
             return
         }
         if (currentTilesMode === SAT_MODE) {
-            let xyz = parseOSMTileURL(i.src)
+            const xyz = parseOSMTileURL(i.src)
             if (!xyz) return
             // unsafeWindow.L.DomEvent.off(i, "error") // todo добавить перехватчик 404
             try {
@@ -4278,7 +4311,7 @@ function switchTiles() {
                 )
             }
         } else {
-            let xyz = parseESRITileURL(!needBypassSatellite ? i.src : i.getAttribute("real-url") ?? "")
+            const xyz = parseESRITileURL(!needBypassSatellite ? i.src : i.getAttribute("real-url") ?? "")
             if (!xyz) return
             i.src = makeBaseLayerURL(xyz.x, xyz.y, xyz.z)
             if (i.complete) {
@@ -4301,7 +4334,7 @@ function switchTiles() {
                     return
                 }
                 if (currentTilesMode === SAT_MODE) {
-                    let xyz = parseOSMTileURL(node.src)
+                    const xyz = parseOSMTileURL(node.src)
                     if (!xyz) return
                     // unsafeWindow.L.DomEvent.off(node, "error")
                     try {
@@ -4331,7 +4364,7 @@ function switchTiles() {
                         )
                     }
                 } else {
-                    let xyz = parseESRITileURL(!needBypassSatellite ? node.src : node.getAttribute("real-url"))
+                    const xyz = parseESRITileURL(!needBypassSatellite ? node.src : node.getAttribute("real-url"))
                     if (!xyz) return
                     node.src = makeBaseLayerURL(xyz.x, xyz.y, xyz.z)
                     if (node.complete) {
@@ -4364,7 +4397,7 @@ function bypassCaches() {
             return
         }
         // todo support multiple press
-        let xyz = parseOSMTileURL(i.src)
+        const xyz = parseOSMTileURL(i.src)
         if (!xyz) return
         const newUrl = makeOSMURL(xyz.x, xyz.y, xyz.z) // + "?bypassCache=" + new Date().getUTCSeconds();
         externalFetchRetry({
@@ -4392,7 +4425,7 @@ function bypassCaches() {
                 if (node.nodeName !== "IMG") {
                     return
                 }
-                let xyz = parseOSMTileURL(node.src)
+                const xyz = parseOSMTileURL(node.src)
                 if (!xyz) return
                 const newUrl = makeOSMURL(xyz.x, xyz.y, xyz.z) // + "?bypassCache=" + new Date().getUTCSeconds();
                 externalFetchRetry({
@@ -4435,7 +4468,7 @@ function switchOverlayTiles() {
             return
         }
         if (currentOverlayModeIsStrava) {
-            let xyz = parseOSMGPSTileURL(i.src)
+            const xyz = parseOSMGPSTileURL(i.src)
             if (!xyz) return
             // unsafeWindow.L.DomEvent.off(i, "error") // todo добавить перехватчик 404
             try {
@@ -4458,7 +4491,7 @@ function switchOverlayTiles() {
                 )
             }
         } else {
-            let xyz = parseStravaTileURL(i.getAttribute("real-url") ?? "")
+            const xyz = parseStravaTileURL(i.getAttribute("real-url") ?? "")
             if (!xyz) return
             i.src = makeOSMGPSURL(xyz.x, xyz.y, xyz.z)
             if (i.complete) {
@@ -4481,7 +4514,7 @@ function switchOverlayTiles() {
                     return
                 }
                 if (currentOverlayModeIsStrava) {
-                    let xyz = parseOSMGPSTileURL(node.src)
+                    const xyz = parseOSMGPSTileURL(node.src)
                     if (!xyz) return
                     // unsafeWindow.L.DomEvent.off(node, "error")
                     try {
@@ -4505,7 +4538,7 @@ function switchOverlayTiles() {
                         )
                     }
                 } else {
-                    let xyz = parseStravaTileURL(node.getAttribute("real-url"))
+                    const xyz = parseStravaTileURL(node.getAttribute("real-url"))
                     if (!xyz) return
                     node.src = makeOSMGPSURL(xyz.x, xyz.y, xyz.z)
                     if (node.complete) {
@@ -4539,7 +4572,7 @@ if (isOsmServer() && new URLSearchParams(location.search).has("sat-tiles")) {
 
 function addSatelliteLayers() {
     const btnOnPane = document.createElement("span")
-    let btnOnNotePage = document.createElement("span")
+    const btnOnNotePage = document.createElement("span")
     if (!document.querySelector(".turn-on-satellite-from-pane")) {
         const mapnikBtn = document.querySelector(".layers-ui label span")
         if (mapnikBtn) {
@@ -4593,7 +4626,7 @@ function addSatelliteLayers() {
 }
 
 function setupSatelliteLayers() {
-    let timerId = setInterval(addSatelliteLayers, 100)
+    const timerId = setInterval(addSatelliteLayers, 100)
     setTimeout(() => {
         clearInterval(timerId)
         console.debug("stop try add resolve note button")
@@ -4641,8 +4674,8 @@ function copyAnimation(e, text) {
 
 //<editor-fold desc="find deleted user in diffs" defaultstate="collapsed">
 async function decompressBlob(blob) {
-    let ds = new DecompressionStream("gzip")
-    let decompressedStream = blob.stream().pipeThrough(ds)
+    const ds = new DecompressionStream("gzip")
+    const decompressedStream = blob.stream().pipeThrough(ds)
     return await new Response(decompressedStream).blob()
 }
 
@@ -4652,8 +4685,8 @@ async function tryFindChangesetInDiffGZ(gzURL, changesetId) {
         url: gzURL,
         responseType: "blob",
     })
-    let blob = await decompressBlob(diffGZ.response)
-    let diffXML = await blob.text()
+    const blob = await decompressBlob(diffGZ.response)
+    const diffXML = await blob.text()
 
     const diffParser = new DOMParser()
     const doc = diffParser.parseFromString(diffXML, "application/xml")
@@ -4699,7 +4732,7 @@ async function parseCCC(target, url) {
     })
     const CCCHTML = new DOMParser().parseFromString(response.responseText, "text/html")
 
-    let a = Array.from(CCCHTML.querySelector("pre").childNodes).slice(2)
+    const a = Array.from(CCCHTML.querySelector("pre").childNodes).slice(2)
     let x = 0
     let found = false
     /**
@@ -4713,7 +4746,7 @@ async function parseCCC(target, url) {
         if (!a[x].textContent.match(/^\d+\.osm\.gz$/)) {
             continue
         }
-        let d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim().split(" ").slice(0, -1).join(" ").trim() + " UTC")
+        const d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim().split(" ").slice(0, -1).join(" ").trim() + " UTC")
         if (target <= d) {
             found = true
             break
@@ -4740,11 +4773,11 @@ async function parseCCC(target, url) {
 }
 
 async function checkBBB(AAA, BBB, targetTime, targetChangesetID) {
-    let CCC = await parseCCC(targetTime, AAA + BBB)
+    const CCC = await parseCCC(targetTime, AAA + BBB)
     if (!CCC) {
         return
     }
-    let gzURL = planetOrigin + "/replication/changesets/" + AAA + BBB
+    const gzURL = planetOrigin + "/replication/changesets/" + AAA + BBB
 
     let foundedChangeset = await tryFindChangesetInDiffGZ(gzURL + CCC[0], targetChangesetID)
     if (!foundedChangeset) {
@@ -4754,7 +4787,7 @@ async function checkBBB(AAA, BBB, targetTime, targetChangesetID) {
 }
 
 async function checkAAA(AAA, targetTime, targetChangesetID) {
-    let BBBs = await parseBBB(targetTime, AAA)
+    const BBBs = await parseBBB(targetTime, AAA)
     if (!BBBs) {
         return
     }
@@ -4814,7 +4847,7 @@ async function findChangesetInDiff(e) {
         a.push(...a.slice(-2))
         let x = 0
         for (x; x < a.length - 2; x += 2) {
-            let d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim())
+            const d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim())
             if (targetTime < d) break
         }
         let AAAs
@@ -5181,7 +5214,7 @@ function makeMapillaryValue(elem) {
                         const img = document.createElement("img")
                         img.src = imgData
                         img.alt = "image from Mapillary"
-                        img.title = "Blue — position from GPS tracker\nOrange — estimated real postion"
+                        img.title = "Blue — position from GPS tracker\nOrange — estimated real position"
                         img.style.width = "100%"
                         a.appendChild(img)
                     })
@@ -5189,7 +5222,7 @@ function makeMapillaryValue(elem) {
                     const img = GM_addElement("img", {
                         src: imgSrc,
                         alt: "image from Mapillary",
-                        title: "Blue — position from GPS tracker\nOrange — estimated real postion",
+                        title: "Blue — position from GPS tracker\nOrange — estimated real position",
                         // crossorigin: "anonymous"
                     })
                     img.onerror = () => {
@@ -5637,13 +5670,14 @@ function makeLinksInVersionTagsClickable() {
             })
             document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(viewIn3D)
         } else if (
-            // pretier-ignore
+            // prettier-ignore
             (key === "route" || key === "superroute") &&
             ["hiking", "foot", "bicycle", "mtb", "horse", "inline_skates", "ski", "piste"].includes(valueCell.textContent)
         ) {
             if (document.querySelector(".route-viewer-link")) {
                 return
             }
+            const value = valueCell.textContent
             const m = location.pathname.match(/\/(relation)\/(\d+)/)
             if (!m) {
                 return
@@ -5661,17 +5695,42 @@ function makeLinksInVersionTagsClickable() {
                 inline_skates: "skating",
                 ski: "slopes",
                 piste: "slopes",
-            }[valueCell.textContent]
+            }[value]
             const relationViewer = document.createElement("a")
             relationViewer.innerHTML = externalLinkSvg
             relationViewer.classList.add("route-viewer-link")
             relationViewer.style.cursor = "pointer"
             relationViewer.style.paddingLeft = "5px"
             relationViewer.style.paddingRight = "10px"
-            relationViewer.title = `Open ${waymarkedtrails_type}.waymarkedtrails.org`// `\nRight click for select viewer`
+            relationViewer.title = `Open ${waymarkedtrails_type}.waymarkedtrails.org` // `\nRight click for select viewer`
 
             const [x, y, z] = getCurrentXYZ()
             relationViewer.href = waymarkedtrailsLink.makeURL({ x, y, z, type, id, waymarkedtrails_type })
+            relationViewer.target = "_blank"
+            relationViewer.rel = "noreferrer"
+
+            document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(relationViewer)
+        } else if ((key === "route" /*|| key === "route_master"*/) && ["bus", "trolleybus", "minibus", "share_taxi", /*"train",*/ "light_rail", "subway", "tram", "ferry"].includes(valueCell.textContent)) {
+            if (document.querySelector(".route-viewer-link")) {
+                return
+            }
+            const m = location.pathname.match(/\/(relation)\/(\d+)/)
+            if (!m) {
+                return
+            }
+            const [, type, id] = m
+            if (!type) {
+                return
+            }
+            const relationViewer = document.createElement("a")
+            relationViewer.innerHTML = externalLinkSvg
+            relationViewer.classList.add("route-viewer-link")
+            relationViewer.style.cursor = "pointer"
+            relationViewer.style.paddingLeft = "5px"
+            relationViewer.style.paddingRight = "10px"
+            relationViewer.title = `Open ptna.openstreetmap.de/relation.php`
+
+            relationViewer.href = publicTransportNetworkAnalysisLink.makeURL({ id })
             relationViewer.target = "_blank"
             relationViewer.rel = "noreferrer"
 
@@ -5691,12 +5750,12 @@ function makeLinksInVersionTagsClickable() {
 function addHistoryLink() {
     if ((!location.pathname.startsWith("/node") && !location.pathname.startsWith("/way") && !location.pathname.startsWith("/relation")) || location.pathname.includes("/history")) return
     if (document.querySelector(".history_button_class")) return true
-    let versionInSidebar = document.querySelector("#sidebar_content h4 a")
+    const versionInSidebar = document.querySelector("#sidebar_content h4 a")
     if (!versionInSidebar) {
         return
     }
-    let a = document.createElement("a")
-    let curHref = document.querySelector("#sidebar_content h4 a").href.match(/(.*)\/(\d+)$/)
+    const a = document.createElement("a")
+    const curHref = document.querySelector("#sidebar_content h4 a").href.match(/(.*)\/(\d+)$/)
     a.href = curHref[1]
     a.textContent = "🕒"
     a.title = "Click for open object history page\nOr press key H"
@@ -6154,7 +6213,7 @@ function cleanAllObjects() {
 /**
  * @type {Object.<string, AbortController>}
  */
-let abortDownloadingControllers = {}
+const abortDownloadingControllers = {}
 
 /**
  * @return {AbortController}
@@ -6191,7 +6250,7 @@ function abortPrevControllers(reason = null) {
  * @property {string} user
  * @property {boolean} visible
  * @property {string} timestamp
- * @property {'node'|'way'|'relation'} type
+ * @property {'node'} type
  * @property {number} lat
  * @property {number} lon
  * @property {Object.<string, string>=} tags
@@ -6350,10 +6409,10 @@ function renderDirectionTag(lat, lon, values, color = c("#ff00e3")) {
 function setupNodeVersionView() {
     const match = location.pathname.match(/\/node\/(\d+)\//)
     if (match === null) return
-    let nodeHistoryPath = []
+    const nodeHistoryPath = []
     document.querySelectorAll("#element_versions_list > div span.latitude").forEach(i => {
-        let lat = i.textContent.replace(",", ".")
-        let lon = i.nextElementSibling.textContent.replace(",", ".")
+        const lat = i.textContent.replace(",", ".")
+        const lon = i.nextElementSibling.textContent.replace(",", ".")
         nodeHistoryPath.push([lat, lon])
         const versionDiv = i.parentElement.parentElement.parentElement.parentElement
         versionDiv.onmouseenter = async () => {
@@ -6414,7 +6473,7 @@ async function loadNodesViaHistoryCalls(nodes) {
 
 /**
  * @typedef {NodeVersion[]} NodeHistory
- * @property {unique symbol} __brand_nodes_history
+ * @property {unique symbol} brand_node_history
  */
 
 /**
@@ -6446,7 +6505,7 @@ async function getNodeHistory(nodeID) {
  * @property {number} version
  * @property {boolean} visible
  * @property {string} timestamp
- * @property {'node'|'way'|'relation'} type
+ * @property {'way'} type
  * @property {Object.<string, string>=} [tags]
  */
 /**
@@ -6493,7 +6552,7 @@ for (t["created"])
  * @param {string|number} wayID
  * @param {number} version
  * @param {string|number|null=} changesetID
- * @return {Promise<[WayVersion, NodeVersion[][]]>}
+ * @return {Promise<[WayVersion, NodeHistory[]]>}
  */
 async function loadWayVersionNodes(wayID, version, changesetID = null) {
     console.debug("Loading way", wayID, version)
@@ -6507,7 +6566,7 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
         return [targetVersion, []]
     }
     const notCached = targetVersion.nodes.filter(nodeID => !nodesHistories[nodeID])
-    console.debug("Not cached nodes histories for download:", notCached.length, "/", targetVersion.nodes)
+    // console.debug("Not cached nodes histories for download:", notCached.length, "/", targetVersion.nodes)
     if (notCached.length < 2 || osm_server === local_server) {
         // https://github.com/openstreetmap/openstreetmap-website/issues/5183
         return [targetVersion, await loadNodesViaHistoryCalls(targetVersion.nodes)]
@@ -6578,7 +6637,7 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
             const res = await fetchRetry(osm_server.apiBase + "nodes.json?nodes=" + args, { signal: getAbortController().signal })
             if (res.status === 404) {
                 console.log("%c Some nodes was hidden. Start slow fetching :(", "background: #222; color: #bada55")
-                let newArgs = args.split(",").map(i => parseInt(i.match(/(\d+)v(\d+)/)[1]))
+                const newArgs = args.split(",").map(i => parseInt(i.match(/(\d+)v(\d+)/)[1]))
                 // это нарушает инвариант, что versions не содержит последней версии
                 // важно также сохранять отсортированность,
                 // иначе loadNodesViaHistoryCalls сделает внутри несколько вызовов для одной и той же точки
@@ -6656,11 +6715,12 @@ async function sortWayNodesByTimestamp(wayID) {
     /** @type {Set<string>} */
     const objectsSet = new Set()
     for (const i of document.querySelectorAll(`.way-version-view`)) {
-        const [targetVersion, nodesHistory] = await loadWayVersionNodes(wayID, parseInt(i.getAttribute("way-version")))
+        const versionNum = parseInt(i.getAttribute("way-version"))
+        const [targetVersion, nodesHistory] = await loadWayVersionNodes(wayID, versionNum)
         objectsBag.push(targetVersion)
         nodesHistory.forEach(v => {
             if (v.length === 0) {
-                console.error(`${wayID}, v${parseInt(i.getAttribute("way-version"))} has node with empty history`)
+                console.error(`${wayID}, v${versionNum} has node with empty history`)
             }
             const uniq_key = `${v[0].type} ${v[0].id}`
             if (!objectsSet.has(uniq_key)) {
@@ -6702,6 +6762,24 @@ function locationChanged(v1, v2) {
 }
 
 /**
+ * @param {WayVersion} v1
+ * @param {WayVersion} v2
+ * @return {boolean}
+ */
+function nodesChanged(v1, v2) {
+    return JSON.stringify(v1.nodes) !== JSON.stringify(v2.nodes)
+}
+
+/**
+ * @param {RelationVersion} v1
+ * @param {RelationVersion} v2
+ * @return {boolean}
+ */
+function membersChanged(v1, v2) {
+    return JSON.stringify(v1.members) !== JSON.stringify(v2.members)
+}
+
+/**
  * @param {NodeVersion|WayVersion} v1
  * @param {NodeVersion|WayVersion} v2
  * @return {boolean}
@@ -6710,10 +6788,111 @@ function tagsChanged(v1, v2) {
     return JSON.stringify(v1.tags) !== JSON.stringify(v2.tags)
 }
 
+/**
+ * @param relationID {number}
+ * @return {Promise<(NodeVersion|WayVersion|RelationVersion)[]>}
+ */
+async function sortRelationMembersByTimestamp(relationID) {
+    /** @type {(NodeVersion|WayVersion|RelationVersion)[]} */
+    const objectsBag = []
+    /** @type {Set<string>} */
+    const objectsSet = new Set()
+    for (const i of document.querySelectorAll(`.relation-version-view`)) {
+        const versionNum = parseInt(i.getAttribute("relation-version"))
+        const { targetVersion: targetVersion, membersHistory: membersHistory } = await loadRelationVersionMembers(relationID, versionNum)
+        objectsBag.push(targetVersion)
+        membersHistory.nodes.forEach(nodeHistory => {
+            const uniq_key = `${nodeHistory[0].type} ${nodeHistory[0].id}`
+            if (!objectsSet.has(uniq_key)) {
+                objectsBag.push(...nodeHistory)
+                objectsSet.add(uniq_key)
+            }
+        })
+        membersHistory.ways.forEach(([wayVersion, wayHistory, nodesHistories]) => {
+            const uniq_key = `${wayVersion.type} ${wayVersion.id}`
+            if (!objectsSet.has(uniq_key)) {
+                objectsBag.push(...wayHistory)
+                objectsSet.add(uniq_key)
+            }
+            nodesHistories.forEach(history => {
+                const uniq_key = `${history[0].type} ${history[0].id}`
+                if (!objectsSet.has(uniq_key)) {
+                    objectsBag.push(...history)
+                    objectsSet.add(uniq_key)
+                }
+            })
+        })
+        membersHistory.relations.forEach(([relationVersion, history]) => {
+            // todo
+            const uniq_key = `${history[0].type} ${history[0].id}`
+            if (!objectsSet.has(uniq_key)) {
+                objectsBag.push(...history)
+                objectsSet.add(uniq_key)
+            }
+        })
+    }
+    const lastMembers = await loadRelationMetadata(relationID)
+    for (let element of lastMembers.elements) {
+        if (element.type === "node") {
+            const uniq_key = `${element.type} ${element.id}`
+            if (!objectsSet.has(uniq_key)) {
+                objectsBag.push(...(await getNodeHistory(element.id)))
+                objectsSet.add(uniq_key)
+            }
+        } else if (element.type === "way") {
+            const uniq_key = `${element.type} ${element.id}`
+            if (!objectsSet.has(uniq_key)) {
+                objectsBag.push(...(await getWayHistory(element.id)))
+                objectsSet.add(uniq_key)
+            }
+        } else if (element.type === "relation") {
+            // todo
+            await getRelationHistory(element.id)
+        }
+    }
+    objectsBag.sort((a, b) => {
+        if (a.timestamp < b.timestamp) return -1
+        if (a.timestamp > b.timestamp) return 1
+        if (a.type === "node" && b.type !== "node") return -1
+        if (a.type === "way" && b.type === "relation") return -1
+        if (a.type !== "node" && b.type === "node") return 1
+        if (a.type === "relation" && b.type === "way") return 1
+        return 0
+    })
+    return objectsBag
+}
+
+function makeVersionUl(timestamp, username, changesetID) {
+    const ul = document.createElement("ul")
+    ul.classList.add("list-unstyled")
+    const li = document.createElement("li")
+    ul.appendChild(li)
+
+    const time = document.createElement("time")
+    time.setAttribute("datetime", timestamp)
+    time.setAttribute("natural_text", timestamp) // it should server side string :(
+    time.setAttribute("title", timestamp) // it should server side string :(
+    time.textContent = new Date(timestamp).toISOString().slice(0, -5) + "Z"
+    li.appendChild(time)
+    li.appendChild(document.createTextNode("\xA0"))
+
+    const user_link = document.createElement("a")
+    user_link.href = location.origin + "/user/" + username
+    user_link.textContent = username
+    li.appendChild(user_link)
+    li.appendChild(document.createTextNode("\xA0"))
+
+    const changeset_link = document.createElement("a")
+    changeset_link.href = location.origin + "/changeset/" + changesetID
+    changeset_link.textContent = "#" + changesetID
+    li.appendChild(changeset_link)
+    return ul
+}
 
 async function replaceDownloadWayButton(btn, wayID) {
     const objectsBag = await sortWayNodesByTimestamp(wayID)
 
+    /** @type {Object<number, WayVersion>} */
     const wayVersionsIndex = makeObjectVersionsIndex(await getWayHistory(wayID))
     /** @type {Object.<string, NodeVersion|WayVersion>}*/
     const objectStates = {}
@@ -6751,11 +6930,23 @@ async function replaceDownloadWayButton(btn, wayID) {
     let currentWayVersion = { version: 0, nodes: [] }
     let currentWayNodesSet = new Set()
 
+    function makeInterWayVersionHeader() {
+        const interVersionDivHeader = document.createElement("h4")
+        const interVersionDivAbbr = document.createElement("abbr")
+        interVersionDivAbbr.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Промежуточная версия" : "Intermediate version"
+        // prettier-ignore
+        interVersionDivAbbr.title = ["ru-RU", "ru"].includes(navigator.language)
+            ? "Произошли изменения тегов или координат точек в линии,\nкоторые не увеличили версию линии"
+            : "There have been changes to the tags or coordinates of nodes in the way that have not increased the way version"
+        interVersionDivHeader.appendChild(interVersionDivAbbr)
+        return interVersionDivHeader
+    }
+
     function renderInterVersion() {
         const currentNodes = []
         wayVersionsIndex[currentWayVersion.version].nodes.forEach(nodeID => {
-            currentNodes.push(objectStates[`node ${nodeID}`])
             const uniq_key = `node ${nodeID}`
+            currentNodes.push(objectStates[uniq_key])
             if (currentChanges[uniq_key] !== undefined) return
             const curV = objectStates[uniq_key]
             if (curV) {
@@ -6769,50 +6960,16 @@ async function replaceDownloadWayButton(btn, wayID) {
         interVersionDiv.setAttribute("way-version", "inter")
         interVersionDiv.classList.add("mb-3", "border-bottom", "border-secondary-subtle", "pb-3", "browse-section")
 
-        const interVersionDivHeader = document.createElement("h4")
-        const interVersionDivAbbr = document.createElement("abbr")
-        interVersionDivAbbr.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Промежуточная версия" : "Intermediate version"
-        // prettier-ignore
-        interVersionDivAbbr.title = ["ru-RU", "ru"].includes(navigator.language)
-            ? "Произошли изменения тегов или координат точек в линии,\nкоторые не увеличили версию линии"
-            : "There have been changes to the tags or coordinates of nodes in the way that have not increased the way version"
-        interVersionDivHeader.appendChild(interVersionDivAbbr)
+        const interVersionDivHeader = makeInterWayVersionHeader()
         interVersionDiv.appendChild(interVersionDivHeader)
 
         const p = document.createElement("p")
         interVersionDiv.appendChild(p)
-        fetchRetry(osm_server.apiBase + "changeset" + "/" + currentChangeset + ".json").then(async res => {
-            const jsonRes = await res.json()
-            /** @type {ChangesetMetadata} */
-            const changesetMetadata = jsonRes.changeset ? jsonRes.changeset : jsonRes.elements[0]
-            p.textContent = changesetMetadata.tags["comment"]
+        loadChangesetMetadata(currentChangeset).then(ch => {
+            p.textContent = ch.tags["comment"]
         })
 
-        const ul = document.createElement("ul")
-        ul.classList.add("list-unstyled")
-        const li = document.createElement("li")
-        ul.appendChild(li)
-
-        const time = document.createElement("time")
-        time.setAttribute("datetime", currentTimestamp)
-        time.setAttribute("natural_text", currentTimestamp) // it should server side string :(
-        time.setAttribute("title", currentTimestamp) // it should server side string :(
-        time.textContent = new Date(currentTimestamp).toISOString().slice(0, -5) + "Z"
-        li.appendChild(time)
-        li.appendChild(document.createTextNode("\xA0"))
-
-        const user_link = document.createElement("a")
-        user_link.href = location.origin + "/user/" + currentUser
-        user_link.textContent = currentUser
-        li.appendChild(user_link)
-        li.appendChild(document.createTextNode("\xA0"))
-
-        const changeset_link = document.createElement("a")
-        changeset_link.href = location.origin + "/changeset/" + currentChangeset
-        changeset_link.textContent = "#" + currentChangeset
-        li.appendChild(changeset_link)
-
-        interVersionDiv.appendChild(ul)
+        interVersionDiv.appendChild(makeVersionUl(currentTimestamp, currentUser, currentChangeset))
 
         const nodesDetails = document.createElement("details")
         nodesDetails.classList.add("way-version-nodes")
@@ -6937,6 +7094,135 @@ async function replaceDownloadWayButton(btn, wayID) {
         insertBeforeThat.before(interVersionDiv)
     }
 
+    function replaceWayVersion(it) {
+        let divForNodesReplace = document.querySelector(`#element_versions_list > :where(div, details)[way-version="${it.version}"]`)
+        if (Object.keys(currentChanges).length > 1 && divForNodesReplace.classList?.contains("empty-version")) {
+            divForNodesReplace.querySelector("summary")?.remove()
+            const div = document.createElement("div")
+            div.innerHTML = divForNodesReplace.innerHTML
+            div.setAttribute("way-version", divForNodesReplace.getAttribute("way-version"))
+            divForNodesReplace.replaceWith(div)
+            divForNodesReplace = div
+        }
+        currentWayVersion = it
+        currentWayNodesSet = new Set()
+        currentWayVersion.nodes?.forEach(nodeID => {
+            currentWayNodesSet.add(nodeID)
+            const uniq_key = `node ${nodeID}`
+            if (currentChanges[uniq_key] === undefined) {
+                const curV = objectStates[uniq_key]
+                if (curV) {
+                    if (curV.version === 1 && currentWayVersion.changeset === curV.changeset) {
+                        currentChanges[uniq_key] = ["new", emptyVersion, curV]
+                    } else {
+                        currentChanges[uniq_key] = ["", curV, curV]
+                    }
+                } else {
+                    console.warn(`${uniq_key} not found in states`)
+                }
+            }
+        })
+        if (divForNodesReplace && currentWayVersion.nodes) {
+            const currentNodes = []
+            const ulNodes = divForNodesReplace.querySelector("details:not(.empty-version) ul")
+            ulNodes.parentElement.classList.add("way-version-nodes")
+            ulNodes.querySelectorAll("li").forEach(li => {
+                li.style.display = "none"
+                const id = li.querySelector("div div a").href.match(/node\/(\d+)/)[1]
+                currentNodes.push([li.querySelector("img"), objectStates[`node ${id}`]])
+            })
+            if (it.version !== 1) {
+                const changedNodes = Object.values(currentChanges).filter(i => i[2].type === "node" && i[0] !== "location" && i[0] !== "")
+                document.querySelector(`#element_versions_list > div[way-version="${it.version}"]`)?.addEventListener("mouseenter", () => {
+                    changedNodes.forEach(i => {
+                        if (i[2].visible === false) {
+                            if (i[1].visible !== false) {
+                                showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
+                            }
+                        } else if (i[0] === "new") {
+                            if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+                            }
+                            showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+                        } else {
+                            showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
+                        }
+                    })
+                })
+                document.querySelector(`#element_versions_list > div[way-version="${it.version}"]`)?.addEventListener("click", () => {
+                    changedNodes.forEach(i => {
+                        if (i[2].visible === false) {
+                            if (i[1].visible !== false) {
+                                showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
+                            }
+                        } else if (i[0] === "new") {
+                            if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+                            }
+                            showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+                        } else {
+                            showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
+                        }
+                    })
+                })
+            }
+            currentNodes.forEach(([img, i]) => {
+                if (i === undefined) {
+                    console.trace()
+                    console.log(currentNodes)
+                    btn.style.background = "yellow"
+                    btn.title = "Please try reload page.\nIf the error persists, a message about it in the better-osm-org repository"
+                    divForNodesReplace.classList.add("broken-version")
+                    divForNodesReplace.title = "Some nodes was hidden by moderators :\\"
+                    divForNodesReplace.style.cursor = "auto"
+                    return
+                }
+                const nodeLi = document.createElement("li")
+                const div = document.createElement("div")
+                div.classList.add("d-flex", "gap-1")
+                const div2 = document.createElement("div")
+                div2.classList.add("align-self-center")
+                div.appendChild(div2)
+
+                div2.before(img.cloneNode(true))
+
+                const aHistory = document.createElement("a")
+                aHistory.classList.add("node")
+                aHistory.href = "/node/" + i.id + "/history"
+                aHistory.textContent = i.id
+                div2.appendChild(aHistory)
+                nodeLi.appendChild(div)
+
+                div2.appendChild(document.createTextNode(", "))
+
+                const aVersion = document.createElement("a")
+                aVersion.classList.add("node")
+                aVersion.href = "/node/" + i.id + "/history/" + i.version
+                aVersion.textContent = "v" + i.version
+                div2.appendChild(aVersion)
+                nodeLi.appendChild(div)
+
+                const curChange = currentChanges[`node ${i.id}`]
+                const nodesHistory = nodesHistories[i.id]
+                const tagsTable = processObject(div2, "node", curChange[1] ?? curChange[2], curChange[2], nodesHistory[nodesHistory.length - 1], nodesHistory)
+                setTimeout(async () => {
+                    await processObjectInteractions("", "node", { nodes: [] }, div2, ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))))
+                }, 0)
+                tagsTable.then(table => {
+                    if (nodeLi.classList.contains("tags-non-modified")) {
+                        div2.appendChild(table)
+                    }
+                    //                            table.style.borderColor = "var(--bs-body-color)";
+                    //                             table.style.borderStyle = "solid";
+                    //                             table.style.borderWidth = "1px";
+                })
+                ulNodes.appendChild(nodeLi)
+            })
+        }
+        currentChanges = {}
+        currentChangeset = null
+    }
+
     for (const it of objectsBag) {
         console.debug(it)
         const uniq_key = `${it.type} ${it.id}`
@@ -6964,132 +7250,7 @@ async function replaceDownloadWayButton(btn, wayID) {
         objectStates[uniq_key] = it
         // для настоящей версии линии
         if (it.type === "way") {
-            let forNodesReplace = document.querySelector(`#element_versions_list > div[way-version="${it.version}"]`)
-            if (Object.keys(currentChanges).length > 1 && forNodesReplace.classList?.contains("empty-version")) {
-                forNodesReplace.querySelector("summary")?.remove()
-                const div = document.createElement("div")
-                div.innerHTML = forNodesReplace.innerHTML
-                div.setAttribute("way-version", forNodesReplace.getAttribute("way-version"))
-                forNodesReplace.replaceWith(div)
-                forNodesReplace = div
-            }
-            currentWayVersion = it
-            currentWayNodesSet = new Set()
-            currentWayVersion.nodes?.forEach(nodeID => {
-                currentWayNodesSet.add(nodeID)
-                const uniq_key = `node ${nodeID}`
-                if (currentChanges[uniq_key] === undefined) {
-                    const curV = objectStates[uniq_key]
-                    if (curV) {
-                        if (curV.version === 1 && currentWayVersion.changeset === curV.changeset) {
-                            currentChanges[uniq_key] = ["new", emptyVersion, curV]
-                        } else {
-                            currentChanges[uniq_key] = ["", curV, curV]
-                        }
-                    } else {
-                        console.warn(`${uniq_key} not found in states`)
-                    }
-                }
-            })
-            if (forNodesReplace && currentWayVersion.nodes) {
-                const currentNodes = []
-                const ulNodes = forNodesReplace.querySelector("details:not(.empty-version) ul")
-                ulNodes.parentElement.classList.add("way-version-nodes")
-                ulNodes.querySelectorAll("li").forEach(li => {
-                    li.style.display = "none"
-                    const id = li.querySelector("div div a").href.match(/node\/(\d+)/)[1]
-                    currentNodes.push([li.querySelector("img"), objectStates[`node ${id}`]])
-                })
-                if (it.version !== 1) {
-                    const changedNodes = Object.values(currentChanges).filter(i => i[2].type === "node" && i[0] !== "location" && i[0] !== "")
-                    document.querySelector(`#element_versions_list > div[way-version="${it.version}"]`)?.addEventListener("mouseenter", () => {
-                        changedNodes.forEach(i => {
-                            if (i[2].visible === false) {
-                                if (i[1].visible !== false) {
-                                    showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
-                                }
-                            } else if (i[0] === "new") {
-                                if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
-                                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
-                                }
-                                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
-                            } else {
-                                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
-                            }
-                        })
-                    })
-                    document.querySelector(`#element_versions_list > div[way-version="${it.version}"]`)?.addEventListener("click", () => {
-                        changedNodes.forEach(i => {
-                            if (i[2].visible === false) {
-                                if (i[1].visible !== false) {
-                                    showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
-                                }
-                            } else if (i[0] === "new") {
-                                if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
-                                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
-                                }
-                                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
-                            } else {
-                                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
-                            }
-                        })
-                    })
-                }
-                currentNodes.forEach(([img, i]) => {
-                    if (i === undefined) {
-                        console.trace()
-                        console.log(currentNodes)
-                        btn.style.background = "yellow"
-                        btn.title = "Please try reload page.\nIf the error persists, a message about it in the better-osm-org repository"
-                        forNodesReplace.classList.add("broken-version")
-                        forNodesReplace.title = "Some nodes was hidden by moderators :\\"
-                        forNodesReplace.style.cursor = "auto"
-                        return
-                    }
-                    const nodeLi = document.createElement("li")
-                    const div = document.createElement("div")
-                    div.classList.add("d-flex", "gap-1")
-                    const div2 = document.createElement("div")
-                    div2.classList.add("align-self-center")
-                    div.appendChild(div2)
-
-                    div2.before(img.cloneNode(true))
-
-                    const aHistory = document.createElement("a")
-                    aHistory.classList.add("node")
-                    aHistory.href = "/node/" + i.id + "/history"
-                    aHistory.textContent = i.id
-                    div2.appendChild(aHistory)
-                    nodeLi.appendChild(div)
-
-                    div2.appendChild(document.createTextNode(", "))
-
-                    const aVersion = document.createElement("a")
-                    aVersion.classList.add("node")
-                    aVersion.href = "/node/" + i.id + "/history/" + i.version
-                    aVersion.textContent = "v" + i.version
-                    div2.appendChild(aVersion)
-                    nodeLi.appendChild(div)
-
-                    const curChange = currentChanges[`node ${i.id}`]
-                    const nodesHistory = nodesHistories[i.id]
-                    const tagsTable = processObject(div2, "node", curChange[1] ?? curChange[2], curChange[2], nodesHistory[nodesHistory.length - 1], nodesHistory)
-                    setTimeout(async () => {
-                        await processObjectInteractions("", "node", { nodes: [] }, div2, ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))))
-                    }, 0)
-                    tagsTable.then(table => {
-                        if (nodeLi.classList.contains("tags-non-modified")) {
-                            div2.appendChild(table)
-                        }
-                        //                            table.style.borderColor = "var(--bs-body-color)";
-                        //                             table.style.borderStyle = "solid";
-                        //                             table.style.borderWidth = "1px";
-                    })
-                    ulNodes.appendChild(nodeLi)
-                })
-            }
-            currentChanges = {}
-            currentChangeset = null
+            replaceWayVersion(it)
         }
     }
     if (Object.entries(currentChanges).length) {
@@ -7334,7 +7495,7 @@ function setupWayVersionView() {
  * @property {number} version
  * @property {boolean} visible
  * @property {string} timestamp
- * @property {'node'|'way'|'relation'} type
+ * @property {'relation'} type
  * @property {Object.<string, string>=} tags
  */
 
@@ -7348,7 +7509,7 @@ function setupWayVersionView() {
  * @property {number} version
  * @property {boolean} visible
  * @property {string} timestamp
- * @property {'node'|'way'|'relation'} type
+ * @property {'relation'} type
  * @property {Object.<string, string>=} tags
  */
 
@@ -7356,6 +7517,7 @@ function setupWayVersionView() {
 
 /**
  * @typedef {RelationVersion[]} RelationHistory
+ * @property {unique symbol} __brand_relation_history
  */
 
 /**
@@ -7440,8 +7602,8 @@ function fromMercator(x, y) {
  * @returns {{lat: number, lon: number}}
  */
 function rotateSegment(lat1, lon1, lat2, lon2, angleDeg, lengthMeters) {
-    let { x: x1, y: y1 } = toMercator(lat1, lon1)
-    let { x: x2, y: y2 } = toMercator(lat2, lon2)
+    const { x: x1, y: y1 } = toMercator(lat1, lon1)
+    const { x: x2, y: y2 } = toMercator(lat2, lon2)
 
     const angleRad = (angleDeg * Math.PI) / 180
 
@@ -7478,13 +7640,13 @@ function isEqualCoordinates(latLon1, latLon2) {
  */
 function validateRestriction(rel) {
     /** @type {ExtendedRelationWayMember[]} */
-    let from = []
+    const from = []
     /** @type {ExtendedRelationNodeMember[]} */
-    let viaNodes = []
+    const viaNodes = []
     /** @type {ExtendedRelationWayMember[]} */
-    let viaWays = []
+    const viaWays = []
     /** @type {ExtendedRelationWayMember[]} */
-    let to = []
+    const to = []
     const errors = []
     const { value: restrictionValue } = getRestrictionKeyValue(rel.tags)
     rel.members?.forEach(i => {
@@ -7612,13 +7774,13 @@ function getRestrictionKeyValue(tags) {
  */
 function renderRestriction(rel, color, layer) {
     /** @type {ExtendedRelationWayMember[]} */
-    let from = []
+    const from = []
     /** @type {ExtendedRelationNodeMember[]} */
-    let viaNodes = []
+    const viaNodes = []
     /** @type {ExtendedRelationWayMember[]} */
-    let viaWays = []
+    const viaWays = []
     /** @type {ExtendedRelationWayMember[]} */
-    let to = []
+    const to = []
     rel.members?.forEach(i => {
         if (i.type === "way" && i.role === "from") {
             from.push(i)
@@ -7965,11 +8127,17 @@ async function getRelationViaOverpassXML(id, timestamp) {
  */
 
 /**
- * @typedef {{nodes: NodesBag, ways: [WayVersion, NodeVersion[][]][], relations: RelationVersion[][]}} RelationMembersVersions
+ * @typedef {{
+ * nodes: NodeHistory[],
+ * ways: [WayVersion, WayHistory, NodeHistory[]][],
+ * relations: RelationHistory[]
+ * }} RelationMembersVersions
  */
 
 /**
- *
+ * Возвращает нужную версию
+ * + точки на момент версии
+ * + версию линии на момент версии со все необходимые историями точек в линиях
  * @param {string|number} relationID
  * @param {number} version
  * @throws {string}
@@ -7988,7 +8156,11 @@ async function loadRelationVersionMembers(relationID, version) {
     }
 
     /**
-     * @type {{nodes: NodesBag, ways: [WayVersion, NodeVersion[][]][]|Promise<[WayVersion, NodeVersion[][]]>[], relations: RelationVersion[][]}}
+     * @type {{
+     * nodes: NodeHistory[],
+     * ways: [WayVersion, WayHistory, NodeHistory[]][]|Promise<[WayVersion, WayHistory, NodeHistory[]]>[],
+     * relations: [RelationVersion, RelationHistory[]]
+     * }}
      */
     const membersHistory = {
         nodes: [],
@@ -7997,21 +8169,10 @@ async function loadRelationVersionMembers(relationID, version) {
     }
     for (const member of targetVersion.members ?? []) {
         if (member.type === "node") {
-            const nodeHistory = await getNodeHistory(member.ref)
-            // nodeHistory.__brand_nodes_history
-            const targetTime = new Date(targetVersion.timestamp)
-            /** @type {NodeVersion} */
-            let targetNodeVersion = nodeHistory[0]
-            nodeHistory.forEach(history => {
-                if (new Date(history.timestamp) <= targetTime) {
-                    targetNodeVersion = history
-                }
-            })
-            membersHistory.nodes.push(targetNodeVersion)
-            // membersHistory.nodes = nodeHistory
+            membersHistory.nodes.push(await getNodeHistory(member.ref))
         } else if (member.type === "way") {
             async function loadWay() {
-                let wayHistory = await getWayHistory(member.ref)
+                const wayHistory = await getWayHistory(member.ref)
                 const targetTime = new Date(targetVersion.timestamp)
                 let targetWayVersion = wayHistory[0]
                 wayHistory.forEach(history => {
@@ -8019,16 +8180,550 @@ async function loadRelationVersionMembers(relationID, version) {
                         targetWayVersion = history
                     }
                 })
-                return await loadWayVersionNodes(member.ref, targetWayVersion.version)
+                const [target, nodes] = await loadWayVersionNodes(member.ref, targetWayVersion.version)
+                return [target, wayHistory, nodes]
             }
-
             membersHistory.ways.push(loadWay())
         } else if (member.type === "relation") {
             // TODO может нинада? :(
+            const relationHistory = await getRelationHistory(member.ref)
+            const targetTime = new Date(targetVersion.timestamp)
+            let targetRelationVersion = relationHistory[0]
+            relationHistory.forEach(history => {
+                if (new Date(history.timestamp) <= targetTime) {
+                    targetRelationVersion = history
+                }
+            })
+            // todo рекурсивный вызов + защита от зацикливания
+            // fixme targetRelationVersion может быть другим из-за редакшнов
+            membersHistory.relations.push([targetRelationVersion, relationHistory])
         }
     }
     membersHistory.ways = await Promise.all(membersHistory.ways)
     return { targetVersion: targetVersion, membersHistory: membersHistory }
+}
+
+/**
+ * @param btn {HTMLElement}
+ * @param relationID {number}
+ * @return {Promise<void>}
+ */
+async function replaceDownloadRelationButton(btn, relationID) {
+    const objectsBag = await sortRelationMembersByTimestamp(relationID)
+    const changesetsSet = new Set()
+    objectsBag.forEach(o => changesetsSet.add(o.changeset))
+    console.log("uniq changesets in versions:", changesetsSet.size)
+    await loadChangesetMetadatas(Array.from(changesetsSet).filter(ch => !changesetMetadatas[ch]))
+
+    /** @type {Object<number, RelationVersion>} */
+    const relationVersionsIndex = makeObjectVersionsIndex(await getRelationHistory(relationID))
+    /** @type {Object.<string, NodeVersion|WayVersion|RelationVersion>}*/
+    const objectStates = {}
+    /** @type {Object.<string, [string, NodeVersion|WayVersion|RelationVersion, NodeVersion|WayVersion|RelationVersion]>} */
+    let currentChanges = {}
+
+    /**
+     * @param {string} key
+     * @param {NodeVersion|WayVersion|RelationVersion} newVersion
+     */
+    function storeChanges(key, newVersion) {
+        const prev = objectStates[key]
+        if (prev === undefined) {
+            currentChanges[key] = ["new", prev, newVersion]
+        } else {
+            if (newVersion.type !== "node") {
+                if (newVersion.type === "way") {
+                    if (nodesChanged(prev, newVersion)) {
+                        currentChanges[key] = ["nodes", prev, newVersion]
+                    } else {
+                        currentChanges[key] = ["", prev, newVersion]
+                    }
+                } else {
+                    if (membersChanged(prev, newVersion)) {
+                        currentChanges[key] = ["members", prev, newVersion]
+                    } else {
+                        currentChanges[key] = ["", prev, newVersion]
+                    }
+                }
+                // debugger // todo
+            } else if (locationChanged(prev, newVersion) && tagsChanged(prev, newVersion)) {
+                currentChanges[key] = ["new", prev, newVersion]
+            } else if (locationChanged(prev, newVersion)) {
+                currentChanges[key] = ["location", prev, newVersion]
+            } else if (tagsChanged(prev, newVersion)) {
+                currentChanges[key] = ["tags", prev, newVersion]
+            } else {
+                currentChanges[key] = ["", prev, newVersion]
+            }
+        }
+    }
+
+    /** @type {number|null} */
+    let currentChangeset = null
+    /** @type {string|null} */
+    let currentUser = null
+    /** @type {string|null} */
+    let currentTimestamp = null
+    /** @type {RelationVersion} */
+    let currentRelationVersion = { version: 0, members: [] }
+    /** @type {Set<string>} */
+    let currentRelationObjectsSet = new Set()
+
+    function makeInterRelationVersionHeader() {
+        const interVersionDivHeader = document.createElement("h4")
+        const interVersionDivAbbr = document.createElement("abbr")
+        interVersionDivAbbr.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Промежуточная версия" : "Intermediate version"
+        interVersionDivAbbr.title = ["ru-RU", "ru"].includes(navigator.language)
+            ? "Произошли изменения тегов или координат точек в отношении,\nкоторые не увеличили версию отношении"
+            : "There have been changes to the tags or coordinates of nodes in the relation that have not increased the relation version"
+        interVersionDivHeader.appendChild(interVersionDivAbbr)
+        return interVersionDivHeader
+    }
+
+    function renderInterVersion() {
+        /** @type {(NodeVersion|WayVersion|RelationVersion)[]}*/
+        const currentMembers = []
+        /** @type {Object.<string, NodesBag>} */
+        const currentWaysNodes = {}
+
+        relationVersionsIndex[currentRelationVersion.version].members.forEach(member => {
+            const uniq_key = `${member.type} ${member.ref}`
+            currentMembers.push(objectStates[uniq_key])
+            if (member.type === "way") {
+                currentWaysNodes[member.ref] = cloneInto(
+                    objectStates[uniq_key].nodes.map(n => {
+                        const objectState = objectStates[`node ${n}`]
+                        if (!objectState) {
+                            console.trace("not found node", n)
+                        }
+                        return objectState
+                    }),
+                    unsafeWindow,
+                )
+            }
+            if (currentChanges[uniq_key] !== undefined) return
+            const curV = objectStates[uniq_key]
+            if (curV) {
+                currentChanges[uniq_key] = ["", curV, curV]
+            } else {
+                console.warn(`${uniq_key} not found in states`)
+            }
+        })
+
+        const interVersionDiv = document.createElement("div")
+        interVersionDiv.setAttribute("relation-version", "inter")
+        interVersionDiv.classList.add("mb-3", "border-bottom", "border-secondary-subtle", "pb-3", "browse-section")
+
+        const interVersionDivHeader = makeInterRelationVersionHeader()
+        interVersionDiv.appendChild(interVersionDivHeader)
+
+        const p = document.createElement("p")
+        interVersionDiv.appendChild(p)
+        loadChangesetMetadata(currentChangeset).then(ch => {
+            p.textContent = ch.tags["comment"]
+        })
+
+        interVersionDiv.appendChild(makeVersionUl(currentTimestamp, currentUser, currentChangeset))
+
+        const membersDetails = document.createElement("details")
+        membersDetails.classList.add("way-version-nodes")
+        membersDetails.onclick = e => {
+            e.stopImmediatePropagation()
+        }
+        const summary = document.createElement("summary")
+        summary.textContent = currentMembers.length
+        summary.classList.add("history-diff-modified-tag")
+        membersDetails.appendChild(summary)
+        const ulMembers = document.createElement("ul")
+        ulMembers.classList.add("list-unstyled")
+        currentMembers.forEach(i => {
+            if (i === undefined) {
+                console.trace()
+                console.log(currentMembers)
+                btn.style.background = "yellow"
+                btn.title = "Some members was hidden by moderators"
+                return
+            }
+            const memberLi = document.createElement("li")
+            const div = document.createElement("div")
+            div.classList.add("d-flex", "gap-1")
+            const div2 = document.createElement("div")
+            div2.classList.add("align-self-center")
+            div.appendChild(div2)
+
+            const aHistory = document.createElement("a")
+            aHistory.classList.add(i.type)
+            aHistory.href = `/${i.type}/${i.id}/history`
+            aHistory.textContent = i.id
+            div2.appendChild(aHistory)
+
+            div2.appendChild(document.createTextNode(", "))
+
+            const aVersion = document.createElement("a")
+            aVersion.classList.add(i.type)
+            aVersion.href = `/${i.type}/${i.id}/history/${i.version}`
+            aVersion.textContent = "v" + i.version
+            div2.appendChild(aVersion)
+            memberLi.appendChild(div)
+
+            // const curChange = currentChanges[`${i.type} ${i.id}`]
+            // const memberHistory = histories[i.type][i.id]
+            // const tagsTable = processObject(div2, i.type, curChange[1] ?? curChange[2], curChange[2], memberHistory[memberHistory.length - 1], memberHistory)
+            // setTimeout(async () => {
+            //     await processObjectInteractions("", i.type, { nodes: [], ways: [], relations: [] }, div2, ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))))
+            // }, 0)
+            // tagsTable.then(table => {
+            //     if (memberLi.classList.contains("tags-non-modified")) {
+            //         div2.appendChild(table)
+            //     }
+            // table.style.borderColor = "var(--bs-body-color)";
+            // table.style.borderStyle = "solid";
+            // table.style.borderWidth = "1px";
+            // })
+            ulMembers.appendChild(memberLi)
+        })
+        membersDetails.appendChild(ulMembers)
+        interVersionDiv.appendChild(membersDetails)
+
+        const tmpChangedNodes = Object.values(currentChanges).filter(i => i[2].type === "node")
+        if (tmpChangedNodes.every(i => i[0] === "tags")) {
+            interVersionDiv.classList.add("only-tags-changed")
+        }
+        const changedNodes = tmpChangedNodes.filter(i => i[0] !== "location") // fixme members lists changes
+        interVersionDiv.onmouseenter = () => {
+            resetMapHover()
+            cleanAllObjects()
+            currentMembers.forEach(member => {
+                if (member.type === "way") {
+                    const color = "#000000"
+                    displayWay(currentWaysNodes[member.id], false, color, 4, null, "customObjects", null, null, darkModeForMap && isDarkMode(), true)
+                }
+            })
+            currentMembers.forEach(member => {
+                if (member.type !== "node") {
+                    return
+                }
+                if (member.tags && Object.keys(member.tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                    showNodeMarker(member.lat.toString(), member.lon.toString(), "rgb(161,161,161)", null, "customObjects", 3)
+                }
+            })
+            changedNodes.forEach(i => {
+                if (i[0] === "") return
+                if (i[2].visible === false) {
+                    if (i[1].visible !== false) {
+                        showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
+                    }
+                } else if (i[0] === "new") {
+                    if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                        showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+                    }
+                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+                } else {
+                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
+                }
+            })
+        }
+        interVersionDiv.onclick = e => {
+            resetMapHover()
+            cleanAllObjects()
+            currentMembers.forEach(member => {
+                if (member.type === "way") {
+                    displayWay(currentWaysNodes[member.id], false, "#000000", 4, null, "customObjects", null, null, darkModeForMap && isDarkMode(), true)
+                }
+            })
+            currentMembers.forEach(member => {
+                if (member.type !== "node") {
+                    return
+                }
+                if (member.tags && Object.keys(member.tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                    showNodeMarker(member.lat.toString(), member.lon.toString(), "rgb(161,161,161)", null, "customObjects", 3)
+                }
+            })
+            changedNodes.forEach(i => {
+                if (i[0] === "") return
+                if (i[2].visible === false) {
+                    if (i[1].visible !== false) {
+                        showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
+                    }
+                } else if (i[0] === "new") {
+                    if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                        showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+                    }
+                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+                } else {
+                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
+                }
+            })
+        }
+        // fixme slow selector too much object
+        let insertBeforeThat = document.querySelector(`#element_versions_list > :where(div, details)[relation-version="${currentRelationVersion.version}"]`)
+        while (insertBeforeThat.previousElementSibling?.getAttribute("relation-version") === "inter") {
+            // fixme O(n^2)
+            insertBeforeThat = insertBeforeThat.previousElementSibling
+        }
+        insertBeforeThat.before(interVersionDiv)
+    }
+
+    function replaceRelationVersion(it) {
+        let divForMembersReplace = document.querySelector(`#element_versions_list > :where(div, details)[relation-version="${it.version}"]`)
+        if (Object.keys(currentChanges).length > 1 && divForMembersReplace.classList?.contains("empty-version")) {
+            divForMembersReplace.querySelector("summary")?.remove()
+            const div = document.createElement("div")
+            div.innerHTML = divForMembersReplace.innerHTML
+            div.setAttribute("relation-version", divForMembersReplace.getAttribute("relation-version"))
+            divForMembersReplace.replaceWith(div)
+            divForMembersReplace = div
+        }
+        currentRelationVersion = it
+        currentRelationObjectsSet = new Set()
+        currentRelationVersion.members?.forEach(member => {
+            const uniq_key = `${member.type} ${member.ref}`
+            currentRelationObjectsSet.add(uniq_key)
+            if (member.type === "way") {
+                objectStates[uniq_key].nodes.forEach(nodeID => currentRelationObjectsSet.add(`node ${nodeID}`))
+            } else if (member.type === "relation") {
+                objectStates[uniq_key].members.forEach(member => currentRelationObjectsSet.add(`${member.type} ${member.ref}`))
+                // todo rec
+            }
+            if (currentChanges[uniq_key] === undefined) {
+                const curV = objectStates[uniq_key]
+                if (curV) {
+                    if (curV.version === 1 && currentRelationVersion.changeset === curV.changeset) {
+                        currentChanges[uniq_key] = ["new", emptyVersion, curV]
+                    } else {
+                        currentChanges[uniq_key] = ["", curV, curV]
+                    }
+                } else {
+                    console.warn(`${uniq_key} not found in states`)
+                }
+            }
+        })
+        if (divForMembersReplace && currentRelationVersion.members) {
+            /** @type {[HTMLImageElement, (NodeVersion|WayVersion|RelationVersion)][]}*/
+            const currentMembers = []
+            const ulMembers = divForMembersReplace.querySelector("details:not(.empty-version) ul")
+            ulMembers.parentElement.classList.add("way-version-nodes")
+            ulMembers.querySelectorAll("li").forEach(li => {
+                li.style.display = "none"
+                const [, type, id] = li.querySelector("div div a").href.match(/(node|way|relation)\/(\d+)/)
+                currentMembers.push([li.querySelector("img"), objectStates[`${type} ${id}`]])
+            })
+            if (it.version !== 1) {
+                const changedNodes = Object.values(currentChanges).filter(i => i[2].type === "node" && i[0] !== "location" && i[0] !== "")
+                document.querySelector(`#element_versions_list > div[relation-version="${it.version}"]`)?.addEventListener("mouseenter", () => {
+                    changedNodes.forEach(i => {
+                        if (i[2].visible === false) {
+                            if (i[1].visible !== false) {
+                                showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
+                            }
+                        } else if (i[0] === "new") {
+                            if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+                            }
+                            showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+                        } else {
+                            showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
+                        }
+                    })
+                })
+                document.querySelector(`#element_versions_list > div[relation-version="${it.version}"]`)?.addEventListener("click", () => {
+                    changedNodes.forEach(i => {
+                        if (i[2].visible === false) {
+                            if (i[1].visible !== false) {
+                                showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
+                            }
+                        } else if (i[0] === "new") {
+                            if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+                            }
+                            showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+                        } else {
+                            showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
+                        }
+                    })
+                })
+            }
+            currentMembers.forEach(([img, i]) => {
+                if (i === undefined) {
+                    console.trace()
+                    console.log(currentMembers)
+                    btn.style.background = "yellow"
+                    btn.title = "Please try reload page.\nIf the error persists, a message about it in the better-osm-org repository"
+                    divForMembersReplace.classList.add("broken-version")
+                    divForMembersReplace.title = "Some nodes was hidden by moderators :\\"
+                    divForMembersReplace.style.cursor = "auto"
+                    return
+                }
+                const memberLi = document.createElement("li")
+                const div = document.createElement("div")
+                div.classList.add("d-flex", "gap-1")
+                const div2 = document.createElement("div")
+                div2.classList.add("align-self-center")
+                div.appendChild(div2)
+
+                div2.before(img.cloneNode(true))
+
+                const aHistory = document.createElement("a")
+                aHistory.classList.add(i.type)
+                aHistory.href = `/${i.type}/${i.id}/history`
+                aHistory.textContent = i.id
+                div2.appendChild(aHistory)
+                memberLi.appendChild(div)
+
+                div2.appendChild(document.createTextNode(", "))
+
+                const aVersion = document.createElement("a")
+                aVersion.classList.add(i.type)
+                aVersion.href = `/${i.type}/${i.id}/history/${i.version}`
+                aVersion.textContent = "v" + i.version
+                div2.appendChild(aVersion)
+                memberLi.appendChild(div)
+
+                const curChange = currentChanges[`${i.type} ${i.id}`]
+                const memberHistory = histories[i.type][i.id]
+                // todo нужна предзагрузка пакетов правок, потому что теперь рендерятся и линии
+                const tagsTable = processObject(div2, i.type, curChange[1] ?? curChange[2], curChange[2], memberHistory[memberHistory.length - 1], memberHistory)
+                setTimeout(async () => {
+                    await processObjectInteractions(
+                        "",
+                        i.type,
+                        {
+                            nodes: [],
+                            ways: [],
+                            relations: [],
+                        },
+                        div2,
+                        ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))),
+                    )
+                }, 0)
+                tagsTable.then(table => {
+                    if (memberLi.classList.contains("tags-non-modified")) {
+                        div2.appendChild(table)
+                    }
+                    //                            table.style.borderColor = "var(--bs-body-color)";
+                    //                             table.style.borderStyle = "solid";
+                    //                             table.style.borderWidth = "1px";
+                })
+                ulMembers.appendChild(memberLi)
+            })
+        }
+        currentChanges = {}
+        currentChangeset = null
+    }
+
+    for (const it of objectsBag) {
+        // debugger
+        // console.debug(it)
+        const uniq_key = `${it.type} ${it.id}`
+
+        if ((it.type === "node" || it.type === "way") && currentRelationVersion.version > 0 && !currentRelationObjectsSet.has(uniq_key)) {
+            objectStates[uniq_key] = it
+            continue
+        }
+        if (it.type === "way") {
+            // debugger
+        } else if (it.type === "relation") {
+            // debugger
+        }
+        if (it.changeset === currentChangeset) {
+            storeChanges(uniq_key, it) // todo split if new way version
+        } else if (currentChangeset === null) {
+            currentChangeset = it.changeset
+            currentUser = it.user
+            currentTimestamp = it.timestamp
+            storeChanges(uniq_key, it)
+        } else {
+            if (currentRelationVersion.version !== 0) {
+                renderInterVersion()
+            }
+            currentChanges = {}
+            storeChanges(uniq_key, it)
+            currentChangeset = it.changeset
+            currentUser = it.user
+            currentTimestamp = it.timestamp
+        }
+        objectStates[uniq_key] = it
+        // для настоящей версии линии
+        if (it.type === "relation") {
+            replaceRelationVersion(it)
+        }
+    }
+    if (Object.entries(currentChanges).length) {
+        renderInterVersion()
+    }
+    document.querySelector("#sidebar_content h2").addEventListener(
+        "mouseleave",
+        () => {
+            document.querySelector("#sidebar_content h2").onmouseenter = () => {
+                cleanAllObjects()
+            }
+        },
+        {
+            once: true,
+        },
+    )
+    // making version filter
+    if (document.querySelectorAll('[relation-version="inter"]').length > 20) {
+        const select = document.createElement("select")
+        select.id = "versions-filter"
+        select.title = "Filter for intermediate changes"
+
+        const allVersions = document.createElement("option")
+        allVersions.value = "all-versions"
+        allVersions.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Все версии" : "All versions"
+        select.appendChild(allVersions)
+
+        const withGeom = document.createElement("option")
+        withGeom.value = "with-geom"
+        withGeom.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Все изменения геометрии" : "With geometry changes"
+        withGeom.setAttribute("selected", "selected")
+        select.appendChild(withGeom)
+
+        const withoutInter = document.createElement("option")
+        withoutInter.value = "without-inter"
+        withoutInter.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Без промежуточных" : "Without intermediate"
+        select.appendChild(withoutInter)
+
+        select.onchange = e => {
+            if (e.target.value === "all-versions") {
+                document.querySelectorAll('[relation-version="inter"]').forEach(i => {
+                    i.removeAttribute("hidden")
+                })
+            } else if (e.target.value === "with-geom") {
+                document.querySelectorAll('.only-tags-changed[relation-version="inter"]').forEach(i => {
+                    i.setAttribute("hidden", "true")
+                })
+                document.querySelectorAll('[relation-version="inter"]:not(.only-tags-changed)').forEach(i => {
+                    i.removeAttribute("hidden")
+                })
+            } else if (e.target.value === "without-inter") {
+                document.querySelectorAll('[relation-version="inter"]').forEach(i => {
+                    i.setAttribute("hidden", "true")
+                })
+            }
+        }
+        document.querySelectorAll('.only-tags-changed[relation-version="inter"]').forEach(i => {
+            i.setAttribute("hidden", "true")
+        })
+        btn.after(select)
+    }
+    btn.remove()
+}
+
+/**
+ * @param relationID {number}
+ * @return {Promise<void>}
+ */
+async function showFullRelationHistory(relationID) {
+    const btn = document.querySelector("#download-all-versions-btn")
+    try {
+        await replaceDownloadRelationButton(btn, relationID)
+    } catch (err) {
+        console.error(err)
+        btn.title = "Please try reload page.\nIf the error persists, a message about it in the better-osm-org repository"
+        btn.style.background = "red"
+        btn.style.cursor = "auto"
+    }
 }
 
 function setupRelationVersionView() {
@@ -8049,10 +8744,22 @@ function setupRelationVersionView() {
         if (showWay) {
             cleanCustomObjects()
             let hasBrokenMembers = false
-            membersHistory.nodes.forEach(n => {
+            const nodes = []
+            membersHistory.nodes.forEach(nodeHistory => {
+                const targetTime = new Date(targetVersion.timestamp)
+                /** @type {NodeVersion} */
+                let targetNodeVersion = nodeHistory[0]
+                nodeHistory.forEach(history => {
+                    if (new Date(history.timestamp) <= targetTime) {
+                        targetNodeVersion = history
+                    }
+                })
+                nodes.push(targetNodeVersion)
+            })
+            nodes.forEach(n => {
                 showNodeMarker(n.lat, n.lon, "#000")
             })
-            membersHistory.ways.forEach(([, nodesVersionsList]) => {
+            membersHistory.ways.forEach(([, , nodesVersionsList]) => {
                 try {
                     const nodesList = nodesVersionsList.map(n => {
                         const { lat: lat, lon: lon } = searchVersionByTimestamp(n, targetVersion.timestamp)
@@ -8066,13 +8773,13 @@ function setupRelationVersionView() {
             })
             if (isRestrictionObj(targetVersion.tags ?? {})) {
                 /** @type {Object<number, NodeVersion>}}*/
-                const nodeIndex = membersHistory.nodes.reduce((acc, n) => {
+                const nodeIndex = nodes.reduce((acc, n) => {
                     acc[n.id] = n
                     return acc
                 }, {})
                 /** @type {Object<number, LatLonPair[]>}}*/
                 const wayIndex = membersHistory.ways.reduce((acc, w) => {
-                    acc[w[0].id] = w[1].map(n => searchVersionByTimestamp(n, targetVersion.timestamp))
+                    acc[w[0].id] = w[2].map(n => searchVersionByTimestamp(n, targetVersion.timestamp))
                     return acc
                 }, {})
                 const extendedRelationVersion = targetVersion
@@ -8166,6 +8873,12 @@ function setupRelationVersionView() {
             for (const i of document.querySelectorAll(`.relation-version-view:not([hidden])`)) {
                 await loadRelationVersion(i)
             }
+            if (isDebug() && GM_config.get("FullVersionsDiff")) {
+                console.time("full history")
+                addQuickLookStyles()
+                // await showFullRelationHistory(parseInt(relationID))
+                console.timeEnd("full history")
+            }
             e.target.remove()
         }
         downloadAllVersionsBtn.addEventListener("click", clickHandler, { once: true })
@@ -8186,7 +8899,7 @@ function setupViewRedactions() {
     if (document.getElementById("show-unredacted-btn")) {
         return
     }
-    let showUnredactedBtn = document.createElement("a")
+    const showUnredactedBtn = document.createElement("a")
     showUnredactedBtn.id = "show-unredacted-btn"
     showUnredactedBtn.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Просмотр неотредактированной истории β" : "View Unredacted History β"
     showUnredactedBtn.style.cursor = "pointer"
@@ -8218,8 +8931,8 @@ function setupViewRedactions() {
                     url: url,
                     responseType: "blob",
                 })
-                let blob = needUnzip ? await decompressBlob(diffGZ.response) : diffGZ.response
-                let diffXML = await blob.text()
+                const blob = needUnzip ? await decompressBlob(diffGZ.response) : diffGZ.response
+                const diffXML = await blob.text()
 
                 const doc = new DOMParser().parseFromString(diffXML, "application/xml")
                 return doc.querySelectorAll(`osm [id='${objID}']`)
@@ -8228,7 +8941,8 @@ function setupViewRedactions() {
             }
         }
 
-        const url = `https://raw.githubusercontent.com/osm-cc-by-sa/data/refs/heads/main/versions_affected_by_disagreed_users_and_all_after_with_redaction_period/${type}/${id_prefix}.osm` + (type === "relation" ? ".gz" : "")
+        const urlPrefix = "https://raw.githubusercontent.com/osm-cc-by-sa/data/refs/heads/main/versions_affected_by_disagreed_users_and_all_after_with_redaction_period"
+        const url = `${urlPrefix}/${type}/${id_prefix}.osm` + (type === "relation" ? ".gz" : "")
         const data = await downloadArchiveData(url, objID, type === "relation")
 
         const keysLinks = new Map()
@@ -8629,7 +9343,7 @@ async function unrollPaginationInHistory() {
 
 function makeTitleForTagsCount(tagsCount) {
     if (tagsCount === 1) {
-        // fixme after adding locationzation
+        // fixme after adding localization
         return tagsCount + (["ru-RU", "ru"].includes(navigator.language) ? " тег" : " tag")
     } else if (tagsCount < 10 && tagsCount > 20 && [2, 3, 4].includes(tagsCount % 10)) {
         return tagsCount + (["ru-RU", "ru"].includes(navigator.language) ? " тега" : " tags")
@@ -8661,7 +9375,14 @@ function addDiffInHistoryStyle() {
         border-bottom: none;
         height: 1rem;
     }
-
+    
+    #element_versions_list > div {
+        padding-bottom: 0.5rem !important;
+    }
+    
+    #element_versions_list > div > div:has(>table) {
+        margin-bottom: 0.5rem !important;
+    }
 
     @media ${mediaQueryForWebsiteTheme} {
         .compact-toggle-btn {
@@ -8880,6 +9601,12 @@ function addDiffInHistoryStyle() {
     injectCSSIntoOSMPage(styleText)
 }
 
+function historyPaginationClick() {
+    const paginationBtn = document.querySelector("#older_element_versions_navigation a")
+    console.log("Click by pagination from AddDiffInHistory", paginationBtn?.href)
+    paginationBtn?.click()
+}
+
 // hard cases:
 // https://www.openstreetmap.org/node/1/history
 // https://www.openstreetmap.org/node/2/history
@@ -8894,10 +9621,16 @@ function addDiffInHistory(reason = "url_change") {
     addHistoryLink()
     externalizeLinks(document.querySelectorAll("#sidebar_content p a"))
     externalizeLinks(document.querySelectorAll("#sidebar_content table a"))
-    if (!location.pathname.includes("/history") || location.pathname === "/history" || (location.pathname.includes("/history/") && !location.pathname.endsWith("/history/")) || location.pathname.includes("/user/")) return
+    if (!location.pathname.match(/\/(node|way|relation)\/[0-9]+\/history\/?$/)) {
+        return
+    }
     if (document.querySelector(".compact-toggle-btn") && reason !== "pagination") {
         return
     }
+    const isNode = location.pathname.startsWith("/node")
+    const isWay = location.pathname.startsWith("/way")
+    const isRelation = location.pathname.startsWith("/relation")
+
     // костыль для KeyK/L и OSM tags editor
     document.querySelectorAll("#element_versions_list > div").forEach(i => i.classList.add("browse-section"))
     cleanAllObjects()
@@ -8906,15 +9639,15 @@ function addDiffInHistory(reason = "url_change") {
     document.querySelector("#sidebar").focus({ focusVisible: false }) // focusVisible работает только в Firefox
     document.querySelector("#sidebar").blur()
 
-    if (!location.pathname.includes("/user/") && !document.querySelector(".compact-toggle-btn")) {
-        let compactToggle = document.createElement("button")
+    if (!document.querySelector(".compact-toggle-btn")) {
+        const compactToggle = document.createElement("button")
         compactToggle.title = "Toggle between full and compact tags diff.\nYou can also use the T key."
         compactToggle.setAttribute("value", "><")
         compactToggle.innerHTML = compactModeSvg
         compactToggle.classList.add("compact-toggle-btn")
         compactToggle.classList.add("btn", "btn-primary", "btn-sm")
         compactToggle.onclick = () => makeElementHistoryCompact()
-        let sidebar = document.querySelector("#sidebar_content h2")
+        const sidebar = document.querySelector("#sidebar_content h2")
         if (!sidebar) {
             return
         }
@@ -8923,13 +9656,34 @@ function addDiffInHistory(reason = "url_change") {
     }
 
     addDiffInHistoryStyle()
-    const versions = [{ tags: [], coordinates: "", wasModified: false, nodes: [], members: [], visible: true }]
+
+    function convertVersionIntoSpoiler(elem) {
+        const spoiler = document.createElement("details")
+        const summary = document.createElement("summary")
+        summary.textContent = elem.querySelector("a").textContent
+        spoiler.innerHTML = elem.innerHTML
+        spoiler.prepend(summary)
+        spoiler.classList.add("empty-version")
+        spoiler.classList.add("browse-" + location.pathname.match(/(node|way|relation)/)[1])
+        elem.replaceWith(spoiler)
+        return spoiler
+    }
+
+    const versions = [{ tags: [], coordinates: "", wasModified: false, nodes: [], members: [], visible: true, membersCount: 0, versionNumber: 0 }]
     // add/modification
-    const versionsHTML = Array.from(document.querySelectorAll('#element_versions_list > div:not(.processed):not([way-version="inter"]):not(:has(a[href*="/redactions/"]:not([rel])))'))
-    for (let ver of versionsHTML.toReversed()) {
+    const oldToNewHtmlVersions = Array.from(document.querySelectorAll('#element_versions_list > div:not(.processed):not([way-version="inter"]):not(:has(a[href*="/redactions/"]:not([rel])))')).toReversed()
+
+    for (let verInd = 0; verInd < oldToNewHtmlVersions.length; verInd++) {
+        const ver = oldToNewHtmlVersions[verInd]
+
         ver.classList.add("processed")
         let wasModifiedObject = false
-        const version = ver.children[0].childNodes[1].href.match(/\/(\d+)$/)[1]
+        const version = parseInt(
+            ver
+                .querySelector("a")
+                .getAttribute("href")
+                .match(/\/history\/(\d+)$/)[1],
+        )
         const kv = ver.querySelectorAll("tbody > tr") ?? []
         const tags = []
 
@@ -8974,7 +9728,7 @@ function addDiffInHistory(reason = "url_change") {
         metainfoHTML.appendChild(changesetWrapper)
         let visible = true
 
-        if (location.pathname.startsWith("/node")) {
+        if (isNode) {
             if (coordinates) {
                 locationHTML.innerHTML = ""
                 locationHTML.appendChild(locationA)
@@ -8984,11 +9738,11 @@ function addDiffInHistory(reason = "url_change") {
                 wasModifiedObject = true // because sometimes deleted object has tags
                 time.before(document.createTextNode("🗑 "))
             }
-        } else if (location.pathname.startsWith("/way")) {
+        } else if (isWay) {
             if (!ver.querySelector("details")) {
                 time.before(document.createTextNode("🗑 "))
             }
-        } else if (location.pathname.startsWith("/relation")) {
+        } else if (isRelation) {
             if (!ver.querySelector("details")) {
                 time.before(document.createTextNode("🗑 "))
             }
@@ -9000,7 +9754,7 @@ function addDiffInHistory(reason = "url_change") {
         })
         const showPreviousTagValue = GM_config.get("ShowPreviousTagValue", true)
         kv.forEach(i => {
-            let k = i.querySelector("th > a")?.textContent ?? i.querySelector("th")?.textContent
+            const k = i.querySelector("th > a")?.textContent ?? i.querySelector("th")?.textContent
             i.querySelector("td .prev-value-span")?.remove()
             if (i.querySelector("td .current-value-span")) {
                 i.querySelector("td .current-value-span").classList.remove("current-value-span")
@@ -9019,7 +9773,7 @@ function addDiffInHistory(reason = "url_change") {
             }
             tags.push([k, v])
 
-            let lastTags = versions.at(-1).tags
+            const lastTags = versions.at(-1).tags
             let tagWasModified = false
             if (!lastTags.some(elem => elem[0] === k)) {
                 i.querySelector("th").classList.add("history-diff-new-tag")
@@ -9064,8 +9818,8 @@ function addDiffInHistory(reason = "url_change") {
                                 || diff.reduce((cnt, b) => cnt + (b[0] !== b[1] && b[0] !== null), 0) === 0
                                 || diff.reduce((cnt, b) => cnt + (b[0] !== b[1] && b[1] !== null), 0) === 0
                             )) {
-                            let prevText = document.createElement("span")
-                            let newText = document.createElement("span")
+                            const prevText = document.createElement("span")
+                            const newText = document.createElement("span")
                             diff.forEach(c => {
                                 if (c[0] !== c[1]) {
                                     if (c[1]) {
@@ -9108,9 +9862,9 @@ function addDiffInHistory(reason = "url_change") {
                                 prevValueSpan.appendChild(valueLink)
                                 prevValueSpan.appendChild(document.createTextNode(` ${arrowSymbolForChanges} `))
                             } else {
-                                let prevText = document.createElement("span")
+                                const prevText = document.createElement("span")
                                 prevText.appendChild(document.createTextNode(el[1]))
-                                let newText = document.createElement("span")
+                                const newText = document.createElement("span")
                                 newText.appendChild(document.createTextNode(v))
 
                                 prevValueSpan.appendChild(prevText)
@@ -9170,9 +9924,9 @@ function addDiffInHistory(reason = "url_change") {
             }
             wasModifiedObject = true
         }
-        let membersCount = 0 // dirty attempt to bypass lazy loading
+        let membersCount = 0 // quick workaround for lazy versions
         let childNodes = null
-        if (location.pathname.startsWith("/way")) {
+        if (isWay) {
             childNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent.match(/\d+/)[0])
             const lastChildNodes = versions.at(-1).nodes
             // prettier-ignore
@@ -9183,25 +9937,82 @@ function addDiffInHistory(reason = "url_change") {
                 wasModifiedObject = true
             }
             ver.querySelector("details")?.removeAttribute("open")
-        } else if (location.pathname.startsWith("/relation")) {
-            membersCount = ver.querySelector("details summary")?.textContent?.match(/(\d+)/)?.[0] ?? 0
-            childNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
+        } else if (isRelation) {
+            membersCount = parseInt(ver.querySelector("details:not(.empty-version) summary")?.textContent?.match(/(\d+)/)?.[0]) ?? 0
+            childNodes = Array.from(ver.querySelectorAll("details:not(.empty-version) ul.list-unstyled li")).map(el => el.textContent)
 
-            const lastChildMembersCount = versions.at(-1).membersCount
-            const lastChildMembers = versions.at(-1).members
+            const olderMembersCount = versions.at(-1).membersCount
+            const olderMembers = versions.at(-1).members
 
-            // prettier-ignore
-            if (version > 1 &&
-                (membersCount !== lastChildMembersCount
-                    || childNodes.length !== lastChildMembers.length
-                    || childNodes.some((el, index) => lastChildMembers[index] !== childNodes[index]))) {
-                // todo непонятно как подружить отображением редакшнов
-                ver.querySelector("details > summary")?.classList.add("history-diff-modified-tag")
+            const unloadedMembersList = ver.querySelector("turbo-frame:has(.spinner-border)")
+            const olderUnloadedMembersList = oldToNewHtmlVersions[verInd - 1]?.querySelector("turbo-frame:has(.spinner-border)")
+            // https://osm.org/relation/9425522/history
+            if (version > 1 && membersCount !== olderMembersCount) {
+                ver.querySelector("details:not(.empty-version) > summary")?.classList.add("history-diff-modified-tag")
                 wasModifiedObject = true
+            } else if (version > 1 && !unloadedMembersList && !olderUnloadedMembersList) {
+                if (childNodes.length !== olderMembers.length || childNodes.some((el, index) => olderMembers[index] !== childNodes[index])) {
+                    ver.querySelector("details:not(.empty-version) > summary")?.classList.add("history-diff-modified-tag")
+                    wasModifiedObject = true
+                } else {
+                    oldToNewHtmlVersions[verInd] = convertVersionIntoSpoiler(ver)
+                }
+            }
+            if (unloadedMembersList) {
+                function repairVersions() {
+                    const ver = oldToNewHtmlVersions[verInd]
+                    const olderVersion = oldToNewHtmlVersions[verInd - 1]
+                    const nextVersion = oldToNewHtmlVersions[verInd + 1]
+                    if (olderVersion && !olderVersion.querySelector("turbo-frame:has(.spinner-border)")) {
+                        const curChildNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
+                        const oldChildMembers = Array.from(olderVersion.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
+                        if (version > 1 && (curChildNodes.length !== oldChildMembers.length || curChildNodes.some((el, index) => curChildNodes[index] !== oldChildMembers[index]))) {
+                            ver.querySelector("details:not(.empty-version) > summary")?.classList.add("history-diff-modified-tag")
+                            wasModifiedObject = true
+                        } else if (!wasModifiedObject) {
+                            oldToNewHtmlVersions[verInd] = convertVersionIntoSpoiler(ver)
+                        }
+                    }
+                    if (nextVersion && !nextVersion.querySelector("turbo-frame:has(.spinner-border)")) {
+                        const nextChildMembers = Array.from(nextVersion.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
+                        const curChildNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
+
+                        if (nextChildMembers.length !== curChildNodes.length || curChildNodes.some((el, index) => curChildNodes[index] !== nextChildMembers[index])) {
+                            nextVersion.querySelector("details:not(.empty-version) > summary")?.classList.add("history-diff-modified-tag")
+                        } else {
+                            const nextVersionNumber = parseInt(
+                                nextVersion
+                                    .querySelector("a")
+                                    .getAttribute("href")
+                                    .match(/\/history\/(\d+)$/)[1],
+                            )
+                            if (versions.find(i => i.versionNumber === nextVersionNumber)?.wasModified === false) {
+                                oldToNewHtmlVersions[verInd + 1] = convertVersionIntoSpoiler(nextVersion)
+                            }
+                        }
+                    }
+                }
+
+                const lazyMembersObserver = new MutationObserver(function (mutationsList, observer) {
+                    for (let mutationRecord of mutationsList) {
+                        for (let newNode of mutationRecord.addedNodes ?? []) {
+                            if (newNode.nodeName === "UL") {
+                                console.log("lazy version loaded")
+                                observer.disconnect()
+                                repairVersions()
+                            }
+                        }
+                    }
+                })
+                lazyMembersObserver.observe(unloadedMembersList, {
+                    childList: true,
+                    subtree: true,
+                })
             }
             ver.querySelector("details")?.removeAttribute("open")
         }
         versions.push({
+            versionNumber: version,
             tags: tags,
             coordinates: coordinates?.href ?? lastCoordinates,
             wasModified: wasModifiedObject || (visible && !lastVisible),
@@ -9214,18 +10025,18 @@ function addDiffInHistory(reason = "url_change") {
         ver.title = makeTitleForTagsCount(tags.length)
     }
     // deletion
-    Array.from(versionsHTML).forEach((x, index) => {
-        if (versionsHTML.length <= index + 1) return
+    oldToNewHtmlVersions.toReversed().forEach((x, index) => {
+        if (oldToNewHtmlVersions.length <= index + 1) return
         versions.toReversed()[index + 1].tags.forEach(tag => {
-            let k = tag[0]
-            let v = tag[1]
+            const k = tag[0]
+            const v = tag[1]
             if (!versions.toReversed()[index].tags.some(elem => elem[0] === k)) {
-                let tr = document.createElement("tr")
+                const tr = document.createElement("tr")
                 tr.classList.add("history-diff-deleted-tag-tr")
-                let th = document.createElement("th")
+                const th = document.createElement("th")
                 th.textContent = k
                 th.classList.add("history-diff-deleted-tag", "py-1", "border-grey", "table-light", "fw-normal", "border-start", "border-secondary-subtle")
-                let td = document.createElement("td")
+                const td = document.createElement("td")
                 if (k.includes("colour")) {
                     td.innerHTML = `<svg width="14" height="14" class="float-end m-1"><title></title><rect x="0.5" y="0.5" width="13" height="13" fill="" stroke="#2222"></rect></svg>`
                     td.querySelector("svg rect").setAttribute("fill", v)
@@ -9237,11 +10048,11 @@ function addDiffInHistory(reason = "url_change") {
                 tr.appendChild(th)
                 tr.appendChild(td)
                 if (!x.querySelector("tbody")) {
-                    let tableDiv = document.createElement("table")
+                    const tableDiv = document.createElement("table")
                     tableDiv.classList.add("mb-3", "border", "border-secondary-subtle", "rounded", "overflow-hidden")
-                    let table = document.createElement("table")
+                    const table = document.createElement("table")
                     table.classList.add("mb-0", "browse-tag-list", "table", "align-middle")
-                    let tbody = document.createElement("tbody")
+                    const tbody = document.createElement("tbody")
                     table.appendChild(tbody)
                     tableDiv.appendChild(table)
                     x.appendChild(tableDiv)
@@ -9255,26 +10066,16 @@ function addDiffInHistory(reason = "url_change") {
                 versions[versions.length - index - 1].wasModified = true
             }
         })
-        if (!versions[versions.length - index - 1].wasModified) {
-            let spoiler = document.createElement("details")
-            let summary = document.createElement("summary")
-            summary.textContent = x.querySelector("a").textContent
-            spoiler.innerHTML = x.innerHTML
-            spoiler.prepend(summary)
-            spoiler.classList.add("empty-version")
-            spoiler.classList.add("browse-" + location.pathname.match(/(node|way|relation)/)[1])
-            x.replaceWith(spoiler)
+        if (!versions[versions.length - index - 1].wasModified && !isRelation) {
+            convertVersionIntoSpoiler(x)
         }
     })
     if (document.querySelector("#older_element_versions_navigation a")) {
-        versionsHTML.toReversed()?.[0].classList.remove("processed")
-        versionsHTML
-            .toReversed()?.[0]
-            ?.querySelectorAll(".history-diff-new-tag, .history-diff-modified-tag")
-            ?.forEach(elem => {
-                elem.classList.remove("history-diff-new-tag")
-                elem.classList.remove("history-diff-modified-tag")
-            })
+        oldToNewHtmlVersions[0]?.classList?.remove("processed")
+        oldToNewHtmlVersions[0]?.querySelectorAll(".history-diff-new-tag, .history-diff-modified-tag")?.forEach(elem => {
+            elem.classList.remove("history-diff-new-tag")
+            elem.classList.remove("history-diff-modified-tag")
+        })
     }
     let hasRedacted = false
     Array.from(document.querySelectorAll('#element_versions_list > div:has(a[href*="/redactions/"]:not([rel]))')).forEach(x => {
@@ -9304,19 +10105,22 @@ function addDiffInHistory(reason = "url_change") {
     expandWikidata()
     addCopyCoordinatesButtons()
     monitorHistoryPaginationMoving()
-    console.log("Click by pagination from AddDiffInHistory")
-    document.querySelector("#older_element_versions_navigation a")?.click()
+    if (isRelation) {
+        sleep(200).then(() => historyPaginationClick())
+    } else {
+        historyPaginationClick()
+    }
 }
 
 function setupVersionsDiff(path) {
     // prettier-ignore
     if (!path.includes("/history")
-        && !path.startsWith("/node")
+        || !path.startsWith("/node")
         && !path.startsWith("/way")
         && !path.startsWith("/relation")) {
         return;
     }
-    let timerId = setInterval(addDiffInHistory, 500)
+    const timerId = setInterval(addDiffInHistory, 500)
     setTimeout(() => {
         clearInterval(timerId)
         console.debug("stop adding diff in history")
@@ -9343,13 +10147,15 @@ function addRelationVersionView() {
         } else if (e.type === "keypress") {
             return
         }
+        e.stopPropagation()
+        e.stopImmediatePropagation()
         btn.style.cursor = "progress"
         const match = location.pathname.match(/relation\/(\d+)\/history\/(\d+)\/?$/)
         const id = parseInt(match[1])
         const timestamp = document.querySelector("time").getAttribute("datetime")
         try {
             const { restrictionRelationErrors } = await loadRelationVersionMembersViaOverpass(id, timestamp)
-            showRestrictionValidationStatus(restrictionRelationErrors, document.querySelector("#element_versions_list > div details summary"))
+            showRestrictionValidationStatus(restrictionRelationErrors, document.querySelector("#sidebar_content > div details summary"))
         } catch (e) {
             btn.style.cursor = "pointer"
             throw e
@@ -9359,7 +10165,7 @@ function addRelationVersionView() {
 
     btn.addEventListener("click", clickForDownloadHandler)
     btn.addEventListener("keypress", clickForDownloadHandler)
-    document.querySelector("#element_versions_list > div h4")?.appendChild(btn)
+    document.querySelector("#sidebar_content > div h4")?.appendChild(btn)
 }
 
 function setupRelationVersionViewer() {
@@ -9367,7 +10173,7 @@ function setupRelationVersionViewer() {
     if (!match) {
         return
     }
-    let timerId = setInterval(addRelationVersionView, 500)
+    const timerId = setInterval(addRelationVersionView, 500)
     setTimeout(() => {
         clearInterval(timerId)
         console.debug("stop adding RelationVersionView")
@@ -10039,6 +10845,11 @@ function makeHeaderPartsClickable() {
 
 function expandWikidata() {
     const links = Array.from(document.querySelectorAll(".wdt-preview:not([disabled])"))
+    // fuck Bootstrap. When page contains many HTML elemenets, him querySelector iterates over all elements
+    // This is especially noticeable on the relationship pages.
+    if (links.length > 50) {
+        return
+    }
     console.debug("Wikilinks count:", links.length)
     ;(links.find(i => i.parentElement.classList.contains("history-diff-new-tag") || i.parentElement.classList.contains("history-diff-modified-tag")) ?? links?.[0])?.click()
     setTimeout(() => {
@@ -10203,6 +11014,8 @@ function makeVersionPageBetter() {
         return
     }
     addCompactSidebarStyle()
+    externalizeLinks(document.querySelectorAll("#sidebar_content p a"))
+    externalizeLinks(document.querySelectorAll("#sidebar_content table a"))
     const browseSectionSelector = document.querySelector("#element_versions_list") ? '#element_versions_list > div:not(:has(a[href*="/redactions/"]:not([rel])))' : "#sidebar_content > div:first-of-type"
     if (!document.querySelector(".find-user-btn")) {
         try {
@@ -10254,7 +11067,7 @@ function setupMakeVersionPageBetter() {
     if (!match) {
         return
     }
-    let timerId = setInterval(makeVersionPageBetter, 500)
+    const timerId = setInterval(makeVersionPageBetter, 500)
     setTimeout(() => {
         clearInterval(timerId)
         console.debug("stop adding MakeVersionPageBetter")
@@ -10263,7 +11076,7 @@ function setupMakeVersionPageBetter() {
 }
 
 // Модули должны стать классами
-// - поддерживается всеми браузерами, в которых есть TM
+// - поддерживается всеми браузерами, в которых есть TM.
 // - изоляция функций и глобальных переменных
 // - для модулей, которые внедряются через setInterval можно сохранить таймер, чтобы предотвратить дублирование вызовов
 // - возможность сохранить результат внедрения
@@ -10419,7 +11232,7 @@ function arraySplit(arr, N = 2) {
 /**
  * @type {Object.<string, ChangesetMetadata>}|null
  **/
-let changesetMetadatas = {}
+const changesetMetadatas = {}
 let startTouch = null
 let touchMove = null
 let touchEnd = null
@@ -10785,7 +11598,7 @@ function makeLinksInChangesetObjectRowClickable(row) {
 
 function detectEditsWars(prevVersion, targetVersion, objHistory, row, key) {
     let revertsCounter = 0
-    let warLog = document.createElement("table")
+    const warLog = document.createElement("table")
     warLog.style.borderColor = "var(--bs-body-color)"
     warLog.style.borderStyle = "solid"
     warLog.style.borderWidth = "1px"
@@ -10905,7 +11718,7 @@ async function getWayNodesByTimestamp(targetTimestamp, wayID) {
         nodesMap[elem.id] = [elem.lat, elem.lon]
     })
 
-    let currentNodesList = []
+    const currentNodesList = []
     targetVersion.nodes?.forEach(node => {
         if (node in nodesMap) {
             currentNodesList.push(nodesMap[node])
@@ -11032,8 +11845,8 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                     || diff.reduce((cnt, b) => cnt + (b[0] !== b[1] && b[0] !== null), 0) === 0
                     || diff.reduce((cnt, b) => cnt + (b[0] !== b[1] && b[1] !== null), 0) === 0
                 )) {
-                let prevText = document.createElement("span")
-                let newText = document.createElement("span")
+                const prevText = document.createElement("span")
+                const newText = document.createElement("span")
                 prevText.dir = "auto"
                 newText.dir = "auto"
                 diff.forEach(c => {
@@ -11096,7 +11909,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         }
     }
     if (targetVersion.visible !== false && prevVersion?.nodes && prevVersion.nodes.toString() !== targetVersion.nodes?.toString()) {
-        let geomChangedFlag = document.createElement("span")
+        const geomChangedFlag = document.createElement("span")
         geomChangedFlag.textContent = " 📐"
         geomChangedFlag.tabIndex = 0
         geomChangedFlag.classList.add("nodes-changed")
@@ -11270,14 +12083,14 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         }
     }
     if (prevVersion.visible === false && targetVersion?.visible !== false && targetVersion.version !== 1) {
-        let restoredElemFlag = document.createElement("span")
+        const restoredElemFlag = document.createElement("span")
         restoredElemFlag.textContent = " ♻️"
         restoredElemFlag.title = "Object was restored"
         restoredElemFlag.style.userSelect = "none"
         i.appendChild(restoredElemFlag)
     }
     if (objType === "relation") {
-        let memChangedFlag = document.createElement("span")
+        const memChangedFlag = document.createElement("span")
         memChangedFlag.textContent = " 👥"
         memChangedFlag.tabIndex = 0
         memChangedFlag.classList.add("members-changed")
@@ -11285,7 +12098,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         let membersChanged = false
         if (JSON.stringify(prevVersion?.members ?? []) !== JSON.stringify(targetVersion.members) && targetVersion.version !== 1) {
             memChangedFlag.style.background = "rgba(223, 238, 9, 0.6)"
-            memChangedFlag.title = "List of relation members has been changed.\nСlick to see more details"
+            memChangedFlag.title = "List of relation members has been changed.\nClick to see more details"
             membersChanged = true
         } else {
             memChangedFlag.title = "Show list of relation members"
@@ -11880,39 +12693,37 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
     async function processWay() {
         i.id = `${changesetID}w${objID}`
 
-        const res = await fetchRetry(osm_server.apiBase + objType + "/" + objID + "/full.json", { signal: getAbortController().signal })
+        // TODO для полной истории кеш нужен, а вот для правок сомнительно, если нужно перемещаться между ними
+        // хотя при отображении нескольких правок разом тоже полезно
+        const res = await fetchJSONorResWithCache(osm_server.apiBase + objType + "/" + objID + "/full.json", { signal: getAbortController().signal })
         // todo по-хорошему нужно проверять, а не успела ли измениться история линии
         // будет более актуально после добавление предзагрузки
-        const nowDeleted = !res.ok
+        const nowDeleted = res instanceof Response
         const dashArray = nowDeleted ? "4, 4" : null
         let lineWidth = nowDeleted ? 4 : 3
 
         if (!nowDeleted) {
-            const lastElements = (await res.json()).elements
+            const lastElements = res.elements
             lastElements.forEach(n => {
                 if (n.type !== "node") return
                 if (n.version === 1) {
                     nodesHistories[n.id] = [n]
                 }
             })
-            let attempts = 0
-            while (!changesetMetadata && attempts < 60) {
-                attempts++
-                console.log(`changesetMetadata[${targetVersion.changeset}] not ready. Wait second...`)
-                await abortableSleep(1000, getAbortController()) // todo нужно поретраить
-                changesetMetadata = changesetMetadatas[targetVersion.changeset]
+            if (!changesetMetadata) {
+                changesetMetadata = await loadChangesetMetadata(targetVersion.changeset)
             }
         }
 
         const [, wayNodesHistories] = await loadWayVersionNodes(objID, version)
         const targetNodes = filterObjectListByTimestamp(wayNodesHistories, targetVersion.timestamp) // fixme what if changeset was long opened anf nodes changed after way?
 
-        let nodesMap = {}
+        const nodesMap = {}
         targetNodes.forEach(elem => {
             nodesMap[elem.id] = [elem.lat, elem.lon]
         })
 
-        let currentNodesList = []
+        const currentNodesList = []
         if (targetVersion.visible !== false) {
             targetVersion.nodes?.forEach(node => {
                 if (node in nodesMap) {
@@ -11953,12 +12764,8 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 showActiveWay(cloneInto(currentNodesList, unsafeWindow), c("#ff00e3"), false, changesetID + "w" + objID, false)
             }
         }
-        let attempts = 0
-        while (!changesetMetadata && attempts < 60) {
-            attempts++
-            console.log(`changesetMetadata[${targetVersion.changeset}] not ready. Wait second...`)
-            await abortableSleep(1000, getAbortController()) // todo нужно поретраить
-            changesetMetadata = changesetMetadatas[targetVersion.changeset]
+        if (!changesetMetadata) {
+            changesetMetadata = await loadChangesetMetadata(targetVersion.changeset)
         }
         if (targetVersion.visible === false) {
             const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version)
@@ -11970,13 +12777,13 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 if (nodesAfterChangeset.some(i => i.visible === false)) {
                     displayWay(cloneInto(nodesList, unsafeWindow), false, c("#ff0000", ".deleted-way-geom"), 3, changesetID + "w" + objID, "customObjects", dashArray)
                 } else {
-                    // скорее всего это объединение линий, поэтому эту удаление линии нужно отправить на задний план
+                    // скорее всего это объединение линий, поэтому это удаление линии нужно отправить на задний план
                     const layer = displayWay(cloneInto(nodesList, unsafeWindow), false, c("#ff0000", ".deleted-way-geom"), 7, changesetID + "w" + objID, "customObjects", dashArray)
                     layer.bringToBack()
                     lineWidth = 8
                 }
             } else {
-                console.error(`broken way: ${objID}`, nodesList) // todo retray
+                console.error(`broken way: ${objID}`, nodesList) // todo retry
             }
         } else if (version === 1 && targetVersion.changeset === parseInt(changesetID)) {
             displayWay(cloneInto(currentNodesList, unsafeWindow), false, c("rgba(0, 128, 0, 0.6)"), lineWidth, changesetID + "w" + objID, "customObjects", dashArray)
@@ -12128,7 +12935,7 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
     })
 
     const objectsLinksInComments = {
-        // todo can be optimaized
+        // todo can be optimized
         nodes: Array.from(document.querySelectorAll(`#element_versions_list > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="node/"]`)),
         ways: Array.from(document.querySelectorAll(`#element_versions_list > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="way/"]`)),
         relations: Array.from(document.querySelectorAll(`#element_versions_list > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="relation/"]`)),
@@ -12716,7 +13523,7 @@ async function processQuickLookInSidebar(changesetID) {
         }
 
         //<editor-fold desc="setup compact mode toggles">
-        let compactToggle = document.createElement("button")
+        const compactToggle = document.createElement("button")
         compactToggle.title = "Toggle between full and compact tags diff.\nYou can also use the T key."
         compactToggle.textContent = allTagsOfObjectsVisible ? "><" : "<>"
         compactToggle.classList.add("quick-look-compact-toggle-btn")
@@ -13107,7 +13914,7 @@ async function processQuickLookInSidebar(changesetID) {
         })
         observePagination(obs)
 
-        // try find parent ways
+        // try to find parent ways
 
         async function findParents() {
             performance.mark("FIND_PARENTS_BEGIN_" + changesetID)
@@ -13439,9 +14246,9 @@ async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) 
 
     for (let i = 0; i < changesetIDs.length; i++) {
         console.log(`${i + 1} / ${changesetIDs.length}`)
-        let curID = changesetIDs[i]
+        const curID = changesetIDs[i]
 
-        let res = await changesetsQueue.shift()
+        const res = await changesetsQueue.shift()
 
         const parser = new DOMParser()
         const doc = parser.parseFromString(res.response, "text/html")
@@ -13674,7 +14481,7 @@ async function addChangesetQuickLook() {
 
 function setupChangesetQuickLook(path) {
     if (!path.startsWith("/changeset")) return
-    let timerId = setInterval(addChangesetQuickLook, 100)
+    const timerId = setInterval(addChangesetQuickLook, 100)
     setTimeout(() => {
         clearInterval(timerId)
         console.debug("stop try add QuickLook")
@@ -13687,7 +14494,7 @@ let coordinatesObserver = null
 
 function setupNewEditorsLinks() {
     const firstRun = document.getElementsByClassName("custom_editors").length === 0
-    let editorsList = document.querySelector("#edit_tab ul")
+    const editorsList = document.querySelector("#edit_tab ul")
     if (!editorsList) {
         return
     }
@@ -13840,11 +14647,11 @@ function uniq(items, keyFn) {
  */
 async function loadChangesets(user) {
     console.time(`stat-for-${user}`)
-    let startTime = new Date(new Date().getTime() - 1000 * 60 * 60 * 24 * 365)
-    let startTime2 = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 365 * 3) / 4)
-    let startTime3 = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 365 * 2) / 4)
-    let startTime4 = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 365) / 4)
-    let endTime = new Date(new Date().getTime() + 1000 * 60 * 60 * 24)
+    const startTime = new Date(new Date().getTime() - 1000 * 60 * 60 * 24 * 365)
+    const startTime2 = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 365 * 3) / 4)
+    const startTime3 = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 365 * 2) / 4)
+    const startTime4 = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 365) / 4)
+    const endTime = new Date(new Date().getTime() + 1000 * 60 * 60 * 24)
 
     // prettier-ignore
     const parts = await Promise.all([
@@ -13914,12 +14721,12 @@ function makeChangesetsStat(changesets, filter) {
 }
 
 async function makeEditorNormalizer() {
+    const url = "https://raw.githubusercontent.com/deevroman/openstreetmap-statistics/refs/heads/master/src/replace_rules_created_by.json"
     const rawReplaceRules = (
         await externalFetchRetry({
             url: url,
         })
     ).responseText
-    const url = "https://raw.githubusercontent.com/deevroman/openstreetmap-statistics/refs/heads/master/src/replace_rules_created_by.json"
     console.log("replace rules loaded")
 
     const tag_to_name = {}
@@ -14324,7 +15131,7 @@ async function makeProfileForDeletedUser(user) {
                 const blocksCount = new Map()
 
                 function findBlocks(xml) {
-                    let foundUserBlock = []
+                    const foundUserBlock = []
                     let lastUserBlock
                     new DOMParser()
                         .parseFromString(xml, "text/html")
@@ -14671,7 +15478,7 @@ async function makeProfileForDeletedUser(user) {
 }
 
 async function setupHDYCInProfile(path) {
-    let match = path.match(/^\/user\/([^/]+)(\/|\/notes)?$/)
+    const match = path.match(/^\/user\/([^/]+)(\/|\/notes)?$/)
     if (!match || path.includes("/history")) {
         return
     }
@@ -14861,12 +15668,12 @@ async function setupHDYCInProfile(path) {
 }
 
 function setupBetterProfileStat() {
-    let match = location.pathname.match(/^\/user\/([^/]+)\/?$/)
+    const match = location.pathname.match(/^\/user\/([^/]+)\/?$/)
     if (!match) {
         return
     }
     const user = match[1]
-    let timerId = setInterval(betterUserStat, 300, decodeURI(user))
+    const timerId = setInterval(betterUserStat, 300, decodeURI(user))
     setTimeout(() => {
         clearInterval(timerId)
         console.debug("stop try add heatmap filters")
@@ -14972,7 +15779,7 @@ function simplifyHDCYIframe() {
         `)
     const loginLink = document.getElementById("loginLink")
     if (loginLink) {
-        let warn = document.createElement("div")
+        const warn = document.createElement("div")
         warn.id = "hdyc-warn"
         injectCSSIntoSimplePage(`
                 #hdyc-warn, #hdycLink {
@@ -14987,7 +15794,7 @@ function simplifyHDCYIframe() {
             warn.textContent = "Please disable tracking protection so that the HDYC account login works"
 
             document.getElementById("authenticate").before(warn)
-            let hdycLink = document.createElement("a")
+            const hdycLink = document.createElement("a")
             const match = location.pathname.match(/^\/user\/([^/]+)$/)
             hdycLink.href = "https://www.hdyc.neis-one.org/" + (match ? match[1] : "")
             hdycLink.textContent = "Go to https://www.hdyc.neis-one.org/"
@@ -15777,6 +16584,10 @@ if (isOsmServer()) {
                     statusText: response.statusText,
                     headers: response.headers
                 });
+            } else if (args[0]?.includes?.("/members")) {
+                // console.log("freeeeeze", args[0])
+                // await new Promise(() => setTimeout(() => true, 1000 * 1000))
+            }
             // } else if (args[0]?.includes?.("/map.json") && window.mapDataIDsFilter.size) {
             //     const response = await originalFetch(...args);
             //     const originalJSON = await response.json();
@@ -15792,7 +16603,7 @@ if (isOsmServer()) {
             //         statusText: response.statusText,
             //         headers: response.headers
             //     });
-            } else {
+            else {
                 // console.log("other requests", args[0])
                 // debugger
             }
@@ -15981,7 +16792,7 @@ const importerBadgeSvg =
 
 function makeBadge(userInfo, changesetDate = new Date()) {
     // todo make changesetDate required
-    let userBadge = document.createElement("span")
+    const userBadge = document.createElement("span")
     userBadge.classList.add("user-badge")
 
     function makeModeratorBadge() {
@@ -16073,7 +16884,9 @@ function makeBadge(userInfo, changesetDate = new Date()) {
         makeImporterBadge()
     } else if (userInfo["blocks"]["received"]["active"]) {
         makeBannedUserBadge()
-    } else if (new Date(userInfo["firstChangesetCreationTime"] ?? userInfo["account_created"]).setUTCDate(new Date(userInfo["firstChangesetCreationTime"] ?? userInfo["account_created"]).getUTCDate() + 30) > changesetDate) {
+    } else if (
+        new Date(userInfo["firstChangesetCreationTime"] ?? userInfo["account_created"]).setUTCDate(new Date(userInfo["firstChangesetCreationTime"] ?? userInfo["account_created"]).getUTCDate() + 30) > changesetDate
+    ) {
         makeNewbieBadge()
     } else if (!corporateMappers || corporateMappers?.has(userInfo["display_name"])) {
         if (!corporateMappers) {
@@ -16133,7 +16946,7 @@ function addMassChangesetsActions() {
             item.onclick = e => {
                 if (!e.isTrusted) return
                 e.preventDefault()
-                let id = e.target.innerText
+                const id = e.target.innerText
                 navigator.clipboard.writeText(id).then(() => copyAnimation(e, id))
             }
             item.title = "Click for copy changeset id"
@@ -16161,7 +16974,7 @@ function addMassChangesetsActions() {
             document.querySelector("#hidden-changeset-counter").textContent = ` Displayed ${changesetsCount - getWindow().hiddenChangesetsCount}/${changesetsCount}`
         } else {
             if (!document.querySelector("#infinity-list-btn")) {
-                let moreButton = document.querySelector('.changeset_more:has([href*="before"]) a.page-link')
+                const moreButton = document.querySelector('.changeset_more:has([href*="before"]) a.page-link')
                 if (!moreButton) return
                 moreButton.parentElement.style.display = "inline-flex"
                 const infinityList = document.createElement("button")
@@ -16185,7 +16998,7 @@ function addMassChangesetsActions() {
 
 function setupMassChangesetsActions() {
     if (location.pathname !== "/history" && location.pathname !== "/history/friends" && !(location.pathname.includes("/history") && location.pathname.includes("/user/"))) return
-    let timerId = setInterval(addMassChangesetsActions, 300)
+    const timerId = setInterval(addMassChangesetsActions, 300)
     setTimeout(() => {
         clearInterval(timerId)
         console.debug("stop try add mass changesets actions")
@@ -16198,13 +17011,9 @@ function setupMassChangesetsActions() {
 //<editor-fold desc="hotkeys">
 let hotkeysConfigured = false
 
-async function getChangesetMetadata(changeset_id) {
-    return await fetchRetry(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json")
-}
-
 /**
  * @param {number|null=} changeset_id
- * @return {Promise<ChangesetMetadata|void>}
+ * @return {Promise<ChangesetMetadata>}
  */
 async function loadChangesetMetadata(changeset_id = null) {
     console.debug(`Loading changeset metadata`)
@@ -16220,22 +17029,16 @@ async function loadChangesetMetadata(changeset_id = null) {
         return changesetMetadatas[changeset_id]
     }
     // prevChangesetMetadata = changesetMetadatas[changeset_id]
-    const res = await getChangesetMetadata(changeset_id)
-    if (res.status !== 200) {
-        console.error(res)
-        debug_alert("metadatas failed")
-    } else {
-        const jsonRes = await res.json()
-        if (jsonRes.changeset) {
-            return (changesetMetadatas[changeset_id] = jsonRes.changeset)
-        }
-        changesetMetadatas[changeset_id] = jsonRes.elements[0]
-        changesetMetadatas[changeset_id].min_lat = changesetMetadatas[changeset_id].minlat
-        changesetMetadatas[changeset_id].min_lon = changesetMetadatas[changeset_id].minlon
-        changesetMetadatas[changeset_id].max_lat = changesetMetadatas[changeset_id].maxlat
-        changesetMetadatas[changeset_id].max_lon = changesetMetadatas[changeset_id].maxlon
-        return changesetMetadatas[changeset_id]
+    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json")
+    if (jsonRes.changeset) {
+        return (changesetMetadatas[changeset_id] = jsonRes.changeset)
     }
+    changesetMetadatas[changeset_id] = jsonRes.elements[0]
+    changesetMetadatas[changeset_id].min_lat = changesetMetadatas[changeset_id].minlat
+    changesetMetadatas[changeset_id].min_lon = changesetMetadatas[changeset_id].minlon
+    changesetMetadatas[changeset_id].max_lat = changesetMetadatas[changeset_id].maxlat
+    changesetMetadatas[changeset_id].max_lon = changesetMetadatas[changeset_id].maxlon
+    return changesetMetadatas[changeset_id]
 }
 
 /**
@@ -16955,7 +17758,7 @@ function goToPrevSearchResult() {
     if (prev) {
         prev.classList.add("active-object")
         cur.classList.remove("active-object")
-        let focused = prev.querySelector("a")
+        const focused = prev.querySelector("a")
         focused.focus()
         prev.scrollIntoView({ block: "center", behavior: "instant" })
 
@@ -16977,7 +17780,7 @@ function goToNextSearchResult() {
     if (!document.querySelector("#sidebar_content ul .active-object")) {
         document.querySelector("#sidebar_content ul li").classList.add("active-object")
         document.querySelector("#sidebar_content ul .active-object a").tabIndex = 0
-        let focused = document.querySelector("#sidebar_content .active-object a")
+        const focused = document.querySelector("#sidebar_content .active-object a")
         focused.focus()
         const [lat, lon] = extractLatLonFromElem(document.querySelector("#sidebar_content ul .active-object a"))
         const marker = showNodeMarker(lat, lon)
@@ -17009,7 +17812,7 @@ function goToNextSearchResult() {
     if (next) {
         next.classList.add("active-object")
         cur.classList.remove("active-object")
-        let focused = next.querySelector("a")
+        const focused = next.querySelector("a")
         focused.focus()
         resetSelectedChangesets()
         next.scrollIntoView({ block: "center", behavior: "instant" })
@@ -17104,7 +17907,7 @@ function combineBBOXes(bboxes) {
 
 async function zoomToChangesets() {
     const params = new URLSearchParams(location.search)
-    let changesetIDs = params.get("changesets")?.split(",")
+    const changesetIDs = params.get("changesets")?.split(",")
     if (!changesetIDs) {
         return
     }
@@ -17585,7 +18388,7 @@ function setupNavigationViaHotkeys() {
                 const ways = new Set()
                 const relations = new Set()
 
-                let changesetID = parseInt(location.pathname.match(/changeset\/(\d+)/)[1])
+                const changesetID = parseInt(location.pathname.match(/changeset\/(\d+)/)[1])
                 const changesetData = (await getChangeset(changesetID)).data
 
                 function processChangeset(data) {
@@ -17929,7 +18732,7 @@ function setupNavigationViaHotkeys() {
         } else if (isDebug() && e.code === "KeyP" && e.altKey) {
             if (location.pathname.startsWith("/changeset")) {
                 const params = new URLSearchParams(location.search)
-                let changesetIDs = params.get("changesets")?.split(",") ?? [parseInt(location.pathname.match(/changeset\/(\d+)/)[1])]
+                const changesetIDs = params.get("changesets")?.split(",") ?? [parseInt(location.pathname.match(/changeset\/(\d+)/)[1])]
                 const objects = []
                 if (changesetIDs) {
                     setTimeout(async () => {
@@ -18217,12 +19020,39 @@ const fetchJSONWithCache = (() => {
     }
 })()
 
+const fetchJSONorResWithCache = (() => {
+    /**@type {Map<string, Object | Promise<Object|Response>>}*/
+    const cache = new Map()
+
+    return async (url, init = {}) => {
+        if (cache.has(url)) {
+            return cache.get(url)
+        }
+
+        const promise = fetchRetry(url, init).then(res => {
+            if (!res.ok) return res
+            return res.json()
+        })
+        cache.set(url, promise)
+
+        try {
+            const result = await promise
+            cache.set(url, result)
+            return result
+        } catch (error) {
+            cache.delete(url)
+            throw error
+        }
+    }
+})()
+
 function setupTaginfo() {
     if (!GM_config.get("BetterTaginfo")) return
 
     const instance_text = document.querySelector("#instance")?.textContent
     const instance = instance_text?.replace(/ \(.*\)/, "")
 
+    // fix overpass links on regional taginfo
     if (instance_text?.includes(" ")) {
         const turboLink = document.querySelector("#turbo_button:not(.fixed-link)")
         if (turboLink && (turboLink.href.includes("%22+in") || turboLink.href.includes("*+in") || turboLink.href.includes("relation+in"))) {
@@ -18331,6 +19161,33 @@ out geom;
                       }).toString())
             i.prepend(document.createTextNode("\xA0"))
             i.prepend(overpassLink)
+        })
+    } else if (location.hash === "#overview" || document.querySelector(".overview-container")) {
+        // overpass links for tag by OSM type
+        const keyValue = escapeTaginfoString(document.querySelector("h1").textContent)
+        document.querySelectorAll("#grid-overview .dt-body[data-col='0']").forEach(i => {
+            if (i.querySelector(".overpass-link")) return
+            const icon = i.querySelector("img")
+            const type = icon.src.match(/\/types\/(.+)\.svg$/)[1]
+            const overpassTypeSelector = type === "all" ? "" : `type:${type} and`
+            const overpassLink = document.createElement("a")
+            overpassLink.classList.add("overpass-link")
+            overpassLink.textContent = i.lastChild.textContent.trim()
+            overpassLink.title = "search with Overpass"
+            overpassLink.target = "_blank"
+            const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ""))
+            overpassLink.href =
+                `${overpass_server.url}?` +
+                (count > 10000
+                    ? new URLSearchParams({
+                          w: instance ? `${overpassTypeSelector} ${keyValue} in "${instance}"` : `${overpassTypeSelector} ${keyValue}`,
+                      }).toString()
+                    : new URLSearchParams({
+                          w: instance ? `${overpassTypeSelector} ${keyValue} in "${instance}"` : `${overpassTypeSelector} ${keyValue} global`,
+                          R: "",
+                      }).toString())
+            i.lastChild.replaceWith(overpassLink)
+            overpassLink.before(document.createTextNode("\xA0"))
         })
     }
 }
@@ -19148,8 +20005,8 @@ function renderOSMGeoJSON(xml, options = {}) {
                         comment: makeComment(object_type, object_id, prevTags, newTags),
                     }
 
-                    let changesetPayload = document.implementation.createDocument(null, "osm")
-                    let cs = changesetPayload.createElement("changeset")
+                    const changesetPayload = document.implementation.createDocument(null, "osm")
+                    const cs = changesetPayload.createElement("changeset")
                     changesetPayload.documentElement.appendChild(cs)
                     tagsToXml(changesetPayload, cs, changesetTags)
                     const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
