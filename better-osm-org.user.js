@@ -10098,13 +10098,15 @@ function addRelationVersionView() {
         } else if (e.type === "keypress") {
             return
         }
+        e.stopPropagation()
+        e.stopImmediatePropagation()
         btn.style.cursor = "progress"
         const match = location.pathname.match(/relation\/(\d+)\/history\/(\d+)\/?$/)
         const id = parseInt(match[1])
         const timestamp = document.querySelector("time").getAttribute("datetime")
         try {
             const { restrictionRelationErrors } = await loadRelationVersionMembersViaOverpass(id, timestamp)
-            showRestrictionValidationStatus(restrictionRelationErrors, document.querySelector("#element_versions_list > div details summary"))
+            showRestrictionValidationStatus(restrictionRelationErrors, document.querySelector("#sidebar_content > div details summary"))
         } catch (e) {
             btn.style.cursor = "pointer"
             throw e
@@ -10114,7 +10116,7 @@ function addRelationVersionView() {
 
     btn.addEventListener("click", clickForDownloadHandler)
     btn.addEventListener("keypress", clickForDownloadHandler)
-    document.querySelector("#element_versions_list > div h4")?.appendChild(btn)
+    document.querySelector("#sidebar_content > div h4")?.appendChild(btn)
 }
 
 function setupRelationVersionViewer() {
