@@ -2,6 +2,7 @@
 // @name            Better osm.org
 // @name:ru         Better osm.org
 // @version         1.2.1
+// @changelog       v1.2.1: Linkify Node/Way/Relation on tag page in taginfo, link to ptna.openstreetmap.de for route=*
 // @changelog       v1.2.0: Colorblind-friendly palette in settings
 // @changelog       v1.2.0: Osmcha review tags, links to waymarkedtrails.org for type=route, alt + E to click Edits tags
 // @changelog       v1.2.0: notes word also check comments text, filter by notes comments count and anon authors
@@ -5709,7 +5710,7 @@ function makeLinksInVersionTagsClickable() {
             relationViewer.rel = "noreferrer"
 
             document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(relationViewer)
-        } else if ((key === "route" || key === "route_master") && ["bus", "trolleybus", "minibus", "share_taxi", "train", "light_rail", "subway", "tram", "ferry"].includes(valueCell.textContent)) {
+        } else if ((key === "route" /*|| key === "route_master"*/) && ["bus", "trolleybus", "minibus", "share_taxi", /*"train",*/ "light_rail", "subway", "tram", "ferry"].includes(valueCell.textContent)) {
             if (document.querySelector(".route-viewer-link")) {
                 return
             }
