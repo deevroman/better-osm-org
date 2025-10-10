@@ -423,6 +423,15 @@ const waymarkedtrailsLink = {
         return `${this.url.replace("{type}", waymarkedtrails_type)}#route?id=${id}&map=${z}/${x}/${y}`
     },
 }
+
+/** @type {externalURL} */
+const publicTransportNetworkAnalysisLink = {
+    name: "Public Transport Network Analysis",
+    url: "https://ptna.openstreetmap.de/relation.php",
+    makeURL: function ({ id}) {
+        return `${this.url}?id=${id}`
+    },
+}
 //
 // /** @type {externalURL} */
 // const relatifyLink = {
@@ -5667,6 +5676,7 @@ function makeLinksInVersionTagsClickable() {
             if (document.querySelector(".route-viewer-link")) {
                 return
             }
+            const value = valueCell.textContent
             const m = location.pathname.match(/\/(relation)\/(\d+)/)
             if (!m) {
                 return
@@ -5684,7 +5694,7 @@ function makeLinksInVersionTagsClickable() {
                 inline_skates: "skating",
                 ski: "slopes",
                 piste: "slopes",
-            }[valueCell.textContent]
+            }[value]
             const relationViewer = document.createElement("a")
             relationViewer.innerHTML = externalLinkSvg
             relationViewer.classList.add("route-viewer-link")
@@ -5695,6 +5705,31 @@ function makeLinksInVersionTagsClickable() {
 
             const [x, y, z] = getCurrentXYZ()
             relationViewer.href = waymarkedtrailsLink.makeURL({ x, y, z, type, id, waymarkedtrails_type })
+            relationViewer.target = "_blank"
+            relationViewer.rel = "noreferrer"
+
+            document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(relationViewer)
+        } else if ((key === "route" || key === "route_master") && ["bus", "trolleybus", "minibus", "share_taxi", "train", "light_rail", "subway", "tram", "ferry"].includes(valueCell.textContent)) {
+            if (document.querySelector(".route-viewer-link")) {
+                return
+            }
+            const m = location.pathname.match(/\/(relation)\/(\d+)/)
+            if (!m) {
+                return
+            }
+            const [, type, id] = m
+            if (!type) {
+                return
+            }
+            const relationViewer = document.createElement("a")
+            relationViewer.innerHTML = externalLinkSvg
+            relationViewer.classList.add("route-viewer-link")
+            relationViewer.style.cursor = "pointer"
+            relationViewer.style.paddingLeft = "5px"
+            relationViewer.style.paddingRight = "10px"
+            relationViewer.title = `Open ptna.openstreetmap.de/relation.php`
+
+            relationViewer.href = publicTransportNetworkAnalysisLink.makeURL({ id })
             relationViewer.target = "_blank"
             relationViewer.rel = "noreferrer"
 
