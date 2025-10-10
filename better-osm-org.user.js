@@ -18994,6 +18994,7 @@ function setupTaginfo() {
     const instance_text = document.querySelector("#instance")?.textContent
     const instance = instance_text?.replace(/ \(.*\)/, "")
 
+    // fix overpass links on regional taginfo
     if (instance_text?.includes(" ")) {
         const turboLink = document.querySelector("#turbo_button:not(.fixed-link)")
         if (turboLink && (turboLink.href.includes("%22+in") || turboLink.href.includes("*+in") || turboLink.href.includes("relation+in"))) {
@@ -19102,6 +19103,33 @@ out geom;
                       }).toString())
             i.prepend(document.createTextNode("\xA0"))
             i.prepend(overpassLink)
+        })
+    } else if (location.hash === "#overview" || document.querySelector(".overview-container")) {
+        // overpass links for tag by OSM type
+        const keyValue = escapeTaginfoString(document.querySelector("h1").textContent)
+        document.querySelectorAll("#grid-overview .dt-body[data-col='0']").forEach(i => {
+            if (i.querySelector(".overpass-link")) return
+            const icon = i.querySelector("img")
+            const type = icon.src.match(/\/types\/(.+)\.svg$/)[1]
+            const overpassTypeSelector = type === "all" ? "" : `type:${type} and`
+            const overpassLink = document.createElement("a")
+            overpassLink.classList.add("overpass-link")
+            overpassLink.textContent = i.lastChild.textContent.trim()
+            overpassLink.title = "search with Overpass"
+            overpassLink.target = "_blank"
+            const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ""))
+            overpassLink.href =
+                `${overpass_server.url}?` +
+                (count > 10000
+                    ? new URLSearchParams({
+                        w: instance ? `${overpassTypeSelector} ${keyValue} in "${instance}"` : `${overpassTypeSelector} ${keyValue}`,
+                    }).toString()
+                    : new URLSearchParams({
+                        w: instance ? `${overpassTypeSelector} ${keyValue} in "${instance}"` : `${overpassTypeSelector} ${keyValue} global`,
+                        R: "",
+                    }).toString())
+            i.lastChild.replaceWith(overpassLink)
+            overpassLink.before(document.createTextNode("\xA0"))
         })
     }
 }
