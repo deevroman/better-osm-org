@@ -6888,7 +6888,6 @@ function makeVersionUl(timestamp, username, changesetID) {
     return ul
 }
 
-
 async function replaceDownloadWayButton(btn, wayID) {
     const objectsBag = await sortWayNodesByTimestamp(wayID)
 
@@ -8366,7 +8365,6 @@ async function replaceDownloadRelationButton(btn, relationID) {
             div2.appendChild(aVersion)
             memberLi.appendChild(div)
 
-
             // const curChange = currentChanges[`${i.type} ${i.id}`]
             // const memberHistory = histories[i.type][i.id]
             // const tagsTable = processObject(div2, i.type, curChange[1] ?? curChange[2], curChange[2], memberHistory[memberHistory.length - 1], memberHistory)
@@ -8377,9 +8375,9 @@ async function replaceDownloadRelationButton(btn, relationID) {
             //     if (memberLi.classList.contains("tags-non-modified")) {
             //         div2.appendChild(table)
             //     }
-                // table.style.borderColor = "var(--bs-body-color)";
-                // table.style.borderStyle = "solid";
-                // table.style.borderWidth = "1px";
+            // table.style.borderColor = "var(--bs-body-color)";
+            // table.style.borderStyle = "solid";
+            // table.style.borderWidth = "1px";
             // })
             ulMembers.appendChild(memberLi)
         })
@@ -8585,11 +8583,17 @@ async function replaceDownloadRelationButton(btn, relationID) {
                 // todo нужна предзагрузка пакетов правок, потому что теперь рендерятся и линии
                 const tagsTable = processObject(div2, i.type, curChange[1] ?? curChange[2], curChange[2], memberHistory[memberHistory.length - 1], memberHistory)
                 setTimeout(async () => {
-                    await processObjectInteractions("", i.type, {
-                        nodes: [],
-                        ways: [],
-                        relations: []
-                    }, div2, ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))))
+                    await processObjectInteractions(
+                        "",
+                        i.type,
+                        {
+                            nodes: [],
+                            ways: [],
+                            relations: [],
+                        },
+                        div2,
+                        ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))),
+                    )
                 }, 0)
                 tagsTable.then(table => {
                     if (memberLi.classList.contains("tags-non-modified")) {
@@ -19175,12 +19179,12 @@ out geom;
                 `${overpass_server.url}?` +
                 (count > 10000
                     ? new URLSearchParams({
-                        w: instance ? `${overpassTypeSelector} ${keyValue} in "${instance}"` : `${overpassTypeSelector} ${keyValue}`,
-                    }).toString()
+                          w: instance ? `${overpassTypeSelector} ${keyValue} in "${instance}"` : `${overpassTypeSelector} ${keyValue}`,
+                      }).toString()
                     : new URLSearchParams({
-                        w: instance ? `${overpassTypeSelector} ${keyValue} in "${instance}"` : `${overpassTypeSelector} ${keyValue} global`,
-                        R: "",
-                    }).toString())
+                          w: instance ? `${overpassTypeSelector} ${keyValue} in "${instance}"` : `${overpassTypeSelector} ${keyValue} global`,
+                          R: "",
+                      }).toString())
             i.lastChild.replaceWith(overpassLink)
             overpassLink.before(document.createTextNode("\xA0"))
         })
