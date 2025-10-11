@@ -10106,7 +10106,10 @@ function addDiffInHistory(reason = "url_change") {
     addCopyCoordinatesButtons()
     monitorHistoryPaginationMoving()
     if (isRelation) {
-        sleep(200).then(() => historyPaginationClick())
+        const maxVersion = parseInt(document.querySelector("#element_versions_list h4 a").getAttribute("href").match(/\/relation\/[0-9]+\/history\/([0-9]+)/)[1])
+        if (maxVersion < 500) {
+            historyPaginationClick()
+        }
     } else {
         historyPaginationClick()
     }
@@ -16389,6 +16392,8 @@ if (isOsmServer()) {
     window.notesClosedFilter = "";
     window.notesCommentsFilter = "";
     window.notesIDsFilter = new Set();
+    
+    // const cache = new Map();
 
     // window.mapDataIDsFilter = new Set();
 
@@ -16587,6 +16592,23 @@ if (isOsmServer()) {
             } else if (args[0]?.includes?.("/members")) {
                 // console.log("freeeeeze", args[0])
                 // await new Promise(() => setTimeout(() => true, 1000 * 1000))
+            } else if (args[0]?.includes?.("https://www.wikidata.org/w/api.php")) {
+                // if (cache.has(args[0])) {
+                //     console.log("force cache for", args[0])
+                //     return new Response(cache.get(args[0]), {
+                //         status: response.status,
+                //         statusText: response.statusText,
+                //         headers: response.headers
+                //     });
+                // }
+                // const response = await originalFetch(...args);
+                // const jsonStr = JSON.stringify(await response.json());
+                // cache.set(args[0], jsonStr)
+                // return new Response(jsonStr, {
+                //     status: response.status,
+                //     statusText: response.statusText,
+                //     headers: response.headers
+                // });
             }
             // } else if (args[0]?.includes?.("/map.json") && window.mapDataIDsFilter.size) {
             //     const response = await originalFetch(...args);
