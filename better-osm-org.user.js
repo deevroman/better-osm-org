@@ -8880,7 +8880,7 @@ function setupRelationVersionView() {
                 downloadAllVersionsBtn.textContent += " downloading intermediate versions..."
                 console.time("full history")
                 addQuickLookStyles()
-                // await showFullRelationHistory(parseInt(relationID))
+                await showFullRelationHistory(parseInt(relationID))
                 console.timeEnd("full history")
             }
             e.target.remove()
@@ -14238,7 +14238,7 @@ async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) 
     if (changesetIDs.length) {
         // preloading
         changesetIDs.slice(0, step).forEach(i => {
-            changesetsQueue.push(fetchRetry(osm_server.url + "/changeset/" + i))
+            changesetsQueue.push(fetchRetry(osm_server.url + "/changeset/" + i).then(async res => await res.text()))
         })
     }
     // MORE PRELOADING
@@ -14257,8 +14257,7 @@ async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) 
 
         const res = await changesetsQueue.shift()
 
-        const parser = new DOMParser()
-        const doc = parser.parseFromString(res.response, "text/html")
+        const doc = new DOMParser().parseFromString(res, "text/html")
         const newPrevLink = getPrevChangesetLink(doc)
         if (newPrevLink) {
             const prevLink = getPrevChangesetLink()
@@ -14275,9 +14274,9 @@ async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) 
         divID.href = "/changeset/" + curID
         divID.style.color = "var(--bs-body-color)"
         // todo add comment
-        document.querySelector("turbo-frame:last-of-type").after(divID)
+        document.querySelector("turbo-frame:is(#changeset_nodes,#changeset_ways,#changeset_relations):last-of-type").after(divID)
         let prevFrame = null
-        doc.querySelectorAll("turbo-frame").forEach(frame => {
+        doc.querySelectorAll("turbo-frame:is(#changeset_nodes,#changeset_ways,#changeset_relations)").forEach(frame => {
             frame.setAttribute("changeset-id", curID)
             if (prevFrame) {
                 prevFrame.after(frame)
@@ -14297,7 +14296,7 @@ async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) 
 
         const promise = processQuickLookInSidebar(curID)
         if (i + step < changesetIDs.length) {
-            changesetsQueue.push(fetchRetry(osm_server.url + "/changeset/" + changesetIDs[i + step]))
+            changesetsQueue.push(fetchRetry(osm_server.url + "/changeset/" + changesetIDs[i + step]).then(async res => await res.text()))
         }
         await promise
     }
@@ -14445,7 +14444,7 @@ async function addChangesetQuickLook() {
     if (!sidebar) {
         return
     }
-    if (!document.querySelector("turbo-frame")) {
+    if (!document.querySelector("turbo-frame:is(#changeset_nodes,#changeset_ways,#changeset_relations)")) {
         console.log("changeset is empty")
         return
     }
@@ -14460,7 +14459,7 @@ async function addChangesetQuickLook() {
     removeEditTagsButton()
 
     const changesetID = location.pathname.match(/changeset\/(\d+)/)[1]
-    document.querySelectorAll("turbo-frame").forEach(i => i.setAttribute("changeset-id", changesetID))
+    document.querySelectorAll("turbo-frame:is(#changeset_nodes,#changeset_ways,#changeset_relations)").forEach(i => i.setAttribute("changeset-id", changesetID))
 
     const params = new URLSearchParams(location.search)
     let changesetIDs = []
