@@ -18148,8 +18148,7 @@ function setupNavigationViaHotkeys() {
     function keydownHandler(e) {
         if (e.repeat && !["KeyK", "KeyL"].includes(e.code)) return
         if (document.activeElement?.name === "text") return
-        if (document.activeElement?.name === "query") {
-            // todo расширить для любого поля
+        if (document.activeElement?.nodeName === "INPUT" && ["input", "text"].includes(document.activeElement.getAttribute("type"))) {
             if (e.code === "Escape") {
                 document.activeElement.blur()
             }
