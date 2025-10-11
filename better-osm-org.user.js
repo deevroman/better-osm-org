@@ -6558,7 +6558,7 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
     console.debug("Loading way", wayID, version)
     const wayHistory = await getWayHistory(wayID)
 
-    const targetVersion = wayHistory.find(v => v.version === version) ?? loadHiddenWayVersionViaOverpass(wayID, version)
+    const targetVersion = wayHistory.find(v => v.version === version) ?? await loadHiddenWayVersionViaOverpass(wayID, version)
     if (!targetVersion) {
         throw `loadWayVersionNodes failed ${wayID}, ${version}`
     }
@@ -7430,8 +7430,8 @@ function setupWayVersionView() {
         downloadAllVersionsBtn.style.cursor = "pointer"
         downloadAllVersionsBtn.title = "Download all versions (with intermediate versions)"
         const clickHandler = async () => {
-            await unrollPaginationInHistory()
             downloadAllVersionsBtn.style.cursor = "progress"
+            await unrollPaginationInHistory()
             for (const i of document.querySelectorAll(`.way-version-view:not([hidden])`)) {
                 try {
                     await loadWayVersion(i)
@@ -8213,7 +8213,7 @@ async function replaceDownloadRelationButton(btn, relationID) {
     const changesetsSet = new Set()
     objectsBag.forEach(o => changesetsSet.add(o.changeset))
     console.log("uniq changesets in versions:", changesetsSet.size)
-    await loadChangesetMetadatas(Array.from(changesetsSet).filter(ch => !changesetMetadatas[ch]))
+    await Promise.all(arraySplit(Array.from(changesetsSet).filter(ch => !changesetMetadatas[ch])).map(it => loadChangesetMetadatas(it)))
 
     /** @type {Object<number, RelationVersion>} */
     const relationVersionsIndex = makeObjectVersionsIndex(await getRelationHistory(relationID))
@@ -8320,7 +8320,7 @@ async function replaceDownloadRelationButton(btn, relationID) {
         const p = document.createElement("p")
         interVersionDiv.appendChild(p)
         loadChangesetMetadata(currentChangeset).then(ch => {
-            p.textContent = ch.tags["comment"]
+            p.textContent = shortOsmOrgLinksInText(ch.tags["comment"] ?? "")
         })
 
         interVersionDiv.appendChild(makeVersionUl(currentTimestamp, currentUser, currentChangeset))
@@ -8865,15 +8865,19 @@ function setupRelationVersionView() {
         downloadAllVersionsBtn.tabIndex = 0
         downloadAllVersionsBtn.textContent = "⏬"
         downloadAllVersionsBtn.style.cursor = "pointer"
-        downloadAllVersionsBtn.title = "Download all versions (with intermediate versions)"
+        downloadAllVersionsBtn.title = "Download all versions" // + " (with intermediate versions)"
 
         const clickHandler = async e => {
-            await unrollPaginationInHistory()
             downloadAllVersionsBtn.style.cursor = "progress"
+            for (const i of Array.from(document.querySelectorAll(`.relation-version-view:not([hidden])`)).slice(0, -1)) {
+                await loadRelationVersion(i)
+            }
+            await unrollPaginationInHistory()
             for (const i of document.querySelectorAll(`.relation-version-view:not([hidden])`)) {
                 await loadRelationVersion(i)
             }
             if (isDebug() && GM_config.get("FullVersionsDiff")) {
+                downloadAllVersionsBtn.textContent += " downloading intermediate versions..."
                 console.time("full history")
                 addQuickLookStyles()
                 // await showFullRelationHistory(parseInt(relationID))
