@@ -345,10 +345,7 @@ let overpass_server = MAIN_OVERPASS_INSTANCE
  * }} externalURL
  */
 
-/**
- *
- * @type {externalURL[]}
- */
+/** @type {externalURL[]} */
 const instancesOf3DViewers = [
     {
         name: "OSM Building Viewer",
@@ -429,19 +426,58 @@ const waymarkedtrailsLink = {
 const publicTransportNetworkAnalysisLink = {
     name: "Public Transport Network Analysis",
     url: "https://ptna.openstreetmap.de/relation.php",
-    makeURL: function ({ id}) {
+    makeURL: function ({ id }) {
         return `${this.url}?id=${id}`
     },
 }
-//
-// /** @type {externalURL} */
-// const relatifyLink = {
-//     name: "OSM Relatify",
-//     url: "https://relatify.monicz.dev/",
-//     makeURL: function ({ id }) {
-//         return `${this.url}?load=1&relation=${id}`
-//     },
-// }
+
+/** @type {externalURL} */
+const mapkiLink = {
+    name: "Mapki history viewer",
+    url: "https://osm.mapki.com/history",
+    makeURL: function ({ type, id }) {
+        return `${this.url}/${type}/${id}`
+    },
+}
+
+/** @type {externalURL} */
+const pewuLink = {
+    name: "Pewu history viewer",
+    url: "https://pewu.github.io/osm-history/#",
+    makeURL: function ({ type, id }) {
+        return `${this.url}/${type}/${id}`
+    },
+}
+
+/** @type {externalURL} */
+const osmlabDeepHistoryLink = {
+    name: "Osmlab deep history",
+    url: "https://osmlab.github.io/osm-deep-history/#",
+    makeURL: function ({ type, id }) {
+        return `${this.url}/${type}/${id}`
+    },
+}
+
+/** @type {externalURL} */
+const relationAnalizerLink = {
+    name: "OSM Relation Analyzer",
+    url: "https://ra.osmsurround.org/analyzeRelation",
+    makeURL: function ({ id }) {
+        return `${this.url}?relationId=${id}`
+    },
+}
+
+/** @type {externalURL[]} */
+const instancesOfRelationViewers = [mapkiLink, pewuLink, relationAnalizerLink, osmlabDeepHistoryLink]
+
+/** @type {externalURL} */
+const relatifyLink = {
+    name: "OSM Relatify",
+    url: "https://relatify.monicz.dev/",
+    makeURL: function ({ id }) {
+        return `${this.url}?load=1&relation=${id}`
+    },
+}
 
 /** @type {unsafeWindow & windowOSM} **/
 const boWindowObject = typeof window.wrappedJSObject !== "undefined" ? window.wrappedJSObject : unsafeWindow
@@ -5062,7 +5098,9 @@ function blurSearchField() {
         // Sometimes it still doesn't help
         ;[50, 100, 250, 500].forEach(ms => {
             setTimeout(() => {
-                document.activeElement?.blur()
+                if (document.activeElement?.nodeName === "INPUT") {
+                    document.activeElement?.blur()
+                }
             }, ms)
         })
     }
@@ -5480,6 +5518,14 @@ const externalLinkSvg =
     '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>' +
     '</svg>'
 
+// prettier-ignore
+const pencilLinkSvg =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" ' +
+    'stroke-linejoin="round" class="lucide lucide-pencil-icon lucide-pencil">' +
+    '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>' +
+    '<path d="m15 5 4 4"/>' +
+    '</svg>'
+
 // example https://osm.org/node/6506618057
 function makeLinksInVersionTagsClickable() {
     document.querySelectorAll(".browse-tag-list tr").forEach(row => {
@@ -5710,7 +5756,7 @@ function makeLinksInVersionTagsClickable() {
             relationViewer.rel = "noreferrer"
 
             document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(relationViewer)
-        } else if ((key === "route" /*|| key === "route_master"*/) && ["bus", "trolleybus", "minibus", "share_taxi", /*"train",*/ "light_rail", "subway", "tram", "ferry"].includes(valueCell.textContent)) {
+        } else if (key === "route" /*|| key === "route_master"*/ && ["bus", "trolleybus", "minibus", "share_taxi", /*"train",*/ "light_rail", "subway", "tram", "ferry"].includes(valueCell.textContent)) {
             if (document.querySelector(".route-viewer-link")) {
                 return
             }
@@ -5726,15 +5772,28 @@ function makeLinksInVersionTagsClickable() {
             relationViewer.innerHTML = externalLinkSvg
             relationViewer.classList.add("route-viewer-link")
             relationViewer.style.cursor = "pointer"
-            relationViewer.style.paddingLeft = "5px"
-            relationViewer.style.paddingRight = "10px"
-            relationViewer.title = `Open ptna.openstreetmap.de/relation.php`
+            relationViewer.style.paddingLeft = "8px"
+            relationViewer.style.paddingRight = "5px"
+            relationViewer.title = `Open ptna.openstreetmap.de`
 
             relationViewer.href = publicTransportNetworkAnalysisLink.makeURL({ id })
             relationViewer.target = "_blank"
             relationViewer.rel = "noreferrer"
 
+            const relationEditor = document.createElement("a")
+            relationEditor.innerHTML = pencilLinkSvg
+            relationEditor.classList.add("route-viewer-link")
+            relationEditor.style.cursor = "pointer"
+            relationEditor.style.paddingLeft = "5px"
+            relationEditor.style.paddingRight = "5px"
+            relationEditor.title = `Edit with relatify.monicz.dev`
+
+            relationEditor.href = relatifyLink.makeURL({ id })
+            relationEditor.target = "_blank"
+            relationEditor.rel = "noreferrer"
+
             document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(relationViewer)
+            document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(relationEditor)
         } else if (key === "ref:belpost") {
             if (!valueCell.querySelector("a")) {
                 makeRefBelpostValue(valueCell)
@@ -6558,7 +6617,7 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
     console.debug("Loading way", wayID, version)
     const wayHistory = await getWayHistory(wayID)
 
-    const targetVersion = wayHistory.find(v => v.version === version) ?? await loadHiddenWayVersionViaOverpass(wayID, version)
+    const targetVersion = wayHistory.find(v => v.version === version) ?? (await loadHiddenWayVersionViaOverpass(wayID, version))
     if (!targetVersion) {
         throw `loadWayVersionNodes failed ${wayID}, ${version}`
     }
@@ -10108,9 +10167,15 @@ function addDiffInHistory(reason = "url_change") {
     setupRelationVersionView()
     expandWikidata()
     addCopyCoordinatesButtons()
+    addRelationHistoryViewer()
     monitorHistoryPaginationMoving()
     if (isRelation) {
-        const maxVersion = parseInt(document.querySelector("#element_versions_list h4 a").getAttribute("href").match(/\/relation\/[0-9]+\/history\/([0-9]+)/)[1])
+        const maxVersion = parseInt(
+            document
+                .querySelector("#element_versions_list h4 a")
+                .getAttribute("href")
+                .match(/\/relation\/[0-9]+\/history\/([0-9]+)/)[1],
+        )
         if (maxVersion < 500) {
             historyPaginationClick()
         }
@@ -10868,10 +10933,12 @@ function expandWikidata() {
 }
 
 function makeContextMenuElem(e) {
+    const x = e.pageX ? e.pageX : e.target.getBoundingClientRect().right
+    const y = e.pageY ? e.pageY : e.target.getBoundingClientRect().bottom
     const menu = document.createElement("div")
     menu.classList.add("betterOsmContextMenu")
-    menu.style.left = `${e.pageX - 30}px`
-    menu.style.top = `${e.pageY}px`
+    menu.style.left = `${max(5, x - 30)}px`
+    menu.style.top = `${y}px`
     return menu
 }
 
@@ -11013,6 +11080,89 @@ function addCopyCoordinatesButtons() {
     // } catch (e) {
     //     console.error(e)
     // }
+}
+
+function addRelationHistoryViewer() {
+    if (!location.pathname.match(/\/relation\/[0-9]+\/history\/?$/)) {
+        return
+    }
+    if (document.querySelector(".relation-viewer-link")) {
+        return
+    }
+    const id = parseInt(location.pathname.match(/\/relation\/(\d+)/)[1])
+    const type = "relation"
+    injectCSSIntoOSMPage(contextMenuCSS)
+    const viewInExternal = document.createElement("a")
+    viewInExternal.classList.add("relation-viewer-link")
+    viewInExternal.innerHTML = externalLinkSvg
+    viewInExternal.style.cursor = "pointer"
+    viewInExternal.style.position = "relative"
+    viewInExternal.style.top = "-2px"
+    viewInExternal.style.paddingLeft = "5px"
+    viewInExternal.title = "Click for open external relation viewer.\nOr use key O"
+    viewInExternal.querySelector("svg").tabIndex = 0
+
+    async function contextMenuHandler(e) {
+        const relationViewer = (await GM.getValue("relationHistoryViewer")) ?? mapkiLink.name
+        e.preventDefault()
+        e.stopPropagation()
+        e.stopImmediatePropagation()
+
+        const menu = makeContextMenuElem(e)
+        instancesOfRelationViewers.forEach(i => {
+            const listItem = document.createElement("div")
+            const a = document.createElement("a")
+            const [x, y, z] = getCurrentXYZ()
+            a.href = i.makeURL({ x, y, z, type, id })
+            a.textContent = i.name
+            a.target = "_blank"
+            a.classList.add("relation-viewer-a")
+
+            const pin = document.createElement("input")
+            pin.id = i.name
+            pin.type = "radio"
+            pin.classList.add("pin")
+            pin.setAttribute("name", "viewer-selector")
+            const pinLabel = document.createElement("label")
+            pinLabel.setAttribute("for", i.name)
+            pinLabel.classList.add("pin-label")
+            pinLabel.textContent = "📌"
+            pinLabel.title = "Set as default for click"
+            if (i.name === relationViewer) {
+                pin.checked = true
+                pinLabel.title = "It's default viewer"
+            }
+            pin.onchange = async () => {
+                if (pin.checked) {
+                    await GM.setValue("relationHistoryViewer", i.name)
+                }
+            }
+            listItem.appendChild(pin)
+            listItem.appendChild(pinLabel)
+            listItem.appendChild(a)
+            document.addEventListener(
+                "click",
+                function fn(e) {
+                    if (e.target.classList.contains("pin-label") || e.target.classList.contains("pin")) {
+                        document.addEventListener("click", fn, { once: true })
+                        return
+                    }
+                    menu.remove()
+                },
+                { once: true },
+            )
+            menu.appendChild(listItem)
+        })
+        document.body.appendChild(menu)
+        if (e.type === "keypress" || (e.type === "click" && !e.isTrusted)) {
+            menu.querySelector("input:checked ~ a").focus()
+        }
+    }
+
+    viewInExternal.addEventListener("click", contextMenuHandler)
+    viewInExternal.addEventListener("keypress", contextMenuHandler)
+    viewInExternal.addEventListener("contextmenu", contextMenuHandler)
+    document.querySelector("#sidebar_content h2").appendChild(viewInExternal)
 }
 
 function makeVersionPageBetter() {
@@ -18164,7 +18314,7 @@ function setupNavigationViaHotkeys() {
         if (["TEXTAREA", "INPUT", "SELECT"].includes(document.activeElement?.nodeName) && document.activeElement?.getAttribute("type") !== "checkbox") {
             return
         }
-        if (document.activeElement.getAttribute("contenteditable")) {
+        if (document.activeElement?.getAttribute("contenteditable")) {
             return
         }
         // prettier-ignore
@@ -18176,6 +18326,19 @@ function setupNavigationViaHotkeys() {
         if (["TR"].includes(document.activeElement?.nodeName)
             && document.activeElement?.parentElement?.parentElement?.hasAttribute("contenteditable")) {
             return
+        }
+        if (document.activeElement?.classList?.contains("relation-viewer-a")) {
+            if (e.code === "ArrowDown" || e.code === "ArrowUp") {
+                e.preventDefault()
+                e.stopPropagation()
+                e.stopImmediatePropagation()
+                if (e.code === "ArrowDown") {
+                    e.target.parentElement.nextElementSibling?.querySelector("a")?.focus()
+                } else if (e.code === "ArrowUp") {
+                    e.target.parentElement.previousElementSibling?.querySelector("a")?.focus()
+                }
+                return
+            }
         }
         if (measuring) {
             if ((e.ctrlKey || e.metaKey) && e.code === "KeyZ") {
@@ -18608,7 +18771,12 @@ function setupNavigationViaHotkeys() {
                 if (usernameMatch) {
                     window.open(makeOsmchaLinkForUsername(decodeURI(usernameMatch[1])))
                 } else {
-                    document.querySelector("#osmcha_link")?.click()
+                    const osmchaLink = document.querySelector("#osmcha_link")
+                    if (osmchaLink) {
+                        osmchaLink?.click()
+                    } else {
+                        document.querySelector(".relation-viewer-link")?.click()
+                    }
                 }
             }
         } else if (e.code === "Escape") {
