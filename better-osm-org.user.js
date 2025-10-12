@@ -1,8 +1,10 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.2.1
-// @changelog       v1.2.1: Linkify Node/Way/Relation on tag page in taginfo, link to ptna.openstreetmap.de for route=*
+// @version         1.3.0
+// @changelog       v1.3.0: Mapki, Pewu, Relation Analizer, Osmlab links on relation history, keyO for open links list
+// @changelog       v1.3.0: link to ptna.openstreetmap.de and OSM Relatify editor for Public Transpot routes
+// @changelog       v1.3.0: Linkify Node/Way/Relation on tag page in taginfo,
 // @changelog       v1.2.0: Colorblind-friendly palette in settings
 // @changelog       v1.2.0: Osmcha review tags, links to waymarkedtrails.org for type=route, alt + E to click Edits tags
 // @changelog       v1.2.0: notes word also check comments text, filter by notes comments count and anon authors
@@ -40,7 +42,7 @@
 // @changelog       New: Comments templates, support ways render in relation members list
 // @changelog       New: Q for close sidebar, shift + Z for real bbox of changeset
 // @changelog       New: displaying the full history of ways (You can disable it in settings)
-// @changelog       https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670/112
+// @changelog       https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670/181
 // @description     Several improvements for advanced users of openstreetmap.org
 // @description:ru  Скрипт, добавляющий на openstreetmap.org полезные картографам функции
 // @author       deevroman
@@ -1975,6 +1977,10 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             document.addEventListener(
                 "click",
                 function fn(e) {
+                    if (!e.isTrusted) {
+                        document.addEventListener("click", fn, { once: true })
+                        return
+                    }
                     if (
                         // prettier-ignore
                         e.target.classList.contains("review-label")
@@ -5092,7 +5098,9 @@ function blurSearchField() {
     if (document.querySelector("#sidebar #query") && !document.querySelector("#sidebar #query").getAttribute("blured")) {
         document.querySelector("#sidebar #query").setAttribute("blured", "true")
         document.querySelector("#sidebar #query").removeAttribute("autofocus")
-        document.activeElement?.blur()
+        if (document.activeElement?.nodeName === "INPUT") {
+            document.activeElement?.blur()
+        }
         // dirty hack. If your one multiple tabs focus would reseted only on active tab
         // In the case of Safari, this is generally a necessity.
         // Sometimes it still doesn't help
@@ -5670,6 +5678,10 @@ function makeLinksInVersionTagsClickable() {
                     document.addEventListener(
                         "click",
                         function fn(e) {
+                            if (!e.isTrusted) {
+                                document.addEventListener("click", fn, { once: true })
+                                return
+                            }
                             if (e.target.classList.contains("pin-label") || e.target.classList.contains("pin")) {
                                 document.addEventListener("click", fn, { once: true })
                                 return
@@ -9698,9 +9710,11 @@ function addDiffInHistory(reason = "url_change") {
     document.querySelectorAll("#element_versions_list > div").forEach(i => i.classList.add("browse-section"))
     cleanAllObjects()
     hideSearchForm()
-    // в хроме фокус не выставляется
-    document.querySelector("#sidebar").focus({ focusVisible: false }) // focusVisible работает только в Firefox
-    document.querySelector("#sidebar").blur()
+    if (document.activeElement?.nodeName !== "A" && document.activeElement?.nodeName !== "SVG") {
+        // в хроме фокус не выставляется
+        document.querySelector("#sidebar").focus({ focusVisible: false }) // focusVisible работает только в Firefox
+        document.querySelector("#sidebar").blur()
+    }
 
     if (!document.querySelector(".compact-toggle-btn")) {
         const compactToggle = document.createElement("button")
@@ -11044,6 +11058,10 @@ function addCopyCoordinatesButtons() {
                 document.addEventListener(
                     "click",
                     function fn(e) {
+                        if (!e.isTrusted) {
+                            document.addEventListener("click", fn, { once: true })
+                            return
+                        }
                         if (e.target.classList.contains("pin-label") || e.target.classList.contains("pin")) {
                             document.addEventListener("click", fn, { once: true })
                             return
@@ -11103,10 +11121,10 @@ function addRelationHistoryViewer() {
     viewInExternal.querySelector("svg").tabIndex = 0
 
     async function contextMenuHandler(e) {
-        const relationViewer = (await GM.getValue("relationHistoryViewer")) ?? mapkiLink.name
         e.preventDefault()
         e.stopPropagation()
         e.stopImmediatePropagation()
+        const relationViewer = (await GM.getValue("relationHistoryViewer")) ?? mapkiLink.name
 
         const menu = makeContextMenuElem(e)
         instancesOfRelationViewers.forEach(i => {
@@ -11143,6 +11161,10 @@ function addRelationHistoryViewer() {
             document.addEventListener(
                 "click",
                 function fn(e) {
+                    if (!e.isTrusted) {
+                        document.addEventListener("click", fn, { once: true })
+                        return
+                    }
                     if (e.target.classList.contains("pin-label") || e.target.classList.contains("pin")) {
                         document.addEventListener("click", fn, { once: true })
                         return
@@ -19354,9 +19376,11 @@ out geom;
             i.prepend(document.createTextNode("\xA0"))
             i.prepend(overpassLink)
         })
-    } else if (location.hash === "#overview" || document.querySelector(".overview-container")) {
+    } else if (location.pathname.includes("/tags/") && document.querySelector(".overview-container")) {
         // overpass links for tag by OSM type
-        const keyValue = escapeTaginfoString(document.querySelector("h1").textContent)
+        const rawKeyValue = escapeTaginfoString(document.querySelector("h1").textContent)
+        const [key, ...tail] = rawKeyValue.split("=")
+        const keyValue = `${key}="${tail.join("=")}"`
         document.querySelectorAll("#grid-overview .dt-body[data-col='0']").forEach(i => {
             if (i.querySelector(".overpass-link")) return
             const icon = i.querySelector("img")
