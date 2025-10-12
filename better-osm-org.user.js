@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.3.0
+// @version         1.3.1
 // @changelog       v1.3.0: Mapki, Pewu, Relation Analizer, Osmlab links on relation history, keyO for open links list
 // @changelog       v1.3.0: link to ptna.openstreetmap.de and OSM Relatify editor for Public Transpot routes
 // @changelog       v1.3.0: Linkify Node/Way/Relation on tag page in taginfo,
