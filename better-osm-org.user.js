@@ -2003,7 +2003,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
 }
 
 const osmchaSvgLogo =
-    '<svg id="osmcha_link" viewBox="2.5 2.5 13 13" xmlns="http://www.w3.org/2000/svg">' +
+    '<svg viewBox="2.5 2.5 13 13" xmlns="http://www.w3.org/2000/svg">' +
     '<path d="M2.5 2.5l1 4-1 2 1 3-1 3h1l4-4c-.6-.8-1-1.9-1-3 0-1.9 1.1-3.5 2.6-4.4l-.6-.6-3 1-3-1zM15 11c-.9.9-2.2 1.5-3.5 1.5-1.1 0-2.2-.4-3-1l-4 4h2l2-1 2 1 4-1 1-3-.5-.5z"></path>' +
     '<path d="M15 7.5c0 1.9-1.6 3.5-3.5 3.5S8 9.4 8 7.5 9.6 4 11.5 4 15 5.6 15 7.5"></path></svg>'
 
@@ -2019,7 +2019,7 @@ function addRevertButton() {
         // prettier-ignore
         sidebar.innerHTML +=
             ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="${reverterTitle}">↩️</a>
-              <a href="https://osmcha.org/changesets/${changeset_id}" target="_blank" rel="noreferrer">${osmchaSvgLogo}</a>`
+              <a href="https://osmcha.org/changesets/${changeset_id}" id="osmcha_link" target="_blank" rel="noreferrer">${osmchaSvgLogo}</a>`
         changesetObjectsSelectionModeEnabled = false
         document.querySelector("#revert_button_class").onclick = async e => {
             if (changesetObjectsSelectionModeEnabled) {
@@ -2100,7 +2100,7 @@ function addRevertButton() {
             window.location = "http://127.0.0.1:8111/revert_changeset?id=" + changeset_id // todo open in new tab. It's broken in Firefox and open new window
         }
         document.querySelector("#revert_button_class").style.textDecoration = "none"
-        const osmcha_link = document.querySelector("#osmcha_link")
+        const osmcha_link = document.querySelector("#osmcha_link svg")
         osmcha_link.style.height = "1em"
         osmcha_link.style.cursor = "pointer"
         osmcha_link.style.marginTop = "-3px"
