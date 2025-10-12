@@ -3,7 +3,7 @@
 // @name:ru         Better osm.org
 // @version         1.3.1
 // @changelog       v1.3.0: Mapki, Pewu, Relation Analizer, Osmlab links on relation history, keyO for open links list
-// @changelog       v1.3.0: link to ptna.openstreetmap.de and OSM Relatify editor for Public Transpot routes
+// @changelog       v1.3.0: link to ptna.openstreetmap.de and OSM Relatify editor for Public Transport routes
 // @changelog       v1.3.0: Linkify Node/Way/Relation on tag page in taginfo,
 // @changelog       v1.2.0: Colorblind-friendly palette in settings
 // @changelog       v1.2.0: Osmcha review tags, links to waymarkedtrails.org for type=route, alt + E to click Edits tags
@@ -10931,7 +10931,7 @@ function makeHeaderPartsClickable() {
 
 function expandWikidata() {
     const links = Array.from(document.querySelectorAll(".wdt-preview:not([disabled])"))
-    // fuck Bootstrap. When page contains many HTML elemenets, him querySelector iterates over all elements
+    // fuck Bootstrap. When page contains many HTML elements, him querySelector iterates over all elements
     // This is especially noticeable on the relationship pages.
     if (links.length > 50) {
         return
