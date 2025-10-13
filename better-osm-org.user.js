@@ -863,7 +863,7 @@ GM_config.init({
             labelPos: "right",
         },
         NewEditorsLinks: {
-            label: "Add new editors (Rapid, ... ?)",
+            label: "Add new editors into Edit menu",
             type: "checkbox",
             default: "checked",
             labelPos: "right",
@@ -14667,7 +14667,6 @@ function setupChangesetQuickLook(path) {
     void addChangesetQuickLook()
 }
 
-const rapidLink = "https://mapwith.ai/rapid#poweruser=true&map="
 let coordinatesObserver = null
 
 function setupNewEditorsLinks() {
@@ -14690,7 +14689,7 @@ function setupNewEditorsLinks() {
         const lat = match[2]
         const lon = match[3]
         {
-            // Rapid
+            const rapidLink = "https://mapwith.ai/rapid#poweruser=true&map="
             let newElem
             if (firstRun) {
                 newElem = editorsList.querySelector("li").cloneNode(true)
@@ -14700,6 +14699,27 @@ function setupNewEditorsLinks() {
                 newElem = document.querySelector(".rapid_btn")
             }
             const actualHref = `${rapidLink}${zoom}/${lat}/${lon}`
+            if (newElem.querySelector("a").href !== actualHref) {
+                newElem.querySelector("a").href = actualHref
+            }
+            if (firstRun) {
+                editorsList.appendChild(newElem)
+            }
+        }
+        {
+            // https://osmpie.org/app/?pos=30.434481&pos=59.933311&zoom=18.91
+            const osmpieLink = "https://osmpie.org/app/"
+            let newElem
+            if (firstRun) {
+                newElem = editorsList.querySelector("li").cloneNode(true)
+                newElem.classList.add("custom_editors", "osmpie_btn")
+                newElem.querySelector("a").textContent = "Edit with OSM Perfect Intersection Editor"
+                newElem.querySelector("a").setAttribute("target", "_blank")
+                newElem.title = "OSM Perfect Intersection Editor"
+            } else {
+                newElem = document.querySelector(".osmpie_btn")
+            }
+            const actualHref = `${osmpieLink}?pos=${lon}&pos=${lat}&zoom=${parseInt(zoom)}`
             if (newElem.querySelector("a").href !== actualHref) {
                 newElem.querySelector("a").href = actualHref
             }
