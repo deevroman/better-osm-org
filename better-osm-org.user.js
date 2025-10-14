@@ -14684,7 +14684,7 @@ function setupNewEditorsLinks() {
     }
     try {
         coordinatesObserver?.disconnect()
-        if (!curURL.includes("edit?editor=id#") || !match) {
+        if (!curURL.includes("edit?editor=id") || !match) {
             return
         }
         const zoom = match[1]
