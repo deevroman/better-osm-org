@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.3.2
+// @version         1.3.3
 // @changelog       v1.3.2: Add OSM Perfect Intersection Editor into Edit menu, add statistics on the proposal voting
 // @changelog       v1.3.0: Mapki, Pewu, Relation Analizer, Osmlab links on relation history, keyO for open links list
 // @changelog       v1.3.0: link to ptna.openstreetmap.de and OSM Relatify editor for Public Transport routes
@@ -10033,7 +10033,7 @@ function addDiffInHistory(reason = "url_change") {
                 if (childNodes.length !== olderMembers.length || childNodes.some((el, index) => olderMembers[index] !== childNodes[index])) {
                     ver.querySelector("details:not(.empty-version) > summary")?.classList.add("history-diff-modified-tag")
                     wasModifiedObject = true
-                } else {
+                } else if (!wasModifiedObject) {
                     oldToNewHtmlVersions[verInd] = convertVersionIntoSpoiler(ver)
                 }
             }
