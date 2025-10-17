@@ -20824,7 +20824,7 @@ function setupOSMWebsite() {
     }
     setTimeout(() => {
         if (GM_config.get("CompactChangesetsHistory")) {
-            document.querySelector('.nav-link[href^="/history"]').addEventListener(
+            document.querySelector('.nav-link[href^="/history"]')?.addEventListener(
                 "click",
                 () => {
                     addCompactSidebarStyle()
