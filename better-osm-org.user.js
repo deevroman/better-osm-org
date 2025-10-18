@@ -17437,6 +17437,10 @@ const mapPositionsHistory = []
 const mapPositionsNextHistory = []
 
 function runPositionTracker() {
+    if (isMobile) {
+        console.log("skip position tracker on mobile device")
+        return
+    }
     if (!getMap || !getMap()?.getBounds) {
         console.error("Please, reload page, if something doesn't work")
     }
