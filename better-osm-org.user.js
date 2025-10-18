@@ -190,7 +190,7 @@ if (location.search.includes("&kek")) {
     throw "better-osm-org disable via url param"
 }
 
-if (["Userscripts", "Greasemonkey", "Firemonkey"].includes(GM_info.scriptHandler)) {
+if (["Userscripts", "Greasemonkey", "Firemonkey", "OrangeMonkey"].includes(GM_info.scriptHandler)) {
     console.error("YOU ARE USING AN UNSUPPORTED SCRIPT MANAGER")
 }
 
@@ -202,7 +202,7 @@ if (isSafari) {
     console.error("YOU ARE USING AN UNSUPPORTED BROWSER")
 }
 
-if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Greasemonkey") {
+if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Greasemonkey" || GM_info.scriptHandler === "OrangeMonkey") {
     if (typeof GM_getResourceURL === "undefined") {
         const resources = {}
         setTimeout(async () => {
@@ -250,6 +250,12 @@ if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Grease
                 parent.appendChild(elem)
             }
             return elem
+        }
+    }
+
+    if (typeof exportFunction === "undefined") {
+        window.exportFunction = function (fn) {
+            return fn
         }
     }
 }
