@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.3.3
+// @version         1.3.4
 // @changelog       v1.3.2: Add OSM Perfect Intersection Editor into Edit menu, add statistics on the proposal voting
 // @changelog       v1.3.0: Mapki, Pewu, Relation Analizer, Osmlab links on relation history, keyO for open links list
 // @changelog       v1.3.0: link to ptna.openstreetmap.de and OSM Relatify editor for Public Transport routes
@@ -190,7 +190,7 @@ if (location.search.includes("&kek")) {
     throw "better-osm-org disable via url param"
 }
 
-if (["Userscripts", "Greasemonkey", "Firemonkey"].includes(GM_info.scriptHandler)) {
+if (["Userscripts", "Greasemonkey", "Firemonkey", "OrangeMonkey"].includes(GM_info.scriptHandler)) {
     console.error("YOU ARE USING AN UNSUPPORTED SCRIPT MANAGER")
 }
 
@@ -202,7 +202,7 @@ if (isSafari) {
     console.error("YOU ARE USING AN UNSUPPORTED BROWSER")
 }
 
-if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Greasemonkey") {
+if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Greasemonkey" || GM_info.scriptHandler === "OrangeMonkey") {
     if (typeof GM_getResourceURL === "undefined") {
         const resources = {}
         setTimeout(async () => {
@@ -250,6 +250,12 @@ if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Grease
                 parent.appendChild(elem)
             }
             return elem
+        }
+    }
+
+    if (typeof exportFunction === "undefined") {
+        window.exportFunction = function (fn) {
+            return fn
         }
     }
 }
@@ -17437,6 +17443,10 @@ const mapPositionsHistory = []
 const mapPositionsNextHistory = []
 
 function runPositionTracker() {
+    if (isMobile) {
+        console.log("skip position tracker on mobile device")
+        return
+    }
     if (!getMap || !getMap()?.getBounds) {
         console.error("Please, reload page, if something doesn't work")
     }
@@ -20423,13 +20433,13 @@ async function setupDragAndDropViewers() {
                             lon = parseFloat(lon) * -1
                         }
 
-                        const marker = getWindow().L.marker(
+                        const marker = getWindow().L.circleMarker(
                             getWindow().L.latLng(lat, lon),
-                            intoPage({
-                                maxWidth: mapWidth,
-                                maxHeight: mapHeight,
-                                className: "map-img-preview-popup",
-                            }),
+                            // intoPage({
+                            //     maxWidth: mapWidth,
+                            //     maxHeight: mapHeight,
+                            //     className: "map-img-preview-popup",
+                            // }),
                         )
                         const img = document.createElement("img")
                         img.classList.add("geotagged-img")
@@ -20824,7 +20834,7 @@ function setupOSMWebsite() {
     }
     setTimeout(() => {
         if (GM_config.get("CompactChangesetsHistory")) {
-            document.querySelector('.nav-link[href^="/history"]').addEventListener(
+            document.querySelector('.nav-link[href^="/history"]')?.addEventListener(
                 "click",
                 () => {
                     addCompactSidebarStyle()
