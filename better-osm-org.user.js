@@ -20433,13 +20433,13 @@ async function setupDragAndDropViewers() {
                             lon = parseFloat(lon) * -1
                         }
 
-                        const marker = getWindow().L.marker(
+                        const marker = getWindow().L.circleMarker(
                             getWindow().L.latLng(lat, lon),
-                            intoPage({
-                                maxWidth: mapWidth,
-                                maxHeight: mapHeight,
-                                className: "map-img-preview-popup",
-                            }),
+                            // intoPage({
+                            //     maxWidth: mapWidth,
+                            //     maxHeight: mapHeight,
+                            //     className: "map-img-preview-popup",
+                            // }),
                         )
                         const img = document.createElement("img")
                         img.classList.add("geotagged-img")
