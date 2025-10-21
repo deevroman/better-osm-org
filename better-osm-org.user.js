@@ -1294,7 +1294,7 @@ async function _fetchRetry(fetchImpl, ...args) {
             const res = await fetchImpl(...args)
             if (res.status === 509 || res.status === 429 || res.status === 504) {
                 console.warn(`HTTP ${res.status}. Waiting before retry`)
-                if (res.headers.get("retry-after")) {
+                if (res.headers?.get("retry-after")) {
                     await abortableSleep((parseInt(res.headers.get("retry-after")) + 1) * 1000, getAbortController())
                 } else {
                     if (res.status === 504) {
