@@ -13617,6 +13617,87 @@ async function processQuickLookInSidebar(changesetID) {
     const interceptMapManuallyPromise = interceptMapManually()
     const multipleChangesets = location.search.includes("changesets=")
 
+    function addCompactModeToggles(objType, uniqTypes) {
+        const compactToggle = document.createElement("button")
+        compactToggle.title = "Toggle between full and compact tags diff.\nYou can also use the T key."
+        compactToggle.textContent = allTagsOfObjectsVisible ? "><" : "<>"
+        compactToggle.classList.add("quick-look-compact-toggle-btn")
+        compactToggle.classList.add("btn", "btn-sm", "btn-primary")
+        compactToggle.classList.add("quick-look")
+        compactToggle.onclick = e => {
+            const needHideNodes = location.search.includes("changesets=")
+            const state = e.target.textContent === "><"
+            document.querySelectorAll(".quick-look-compact-toggle-btn").forEach(i => {
+                if (state) {
+                    i.textContent = "<>"
+                } else {
+                    i.textContent = "><"
+                }
+            })
+            allTagsOfObjectsVisible = !allTagsOfObjectsVisible
+            const shouldBeHidden = e.target.textContent === "<>"
+            document.querySelectorAll("table.quick-look").forEach(el => {
+                el.classList.toggle("hide-non-modified-tags", shouldBeHidden)
+            })
+            if (needHideNodes) {
+                if (e.target.textContent === "<>") {
+                    document.querySelectorAll("#changeset_nodes .tags-non-modified:not(.location-modified)").forEach(i => {
+                        i.setAttribute("hidden", "true")
+                    })
+                    document.querySelectorAll("#changeset_nodes").forEach(i => {
+                        if (!i.querySelector("li:not([hidden])")) {
+                            i.setAttribute("hidden", "true")
+                        }
+                    })
+                } else {
+                    document.querySelectorAll("#changeset_nodes .tags-non-modified:not(.location-modified)").forEach(i => {
+                        i.removeAttribute("hidden")
+                    })
+                    document.querySelectorAll("#changeset_nodes").forEach(i => {
+                        i.removeAttribute("hidden")
+                    })
+                }
+            }
+            if (e.target.textContent === "><") {
+                if (!e.altKey) {
+                    document.querySelectorAll(".preview-img-link img").forEach(i => {
+                        i.style.display = ""
+                    })
+                }
+            } else {
+                if (!e.altKey) {
+                    document.querySelectorAll(".preview-img-link img").forEach(i => {
+                        i.style.display = "none"
+                    })
+                }
+            }
+        }
+        const objectListSection = document.querySelector(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li`).parentElement.parentElement.querySelector("h4")
+        if (!objectListSection.querySelector(".quick-look-compact-toggle-btn")) {
+            objectListSection.appendChild(compactToggle)
+        }
+        compactToggle.before(document.createTextNode("\xA0"))
+        if (uniqTypes === 1 && document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li .non-modified-tag-in-quick-view`).length < 5) {
+            compactToggle.style.display = "none"
+            document.querySelectorAll(".non-modified-tag-in-quick-view").forEach(i => {
+                i.removeAttribute("hidden")
+            })
+        }
+        if (multipleChangesets && compactToggle.style.display !== "none") {
+            document.querySelectorAll(`[changeset-id="${changesetID}"]`).forEach(changeset => {
+                const forHide = document.querySelectorAll(`[changeset-id="${changeset.getAttribute("changeset-id")}"]#changeset_nodes .tags-non-modified:not(.location-modified)`)
+                forHide.forEach(i => {
+                    i.setAttribute("hidden", "true")
+                })
+                document.querySelectorAll(`[changeset-id="${changeset.getAttribute("changeset-id")}"]#changeset_nodes`).forEach(i => {
+                    if (!i.querySelector("li:not([hidden])")) {
+                        i.setAttribute("hidden", "true")
+                    }
+                })
+            })
+        }
+    }
+
     /**
      * Загружает историю объектов и показывает дифф тегов. Не использует Overpass API
      * @param {"node"|"way"|"relation"} objType
@@ -13711,86 +13792,7 @@ async function processQuickLookInSidebar(changesetID) {
             })
         }
 
-        //<editor-fold desc="setup compact mode toggles">
-        const compactToggle = document.createElement("button")
-        compactToggle.title = "Toggle between full and compact tags diff.\nYou can also use the T key."
-        compactToggle.textContent = allTagsOfObjectsVisible ? "><" : "<>"
-        compactToggle.classList.add("quick-look-compact-toggle-btn")
-        compactToggle.classList.add("btn", "btn-sm", "btn-primary")
-        compactToggle.classList.add("quick-look")
-        compactToggle.onclick = e => {
-            const needHideNodes = location.search.includes("changesets=")
-            const state = e.target.textContent === "><"
-            document.querySelectorAll(".quick-look-compact-toggle-btn").forEach(i => {
-                if (state) {
-                    i.textContent = "<>"
-                } else {
-                    i.textContent = "><"
-                }
-            })
-            allTagsOfObjectsVisible = !allTagsOfObjectsVisible
-            const shouldBeHidden = e.target.textContent === "<>"
-            document.querySelectorAll("table.quick-look").forEach(el => {
-                el.classList.toggle("hide-non-modified-tags", shouldBeHidden)
-            })
-            if (needHideNodes) {
-                if (e.target.textContent === "<>") {
-                    document.querySelectorAll("#changeset_nodes .tags-non-modified:not(.location-modified)").forEach(i => {
-                        i.setAttribute("hidden", "true")
-                    })
-                    document.querySelectorAll("#changeset_nodes").forEach(i => {
-                        if (!i.querySelector("li:not([hidden])")) {
-                            i.setAttribute("hidden", "true")
-                        }
-                    })
-                } else {
-                    document.querySelectorAll("#changeset_nodes .tags-non-modified:not(.location-modified)").forEach(i => {
-                        i.removeAttribute("hidden")
-                    })
-                    document.querySelectorAll("#changeset_nodes").forEach(i => {
-                        i.removeAttribute("hidden")
-                    })
-                }
-            }
-            if (e.target.textContent === "><") {
-                if (!e.altKey) {
-                    document.querySelectorAll(".preview-img-link img").forEach(i => {
-                        i.style.display = ""
-                    })
-                }
-            } else {
-                if (!e.altKey) {
-                    document.querySelectorAll(".preview-img-link img").forEach(i => {
-                        i.style.display = "none"
-                    })
-                }
-            }
-        }
-        const objectListSection = document.querySelector(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li`).parentElement.parentElement.querySelector("h4")
-        if (!objectListSection.querySelector(".quick-look-compact-toggle-btn")) {
-            objectListSection.appendChild(compactToggle)
-        }
-        compactToggle.before(document.createTextNode("\xA0"))
-        if (uniqTypes === 1 && document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li .non-modified-tag-in-quick-view`).length < 5) {
-            compactToggle.style.display = "none"
-            document.querySelectorAll(".non-modified-tag-in-quick-view").forEach(i => {
-                i.removeAttribute("hidden")
-            })
-        }
-        if (multipleChangesets && compactToggle.style.display !== "none") {
-            document.querySelectorAll(`[changeset-id="${changesetID}"]`).forEach(changeset => {
-                const forHide = document.querySelectorAll(`[changeset-id="${changeset.getAttribute("changeset-id")}"]#changeset_nodes .tags-non-modified:not(.location-modified)`)
-                forHide.forEach(i => {
-                    i.setAttribute("hidden", "true")
-                })
-                document.querySelectorAll(`[changeset-id="${changeset.getAttribute("changeset-id")}"]#changeset_nodes`).forEach(i => {
-                    if (!i.querySelector("li:not([hidden])")) {
-                        i.setAttribute("hidden", "true")
-                    }
-                })
-            })
-        }
-        //</editor-fold>
+        addCompactModeToggles(objType, uniqTypes)
     }
 
     try {
