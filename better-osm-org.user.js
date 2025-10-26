@@ -6586,7 +6586,7 @@ async function tryToRichObjHistory(apiHistory, objType, id) {
         mergedHistory.push(v)
     })
 
-    const oldVersions = Array.from(await downloadVersionsOfObjectWithRedactionBefore2012(objType, id)).map(convertXmlVersionToObject)
+    const oldVersions = Array.from(await downloadVersionsOfObjectWithRedactionBefore2012(objType, id) ?? []).map(convertXmlVersionToObject)
     // .visible can be missed
     oldVersions.forEach(v => {
         if (versionNumbers.has(v.version)) {
