@@ -4213,7 +4213,9 @@ async function bypassChromeCSPForImagesSrc(imgElem, url, isStrava = true) {
             if (!needStravaAuth) {
                 needStravaAuth = true
                 alert("Need login in Strava for access to heatmap")
-                window.open("https://www.strava.com/maps/global-heatmap", "_blank")
+                const [x, y, z] = getCurrentXYZ()
+                const hash = `#${z}/${x}/${y}`
+                window.open("https://www.strava.com/maps/global-heatmap" + hash, "_blank")
             }
             return
         }
