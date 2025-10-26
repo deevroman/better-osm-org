@@ -6559,7 +6559,8 @@ async function getNodeHistory(nodeID) {
     } else {
         const res = await fetchRetry(osm_server.apiBase + "node" + "/" + nodeID + "/history.json", { signal: getAbortController().signal })
         const apiHistory = (await res.json()).elements
-        if (!apiHistory.every(n => n.visible === false)) {
+        // todo it's dirty
+        if (apiHistory[0].version === 1 && !apiHistory.every(n => n.visible === false)) {
             return (nodesHistories[nodeID] = apiHistory)
         }
         return (nodesHistories[nodeID] = await tryToRichObjHistory(apiHistory, "node", nodeID))
@@ -6626,7 +6627,8 @@ async function getWayHistory(wayID) {
     } else {
         const res = await fetchRetry(osm_server.apiBase + "way" + "/" + wayID + "/history.json", { signal: getAbortController().signal })
         const apiHistory = (await res.json()).elements
-        if (!apiHistory.every(w => w.visible === false)) {
+        // todo it's dirty
+        if (apiHistory[0].version === 1 && !apiHistory.every(w => w.visible === false)) {
             return (waysHistories[wayID] = apiHistory)
         }
         return (waysHistories[wayID] = await tryToRichObjHistory(apiHistory, "way", wayID))
@@ -6634,6 +6636,10 @@ async function getWayHistory(wayID) {
 }
 
 async function loadHiddenWayVersionViaOverpass(wayID, version) {
+    if (osm_server !== prod_server) {
+        console.warn("Overpass works only for main OSM server")
+        return
+    }
     if (parseInt(version) < 1) {
         return
     }
@@ -9070,6 +9076,10 @@ function setupRelationVersionView() {
  * @return {Promise<NodeListOf<Element>|undefined>}
  */
 async function downloadVersionsOfObjectWithRedactionBefore2012(type, objID) {
+    if (osm_server !== prod_server) {
+        console.warn("Redaction bypass only for main OSM server")
+        return
+    }
     console.debug(`downloadVersionsOfObjectWithRedactionBefore2012 ${type} ${objID}`)
     let id_prefix = objID
     if (type === "node") {
@@ -12000,6 +12010,9 @@ async function getWayNodesByTimestamp(targetTimestamp, wayID) {
     if (targetVersion === null) {
         return
     }
+    if (targetVersion.visible === false) {
+        return [targetVersion, currentNodesList]
+    }
     const [, wayNodesHistories] = await loadWayVersionNodes(wayID, targetVersion.version)
     const targetNodes = filterObjectListByTimestamp(wayNodesHistories, targetTimestamp)
 
@@ -12013,8 +12026,7 @@ async function getWayNodesByTimestamp(targetTimestamp, wayID) {
         if (node in nodesMap) {
             currentNodesList.push(nodesMap[node])
         } else {
-            console.error(wayID, node)
-            console.trace()
+            console.error("not found target nodes", wayID, node)
         }
     })
     return [targetVersion, currentNodesList]
@@ -12980,6 +12992,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
         }
     }
 
+    // old changeset with redactions https://osm.org/changeset/10934800
     async function processWay() {
         i.id = `${changesetID}w${objID}`
 
@@ -13006,21 +13019,20 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
         }
 
         const [, wayNodesHistories] = await loadWayVersionNodes(objID, version)
-        const targetNodes = filterObjectListByTimestamp(wayNodesHistories, targetVersion.timestamp) // fixme what if changeset was long opened anf nodes changed after way?
-
-        const nodesMap = {}
-        targetNodes.forEach(elem => {
-            if (!elem) {
-                console.error(targetNodes, objID, targetVersion)
-            }
-            if (!elem.lon) {
-                console.error(elem, targetNodes, objID, targetVersion)
-            }
-            nodesMap[elem.id] = [elem.lat, elem.lon]
-        })
 
         const currentNodesList = []
         if (targetVersion.visible !== false) {
+            const targetNodes = filterObjectListByTimestamp(wayNodesHistories, targetVersion.timestamp) // fixme what if changeset was long opened anf nodes changed after way?
+            const nodesMap = {}
+            targetNodes.forEach(elem => {
+                if (!elem) {
+                    console.error(targetNodes, objID, targetVersion)
+                }
+                if (!elem.lon) {
+                    console.error(elem, targetNodes, objID, targetVersion)
+                }
+                nodesMap[elem.id] = [elem.lat, elem.lon]
+            })
             targetVersion.nodes?.forEach(node => {
                 if (node in nodesMap) {
                     currentNodesList.push(nodesMap[node])
