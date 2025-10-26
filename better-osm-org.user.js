@@ -5006,7 +5006,7 @@ out geom;
 `
         console.log(overpassQuery)
 
-        console.time("download overpass data")
+        console.time("download overpass data " + query)
         const res = await externalFetchRetry({
             // todo switcher
             url:
@@ -5017,7 +5017,7 @@ out geom;
                 }),
             responseType: "xml",
         })
-        console.timeEnd("download overpass data")
+        console.timeEnd("download overpass data " + query)
 
         const xml = new DOMParser().parseFromString(res.response, "text/xml")
         const data_age = new Date(xml.querySelector("meta").getAttribute("osm_base"))
@@ -6520,7 +6520,7 @@ function setupNodeVersionView() {
         }
     })
     interceptMapManually().then(() => {
-        displayWay(cloneInto(nodeHistoryPath, unsafeWindow), false, "rgba(251,156,112,0.86)", 2)
+        displayWay(nodeHistoryPath, false, "rgba(251,156,112,0.86)", 2)
     })
     document.querySelectorAll("#element_versions_list > div h4:nth-of-type(1):not(:has(.relation-version-view)) a:nth-of-type(1)").forEach(i => {
         const version = i.href.match(/\/(\d+)$/)[1]
@@ -6536,15 +6536,7 @@ async function loadNodesViaHistoryCalls(nodes) {
     async function _do(nodes) {
         const targetNodesHistory = []
         for (const nodeID of nodes) {
-            if (nodesHistories[nodeID]) {
-                targetNodesHistory.push(nodesHistories[nodeID])
-            } else {
-                const res = await fetchRetry(osm_server.apiBase + "node" + "/" + nodeID + "/history.json", {
-                    signal: getAbortController().signal,
-                })
-                nodesHistories[nodeID] = (await res.json()).elements
-                targetNodesHistory.push(nodesHistories[nodeID])
-            }
+            targetNodesHistory.push(await getNodeHistory(nodeID))
         }
         return targetNodesHistory
     }
@@ -6563,18 +6555,53 @@ async function loadNodesViaHistoryCalls(nodes) {
  */
 async function getNodeHistory(nodeID) {
     if (nodesHistories[nodeID]) {
-        // console.count("Node history hit")
         return nodesHistories[nodeID]
     } else {
-        // console.count("Node history miss")
         const res = await fetchRetry(osm_server.apiBase + "node" + "/" + nodeID + "/history.json", { signal: getAbortController().signal })
-        return (nodesHistories[nodeID] = (await res.json()).elements)
+        const apiHistory = (await res.json()).elements
+        if (!apiHistory.every(n => n.visible === false)) {
+            return (nodesHistories[nodeID] = apiHistory)
+        }
+        return (nodesHistories[nodeID] = await tryToRichObjHistory(apiHistory, "node", nodeID))
     }
 }
 
 /**
  * @typedef {WayVersion[]} WayHistory
  */
+
+/**
+ * @template T
+ * @param apiHistory T[]
+ * @param objType
+ * @param id {string|number}
+ * @return {Promise<T[]>}
+ */
+async function tryToRichObjHistory(apiHistory, objType, id) {
+    console.debug(`tryToRichObjHistory ${objType}, ${id}`)
+    const versionNumbers = new Set()
+    const mergedHistory = []
+    apiHistory.forEach(v => {
+        versionNumbers.add(v.version)
+        mergedHistory.push(v)
+    })
+
+    const oldVersions = Array.from(await downloadVersionsOfObjectWithRedactionBefore2012(objType, id)).map(convertXmlVersionToObject)
+    // .visible can be missed
+    oldVersions.forEach(v => {
+        if (versionNumbers.has(v.version)) {
+            return
+        }
+        versionNumbers.add(v.version)
+        mergedHistory.push(v)
+    })
+    mergedHistory.sort((a, b) => {
+        if (a.version < b.version) return -1
+        if (a.version > b.version) return 1
+        return 0
+    })
+    return mergedHistory
+}
 
 /**
  * @typedef {Object} WayVersion
@@ -6598,11 +6625,18 @@ async function getWayHistory(wayID) {
         return waysHistories[wayID]
     } else {
         const res = await fetchRetry(osm_server.apiBase + "way" + "/" + wayID + "/history.json", { signal: getAbortController().signal })
-        return (waysHistories[wayID] = (await res.json()).elements)
+        const apiHistory = (await res.json()).elements
+        if (!apiHistory.every(w => w.visible === false)) {
+            return (waysHistories[wayID] = apiHistory)
+        }
+        return (waysHistories[wayID] = await tryToRichObjHistory(apiHistory, "way", wayID))
     }
 }
 
 async function loadHiddenWayVersionViaOverpass(wayID, version) {
+    if (parseInt(version) < 1) {
+        return
+    }
     const query = `
 [out:json];
 timeline(way, ${wayID}, ${version});
@@ -6615,7 +6649,8 @@ for (t["created"])
   }
 }
 `
-    console.time("download overpass data")
+    console.time(`download overpass data for way ${wayID} v${version}`)
+    await globalRateLimitByKey("overpass", 500)
     const res = await externalFetchRetry({
         url:
             overpass_server.apiUrl +
@@ -6625,8 +6660,61 @@ for (t["created"])
             }),
         responseType: "json",
     })
-    console.timeEnd("download overpass data")
+    console.timeEnd(`download overpass data for way ${wayID} v${version}`)
+    if (!res.response.elements[0]) {
+        console.log("version not found via overpass. There may be a version created before 2012")
+    }
     return res.response.elements[0]
+}
+
+function convertXmlVersionToObject(xmlVersion) {
+    /** @type {NodeVersion|WayVersion|RelationVersion} */
+    const resultObj = {
+        id: parseInt(xmlVersion.getAttribute("id")),
+        changeset: parseInt(xmlVersion.getAttribute("changeset")),
+        uid: parseInt(xmlVersion.getAttribute("uid")),
+        user: xmlVersion.getAttribute("user"),
+        version: parseInt(xmlVersion.getAttribute("version")),
+        timestamp: xmlVersion.getAttribute("timestamp"),
+        type: xmlVersion.nodeName,
+    }
+    const tagsInXml = Array.from(xmlVersion.querySelectorAll("tag"))
+    const tags = Object.fromEntries(
+        tagsInXml.map(tag => {
+            const k = tag.getAttribute("k")
+            const v = tag.getAttribute("v")
+            return [k, v]
+        }),
+    )
+    if (tagsInXml.length) {
+        resultObj.tags = tags
+    }
+    const nodes = Array.from(xmlVersion.querySelectorAll("nd")).map(i => i.getAttribute("ref"))
+    if (nodes.length) {
+        resultObj.nodes = nodes
+    }
+    if (xmlVersion.getAttribute("visible") === "false") {
+        resultObj.visible = false
+    }
+    if (xmlVersion.getAttribute("lat") !== null) {
+        resultObj.lat = parseFloat(xmlVersion.getAttribute("lat"))
+        resultObj.lon = parseFloat(xmlVersion.getAttribute("lon"))
+    }
+    return resultObj
+}
+
+/**
+ * @param wayID {number|string}
+ * @param version {number|string}
+ * @return {Promise<WayVersion>|undefined}
+ */
+async function loadHiddenWayVersionViaGithub(wayID, version) {
+    if (parseInt(version) < 1) {
+        return
+    }
+    const data = await downloadVersionsOfObjectWithRedactionBefore2012("way", wayID)
+    const xmlVersion = Array.from(data).find(i => parseInt(i.getAttribute("version")) === parseInt(version))
+    return convertXmlVersionToObject(xmlVersion)
 }
 
 /**
@@ -6636,10 +6724,13 @@ for (t["created"])
  * @return {Promise<[WayVersion, NodeHistory[]]>}
  */
 async function loadWayVersionNodes(wayID, version, changesetID = null) {
+    if (parseInt(version) < 1) {
+        throw `invalid version for loadWayVersionNodes failed ${wayID}. Version: ${version}`
+    }
     console.debug("Loading way", wayID, version)
     const wayHistory = await getWayHistory(wayID)
 
-    const targetVersion = wayHistory.find(v => v.version === version) ?? (await loadHiddenWayVersionViaOverpass(wayID, version))
+    const targetVersion = wayHistory.find(v => v.version === version) ?? (await loadHiddenWayVersionViaOverpass(wayID, version)) ?? (await loadHiddenWayVersionViaGithub(wayID, version))
     if (!targetVersion) {
         throw `loadWayVersionNodes failed ${wayID}, ${version}`
     }
@@ -7120,7 +7211,7 @@ async function replaceDownloadWayButton(btn, wayID) {
         interVersionDiv.onmouseenter = () => {
             resetMapHover()
             cleanAllObjects()
-            showWay(cloneInto(currentNodes, unsafeWindow), "#000000", false, darkModeForMap && isDarkMode())
+            showWay(currentNodes, "#000000", false, darkModeForMap && isDarkMode())
             currentNodes.forEach(node => {
                 if (node.tags && Object.keys(node.tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
                     showNodeMarker(node.lat.toString(), node.lon.toString(), "rgb(161,161,161)", null, "customObjects", 3)
@@ -7906,10 +7997,10 @@ function renderRestriction(rel, color, layer) {
         // const {lat: p2_lat, lon: p2_lon} = endPoint
         // const rotated1 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, -angle, len)
         // const rotated2 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, angle, len)
-        // arrows.push(displayWay(cloneInto([startPoint, rotated1], unsafeWindow), false, "white", 7, null, layer))
-        // arrows.push(displayWay(cloneInto([startPoint, rotated2], unsafeWindow), false, "white", 7, null, layer))
-        // arrows.push(displayWay(cloneInto([startPoint, rotated1], unsafeWindow), false, color, 4, null, layer))
-        // arrows.push(displayWay(cloneInto([startPoint, rotated2], unsafeWindow), false, color, 4, null, layer))
+        // arrows.push(displayWay([startPoint, rotated1], false, "white", 7, null, layer))
+        // arrows.push(displayWay([startPoint, rotated2], false, "white", 7, null, layer))
+        // arrows.push(displayWay([startPoint, rotated1], false, color, 4, null, layer))
+        // arrows.push(displayWay([startPoint, rotated2], false, color, 4, null, layer))
     })
     to.forEach(t => {
         let startPoint = t.geometry[0]
@@ -7930,10 +8021,10 @@ function renderRestriction(rel, color, layer) {
         const rotated1 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, -angle, len)
         const rotated2 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, angle, len)
         if (restrictionValue === "no_exit" || restrictionValue === "no_entry") {
-            arrows.push(displayWay(cloneInto([startPoint, rotated1], unsafeWindow), false, "white", 7, null, layer))
-            arrows.push(displayWay(cloneInto([startPoint, rotated2], unsafeWindow), false, "white", 7, null, layer))
-            arrows.push(displayWay(cloneInto([startPoint, rotated1], unsafeWindow), false, color, 4, null, layer))
-            arrows.push(displayWay(cloneInto([startPoint, rotated2], unsafeWindow), false, color, 4, null, layer))
+            arrows.push(displayWay([startPoint, rotated1], false, "white", 7, null, layer))
+            arrows.push(displayWay([startPoint, rotated2], false, "white", 7, null, layer))
+            arrows.push(displayWay([startPoint, rotated1], false, color, 4, null, layer))
+            arrows.push(displayWay([startPoint, rotated2], false, color, 4, null, layer))
         }
     })
     ;[100, 250, 500, 1000].forEach(t => {
@@ -8233,7 +8324,7 @@ async function loadRelationVersionMembers(relationID, version) {
 
     const targetVersion = relationHistory.filter(v => v.version === version)[0]
     if (!targetVersion) {
-        throw `loadWayVersionNodes failed ${relationID}, ${version}`
+        throw `loadRelationVersionMembers failed ${relationID}, ${version}`
     }
 
     /**
@@ -8846,7 +8937,7 @@ function setupRelationVersionView() {
                         const { lat: lat, lon: lon } = searchVersionByTimestamp(n, targetVersion.timestamp)
                         return [lat, lon]
                     })
-                    displayWay(cloneInto(nodesList, unsafeWindow), false, "#000000", 4, null, "customObjects", null, null, darkModeForMap && isDarkMode())
+                    displayWay(nodesList, false, "#000000", 4, null, "customObjects", null, null, darkModeForMap && isDarkMode())
                 } catch {
                     hasBrokenMembers = true
                     // TODO highlight in member list
@@ -8973,6 +9064,44 @@ function setupRelationVersionView() {
     }
 }
 
+/**
+ * @param objID {number|string}
+ * @param type {'node'|'way'|'relation'}
+ * @return {Promise<NodeListOf<Element>|undefined>}
+ */
+async function downloadVersionsOfObjectWithRedactionBefore2012(type, objID) {
+    console.debug(`downloadVersionsOfObjectWithRedactionBefore2012 ${type} ${objID}`)
+    let id_prefix = objID
+    if (type === "node") {
+        id_prefix = Math.floor(id_prefix / 10000)
+    } else if (type === "way") {
+        id_prefix = Math.floor(id_prefix / 1000)
+    } else if (type === "relation") {
+        id_prefix = Math.floor(id_prefix / 10)
+    }
+
+    async function downloadArchiveData(url, objID, needUnzip = false) {
+        try {
+            const diffGZ = await externalFetchRetry({
+                method: "GET",
+                url: url,
+                responseType: "blob",
+            })
+            const blob = needUnzip ? await decompressBlob(diffGZ.response) : diffGZ.response
+            const diffXML = await blob.text()
+
+            const doc = new DOMParser().parseFromString(diffXML, "application/xml")
+            return doc.querySelectorAll(`osm [id='${objID}']`) // todo add type
+        } catch {
+            return
+        }
+    }
+
+    const urlPrefix = "https://raw.githubusercontent.com/osm-cc-by-sa/data/refs/heads/main/versions_affected_by_disagreed_users_and_all_after_with_redaction_period"
+    const url = `${urlPrefix}/${type}/${id_prefix}.osm` + (type === "relation" ? ".gz" : "")
+    return await downloadArchiveData(url, objID, type === "relation")
+}
+
 // tests
 // https://www.openstreetmap.org/relation/100742/history
 // todo https://www.openstreetmap.org/way/217858945/history
@@ -9000,35 +9129,7 @@ function setupViewRedactions() {
         showUnredactedBtn.style.cursor = "progress"
         const type = location.pathname.match(/\/(node|way|relation)/)[1]
         const objID = parseInt(location.pathname.match(/\/(node|way|relation)\/(\d+)/)[2])
-        let id_prefix = objID
-        if (type === "node") {
-            id_prefix = Math.floor(id_prefix / 10000)
-        } else if (type === "way") {
-            id_prefix = Math.floor(id_prefix / 1000)
-        } else if (type === "relation") {
-            id_prefix = Math.floor(id_prefix / 10)
-        }
-
-        async function downloadArchiveData(url, objID, needUnzip = false) {
-            try {
-                const diffGZ = await externalFetchRetry({
-                    method: "GET",
-                    url: url,
-                    responseType: "blob",
-                })
-                const blob = needUnzip ? await decompressBlob(diffGZ.response) : diffGZ.response
-                const diffXML = await blob.text()
-
-                const doc = new DOMParser().parseFromString(diffXML, "application/xml")
-                return doc.querySelectorAll(`osm [id='${objID}']`)
-            } catch {
-                return null
-            }
-        }
-
-        const urlPrefix = "https://raw.githubusercontent.com/osm-cc-by-sa/data/refs/heads/main/versions_affected_by_disagreed_users_and_all_after_with_redaction_period"
-        const url = `${urlPrefix}/${type}/${id_prefix}.osm` + (type === "relation" ? ".gz" : "")
-        const data = await downloadArchiveData(url, objID, type === "relation")
+        const data = await downloadVersionsOfObjectWithRedactionBefore2012(type, objID)
 
         const keysLinks = new Map()
         document.querySelectorAll("#element_versions_list > div table th a").forEach(a => {
@@ -12909,6 +13010,12 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
 
         const nodesMap = {}
         targetNodes.forEach(elem => {
+            if (!elem) {
+                console.error(targetNodes, objID, targetVersion)
+            }
+            if (!elem.lon) {
+                console.error(elem, targetNodes, objID, targetVersion)
+            }
             nodesMap[elem.id] = [elem.lat, elem.lon]
         })
 
@@ -12918,8 +13025,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 if (node in nodesMap) {
                     currentNodesList.push(nodesMap[node])
                 } else {
-                    console.error(objID, node)
-                    console.trace()
+                    console.error("not found target nodes", objID, node)
                 }
             })
         }
@@ -12964,10 +13070,10 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 const closedTime = new Date(changesetMetadata.closed_at ?? new Date()).toISOString()
                 const nodesAfterChangeset = filterObjectListByTimestamp(nodesHistory, closedTime)
                 if (nodesAfterChangeset.some(i => i.visible === false)) {
-                    displayWay(cloneInto(nodesList, unsafeWindow), false, c("#ff0000", ".deleted-way-geom"), 3, changesetID + "w" + objID, "customObjects", dashArray)
+                    displayWay(nodesList, false, c("#ff0000", ".deleted-way-geom"), 3, changesetID + "w" + objID, "customObjects", dashArray)
                 } else {
                     // скорее всего это объединение линий, поэтому это удаление линии нужно отправить на задний план
-                    const layer = displayWay(cloneInto(nodesList, unsafeWindow), false, c("#ff0000", ".deleted-way-geom"), 7, changesetID + "w" + objID, "customObjects", dashArray)
+                    const layer = displayWay(nodesList, false, c("#ff0000", ".deleted-way-geom"), 7, changesetID + "w" + objID, "customObjects", dashArray)
                     layer.bringToBack()
                     lineWidth = 8
                 }
@@ -12975,11 +13081,11 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 console.error(`broken way: ${objID}`, nodesList) // todo retry
             }
         } else if (version === 1 && targetVersion.changeset === parseInt(changesetID)) {
-            displayWay(cloneInto(currentNodesList, unsafeWindow), false, c("rgba(0, 128, 0, 0.6)"), lineWidth, changesetID + "w" + objID, "customObjects", dashArray)
+            displayWay(currentNodesList, false, c("rgba(0, 128, 0, 0.6)"), lineWidth, changesetID + "w" + objID, "customObjects", dashArray)
         } else if (prevVersion?.visible === false) {
-            displayWay(cloneInto(currentNodesList, unsafeWindow), false, c("rgba(120, 238, 9, 0.6)"), lineWidth, changesetID + "w" + objID, "customObjects", dashArray)
+            displayWay(currentNodesList, false, c("rgba(120, 238, 9, 0.6)"), lineWidth, changesetID + "w" + objID, "customObjects", dashArray)
         } else {
-            displayWay(cloneInto(currentNodesList, unsafeWindow), false, nowDeleted ? "rgb(0,0,0)" : "#373737", lineWidth, changesetID + "w" + objID, "customObjects", null, null, darkModeForMap && isDarkMode())
+            displayWay(currentNodesList, false, nowDeleted ? "rgb(0,0,0)" : "#373737", lineWidth, changesetID + "w" + objID, "customObjects", null, null, darkModeForMap && isDarkMode())
         }
 
         async function mouseenterHandler() {
@@ -13192,11 +13298,13 @@ async function getHistoryAndVersionByElem(elem) {
     if (histories[objType][objID]) {
         return [histories[objType][objID], parseInt(version)]
     }
-    const res = await fetchRetry(osm_server.apiBase + objType + "/" + objID + "/history.json", { signal: getAbortController().signal })
-    if (!res.ok) {
-        console.trace(objType, objID, version)
+    if (objType === "node") {
+        return [await getNodeHistory(objID), parseInt(version)]
+    } else if (objType === "way") {
+        return [await getWayHistory(objID), parseInt(version)]
+    } else if (objType === "relation") {
+        return [await getRelationHistory(objID), parseInt(version)]
     }
-    return [(histories[objType][objID] = (await res.json()).elements), parseInt(version)]
 }
 
 /**
@@ -17310,7 +17418,7 @@ async function loadNodeMetadata() {
         return
     }
     const node_id = parseInt(match[1])
-    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "node" + "/" + node_id + ".json", res => {
+    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "node" + "/" + node_id + ".json", {}, res => {
         if (res.status === 410) {
             console.warn(`node ${node_id} was deleted`)
         } else {
@@ -17338,7 +17446,7 @@ async function loadWayMetadata(way_id = null) {
         way_id = parseInt(match[1])
     }
     /*** @type {{elements: (NodeVersion|WayVersion)[]}|undefined}*/
-    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "way" + "/" + way_id + "/full.json", res => {
+    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "way" + "/" + way_id + "/full.json", {}, res => {
         if (res.status === 410) {
             console.warn(`way ${way_id} was deleted`)
         } else {
@@ -17382,7 +17490,7 @@ async function loadRelationMetadata(relation_id = null) {
         }
         relation_id = parseInt(match[1])
     }
-    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "relation" + "/" + relation_id + "/full.json", res => {
+    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "relation" + "/" + relation_id + "/full.json", {}, res => {
         if (res.status === 410) {
             console.warn(`relation ${relation_id} was deleted`)
         } else {
@@ -19492,7 +19600,7 @@ function displayGPXTrack(xml) {
             trackMetadata.max_lat = max(trackMetadata.max_lat, lat)
             trackMetadata.max_lon = max(trackMetadata.max_lon, lon)
         })
-        displayWay(cloneInto(nodesList, unsafeWindow), false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML)
+        displayWay(nodesList, false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML)
     })
     doc.querySelectorAll("gpx wpt").forEach(wpt => {
         const lat = wpt.getAttribute("lat")
@@ -19578,7 +19686,7 @@ function displayKMLTrack(xml) {
                     trackMetadata.max_lon = max(trackMetadata.max_lon, lon)
                 })
         })
-        displayWay(cloneInto(nodesList, unsafeWindow), false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML)
+        displayWay(nodesList, false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML)
     })
     doc.querySelectorAll("Document Placemark:has(LinearRing)").forEach(trk => {
         const nodesList = []
@@ -19598,7 +19706,7 @@ function displayKMLTrack(xml) {
                     trackMetadata.max_lon = max(trackMetadata.max_lon, lon)
                 })
         })
-        displayWay(cloneInto(nodesList, unsafeWindow), false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML)
+        displayWay(nodesList, false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML)
     })
     doc.querySelectorAll("Document Placemark:has(Point)").forEach(pointXml => {
         const [lon, lat] = pointXml.querySelector("coordinates").firstChild.textContent.trim().split(",").map(parseFloat).slice(0, 2)
