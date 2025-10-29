@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.3.4
+// @version         1.3.5
 // @changelog       v1.3.2: Add OSM Perfect Intersection Editor into Edit menu, add statistics on the proposal voting
 // @changelog       v1.3.0: Mapki, Pewu, Relation Analizer, Osmlab links on relation history, keyO for open links list
 // @changelog       v1.3.0: link to ptna.openstreetmap.de and OSM Relatify editor for Public Transport routes
@@ -139,6 +139,7 @@
 // @resource     DARK_THEME_FOR_ID_CSS https://gist.githubusercontent.com/deevroman/55f35da68ab1efb57b7ba4636bdf013d/raw/1e91d589ca8cb51c693a119424a45d9f773c265e/dark.css
 // @run-at       document-end
 // ==/UserScript==
+
 //<editor-fold desc="init" defaultstate="collapsed">
 /*global osmAuth*/
 /*global GM*/
