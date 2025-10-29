@@ -7922,8 +7922,8 @@ const restrictionColors = {
     no_entry:           "#ff0000",
     no_exit:            "#ff0000",
 }
-// TODO сделать ресурсами
-const restrictionsImagesPrefix = "https://raw.githubusercontent.com/deevroman/better-osm-org/8f4aca194ec701111005a5902fa9380879b811a3/icons/restrictions/"
+
+const restrictionsImagesPrefix = "https://raw.githubusercontent.com/deevroman/better-osm-org/ad552f9f3a3d7a11a1448686fc0ccc164905bf62/misc/asssets/icons/restrictions/"
 // prettier-ignore
 const restrictionsSignImages = {
     no_left_turn:       restrictionsImagesPrefix + "France_road_sign_B2a.svg",
