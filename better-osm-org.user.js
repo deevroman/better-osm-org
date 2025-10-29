@@ -7923,7 +7923,7 @@ const restrictionColors = {
     no_exit:            "#ff0000",
 }
 
-const restrictionsImagesPrefix = "https://raw.githubusercontent.com/deevroman/better-osm-org/ad552f9f3a3d7a11a1448686fc0ccc164905bf62/misc/asssets/icons/restrictions/"
+const restrictionsImagesPrefix = "https://raw.githubusercontent.com/deevroman/better-osm-org/ad552f9f3a3d7a11a1448686fc0ccc164905bf62/misc/assets/icons/restrictions/"
 // prettier-ignore
 const restrictionsSignImages = {
     no_left_turn:       restrictionsImagesPrefix + "France_road_sign_B2a.svg",
