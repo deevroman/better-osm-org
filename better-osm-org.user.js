@@ -11798,8 +11798,8 @@ let corporatesLinks = null
 /** @type {null | Map}*/
 let corporateMappers = null
 
-const corporationContributorsURL = "https://raw.githubusercontent.com/deevroman/openstreetmap-statistics/refs/heads/master/assets/organised_teams_contributors.json"
-const corporationContributorsSource = "https://github.com/deevroman/openstreetmap-statistics/blob/master/assets/organised_teams_contributors.json"
+const corporationContributorsURL = "https://raw.githubusercontent.com/deevroman/openstreetmap-statistics/refs/heads/master/config/organised_teams_contributors.json"
+const corporationContributorsSource = "https://github.com/deevroman/openstreetmap-statistics/blob/master/config/organised_teams_contributors.json"
 
 /**
  * @param {Object} raw_data
@@ -11807,18 +11807,9 @@ const corporationContributorsSource = "https://github.com/deevroman/openstreetma
 function makeCorporateMappersData(raw_data) {
     corporatesLinks = new Map()
     corporateMappers = new Map()
-    for (let [kontora, [link, mappers]] of Object.entries(raw_data)) {
-        corporatesLinks.set(kontora, link)
-        mappers.forEach(username => {
-            // https://github.com/piebro/openstreetmap-statistics/blob/53f9397a066c726b598eec6221a49d57583ddeac/src/save_corporation_contributors.py#L173-L179
-            // prettier-ignore
-            username = username
-                .replaceAll("%40%", "@")
-                .replaceAll("%40%", "%40")
-                .replaceAll("%21%", "!")
-                .replaceAll("%21%", "%21")
-                .replaceAll("%20%", " ")
-                .replaceAll("%20%", "%20")
+    for (let [kontora, {url, usernames}] of Object.entries(raw_data)) {
+        corporatesLinks.set(kontora, url)
+        usernames.forEach(username => {
             if (corporateMappers.has(username)) {
                 corporateMappers.get(username).push(kontora)
             } else {
