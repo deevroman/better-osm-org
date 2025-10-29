@@ -11807,7 +11807,7 @@ const corporationContributorsSource = "https://github.com/deevroman/openstreetma
 function makeCorporateMappersData(raw_data) {
     corporatesLinks = new Map()
     corporateMappers = new Map()
-    for (let [kontora, {url, usernames}] of Object.entries(raw_data)) {
+    for (let [kontora, { url, usernames }] of Object.entries(raw_data)) {
         corporatesLinks.set(kontora, url)
         usernames.forEach(username => {
             if (corporateMappers.has(username)) {
