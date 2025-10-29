@@ -1300,7 +1300,7 @@ async function _fetchRetry(fetchImpl, ...args) {
                     if (res.status === 504) {
                         await abortableSleep((10 + Math.random() * 10) * 1000, getAbortController())
                     } else {
-                        await abortableSleep((60 + Math.random() * 10) * 1000, getAbortController())
+                        await abortableSleep((30 + Math.random() * 10) * 1000, getAbortController())
                     }
                 }
                 count -= 1
@@ -6587,7 +6587,7 @@ async function tryToRichObjHistory(apiHistory, objType, id) {
         mergedHistory.push(v)
     })
 
-    const oldVersions = Array.from(await downloadVersionsOfObjectWithRedactionBefore2012(objType, id) ?? []).map(convertXmlVersionToObject)
+    const oldVersions = Array.from((await downloadVersionsOfObjectWithRedactionBefore2012(objType, id)) ?? []).map(convertXmlVersionToObject)
     // .visible can be missed
     oldVersions.forEach(v => {
         if (versionNumbers.has(v.version)) {
@@ -6674,6 +6674,9 @@ for (t["created"])
 }
 
 function convertXmlVersionToObject(xmlVersion) {
+    if (!xmlVersion) {
+        return
+    }
     /** @type {NodeVersion|WayVersion|RelationVersion} */
     const resultObj = {
         id: parseInt(xmlVersion.getAttribute("id")),
@@ -6695,7 +6698,7 @@ function convertXmlVersionToObject(xmlVersion) {
     if (tagsInXml.length) {
         resultObj.tags = tags
     }
-    const nodes = Array.from(xmlVersion.querySelectorAll("nd")).map(i => i.getAttribute("ref"))
+    const nodes = Array.from(xmlVersion.querySelectorAll("nd")).map(i => parseInt(i.getAttribute("ref")))
     if (nodes.length) {
         resultObj.nodes = nodes
     }
@@ -6705,6 +6708,16 @@ function convertXmlVersionToObject(xmlVersion) {
     if (xmlVersion.getAttribute("lat") !== null) {
         resultObj.lat = parseFloat(xmlVersion.getAttribute("lat"))
         resultObj.lon = parseFloat(xmlVersion.getAttribute("lon"))
+    }
+    const members = Array.from(xmlVersion.querySelectorAll("member")).map(i => {
+        return {
+            ref: i.getAttribute("ref"),
+            type: i.getAttribute("type"),
+            role: i.getAttribute("role"),
+        }
+    })
+    if (members.length) {
+        resultObj.members = members
     }
     return resultObj
 }
@@ -9014,7 +9027,6 @@ function setupRelationVersionView() {
         btn.textContent = "📥"
         btn.style.cursor = "pointer"
         btn.setAttribute("relation-version", version)
-
         btn.addEventListener(
             "mouseenter",
             async e => {
@@ -9026,7 +9038,12 @@ function setupRelationVersionView() {
                         }
                     }
                 })
-                await loadRelationVersion(e)
+                try {
+                    await loadRelationVersion(e)
+                } catch (e) {
+                    btn.textContent = ":("
+                    console.error(e)
+                }
             },
             {
                 once: true,
@@ -9112,8 +9129,277 @@ async function downloadVersionsOfObjectWithRedactionBefore2012(type, objID) {
     return await downloadArchiveData(url, objID, type === "relation")
 }
 
+async function downloadObjectTimeViaOverpass(type, objID) {
+    const query = `
+[out:json][timeout:25];
+timeline(${type}, ${objID});
+for (t["created"])
+{
+  retro (_.val)
+  {
+    ${type}(${objID});
+    out meta;
+  }
+}
+`
+    console.time(`download overpass history data for ${type} ${objID} via timeline`)
+    const res = await externalFetchRetry({
+        url:
+            overpass_server.apiUrl +
+            "/interpreter?" +
+            new URLSearchParams({
+                data: query,
+            }),
+        responseType: "json",
+    })
+    return res.response
+    console.timeEnd(`download overpass history data for ${type} ${objID} via timeline`)
+}
+
+/**
+ * @param showUnredactedBtn {HTMLAnchorElement}
+ * @return {Promise<void>}
+ */
+async function restoreObjectHistory(showUnredactedBtn) {
+    const m = location.pathname.match(/\/(node|way|relation)\/(\d+)/)
+    const type = m[1]
+    const objID = parseInt(m[2])
+    const data = await downloadVersionsOfObjectWithRedactionBefore2012(type, objID)
+
+    const keysLinks = new Map()
+    document.querySelectorAll("#element_versions_list > div table th a").forEach(a => {
+        keysLinks.set(a.textContent, a.href)
+    })
+    const valuesLinks = new Map()
+    document.querySelectorAll("#element_versions_list > div table td a").forEach(a => {
+        valuesLinks.set(a.textContent, a.href)
+    })
+
+    const versionPrefix = document
+        .querySelector("#element_versions_list > div h4")
+        ?.textContent?.match(/(^.*#)/gms)
+        ?.at(0)
+
+    const redactedVersions = Array.from(document.querySelectorAll('#element_versions_list > div:has(a[href*="/redactions/"]:not([rel]))'))
+
+    let versions
+    for (const elem of redactedVersions) {
+        elem.querySelector(':scope a[href*="/redactions/"]:not([rel])').classList.add("unredacted")
+        const version = elem.textContent.match(/(\d+).*(\d+)/)[1]
+        console.log(`Processing v${version}`)
+        elem.childNodes[0].textContent = elem.childNodes[0].textContent.match(/(\..*$)/gm)[0].slice(1)
+
+        /** @type {NodeVersion|WayVersion|RelationVersion} */
+        let target
+        try {
+            target = convertXmlVersionToObject(Array.from(data).find(i => i.getAttribute("version") === version))
+            if (!target) {
+                throw "need Overpass"
+            }
+        } catch {
+            if (!versions) {
+                versions = makeObjectVersionsIndex((await downloadObjectTimeViaOverpass(type, objID))?.elements ?? [])
+            }
+            if (versions[version]) {
+                target = versions[version]
+            }
+        }
+        if (!target) {
+            console.log(`Downloading v${version} via overpass`)
+            const prevDatetime = elem.previousElementSibling.querySelector("time").getAttribute(["datetime"])
+            const targetDatetime = new Date(new Date(prevDatetime).getTime() - 1).toISOString()
+            if (type === "node") {
+                target = convertXmlVersionToObject(await getNodeViaOverpassXML(objID, targetDatetime))
+            } else if (type === "way") {
+                target = convertXmlVersionToObject(await getWayViaOverpassXML(objID, targetDatetime))
+            } else if (type === "relation") {
+                target = convertXmlVersionToObject(await getRelationViaOverpassXML(objID, targetDatetime))
+            }
+            if (!target) {
+                console.error(`v${version} not founded`, objID, targetDatetime)
+                continue
+            }
+        }
+        const h4 = document.createElement("h4")
+        h4.textContent = versionPrefix ?? "#"
+        const versionLink = document.createElement("a")
+        versionLink.textContent = version
+        versionLink.href = `/${type}/${objID}/history/${version}`
+        h4.appendChild(versionLink)
+
+        const comment = document.createElement("p")
+        comment.classList.add("fs-6", "overflow-x-auto")
+        setTimeout(async () => {
+            const res = await fetchRetry(osm_server.apiBase + "changeset" + "/" + target["changeset"] + ".json")
+            const jsonRes = await res.json()
+            comment.textContent = jsonRes.tags?.comment
+        }, 0)
+
+        const metadataDiv = document.createElement("div")
+        metadataDiv.classList.add("mb-3")
+
+        const time = document.createElement("time")
+        time.setAttribute("datetime", target["timestamp"])
+        time.setAttribute("natural_text", target["timestamp"]) // it should server side string :(
+        time.setAttribute("title", target["timestamp"]) // it should server side string :(
+        time.textContent = new Date(target["timestamp"]).toISOString().slice(0, -5) + "Z"
+        metadataDiv.appendChild(time)
+        metadataDiv.appendChild(document.createTextNode(" "))
+
+        const user = document.createElement("a")
+        user.href = "/user/" + target["user"]
+        user.textContent = target["user"]
+        metadataDiv.appendChild(user)
+
+        const changesetSpan = document.createElement("span")
+        const changeset = document.createElement("a")
+        changeset.href = "/changeset/" + target["changeset"]
+        changeset.textContent = target["changeset"]
+        changesetSpan.appendChild(document.createTextNode(" #"))
+        changesetSpan.appendChild(changeset)
+        metadataDiv.appendChild(changesetSpan)
+
+        if (type === "node") {
+            const locationDiv = document.createElement("div")
+            metadataDiv.appendChild(locationDiv)
+
+            const locationA = document.createElement("a")
+            locationA.href = "/#map=18/" + target["lat"] + "/" + target["lon"]
+
+            const latSpan = document.createElement("span")
+            latSpan.classList.add("latitude")
+            latSpan.textContent = target["lat"]
+            locationA.appendChild(latSpan)
+            locationA.appendChild(document.createTextNode(", "))
+
+            const lonSpan = document.createElement("span")
+            lonSpan.classList.add("longitude")
+            lonSpan.textContent = target["lon"]
+            locationA.appendChild(lonSpan)
+
+            locationDiv.appendChild(locationA)
+        }
+
+        const tags = document.createElement("div")
+        tags.classList.add("mb-3", "border", "border-secondary-subtle", "rounded", "overflow-hidden")
+        const table = document.createElement("table")
+        table.classList.add("mb-0", "browse-tag-list", "table", "align-middle")
+        const tbody = document.createElement("tbody")
+        table.appendChild(tbody)
+
+        Object.entries(target["tags"]).forEach(([k, v]) => {
+            const tr = document.createElement("tr")
+
+            const th = document.createElement("th")
+            th.classList.add("py-1", "border-secondary-subtle", "table-secondary", "fw-normal", "history-diff-modified-key")
+            if (keysLinks.has(k)) {
+                const wikiLink = document.createElement("a")
+                wikiLink.textContent = k
+                wikiLink.href = keysLinks.get(k)
+                th.appendChild(wikiLink)
+            } else {
+                th.textContent = k
+            }
+
+            const td = document.createElement("td")
+            td.classList.add("py-1", "border-secondary-subtle", "border-start")
+            if (valuesLinks.has(v)) {
+                const wikiLink = document.createElement("a")
+                wikiLink.textContent = v
+                wikiLink.href = valuesLinks.get(v)
+                td.appendChild(wikiLink)
+            } else {
+                td.textContent = v
+            }
+
+            tr.appendChild(th)
+            tr.appendChild(td)
+            tbody.appendChild(tr)
+        })
+        tags.appendChild(table)
+        elem.prepend(h4)
+        elem.appendChild(comment)
+        elem.appendChild(metadataDiv)
+        elem.appendChild(tags)
+
+        if (type === "way") {
+            const nodesDetails = document.createElement("details")
+            const summary = document.createElement("summary")
+            summary.textContent = target["nodes"].length
+            nodesDetails.appendChild(summary)
+            const ulNodes = document.createElement("ul")
+            ulNodes.classList.add("list-unstyled")
+            target["nodes"]?.forEach(nodeID => {
+                const nodeLi = document.createElement("li")
+                const a = document.createElement("a")
+                a.classList.add("node")
+                a.href = "/node/" + nodeID
+                a.textContent = nodeID
+                nodeLi.appendChild(a)
+                ulNodes.appendChild(nodeLi)
+            })
+            nodesDetails.appendChild(ulNodes)
+            elem.appendChild(nodesDetails)
+        } else if (type === "relation") {
+            const members = Array.from(target["members"])?.map(i => {
+                return {
+                    ref: i["ref"],
+                    type: i["type"],
+                    role: i["role"],
+                }
+            })
+
+            const membersDetails = document.createElement("details")
+            const summary = document.createElement("summary")
+            summary.textContent = members.length
+            membersDetails.appendChild(summary)
+            const ulMembers = document.createElement("ul")
+            ulMembers.classList.add("list-unstyled")
+            members.forEach(i => {
+                const memberLi = document.createElement("li")
+                const a = document.createElement("a")
+                a.classList.add(type)
+                a.href = "/node/" + i.ref
+                a.textContent = i.ref
+                memberLi.appendChild(a)
+                a.before(document.createTextNode(i.type + " "))
+                a.after(document.createTextNode(" " + i.role))
+                ulMembers.appendChild(memberLi)
+            })
+            membersDetails.appendChild(ulMembers)
+            elem.appendChild(membersDetails)
+        }
+
+        elem.classList.remove("hidden-version")
+        // elem.classList.remove("browse-redacted")
+        elem.classList.add("browse-unredacted")
+        // elem.classList.add("browse-node")
+    }
+    showUnredactedBtn.remove()
+    Array.from(document.querySelectorAll("details.empty-version")).forEach(i => {
+        i.querySelector("summary")?.remove()
+        const div = document.createElement("div")
+        div.innerHTML = i.innerHTML
+        i.replaceWith(div)
+    })
+    const classesForClean = ["processed", "history-diff-new-tag", "history-diff-modified-tag", "non-modified-tag", "empty-version"]
+    classesForClean.forEach(className => {
+        Array.from(document.getElementsByClassName(className)).forEach(i => {
+            i.classList.remove(className)
+        })
+    })
+    const elementClassesForRemove = ["history-diff-deleted-tag-tr", "history-diff-modified-location", "find-user-btn", "way-version-view", "relation-version-view"]
+    elementClassesForRemove.forEach(elemClass => {
+        Array.from(document.getElementsByClassName(elemClass)).forEach(i => {
+            i.remove()
+        })
+    })
+}
+
 // tests
-// https://www.openstreetmap.org/relation/100742/history
+// https://osm.org/relation/100742/history
+// https://osm.org/way/823589563/history
+// https://osm.org/node/1920615841/history
 // todo https://www.openstreetmap.org/way/217858945/history
 function setupViewRedactions() {
     // TODO дозагрузку нужно делать только если есть аргументы в URL?
@@ -9128,7 +9414,7 @@ function setupViewRedactions() {
     showUnredactedBtn.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Просмотр неотредактированной истории β" : "View Unredacted History β"
     showUnredactedBtn.style.cursor = "pointer"
     showUnredactedBtn.href = ""
-    showUnredactedBtn.onmouseenter = async () => {
+    showUnredactedBtn.onmouseenter = () => {
         resetMapHover()
     }
     showUnredactedBtn.onclick = async e => {
@@ -9137,240 +9423,18 @@ function setupViewRedactions() {
         e.stopImmediatePropagation()
         await unrollPaginationInHistory()
         showUnredactedBtn.style.cursor = "progress"
-        const type = location.pathname.match(/\/(node|way|relation)/)[1]
-        const objID = parseInt(location.pathname.match(/\/(node|way|relation)\/(\d+)/)[2])
-        const data = await downloadVersionsOfObjectWithRedactionBefore2012(type, objID)
 
-        const keysLinks = new Map()
-        document.querySelectorAll("#element_versions_list > div table th a").forEach(a => {
-            keysLinks.set(a.textContent, a.href)
-        })
-        const valuesLinks = new Map()
-        document.querySelectorAll("#element_versions_list > div table td a").forEach(a => {
-            valuesLinks.set(a.textContent, a.href)
-        })
-
-        const versionPrefix = document
-            .querySelector("#element_versions_list > div h4")
-            ?.textContent?.match(/(^.*#)/gms)
-            ?.at(0)
-
-        for (const elem of Array.from(document.querySelectorAll('#element_versions_list > div:has(a[href*="/redactions/"]:not([rel]))'))) {
-            const version = elem.textContent.match(/(\d+).*(\d+)/)[1]
-            console.log(`Downloading v${version}`)
-            elem.childNodes[0].textContent = elem.childNodes[0].textContent.match(/(\..*$)/gm)[0].slice(1)
-            let target
-            try {
-                target = Array.from(data).find(i => i.getAttribute("version") === version)
-            } catch {
-                /* empty */
-            }
-            if (!target) {
-                const prevDatetime = elem.previousElementSibling.querySelector("time").getAttribute("datetime")
-                const targetDatetime = new Date(new Date(prevDatetime).getTime() - 1).toISOString()
-                if (type === "node") {
-                    target = await getNodeViaOverpassXML(objID, targetDatetime)
-                } else if (type === "way") {
-                    target = await getWayViaOverpassXML(objID, targetDatetime)
-                } else if (type === "relation") {
-                    target = await getRelationViaOverpassXML(objID, targetDatetime)
-                }
-                if (!target) {
-                    console.error(`v${version} not founded`, objID, targetDatetime)
-                    continue
-                }
-                // todo попробовать заменить на оператор timeline в overpass api
-            }
-            const h4 = document.createElement("h4")
-            h4.textContent = versionPrefix ?? "#"
-            const versionLink = document.createElement("a")
-            versionLink.textContent = version
-            versionLink.href = `/${type}/${objID}/history/${version}`
-            h4.appendChild(versionLink)
-
-            const comment = document.createElement("p")
-            comment.classList.add("fs-6", "overflow-x-auto")
-            setTimeout(async () => {
-                if (!target) return
-                const res = await fetchRetry(osm_server.apiBase + "changeset" + "/" + target.getAttribute("changeset") + ".json")
-                const jsonRes = await res.json()
-                comment.textContent = jsonRes.tags?.comment
-            }, 0)
-
-            const ul = document.createElement("ul")
-            ul.classList.add("list-unstyled")
-
-            const timeLi = document.createElement("li")
-            ul.appendChild(timeLi)
-
-            const time = document.createElement("time")
-            time.setAttribute("datetime", target.getAttribute("timestamp"))
-            time.setAttribute("natural_text", target.getAttribute("timestamp")) // it should server side string :(
-            time.setAttribute("title", target.getAttribute("timestamp")) // it should server side string :(
-            time.textContent = new Date(target.getAttribute("timestamp")).toISOString().slice(0, -5) + "Z"
-            timeLi.appendChild(time)
-            timeLi.appendChild(document.createTextNode(" "))
-
-            const user = document.createElement("a")
-            user.href = "/user/" + target.getAttribute("user")
-            user.textContent = target.getAttribute("user")
-            timeLi.appendChild(user)
-
-            const changesetLi = document.createElement("li")
-            const changeset = document.createElement("a")
-            changeset.href = "/changeset/" + target.getAttribute("changeset")
-            changeset.textContent = target.getAttribute("changeset")
-            changesetLi.appendChild(document.createTextNode(" #"))
-            changesetLi.appendChild(changeset)
-            ul.appendChild(changesetLi)
-
-            if (type === "node") {
-                const locationLi = document.createElement("li")
-                ul.appendChild(locationLi)
-
-                const locationA = document.createElement("a")
-                locationA.href = "/#map=18/" + target.getAttribute("lat") + "/" + target.getAttribute("lon")
-
-                const latSpan = document.createElement("span")
-                latSpan.classList.add("latitude")
-                latSpan.textContent = target.getAttribute("lat")
-                locationA.appendChild(latSpan)
-                locationA.appendChild(document.createTextNode(", "))
-
-                const lonSpan = document.createElement("span")
-                lonSpan.classList.add("longitude")
-                lonSpan.textContent = target.getAttribute("lon")
-                locationA.appendChild(lonSpan)
-
-                locationLi.appendChild(locationA)
-            }
-
-            const tags = document.createElement("div")
-            tags.classList.add("mb-3", "border", "border-secondary-subtle", "rounded", "overflow-hidden")
-            const table = document.createElement("table")
-            table.classList.add("mb-0", "browse-tag-list", "table", "align-middle")
-            const tbody = document.createElement("tbody")
-            table.appendChild(tbody)
-
-            target.querySelectorAll("tag").forEach(tag => {
-                const tr = document.createElement("tr")
-
-                const th = document.createElement("th")
-                th.classList.add("py-1", "border-secondary-subtle", "table-secondary", "fw-normal", "history-diff-modified-key")
-                const k = tag.getAttribute("k")
-                if (keysLinks.has(k)) {
-                    const wikiLink = document.createElement("a")
-                    wikiLink.textContent = k
-                    wikiLink.href = keysLinks.get(k)
-                    th.appendChild(wikiLink)
-                } else {
-                    th.textContent = k
-                }
-
-                const td = document.createElement("td")
-                td.classList.add("py-1", "border-secondary-subtle", "border-start")
-                const v = tag.getAttribute("v")
-                if (valuesLinks.has(v)) {
-                    const wikiLink = document.createElement("a")
-                    wikiLink.textContent = v
-                    wikiLink.href = valuesLinks.get(v)
-                    td.appendChild(wikiLink)
-                } else {
-                    td.textContent = v
-                }
-
-                tr.appendChild(th)
-                tr.appendChild(td)
-                tbody.appendChild(tr)
-            })
-            tags.appendChild(table)
-            elem.prepend(h4)
-            elem.appendChild(comment)
-            elem.appendChild(ul)
-            elem.appendChild(tags)
-
-            if (type === "way") {
-                const nodes = Array.from(target.querySelectorAll("nd")).map(i => i.getAttribute("ref"))
-
-                const nodesDetails = document.createElement("details")
-                const summary = document.createElement("summary")
-                summary.textContent = nodes.length
-                nodesDetails.appendChild(summary)
-                const ulNodes = document.createElement("ul")
-                ulNodes.classList.add("list-unstyled")
-                nodes.forEach(i => {
-                    const nodeLi = document.createElement("li")
-                    const a = document.createElement("a")
-                    a.classList.add("node")
-                    a.href = "/node/" + i
-                    a.textContent = i
-                    nodeLi.appendChild(a)
-                    ulNodes.appendChild(nodeLi)
-                })
-                nodesDetails.appendChild(ulNodes)
-                elem.appendChild(nodesDetails)
-            } else if (type === "relation") {
-                const members = Array.from(target.querySelectorAll("member")).map(i => {
-                    return {
-                        ref: i.getAttribute("ref"),
-                        type: i.getAttribute("type"),
-                        role: i.getAttribute("role"),
-                    }
-                })
-
-                const membersDetails = document.createElement("details")
-                const summary = document.createElement("summary")
-                summary.textContent = members.length
-                membersDetails.appendChild(summary)
-                const ulMembers = document.createElement("ul")
-                ulMembers.classList.add("list-unstyled")
-                members.forEach(i => {
-                    const memberLi = document.createElement("li")
-                    const a = document.createElement("a")
-                    a.classList.add(type)
-                    a.href = "/node/" + i.ref
-                    a.textContent = i.ref
-                    memberLi.appendChild(a)
-                    a.before(document.createTextNode(i.type + " "))
-                    a.after(document.createTextNode(" " + i.role))
-                    ulMembers.appendChild(memberLi)
-                })
-                membersDetails.appendChild(ulMembers)
-                elem.appendChild(membersDetails)
-            }
-
-            elem.classList.remove("hidden-version")
-            // elem.classList.remove("browse-redacted")
-            elem.classList.add("browse-unredacted")
-            // elem.classList.add("browse-node")
+        try {
+            await restoreObjectHistory(showUnredactedBtn)
+        } catch (e) {
+            showUnredactedBtn.style.cursor = "not-allowed"
+            showUnredactedBtn.textContent = "Error :( Please report this page in better-osm-org GitHub repo"
+            throw e
         }
-        showUnredactedBtn.remove()
-        const classesForClean = ["processed", "history-diff-new-tag", "history-diff-modified-tag", "non-modified-tag", ".empty-version"]
-        classesForClean.forEach(className => {
-            Array.from(document.getElementsByClassName(className)).forEach(i => {
-                i.classList.remove(className)
-            })
-        })
-        const elementClassesForRemove = ["history-diff-deleted-tag-tr", "history-diff-modified-location", "find-user-btn", "way-version-view", "relation-version-view"]
-        elementClassesForRemove.forEach(elemClass => {
-            Array.from(document.getElementsByClassName(elemClass)).forEach(i => {
-                i.remove()
-            })
-        })
-
-        Array.from(document.querySelectorAll("details.empty-version")).forEach(i => {
-            i.querySelector("summary")?.remove()
-            const div = document.createElement("div")
-            div.innerHTML = i.innerHTML
-            i.replaceWith(div)
-        })
 
         cleanAllObjects()
         document.querySelector(".compact-toggle-btn")?.remove()
-        setTimeout(async () => {
-            await addDiffInHistory()
-            addCommentsCount()
-        }, 0)
+        setTimeout(addDiffInHistory, 0)
     }
     if (!document.querySelector('#sidebar .secondary-actions a[href$="show_redactions=true"]')) {
         document.querySelector("#sidebar .secondary-actions").appendChild(document.createElement("br"))
@@ -9836,7 +9900,6 @@ function addDiffInHistory(reason = "url_change") {
         document.querySelector("#sidebar").focus({ focusVisible: false }) // focusVisible работает только в Firefox
         document.querySelector("#sidebar").blur()
     }
-
     if (!document.querySelector(".compact-toggle-btn")) {
         const compactToggle = document.createElement("button")
         compactToggle.title = "Toggle between full and compact tags diff.\nYou can also use the T key."
@@ -9869,7 +9932,9 @@ function addDiffInHistory(reason = "url_change") {
 
     const versions = [{ tags: [], coordinates: "", wasModified: false, nodes: [], members: [], visible: true, membersCount: 0, versionNumber: 0 }]
     // add/modification
-    const oldToNewHtmlVersions = Array.from(document.querySelectorAll('#element_versions_list > div:not(.processed):not([way-version="inter"]):not(:has(a[href*="/redactions/"]:not([rel])))')).toReversed()
+    const oldToNewHtmlVersions = Array.from(
+        document.querySelectorAll('#element_versions_list > div:not(.processed):not([way-version="inter"]):not(:has(a[href*="/redactions/"]:not([rel]):not(.unredacted)))'),
+    ).toReversed()
 
     for (let verInd = 0; verInd < oldToNewHtmlVersions.length; verInd++) {
         const ver = oldToNewHtmlVersions[verInd]
@@ -9922,6 +9987,7 @@ function addDiffInHistory(reason = "url_change") {
         const hashtag = document.createTextNode("#")
         metainfoHTML.appendChild(hashtag)
         const changesetWrapper = document.createElement("span")
+        changesetA.classList.remove("comments-loaded")
         changesetWrapper.appendChild(changesetA)
         metainfoHTML.appendChild(changesetWrapper)
         let visible = true
@@ -10276,7 +10342,7 @@ function addDiffInHistory(reason = "url_change") {
         })
     }
     let hasRedacted = false
-    Array.from(document.querySelectorAll('#element_versions_list > div:has(a[href*="/redactions/"]:not([rel]))')).forEach(x => {
+    Array.from(document.querySelectorAll('#element_versions_list > div:has(a[href*="/redactions/"]:not([rel]):not(.unredacted))')).forEach(x => {
         x.classList.add("hidden-version")
         hasRedacted = true
     })
@@ -11316,7 +11382,9 @@ function makeVersionPageBetter() {
     addCompactSidebarStyle()
     externalizeLinks(document.querySelectorAll("#sidebar_content p a"))
     externalizeLinks(document.querySelectorAll("#sidebar_content table a"))
-    const browseSectionSelector = document.querySelector("#element_versions_list") ? '#element_versions_list > div:not(:has(a[href*="/redactions/"]:not([rel])))' : "#sidebar_content > div:first-of-type"
+    const browseSectionSelector = document.querySelector("#element_versions_list")
+        ? '#element_versions_list > div:not(:has(a[href*="/redactions/"]:not([rel]):not(.unredacted)))'
+        : "#sidebar_content > div:first-of-type"
     if (!document.querySelector(".find-user-btn")) {
         try {
             const ver = document.querySelector(browseSectionSelector)
@@ -11325,10 +11393,10 @@ function makeVersionPageBetter() {
                 ver.title = makeTitleForTagsCount(tagsCount)
             }
 
-            const metainfoHTML = ver?.querySelector("div:nth-of-type(1)")
+            const metainfoHTML = ver?.querySelector(":scope > div > div")
             if (metainfoHTML && !metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')) {
                 const time = metainfoHTML.querySelector("time")
-                const changesetID = ver.querySelector('div a[href^="/changeset/"]:not([rel])').textContent
+                const changesetID = ver.querySelector(':scope div a[href^="/changeset/"]:not([rel])').textContent
 
                 metainfoHTML.lastChild.remove()
                 const findBtn = document.createElement("span")
