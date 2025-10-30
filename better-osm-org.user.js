@@ -20961,6 +20961,17 @@ function setupOSMWebsite() {
         setupIDframe()
         return
     }
+
+    setTimeout(async () => {
+        if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) return
+        if (getWindow && !getWindow().mapIntercepted) {
+            console.log("map not intercepted after 900ms")
+            document.querySelector(".control-share a").click()
+            document.querySelector(".control-share a").click()
+            await interceptMapManually()
+        }
+    }, 900)
+
     resetSearchFormFocus()
     if (GM_config.get("OverpassInstance") === MAILRU_OVERPASS_INSTANCE.name) {
         overpass_server = MAILRU_OVERPASS_INSTANCE
@@ -21174,16 +21185,6 @@ function main() {
         setupWiki()
     }
 }
-
-setTimeout(async () => {
-    if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) return
-    if (getWindow && !getWindow().mapIntercepted) {
-        console.log("map not intercepted after 900ms")
-        document.querySelector(".control-share a").click()
-        document.querySelector(".control-share a").click()
-        await interceptMapManually()
-    }
-}, 900)
 
 // garbage collection for cached infos (user info, changeset history)
 setTimeout(async function () {
