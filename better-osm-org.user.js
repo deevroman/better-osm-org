@@ -21115,6 +21115,8 @@ function setupWiki() {
     }
 }
 
+//<editor-fold desc="script-menu" defaultstate="collapsed">
+
 function makeCommandsMenu() {
     try {
         GM_registerMenuCommand("Settings", function () {
@@ -21149,6 +21151,10 @@ function makeCommandsMenu() {
         console.error(e)
     }
 }
+
+//</editor-fold>
+
+//<editor-fold desc="main" defaultstate="collapsed">
 
 function main() {
     "use strict"
@@ -21185,6 +21191,8 @@ function main() {
         setupWiki()
     }
 }
+
+//</editor-fold>
 
 // garbage collection for cached infos (user info, changeset history)
 setTimeout(async function () {
