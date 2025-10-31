@@ -749,14 +749,21 @@ GM_config.init({
             default: false,
             labelPos: "right",
         },
-        DarkModeForID: {
-            label: 'Dark mode for iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Thanks AlexPS</a>)',
+        ColorblindFriendlyPalette: {
+            label: "Colorblind-friendly palette β",
             type: "checkbox",
             default: false,
             labelPos: "right",
         },
-        ColorblindFriendlyPalette: {
-            label: "Colorblind-friendly palette β",
+        BetterTagsPasteInId: {
+            section: ["iD"],
+            label: "Add = if key=value separated by spaces or tabs",
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        DarkModeForID: {
+            label: 'Dark mode for iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Thanks AlexPS</a>)',
             type: "checkbox",
             default: false,
             labelPos: "right",
@@ -787,7 +794,7 @@ GM_config.init({
             labelPos: "right",
         },
         ChangesetQuickLook: {
-            label: "Add QuickLook for small changesets ",
+            label: "Add QuickLook for changesets",
             type: "checkbox",
             default: "checked",
             labelPos: "right",
@@ -813,12 +820,6 @@ GM_config.init({
         HideNoteHighlight: {
             section: ["Working with notes"],
             label: "Hide note highlight",
-            type: "checkbox",
-            default: "checked",
-            labelPos: "right",
-        },
-        SatelliteLayers: {
-            label: "Add satellite layers for notes page",
             type: "checkbox",
             default: "checked",
             labelPos: "right",
@@ -879,6 +880,12 @@ GM_config.init({
         },
         ResetSearchFormFocus: {
             label: "Reset search form focus",
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        SatelliteLayers: {
+            label: "Add satellite layers switches",
             type: "checkbox",
             default: "checked",
             labelPos: "right",
@@ -1159,6 +1166,151 @@ GM_config.init({
 
 //</editor-fold>
 
+//<editor-fold desc="svg" defaultstate="collapsed">
+
+// prettier-ignore
+const filterIconSvg =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" ' +
+    'stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-funnel-icon lucide-funnel">' +
+    '<path d="M 10 20 a 1 1 0 0 0 0.553 0.895 l 2 1 A 1 1 0 0 0 14 21 v -8 a 2 3 0 0 1 1 -2 L 21.74 4.67 A 1 1 0 0 0 21 3 H 3 a 1 1 0 0 0 -0.742 1.67 l 6.742 6.33 A 2 3 0 0 1 10 13 z"/>' +
+    '</svg>'
+
+// prettier-ignore
+const tagSvg =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" ' +
+    'stroke="currentColor" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tag-icon lucide-tag">' +
+    '<path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/>' +
+    '<circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/>' +
+    '</svg>'
+
+const osmchaLikeSvg =
+    "data:image/svg+xml;base64," +
+    btoa(
+        '<svg width="100" height="99" viewBox="0 0 100 99" xmlns="http://www.w3.org/2000/svg">' +
+        '<g fill="#39DBC0" fill-rule="evenodd">' +
+        '<path d="M41.817 42H8.65a8 8 0 0 0-7.862 9.483l6.981 37A8 8 0 0 0 15.632 95H92a8 8 0 0 0 ' +
+        "8-8V50a8 8 0 0 0-8-8H64.814c.034-.66.012-1.334-.072-2.013L61.086 10.21C60.312 3.906 " +
+        '54.574-.576 48.27.198c-6.303.774-10.786 6.511-10.012 12.815z" fill-opacity=".3"/>' +
+        '<rect fill-opacity=".9" x="76" y="37" width="24" height="62" rx="8"/></g></svg>',
+    )
+
+// todo is equal with rotate and color
+const osmchaDislikeSvg =
+    "data:image/svg+xml;base64," +
+    btoa(
+        '<svg width="100" height="99" viewBox="0 0 100 99" xmlns="http://www.w3.org/2000/svg">' +
+        '<g transform="rotate(-180 50 49.5)" fill="#CC2C47" fill-rule="evenodd">' +
+        '<path d="M41.817 42H8.65a8 8 0 0 0-7.862 9.483l6.981 37A8 8 0 0 0 15.632 95H92a8 8 0 0 0 ' +
+        "8-8V50a8 8 0 0 0-8-8H64.814c.034-.66.012-1.334-.072-2.013L61.086 10.21C60.312 3.906 " +
+        '54.574-.576 48.27.198c-6.303.774-10.786 6.511-10.012 12.815z" fill-opacity=".3"/>' +
+        '<rect fill-opacity=".9" x="76" y="37" width="24" height="62" rx="8"/></g></svg>',
+    )
+
+const osmchaSvgLogo =
+    '<svg viewBox="2.5 2.5 13 13" xmlns="http://www.w3.org/2000/svg">' +
+    '<path d="M2.5 2.5l1 4-1 2 1 3-1 3h1l4-4c-.6-.8-1-1.9-1-3 0-1.9 1.1-3.5 2.6-4.4l-.6-.6-3 1-3-1zM15 11c-.9.9-2.2 1.5-3.5 1.5-1.1 0-2.2-.4-3-1l-4 4h2l2-1 2 1 4-1 1-3-.5-.5z"></path>' +
+    '<path d="M15 7.5c0 1.9-1.6 3.5-3.5 3.5S8 9.4 8 7.5 9.6 4 11.5 4 15 5.6 15 7.5"></path></svg>'
+
+// prettier-ignore
+const commentSvg =
+    '<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">' +
+    '<path d="M2.678 11.894a1 1 0 0 1 .287.801 11 11 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 ' +
+    '.71-.074A8 8 0 0 0 8 14c3.996 0 7-2.807 7-6s-3.004-6-7-6-7 2.808-7 6c0 1.468.617 2.83 1.678 3.894m-.493 ' +
+    '3.905a22 22 0 0 1-.713.129c-.2.032-.352-.176-.273-.362a10 10 0 0 0 .244-.637l.003-.01c.248-.72.45-1.548.524-2.319C.743 ' +
+    '11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.52.263-1.639.742-3.468 1.105">' +
+    '</path>' +
+    "</svg>"
+
+// prettier-ignore
+const diffSvg =
+    '<svg class="lucide lucide-diff better-diff-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" ' +
+    'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M12 3v14"/><path d="M5 10h14"/>' +
+    '<path d="M5 21h14"/>' +
+    '</svg>'
+
+// prettier-ignore
+const fitToObjectSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">\n' +
+    '  <path d="M3 7V3H7" stroke-width="2" stroke-linecap="round"/>\n' +
+    '  <path d="M17 3H21V7" stroke-width="2" stroke-linecap="round"/>\n' +
+    '  <path d="M21 17V21H17" stroke-width="2" stroke-linecap="round"/>\n' +
+    '  <path d="M7 21H3V17" stroke-width="2" stroke-linecap="round"/>\n' + "</svg>\n"
+
+// prettier-ignore
+const externalLinkSvg =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" ' +
+    'class="lucide lucide-external-link-icon lucide-external-link" width="16" height="16">' +
+    '<path d="M15 3h6v6"></path><path d="M10 14 21 3"></path>' +
+    '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>' +
+    '</svg>'
+
+// prettier-ignore
+const pencilLinkSvg =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" ' +
+    'stroke-linejoin="round" class="lucide lucide-pencil-icon lucide-pencil">' +
+    '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>' +
+    '<path d="m15 5 4 4"/>' +
+    '</svg>'
+
+// prettier-ignore
+const compactModeSvg =
+    '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" height="17" width="17" viewBox="0 0 17 17">' +
+    '<path d="M15 12 l-5-4  5-4"></path><path d="M2 12 l 5-4 -5-4"></path>' +
+    '</svg>'
+
+// prettier-ignore
+const expandModeSvg =
+    '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" height="17" width="17" viewBox="0 0 17 17">' +
+    '<path d="M7 12 l-5-4  5-4"></path>' +
+    '<path d="M10 12 l 5-4 -5-4"></path>' +
+    '</svg>'
+
+// prettier-ignore
+const copyBtnSvg =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" ' +
+    'stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" ' +
+    'class="lucide lucide-file-icon lucide-file">' +
+    '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>' +
+    '<path d="M14 2v4a2 2 0 0 0 2 2h4"/>' +
+    '</svg>'
+
+// TODO without encode
+const nodeIcon =
+    "data:image/svg+xml;base64," +
+    btoa(
+        '<svg xmlns="http://www.w3.org/2000/svg" height="256" width="256">' +
+        '<rect width="242" height="242" fill="#fff" ry="32" x="7" y="7"/>' +
+        '<circle cx="128" cy="128" r="24" fill="#bee6be" stroke="#000" stroke-width="10"/>' +
+        '<rect width="242" height="242" stroke="#000" fill="none" stroke-width="12" ry="32" x="7" y="7"/></svg>',
+    )
+
+const wayIcon =
+    "data:image/svg+xml;base64," +
+    btoa(
+        '<svg xmlns="http://www.w3.org/2000/svg" height="256" width="256">' +
+        '<rect width="242" height="242" fill="#fff" ry="32" x="7" y="7"/>' +
+        '<path stroke="#ccc" fill="none" stroke-width="16" d="M169 58 57 145l138 54"/>' +
+        '<circle cx="169" cy="58" r="24"/>' +
+        '<circle cx="57" cy="145" r="24"/>' +
+        '<circle cx="195" cy="199" r="24"/>' +
+        '<rect width="242" height="242" stroke="#000" fill="none" stroke-width="12" ry="32" x="7" y="7"/></svg>',
+    )
+
+const relationIcon =
+    "data:image/svg+xml;base64," +
+    btoa(
+        '<svg xmlns="http://www.w3.org/2000/svg" height="256" width="256" viewBox="0 0 256 256">' +
+        '<rect width="242" height="242" stroke="#000" fill="#f0f0f0" stroke-width="12" ry="32" x="7" y="7"/>' +
+        '<path d="m68 68 128-6M68 68l128 74M68 68l-6 128" stroke-width="16" stroke="#ccc"/>' +
+        '<circle cx="196" cy="62" r="24"/><circle cx="196" cy="142" r="24"/>' +
+        '<circle cx="62" cy="196" r="24"/>' +
+        '<path d="m68 68 74 128" stroke-width="16" stroke="#ccc"/>' +
+        '<circle cx="142" cy="196" r="24"/>' +
+        '<circle cx="72" cy="72" r="32" fill="#bee6be" stroke="#000" stroke-width="8"/></svg>',
+    )
+
+//</editor-fold>
+
 //<editor-fold desc="utils" defaultstate="collapsed">
 
 // For WebStorm: Settings | Editor | Language Injections
@@ -1218,6 +1370,29 @@ const min = Math.min
 const max = Math.max
 
 /**
+ * @type {Object.<string, AbortController>}
+ */
+const abortDownloadingControllers = {}
+
+/**
+ * @return {AbortController}
+ */
+function getAbortController() {
+    return (abortDownloadingControllers[location.pathname] ??= new AbortController())
+}
+
+function abortPrevControllers(reason = null) {
+    console.log("abort prev controllers")
+    Object.entries(abortDownloadingControllers).forEach(([path, controller]) => {
+        if (path !== location.pathname) {
+            console.log("abort for", path)
+            controller.abort(reason)
+            delete abortDownloadingControllers[path]
+        }
+    })
+}
+
+/**
  * @param ms {number}
  * @param signal {AbortSignal}
  * @return {Promise<void>}
@@ -1259,6 +1434,258 @@ async function abortableSleepUntilNextXthSeconds(X, { signal }) {
     const delay = nextTime - nowTime
     return await abortableSleep(delay, { signal })
 }
+
+const isMac = navigator.platform?.toUpperCase()?.indexOf("MAC") >= 0
+const CtrlKeyName = isMac ? "Cmd" : "Ctrl"
+
+/**
+ * @param {Event} e
+ * @param {string} text
+ */
+function copyAnimation(e, text) {
+    console.log(`Copying ${text} to clipboard was successful!`)
+    e.target.classList.add("copied")
+    setTimeout(() => {
+        e.target.classList.remove("copied")
+        e.target.classList.add("was-copied")
+        setTimeout(() => e.target.classList.remove("was-copied"), 300)
+    }, 300)
+}
+
+//</editor-fold>
+
+//<editor-fold desc="geom utils" defaultstate="collapsed">
+
+/**
+ * @param {number} lat1
+ * @param {number} lon1
+ * @param {number} lat2
+ * @param {number} lon2
+ */
+function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+    function deg2rad(deg) {
+        return deg * (Math.PI / 180)
+    }
+
+    const R = 6371
+    const dLat = deg2rad(lat2 - lat1)
+    const dLon = deg2rad(lon2 - lon1)
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    return R * c
+}
+
+
+/**
+ * @param {number} lat
+ * @param {number} lng
+ * @returns {{x: number, y: number}}
+ */
+function toMercator(lat, lng) {
+    const x = (earthRadius * lng * Math.PI) / 180
+    const y = earthRadius * Math.log(Math.tan((lat * Math.PI) / 180 / 2 + Math.PI / 4))
+    return { x, y }
+}
+
+/**
+ * @param {number} x
+ * @param {number} y
+ * @returns {{lat: number, lng: number}}
+ */
+function fromMercator(x, y) {
+    const lat = ((2 * Math.atan(Math.exp(y / earthRadius)) - Math.PI / 2) * 180) / Math.PI
+    const lng = ((x / earthRadius) * 180) / Math.PI
+    return { lat, lng }
+}
+
+/**
+ * @param {number} lat1
+ * @param {number} lon1
+ * @param {number} lat2
+ * @param {number} lon2
+ * @param {number} angleDeg
+ * @param {number} lengthMeters
+ * @returns {{lat: number, lon: number}}
+ */
+function rotateSegment(lat1, lon1, lat2, lon2, angleDeg, lengthMeters) {
+    const { x: x1, y: y1 } = toMercator(lat1, lon1)
+    const { x: x2, y: y2 } = toMercator(lat2, lon2)
+
+    const angleRad = (angleDeg * Math.PI) / 180
+
+    const dx = y2 - y1
+    const dy = x2 - x1
+
+    const segmentLength = Math.sqrt(dx * dx + dy * dy)
+
+    const ndx = dx / segmentLength
+    const ndy = dy / segmentLength
+
+    const scaledDx = ndx * lengthMeters
+    const scaledDy = ndy * lengthMeters
+
+    const rotatedDx = scaledDx * Math.cos(angleRad) - scaledDy * Math.sin(angleRad)
+    const rotatedDy = scaledDx * Math.sin(angleRad) + scaledDy * Math.cos(angleRad)
+
+    const { lat: lat, lng: lon } = fromMercator(x1 + rotatedDy, y1 + rotatedDx)
+    return { lat: lat, lon: lon }
+}
+
+// based on https://github.com/eatgrass/geo-area
+function ringArea(points) {
+    const RADIUS = 6378137
+    const rad = coord => (coord * Math.PI) / 180
+
+    let p1
+    let p2
+    let p3
+    let lowerIndex
+    let middleIndex
+    let upperIndex
+    let area = 0
+
+    if (points.length > 2) {
+        for (let i = 0; i < points.length; i++) {
+            if (i === points.length - 2) {
+                lowerIndex = points.length - 2
+                middleIndex = points.length - 1
+                upperIndex = 0
+            } else if (i === points.length - 1) {
+                lowerIndex = points.length - 1
+                middleIndex = 0
+                upperIndex = 1
+            } else {
+                lowerIndex = i
+                middleIndex = i + 1
+                upperIndex = i + 2
+            }
+            p1 = points[lowerIndex]
+            p2 = points[middleIndex]
+            p3 = points[upperIndex]
+            area += (rad(p3.lon) - rad(p1.lon)) * Math.sin(rad(p2.lat))
+        }
+        area = (area * RADIUS * RADIUS) / 2
+    }
+
+    return area
+}
+
+//</editor-fold>
+
+//<editor-fold desc="colors" defaultstate="collapsed">
+
+// prettier-ignore
+const colorsPalette = {
+    "#ff00e3" : "#ff00e3",
+    "#0022ff": "#0022ff",
+
+    "rgba(17, 238, 9, 0.6)": "rgba(17, 238, 9, 0.6)",              // .quick-look-new-tag
+    "rgba(223, 238, 9, 0.6)": "rgba(223, 238, 9, 0.6)",            // .quick-look-modified-tag
+    "rgba(238, 51, 9, 0.6)": "rgba(238, 51, 9, 0.6)",              // .quick-look-deleted-tag
+    "#000.quick-look-deleted-tag": "#000",                   // color.quick-look-deleted-tag
+    "#fff.quick-look-deleted-tag": "#fff",                   // color.quick-look-deleted-tag
+    "rgba(25, 223, 25, 0.6)": "rgba(25, 223, 25, 0.6)",      // .new-letter
+    "rgba(255, 144, 144, 0.6)": "rgba(255, 144, 144, 0.6)",  // .deleted-letter
+
+    "rgba(17, 238, 9, 0.3)": "rgba(17, 238, 9, 0.3)",              // dark.quick-look-new-tag
+    "rgba(238, 51, 9, 0.4)": "rgba(238, 51, 9, 0.4)",              // dark.quick-look-deleted-tag
+    "rgba(25, 223, 25, 0.9)": "rgba(25, 223, 25, 0.9)",      // dark.new-letter
+    "rgba(253, 83, 83, 0.8)": "rgba(253, 83, 83, 0.8)",      // dark.deleted-letter
+
+    "rgba(0, 128, 0, 0.6)": "rgba(0, 128, 0, 0.6)",                // displayWay for version 1
+    "rgba(120, 238, 9, 0.6)": "rgba(120, 238, 9, 0.6)",            // displayWay for restored way
+    "#ff0000.deleted-way-geom": "#ff0000",                   // displayWay for deleted
+
+    "#00a500.first-node-version": "#00a500",                 // showNodeMarker for version 1
+    "rgba(89, 170, 9, 0.6).restored-node-version": "#00a500",   // showNodeMarker for version 1
+    "#ff0000.deleted-node-geom": "#ff0000",                  // showNodeMarker for deleted
+
+    "rgba(17, 238, 9, 0.3).members-changed-flag": "rgba(17, 238, 9, 0.3)",  // dark
+    "rgba(101, 238, 9, 0.6).members-changed-flag": "rgba(101, 238, 9, 0.6)",
+    "rgba(238, 51, 9, 0.4).members-changed-flag": "rgba(238, 51, 9, 0.4)",  // dark
+    "rgba(238, 9, 9, 0.42).members-changed-flag": "rgba(238, 9, 9, 0.42)",
+
+    "rgba(17, 238, 9, 0.6).members-changed-row": "rgba(17, 238, 9, 0.6)",
+    "rgba(238, 51, 9, 0.6).members-changed-row": "rgba(238, 51, 9, 0.6)",
+
+    "rgba(17, 238, 9, 0.3).nodes-changed-flag": "rgba(17, 238, 9, 0.3)",  // dark
+    "rgba(101, 238, 9, 0.6).nodes-changed-flag": "rgba(101, 238, 9, 0.6)",
+    "rgba(238, 51, 9, 0.4).nodes-changed-flag": "rgba(238, 51, 9, 0.4)",  // dark
+    "rgba(238, 9, 9, 0.42).nodes-changed-flag": "rgba(238, 9, 9, 0.42)",
+
+    "rgba(17, 238, 9, 0.6).nodes-changed-row": "rgba(17, 238, 9, 0.6)",
+    "rgba(238, 51, 9, 0.6).nodes-changed-row": "rgba(238, 51, 9, 0.6)",
+
+    "rgba(4, 123, 0, 0.6).history-diff-new-tag" : "rgba(4, 123, 0, 0.6)",
+    "rgba(238, 51, 9, 0.4).history-diff-deleted-tag": "rgba(238, 51, 9, 0.4)"
+}
+
+// prettier-ignore
+const colorblindFriendlyPalette = {
+    "rgba(17, 238, 9, 0.6)": "#0074FF75",            // .quick-look-new-tag
+    "rgba(238, 51, 9, 0.6)": "#F80000",              // .quick-look-deleted-tag
+    "#000.quick-look-deleted-tag": "#fff",           // color.quick-look-deleted-tag
+
+    "rgba(25, 223, 25, 0.6)": "#8EA5FFC4",           // .new-letter
+    "rgba(255, 144, 144, 0.6)": "#FFB7B7",           // .deleted-letter
+
+    "rgba(25, 223, 25, 0.9)": "#8EA5FFC4",           // dark.new-letter
+    "rgba(253, 83, 83, 0.8)": "#FFB7B7",             // dark.deleted-letter
+
+    "rgba(17, 238, 9, 0.3)": "#1A385C",              // dark.quick-look-new-tag
+    "rgba(238, 51, 9, 0.4)": "#732a1d",              // dark.quick-look-deleted-tag
+
+    "rgba(0, 128, 0, 0.6)": "#0074FF75",                     // displayWay for version 1
+    "rgba(120, 238, 9, 0.6)": "rgba(64,152,255,0.46)",       // displayWay for restored way
+    "#ff0000.deleted-way-geom": "#f34c4c",                   // displayWay for deleted
+
+    "#00a500.first-node-version": "#0074FF75",                                // showNodeMarker for version 1
+    "rgba(89, 170, 9, 0.6).restored-node-version": "rgba(64,152,255,0.46)",   // showNodeMarker for version 1
+    "#ff0000.deleted-node-geom": "#f34c4c",                                   // showNodeMarker for deleted
+
+    "rgba(17, 238, 9, 0.3).members-changed-flag": "#0074FF75",   // dark
+    "rgba(101, 238, 9, 0.6).members-changed-flag": "#0074FF75",
+    "rgba(238, 51, 9, 0.4).members-changed-flag": "#f34c4c",     // dark
+    "rgba(238, 9, 9, 0.42).members-changed-flag": "rgb(242, 0, 0)",
+
+    "rgba(17, 238, 9, 0.6).members-changed-row": "#0074FF75",
+    "rgba(238, 51, 9, 0.6).members-changed-row": "rgb(242, 0, 0)",
+
+    "rgba(17, 238, 9, 0.3).nodes-changed-flag": "#0074FF75",       // dark
+    "rgba(101, 238, 9, 0.6).nodes-changed-flag": "#0074FF75",
+    "rgba(238, 51, 9, 0.4).nodes-changed-flag": "rgb(242, 0, 0)",  // dark
+    "rgba(238, 9, 9, 0.42).nodes-changed-flag": "rgb(242, 0, 0)",
+
+    "rgba(17, 238, 9, 0.6).nodes-changed-row": "#0074FF75",
+    "rgba(238, 51, 9, 0.6).nodes-changed-row": "rgb(242, 0, 0)",
+
+    "rgba(4, 123, 0, 0.6).history-diff-new-tag" : "#1A385C",
+    "rgba(238, 51, 9, 0.4).history-diff-deleted-tag": "#732a1d"
+}
+
+function setColorblindFriendlyPalette() {
+    Object.entries(colorblindFriendlyPalette).forEach(([k, v]) => {
+        colorsPalette[k] = v
+    })
+}
+
+/**
+ * @param color {string}
+ * @param context {string}
+ * @return {string}
+ */
+function c(color, context = "") {
+    const res = colorsPalette[color + context]
+    if (res) {
+        return res
+    }
+    debug_alert(`color ${color + context} not found in palette`)
+    return color
+}
+
+//</editor-fold>
+
+//<editor-fold desc="network-utils" defaultstate="collapsed">
 
 /**
  * @param details {Tampermonkey.Request}
@@ -1342,7 +1769,1298 @@ async function _fetchRetry(fetchImpl, ...args) {
     }
 }
 
+const fetchBlobWithCache = (() => {
+    const cache = new Map()
+
+    return async url => {
+        if (cache.has(url)) {
+            return cache.get(url)
+        }
+
+        const promise = externalFetchRetry({
+            url: url,
+            responseType: "blob",
+        })
+        cache.set(url, promise)
+
+        try {
+            const result = await promise
+            cache.set(url, result)
+            return result
+        } catch (error) {
+            cache.delete(url)
+            throw error
+        }
+    }
+})()
+
+/**
+ * @param imgSrc {string}
+ * @return {Promise<string>}
+ */
+async function fetchImageWithCache(imgSrc) {
+    const res = await fetchBlobWithCache(imgSrc)
+    const blob = res.response
+
+    return await new Promise(resolve => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result)
+        reader.readAsDataURL(blob)
+    })
+}
+
+const fetchJSONWithCache = (() => {
+    /**@type {Map<string, Object | Promise<Object>>}*/
+    const cache = new Map()
+
+    return async (url, init = {}, responseChecker = _ => true) => {
+        if (cache.has(url)) {
+            return cache.get(url)
+        }
+
+        const promise = fetchRetry(url, init).then(res => {
+            if (!res) console.trace()
+            if (responseChecker(res)) {
+                return res.json()
+            }
+        })
+        cache.set(url, promise)
+
+        try {
+            const result = await promise
+            cache.set(url, result)
+            return result
+        } catch (error) {
+            cache.delete(url)
+            throw error
+        }
+    }
+})()
+
+const fetchJSONorResWithCache = (() => {
+    /**@type {Map<string, Object | Promise<Object|Response>>}*/
+    const cache = new Map()
+
+    return async (url, init = {}) => {
+        if (cache.has(url)) {
+            return cache.get(url)
+        }
+
+        const promise = fetchRetry(url, init).then(res => {
+            if (!res.ok) return res
+            return res.json()
+        })
+        cache.set(url, promise)
+
+        try {
+            const result = await promise
+            cache.set(url, result)
+            return result
+        } catch (error) {
+            cache.delete(url)
+            throw error
+        }
+    }
+})()
+
+
+const fetchTextWithCache = (() => {
+    /**@type {Map<string, string | undefined | Promise<string | undefined> >}*/
+    const cache = new Map()
+    /**
+     * @param {string} url
+     * @return {Promise<string>}
+     */
+    return async url => {
+        if (cache.has(url)) {
+            return cache.get(url)
+        }
+
+        const promise = externalFetchRetry({ url: url }).then(r => r.responseText)
+        cache.set(url, promise)
+
+        try {
+            const result = await promise
+            cache.set(url, result)
+            return result
+        } catch (error) {
+            cache.delete(url)
+            throw error
+        }
+    }
+})()
+
+const originalFetchTextWithCache = (() => {
+    /**@type {Map<string, string | undefined | Promise<string | undefined> >}*/
+    const cache = new Map()
+
+    /**
+     * @param {string} url
+     * @param {RequestInit} init
+     */
+    return async (url, init) => {
+        if (cache.has(url)) {
+            return cache.get(url)
+        }
+
+        const promise = fetchRetry(url, init).then(res => {
+            if (!res) console.trace()
+            return res.text()
+        })
+        cache.set(url, promise)
+
+        try {
+            const result = await promise
+            cache.set(url, result)
+            return result
+        } catch (error) {
+            cache.delete(url)
+            throw error
+        }
+    }
+})()
+
+
 //</editor-fold>
+
+//<editor-fold desc="map-utils" defaultstate="collapsed">
+
+function getMapCenter() {
+    try {
+        return getMap().getCenter()
+    } catch {
+        console.warn("Couldn't get the map center through the map object. Trying a workaround")
+
+        const curURL = document.querySelector("#edit_tab ul")?.querySelector("li a")?.href
+        const match = curURL.match(/map=(\d+)\/([-\d.]+)\/([-\d.]+)(&|$)/)
+        console.log("Parsed coordinates link:", match)
+        return { lng: match[3], lat: match[2] }
+    }
+}
+
+async function getMapBounds() {
+    try {
+        return getMap().getBounds()
+    } catch {
+        console.warn("Couldn't get the map bound through the map object. Trying a workaround")
+
+        document.querySelector("#sidebar").style.display = "none"
+        document.querySelector("#sidebar").style.width = "0px"
+        try {
+            document.querySelector('nav a[href="/export"]').click()
+            for (let i = 0; i < 10; i++) {
+                await sleep(500)
+                if (document.querySelector("#minlat")) {
+                    break
+                }
+            }
+            const res = {
+                getNorthWest: () => ({
+                    lat: document.querySelector("#maxlat").value,
+                    lng: document.querySelector("#minlon").value,
+                }),
+                getSouthEast: () => ({
+                    lat: document.querySelector("#minlat").value,
+                    lng: document.querySelector("#maxlon").value,
+                }),
+            }
+            console.log(res.getNorthWest())
+            console.log(res.getSouthEast())
+            // console.log(getMap().getBounds().getNorthWest())
+            document.querySelectorAll("#sidebar .sidebar-close-controls .btn-close").forEach(i => i?.click())
+
+            return res
+        } finally {
+            document.querySelector("#sidebar").style.display = ""
+            document.querySelector("#sidebar").style.width = ""
+        }
+    }
+}
+
+function getCurrentXYZ() {
+    const [, z, x, y] = new URL(document.querySelector("#editanchor").href).hash.match(/map=(\d+)\/([0-9.-]+)\/([0-9.-]+)/)
+    return [x, y, z]
+}
+
+/**
+ * @name getZoom
+ * @memberof unsafeWindow
+ */
+function getZoom() {
+    try {
+        return getMap().getZoom()
+    } catch {
+        console.warn("Couldn't get the map zoom through the map object. Trying a workaround")
+
+        const curURL = document.querySelector("#edit_tab ul")?.querySelector("li a")?.href
+        const match = curURL.match(/map=(\d+)\/([-\d.]+)\/([-\d.]+)(&|$)/)
+        console.log("Parsed coordinates link:", match)
+        return parseFloat(match[1])
+    }
+}
+
+/**
+ * @name setZoom
+ * @param {number} zoomLevel
+ * @memberof unsafeWindow
+ */
+function setZoom(zoomLevel) {
+    try {
+        getMap().setZoom(zoomLevel)
+    } catch {
+        console.warn("Couldn't set the map zoom through the map object. Trying a workaround")
+
+        const curURL = document.querySelector("#edit_tab ul")?.querySelector("li a")?.href
+        const match = curURL.match(/map=(\d+)\/([-\d.]+)\/([-\d.]+)(&|$)/)
+        if (match) {
+            location.hash = location.hash.replace(/map=(\d+)\//, `map=${zoomLevel}/`)
+        } else {
+            const [x, y] = getCurrentXYZ()
+            location.hash = `map=${zoomLevel}/${x}/${y}`
+        }
+    }
+}
+
+
+/**
+ * @type {{
+ *  customObjects: (import('leaflet').Path)[],
+ *  activeObjects: (import('leaflet').Path)[],
+ *  changesetBounds: (import('leaflet').Path)[]
+ * }}
+ */
+const layers = {
+    customObjects: [],
+    activeObjects: [],
+    changesetBounds: [],
+}
+
+function cleanAllObjects() {
+    for (let member in layers) {
+        layers[member].forEach(i => {
+            i.remove()
+        })
+        layers[member] = []
+    }
+}
+
+/**
+ * @name cleanObjectsByKey
+ * @param {string} key
+ * @memberof unsafeWindow
+ */
+function cleanObjectsByKey(key) {
+    if (layers[key]) {
+        layers[key]?.forEach(i => i.remove())
+        layers[key] = []
+    }
+}
+
+/**
+ * @name cleanCustomObjects
+ * @memberof unsafeWindow
+ */
+function cleanCustomObjects() {
+    layers["customObjects"].forEach(i => i.remove())
+    layers["customObjects"] = []
+}
+
+/**
+ * @name showWay
+ * @memberof unsafeWindow
+ * @param {[]} nodesList
+ * @param {string=} color
+ * @param {boolean} needFly
+ * @param {boolean} addStroke
+ */
+function showWay(nodesList, color = "#000000", needFly = false, addStroke = false) {
+    cleanCustomObjects()
+    const line = getWindow()
+        .L.polyline(
+            intoPage(nodesList.map(elem => getWindow().L.latLng(intoPage(elem)))),
+            intoPage({
+                color: color,
+                weight: 4,
+                clickable: false,
+                opacity: 1,
+                fillOpacity: 1,
+            }),
+        )
+        .addTo(getMap())
+    if (addStroke) {
+        line._path.classList.add("stroke-polyline")
+    }
+    layers["customObjects"].push(line)
+    if (needFly) {
+        if (nodesList.length) {
+            fitBounds(get4Bounds(line))
+        }
+    }
+}
+
+/**
+ * @name showWays
+ * @memberof unsafeWindow
+ * @param {[][]} ListOfNodesList
+ * @param {string=} layerName
+ * @param {string=} color
+ */
+function showWays(ListOfNodesList, layerName = "customObjects", color = "#000000") {
+    cleanObjectsByKey(layerName)
+    ListOfNodesList.forEach(nodesList => {
+        const line = getWindow()
+            .L.polyline(
+                intoPage(nodesList.map(elem => getWindow().L.latLng(intoPage(elem)))),
+                intoPage({
+                    color: color,
+                    weight: 4,
+                    clickable: false,
+                    opacity: 1,
+                    fillOpacity: 1,
+                }),
+            )
+            .addTo(getMap())
+        layers[layerName].push(line)
+    })
+}
+
+/**
+ * @name displayWay
+ * @memberof unsafeWindow
+ * @param {any[]} nodesList
+ * @param {boolean=} needFly
+ * @param {string=} color
+ * @param {number=} width
+ * @param {string|null=} infoElemID
+ * @param {string=} layerName
+ * @param {string|null=} dashArray
+ * @param {string|null=} popupContent
+ * @param {boolean|null=} addStroke
+ * @param {boolean=} geometryCached
+ */
+function displayWay(nodesList, needFly = false, color = "#000000", width = 4, infoElemID = null, layerName = "customObjects", dashArray = null, popupContent = null, addStroke = null, geometryCached = false) {
+    if (!layers[layerName]) {
+        layers[layerName] = []
+    }
+
+    function bindPopup(line, popup) {
+        if (popup) return line.bindPopup(popup)
+        return line
+    }
+
+    const line = bindPopup(
+        getWindow().L.polyline(
+            geometryCached ? nodesList : intoPage(nodesList),
+            intoPage({
+                color: color,
+                weight: width,
+                clickable: false,
+                opacity: 1,
+                fillOpacity: 1,
+                dashArray: dashArray,
+            }),
+        ),
+        popupContent,
+    ).addTo(getMap())
+    layers[layerName].push(line)
+    if (needFly) {
+        getMap().flyTo(
+            intoPage(line.getBounds().getCenter()),
+            18,
+            intoPage({
+                animate: false,
+                duration: 0.5,
+            }),
+        )
+    }
+    if (infoElemID) {
+        layers[layerName][layers[layerName].length - 1].on(
+            "click",
+            cloneInto(
+                function () {
+                    const elementById = document.getElementById(infoElemID)
+                    elementById?.scrollIntoView()
+                    resetMapHover()
+                    elementById?.parentElement?.parentElement?.classList.add("map-hover")
+                    cleanObjectsByKey("activeObjects")
+                },
+                getWindow(),
+                { cloneFunctions: true },
+            ),
+        )
+    }
+    if (addStroke) {
+        line._path.classList.add("stroke-polyline")
+    }
+    return line
+}
+
+/**
+ * @name showNodeMarker
+ * @memberof unsafeWindow
+ * @param {string|number} a
+ * @param {string|number} b
+ * @param {string=} color
+ * @param {string|null=} infoElemID
+ * @param {string=} layerName
+ * @param {number=} radius
+ */
+function showNodeMarker(a, b, color = "#00a500", infoElemID = null, layerName = "customObjects", radius = 5) {
+    const haloStyle = {
+        weight: 2.5,
+        radius: radius,
+        fillOpacity: 0,
+        color: color,
+    }
+    const marker = getWindow().L.circleMarker(getWindow().L.latLng(a, b), intoPage(haloStyle)).addTo(getMap())
+    layers[layerName].push(marker)
+    if (infoElemID) {
+        marker.on(
+            "click",
+            cloneInto(
+                function () {
+                    const elementById = document.getElementById(infoElemID)
+                    elementById?.scrollIntoView()
+                    resetMapHover()
+                    elementById?.parentElement?.parentElement.classList?.add("map-hover")
+                },
+                getWindow(),
+                { cloneFunctions: true },
+            ),
+        )
+    }
+    return marker
+}
+
+/**
+ * @name showActiveNodeMarker
+ * @memberof unsafeWindow
+ * @param {string} lat
+ * @param {string} lon
+ * @param {string} color
+ * @param {boolean=} removeActiveObjects
+ * @param {number} radius
+ * @param {number=} weight
+ */
+function showActiveNodeMarker(lat, lon, color, removeActiveObjects = true, radius = 5, weight = 2.5) {
+    const haloStyle = {
+        weight: weight,
+        radius: radius,
+        fillOpacity: 0,
+        color: color,
+    }
+    if (removeActiveObjects) {
+        cleanObjectsByKey("activeObjects")
+    }
+    layers["activeObjects"].push(getWindow().L.circleMarker(getWindow().L.latLng(lat, lon), intoPage(haloStyle)).addTo(getMap()))
+}
+
+/**
+ * @name showActiveNodeIconMarker
+ * @memberof unsafeWindow
+ * @param {string} lat
+ * @param {string} lon
+ * @param {string|null=} color
+ * @param {boolean=} removeActiveObjects
+ */
+function showActiveNodeIconMarker(lat, lon, color = null, removeActiveObjects = true) {
+    if (removeActiveObjects) {
+        cleanObjectsByKey("activeObjects")
+    }
+    const marker = getWindow().L.marker(intoPage([lat, lon]), intoPage({ draggable: false, icon: getWindow().OSM.getMarker({ color: color ?? "var(--marker-blue)" }) }))
+    layers["activeObjects"].push(marker.addTo(getMap()))
+}
+
+/**
+ * @name showActiveWay
+ * @memberof unsafeWindow
+ * @param {any[]} nodesList
+ * @param {string=} color
+ * @param {boolean=} needFly
+ * @param {string|null=} infoElemID
+ * @param {boolean=} removeActiveObjects
+ * @param {number=} weight
+ * @param {string=} dashArray
+ */
+function showActiveWay(nodesList, color = c("#ff00e3"), needFly = false, infoElemID = null, removeActiveObjects = true, weight = 4, dashArray = null) {
+    const line = getWindow()
+        .L.polyline(
+            intoPage(nodesList.map(elem => intoPage(getWindow().L.latLng(intoPage(elem))))),
+            intoPage({
+                color: color,
+                weight: weight,
+                clickable: false,
+                opacity: 1,
+                fillOpacity: 1,
+                dashArray: dashArray,
+            }),
+        )
+        .addTo(getMap())
+    if (removeActiveObjects) {
+        cleanObjectsByKey("activeObjects")
+    }
+    layers["activeObjects"].push(line)
+    if (needFly) {
+        fitBounds(get4Bounds(line))
+    }
+    if (infoElemID) {
+        layers["activeObjects"][layers["activeObjects"].length - 1].on(
+            "click",
+            cloneInto(
+                function () {
+                    const elementById = document.getElementById(infoElemID)
+                    elementById?.scrollIntoView()
+                    resetMapHover()
+                    elementById.classList.add("map-hover")
+                },
+                getWindow(),
+                { cloneFunctions: true },
+            ),
+        )
+    }
+}
+
+/**
+ * @name panTo
+ * @memberof unsafeWindow
+ * @param {string} lat
+ * @param {string} lon
+ * @param {number=} zoom
+ * @param {boolean=} animate
+ */
+function panTo(lat, lon, zoom = 18, animate = false) {
+    if (!getMap()?.flyTo) {
+        // todo initial implementation
+        const maxZoom = 19
+        console.log("try workaround. TODO")
+        const curURL = document.querySelector("#edit_tab ul")?.querySelector("li a")?.href
+        const match = curURL.match(/map=(\d+)\/([-\d.]+)\/([-\d.]+)(&|$)/)
+        if (match) {
+            const zoomLevel = parseInt(match[1])
+            let newHash = location.hash.replace(/map=(\d+)\//, `map=${min(zoomLevel + 1, maxZoom)}/`)
+            newHash = newHash.replace(/map=(\d+)\/(\d+)\/(\d+)/, `map=$1/${lat}/${lon}`)
+            location.hash = newHash
+        } else {
+            const [x, y, z] = getCurrentXYZ()
+            location.hash = `map=${min(parseInt(z) + 1, maxZoom)}/${x}/${y}`
+        }
+    } else {
+        getMap().flyTo(intoPage([lat, lon]), zoom, intoPage({ animate: animate }))
+    }
+}
+
+/**
+ * @name panInside
+ * @memberof unsafeWindow
+ * @param {string} lat
+ * @param {string} lon
+ * @param {boolean=} animate
+ * @param {[number, number]=} padding
+ */
+function panInside(lat, lon, animate = false, padding = [0, 0]) {
+    getMap().panInside(intoPage([lat, lon]), intoPage({ animate: animate, padding: padding }))
+}
+
+function get4Bounds(b) {
+    try {
+        return [
+            [b.getBounds().getSouth(), b.getBounds().getWest()],
+            [b.getBounds().getNorth(), b.getBounds().getEast()],
+        ]
+    } catch {
+        console.error("Please, reload page")
+    }
+}
+
+/**
+ * @name fitBounds
+ * @param {import('leaflet').LatLngBoundsExpression} bound
+ * @param {number} maxZoom
+ * @memberof unsafeWindow
+ */
+function fitBounds(bound, maxZoom = 19) {
+    fitBoundsWithPadding(bound, 0, maxZoom)
+}
+
+/**
+ * @name fitBoundsWithPadding
+ * @param {import('leaflet').LatLngBoundsExpression} bound
+ * @param {number} padding
+ * @param {number} maxZoom
+ * @memberof unsafeWindow
+ */
+function fitBoundsWithPadding(bound, padding, maxZoom = 19) {
+    if (!getMap()?.fitBounds) {
+        // todo initial implementation
+        console.log("try workaround. TODO")
+        const curURL = document.querySelector("#edit_tab ul")?.querySelector("li a")?.href
+        const match = curURL.match(/map=(\d+)\/([-\d.]+)\/([-\d.]+)(&|$)/)
+        if (match) {
+            const [lat, lon] = bound[0]
+            const zoomLevel = parseInt(match[1])
+            let newHash = location.hash.replace(/map=(\d+)\//, `map=${min(zoomLevel + 1, maxZoom)}/`)
+            newHash = newHash.replace(/map=(\d+)\/(\d+)\/(\d+)/, `map=$1/${lat}/${lon}`)
+            location.hash = newHash
+        } else {
+            const [x, y, z] = getCurrentXYZ()
+            location.hash = `map=${min(parseInt(z) + 1, maxZoom)}/${x}/${y}`
+        }
+    } else {
+        getMap().fitBounds(intoPageWithFun(bound), intoPage({ padding: [padding, padding], maxZoom: maxZoom }))
+    }
+}
+
+
+const earthRadius = 6378137
+
+function drawRay(lat, lon, angle, color) {
+    const rad = (angle * Math.PI) / 180
+    const length = 7
+    const latOffset = (length * Math.cos(rad)) / earthRadius
+    const lonOffset = (length * Math.sin(rad)) / (earthRadius * Math.cos((lat * Math.PI) / 180))
+    showActiveWay(
+        [
+            [lat, lon],
+            [lat + (latOffset * 180) / Math.PI, lon + (lonOffset * 180) / Math.PI],
+        ],
+        color,
+        false,
+        null,
+        false,
+    )
+}
+
+//</editor-fold>
+
+//<editor-fold desc="datetime-format-switch" defaultstate="collapsed">
+
+let timestampMode = "natural_text"
+
+function makeTimesSwitchable() {
+    document.querySelectorAll("time:not([natural_text])").forEach(j => {
+        j.setAttribute("natural_text", j.textContent)
+        if (timestampMode !== "natural_text") {
+            j.textContent = j.getAttribute("datetime")
+        }
+    })
+
+    function switchTimestamp() {
+        if (window.getSelection().type === "Range") {
+            return
+        }
+        document.querySelectorAll("time:not([natural_text])").forEach(j => {
+            j.setAttribute("natural_text", j.textContent)
+        })
+
+        function switchElement(j) {
+            if (j.childNodes[0].textContent === j.getAttribute("natural_text")) {
+                j.childNodes[0].textContent = j.getAttribute("datetime")
+                timestampMode = "datetime"
+            } else {
+                j.childNodes[0].textContent = j.getAttribute("natural_text")
+                timestampMode = "natural_text"
+            }
+            if (j.querySelector(".timeback-btn") && j.nextElementSibling?.id !== "timeback-btn") {
+                j.querySelector(".timeback-btn").style.display = ""
+            }
+        }
+
+        document.querySelectorAll("time").forEach(switchElement)
+    }
+
+    const isObjectPage = location.pathname.includes("node") || location.pathname.includes("way") || location.pathname.includes("relation")
+    const isNotePage = location.pathname.includes("note")
+
+    function openMapStateInOverpass(elem, adiff = false) {
+        const { lng: lon, lat: lat } = getMapCenter()
+        const zoom = getZoom()
+        const query = `// via changeset closing time
+[${adiff ? "adiff" : "date"}:"${elem.getAttribute("datetime")}"];
+(
+  node({{bbox}});
+  way({{bbox}});
+  //relation({{bbox}});
+);
+(._;>;);
+out meta;
+`
+        window.open(`${overpass_server.url}?Q=${encodeURI(query)}&C=${lat};${lon};${zoom}${zoom > 15 ? "&R" : ""}`, "_blank")
+    }
+
+    document.querySelectorAll("time:not([switchable])").forEach(i => {
+        if (i.title !== "") {
+            i.title += `\n\n`
+        }
+        i.title += `Click for change time format`
+        i.title += `\nClick with ctrl for open the map state at the time of ${isObjectPage ? "version was created" : isNotePage ? "note was created" : "changeset was closed"}\nClick with Alt for view adiff`
+
+        function clickEvent(e) {
+            if (e.metaKey || e.ctrlKey || e.altKey) {
+                if (window.getSelection().type === "Range") {
+                    return
+                }
+                openMapStateInOverpass(i, e.altKey)
+            } else {
+                switchTimestamp()
+            }
+        }
+
+        i.addEventListener("click", clickEvent)
+    })
+    document.querySelectorAll("time:not([switchable])").forEach(i => {
+        i.setAttribute("switchable", "true")
+        const btn = document.createElement("a")
+        btn.classList.add("timeback-btn")
+        btn.title = `Open the map state at the time of ${isObjectPage ? "version was created" : "changeset was closed"}`
+        btn.textContent = " 🕰"
+        btn.style.cursor = "pointer"
+        btn.style.display = "none"
+        btn.style.userSelect = "none"
+        btn.onclick = e => {
+            e.preventDefault()
+            e.stopPropagation()
+            openMapStateInOverpass(i, e.altKey)
+        }
+        i.appendChild(btn)
+    })
+}
+
+//</editor-fold>
+
+//<editor-fold desc="short-links" defaultstate="collapsed">
+
+/**
+ * @param {string} text
+ * @returns {string}
+ */
+function shortOsmOrgLinksInText(text) {
+    // prettier-ignore
+    return text
+        .replaceAll("https://www.openstreetmap.org", "osm.org")
+        .replaceAll("https://wiki.openstreetmap.org/wiki/", "osm.wiki/")
+        .replaceAll("https://wiki.openstreetmap.org", "osm.wiki")
+        .replaceAll("https://community.openstreetmap.org", "c.osm.org")
+        .replaceAll("https://openstreetmap.org", "osm.org")
+}
+
+function shortOsmOrgLinks(elem) {
+    if (!GM_config.get("ImagesAndLinksInTags")) return
+    elem?.querySelectorAll('a[href^="https://www.openstreetmap.org"], a[href^="https://wiki.openstreetmap.org"], a[href^="https://community.openstreetmap.org"], a[href^="https://openstreetmap.org"]')?.forEach(i => {
+        i.textContent = shortOsmOrgLinksInText(i.textContent)
+    })
+}
+//</editor-fold>
+
+//<editor-fold desc="find-user-in-dif" defaultstate="collapsed">
+
+async function decompressBlob(blob) {
+    const ds = new DecompressionStream("gzip")
+    const decompressedStream = blob.stream().pipeThrough(ds)
+    return await new Response(decompressedStream).blob()
+}
+
+async function tryFindChangesetInDiffGZ(gzURL, changesetId) {
+    const diffGZ = await externalFetchRetry({
+        method: "GET",
+        url: gzURL,
+        responseType: "blob",
+    })
+    const blob = await decompressBlob(diffGZ.response)
+    const diffXML = await blob.text()
+
+    const diffParser = new DOMParser()
+    const doc = diffParser.parseFromString(diffXML, "application/xml")
+    return doc.querySelector(`osm changeset[id='${changesetId}']`)
+}
+
+async function parseBBB(target, url) {
+    const response = await externalFetchRetry({
+        method: "GET",
+        url: planetOrigin + "/replication/changesets/" + url,
+    })
+    const BBBHTML = new DOMParser().parseFromString(response.responseText, "text/html")
+
+    const a = Array.from(BBBHTML.querySelector("pre").childNodes).slice(2)
+    let x = 0
+    let found = false
+    for (x; x < a.length; x += 2) {
+        const num = parseInt(a[x].textContent)
+        let d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim())
+        if (url === "003/") {
+            if (num === 115) {
+                d = new Date("2018-10-1918T01:21:00Z")
+            } else if (num === 116) {
+                d = new Date("2018-10-1918T13:25:00Z")
+            }
+        }
+        if (target < d) {
+            found = true
+            break
+        }
+    }
+    if (x === 0) {
+        return found ? [a[x].getAttribute("href"), a[x].getAttribute("href")] : false
+    } else {
+        return found ? [a[x].getAttribute("href"), a[x - 2].getAttribute("href")] : false
+    }
+}
+
+async function parseCCC(target, url) {
+    const response = await externalFetchRetry({
+        method: "GET",
+        url: planetOrigin + "/replication/changesets/" + url,
+    })
+    const CCCHTML = new DOMParser().parseFromString(response.responseText, "text/html")
+
+    const a = Array.from(CCCHTML.querySelector("pre").childNodes).slice(2)
+    let x = 0
+    let found = false
+    /**
+     * HTML format:
+     *              xxx.ext         datetime
+     *              xxx.state.txt   datetime <for new changesets>
+     *              file.tmp        datetime <sometimes>
+     *              yyy.ext         ....
+     */
+    for (x; x < a.length; x += 2) {
+        if (!a[x].textContent.match(/^\d+\.osm\.gz$/)) {
+            continue
+        }
+        const d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim().split(" ").slice(0, -1).join(" ").trim() + " UTC")
+        if (target <= d) {
+            found = true
+            break
+        }
+    }
+    if (!found) {
+        return false
+    }
+    if (x + 2 >= a.length) {
+        return [a[x].getAttribute("href"), a[x].getAttribute("href")]
+    }
+    try {
+        // state files are missing in old diffs folders
+        if (a[x + 2].getAttribute("href")?.match(/^\d+\.osm\.gz$/)) {
+            return [a[x].getAttribute("href"), a[x + 2].getAttribute("href")]
+        }
+    } catch {
+        /* empty */
+    }
+    if (x + 4 >= a.length) {
+        return [a[x].getAttribute("href"), a[x].getAttribute("href")]
+    }
+    return [a[x].getAttribute("href"), a[x + 4].getAttribute("href")]
+}
+
+async function checkBBB(AAA, BBB, targetTime, targetChangesetID) {
+    const CCC = await parseCCC(targetTime, AAA + BBB)
+    if (!CCC) {
+        return
+    }
+    const gzURL = planetOrigin + "/replication/changesets/" + AAA + BBB
+
+    let foundedChangeset = await tryFindChangesetInDiffGZ(gzURL + CCC[0], targetChangesetID)
+    if (!foundedChangeset) {
+        foundedChangeset = await tryFindChangesetInDiffGZ(gzURL + CCC[1], targetChangesetID)
+    }
+    return foundedChangeset
+}
+
+async function checkAAA(AAA, targetTime, targetChangesetID) {
+    const BBBs = await parseBBB(targetTime, AAA)
+    if (!BBBs) {
+        return
+    }
+
+    let foundedChangeset = await checkBBB(AAA, BBBs[0], targetTime, targetChangesetID)
+    if (!foundedChangeset) {
+        foundedChangeset = await checkBBB(AAA, BBBs[1], targetTime, targetChangesetID)
+    }
+    return foundedChangeset
+}
+
+// tests
+// https://osm.org/way/488322838/history
+// https://osm.org/way/74034517/history
+// https://osm.org/relation/17425783/history
+// https://osm.org/way/554280669/history
+// https://osm.org/node/4122049406 (/replication/changesets/005/638/ contains .tmp files)
+// https://osm.org/node/2/history (very hard)
+async function findChangesetInDiff(e) {
+    e.preventDefault()
+    e.stopPropagation()
+    e.target.style.cursor = "progress"
+
+    let foundedChangeset
+    try {
+        const match = location.pathname.match(/\/(node|way|relation|changeset)\/(\d+)/)
+        let [, type, objID] = match
+        if (type === "changeset") {
+            const ch = (await getChangeset(objID)).data
+            type = ch.querySelector(`[changeset="${objID}"]`).nodeName
+            objID = ch.querySelector(`[changeset="${objID}"]`).getAttribute("id")
+        }
+        if (type === "node") {
+            foundedChangeset = await getNodeViaOverpassXML(objID, e.target.datetime)
+        } else if (type === "way") {
+            foundedChangeset = await getWayViaOverpassXML(objID, e.target.datetime)
+        } else if (type === "relation") {
+            foundedChangeset = await getRelationViaOverpassXML(objID, e.target.datetime)
+        }
+        if (!foundedChangeset?.getAttribute("user")) {
+            foundedChangeset = null
+            console.log("Loading via overpass failed. Try via diffs")
+            throw ""
+        }
+    } catch {
+        const response = await externalFetchRetry({
+            method: "GET",
+            url: planetOrigin + "/replication/changesets/",
+        })
+        const parser = new DOMParser()
+        const AAAHTML = parser.parseFromString(response.responseText, "text/html")
+        const targetTime = new Date(e.target.datetime)
+        targetTime.setSeconds(0)
+        const targetChangesetID = e.target.value
+
+        const a = Array.from(AAAHTML.querySelector("pre").childNodes).slice(2).slice(0, -4)
+        a.push(...a.slice(-2))
+        let x = 0
+        for (x; x < a.length - 2; x += 2) {
+            const d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim())
+            if (targetTime < d) break
+        }
+        let AAAs
+        if (x === 0) {
+            AAAs = [a[x].getAttribute("href"), a[x].getAttribute("href")]
+        } else {
+            AAAs = [a[x - 2].getAttribute("href"), a[x].getAttribute("href")]
+        }
+
+        foundedChangeset = await checkAAA(AAAs[0], targetTime, targetChangesetID)
+        if (!foundedChangeset) {
+            foundedChangeset = await checkAAA(AAAs[1], targetTime, targetChangesetID)
+        }
+        if (!foundedChangeset) {
+            alert(":(")
+            return
+        }
+    }
+
+    const userInfo = document.createElement("a")
+    userInfo.setAttribute("href", "/user/" + foundedChangeset.getAttribute("user"))
+    userInfo.style.cursor = "pointer"
+    userInfo.textContent = foundedChangeset.getAttribute("user")
+
+    e.target.before(document.createTextNode("\xA0"))
+    e.target.before(userInfo)
+    e.target.before(document.createTextNode("\xA0"))
+
+    const uid = document.createElement("span")
+    uid.style.cursor = "pointer"
+    uid.title = "Click for copy user ID"
+    uid.onclick = e => {
+        const text = foundedChangeset.getAttribute("uid")
+        navigator.clipboard.writeText(text).then(() => copyAnimation(e, text))
+    }
+    uid.textContent = `${foundedChangeset.getAttribute("uid")}`
+
+    e.target.before(document.createTextNode("ID: "))
+    e.target.before(uid)
+    e.target.before(document.createTextNode("\xA0"))
+
+    const webArchiveLink = document.createElement("a")
+    webArchiveLink.textContent = "WebArchive"
+    webArchiveLink.target = "_blank"
+    webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + foundedChangeset.getAttribute("user")
+    e.target.before(webArchiveLink)
+    e.target.before(document.createTextNode("\xA0"))
+
+    e.target.remove()
+}
+
+//</editor-fold>
+
+//<editor-fold desc="restriction-render" defaultstate="collapsed">
+
+/**
+ * @param {{lat: number, lon: number}} latLon1
+ * @param {{lat: number, lon: number}} latLon2
+ * @return {boolean}
+ */
+function isEqualCoordinates(latLon1, latLon2) {
+    return latLon1.lat === latLon2.lat && latLon1.lon === latLon2.lon
+}
+
+/**
+ * @param {ExtendedRelationVersion} rel
+ * @return {string[]}
+ */
+function validateRestriction(rel) {
+    /** @type {ExtendedRelationWayMember[]} */
+    const from = []
+    /** @type {ExtendedRelationNodeMember[]} */
+    const viaNodes = []
+    /** @type {ExtendedRelationWayMember[]} */
+    const viaWays = []
+    /** @type {ExtendedRelationWayMember[]} */
+    const to = []
+    const errors = []
+    const { value: restrictionValue } = getRestrictionKeyValue(rel.tags)
+    rel.members?.forEach(i => {
+        if (i.type === "way" && i.role === "from") {
+            from.push(i)
+        } else if (i.type === "way" && i.role === "to") {
+            to.push(i)
+        } else if (i.type === "node" && i.role === "via") {
+            viaNodes.push(i)
+        } else if (i.type === "way" && i.role === "via") {
+            viaWays.push(i)
+        } else {
+            errors.push(`Incorrect member: ${i.type}/${i.ref} with "${i.role}" role`)
+        }
+    })
+    if (viaNodes.length + viaWays.length === 0) {
+        errors.push('Missing member with "via" role')
+    }
+    if (from.length === 0) {
+        errors.push('Missing member with "from" role')
+    }
+    if (to.length === 0) {
+        errors.push('Missing member with "to" role')
+    }
+
+    ;[...from, ...to].forEach(i => {
+        if (i.geometry?.length < 2) {
+            errors.push(`${i.type}/${i.ref} (${i.role}) way contains < 2 nodes`)
+        }
+    })
+    if (restrictionValue !== "no_exit" && restrictionValue !== "no_entry") {
+        if (from.length > 1) {
+            errors.push('Multiple "from" role')
+        }
+        if (to.length > 1) {
+            errors.push('Multiple "to" role')
+        }
+    }
+    if (errors.length) return errors
+
+    if (viaNodes.length && viaWays.length) {
+        errors.push(`Mixed "node" and "way" types for via role`)
+    } else if (viaNodes.length > 1) {
+        errors.push(`multiple "via" nodes`)
+    } else if (viaWays.length > 0) {
+        let lastNode = from[0].geometry[0]
+        if (isEqualCoordinates(from[0].geometry[0], lastNode)) {
+            lastNode = viaWays[0].geometry[viaWays[0].geometry.length - 1]
+        } else if (isEqualCoordinates(from[0].geometry[from[0].geometry.length - 1], lastNode)) {
+            lastNode = viaWays[0].geometry[0]
+        } else {
+            errors.push(`"from" -> "via" are arranged in the wrong order or torn`)
+        }
+        viaWays.slice(1).forEach(w => {
+            if (isEqualCoordinates(w.geometry[0], lastNode)) {
+                lastNode = w.geometry[w.geometry.length - 1]
+            } else if (isEqualCoordinates(w.geometry[w.geometry.length - 1], lastNode)) {
+                lastNode = w.geometry[0]
+            } else {
+                errors.push(`"via" -> "via" are arranged in the wrong order or torn`)
+            }
+        })
+        if (!isEqualCoordinates(to[0].geometry[0], lastNode) && isEqualCoordinates(to[0].geometry[to[0].geometry.length - 1], lastNode)) {
+            errors.push(`"via" -> "to" are arranged in the wrong order or torn`)
+        }
+    }
+    if (errors.length) return errors
+
+    return errors
+}
+
+// prettier-ignore
+const restrictionColors = {
+    no_left_turn:       "#ff0000",
+    no_right_turn:      "#ff0000",
+    no_straight_on:     "#ff0000",
+    no_u_turn:          "#ff0000",
+    only_right_turn:    "#0000ff",
+    only_left_turn:     "#0000ff",
+    only_straight_on:   "#0000ff",
+    no_entry:           "#ff0000",
+    no_exit:            "#ff0000",
+}
+
+const restrictionsImagesPrefix = "https://raw.githubusercontent.com/deevroman/better-osm-org/ad552f9f3a3d7a11a1448686fc0ccc164905bf62/misc/assets/icons/restrictions/"
+// prettier-ignore
+const restrictionsSignImages = {
+    no_left_turn:       restrictionsImagesPrefix + "France_road_sign_B2a.svg",
+    no_right_turn:      restrictionsImagesPrefix + "France_road_sign_B2b.svg",
+    no_straight_on:     restrictionsImagesPrefix + "MUTCD_R3-27.svg",
+    no_u_turn:          restrictionsImagesPrefix + "France_road_sign_B2c.svg",
+    only_right_turn:    restrictionsImagesPrefix + "France_road_sign_B21c1.svg",
+    only_left_turn:     restrictionsImagesPrefix + "France_road_sign_B21c2.svg",
+    only_straight_on:   restrictionsImagesPrefix + "France_road_sign_B21b.svg",
+    no_entry:           restrictionsImagesPrefix + "RU_road_sign_3.1.svg",
+    no_exit:            restrictionsImagesPrefix + "RU_road_sign_3.1.svg",
+}
+
+function azimuth(lat1, lon1, lat2, lon2) {
+    const p1 = toMercator(lat1, lon1)
+    const p2 = toMercator(lat2, lon2)
+
+    const dx = p2.x - p1.x
+    const dy = p2.y - p1.y
+
+    const angleRad = Math.atan2(dx, dy)
+    const angleDeg = (angleRad * 180) / Math.PI
+
+    return (angleDeg + 360) % 360
+}
+
+function getRestrictionKeyValue(tags) {
+    const key = Object.keys(tags).find(k => k === "restriction" || k === "was:restriction" || k.startsWith("restriction:"))
+    return {
+        key: key,
+        value: tags[key],
+    }
+}
+
+/**
+ * @param {ExtendedRelationVersion} rel
+ * @param {string} color
+ * @param {string} layer
+ * @return {[]}
+ */
+function renderRestriction(rel, color, layer) {
+    /** @type {ExtendedRelationWayMember[]} */
+    const from = []
+    /** @type {ExtendedRelationNodeMember[]} */
+    const viaNodes = []
+    /** @type {ExtendedRelationWayMember[]} */
+    const viaWays = []
+    /** @type {ExtendedRelationWayMember[]} */
+    const to = []
+    rel.members?.forEach(i => {
+        if (i.type === "way" && i.role === "from") {
+            from.push(i)
+        } else if (i.type === "way" && i.role === "to") {
+            to.push(i)
+        } else if (i.type === "node" && i.role === "via") {
+            viaNodes.push(i)
+        } else if (i.type === "way" && i.role === "via") {
+            viaWays.push(i)
+        }
+    })
+    let via = viaNodes?.[0]
+    if (!via) {
+        if (isEqualCoordinates(from[0].geometry[0], viaWays[0].geometry[0]) || isEqualCoordinates(from[0].geometry[from[0].geometry.length - 1], viaWays[0].geometry[0])) {
+            via = viaWays[0].geometry[0]
+        } else if (
+            isEqualCoordinates(from[0].geometry[0], viaWays[0].geometry[viaWays[0].geometry.length - 1]) ||
+            isEqualCoordinates(from[0].geometry[from[0].geometry.length - 1], viaWays[0].geometry[viaWays[0].geometry.length - 1])
+        ) {
+            via = viaWays[0].geometry[viaWays[0].geometry.length - 1]
+        } else {
+            console.error("Restriction validation error")
+            debug_alert("Restriction validation error")
+        }
+    }
+    const { value: restrictionValue } = getRestrictionKeyValue(rel.tags)
+    const angle = 25
+    const len = 7
+    const arrows = []
+    let signAngle = 0.0
+    from.forEach(f => {
+        let startPoint = f.geometry[0]
+        let endPoint = f.geometry[1]
+        // оверпас не даёт айдишники точек геометрии
+        if (isEqualCoordinates(f.geometry[f.geometry.length - 1], via)) {
+            startPoint = f.geometry[f.geometry.length - 1]
+            endPoint = f.geometry[f.geometry.length - 2]
+        }
+        signAngle = 360 - azimuth(endPoint.lat, endPoint.lon, startPoint.lat, startPoint.lon)
+        console.debug(signAngle)
+        // const {lat: p1_lat, lon: p1_lon} = startPoint;
+        // const {lat: p2_lat, lon: p2_lon} = endPoint
+        // const rotated1 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, -angle, len)
+        // const rotated2 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, angle, len)
+        // arrows.push(displayWay([startPoint, rotated1], false, "white", 7, null, layer))
+        // arrows.push(displayWay([startPoint, rotated2], false, "white", 7, null, layer))
+        // arrows.push(displayWay([startPoint, rotated1], false, color, 4, null, layer))
+        // arrows.push(displayWay([startPoint, rotated2], false, color, 4, null, layer))
+    })
+    to.forEach(t => {
+        let startPoint = t.geometry[0]
+        let endPoint = t.geometry[1]
+        if (t.geometry[0].lat === via.lat && t.geometry[0].lon === via.lon) {
+            if (from.length > 1) {
+                signAngle = 360 - azimuth(endPoint.lat, endPoint.lon, startPoint.lat, startPoint.lon)
+            }
+            startPoint = t.geometry[t.geometry.length - 1]
+            endPoint = t.geometry[t.geometry.length - 2]
+        } else {
+            if (from.length > 1) {
+                signAngle = 360 - azimuth(t.geometry[t.geometry.length - 2].lat, t.geometry[t.geometry.length - 2].lon, t.geometry[t.geometry.length - 1].lat, t.geometry[t.geometry.length - 1].lon)
+            }
+        }
+        const { lat: p1_lat, lon: p1_lon } = startPoint
+        const { lat: p2_lat, lon: p2_lon } = endPoint
+        const rotated1 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, -angle, len)
+        const rotated2 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, angle, len)
+        if (restrictionValue === "no_exit" || restrictionValue === "no_entry") {
+            arrows.push(displayWay([startPoint, rotated1], false, "white", 7, null, layer))
+            arrows.push(displayWay([startPoint, rotated2], false, "white", 7, null, layer))
+            arrows.push(displayWay([startPoint, rotated1], false, color, 4, null, layer))
+            arrows.push(displayWay([startPoint, rotated2], false, color, 4, null, layer))
+        }
+    })
+    ;[100, 250, 500, 1000].forEach(t => {
+        setTimeout(() => {
+            arrows.forEach(i => i.bringToFront())
+        }, t)
+    })
+
+    queueMicrotask(async () => {
+        const imageUrl = restrictionsSignImages[restrictionValue]
+        if (!imageUrl) {
+            return
+        }
+        let img = await fetchTextWithCache(imageUrl)
+        img = img.replace('version="1.1"', `style="rotate: -${Math.round(signAngle)}deg" version="1.1"`)
+
+        function getSquareBounds(center) {
+            const { x, y } = toMercator(center.lat, center.lon)
+            // prettier-ignore
+            return [
+                [...Object.values(fromMercator(x - 10, y - 10))],
+                [...Object.values(fromMercator(x + 10, y + 10))]
+            ];
+        }
+
+        const imgLayer = getWindow()
+            .L.imageOverlay(
+                "data:image/svg+xml;base64," + btoa(img),
+                intoPage(getSquareBounds(via, 0.0002)),
+                intoPage({
+                    interactive: true,
+                    zIndex: 99999,
+                    className: "restriction-img",
+                }),
+            )
+            .addTo(getMap())
+        arrows.push(imgLayer)
+        arrows.forEach(l => layers[layer].push(l))
+        imgLayer.bringToFront()
+    })
+    return arrows
+}
+
+function isRestrictionObj(tags) {
+    return Object.entries(tags).some(([k]) => k === "restriction" || k === "was:restriction" || k.startsWith("restriction:"))
+}
+
+//</editor-fold>
+
+//<editor-fold desc="editor-utils" defaultstate="collapsed">
 
 /**
  * @param {XMLDocument} doc
@@ -1370,134 +3088,9 @@ function makeAuth() {
     })
 }
 
-function makeHashtagsClickable() {
-    if (!GM_config.get("ImagesAndLinksInTags")) return
+//</editor-fold>
 
-    const comment = document.querySelector("#element_versions_list > div p") ?? document.querySelector(".browse_section > div p") ?? document.querySelector("#sidebar_content h2 + div > p")
-    comment?.childNodes?.forEach(node => {
-        if (node.nodeType !== Node.TEXT_NODE) return
-        const span = document.createElement("span")
-        span.textContent = node.textContent
-        span.innerHTML = span.innerHTML.replaceAll(/\B(#[\p{L}\d_-]+)\b/gu, function (match) {
-            const osmchaFilter = { comment: [{ label: match, value: match }] }
-            const osmchaLink = "https://osmcha.org?" + new URLSearchParams({ filters: JSON.stringify(osmchaFilter) }).toString()
-            const a = document.createElement("a")
-            a.href = osmchaLink
-            a.target = "_blank"
-            a.title = "Search this hashtags in OSMCha"
-            a.textContent = match
-            return a.outerHTML
-        })
-        node.replaceWith(span)
-    })
-}
-
-function makeHashtagsInNotesClickable() {
-    if (!GM_config.get("ImagesAndLinksInTags")) return
-
-    const notesParagraphs = Array.from(document.querySelectorAll("#sidebar_content h4 ~ div:first-of-type > p"))
-    const commentsParagraphs = Array.from(document.querySelectorAll("#sidebar_content article p"))
-    ;[...commentsParagraphs, ...notesParagraphs].forEach(p => {
-        p?.childNodes?.forEach(node => {
-            if (node.nodeType !== Node.TEXT_NODE) return
-            const span = document.createElement("span")
-            span.textContent = node.textContent
-            span.innerHTML = span.innerHTML
-                .replaceAll(/(^|\B)(#[\p{L}\d_-]+)(\b|$)/gu, function (match) {
-                    // const notesReviewLink = "https://ent8r.github.io/NotesReview/?" + new URLSearchParams({
-                    //     view: "map",
-                    //     status: "open",
-                    //     area: "view",
-                    //     limit: 30,
-                    //     query: match
-                    // }).toString()
-
-                    const a = document.createElement("a")
-                    a.id = "note-link-" + Math.random()
-                    a.href = ""
-                    a.target = "_blank"
-                    a.title = "Click for filter notes by this hashtag.\nClick with CTLR or Shift for search this hashtags in osm-note-viewer"
-                    a.textContent = match
-
-                    function fixLink() {
-                        const center = getMapCenter()
-                        const zoom = getZoom()
-                        // prettier-ignore
-                        const notesReviewLink =
-                        "https://antonkhorev.github.io/osm-note-viewer/#" +
-                        new URLSearchParams({
-                            mode: "search",
-                            q: match,
-                            bbox: [
-                              Math.round(getMap().getBounds().getWest() * 10000) / 10000,
-                              Math.round(getMap().getBounds().getSouth() * 10000) / 10000,
-                              Math.round(getMap().getBounds().getEast() * 10000) / 10000,
-                              Math.round(getMap().getBounds().getNorth() * 10000) / 10000
-                            ].join(","),
-                            sort: "created_at",
-                            order: "newest",
-                            closed: "0",
-                            map: `${zoom}/${center.lat}/${center.lng}`,
-                        }).toString()
-                        const link = document.getElementById(a.id)
-                        link.href = notesReviewLink
-                        link.onclick = e => {
-                            if (e.shiftKey || e.ctrlKey || e.metaKey) {
-                                return
-                            }
-                            e.preventDefault()
-                            if (document.querySelector(".layers-ui").style.display === "none") {
-                                document.querySelector(".control-layers a").click()
-                            }
-                            Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({ block: "center" })
-                            document.querySelector("#filter-notes-by-string").value = match
-                            e.target?.classList?.add("wait-fetch")
-                            updateNotesLayer()
-                        }
-                        console.log("search link in note was fixed")
-                    }
-
-                    setTimeout(() => {
-                        interceptMapManually().then(fixLink)
-                    })
-                    setTimeout(fixLink, 1000)
-                    return a.outerHTML
-                })
-                .replaceAll(/(?<=(POI name: ))(.+)/gu, function (match) {
-                    const span = document.createElement("span")
-                    span.classList.add("poi-name-in-note")
-                    span.title = "Click to copy name"
-                    span.setAttribute("data-name", match)
-                    span.textContent = match
-                    return span.outerHTML
-                })
-                .replaceAll(/(?<=(POI types: ))(.+)/gu, function (match) {
-                    injectCSSIntoOSMPage(copyAnimationStyles)
-                    const span = document.createElement("span")
-                    span.classList.add("poi-name-in-note")
-                    span.title = "Click to copy type"
-                    span.setAttribute("data-name", match)
-                    span.textContent = match
-                    return span.outerHTML
-                })
-            document.querySelectorAll(".poi-name-in-note").forEach(elem => {
-                elem.style.cursor = "pointer"
-                elem.addEventListener("click", e => {
-                    const name = e.target.getAttribute("data-name")
-                    navigator.clipboard.writeText(name).then(() => copyAnimation(e, name))
-                })
-            })
-            node.replaceWith(span)
-        })
-    })
-}
-
-// prettier-ignore
-const filterIconSvg =
-    '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" ' +
-    'stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-funnel-icon lucide-funnel">' +
-    '<path d="M 10 20 a 1 1 0 0 0 0.553 0.895 l 2 1 A 1 1 0 0 0 14 21 v -8 a 2 3 0 0 1 1 -2 L 21.74 4.67 A 1 1 0 0 0 21 3 H 3 a 1 1 0 0 0 -0.742 1.67 l 6.742 6.33 A 2 3 0 0 1 10 13 z"/>' +
-    '</svg>'
+//<editor-fold desc="changeset-page-fixes" defaultstate="collapsed">
 
 function makeUsernameInNotesFilterable() {
     let usernameLink = document.querySelector("#sidebar_content .details p")?.querySelector('a[href^="/user/"]')
@@ -1541,27 +3134,6 @@ function makeUsernameInNotesFilterable() {
     }
 }
 
-/**
- * @param {string} text
- * @returns {string}
- */
-function shortOsmOrgLinksInText(text) {
-    // prettier-ignore
-    return text
-      .replaceAll("https://www.openstreetmap.org", "osm.org")
-      .replaceAll("https://wiki.openstreetmap.org/wiki/", "osm.wiki/")
-      .replaceAll("https://wiki.openstreetmap.org", "osm.wiki")
-      .replaceAll("https://community.openstreetmap.org", "c.osm.org")
-      .replaceAll("https://openstreetmap.org", "osm.org")
-}
-
-function shortOsmOrgLinks(elem) {
-    if (!GM_config.get("ImagesAndLinksInTags")) return
-    elem?.querySelectorAll('a[href^="https://www.openstreetmap.org"], a[href^="https://wiki.openstreetmap.org"], a[href^="https://community.openstreetmap.org"], a[href^="https://openstreetmap.org"]')?.forEach(i => {
-        i.textContent = shortOsmOrgLinksInText(i.textContent)
-    })
-}
-
 // todo remove this
 // prettier-ignore
 const mainTags = ["shop", "building", "amenity", "man_made", "highway", "natural", "aeroway", "historic", "railway", "tourism", "landuse", "leisure"]
@@ -1572,25 +3144,25 @@ async function getPrevNextChangesetsIDs(changeset_id) {
 
     const prevChangesetsPromise = fetchJSONWithCache(
         osm_server.apiBase +
-            "changesets.json?" +
-            new URLSearchParams({
-                user: changesetMetadata.uid.toString(),
-                order: "newest",
-                from: "2005-01-01T00:00:00Z",
-                to: new Date(new Date(changesetMetadata.created_at).getTime() + 1000).toISOString(), // на случай если в одну секунду создано несколько пакетов правок
-            }).toString(),
+        "changesets.json?" +
+        new URLSearchParams({
+            user: changesetMetadata.uid.toString(),
+            order: "newest",
+            from: "2005-01-01T00:00:00Z",
+            to: new Date(new Date(changesetMetadata.created_at).getTime() + 1000).toISOString(), // на случай если в одну секунду создано несколько пакетов правок
+        }).toString(),
     )
 
     /*** @type {{changesets: ChangesetMetadata[]}}*/
     const nextChangesets = await fetchJSONWithCache(
         osm_server.apiBase +
-            "changesets.json?" +
-            new URLSearchParams({
-                user: changesetMetadata.uid.toString(),
-                order: "oldest",
-                from: changesetMetadata.created_at,
-                to: new Date().toISOString(),
-            }).toString(),
+        "changesets.json?" +
+        new URLSearchParams({
+            user: changesetMetadata.uid.toString(),
+            order: "oldest",
+            from: changesetMetadata.created_at,
+            to: new Date().toISOString(),
+        }).toString(),
     )
 
     /*** @type {{changesets: ChangesetMetadata[]}}*/
@@ -1665,36 +3237,6 @@ function makeUsernameTitle(userInfo) {
     }
     return title
 }
-
-// prettier-ignore
-const tagSvg =
-    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" ' +
-    'stroke="currentColor" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tag-icon lucide-tag">' +
-    '<path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/>' +
-    '<circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/>' +
-    '</svg>'
-
-const osmchaLikeSvg =
-    "data:image/svg+xml;base64," +
-    btoa(
-        '<svg width="100" height="99" viewBox="0 0 100 99" xmlns="http://www.w3.org/2000/svg">' +
-            '<g fill="#39DBC0" fill-rule="evenodd">' +
-            '<path d="M41.817 42H8.65a8 8 0 0 0-7.862 9.483l6.981 37A8 8 0 0 0 15.632 95H92a8 8 0 0 0 ' +
-            "8-8V50a8 8 0 0 0-8-8H64.814c.034-.66.012-1.334-.072-2.013L61.086 10.21C60.312 3.906 " +
-            '54.574-.576 48.27.198c-6.303.774-10.786 6.511-10.012 12.815z" fill-opacity=".3"/>' +
-            '<rect fill-opacity=".9" x="76" y="37" width="24" height="62" rx="8"/></g></svg>',
-    )
-// todo is equal with rotate and color
-const osmchaDislikeSvg =
-    "data:image/svg+xml;base64," +
-    btoa(
-        '<svg width="100" height="99" viewBox="0 0 100 99" xmlns="http://www.w3.org/2000/svg">' +
-            '<g transform="rotate(-180 50 49.5)" fill="#CC2C47" fill-rule="evenodd">' +
-            '<path d="M41.817 42H8.65a8 8 0 0 0-7.862 9.483l6.981 37A8 8 0 0 0 15.632 95H92a8 8 0 0 0 ' +
-            "8-8V50a8 8 0 0 0-8-8H64.814c.034-.66.012-1.334-.072-2.013L61.086 10.21C60.312 3.906 " +
-            '54.574-.576 48.27.198c-6.303.774-10.786 6.511-10.012 12.815z" fill-opacity=".3"/>' +
-            '<rect fill-opacity=".9" x="76" y="37" width="24" height="62" rx="8"/></g></svg>',
-    )
 
 function addOsmchaButtons(changeset_id, reactionsContainer) {
     // https://osmcha.org/api/v1/tags/
@@ -2011,11 +3553,6 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
     reactionsContainer.addEventListener("contextmenu", contextMenuHandler)
 }
 
-const osmchaSvgLogo =
-    '<svg viewBox="2.5 2.5 13 13" xmlns="http://www.w3.org/2000/svg">' +
-    '<path d="M2.5 2.5l1 4-1 2 1 3-1 3h1l4-4c-.6-.8-1-1.9-1-3 0-1.9 1.1-3.5 2.6-4.4l-.6-.6-3 1-3-1zM15 11c-.9.9-2.2 1.5-3.5 1.5-1.1 0-2.2-.4-3-1l-4 4h2l2-1 2 1 4-1 1-3-.5-.5z"></path>' +
-    '<path d="M15 7.5c0 1.9-1.6 3.5-3.5 3.5S8 9.4 8 7.5 9.6 4 11.5 4 15 5.6 15 7.5"></path></svg>'
-
 function addRevertButton() {
     if (!location.pathname.startsWith("/changeset")) return
     if (document.querySelector("#revert_button_class")) return true
@@ -2077,10 +3614,10 @@ function addRevertButton() {
 
                 window.open(
                     "https://revert.monicz.dev/?" +
-                        new URLSearchParams({
-                            changesets: changeset_id,
-                            "query-filter": selector,
-                        }).toString(),
+                    new URLSearchParams({
+                        changesets: changeset_id,
+                        "query-filter": selector,
+                    }).toString(),
                     "_blank",
                 )
                 return
@@ -2090,8 +3627,8 @@ function addRevertButton() {
                     e.preventDefault()
                     alert(
                         "osm-revert works only for www.openstreetmap.org\n\n" +
-                            "But you can install reverter plugin in JOSM and use shift+click for other OSM servers.\n\n" +
-                            "⚠️Change the osm server in the josm settings!",
+                        "But you can install reverter plugin in JOSM and use shift+click for other OSM servers.\n\n" +
+                        "⚠️Change the osm server in the josm settings!",
                     )
                 }
                 return
@@ -2348,134 +3885,6 @@ function setupRevertButton() {
     addRevertButton()
 }
 
-function showSearchForm() {
-    document.querySelector("#sidebar .search_forms")?.removeAttribute("hidden")
-    document.querySelector("#sidebar .search_forms")?.style?.removeProperty("display") // quick fix
-}
-
-function hideSearchForm() {
-    if (location.pathname.startsWith("/search") || location.pathname.startsWith("/directions")) return
-    if (!document.querySelector("#sidebar .search_forms")?.hasAttribute("hidden")) {
-        document.querySelector("#sidebar .search_forms")?.setAttribute("hidden", "true")
-        document.querySelector("#sidebar .search_forms")?.style?.setProperty("display", "none", "important") // quick fix
-    }
-
-    document.querySelector(".sidebar-close-controls .btn-close:not(.hotkeyed)")?.addEventListener("click", () => {
-        showSearchForm()
-        cleanAllObjects()
-    })
-    document.querySelector(".sidebar-close-controls .btn-close:not(.hotkeyed)")?.classList?.add("hotkeyed")
-    document.querySelector("h1 .icon-link:not(.hotkeyed)")?.addEventListener("click", () => {
-        showSearchForm()
-        cleanAllObjects()
-    })
-    document.querySelector("h1 .icon-link:not(.hotkeyed)")?.classList?.add("hotkeyed")
-}
-
-function getMapCenter() {
-    try {
-        return getMap().getCenter()
-    } catch {
-        console.warn("Couldn't get the map center through the map object. Trying a workaround")
-
-        const curURL = document.querySelector("#edit_tab ul")?.querySelector("li a")?.href
-        const match = curURL.match(/map=(\d+)\/([-\d.]+)\/([-\d.]+)(&|$)/)
-        console.log("Parsed coordinates link:", match)
-        return { lng: match[3], lat: match[2] }
-    }
-}
-
-let sidebarObserver = null
-let timestampMode = "natural_text"
-
-function makeTimesSwitchable() {
-    document.querySelectorAll("time:not([natural_text])").forEach(j => {
-        j.setAttribute("natural_text", j.textContent)
-        if (timestampMode !== "natural_text") {
-            j.textContent = j.getAttribute("datetime")
-        }
-    })
-
-    function switchTimestamp() {
-        if (window.getSelection().type === "Range") {
-            return
-        }
-        document.querySelectorAll("time:not([natural_text])").forEach(j => {
-            j.setAttribute("natural_text", j.textContent)
-        })
-
-        function switchElement(j) {
-            if (j.childNodes[0].textContent === j.getAttribute("natural_text")) {
-                j.childNodes[0].textContent = j.getAttribute("datetime")
-                timestampMode = "datetime"
-            } else {
-                j.childNodes[0].textContent = j.getAttribute("natural_text")
-                timestampMode = "natural_text"
-            }
-            if (j.querySelector(".timeback-btn") && j.nextElementSibling?.id !== "timeback-btn") {
-                j.querySelector(".timeback-btn").style.display = ""
-            }
-        }
-
-        document.querySelectorAll("time").forEach(switchElement)
-    }
-
-    const isObjectPage = location.pathname.includes("node") || location.pathname.includes("way") || location.pathname.includes("relation")
-    const isNotePage = location.pathname.includes("note")
-
-    function openMapStateInOverpass(elem, adiff = false) {
-        const { lng: lon, lat: lat } = getMapCenter()
-        const zoom = getZoom()
-        const query = `// via changeset closing time
-[${adiff ? "adiff" : "date"}:"${elem.getAttribute("datetime")}"];
-(
-  node({{bbox}});
-  way({{bbox}});
-  //relation({{bbox}});
-);
-(._;>;);
-out meta;
-`
-        window.open(`${overpass_server.url}?Q=${encodeURI(query)}&C=${lat};${lon};${zoom}${zoom > 15 ? "&R" : ""}`, "_blank")
-    }
-
-    document.querySelectorAll("time:not([switchable])").forEach(i => {
-        if (i.title !== "") {
-            i.title += `\n\n`
-        }
-        i.title += `Click for change time format`
-        i.title += `\nClick with ctrl for open the map state at the time of ${isObjectPage ? "version was created" : isNotePage ? "note was created" : "changeset was closed"}\nClick with Alt for view adiff`
-
-        function clickEvent(e) {
-            if (e.metaKey || e.ctrlKey || e.altKey) {
-                if (window.getSelection().type === "Range") {
-                    return
-                }
-                openMapStateInOverpass(i, e.altKey)
-            } else {
-                switchTimestamp()
-            }
-        }
-
-        i.addEventListener("click", clickEvent)
-    })
-    document.querySelectorAll("time:not([switchable])").forEach(i => {
-        i.setAttribute("switchable", "true")
-        const btn = document.createElement("a")
-        btn.classList.add("timeback-btn")
-        btn.title = `Open the map state at the time of ${isObjectPage ? "version was created" : "changeset was closed"}`
-        btn.textContent = " 🕰"
-        btn.style.cursor = "pointer"
-        btn.style.display = "none"
-        btn.style.userSelect = "none"
-        btn.onclick = e => {
-            e.preventDefault()
-            e.stopPropagation()
-            openMapStateInOverpass(i, e.altKey)
-        }
-        i.appendChild(btn)
-    })
-}
 
 // noinspection CssUnusedSymbol,CssUnresolvedCustomProperty
 const compactSidebarStyleText = `
@@ -2629,23 +4038,7 @@ async function getChangesetComments(changeset_id) {
     return res["changeset"]["comments"]
 }
 
-// prettier-ignore
-const commentSvg =
-    '<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">' +
-    '<path d="M2.678 11.894a1 1 0 0 1 .287.801 11 11 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 ' +
-    '.71-.074A8 8 0 0 0 8 14c3.996 0 7-2.807 7-6s-3.004-6-7-6-7 2.808-7 6c0 1.468.617 2.83 1.678 3.894m-.493 ' +
-    '3.905a22 22 0 0 1-.713.129c-.2.032-.352-.176-.273-.362a10 10 0 0 0 .244-.637l.003-.01c.248-.72.45-1.548.524-2.319C.743 ' +
-    '11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.52.263-1.639.742-3.468 1.105">' +
-    '</path>' +
-    "</svg>"
-
-// prettier-ignore
-const diffSvg =
-    '<svg class="lucide lucide-diff better-diff-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" ' +
-    'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">' +
-    '<path d="M12 3v14"/><path d="M5 10h14"/>' +
-    '<path d="M5 21h14"/>' +
-    '</svg>'
+let sidebarObserver = null
 
 function setupCompactChangesetsHistory() {
     if (!location.pathname.includes("/history") && !location.pathname.startsWith("/changeset")) {
@@ -2823,6 +4216,543 @@ function setupCompactChangesetsHistory() {
 
     void initCorporateMappersList()
 }
+
+//</editor-fold>
+
+//<editor-fold desc="hashtags" defaultstate="collapsed">
+
+function makeHashtagsClickable() {
+    if (!GM_config.get("ImagesAndLinksInTags")) return
+
+    const comment = document.querySelector("#element_versions_list > div p") ?? document.querySelector(".browse_section > div p") ?? document.querySelector("#sidebar_content h2 + div > p")
+    comment?.childNodes?.forEach(node => {
+        if (node.nodeType !== Node.TEXT_NODE) return
+        const span = document.createElement("span")
+        span.textContent = node.textContent
+        span.innerHTML = span.innerHTML.replaceAll(/\B(#[\p{L}\d_-]+)\b/gu, function (match) {
+            const osmchaFilter = { comment: [{ label: match, value: match }] }
+            const osmchaLink = "https://osmcha.org?" + new URLSearchParams({ filters: JSON.stringify(osmchaFilter) }).toString()
+            const a = document.createElement("a")
+            a.href = osmchaLink
+            a.target = "_blank"
+            a.title = "Search this hashtags in OSMCha"
+            a.textContent = match
+            return a.outerHTML
+        })
+        node.replaceWith(span)
+    })
+}
+
+function makeHashtagsInNotesClickable() {
+    if (!GM_config.get("ImagesAndLinksInTags")) return
+
+    const notesParagraphs = Array.from(document.querySelectorAll("#sidebar_content h4 ~ div:first-of-type > p"))
+    const commentsParagraphs = Array.from(document.querySelectorAll("#sidebar_content article p"))
+    ;[...commentsParagraphs, ...notesParagraphs].forEach(p => {
+        p?.childNodes?.forEach(node => {
+            if (node.nodeType !== Node.TEXT_NODE) return
+            const span = document.createElement("span")
+            span.textContent = node.textContent
+            span.innerHTML = span.innerHTML
+                .replaceAll(/(^|\B)(#[\p{L}\d_-]+)(\b|$)/gu, function (match) {
+                    // const notesReviewLink = "https://ent8r.github.io/NotesReview/?" + new URLSearchParams({
+                    //     view: "map",
+                    //     status: "open",
+                    //     area: "view",
+                    //     limit: 30,
+                    //     query: match
+                    // }).toString()
+
+                    const a = document.createElement("a")
+                    a.id = "note-link-" + Math.random()
+                    a.href = ""
+                    a.target = "_blank"
+                    a.title = "Click for filter notes by this hashtag.\nClick with CTLR or Shift for search this hashtags in osm-note-viewer"
+                    a.textContent = match
+
+                    function fixLink() {
+                        const center = getMapCenter()
+                        const zoom = getZoom()
+                        // prettier-ignore
+                        const notesReviewLink =
+                            "https://antonkhorev.github.io/osm-note-viewer/#" +
+                            new URLSearchParams({
+                                mode: "search",
+                                q: match,
+                                bbox: [
+                                    Math.round(getMap().getBounds().getWest() * 10000) / 10000,
+                                    Math.round(getMap().getBounds().getSouth() * 10000) / 10000,
+                                    Math.round(getMap().getBounds().getEast() * 10000) / 10000,
+                                    Math.round(getMap().getBounds().getNorth() * 10000) / 10000
+                                ].join(","),
+                                sort: "created_at",
+                                order: "newest",
+                                closed: "0",
+                                map: `${zoom}/${center.lat}/${center.lng}`,
+                            }).toString()
+                        const link = document.getElementById(a.id)
+                        link.href = notesReviewLink
+                        link.onclick = e => {
+                            if (e.shiftKey || e.ctrlKey || e.metaKey) {
+                                return
+                            }
+                            e.preventDefault()
+                            if (document.querySelector(".layers-ui").style.display === "none") {
+                                document.querySelector(".control-layers a").click()
+                            }
+                            Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({ block: "center" })
+                            document.querySelector("#filter-notes-by-string").value = match
+                            e.target?.classList?.add("wait-fetch")
+                            updateNotesLayer()
+                        }
+                        console.log("search link in note was fixed")
+                    }
+
+                    setTimeout(() => {
+                        interceptMapManually().then(fixLink)
+                    })
+                    setTimeout(fixLink, 1000)
+                    return a.outerHTML
+                })
+                .replaceAll(/(?<=(POI name: ))(.+)/gu, function (match) {
+                    const span = document.createElement("span")
+                    span.classList.add("poi-name-in-note")
+                    span.title = "Click to copy name"
+                    span.setAttribute("data-name", match)
+                    span.textContent = match
+                    return span.outerHTML
+                })
+                .replaceAll(/(?<=(POI types: ))(.+)/gu, function (match) {
+                    injectCSSIntoOSMPage(copyAnimationStyles)
+                    const span = document.createElement("span")
+                    span.classList.add("poi-name-in-note")
+                    span.title = "Click to copy type"
+                    span.setAttribute("data-name", match)
+                    span.textContent = match
+                    return span.outerHTML
+                })
+            document.querySelectorAll(".poi-name-in-note").forEach(elem => {
+                elem.style.cursor = "pointer"
+                elem.addEventListener("click", e => {
+                    const name = e.target.getAttribute("data-name")
+                    navigator.clipboard.writeText(name).then(() => copyAnimation(e, name))
+                })
+            })
+            node.replaceWith(span)
+        })
+    })
+}
+
+//</editor-fold>
+
+//<editor-fold desc="search-form-fixes" defaultstate="collapsed">
+
+function showSearchForm() {
+    document.querySelector("#sidebar .search_forms")?.removeAttribute("hidden")
+    document.querySelector("#sidebar .search_forms")?.style?.removeProperty("display") // quick fix
+}
+
+function hideSearchForm() {
+    if (location.pathname.startsWith("/search") || location.pathname.startsWith("/directions")) return
+    if (!document.querySelector("#sidebar .search_forms")?.hasAttribute("hidden")) {
+        document.querySelector("#sidebar .search_forms")?.setAttribute("hidden", "true")
+        document.querySelector("#sidebar .search_forms")?.style?.setProperty("display", "none", "important") // quick fix
+    }
+
+    document.querySelector(".sidebar-close-controls .btn-close:not(.hotkeyed)")?.addEventListener("click", () => {
+        showSearchForm()
+        cleanAllObjects()
+    })
+    document.querySelector(".sidebar-close-controls .btn-close:not(.hotkeyed)")?.classList?.add("hotkeyed")
+    document.querySelector("h1 .icon-link:not(.hotkeyed)")?.addEventListener("click", () => {
+        showSearchForm()
+        cleanAllObjects()
+    })
+    document.querySelector("h1 .icon-link:not(.hotkeyed)")?.classList?.add("hotkeyed")
+}
+
+function blurSearchField() {
+    if (document.querySelector("#sidebar #query") && !document.querySelector("#sidebar #query").getAttribute("blured")) {
+        document.querySelector("#sidebar #query").setAttribute("blured", "true")
+        document.querySelector("#sidebar #query").removeAttribute("autofocus")
+        if (document.activeElement?.nodeName === "INPUT") {
+            document.activeElement?.blur()
+        }
+        // dirty hack. If your one multiple tabs focus would reseted only on active tab
+        // In the case of Safari, this is generally a necessity.
+        // Sometimes it still doesn't help
+        ;[50, 100, 250, 500].forEach(ms => {
+            setTimeout(() => {
+                if (document.activeElement?.nodeName === "INPUT") {
+                    document.activeElement?.blur()
+                }
+            }, ms)
+        })
+    }
+}
+
+function resetSearchFormFocus() {
+    if (!GM_config.get("ResetSearchFormFocus")) {
+        return
+    }
+    blurSearchField()
+}
+
+//</editor-fold>
+
+//<editor-fold desc="dark-map" defaultstate="collapsed">
+
+let darkModeForMap = false
+let darkMapStyleElement = null
+
+function injectDarkMapStyle() {
+    darkMapStyleElement = injectCSSIntoOSMPage(`
+    @media (prefers-color-scheme: dark) {
+        .leaflet-tile-container, .mapkey-table-entry td:first-child > * {
+            filter: none !important;
+        }
+
+        .leaflet-tile-container * {
+            filter: none !important;
+        }
+
+        .leaflet-tile-container .leaflet-tile:not(.no-invert), .mapkey-table-entry td:first-child > * {
+            filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%) !important;
+        }
+    }
+    `)
+}
+
+function setupDarkModeForMap() {
+    if (!GM_config.get("DarkModeForMap") || darkModeForMap) {
+        return
+    }
+    injectDarkMapStyle()
+    darkModeForMap = true
+}
+//</editor-fold>
+
+//<editor-fold desc="object-editor" defaultstate="collapsed">
+
+let nodeMoverMenuItem
+
+function removePOIMoverMenu() {
+    if (!nodeMoverMenuItem) return
+    try {
+        nodeMoverMenuItem = getMap().contextmenu.removeItem(nodeMoverMenuItem)
+        nodeMoverMenuItem = null
+    } catch {
+        /* empty */
+    }
+}
+
+function addDeleteButton() {
+    if (!location.pathname.startsWith("/node/") && !location.pathname.startsWith("/relation/")) return
+    if (location.pathname.includes("/history")) return
+
+    if (document.querySelector(".delete_object_button_class")) return true
+
+    const match = location.pathname.match(/(node|relation)\/(\d+)/)
+    if (!match) return
+    const object_type = match[1]
+    const object_id = match[2]
+
+    const auth = makeAuth()
+    const link = document.createElement("a")
+    link.text = ["ru-RU", "ru"].includes(navigator.language) ? "Выпилить!" : "Delete"
+    link.href = ""
+    link.classList.add("delete_object_button_class")
+    // skip deleted
+    if (object_type === "node") {
+        if (document.querySelectorAll("#sidebar_content > div:first-of-type h4").length < 2 && document.querySelector("#element_versions_list > div .latitude") === null) {
+            return
+        }
+    } else if (object_type === "relation") {
+        if (document.querySelectorAll("#sidebar_content > div:first-of-type h4").length < 2) {
+            return
+        }
+    }
+    // skip having a parent
+    if (object_type === "node" && document.querySelectorAll("#sidebar_content > div:first-of-type details").length !== 0) {
+        return
+    } else if (object_type === "relation") {
+        if (document.querySelectorAll("#sidebar_content > div:first-of-type details").length > 1) {
+            return
+        }
+        if (Array.from(document.querySelectorAll(".browse-tag-list th")).some(i => i.textContent === "wikidata")) {
+            return
+        }
+        const dangerousType = Array.from(document.querySelectorAll(".browse-tag-list td"))
+            .map(i => i.textContent)
+            .find(i => ["route_master", "route", "multipolygon", "public_transport"].includes(i))
+        if (dangerousType) {
+            if (dangerousType === "multipolygon") {
+                if (document.querySelectorAll("#sidebar_content > div:first-of-type details li").length > 1) {
+                    return
+                }
+            } else {
+                return
+            }
+        }
+    }
+
+    if (!document.querySelector(".secondary-actions")) return
+    document.querySelector(".secondary-actions").appendChild(link)
+    link.after(document.createTextNode("\xA0"))
+    link.before(document.createTextNode("\xA0· "))
+
+    if (!document.querySelector(".secondary-actions .edit_tags_class")) {
+        const tagsEditorExtensionWaiter = new MutationObserver(() => {
+            if (document.querySelector(".secondary-actions .edit_tags_class")) {
+                tagsEditorExtensionWaiter.disconnect()
+
+                const tmp = document.createComment("")
+                const node1 = document.querySelector(".delete_object_button_class")
+                const node2 = document.querySelector(".edit_tags_class")
+
+                node2.replaceWith(tmp)
+                node1.replaceWith(node2)
+                tmp.replaceWith(node1)
+
+                console.log("Delete button replaced for Tags editor extension capability")
+            }
+        })
+        tagsEditorExtensionWaiter.observe(document.querySelector(".secondary-actions"), {
+            childList: true,
+            subtree: true,
+        })
+        setTimeout(() => tagsEditorExtensionWaiter.disconnect(), 3000)
+    }
+
+    function deleteObject(e) {
+        e.preventDefault()
+        link.classList.add("dbclicked")
+
+        console.log("Delete clicked. Getting info")
+
+        auth.xhr(
+            {
+                method: "GET",
+                path: osm_server.apiBase + object_type + "/" + object_id,
+                prefix: false,
+            },
+            function (err, objectInfo) {
+                if (err) {
+                    console.log(err)
+                    return
+                }
+
+                let tagsHint = ""
+                const tags = Array.from(objectInfo.children[0].children[0]?.children)
+                for (const i of tags) {
+                    if (mainTags.includes(i.getAttribute("k"))) {
+                        tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
+                        break
+                    }
+                }
+                for (const i of tags) {
+                    if (i.getAttribute("k") === "type") {
+                        tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
+                    }
+                }
+                for (const i of tags) {
+                    if (i.getAttribute("k") === "restriction") {
+                        tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
+                    }
+                }
+                for (const i of tags) {
+                    if (i.getAttribute("k") === "name") {
+                        tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
+                        break
+                    }
+                }
+                const changesetTags = {
+                    created_by: `better osm.org v${GM_info.script.version}`,
+                    comment: tagsHint !== "" ? `Delete${tagsHint}` : `Delete ${object_type} ${object_id}`,
+                }
+
+                if (object_type === "relation" && !prompt("⚠️ Delete relation?\n\nChangeset comment:", changesetTags["comment"])) {
+                    return
+                }
+
+                const changesetPayload = document.implementation.createDocument(null, "osm")
+                const cs = changesetPayload.createElement("changeset")
+                changesetPayload.documentElement.appendChild(cs)
+                tagsToXml(changesetPayload, cs, changesetTags)
+                const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
+
+                console.log("Opening changeset")
+
+                auth.xhr(
+                    {
+                        method: "PUT",
+                        path: osm_server.apiBase + "changeset/create",
+                        prefix: false,
+                        content: chPayloadStr,
+                        headers: { "Content-Type": "application/xml; charset=utf-8" },
+                    },
+                    function (err1, result) {
+                        if (err1) {
+                            console.log({ changesetError: err1 })
+                            return
+                        }
+                        const changesetId = result
+                        console.log(changesetId)
+                        objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
+                        auth.xhr(
+                            {
+                                method: "DELETE",
+                                path: osm_server.apiBase + object_type + "/" + object_id,
+                                prefix: false,
+                                content: objectInfo,
+                                headers: { "Content-Type": "application/xml; charset=utf-8" },
+                            },
+                            function (err2) {
+                                if (err2) {
+                                    console.log({ changesetError: err2 })
+                                }
+                                auth.xhr(
+                                    {
+                                        method: "PUT",
+                                        path: osm_server.apiBase + "changeset/" + changesetId + "/close",
+                                        prefix: false,
+                                    },
+                                    function (err3) {
+                                        if (!err3) {
+                                            window.location.reload()
+                                        }
+                                    },
+                                )
+                            },
+                        )
+                    },
+                )
+            },
+        )
+    }
+    if (GM_config.get("OneClickDeletor") || object_type === "relation") {
+        link.onclick = deleteObject
+    } else {
+        link.onclick = e => {
+            e.preventDefault()
+            setTimeout(() => {
+                if (!link.classList.contains("dbclicked")) {
+                    link.text = "Double click please"
+                }
+            }, 200)
+        }
+        link.ondblclick = deleteObject
+    }
+    setTimeout(async () => {
+        if (object_type !== "node") return
+        removePOIMoverMenu()
+        await sleep(110)
+        if (!getMap || !getMap()?.contextmenu || !measurerAdded) {
+            await sleep(1110)
+        }
+        nodeMoverMenuItem = getMap().contextmenu.addItem(
+            intoPageWithFun({
+                text: "Move node to here",
+                callback: async function moveNode(e) {
+                    const match = location.pathname.match(/(node)\/(\d+)/)
+                    if (!match) return
+                    const object_type = match[1]
+                    const object_id = match[2]
+                    const auth = makeAuth()
+                    if (!confirm("⚠️ move node?")) {
+                        return
+                    }
+                    const { lat: newLat, lng: newLon } = e.latlng
+                    console.log("Opening changeset")
+                    const rawObjectInfo = await (
+                        await auth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
+                            method: "GET",
+                            prefix: false,
+                        })
+                    ).text()
+                    const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
+                    // prettier-ignore
+                    const dist = Math.round(getDistanceFromLatLonInKm(
+                        parseFloat(objectInfo.querySelector("node").getAttribute("lat")),
+                        parseFloat(objectInfo.querySelector("node").getAttribute("lon")),
+                        newLat,
+                        newLon
+                    ) * 1000) / 1000
+                    if (dist > 50) {
+                        if (!confirm(`⚠️ ${dist} kilometers.\n\nARE YOU SURE?`)) {
+                            return
+                        }
+                    }
+                    objectInfo.querySelector("node").setAttribute("lat", newLat)
+                    objectInfo.querySelector("node").setAttribute("lon", newLon)
+
+                    const changesetTags = {
+                        created_by: `better osm.org v${GM_info.script.version}`,
+                        comment: "Moving node",
+                    }
+
+                    const changesetPayload = document.implementation.createDocument(null, "osm")
+                    const cs = changesetPayload.createElement("changeset")
+                    changesetPayload.documentElement.appendChild(cs)
+                    tagsToXml(changesetPayload, cs, changesetTags)
+                    const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
+
+                    const changesetId = await auth
+                        .fetch(osm_server.apiBase + "changeset/create", {
+                            method: "PUT",
+                            prefix: false,
+                            body: chPayloadStr,
+                        })
+                        .then(res => {
+                            if (res.ok) return res.text()
+                            throw new Error(res)
+                        })
+                    console.log(changesetId)
+
+                    try {
+                        objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
+
+                        const objectInfoStr = new XMLSerializer().serializeToString(objectInfo).replace(/xmlns="[^"]+"/, "")
+                        console.log(objectInfoStr)
+                        await auth
+                            .fetch(osm_server.apiBase + object_type + "/" + object_id, {
+                                method: "PUT",
+                                prefix: false,
+                                body: objectInfoStr,
+                            })
+                            .then(async res => {
+                                const text = await res.text()
+                                if (res.ok) return text
+                                alert(text)
+                                throw new Error(text)
+                            })
+                    } finally {
+                        await auth.fetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
+                            method: "PUT",
+                            prefix: false,
+                        })
+                        window.location.reload()
+                    }
+                },
+            }),
+        )
+    })
+}
+
+function setupDeletor(path) {
+    if (!path.startsWith("/node/") && !path.startsWith("/relation/")) return
+    const timerId = setInterval(addDeleteButton, 100)
+    setTimeout(() => {
+        clearInterval(timerId)
+        console.debug("stop try add delete button")
+    }, 3000)
+    addDeleteButton()
+}
+
+
+//</editor-fold>
+
+//<editor-fold desc="notes" defaultstate="collapsed">
 
 /**
  *
@@ -3508,51 +5438,98 @@ function setupNotesFiltersButtons() {
     addNotesFiltersButtons()
 }
 
-async function getMapBounds() {
-    try {
-        return getMap().getBounds()
-    } catch {
-        console.warn("Couldn't get the map bound through the map object. Trying a workaround")
+let mapDataSwitcherUnderSupervision = false
 
-        document.querySelector("#sidebar").style.display = "none"
-        document.querySelector("#sidebar").style.width = "0px"
-        try {
-            document.querySelector('nav a[href="/export"]').click()
-            for (let i = 0; i < 10; i++) {
-                await sleep(500)
-                if (document.querySelector("#minlat")) {
-                    break
-                }
-            }
-            const res = {
-                getNorthWest: () => ({
-                    lat: document.querySelector("#maxlat").value,
-                    lng: document.querySelector("#minlon").value,
-                }),
-                getSouthEast: () => ({
-                    lat: document.querySelector("#minlat").value,
-                    lng: document.querySelector("#maxlon").value,
-                }),
-            }
-            console.log(res.getNorthWest())
-            console.log(res.getSouthEast())
-            // console.log(getMap().getBounds().getNorthWest())
-            document.querySelectorAll("#sidebar .sidebar-close-controls .btn-close").forEach(i => i?.click())
-
-            return res
-        } finally {
-            document.querySelector("#sidebar").style.display = ""
-            document.querySelector("#sidebar").style.width = ""
-        }
+function hideNoteHighlight() {
+    const g = document.querySelector("#map g")
+    if (!g || g.childElementCount === 0) return
+    const mapDataCheckbox = document.querySelector(".layers-ui #label-layers-data input")
+    if (mapDataCheckbox && !mapDataCheckbox.checked) {
+        if (mapDataSwitcherUnderSupervision) return
+        mapDataSwitcherUnderSupervision = true
+        mapDataCheckbox.addEventListener(
+            "click",
+            () => {
+                mapDataSwitcherUnderSupervision = false
+                hideNoteHighlight()
+            },
+            { once: true },
+        )
+        return
     }
+    console.log("hide halo around note")
+    if (g.childNodes[g.childElementCount - 1].getAttribute("stroke") === "#FF6200" && g.childNodes[g.childElementCount - 1].getAttribute("d").includes("a20,20 0 1,0 -40,0 ")) {
+        g.childNodes[g.childElementCount - 1].remove()
+        document.querySelector("div.leaflet-marker-icon:last-child").style.filter = "contrast(120%)"
+    }
+    // getMap().dataLayer.on('click', intoPageWithFun((e) => {
+    //     if (!e.originalEvent.altKey) {
+    //         return
+    //     }
+    //     debugger
+    //     getWindow().mapDataIDsFilter.add(e.layer.id);
+    //     e.propagatedFrom.getElement().style.display = "none";
+    //     getMap().fire("moveend");
+    // }))
 }
 
-// prettier-ignore
-const fitToObjectSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">\n' +
-    '  <path d="M3 7V3H7" stroke-width="2" stroke-linecap="round"/>\n' +
-    '  <path d="M17 3H21V7" stroke-width="2" stroke-linecap="round"/>\n' +
-    '  <path d="M21 17V21H17" stroke-width="2" stroke-linecap="round"/>\n' +
-    '  <path d="M7 21H3V17" stroke-width="2" stroke-linecap="round"/>\n' + "</svg>\n"
+function setupHideNoteHighlight() {
+    if (!location.pathname.startsWith("/note/")) return
+    const timerId = setInterval(hideNoteHighlight, 1000)
+    setTimeout(() => {
+        clearInterval(timerId)
+        console.debug("stop removing note highlight")
+    }, 5000)
+    hideNoteHighlight()
+}
+
+//</editor-fold>
+
+//<editor-fold desc="direction-render" defaultstate="collapsed">
+
+/**
+ *
+ * @param {float} lat
+ * @param {float} lon
+ * @param {string} values
+ * @param {string} color
+ */
+function renderDirectionTag(lat, lon, values, color = c("#ff00e3")) {
+    const cardinalToAngle = {
+        N: 0.0,
+        north: 0.0,
+        NNE: 22.0,
+        NE: 45.0,
+        ENE: 67.0,
+        E: 90.0,
+        east: 90.0,
+        ESE: 112.0,
+        SE: 135.0,
+        SSE: 157.0,
+        S: 180.0,
+        south: 180.0,
+        SSW: 202.0,
+        SW: 225.0,
+        WSW: 247.0,
+        W: 270.0,
+        west: 270.0,
+        WNW: 292.0,
+        NW: 315.0,
+        NNW: 337.0,
+    }
+    values.split(";").forEach(angleStr => {
+        const angle = cardinalToAngle[angleStr] !== undefined ? cardinalToAngle[angleStr] : parseFloat(angleStr)
+        if (!isNaN(angle)) {
+            drawRay(lat, lon, angle - 30, color)
+            drawRay(lat, lon, angle + 30, color)
+        }
+    })
+}
+
+
+//</editor-fold>
+
+//<editor-fold desc="gpx" defaultstate="collapsed">
 
 function addGPXFiltersButtons() {
     if (document.getElementById("gpx-filter")) {
@@ -3769,365 +5746,234 @@ function setupGPXFiltersButtons() {
     addGPXFiltersButtons()
 }
 
-let nodeMoverMenuItem
+//</editor-fold>
 
-function removePOIMoverMenu() {
-    if (!nodeMoverMenuItem) return
-    try {
-        nodeMoverMenuItem = getMap().contextmenu.removeItem(nodeMoverMenuItem)
-        nodeMoverMenuItem = null
-    } catch {
-        /* empty */
+//<editor-fold desc="measurer" defaultstate="collapsed">
+
+let measurerAdded = false
+let measuring = false
+
+function makeEmptyMeasuring() {
+    return {
+        way: [],
+        nodes: [],
+        wayLine: null,
+        tempLine: null,
     }
 }
 
-function addDeleteButton() {
-    if (!location.pathname.startsWith("/node/") && !location.pathname.startsWith("/relation/")) return
-    if (location.pathname.includes("/history")) return
+let currentMeasuring = makeEmptyMeasuring()
 
-    if (document.querySelector(".delete_object_button_class")) return true
+let lastLatLng = null
+let movingTooltip = null
 
-    const match = location.pathname.match(/(node|relation)\/(\d+)/)
-    if (!match) return
-    const object_type = match[1]
-    const object_id = match[2]
-
-    const auth = makeAuth()
-    const link = document.createElement("a")
-    link.text = ["ru-RU", "ru"].includes(navigator.language) ? "Выпилить!" : "Delete"
-    link.href = ""
-    link.classList.add("delete_object_button_class")
-    // skip deleted
-    if (object_type === "node") {
-        if (document.querySelectorAll("#sidebar_content > div:first-of-type h4").length < 2 && document.querySelector("#element_versions_list > div .latitude") === null) {
-            return
-        }
-    } else if (object_type === "relation") {
-        if (document.querySelectorAll("#sidebar_content > div:first-of-type h4").length < 2) {
-            return
-        }
-    }
-    // skip having a parent
-    if (object_type === "node" && document.querySelectorAll("#sidebar_content > div:first-of-type details").length !== 0) {
-        return
-    } else if (object_type === "relation") {
-        if (document.querySelectorAll("#sidebar_content > div:first-of-type details").length > 1) {
-            return
-        }
-        if (Array.from(document.querySelectorAll(".browse-tag-list th")).some(i => i.textContent === "wikidata")) {
-            return
-        }
-        const dangerousType = Array.from(document.querySelectorAll(".browse-tag-list td"))
-            .map(i => i.textContent)
-            .find(i => ["route_master", "route", "multipolygon", "public_transport"].includes(i))
-        if (dangerousType) {
-            if (dangerousType === "multipolygon") {
-                if (document.querySelectorAll("#sidebar_content > div:first-of-type details li").length > 1) {
-                    return
-                }
-            } else {
-                return
+function getMeasureDistance(way, floatingCoord) {
+    const [res] = way.reduce(
+        ([dist, prev], cur) => {
+            if (prev === null) {
+                return [0.0, cur]
             }
-        }
-    }
+            // prettier-ignore
+            return [dist + getDistanceFromLatLonInKm(
+                prev.lat,
+                prev.lng,
+                cur.lat,
+                cur.lng
+            ), cur]
+        },
+        [0.0, null],
+    )
+    // prettier-ignore
+    return (Math.round((res + getDistanceFromLatLonInKm(
+        way[way.length - 1].lat,
+        way[way.length - 1].lng,
+        floatingCoord.lat,
+        floatingCoord.lng
+    )) * 100000) / 100.0)
+}
 
-    if (!document.querySelector(".secondary-actions")) return
-    document.querySelector(".secondary-actions").appendChild(link)
-    link.after(document.createTextNode("\xA0"))
-    link.before(document.createTextNode("\xA0· "))
+function formatMeasureDistance(distInMeters) {
+    return distInMeters < 2500 ? distInMeters.toString() + "m" : (Math.round(distInMeters) / 1000).toString() + "km"
+}
 
-    if (!document.querySelector(".secondary-actions .edit_tags_class")) {
-        const tagsEditorExtensionWaiter = new MutationObserver(() => {
-            if (document.querySelector(".secondary-actions .edit_tags_class")) {
-                tagsEditorExtensionWaiter.disconnect()
+let measuringMouseDownHandler = null
+let measuringMouseUpHandler = null
+let measuringMouseMoveHandler = null
+let measuringMenuItem = null
 
-                const tmp = document.createComment("")
-                const node1 = document.querySelector(".delete_object_button_class")
-                const node2 = document.querySelector(".edit_tags_class")
+function endMeasuring() {
+    document.querySelector("#map").style.cursor = "drag"
+    measuringMenuItem.textContent = "Measure from here"
+    measuring = false
 
-                node2.replaceWith(tmp)
-                node1.replaceWith(node2)
-                tmp.replaceWith(node1)
-
-                console.log("Delete button replaced for Tags editor extension capability")
-            }
-        })
-        tagsEditorExtensionWaiter.observe(document.querySelector(".secondary-actions"), {
-            childList: true,
-            subtree: true,
-        })
-        setTimeout(() => tagsEditorExtensionWaiter.disconnect(), 3000)
-    }
-
-    function deleteObject(e) {
-        e.preventDefault()
-        link.classList.add("dbclicked")
-
-        console.log("Delete clicked. Getting info")
-
-        auth.xhr(
-            {
-                method: "GET",
-                path: osm_server.apiBase + object_type + "/" + object_id,
-                prefix: false,
-            },
-            function (err, objectInfo) {
-                if (err) {
-                    console.log(err)
-                    return
-                }
-
-                let tagsHint = ""
-                const tags = Array.from(objectInfo.children[0].children[0]?.children)
-                for (const i of tags) {
-                    if (mainTags.includes(i.getAttribute("k"))) {
-                        tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
-                        break
-                    }
-                }
-                for (const i of tags) {
-                    if (i.getAttribute("k") === "type") {
-                        tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
-                    }
-                }
-                for (const i of tags) {
-                    if (i.getAttribute("k") === "restriction") {
-                        tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
-                    }
-                }
-                for (const i of tags) {
-                    if (i.getAttribute("k") === "name") {
-                        tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
-                        break
-                    }
-                }
-                const changesetTags = {
-                    created_by: `better osm.org v${GM_info.script.version}`,
-                    comment: tagsHint !== "" ? `Delete${tagsHint}` : `Delete ${object_type} ${object_id}`,
-                }
-
-                if (object_type === "relation" && !prompt("⚠️ Delete relation?\n\nChangeset comment:", changesetTags["comment"])) {
-                    return
-                }
-
-                const changesetPayload = document.implementation.createDocument(null, "osm")
-                const cs = changesetPayload.createElement("changeset")
-                changesetPayload.documentElement.appendChild(cs)
-                tagsToXml(changesetPayload, cs, changesetTags)
-                const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
-
-                console.log("Opening changeset")
-
-                auth.xhr(
-                    {
-                        method: "PUT",
-                        path: osm_server.apiBase + "changeset/create",
-                        prefix: false,
-                        content: chPayloadStr,
-                        headers: { "Content-Type": "application/xml; charset=utf-8" },
-                    },
-                    function (err1, result) {
-                        if (err1) {
-                            console.log({ changesetError: err1 })
-                            return
-                        }
-                        const changesetId = result
-                        console.log(changesetId)
-                        objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
-                        auth.xhr(
-                            {
-                                method: "DELETE",
-                                path: osm_server.apiBase + object_type + "/" + object_id,
-                                prefix: false,
-                                content: objectInfo,
-                                headers: { "Content-Type": "application/xml; charset=utf-8" },
-                            },
-                            function (err2) {
-                                if (err2) {
-                                    console.log({ changesetError: err2 })
-                                }
-                                auth.xhr(
-                                    {
-                                        method: "PUT",
-                                        path: osm_server.apiBase + "changeset/" + changesetId + "/close",
-                                        prefix: false,
-                                    },
-                                    function (err3) {
-                                        if (!err3) {
-                                            window.location.reload()
-                                        }
-                                    },
-                                )
-                            },
-                        )
-                    },
-                )
-            },
-        )
-    }
-    if (GM_config.get("OneClickDeletor") || object_type === "relation") {
-        link.onclick = deleteObject
-    } else {
-        link.onclick = e => {
-            e.preventDefault()
-            setTimeout(() => {
-                if (!link.classList.contains("dbclicked")) {
-                    link.text = "Double click please"
-                }
-            }, 200)
-        }
-        link.ondblclick = deleteObject
-    }
-    setTimeout(async () => {
-        if (object_type !== "node") return
-        removePOIMoverMenu()
-        await sleep(110)
-        if (!getMap || !getMap()?.contextmenu || !measurerAdded) {
-            await sleep(1110)
-        }
-        nodeMoverMenuItem = getMap().contextmenu.addItem(
-            intoPageWithFun({
-                text: "Move node to here",
-                callback: async function moveNode(e) {
-                    const match = location.pathname.match(/(node)\/(\d+)/)
-                    if (!match) return
-                    const object_type = match[1]
-                    const object_id = match[2]
-                    const auth = makeAuth()
-                    if (!confirm("⚠️ move node?")) {
-                        return
-                    }
-                    const { lat: newLat, lng: newLon } = e.latlng
-                    console.log("Opening changeset")
-                    const rawObjectInfo = await (
-                        await auth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
-                            method: "GET",
-                            prefix: false,
-                        })
-                    ).text()
-                    const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
-                    // prettier-ignore
-                    const dist = Math.round(getDistanceFromLatLonInKm(
-                            parseFloat(objectInfo.querySelector("node").getAttribute("lat")),
-                            parseFloat(objectInfo.querySelector("node").getAttribute("lon")),
-                            newLat,
-                            newLon
-                        ) * 1000) / 1000
-                    if (dist > 50) {
-                        if (!confirm(`⚠️ ${dist} kilometers.\n\nARE YOU SURE?`)) {
-                            return
-                        }
-                    }
-                    objectInfo.querySelector("node").setAttribute("lat", newLat)
-                    objectInfo.querySelector("node").setAttribute("lon", newLon)
-
-                    const changesetTags = {
-                        created_by: `better osm.org v${GM_info.script.version}`,
-                        comment: "Moving node",
-                    }
-
-                    const changesetPayload = document.implementation.createDocument(null, "osm")
-                    const cs = changesetPayload.createElement("changeset")
-                    changesetPayload.documentElement.appendChild(cs)
-                    tagsToXml(changesetPayload, cs, changesetTags)
-                    const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
-
-                    const changesetId = await auth
-                        .fetch(osm_server.apiBase + "changeset/create", {
-                            method: "PUT",
-                            prefix: false,
-                            body: chPayloadStr,
-                        })
-                        .then(res => {
-                            if (res.ok) return res.text()
-                            throw new Error(res)
-                        })
-                    console.log(changesetId)
-
-                    try {
-                        objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
-
-                        const objectInfoStr = new XMLSerializer().serializeToString(objectInfo).replace(/xmlns="[^"]+"/, "")
-                        console.log(objectInfoStr)
-                        await auth
-                            .fetch(osm_server.apiBase + object_type + "/" + object_id, {
-                                method: "PUT",
-                                prefix: false,
-                                body: objectInfoStr,
-                            })
-                            .then(async res => {
-                                const text = await res.text()
-                                if (res.ok) return text
-                                alert(text)
-                                throw new Error(text)
-                            })
-                    } finally {
-                        await auth.fetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
-                            method: "PUT",
-                            prefix: false,
-                        })
-                        window.location.reload()
-                    }
-                },
+    getMap().off("mousedown", measuringMouseDownHandler)
+    getMap().off("mouseup", measuringMouseUpHandler)
+    getMap().off("mousemove", measuringMouseMoveHandler)
+    movingTooltip?.remove()
+    const lastNode = currentMeasuring.nodes[currentMeasuring.nodes.length - 1]
+    const distInMeters = getMeasureDistance(currentMeasuring.way, lastNode.getLatLng())
+    const text = formatMeasureDistance(distInMeters)
+    currentMeasuring.nodes[currentMeasuring.nodes.length - 1]
+        .bindTooltip(
+            text,
+            intoPage({
+                content: text,
+                sticky: true,
+                permanent: true,
+                offset: getWindow().L.point(10, 0),
             }),
         )
-    })
+        .openTooltip()
+    currentMeasuring.tempLine?.remove()
+    currentMeasuring = makeEmptyMeasuring()
 }
 
-function setupDeletor(path) {
-    if (!path.startsWith("/node/") && !path.startsWith("/relation/")) return
-    const timerId = setInterval(addDeleteButton, 100)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop try add delete button")
-    }, 3000)
-    addDeleteButton()
-}
-
-let mapDataSwitcherUnderSupervision = false
-
-function hideNoteHighlight() {
-    const g = document.querySelector("#map g")
-    if (!g || g.childElementCount === 0) return
-    const mapDataCheckbox = document.querySelector(".layers-ui #label-layers-data input")
-    if (mapDataCheckbox && !mapDataCheckbox.checked) {
-        if (mapDataSwitcherUnderSupervision) return
-        mapDataSwitcherUnderSupervision = true
-        mapDataCheckbox.addEventListener(
-            "click",
-            () => {
-                mapDataSwitcherUnderSupervision = false
-                hideNoteHighlight()
-            },
-            { once: true },
-        )
+async function setupMeasurer() {
+    await sleep(100)
+    if (measurerAdded) return
+    measurerAdded = true
+    const contextMenu = document.querySelector("#map .leaflet-contextmenu")
+    if (!contextMenu) {
         return
     }
-    console.log("hide halo around note")
-    if (g.childNodes[g.childElementCount - 1].getAttribute("stroke") === "#FF6200" && g.childNodes[g.childElementCount - 1].getAttribute("d").includes("a20,20 0 1,0 -40,0 ")) {
-        g.childNodes[g.childElementCount - 1].remove()
-        document.querySelector("div.leaflet-marker-icon:last-child").style.filter = "contrast(120%)"
+    if (!getMap || !getMap()?.contextmenu) {
+        await sleep(1000)
     }
-    // getMap().dataLayer.on('click', intoPageWithFun((e) => {
-    //     if (!e.originalEvent.altKey) {
-    //         return
-    //     }
-    //     debugger
-    //     getWindow().mapDataIDsFilter.add(e.layer.id);
-    //     e.propagatedFrom.getElement().style.display = "none";
-    //     getMap().fire("moveend");
-    // }))
+    if (!getMap()?.contextmenu) {
+        console.error("Ruler can't be configured: map object not available")
+        return
+    }
+    // sometime click don't fire when move 1px
+    let lastMouseDownX = 0
+    let lastMouseDownY = 0
+    measuringMouseDownHandler = intoPageWithFun(e => {
+        lastMouseDownX = e.originalEvent.clientX
+        lastMouseDownY = e.originalEvent.clientY
+    })
+    measuringMouseUpHandler = intoPageWithFun(e => {
+        if (!measuring) {
+            return
+        }
+        if (e.originalEvent.button === 2) {
+            return
+        }
+        if (e.originalEvent.altKey) {
+            currentMeasuring = makeEmptyMeasuring()
+        }
+        const { lat: lat, lng: lng } = e.latlng
+        // prettier-ignore
+        if (lastMouseDownX - e.originalEvent.clientX > 1 || lastMouseDownY - e.originalEvent.clientY > 1 ||
+            lastMouseDownX - e.originalEvent.clientX < -1 || lastMouseDownY - e.originalEvent.clientY < -1) {
+            console.log("skipped click");
+            console.log(lastMouseDownX - e.originalEvent.clientX);
+            console.log(lastMouseDownY - e.originalEvent.clientY);
+            return
+        }
+        currentMeasuring.way.push({ lat: lat, lng: lng })
+        currentMeasuring.nodes.push(showNodeMarker(lat, lng, "#000000"))
+        currentMeasuring.wayLine?.remove()
+
+        const distInMeters = getMeasureDistance(currentMeasuring.way, { lat: lat, lng: lng })
+        const text = formatMeasureDistance(distInMeters)
+        currentMeasuring.wayLine = displayWay(currentMeasuring.way, false, "#000000", 1)
+        movingTooltip?.remove()
+        movingTooltip = getWindow()
+            .L.tooltip(
+                getWindow().L.latLng(intoPage({ lat: lat, lng: lng })),
+                intoPage({
+                    content: text,
+                    sticky: true,
+                    offset: getWindow().L.point(10, 0),
+                }),
+            )
+            .addTo(getMap())
+        currentMeasuring.wayLine
+            .bindTooltip(
+                text,
+                intoPage({
+                    content: text,
+                    sticky: true,
+                    offset: getWindow().L.point(10, 0),
+                }),
+            )
+            .openTooltip()
+    })
+    measuringMouseMoveHandler = intoPageWithFun(e => {
+        if (!measuring) {
+            return
+        }
+        lastLatLng = e.latlng
+        const { lat: lat, lng: lng } = e.latlng
+        currentMeasuring.tempLine?.remove()
+        if (!currentMeasuring.way.length) return
+        const distInMeters = getMeasureDistance(currentMeasuring.way, { lat: lat, lng: lng })
+        const text = formatMeasureDistance(distInMeters)
+        if (!e.originalEvent.altKey) {
+            cleanObjectsByKey("activeObjects")
+            currentMeasuring.tempLine = displayWay(
+                [
+                    currentMeasuring.way[currentMeasuring.way.length - 1],
+                    {
+                        lat: lat,
+                        lng: lng,
+                    },
+                ],
+                false,
+                "#000000",
+                1,
+            )
+            movingTooltip?.remove()
+            movingTooltip = getWindow()
+                .L.tooltip(
+                    getWindow().L.latLng(intoPage({ lat: lat, lng: lng })),
+                    intoPage({
+                        content: text,
+                        sticky: true,
+                        offset: getWindow().L.point(10, 0),
+                    }),
+                )
+                .addTo(getMap())
+        } else {
+            showActiveNodeMarker(e.latlng.lat, e.latlng.lng, "#000000")
+        }
+    })
+
+    getMap().contextmenu.addItem(
+        intoPageWithFun({
+            separator: true,
+            index: 1,
+        }),
+    )
+    measuringMenuItem = getMap().contextmenu.addItem(
+        intoPageWithFun({
+            text: "Measure from here",
+            callback: function startMeasuring(e) {
+                if (measuring) {
+                    endMeasuring()
+                    return
+                }
+                currentMeasuring = makeEmptyMeasuring()
+                const { lat: initLat, lng: initLng } = e.latlng
+                currentMeasuring.way.push({ lat: initLat, lng: initLng })
+                currentMeasuring.nodes.push(showNodeMarker(initLat, initLng, "#000000"))
+                if (currentMeasuring.way.length > 1) {
+                    currentMeasuring.wayLine?.remove()
+                    currentMeasuring.wayLine = displayWay(currentMeasuring.way)
+                } else {
+                    document.querySelector("#map").style.cursor = "pointer"
+                    measuring = true
+                    measuringMenuItem.textContent = "End measure"
+
+                    getMap().on("mousedown", measuringMouseDownHandler)
+                    getMap().on("mouseup", measuringMouseUpHandler)
+                    getMap().on("mousemove", measuringMouseMoveHandler)
+                }
+            },
+        }),
+    )
 }
 
-function setupHideNoteHighlight() {
-    if (!location.pathname.startsWith("/note/")) return
-    const timerId = setInterval(hideNoteHighlight, 1000)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop removing note highlight")
-    }, 5000)
-    hideNoteHighlight()
-}
+//</editor-fold>
 
 //<editor-fold desc="satellite switching">
 const OSMPrefix = "https://tile.openstreetmap.org/"
@@ -4689,289 +6535,7 @@ function setupSatelliteLayers() {
 
 //</editor-fold>
 
-function makeElementHistoryCompact(forceState = null) {
-    const shouldBeCompact = forceState !== null ? forceState : document.querySelector(".compact-toggle-btn").getAttribute("value") === "><"
-    const forToggle = Array.from(document.querySelectorAll("table.browse-tag-list"))
-    // workaround for https://github.com/deevroman/better-osm-org/pull/273#issuecomment-2830047660
-    forToggle.slice(0, 8).forEach(el => {
-        el.classList.toggle("hide-non-modified-tags", shouldBeCompact)
-    })
-    setTimeout(() => {
-        forToggle.slice(8).forEach(el => {
-            el.classList.toggle("hide-non-modified-tags", shouldBeCompact)
-        })
-    })
-    document.querySelectorAll(".empty-version").forEach(el => {
-        el.classList.toggle("d-none", shouldBeCompact)
-    })
-    document.querySelectorAll(".preview-img-link img").forEach(i => {
-        i.classList.toggle("d-none", shouldBeCompact)
-    })
-    document.querySelector(".compact-toggle-btn").setAttribute("value", shouldBeCompact ? "<>" : "><")
-    document.querySelector(".compact-toggle-btn").innerHTML = shouldBeCompact ? expandModeSvg : compactModeSvg
-}
-
-/**
- * @param {Event} e
- * @param {string} text
- */
-function copyAnimation(e, text) {
-    console.log(`Copying ${text} to clipboard was successful!`)
-    e.target.classList.add("copied")
-    setTimeout(() => {
-        e.target.classList.remove("copied")
-        e.target.classList.add("was-copied")
-        setTimeout(() => e.target.classList.remove("was-copied"), 300)
-    }, 300)
-}
-
-//<editor-fold desc="find deleted user in diffs" defaultstate="collapsed">
-async function decompressBlob(blob) {
-    const ds = new DecompressionStream("gzip")
-    const decompressedStream = blob.stream().pipeThrough(ds)
-    return await new Response(decompressedStream).blob()
-}
-
-async function tryFindChangesetInDiffGZ(gzURL, changesetId) {
-    const diffGZ = await externalFetchRetry({
-        method: "GET",
-        url: gzURL,
-        responseType: "blob",
-    })
-    const blob = await decompressBlob(diffGZ.response)
-    const diffXML = await blob.text()
-
-    const diffParser = new DOMParser()
-    const doc = diffParser.parseFromString(diffXML, "application/xml")
-    return doc.querySelector(`osm changeset[id='${changesetId}']`)
-}
-
-async function parseBBB(target, url) {
-    const response = await externalFetchRetry({
-        method: "GET",
-        url: planetOrigin + "/replication/changesets/" + url,
-    })
-    const BBBHTML = new DOMParser().parseFromString(response.responseText, "text/html")
-
-    const a = Array.from(BBBHTML.querySelector("pre").childNodes).slice(2)
-    let x = 0
-    let found = false
-    for (x; x < a.length; x += 2) {
-        const num = parseInt(a[x].textContent)
-        let d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim())
-        if (url === "003/") {
-            if (num === 115) {
-                d = new Date("2018-10-1918T01:21:00Z")
-            } else if (num === 116) {
-                d = new Date("2018-10-1918T13:25:00Z")
-            }
-        }
-        if (target < d) {
-            found = true
-            break
-        }
-    }
-    if (x === 0) {
-        return found ? [a[x].getAttribute("href"), a[x].getAttribute("href")] : false
-    } else {
-        return found ? [a[x].getAttribute("href"), a[x - 2].getAttribute("href")] : false
-    }
-}
-
-async function parseCCC(target, url) {
-    const response = await externalFetchRetry({
-        method: "GET",
-        url: planetOrigin + "/replication/changesets/" + url,
-    })
-    const CCCHTML = new DOMParser().parseFromString(response.responseText, "text/html")
-
-    const a = Array.from(CCCHTML.querySelector("pre").childNodes).slice(2)
-    let x = 0
-    let found = false
-    /**
-     * HTML format:
-     *              xxx.ext         datetime
-     *              xxx.state.txt   datetime <for new changesets>
-     *              file.tmp        datetime <sometimes>
-     *              yyy.ext         ....
-     */
-    for (x; x < a.length; x += 2) {
-        if (!a[x].textContent.match(/^\d+\.osm\.gz$/)) {
-            continue
-        }
-        const d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim().split(" ").slice(0, -1).join(" ").trim() + " UTC")
-        if (target <= d) {
-            found = true
-            break
-        }
-    }
-    if (!found) {
-        return false
-    }
-    if (x + 2 >= a.length) {
-        return [a[x].getAttribute("href"), a[x].getAttribute("href")]
-    }
-    try {
-        // state files are missing in old diffs folders
-        if (a[x + 2].getAttribute("href")?.match(/^\d+\.osm\.gz$/)) {
-            return [a[x].getAttribute("href"), a[x + 2].getAttribute("href")]
-        }
-    } catch {
-        /* empty */
-    }
-    if (x + 4 >= a.length) {
-        return [a[x].getAttribute("href"), a[x].getAttribute("href")]
-    }
-    return [a[x].getAttribute("href"), a[x + 4].getAttribute("href")]
-}
-
-async function checkBBB(AAA, BBB, targetTime, targetChangesetID) {
-    const CCC = await parseCCC(targetTime, AAA + BBB)
-    if (!CCC) {
-        return
-    }
-    const gzURL = planetOrigin + "/replication/changesets/" + AAA + BBB
-
-    let foundedChangeset = await tryFindChangesetInDiffGZ(gzURL + CCC[0], targetChangesetID)
-    if (!foundedChangeset) {
-        foundedChangeset = await tryFindChangesetInDiffGZ(gzURL + CCC[1], targetChangesetID)
-    }
-    return foundedChangeset
-}
-
-async function checkAAA(AAA, targetTime, targetChangesetID) {
-    const BBBs = await parseBBB(targetTime, AAA)
-    if (!BBBs) {
-        return
-    }
-
-    let foundedChangeset = await checkBBB(AAA, BBBs[0], targetTime, targetChangesetID)
-    if (!foundedChangeset) {
-        foundedChangeset = await checkBBB(AAA, BBBs[1], targetTime, targetChangesetID)
-    }
-    return foundedChangeset
-}
-
-// tests
-// https://osm.org/way/488322838/history
-// https://osm.org/way/74034517/history
-// https://osm.org/relation/17425783/history
-// https://osm.org/way/554280669/history
-// https://osm.org/node/4122049406 (/replication/changesets/005/638/ contains .tmp files)
-// https://osm.org/node/2/history (very hard)
-async function findChangesetInDiff(e) {
-    e.preventDefault()
-    e.stopPropagation()
-    e.target.style.cursor = "progress"
-
-    let foundedChangeset
-    try {
-        const match = location.pathname.match(/\/(node|way|relation|changeset)\/(\d+)/)
-        let [, type, objID] = match
-        if (type === "changeset") {
-            const ch = (await getChangeset(objID)).data
-            type = ch.querySelector(`[changeset="${objID}"]`).nodeName
-            objID = ch.querySelector(`[changeset="${objID}"]`).getAttribute("id")
-        }
-        if (type === "node") {
-            foundedChangeset = await getNodeViaOverpassXML(objID, e.target.datetime)
-        } else if (type === "way") {
-            foundedChangeset = await getWayViaOverpassXML(objID, e.target.datetime)
-        } else if (type === "relation") {
-            foundedChangeset = await getRelationViaOverpassXML(objID, e.target.datetime)
-        }
-        if (!foundedChangeset?.getAttribute("user")) {
-            foundedChangeset = null
-            console.log("Loading via overpass failed. Try via diffs")
-            throw ""
-        }
-    } catch {
-        const response = await externalFetchRetry({
-            method: "GET",
-            url: planetOrigin + "/replication/changesets/",
-        })
-        const parser = new DOMParser()
-        const AAAHTML = parser.parseFromString(response.responseText, "text/html")
-        const targetTime = new Date(e.target.datetime)
-        targetTime.setSeconds(0)
-        const targetChangesetID = e.target.value
-
-        const a = Array.from(AAAHTML.querySelector("pre").childNodes).slice(2).slice(0, -4)
-        a.push(...a.slice(-2))
-        let x = 0
-        for (x; x < a.length - 2; x += 2) {
-            const d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim())
-            if (targetTime < d) break
-        }
-        let AAAs
-        if (x === 0) {
-            AAAs = [a[x].getAttribute("href"), a[x].getAttribute("href")]
-        } else {
-            AAAs = [a[x - 2].getAttribute("href"), a[x].getAttribute("href")]
-        }
-
-        foundedChangeset = await checkAAA(AAAs[0], targetTime, targetChangesetID)
-        if (!foundedChangeset) {
-            foundedChangeset = await checkAAA(AAAs[1], targetTime, targetChangesetID)
-        }
-        if (!foundedChangeset) {
-            alert(":(")
-            return
-        }
-    }
-
-    const userInfo = document.createElement("a")
-    userInfo.setAttribute("href", "/user/" + foundedChangeset.getAttribute("user"))
-    userInfo.style.cursor = "pointer"
-    userInfo.textContent = foundedChangeset.getAttribute("user")
-
-    e.target.before(document.createTextNode("\xA0"))
-    e.target.before(userInfo)
-    e.target.before(document.createTextNode("\xA0"))
-
-    const uid = document.createElement("span")
-    uid.style.cursor = "pointer"
-    uid.title = "Click for copy user ID"
-    uid.onclick = e => {
-        const text = foundedChangeset.getAttribute("uid")
-        navigator.clipboard.writeText(text).then(() => copyAnimation(e, text))
-    }
-    uid.textContent = `${foundedChangeset.getAttribute("uid")}`
-
-    e.target.before(document.createTextNode("ID: "))
-    e.target.before(uid)
-    e.target.before(document.createTextNode("\xA0"))
-
-    const webArchiveLink = document.createElement("a")
-    webArchiveLink.textContent = "WebArchive"
-    webArchiveLink.target = "_blank"
-    webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + foundedChangeset.getAttribute("user")
-    e.target.before(webArchiveLink)
-    e.target.before(document.createTextNode("\xA0"))
-
-    e.target.remove()
-}
-
-//</editor-fold>
-
-/**
- * @param {number} lat1
- * @param {number} lon1
- * @param {number} lat2
- * @param {number} lon2
- */
-function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
-    function deg2rad(deg) {
-        return deg * (Math.PI / 180)
-    }
-
-    const R = 6371
-    const dLat = deg2rad(lat2 - lat1)
-    const dLon = deg2rad(lon2 - lon1)
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-    return R * c
-}
+//<editor-fold desc="overpass search" defaultstate="collapsed">
 
 function yetAnotherWizard(s) {
     // const [k, v] = s.split("=")
@@ -5105,31 +6669,29 @@ out geom;
     }
 }
 
-function blurSearchField() {
-    if (document.querySelector("#sidebar #query") && !document.querySelector("#sidebar #query").getAttribute("blured")) {
-        document.querySelector("#sidebar #query").setAttribute("blured", "true")
-        document.querySelector("#sidebar #query").removeAttribute("autofocus")
-        if (document.activeElement?.nodeName === "INPUT") {
-            document.activeElement?.blur()
-        }
-        // dirty hack. If your one multiple tabs focus would reseted only on active tab
-        // In the case of Safari, this is generally a necessity.
-        // Sometimes it still doesn't help
-        ;[50, 100, 250, 500].forEach(ms => {
-            setTimeout(() => {
-                if (document.activeElement?.nodeName === "INPUT") {
-                    document.activeElement?.blur()
-                }
-            }, ms)
-        })
-    }
-}
+//</editor-fold>
 
-function resetSearchFormFocus() {
-    if (!GM_config.get("ResetSearchFormFocus")) {
-        return
-    }
-    blurSearchField()
+//<editor-fold desc="" defaultstate="collapsed">
+function makeElementHistoryCompact(forceState = null) {
+    const shouldBeCompact = forceState !== null ? forceState : document.querySelector(".compact-toggle-btn").getAttribute("value") === "><"
+    const forToggle = Array.from(document.querySelectorAll("table.browse-tag-list"))
+    // workaround for https://github.com/deevroman/better-osm-org/pull/273#issuecomment-2830047660
+    forToggle.slice(0, 8).forEach(el => {
+        el.classList.toggle("hide-non-modified-tags", shouldBeCompact)
+    })
+    setTimeout(() => {
+        forToggle.slice(8).forEach(el => {
+            el.classList.toggle("hide-non-modified-tags", shouldBeCompact)
+        })
+    })
+    document.querySelectorAll(".empty-version").forEach(el => {
+        el.classList.toggle("d-none", shouldBeCompact)
+    })
+    document.querySelectorAll(".preview-img-link img").forEach(i => {
+        i.classList.toggle("d-none", shouldBeCompact)
+    })
+    document.querySelector(".compact-toggle-btn").setAttribute("value", shouldBeCompact ? "<>" : "><")
+    document.querySelector(".compact-toggle-btn").innerHTML = shouldBeCompact ? expandModeSvg : compactModeSvg
 }
 
 // https://osm.org/node/12559772251
@@ -5207,25 +6769,6 @@ function makePanoramaxValue(elem) {
     elem.onclick = e => {
         e.stopImmediatePropagation()
     }
-}
-
-const earthRadius = 6378137
-
-function drawRay(lat, lon, angle, color) {
-    const rad = (angle * Math.PI) / 180
-    const length = 7
-    const latOffset = (length * Math.cos(rad)) / earthRadius
-    const lonOffset = (length * Math.sin(rad)) / (earthRadius * Math.cos((lat * Math.PI) / 180))
-    showActiveWay(
-        [
-            [lat, lon],
-            [lat + (latOffset * 180) / Math.PI, lon + (lonOffset * 180) / Math.PI],
-        ],
-        color,
-        false,
-        null,
-        false,
-    )
 }
 
 // https://www.mapillary.com/dashboard/developers
@@ -5420,130 +6963,6 @@ function injectContextMenuCSS() {
     contextMenuCSSInjected = true
     injectCSSIntoOSMPage(contextMenuCSS)
 }
-// prettier-ignore
-const colorsPalette = {
-    "#ff00e3" : "#ff00e3",
-    "#0022ff": "#0022ff",
-
-    "rgba(17, 238, 9, 0.6)": "rgba(17, 238, 9, 0.6)",              // .quick-look-new-tag
-    "rgba(223, 238, 9, 0.6)": "rgba(223, 238, 9, 0.6)",            // .quick-look-modified-tag
-    "rgba(238, 51, 9, 0.6)": "rgba(238, 51, 9, 0.6)",              // .quick-look-deleted-tag
-    "#000.quick-look-deleted-tag": "#000",                   // color.quick-look-deleted-tag
-    "#fff.quick-look-deleted-tag": "#fff",                   // color.quick-look-deleted-tag
-    "rgba(25, 223, 25, 0.6)": "rgba(25, 223, 25, 0.6)",      // .new-letter
-    "rgba(255, 144, 144, 0.6)": "rgba(255, 144, 144, 0.6)",  // .deleted-letter
-
-    "rgba(17, 238, 9, 0.3)": "rgba(17, 238, 9, 0.3)",              // dark.quick-look-new-tag
-    "rgba(238, 51, 9, 0.4)": "rgba(238, 51, 9, 0.4)",              // dark.quick-look-deleted-tag
-    "rgba(25, 223, 25, 0.9)": "rgba(25, 223, 25, 0.9)",      // dark.new-letter
-    "rgba(253, 83, 83, 0.8)": "rgba(253, 83, 83, 0.8)",      // dark.deleted-letter
-
-    "rgba(0, 128, 0, 0.6)": "rgba(0, 128, 0, 0.6)",                // displayWay for version 1
-    "rgba(120, 238, 9, 0.6)": "rgba(120, 238, 9, 0.6)",            // displayWay for restored way
-    "#ff0000.deleted-way-geom": "#ff0000",                   // displayWay for deleted
-
-    "#00a500.first-node-version": "#00a500",                 // showNodeMarker for version 1
-    "rgba(89, 170, 9, 0.6).restored-node-version": "#00a500",   // showNodeMarker for version 1
-    "#ff0000.deleted-node-geom": "#ff0000",                  // showNodeMarker for deleted
-
-    "rgba(17, 238, 9, 0.3).members-changed-flag": "rgba(17, 238, 9, 0.3)",  // dark
-    "rgba(101, 238, 9, 0.6).members-changed-flag": "rgba(101, 238, 9, 0.6)",
-    "rgba(238, 51, 9, 0.4).members-changed-flag": "rgba(238, 51, 9, 0.4)",  // dark
-    "rgba(238, 9, 9, 0.42).members-changed-flag": "rgba(238, 9, 9, 0.42)",
-
-    "rgba(17, 238, 9, 0.6).members-changed-row": "rgba(17, 238, 9, 0.6)",
-    "rgba(238, 51, 9, 0.6).members-changed-row": "rgba(238, 51, 9, 0.6)",
-
-    "rgba(17, 238, 9, 0.3).nodes-changed-flag": "rgba(17, 238, 9, 0.3)",  // dark
-    "rgba(101, 238, 9, 0.6).nodes-changed-flag": "rgba(101, 238, 9, 0.6)",
-    "rgba(238, 51, 9, 0.4).nodes-changed-flag": "rgba(238, 51, 9, 0.4)",  // dark
-    "rgba(238, 9, 9, 0.42).nodes-changed-flag": "rgba(238, 9, 9, 0.42)",
-
-    "rgba(17, 238, 9, 0.6).nodes-changed-row": "rgba(17, 238, 9, 0.6)",
-    "rgba(238, 51, 9, 0.6).nodes-changed-row": "rgba(238, 51, 9, 0.6)",
-
-    "rgba(4, 123, 0, 0.6).history-diff-new-tag" : "rgba(4, 123, 0, 0.6)",
-    "rgba(238, 51, 9, 0.4).history-diff-deleted-tag": "rgba(238, 51, 9, 0.4)"
-}
-
-// prettier-ignore
-const colorblindFriendlyPalette = {
-    "rgba(17, 238, 9, 0.6)": "#0074FF75",            // .quick-look-new-tag
-    "rgba(238, 51, 9, 0.6)": "#F80000",              // .quick-look-deleted-tag
-    "#000.quick-look-deleted-tag": "#fff",           // color.quick-look-deleted-tag
-
-    "rgba(25, 223, 25, 0.6)": "#8EA5FFC4",           // .new-letter
-    "rgba(255, 144, 144, 0.6)": "#FFB7B7",           // .deleted-letter
-
-    "rgba(25, 223, 25, 0.9)": "#8EA5FFC4",           // dark.new-letter
-    "rgba(253, 83, 83, 0.8)": "#FFB7B7",             // dark.deleted-letter
-
-    "rgba(17, 238, 9, 0.3)": "#1A385C",              // dark.quick-look-new-tag
-    "rgba(238, 51, 9, 0.4)": "#732a1d",              // dark.quick-look-deleted-tag
-
-    "rgba(0, 128, 0, 0.6)": "#0074FF75",                     // displayWay for version 1
-    "rgba(120, 238, 9, 0.6)": "rgba(64,152,255,0.46)",       // displayWay for restored way
-    "#ff0000.deleted-way-geom": "#f34c4c",                   // displayWay for deleted
-
-    "#00a500.first-node-version": "#0074FF75",                                // showNodeMarker for version 1
-    "rgba(89, 170, 9, 0.6).restored-node-version": "rgba(64,152,255,0.46)",   // showNodeMarker for version 1
-    "#ff0000.deleted-node-geom": "#f34c4c",                                   // showNodeMarker for deleted
-
-    "rgba(17, 238, 9, 0.3).members-changed-flag": "#0074FF75",   // dark
-    "rgba(101, 238, 9, 0.6).members-changed-flag": "#0074FF75",
-    "rgba(238, 51, 9, 0.4).members-changed-flag": "#f34c4c",     // dark
-    "rgba(238, 9, 9, 0.42).members-changed-flag": "rgb(242, 0, 0)",
-
-    "rgba(17, 238, 9, 0.6).members-changed-row": "#0074FF75",
-    "rgba(238, 51, 9, 0.6).members-changed-row": "rgb(242, 0, 0)",
-
-    "rgba(17, 238, 9, 0.3).nodes-changed-flag": "#0074FF75",       // dark
-    "rgba(101, 238, 9, 0.6).nodes-changed-flag": "#0074FF75",
-    "rgba(238, 51, 9, 0.4).nodes-changed-flag": "rgb(242, 0, 0)",  // dark
-    "rgba(238, 9, 9, 0.42).nodes-changed-flag": "rgb(242, 0, 0)",
-
-    "rgba(17, 238, 9, 0.6).nodes-changed-row": "#0074FF75",
-    "rgba(238, 51, 9, 0.6).nodes-changed-row": "rgb(242, 0, 0)",
-
-    "rgba(4, 123, 0, 0.6).history-diff-new-tag" : "#1A385C",
-    "rgba(238, 51, 9, 0.4).history-diff-deleted-tag": "#732a1d"
-}
-
-function setColorblindFriendlyPalette() {
-    Object.entries(colorblindFriendlyPalette).forEach(([k, v]) => {
-        colorsPalette[k] = v
-    })
-}
-
-/**
- * @param color {string}
- * @param context {string}
- * @return {string}
- */
-function c(color, context = "") {
-    const res = colorsPalette[color + context]
-    if (res) {
-        return res
-    }
-    debug_alert(`color ${color + context} not found in palette`)
-    return color
-}
-
-// prettier-ignore
-const externalLinkSvg =
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" ' +
-    'class="lucide lucide-external-link-icon lucide-external-link" width="16" height="16">' +
-    '<path d="M15 3h6v6"></path><path d="M10 14 21 3"></path>' +
-    '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>' +
-    '</svg>'
-
-// prettier-ignore
-const pencilLinkSvg =
-    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" ' +
-    'stroke-linejoin="round" class="lucide lucide-pencil-icon lucide-pencil">' +
-    '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>' +
-    '<path d="m15 5 4 4"/>' +
-    '</svg>'
 
 // example https://osm.org/node/6506618057
 function makeLinksInVersionTagsClickable() {
@@ -5860,461 +7279,9 @@ function addHistoryLink() {
     }
     `)
 }
-
-//<editor-fold desc="render functions" defaultstate="collapsed">
-
-/**
- * @type {{
- *  customObjects: (import('leaflet').Path)[],
- *  activeObjects: (import('leaflet').Path)[],
- *  changesetBounds: (import('leaflet').Path)[]
- * }}
- */
-const layers = {
-    customObjects: [],
-    activeObjects: [],
-    changesetBounds: [],
-}
-
-/**
- * @name showWay
- * @memberof unsafeWindow
- * @param {[]} nodesList
- * @param {string=} color
- * @param {boolean} needFly
- * @param {boolean} addStroke
- */
-function showWay(nodesList, color = "#000000", needFly = false, addStroke = false) {
-    cleanCustomObjects()
-    const line = getWindow()
-        .L.polyline(
-            intoPage(nodesList.map(elem => getWindow().L.latLng(intoPage(elem)))),
-            intoPage({
-                color: color,
-                weight: 4,
-                clickable: false,
-                opacity: 1,
-                fillOpacity: 1,
-            }),
-        )
-        .addTo(getMap())
-    if (addStroke) {
-        line._path.classList.add("stroke-polyline")
-    }
-    layers["customObjects"].push(line)
-    if (needFly) {
-        if (nodesList.length) {
-            fitBounds(get4Bounds(line))
-        }
-    }
-}
-
-/**
- * @name showWays
- * @memberof unsafeWindow
- * @param {[][]} ListOfNodesList
- * @param {string=} layerName
- * @param {string=} color
- */
-function showWays(ListOfNodesList, layerName = "customObjects", color = "#000000") {
-    cleanObjectsByKey(layerName)
-    ListOfNodesList.forEach(nodesList => {
-        const line = getWindow()
-            .L.polyline(
-                intoPage(nodesList.map(elem => getWindow().L.latLng(intoPage(elem)))),
-                intoPage({
-                    color: color,
-                    weight: 4,
-                    clickable: false,
-                    opacity: 1,
-                    fillOpacity: 1,
-                }),
-            )
-            .addTo(getMap())
-        layers[layerName].push(line)
-    })
-}
-
-/**
- * @name displayWay
- * @memberof unsafeWindow
- * @param {any[]} nodesList
- * @param {boolean=} needFly
- * @param {string=} color
- * @param {number=} width
- * @param {string|null=} infoElemID
- * @param {string=} layerName
- * @param {string|null=} dashArray
- * @param {string|null=} popupContent
- * @param {boolean|null=} addStroke
- * @param {boolean=} geometryCached
- */
-function displayWay(nodesList, needFly = false, color = "#000000", width = 4, infoElemID = null, layerName = "customObjects", dashArray = null, popupContent = null, addStroke = null, geometryCached = false) {
-    if (!layers[layerName]) {
-        layers[layerName] = []
-    }
-
-    function bindPopup(line, popup) {
-        if (popup) return line.bindPopup(popup)
-        return line
-    }
-
-    const line = bindPopup(
-        getWindow().L.polyline(
-            geometryCached ? nodesList : intoPage(nodesList),
-            intoPage({
-                color: color,
-                weight: width,
-                clickable: false,
-                opacity: 1,
-                fillOpacity: 1,
-                dashArray: dashArray,
-            }),
-        ),
-        popupContent,
-    ).addTo(getMap())
-    layers[layerName].push(line)
-    if (needFly) {
-        getMap().flyTo(
-            intoPage(line.getBounds().getCenter()),
-            18,
-            intoPage({
-                animate: false,
-                duration: 0.5,
-            }),
-        )
-    }
-    if (infoElemID) {
-        layers[layerName][layers[layerName].length - 1].on(
-            "click",
-            cloneInto(
-                function () {
-                    const elementById = document.getElementById(infoElemID)
-                    elementById?.scrollIntoView()
-                    resetMapHover()
-                    elementById?.parentElement?.parentElement?.classList.add("map-hover")
-                    cleanObjectsByKey("activeObjects")
-                },
-                getWindow(),
-                { cloneFunctions: true },
-            ),
-        )
-    }
-    if (addStroke) {
-        line._path.classList.add("stroke-polyline")
-    }
-    return line
-}
-
-/**
- * @name showNodeMarker
- * @memberof unsafeWindow
- * @param {string|number} a
- * @param {string|number} b
- * @param {string=} color
- * @param {string|null=} infoElemID
- * @param {string=} layerName
- * @param {number=} radius
- */
-function showNodeMarker(a, b, color = "#00a500", infoElemID = null, layerName = "customObjects", radius = 5) {
-    const haloStyle = {
-        weight: 2.5,
-        radius: radius,
-        fillOpacity: 0,
-        color: color,
-    }
-    const marker = getWindow().L.circleMarker(getWindow().L.latLng(a, b), intoPage(haloStyle)).addTo(getMap())
-    layers[layerName].push(marker)
-    if (infoElemID) {
-        marker.on(
-            "click",
-            cloneInto(
-                function () {
-                    const elementById = document.getElementById(infoElemID)
-                    elementById?.scrollIntoView()
-                    resetMapHover()
-                    elementById?.parentElement?.parentElement.classList?.add("map-hover")
-                },
-                getWindow(),
-                { cloneFunctions: true },
-            ),
-        )
-    }
-    return marker
-}
-
-/**
- * @name showActiveNodeMarker
- * @memberof unsafeWindow
- * @param {string} lat
- * @param {string} lon
- * @param {string} color
- * @param {boolean=} removeActiveObjects
- * @param {number} radius
- * @param {number=} weight
- */
-function showActiveNodeMarker(lat, lon, color, removeActiveObjects = true, radius = 5, weight = 2.5) {
-    const haloStyle = {
-        weight: weight,
-        radius: radius,
-        fillOpacity: 0,
-        color: color,
-    }
-    if (removeActiveObjects) {
-        cleanObjectsByKey("activeObjects")
-    }
-    layers["activeObjects"].push(getWindow().L.circleMarker(getWindow().L.latLng(lat, lon), intoPage(haloStyle)).addTo(getMap()))
-}
-
-/**
- * @name showActiveNodeIconMarker
- * @memberof unsafeWindow
- * @param {string} lat
- * @param {string} lon
- * @param {string|null=} color
- * @param {boolean=} removeActiveObjects
- */
-function showActiveNodeIconMarker(lat, lon, color = null, removeActiveObjects = true) {
-    if (removeActiveObjects) {
-        cleanObjectsByKey("activeObjects")
-    }
-    const marker = getWindow().L.marker(intoPage([lat, lon]), intoPage({ draggable: false, icon: getWindow().OSM.getMarker({ color: color ?? "var(--marker-blue)" }) }))
-    layers["activeObjects"].push(marker.addTo(getMap()))
-}
-
-/**
- * @name showActiveWay
- * @memberof unsafeWindow
- * @param {any[]} nodesList
- * @param {string=} color
- * @param {boolean=} needFly
- * @param {string|null=} infoElemID
- * @param {boolean=} removeActiveObjects
- * @param {number=} weight
- * @param {string=} dashArray
- */
-function showActiveWay(nodesList, color = c("#ff00e3"), needFly = false, infoElemID = null, removeActiveObjects = true, weight = 4, dashArray = null) {
-    const line = getWindow()
-        .L.polyline(
-            intoPage(nodesList.map(elem => intoPage(getWindow().L.latLng(intoPage(elem))))),
-            intoPage({
-                color: color,
-                weight: weight,
-                clickable: false,
-                opacity: 1,
-                fillOpacity: 1,
-                dashArray: dashArray,
-            }),
-        )
-        .addTo(getMap())
-    if (removeActiveObjects) {
-        cleanObjectsByKey("activeObjects")
-    }
-    layers["activeObjects"].push(line)
-    if (needFly) {
-        fitBounds(get4Bounds(line))
-    }
-    if (infoElemID) {
-        layers["activeObjects"][layers["activeObjects"].length - 1].on(
-            "click",
-            cloneInto(
-                function () {
-                    const elementById = document.getElementById(infoElemID)
-                    elementById?.scrollIntoView()
-                    resetMapHover()
-                    elementById.classList.add("map-hover")
-                },
-                getWindow(),
-                { cloneFunctions: true },
-            ),
-        )
-    }
-}
-
-/**
- * @name cleanObjectsByKey
- * @param {string} key
- * @memberof unsafeWindow
- */
-function cleanObjectsByKey(key) {
-    if (layers[key]) {
-        layers[key]?.forEach(i => i.remove())
-        layers[key] = []
-    }
-}
-
-/**
- * @name cleanCustomObjects
- * @memberof unsafeWindow
- */
-function cleanCustomObjects() {
-    layers["customObjects"].forEach(i => i.remove())
-    layers["customObjects"] = []
-}
-
-/**
- * @name panTo
- * @memberof unsafeWindow
- * @param {string} lat
- * @param {string} lon
- * @param {number=} zoom
- * @param {boolean=} animate
- */
-function panTo(lat, lon, zoom = 18, animate = false) {
-    if (!getMap()?.flyTo) {
-        // todo initial implementation
-        const maxZoom = 19
-        console.log("try workaround. TODO")
-        const curURL = document.querySelector("#edit_tab ul")?.querySelector("li a")?.href
-        const match = curURL.match(/map=(\d+)\/([-\d.]+)\/([-\d.]+)(&|$)/)
-        if (match) {
-            const zoomLevel = parseInt(match[1])
-            let newHash = location.hash.replace(/map=(\d+)\//, `map=${min(zoomLevel + 1, maxZoom)}/`)
-            newHash = newHash.replace(/map=(\d+)\/(\d+)\/(\d+)/, `map=$1/${lat}/${lon}`)
-            location.hash = newHash
-        } else {
-            const [x, y, z] = getCurrentXYZ()
-            location.hash = `map=${min(parseInt(z) + 1, maxZoom)}/${x}/${y}`
-        }
-    } else {
-        getMap().flyTo(intoPage([lat, lon]), zoom, intoPage({ animate: animate }))
-    }
-}
-
-/**
- * @name panInside
- * @memberof unsafeWindow
- * @param {string} lat
- * @param {string} lon
- * @param {boolean=} animate
- * @param {[number, number]=} padding
- */
-function panInside(lat, lon, animate = false, padding = [0, 0]) {
-    getMap().panInside(intoPage([lat, lon]), intoPage({ animate: animate, padding: padding }))
-}
-
-function get4Bounds(b) {
-    try {
-        return [
-            [b.getBounds().getSouth(), b.getBounds().getWest()],
-            [b.getBounds().getNorth(), b.getBounds().getEast()],
-        ]
-    } catch {
-        console.error("Please, reload page")
-    }
-}
-
-/**
- * @name fitBounds
- * @param {import('leaflet').LatLngBoundsExpression} bound
- * @param {number} maxZoom
- * @memberof unsafeWindow
- */
-function fitBounds(bound, maxZoom = 19) {
-    fitBoundsWithPadding(bound, 0, maxZoom)
-}
-
-/**
- * @name fitBoundsWithPadding
- * @param {import('leaflet').LatLngBoundsExpression} bound
- * @param {number} padding
- * @param {number} maxZoom
- * @memberof unsafeWindow
- */
-function fitBoundsWithPadding(bound, padding, maxZoom = 19) {
-    if (!getMap()?.fitBounds) {
-        // todo initial implementation
-        console.log("try workaround. TODO")
-        const curURL = document.querySelector("#edit_tab ul")?.querySelector("li a")?.href
-        const match = curURL.match(/map=(\d+)\/([-\d.]+)\/([-\d.]+)(&|$)/)
-        if (match) {
-            const [lat, lon] = bound[0]
-            const zoomLevel = parseInt(match[1])
-            let newHash = location.hash.replace(/map=(\d+)\//, `map=${min(zoomLevel + 1, maxZoom)}/`)
-            newHash = newHash.replace(/map=(\d+)\/(\d+)\/(\d+)/, `map=$1/${lat}/${lon}`)
-            location.hash = newHash
-        } else {
-            const [x, y, z] = getCurrentXYZ()
-            location.hash = `map=${min(parseInt(z) + 1, maxZoom)}/${x}/${y}`
-        }
-    } else {
-        getMap().fitBounds(intoPageWithFun(bound), intoPage({ padding: [padding, padding], maxZoom: maxZoom }))
-    }
-}
-
-/**
- * @name getZoom
- * @memberof unsafeWindow
- */
-function getZoom() {
-    try {
-        return getMap().getZoom()
-    } catch {
-        console.warn("Couldn't get the map zoom through the map object. Trying a workaround")
-
-        const curURL = document.querySelector("#edit_tab ul")?.querySelector("li a")?.href
-        const match = curURL.match(/map=(\d+)\/([-\d.]+)\/([-\d.]+)(&|$)/)
-        console.log("Parsed coordinates link:", match)
-        return parseFloat(match[1])
-    }
-}
-
-/**
- * @name setZoom
- * @param {number} zoomLevel
- * @memberof unsafeWindow
- */
-function setZoom(zoomLevel) {
-    try {
-        getMap().setZoom(zoomLevel)
-    } catch {
-        console.warn("Couldn't set the map zoom through the map object. Trying a workaround")
-
-        const curURL = document.querySelector("#edit_tab ul")?.querySelector("li a")?.href
-        const match = curURL.match(/map=(\d+)\/([-\d.]+)\/([-\d.]+)(&|$)/)
-        if (match) {
-            location.hash = location.hash.replace(/map=(\d+)\//, `map=${zoomLevel}/`)
-        } else {
-            const [x, y] = getCurrentXYZ()
-            location.hash = `map=${zoomLevel}/${x}/${y}`
-        }
-    }
-}
-
-function cleanAllObjects() {
-    for (let member in layers) {
-        layers[member].forEach(i => {
-            i.remove()
-        })
-        layers[member] = []
-    }
-}
-
 //</editor-fold>
 
-/**
- * @type {Object.<string, AbortController>}
- */
-const abortDownloadingControllers = {}
-
-/**
- * @return {AbortController}
- */
-function getAbortController() {
-    return (abortDownloadingControllers[location.pathname] ??= new AbortController())
-}
-
-function abortPrevControllers(reason = null) {
-    console.log("abort prev controllers")
-    Object.entries(abortDownloadingControllers).forEach(([path, controller]) => {
-        if (path !== location.pathname) {
-            console.log("abort for", path)
-            controller.abort(reason)
-            delete abortDownloadingControllers[path]
-        }
-    })
-}
-
+//<editor-fold desc="history-diff" defaultstate="collapsed">
 /**
  * @typedef {Object} ObjectVersion
  * @property {number} version
@@ -6364,62 +7331,6 @@ const histories = {
     relation: relationsHistories,
 }
 
-const fetchTextWithCache = (() => {
-    /**@type {Map<string, string | undefined | Promise<string | undefined> >}*/
-    const cache = new Map()
-    /**
-     * @param {string} url
-     * @return {Promise<string>}
-     */
-    return async url => {
-        if (cache.has(url)) {
-            return cache.get(url)
-        }
-
-        const promise = externalFetchRetry({ url: url }).then(r => r.responseText)
-        cache.set(url, promise)
-
-        try {
-            const result = await promise
-            cache.set(url, result)
-            return result
-        } catch (error) {
-            cache.delete(url)
-            throw error
-        }
-    }
-})()
-
-const originalFetchTextWithCache = (() => {
-    /**@type {Map<string, string | undefined | Promise<string | undefined> >}*/
-    const cache = new Map()
-
-    /**
-     * @param {string} url
-     * @param {RequestInit} init
-     */
-    return async (url, init) => {
-        if (cache.has(url)) {
-            return cache.get(url)
-        }
-
-        const promise = fetchRetry(url, init).then(res => {
-            if (!res) console.trace()
-            return res.text()
-        })
-        cache.set(url, promise)
-
-        try {
-            const result = await promise
-            cache.set(url, result)
-            return result
-        } catch (error) {
-            cache.delete(url)
-            throw error
-        }
-    }
-})()
-
 /**
  *
  * @type {Object.<number, {
@@ -6446,45 +7357,6 @@ async function getChangeset(id) {
         data: data,
         nodesWithParentWays: new Set(Array.from(data.querySelectorAll("way > nd")).map(i => parseInt(i.getAttribute("ref")))),
         nodesWithOldParentWays: new Set(Array.from(data.querySelectorAll("way:not([version='1']) > nd")).map(i => parseInt(i.getAttribute("ref")))),
-    })
-}
-
-/**
- *
- * @param {float} lat
- * @param {float} lon
- * @param {string} values
- * @param {string} color
- */
-function renderDirectionTag(lat, lon, values, color = c("#ff00e3")) {
-    const cardinalToAngle = {
-        N: 0.0,
-        north: 0.0,
-        NNE: 22.0,
-        NE: 45.0,
-        ENE: 67.0,
-        E: 90.0,
-        east: 90.0,
-        ESE: 112.0,
-        SE: 135.0,
-        SSE: 157.0,
-        S: 180.0,
-        south: 180.0,
-        SSW: 202.0,
-        SW: 225.0,
-        WSW: 247.0,
-        W: 270.0,
-        west: 270.0,
-        WNW: 292.0,
-        NW: 315.0,
-        NNW: 337.0,
-    }
-    values.split(";").forEach(angleStr => {
-        const angle = cardinalToAngle[angleStr] !== undefined ? cardinalToAngle[angleStr] : parseFloat(angleStr)
-        if (!isNaN(angle)) {
-            drawRay(lat, lon, angle - 30, color)
-            drawRay(lat, lon, angle + 30, color)
-        }
     })
 }
 
@@ -6830,9 +7702,9 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
             if (res.status === 404) {
                 console.log("%c Some nodes was hidden. Start slow fetching :(", "background: #222; color: #bada55")
                 const newArgs = args.split(",").map(i => parseInt(i.match(/(\d+)v(\d+)/)[1]))
-                // это нарушает инвариант, что versions не содержит последней версии
-                // важно также сохранять отсортированность,
-                // иначе loadNodesViaHistoryCalls сделает внутри несколько вызовов для одной и той же точки
+                    // это нарушает инвариант, что versions не содержит последней версии
+                    // важно также сохранять отсортированность,
+                    // иначе loadNodesViaHistoryCalls сделает внутри несколько вызовов для одной и той же точки
                 ;(await loadNodesViaHistoryCalls(newArgs)).forEach(i => {
                     versions.push(...i)
                 })
@@ -7646,7 +8518,7 @@ function setupWayVersionView() {
     }
 }
 
-//<editor-fold desc="setup compact mode toggles">
+//<editor-fold desc="relation types">
 /**
  * @typedef {Object} RelationMember
  * @property {number} ref
@@ -7761,336 +8633,6 @@ const overpassCache = {}
  * @type {Object.<*, CachedRelation>}
  */
 const cachedRelations = {}
-
-/**
- * @param {number} lat
- * @param {number} lng
- * @returns {{x: number, y: number}}
- */
-function toMercator(lat, lng) {
-    const x = (earthRadius * lng * Math.PI) / 180
-    const y = earthRadius * Math.log(Math.tan((lat * Math.PI) / 180 / 2 + Math.PI / 4))
-    return { x, y }
-}
-
-/**
- * @param {number} x
- * @param {number} y
- * @returns {{lat: number, lng: number}}
- */
-function fromMercator(x, y) {
-    const lat = ((2 * Math.atan(Math.exp(y / earthRadius)) - Math.PI / 2) * 180) / Math.PI
-    const lng = ((x / earthRadius) * 180) / Math.PI
-    return { lat, lng }
-}
-
-/**
- * @param {number} lat1
- * @param {number} lon1
- * @param {number} lat2
- * @param {number} lon2
- * @param {number} angleDeg
- * @param {number} lengthMeters
- * @returns {{lat: number, lon: number}}
- */
-function rotateSegment(lat1, lon1, lat2, lon2, angleDeg, lengthMeters) {
-    const { x: x1, y: y1 } = toMercator(lat1, lon1)
-    const { x: x2, y: y2 } = toMercator(lat2, lon2)
-
-    const angleRad = (angleDeg * Math.PI) / 180
-
-    const dx = y2 - y1
-    const dy = x2 - x1
-
-    const segmentLength = Math.sqrt(dx * dx + dy * dy)
-
-    const ndx = dx / segmentLength
-    const ndy = dy / segmentLength
-
-    const scaledDx = ndx * lengthMeters
-    const scaledDy = ndy * lengthMeters
-
-    const rotatedDx = scaledDx * Math.cos(angleRad) - scaledDy * Math.sin(angleRad)
-    const rotatedDy = scaledDx * Math.sin(angleRad) + scaledDy * Math.cos(angleRad)
-
-    const { lat: lat, lng: lon } = fromMercator(x1 + rotatedDy, y1 + rotatedDx)
-    return { lat: lat, lon: lon }
-}
-
-/**
- * @param {{lat: number, lon: number}} latLon1
- * @param {{lat: number, lon: number}} latLon2
- * @return {boolean}
- */
-function isEqualCoordinates(latLon1, latLon2) {
-    return latLon1.lat === latLon2.lat && latLon1.lon === latLon2.lon
-}
-
-/**
- * @param {ExtendedRelationVersion} rel
- * @return {string[]}
- */
-function validateRestriction(rel) {
-    /** @type {ExtendedRelationWayMember[]} */
-    const from = []
-    /** @type {ExtendedRelationNodeMember[]} */
-    const viaNodes = []
-    /** @type {ExtendedRelationWayMember[]} */
-    const viaWays = []
-    /** @type {ExtendedRelationWayMember[]} */
-    const to = []
-    const errors = []
-    const { value: restrictionValue } = getRestrictionKeyValue(rel.tags)
-    rel.members?.forEach(i => {
-        if (i.type === "way" && i.role === "from") {
-            from.push(i)
-        } else if (i.type === "way" && i.role === "to") {
-            to.push(i)
-        } else if (i.type === "node" && i.role === "via") {
-            viaNodes.push(i)
-        } else if (i.type === "way" && i.role === "via") {
-            viaWays.push(i)
-        } else {
-            errors.push(`Incorrect member: ${i.type}/${i.ref} with "${i.role}" role`)
-        }
-    })
-    if (viaNodes.length + viaWays.length === 0) {
-        errors.push('Missing member with "via" role')
-    }
-    if (from.length === 0) {
-        errors.push('Missing member with "from" role')
-    }
-    if (to.length === 0) {
-        errors.push('Missing member with "to" role')
-    }
-
-    ;[...from, ...to].forEach(i => {
-        if (i.geometry?.length < 2) {
-            errors.push(`${i.type}/${i.ref} (${i.role}) way contains < 2 nodes`)
-        }
-    })
-    if (restrictionValue !== "no_exit" && restrictionValue !== "no_entry") {
-        if (from.length > 1) {
-            errors.push('Multiple "from" role')
-        }
-        if (to.length > 1) {
-            errors.push('Multiple "to" role')
-        }
-    }
-    if (errors.length) return errors
-
-    if (viaNodes.length && viaWays.length) {
-        errors.push(`Mixed "node" and "way" types for via role`)
-    } else if (viaNodes.length > 1) {
-        errors.push(`multiple "via" nodes`)
-    } else if (viaWays.length > 0) {
-        let lastNode = from[0].geometry[0]
-        if (isEqualCoordinates(from[0].geometry[0], lastNode)) {
-            lastNode = viaWays[0].geometry[viaWays[0].geometry.length - 1]
-        } else if (isEqualCoordinates(from[0].geometry[from[0].geometry.length - 1], lastNode)) {
-            lastNode = viaWays[0].geometry[0]
-        } else {
-            errors.push(`"from" -> "via" are arranged in the wrong order or torn`)
-        }
-        viaWays.slice(1).forEach(w => {
-            if (isEqualCoordinates(w.geometry[0], lastNode)) {
-                lastNode = w.geometry[w.geometry.length - 1]
-            } else if (isEqualCoordinates(w.geometry[w.geometry.length - 1], lastNode)) {
-                lastNode = w.geometry[0]
-            } else {
-                errors.push(`"via" -> "via" are arranged in the wrong order or torn`)
-            }
-        })
-        if (!isEqualCoordinates(to[0].geometry[0], lastNode) && isEqualCoordinates(to[0].geometry[to[0].geometry.length - 1], lastNode)) {
-            errors.push(`"via" -> "to" are arranged in the wrong order or torn`)
-        }
-    }
-    if (errors.length) return errors
-
-    return errors
-}
-
-// prettier-ignore
-const restrictionColors = {
-    no_left_turn:       "#ff0000",
-    no_right_turn:      "#ff0000",
-    no_straight_on:     "#ff0000",
-    no_u_turn:          "#ff0000",
-    only_right_turn:    "#0000ff",
-    only_left_turn:     "#0000ff",
-    only_straight_on:   "#0000ff",
-    no_entry:           "#ff0000",
-    no_exit:            "#ff0000",
-}
-
-const restrictionsImagesPrefix = "https://raw.githubusercontent.com/deevroman/better-osm-org/ad552f9f3a3d7a11a1448686fc0ccc164905bf62/misc/assets/icons/restrictions/"
-// prettier-ignore
-const restrictionsSignImages = {
-    no_left_turn:       restrictionsImagesPrefix + "France_road_sign_B2a.svg",
-    no_right_turn:      restrictionsImagesPrefix + "France_road_sign_B2b.svg",
-    no_straight_on:     restrictionsImagesPrefix + "MUTCD_R3-27.svg",
-    no_u_turn:          restrictionsImagesPrefix + "France_road_sign_B2c.svg",
-    only_right_turn:    restrictionsImagesPrefix + "France_road_sign_B21c1.svg",
-    only_left_turn:     restrictionsImagesPrefix + "France_road_sign_B21c2.svg",
-    only_straight_on:   restrictionsImagesPrefix + "France_road_sign_B21b.svg",
-    no_entry:           restrictionsImagesPrefix + "RU_road_sign_3.1.svg",
-    no_exit:            restrictionsImagesPrefix + "RU_road_sign_3.1.svg",
-}
-
-function azimuth(lat1, lon1, lat2, lon2) {
-    const p1 = toMercator(lat1, lon1)
-    const p2 = toMercator(lat2, lon2)
-
-    const dx = p2.x - p1.x
-    const dy = p2.y - p1.y
-
-    const angleRad = Math.atan2(dx, dy)
-    const angleDeg = (angleRad * 180) / Math.PI
-
-    return (angleDeg + 360) % 360
-}
-
-function getRestrictionKeyValue(tags) {
-    const key = Object.keys(tags).find(k => k === "restriction" || k === "was:restriction" || k.startsWith("restriction:"))
-    return {
-        key: key,
-        value: tags[key],
-    }
-}
-
-/**
- * @param {ExtendedRelationVersion} rel
- * @param {string} color
- * @param {string} layer
- * @return {[]}
- */
-function renderRestriction(rel, color, layer) {
-    /** @type {ExtendedRelationWayMember[]} */
-    const from = []
-    /** @type {ExtendedRelationNodeMember[]} */
-    const viaNodes = []
-    /** @type {ExtendedRelationWayMember[]} */
-    const viaWays = []
-    /** @type {ExtendedRelationWayMember[]} */
-    const to = []
-    rel.members?.forEach(i => {
-        if (i.type === "way" && i.role === "from") {
-            from.push(i)
-        } else if (i.type === "way" && i.role === "to") {
-            to.push(i)
-        } else if (i.type === "node" && i.role === "via") {
-            viaNodes.push(i)
-        } else if (i.type === "way" && i.role === "via") {
-            viaWays.push(i)
-        }
-    })
-    let via = viaNodes?.[0]
-    if (!via) {
-        if (isEqualCoordinates(from[0].geometry[0], viaWays[0].geometry[0]) || isEqualCoordinates(from[0].geometry[from[0].geometry.length - 1], viaWays[0].geometry[0])) {
-            via = viaWays[0].geometry[0]
-        } else if (
-            isEqualCoordinates(from[0].geometry[0], viaWays[0].geometry[viaWays[0].geometry.length - 1]) ||
-            isEqualCoordinates(from[0].geometry[from[0].geometry.length - 1], viaWays[0].geometry[viaWays[0].geometry.length - 1])
-        ) {
-            via = viaWays[0].geometry[viaWays[0].geometry.length - 1]
-        } else {
-            console.error("Restriction validation error")
-            debug_alert("Restriction validation error")
-        }
-    }
-    const { value: restrictionValue } = getRestrictionKeyValue(rel.tags)
-    const angle = 25
-    const len = 7
-    const arrows = []
-    let signAngle = 0.0
-    from.forEach(f => {
-        let startPoint = f.geometry[0]
-        let endPoint = f.geometry[1]
-        // оверпас не даёт айдишники точек геометрии
-        if (isEqualCoordinates(f.geometry[f.geometry.length - 1], via)) {
-            startPoint = f.geometry[f.geometry.length - 1]
-            endPoint = f.geometry[f.geometry.length - 2]
-        }
-        signAngle = 360 - azimuth(endPoint.lat, endPoint.lon, startPoint.lat, startPoint.lon)
-        console.debug(signAngle)
-        // const {lat: p1_lat, lon: p1_lon} = startPoint;
-        // const {lat: p2_lat, lon: p2_lon} = endPoint
-        // const rotated1 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, -angle, len)
-        // const rotated2 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, angle, len)
-        // arrows.push(displayWay([startPoint, rotated1], false, "white", 7, null, layer))
-        // arrows.push(displayWay([startPoint, rotated2], false, "white", 7, null, layer))
-        // arrows.push(displayWay([startPoint, rotated1], false, color, 4, null, layer))
-        // arrows.push(displayWay([startPoint, rotated2], false, color, 4, null, layer))
-    })
-    to.forEach(t => {
-        let startPoint = t.geometry[0]
-        let endPoint = t.geometry[1]
-        if (t.geometry[0].lat === via.lat && t.geometry[0].lon === via.lon) {
-            if (from.length > 1) {
-                signAngle = 360 - azimuth(endPoint.lat, endPoint.lon, startPoint.lat, startPoint.lon)
-            }
-            startPoint = t.geometry[t.geometry.length - 1]
-            endPoint = t.geometry[t.geometry.length - 2]
-        } else {
-            if (from.length > 1) {
-                signAngle = 360 - azimuth(t.geometry[t.geometry.length - 2].lat, t.geometry[t.geometry.length - 2].lon, t.geometry[t.geometry.length - 1].lat, t.geometry[t.geometry.length - 1].lon)
-            }
-        }
-        const { lat: p1_lat, lon: p1_lon } = startPoint
-        const { lat: p2_lat, lon: p2_lon } = endPoint
-        const rotated1 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, -angle, len)
-        const rotated2 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, angle, len)
-        if (restrictionValue === "no_exit" || restrictionValue === "no_entry") {
-            arrows.push(displayWay([startPoint, rotated1], false, "white", 7, null, layer))
-            arrows.push(displayWay([startPoint, rotated2], false, "white", 7, null, layer))
-            arrows.push(displayWay([startPoint, rotated1], false, color, 4, null, layer))
-            arrows.push(displayWay([startPoint, rotated2], false, color, 4, null, layer))
-        }
-    })
-    ;[100, 250, 500, 1000].forEach(t => {
-        setTimeout(() => {
-            arrows.forEach(i => i.bringToFront())
-        }, t)
-    })
-
-    queueMicrotask(async () => {
-        const imageUrl = restrictionsSignImages[restrictionValue]
-        if (!imageUrl) {
-            return
-        }
-        let img = await fetchTextWithCache(imageUrl)
-        img = img.replace('version="1.1"', `style="rotate: -${Math.round(signAngle)}deg" version="1.1"`)
-
-        function getSquareBounds(center) {
-            const { x, y } = toMercator(center.lat, center.lon)
-            // prettier-ignore
-            return [
-                [...Object.values(fromMercator(x - 10, y - 10))],
-                [...Object.values(fromMercator(x + 10, y + 10))]
-            ];
-        }
-
-        const imgLayer = getWindow()
-            .L.imageOverlay(
-                "data:image/svg+xml;base64," + btoa(img),
-                intoPage(getSquareBounds(via, 0.0002)),
-                intoPage({
-                    interactive: true,
-                    zIndex: 99999,
-                    className: "restriction-img",
-                }),
-            )
-            .addTo(getMap())
-        arrows.push(imgLayer)
-        arrows.forEach(l => layers[layer].push(l))
-        imgLayer.bringToFront()
-    })
-    return arrows
-}
-
-function isRestrictionObj(tags) {
-    return Object.entries(tags).some(([k]) => k === "restriction" || k === "was:restriction" || k.startsWith("restriction:"))
-}
 
 /**
  *
@@ -9505,18 +10047,6 @@ function addCommentsCount() {
     })
 }
 
-// prettier-ignore
-const compactModeSvg =
-    '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" height="17" width="17" viewBox="0 0 17 17">' +
-    '<path d="M15 12 l-5-4  5-4"></path><path d="M2 12 l 5-4 -5-4"></path>' +
-    '</svg>'
-// prettier-ignore
-const expandModeSvg =
-    '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" height="17" width="17" viewBox="0 0 17 17">' +
-    '<path d="M7 12 l-5-4  5-4"></path>' +
-    '<path d="M10 12 l 5-4 -5-4"></path>' +
-    '</svg>'
-
 /** @type {MutationObserver | null} **/
 let historyPagePaginationDeletingObserver = null
 /** @type {MutationObserver | null} **/
@@ -10369,7 +10899,7 @@ function addDiffInHistory(reason = "url_change") {
     setupRelationVersionView()
     expandWikidata()
     addCopyCoordinatesButtons()
-    addRelationHistoryViewer()
+    addRelationHistoryViewerLinks()
     monitorHistoryPaginationMoving()
     if (isRelation) {
         const maxVersion = parseInt(
@@ -10402,1053 +10932,9 @@ function setupVersionsDiff(path) {
     addDiffInHistory()
 }
 
-function addRelationVersionView() {
-    const match = location.pathname.match(/relation\/(\d+)\/history\/(\d+)\/?$/)
-    if (!match) {
-        return
-    }
-    if (document.querySelector("#load-relation-version")) return
-    const btn = document.createElement("a")
-    btn.textContent = "📥"
-    btn.id = "load-relation-version"
-    btn.title = "Load relation version via Overpass API"
-    btn.tabIndex = 0
-    btn.style.cursor = "pointer"
+//</editor-fold>
 
-    async function clickForDownloadHandler(e) {
-        if (e.type === "keypress" && (e.code === "Space" || e.code === "Enter")) {
-            e.preventDefault()
-        } else if (e.type === "keypress") {
-            return
-        }
-        e.stopPropagation()
-        e.stopImmediatePropagation()
-        btn.style.cursor = "progress"
-        const match = location.pathname.match(/relation\/(\d+)\/history\/(\d+)\/?$/)
-        const id = parseInt(match[1])
-        const timestamp = document.querySelector("time").getAttribute("datetime")
-        try {
-            const { restrictionRelationErrors } = await loadRelationVersionMembersViaOverpass(id, timestamp)
-            showRestrictionValidationStatus(restrictionRelationErrors, document.querySelector("#sidebar_content > div details summary"))
-        } catch (e) {
-            btn.style.cursor = "pointer"
-            throw e
-        }
-        btn.style.visibility = "hidden"
-    }
-
-    btn.addEventListener("click", clickForDownloadHandler)
-    btn.addEventListener("keypress", clickForDownloadHandler)
-    document.querySelector("#sidebar_content > div h4")?.appendChild(btn)
-}
-
-function setupRelationVersionViewer() {
-    const match = location.pathname.match(/relation\/(\d+)\/history\/(\d+)\/?$/)
-    if (!match) {
-        return
-    }
-    const timerId = setInterval(addRelationVersionView, 500)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop adding RelationVersionView")
-    }, 25000)
-    addRelationVersionView()
-}
-
-async function addHoverForNodesParents() {
-    if (!location.pathname.match(/^\/node\/(\d+)\/?$/)) {
-        return
-    }
-    document.querySelectorAll(`details [href^="/way/"]:not(.hover-added)`).forEach(elem => {
-        elem.classList.add("hover-added")
-        setTimeout(async () => {
-            const wayID = parseInt(elem.href.match(/way\/(\d+)/)[1])
-            const wayData = await loadWayMetadata(wayID)
-            const wayInfo = wayData.elements.find(i => i.id === wayID)
-            /*** @type {Map<string, NodeVersion>}*/
-            const nodesMap = new Map(
-                Object.entries(
-                    Object.groupBy(
-                        wayData.elements.filter(i => i.type === "node"),
-                        i => i.id,
-                    ),
-                ).map(([k, v]) => [k, v[0]]),
-            )
-            const wayLi = elem?.parentElement?.parentElement?.parentElement
-            wayLi.classList.add("node-last-version-parent")
-            wayLi.onmouseenter = () => {
-                const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
-                const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-                showActiveWay(cloneInto(currentNodesList, unsafeWindow), color)
-            }
-            wayLi.onclick = e => {
-                if (e.altKey) return
-                if (e.target.tagName === "A") return
-                const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
-                const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-                showActiveWay(cloneInto(currentNodesList, unsafeWindow), color, true)
-            }
-            wayLi.ondblclick = zoomToCurrentObject
-            if (wayInfo.tags) {
-                Object.entries(wayInfo.tags).forEach(([k, v]) => {
-                    wayLi.title += `\n${k}=${v}`
-                })
-                wayLi.title = wayLi.title.trim()
-            }
-        })
-    })
-    // prettier-ignore
-    document.querySelector(".node-last-version-parent")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
-        cleanObjectsByKey("activeObjects")
-    })
-    document.querySelector(".secondary-actions")?.addEventListener("mouseenter", () => {
-        cleanObjectsByKey("activeObjects")
-    })
-    console.log("addHoverForWayNodes finished")
-}
-
-// based on https://github.com/eatgrass/geo-area
-function ringArea(points) {
-    const RADIUS = 6378137
-    const rad = coord => (coord * Math.PI) / 180
-
-    let p1
-    let p2
-    let p3
-    let lowerIndex
-    let middleIndex
-    let upperIndex
-    let area = 0
-
-    if (points.length > 2) {
-        for (let i = 0; i < points.length; i++) {
-            if (i === points.length - 2) {
-                lowerIndex = points.length - 2
-                middleIndex = points.length - 1
-                upperIndex = 0
-            } else if (i === points.length - 1) {
-                lowerIndex = points.length - 1
-                middleIndex = 0
-                upperIndex = 1
-            } else {
-                lowerIndex = i
-                middleIndex = i + 1
-                upperIndex = i + 2
-            }
-            p1 = points[lowerIndex]
-            p2 = points[middleIndex]
-            p3 = points[upperIndex]
-            area += (rad(p3.lon) - rad(p1.lon)) * Math.sin(rad(p2.lat))
-        }
-        area = (area * RADIUS * RADIUS) / 2
-    }
-
-    return area
-}
-
-/**
- * @param {number[]} nodesIds
- * @param {Map} nodesMap
- * @return {HTMLDivElement}
- */
-function makePolygonMeasureButtons(nodesIds, nodesMap) {
-    const nodes = nodesIds.map(i => nodesMap.get(i.toString()))
-    const bbox = {
-        min_lat: Math.min(...nodes.map(i => i.lat)),
-        min_lon: Math.min(...nodes.map(i => i.lon)),
-        max_lat: Math.max(...nodes.map(i => i.lat)),
-        max_lon: Math.max(...nodes.map(i => i.lon)),
-    }
-
-    let wayLength = 0.0
-    for (let i = 1; i < nodes.length; i++) {
-        wayLength += getDistanceFromLatLonInKm(nodes[i - 1].lat, nodes[i - 1].lon, nodes[i].lat, nodes[i].lon)
-    }
-    wayLength *= 1000
-
-    let wayArea = null
-    if (nodesIds.length > 2 && nodesIds[0] === nodesIds.at(-1)) {
-        wayArea = Math.abs(ringArea(nodes))
-    }
-
-    const center = { lat: (bbox.max_lat + bbox.min_lat) / 2, lng: (bbox.max_lon + bbox.min_lon) / 2 }
-    // TODO
-    // geojson
-
-    const infos = document.createElement("div")
-    infos.style.display = "none"
-    infos.style.paddingBottom = "5px"
-
-    const lengthElem = document.createElement("span")
-    const lengthText = wayLength < 1000 ? wayLength.toFixed(2) + " m" : wayLength.toFixed(0) + " m"
-    lengthElem.textContent = "Length: " + lengthText
-    infos.appendChild(lengthElem)
-
-    if (wayArea !== null) {
-        infos.appendChild(document.createTextNode(",\xA0"))
-        const areaElem = document.createElement("span")
-        const areaText = wayLength < 1000 ? wayArea.toFixed(2) + " m²" : wayArea.toFixed(0) + " m²"
-        areaElem.textContent = "Area: " + areaText
-        infos.appendChild(areaElem)
-    }
-
-    const svg1 =
-        '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none" stroke-width="1">\n' +
-        "  <!-- Внешний квадрат -->\n" +
-        '  <rect x="4" y="4" width="16" height="16" stroke-width="1"/>\n' +
-        "  <!-- Центральные линии -->\n" +
-        '  <line x1="12" y1="4" x2="12" y2="20" stroke="currentColor" stroke-width="1"/>\n' +
-        '  <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1"/>\n' +
-        "  <!-- Толстые верхняя и левая стороны -->\n" +
-        '  <line x1="3" y1="4" x2="20.5" y2="4" stroke="red" stroke-width="2"/>\n' +
-        '  <line x1="4" y1="3" x2="4" y2="20.5" stroke="red" stroke-width="2"/>\n' +
-        "</svg>\n"
-    const icon1 = document.createElement("span")
-    icon1.innerHTML = svg1
-    icon1.style.cursor = "pointer"
-    const text1 = `${bbox.max_lat.toString()} ${bbox.min_lon.toString()}`
-    icon1.title = "Click to copy TopLeft: " + text1
-    icon1.onmouseenter = () => {
-        showActiveNodeMarker(bbox.max_lat.toString(), bbox.min_lon.toString(), "red", true)
-        showActiveNodeIconMarker(bbox.max_lat.toString(), bbox.min_lon.toString(), null, false)
-    }
-    icon1.onclick = e => {
-        navigator.clipboard.writeText(text1).then(() => copyAnimation(e, text1))
-    }
-
-    const svg2 =
-        '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none" stroke-width="1">\n' +
-        "  <!-- Внешний квадрат -->\n" +
-        '  <rect x="4" y="4" width="16" height="16" stroke-width="1"/>\n' +
-        "  <!-- Центральные линии -->\n" +
-        '  <line x1="12" y1="4" x2="12" y2="20" stroke="currentColor" stroke-width="1"/>\n' +
-        '  <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1"/>\n' +
-        "  <!-- Жирная точка в центре -->\n" +
-        '  <circle cx="12" cy="12" r="2" fill="red" stroke="red"/>\n' +
-        "</svg>\n"
-    const icon2 = document.createElement("span")
-    icon2.innerHTML = svg2
-    icon2.style.cursor = "pointer"
-    const text2 = `${center.lat.toFixed(6)} ${center.lng.toFixed(6)}`
-    icon2.title = "Click to copy center: " + text2
-    icon2.onmouseenter = () => {
-        showActiveNodeMarker(center.lat.toString(), center.lng.toString(), "red")
-        showActiveNodeIconMarker(center.lat.toString(), center.lng.toString(), null, false)
-    }
-    icon2.onclick = e => {
-        navigator.clipboard.writeText(text2).then(() => copyAnimation(e, text2))
-    }
-
-    const svg3 =
-        '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none" stroke-width="1">\n' +
-        "  <!-- Внешний квадрат -->\n" +
-        '  <rect x="4" y="4" width="16" height="16" stroke-width="1"/>\n' +
-        "  <!-- Центральные линии -->\n" +
-        '  <line x1="12" y1="4" x2="12" y2="20" stroke="currentColor" stroke-width="1"/>\n' +
-        '  <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1"/>\n' +
-        "  <!-- Толстые правая и нижняя стороны -->\n" +
-        '  <line x1="3.5" y1="20" x2="21" y2="20" stroke="red" stroke-width="2"/>\n' +
-        '  <line x1="20" y1="3.5" x2="20" y2="20.5" stroke="red" stroke-width="2"/>\n' +
-        "</svg>\n"
-    const icon3 = document.createElement("span")
-    icon3.innerHTML = svg3
-    icon3.style.cursor = "pointer"
-    const text3 = `${bbox.min_lat.toString()} ${bbox.max_lon.toString()}`
-    icon3.title = "Click to copy RightBottom: " + text3
-    icon3.onmouseenter = () => {
-        showActiveNodeMarker(bbox.min_lat.toString(), bbox.max_lon.toString(), "red")
-        showActiveNodeIconMarker(bbox.min_lat.toString(), bbox.max_lon.toString(), null, false)
-    }
-    icon3.onclick = e => {
-        navigator.clipboard.writeText(text3).then(() => copyAnimation(e, text3))
-    }
-    // prettier-ignore
-    const svg4 = '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none">\n' +
-        '  <!-- Внешний прямоугольник жирный -->\n' +
-        '  <!-- Центральные линии -->\n' +
-        '  <line x1="12" y1="4" x2="12" y2="20" stroke="currentColor" stroke-width="1"/>\n' +
-        '  <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1"/>\n' +
-        '  <rect x="4" y="4" width="16" height="16" stroke="red" stroke-width="2"/>\n' +
-        '</svg>\n';
-    const icon4 = document.createElement("span")
-    icon4.innerHTML = svg4
-    icon4.style.cursor = "pointer"
-    const text4 = `${bbox.min_lat.toString()} ${bbox.min_lon.toString()} ${bbox.max_lat.toString()} ${bbox.max_lon.toString()}`
-    icon4.title = "Click to copy bbox: " + text4
-    icon4.onmouseenter = () => {
-        cleanObjectsByKey("activeObjects")
-        const rect = getWindow()
-            .L.rectangle(
-                intoPage([
-                    [bbox.max_lat, bbox.max_lon],
-                    [bbox.min_lat, bbox.min_lon],
-                ]),
-                intoPage({ color: "red", weight: 3, fillOpacity: 0 }),
-            )
-            .addTo(getMap())
-        layers["activeObjects"].push(rect)
-    }
-    icon4.onclick = e => {
-        navigator.clipboard.writeText(text4).then(() => copyAnimation(e, text4))
-    }
-
-    const icons = document.createElement("div")
-    icons.style.paddingTop = "5px"
-    infos.appendChild(icons)
-
-    icons.appendChild(icon1)
-    icons.appendChild(icon2)
-    icons.appendChild(icon3)
-    icons.appendChild(icon4)
-
-    document.querySelector("#sidebar_content h4:last-of-type").after(infos)
-
-    infos.onmouseleave = () => {
-        cleanAllObjects()
-    }
-
-    return infos
-}
-
-function isDarkTiles() {
-    const layers = new URLSearchParams(location.hash).get("layers")
-    return layers && (layers.includes("S") || layers.includes("T")) && isDarkMode()
-}
-
-async function addHoverForWayNodes() {
-    if (!location.pathname.match(/^\/way\/(\d+)\/?$/)) {
-        return
-    }
-    // todo relations
-    let infoBtn
-    if (!document.querySelector(".way-info-btn") && document.querySelector("#sidebar_content h4:last-of-type")) {
-        infoBtn = document.createElement("span")
-        infoBtn.textContent = "📐"
-        infoBtn.classList.add("way-info-btn")
-        infoBtn.classList.add("completed")
-        infoBtn.style.fontSize = "large"
-        infoBtn.style.cursor = "pointer"
-
-        document.querySelector("#sidebar_content h4:last-of-type").appendChild(document.createTextNode("\xA0"))
-        document.querySelector("#sidebar_content h4:last-of-type").appendChild(infoBtn)
-    }
-
-    const wayData = await loadWayMetadata().catch(() => {
-        if (infoBtn) {
-            infoBtn.style.display = "none"
-        }
-    })
-    if (!wayData) {
-        if (infoBtn) {
-            infoBtn.style.display = "none"
-        }
-        return
-    }
-    /*** @type {Map<string, NodeVersion>}*/
-    const nodesMap = new Map(
-        Object.entries(
-            Object.groupBy(
-                wayData.elements.filter(i => i.type === "node"),
-                i => i.id,
-            ),
-        ).map(([k, v]) => [k, v[0]]),
-    )
-    document.querySelectorAll(`details [href^="/node/"]:not(.hover-added)`).forEach(elem => {
-        elem.classList.add("hover-added")
-        const nodeInfo = nodesMap.get(elem.href.match(/node\/(\d+)/)[1])
-        const nodeLi = elem?.parentElement?.parentElement?.parentElement
-        nodeLi.classList.add("way-last-version-node")
-        nodeLi.onmouseenter = () => {
-            const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
-        }
-        nodeLi.onclick = e => {
-            if (e.altKey) return
-            panTo(nodeInfo.lat.toString(), nodeInfo.lon.toString())
-            const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
-        }
-        nodeLi.ondblclick = zoomToCurrentObject
-        if (nodeInfo.tags) {
-            Object.entries(nodeInfo.tags).forEach(([k, v]) => {
-                nodeLi.title += `\n${k}=${v}`
-            })
-            nodeLi.title = nodeLi.title.trim()
-        }
-    })
-    // prettier-ignore
-    document.querySelector(".way-last-version-node")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
-        cleanObjectsByKey("activeObjects")
-    })
-    document.querySelector(".secondary-actions")?.addEventListener("mouseenter", () => {
-        cleanObjectsByKey("activeObjects")
-    })
-
-    if (infoBtn) {
-        const nodesIds = wayData.elements.find(i => i.type === "way").nodes
-        const infos = makePolygonMeasureButtons(nodesIds, nodesMap)
-        document.querySelector("#sidebar_content h4:last-of-type").after(infos)
-
-        infoBtn.onclick = () => {
-            infos.style.display = infos.style.display === "none" ? "" : "none"
-        }
-    }
-    console.log("addHoverForWayNodes finished")
-}
-
-/**
- * @param {string[]} restrictionRelationErrors
- * @param {HTMLElement} targetElem
- */
-function showRestrictionValidationStatus(restrictionRelationErrors, targetElem) {
-    if (restrictionRelationErrors.length === 0) {
-        return
-    }
-    if (!targetElem.querySelector(".validation-status")) {
-        const validationStatus = document.createElement("span")
-        validationStatus.classList.add("validation-status")
-        validationStatus.textContent = " ⚠️"
-        validationStatus.title = restrictionRelationErrors.join("\n")
-        targetElem.appendChild(validationStatus)
-    }
-}
-
-async function addHoverForRelationMembers() {
-    // todo make async safe
-    const match = location.pathname.match(/^\/relation\/(\d+)\/?$/)
-    if (!match) {
-        return
-    }
-    const relation_id = parseInt(match[1])
-    let infoBtn
-    // eslint-disable-next-line no-constant-condition no-constant-binary-expression
-    if (false && !document.querySelector(".relation-info-btn")) {
-        infoBtn = document.createElement("span")
-        infoBtn.textContent = "📐"
-        infoBtn.classList.add("relation-info-btn")
-        infoBtn.classList.add("completed")
-        infoBtn.style.fontSize = "large"
-        infoBtn.style.cursor = "pointer"
-
-        document.querySelector("#sidebar_content h4:last-of-type").appendChild(document.createTextNode("\xA0"))
-        document.querySelector("#sidebar_content h4:last-of-type").appendChild(infoBtn)
-    }
-    const relationData = await loadRelationMetadata(relation_id)
-    if (!relationData) return
-    while (document.querySelector("details turbo-frame .spinner-border")) {
-        console.log("wait members list loading")
-        await sleep(1000)
-    }
-    /*** @type {Map<string, NodeVersion>}*/
-    const nodesMap = new Map(
-        Object.entries(
-            Object.groupBy(
-                relationData.elements.filter(i => i.type === "node"),
-                i => i.id,
-            ),
-        ).map(([k, v]) => [k, v[0]]),
-    )
-    /*** @type {Map<string, WayVersion>}*/
-    const waysMap = new Map(
-        Object.entries(
-            Object.groupBy(
-                relationData.elements.filter(i => i.type === "way"),
-                i => i.id,
-            ),
-        ).map(([k, v]) => [k, v[0]]),
-    )
-    /*** @type {Map<string, RelationVersion>}*/
-    const relationsMap = new Map(
-        Object.entries(
-            Object.groupBy(
-                relationData.elements.filter(i => i.type === "relation"),
-                i => i.id,
-            ),
-        ).map(([k, v]) => [k, v[0]]),
-    )
-    let restrictionArrows = []
-    const pinSign = document.createElement("span")
-
-    function bringRestrictionArrowsToFront() {
-        restrictionArrows.forEach(i => i.bringToFront())
-    }
-
-    let isRestriction = false
-    document.querySelectorAll(`details [href^="/node/"]:not(.hover-added)`).forEach(elem => {
-        elem.classList.add("hover-added")
-        const nodeInfo = nodesMap.get(elem.href.match(/node\/(\d+)/)[1])
-        const nodeLi = elem?.parentElement?.parentElement?.parentElement
-        nodeLi.classList.add("relation-last-version-member")
-        nodeLi.onmouseenter = () => {
-            const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
-            bringRestrictionArrowsToFront()
-            if (isRestriction && pinSign.classList.contains("pinned")) {
-                // https://github.com/deevroman/better-osm-org/pull/324#issuecomment-2993733516
-                injectJSIntoPage(`
-                (() => {
-                    let tmp = document.createElement("span")
-                    tmp.innerHTML = '<svg id="kek" width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="6" stroke="black" stroke-width="3" fill="none" /></svg>'
-                    window.prevdo = {
-                        maxWidth: 10,
-                        maxHeight: 10,
-                        className: "restriction-via-node-workaround",
-                        icon: L.icon({
-                            iconUrl: "data:image/svg+xml;base64," + btoa(tmp.innerHTML),
-                            iconSize: [100, 100],
-                            iconAnchor: [50, 50]
-                        })
-                    };
-                })()
-                `)
-                const m = getWindow().L.marker(getWindow().L.latLng(nodeInfo.lat, nodeInfo.lon), getWindow().prevdo)
-                layers["activeObjects"].push(m)
-                m.addTo(getMap())
-            }
-        }
-        nodeLi.onclick = e => {
-            if (e.altKey) return
-            panTo(nodeInfo.lat.toString(), nodeInfo.lon.toString())
-            const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
-            bringRestrictionArrowsToFront()
-        }
-        nodeLi.ondblclick = zoomToCurrentObject
-        if (nodeInfo.tags) {
-            Object.entries(nodeInfo.tags).forEach(([k, v]) => {
-                nodeLi.title += `\n${k}=${v}`
-            })
-            nodeLi.title = nodeLi.title.trim()
-        }
-    })
-    document.querySelectorAll(`details [href^="/way/"]:not(.hover-added)`).forEach(elem => {
-        elem.classList.add("hover-added")
-        const wayInfo = waysMap.get(elem.href.match(/way\/(\d+)/)[1])
-        const wayLi = elem?.parentElement?.parentElement?.parentElement
-        wayLi.classList.add("relation-last-version-member")
-        wayLi.onmouseenter = () => {
-            const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
-            const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-            showActiveWay(cloneInto(currentNodesList, unsafeWindow), color)
-            bringRestrictionArrowsToFront()
-        }
-        wayLi.onclick = e => {
-            if (e.altKey) return
-            if (e.target.tagName === "A") return
-            const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
-            const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-            showActiveWay(cloneInto(currentNodesList, unsafeWindow), color, true)
-            bringRestrictionArrowsToFront()
-        }
-        wayLi.ondblclick = zoomToCurrentObject
-        if (wayInfo.tags) {
-            Object.entries(wayInfo.tags).forEach(([k, v]) => {
-                wayLi.title += `\n${k}=${v}`
-            })
-            wayLi.title = wayLi.title.trim()
-        }
-    })
-    document.querySelectorAll(`details:last-of-type [href^="/relation/"]:not(.hover-added)`).forEach(elem => {
-        elem.classList.add("hover-added")
-        const relationInfo = relationsMap.get(elem.href.match(/relation\/(\d+)/)[1])
-        const relationLi = elem?.parentElement?.parentElement?.parentElement
-        relationLi.classList.add("relation-last-version-member")
-        relationLi.onmouseenter = () => {
-            relationInfo.members.forEach(i => {
-                const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-                if (i.type === "node") {
-                    showActiveNodeMarker(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString(), color, true, 6, 3)
-                } else if (i.type === "way") {
-                    const currentNodesList = waysMap[i.id].nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
-                    showActiveWay(cloneInto(currentNodesList, unsafeWindow), color)
-                } else {
-                    // todo
-                }
-            })
-            bringRestrictionArrowsToFront()
-        }
-        relationLi.onclick = e => {
-            if (e.altKey) return
-            if (e.target.tagName === "A") return
-            relationInfo.members.forEach(i => {
-                const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-                if (i.type === "node") {
-                    if (e.altKey) return
-                    panTo(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString())
-                    showActiveNodeMarker(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString(), color, true, 6, 3)
-                } else if (i.type === "way") {
-                    const currentNodesList = waysMap[i.id].nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
-                    showActiveWay(cloneInto(currentNodesList, unsafeWindow), color, true)
-                } else {
-                    // todo
-                }
-            })
-            bringRestrictionArrowsToFront()
-        }
-        relationLi.ondblclick = zoomToCurrentObject
-        if (relationInfo.tags) {
-            Object.entries(relationInfo.tags).forEach(([k, v]) => {
-                relationLi.title += `\n${k}=${v}`
-            })
-            relationLi.title = relationLi.title.trim()
-        }
-    })
-    // prettier-ignore
-    document.querySelector(".relation-last-version-member")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
-        cleanObjectsByKey("activeObjects")
-    })
-    document.querySelector(".secondary-actions")?.addEventListener("mouseenter", () => {
-        cleanObjectsByKey("activeObjects")
-    })
-    if (document.querySelector("#sidebar_content h2:not(.restriction-rendered)") && isRestrictionObj(relationsMap.get(relation_id.toString()).tags ?? {})) {
-        isRestriction = true
-        document.querySelector("#sidebar_content h2").classList.add("restriction-rendered")
-        const extendedRelationVersion = relationsMap.get(relation_id.toString())
-        extendedRelationVersion.members = extendedRelationVersion.members.map(mem => {
-            if (mem.type === "node") {
-                mem["lat"] = nodesMap.get(mem.ref.toString()).lat
-                mem["lon"] = nodesMap.get(mem.ref.toString()).lon
-                return /** @type {ExtendedRelationNodeMember} */ mem
-            } else if (mem.type === "way") {
-                mem["geometry"] = waysMap.get(mem.ref.toString()).nodes.map(n => ({
-                    lat: nodesMap.get(n.toString()).lat,
-                    lon: nodesMap.get(n.toString()).lon,
-                }))
-                return /** @type {ExtendedRelationWayMember} */ mem
-            } else if (mem.type === "relation") {
-                // todo
-                return /** @type {ExtendedRelationMember} */ mem
-            }
-        })
-        const errors = validateRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion)
-        if (errors.length) {
-            showRestrictionValidationStatus(errors, document.querySelector("#sidebar_content > div:first-of-type details:last-of-type summary"))
-        } else {
-            restrictionArrows = renderRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion, restrictionColors[extendedRelationVersion.tags["restriction"]] ?? "#000", "customObjects")
-            pinSign.classList.add("pinned")
-            pinSign.textContent = "📌"
-            pinSign.tabIndex = 0
-            pinSign.title = "Pin restriction sign on map.\nYou can hide all the objects that better-osm-org adds by pressing ` or ~"
-            pinSign.style.cursor = "pointer"
-            pinSign.onkeypress = pinSign.onclick = async e => {
-                e.preventDefault()
-                e.stopImmediatePropagation()
-                if (pinSign.classList.contains("pinned")) {
-                    pinSign.style.cursor = "pointer"
-                    pinSign.classList.remove("pinned")
-                    pinSign.style.filter = "grayscale(1)"
-                    pinSign.title = "Hide restriction sign"
-                    restrictionArrows.forEach(i => (i.getElement().style.display = "none"))
-                } else {
-                    pinSign.title = "Hide restriction sign"
-                    pinSign.classList.add("pinned")
-                    pinSign.style.filter = ""
-                    restrictionArrows.forEach(i => (i.getElement().style.display = ""))
-                }
-            }
-            document.querySelector("#sidebar_content > div:first-of-type details:last-of-type summary").appendChild(document.createTextNode(" "))
-            document.querySelector("#sidebar_content > div:first-of-type details:last-of-type summary").appendChild(pinSign)
-        }
-    }
-
-    if (infoBtn) {
-        const nodesIds = relationData.elements.find(i => i.type === "way").nodes
-        const infos = makePolygonMeasureButtons(nodesIds, nodesMap)
-        document.querySelector("#sidebar_content h4:last-of-type").after(infos)
-
-        infoBtn.onclick = () => {
-            infos.style.display = infos.style.display === "none" ? "" : "none"
-        }
-    }
-    console.log("addHoverForRelationMembers finished")
-}
-
-const isMac = navigator.platform?.toUpperCase()?.indexOf("MAC") >= 0
-const CtrlKeyName = isMac ? "Cmd" : "Ctrl"
-
-function makeHeaderPartsClickable() {
-    function makeElemCopyable(elem, url = "") {
-        if (/^\d+$/.test(elem.textContent)) {
-            elem.title = `Click to copy ID\n${CtrlKeyName} + click to copy URL`
-        } else {
-            elem.title = "Click to copy"
-        }
-        elem.style.cursor = "pointer"
-        elem.classList.add("copyable")
-        elem.addEventListener("click", e => {
-            if (e.altKey) return
-            if (window.getSelection().type === "Range") return
-            if ((e.ctrlKey || e.metaKey) && url !== "") {
-                navigator.clipboard.writeText(url).then(() => copyAnimation(e, url))
-            } else {
-                navigator.clipboard.writeText(elem.textContent).then(() => copyAnimation(e, elem.textContent))
-            }
-        })
-    }
-
-    document.querySelectorAll("#sidebar_content h2 bdi:not(.copyable)").forEach(i => {
-        if (i.textContent.match(/^\d+$/)) {
-            const url = shortOsmOrgLinksInText(location.origin + location.pathname)
-            if (url.startsWith("http")) {
-                makeElemCopyable(i, url)
-            } else {
-                makeElemCopyable(i, "https://" + url)
-            }
-        } else {
-            makeElemCopyable(i)
-        }
-    })
-    document.querySelectorAll("#sidebar_content h2:not(:has(.copyable))").forEach(i => {
-        if (i.childNodes.length >= 1 && i.childNodes[0].nodeName === "#text") {
-            const match = /\d+/g.exec(i.childNodes[0].textContent)
-            if (!match) return
-            i.childNodes[0].splitText(match.index + match[0].length)
-            i.childNodes[0].splitText(match.index)
-            const span = document.createElement("bdi")
-            span.textContent = i.childNodes[1].textContent
-            i.childNodes[1].replaceWith(span)
-            const url = shortOsmOrgLinksInText(location.origin + location.pathname)
-            if (url.startsWith("http")) {
-                makeElemCopyable(span, url)
-            } else {
-                makeElemCopyable(span, "https://" + url)
-            }
-        }
-    })
-}
-
-function expandWikidata() {
-    const links = Array.from(document.querySelectorAll(".wdt-preview:not([disabled])"))
-    // fuck Bootstrap. When page contains many HTML elements, him querySelector iterates over all elements
-    // This is especially noticeable on the relationship pages.
-    if (links.length > 50) {
-        return
-    }
-    console.debug("Wikilinks count:", links.length)
-    ;(links.find(i => i.parentElement.classList.contains("history-diff-new-tag") || i.parentElement.classList.contains("history-diff-modified-tag")) ?? links?.[0])?.click()
-    setTimeout(() => {
-        links.slice(0, 3).forEach(i => i.click())
-    }, 100)
-    setTimeout(() => {
-        links.slice(3).forEach(i => i.click())
-    }, 1000)
-}
-
-function makeContextMenuElem(e) {
-    const x = e.pageX ? e.pageX : e.target.getBoundingClientRect().right
-    const y = e.pageY ? e.pageY : e.target.getBoundingClientRect().bottom
-    const menu = document.createElement("div")
-    menu.classList.add("betterOsmContextMenu")
-    menu.style.left = `${max(5, x - 30)}px`
-    menu.style.top = `${y}px`
-    return menu
-}
-
-// prettier-ignore
-const copyBtnSvg =
-    '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" ' +
-    'stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" ' +
-    'class="lucide lucide-file-icon lucide-file">' +
-    '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>' +
-    '<path d="M14 2v4a2 2 0 0 0 2 2h4"/>' +
-    '</svg>'
-
-function addCopyCoordinatesButtons() {
-    const m = location.pathname.match(/^\/(node|way)\/(\d+)/)
-    if (!m) {
-        return
-    }
-    const type = m[1]
-    if (type === "way") {
-        return
-    }
-
-    function addCopyButton(coordsElem, lat, lon) {
-        const coordinatesFormatters = {
-            "Lat Lon": { getter: () => `${lat} ${lon}` },
-            "Lon Lat": { getter: () => `${lon} ${lat}` },
-            "geo:": { getter: () => `geo:${lat},${lon}` },
-            "osm.org": { getter: () => `osm.org#map=${getZoom()}/${lat}/${lon}` },
-        }
-
-        coordsElem.onclick = async e => {
-            e.preventDefault()
-            e.stopPropagation()
-            e.stopImmediatePropagation()
-
-            const coordinatesFormat = (await GM.getValue("CoordinatesFormat")) ?? "Lat Lon"
-            const text = coordinatesFormatters[coordinatesFormat]["getter"]()
-            navigator.clipboard.writeText(text).then(() => copyAnimation({ target: coordsElem }, text))
-        }
-        setTimeout(async () => {
-            const coordinatesFormat = (await GM.getValue("CoordinatesFormat")) ?? "Lat Lon"
-            coordsElem.title = "Click to copy " + coordinatesFormatters[coordinatesFormat]["getter"]()
-        })
-        coordsElem.classList.add("copyable")
-        const copyButton = document.createElement("span")
-        copyButton.classList.add("copy-coords-btn")
-        copyButton.textContent = "📄"
-        copyButton.title = "Select coordinates format for copy.\nTo copy just click by coordinates"
-        copyButton.innerHTML = copyBtnSvg
-        copyButton.style.height = "0.9rem"
-        copyButton.style.position = "relative"
-        if (location.pathname.endsWith("/history")) {
-            copyButton.style.top = "-2px"
-        } else {
-            copyButton.style.top = "-1px"
-        }
-        copyButton.style.left = "-1px"
-        copyButton.style.color = "gray"
-        copyButton.style.cursor = "pointer"
-
-        async function contextMenuHandler(e) {
-            const coordinatesFormat = (await GM.getValue("CoordinatesFormat")) ?? "Lat Lon"
-            e.preventDefault()
-            e.stopPropagation()
-            e.stopImmediatePropagation()
-
-            injectContextMenuCSS()
-            document.querySelectorAll(".betterOsmContextMenu").forEach(i => i.remove())
-            const menu = makeContextMenuElem(e)
-            Object.entries(coordinatesFormatters).forEach(([format, formatter], ind) => {
-                const listItem = document.createElement("div")
-                const text = formatter.getter()
-                const a = document.createElement("a")
-                a.textContent = text
-                a.title = "Click to copy " + text
-                a.onclick = () => {
-                    navigator.clipboard.writeText(text)
-                }
-
-                const pin = document.createElement("input")
-                pin.id = "CoordFormat_" + ind
-                pin.type = "radio"
-                pin.classList.add("pin")
-                pin.setAttribute("name", "viewer-selector")
-                const pinLabel = document.createElement("label")
-                pinLabel.setAttribute("for", "CoordFormat_" + ind)
-                pinLabel.classList.add("pin-label")
-                pinLabel.textContent = "📌"
-                pinLabel.title = "Set as default for copy, when you click by coordinates"
-                if (format === coordinatesFormat) {
-                    pin.checked = true
-                    pinLabel.title = "It's default format, when your click by coordinates"
-                }
-                pin.onchange = async () => {
-                    if (pin.checked) {
-                        await GM.setValue("CoordinatesFormat", format)
-                        coordsElem.title = "Click to copy " + coordinatesFormatters[format]["getter"]()
-                    }
-                }
-                listItem.appendChild(pin)
-                listItem.appendChild(pinLabel)
-                listItem.appendChild(a)
-                document.addEventListener(
-                    "click",
-                    function fn(e) {
-                        if (!e.isTrusted) {
-                            document.addEventListener("click", fn, { once: true })
-                            return
-                        }
-                        if (e.target.classList.contains("pin-label") || e.target.classList.contains("pin")) {
-                            document.addEventListener("click", fn, { once: true })
-                            return
-                        }
-                        menu.remove()
-                    },
-                    { once: true },
-                )
-                menu.appendChild(listItem)
-            })
-            document.body.appendChild(menu)
-        }
-
-        copyButton.addEventListener("click", contextMenuHandler)
-        coordsElem.after(copyButton)
-        coordsElem.after(document.createTextNode("\xA0"))
-    }
-
-    document.querySelectorAll("#sidebar_content a:has(.longitude):not(.copyable)").forEach(coordsElem => {
-        const lat = coordsElem.querySelector(".latitude").textContent.replace(",", ".")
-        const lon = coordsElem.querySelector(".longitude").textContent.replace(",", ".")
-        addCopyButton(coordsElem, lat, lon)
-    })
-    if (type === "way") {
-    }
-    // try {
-    //     const wrapper = document.createElement("span")
-    //     document.querySelector(".share-geo-uri h4:not(.copyable)")?.appendChild(wrapper)
-    //     document.querySelector(".share-geo-uri h4").classList.add("copyable")
-    //
-    //     const lat = getMap().getCenter().lat.toFixed(6)
-    //     const lon = getMap().getCenter().lat.toFixed(6)
-    //     addCopyButton(wrapper, lat, lon)
-    // } catch (e) {
-    //     console.error(e)
-    // }
-}
-
-function addRelationHistoryViewer() {
-    if (!location.pathname.match(/\/relation\/[0-9]+\/history\/?$/)) {
-        return
-    }
-    if (document.querySelector(".relation-viewer-link")) {
-        return
-    }
-    const id = parseInt(location.pathname.match(/\/relation\/(\d+)/)[1])
-    const type = "relation"
-    injectCSSIntoOSMPage(contextMenuCSS)
-    const viewInExternal = document.createElement("a")
-    viewInExternal.classList.add("relation-viewer-link")
-    viewInExternal.innerHTML = externalLinkSvg
-    viewInExternal.style.cursor = "pointer"
-    viewInExternal.style.position = "relative"
-    viewInExternal.style.top = "-2px"
-    viewInExternal.style.paddingLeft = "5px"
-    viewInExternal.title = "Click for open external relation viewer.\nOr use key O"
-    viewInExternal.querySelector("svg").tabIndex = 0
-
-    async function contextMenuHandler(e) {
-        e.preventDefault()
-        e.stopPropagation()
-        e.stopImmediatePropagation()
-        const relationViewer = (await GM.getValue("relationHistoryViewer")) ?? mapkiLink.name
-
-        const menu = makeContextMenuElem(e)
-        instancesOfRelationViewers.forEach(i => {
-            const listItem = document.createElement("div")
-            const a = document.createElement("a")
-            const [x, y, z] = getCurrentXYZ()
-            a.href = i.makeURL({ x, y, z, type, id })
-            a.textContent = i.name
-            a.target = "_blank"
-            a.classList.add("relation-viewer-a")
-
-            const pin = document.createElement("input")
-            pin.id = i.name
-            pin.type = "radio"
-            pin.classList.add("pin")
-            pin.setAttribute("name", "viewer-selector")
-            const pinLabel = document.createElement("label")
-            pinLabel.setAttribute("for", i.name)
-            pinLabel.classList.add("pin-label")
-            pinLabel.textContent = "📌"
-            pinLabel.title = "Set as default for click"
-            if (i.name === relationViewer) {
-                pin.checked = true
-                pinLabel.title = "It's default viewer"
-            }
-            pin.onchange = async () => {
-                if (pin.checked) {
-                    await GM.setValue("relationHistoryViewer", i.name)
-                }
-            }
-            listItem.appendChild(pin)
-            listItem.appendChild(pinLabel)
-            listItem.appendChild(a)
-            document.addEventListener(
-                "click",
-                function fn(e) {
-                    if (!e.isTrusted) {
-                        document.addEventListener("click", fn, { once: true })
-                        return
-                    }
-                    if (e.target.classList.contains("pin-label") || e.target.classList.contains("pin")) {
-                        document.addEventListener("click", fn, { once: true })
-                        return
-                    }
-                    menu.remove()
-                },
-                { once: true },
-            )
-            menu.appendChild(listItem)
-        })
-        document.body.appendChild(menu)
-        if (e.type === "keypress" || (e.type === "click" && !e.isTrusted)) {
-            menu.querySelector("input:checked ~ a").focus()
-        }
-    }
-
-    viewInExternal.addEventListener("click", contextMenuHandler)
-    viewInExternal.addEventListener("keypress", contextMenuHandler)
-    viewInExternal.addEventListener("contextmenu", contextMenuHandler)
-    document.querySelector("#sidebar_content h2").appendChild(viewInExternal)
-}
-
-function makeVersionPageBetter() {
-    const match = location.pathname.match(/(node|way|relation)\/(\d+)(\/history\/(\d+)\/?$|\/?$)/)
-    if (!match) {
-        return
-    }
-    addCompactSidebarStyle()
-    externalizeLinks(document.querySelectorAll("#sidebar_content p a"))
-    externalizeLinks(document.querySelectorAll("#sidebar_content table a"))
-    const browseSectionSelector = document.querySelector("#element_versions_list")
-        ? '#element_versions_list > div:not(:has(a[href*="/redactions/"]:not([rel]):not(.unredacted)))'
-        : "#sidebar_content > div:first-of-type"
-    if (!document.querySelector(".find-user-btn")) {
-        try {
-            const ver = document.querySelector(browseSectionSelector)
-            const tagsCount = ver.querySelectorAll("#sidebar_content tr:has(th):has(td)").length
-            if (tagsCount > 5) {
-                ver.title = makeTitleForTagsCount(tagsCount)
-            }
-
-            const metainfoHTML = ver?.querySelector(":scope > div > div")
-            if (metainfoHTML && !metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')) {
-                const time = metainfoHTML.querySelector("time")
-                const changesetID = ver.querySelector(':scope div a[href^="/changeset/"]:not([rel])').textContent
-
-                metainfoHTML.lastChild.remove()
-                const findBtn = document.createElement("span")
-                findBtn.classList.add("find-user-btn")
-                findBtn.title = "Try find deleted user"
-                findBtn.textContent = " 🔍 "
-                findBtn.value = changesetID
-                findBtn.datetime = time.dateTime
-                findBtn.style.cursor = "pointer"
-                findBtn.onclick = findChangesetInDiff
-                metainfoHTML.appendChild(findBtn)
-            }
-        } catch {
-            /* empty */
-        }
-    }
-    makeHeaderPartsClickable()
-    addHistoryLink()
-    makeLinksInVersionTagsClickable()
-    makeHashtagsClickable()
-    makeTimesSwitchable()
-    document.querySelectorAll(`${browseSectionSelector} p`).forEach(shortOsmOrgLinks)
-    addCommentsCount()
-    expandWikidata()
-    addCopyCoordinatesButtons()
-    void addHoverForNodesParents()
-    void addHoverForWayNodes()
-    void addHoverForRelationMembers()
-    // костыль для KeyK/L и OSM tags editor
-    document.querySelector("#sidebar_content > div:first-of-type")?.classList?.add("browse-section")
-    document.querySelectorAll("#element_versions_list > div").forEach(i => i.classList.add("browse-section"))
-}
-
-function setupMakeVersionPageBetter() {
-    const match = location.pathname.match(/(node|way|relation)\/(\d+)(\/history\/(\d+)\/?$|\/?$)/)
-    if (!match) {
-        return
-    }
-    const timerId = setInterval(makeVersionPageBetter, 500)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop adding MakeVersionPageBetter")
-    }, 3000)
-    makeVersionPageBetter()
-}
-
-// Модули должны стать классами
-// - поддерживается всеми браузерами, в которых есть TM.
-// - изоляция функций и глобальных переменных
-// - для модулей, которые внедряются через setInterval можно сохранить таймер, чтобы предотвратить дублирование вызовов
-// - возможность сохранить результат внедрения
+//<editor-fold desc="changeset-quicklook" defaultstate="collapsed">
 
 let quickLookInjectingStarted = false
 let allTagsOfObjectsVisible = true
@@ -12093,40 +11579,6 @@ async function getWayNodesByTimestamp(targetTimestamp, wayID) {
 }
 
 let pinnedRelations = new Set()
-// TODO without encode
-const nodeIcon =
-    "data:image/svg+xml;base64," +
-    btoa(
-        '<svg xmlns="http://www.w3.org/2000/svg" height="256" width="256">' +
-            '<rect width="242" height="242" fill="#fff" ry="32" x="7" y="7"/>' +
-            '<circle cx="128" cy="128" r="24" fill="#bee6be" stroke="#000" stroke-width="10"/>' +
-            '<rect width="242" height="242" stroke="#000" fill="none" stroke-width="12" ry="32" x="7" y="7"/></svg>',
-    )
-
-const wayIcon =
-    "data:image/svg+xml;base64," +
-    btoa(
-        '<svg xmlns="http://www.w3.org/2000/svg" height="256" width="256">' +
-            '<rect width="242" height="242" fill="#fff" ry="32" x="7" y="7"/>' +
-            '<path stroke="#ccc" fill="none" stroke-width="16" d="M169 58 57 145l138 54"/>' +
-            '<circle cx="169" cy="58" r="24"/>' +
-            '<circle cx="57" cy="145" r="24"/>' +
-            '<circle cx="195" cy="199" r="24"/>' +
-            '<rect width="242" height="242" stroke="#000" fill="none" stroke-width="12" ry="32" x="7" y="7"/></svg>',
-    )
-
-const relationIcon =
-    "data:image/svg+xml;base64," +
-    btoa(
-        '<svg xmlns="http://www.w3.org/2000/svg" height="256" width="256" viewBox="0 0 256 256">' +
-            '<rect width="242" height="242" stroke="#000" fill="#f0f0f0" stroke-width="12" ry="32" x="7" y="7"/>' +
-            '<path d="m68 68 128-6M68 68l128 74M68 68l-6 128" stroke-width="16" stroke="#ccc"/>' +
-            '<circle cx="196" cy="62" r="24"/><circle cx="196" cy="142" r="24"/>' +
-            '<circle cx="62" cy="196" r="24"/>' +
-            '<path d="m68 68 74 128" stroke-width="16" stroke="#ccc"/>' +
-            '<circle cx="142" cy="196" r="24"/>' +
-            '<circle cx="72" cy="72" r="32" fill="#bee6be" stroke="#000" stroke-width="8"/></svg>',
-    )
 
 /**
  * @param {Element} i
@@ -14859,1394 +14311,944 @@ function setupChangesetQuickLook(path) {
     void addChangesetQuickLook()
 }
 
-let coordinatesObserver = null
+//</editor-fold>
 
-function setupNewEditorsLinks() {
-    const firstRun = document.getElementsByClassName("custom_editors").length === 0
-    const editorsList = document.querySelector("#edit_tab ul")
-    if (!editorsList) {
+async function addHoverForNodesParents() {
+    if (!location.pathname.match(/^\/node\/(\d+)\/?$/)) {
         return
     }
-    const curURL = editorsList.querySelector("li a").href
-    const match = curURL.match(/map=(\d+)\/([-\d.]+)\/([-\d.]+)(&|$)/)
-    if (!match && !curURL.includes("edit?editor=id")) {
-        return
-    }
-    try {
-        coordinatesObserver?.disconnect()
-        if (!curURL.includes("edit?editor=id") || !match) {
-            return
-        }
-        const zoom = match[1]
-        const lat = match[2]
-        const lon = match[3]
-        {
-            const rapidLink = "https://mapwith.ai/rapid#poweruser=true&map="
-            let newElem
-            if (firstRun) {
-                newElem = editorsList.querySelector("li").cloneNode(true)
-                newElem.classList.add("custom_editors", "rapid_btn")
-                newElem.querySelector("a").textContent = "Edit with Rapid"
-            } else {
-                newElem = document.querySelector(".rapid_btn")
+    document.querySelectorAll(`details [href^="/way/"]:not(.hover-added)`).forEach(elem => {
+        elem.classList.add("hover-added")
+        setTimeout(async () => {
+            const wayID = parseInt(elem.href.match(/way\/(\d+)/)[1])
+            const wayData = await loadWayMetadata(wayID)
+            const wayInfo = wayData.elements.find(i => i.id === wayID)
+            /*** @type {Map<string, NodeVersion>}*/
+            const nodesMap = new Map(
+                Object.entries(
+                    Object.groupBy(
+                        wayData.elements.filter(i => i.type === "node"),
+                        i => i.id,
+                    ),
+                ).map(([k, v]) => [k, v[0]]),
+            )
+            const wayLi = elem?.parentElement?.parentElement?.parentElement
+            wayLi.classList.add("node-last-version-parent")
+            wayLi.onmouseenter = () => {
+                const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
+                const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
+                showActiveWay(cloneInto(currentNodesList, unsafeWindow), color)
             }
-            const actualHref = `${rapidLink}${zoom}/${lat}/${lon}`
-            if (newElem.querySelector("a").href !== actualHref) {
-                newElem.querySelector("a").href = actualHref
+            wayLi.onclick = e => {
+                if (e.altKey) return
+                if (e.target.tagName === "A") return
+                const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
+                const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
+                showActiveWay(cloneInto(currentNodesList, unsafeWindow), color, true)
             }
-            if (firstRun) {
-                editorsList.appendChild(newElem)
+            wayLi.ondblclick = zoomToCurrentObject
+            if (wayInfo.tags) {
+                Object.entries(wayInfo.tags).forEach(([k, v]) => {
+                    wayLi.title += `\n${k}=${v}`
+                })
+                wayLi.title = wayLi.title.trim()
             }
-        }
-        {
-            // https://osmpie.org/app/?pos=30.434481&pos=59.933311&zoom=18.91
-            const osmpieLink = "https://osmpie.org/app/"
-            let newElem
-            if (firstRun) {
-                newElem = editorsList.querySelector("li").cloneNode(true)
-                newElem.classList.add("custom_editors", "osmpie_btn")
-                newElem.querySelector("a").textContent = "Edit with OSM Perfect Intersection Editor"
-                newElem.querySelector("a").setAttribute("target", "_blank")
-                newElem.title = "OSM Perfect Intersection Editor"
-            } else {
-                newElem = document.querySelector(".osmpie_btn")
-            }
-            const actualHref = `${osmpieLink}?pos=${lon}&pos=${lat}&zoom=${parseInt(zoom)}`
-            if (newElem.querySelector("a").href !== actualHref) {
-                newElem.querySelector("a").href = actualHref
-            }
-            if (firstRun) {
-                editorsList.appendChild(newElem)
-            }
-        }
-        /*
-        {
-            // geo:
-            let newElem;
-            if (firstRun) {
-                newElem = editorsList.querySelector("li").cloneNode(true);
-                newElem.classList.add("custom_editors", "geo_btn")
-                newElem.querySelector("a").textContent = "Open geo:"
-            } else {
-                newElem = document.querySelector(".geo_btn")
-            }
-            newElem.querySelector("a").href = `geo:${lat},${lon}?z=${zoom}`
-            if (firstRun) {
-                editorsList.appendChild(newElem)
-            }
-        }
-        */
-    } finally {
-        coordinatesObserver = new MutationObserver(setupNewEditorsLinks)
-        coordinatesObserver.observe(editorsList, { subtree: true, childList: true, attributes: true })
-    }
-}
-
-let darkModeForMap = false
-let darkMapStyleElement = null
-
-function injectDarkMapStyle() {
-    darkMapStyleElement = injectCSSIntoOSMPage(`
-    @media (prefers-color-scheme: dark) {
-        .leaflet-tile-container, .mapkey-table-entry td:first-child > * {
-            filter: none !important;
-        }
-
-        .leaflet-tile-container * {
-            filter: none !important;
-        }
-
-        .leaflet-tile-container .leaflet-tile:not(.no-invert), .mapkey-table-entry td:first-child > * {
-            filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%) !important;
-        }
-    }
-    `)
-}
-
-function setupDarkModeForMap() {
-    if (!GM_config.get("DarkModeForMap") || darkModeForMap) {
-        return
-    }
-    injectDarkMapStyle()
-    darkModeForMap = true
-}
-
-async function loadChangesetsBetween(user, fromTime, toTime) {
-    let curTime = fromTime
-    const processedChangesets = new Set()
-    /*** @type {ChangesetMetadata[]}*/
-    const changesets = []
-
-    while (true) {
-        /*** @type {{changesets: ChangesetMetadata[]}}*/
-        const res = await fetchJSONWithCache(
-            osm_server.apiBase +
-                "changesets.json?" +
-                new URLSearchParams({
-                    display_name: user,
-                    order: "oldest",
-                    from: curTime.toISOString(),
-                    to: toTime.toISOString(),
-                }).toString(),
-        )
-        console.log(res)
-
-        res.changesets = res.changesets.filter(i => !processedChangesets.has(i.id))
-        if (res.changesets.length === 0) break
-
-        res.changesets.forEach(i => {
-            changesets.push(i)
-            processedChangesets.add(i.id)
         })
-
-        curTime = new Date(res.changesets[res.changesets.length - 1].created_at)
-    }
-    console.log(`${changesets.length} changesets from ${fromTime} to ${toTime} fetched`)
-    changesets.forEach(i => {
-        if (i.comments_count) {
-            void getChangesetComments(i.id)
-        }
     })
-    return changesets
-}
-
-/**
- * @template T
- * @template X
- * @param {T[]} items
- * @param {(T) => X} keyFn
- * @return {T[]}
- */
-function uniq(items, keyFn) {
-    const uniqs = new Set()
-    const result = []
-
-    items.forEach(i => {
-        const elem = keyFn(i)
-        if (!uniqs.has(elem)) {
-            uniqs.add(elem)
-            result.push(i)
-        }
-    })
-    return result
-}
-
-/**
- * @param user {string}
- * @return {Promise<ChangesetMetadata[]>}
- */
-async function loadChangesets(user) {
-    console.time(`stat-for-${user}`)
-    const startTime = new Date(new Date().getTime() - 1000 * 60 * 60 * 24 * 365)
-    const startTime2 = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 365 * 3) / 4)
-    const startTime3 = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 365 * 2) / 4)
-    const startTime4 = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 365) / 4)
-    const endTime = new Date(new Date().getTime() + 1000 * 60 * 60 * 24)
-
     // prettier-ignore
-    const parts = await Promise.all([
-        loadChangesetsBetween(user, startTime, startTime2),
-        loadChangesetsBetween(user, startTime2, startTime3),
-        loadChangesetsBetween(user, startTime3, startTime4),
-        loadChangesetsBetween(user, startTime4, endTime)
-    ])
-
-    const uniqChangesets = new Set()
-    const changesets = []
-
-    parts.forEach(part => {
-        part.forEach(ch => {
-            if (!uniqChangesets.has(ch.id)) {
-                uniqChangesets.add(ch.id)
-                changesets.push(ch)
-            }
-        })
+    document.querySelector(".node-last-version-parent")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
+        cleanObjectsByKey("activeObjects")
     })
-
-    console.timeEnd(`stat-for-${user}`)
-    console.log("Changesets for the last year:", changesets.length)
-    return changesets
+    document.querySelector(".secondary-actions")?.addEventListener("mouseenter", () => {
+        cleanObjectsByKey("activeObjects")
+    })
+    console.log("addHoverForWayNodes finished")
 }
 
 /**
- * @param {ChangesetMetadata[]} changesets
- * @param filter
- * @return {[Object.<string, [number, number, {id: number, comment: string, comments_count: number}]>, number]}
+ * @param {number[]} nodesIds
+ * @param {Map} nodesMap
+ * @return {HTMLDivElement}
  */
-function makeChangesetsStat(changesets, filter) {
-    const datesStat = {}
-    let changesets_count = 0
-
-    changesets.forEach(i => {
-        if (!filter(i)) return
-        changesets_count++
-        const date = new Date(i.created_at)
-        const key = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`
-        if (datesStat[key] === undefined) {
-            datesStat[key] = [0, 0, []]
-        }
-        datesStat[key][0] += i.changes_count
-        datesStat[key][1] = max(datesStat[key][1], i.id)
-        datesStat[key][2].push({
-            id: i.id,
-            comment: i?.tags?.["comment"] ?? "",
-            comments_count: i.comments_count,
-        })
-    })
-
-    return [
-        Object.fromEntries(
-            Object.entries(datesStat).sort((a, b) => {
-                if (a[0] < b[0]) {
-                    return -1
-                }
-                if (a[0] > b[0]) {
-                    return 1
-                }
-                return 0
-            }),
-        ),
-        changesets_count,
-    ]
-}
-
-async function makeEditorNormalizer() {
-    const url = "https://raw.githubusercontent.com/deevroman/openstreetmap-statistics/refs/heads/master/src/replace_rules_created_by.json"
-    const rawReplaceRules = (
-        await externalFetchRetry({
-            url: url,
-        })
-    ).responseText
-    console.log("replace rules loaded")
-
-    const tag_to_name = {}
-    const starts_with_list = []
-    const ends_with_list = []
-    const contains_list = []
-    Object.entries(JSON.parse(rawReplaceRules)).forEach(([name, name_infos]) => {
-        if (name_infos["aliases"]) {
-            for (let alias in name_infos["aliases"]) {
-                tag_to_name[alias] = name
-            }
-        }
-        if (name_infos["starts_with"]) {
-            for (const starts_with of name_infos["starts_with"]) {
-                starts_with_list.push([starts_with.length, starts_with, name])
-            }
-        }
-        if (name_infos["ends_with"]) {
-            for (const ends_with of name_infos["ends_with"]) {
-                ends_with_list.push([ends_with.length, ends_with, name])
-            }
-        }
-        if (name_infos["contains"]) {
-            for (const compare_str of name_infos["contains"]) {
-                contains_list.push([compare_str, name])
-            }
-        }
-    })
-
-    return tag => {
-        if (!tag) return tag
-
-        if (tag_to_name[tag]) {
-            return tag_to_name[tag]
-        }
-
-        for (let [compare_str_length, compare_str, replace_str] of starts_with_list) {
-            if (tag.slice(0, compare_str_length) === compare_str) {
-                return replace_str
-            }
-        }
-
-        for (let [compare_str_length, compare_str, replace_str] of ends_with_list) {
-            if (tag.slice(-compare_str_length) === compare_str) {
-                return replace_str
-            }
-        }
-
-        for (let [compare_str, replace_str] of contains_list) {
-            if (tag.includes(compare_str)) {
-                return replace_str
-            }
-        }
-
-        return tag
-    }
-}
-
-async function betterUserStat(user) {
-    if (!GM_config.get("BetterProfileStat") || !location.pathname.match(/^\/user\/([^/]+)\/?$/)) {
-        return
-    }
-    if (document.getElementById("filter-bar")) {
-        return
-    }
-    const filterBar = document.createElement("div")
-    filterBar.id = "filter-bar"
-    filterBar.style.display = "flex"
-    filterBar.style.gap = "3px"
-
-    const filterInputByEditor = document.createElement("select")
-    filterInputByEditor.style.flex = "1"
-    filterInputByEditor.id = "filter-input-by-editor"
-    filterInputByEditor.setAttribute("disabled", true)
-    filterInputByEditor.title = "Please wait while user changesets loading"
-
-    const item = document.createElement("option")
-    item.value = ""
-    item.setAttribute("all-editors", "yes")
-    item.textContent = "All editors"
-    filterInputByEditor.appendChild(item)
-
-    const calHeatmap = document.querySelector(".heatmap")
-    if (!calHeatmap) {
-        console.log("osm.org don't show heatmap for this user")
-        return
-    }
-    injectCSSIntoOSMPage(`
-    .tooltip-inner {
-        white-space: pre-wrap;
-        text-align: left;
-    }
-    `)
-    calHeatmap.parentElement.parentElement.after(filterBar)
-    filterBar.appendChild(filterInputByEditor)
-
-    const searchByComment = document.createElement("input")
-    searchByComment.type = "search"
-    searchByComment.placeholder = "Regex search by comments"
-    searchByComment.title = "Please wait while user changesets loading"
-    searchByComment.setAttribute("disabled", true)
-    searchByComment.style.flex = "1"
-    searchByComment.style.height = "1.5rem"
-    searchByComment.style.boxSizing = "border-box"
-    filterInputByEditor.before(searchByComment)
-
-    const _replace_with_rules = makeEditorNormalizer()
-    const changesets = await loadChangesets(user)
-    const replace_with_rules = await _replace_with_rules
-    const editorOfChangesets = {}
-    changesets.forEach(ch => (editorOfChangesets[ch.id] = replace_with_rules(ch.tags?.["created_by"])))
-    filterInputByEditor.removeAttribute("disabled")
-    searchByComment.removeAttribute("disabled")
-    filterInputByEditor.title = "Alt + O for open selected changesets on one page"
-    searchByComment.title = "Not case-sensitive regex search"
-
-    async function inputHandler() {
-        let filter = _ => true
-        const selected = Array.from(filterInputByEditor.options).filter(i => i.selected)
-        let regex
-        try {
-            regex = new RegExp(searchByComment.value.toLowerCase())
-            searchByComment.style.color = ""
-        } catch {
-            searchByComment.style.color = "red"
-        }
-        filter = ch => {
-            return selected.some(option => {
-                if (option.getAttribute("all-editors") === "yes") {
-                    return (ch.tags?.["comment"] ?? "").toLowerCase().match(regex)
-                } else if (option.getAttribute("is-editor-name") === "yes") {
-                    return editorOfChangesets[ch.id] === option.value && (ch.tags?.["comment"] ?? "").toLowerCase().match(regex)
-                } else {
-                    return ch.tags?.["created_by"] === option.value && (ch.tags?.["comment"] ?? "").toLowerCase().match(regex)
-                }
-            })
-        }
-        const [newHeatmapData, changesets_count] = makeChangesetsStat(changesets, filter)
-        const maxPerDay = Object.values(newHeatmapData)
-            .map(i => i[0])
-            .reduce((a, b) => max(a, b), 0)
-        searchByComment.title = `${changesets_count} changesets filtered`
-
-        function replaceElementTag(oldElement, newTagName) {
-            const attrs = {}
-            for (const attr of oldElement.attributes) {
-                attrs[attr.name] = attr.value
-            }
-            const newElement = GM_addElement(newTagName, attrs)
-            while (oldElement.firstChild) {
-                newElement.appendChild(oldElement.firstChild)
-            }
-            oldElement.parentNode.replaceChild(newElement, oldElement)
-            return newElement
-        }
-
-        function getTooltipSummary(date, value) {
-            const localizedDate = getWindow().OSM.i18n.l("date.formats.long", intoPageWithFun(date))
-            if (value > 0) {
-                return getWindow().OSM.i18n.t(
-                    "javascripts.heatmap.tooltip.contributions",
-                    intoPage({
-                        count: value,
-                        date: localizedDate,
-                    }),
-                )
-            }
-            return getWindow().OSM.i18n.t("javascripts.heatmap.tooltip.no_contributions", intoPage({ date: localizedDate }))
-        }
-
-        getWindow().$("[rel=tooltip]").tooltip("dispose")
-        document.querySelectorAll(".tooltip").forEach(i => i.remove())
-        const hrefPrefix = location.href.endsWith("/") ? location.href.slice(0, -1) : location.href
-        for (let day of Array.from(document.querySelectorAll("[data-date]"))) {
-            day = replaceElementTag(day, "a")
-            const newData = newHeatmapData[day.getAttribute("data-date")]
-            if (newData) {
-                day.setAttribute("data-count", newData[0])
-                day.setAttribute("href", hrefPrefix + "/history?before=" + (newData[1] + 1))
-                day.innerHTML = ""
-                const colorDiff = document.createElement("span")
-                colorDiff.style.opacity = `${Math.sqrt(newData[0] / maxPerDay)}`
-                let tooltipText = getTooltipSummary(new Date(day.getAttribute("data-date")), newData[0])
-                if (newData[0]) {
-                    tooltipText += "\n"
-                    for (let changeset of newData[2]) {
-                        let changesetComment = ""
-                        if (changeset.comments_count) {
-                            colorDiff.style.opacity = `${Math.min(0.7, Math.max(0.35, Math.sqrt(newData[0] / maxPerDay)))}`
-                            colorDiff.style.background = "red"
-                            changesetComment = "💬 " + changeset.comment
-                            ;(await getChangesetComments(changeset.id)).forEach(mapperCommentText => {
-                                changesetComment += "\n - " + mapperCommentText["user"] + ": " + shortOsmOrgLinksInText(mapperCommentText["text"])?.slice(0, 500)
-                                if (mapperCommentText["text"].length > 500) {
-                                    changesetComment += "..."
-                                }
-                            })
-                        } else {
-                            changesetComment = "• " + changeset.comment
-                        }
-                        tooltipText += changesetComment + "\n"
-                    }
-                }
-
-                day.appendChild(colorDiff)
-                getWindow()
-                    .$(day)
-                    .tooltip(
-                        intoPage({
-                            title: tooltipText,
-                            customClass: "wide",
-                            delay: { show: 0, hide: 0 },
-                        }),
-                    )
-            } else {
-                day.removeAttribute("data-count")
-                day.setAttribute("href", "")
-                day.innerHTML = ""
-                if (day.nodeName === "A") {
-                    day = replaceElementTag(day, "span")
-                }
-                getWindow().$(day).tooltip("disable")
-            }
-        }
+function makePolygonMeasureButtons(nodesIds, nodesMap) {
+    const nodes = nodesIds.map(i => nodesMap.get(i.toString()))
+    const bbox = {
+        min_lat: Math.min(...nodes.map(i => i.lat)),
+        min_lon: Math.min(...nodes.map(i => i.lon)),
+        max_lat: Math.max(...nodes.map(i => i.lat)),
+        max_lon: Math.max(...nodes.map(i => i.lon)),
     }
 
-    filterInputByEditor.oninput = inputHandler
-    searchByComment.oninput = inputHandler
-    document.addEventListener("keydown", e => {
-        if (e.altKey && e.code === "KeyO") {
-            const selected = Array.from(filterInputByEditor.options).filter(i => i.selected)
-            const ids = changesets
-                .filter(ch => {
-                    return selected.some(i => ch?.tags?.["created_by"]?.includes(i.value))
-                })
-                .map(i => i.id)
-            const idsStr = ids.join(",")
-            open(osm_server.url + `/changeset/${ids[0]}?changesets=` + idsStr, "_blank")
-        }
-    })
+    let wayLength = 0.0
+    for (let i = 1; i < nodes.length; i++) {
+        wayLength += getDistanceFromLatLonInKm(nodes[i - 1].lat, nodes[i - 1].lon, nodes[i].lat, nodes[i].lon)
+    }
+    wayLength *= 1000
 
-    filterInputByEditor.id = "editors"
-    filterInputByEditor.addEventListener(
-        "mousedown",
-        function (e) {
-            e.preventDefault()
-            e.target.focus()
-            filterInputByEditor.setAttribute("size", 7)
-            filterInputByEditor.setAttribute("multiple", true)
-            inputHandler()
-        },
-        { once: true },
-    )
-    searchByComment.addEventListener(
-        "mousedown",
-        function () {
-            inputHandler()
-        },
-        { once: true },
-    )
-
-    const counts = {}
-
-    changesets.forEach(i => {
-        const editor = editorOfChangesets[i.id]
-        counts[editor] = counts[editor] ? counts[editor] + i.changes_count : i.changes_count
-    })
-
-    Array.from(new Set(changesets.map(i => editorOfChangesets[i.id])))
-        .sort((a, b) => {
-            if (counts[a] < counts[b]) {
-                return 1
-            }
-            if (counts[a] > counts[b]) {
-                return -1
-            }
-            return 0
-        })
-        .forEach(i => {
-            const item = document.createElement("option")
-            item.value = i
-            item.setAttribute("is-editor-name", "yes")
-            if (i === 1) {
-                item.textContent = ` ${i} (${counts[i]} contribution)`
-            } else {
-                item.textContent = ` ${i} (${counts[i]} contributions)`
-            }
-            filterInputByEditor.appendChild(item)
-        })
-
-    Array.from(new Set(changesets.map(i => i.tags?.["created_by"])))
-        .sort()
-        .forEach(i => {
-            const item = document.createElement("option")
-            item.value = i
-            item.textContent = i
-            filterInputByEditor.appendChild(item)
-        })
-
-    filterInputByEditor.after(filterInputByEditor)
-    console.log("setuping filters finished")
-}
-
-// https://osm.org/user/Молотов-Прибой
-// https://osm.org/user/user_14840936
-// https://osm.org/user/Torunianin
-// https://osm.org/user/user_22937564
-// https://osm.org/user/korobkov
-// https://osm.org/user/user_389895
-// https://osm.org/user/user_20965583
-async function makeProfileForDeletedUser(user) {
-    const content = document.querySelector(".content-body")
-    const div = document.createElement("div")
-    div.classList.add("content-inner", "position-relative", "m-auto")
-
-    const webArchiveLink = document.createElement("a")
-    webArchiveLink.textContent = "WebArchive"
-    webArchiveLink.target = "_blank"
-    webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + decodeURI(user)
-    div.appendChild(webArchiveLink)
-    div.appendChild(document.createElement("br"))
-
-    function makeOSMChaLink(username) {
-        const osmchaLink = document.createElement("a")
-        osmchaLink.textContent = " [OSMCha] "
-        osmchaLink.id = "osmcha_link"
-        osmchaLink.title = "Open profile in OSMCha.org"
-        osmchaLink.href = makeOsmchaLinkForUsername(username)
-        osmchaLink.target = "_blank"
-        osmchaLink.rel = "noreferrer"
-        return osmchaLink
+    let wayArea = null
+    if (nodesIds.length > 2 && nodesIds[0] === nodesIds.at(-1)) {
+        wayArea = Math.abs(ringArea(nodes))
     }
 
-    async function processIDs(data, elemForResult) {
-        if (data.length === 1) {
-            elemForResult.appendChild(document.createTextNode("User ID: "))
-        } else {
-            elemForResult.appendChild(document.createTextNode(`⚠️ Found ${data.length} user IDs`))
-            elemForResult.appendChild(document.createElement("br"))
-            elemForResult.appendChild(document.createTextNode(`🆔: `))
-        }
-        for (let i = 0; i < data.length; i++) {
-            if (i !== 0) {
-                elemForResult.appendChild(document.createElement("br"))
-                elemForResult.appendChild(document.createElement("hr"))
-                elemForResult.appendChild(document.createTextNode("🆔:"))
-            }
-            const id = data[i].id
-            const idSpan = document.createElement("span")
-            idSpan.textContent = id
-            idSpan.title = "Click for copy"
-            idSpan.style.cursor = "pointer"
-            idSpan.onclick = e => {
-                navigator.clipboard.writeText(id).then(() => copyAnimation(e, id))
-            }
-            injectCSSIntoOSMPage(copyAnimationStyles)
-            elemForResult.appendChild(idSpan)
-            elemForResult.appendChild(document.createElement("br"))
-            if (data[i].names?.length > 1) {
-                const p = document.createElement("p")
-                p.textContent = "Usernames: "
-                injectCSSIntoOSMPage(copyAnimationStyles)
-                data[i].names
-                    .map(i => i.name)
-                    .forEach(name => {
-                        const usernameSpan = document.createElement("span")
-                        usernameSpan.textContent = name
-                        usernameSpan.title = "Click for copy"
-                        usernameSpan.style.cursor = "pointer"
-                        usernameSpan.onclick = e => {
-                            navigator.clipboard.writeText(name).then(() => copyAnimation(e, name))
-                        }
-                        p.appendChild(usernameSpan)
-                        p.appendChild(document.createTextNode(" "))
+    const center = { lat: (bbox.max_lat + bbox.min_lat) / 2, lng: (bbox.max_lon + bbox.min_lon) / 2 }
+    // TODO
+    // geojson
 
-                        const webArchiveLink = document.createElement("a")
-                        webArchiveLink.textContent = "[WA] "
-                        webArchiveLink.target = "_blank"
-                        webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + name
-                        p.appendChild(webArchiveLink)
+    const infos = document.createElement("div")
+    infos.style.display = "none"
+    infos.style.paddingBottom = "5px"
 
-                        p.appendChild(makeOSMChaLink(name))
-                    })
-                elemForResult.appendChild(p)
-            }
-            setTimeout(async () => {
-                const blocksSpan = document.createElement("span")
+    const lengthElem = document.createElement("span")
+    const lengthText = wayLength < 1000 ? wayLength.toFixed(2) + " m" : wayLength.toFixed(0) + " m"
+    lengthElem.textContent = "Length: " + lengthText
+    infos.appendChild(lengthElem)
 
-                const loadingStatus = document.createElement("span")
-                loadingStatus.textContent = " Finding blocks... "
-                loadingStatus.style.color = "gray"
-                blocksSpan.appendChild(document.createTextNode(" "))
-                blocksSpan.appendChild(loadingStatus)
+    if (wayArea !== null) {
+        infos.appendChild(document.createTextNode(",\xA0"))
+        const areaElem = document.createElement("span")
+        const areaText = wayLength < 1000 ? wayArea.toFixed(2) + " m²" : wayArea.toFixed(0) + " m²"
+        areaElem.textContent = "Area: " + areaText
+        infos.appendChild(areaElem)
+    }
 
-                idSpan.after(blocksSpan)
-                const startPage = await externalFetchRetry({
-                    url: "/user_blocks",
-                    // responseType: "xml",
-                    headers: { "turbo-frame": "pagination" },
-                })
+    const svg1 =
+        '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none" stroke-width="1">\n' +
+        "  <!-- Внешний квадрат -->\n" +
+        '  <rect x="4" y="4" width="16" height="16" stroke-width="1"/>\n' +
+        "  <!-- Центральные линии -->\n" +
+        '  <line x1="12" y1="4" x2="12" y2="20" stroke="currentColor" stroke-width="1"/>\n' +
+        '  <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1"/>\n' +
+        "  <!-- Толстые верхняя и левая стороны -->\n" +
+        '  <line x1="3" y1="4" x2="20.5" y2="4" stroke="red" stroke-width="2"/>\n' +
+        '  <line x1="4" y1="3" x2="4" y2="20.5" stroke="red" stroke-width="2"/>\n' +
+        "</svg>\n"
+    const icon1 = document.createElement("span")
+    icon1.innerHTML = svg1
+    icon1.style.cursor = "pointer"
+    const text1 = `${bbox.max_lat.toString()} ${bbox.min_lon.toString()}`
+    icon1.title = "Click to copy TopLeft: " + text1
+    icon1.onmouseenter = () => {
+        showActiveNodeMarker(bbox.max_lat.toString(), bbox.min_lon.toString(), "red", true)
+        showActiveNodeIconMarker(bbox.max_lat.toString(), bbox.min_lon.toString(), null, false)
+    }
+    icon1.onclick = e => {
+        navigator.clipboard.writeText(text1).then(() => copyAnimation(e, text1))
+    }
 
-                const blocksCount = new Map()
+    const svg2 =
+        '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none" stroke-width="1">\n' +
+        "  <!-- Внешний квадрат -->\n" +
+        '  <rect x="4" y="4" width="16" height="16" stroke-width="1"/>\n' +
+        "  <!-- Центральные линии -->\n" +
+        '  <line x1="12" y1="4" x2="12" y2="20" stroke="currentColor" stroke-width="1"/>\n' +
+        '  <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1"/>\n' +
+        "  <!-- Жирная точка в центре -->\n" +
+        '  <circle cx="12" cy="12" r="2" fill="red" stroke="red"/>\n' +
+        "</svg>\n"
+    const icon2 = document.createElement("span")
+    icon2.innerHTML = svg2
+    icon2.style.cursor = "pointer"
+    const text2 = `${center.lat.toFixed(6)} ${center.lng.toFixed(6)}`
+    icon2.title = "Click to copy center: " + text2
+    icon2.onmouseenter = () => {
+        showActiveNodeMarker(center.lat.toString(), center.lng.toString(), "red")
+        showActiveNodeIconMarker(center.lat.toString(), center.lng.toString(), null, false)
+    }
+    icon2.onclick = e => {
+        navigator.clipboard.writeText(text2).then(() => copyAnimation(e, text2))
+    }
 
-                function findBlocks(xml) {
-                    const foundUserBlock = []
-                    let lastUserBlock
-                    new DOMParser()
-                        .parseFromString(xml, "text/html")
-                        .querySelectorAll("table tr")
-                        .forEach(i => {
-                            if (i.querySelector("th")) {
-                                return
-                            }
-                            const username = decodeURI(
-                                i
-                                    .querySelector("td a")
-                                    .getAttribute("href")
-                                    .match(/\/user\/(.*)$/)[1],
-                            )
-                            if (blocksCount.has(username)) {
-                                blocksCount.set(username, blocksCount.get(username) + 1)
-                            } else {
-                                blocksCount.set(username, 1)
-                            }
-                            lastUserBlock = i
-                                .querySelector('td a[href^="/user_blocks/"]')
-                                .getAttribute("href")
-                                .match(/\/user_blocks\/([0-9]+)/)[1]
-                            if (username === "user_" + id) {
-                                foundUserBlock.push(lastUserBlock)
-                            }
-                        })
-                    return [foundUserBlock, lastUserBlock]
-                }
-
-                async function getBlockInfo(blockID) {
-                    const blockInfo = (
-                        await externalFetchRetry({
-                            url: "/api/0.6/user_blocks/" + blockID + ".json",
-                            responseType: "json",
-                            headers: { "turbo-frame": "pagination" },
-                        })
-                    ).response
-                    return `${blockInfo["user_block"]["created_at"]}\n${blockInfo["user_block"]["creator"]["user"]}: ${blockInfo["user_block"]["reason"]}`
-                }
-
-                function processFoundedBlocks(foundUserBlock) {
-                    foundUserBlock.forEach(blockId => {
-                        const blockLink = document.createElement("a")
-                        blockLink.href = "/user_blocks/" + blockId
-                        blockLink.target = "_blank"
-                        blockLink.textContent = "🔨/" + blockId
-                        getBlockInfo(blockId).then(res => {
-                            blockLink.title = res
-                        })
-                        blocksSpan.appendChild(blockLink)
-                        blocksSpan.appendChild(document.createTextNode(" "))
-                    })
-                }
-
-                let [foundUserBlock, lastUserBlock] = findBlocks(startPage.response)
-                if (foundUserBlock.length) {
-                    processFoundedBlocks(foundUserBlock)
-                } else {
-                    while (lastUserBlock > 1) {
-                        async function processBlocks(before) {
-                            console.log("download user_block before ", before)
-                            before = Math.max(1, before)
-                            const startPage = await externalFetchRetry({
-                                url: "/user_blocks?before=" + before,
-                                // responseType: "xml",
-                                headers: { "turbo-frame": "pagination" },
-                            })
-                            ;[foundUserBlock, before] = findBlocks(startPage.response)
-                            if (!before) {
-                                return
-                            }
-                            if (foundUserBlock.length) {
-                                processFoundedBlocks(foundUserBlock)
-                            }
-                        }
-
-                        const onPage = 20
-                        const threads = 10
-                        console.log("download user_block batch before ", lastUserBlock)
-                        loadingStatus.title = `Scanned all blocks after #${lastUserBlock}`
-                        const batch = []
-                        for (let j = 0; j < threads; j++) {
-                            batch.push(processBlocks(lastUserBlock - onPage * j))
-                        }
-                        await Promise.all(batch)
-                        lastUserBlock -= threads * onPage
-                    }
-                    loadingStatus.style.display = "none"
-                    const arr = Array.from(blocksCount.entries()).filter(([k, v]) => v >= 10)
-                    arr.sort((a, b) => {
-                        if (a[1] < b[1]) {
-                            return 1
-                        } else if (a[1] > b[1]) {
-                            return -1
-                        } else {
-                            return 0
-                        }
-                    })
-                    console.log("Top banned:", arr)
-                    console.log("All blocks downloaded")
-                }
-            })
-
-            /*** @type {{changesets: ChangesetMetadata[]}}*/
-            const lastChangesets = await fetchJSONWithCache(
-                osm_server.apiBase +
-                    "changesets.json?" +
-                    new URLSearchParams({
-                        user: id,
-                        order: "newest",
-                        to: new Date().toISOString(),
-                    }).toString(),
+    const svg3 =
+        '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none" stroke-width="1">\n' +
+        "  <!-- Внешний квадрат -->\n" +
+        '  <rect x="4" y="4" width="16" height="16" stroke-width="1"/>\n' +
+        "  <!-- Центральные линии -->\n" +
+        '  <line x1="12" y1="4" x2="12" y2="20" stroke="currentColor" stroke-width="1"/>\n' +
+        '  <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1"/>\n' +
+        "  <!-- Толстые правая и нижняя стороны -->\n" +
+        '  <line x1="3.5" y1="20" x2="21" y2="20" stroke="red" stroke-width="2"/>\n' +
+        '  <line x1="20" y1="3.5" x2="20" y2="20.5" stroke="red" stroke-width="2"/>\n' +
+        "</svg>\n"
+    const icon3 = document.createElement("span")
+    icon3.innerHTML = svg3
+    icon3.style.cursor = "pointer"
+    const text3 = `${bbox.min_lat.toString()} ${bbox.max_lon.toString()}`
+    icon3.title = "Click to copy RightBottom: " + text3
+    icon3.onmouseenter = () => {
+        showActiveNodeMarker(bbox.min_lat.toString(), bbox.max_lon.toString(), "red")
+        showActiveNodeIconMarker(bbox.min_lat.toString(), bbox.max_lon.toString(), null, false)
+    }
+    icon3.onclick = e => {
+        navigator.clipboard.writeText(text3).then(() => copyAnimation(e, text3))
+    }
+    // prettier-ignore
+    const svg4 = '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none">\n' +
+        '  <!-- Внешний прямоугольник жирный -->\n' +
+        '  <!-- Центральные линии -->\n' +
+        '  <line x1="12" y1="4" x2="12" y2="20" stroke="currentColor" stroke-width="1"/>\n' +
+        '  <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1"/>\n' +
+        '  <rect x="4" y="4" width="16" height="16" stroke="red" stroke-width="2"/>\n' +
+        '</svg>\n';
+    const icon4 = document.createElement("span")
+    icon4.innerHTML = svg4
+    icon4.style.cursor = "pointer"
+    const text4 = `${bbox.min_lat.toString()} ${bbox.min_lon.toString()} ${bbox.max_lat.toString()} ${bbox.max_lon.toString()}`
+    icon4.title = "Click to copy bbox: " + text4
+    icon4.onmouseenter = () => {
+        cleanObjectsByKey("activeObjects")
+        const rect = getWindow()
+            .L.rectangle(
+                intoPage([
+                    [bbox.max_lat, bbox.max_lon],
+                    [bbox.min_lat, bbox.min_lon],
+                ]),
+                intoPage({ color: "red", weight: 3, fillOpacity: 0 }),
             )
-            const processedChangesets = new Set(lastChangesets.changesets.map(c => c.id))
+            .addTo(getMap())
+        layers["activeObjects"].push(rect)
+    }
+    icon4.onclick = e => {
+        navigator.clipboard.writeText(text4).then(() => copyAnimation(e, text4))
+    }
 
-            for (let i = 0; i < 20; i++) {
-                const curTime = lastChangesets.changesets[lastChangesets.changesets.length - 1].created_at
-                const ch = await fetchJSONWithCache(
-                    osm_server.apiBase +
-                        "changesets.json?" +
-                        new URLSearchParams({
-                            user: id,
-                            order: "newest",
-                            to: new Date(new Date(curTime).getTime() + 1000).toISOString(),
-                            from: "2005-01-01T00:00:00Z",
-                        }).toString(),
-                )
-                ch.changesets = ch.changesets.filter(ch => !processedChangesets.has(ch.id))
-                if (ch.changesets.length === 0) break
-                lastChangesets.changesets.push(...(ch.changesets ?? []))
-            }
+    const icons = document.createElement("div")
+    icons.style.paddingTop = "5px"
+    infos.appendChild(icons)
 
-            elemForResult.appendChild(document.createTextNode(`Last ${lastChangesets.changesets?.length} changesets:`))
-            lastChangesets.changesets.forEach(ch => {
-                const changesetLine = document.createElement("div")
-                const changesetTime = ch["created_at"]
-                const checkbox = document.createElement("input")
-                checkbox.type = "checkbox"
-                checkbox.classList.add("mass-action-checkbox")
-                checkbox.textContent = "#" + ch.id + ""
-                checkbox.title = "Shift + click for select a range of empty checkboxes"
-                checkbox.value = ch.id
-                checkbox.setAttribute("user-id", id)
-                checkbox.onclick = e => {
-                    if (e.shiftKey) {
-                        let currentCheckboxFound = false
-                        for (const cBox of Array.from(elemForResult.querySelectorAll("input")).toReversed()) {
-                            if (!currentCheckboxFound) {
-                                if (cBox.value === checkbox.value) {
-                                    currentCheckboxFound = true
-                                }
-                            } else {
-                                if (cBox.checked) {
-                                    break
-                                }
-                                cBox.checked = true
-                            }
-                        }
-                    }
-                    const selectedIDsCount = elemForResult.querySelectorAll(`input:checked[user-id="${id}"]`).length
-                    elemForResult.querySelectorAll(`.copy-changesets-ids-btn[user-id="${id}"]`).forEach(i => {
-                        if (selectedIDsCount) {
-                            i.textContent = `Copy ${selectedIDsCount} IDs`
-                        } else {
-                            i.textContent = `Copy IDs`
-                        }
-                    })
-                }
-                changesetLine.appendChild(checkbox)
-                changesetLine.appendChild(document.createTextNode("\xA0"))
+    icons.appendChild(icon1)
+    icons.appendChild(icon2)
+    icons.appendChild(icon3)
+    icons.appendChild(icon4)
 
-                const a = document.createElement("a")
-                a.textContent = ch.id
-                a.href = "/changeset/" + ch.id
-                a.target = "_blank"
-                a.style.fontFamily = "monospace"
-                changesetLine.appendChild(a)
+    document.querySelector("#sidebar_content h4:last-of-type").after(infos)
 
-                const changesetDate = document.createElement("span")
-                changesetDate.textContent = " " + changesetTime + " "
-                changesetDate.style.fontFamily = "monospace"
-                changesetDate.style.color = "gray"
-                changesetDate.style.cursor = "pointer"
-                changesetDate.setAttribute("datetime", changesetTime)
-                changesetDate.onclick = e => {
-                    navigator.clipboard.writeText(changesetTime).then(() => copyAnimation(e, changesetTime))
-                }
-                changesetLine.appendChild(document.createTextNode("\xA0"))
-                changesetLine.appendChild(changesetDate)
+    infos.onmouseleave = () => {
+        cleanAllObjects()
+    }
 
-                const comment = document.createElement("span")
-                comment.textContent = " " + (ch.tags?.["comment"] ?? "No comment")
-                changesetLine.appendChild(comment)
+    return infos
+}
 
-                if (ch.comments_count) {
-                    const commentsBadge = document.createElement("a")
-                    commentsBadge.textContent = " " + ch.comments_count + " 💬"
-                    commentsBadge.href = "/changeset/" + ch.id
-                    commentsBadge.target = "_blank"
-                    setTimeout(async () => {
-                        getChangesetComments(ch.id).then(res => {
-                            res.forEach(comment => {
-                                const shortText = shortOsmOrgLinksInText(comment["text"])
-                                commentsBadge.title += `${comment["user"]}:\n${shortText}\n\n`
-                            })
-                            commentsBadge.title = commentsBadge.title.trimEnd()
-                        })
-                    })
-                    changesetLine.appendChild(commentsBadge)
-                }
+function isDarkTiles() {
+    const layers = new URLSearchParams(location.hash).get("layers")
+    return layers && (layers.includes("S") || layers.includes("T")) && isDarkMode()
+}
 
-                elemForResult.appendChild(changesetLine)
+async function addHoverForWayNodes() {
+    if (!location.pathname.match(/^\/way\/(\d+)\/?$/)) {
+        return
+    }
+    // todo relations
+    let infoBtn
+    if (!document.querySelector(".way-info-btn") && document.querySelector("#sidebar_content h4:last-of-type")) {
+        infoBtn = document.createElement("span")
+        infoBtn.textContent = "📐"
+        infoBtn.classList.add("way-info-btn")
+        infoBtn.classList.add("completed")
+        infoBtn.style.fontSize = "large"
+        infoBtn.style.cursor = "pointer"
+
+        document.querySelector("#sidebar_content h4:last-of-type").appendChild(document.createTextNode("\xA0"))
+        document.querySelector("#sidebar_content h4:last-of-type").appendChild(infoBtn)
+    }
+
+    const wayData = await loadWayMetadata().catch(() => {
+        if (infoBtn) {
+            infoBtn.style.display = "none"
+        }
+    })
+    if (!wayData) {
+        if (infoBtn) {
+            infoBtn.style.display = "none"
+        }
+        return
+    }
+    /*** @type {Map<string, NodeVersion>}*/
+    const nodesMap = new Map(
+        Object.entries(
+            Object.groupBy(
+                wayData.elements.filter(i => i.type === "node"),
+                i => i.id,
+            ),
+        ).map(([k, v]) => [k, v[0]]),
+    )
+    document.querySelectorAll(`details [href^="/node/"]:not(.hover-added)`).forEach(elem => {
+        elem.classList.add("hover-added")
+        const nodeInfo = nodesMap.get(elem.href.match(/node\/(\d+)/)[1])
+        const nodeLi = elem?.parentElement?.parentElement?.parentElement
+        nodeLi.classList.add("way-last-version-node")
+        nodeLi.onmouseenter = () => {
+            const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
+            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
+        }
+        nodeLi.onclick = e => {
+            if (e.altKey) return
+            panTo(nodeInfo.lat.toString(), nodeInfo.lon.toString())
+            const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
+            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
+        }
+        nodeLi.ondblclick = zoomToCurrentObject
+        if (nodeInfo.tags) {
+            Object.entries(nodeInfo.tags).forEach(([k, v]) => {
+                nodeLi.title += `\n${k}=${v}`
             })
+            nodeLi.title = nodeLi.title.trim()
+        }
+    })
+    // prettier-ignore
+    document.querySelector(".way-last-version-node")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
+        cleanObjectsByKey("activeObjects")
+    })
+    document.querySelector(".secondary-actions")?.addEventListener("mouseenter", () => {
+        cleanObjectsByKey("activeObjects")
+    })
 
-            const copyIds = document.createElement("button")
-            copyIds.textContent = "Copy IDs"
-            copyIds.title = ""
-            copyIds.classList.add("copy-changesets-ids-btn")
-            copyIds.setAttribute("user-id", id)
-            copyIds.onclick = e => {
-                const ids = Array.from(elemForResult.querySelectorAll(`input:checked[user-id="${id}"]`))
-                    .map(i => i.value)
-                    .join(",")
-                if (ids !== "") {
-                    navigator.clipboard.writeText(ids).then(() => copyAnimation(e, ids))
-                } else {
-                    const ids = Array.from(elemForResult.querySelectorAll("input"))
-                        .map(i => i.value)
-                        .join(",")
-                    navigator.clipboard.writeText(ids).then(() => copyAnimation(e, ids))
-                }
-            }
-            elemForResult.appendChild(copyIds)
+    if (infoBtn) {
+        const nodesIds = wayData.elements.find(i => i.type === "way").nodes
+        const infos = makePolygonMeasureButtons(nodesIds, nodesMap)
+        document.querySelector("#sidebar_content h4:last-of-type").after(infos)
+
+        infoBtn.onclick = () => {
+            infos.style.display = infos.style.display === "none" ? "" : "none"
         }
     }
-
-    const res = await externalFetchRetry({
-        url: "https://whosthat.osmz.ru/whosthat.php?action=info&name=" + user,
-        responseType: "json",
-    })
-    // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
-    // but here need resolve problem with return promise
-    const data = structuredClone(res.response)
-    if (data.length) {
-        webArchiveLink.after(makeOSMChaLink(decodeURI(user)))
-
-        const result = document.createElement("p")
-        div.appendChild(result)
-        result.title = "via whosthat.osmz.ru"
-        await processIDs(data, result)
-    } else {
-        setTimeout(async () => {
-            const res = (
-                await externalFetchRetry({
-                    url:
-                        `${overpass_server.apiUrl}/interpreter?` +
-                        new URLSearchParams({
-                            data: `
-                                [out:json];
-                                node(user:"${user.replace('"', '\\"')}")->.b;
-                                node.b(if:lat() == b.min(lat()));
-                                out meta;
-                            `,
-                        }),
-                    responseType: "json",
-                })
-            ).response
-            if (res.elements?.length) {
-                webArchiveLink.after(makeOSMChaLink(decodeURI(user)))
-
-                const result = document.createElement("p")
-                div.appendChild(result)
-                result.title = "via Overpass API"
-                await processIDs([{ id: res.elements[0].uid }], result)
-            }
-        })
-    }
-
-    if (user.match(/^user_[0-9]+$/)) {
-        const userID = parseInt(user.match(/user_([0-9]+)/)[1])
-        const res = await externalFetchRetry({
-            url: "https://whosthat.osmz.ru/whosthat.php?action=names&id=" + userID,
-            responseType: "json",
-        })
-        // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
-        // but here need resolve problem with return promise
-        const data = structuredClone(res.response)
-        let names = data[0]["names"]
-
-        const userNamesP = document.createElement("p")
-        div.appendChild(userNamesP)
-        setTimeout(async () => {
-            if (!names.length) {
-                const res = (
-                    await externalFetchRetry({
-                        url:
-                            `${overpass_server.apiUrl}/interpreter?` +
-                            new URLSearchParams({
-                                data: `
-                            [out:json];
-                            node(uid:${userID})->.b;
-                            node.b(if:lat() == b.min(lat()));
-                            out meta;
-                        `,
-                            }),
-                        responseType: "json",
-                    })
-                ).response
-                if (res?.elements?.length) {
-                    names = [res.elements[0].user]
-                }
-                div.title = "via Overpass API"
-            } else {
-                div.title = "via whosthat.osmz.ru"
-            }
-            if (names.length) {
-                userNamesP.textContent = "Usernames: "
-                injectCSSIntoOSMPage(copyAnimationStyles)
-                names.forEach(name => {
-                    const usernameSpan = document.createElement("span")
-                    usernameSpan.textContent = name
-                    usernameSpan.title = "Click for copy"
-                    usernameSpan.style.cursor = "pointer"
-                    usernameSpan.onclick = e => {
-                        navigator.clipboard.writeText(name).then(() => copyAnimation(e, name))
-                    }
-                    userNamesP.appendChild(usernameSpan)
-                    userNamesP.appendChild(document.createTextNode(" "))
-
-                    const webArchiveLink = document.createElement("a")
-                    webArchiveLink.textContent = "[WA] "
-                    webArchiveLink.target = "_blank"
-                    webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + name
-                    userNamesP.appendChild(webArchiveLink)
-
-                    userNamesP.appendChild(makeOSMChaLink(name))
-                })
-            }
-        })
-        await processIDs([{ id: userID }], div)
-    }
-    content.appendChild(div)
+    console.log("addHoverForWayNodes finished")
 }
 
-async function setupHDYCInProfile(path) {
-    const match = path.match(/^\/user\/([^/]+)(\/|\/notes)?$/)
-    if (!match || path.includes("/history")) {
+/**
+ * @param {string[]} restrictionRelationErrors
+ * @param {HTMLElement} targetElem
+ */
+function showRestrictionValidationStatus(restrictionRelationErrors, targetElem) {
+    if (restrictionRelationErrors.length === 0) {
         return
     }
-    if (document.getElementById("hdyc-iframe")) {
-        return
-    }
-    /** @type {string} **/
-    const user = match[1]
-    if (user === "forgot-password" || user === "new") return
-    document.querySelector(".content-body > .content-inner").style.paddingBottom = "0px"
-    if (isDarkMode()) {
-        GM_addElement(document.querySelector("#content"), "iframe", {
-            src: "https://www.hdyc.neis-one.org/?" + user + "#forcedarktheme",
-            width: "100%",
-            id: "hdyc-iframe",
-            scrolling: "no",
-            background: "rgb(49, 54, 59)",
-            style: "visibility:hidden;background-color: rgb(49, 54, 59);",
-        })
-        setTimeout(() => {
-            document.getElementById("hdyc-iframe").style.visibility = "visible"
-        }, 1500)
-    } else {
-        GM_addElement(document.querySelector("#content"), "iframe", {
-            src: "https://www.hdyc.neis-one.org/?" + user + "#forcelighttheme",
-            width: "100%",
-            id: "hdyc-iframe",
-            scrolling: "no",
-        })
-    }
-    if (document.querySelector('a[href$="/blocks"]')?.nextElementSibling?.textContent > 0) {
-        document.querySelector('a[href$="/blocks"]').nextElementSibling.style.background = "rgba(255, 0, 0, 0.3)"
-        if (isDarkMode()) {
-            document.querySelector('a[href$="/blocks"]').nextElementSibling.style.color = "white"
-        }
-        getCachedUserInfo(decodeURI(user)).then(userInfo => {
-            if (userInfo["blocks"]["received"]["active"] === 0) {
-                updateUserInfo(decodeURI(user))
-            }
-        })
-    } else if (document.querySelector('a[href$="/blocks"]')?.nextElementSibling?.textContent === "0") {
-        getCachedUserInfo(decodeURI(user)).then(userInfo => {
-            if (userInfo["blocks"]["received"]["active"] !== 0) {
-                updateUserInfo(decodeURI(user))
-            }
-        })
-    }
-    const isDeletedUser = !document.querySelector(".user_image")
-    const usernameHeader = document.querySelector("#content h1")?.firstChild
-    if (!isDeletedUser && usernameHeader && usernameHeader.nodeType === Node.TEXT_NODE) {
-        const span = document.createElement("span")
-        span.classList.add("copyable-username")
-        span.textContent = usernameHeader.textContent
-        span.title = "Click for copy"
-        span.style.cursor = "pointer"
-        span.onclick = e => {
-            const username = usernameHeader.textContent.trim()
-            navigator.clipboard.writeText(username).then(() => copyAnimation(e, username))
-        }
-        usernameHeader.replaceWith(span)
-        injectCSSIntoOSMPage(copyAnimationStyles)
-    }
-    queueMicrotask(async () => {
-        if (document.querySelector(".prev-usernames")) return
-        const userDetails = document.querySelector(".content-inner small dl")
-        if (!userDetails) return
-        // https://www.openstreetmap.org/reports/new?reportable_id=12345&reportable_type=User
-        let userID = document
-            .querySelector('[href*="reportable_id="]')
-            ?.getAttribute("href")
-            ?.match(/reportable_id=(\d+)/)?.[1]
-        userID = userID ?? document.head.getAttribute("data-user")
-        if (!userID) {
-            const res = await fetchJSONWithCache(
-                osm_server.apiBase +
-                    "changesets.json?" +
-                    new URLSearchParams({
-                        display_name: decodeURI(user),
-                        limit: 1,
-                        order: "oldest",
-                    }).toString(),
-            )
-            if (res["changesets"].length === 0) {
-                const res = await fetchJSONWithCache(
-                    osm_server.apiBase +
-                        "notes/search.json?" +
-                        new URLSearchParams({
-                            display_name: decodeURI(user),
-                            limit: 1,
-                            closed: -1,
-                            order: "oldest",
-                        }).toString(),
-                )
-                userID = res?.["features"]?.[0]?.["properties"]?.["comments"]?.find(i => i["user"] === decodeURI(user))?.["uid"]
-                if (!userID) {
-                    return
-                }
-            } else {
-                userID = res["changesets"][0]["uid"]
-            }
-        }
-
-        async function addUsernames() {
-            async function updateUserIDInfo(userID) {
-                const res = await externalFetchRetry({
-                    url: "https://whosthat.osmz.ru/whosthat.php?action=names&id=" + userID,
-                    responseType: "json",
-                })
-                // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
-                // but here need resolve problem with return promise
-                const userInfo = {
-                    data: structuredClone(res.response),
-                }
-                if (userInfo.data[0]["names"].length > 1) {
-                    userInfo["cacheTime"] = new Date()
-                    await GM.setValue("useridinfo-" + userID, JSON.stringify(userInfo))
-
-                    const usernames = userInfo.data[0]["names"].filter(i => i !== decodeURI(user)).join(", ")
-                    if (document.querySelector(".prev-usernames")) {
-                        document.querySelector(".prev-usernames").textContent = usernames
-                    }
-                }
-                return userInfo
-            }
-
-            async function getCachedUserIDInfo(userID) {
-                const localUserInfo = await GM.getValue("useridinfo-" + userID, "")
-                if (localUserInfo) {
-                    setTimeout(updateUserIDInfo, 0, userID)
-                    return JSON.parse(localUserInfo)
-                }
-                return await updateUserIDInfo(userID)
-            }
-
-            const userIDInfo = await getCachedUserIDInfo(userID)
-            if (userIDInfo.data[0]["names"].length <= 1) {
-                console.log("prev user's usernames not found")
-                return
-            }
-            const usernames = userIDInfo.data[0]["names"].filter(i => i !== decodeURI(user)).join(", ")
-            const dt = document.createElement("dt")
-            dt.textContent = "Past usernames: "
-            dt.title = "Added by better-osm-org"
-            dt.classList.add("list-inline-item", "m-0", "prev-usernames-label")
-            const dd = document.createElement("dd")
-            dd.classList.add("list-inline-item", "prev-usernames")
-            dd.textContent = usernames
-            dd.title = "Added by better-osm-org"
-            userDetails.appendChild(dt)
-            userDetails.appendChild(document.createTextNode("\xA0"))
-            userDetails.appendChild(dd)
-        }
-
-        await addUsernames()
-
-        function addUserID() {
-            if (!document.querySelector('[href^="/api/0.6/user"]')) {
-                const dt = document.createElement("dt")
-                dt.textContent = "ID: "
-                dt.classList.add("list-inline-item", "m-0")
-                const dd = document.createElement("dd")
-                dd.classList.add("list-inline-item", "user-id")
-                dd.textContent = userID
-                dd.title = "Click for copy"
-                dd.style.cursor = "pointer"
-                dd.onclick = e => {
-                    navigator.clipboard.writeText(userID).then(() => copyAnimation(e, userID))
-                }
-                userDetails.appendChild(dt)
-                userDetails.appendChild(document.createTextNode("\xA0"))
-                userDetails.appendChild(dd)
-                injectCSSIntoOSMPage(copyAnimationStyles)
-            }
-        }
-
-        addUserID()
-    })
-    const iframe = document.getElementById("hdyc-iframe")
-    window.addEventListener("message", function (event) {
-        if (event.origin === "https://www.hdyc.neis-one.org") {
-            iframe.height = event.data.height + "px"
-        }
-    })
-    if (isDeletedUser && !location.pathname.includes("/notes")) {
-        await makeProfileForDeletedUser(user)
+    if (!targetElem.querySelector(".validation-status")) {
+        const validationStatus = document.createElement("span")
+        validationStatus.classList.add("validation-status")
+        validationStatus.textContent = " ⚠️"
+        validationStatus.title = restrictionRelationErrors.join("\n")
+        targetElem.appendChild(validationStatus)
     }
 }
 
-function setupBetterProfileStat() {
-    const match = location.pathname.match(/^\/user\/([^/]+)\/?$/)
+async function addHoverForRelationMembers() {
+    // todo make async safe
+    const match = location.pathname.match(/^\/relation\/(\d+)\/?$/)
     if (!match) {
         return
     }
-    const user = match[1]
-    const timerId = setInterval(betterUserStat, 300, decodeURI(user))
+    const relation_id = parseInt(match[1])
+    let infoBtn
+    // eslint-disable-next-line no-constant-condition no-constant-binary-expression
+    if (false && !document.querySelector(".relation-info-btn")) {
+        infoBtn = document.createElement("span")
+        infoBtn.textContent = "📐"
+        infoBtn.classList.add("relation-info-btn")
+        infoBtn.classList.add("completed")
+        infoBtn.style.fontSize = "large"
+        infoBtn.style.cursor = "pointer"
+
+        document.querySelector("#sidebar_content h4:last-of-type").appendChild(document.createTextNode("\xA0"))
+        document.querySelector("#sidebar_content h4:last-of-type").appendChild(infoBtn)
+    }
+    const relationData = await loadRelationMetadata(relation_id)
+    if (!relationData) return
+    while (document.querySelector("details turbo-frame .spinner-border")) {
+        console.log("wait members list loading")
+        await sleep(1000)
+    }
+    /*** @type {Map<string, NodeVersion>}*/
+    const nodesMap = new Map(
+        Object.entries(
+            Object.groupBy(
+                relationData.elements.filter(i => i.type === "node"),
+                i => i.id,
+            ),
+        ).map(([k, v]) => [k, v[0]]),
+    )
+    /*** @type {Map<string, WayVersion>}*/
+    const waysMap = new Map(
+        Object.entries(
+            Object.groupBy(
+                relationData.elements.filter(i => i.type === "way"),
+                i => i.id,
+            ),
+        ).map(([k, v]) => [k, v[0]]),
+    )
+    /*** @type {Map<string, RelationVersion>}*/
+    const relationsMap = new Map(
+        Object.entries(
+            Object.groupBy(
+                relationData.elements.filter(i => i.type === "relation"),
+                i => i.id,
+            ),
+        ).map(([k, v]) => [k, v[0]]),
+    )
+    let restrictionArrows = []
+    const pinSign = document.createElement("span")
+
+    function bringRestrictionArrowsToFront() {
+        restrictionArrows.forEach(i => i.bringToFront())
+    }
+
+    let isRestriction = false
+    document.querySelectorAll(`details [href^="/node/"]:not(.hover-added)`).forEach(elem => {
+        elem.classList.add("hover-added")
+        const nodeInfo = nodesMap.get(elem.href.match(/node\/(\d+)/)[1])
+        const nodeLi = elem?.parentElement?.parentElement?.parentElement
+        nodeLi.classList.add("relation-last-version-member")
+        nodeLi.onmouseenter = () => {
+            const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
+            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
+            bringRestrictionArrowsToFront()
+            if (isRestriction && pinSign.classList.contains("pinned")) {
+                // https://github.com/deevroman/better-osm-org/pull/324#issuecomment-2993733516
+                injectJSIntoPage(`
+                (() => {
+                    let tmp = document.createElement("span")
+                    tmp.innerHTML = '<svg id="kek" width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="6" stroke="black" stroke-width="3" fill="none" /></svg>'
+                    window.prevdo = {
+                        maxWidth: 10,
+                        maxHeight: 10,
+                        className: "restriction-via-node-workaround",
+                        icon: L.icon({
+                            iconUrl: "data:image/svg+xml;base64," + btoa(tmp.innerHTML),
+                            iconSize: [100, 100],
+                            iconAnchor: [50, 50]
+                        })
+                    };
+                })()
+                `)
+                const m = getWindow().L.marker(getWindow().L.latLng(nodeInfo.lat, nodeInfo.lon), getWindow().prevdo)
+                layers["activeObjects"].push(m)
+                m.addTo(getMap())
+            }
+        }
+        nodeLi.onclick = e => {
+            if (e.altKey) return
+            panTo(nodeInfo.lat.toString(), nodeInfo.lon.toString())
+            const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
+            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
+            bringRestrictionArrowsToFront()
+        }
+        nodeLi.ondblclick = zoomToCurrentObject
+        if (nodeInfo.tags) {
+            Object.entries(nodeInfo.tags).forEach(([k, v]) => {
+                nodeLi.title += `\n${k}=${v}`
+            })
+            nodeLi.title = nodeLi.title.trim()
+        }
+    })
+    document.querySelectorAll(`details [href^="/way/"]:not(.hover-added)`).forEach(elem => {
+        elem.classList.add("hover-added")
+        const wayInfo = waysMap.get(elem.href.match(/way\/(\d+)/)[1])
+        const wayLi = elem?.parentElement?.parentElement?.parentElement
+        wayLi.classList.add("relation-last-version-member")
+        wayLi.onmouseenter = () => {
+            const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
+            const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
+            showActiveWay(cloneInto(currentNodesList, unsafeWindow), color)
+            bringRestrictionArrowsToFront()
+        }
+        wayLi.onclick = e => {
+            if (e.altKey) return
+            if (e.target.tagName === "A") return
+            const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
+            const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
+            showActiveWay(cloneInto(currentNodesList, unsafeWindow), color, true)
+            bringRestrictionArrowsToFront()
+        }
+        wayLi.ondblclick = zoomToCurrentObject
+        if (wayInfo.tags) {
+            Object.entries(wayInfo.tags).forEach(([k, v]) => {
+                wayLi.title += `\n${k}=${v}`
+            })
+            wayLi.title = wayLi.title.trim()
+        }
+    })
+    document.querySelectorAll(`details:last-of-type [href^="/relation/"]:not(.hover-added)`).forEach(elem => {
+        elem.classList.add("hover-added")
+        const relationInfo = relationsMap.get(elem.href.match(/relation\/(\d+)/)[1])
+        const relationLi = elem?.parentElement?.parentElement?.parentElement
+        relationLi.classList.add("relation-last-version-member")
+        relationLi.onmouseenter = () => {
+            relationInfo.members.forEach(i => {
+                const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
+                if (i.type === "node") {
+                    showActiveNodeMarker(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString(), color, true, 6, 3)
+                } else if (i.type === "way") {
+                    const currentNodesList = waysMap[i.id].nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
+                    showActiveWay(cloneInto(currentNodesList, unsafeWindow), color)
+                } else {
+                    // todo
+                }
+            })
+            bringRestrictionArrowsToFront()
+        }
+        relationLi.onclick = e => {
+            if (e.altKey) return
+            if (e.target.tagName === "A") return
+            relationInfo.members.forEach(i => {
+                const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
+                if (i.type === "node") {
+                    if (e.altKey) return
+                    panTo(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString())
+                    showActiveNodeMarker(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString(), color, true, 6, 3)
+                } else if (i.type === "way") {
+                    const currentNodesList = waysMap[i.id].nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
+                    showActiveWay(cloneInto(currentNodesList, unsafeWindow), color, true)
+                } else {
+                    // todo
+                }
+            })
+            bringRestrictionArrowsToFront()
+        }
+        relationLi.ondblclick = zoomToCurrentObject
+        if (relationInfo.tags) {
+            Object.entries(relationInfo.tags).forEach(([k, v]) => {
+                relationLi.title += `\n${k}=${v}`
+            })
+            relationLi.title = relationLi.title.trim()
+        }
+    })
+    // prettier-ignore
+    document.querySelector(".relation-last-version-member")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
+        cleanObjectsByKey("activeObjects")
+    })
+    document.querySelector(".secondary-actions")?.addEventListener("mouseenter", () => {
+        cleanObjectsByKey("activeObjects")
+    })
+    if (document.querySelector("#sidebar_content h2:not(.restriction-rendered)") && isRestrictionObj(relationsMap.get(relation_id.toString()).tags ?? {})) {
+        isRestriction = true
+        document.querySelector("#sidebar_content h2").classList.add("restriction-rendered")
+        const extendedRelationVersion = relationsMap.get(relation_id.toString())
+        extendedRelationVersion.members = extendedRelationVersion.members.map(mem => {
+            if (mem.type === "node") {
+                mem["lat"] = nodesMap.get(mem.ref.toString()).lat
+                mem["lon"] = nodesMap.get(mem.ref.toString()).lon
+                return /** @type {ExtendedRelationNodeMember} */ mem
+            } else if (mem.type === "way") {
+                mem["geometry"] = waysMap.get(mem.ref.toString()).nodes.map(n => ({
+                    lat: nodesMap.get(n.toString()).lat,
+                    lon: nodesMap.get(n.toString()).lon,
+                }))
+                return /** @type {ExtendedRelationWayMember} */ mem
+            } else if (mem.type === "relation") {
+                // todo
+                return /** @type {ExtendedRelationMember} */ mem
+            }
+        })
+        const errors = validateRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion)
+        if (errors.length) {
+            showRestrictionValidationStatus(errors, document.querySelector("#sidebar_content > div:first-of-type details:last-of-type summary"))
+        } else {
+            restrictionArrows = renderRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion, restrictionColors[extendedRelationVersion.tags["restriction"]] ?? "#000", "customObjects")
+            pinSign.classList.add("pinned")
+            pinSign.textContent = "📌"
+            pinSign.tabIndex = 0
+            pinSign.title = "Pin restriction sign on map.\nYou can hide all the objects that better-osm-org adds by pressing ` or ~"
+            pinSign.style.cursor = "pointer"
+            pinSign.onkeypress = pinSign.onclick = async e => {
+                e.preventDefault()
+                e.stopImmediatePropagation()
+                if (pinSign.classList.contains("pinned")) {
+                    pinSign.style.cursor = "pointer"
+                    pinSign.classList.remove("pinned")
+                    pinSign.style.filter = "grayscale(1)"
+                    pinSign.title = "Hide restriction sign"
+                    restrictionArrows.forEach(i => (i.getElement().style.display = "none"))
+                } else {
+                    pinSign.title = "Hide restriction sign"
+                    pinSign.classList.add("pinned")
+                    pinSign.style.filter = ""
+                    restrictionArrows.forEach(i => (i.getElement().style.display = ""))
+                }
+            }
+            document.querySelector("#sidebar_content > div:first-of-type details:last-of-type summary").appendChild(document.createTextNode(" "))
+            document.querySelector("#sidebar_content > div:first-of-type details:last-of-type summary").appendChild(pinSign)
+        }
+    }
+
+    if (infoBtn) {
+        const nodesIds = relationData.elements.find(i => i.type === "way").nodes
+        const infos = makePolygonMeasureButtons(nodesIds, nodesMap)
+        document.querySelector("#sidebar_content h4:last-of-type").after(infos)
+
+        infoBtn.onclick = () => {
+            infos.style.display = infos.style.display === "none" ? "" : "none"
+        }
+    }
+    console.log("addHoverForRelationMembers finished")
+}
+
+function makeHeaderPartsClickable() {
+    function makeElemCopyable(elem, url = "") {
+        if (/^\d+$/.test(elem.textContent)) {
+            elem.title = `Click to copy ID\n${CtrlKeyName} + click to copy URL`
+        } else {
+            elem.title = "Click to copy"
+        }
+        elem.style.cursor = "pointer"
+        elem.classList.add("copyable")
+        elem.addEventListener("click", e => {
+            if (e.altKey) return
+            if (window.getSelection().type === "Range") return
+            if ((e.ctrlKey || e.metaKey) && url !== "") {
+                navigator.clipboard.writeText(url).then(() => copyAnimation(e, url))
+            } else {
+                navigator.clipboard.writeText(elem.textContent).then(() => copyAnimation(e, elem.textContent))
+            }
+        })
+    }
+
+    document.querySelectorAll("#sidebar_content h2 bdi:not(.copyable)").forEach(i => {
+        if (i.textContent.match(/^\d+$/)) {
+            const url = shortOsmOrgLinksInText(location.origin + location.pathname)
+            if (url.startsWith("http")) {
+                makeElemCopyable(i, url)
+            } else {
+                makeElemCopyable(i, "https://" + url)
+            }
+        } else {
+            makeElemCopyable(i)
+        }
+    })
+    document.querySelectorAll("#sidebar_content h2:not(:has(.copyable))").forEach(i => {
+        if (i.childNodes.length >= 1 && i.childNodes[0].nodeName === "#text") {
+            const match = /\d+/g.exec(i.childNodes[0].textContent)
+            if (!match) return
+            i.childNodes[0].splitText(match.index + match[0].length)
+            i.childNodes[0].splitText(match.index)
+            const span = document.createElement("bdi")
+            span.textContent = i.childNodes[1].textContent
+            i.childNodes[1].replaceWith(span)
+            const url = shortOsmOrgLinksInText(location.origin + location.pathname)
+            if (url.startsWith("http")) {
+                makeElemCopyable(span, url)
+            } else {
+                makeElemCopyable(span, "https://" + url)
+            }
+        }
+    })
+}
+
+function expandWikidata() {
+    const links = Array.from(document.querySelectorAll(".wdt-preview:not([disabled])"))
+    // fuck Bootstrap. When page contains many HTML elements, him querySelector iterates over all elements
+    // This is especially noticeable on the relationship pages.
+    if (links.length > 50) {
+        return
+    }
+    console.debug("Wikilinks count:", links.length)
+    ;(links.find(i => i.parentElement.classList.contains("history-diff-new-tag") || i.parentElement.classList.contains("history-diff-modified-tag")) ?? links?.[0])?.click()
+    setTimeout(() => {
+        links.slice(0, 3).forEach(i => i.click())
+    }, 100)
+    setTimeout(() => {
+        links.slice(3).forEach(i => i.click())
+    }, 1000)
+}
+
+function makeContextMenuElem(e) {
+    const x = e.pageX ? e.pageX : e.target.getBoundingClientRect().right
+    const y = e.pageY ? e.pageY : e.target.getBoundingClientRect().bottom
+    const menu = document.createElement("div")
+    menu.classList.add("betterOsmContextMenu")
+    menu.style.left = `${max(5, x - 30)}px`
+    menu.style.top = `${y}px`
+    return menu
+}
+
+function addCopyCoordinatesButtons() {
+    const m = location.pathname.match(/^\/(node|way)\/(\d+)/)
+    if (!m) {
+        return
+    }
+    const type = m[1]
+    if (type === "way") {
+        return
+    }
+
+    function addCopyButton(coordsElem, lat, lon) {
+        const coordinatesFormatters = {
+            "Lat Lon": { getter: () => `${lat} ${lon}` },
+            "Lon Lat": { getter: () => `${lon} ${lat}` },
+            "geo:": { getter: () => `geo:${lat},${lon}` },
+            "osm.org": { getter: () => `osm.org#map=${getZoom()}/${lat}/${lon}` },
+        }
+
+        coordsElem.onclick = async e => {
+            e.preventDefault()
+            e.stopPropagation()
+            e.stopImmediatePropagation()
+
+            const coordinatesFormat = (await GM.getValue("CoordinatesFormat")) ?? "Lat Lon"
+            const text = coordinatesFormatters[coordinatesFormat]["getter"]()
+            navigator.clipboard.writeText(text).then(() => copyAnimation({ target: coordsElem }, text))
+        }
+        setTimeout(async () => {
+            const coordinatesFormat = (await GM.getValue("CoordinatesFormat")) ?? "Lat Lon"
+            coordsElem.title = "Click to copy " + coordinatesFormatters[coordinatesFormat]["getter"]()
+        })
+        coordsElem.classList.add("copyable")
+        const copyButton = document.createElement("span")
+        copyButton.classList.add("copy-coords-btn")
+        copyButton.textContent = "📄"
+        copyButton.title = "Select coordinates format for copy.\nTo copy just click by coordinates"
+        copyButton.innerHTML = copyBtnSvg
+        copyButton.style.height = "0.9rem"
+        copyButton.style.position = "relative"
+        if (location.pathname.endsWith("/history")) {
+            copyButton.style.top = "-2px"
+        } else {
+            copyButton.style.top = "-1px"
+        }
+        copyButton.style.left = "-1px"
+        copyButton.style.color = "gray"
+        copyButton.style.cursor = "pointer"
+
+        async function contextMenuHandler(e) {
+            const coordinatesFormat = (await GM.getValue("CoordinatesFormat")) ?? "Lat Lon"
+            e.preventDefault()
+            e.stopPropagation()
+            e.stopImmediatePropagation()
+
+            injectContextMenuCSS()
+            document.querySelectorAll(".betterOsmContextMenu").forEach(i => i.remove())
+            const menu = makeContextMenuElem(e)
+            Object.entries(coordinatesFormatters).forEach(([format, formatter], ind) => {
+                const listItem = document.createElement("div")
+                const text = formatter.getter()
+                const a = document.createElement("a")
+                a.textContent = text
+                a.title = "Click to copy " + text
+                a.onclick = () => {
+                    navigator.clipboard.writeText(text)
+                }
+
+                const pin = document.createElement("input")
+                pin.id = "CoordFormat_" + ind
+                pin.type = "radio"
+                pin.classList.add("pin")
+                pin.setAttribute("name", "viewer-selector")
+                const pinLabel = document.createElement("label")
+                pinLabel.setAttribute("for", "CoordFormat_" + ind)
+                pinLabel.classList.add("pin-label")
+                pinLabel.textContent = "📌"
+                pinLabel.title = "Set as default for copy, when you click by coordinates"
+                if (format === coordinatesFormat) {
+                    pin.checked = true
+                    pinLabel.title = "It's default format, when your click by coordinates"
+                }
+                pin.onchange = async () => {
+                    if (pin.checked) {
+                        await GM.setValue("CoordinatesFormat", format)
+                        coordsElem.title = "Click to copy " + coordinatesFormatters[format]["getter"]()
+                    }
+                }
+                listItem.appendChild(pin)
+                listItem.appendChild(pinLabel)
+                listItem.appendChild(a)
+                document.addEventListener(
+                    "click",
+                    function fn(e) {
+                        if (!e.isTrusted) {
+                            document.addEventListener("click", fn, { once: true })
+                            return
+                        }
+                        if (e.target.classList.contains("pin-label") || e.target.classList.contains("pin")) {
+                            document.addEventListener("click", fn, { once: true })
+                            return
+                        }
+                        menu.remove()
+                    },
+                    { once: true },
+                )
+                menu.appendChild(listItem)
+            })
+            document.body.appendChild(menu)
+        }
+
+        copyButton.addEventListener("click", contextMenuHandler)
+        coordsElem.after(copyButton)
+        coordsElem.after(document.createTextNode("\xA0"))
+    }
+
+    document.querySelectorAll("#sidebar_content a:has(.longitude):not(.copyable)").forEach(coordsElem => {
+        const lat = coordsElem.querySelector(".latitude").textContent.replace(",", ".")
+        const lon = coordsElem.querySelector(".longitude").textContent.replace(",", ".")
+        addCopyButton(coordsElem, lat, lon)
+    })
+    if (type === "way") {
+    }
+    // try {
+    //     const wrapper = document.createElement("span")
+    //     document.querySelector(".share-geo-uri h4:not(.copyable)")?.appendChild(wrapper)
+    //     document.querySelector(".share-geo-uri h4").classList.add("copyable")
+    //
+    //     const lat = getMap().getCenter().lat.toFixed(6)
+    //     const lon = getMap().getCenter().lat.toFixed(6)
+    //     addCopyButton(wrapper, lat, lon)
+    // } catch (e) {
+    //     console.error(e)
+    // }
+}
+
+function addRelationHistoryViewerLinks() {
+    if (!location.pathname.match(/\/relation\/[0-9]+\/history\/?$/)) {
+        return
+    }
+    if (document.querySelector(".relation-viewer-link")) {
+        return
+    }
+    const id = parseInt(location.pathname.match(/\/relation\/(\d+)/)[1])
+    const type = "relation"
+    injectCSSIntoOSMPage(contextMenuCSS)
+    const viewInExternal = document.createElement("a")
+    viewInExternal.classList.add("relation-viewer-link")
+    viewInExternal.innerHTML = externalLinkSvg
+    viewInExternal.style.cursor = "pointer"
+    viewInExternal.style.position = "relative"
+    viewInExternal.style.top = "-2px"
+    viewInExternal.style.paddingLeft = "5px"
+    viewInExternal.title = "Click for open external relation viewer.\nOr use key O"
+    viewInExternal.querySelector("svg").tabIndex = 0
+
+    async function contextMenuHandler(e) {
+        e.preventDefault()
+        e.stopPropagation()
+        e.stopImmediatePropagation()
+        const relationViewer = (await GM.getValue("relationHistoryViewer")) ?? mapkiLink.name
+
+        const menu = makeContextMenuElem(e)
+        instancesOfRelationViewers.forEach(i => {
+            const listItem = document.createElement("div")
+            const a = document.createElement("a")
+            const [x, y, z] = getCurrentXYZ()
+            a.href = i.makeURL({ x, y, z, type, id })
+            a.textContent = i.name
+            a.target = "_blank"
+            a.classList.add("relation-viewer-a")
+
+            const pin = document.createElement("input")
+            pin.id = i.name
+            pin.type = "radio"
+            pin.classList.add("pin")
+            pin.setAttribute("name", "viewer-selector")
+            const pinLabel = document.createElement("label")
+            pinLabel.setAttribute("for", i.name)
+            pinLabel.classList.add("pin-label")
+            pinLabel.textContent = "📌"
+            pinLabel.title = "Set as default for click"
+            if (i.name === relationViewer) {
+                pin.checked = true
+                pinLabel.title = "It's default viewer"
+            }
+            pin.onchange = async () => {
+                if (pin.checked) {
+                    await GM.setValue("relationHistoryViewer", i.name)
+                }
+            }
+            listItem.appendChild(pin)
+            listItem.appendChild(pinLabel)
+            listItem.appendChild(a)
+            document.addEventListener(
+                "click",
+                function fn(e) {
+                    if (!e.isTrusted) {
+                        document.addEventListener("click", fn, { once: true })
+                        return
+                    }
+                    if (e.target.classList.contains("pin-label") || e.target.classList.contains("pin")) {
+                        document.addEventListener("click", fn, { once: true })
+                        return
+                    }
+                    menu.remove()
+                },
+                { once: true },
+            )
+            menu.appendChild(listItem)
+        })
+        document.body.appendChild(menu)
+        if (e.type === "keypress" || (e.type === "click" && !e.isTrusted)) {
+            menu.querySelector("input:checked ~ a").focus()
+        }
+    }
+
+    viewInExternal.addEventListener("click", contextMenuHandler)
+    viewInExternal.addEventListener("keypress", contextMenuHandler)
+    viewInExternal.addEventListener("contextmenu", contextMenuHandler)
+    document.querySelector("#sidebar_content h2").appendChild(viewInExternal)
+}
+
+function makeVersionPageBetter() {
+    const match = location.pathname.match(/(node|way|relation)\/(\d+)(\/history\/(\d+)\/?$|\/?$)/)
+    if (!match) {
+        return
+    }
+    addCompactSidebarStyle()
+    externalizeLinks(document.querySelectorAll("#sidebar_content p a"))
+    externalizeLinks(document.querySelectorAll("#sidebar_content table a"))
+    const browseSectionSelector = document.querySelector("#element_versions_list")
+        ? '#element_versions_list > div:not(:has(a[href*="/redactions/"]:not([rel]):not(.unredacted)))'
+        : "#sidebar_content > div:first-of-type"
+    if (!document.querySelector(".find-user-btn")) {
+        try {
+            const ver = document.querySelector(browseSectionSelector)
+            const tagsCount = ver.querySelectorAll("#sidebar_content tr:has(th):has(td)").length
+            if (tagsCount > 5) {
+                ver.title = makeTitleForTagsCount(tagsCount)
+            }
+
+            const metainfoHTML = ver?.querySelector(":scope > div > div")
+            if (metainfoHTML && !metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')) {
+                const time = metainfoHTML.querySelector("time")
+                const changesetID = ver.querySelector(':scope div a[href^="/changeset/"]:not([rel])').textContent
+
+                metainfoHTML.lastChild.remove()
+                const findBtn = document.createElement("span")
+                findBtn.classList.add("find-user-btn")
+                findBtn.title = "Try find deleted user"
+                findBtn.textContent = " 🔍 "
+                findBtn.value = changesetID
+                findBtn.datetime = time.dateTime
+                findBtn.style.cursor = "pointer"
+                findBtn.onclick = findChangesetInDiff
+                metainfoHTML.appendChild(findBtn)
+            }
+        } catch {
+            /* empty */
+        }
+    }
+    makeHeaderPartsClickable()
+    addHistoryLink()
+    makeLinksInVersionTagsClickable()
+    makeHashtagsClickable()
+    makeTimesSwitchable()
+    document.querySelectorAll(`${browseSectionSelector} p`).forEach(shortOsmOrgLinks)
+    addCommentsCount()
+    expandWikidata()
+    addCopyCoordinatesButtons()
+    void addHoverForNodesParents()
+    void addHoverForWayNodes()
+    void addHoverForRelationMembers()
+    // костыль для KeyK/L и OSM tags editor
+    document.querySelector("#sidebar_content > div:first-of-type")?.classList?.add("browse-section")
+    document.querySelectorAll("#element_versions_list > div").forEach(i => i.classList.add("browse-section"))
+}
+
+function setupMakeVersionPageBetter() {
+    const match = location.pathname.match(/(node|way|relation)\/(\d+)(\/history\/(\d+)\/?$|\/?$)/)
+    if (!match) {
+        return
+    }
+    const timerId = setInterval(makeVersionPageBetter, 500)
     setTimeout(() => {
         clearInterval(timerId)
-        console.debug("stop try add heatmap filters")
-    }, 5000)
-    void betterUserStat(decodeURI(user))
-}
-
-function inFrame() {
-    return window.location !== window.parent.location
-}
-
-function simplifyHDCYIframe() {
-    if (!inFrame()) {
-        return
-    }
-    const forceLightTheme = location.hash.includes("forcelighttheme")
-    const forceDarkTheme = location.hash.includes("forcedarktheme")
-    injectCSSIntoSimplePage(`
-            html, body {
-                overflow-x: auto;
-            }
-
-            @media ${forceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${forceLightTheme ? "and (not all)" : ""} {
-                body {
-                    background-color: #181a1b;
-                    color: #e8e6e3;
-                }
-
-                #header a {
-                    color: lightgray !important;
-                }
-
-                #activitymap .leaflet-tile,
-                #mapwrapper .leaflet-tile {
-                    filter: invert(100%) hue-rotate(180deg) contrast(90%);
-                }
-
-                #activitymap path {
-                    stroke: #0088ff;
-                    fill: #0088ff;
-                    stroke-opacity: 0.7;
-                }
-
-                #activitymapswitcher {
-                    background-color: rgba(24, 26, 27, 0.8);
-                }
-
-                .leaflet-popup-content {
-                    color: lightgray;
-                }
-
-                .leaflet-popup-content-wrapper, .leaflet-popup-tip {
-                    background: #222;
-                }
-
-                a, .leaflet-container a {
-                    color: #1c84fd;
-                }
-
-                a:visited, .leaflet-container a:visited {
-                    color: #c94bff;
-                }
-
-                a[style*="black"] {
-                    color: lightgray !important;
-                }
-
-                .day-cell[fill="#e8e8e8"] {
-                    fill: #262a2b;
-                }
-
-                #result th {
-                    background-color: rgba(24, 26, 27, 0.8);
-                }
-
-                #result td {
-                    border-color: #363659;
-                }
-
-                td[style*="purple"] {
-                    color: #ff72ff !important;
-                }
-
-                td[style*="green"] {
-                    color: limegreen !important;
-                }
-
-                #graph_years canvas,
-                #graph_editors canvas,
-                #graph_days canvas,
-                #graph_hours canvas {
-                    filter: saturate(4);
-                }
-
-                .tickLabel {
-                    color: #b3aca2;
-                }
-
-                .editors_wrapper th, .editors_wrapper td {
-                    border-bottom-color: #8c8273;
-                }
-            }
-        `)
-    const loginLink = document.getElementById("loginLink")
-    if (loginLink) {
-        const warn = document.createElement("div")
-        warn.id = "hdyc-warn"
-        injectCSSIntoSimplePage(`
-                #hdyc-warn, #hdycLink {
-                    text-align: left !important;
-                    width: 50%;
-                    position: relative;
-                    left: 35%;
-                    right: 33%;
-                }
-            `)
-        if (isFirefox) {
-            warn.textContent = "Please disable tracking protection so that the HDYC account login works"
-
-            document.getElementById("authenticate").before(warn)
-            const hdycLink = document.createElement("a")
-            const match = location.pathname.match(/^\/user\/([^/]+)$/)
-            hdycLink.href = "https://www.hdyc.neis-one.org/" + (match ? match[1] : "")
-            hdycLink.textContent = "Go to https://www.hdyc.neis-one.org/"
-            hdycLink.target = "_blank"
-            hdycLink.id = "hdycLink"
-            document.getElementById("authenticate").before(document.createElement("br"))
-            document.getElementById("authenticate").before(hdycLink)
-            document.getElementById("authenticate").remove()
-            window.parent.postMessage({ height: document.body.scrollHeight }, "*")
-        } else {
-            warn.innerHTML = `To see more than just public profiles, do the following:<br/>
-0. Turn off tracking protection if your browser has it (for example in Brave or Vivaldi)<br/>
-1. <a href="https://www.hdyc.neis-one.org/" target="_blank"> Log in to HDYC</a> <br/>
-2. Open the browser console (F12) <br/>
-3. Open the Application tab <br/>
-4. In the left panel, select <i>Storage</i>→<i>Cookies</i>→<i>https://www.hdyc.neis-one.org</i><br/>
-5. Click on the cell with the name <i>SameSite</i> and type <i>None</i> in it`
-            document.getElementById("authenticate").before(warn)
-            const img_help = document.createElement("img")
-            img_help.onload = () => {
-                window.parent.postMessage({ height: document.body.scrollHeight }, "*")
-            }
-            img_help.src = "https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/img/hdyc-fix-in-chrome.png"
-            img_help.style.width = "90%"
-            warn.after(img_help)
-            document.getElementById("authenticate").remove()
-        }
-        // var xhr = XPCNativeWrapper(new window.wrappedJSObject.XMLHttpRequest());
-        // let res = await GM.xmlHttpRequest({
-        //     method: "GET",
-        //     url: document.querySelector("#loginLink").href,
-        //     withCredentials: true
-        // })
-        // debugger
-        return
-    }
-    try {
-        document.getElementById("header").remove()
-        document.getElementById("user").remove()
-        document.getElementById("searchfield").remove()
-        document.querySelector(".mapper_img").remove()
-        let bCnt = 0
-        for (let childNodesKey of Array.from(document.querySelector(".since").childNodes)) {
-            if (childNodesKey.nodeName === "#text") {
-                childNodesKey.remove()
-                continue
-            }
-            if (childNodesKey.classList.contains("image")) {
-                continue
-            }
-            if (childNodesKey.localName === "b") {
-                if (bCnt === 2) {
-                    break
-                }
-                bCnt++
-            }
-            childNodesKey.remove()
-        }
-    } catch (e) {
-        console.error(e)
-    }
-    window.parent.postMessage({ height: document.body.scrollHeight }, "*")
+        console.debug("stop adding MakeVersionPageBetter")
+    }, 3000)
+    makeVersionPageBetter()
 }
 
 //<editor-fold desc="/history, /user/*/history">
@@ -16254,12 +15256,12 @@ async function updateUserInfo(username) {
     void initCorporateMappersList()
     const res = await fetchJSONWithCache(
         osm_server.apiBase +
-            "changesets.json?" +
-            new URLSearchParams({
-                display_name: username,
-                limit: 1,
-                order: "oldest",
-            }).toString(),
+        "changesets.json?" +
+        new URLSearchParams({
+            display_name: username,
+            limit: 1,
+            order: "oldest",
+        }).toString(),
     )
     let uid
     let firstObjectCreationTime
@@ -16267,13 +15269,13 @@ async function updateUserInfo(username) {
     if (res["changesets"].length === 0) {
         const res = await fetchJSONWithCache(
             osm_server.apiBase +
-                "notes/search.json?" +
-                new URLSearchParams({
-                    display_name: username,
-                    limit: 1,
-                    closed: -1,
-                    order: "oldest",
-                }).toString(),
+            "notes/search.json?" +
+            new URLSearchParams({
+                display_name: username,
+                limit: 1,
+                closed: -1,
+                order: "oldest",
+            }).toString(),
         )
         uid = res["features"][0]["properties"]["comments"].find(i => i["user"] === username)["uid"]
         firstObjectCreationTime = res["features"][0]["properties"]["comments"].find(i => i["user"] === username)["date"]
@@ -17417,6 +16419,2642 @@ function setupMassChangesetsActions() {
 
 //</editor-fold>
 
+//<editor-fold desc="relation version page" defaultstate="collapsed">
+
+function addRelationVersionView() {
+    const match = location.pathname.match(/relation\/(\d+)\/history\/(\d+)\/?$/)
+    if (!match) {
+        return
+    }
+    if (document.querySelector("#load-relation-version")) return
+    const btn = document.createElement("a")
+    btn.textContent = "📥"
+    btn.id = "load-relation-version"
+    btn.title = "Load relation version via Overpass API"
+    btn.tabIndex = 0
+    btn.style.cursor = "pointer"
+
+    async function clickForDownloadHandler(e) {
+        if (e.type === "keypress" && (e.code === "Space" || e.code === "Enter")) {
+            e.preventDefault()
+        } else if (e.type === "keypress") {
+            return
+        }
+        e.stopPropagation()
+        e.stopImmediatePropagation()
+        btn.style.cursor = "progress"
+        const match = location.pathname.match(/relation\/(\d+)\/history\/(\d+)\/?$/)
+        const id = parseInt(match[1])
+        const timestamp = document.querySelector("time").getAttribute("datetime")
+        try {
+            const { restrictionRelationErrors } = await loadRelationVersionMembersViaOverpass(id, timestamp)
+            showRestrictionValidationStatus(restrictionRelationErrors, document.querySelector("#sidebar_content > div details summary"))
+        } catch (e) {
+            btn.style.cursor = "pointer"
+            throw e
+        }
+        btn.style.visibility = "hidden"
+    }
+
+    btn.addEventListener("click", clickForDownloadHandler)
+    btn.addEventListener("keypress", clickForDownloadHandler)
+    document.querySelector("#sidebar_content > div h4")?.appendChild(btn)
+}
+
+function setupRelationVersionViewer() {
+    const match = location.pathname.match(/relation\/(\d+)\/history\/(\d+)\/?$/)
+    if (!match) {
+        return
+    }
+    const timerId = setInterval(addRelationVersionView, 500)
+    setTimeout(() => {
+        clearInterval(timerId)
+        console.debug("stop adding RelationVersionView")
+    }, 25000)
+    addRelationVersionView()
+}
+
+//</editor-fold>
+
+//<editor-fold desc="user-profile" defaultstate="collapsed">
+
+async function loadChangesetsBetween(user, fromTime, toTime) {
+    let curTime = fromTime
+    const processedChangesets = new Set()
+    /*** @type {ChangesetMetadata[]}*/
+    const changesets = []
+
+    while (true) {
+        /*** @type {{changesets: ChangesetMetadata[]}}*/
+        const res = await fetchJSONWithCache(
+            osm_server.apiBase +
+            "changesets.json?" +
+            new URLSearchParams({
+                display_name: user,
+                order: "oldest",
+                from: curTime.toISOString(),
+                to: toTime.toISOString(),
+            }).toString(),
+        )
+        console.log(res)
+
+        res.changesets = res.changesets.filter(i => !processedChangesets.has(i.id))
+        if (res.changesets.length === 0) break
+
+        res.changesets.forEach(i => {
+            changesets.push(i)
+            processedChangesets.add(i.id)
+        })
+
+        curTime = new Date(res.changesets[res.changesets.length - 1].created_at)
+    }
+    console.log(`${changesets.length} changesets from ${fromTime} to ${toTime} fetched`)
+    changesets.forEach(i => {
+        if (i.comments_count) {
+            void getChangesetComments(i.id)
+        }
+    })
+    return changesets
+}
+
+/**
+ * @template T
+ * @template X
+ * @param {T[]} items
+ * @param {(T) => X} keyFn
+ * @return {T[]}
+ */
+function uniq(items, keyFn) {
+    const uniqs = new Set()
+    const result = []
+
+    items.forEach(i => {
+        const elem = keyFn(i)
+        if (!uniqs.has(elem)) {
+            uniqs.add(elem)
+            result.push(i)
+        }
+    })
+    return result
+}
+
+/**
+ * @param user {string}
+ * @return {Promise<ChangesetMetadata[]>}
+ */
+async function loadChangesets(user) {
+    console.time(`stat-for-${user}`)
+    const startTime = new Date(new Date().getTime() - 1000 * 60 * 60 * 24 * 365)
+    const startTime2 = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 365 * 3) / 4)
+    const startTime3 = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 365 * 2) / 4)
+    const startTime4 = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 365) / 4)
+    const endTime = new Date(new Date().getTime() + 1000 * 60 * 60 * 24)
+
+    // prettier-ignore
+    const parts = await Promise.all([
+        loadChangesetsBetween(user, startTime, startTime2),
+        loadChangesetsBetween(user, startTime2, startTime3),
+        loadChangesetsBetween(user, startTime3, startTime4),
+        loadChangesetsBetween(user, startTime4, endTime)
+    ])
+
+    const uniqChangesets = new Set()
+    const changesets = []
+
+    parts.forEach(part => {
+        part.forEach(ch => {
+            if (!uniqChangesets.has(ch.id)) {
+                uniqChangesets.add(ch.id)
+                changesets.push(ch)
+            }
+        })
+    })
+
+    console.timeEnd(`stat-for-${user}`)
+    console.log("Changesets for the last year:", changesets.length)
+    return changesets
+}
+
+/**
+ * @param {ChangesetMetadata[]} changesets
+ * @param filter
+ * @return {[Object.<string, [number, number, {id: number, comment: string, comments_count: number}]>, number]}
+ */
+function makeChangesetsStat(changesets, filter) {
+    const datesStat = {}
+    let changesets_count = 0
+
+    changesets.forEach(i => {
+        if (!filter(i)) return
+        changesets_count++
+        const date = new Date(i.created_at)
+        const key = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`
+        if (datesStat[key] === undefined) {
+            datesStat[key] = [0, 0, []]
+        }
+        datesStat[key][0] += i.changes_count
+        datesStat[key][1] = max(datesStat[key][1], i.id)
+        datesStat[key][2].push({
+            id: i.id,
+            comment: i?.tags?.["comment"] ?? "",
+            comments_count: i.comments_count,
+        })
+    })
+
+    return [
+        Object.fromEntries(
+            Object.entries(datesStat).sort((a, b) => {
+                if (a[0] < b[0]) {
+                    return -1
+                }
+                if (a[0] > b[0]) {
+                    return 1
+                }
+                return 0
+            }),
+        ),
+        changesets_count,
+    ]
+}
+
+async function makeEditorNormalizer() {
+    const url = "https://raw.githubusercontent.com/deevroman/openstreetmap-statistics/refs/heads/master/src/replace_rules_created_by.json"
+    const rawReplaceRules = (
+        await externalFetchRetry({
+            url: url,
+        })
+    ).responseText
+    console.log("replace rules loaded")
+
+    const tag_to_name = {}
+    const starts_with_list = []
+    const ends_with_list = []
+    const contains_list = []
+    Object.entries(JSON.parse(rawReplaceRules)).forEach(([name, name_infos]) => {
+        if (name_infos["aliases"]) {
+            for (let alias in name_infos["aliases"]) {
+                tag_to_name[alias] = name
+            }
+        }
+        if (name_infos["starts_with"]) {
+            for (const starts_with of name_infos["starts_with"]) {
+                starts_with_list.push([starts_with.length, starts_with, name])
+            }
+        }
+        if (name_infos["ends_with"]) {
+            for (const ends_with of name_infos["ends_with"]) {
+                ends_with_list.push([ends_with.length, ends_with, name])
+            }
+        }
+        if (name_infos["contains"]) {
+            for (const compare_str of name_infos["contains"]) {
+                contains_list.push([compare_str, name])
+            }
+        }
+    })
+
+    return tag => {
+        if (!tag) return tag
+
+        if (tag_to_name[tag]) {
+            return tag_to_name[tag]
+        }
+
+        for (let [compare_str_length, compare_str, replace_str] of starts_with_list) {
+            if (tag.slice(0, compare_str_length) === compare_str) {
+                return replace_str
+            }
+        }
+
+        for (let [compare_str_length, compare_str, replace_str] of ends_with_list) {
+            if (tag.slice(-compare_str_length) === compare_str) {
+                return replace_str
+            }
+        }
+
+        for (let [compare_str, replace_str] of contains_list) {
+            if (tag.includes(compare_str)) {
+                return replace_str
+            }
+        }
+
+        return tag
+    }
+}
+
+async function betterUserStat(user) {
+    if (!GM_config.get("BetterProfileStat") || !location.pathname.match(/^\/user\/([^/]+)\/?$/)) {
+        return
+    }
+    if (document.getElementById("filter-bar")) {
+        return
+    }
+    const filterBar = document.createElement("div")
+    filterBar.id = "filter-bar"
+    filterBar.style.display = "flex"
+    filterBar.style.gap = "3px"
+
+    const filterInputByEditor = document.createElement("select")
+    filterInputByEditor.style.flex = "1"
+    filterInputByEditor.id = "filter-input-by-editor"
+    filterInputByEditor.setAttribute("disabled", true)
+    filterInputByEditor.title = "Please wait while user changesets loading"
+
+    const item = document.createElement("option")
+    item.value = ""
+    item.setAttribute("all-editors", "yes")
+    item.textContent = "All editors"
+    filterInputByEditor.appendChild(item)
+
+    const calHeatmap = document.querySelector(".heatmap")
+    if (!calHeatmap) {
+        console.log("osm.org don't show heatmap for this user")
+        return
+    }
+    injectCSSIntoOSMPage(`
+    .tooltip-inner {
+        white-space: pre-wrap;
+        text-align: left;
+    }
+    `)
+    calHeatmap.parentElement.parentElement.after(filterBar)
+    filterBar.appendChild(filterInputByEditor)
+
+    const searchByComment = document.createElement("input")
+    searchByComment.type = "search"
+    searchByComment.placeholder = "Regex search by comments"
+    searchByComment.title = "Please wait while user changesets loading"
+    searchByComment.setAttribute("disabled", true)
+    searchByComment.style.flex = "1"
+    searchByComment.style.height = "1.5rem"
+    searchByComment.style.boxSizing = "border-box"
+    filterInputByEditor.before(searchByComment)
+
+    const _replace_with_rules = makeEditorNormalizer()
+    const changesets = await loadChangesets(user)
+    const replace_with_rules = await _replace_with_rules
+    const editorOfChangesets = {}
+    changesets.forEach(ch => (editorOfChangesets[ch.id] = replace_with_rules(ch.tags?.["created_by"])))
+    filterInputByEditor.removeAttribute("disabled")
+    searchByComment.removeAttribute("disabled")
+    filterInputByEditor.title = "Alt + O for open selected changesets on one page"
+    searchByComment.title = "Not case-sensitive regex search"
+
+    async function inputHandler() {
+        let filter = _ => true
+        const selected = Array.from(filterInputByEditor.options).filter(i => i.selected)
+        let regex
+        try {
+            regex = new RegExp(searchByComment.value.toLowerCase())
+            searchByComment.style.color = ""
+        } catch {
+            searchByComment.style.color = "red"
+        }
+        filter = ch => {
+            return selected.some(option => {
+                if (option.getAttribute("all-editors") === "yes") {
+                    return (ch.tags?.["comment"] ?? "").toLowerCase().match(regex)
+                } else if (option.getAttribute("is-editor-name") === "yes") {
+                    return editorOfChangesets[ch.id] === option.value && (ch.tags?.["comment"] ?? "").toLowerCase().match(regex)
+                } else {
+                    return ch.tags?.["created_by"] === option.value && (ch.tags?.["comment"] ?? "").toLowerCase().match(regex)
+                }
+            })
+        }
+        const [newHeatmapData, changesets_count] = makeChangesetsStat(changesets, filter)
+        const maxPerDay = Object.values(newHeatmapData)
+            .map(i => i[0])
+            .reduce((a, b) => max(a, b), 0)
+        searchByComment.title = `${changesets_count} changesets filtered`
+
+        function replaceElementTag(oldElement, newTagName) {
+            const attrs = {}
+            for (const attr of oldElement.attributes) {
+                attrs[attr.name] = attr.value
+            }
+            const newElement = GM_addElement(newTagName, attrs)
+            while (oldElement.firstChild) {
+                newElement.appendChild(oldElement.firstChild)
+            }
+            oldElement.parentNode.replaceChild(newElement, oldElement)
+            return newElement
+        }
+
+        function getTooltipSummary(date, value) {
+            const localizedDate = getWindow().OSM.i18n.l("date.formats.long", intoPageWithFun(date))
+            if (value > 0) {
+                return getWindow().OSM.i18n.t(
+                    "javascripts.heatmap.tooltip.contributions",
+                    intoPage({
+                        count: value,
+                        date: localizedDate,
+                    }),
+                )
+            }
+            return getWindow().OSM.i18n.t("javascripts.heatmap.tooltip.no_contributions", intoPage({ date: localizedDate }))
+        }
+
+        getWindow().$("[rel=tooltip]").tooltip("dispose")
+        document.querySelectorAll(".tooltip").forEach(i => i.remove())
+        const hrefPrefix = location.href.endsWith("/") ? location.href.slice(0, -1) : location.href
+        for (let day of Array.from(document.querySelectorAll("[data-date]"))) {
+            day = replaceElementTag(day, "a")
+            const newData = newHeatmapData[day.getAttribute("data-date")]
+            if (newData) {
+                day.setAttribute("data-count", newData[0])
+                day.setAttribute("href", hrefPrefix + "/history?before=" + (newData[1] + 1))
+                day.innerHTML = ""
+                const colorDiff = document.createElement("span")
+                colorDiff.style.opacity = `${Math.sqrt(newData[0] / maxPerDay)}`
+                let tooltipText = getTooltipSummary(new Date(day.getAttribute("data-date")), newData[0])
+                if (newData[0]) {
+                    tooltipText += "\n"
+                    for (let changeset of newData[2]) {
+                        let changesetComment = ""
+                        if (changeset.comments_count) {
+                            colorDiff.style.opacity = `${Math.min(0.7, Math.max(0.35, Math.sqrt(newData[0] / maxPerDay)))}`
+                            colorDiff.style.background = "red"
+                            changesetComment = "💬 " + changeset.comment
+                            ;(await getChangesetComments(changeset.id)).forEach(mapperCommentText => {
+                                changesetComment += "\n - " + mapperCommentText["user"] + ": " + shortOsmOrgLinksInText(mapperCommentText["text"])?.slice(0, 500)
+                                if (mapperCommentText["text"].length > 500) {
+                                    changesetComment += "..."
+                                }
+                            })
+                        } else {
+                            changesetComment = "• " + changeset.comment
+                        }
+                        tooltipText += changesetComment + "\n"
+                    }
+                }
+
+                day.appendChild(colorDiff)
+                getWindow()
+                    .$(day)
+                    .tooltip(
+                        intoPage({
+                            title: tooltipText,
+                            customClass: "wide",
+                            delay: { show: 0, hide: 0 },
+                        }),
+                    )
+            } else {
+                day.removeAttribute("data-count")
+                day.setAttribute("href", "")
+                day.innerHTML = ""
+                if (day.nodeName === "A") {
+                    day = replaceElementTag(day, "span")
+                }
+                getWindow().$(day).tooltip("disable")
+            }
+        }
+    }
+
+    filterInputByEditor.oninput = inputHandler
+    searchByComment.oninput = inputHandler
+    document.addEventListener("keydown", e => {
+        if (e.altKey && e.code === "KeyO") {
+            const selected = Array.from(filterInputByEditor.options).filter(i => i.selected)
+            const ids = changesets
+                .filter(ch => {
+                    return selected.some(i => ch?.tags?.["created_by"]?.includes(i.value))
+                })
+                .map(i => i.id)
+            const idsStr = ids.join(",")
+            open(osm_server.url + `/changeset/${ids[0]}?changesets=` + idsStr, "_blank")
+        }
+    })
+
+    filterInputByEditor.id = "editors"
+    filterInputByEditor.addEventListener(
+        "mousedown",
+        function (e) {
+            e.preventDefault()
+            e.target.focus()
+            filterInputByEditor.setAttribute("size", 7)
+            filterInputByEditor.setAttribute("multiple", true)
+            inputHandler()
+        },
+        { once: true },
+    )
+    searchByComment.addEventListener(
+        "mousedown",
+        function () {
+            inputHandler()
+        },
+        { once: true },
+    )
+
+    const counts = {}
+
+    changesets.forEach(i => {
+        const editor = editorOfChangesets[i.id]
+        counts[editor] = counts[editor] ? counts[editor] + i.changes_count : i.changes_count
+    })
+
+    Array.from(new Set(changesets.map(i => editorOfChangesets[i.id])))
+        .sort((a, b) => {
+            if (counts[a] < counts[b]) {
+                return 1
+            }
+            if (counts[a] > counts[b]) {
+                return -1
+            }
+            return 0
+        })
+        .forEach(i => {
+            const item = document.createElement("option")
+            item.value = i
+            item.setAttribute("is-editor-name", "yes")
+            if (i === 1) {
+                item.textContent = ` ${i} (${counts[i]} contribution)`
+            } else {
+                item.textContent = ` ${i} (${counts[i]} contributions)`
+            }
+            filterInputByEditor.appendChild(item)
+        })
+
+    Array.from(new Set(changesets.map(i => i.tags?.["created_by"])))
+        .sort()
+        .forEach(i => {
+            const item = document.createElement("option")
+            item.value = i
+            item.textContent = i
+            filterInputByEditor.appendChild(item)
+        })
+
+    filterInputByEditor.after(filterInputByEditor)
+    console.log("setuping filters finished")
+}
+
+// https://osm.org/user/Молотов-Прибой
+// https://osm.org/user/user_14840936
+// https://osm.org/user/Torunianin
+// https://osm.org/user/user_22937564
+// https://osm.org/user/korobkov
+// https://osm.org/user/user_389895
+// https://osm.org/user/user_20965583
+async function makeProfileForDeletedUser(user) {
+    const content = document.querySelector(".content-body")
+    const div = document.createElement("div")
+    div.classList.add("content-inner", "position-relative", "m-auto")
+
+    const webArchiveLink = document.createElement("a")
+    webArchiveLink.textContent = "WebArchive"
+    webArchiveLink.target = "_blank"
+    webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + decodeURI(user)
+    div.appendChild(webArchiveLink)
+    div.appendChild(document.createElement("br"))
+
+    function makeOSMChaLink(username) {
+        const osmchaLink = document.createElement("a")
+        osmchaLink.textContent = " [OSMCha] "
+        osmchaLink.id = "osmcha_link"
+        osmchaLink.title = "Open profile in OSMCha.org"
+        osmchaLink.href = makeOsmchaLinkForUsername(username)
+        osmchaLink.target = "_blank"
+        osmchaLink.rel = "noreferrer"
+        return osmchaLink
+    }
+
+    async function processIDs(data, elemForResult) {
+        if (data.length === 1) {
+            elemForResult.appendChild(document.createTextNode("User ID: "))
+        } else {
+            elemForResult.appendChild(document.createTextNode(`⚠️ Found ${data.length} user IDs`))
+            elemForResult.appendChild(document.createElement("br"))
+            elemForResult.appendChild(document.createTextNode(`🆔: `))
+        }
+        for (let i = 0; i < data.length; i++) {
+            if (i !== 0) {
+                elemForResult.appendChild(document.createElement("br"))
+                elemForResult.appendChild(document.createElement("hr"))
+                elemForResult.appendChild(document.createTextNode("🆔:"))
+            }
+            const id = data[i].id
+            const idSpan = document.createElement("span")
+            idSpan.textContent = id
+            idSpan.title = "Click for copy"
+            idSpan.style.cursor = "pointer"
+            idSpan.onclick = e => {
+                navigator.clipboard.writeText(id).then(() => copyAnimation(e, id))
+            }
+            injectCSSIntoOSMPage(copyAnimationStyles)
+            elemForResult.appendChild(idSpan)
+            elemForResult.appendChild(document.createElement("br"))
+            if (data[i].names?.length > 1) {
+                const p = document.createElement("p")
+                p.textContent = "Usernames: "
+                injectCSSIntoOSMPage(copyAnimationStyles)
+                data[i].names
+                    .map(i => i.name)
+                    .forEach(name => {
+                        const usernameSpan = document.createElement("span")
+                        usernameSpan.textContent = name
+                        usernameSpan.title = "Click for copy"
+                        usernameSpan.style.cursor = "pointer"
+                        usernameSpan.onclick = e => {
+                            navigator.clipboard.writeText(name).then(() => copyAnimation(e, name))
+                        }
+                        p.appendChild(usernameSpan)
+                        p.appendChild(document.createTextNode(" "))
+
+                        const webArchiveLink = document.createElement("a")
+                        webArchiveLink.textContent = "[WA] "
+                        webArchiveLink.target = "_blank"
+                        webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + name
+                        p.appendChild(webArchiveLink)
+
+                        p.appendChild(makeOSMChaLink(name))
+                    })
+                elemForResult.appendChild(p)
+            }
+            setTimeout(async () => {
+                const blocksSpan = document.createElement("span")
+
+                const loadingStatus = document.createElement("span")
+                loadingStatus.textContent = " Finding blocks... "
+                loadingStatus.style.color = "gray"
+                blocksSpan.appendChild(document.createTextNode(" "))
+                blocksSpan.appendChild(loadingStatus)
+
+                idSpan.after(blocksSpan)
+                const startPage = await externalFetchRetry({
+                    url: "/user_blocks",
+                    // responseType: "xml",
+                    headers: { "turbo-frame": "pagination" },
+                })
+
+                const blocksCount = new Map()
+
+                function findBlocks(xml) {
+                    const foundUserBlock = []
+                    let lastUserBlock
+                    new DOMParser()
+                        .parseFromString(xml, "text/html")
+                        .querySelectorAll("table tr")
+                        .forEach(i => {
+                            if (i.querySelector("th")) {
+                                return
+                            }
+                            const username = decodeURI(
+                                i
+                                    .querySelector("td a")
+                                    .getAttribute("href")
+                                    .match(/\/user\/(.*)$/)[1],
+                            )
+                            if (blocksCount.has(username)) {
+                                blocksCount.set(username, blocksCount.get(username) + 1)
+                            } else {
+                                blocksCount.set(username, 1)
+                            }
+                            lastUserBlock = i
+                                .querySelector('td a[href^="/user_blocks/"]')
+                                .getAttribute("href")
+                                .match(/\/user_blocks\/([0-9]+)/)[1]
+                            if (username === "user_" + id) {
+                                foundUserBlock.push(lastUserBlock)
+                            }
+                        })
+                    return [foundUserBlock, lastUserBlock]
+                }
+
+                async function getBlockInfo(blockID) {
+                    const blockInfo = (
+                        await externalFetchRetry({
+                            url: "/api/0.6/user_blocks/" + blockID + ".json",
+                            responseType: "json",
+                            headers: { "turbo-frame": "pagination" },
+                        })
+                    ).response
+                    return `${blockInfo["user_block"]["created_at"]}\n${blockInfo["user_block"]["creator"]["user"]}: ${blockInfo["user_block"]["reason"]}`
+                }
+
+                function processFoundedBlocks(foundUserBlock) {
+                    foundUserBlock.forEach(blockId => {
+                        const blockLink = document.createElement("a")
+                        blockLink.href = "/user_blocks/" + blockId
+                        blockLink.target = "_blank"
+                        blockLink.textContent = "🔨/" + blockId
+                        getBlockInfo(blockId).then(res => {
+                            blockLink.title = res
+                        })
+                        blocksSpan.appendChild(blockLink)
+                        blocksSpan.appendChild(document.createTextNode(" "))
+                    })
+                }
+
+                let [foundUserBlock, lastUserBlock] = findBlocks(startPage.response)
+                if (foundUserBlock.length) {
+                    processFoundedBlocks(foundUserBlock)
+                } else {
+                    while (lastUserBlock > 1) {
+                        async function processBlocks(before) {
+                            console.log("download user_block before ", before)
+                            before = Math.max(1, before)
+                            const startPage = await externalFetchRetry({
+                                    url: "/user_blocks?before=" + before,
+                                    // responseType: "xml",
+                                    headers: { "turbo-frame": "pagination" },
+                                })
+                            ;[foundUserBlock, before] = findBlocks(startPage.response)
+                            if (!before) {
+                                return
+                            }
+                            if (foundUserBlock.length) {
+                                processFoundedBlocks(foundUserBlock)
+                            }
+                        }
+
+                        const onPage = 20
+                        const threads = 10
+                        console.log("download user_block batch before ", lastUserBlock)
+                        loadingStatus.title = `Scanned all blocks after #${lastUserBlock}`
+                        const batch = []
+                        for (let j = 0; j < threads; j++) {
+                            batch.push(processBlocks(lastUserBlock - onPage * j))
+                        }
+                        await Promise.all(batch)
+                        lastUserBlock -= threads * onPage
+                    }
+                    loadingStatus.style.display = "none"
+                    const arr = Array.from(blocksCount.entries()).filter(([k, v]) => v >= 10)
+                    arr.sort((a, b) => {
+                        if (a[1] < b[1]) {
+                            return 1
+                        } else if (a[1] > b[1]) {
+                            return -1
+                        } else {
+                            return 0
+                        }
+                    })
+                    console.log("Top banned:", arr)
+                    console.log("All blocks downloaded")
+                }
+            })
+
+            /*** @type {{changesets: ChangesetMetadata[]}}*/
+            const lastChangesets = await fetchJSONWithCache(
+                osm_server.apiBase +
+                "changesets.json?" +
+                new URLSearchParams({
+                    user: id,
+                    order: "newest",
+                    to: new Date().toISOString(),
+                }).toString(),
+            )
+            const processedChangesets = new Set(lastChangesets.changesets.map(c => c.id))
+
+            for (let i = 0; i < 20; i++) {
+                const curTime = lastChangesets.changesets[lastChangesets.changesets.length - 1].created_at
+                const ch = await fetchJSONWithCache(
+                    osm_server.apiBase +
+                    "changesets.json?" +
+                    new URLSearchParams({
+                        user: id,
+                        order: "newest",
+                        to: new Date(new Date(curTime).getTime() + 1000).toISOString(),
+                        from: "2005-01-01T00:00:00Z",
+                    }).toString(),
+                )
+                ch.changesets = ch.changesets.filter(ch => !processedChangesets.has(ch.id))
+                if (ch.changesets.length === 0) break
+                lastChangesets.changesets.push(...(ch.changesets ?? []))
+            }
+
+            elemForResult.appendChild(document.createTextNode(`Last ${lastChangesets.changesets?.length} changesets:`))
+            lastChangesets.changesets.forEach(ch => {
+                const changesetLine = document.createElement("div")
+                const changesetTime = ch["created_at"]
+                const checkbox = document.createElement("input")
+                checkbox.type = "checkbox"
+                checkbox.classList.add("mass-action-checkbox")
+                checkbox.textContent = "#" + ch.id + ""
+                checkbox.title = "Shift + click for select a range of empty checkboxes"
+                checkbox.value = ch.id
+                checkbox.setAttribute("user-id", id)
+                checkbox.onclick = e => {
+                    if (e.shiftKey) {
+                        let currentCheckboxFound = false
+                        for (const cBox of Array.from(elemForResult.querySelectorAll("input")).toReversed()) {
+                            if (!currentCheckboxFound) {
+                                if (cBox.value === checkbox.value) {
+                                    currentCheckboxFound = true
+                                }
+                            } else {
+                                if (cBox.checked) {
+                                    break
+                                }
+                                cBox.checked = true
+                            }
+                        }
+                    }
+                    const selectedIDsCount = elemForResult.querySelectorAll(`input:checked[user-id="${id}"]`).length
+                    elemForResult.querySelectorAll(`.copy-changesets-ids-btn[user-id="${id}"]`).forEach(i => {
+                        if (selectedIDsCount) {
+                            i.textContent = `Copy ${selectedIDsCount} IDs`
+                        } else {
+                            i.textContent = `Copy IDs`
+                        }
+                    })
+                }
+                changesetLine.appendChild(checkbox)
+                changesetLine.appendChild(document.createTextNode("\xA0"))
+
+                const a = document.createElement("a")
+                a.textContent = ch.id
+                a.href = "/changeset/" + ch.id
+                a.target = "_blank"
+                a.style.fontFamily = "monospace"
+                changesetLine.appendChild(a)
+
+                const changesetDate = document.createElement("span")
+                changesetDate.textContent = " " + changesetTime + " "
+                changesetDate.style.fontFamily = "monospace"
+                changesetDate.style.color = "gray"
+                changesetDate.style.cursor = "pointer"
+                changesetDate.setAttribute("datetime", changesetTime)
+                changesetDate.onclick = e => {
+                    navigator.clipboard.writeText(changesetTime).then(() => copyAnimation(e, changesetTime))
+                }
+                changesetLine.appendChild(document.createTextNode("\xA0"))
+                changesetLine.appendChild(changesetDate)
+
+                const comment = document.createElement("span")
+                comment.textContent = " " + (ch.tags?.["comment"] ?? "No comment")
+                changesetLine.appendChild(comment)
+
+                if (ch.comments_count) {
+                    const commentsBadge = document.createElement("a")
+                    commentsBadge.textContent = " " + ch.comments_count + " 💬"
+                    commentsBadge.href = "/changeset/" + ch.id
+                    commentsBadge.target = "_blank"
+                    setTimeout(async () => {
+                        getChangesetComments(ch.id).then(res => {
+                            res.forEach(comment => {
+                                const shortText = shortOsmOrgLinksInText(comment["text"])
+                                commentsBadge.title += `${comment["user"]}:\n${shortText}\n\n`
+                            })
+                            commentsBadge.title = commentsBadge.title.trimEnd()
+                        })
+                    })
+                    changesetLine.appendChild(commentsBadge)
+                }
+
+                elemForResult.appendChild(changesetLine)
+            })
+
+            const copyIds = document.createElement("button")
+            copyIds.textContent = "Copy IDs"
+            copyIds.title = ""
+            copyIds.classList.add("copy-changesets-ids-btn")
+            copyIds.setAttribute("user-id", id)
+            copyIds.onclick = e => {
+                const ids = Array.from(elemForResult.querySelectorAll(`input:checked[user-id="${id}"]`))
+                    .map(i => i.value)
+                    .join(",")
+                if (ids !== "") {
+                    navigator.clipboard.writeText(ids).then(() => copyAnimation(e, ids))
+                } else {
+                    const ids = Array.from(elemForResult.querySelectorAll("input"))
+                        .map(i => i.value)
+                        .join(",")
+                    navigator.clipboard.writeText(ids).then(() => copyAnimation(e, ids))
+                }
+            }
+            elemForResult.appendChild(copyIds)
+        }
+    }
+
+    const res = await externalFetchRetry({
+        url: "https://whosthat.osmz.ru/whosthat.php?action=info&name=" + user,
+        responseType: "json",
+    })
+    // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
+    // but here need resolve problem with return promise
+    const data = structuredClone(res.response)
+    if (data.length) {
+        webArchiveLink.after(makeOSMChaLink(decodeURI(user)))
+
+        const result = document.createElement("p")
+        div.appendChild(result)
+        result.title = "via whosthat.osmz.ru"
+        await processIDs(data, result)
+    } else {
+        setTimeout(async () => {
+            const res = (
+                await externalFetchRetry({
+                    url:
+                        `${overpass_server.apiUrl}/interpreter?` +
+                        new URLSearchParams({
+                            data: `
+                                [out:json];
+                                node(user:"${user.replace('"', '\\"')}")->.b;
+                                node.b(if:lat() == b.min(lat()));
+                                out meta;
+                            `,
+                        }),
+                    responseType: "json",
+                })
+            ).response
+            if (res.elements?.length) {
+                webArchiveLink.after(makeOSMChaLink(decodeURI(user)))
+
+                const result = document.createElement("p")
+                div.appendChild(result)
+                result.title = "via Overpass API"
+                await processIDs([{ id: res.elements[0].uid }], result)
+            }
+        })
+    }
+
+    if (user.match(/^user_[0-9]+$/)) {
+        const userID = parseInt(user.match(/user_([0-9]+)/)[1])
+        const res = await externalFetchRetry({
+            url: "https://whosthat.osmz.ru/whosthat.php?action=names&id=" + userID,
+            responseType: "json",
+        })
+        // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
+        // but here need resolve problem with return promise
+        const data = structuredClone(res.response)
+        let names = data[0]["names"]
+
+        const userNamesP = document.createElement("p")
+        div.appendChild(userNamesP)
+        setTimeout(async () => {
+            if (!names.length) {
+                const res = (
+                    await externalFetchRetry({
+                        url:
+                            `${overpass_server.apiUrl}/interpreter?` +
+                            new URLSearchParams({
+                                data: `
+                            [out:json];
+                            node(uid:${userID})->.b;
+                            node.b(if:lat() == b.min(lat()));
+                            out meta;
+                        `,
+                            }),
+                        responseType: "json",
+                    })
+                ).response
+                if (res?.elements?.length) {
+                    names = [res.elements[0].user]
+                }
+                div.title = "via Overpass API"
+            } else {
+                div.title = "via whosthat.osmz.ru"
+            }
+            if (names.length) {
+                userNamesP.textContent = "Usernames: "
+                injectCSSIntoOSMPage(copyAnimationStyles)
+                names.forEach(name => {
+                    const usernameSpan = document.createElement("span")
+                    usernameSpan.textContent = name
+                    usernameSpan.title = "Click for copy"
+                    usernameSpan.style.cursor = "pointer"
+                    usernameSpan.onclick = e => {
+                        navigator.clipboard.writeText(name).then(() => copyAnimation(e, name))
+                    }
+                    userNamesP.appendChild(usernameSpan)
+                    userNamesP.appendChild(document.createTextNode(" "))
+
+                    const webArchiveLink = document.createElement("a")
+                    webArchiveLink.textContent = "[WA] "
+                    webArchiveLink.target = "_blank"
+                    webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + name
+                    userNamesP.appendChild(webArchiveLink)
+
+                    userNamesP.appendChild(makeOSMChaLink(name))
+                })
+            }
+        })
+        await processIDs([{ id: userID }], div)
+    }
+    content.appendChild(div)
+}
+
+async function setupHDYCInProfile(path) {
+    const match = path.match(/^\/user\/([^/]+)(\/|\/notes)?$/)
+    if (!match || path.includes("/history")) {
+        return
+    }
+    if (document.getElementById("hdyc-iframe")) {
+        return
+    }
+    /** @type {string} **/
+    const user = match[1]
+    if (user === "forgot-password" || user === "new") return
+    document.querySelector(".content-body > .content-inner").style.paddingBottom = "0px"
+    if (isDarkMode()) {
+        GM_addElement(document.querySelector("#content"), "iframe", {
+            src: "https://www.hdyc.neis-one.org/?" + user + "#forcedarktheme",
+            width: "100%",
+            id: "hdyc-iframe",
+            scrolling: "no",
+            background: "rgb(49, 54, 59)",
+            style: "visibility:hidden;background-color: rgb(49, 54, 59);",
+        })
+        setTimeout(() => {
+            document.getElementById("hdyc-iframe").style.visibility = "visible"
+        }, 1500)
+    } else {
+        GM_addElement(document.querySelector("#content"), "iframe", {
+            src: "https://www.hdyc.neis-one.org/?" + user + "#forcelighttheme",
+            width: "100%",
+            id: "hdyc-iframe",
+            scrolling: "no",
+        })
+    }
+    if (document.querySelector('a[href$="/blocks"]')?.nextElementSibling?.textContent > 0) {
+        document.querySelector('a[href$="/blocks"]').nextElementSibling.style.background = "rgba(255, 0, 0, 0.3)"
+        if (isDarkMode()) {
+            document.querySelector('a[href$="/blocks"]').nextElementSibling.style.color = "white"
+        }
+        getCachedUserInfo(decodeURI(user)).then(userInfo => {
+            if (userInfo["blocks"]["received"]["active"] === 0) {
+                updateUserInfo(decodeURI(user))
+            }
+        })
+    } else if (document.querySelector('a[href$="/blocks"]')?.nextElementSibling?.textContent === "0") {
+        getCachedUserInfo(decodeURI(user)).then(userInfo => {
+            if (userInfo["blocks"]["received"]["active"] !== 0) {
+                updateUserInfo(decodeURI(user))
+            }
+        })
+    }
+    const isDeletedUser = !document.querySelector(".user_image")
+    const usernameHeader = document.querySelector("#content h1")?.firstChild
+    if (!isDeletedUser && usernameHeader && usernameHeader.nodeType === Node.TEXT_NODE) {
+        const span = document.createElement("span")
+        span.classList.add("copyable-username")
+        span.textContent = usernameHeader.textContent
+        span.title = "Click for copy"
+        span.style.cursor = "pointer"
+        span.onclick = e => {
+            const username = usernameHeader.textContent.trim()
+            navigator.clipboard.writeText(username).then(() => copyAnimation(e, username))
+        }
+        usernameHeader.replaceWith(span)
+        injectCSSIntoOSMPage(copyAnimationStyles)
+    }
+    queueMicrotask(async () => {
+        if (document.querySelector(".prev-usernames")) return
+        const userDetails = document.querySelector(".content-inner small dl")
+        if (!userDetails) return
+        // https://www.openstreetmap.org/reports/new?reportable_id=12345&reportable_type=User
+        let userID = document
+            .querySelector('[href*="reportable_id="]')
+            ?.getAttribute("href")
+            ?.match(/reportable_id=(\d+)/)?.[1]
+        userID = userID ?? document.head.getAttribute("data-user")
+        if (!userID) {
+            const res = await fetchJSONWithCache(
+                osm_server.apiBase +
+                "changesets.json?" +
+                new URLSearchParams({
+                    display_name: decodeURI(user),
+                    limit: 1,
+                    order: "oldest",
+                }).toString(),
+            )
+            if (res["changesets"].length === 0) {
+                const res = await fetchJSONWithCache(
+                    osm_server.apiBase +
+                    "notes/search.json?" +
+                    new URLSearchParams({
+                        display_name: decodeURI(user),
+                        limit: 1,
+                        closed: -1,
+                        order: "oldest",
+                    }).toString(),
+                )
+                userID = res?.["features"]?.[0]?.["properties"]?.["comments"]?.find(i => i["user"] === decodeURI(user))?.["uid"]
+                if (!userID) {
+                    return
+                }
+            } else {
+                userID = res["changesets"][0]["uid"]
+            }
+        }
+
+        async function addUsernames() {
+            async function updateUserIDInfo(userID) {
+                const res = await externalFetchRetry({
+                    url: "https://whosthat.osmz.ru/whosthat.php?action=names&id=" + userID,
+                    responseType: "json",
+                })
+                // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
+                // but here need resolve problem with return promise
+                const userInfo = {
+                    data: structuredClone(res.response),
+                }
+                if (userInfo.data[0]["names"].length > 1) {
+                    userInfo["cacheTime"] = new Date()
+                    await GM.setValue("useridinfo-" + userID, JSON.stringify(userInfo))
+
+                    const usernames = userInfo.data[0]["names"].filter(i => i !== decodeURI(user)).join(", ")
+                    if (document.querySelector(".prev-usernames")) {
+                        document.querySelector(".prev-usernames").textContent = usernames
+                    }
+                }
+                return userInfo
+            }
+
+            async function getCachedUserIDInfo(userID) {
+                const localUserInfo = await GM.getValue("useridinfo-" + userID, "")
+                if (localUserInfo) {
+                    setTimeout(updateUserIDInfo, 0, userID)
+                    return JSON.parse(localUserInfo)
+                }
+                return await updateUserIDInfo(userID)
+            }
+
+            const userIDInfo = await getCachedUserIDInfo(userID)
+            if (userIDInfo.data[0]["names"].length <= 1) {
+                console.log("prev user's usernames not found")
+                return
+            }
+            const usernames = userIDInfo.data[0]["names"].filter(i => i !== decodeURI(user)).join(", ")
+            const dt = document.createElement("dt")
+            dt.textContent = "Past usernames: "
+            dt.title = "Added by better-osm-org"
+            dt.classList.add("list-inline-item", "m-0", "prev-usernames-label")
+            const dd = document.createElement("dd")
+            dd.classList.add("list-inline-item", "prev-usernames")
+            dd.textContent = usernames
+            dd.title = "Added by better-osm-org"
+            userDetails.appendChild(dt)
+            userDetails.appendChild(document.createTextNode("\xA0"))
+            userDetails.appendChild(dd)
+        }
+
+        await addUsernames()
+
+        function addUserID() {
+            if (!document.querySelector('[href^="/api/0.6/user"]')) {
+                const dt = document.createElement("dt")
+                dt.textContent = "ID: "
+                dt.classList.add("list-inline-item", "m-0")
+                const dd = document.createElement("dd")
+                dd.classList.add("list-inline-item", "user-id")
+                dd.textContent = userID
+                dd.title = "Click for copy"
+                dd.style.cursor = "pointer"
+                dd.onclick = e => {
+                    navigator.clipboard.writeText(userID).then(() => copyAnimation(e, userID))
+                }
+                userDetails.appendChild(dt)
+                userDetails.appendChild(document.createTextNode("\xA0"))
+                userDetails.appendChild(dd)
+                injectCSSIntoOSMPage(copyAnimationStyles)
+            }
+        }
+
+        addUserID()
+    })
+    const iframe = document.getElementById("hdyc-iframe")
+    window.addEventListener("message", function (event) {
+        if (event.origin === "https://www.hdyc.neis-one.org") {
+            iframe.height = event.data.height + "px"
+        }
+    })
+    if (isDeletedUser && !location.pathname.includes("/notes")) {
+        await makeProfileForDeletedUser(user)
+    }
+}
+
+function setupBetterProfileStat() {
+    const match = location.pathname.match(/^\/user\/([^/]+)\/?$/)
+    if (!match) {
+        return
+    }
+    const user = match[1]
+    const timerId = setInterval(betterUserStat, 300, decodeURI(user))
+    setTimeout(() => {
+        clearInterval(timerId)
+        console.debug("stop try add heatmap filters")
+    }, 5000)
+    void betterUserStat(decodeURI(user))
+}
+
+function inFrame() {
+    return window.location !== window.parent.location
+}
+
+function simplifyHDCYIframe() {
+    if (!inFrame()) {
+        return
+    }
+    const forceLightTheme = location.hash.includes("forcelighttheme")
+    const forceDarkTheme = location.hash.includes("forcedarktheme")
+    injectCSSIntoSimplePage(`
+            html, body {
+                overflow-x: auto;
+            }
+
+            @media ${forceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${forceLightTheme ? "and (not all)" : ""} {
+                body {
+                    background-color: #181a1b;
+                    color: #e8e6e3;
+                }
+
+                #header a {
+                    color: lightgray !important;
+                }
+
+                #activitymap .leaflet-tile,
+                #mapwrapper .leaflet-tile {
+                    filter: invert(100%) hue-rotate(180deg) contrast(90%);
+                }
+
+                #activitymap path {
+                    stroke: #0088ff;
+                    fill: #0088ff;
+                    stroke-opacity: 0.7;
+                }
+
+                #activitymapswitcher {
+                    background-color: rgba(24, 26, 27, 0.8);
+                }
+
+                .leaflet-popup-content {
+                    color: lightgray;
+                }
+
+                .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+                    background: #222;
+                }
+
+                a, .leaflet-container a {
+                    color: #1c84fd;
+                }
+
+                a:visited, .leaflet-container a:visited {
+                    color: #c94bff;
+                }
+
+                a[style*="black"] {
+                    color: lightgray !important;
+                }
+
+                .day-cell[fill="#e8e8e8"] {
+                    fill: #262a2b;
+                }
+
+                #result th {
+                    background-color: rgba(24, 26, 27, 0.8);
+                }
+
+                #result td {
+                    border-color: #363659;
+                }
+
+                td[style*="purple"] {
+                    color: #ff72ff !important;
+                }
+
+                td[style*="green"] {
+                    color: limegreen !important;
+                }
+
+                #graph_years canvas,
+                #graph_editors canvas,
+                #graph_days canvas,
+                #graph_hours canvas {
+                    filter: saturate(4);
+                }
+
+                .tickLabel {
+                    color: #b3aca2;
+                }
+
+                .editors_wrapper th, .editors_wrapper td {
+                    border-bottom-color: #8c8273;
+                }
+            }
+        `)
+    const loginLink = document.getElementById("loginLink")
+    if (loginLink) {
+        const warn = document.createElement("div")
+        warn.id = "hdyc-warn"
+        injectCSSIntoSimplePage(`
+                #hdyc-warn, #hdycLink {
+                    text-align: left !important;
+                    width: 50%;
+                    position: relative;
+                    left: 35%;
+                    right: 33%;
+                }
+            `)
+        if (isFirefox) {
+            warn.textContent = "Please disable tracking protection so that the HDYC account login works"
+
+            document.getElementById("authenticate").before(warn)
+            const hdycLink = document.createElement("a")
+            const match = location.pathname.match(/^\/user\/([^/]+)$/)
+            hdycLink.href = "https://www.hdyc.neis-one.org/" + (match ? match[1] : "")
+            hdycLink.textContent = "Go to https://www.hdyc.neis-one.org/"
+            hdycLink.target = "_blank"
+            hdycLink.id = "hdycLink"
+            document.getElementById("authenticate").before(document.createElement("br"))
+            document.getElementById("authenticate").before(hdycLink)
+            document.getElementById("authenticate").remove()
+            window.parent.postMessage({ height: document.body.scrollHeight }, "*")
+        } else {
+            warn.innerHTML = `To see more than just public profiles, do the following:<br/>
+0. Turn off tracking protection if your browser has it (for example in Brave or Vivaldi)<br/>
+1. <a href="https://www.hdyc.neis-one.org/" target="_blank"> Log in to HDYC</a> <br/>
+2. Open the browser console (F12) <br/>
+3. Open the Application tab <br/>
+4. In the left panel, select <i>Storage</i>→<i>Cookies</i>→<i>https://www.hdyc.neis-one.org</i><br/>
+5. Click on the cell with the name <i>SameSite</i> and type <i>None</i> in it`
+            document.getElementById("authenticate").before(warn)
+            const img_help = document.createElement("img")
+            img_help.onload = () => {
+                window.parent.postMessage({ height: document.body.scrollHeight }, "*")
+            }
+            img_help.src = "https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/img/hdyc-fix-in-chrome.png"
+            img_help.style.width = "90%"
+            warn.after(img_help)
+            document.getElementById("authenticate").remove()
+        }
+        // var xhr = XPCNativeWrapper(new window.wrappedJSObject.XMLHttpRequest());
+        // let res = await GM.xmlHttpRequest({
+        //     method: "GET",
+        //     url: document.querySelector("#loginLink").href,
+        //     withCredentials: true
+        // })
+        // debugger
+        return
+    }
+    try {
+        document.getElementById("header").remove()
+        document.getElementById("user").remove()
+        document.getElementById("searchfield").remove()
+        document.querySelector(".mapper_img").remove()
+        let bCnt = 0
+        for (let childNodesKey of Array.from(document.querySelector(".since").childNodes)) {
+            if (childNodesKey.nodeName === "#text") {
+                childNodesKey.remove()
+                continue
+            }
+            if (childNodesKey.classList.contains("image")) {
+                continue
+            }
+            if (childNodesKey.localName === "b") {
+                if (bCnt === 2) {
+                    break
+                }
+                bCnt++
+            }
+            childNodesKey.remove()
+        }
+    } catch (e) {
+        console.error(e)
+    }
+    window.parent.postMessage({ height: document.body.scrollHeight }, "*")
+}
+
+//</editor-fold>
+
+//<editor-fold desc="editors-links" defaultstate="collapsed">
+
+let coordinatesObserver = null
+
+function setupNewEditorsLinks() {
+    const firstRun = document.getElementsByClassName("custom_editors").length === 0
+    const editorsList = document.querySelector("#edit_tab ul")
+    if (!editorsList) {
+        return
+    }
+    const curURL = editorsList.querySelector("li a").href
+    const match = curURL.match(/map=(\d+)\/([-\d.]+)\/([-\d.]+)(&|$)/)
+    if (!match && !curURL.includes("edit?editor=id")) {
+        return
+    }
+    try {
+        coordinatesObserver?.disconnect()
+        if (!curURL.includes("edit?editor=id") || !match) {
+            return
+        }
+        const zoom = match[1]
+        const lat = match[2]
+        const lon = match[3]
+        {
+            const rapidLink = "https://mapwith.ai/rapid#poweruser=true&map="
+            let newElem
+            if (firstRun) {
+                newElem = editorsList.querySelector("li").cloneNode(true)
+                newElem.classList.add("custom_editors", "rapid_btn")
+                newElem.querySelector("a").textContent = "Edit with Rapid"
+            } else {
+                newElem = document.querySelector(".rapid_btn")
+            }
+            const actualHref = `${rapidLink}${zoom}/${lat}/${lon}`
+            if (newElem.querySelector("a").href !== actualHref) {
+                newElem.querySelector("a").href = actualHref
+            }
+            if (firstRun) {
+                editorsList.appendChild(newElem)
+            }
+        }
+        {
+            // https://osmpie.org/app/?pos=30.434481&pos=59.933311&zoom=18.91
+            const osmpieLink = "https://osmpie.org/app/"
+            let newElem
+            if (firstRun) {
+                newElem = editorsList.querySelector("li").cloneNode(true)
+                newElem.classList.add("custom_editors", "osmpie_btn")
+                newElem.querySelector("a").textContent = "Edit with OSM Perfect Intersection Editor"
+                newElem.querySelector("a").setAttribute("target", "_blank")
+                newElem.title = "OSM Perfect Intersection Editor"
+            } else {
+                newElem = document.querySelector(".osmpie_btn")
+            }
+            const actualHref = `${osmpieLink}?pos=${lon}&pos=${lat}&zoom=${parseInt(zoom)}`
+            if (newElem.querySelector("a").href !== actualHref) {
+                newElem.querySelector("a").href = actualHref
+            }
+            if (firstRun) {
+                editorsList.appendChild(newElem)
+            }
+        }
+        /*
+        {
+            // geo:
+            let newElem;
+            if (firstRun) {
+                newElem = editorsList.querySelector("li").cloneNode(true);
+                newElem.classList.add("custom_editors", "geo_btn")
+                newElem.querySelector("a").textContent = "Open geo:"
+            } else {
+                newElem = document.querySelector(".geo_btn")
+            }
+            newElem.querySelector("a").href = `geo:${lat},${lon}?z=${zoom}`
+            if (firstRun) {
+                editorsList.appendChild(newElem)
+            }
+        }
+        */
+    } finally {
+        coordinatesObserver = new MutationObserver(setupNewEditorsLinks)
+        coordinatesObserver.observe(editorsList, { subtree: true, childList: true, attributes: true })
+    }
+}
+
+//</editor-fold>
+
+//<editor-fold desc="" defaultstate="collapsed">
+
+function setupClickableAvatar() {
+    const miniAvatar = document.querySelector(".user_thumbnail_tiny:not([patched-for-click])")
+    if (!miniAvatar || miniAvatar.setAttribute("patched-for-click", "true")) {
+        return
+    }
+    miniAvatar.onclick = e => {
+        if (!e.isTrusted) return
+        e.preventDefault()
+        e.stopPropagation()
+        e.stopImmediatePropagation()
+        if (location.pathname.match(/\/user\/.+\/history/)) {
+            const targetURL = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href")
+            if (e.ctrlKey || e.metaKey) {
+                window.open(targetURL, "_blank")
+            } else {
+                window.location.pathname = targetURL
+            }
+            miniAvatar.click() // dirty hack for hide dropdown
+        } else {
+            const targetURL = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href") + "/history"
+            if (targetURL !== location.pathname) {
+                if (e.ctrlKey || e.metaKey) {
+                    window.open(targetURL, "_blank")
+                } else {
+                    try {
+                        getWindow().OSM.router.route(targetURL)
+                    } catch {
+                        window.location.pathname = targetURL
+                    }
+                }
+                miniAvatar.click() // dirty hack for hide dropdown
+            }
+        }
+    }
+}
+
+//</editor-fold>
+
+//<editor-fold desc="geojson" defaultstate="collapsed">
+
+
+let trackMetadata = null
+
+/**
+ * @param {string|Document} xml
+ */
+function displayGPXTrack(xml) {
+    const doc = typeof xml === "string" ? new DOMParser().parseFromString(xml, "application/xml") : xml
+
+    const popup = document.createElement("span")
+
+    const name = doc.querySelector("gpx name")?.textContent
+    const nameSpan = document.createElement("p")
+    nameSpan.textContent = name
+
+    const desc = doc.querySelector("gpx desc")?.textContent
+    const descSpan = document.createElement("p")
+    descSpan.textContent = desc
+
+    const link = doc.querySelector("gpx link")?.getAttribute("href")
+    const linkA = document.createElement("a")
+    linkA.href = link
+    linkA.textContent = link
+
+    popup.appendChild(nameSpan)
+    popup.appendChild(descSpan)
+    popup.appendChild(linkA)
+
+    console.time("start gpx track render")
+    const min = Math.min
+    const max = Math.max
+    trackMetadata = {
+        min_lat: 10000000,
+        min_lon: 10000000,
+        max_lat: -10000000,
+        max_lon: -100000000,
+    }
+    doc.querySelectorAll("gpx trk").forEach(trk => {
+        const nodesList = []
+        trk.querySelectorAll("trkseg trkpt").forEach(i => {
+            const lat = parseFloat(i.getAttribute("lat"))
+            const lon = parseFloat(i.getAttribute("lon"))
+            nodesList.push([lat, lon])
+
+            trackMetadata.min_lat = min(trackMetadata.min_lat, lat)
+            trackMetadata.min_lon = min(trackMetadata.min_lon, lon)
+            trackMetadata.max_lat = max(trackMetadata.max_lat, lat)
+            trackMetadata.max_lon = max(trackMetadata.max_lon, lon)
+        })
+        displayWay(nodesList, false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML)
+    })
+    doc.querySelectorAll("gpx wpt").forEach(wpt => {
+        const lat = wpt.getAttribute("lat")
+        const lon = wpt.getAttribute("lon")
+        const marker = showNodeMarker(lat, lon, "rgb(255,0,47)", null, "customObjects", 3)
+        const name = wpt.querySelector("name")
+        const desc = wpt.querySelector("desc")
+        if (name || desc) {
+            const popup = document.createElement("span")
+            if (name) {
+                popup.textContent = name.textContent
+            }
+            if (desc) {
+                popup.appendChild(document.createElement("br"))
+                popup.appendChild(document.createTextNode(desc.textContent))
+            }
+            marker.bindTooltip(popup.outerHTML)
+            marker.bindPopup(popup.outerHTML)
+        }
+
+        trackMetadata.min_lat = min(trackMetadata.min_lat, lat)
+        trackMetadata.min_lon = min(trackMetadata.min_lon, lon)
+        trackMetadata.max_lat = max(trackMetadata.max_lat, lat)
+        trackMetadata.max_lon = max(trackMetadata.max_lon, lon)
+    })
+    console.timeEnd("start gpx track render")
+}
+
+/**
+ * @param {string} xml
+ */
+function displayKMLTrack(xml) {
+    const doc = new DOMParser().parseFromString(xml, "application/xml")
+    const error = doc.querySelector("parsererror")
+    if (error) {
+        console.error("Parsing failed:", error.textContent)
+    }
+
+    const popup = document.createElement("span")
+
+    const name = doc.querySelector("Document name")?.textContent
+    const nameSpan = document.createElement("p")
+    nameSpan.textContent = name
+
+    const desc = doc.querySelector("Document description")?.textContent
+    const descSpan = document.createElement("p")
+    descSpan.textContent = desc
+
+    const link = doc.querySelector("Document link")?.getAttribute("href")
+    const linkA = document.createElement("a")
+    linkA.href = link
+    linkA.textContent = link
+
+    popup.appendChild(nameSpan)
+    popup.appendChild(descSpan)
+    popup.appendChild(linkA)
+
+    console.time("start kml track render")
+    const min = Math.min
+    const max = Math.max
+    trackMetadata = {
+        min_lat: 10000000,
+        min_lon: 10000000,
+        max_lat: -10000000,
+        max_lon: -100000000,
+    }
+
+    doc.querySelectorAll("Document Placemark:has(LineString)").forEach(trk => {
+        const nodesList = []
+        trk.querySelectorAll("LineString coordinates").forEach(i => {
+            i.firstChild.textContent
+                .trim()
+                .split(/\s+/)
+                .map(i => i.split(","))
+                .forEach(coord => {
+                    const lat = parseFloat(coord[1])
+                    const lon = parseFloat(coord[0])
+                    nodesList.push([lat, lon])
+
+                    trackMetadata.min_lat = min(trackMetadata.min_lat, lat)
+                    trackMetadata.min_lon = min(trackMetadata.min_lon, lon)
+                    trackMetadata.max_lat = max(trackMetadata.max_lat, lat)
+                    trackMetadata.max_lon = max(trackMetadata.max_lon, lon)
+                })
+        })
+        displayWay(nodesList, false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML)
+    })
+    doc.querySelectorAll("Document Placemark:has(LinearRing)").forEach(trk => {
+        const nodesList = []
+        trk.querySelectorAll("LinearRing coordinates").forEach(i => {
+            i.firstChild.textContent
+                .trim()
+                .split(/\s+/)
+                .map(i => i.split(","))
+                .forEach(coord => {
+                    const lat = parseFloat(coord[1])
+                    const lon = parseFloat(coord[0])
+                    nodesList.push([lat, lon])
+
+                    trackMetadata.min_lat = min(trackMetadata.min_lat, lat)
+                    trackMetadata.min_lon = min(trackMetadata.min_lon, lon)
+                    trackMetadata.max_lat = max(trackMetadata.max_lat, lat)
+                    trackMetadata.max_lon = max(trackMetadata.max_lon, lon)
+                })
+        })
+        displayWay(nodesList, false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML)
+    })
+    doc.querySelectorAll("Document Placemark:has(Point)").forEach(pointXml => {
+        const [lon, lat] = pointXml.querySelector("coordinates").firstChild.textContent.trim().split(",").map(parseFloat).slice(0, 2)
+        const marker = showNodeMarker(lat, lon, "rgb(255,0,47)", null, "customObjects", 3)
+        const name = pointXml.querySelector("name")
+        const desc = pointXml.querySelector("description")
+        if (name || desc) {
+            const popup = document.createElement("span")
+            if (name) {
+                popup.textContent = name.textContent
+            }
+            if (desc) {
+                popup.appendChild(document.createElement("br"))
+                popup.appendChild(document.createTextNode(desc.textContent))
+            }
+            marker.bindTooltip(popup.outerHTML)
+            marker.bindPopup(popup.outerHTML)
+        }
+
+        trackMetadata.min_lat = min(trackMetadata.min_lat, lat)
+        trackMetadata.min_lon = min(trackMetadata.min_lon, lon)
+        trackMetadata.max_lat = max(trackMetadata.max_lat, lat)
+        trackMetadata.max_lon = max(trackMetadata.max_lon, lon)
+    })
+    console.timeEnd("start kml track render")
+}
+
+function renderGeoJSONwrapper(geojson) {
+    injectJSIntoPage(`
+    var jsonLayer = null;
+    // noinspection JSUnusedLocalSymbols
+    function renderGeoJSON(data) {
+        function onEachFeature(feature, layer) {
+            if (feature.properties) {
+                const table = document.createElement("table")
+                table.style.overflow = "scroll"
+                table.classList.add("geojson-props-table")
+                table.classList.add("zebra_colors")
+                const tbody = document.createElement("tbody")
+                table.appendChild(tbody)
+                Object.entries(feature.properties).forEach(([key, value]) => {
+                    if (Array.isArray(value) && value.length === 0) {
+                        value = "[]"
+                    } else if (value === null) {
+                        value = "null"
+                    } else if (typeof value === 'object' && Object.entries(value).length === 0) {
+                        value = "{}"
+                    }
+                    const th = document.createElement("th")
+                    th.textContent = key
+                    const td = document.createElement("td")
+                    if (key === "id" && typeof value === "string" && (value.startsWith("node/") || value.startsWith("way/") || value.startsWith("relation/"))) {
+                        const a = document.createElement("a")
+                        a.textContent = value
+                        a.href = "/" + value
+                        td.appendChild(a)
+                    } else {
+                        td.textContent = value
+                    }
+
+                    const tr = document.createElement("tr")
+                    tr.appendChild(th)
+                    tr.appendChild(td)
+                    tbody.appendChild(tr)
+                })
+                layer.on("click", e => {
+                    if (e.originalEvent.altKey) {
+                        layer.remove()
+                        e.originalEvent.stopPropagation()
+                        e.originalEvent.stopImmediatePropagation()
+                    }
+                })
+                layer.bindPopup(table.outerHTML)
+            }
+        }
+
+        jsonLayer = L.geoJSON(data, {
+            onEachFeature: onEachFeature,
+            pointToLayer: function (feature, latlng) {
+                return L.circleMarker(latlng)
+            }
+        });
+        jsonLayer.addTo(map);
+    }
+    `)
+    getWindow().renderGeoJSON(intoPage(geojson))
+}
+
+var jsonLayer = null
+let bannedVersions = null
+
+function currentVersionBanned(module) {
+    if (!bannedVersions) return false
+    if (bannedVersions[GM_info.script.version]) {
+        if (bannedVersions[GM_info.script.version][module]) {
+            return bannedVersions[GM_info.script.version][module]
+        }
+    }
+    return false
+}
+
+function insertOverlaysStyles() {
+    const mapWidth = getComputedStyle(document.querySelector("#map")).width
+    const mapHeight = getComputedStyle(document.querySelector("#map")).height
+
+    injectCSSIntoOSMPage(`
+            .leaflet-popup-content, .leaflet-tooltip {
+                white-space: pre;
+            }
+
+            .leaflet-popup-content:has(.geojson-props-table) {
+                overflow: scroll;
+            }
+
+            .leaflet-popup-content:has(.geojson-editor) {
+                    /*max-width: calc(${mapWidth} / 3) !important;
+                        min-width: calc(${mapWidth} / 3) !important;
+                        max-height: calc(${mapHeight} / 2);
+                        min-height: calc(${mapHeight} / 2);*/
+                overflow-y: scroll;
+                font-size: larger;
+            }
+
+            .geojson-editor {
+                margin-left: 5px;
+            }
+
+            table.tags-table {
+                margin-top: 5px;
+                margin-left: 5px;
+            }
+
+            table.metainfo-table {
+                margin-top: 5px;
+                margin-left: 5px;
+            }
+
+            table.tags-table th:not(.tag-flag) {
+                border: solid 2px transparent;
+                min-width: 50px;
+            }
+
+            table.tags-table td:not(.tag-flag) {
+                border: solid 2px transparent;
+                min-width: 150px;
+            }
+
+            table.editable.tags-table th:not(.tag-flag) {
+                border: solid 2px black;
+                min-width: 50px;
+            }
+
+            table.editable.tags-table td:not(.tag-flag) {
+                border: solid 2px black;
+                min-width: 150px;
+            }
+
+            table:not(.editable).tags-table tr.add-tag-row {
+                display: none;
+                min-width: 150px;
+            }
+
+            table.editable.tags-table tr.add-tag-row th {
+                text-align: center;
+                cursor: pointer;
+                min-width: 294px;
+                resize: both !important;
+            }
+
+            table.tags-table textarea {
+                min-width: 280px;
+            }
+
+            .mode-btn:not(.visible) {
+                display: none;
+            }
+
+            .map-img-preview-popup {
+                width: initial;
+            }
+
+            .zebra_colors tr:nth-child(even) td, .zebra_colors tr:nth-child(even) th {
+                background-color: color-mix(in srgb, var(--bs-body-bg), black 10%);
+            }
+
+            @media ${mediaQueryForWebsiteTheme} {
+
+                .mode-btn.visible img {
+                    filter: invert(0.9);
+                }
+
+                .zebra_colors tr:nth-child(even) td, .zebra_colors tr:nth-child(even) th {
+                    background-color: color-mix(in srgb, var(--bs-body-bg), white 7%);
+                }
+
+            }
+
+            .leaflet-popup-content:has(.geotagged-img) {
+                max-width: calc(${mapWidth} / 2) !important;
+                min-width: calc(${mapWidth} / 2) !important;
+                max-height: calc(${mapHeight} / 2);
+                min-height: calc(${mapHeight} / 2);
+                width: auto;
+                height: auto;
+                overflow-y: scroll;
+            }
+        `)
+}
+
+// todo inline
+const rawEditIcon = "https://raw.githubusercontent.com/openstreetmap/iD/671e9f00699c3b2602b82b291c5cd776445032aa/svg/fontawesome/fas-i-cursor.svg"
+const tableEditIcon = "https://raw.githubusercontent.com/openstreetmap/iD/671e9f00699c3b2602b82b291c5cd776445032aa/svg/fontawesome/fas-th-list.svg"
+
+// const lastVersionsCache = {}
+
+function loadBannedVersions() {
+    externalFetchRetry({
+        url: "https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/master/misc/assets/banned_versions.json",
+        responseType: "json",
+    }).then(async res => {
+        bannedVersions = await res.response
+    })
+}
+
+function preloadEditIcons() {
+    GM_addElement("img", {
+        src: rawEditIcon,
+        height: "14px",
+        width: "14px",
+    })
+    GM_addElement("img", {
+        src: tableEditIcon,
+        height: "14px",
+        width: "14px",
+    })
+}
+
+let osmEditAuth = null
+
+function renderOSMGeoJSON(xml, options = {}) {
+    if (osmEditAuth === null) {
+        osmEditAuth = makeAuth()
+    }
+    /**
+     * @param {Object.<string, string>} tags
+     * @return {HTMLTableSectionElement}
+     */
+    function makeTBody(tags) {
+        const tbody = document.createElement("tbody")
+        Object.entries(tags).forEach(([key, value]) => {
+            const th = document.createElement("th")
+            th.textContent = key
+            const td = document.createElement("td")
+            td.textContent = value
+            const tr = document.createElement("tr")
+            th.tabIndex = 0
+            td.tabIndex = 0
+            tr.appendChild(th)
+            tr.appendChild(td)
+            tbody.appendChild(tr)
+        })
+        const tr = document.createElement("tr")
+        tr.classList.add("add-tag-row")
+        const th = document.createElement("th")
+        th.textContent = "+"
+        th.colSpan = 2
+        th.tabIndex = 0
+        th.setAttribute("contenteditable", false)
+        tr.appendChild(th)
+        th.onclick = () => {
+            tbody.lastElementChild.before(makeRow("", "", true))
+        }
+        tbody.appendChild(tr)
+        return tbody
+    }
+
+    function makePopupHTML(feature) {
+        // debugger
+        // const cachedObjectInfo = lastVersionsCache[`${feature.type}_${feature.id}`]
+        // if (cachedObjectInfo && feature.properties.meta.version
+        //     && parseInt(cachedObjectInfo.querySelector("node,way,relation").getAttribute("version")) > feature.properties.meta.version) {
+        //     feature.properties.tags = {}
+        //     lastVersionsCache[`${feature.type}_${feature.id}`].querySelectorAll("tag").forEach(i => {
+        //         feature.properties.tags[i.getAttribute("k")] = i.getAttribute("v")
+        //     })
+        //     feature.properties.meta = {}
+        //     Array.from(cachedObjectInfo.querySelector("node,way,relation").attributes).map(i => [i.name, i.value]).forEach(([key, value]) => {
+        //         if (key === "visible" || key === "nodes" || key === "members" || key === "id") return
+        //         feature.properties.meta[key] = value
+        //     })
+        // }
+
+        const popupBody = document.createElement("span")
+        popupBody.classList.add("geojson-editor")
+
+        const objLink = document.createElement("a")
+        objLink.textContent = feature.properties.type + "/" + feature.properties.id
+        objLink.href = "/" + feature.properties.type + "/" + feature.properties.id
+        popupBody.appendChild(objLink)
+
+        popupBody.appendChild(document.createTextNode(", "))
+
+        const versionLink = document.createElement("a")
+        versionLink.classList.add("version-link")
+        versionLink.textContent = feature.properties.meta.version ? "v" + feature.properties.meta.version : ""
+        versionLink.href = "/" + feature.type + "/" + feature.id + "history/" + feature.properties.meta.version
+        popupBody.appendChild(versionLink)
+
+        const editButton = document.createElement("button")
+        editButton.id = feature.properties.type + "-" + feature.properties.id + "-" + feature.properties.meta.version
+        editButton.classList.add("edit-tags-btn")
+        editButton.textContent = "🖊"
+
+        popupBody.appendChild(document.createTextNode("\xA0"))
+        popupBody.appendChild(editButton)
+
+        const modeBtn = document.createElement("button")
+        modeBtn.classList.add("mode-btn")
+        modeBtn.title = "Switch between table and raw editor"
+
+        popupBody.appendChild(document.createTextNode("\xA0"))
+        popupBody.appendChild(modeBtn)
+
+        const table = document.createElement("table")
+        popupBody.appendChild(table)
+        table.style.overflow = "scroll"
+        table.classList.add("geojson-props-table")
+        table.classList.add("zebra_colors")
+        table.classList.add("tags-table")
+
+        const details = document.createElement("details")
+        details.style.color = "gray"
+
+        const summary = document.createElement("summary")
+        summary.textContent = "metainfo"
+        details.appendChild(summary)
+        popupBody.appendChild(details)
+
+        const metaTable = document.createElement("table")
+        details.appendChild(metaTable)
+        metaTable.style.overflow = "scroll"
+        metaTable.classList.add("geojson-props-table")
+        metaTable.classList.add("zebra_colors")
+        metaTable.classList.add("metainfo-table")
+
+        const metaTBody = document.createElement("tbody")
+        metaTable.appendChild(metaTBody)
+        Object.entries(feature.properties?.meta).forEach(([key, value]) => {
+            const th = document.createElement("th")
+            th.textContent = key
+            const td = document.createElement("td")
+            if (key === "id" && typeof value === "string" && (value.startsWith("node/") || value.startsWith("way/") || value.startsWith("relation/"))) {
+                const a = document.createElement("a")
+                a.textContent = value
+                a.href = "/" + value
+                td.appendChild(a)
+            } else {
+                td.textContent = value
+            }
+
+            const tr = document.createElement("tr")
+            tr.appendChild(th)
+            tr.appendChild(td)
+            metaTBody.appendChild(tr)
+        })
+
+        return popupBody
+    }
+
+    function onEachFeature(feature, layer) {
+        if (!feature.properties) {
+            return
+        }
+
+        getWindow().L.DomEvent.on(
+            layer,
+            "click",
+            intoPageWithFun(e => {
+                const layer = getMap()._layers[e.target._leaflet_id]
+                if (e.originalEvent.altKey) {
+                    layer.remove()
+                    e.originalEvent.stopPropagation()
+                    e.originalEvent.stopImmediatePropagation()
+                } else {
+                    if (!layer.getPopup()) {
+                        layer.bindPopup(makePopupHTML(feature).outerHTML, intoPage({ minWidth: 300 })).openPopup()
+                    }
+                }
+            }),
+        )
+
+        const startEdit = intoPageWithFun(async startEditEvent => {
+            let lastEditMode = await GM.getValue("lastEditMode", "table")
+
+            const table = startEditEvent.target.parentElement.querySelector("table.tags-table")
+            const metaTable = startEditEvent.target.parentElement.querySelector("table.metainfo-table")
+            /** @type {Object.<string, string>}*/
+            let oldTags = {}
+            if (lastEditMode === "table") {
+                table.querySelectorAll("tr:not(.add-tag-row)").forEach(i => {
+                    oldTags[i.querySelector("th").textContent] = i.querySelector("td").textContent
+                })
+            } else {
+                oldTags = buildTags(table.querySelector("textarea").value)
+            }
+
+            const modeBtn = startEditEvent.target.parentElement.querySelector(".mode-btn")
+            modeBtn.classList.add("visible")
+
+            const tableModeBtnImg = GM_addElement("img", {
+                src: tableEditIcon,
+                height: "14px",
+                width: "14px",
+            })
+            tableModeBtnImg.style.marginTop = "-3px"
+            const rawModeBtnImg = GM_addElement("img", {
+                src: rawEditIcon,
+                height: "14px",
+                width: "14px",
+            })
+            rawModeBtnImg.style.marginTop = "-3px"
+
+            if (lastEditMode === "table") {
+                modeBtn.appendChild(rawModeBtnImg)
+            } else {
+                modeBtn.appendChild(tableModeBtnImg)
+                const textarea = table.querySelector("textarea")
+                textarea.setAttribute("disabled", "true")
+                textarea.value = ""
+                textarea.rows = 5
+                Object.entries(feature.properties?.tags).forEach(([k, v]) => {
+                    textarea.value += `${k}=${v.replaceAll("\\\\", "\n")}\n`
+                })
+                textarea.value = textarea.value.trim()
+                table.appendChild(textarea)
+            }
+
+            modeBtn.onclick = async e => {
+                e.stopPropagation()
+                modeBtn.querySelector("img").remove()
+                if (lastEditMode === "table") {
+                    modeBtn.appendChild(tableModeBtnImg)
+                    lastEditMode = "raw"
+                    await GM.setValue("lastEditMode", lastEditMode)
+
+                    table.appendChild(makeTextareaFromTagsTable(table))
+                    table.querySelector("tbody")?.remove()
+                } else {
+                    modeBtn.appendChild(rawModeBtnImg)
+                    lastEditMode = "table"
+                    await GM.setValue("lastEditMode", lastEditMode)
+
+                    table.appendChild(makeTBody(buildTags(table.querySelector("textarea").value)))
+                    table.querySelectorAll("tr:not(.add-tag-row)").forEach(i => {
+                        i.querySelector("th").setAttribute("contenteditable", true)
+                        i.querySelector("td").setAttribute("contenteditable", true)
+                    })
+                    table.querySelector("textarea")?.remove()
+                }
+            }
+
+            const object_type = feature.properties.type
+            const object_id = parseInt(feature.properties.id)
+            let object_version = parseInt(feature.properties.meta.version)
+
+            async function syncTags() {
+                const rawObjectInfo = await (
+                    await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
+                        method: "GET",
+                        prefix: false,
+                    })
+                ).text()
+                const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
+                // lastVersionsCache[`${object_type}_${object_id}`] = objectInfo
+                const lastTags = {}
+                objectInfo.querySelectorAll("tag").forEach(i => {
+                    lastTags[i.getAttribute("k")] = i.getAttribute("v")
+                })
+                const new_object_version = parseInt(objectInfo.querySelector("[version]:not(osm)").getAttribute("version"))
+                if (JSON.stringify(lastTags) !== JSON.stringify(oldTags) || (object_version && object_version + 1 !== new_object_version)) {
+                    console.log("applying new tags")
+                    if (lastEditMode === "table") {
+                        table.querySelector("tbody").remove()
+                        table.appendChild(makeTBody(lastTags))
+                    } else {
+                        table.querySelector("textarea")?.remove()
+                        const textarea = document.createElement("textarea")
+                        textarea.value = ""
+                        textarea.rows = 5
+                        Object.entries(lastTags).forEach(([k, v]) => {
+                            textarea.value += `${k}=${v.replaceAll("\\\\", "\n")}\n`
+                        })
+                        textarea.value = textarea.value.trim()
+                        table.appendChild(textarea)
+                    }
+                }
+                object_version = new_object_version
+                startEditEvent.target.parentElement.querySelector(".version-link").textContent = object_version ? "v" + object_version : ""
+                startEditEvent.target.parentElement.querySelector(".version-link").href = `/${object_type}/${object_id}/history/${object_version}`
+
+                metaTable.querySelector("tbody")?.remove()
+
+                const metaTBody = document.createElement("tbody")
+                metaTable.appendChild(metaTBody)
+                Array.from(objectInfo.querySelector("node,way,relation").attributes)
+                    .map(i => [i.name, i.value])
+                    .forEach(([key, value]) => {
+                        if (key === "visible" || key === "nodes" || key === "members" || key === "id") return
+                        const th = document.createElement("th")
+                        th.textContent = key
+                        const td = document.createElement("td")
+                        td.textContent = value
+
+                        const tr = document.createElement("tr")
+                        tr.appendChild(th)
+                        tr.appendChild(td)
+                        metaTBody.appendChild(tr)
+                    })
+            }
+
+            await syncTags()
+
+            table.classList.add("editable")
+            table.querySelectorAll("tr:not(.add-tag-row)").forEach(i => {
+                i.querySelector("th").setAttribute("contenteditable", true)
+                i.querySelector("td").setAttribute("contenteditable", true)
+            })
+            table.querySelector("textarea")?.removeAttribute("disabled")
+            table.addEventListener("input", () => {
+                startEditEvent.target.removeAttribute("disabled")
+            })
+            startEditEvent.target.textContent = "📤"
+            startEditEvent.target.setAttribute("disabled", true)
+            startEditEvent.target.addEventListener(
+                "click",
+                async function upload() {
+                    startEditEvent.target.style.cursor = "progress"
+                    /** @type {Object.<string, string>}*/
+                    let newTags = {}
+                    const lastEditMode = await GM.getValue("lastEditMode", "table")
+                    if (lastEditMode === "table") {
+                        table.querySelectorAll("tr:not(.add-tag-row)").forEach(i => {
+                            const key = i.querySelector("th").textContent.trim()
+                            const value = i.querySelector("td").textContent.trim()
+                            if (key === "" || value === "") {
+                                // todo notify about error
+                                return
+                            }
+                            newTags[key] = value
+                        })
+                    } else {
+                        newTags = buildTags(table.querySelector("textarea").value)
+                    }
+
+                    console.log("Opening changeset")
+                    const rawObjectInfo = await (
+                        await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
+                            method: "GET",
+                            prefix: false,
+                        })
+                    ).text()
+                    const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
+                    const lastVersion = parseInt(objectInfo.querySelector("[version]:not(osm)").getAttribute("version"))
+                    if (lastVersion !== object_version) {
+                        startEditEvent.target.textContent = "🔄"
+                        alert("Conflict")
+                        throw ""
+                    }
+
+                    const objectXML = objectInfo.querySelector("node,way,relation")
+                    const prevTags = {}
+                    objectXML.querySelectorAll("tag").forEach(i => {
+                        prevTags[i.getAttribute("k")] = i.getAttribute("v")
+                        i.remove()
+                    })
+                    Object.entries(newTags).forEach(([k, v]) => {
+                        const tag = objectInfo.createElement("tag")
+                        tag.setAttribute("k", k)
+                        tag.setAttribute("v", v)
+                        objectXML.appendChild(tag)
+                    })
+
+                    function makeComment(object_type, object_id, prevTags, newTags) {
+                        const removedKeys = Object.entries(prevTags)
+                            .map(([k]) => k)
+                            .filter(k => newTags[k] === undefined)
+                        const addedKeys = Object.entries(newTags)
+                            .map(([k]) => k)
+                            .filter(k => prevTags[k] === undefined)
+                        const modifiedKeys = Object.entries(prevTags)
+                            .filter(([k, v]) => newTags[k] !== undefined && newTags[k] !== v)
+                            .map(([k]) => k)
+
+                        let tagsHint = ""
+                        if (addedKeys.length) {
+                            tagsHint += "Add " + addedKeys.map(k => `${k}=${newTags[k]}`).join(", ") + "; "
+                        }
+
+                        if (modifiedKeys.length) {
+                            tagsHint += "Changed " + modifiedKeys.map(k => `${k}=${prevTags[k]}\u200b→\u200b${newTags[k]}`).join(", ") + "; "
+                        }
+
+                        if (removedKeys.length) {
+                            tagsHint += "Removed " + removedKeys.map(k => `${k}=${prevTags[k]}`).join(", ") + "; "
+                        }
+
+                        if (tagsHint.length > 200 || modifiedKeys.length > 1) {
+                            tagsHint = ""
+                            if (addedKeys.length) {
+                                tagsHint += "Add " + addedKeys.join(", ") + "; "
+                            }
+
+                            if (modifiedKeys.length) {
+                                tagsHint += "Changed " + modifiedKeys.join(", ") + "; "
+                            }
+
+                            if (removedKeys.length) {
+                                tagsHint += "Removed " + removedKeys.join(", ") + "; "
+                            }
+                        }
+
+                        tagsHint = tagsHint.match(/(.*); /)[1]
+
+                        let mainTagsHint = ""
+
+                        for (const i of Object.entries(prevTags)) {
+                            if (mainTags.includes(i[0]) && !removedKeys.includes(i[0]) && !modifiedKeys.includes(i[0])) {
+                                mainTagsHint += ` ${i[0]}=${i[1]}`
+                                break
+                            }
+                        }
+                        for (const i of Object.entries(prevTags)) {
+                            if (i[0] === "name" && !removedKeys.includes("name") && !modifiedKeys.includes("name")) {
+                                mainTagsHint += ` ${i[0]}=${i[1]}`
+                                break
+                            }
+                        }
+
+                        if (mainTagsHint !== "") {
+                            if (removedKeys.length) {
+                                tagsHint += " from" + mainTagsHint
+                            } else if (modifiedKeys.length) {
+                                tagsHint += " of" + mainTagsHint
+                            } else if (addedKeys.length) {
+                                tagsHint += " to" + mainTagsHint
+                            }
+                        } else {
+                            tagsHint += ` for ${object_type} ${object_id}`
+                        }
+
+                        return tagsHint !== "" ? tagsHint.slice(0, 255) : `Update tags of ${object_type} ${object_id}`
+                    }
+
+                    const changesetTags = {
+                        created_by: `better osm.org v${GM_info.script.version}`,
+                        comment: makeComment(object_type, object_id, prevTags, newTags),
+                    }
+
+                    const changesetPayload = document.implementation.createDocument(null, "osm")
+                    const cs = changesetPayload.createElement("changeset")
+                    changesetPayload.documentElement.appendChild(cs)
+                    tagsToXml(changesetPayload, cs, changesetTags)
+                    const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
+
+                    const changesetId = await osmEditAuth
+                        .fetch(osm_server.apiBase + "changeset/create", {
+                            method: "PUT",
+                            prefix: false,
+                            body: chPayloadStr,
+                        })
+                        .then(res => {
+                            if (res.ok) return res.text()
+                            throw new Error(res)
+                        })
+                    console.log(changesetId)
+
+                    try {
+                        objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
+
+                        const objectInfoStr = new XMLSerializer().serializeToString(objectInfo).replace(/xmlns="[^"]+"/, "")
+                        console.log(objectInfoStr)
+                        await osmEditAuth
+                            .fetch(osm_server.apiBase + object_type + "/" + object_id, {
+                                method: "PUT",
+                                prefix: false,
+                                body: objectInfoStr,
+                            })
+                            .then(async res => {
+                                const text = await res.text()
+                                if (res.ok) return text
+                                alert(text)
+                                throw new Error(text)
+                            })
+                    } finally {
+                        startEditEvent.target.style.cursor = ""
+                        await osmEditAuth.fetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
+                            method: "PUT",
+                            prefix: false,
+                        })
+                    }
+
+                    startEditEvent.target.textContent = "#" + changesetId
+                    startEditEvent.target.style.color = "green"
+
+                    startEditEvent.target.onclick = () => {
+                        window.open("/changeset/" + changesetId, "_blank")
+                    }
+
+                    table.addEventListener(
+                        "input",
+                        () => {
+                            startEditEvent.target.removeAttribute("disabled")
+                            startEditEvent.target.textContent = "📤"
+                            startEditEvent.target.onclick = null
+                        },
+                        { once: true },
+                    )
+
+                    oldTags = {}
+                    objectInfo.querySelectorAll("tag").forEach(i => {
+                        oldTags[i.getAttribute("k")] = i.getAttribute("v")
+                    })
+                    await syncTags()
+
+                    console.log(objectInfo)
+                },
+                { once: true },
+            )
+            table.addEventListener(
+                "keydown",
+                e => {
+                    if (e.code === "Enter" && (e.metaKey || e.ctrlKey)) {
+                        e.preventDefault()
+                        const tr = document.createElement("tr")
+                        const th = document.createElement("th")
+                        const td = document.createElement("td")
+                        tr.appendChild(th)
+                        tr.appendChild(td)
+                        tr.style.height = "1rem"
+                        tr.tabIndex = 0
+                        e.target.after(tr)
+                        tr.focus()
+                    }
+                },
+                false,
+            )
+        })
+        getWindow().L.DomEvent.on(
+            layer,
+            "popupopen",
+            intoPageWithFun(
+                async openEvent => {
+                    const layer = getMap()._layers[openEvent.target._leaflet_id]
+                    const editButton = layer.getPopup().getElement().querySelector(".edit-tags-btn")
+                    if (currentVersionBanned("overpass_tags_editor")) {
+                        editButton.classList.add("banned-feature")
+                        editButton.textContent = "Need update better-osm-org"
+                        editButton.title = "Please click for update better-osm-org script.\nThe current version contains a bug that may corrupt OSM data."
+                        editButton.addEventListener(
+                            "click",
+                            intoPageWithFun(() => {
+                                window.open(SCRIPT_UPDATE_URL, "_blank")
+                            }),
+                            intoPage({ once: true }),
+                        )
+                    } else {
+                        editButton.addEventListener("click", startEdit, intoPage({ once: true }))
+
+                        if ((await GM.getValue("lastEditMode", "table")) === "raw") {
+                            const textarea = document.createElement("textarea")
+                            textarea.setAttribute("disabled", "true")
+                            Object.entries(feature.properties?.tags).forEach(([k, v]) => {
+                                if (k === "" && v === "") return
+                                textarea.value += `${k}=${v.replaceAll("\\\\", "\n")}\n`
+                            })
+                            textarea.value = textarea.value.trim()
+                            textarea.rows = 5
+                            layer.getPopup().getElement().querySelector(".tags-table").appendChild(textarea)
+                        } else {
+                            layer.getPopup().getElement().querySelector(".tags-table").appendChild(makeTBody(feature.properties?.tags))
+                        }
+                    }
+                },
+                intoPage({ once: true }),
+            ),
+        )
+    }
+    xml.querySelectorAll("[action=delete]").forEach(i => i.remove())
+    const geojson = osmtogeojson(xml, { flatProperties: false })
+    if (options["skip_tainted"]) {
+        geojson.features = geojson.features.filter(f => !f.properties["tainted"])
+    }
+    const pointOptions = intoPage(options["point_options"] ?? {})
+    const jsonLayer = getWindow().L.geoJSON(
+        intoPage(geojson),
+        intoPageWithFun({
+            style: options["style"],
+            onEachFeature: intoPageWithFun(onEachFeature),
+            pointToLayer: intoPageWithFun(function (feature, latlng) {
+                return getWindow().L.circleMarker(latlng, pointOptions)
+            }),
+        }),
+    )
+    jsonLayer.addTo(getMap())
+    return jsonLayer
+}
+
+//</editor-fold>
+
+//<editor-fold desc="drag-and-drop" defaultstate="collapsed">
+
+async function setupDragAndDropViewers() {
+    document.querySelector("#map")?.addEventListener("drop", e => {
+        if (location.pathname.includes("/directions") || location.pathname.includes("/note/new")) {
+            return
+        }
+        e.preventDefault()
+        e.stopPropagation()
+        e.stopImmediatePropagation()
+        e.target.style.cursor = "progress"
+        try {
+            const mapWidth = getComputedStyle(document.querySelector("#map")).width
+            const mapHeight = getComputedStyle(document.querySelector("#map")).height
+            insertOverlaysStyles()
+            ;[...e.dataTransfer.items].forEach(async (item, _) => {
+                if (item.kind === "file") {
+                    const file = item.getAsFile()
+                    if (file.type.startsWith("image/jpeg")) {
+                        const metadata = EXIF.readFromBinaryFile(await file.arrayBuffer())
+                        console.log(metadata)
+                        console.log(metadata.GPSLatitude, metadata.GPSLongitude)
+                        let lat = parseFloat(metadata.GPSLatitude[0]) + parseFloat(metadata.GPSLatitude[1]) / 60 + parseFloat(metadata.GPSLatitude[2]) / 3600
+                        let lon = parseFloat(metadata.GPSLongitude[0]) + parseFloat(metadata.GPSLongitude[1]) / 60 + parseFloat(metadata.GPSLongitude[2]) / 3600
+
+                        if (metadata.GPSLatitudeRef === "S") {
+                            lat = parseFloat(lat) * -1
+                        }
+
+                        if (metadata.GPSLongitudeRef === "W") {
+                            lon = parseFloat(lon) * -1
+                        }
+
+                        const marker = getWindow().L.circleMarker(
+                            getWindow().L.latLng(lat, lon),
+                            // intoPage({
+                            //     maxWidth: mapWidth,
+                            //     maxHeight: mapHeight,
+                            //     className: "map-img-preview-popup",
+                            // }),
+                        )
+                        const img = document.createElement("img")
+                        img.classList.add("geotagged-img")
+                        img.setAttribute("width", "100%")
+                        const fr = new FileReader()
+                        fr.onload = function () {
+                            img.src = fr.result
+                            marker.bindPopup(img.outerHTML)
+                        }
+                        fr.readAsDataURL(file)
+                        marker.addTo(getMap())
+                    } else if (file.type === "application/json" || file.type === "application/geo+json") {
+                        const geojson = JSON.parse(await file.text())
+                        renderGeoJSONwrapper(geojson)
+                    } else if (file.type === "application/gpx+xml") {
+                        displayGPXTrack(await file.text())
+                    } else if (file.type === "application/vnd.openstreetmap.data+xml") {
+                        const doc = new DOMParser().parseFromString(await file.text(), "application/xml")
+                        loadBannedVersions()
+                        preloadEditIcons()
+                        jsonLayer = renderOSMGeoJSON(doc, true)
+                    } else if (file.type === "application/vnd.google-earth.kml+xml") {
+                        displayKMLTrack(await file.text())
+                    } else if (file.type === "application/vnd.google-earth.kmz+xml") {
+                        const { entries } = await unzipit.unzip(await file.arrayBuffer())
+                        displayKMLTrack(
+                            await Object.entries(entries)
+                                .find(i => i[0].endsWith(".kml"))[1]
+                                .text(),
+                        )
+                    } else {
+                        console.log(file.type)
+                    }
+                }
+            })
+        } finally {
+            e.target.style.cursor = "grab"
+        }
+    })
+    document.querySelector("#map")?.addEventListener("dragover", e => {
+        if (!location.pathname.includes("/directions") && !location.pathname.includes("/note/new")) {
+            e.preventDefault()
+        }
+    })
+
+    if (location.pathname.includes("/traces")) {
+        document.querySelectorAll('a[href*="edit?gpx="]').forEach(i => {
+            const trackID = i.getAttribute("href").match(/edit\?gpx=(\d+)/)[1]
+            const editLink = i.parentElement.parentElement.querySelector('a:not([href*="display-gpx"])')
+            const url = new URL(editLink.href)
+            url.search += "&display-gpx=" + trackID
+            editLink.href = url.toString()
+        })
+    } else if (location.search.includes("&display-gpx=")) {
+        const trackID = location.search.match(/&display-gpx=(\d+)/)[1]
+        const res = await externalFetchRetry({
+            url: `${osm_server.url}/traces/${trackID}/data`,
+            responseType: "blob",
+        })
+        const contentType = res.response.type
+        if (contentType === "application/gpx+xml") {
+            displayGPXTrack(await res.response.text())
+        } else if (contentType === "application/gzip") {
+            displayGPXTrack(await (await decompressBlob(res.response)).text())
+        } else if (contentType === "application/x-bzip2") {
+            // fuck Tampermonkey, structuredClone for TM
+            displayGPXTrack(new DOMParser().parseFromString(new TextDecoder().decode(bz2.decompress(structuredClone(await res.response.bytes()))), "application/xml"))
+        } else {
+            throw `Unknown track #${trackID} format: ` + contentType
+        }
+        if (trackMetadata) {
+            fitBounds([
+                [trackMetadata.min_lat, trackMetadata.min_lon],
+                [trackMetadata.max_lat, trackMetadata.max_lon],
+            ])
+        }
+    }
+
+    // todo refactor
+    const createNoteButton = document.querySelector(".control-note.leaflet-control a")
+    if (createNoteButton && !createNoteButton.getAttribute("data-bs-original-title").includes(" (shift + N)")) {
+        createNoteButton.setAttribute("data-bs-original-title", createNoteButton.getAttribute("data-bs-original-title") + " (shift + N)")
+    }
+}
+
+//</editor-fold>
+
+//<editor-fold desc="" defaultstate="collapsed">
+
+function fixTagsPaste() {
+    function repairTags(text, context) {
+        return text
+            .split("\n")
+            .map(line => {
+                if (line.includes("=") || !line.includes(" ") && !line.includes("\t")) {
+                    return line
+                }
+                ;[key, value] = line.split(/[ \t](.+)/)
+                if (key === undefined || value === undefined) {
+                    return line
+                }
+                if (context === "iD") {
+                    return `${key}=${value}`
+                } else {
+                    return `${key} = ${value}`
+                }
+            })
+            .join("\n")
+    }
+
+    document.addEventListener("paste", e => {
+        const t = e.target
+        if (!(t instanceof HTMLTextAreaElement)) {
+            return
+        }
+        let context;
+        if (location.pathname === "/id") {
+            if (!t.classList.contains("tag-text")) {
+                return
+            }
+            context = "iD"
+        } else {
+            if (!location.pathname.includes("node")
+                && !location.pathname.includes("way")
+                && !location.pathname.includes("relation")
+            ) {
+                return
+            }
+            if (t.getAttribute("row") !== "10" || t.getAttribute("cols") !== "40") {
+                return
+            }
+            context = "osm.org tags editor"
+        }
+        const pos = t.selectionStart
+        const textBefore = t.value.slice(0, pos)
+        const line = textBefore.split(/\r?\n/).pop() ?? ""
+        if (line.includes("=")) {
+            return
+        }
+        e.preventDefault()
+        const clip = (e.clipboardData ?? window.clipboardData).getData("text")
+        const mod = repairTags(clip, context)
+        const start = t.selectionStart
+        const end = t.selectionEnd
+        t.focus()
+        t.setSelectionRange(start, end)
+        let ok = false
+        try {
+            ok = document.execCommand && document.execCommand("insertText", false, mod)
+        } catch (_) {}
+        if (!ok) {
+            t.setRangeText(mod, start, end, "end")
+            const ev = new InputEvent("input", { bubbles: true, cancelable: false, data: mod, inputType: "insertFromPaste" })
+            t.dispatchEvent(ev)
+        }
+    })
+}
+
+function setupBetterTagsPasteInId() {
+    fixTagsPaste()
+}
+//</editor-fold>
+
 //<editor-fold desc="hotkeys">
 let hotkeysConfigured = false
 
@@ -18515,12 +20153,6 @@ function zoomToCurrentObject(e) {
     }
 }
 
-
-function getCurrentXYZ() {
-    const [, z, x, y] = new URL(document.querySelector("#editanchor").href).hash.match(/map=(\d+)\/([0-9.-]+)\/([0-9.-]+)/)
-    return [x, y, z]
-}
-
 function setupNavigationViaHotkeys() {
     if ("/id" === location.pathname || document.querySelector("#id-embed")) return
     updateCurrentObjectMetadata()
@@ -18790,9 +20422,9 @@ function setupNavigationViaHotkeys() {
                         }
                         window.open(
                             "https://level0.osmz.ru/?" +
-                                new URLSearchParams({
-                                    url: shortType + id + "!",
-                                }).toString(),
+                            new URLSearchParams({
+                                url: shortType + id + "!",
+                            }).toString(),
                         )
                     } else {
                         if (!(await validateOsmServerInJOSM())) {
@@ -18800,10 +20432,10 @@ function setupNavigationViaHotkeys() {
                         }
                         window.open(
                             "http://localhost:8111/load_object?" +
-                                new URLSearchParams({
-                                    objects: [shortType + id],
-                                    relation_members: true,
-                                }).toString(),
+                            new URLSearchParams({
+                                objects: [shortType + id],
+                                relation_members: true,
+                            }).toString(),
                         )
                     }
                     return
@@ -19308,1633 +20940,16 @@ function setupNavigationViaHotkeys() {
     document.addEventListener("keydown", keydownHandler, false)
 }
 
-//</editor-fold>
-
-function setupClickableAvatar() {
-    const miniAvatar = document.querySelector(".user_thumbnail_tiny:not([patched-for-click])")
-    if (!miniAvatar || miniAvatar.setAttribute("patched-for-click", "true")) {
-        return
-    }
-    miniAvatar.onclick = e => {
-        if (!e.isTrusted) return
-        e.preventDefault()
-        e.stopPropagation()
-        e.stopImmediatePropagation()
-        if (location.pathname.match(/\/user\/.+\/history/)) {
-            const targetURL = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href")
-            if (e.ctrlKey || e.metaKey) {
-                window.open(targetURL, "_blank")
-            } else {
-                window.location.pathname = targetURL
-            }
-            miniAvatar.click() // dirty hack for hide dropdown
-        } else {
-            const targetURL = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href") + "/history"
-            if (targetURL !== location.pathname) {
-                if (e.ctrlKey || e.metaKey) {
-                    window.open(targetURL, "_blank")
-                } else {
-                    try {
-                        getWindow().OSM.router.route(targetURL)
-                    } catch {
-                        window.location.pathname = targetURL
-                    }
-                }
-                miniAvatar.click() // dirty hack for hide dropdown
-            }
-        }
-    }
-}
-
 function setupOverzoomForDataLayer() {
     if (location.hash.includes("D") && location.hash.includes("layers")) {
         enableOverzoom()
     }
 }
 
-/***@type {((function(string): Promise<void>|void))[]}*/
-// prettier-ignore
-const modules = [
-    setupDarkModeForMap,
-    setupHDYCInProfile,
-    setupBetterProfileStat,
-    setupCompactChangesetsHistory,
-    setupMassChangesetsActions,
-    setupRevertButton,
-    setupResolveNotesButton,
-    setupDeletor,
-    setupHideNoteHighlight,
-    setupSatelliteLayers,
-    setupVersionsDiff,
-    setupChangesetQuickLook,
-    setupNewEditorsLinks,
-    setupNavigationViaHotkeys,
-    setupClickableAvatar,
-    setupOverzoomForDataLayer,
-    setupDragAndDropViewers
-];
-// prettier-ignore
-const alwaysEnabledModules = [
-    setupRelationVersionViewer,
-    setupMakeVersionPageBetter,
-    setupNotesFiltersButtons,
-    setupGPXFiltersButtons,
-    setupMeasurer
-]
-
-const fetchBlobWithCache = (() => {
-    const cache = new Map()
-
-    return async url => {
-        if (cache.has(url)) {
-            return cache.get(url)
-        }
-
-        const promise = externalFetchRetry({
-            url: url,
-            responseType: "blob",
-        })
-        cache.set(url, promise)
-
-        try {
-            const result = await promise
-            cache.set(url, result)
-            return result
-        } catch (error) {
-            cache.delete(url)
-            throw error
-        }
-    }
-})()
-
-/**
- * @param imgSrc {string}
- * @return {Promise<string>}
- */
-async function fetchImageWithCache(imgSrc) {
-    const res = await fetchBlobWithCache(imgSrc)
-    const blob = res.response
-
-    return await new Promise(resolve => {
-        const reader = new FileReader()
-        reader.onload = () => resolve(reader.result)
-        reader.readAsDataURL(blob)
-    })
-}
-
-const fetchJSONWithCache = (() => {
-    /**@type {Map<string, Object | Promise<Object>>}*/
-    const cache = new Map()
-
-    return async (url, init = {}, responseChecker = _ => true) => {
-        if (cache.has(url)) {
-            return cache.get(url)
-        }
-
-        const promise = fetchRetry(url, init).then(res => {
-            if (!res) console.trace()
-            if (responseChecker(res)) {
-                return res.json()
-            }
-        })
-        cache.set(url, promise)
-
-        try {
-            const result = await promise
-            cache.set(url, result)
-            return result
-        } catch (error) {
-            cache.delete(url)
-            throw error
-        }
-    }
-})()
-
-const fetchJSONorResWithCache = (() => {
-    /**@type {Map<string, Object | Promise<Object|Response>>}*/
-    const cache = new Map()
-
-    return async (url, init = {}) => {
-        if (cache.has(url)) {
-            return cache.get(url)
-        }
-
-        const promise = fetchRetry(url, init).then(res => {
-            if (!res.ok) return res
-            return res.json()
-        })
-        cache.set(url, promise)
-
-        try {
-            const result = await promise
-            cache.set(url, result)
-            return result
-        } catch (error) {
-            cache.delete(url)
-            throw error
-        }
-    }
-})()
-
-function setupTaginfo() {
-    if (!GM_config.get("BetterTaginfo")) return
-
-    const instance_text = document.querySelector("#instance")?.textContent
-    const instance = instance_text?.replace(/ \(.*\)/, "")
-
-    // fix overpass links on regional taginfo
-    if (instance_text?.includes(" ")) {
-        const turboLink = document.querySelector("#turbo_button:not(.fixed-link)")
-        if (turboLink && (turboLink.href.includes("%22+in") || turboLink.href.includes("*+in") || turboLink.href.includes("relation+in"))) {
-            turboLink.href = turboLink.href.replace(/(%22|\*|relation)\+in\+(.*)&/, `$1+in+"${instance}"&`)
-            turboLink.classList?.add("fixed-link")
-        }
-    }
-
-    function escapeTaginfoString(s) {
-        return s.replaceAll("\\", "\\\\").replaceAll('"', '\\"').replaceAll("␣", " ")
-    }
-
-    if (location.pathname.match(/reports\/key_lengths$/)) {
-        document.querySelectorAll(".dt-body[data-col='1']").forEach(i => {
-            if (i.querySelector(".overpass-link")) return
-            const overpassLink = document.createElement("a")
-            overpassLink.classList.add("overpass-link")
-            overpassLink.textContent = "🔍"
-            overpassLink.target = "_blank"
-            const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ""))
-            const key = i.querySelector(".empty") ? "" : escapeTaginfoString(i.querySelector("a").textContent)
-            overpassLink.href =
-                `${overpass_server.url}?` +
-                (count > 100000
-                    ? new URLSearchParams({
-                          w: instance ? `"${key}"=* in "${instance}"` : `"${key}"=*`,
-                      }).toString()
-                    : new URLSearchParams({
-                          w: instance ? `"${key}"=* in "${instance}"` : `"${key}"=* global`,
-                          R: "",
-                      }).toString())
-            i.prepend(document.createTextNode("\xA0"))
-            i.prepend(overpassLink)
-        })
-    } else if (location.pathname.match(/relations\//)) {
-        if (location.hash !== "#roles") {
-            return
-        }
-        if (!document.querySelector(".value")) {
-            console.log("Table not loaded")
-            return
-        }
-        document.querySelectorAll("#roles .dt-body[data-col='0']").forEach(i => {
-            if (i.querySelector(".overpass-link")) return
-            const overpassLink = document.createElement("a")
-            overpassLink.classList.add("overpass-link")
-            overpassLink.textContent = "🔍"
-            overpassLink.target = "_blank"
-            overpassLink.style.cursor = "progress"
-            const role = i.querySelector(".empty") ? "" : escapeTaginfoString(i.textContent)
-            const type = location.pathname.match(/relations\/(.*$)/)[1]
-            const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ""))
-            if (instance) {
-                fetchJSONWithCache(
-                    "https://nominatim.openstreetmap.org/search?" +
-                        new URLSearchParams({
-                            format: "json",
-                            q: instance,
-                        }).toString(),
-                ).then(r => {
-                    if (r[0]["osm_id"]) {
-                        const query = `// ${instance}
-area(id:${3600000000 + parseInt(r[0]["osm_id"])})->.a;
-rel[type=${type}](if:count_by_role("${role}") > 0)(area.a);
-out geom;
-`
-                        // prettier-ignore
-                        overpassLink.href = `${overpass_server.url}?` + (count > 1000
-                            ? new URLSearchParams({Q: query})
-                            : new URLSearchParams({Q: query, R: ""})).toString()
-                        overpassLink.style.cursor = "pointer"
-                    } else {
-                        overpassLink.remove()
-                    }
-                })
-            } else {
-                const query = `rel[type=${type}](if:count_by_role("${role}") > 0)${count > 1000 ? "({{bbox}})" : ""};\nout geom;`
-                // prettier-ignore
-                overpassLink.href = `${overpass_server.url}?` + (count > 1000
-                    ? new URLSearchParams({Q: query})
-                    : new URLSearchParams({Q: query, R: ""})).toString()
-                overpassLink.style.cursor = "pointer"
-            }
-            i.prepend(document.createTextNode("\xA0"))
-            i.prepend(overpassLink)
-        })
-    } else if (location.hash === "#values") {
-        const key = escapeTaginfoString(document.querySelector("h1").textContent)
-        document.querySelectorAll("#values .dt-body[data-col='0']").forEach(i => {
-            if (i.querySelector(".overpass-link")) return
-            const overpassLink = document.createElement("a")
-            overpassLink.classList.add("overpass-link")
-            overpassLink.textContent = "🔍"
-            overpassLink.target = "_blank"
-            const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ""))
-            const value = i.querySelector(".empty") ? "" : escapeTaginfoString(i.querySelector("a").textContent)
-            overpassLink.href =
-                `${overpass_server.url}?` +
-                (count > 10000
-                    ? new URLSearchParams({
-                          w: instance ? `"${key}"="${value}" in "${instance}"` : `"${key}"="${value}"`,
-                      }).toString()
-                    : new URLSearchParams({
-                          w: instance ? `"${key}"="${value}" in "${instance}"` : `"${key}"="${value}" global`,
-                          R: "",
-                      }).toString())
-            i.prepend(document.createTextNode("\xA0"))
-            i.prepend(overpassLink)
-        })
-    } else if (location.pathname.includes("/tags/") && document.querySelector(".overview-container")) {
-        // overpass links for tag by OSM type
-        const rawKeyValue = escapeTaginfoString(document.querySelector("h1").textContent)
-        const [key, ...tail] = rawKeyValue.split("=")
-        const keyValue = `${key}="${tail.join("=")}"`
-        document.querySelectorAll("#grid-overview .dt-body[data-col='0']").forEach(i => {
-            if (i.querySelector(".overpass-link")) return
-            const icon = i.querySelector("img")
-            const type = icon.src.match(/\/types\/(.+)\.svg$/)[1]
-            const overpassTypeSelector = type === "all" ? "" : `type:${type} and`
-            const overpassLink = document.createElement("a")
-            overpassLink.classList.add("overpass-link")
-            overpassLink.textContent = i.lastChild.textContent.trim()
-            overpassLink.title = "search with Overpass"
-            overpassLink.target = "_blank"
-            const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ""))
-            overpassLink.href =
-                `${overpass_server.url}?` +
-                (count > 10000
-                    ? new URLSearchParams({
-                          w: instance ? `${overpassTypeSelector} ${keyValue} in "${instance}"` : `${overpassTypeSelector} ${keyValue}`,
-                      }).toString()
-                    : new URLSearchParams({
-                          w: instance ? `${overpassTypeSelector} ${keyValue} in "${instance}"` : `${overpassTypeSelector} ${keyValue} global`,
-                          R: "",
-                      }).toString())
-            i.lastChild.replaceWith(overpassLink)
-            overpassLink.before(document.createTextNode("\xA0"))
-        })
-    }
-}
-
-let trackMetadata = null
-
-/**
- * @param {string|Document} xml
- */
-function displayGPXTrack(xml) {
-    const doc = typeof xml === "string" ? new DOMParser().parseFromString(xml, "application/xml") : xml
-
-    const popup = document.createElement("span")
-
-    const name = doc.querySelector("gpx name")?.textContent
-    const nameSpan = document.createElement("p")
-    nameSpan.textContent = name
-
-    const desc = doc.querySelector("gpx desc")?.textContent
-    const descSpan = document.createElement("p")
-    descSpan.textContent = desc
-
-    const link = doc.querySelector("gpx link")?.getAttribute("href")
-    const linkA = document.createElement("a")
-    linkA.href = link
-    linkA.textContent = link
-
-    popup.appendChild(nameSpan)
-    popup.appendChild(descSpan)
-    popup.appendChild(linkA)
-
-    console.time("start gpx track render")
-    const min = Math.min
-    const max = Math.max
-    trackMetadata = {
-        min_lat: 10000000,
-        min_lon: 10000000,
-        max_lat: -10000000,
-        max_lon: -100000000,
-    }
-    doc.querySelectorAll("gpx trk").forEach(trk => {
-        const nodesList = []
-        trk.querySelectorAll("trkseg trkpt").forEach(i => {
-            const lat = parseFloat(i.getAttribute("lat"))
-            const lon = parseFloat(i.getAttribute("lon"))
-            nodesList.push([lat, lon])
-
-            trackMetadata.min_lat = min(trackMetadata.min_lat, lat)
-            trackMetadata.min_lon = min(trackMetadata.min_lon, lon)
-            trackMetadata.max_lat = max(trackMetadata.max_lat, lat)
-            trackMetadata.max_lon = max(trackMetadata.max_lon, lon)
-        })
-        displayWay(nodesList, false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML)
-    })
-    doc.querySelectorAll("gpx wpt").forEach(wpt => {
-        const lat = wpt.getAttribute("lat")
-        const lon = wpt.getAttribute("lon")
-        const marker = showNodeMarker(lat, lon, "rgb(255,0,47)", null, "customObjects", 3)
-        const name = wpt.querySelector("name")
-        const desc = wpt.querySelector("desc")
-        if (name || desc) {
-            const popup = document.createElement("span")
-            if (name) {
-                popup.textContent = name.textContent
-            }
-            if (desc) {
-                popup.appendChild(document.createElement("br"))
-                popup.appendChild(document.createTextNode(desc.textContent))
-            }
-            marker.bindTooltip(popup.outerHTML)
-            marker.bindPopup(popup.outerHTML)
-        }
-
-        trackMetadata.min_lat = min(trackMetadata.min_lat, lat)
-        trackMetadata.min_lon = min(trackMetadata.min_lon, lon)
-        trackMetadata.max_lat = max(trackMetadata.max_lat, lat)
-        trackMetadata.max_lon = max(trackMetadata.max_lon, lon)
-    })
-    console.timeEnd("start gpx track render")
-}
-
-/**
- * @param {string} xml
- */
-function displayKMLTrack(xml) {
-    const doc = new DOMParser().parseFromString(xml, "application/xml")
-    const error = doc.querySelector("parsererror")
-    if (error) {
-        console.error("Parsing failed:", error.textContent)
-    }
-
-    const popup = document.createElement("span")
-
-    const name = doc.querySelector("Document name")?.textContent
-    const nameSpan = document.createElement("p")
-    nameSpan.textContent = name
-
-    const desc = doc.querySelector("Document description")?.textContent
-    const descSpan = document.createElement("p")
-    descSpan.textContent = desc
-
-    const link = doc.querySelector("Document link")?.getAttribute("href")
-    const linkA = document.createElement("a")
-    linkA.href = link
-    linkA.textContent = link
-
-    popup.appendChild(nameSpan)
-    popup.appendChild(descSpan)
-    popup.appendChild(linkA)
-
-    console.time("start kml track render")
-    const min = Math.min
-    const max = Math.max
-    trackMetadata = {
-        min_lat: 10000000,
-        min_lon: 10000000,
-        max_lat: -10000000,
-        max_lon: -100000000,
-    }
-
-    doc.querySelectorAll("Document Placemark:has(LineString)").forEach(trk => {
-        const nodesList = []
-        trk.querySelectorAll("LineString coordinates").forEach(i => {
-            i.firstChild.textContent
-                .trim()
-                .split(/\s+/)
-                .map(i => i.split(","))
-                .forEach(coord => {
-                    const lat = parseFloat(coord[1])
-                    const lon = parseFloat(coord[0])
-                    nodesList.push([lat, lon])
-
-                    trackMetadata.min_lat = min(trackMetadata.min_lat, lat)
-                    trackMetadata.min_lon = min(trackMetadata.min_lon, lon)
-                    trackMetadata.max_lat = max(trackMetadata.max_lat, lat)
-                    trackMetadata.max_lon = max(trackMetadata.max_lon, lon)
-                })
-        })
-        displayWay(nodesList, false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML)
-    })
-    doc.querySelectorAll("Document Placemark:has(LinearRing)").forEach(trk => {
-        const nodesList = []
-        trk.querySelectorAll("LinearRing coordinates").forEach(i => {
-            i.firstChild.textContent
-                .trim()
-                .split(/\s+/)
-                .map(i => i.split(","))
-                .forEach(coord => {
-                    const lat = parseFloat(coord[1])
-                    const lon = parseFloat(coord[0])
-                    nodesList.push([lat, lon])
-
-                    trackMetadata.min_lat = min(trackMetadata.min_lat, lat)
-                    trackMetadata.min_lon = min(trackMetadata.min_lon, lon)
-                    trackMetadata.max_lat = max(trackMetadata.max_lat, lat)
-                    trackMetadata.max_lon = max(trackMetadata.max_lon, lon)
-                })
-        })
-        displayWay(nodesList, false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML)
-    })
-    doc.querySelectorAll("Document Placemark:has(Point)").forEach(pointXml => {
-        const [lon, lat] = pointXml.querySelector("coordinates").firstChild.textContent.trim().split(",").map(parseFloat).slice(0, 2)
-        const marker = showNodeMarker(lat, lon, "rgb(255,0,47)", null, "customObjects", 3)
-        const name = pointXml.querySelector("name")
-        const desc = pointXml.querySelector("description")
-        if (name || desc) {
-            const popup = document.createElement("span")
-            if (name) {
-                popup.textContent = name.textContent
-            }
-            if (desc) {
-                popup.appendChild(document.createElement("br"))
-                popup.appendChild(document.createTextNode(desc.textContent))
-            }
-            marker.bindTooltip(popup.outerHTML)
-            marker.bindPopup(popup.outerHTML)
-        }
-
-        trackMetadata.min_lat = min(trackMetadata.min_lat, lat)
-        trackMetadata.min_lon = min(trackMetadata.min_lon, lon)
-        trackMetadata.max_lat = max(trackMetadata.max_lat, lat)
-        trackMetadata.max_lon = max(trackMetadata.max_lon, lon)
-    })
-    console.timeEnd("start kml track render")
-}
-
-function renderGeoJSONwrapper(geojson) {
-    injectJSIntoPage(`
-    var jsonLayer = null;
-    // noinspection JSUnusedLocalSymbols
-    function renderGeoJSON(data) {
-        function onEachFeature(feature, layer) {
-            if (feature.properties) {
-                const table = document.createElement("table")
-                table.style.overflow = "scroll"
-                table.classList.add("geojson-props-table")
-                table.classList.add("zebra_colors")
-                const tbody = document.createElement("tbody")
-                table.appendChild(tbody)
-                Object.entries(feature.properties).forEach(([key, value]) => {
-                    if (Array.isArray(value) && value.length === 0) {
-                        value = "[]"
-                    } else if (value === null) {
-                        value = "null"
-                    } else if (typeof value === 'object' && Object.entries(value).length === 0) {
-                        value = "{}"
-                    }
-                    const th = document.createElement("th")
-                    th.textContent = key
-                    const td = document.createElement("td")
-                    if (key === "id" && typeof value === "string" && (value.startsWith("node/") || value.startsWith("way/") || value.startsWith("relation/"))) {
-                        const a = document.createElement("a")
-                        a.textContent = value
-                        a.href = "/" + value
-                        td.appendChild(a)
-                    } else {
-                        td.textContent = value
-                    }
-
-                    const tr = document.createElement("tr")
-                    tr.appendChild(th)
-                    tr.appendChild(td)
-                    tbody.appendChild(tr)
-                })
-                layer.on("click", e => {
-                    if (e.originalEvent.altKey) {
-                        layer.remove()
-                        e.originalEvent.stopPropagation()
-                        e.originalEvent.stopImmediatePropagation()
-                    }
-                })
-                layer.bindPopup(table.outerHTML)
-            }
-        }
-
-        jsonLayer = L.geoJSON(data, {
-            onEachFeature: onEachFeature,
-            pointToLayer: function (feature, latlng) {
-                return L.circleMarker(latlng)
-            }
-        });
-        jsonLayer.addTo(map);
-    }
-    `)
-    getWindow().renderGeoJSON(intoPage(geojson))
-}
-
-var jsonLayer = null
-let bannedVersions = null
-
-function currentVersionBanned(module) {
-    if (!bannedVersions) return false
-    if (bannedVersions[GM_info.script.version]) {
-        if (bannedVersions[GM_info.script.version][module]) {
-            return bannedVersions[GM_info.script.version][module]
-        }
-    }
-    return false
-}
-
-function insertOverlaysStyles() {
-    const mapWidth = getComputedStyle(document.querySelector("#map")).width
-    const mapHeight = getComputedStyle(document.querySelector("#map")).height
-
-    injectCSSIntoOSMPage(`
-            .leaflet-popup-content, .leaflet-tooltip {
-                white-space: pre;
-            }
-
-            .leaflet-popup-content:has(.geojson-props-table) {
-                overflow: scroll;
-            }
-
-            .leaflet-popup-content:has(.geojson-editor) {
-                    /*max-width: calc(${mapWidth} / 3) !important;
-                        min-width: calc(${mapWidth} / 3) !important;
-                        max-height: calc(${mapHeight} / 2);
-                        min-height: calc(${mapHeight} / 2);*/
-                overflow-y: scroll;
-                font-size: larger;
-            }
-
-            .geojson-editor {
-                margin-left: 5px;
-            }
-
-            table.tags-table {
-                margin-top: 5px;
-                margin-left: 5px;
-            }
-
-            table.metainfo-table {
-                margin-top: 5px;
-                margin-left: 5px;
-            }
-
-            table.tags-table th:not(.tag-flag) {
-                border: solid 2px transparent;
-                min-width: 50px;
-            }
-
-            table.tags-table td:not(.tag-flag) {
-                border: solid 2px transparent;
-                min-width: 150px;
-            }
-
-            table.editable.tags-table th:not(.tag-flag) {
-                border: solid 2px black;
-                min-width: 50px;
-            }
-
-            table.editable.tags-table td:not(.tag-flag) {
-                border: solid 2px black;
-                min-width: 150px;
-            }
-
-            table:not(.editable).tags-table tr.add-tag-row {
-                display: none;
-                min-width: 150px;
-            }
-
-            table.editable.tags-table tr.add-tag-row th {
-                text-align: center;
-                cursor: pointer;
-                min-width: 294px;
-                resize: both !important;
-            }
-
-            table.tags-table textarea {
-                min-width: 280px;
-            }
-
-            .mode-btn:not(.visible) {
-                display: none;
-            }
-
-            .map-img-preview-popup {
-                width: initial;
-            }
-
-            .zebra_colors tr:nth-child(even) td, .zebra_colors tr:nth-child(even) th {
-                background-color: color-mix(in srgb, var(--bs-body-bg), black 10%);
-            }
-
-            @media ${mediaQueryForWebsiteTheme} {
-
-                .mode-btn.visible img {
-                    filter: invert(0.9);
-                }
-
-                .zebra_colors tr:nth-child(even) td, .zebra_colors tr:nth-child(even) th {
-                    background-color: color-mix(in srgb, var(--bs-body-bg), white 7%);
-                }
-
-            }
-
-            .leaflet-popup-content:has(.geotagged-img) {
-                max-width: calc(${mapWidth} / 2) !important;
-                min-width: calc(${mapWidth} / 2) !important;
-                max-height: calc(${mapHeight} / 2);
-                min-height: calc(${mapHeight} / 2);
-                width: auto;
-                height: auto;
-                overflow-y: scroll;
-            }
-        `)
-}
-
-// todo inline
-const rawEditIcon = "https://raw.githubusercontent.com/openstreetmap/iD/671e9f00699c3b2602b82b291c5cd776445032aa/svg/fontawesome/fas-i-cursor.svg"
-const tableEditIcon = "https://raw.githubusercontent.com/openstreetmap/iD/671e9f00699c3b2602b82b291c5cd776445032aa/svg/fontawesome/fas-th-list.svg"
-
-// const lastVersionsCache = {}
-
-function loadBannedVersions() {
-    externalFetchRetry({
-        url: "https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/master/misc/assets/banned_versions.json",
-        responseType: "json",
-    }).then(async res => {
-        bannedVersions = await res.response
-    })
-}
-
-function preloadEditIcons() {
-    GM_addElement("img", {
-        src: rawEditIcon,
-        height: "14px",
-        width: "14px",
-    })
-    GM_addElement("img", {
-        src: tableEditIcon,
-        height: "14px",
-        width: "14px",
-    })
-}
-
-let osmEditAuth = null
-
-function renderOSMGeoJSON(xml, options = {}) {
-    if (osmEditAuth === null) {
-        osmEditAuth = makeAuth()
-    }
-    /**
-     * @param {Object.<string, string>} tags
-     * @return {HTMLTableSectionElement}
-     */
-    function makeTBody(tags) {
-        const tbody = document.createElement("tbody")
-        Object.entries(tags).forEach(([key, value]) => {
-            const th = document.createElement("th")
-            th.textContent = key
-            const td = document.createElement("td")
-            td.textContent = value
-            const tr = document.createElement("tr")
-            th.tabIndex = 0
-            td.tabIndex = 0
-            tr.appendChild(th)
-            tr.appendChild(td)
-            tbody.appendChild(tr)
-        })
-        const tr = document.createElement("tr")
-        tr.classList.add("add-tag-row")
-        const th = document.createElement("th")
-        th.textContent = "+"
-        th.colSpan = 2
-        th.tabIndex = 0
-        th.setAttribute("contenteditable", false)
-        tr.appendChild(th)
-        th.onclick = () => {
-            tbody.lastElementChild.before(makeRow("", "", true))
-        }
-        tbody.appendChild(tr)
-        return tbody
-    }
-
-    function makePopupHTML(feature) {
-        // debugger
-        // const cachedObjectInfo = lastVersionsCache[`${feature.type}_${feature.id}`]
-        // if (cachedObjectInfo && feature.properties.meta.version
-        //     && parseInt(cachedObjectInfo.querySelector("node,way,relation").getAttribute("version")) > feature.properties.meta.version) {
-        //     feature.properties.tags = {}
-        //     lastVersionsCache[`${feature.type}_${feature.id}`].querySelectorAll("tag").forEach(i => {
-        //         feature.properties.tags[i.getAttribute("k")] = i.getAttribute("v")
-        //     })
-        //     feature.properties.meta = {}
-        //     Array.from(cachedObjectInfo.querySelector("node,way,relation").attributes).map(i => [i.name, i.value]).forEach(([key, value]) => {
-        //         if (key === "visible" || key === "nodes" || key === "members" || key === "id") return
-        //         feature.properties.meta[key] = value
-        //     })
-        // }
-
-        const popupBody = document.createElement("span")
-        popupBody.classList.add("geojson-editor")
-
-        const objLink = document.createElement("a")
-        objLink.textContent = feature.properties.type + "/" + feature.properties.id
-        objLink.href = "/" + feature.properties.type + "/" + feature.properties.id
-        popupBody.appendChild(objLink)
-
-        popupBody.appendChild(document.createTextNode(", "))
-
-        const versionLink = document.createElement("a")
-        versionLink.classList.add("version-link")
-        versionLink.textContent = feature.properties.meta.version ? "v" + feature.properties.meta.version : ""
-        versionLink.href = "/" + feature.type + "/" + feature.id + "history/" + feature.properties.meta.version
-        popupBody.appendChild(versionLink)
-
-        const editButton = document.createElement("button")
-        editButton.id = feature.properties.type + "-" + feature.properties.id + "-" + feature.properties.meta.version
-        editButton.classList.add("edit-tags-btn")
-        editButton.textContent = "🖊"
-
-        popupBody.appendChild(document.createTextNode("\xA0"))
-        popupBody.appendChild(editButton)
-
-        const modeBtn = document.createElement("button")
-        modeBtn.classList.add("mode-btn")
-        modeBtn.title = "Switch between table and raw editor"
-
-        popupBody.appendChild(document.createTextNode("\xA0"))
-        popupBody.appendChild(modeBtn)
-
-        const table = document.createElement("table")
-        popupBody.appendChild(table)
-        table.style.overflow = "scroll"
-        table.classList.add("geojson-props-table")
-        table.classList.add("zebra_colors")
-        table.classList.add("tags-table")
-
-        const details = document.createElement("details")
-        details.style.color = "gray"
-
-        const summary = document.createElement("summary")
-        summary.textContent = "metainfo"
-        details.appendChild(summary)
-        popupBody.appendChild(details)
-
-        const metaTable = document.createElement("table")
-        details.appendChild(metaTable)
-        metaTable.style.overflow = "scroll"
-        metaTable.classList.add("geojson-props-table")
-        metaTable.classList.add("zebra_colors")
-        metaTable.classList.add("metainfo-table")
-
-        const metaTBody = document.createElement("tbody")
-        metaTable.appendChild(metaTBody)
-        Object.entries(feature.properties?.meta).forEach(([key, value]) => {
-            const th = document.createElement("th")
-            th.textContent = key
-            const td = document.createElement("td")
-            if (key === "id" && typeof value === "string" && (value.startsWith("node/") || value.startsWith("way/") || value.startsWith("relation/"))) {
-                const a = document.createElement("a")
-                a.textContent = value
-                a.href = "/" + value
-                td.appendChild(a)
-            } else {
-                td.textContent = value
-            }
-
-            const tr = document.createElement("tr")
-            tr.appendChild(th)
-            tr.appendChild(td)
-            metaTBody.appendChild(tr)
-        })
-
-        return popupBody
-    }
-
-    function onEachFeature(feature, layer) {
-        if (!feature.properties) {
-            return
-        }
-
-        getWindow().L.DomEvent.on(
-            layer,
-            "click",
-            intoPageWithFun(e => {
-                const layer = getMap()._layers[e.target._leaflet_id]
-                if (e.originalEvent.altKey) {
-                    layer.remove()
-                    e.originalEvent.stopPropagation()
-                    e.originalEvent.stopImmediatePropagation()
-                } else {
-                    if (!layer.getPopup()) {
-                        layer.bindPopup(makePopupHTML(feature).outerHTML, intoPage({ minWidth: 300 })).openPopup()
-                    }
-                }
-            }),
-        )
-
-        const startEdit = intoPageWithFun(async startEditEvent => {
-            let lastEditMode = await GM.getValue("lastEditMode", "table")
-
-            const table = startEditEvent.target.parentElement.querySelector("table.tags-table")
-            const metaTable = startEditEvent.target.parentElement.querySelector("table.metainfo-table")
-            /** @type {Object.<string, string>}*/
-            let oldTags = {}
-            if (lastEditMode === "table") {
-                table.querySelectorAll("tr:not(.add-tag-row)").forEach(i => {
-                    oldTags[i.querySelector("th").textContent] = i.querySelector("td").textContent
-                })
-            } else {
-                oldTags = buildTags(table.querySelector("textarea").value)
-            }
-
-            const modeBtn = startEditEvent.target.parentElement.querySelector(".mode-btn")
-            modeBtn.classList.add("visible")
-
-            const tableModeBtnImg = GM_addElement("img", {
-                src: tableEditIcon,
-                height: "14px",
-                width: "14px",
-            })
-            tableModeBtnImg.style.marginTop = "-3px"
-            const rawModeBtnImg = GM_addElement("img", {
-                src: rawEditIcon,
-                height: "14px",
-                width: "14px",
-            })
-            rawModeBtnImg.style.marginTop = "-3px"
-
-            if (lastEditMode === "table") {
-                modeBtn.appendChild(rawModeBtnImg)
-            } else {
-                modeBtn.appendChild(tableModeBtnImg)
-                const textarea = table.querySelector("textarea")
-                textarea.setAttribute("disabled", "true")
-                textarea.value = ""
-                textarea.rows = 5
-                Object.entries(feature.properties?.tags).forEach(([k, v]) => {
-                    textarea.value += `${k}=${v.replaceAll("\\\\", "\n")}\n`
-                })
-                textarea.value = textarea.value.trim()
-                table.appendChild(textarea)
-            }
-
-            modeBtn.onclick = async e => {
-                e.stopPropagation()
-                modeBtn.querySelector("img").remove()
-                if (lastEditMode === "table") {
-                    modeBtn.appendChild(tableModeBtnImg)
-                    lastEditMode = "raw"
-                    await GM.setValue("lastEditMode", lastEditMode)
-
-                    table.appendChild(makeTextareaFromTagsTable(table))
-                    table.querySelector("tbody")?.remove()
-                } else {
-                    modeBtn.appendChild(rawModeBtnImg)
-                    lastEditMode = "table"
-                    await GM.setValue("lastEditMode", lastEditMode)
-
-                    table.appendChild(makeTBody(buildTags(table.querySelector("textarea").value)))
-                    table.querySelectorAll("tr:not(.add-tag-row)").forEach(i => {
-                        i.querySelector("th").setAttribute("contenteditable", true)
-                        i.querySelector("td").setAttribute("contenteditable", true)
-                    })
-                    table.querySelector("textarea")?.remove()
-                }
-            }
-
-            const object_type = feature.properties.type
-            const object_id = parseInt(feature.properties.id)
-            let object_version = parseInt(feature.properties.meta.version)
-
-            async function syncTags() {
-                const rawObjectInfo = await (
-                    await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
-                        method: "GET",
-                        prefix: false,
-                    })
-                ).text()
-                const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
-                // lastVersionsCache[`${object_type}_${object_id}`] = objectInfo
-                const lastTags = {}
-                objectInfo.querySelectorAll("tag").forEach(i => {
-                    lastTags[i.getAttribute("k")] = i.getAttribute("v")
-                })
-                const new_object_version = parseInt(objectInfo.querySelector("[version]:not(osm)").getAttribute("version"))
-                if (JSON.stringify(lastTags) !== JSON.stringify(oldTags) || (object_version && object_version + 1 !== new_object_version)) {
-                    console.log("applying new tags")
-                    if (lastEditMode === "table") {
-                        table.querySelector("tbody").remove()
-                        table.appendChild(makeTBody(lastTags))
-                    } else {
-                        table.querySelector("textarea")?.remove()
-                        const textarea = document.createElement("textarea")
-                        textarea.value = ""
-                        textarea.rows = 5
-                        Object.entries(lastTags).forEach(([k, v]) => {
-                            textarea.value += `${k}=${v.replaceAll("\\\\", "\n")}\n`
-                        })
-                        textarea.value = textarea.value.trim()
-                        table.appendChild(textarea)
-                    }
-                }
-                object_version = new_object_version
-                startEditEvent.target.parentElement.querySelector(".version-link").textContent = object_version ? "v" + object_version : ""
-                startEditEvent.target.parentElement.querySelector(".version-link").href = `/${object_type}/${object_id}/history/${object_version}`
-
-                metaTable.querySelector("tbody")?.remove()
-
-                const metaTBody = document.createElement("tbody")
-                metaTable.appendChild(metaTBody)
-                Array.from(objectInfo.querySelector("node,way,relation").attributes)
-                    .map(i => [i.name, i.value])
-                    .forEach(([key, value]) => {
-                        if (key === "visible" || key === "nodes" || key === "members" || key === "id") return
-                        const th = document.createElement("th")
-                        th.textContent = key
-                        const td = document.createElement("td")
-                        td.textContent = value
-
-                        const tr = document.createElement("tr")
-                        tr.appendChild(th)
-                        tr.appendChild(td)
-                        metaTBody.appendChild(tr)
-                    })
-            }
-
-            await syncTags()
-
-            table.classList.add("editable")
-            table.querySelectorAll("tr:not(.add-tag-row)").forEach(i => {
-                i.querySelector("th").setAttribute("contenteditable", true)
-                i.querySelector("td").setAttribute("contenteditable", true)
-            })
-            table.querySelector("textarea")?.removeAttribute("disabled")
-            table.addEventListener("input", () => {
-                startEditEvent.target.removeAttribute("disabled")
-            })
-            startEditEvent.target.textContent = "📤"
-            startEditEvent.target.setAttribute("disabled", true)
-            startEditEvent.target.addEventListener(
-                "click",
-                async function upload() {
-                    startEditEvent.target.style.cursor = "progress"
-                    /** @type {Object.<string, string>}*/
-                    let newTags = {}
-                    const lastEditMode = await GM.getValue("lastEditMode", "table")
-                    if (lastEditMode === "table") {
-                        table.querySelectorAll("tr:not(.add-tag-row)").forEach(i => {
-                            const key = i.querySelector("th").textContent.trim()
-                            const value = i.querySelector("td").textContent.trim()
-                            if (key === "" || value === "") {
-                                // todo notify about error
-                                return
-                            }
-                            newTags[key] = value
-                        })
-                    } else {
-                        newTags = buildTags(table.querySelector("textarea").value)
-                    }
-
-                    console.log("Opening changeset")
-                    const rawObjectInfo = await (
-                        await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
-                            method: "GET",
-                            prefix: false,
-                        })
-                    ).text()
-                    const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
-                    const lastVersion = parseInt(objectInfo.querySelector("[version]:not(osm)").getAttribute("version"))
-                    if (lastVersion !== object_version) {
-                        startEditEvent.target.textContent = "🔄"
-                        alert("Conflict")
-                        throw ""
-                    }
-
-                    const objectXML = objectInfo.querySelector("node,way,relation")
-                    const prevTags = {}
-                    objectXML.querySelectorAll("tag").forEach(i => {
-                        prevTags[i.getAttribute("k")] = i.getAttribute("v")
-                        i.remove()
-                    })
-                    Object.entries(newTags).forEach(([k, v]) => {
-                        const tag = objectInfo.createElement("tag")
-                        tag.setAttribute("k", k)
-                        tag.setAttribute("v", v)
-                        objectXML.appendChild(tag)
-                    })
-
-                    function makeComment(object_type, object_id, prevTags, newTags) {
-                        const removedKeys = Object.entries(prevTags)
-                            .map(([k]) => k)
-                            .filter(k => newTags[k] === undefined)
-                        const addedKeys = Object.entries(newTags)
-                            .map(([k]) => k)
-                            .filter(k => prevTags[k] === undefined)
-                        const modifiedKeys = Object.entries(prevTags)
-                            .filter(([k, v]) => newTags[k] !== undefined && newTags[k] !== v)
-                            .map(([k]) => k)
-
-                        let tagsHint = ""
-                        if (addedKeys.length) {
-                            tagsHint += "Add " + addedKeys.map(k => `${k}=${newTags[k]}`).join(", ") + "; "
-                        }
-
-                        if (modifiedKeys.length) {
-                            tagsHint += "Changed " + modifiedKeys.map(k => `${k}=${prevTags[k]}\u200b→\u200b${newTags[k]}`).join(", ") + "; "
-                        }
-
-                        if (removedKeys.length) {
-                            tagsHint += "Removed " + removedKeys.map(k => `${k}=${prevTags[k]}`).join(", ") + "; "
-                        }
-
-                        if (tagsHint.length > 200 || modifiedKeys.length > 1) {
-                            tagsHint = ""
-                            if (addedKeys.length) {
-                                tagsHint += "Add " + addedKeys.join(", ") + "; "
-                            }
-
-                            if (modifiedKeys.length) {
-                                tagsHint += "Changed " + modifiedKeys.join(", ") + "; "
-                            }
-
-                            if (removedKeys.length) {
-                                tagsHint += "Removed " + removedKeys.join(", ") + "; "
-                            }
-                        }
-
-                        tagsHint = tagsHint.match(/(.*); /)[1]
-
-                        let mainTagsHint = ""
-
-                        for (const i of Object.entries(prevTags)) {
-                            if (mainTags.includes(i[0]) && !removedKeys.includes(i[0]) && !modifiedKeys.includes(i[0])) {
-                                mainTagsHint += ` ${i[0]}=${i[1]}`
-                                break
-                            }
-                        }
-                        for (const i of Object.entries(prevTags)) {
-                            if (i[0] === "name" && !removedKeys.includes("name") && !modifiedKeys.includes("name")) {
-                                mainTagsHint += ` ${i[0]}=${i[1]}`
-                                break
-                            }
-                        }
-
-                        if (mainTagsHint !== "") {
-                            if (removedKeys.length) {
-                                tagsHint += " from" + mainTagsHint
-                            } else if (modifiedKeys.length) {
-                                tagsHint += " of" + mainTagsHint
-                            } else if (addedKeys.length) {
-                                tagsHint += " to" + mainTagsHint
-                            }
-                        } else {
-                            tagsHint += ` for ${object_type} ${object_id}`
-                        }
-
-                        return tagsHint !== "" ? tagsHint.slice(0, 255) : `Update tags of ${object_type} ${object_id}`
-                    }
-
-                    const changesetTags = {
-                        created_by: `better osm.org v${GM_info.script.version}`,
-                        comment: makeComment(object_type, object_id, prevTags, newTags),
-                    }
-
-                    const changesetPayload = document.implementation.createDocument(null, "osm")
-                    const cs = changesetPayload.createElement("changeset")
-                    changesetPayload.documentElement.appendChild(cs)
-                    tagsToXml(changesetPayload, cs, changesetTags)
-                    const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
-
-                    const changesetId = await osmEditAuth
-                        .fetch(osm_server.apiBase + "changeset/create", {
-                            method: "PUT",
-                            prefix: false,
-                            body: chPayloadStr,
-                        })
-                        .then(res => {
-                            if (res.ok) return res.text()
-                            throw new Error(res)
-                        })
-                    console.log(changesetId)
-
-                    try {
-                        objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
-
-                        const objectInfoStr = new XMLSerializer().serializeToString(objectInfo).replace(/xmlns="[^"]+"/, "")
-                        console.log(objectInfoStr)
-                        await osmEditAuth
-                            .fetch(osm_server.apiBase + object_type + "/" + object_id, {
-                                method: "PUT",
-                                prefix: false,
-                                body: objectInfoStr,
-                            })
-                            .then(async res => {
-                                const text = await res.text()
-                                if (res.ok) return text
-                                alert(text)
-                                throw new Error(text)
-                            })
-                    } finally {
-                        startEditEvent.target.style.cursor = ""
-                        await osmEditAuth.fetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
-                            method: "PUT",
-                            prefix: false,
-                        })
-                    }
-
-                    startEditEvent.target.textContent = "#" + changesetId
-                    startEditEvent.target.style.color = "green"
-
-                    startEditEvent.target.onclick = () => {
-                        window.open("/changeset/" + changesetId, "_blank")
-                    }
-
-                    table.addEventListener(
-                        "input",
-                        () => {
-                            startEditEvent.target.removeAttribute("disabled")
-                            startEditEvent.target.textContent = "📤"
-                            startEditEvent.target.onclick = null
-                        },
-                        { once: true },
-                    )
-
-                    oldTags = {}
-                    objectInfo.querySelectorAll("tag").forEach(i => {
-                        oldTags[i.getAttribute("k")] = i.getAttribute("v")
-                    })
-                    await syncTags()
-
-                    console.log(objectInfo)
-                },
-                { once: true },
-            )
-            table.addEventListener(
-                "keydown",
-                e => {
-                    if (e.code === "Enter" && (e.metaKey || e.ctrlKey)) {
-                        e.preventDefault()
-                        const tr = document.createElement("tr")
-                        const th = document.createElement("th")
-                        const td = document.createElement("td")
-                        tr.appendChild(th)
-                        tr.appendChild(td)
-                        tr.style.height = "1rem"
-                        tr.tabIndex = 0
-                        e.target.after(tr)
-                        tr.focus()
-                    }
-                },
-                false,
-            )
-        })
-        getWindow().L.DomEvent.on(
-            layer,
-            "popupopen",
-            intoPageWithFun(
-                async openEvent => {
-                    const layer = getMap()._layers[openEvent.target._leaflet_id]
-                    const editButton = layer.getPopup().getElement().querySelector(".edit-tags-btn")
-                    if (currentVersionBanned("overpass_tags_editor")) {
-                        editButton.classList.add("banned-feature")
-                        editButton.textContent = "Need update better-osm-org"
-                        editButton.title = "Please click for update better-osm-org script.\nThe current version contains a bug that may corrupt OSM data."
-                        editButton.addEventListener(
-                            "click",
-                            intoPageWithFun(() => {
-                                window.open(SCRIPT_UPDATE_URL, "_blank")
-                            }),
-                            intoPage({ once: true }),
-                        )
-                    } else {
-                        editButton.addEventListener("click", startEdit, intoPage({ once: true }))
-
-                        if ((await GM.getValue("lastEditMode", "table")) === "raw") {
-                            const textarea = document.createElement("textarea")
-                            textarea.setAttribute("disabled", "true")
-                            Object.entries(feature.properties?.tags).forEach(([k, v]) => {
-                                if (k === "" && v === "") return
-                                textarea.value += `${k}=${v.replaceAll("\\\\", "\n")}\n`
-                            })
-                            textarea.value = textarea.value.trim()
-                            textarea.rows = 5
-                            layer.getPopup().getElement().querySelector(".tags-table").appendChild(textarea)
-                        } else {
-                            layer.getPopup().getElement().querySelector(".tags-table").appendChild(makeTBody(feature.properties?.tags))
-                        }
-                    }
-                },
-                intoPage({ once: true }),
-            ),
-        )
-    }
-    xml.querySelectorAll("[action=delete]").forEach(i => i.remove())
-    const geojson = osmtogeojson(xml, { flatProperties: false })
-    if (options["skip_tainted"]) {
-        geojson.features = geojson.features.filter(f => !f.properties["tainted"])
-    }
-    const pointOptions = intoPage(options["point_options"] ?? {})
-    const jsonLayer = getWindow().L.geoJSON(
-        intoPage(geojson),
-        intoPageWithFun({
-            style: options["style"],
-            onEachFeature: intoPageWithFun(onEachFeature),
-            pointToLayer: intoPageWithFun(function (feature, latlng) {
-                return getWindow().L.circleMarker(latlng, pointOptions)
-            }),
-        }),
-    )
-    jsonLayer.addTo(getMap())
-    return jsonLayer
-}
-
-async function setupDragAndDropViewers() {
-    document.querySelector("#map")?.addEventListener("drop", e => {
-        if (location.pathname.includes("/directions") || location.pathname.includes("/note/new")) {
-            return
-        }
-        e.preventDefault()
-        e.stopPropagation()
-        e.stopImmediatePropagation()
-        e.target.style.cursor = "progress"
-        try {
-            const mapWidth = getComputedStyle(document.querySelector("#map")).width
-            const mapHeight = getComputedStyle(document.querySelector("#map")).height
-            insertOverlaysStyles()
-            ;[...e.dataTransfer.items].forEach(async (item, _) => {
-                if (item.kind === "file") {
-                    const file = item.getAsFile()
-                    if (file.type.startsWith("image/jpeg")) {
-                        const metadata = EXIF.readFromBinaryFile(await file.arrayBuffer())
-                        console.log(metadata)
-                        console.log(metadata.GPSLatitude, metadata.GPSLongitude)
-                        let lat = parseFloat(metadata.GPSLatitude[0]) + parseFloat(metadata.GPSLatitude[1]) / 60 + parseFloat(metadata.GPSLatitude[2]) / 3600
-                        let lon = parseFloat(metadata.GPSLongitude[0]) + parseFloat(metadata.GPSLongitude[1]) / 60 + parseFloat(metadata.GPSLongitude[2]) / 3600
-
-                        if (metadata.GPSLatitudeRef === "S") {
-                            lat = parseFloat(lat) * -1
-                        }
-
-                        if (metadata.GPSLongitudeRef === "W") {
-                            lon = parseFloat(lon) * -1
-                        }
-
-                        const marker = getWindow().L.circleMarker(
-                            getWindow().L.latLng(lat, lon),
-                            // intoPage({
-                            //     maxWidth: mapWidth,
-                            //     maxHeight: mapHeight,
-                            //     className: "map-img-preview-popup",
-                            // }),
-                        )
-                        const img = document.createElement("img")
-                        img.classList.add("geotagged-img")
-                        img.setAttribute("width", "100%")
-                        const fr = new FileReader()
-                        fr.onload = function () {
-                            img.src = fr.result
-                            marker.bindPopup(img.outerHTML)
-                        }
-                        fr.readAsDataURL(file)
-                        marker.addTo(getMap())
-                    } else if (file.type === "application/json" || file.type === "application/geo+json") {
-                        const geojson = JSON.parse(await file.text())
-                        renderGeoJSONwrapper(geojson)
-                    } else if (file.type === "application/gpx+xml") {
-                        displayGPXTrack(await file.text())
-                    } else if (file.type === "application/vnd.openstreetmap.data+xml") {
-                        const doc = new DOMParser().parseFromString(await file.text(), "application/xml")
-                        loadBannedVersions()
-                        preloadEditIcons()
-                        jsonLayer = renderOSMGeoJSON(doc, true)
-                    } else if (file.type === "application/vnd.google-earth.kml+xml") {
-                        displayKMLTrack(await file.text())
-                    } else if (file.type === "application/vnd.google-earth.kmz+xml") {
-                        const { entries } = await unzipit.unzip(await file.arrayBuffer())
-                        displayKMLTrack(
-                            await Object.entries(entries)
-                                .find(i => i[0].endsWith(".kml"))[1]
-                                .text(),
-                        )
-                    } else {
-                        console.log(file.type)
-                    }
-                }
-            })
-        } finally {
-            e.target.style.cursor = "grab"
-        }
-    })
-    document.querySelector("#map")?.addEventListener("dragover", e => {
-        if (!location.pathname.includes("/directions") && !location.pathname.includes("/note/new")) {
-            e.preventDefault()
-        }
-    })
-
-    if (location.pathname.includes("/traces")) {
-        document.querySelectorAll('a[href*="edit?gpx="]').forEach(i => {
-            const trackID = i.getAttribute("href").match(/edit\?gpx=(\d+)/)[1]
-            const editLink = i.parentElement.parentElement.querySelector('a:not([href*="display-gpx"])')
-            const url = new URL(editLink.href)
-            url.search += "&display-gpx=" + trackID
-            editLink.href = url.toString()
-        })
-    } else if (location.search.includes("&display-gpx=")) {
-        const trackID = location.search.match(/&display-gpx=(\d+)/)[1]
-        const res = await externalFetchRetry({
-            url: `${osm_server.url}/traces/${trackID}/data`,
-            responseType: "blob",
-        })
-        const contentType = res.response.type
-        if (contentType === "application/gpx+xml") {
-            displayGPXTrack(await res.response.text())
-        } else if (contentType === "application/gzip") {
-            displayGPXTrack(await (await decompressBlob(res.response)).text())
-        } else if (contentType === "application/x-bzip2") {
-            // fuck Tampermonkey, structuredClone for TM
-            displayGPXTrack(new DOMParser().parseFromString(new TextDecoder().decode(bz2.decompress(structuredClone(await res.response.bytes()))), "application/xml"))
-        } else {
-            throw `Unknown track #${trackID} format: ` + contentType
-        }
-        if (trackMetadata) {
-            fitBounds([
-                [trackMetadata.min_lat, trackMetadata.min_lon],
-                [trackMetadata.max_lat, trackMetadata.max_lon],
-            ])
-        }
-    }
-
-    // todo refactor
-    const createNoteButton = document.querySelector(".control-note.leaflet-control a")
-    if (createNoteButton && !createNoteButton.getAttribute("data-bs-original-title").includes(" (shift + N)")) {
-        createNoteButton.setAttribute("data-bs-original-title", createNoteButton.getAttribute("data-bs-original-title") + " (shift + N)")
-    }
-}
-
-//<editor-fold desc="measurer" defaultstate="collapsed">
-
-let measurerAdded = false
-let measuring = false
-
-function makeEmptyMeasuring() {
-    return {
-        way: [],
-        nodes: [],
-        wayLine: null,
-        tempLine: null,
-    }
-}
-
-let currentMeasuring = makeEmptyMeasuring()
-
-let lastLatLng = null
-let movingTooltip = null
-
-function getMeasureDistance(way, floatingCoord) {
-    const [res] = way.reduce(
-        ([dist, prev], cur) => {
-            if (prev === null) {
-                return [0.0, cur]
-            }
-            // prettier-ignore
-            return [dist + getDistanceFromLatLonInKm(
-                prev.lat,
-                prev.lng,
-                cur.lat,
-                cur.lng
-            ), cur]
-        },
-        [0.0, null],
-    )
-    // prettier-ignore
-    return (Math.round((res + getDistanceFromLatLonInKm(
-        way[way.length - 1].lat,
-        way[way.length - 1].lng,
-        floatingCoord.lat,
-        floatingCoord.lng
-    )) * 100000) / 100.0)
-}
-
-function formatMeasureDistance(distInMeters) {
-    return distInMeters < 2500 ? distInMeters.toString() + "m" : (Math.round(distInMeters) / 1000).toString() + "km"
-}
-
-let measuringMouseDownHandler = null
-let measuringMouseUpHandler = null
-let measuringMouseMoveHandler = null
-let measuringMenuItem = null
-
-function endMeasuring() {
-    document.querySelector("#map").style.cursor = "drag"
-    measuringMenuItem.textContent = "Measure from here"
-    measuring = false
-
-    getMap().off("mousedown", measuringMouseDownHandler)
-    getMap().off("mouseup", measuringMouseUpHandler)
-    getMap().off("mousemove", measuringMouseMoveHandler)
-    movingTooltip?.remove()
-    const lastNode = currentMeasuring.nodes[currentMeasuring.nodes.length - 1]
-    const distInMeters = getMeasureDistance(currentMeasuring.way, lastNode.getLatLng())
-    const text = formatMeasureDistance(distInMeters)
-    currentMeasuring.nodes[currentMeasuring.nodes.length - 1]
-        .bindTooltip(
-            text,
-            intoPage({
-                content: text,
-                sticky: true,
-                permanent: true,
-                offset: getWindow().L.point(10, 0),
-            }),
-        )
-        .openTooltip()
-    currentMeasuring.tempLine?.remove()
-    currentMeasuring = makeEmptyMeasuring()
-}
-
-async function setupMeasurer() {
-    await sleep(100)
-    if (measurerAdded) return
-    measurerAdded = true
-    const contextMenu = document.querySelector("#map .leaflet-contextmenu")
-    if (!contextMenu) {
-        return
-    }
-    if (!getMap || !getMap()?.contextmenu) {
-        await sleep(1000)
-    }
-    if (!getMap()?.contextmenu) {
-        console.error("Ruler can't be configured: map object not available")
-        return
-    }
-    // sometime click don't fire when move 1px
-    let lastMouseDownX = 0
-    let lastMouseDownY = 0
-    measuringMouseDownHandler = intoPageWithFun(e => {
-        lastMouseDownX = e.originalEvent.clientX
-        lastMouseDownY = e.originalEvent.clientY
-    })
-    measuringMouseUpHandler = intoPageWithFun(e => {
-        if (!measuring) {
-            return
-        }
-        if (e.originalEvent.button === 2) {
-            return
-        }
-        if (e.originalEvent.altKey) {
-            currentMeasuring = makeEmptyMeasuring()
-        }
-        const { lat: lat, lng: lng } = e.latlng
-        // prettier-ignore
-        if (lastMouseDownX - e.originalEvent.clientX > 1 || lastMouseDownY - e.originalEvent.clientY > 1 ||
-            lastMouseDownX - e.originalEvent.clientX < -1 || lastMouseDownY - e.originalEvent.clientY < -1) {
-            console.log("skipped click");
-            console.log(lastMouseDownX - e.originalEvent.clientX);
-            console.log(lastMouseDownY - e.originalEvent.clientY);
-            return
-        }
-        currentMeasuring.way.push({ lat: lat, lng: lng })
-        currentMeasuring.nodes.push(showNodeMarker(lat, lng, "#000000"))
-        currentMeasuring.wayLine?.remove()
-
-        const distInMeters = getMeasureDistance(currentMeasuring.way, { lat: lat, lng: lng })
-        const text = formatMeasureDistance(distInMeters)
-        currentMeasuring.wayLine = displayWay(currentMeasuring.way, false, "#000000", 1)
-        movingTooltip?.remove()
-        movingTooltip = getWindow()
-            .L.tooltip(
-                getWindow().L.latLng(intoPage({ lat: lat, lng: lng })),
-                intoPage({
-                    content: text,
-                    sticky: true,
-                    offset: getWindow().L.point(10, 0),
-                }),
-            )
-            .addTo(getMap())
-        currentMeasuring.wayLine
-            .bindTooltip(
-                text,
-                intoPage({
-                    content: text,
-                    sticky: true,
-                    offset: getWindow().L.point(10, 0),
-                }),
-            )
-            .openTooltip()
-    })
-    measuringMouseMoveHandler = intoPageWithFun(e => {
-        if (!measuring) {
-            return
-        }
-        lastLatLng = e.latlng
-        const { lat: lat, lng: lng } = e.latlng
-        currentMeasuring.tempLine?.remove()
-        if (!currentMeasuring.way.length) return
-        const distInMeters = getMeasureDistance(currentMeasuring.way, { lat: lat, lng: lng })
-        const text = formatMeasureDistance(distInMeters)
-        if (!e.originalEvent.altKey) {
-            cleanObjectsByKey("activeObjects")
-            currentMeasuring.tempLine = displayWay(
-                [
-                    currentMeasuring.way[currentMeasuring.way.length - 1],
-                    {
-                        lat: lat,
-                        lng: lng,
-                    },
-                ],
-                false,
-                "#000000",
-                1,
-            )
-            movingTooltip?.remove()
-            movingTooltip = getWindow()
-                .L.tooltip(
-                    getWindow().L.latLng(intoPage({ lat: lat, lng: lng })),
-                    intoPage({
-                        content: text,
-                        sticky: true,
-                        offset: getWindow().L.point(10, 0),
-                    }),
-                )
-                .addTo(getMap())
-        } else {
-            showActiveNodeMarker(e.latlng.lat, e.latlng.lng, "#000000")
-        }
-    })
-
-    getMap().contextmenu.addItem(
-        intoPageWithFun({
-            separator: true,
-            index: 1,
-        }),
-    )
-    measuringMenuItem = getMap().contextmenu.addItem(
-        intoPageWithFun({
-            text: "Measure from here",
-            callback: function startMeasuring(e) {
-                if (measuring) {
-                    endMeasuring()
-                    return
-                }
-                currentMeasuring = makeEmptyMeasuring()
-                const { lat: initLat, lng: initLng } = e.latlng
-                currentMeasuring.way.push({ lat: initLat, lng: initLng })
-                currentMeasuring.nodes.push(showNodeMarker(initLat, initLng, "#000000"))
-                if (currentMeasuring.way.length > 1) {
-                    currentMeasuring.wayLine?.remove()
-                    currentMeasuring.wayLine = displayWay(currentMeasuring.way)
-                } else {
-                    document.querySelector("#map").style.cursor = "pointer"
-                    measuring = true
-                    measuringMenuItem.textContent = "End measure"
-
-                    getMap().on("mousedown", measuringMouseDownHandler)
-                    getMap().on("mouseup", measuringMouseUpHandler)
-                    getMap().on("mousemove", measuringMouseMoveHandler)
-                }
-            },
-        }),
-    )
-}
-
 //</editor-fold>
+
+//<editor-fold desc="id-editor" defaultstate="collapsed">
+
 
 function setupIDframe() {
     if (GM_config.get("DarkModeForID")) {
@@ -20955,6 +20970,47 @@ function setupIDframe() {
         alert(token)
     })
 }
+
+//</editor-fold>
+
+//<editor-fold desc="osm-website" defaultstate="collapsed">
+
+// Модули должны стать классами
+// - поддерживается всеми браузерами, в которых есть TM.
+// - изоляция функций и глобальных переменных
+// - для модулей, которые внедряются через setInterval можно сохранить таймер, чтобы предотвратить дублирование вызовов
+// - возможность сохранить результат внедрения
+
+/***@type {((function(string): Promise<void>|void))[]}*/
+// prettier-ignore
+const modules = [
+    setupDarkModeForMap,
+    setupHDYCInProfile,
+    setupBetterProfileStat,
+    setupCompactChangesetsHistory,
+    setupMassChangesetsActions,
+    setupRevertButton,
+    setupResolveNotesButton,
+    setupDeletor,
+    setupHideNoteHighlight,
+    setupSatelliteLayers,
+    setupVersionsDiff,
+    setupChangesetQuickLook,
+    setupNewEditorsLinks,
+    setupNavigationViaHotkeys,
+    setupClickableAvatar,
+    setupOverzoomForDataLayer,
+    setupDragAndDropViewers,
+    setupBetterTagsPasteInId
+];
+// prettier-ignore
+const alwaysEnabledModules = [
+    setupRelationVersionViewer,
+    setupMakeVersionPageBetter,
+    setupNotesFiltersButtons,
+    setupGPXFiltersButtons,
+    setupMeasurer
+]
 
 function setupOSMWebsite() {
     if (location.pathname === "/id") {
@@ -21040,6 +21096,162 @@ function setupOSMWebsite() {
     })
 }
 
+//</editor-fold>
+
+//<editor-fold desc="taginfo" defaultstate="collapsed">
+
+function setupTaginfo() {
+    if (!GM_config.get("BetterTaginfo")) return
+
+    const instance_text = document.querySelector("#instance")?.textContent
+    const instance = instance_text?.replace(/ \(.*\)/, "")
+
+    // fix overpass links on regional taginfo
+    if (instance_text?.includes(" ")) {
+        const turboLink = document.querySelector("#turbo_button:not(.fixed-link)")
+        if (turboLink && (turboLink.href.includes("%22+in") || turboLink.href.includes("*+in") || turboLink.href.includes("relation+in"))) {
+            turboLink.href = turboLink.href.replace(/(%22|\*|relation)\+in\+(.*)&/, `$1+in+"${instance}"&`)
+            turboLink.classList?.add("fixed-link")
+        }
+    }
+
+    function escapeTaginfoString(s) {
+        return s.replaceAll("\\", "\\\\").replaceAll('"', '\\"').replaceAll("␣", " ")
+    }
+
+    if (location.pathname.match(/reports\/key_lengths$/)) {
+        document.querySelectorAll(".dt-body[data-col='1']").forEach(i => {
+            if (i.querySelector(".overpass-link")) return
+            const overpassLink = document.createElement("a")
+            overpassLink.classList.add("overpass-link")
+            overpassLink.textContent = "🔍"
+            overpassLink.target = "_blank"
+            const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ""))
+            const key = i.querySelector(".empty") ? "" : escapeTaginfoString(i.querySelector("a").textContent)
+            overpassLink.href =
+                `${overpass_server.url}?` +
+                (count > 100000
+                    ? new URLSearchParams({
+                        w: instance ? `"${key}"=* in "${instance}"` : `"${key}"=*`,
+                    }).toString()
+                    : new URLSearchParams({
+                        w: instance ? `"${key}"=* in "${instance}"` : `"${key}"=* global`,
+                        R: "",
+                    }).toString())
+            i.prepend(document.createTextNode("\xA0"))
+            i.prepend(overpassLink)
+        })
+    } else if (location.pathname.match(/relations\//)) {
+        if (location.hash !== "#roles") {
+            return
+        }
+        if (!document.querySelector(".value")) {
+            console.log("Table not loaded")
+            return
+        }
+        document.querySelectorAll("#roles .dt-body[data-col='0']").forEach(i => {
+            if (i.querySelector(".overpass-link")) return
+            const overpassLink = document.createElement("a")
+            overpassLink.classList.add("overpass-link")
+            overpassLink.textContent = "🔍"
+            overpassLink.target = "_blank"
+            overpassLink.style.cursor = "progress"
+            const role = i.querySelector(".empty") ? "" : escapeTaginfoString(i.textContent)
+            const type = location.pathname.match(/relations\/(.*$)/)[1]
+            const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ""))
+            if (instance) {
+                fetchJSONWithCache(
+                    "https://nominatim.openstreetmap.org/search?" +
+                    new URLSearchParams({
+                        format: "json",
+                        q: instance,
+                    }).toString(),
+                ).then(r => {
+                    if (r[0]["osm_id"]) {
+                        const query = `// ${instance}
+area(id:${3600000000 + parseInt(r[0]["osm_id"])})->.a;
+rel[type=${type}](if:count_by_role("${role}") > 0)(area.a);
+out geom;
+`
+                        // prettier-ignore
+                        overpassLink.href = `${overpass_server.url}?` + (count > 1000
+                            ? new URLSearchParams({Q: query})
+                            : new URLSearchParams({Q: query, R: ""})).toString()
+                        overpassLink.style.cursor = "pointer"
+                    } else {
+                        overpassLink.remove()
+                    }
+                })
+            } else {
+                const query = `rel[type=${type}](if:count_by_role("${role}") > 0)${count > 1000 ? "({{bbox}})" : ""};\nout geom;`
+                // prettier-ignore
+                overpassLink.href = `${overpass_server.url}?` + (count > 1000
+                    ? new URLSearchParams({Q: query})
+                    : new URLSearchParams({Q: query, R: ""})).toString()
+                overpassLink.style.cursor = "pointer"
+            }
+            i.prepend(document.createTextNode("\xA0"))
+            i.prepend(overpassLink)
+        })
+    } else if (location.hash === "#values") {
+        const key = escapeTaginfoString(document.querySelector("h1").textContent)
+        document.querySelectorAll("#values .dt-body[data-col='0']").forEach(i => {
+            if (i.querySelector(".overpass-link")) return
+            const overpassLink = document.createElement("a")
+            overpassLink.classList.add("overpass-link")
+            overpassLink.textContent = "🔍"
+            overpassLink.target = "_blank"
+            const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ""))
+            const value = i.querySelector(".empty") ? "" : escapeTaginfoString(i.querySelector("a").textContent)
+            overpassLink.href =
+                `${overpass_server.url}?` +
+                (count > 10000
+                    ? new URLSearchParams({
+                        w: instance ? `"${key}"="${value}" in "${instance}"` : `"${key}"="${value}"`,
+                    }).toString()
+                    : new URLSearchParams({
+                        w: instance ? `"${key}"="${value}" in "${instance}"` : `"${key}"="${value}" global`,
+                        R: "",
+                    }).toString())
+            i.prepend(document.createTextNode("\xA0"))
+            i.prepend(overpassLink)
+        })
+    } else if (location.pathname.includes("/tags/") && document.querySelector(".overview-container")) {
+        // overpass links for tag by OSM type
+        const rawKeyValue = escapeTaginfoString(document.querySelector("h1").textContent)
+        const [key, ...tail] = rawKeyValue.split("=")
+        const keyValue = `${key}="${tail.join("=")}"`
+        document.querySelectorAll("#grid-overview .dt-body[data-col='0']").forEach(i => {
+            if (i.querySelector(".overpass-link")) return
+            const icon = i.querySelector("img")
+            const type = icon.src.match(/\/types\/(.+)\.svg$/)[1]
+            const overpassTypeSelector = type === "all" ? "" : `type:${type} and`
+            const overpassLink = document.createElement("a")
+            overpassLink.classList.add("overpass-link")
+            overpassLink.textContent = i.lastChild.textContent.trim()
+            overpassLink.title = "search with Overpass"
+            overpassLink.target = "_blank"
+            const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ""))
+            overpassLink.href =
+                `${overpass_server.url}?` +
+                (count > 10000
+                    ? new URLSearchParams({
+                        w: instance ? `${overpassTypeSelector} ${keyValue} in "${instance}"` : `${overpassTypeSelector} ${keyValue}`,
+                    }).toString()
+                    : new URLSearchParams({
+                        w: instance ? `${overpassTypeSelector} ${keyValue} in "${instance}"` : `${overpassTypeSelector} ${keyValue} global`,
+                        R: "",
+                    }).toString())
+            i.lastChild.replaceWith(overpassLink)
+            overpassLink.before(document.createTextNode("\xA0"))
+        })
+    }
+}
+
+//</editor-fold>
+
+//<editor-fold desc="wiki" defaultstate="collapsed">
+
 function setupWiki() {
     if (location.pathname.startsWith("/wiki/Proposal:")) {
         let supportList = []
@@ -21114,6 +21326,8 @@ function setupWiki() {
         results.before(document.createTextNode("Interim results calculated by better-osm-org:"))
     }
 }
+
+//</editor-fold>
 
 //<editor-fold desc="script-menu" defaultstate="collapsed">
 
