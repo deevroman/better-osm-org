@@ -18983,7 +18983,7 @@ async function setupDragAndDropViewers() {
 
 //</editor-fold>
 
-//<editor-fold desc="" defaultstate="collapsed">
+//<editor-fold desc="better-tags-paste" defaultstate="collapsed">
 
 function fixTagsPaste() {
     function repairTags(text, context) {
