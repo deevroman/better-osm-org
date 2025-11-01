@@ -14313,6 +14313,8 @@ function setupChangesetQuickLook(path) {
 
 //</editor-fold>
 
+//<editor-fold desc="object-version-page" defaultstate="collapsed">
+
 async function addHoverForNodesParents() {
     if (!location.pathname.match(/^\/node\/(\d+)\/?$/)) {
         return
@@ -15250,6 +15252,8 @@ function setupMakeVersionPageBetter() {
     }, 3000)
     makeVersionPageBetter()
 }
+
+//</editor-fold>
 
 //<editor-fold desc="/history, /user/*/history">
 async function updateUserInfo(username) {
