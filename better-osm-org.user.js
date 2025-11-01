@@ -19033,25 +19033,37 @@ function fixTagsPaste() {
         const pos = t.selectionStart
         const textBefore = t.value.slice(0, pos)
         const line = textBefore.split(/\r?\n/).pop() ?? ""
-        if (line.includes("=")) {
+        if (line.includes("=") || line.trim() !== "") {
+            return
+        }
+        const raw = e.clipboardData.getData("text")
+        const fixedText = repairTags(raw)
+        if (raw === fixedText) {
             return
         }
         e.preventDefault()
-        const clip = (e.clipboardData ?? window.clipboardData).getData("text")
-        const mod = repairTags(clip, context)
-        const start = t.selectionStart
-        const end = t.selectionEnd
-        t.focus()
-        t.setSelectionRange(start, end)
-        let ok = false
-        try {
-            ok = document.execCommand && document.execCommand("insertText", false, mod)
-        } catch (_) {}
-        if (!ok) {
-            t.setRangeText(mod, start, end, "end")
-            const ev = new InputEvent("input", { bubbles: true, cancelable: false, data: mod, inputType: "insertFromPaste" })
-            t.dispatchEvent(ev)
+
+        function pasteText(text, start, end) {
+            let ok = false
+            try {
+                ok = document.execCommand("insertText", false, text)
+            } catch (_) {}
+            if (!ok) {
+                t.setRangeText(text, start, end, "end")
+                const ev = new InputEvent("input", { bubbles: true, cancelable: false, data: text, inputType: "insertFromPaste" })
+                t.dispatchEvent(ev)
+            }
         }
+
+        // сначала вставляем без изменений,
+        t.focus()
+        const start = t.selectionStart
+        const firstEnd = t.selectionEnd
+        t.setSelectionRange(start, firstEnd)
+        pasteText(raw, start, firstEnd)
+        // потом с, чтобы ctrl + Z мог откатить исправление
+        t.setSelectionRange(start, start + raw.length)
+        pasteText(fixedText, start, start + raw.length)
     })
 }
 
