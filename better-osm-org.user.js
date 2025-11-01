@@ -682,7 +682,6 @@ if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id
     })
 }
 
-
 //</editor-fold>
 
 //<editor-fold desc="init-config" defaultstate="collapsed">
@@ -1193,11 +1192,11 @@ const osmchaLikeSvg =
     "data:image/svg+xml;base64," +
     btoa(
         '<svg width="100" height="99" viewBox="0 0 100 99" xmlns="http://www.w3.org/2000/svg">' +
-        '<g fill="#39DBC0" fill-rule="evenodd">' +
-        '<path d="M41.817 42H8.65a8 8 0 0 0-7.862 9.483l6.981 37A8 8 0 0 0 15.632 95H92a8 8 0 0 0 ' +
-        "8-8V50a8 8 0 0 0-8-8H64.814c.034-.66.012-1.334-.072-2.013L61.086 10.21C60.312 3.906 " +
-        '54.574-.576 48.27.198c-6.303.774-10.786 6.511-10.012 12.815z" fill-opacity=".3"/>' +
-        '<rect fill-opacity=".9" x="76" y="37" width="24" height="62" rx="8"/></g></svg>',
+            '<g fill="#39DBC0" fill-rule="evenodd">' +
+            '<path d="M41.817 42H8.65a8 8 0 0 0-7.862 9.483l6.981 37A8 8 0 0 0 15.632 95H92a8 8 0 0 0 ' +
+            "8-8V50a8 8 0 0 0-8-8H64.814c.034-.66.012-1.334-.072-2.013L61.086 10.21C60.312 3.906 " +
+            '54.574-.576 48.27.198c-6.303.774-10.786 6.511-10.012 12.815z" fill-opacity=".3"/>' +
+            '<rect fill-opacity=".9" x="76" y="37" width="24" height="62" rx="8"/></g></svg>',
     )
 
 // todo is equal with rotate and color
@@ -1205,11 +1204,11 @@ const osmchaDislikeSvg =
     "data:image/svg+xml;base64," +
     btoa(
         '<svg width="100" height="99" viewBox="0 0 100 99" xmlns="http://www.w3.org/2000/svg">' +
-        '<g transform="rotate(-180 50 49.5)" fill="#CC2C47" fill-rule="evenodd">' +
-        '<path d="M41.817 42H8.65a8 8 0 0 0-7.862 9.483l6.981 37A8 8 0 0 0 15.632 95H92a8 8 0 0 0 ' +
-        "8-8V50a8 8 0 0 0-8-8H64.814c.034-.66.012-1.334-.072-2.013L61.086 10.21C60.312 3.906 " +
-        '54.574-.576 48.27.198c-6.303.774-10.786 6.511-10.012 12.815z" fill-opacity=".3"/>' +
-        '<rect fill-opacity=".9" x="76" y="37" width="24" height="62" rx="8"/></g></svg>',
+            '<g transform="rotate(-180 50 49.5)" fill="#CC2C47" fill-rule="evenodd">' +
+            '<path d="M41.817 42H8.65a8 8 0 0 0-7.862 9.483l6.981 37A8 8 0 0 0 15.632 95H92a8 8 0 0 0 ' +
+            "8-8V50a8 8 0 0 0-8-8H64.814c.034-.66.012-1.334-.072-2.013L61.086 10.21C60.312 3.906 " +
+            '54.574-.576 48.27.198c-6.303.774-10.786 6.511-10.012 12.815z" fill-opacity=".3"/>' +
+            '<rect fill-opacity=".9" x="76" y="37" width="24" height="62" rx="8"/></g></svg>',
     )
 
 const osmchaSvgLogo =
@@ -1285,34 +1284,34 @@ const nodeIcon =
     "data:image/svg+xml;base64," +
     btoa(
         '<svg xmlns="http://www.w3.org/2000/svg" height="256" width="256">' +
-        '<rect width="242" height="242" fill="#fff" ry="32" x="7" y="7"/>' +
-        '<circle cx="128" cy="128" r="24" fill="#bee6be" stroke="#000" stroke-width="10"/>' +
-        '<rect width="242" height="242" stroke="#000" fill="none" stroke-width="12" ry="32" x="7" y="7"/></svg>',
+            '<rect width="242" height="242" fill="#fff" ry="32" x="7" y="7"/>' +
+            '<circle cx="128" cy="128" r="24" fill="#bee6be" stroke="#000" stroke-width="10"/>' +
+            '<rect width="242" height="242" stroke="#000" fill="none" stroke-width="12" ry="32" x="7" y="7"/></svg>',
     )
 
 const wayIcon =
     "data:image/svg+xml;base64," +
     btoa(
         '<svg xmlns="http://www.w3.org/2000/svg" height="256" width="256">' +
-        '<rect width="242" height="242" fill="#fff" ry="32" x="7" y="7"/>' +
-        '<path stroke="#ccc" fill="none" stroke-width="16" d="M169 58 57 145l138 54"/>' +
-        '<circle cx="169" cy="58" r="24"/>' +
-        '<circle cx="57" cy="145" r="24"/>' +
-        '<circle cx="195" cy="199" r="24"/>' +
-        '<rect width="242" height="242" stroke="#000" fill="none" stroke-width="12" ry="32" x="7" y="7"/></svg>',
+            '<rect width="242" height="242" fill="#fff" ry="32" x="7" y="7"/>' +
+            '<path stroke="#ccc" fill="none" stroke-width="16" d="M169 58 57 145l138 54"/>' +
+            '<circle cx="169" cy="58" r="24"/>' +
+            '<circle cx="57" cy="145" r="24"/>' +
+            '<circle cx="195" cy="199" r="24"/>' +
+            '<rect width="242" height="242" stroke="#000" fill="none" stroke-width="12" ry="32" x="7" y="7"/></svg>',
     )
 
 const relationIcon =
     "data:image/svg+xml;base64," +
     btoa(
         '<svg xmlns="http://www.w3.org/2000/svg" height="256" width="256" viewBox="0 0 256 256">' +
-        '<rect width="242" height="242" stroke="#000" fill="#f0f0f0" stroke-width="12" ry="32" x="7" y="7"/>' +
-        '<path d="m68 68 128-6M68 68l128 74M68 68l-6 128" stroke-width="16" stroke="#ccc"/>' +
-        '<circle cx="196" cy="62" r="24"/><circle cx="196" cy="142" r="24"/>' +
-        '<circle cx="62" cy="196" r="24"/>' +
-        '<path d="m68 68 74 128" stroke-width="16" stroke="#ccc"/>' +
-        '<circle cx="142" cy="196" r="24"/>' +
-        '<circle cx="72" cy="72" r="32" fill="#bee6be" stroke="#000" stroke-width="8"/></svg>',
+            '<rect width="242" height="242" stroke="#000" fill="#f0f0f0" stroke-width="12" ry="32" x="7" y="7"/>' +
+            '<path d="m68 68 128-6M68 68l128 74M68 68l-6 128" stroke-width="16" stroke="#ccc"/>' +
+            '<circle cx="196" cy="62" r="24"/><circle cx="196" cy="142" r="24"/>' +
+            '<circle cx="62" cy="196" r="24"/>' +
+            '<path d="m68 68 74 128" stroke-width="16" stroke="#ccc"/>' +
+            '<circle cx="142" cy="196" r="24"/>' +
+            '<circle cx="72" cy="72" r="32" fill="#bee6be" stroke="#000" stroke-width="8"/></svg>',
     )
 
 //</editor-fold>
@@ -1748,7 +1747,6 @@ const fetchJSONorResWithCache = (() => {
     }
 })()
 
-
 const fetchTextWithCache = (() => {
     /**@type {Map<string, string | undefined | Promise<string | undefined> >}*/
     const cache = new Map()
@@ -1805,7 +1803,6 @@ const originalFetchTextWithCache = (() => {
     }
 })()
 
-
 //</editor-fold>
 
 //<editor-fold desc="geom utils" defaultstate="collapsed">
@@ -1828,7 +1825,6 @@ function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
     return R * c
 }
-
 
 /**
  * @param {number} lat
@@ -2023,7 +2019,6 @@ function setZoom(zoomLevel) {
         }
     }
 }
-
 
 /**
  * @type {{
@@ -2412,7 +2407,6 @@ function fitBoundsWithPadding(bound, padding, maxZoom = 19) {
         getMap().fitBounds(intoPageWithFun(bound), intoPage({ padding: [padding, padding], maxZoom: maxZoom }))
     }
 }
-
 
 const earthRadius = 6378137
 
@@ -3104,7 +3098,6 @@ function renderDirectionTag(lat, lon, values, color = c("#ff00e3")) {
     })
 }
 
-
 //</editor-fold>
 
 //<editor-fold desc="editor-utils" defaultstate="collapsed">
@@ -3246,25 +3239,25 @@ async function getPrevNextChangesetsIDs(changeset_id) {
 
     const prevChangesetsPromise = fetchJSONWithCache(
         osm_server.apiBase +
-        "changesets.json?" +
-        new URLSearchParams({
-            user: changesetMetadata.uid.toString(),
-            order: "newest",
-            from: "2005-01-01T00:00:00Z",
-            to: new Date(new Date(changesetMetadata.created_at).getTime() + 1000).toISOString(), // на случай если в одну секунду создано несколько пакетов правок
-        }).toString(),
+            "changesets.json?" +
+            new URLSearchParams({
+                user: changesetMetadata.uid.toString(),
+                order: "newest",
+                from: "2005-01-01T00:00:00Z",
+                to: new Date(new Date(changesetMetadata.created_at).getTime() + 1000).toISOString(), // на случай если в одну секунду создано несколько пакетов правок
+            }).toString(),
     )
 
     /*** @type {{changesets: ChangesetMetadata[]}}*/
     const nextChangesets = await fetchJSONWithCache(
         osm_server.apiBase +
-        "changesets.json?" +
-        new URLSearchParams({
-            user: changesetMetadata.uid.toString(),
-            order: "oldest",
-            from: changesetMetadata.created_at,
-            to: new Date().toISOString(),
-        }).toString(),
+            "changesets.json?" +
+            new URLSearchParams({
+                user: changesetMetadata.uid.toString(),
+                order: "oldest",
+                from: changesetMetadata.created_at,
+                to: new Date().toISOString(),
+            }).toString(),
     )
 
     /*** @type {{changesets: ChangesetMetadata[]}}*/
@@ -3716,10 +3709,10 @@ function addRevertButton() {
 
                 window.open(
                     "https://revert.monicz.dev/?" +
-                    new URLSearchParams({
-                        changesets: changeset_id,
-                        "query-filter": selector,
-                    }).toString(),
+                        new URLSearchParams({
+                            changesets: changeset_id,
+                            "query-filter": selector,
+                        }).toString(),
                     "_blank",
                 )
                 return
@@ -3729,8 +3722,8 @@ function addRevertButton() {
                     e.preventDefault()
                     alert(
                         "osm-revert works only for www.openstreetmap.org\n\n" +
-                        "But you can install reverter plugin in JOSM and use shift+click for other OSM servers.\n\n" +
-                        "⚠️Change the osm server in the josm settings!",
+                            "But you can install reverter plugin in JOSM and use shift+click for other OSM servers.\n\n" +
+                            "⚠️Change the osm server in the josm settings!",
                     )
                 }
                 return
@@ -3986,7 +3979,6 @@ function setupRevertButton() {
     }, 3000)
     addRevertButton()
 }
-
 
 // noinspection CssUnusedSymbol,CssUnresolvedCustomProperty
 const compactSidebarStyleText = `
@@ -5763,7 +5755,6 @@ async function addPOIMoverItem(measuringMenuItem) {
         }
     }
 }
-
 
 //</editor-fold>
 
@@ -7629,9 +7620,9 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
             if (res.status === 404) {
                 console.log("%c Some nodes was hidden. Start slow fetching :(", "background: #222; color: #bada55")
                 const newArgs = args.split(",").map(i => parseInt(i.match(/(\d+)v(\d+)/)[1]))
-                    // это нарушает инвариант, что versions не содержит последней версии
-                    // важно также сохранять отсортированность,
-                    // иначе loadNodesViaHistoryCalls сделает внутри несколько вызовов для одной и той же точки
+                // это нарушает инвариант, что versions не содержит последней версии
+                // важно также сохранять отсортированность,
+                // иначе loadNodesViaHistoryCalls сделает внутри несколько вызовов для одной и той же точки
                 ;(await loadNodesViaHistoryCalls(newArgs)).forEach(i => {
                     versions.push(...i)
                 })
@@ -15187,12 +15178,12 @@ async function updateUserInfo(username) {
     void initCorporateMappersList()
     const res = await fetchJSONWithCache(
         osm_server.apiBase +
-        "changesets.json?" +
-        new URLSearchParams({
-            display_name: username,
-            limit: 1,
-            order: "oldest",
-        }).toString(),
+            "changesets.json?" +
+            new URLSearchParams({
+                display_name: username,
+                limit: 1,
+                order: "oldest",
+            }).toString(),
     )
     let uid
     let firstObjectCreationTime
@@ -15200,13 +15191,13 @@ async function updateUserInfo(username) {
     if (res["changesets"].length === 0) {
         const res = await fetchJSONWithCache(
             osm_server.apiBase +
-            "notes/search.json?" +
-            new URLSearchParams({
-                display_name: username,
-                limit: 1,
-                closed: -1,
-                order: "oldest",
-            }).toString(),
+                "notes/search.json?" +
+                new URLSearchParams({
+                    display_name: username,
+                    limit: 1,
+                    closed: -1,
+                    order: "oldest",
+                }).toString(),
         )
         uid = res["features"][0]["properties"]["comments"].find(i => i["user"] === username)["uid"]
         firstObjectCreationTime = res["features"][0]["properties"]["comments"].find(i => i["user"] === username)["date"]
@@ -16419,13 +16410,13 @@ async function loadChangesetsBetween(user, fromTime, toTime) {
         /*** @type {{changesets: ChangesetMetadata[]}}*/
         const res = await fetchJSONWithCache(
             osm_server.apiBase +
-            "changesets.json?" +
-            new URLSearchParams({
-                display_name: user,
-                order: "oldest",
-                from: curTime.toISOString(),
-                to: toTime.toISOString(),
-            }).toString(),
+                "changesets.json?" +
+                new URLSearchParams({
+                    display_name: user,
+                    order: "oldest",
+                    from: curTime.toISOString(),
+                    to: toTime.toISOString(),
+                }).toString(),
         )
         console.log(res)
 
@@ -17024,10 +17015,10 @@ async function makeProfileForDeletedUser(user) {
                             console.log("download user_block before ", before)
                             before = Math.max(1, before)
                             const startPage = await externalFetchRetry({
-                                    url: "/user_blocks?before=" + before,
-                                    // responseType: "xml",
-                                    headers: { "turbo-frame": "pagination" },
-                                })
+                                url: "/user_blocks?before=" + before,
+                                // responseType: "xml",
+                                headers: { "turbo-frame": "pagination" },
+                            })
                             ;[foundUserBlock, before] = findBlocks(startPage.response)
                             if (!before) {
                                 return
@@ -17067,12 +17058,12 @@ async function makeProfileForDeletedUser(user) {
             /*** @type {{changesets: ChangesetMetadata[]}}*/
             const lastChangesets = await fetchJSONWithCache(
                 osm_server.apiBase +
-                "changesets.json?" +
-                new URLSearchParams({
-                    user: id,
-                    order: "newest",
-                    to: new Date().toISOString(),
-                }).toString(),
+                    "changesets.json?" +
+                    new URLSearchParams({
+                        user: id,
+                        order: "newest",
+                        to: new Date().toISOString(),
+                    }).toString(),
             )
             const processedChangesets = new Set(lastChangesets.changesets.map(c => c.id))
 
@@ -17080,13 +17071,13 @@ async function makeProfileForDeletedUser(user) {
                 const curTime = lastChangesets.changesets[lastChangesets.changesets.length - 1].created_at
                 const ch = await fetchJSONWithCache(
                     osm_server.apiBase +
-                    "changesets.json?" +
-                    new URLSearchParams({
-                        user: id,
-                        order: "newest",
-                        to: new Date(new Date(curTime).getTime() + 1000).toISOString(),
-                        from: "2005-01-01T00:00:00Z",
-                    }).toString(),
+                        "changesets.json?" +
+                        new URLSearchParams({
+                            user: id,
+                            order: "newest",
+                            to: new Date(new Date(curTime).getTime() + 1000).toISOString(),
+                            from: "2005-01-01T00:00:00Z",
+                        }).toString(),
                 )
                 ch.changesets = ch.changesets.filter(ch => !processedChangesets.has(ch.id))
                 if (ch.changesets.length === 0) break
@@ -17382,23 +17373,23 @@ async function setupHDYCInProfile(path) {
         if (!userID) {
             const res = await fetchJSONWithCache(
                 osm_server.apiBase +
-                "changesets.json?" +
-                new URLSearchParams({
-                    display_name: decodeURI(user),
-                    limit: 1,
-                    order: "oldest",
-                }).toString(),
+                    "changesets.json?" +
+                    new URLSearchParams({
+                        display_name: decodeURI(user),
+                        limit: 1,
+                        order: "oldest",
+                    }).toString(),
             )
             if (res["changesets"].length === 0) {
                 const res = await fetchJSONWithCache(
                     osm_server.apiBase +
-                    "notes/search.json?" +
-                    new URLSearchParams({
-                        display_name: decodeURI(user),
-                        limit: 1,
-                        closed: -1,
-                        order: "oldest",
-                    }).toString(),
+                        "notes/search.json?" +
+                        new URLSearchParams({
+                            display_name: decodeURI(user),
+                            limit: 1,
+                            closed: -1,
+                            order: "oldest",
+                        }).toString(),
                 )
                 userID = res?.["features"]?.[0]?.["properties"]?.["comments"]?.find(i => i["user"] === decodeURI(user))?.["uid"]
                 if (!userID) {
@@ -17817,7 +17808,6 @@ function setupClickableAvatar() {
 //</editor-fold>
 
 //<editor-fold desc="geojson" defaultstate="collapsed">
-
 
 let trackMetadata = null
 
@@ -20413,9 +20403,9 @@ function setupNavigationViaHotkeys() {
                         }
                         window.open(
                             "https://level0.osmz.ru/?" +
-                            new URLSearchParams({
-                                url: shortType + id + "!",
-                            }).toString(),
+                                new URLSearchParams({
+                                    url: shortType + id + "!",
+                                }).toString(),
                         )
                     } else {
                         if (!(await validateOsmServerInJOSM())) {
@@ -20423,10 +20413,10 @@ function setupNavigationViaHotkeys() {
                         }
                         window.open(
                             "http://localhost:8111/load_object?" +
-                            new URLSearchParams({
-                                objects: [shortType + id],
-                                relation_members: true,
-                            }).toString(),
+                                new URLSearchParams({
+                                    objects: [shortType + id],
+                                    relation_members: true,
+                                }).toString(),
                         )
                     }
                     return
@@ -20949,7 +20939,7 @@ function fixTagsPaste() {
         return text
             .split("\n")
             .map(line => {
-                if (line.includes("=") || !line.includes(" ") && !line.includes("\t")) {
+                if (line.includes("=") || (!line.includes(" ") && !line.includes("\t"))) {
                     return line
                 }
                 const [key, value] = line.split(/[ \t](.+)/)
@@ -20971,17 +20961,14 @@ function fixTagsPaste() {
         if (!(t instanceof HTMLTextAreaElement)) {
             return
         }
-        let context;
+        let context
         if (location.pathname === "/id") {
             if (!t.classList.contains("tag-text")) {
                 return
             }
             context = "iD"
         } else {
-            if (!location.pathname.includes("node")
-                && !location.pathname.includes("way")
-                && !location.pathname.includes("relation")
-            ) {
+            if (!location.pathname.includes("node") && !location.pathname.includes("way") && !location.pathname.includes("relation")) {
                 return
             }
             if (t.getAttribute("rows") !== "10" || t.getAttribute("cols") !== "40") {
@@ -21032,7 +21019,6 @@ function setupBetterTagsPaste() {
 //</editor-fold>
 
 //<editor-fold desc="id-editor" defaultstate="collapsed">
-
 
 function setupIDframe() {
     if (GM_config.get("DarkModeForID")) {
@@ -21216,12 +21202,12 @@ function setupTaginfo() {
                 `${overpass_server.url}?` +
                 (count > 100000
                     ? new URLSearchParams({
-                        w: instance ? `"${key}"=* in "${instance}"` : `"${key}"=*`,
-                    }).toString()
+                          w: instance ? `"${key}"=* in "${instance}"` : `"${key}"=*`,
+                      }).toString()
                     : new URLSearchParams({
-                        w: instance ? `"${key}"=* in "${instance}"` : `"${key}"=* global`,
-                        R: "",
-                    }).toString())
+                          w: instance ? `"${key}"=* in "${instance}"` : `"${key}"=* global`,
+                          R: "",
+                      }).toString())
             i.prepend(document.createTextNode("\xA0"))
             i.prepend(overpassLink)
         })
@@ -21246,10 +21232,10 @@ function setupTaginfo() {
             if (instance) {
                 fetchJSONWithCache(
                     "https://nominatim.openstreetmap.org/search?" +
-                    new URLSearchParams({
-                        format: "json",
-                        q: instance,
-                    }).toString(),
+                        new URLSearchParams({
+                            format: "json",
+                            q: instance,
+                        }).toString(),
                 ).then(r => {
                     if (r[0]["osm_id"]) {
                         const query = `// ${instance}
@@ -21291,12 +21277,12 @@ out geom;
                 `${overpass_server.url}?` +
                 (count > 10000
                     ? new URLSearchParams({
-                        w: instance ? `"${key}"="${value}" in "${instance}"` : `"${key}"="${value}"`,
-                    }).toString()
+                          w: instance ? `"${key}"="${value}" in "${instance}"` : `"${key}"="${value}"`,
+                      }).toString()
                     : new URLSearchParams({
-                        w: instance ? `"${key}"="${value}" in "${instance}"` : `"${key}"="${value}" global`,
-                        R: "",
-                    }).toString())
+                          w: instance ? `"${key}"="${value}" in "${instance}"` : `"${key}"="${value}" global`,
+                          R: "",
+                      }).toString())
             i.prepend(document.createTextNode("\xA0"))
             i.prepend(overpassLink)
         })
@@ -21320,12 +21306,12 @@ out geom;
                 `${overpass_server.url}?` +
                 (count > 10000
                     ? new URLSearchParams({
-                        w: instance ? `${overpassTypeSelector} ${keyValue} in "${instance}"` : `${overpassTypeSelector} ${keyValue}`,
-                    }).toString()
+                          w: instance ? `${overpassTypeSelector} ${keyValue} in "${instance}"` : `${overpassTypeSelector} ${keyValue}`,
+                      }).toString()
                     : new URLSearchParams({
-                        w: instance ? `${overpassTypeSelector} ${keyValue} in "${instance}"` : `${overpassTypeSelector} ${keyValue} global`,
-                        R: "",
-                    }).toString())
+                          w: instance ? `${overpassTypeSelector} ${keyValue} in "${instance}"` : `${overpassTypeSelector} ${keyValue} global`,
+                          R: "",
+                      }).toString())
             i.lastChild.replaceWith(overpassLink)
             overpassLink.before(document.createTextNode("\xA0"))
         })
