@@ -680,6 +680,11 @@ if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id
     })
 }
 
+
+//</editor-fold>
+
+//<editor-fold desc="" defaultstate="collapsed">
+
 function makeRow(label, text, without_delete = false, placeholder = "comment that will be added when clicked") {
     const tr = document.createElement("tr")
     const th = document.createElement("th")
@@ -1163,7 +1168,6 @@ GM_config.init({
         },
     },
 })
-
 //</editor-fold>
 
 //<editor-fold desc="svg" defaultstate="collapsed">
@@ -3057,6 +3061,50 @@ function renderRestriction(rel, color, layer) {
 function isRestrictionObj(tags) {
     return Object.entries(tags).some(([k]) => k === "restriction" || k === "was:restriction" || k.startsWith("restriction:"))
 }
+
+//</editor-fold>
+
+//<editor-fold desc="direction-render" defaultstate="collapsed">
+
+/**
+ *
+ * @param {float} lat
+ * @param {float} lon
+ * @param {string} values
+ * @param {string} color
+ */
+function renderDirectionTag(lat, lon, values, color = c("#ff00e3")) {
+    const cardinalToAngle = {
+        N: 0.0,
+        north: 0.0,
+        NNE: 22.0,
+        NE: 45.0,
+        ENE: 67.0,
+        E: 90.0,
+        east: 90.0,
+        ESE: 112.0,
+        SE: 135.0,
+        SSE: 157.0,
+        S: 180.0,
+        south: 180.0,
+        SSW: 202.0,
+        SW: 225.0,
+        WSW: 247.0,
+        W: 270.0,
+        west: 270.0,
+        WNW: 292.0,
+        NW: 315.0,
+        NNW: 337.0,
+    }
+    values.split(";").forEach(angleStr => {
+        const angle = cardinalToAngle[angleStr] !== undefined ? cardinalToAngle[angleStr] : parseFloat(angleStr)
+        if (!isNaN(angle)) {
+            drawRay(lat, lon, angle - 30, color)
+            drawRay(lat, lon, angle + 30, color)
+        }
+    })
+}
+
 
 //</editor-fold>
 
@@ -5375,50 +5423,6 @@ function setupHideNoteHighlight() {
     }, 5000)
     hideNoteHighlight()
 }
-
-//</editor-fold>
-
-//<editor-fold desc="direction-render" defaultstate="collapsed">
-
-/**
- *
- * @param {float} lat
- * @param {float} lon
- * @param {string} values
- * @param {string} color
- */
-function renderDirectionTag(lat, lon, values, color = c("#ff00e3")) {
-    const cardinalToAngle = {
-        N: 0.0,
-        north: 0.0,
-        NNE: 22.0,
-        NE: 45.0,
-        ENE: 67.0,
-        E: 90.0,
-        east: 90.0,
-        ESE: 112.0,
-        SE: 135.0,
-        SSE: 157.0,
-        S: 180.0,
-        south: 180.0,
-        SSW: 202.0,
-        SW: 225.0,
-        WSW: 247.0,
-        W: 270.0,
-        west: 270.0,
-        WNW: 292.0,
-        NW: 315.0,
-        NNW: 337.0,
-    }
-    values.split(";").forEach(angleStr => {
-        const angle = cardinalToAngle[angleStr] !== undefined ? cardinalToAngle[angleStr] : parseFloat(angleStr)
-        if (!isNaN(angle)) {
-            drawRay(lat, lon, angle - 30, color)
-            drawRay(lat, lon, angle + 30, color)
-        }
-    })
-}
-
 
 //</editor-fold>
 
@@ -19043,98 +19047,6 @@ async function setupDragAndDropViewers() {
 
 //</editor-fold>
 
-//<editor-fold desc="better-tags-paste" defaultstate="collapsed">
-
-function fixTagsPaste() {
-    if (!GM_config.get("BetterTagsPaste")) {
-        return
-    }
-    function repairTags(text, context) {
-        return text
-            .split("\n")
-            .map(line => {
-                if (line.includes("=") || !line.includes(" ") && !line.includes("\t")) {
-                    return line
-                }
-                const [key, value] = line.split(/[ \t](.+)/)
-                if (key === undefined || value === undefined) {
-                    return line
-                }
-                if (context === "iD") {
-                    return `${key}=${value}`
-                } else {
-                    return `${key} = ${value}`
-                }
-            })
-            .join("\n")
-    }
-
-    document.addEventListener("paste", e => {
-        console.log("checking paste event")
-        const t = e.target
-        if (!(t instanceof HTMLTextAreaElement)) {
-            return
-        }
-        let context;
-        if (location.pathname === "/id") {
-            if (!t.classList.contains("tag-text")) {
-                return
-            }
-            context = "iD"
-        } else {
-            if (!location.pathname.includes("node")
-                && !location.pathname.includes("way")
-                && !location.pathname.includes("relation")
-            ) {
-                return
-            }
-            if (t.getAttribute("rows") !== "10" || t.getAttribute("cols") !== "40") {
-                return
-            }
-            context = "osm.org tags editor"
-        }
-        const pos = t.selectionStart
-        const textBefore = t.value.slice(0, pos)
-        const line = textBefore.split(/\r?\n/).pop() ?? ""
-        if (line.includes("=") || line.trim() !== "") {
-            return
-        }
-        const raw = e.clipboardData.getData("text")
-        const fixedText = repairTags(raw)
-        if (raw === fixedText) {
-            return
-        }
-        e.preventDefault()
-
-        function pasteText(text, start, end) {
-            let ok = false
-            try {
-                ok = document.execCommand("insertText", false, text)
-            } catch (_) {}
-            if (!ok) {
-                t.setRangeText(text, start, end, "end")
-                const ev = new InputEvent("input", { bubbles: true, cancelable: false, data: text, inputType: "insertFromPaste" })
-                t.dispatchEvent(ev)
-            }
-        }
-
-        // сначала вставляем без изменений,
-        t.focus()
-        const start = t.selectionStart
-        const firstEnd = t.selectionEnd
-        t.setSelectionRange(start, firstEnd)
-        pasteText(raw, start, firstEnd)
-        // потом с, чтобы ctrl + Z мог откатить исправление
-        t.setSelectionRange(start, start + raw.length)
-        pasteText(fixedText, start, start + raw.length)
-    })
-}
-
-function setupBetterTagsPaste() {
-    fixTagsPaste()
-}
-//</editor-fold>
-
 //<editor-fold desc="hotkeys">
 let hotkeysConfigured = false
 
@@ -21026,6 +20938,98 @@ function setupOverzoomForDataLayer() {
     }
 }
 
+//</editor-fold>
+
+//<editor-fold desc="better-tags-paste" defaultstate="collapsed">
+
+function fixTagsPaste() {
+    if (!GM_config.get("BetterTagsPaste")) {
+        return
+    }
+    function repairTags(text, context) {
+        return text
+            .split("\n")
+            .map(line => {
+                if (line.includes("=") || !line.includes(" ") && !line.includes("\t")) {
+                    return line
+                }
+                const [key, value] = line.split(/[ \t](.+)/)
+                if (key === undefined || value === undefined) {
+                    return line
+                }
+                if (context === "iD") {
+                    return `${key}=${value}`
+                } else {
+                    return `${key} = ${value}`
+                }
+            })
+            .join("\n")
+    }
+
+    document.addEventListener("paste", e => {
+        console.log("checking paste event")
+        const t = e.target
+        if (!(t instanceof HTMLTextAreaElement)) {
+            return
+        }
+        let context;
+        if (location.pathname === "/id") {
+            if (!t.classList.contains("tag-text")) {
+                return
+            }
+            context = "iD"
+        } else {
+            if (!location.pathname.includes("node")
+                && !location.pathname.includes("way")
+                && !location.pathname.includes("relation")
+            ) {
+                return
+            }
+            if (t.getAttribute("rows") !== "10" || t.getAttribute("cols") !== "40") {
+                return
+            }
+            context = "osm.org tags editor"
+        }
+        const pos = t.selectionStart
+        const textBefore = t.value.slice(0, pos)
+        const line = textBefore.split(/\r?\n/).pop() ?? ""
+        if (line.includes("=") || line.trim() !== "") {
+            return
+        }
+        const raw = e.clipboardData.getData("text")
+        const fixedText = repairTags(raw)
+        if (raw === fixedText) {
+            return
+        }
+        e.preventDefault()
+
+        function pasteText(text, start, end) {
+            let ok = false
+            try {
+                ok = document.execCommand("insertText", false, text)
+            } catch (_) {}
+            if (!ok) {
+                t.setRangeText(text, start, end, "end")
+                const ev = new InputEvent("input", { bubbles: true, cancelable: false, data: text, inputType: "insertFromPaste" })
+                t.dispatchEvent(ev)
+            }
+        }
+
+        // сначала вставляем без изменений,
+        t.focus()
+        const start = t.selectionStart
+        const firstEnd = t.selectionEnd
+        t.setSelectionRange(start, firstEnd)
+        pasteText(raw, start, firstEnd)
+        // потом с, чтобы ctrl + Z мог откатить исправление
+        t.setSelectionRange(start, start + raw.length)
+        pasteText(fixedText, start, start + raw.length)
+    })
+}
+
+function setupBetterTagsPaste() {
+    fixTagsPaste()
+}
 //</editor-fold>
 
 //<editor-fold desc="id-editor" defaultstate="collapsed">
