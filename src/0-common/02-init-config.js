@@ -77,7 +77,7 @@ GM_config.init({
         },
         BetterTagsPaste: {
             section: ["iD"],
-            label: "Add = if key=value separated by spaces or tabs",
+            label: "Add = when pasting tags separated by spaces or tabs",
             type: "checkbox",
             default: "checked",
             labelPos: "right",
