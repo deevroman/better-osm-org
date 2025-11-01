@@ -4434,18 +4434,6 @@ function setupDarkModeForMap() {
 
 //<editor-fold desc="object-editor" defaultstate="collapsed">
 
-let nodeMoverMenuItem
-
-function removePOIMoverMenu() {
-    if (!nodeMoverMenuItem) return
-    try {
-        nodeMoverMenuItem = getMap().contextmenu.removeItem(nodeMoverMenuItem)
-        nodeMoverMenuItem = null
-    } catch {
-        /* empty */
-    }
-}
-
 function addDeleteButton() {
     if (!location.pathname.startsWith("/node/") && !location.pathname.startsWith("/relation/")) return
     if (location.pathname.includes("/history")) return
@@ -4643,100 +4631,6 @@ function addDeleteButton() {
         }
         link.ondblclick = deleteObject
     }
-    setTimeout(async () => {
-        if (object_type !== "node") return
-        removePOIMoverMenu()
-        await sleep(110)
-        if (!getMap || !getMap()?.contextmenu || !measurerAdded) {
-            await sleep(1110)
-        }
-        nodeMoverMenuItem = getMap().contextmenu.addItem(
-            intoPageWithFun({
-                text: "Move node to here",
-                callback: async function moveNode(e) {
-                    const match = location.pathname.match(/(node)\/(\d+)/)
-                    if (!match) return
-                    const object_type = match[1]
-                    const object_id = match[2]
-                    const auth = makeAuth()
-                    if (!confirm("⚠️ move node?")) {
-                        return
-                    }
-                    const { lat: newLat, lng: newLon } = e.latlng
-                    console.log("Opening changeset")
-                    const rawObjectInfo = await (
-                        await auth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
-                            method: "GET",
-                            prefix: false,
-                        })
-                    ).text()
-                    const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
-                    // prettier-ignore
-                    const dist = Math.round(getDistanceFromLatLonInKm(
-                        parseFloat(objectInfo.querySelector("node").getAttribute("lat")),
-                        parseFloat(objectInfo.querySelector("node").getAttribute("lon")),
-                        newLat,
-                        newLon
-                    ) * 1000) / 1000
-                    if (dist > 50) {
-                        if (!confirm(`⚠️ ${dist} kilometers.\n\nARE YOU SURE?`)) {
-                            return
-                        }
-                    }
-                    objectInfo.querySelector("node").setAttribute("lat", newLat)
-                    objectInfo.querySelector("node").setAttribute("lon", newLon)
-
-                    const changesetTags = {
-                        created_by: `better osm.org v${GM_info.script.version}`,
-                        comment: "Moving node",
-                    }
-
-                    const changesetPayload = document.implementation.createDocument(null, "osm")
-                    const cs = changesetPayload.createElement("changeset")
-                    changesetPayload.documentElement.appendChild(cs)
-                    tagsToXml(changesetPayload, cs, changesetTags)
-                    const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
-
-                    const changesetId = await auth
-                        .fetch(osm_server.apiBase + "changeset/create", {
-                            method: "PUT",
-                            prefix: false,
-                            body: chPayloadStr,
-                        })
-                        .then(res => {
-                            if (res.ok) return res.text()
-                            throw new Error(res)
-                        })
-                    console.log(changesetId)
-
-                    try {
-                        objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
-
-                        const objectInfoStr = new XMLSerializer().serializeToString(objectInfo).replace(/xmlns="[^"]+"/, "")
-                        console.log(objectInfoStr)
-                        await auth
-                            .fetch(osm_server.apiBase + object_type + "/" + object_id, {
-                                method: "PUT",
-                                prefix: false,
-                                body: objectInfoStr,
-                            })
-                            .then(async res => {
-                                const text = await res.text()
-                                if (res.ok) return text
-                                alert(text)
-                                throw new Error(text)
-                            })
-                    } finally {
-                        await auth.fetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
-                            method: "PUT",
-                            prefix: false,
-                        })
-                        window.location.reload()
-                    }
-                },
-            }),
-        )
-    })
 }
 
 function setupDeletor(path) {
@@ -4748,7 +4642,6 @@ function setupDeletor(path) {
     }, 3000)
     addDeleteButton()
 }
-
 
 //</editor-fold>
 
@@ -5748,7 +5641,130 @@ function setupGPXFiltersButtons() {
 
 //</editor-fold>
 
-//<editor-fold desc="measurer" defaultstate="collapsed">
+//<editor-fold desc="mode-mover" defaultstate="collapsed">
+
+let nodeMoverMenuItem
+
+function removePOIMoverMenu() {
+    nodeMoverMenuItem?.remove()
+    nodeMoverMenuItem = null
+}
+
+async function addPOIMoverItem(measuringMenuItem) {
+    const object_type = location.pathname.startsWith("/node") ? "node" : ""
+    if (object_type !== "node") return
+    removePOIMoverMenu()
+    if (!getMap || !measurerAdded) {
+        await sleep(1110)
+    }
+    nodeMoverMenuItem = document.querySelector(".mover-li")
+    if (nodeMoverMenuItem) {
+        return
+    }
+    nodeMoverMenuItem = document.createElement("li")
+    nodeMoverMenuItem.classList.add("mover-li")
+    const a = document.createElement("a")
+    a.classList.add("dropdown-item", "d-flex", "align-items-center", "gap-3")
+    a.textContent = "Move node to here"
+
+    const i = document.createElement("i")
+    i.classList.add("bi", "bi-arrow-down")
+    a.prepend(i)
+    nodeMoverMenuItem.appendChild(a)
+    measuringMenuItem.after(nodeMoverMenuItem)
+
+    a.onclick = async function moveNode(e) {
+        e.preventDefault()
+        e.stopPropagation()
+        e.stopImmediatePropagation()
+        const match = location.pathname.match(/(node)\/(\d+)/)
+        if (!match) return
+        const object_type = match[1]
+        const object_id = match[2]
+        const auth = makeAuth()
+        if (!confirm("⚠️ move node?")) {
+            return
+        }
+        const newLat = getMap().osm_contextmenu._$element.data("lat")
+        const newLon = getMap().osm_contextmenu._$element.data("lng")
+        console.log("Opening changeset")
+        const rawObjectInfo = await (
+            await auth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
+                method: "GET",
+                prefix: false,
+            })
+        ).text()
+        const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
+        // prettier-ignore
+        const dist = Math.round(getDistanceFromLatLonInKm(
+            parseFloat(objectInfo.querySelector("node").getAttribute("lat")),
+            parseFloat(objectInfo.querySelector("node").getAttribute("lon")),
+            newLat,
+            newLon
+        ) * 1000) / 1000
+        if (dist > 50) {
+            if (!confirm(`⚠️ ${dist} kilometers.\n\nARE YOU SURE?`)) {
+                return
+            }
+            getMap().osm_contextmenu.hide()
+        }
+        objectInfo.querySelector("node").setAttribute("lat", newLat)
+        objectInfo.querySelector("node").setAttribute("lon", newLon)
+
+        const changesetTags = {
+            created_by: `better osm.org v${GM_info.script.version}`,
+            comment: "Moving node",
+        }
+
+        const changesetPayload = document.implementation.createDocument(null, "osm")
+        const cs = changesetPayload.createElement("changeset")
+        changesetPayload.documentElement.appendChild(cs)
+        tagsToXml(changesetPayload, cs, changesetTags)
+        const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
+
+        const changesetId = await auth
+            .fetch(osm_server.apiBase + "changeset/create", {
+                method: "PUT",
+                prefix: false,
+                body: chPayloadStr,
+            })
+            .then(res => {
+                if (res.ok) return res.text()
+                throw new Error(res)
+            })
+        console.log(changesetId)
+
+        try {
+            objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
+
+            const objectInfoStr = new XMLSerializer().serializeToString(objectInfo).replace(/xmlns="[^"]+"/, "")
+            console.log(objectInfoStr)
+            await auth
+                .fetch(osm_server.apiBase + object_type + "/" + object_id, {
+                    method: "PUT",
+                    prefix: false,
+                    body: objectInfoStr,
+                })
+                .then(async res => {
+                    const text = await res.text()
+                    if (res.ok) return text
+                    alert(text)
+                    throw new Error(text)
+                })
+        } finally {
+            await auth.fetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
+                method: "PUT",
+                prefix: false,
+            })
+            window.location.reload()
+        }
+    }
+}
+
+
+//</editor-fold>
+
+//<editor-fold desc="menu-items" defaultstate="collapsed">
 
 let measurerAdded = false
 let measuring = false
@@ -5803,7 +5819,7 @@ let measuringMenuItem = null
 
 function endMeasuring() {
     document.querySelector("#map").style.cursor = "drag"
-    measuringMenuItem.textContent = "Measure from here"
+    measuringMenuItem.querySelector("a").textContent = "Measure from here"
     measuring = false
 
     getMap().off("mousedown", measuringMouseDownHandler)
@@ -5828,21 +5844,68 @@ function endMeasuring() {
     currentMeasuring = makeEmptyMeasuring()
 }
 
-async function setupMeasurer() {
-    await sleep(100)
-    if (measurerAdded) return
+function addMenuSeparator(menu) {
+    let customSeparator = menu.querySelector(".custom-separator")
+    if (!customSeparator) {
+        customSeparator = document.createElement("li")
+        customSeparator.classList.add("custom-separator")
+        const separatorHr = document.createElement("hr")
+        separatorHr.classList.add("dropdown-divider")
+        customSeparator.appendChild(separatorHr)
+        menu.querySelector("ul").appendChild(customSeparator)
+    }
+    return customSeparator
+}
+
+function addMeasureMenuItem(customSeparator) {
+    measuringMenuItem = document.querySelector(".measurer-li")
+    if (measuringMenuItem) {
+        return
+    }
+    measuringMenuItem = document.createElement("li")
+    measuringMenuItem.classList.add("measurer-li")
+    const a = document.createElement("a")
+    a.classList.add("dropdown-item", "d-flex", "align-items-center", "gap-3")
+    a.textContent = "Measure from here"
+
+    const i = document.createElement("i")
+    i.classList.add("bi", "bi-rulers")
+    a.prepend(i)
+
+    a.onclick = async function startMeasuring(e) {
+        e.preventDefault()
+        e.stopPropagation()
+        e.stopImmediatePropagation()
+        if (measuring) {
+            endMeasuring()
+            return
+        }
+        currentMeasuring = makeEmptyMeasuring()
+        const initLat = getMap().osm_contextmenu._$element.data("lat")
+        const initLng = getMap().osm_contextmenu._$element.data("lng")
+        currentMeasuring.way.push({ lat: initLat, lng: initLng })
+        currentMeasuring.nodes.push(showNodeMarker(initLat, initLng, "#000000"))
+        if (currentMeasuring.way.length > 1) {
+            currentMeasuring.wayLine?.remove()
+            currentMeasuring.wayLine = displayWay(currentMeasuring.way)
+        } else {
+            document.querySelector("#map").style.cursor = "pointer"
+            measuring = true
+            measuringMenuItem.querySelector("a").textContent = "End measure"
+
+            getMap().on("mousedown", measuringMouseDownHandler)
+            getMap().on("mouseup", measuringMouseUpHandler)
+            getMap().on("mousemove", measuringMouseMoveHandler)
+        }
+        getMap().osm_contextmenu.hide()
+    }
+
+    measuringMenuItem.appendChild(a)
+    customSeparator.after(measuringMenuItem)
     measurerAdded = true
-    const contextMenu = document.querySelector("#map .leaflet-contextmenu")
-    if (!contextMenu) {
-        return
-    }
-    if (!getMap || !getMap()?.contextmenu) {
-        await sleep(1000)
-    }
-    if (!getMap()?.contextmenu) {
-        console.error("Ruler can't be configured: map object not available")
-        return
-    }
+}
+
+function makeMeasureMouseHandlers() {
     // sometime click don't fire when move 1px
     let lastMouseDownX = 0
     let lastMouseDownY = 0
@@ -5860,6 +5923,7 @@ async function setupMeasurer() {
         if (e.originalEvent.altKey) {
             currentMeasuring = makeEmptyMeasuring()
         }
+
         const { lat: lat, lng: lng } = e.latlng
         // prettier-ignore
         if (lastMouseDownX - e.originalEvent.clientX > 1 || lastMouseDownY - e.originalEvent.clientY > 1 ||
@@ -5902,8 +5966,10 @@ async function setupMeasurer() {
         if (!measuring) {
             return
         }
+
         lastLatLng = e.latlng
         const { lat: lat, lng: lng } = e.latlng
+
         currentMeasuring.tempLine?.remove()
         if (!currentMeasuring.way.length) return
         const distInMeters = getMeasureDistance(currentMeasuring.way, { lat: lat, lng: lng })
@@ -5937,40 +6003,34 @@ async function setupMeasurer() {
             showActiveNodeMarker(e.latlng.lat, e.latlng.lng, "#000000")
         }
     })
+}
 
-    getMap().contextmenu.addItem(
-        intoPageWithFun({
-            separator: true,
-            index: 1,
-        }),
-    )
-    measuringMenuItem = getMap().contextmenu.addItem(
-        intoPageWithFun({
-            text: "Measure from here",
-            callback: function startMeasuring(e) {
-                if (measuring) {
-                    endMeasuring()
-                    return
-                }
-                currentMeasuring = makeEmptyMeasuring()
-                const { lat: initLat, lng: initLng } = e.latlng
-                currentMeasuring.way.push({ lat: initLat, lng: initLng })
-                currentMeasuring.nodes.push(showNodeMarker(initLat, initLng, "#000000"))
-                if (currentMeasuring.way.length > 1) {
-                    currentMeasuring.wayLine?.remove()
-                    currentMeasuring.wayLine = displayWay(currentMeasuring.way)
-                } else {
-                    document.querySelector("#map").style.cursor = "pointer"
-                    measuring = true
-                    measuringMenuItem.textContent = "End measure"
+//</editor-fold>
 
-                    getMap().on("mousedown", measuringMouseDownHandler)
-                    getMap().on("mouseup", measuringMouseUpHandler)
-                    getMap().on("mousemove", measuringMouseMoveHandler)
-                }
-            },
-        }),
-    )
+//<editor-fold desc="menu-items" defaultstate="collapsed">
+
+let contextMenuObserver = null
+
+async function setupNewContextMenuItems() {
+    await interceptMapManually()
+    if (!getMap) {
+        await sleep(1000)
+    }
+    if (!getMap) {
+        console.error("Ruler can't be configured: map object not available")
+        return
+    }
+    const menu = document.getElementById("map-context-menu")
+    makeMeasureMouseHandlers()
+    contextMenuObserver = new MutationObserver((mutationList, observer) => {
+        observer.disconnect()
+        const customSeparator = addMenuSeparator(menu)
+        addMeasureMenuItem(customSeparator)
+        addPOIMoverItem(measuringMenuItem)
+
+        contextMenuObserver.observe(menu, { childList: true, subtree: true, attributes: true })
+    })
+    contextMenuObserver.observe(menu, { childList: true, subtree: true, attributes: true })
 }
 
 //</editor-fold>
@@ -18986,6 +19046,9 @@ async function setupDragAndDropViewers() {
 //<editor-fold desc="better-tags-paste" defaultstate="collapsed">
 
 function fixTagsPaste() {
+    if (!GM_config.get("BetterTagsPaste")) {
+        return
+    }
     function repairTags(text, context) {
         return text
             .split("\n")
@@ -21027,7 +21090,7 @@ const alwaysEnabledModules = [
     setupMakeVersionPageBetter,
     setupNotesFiltersButtons,
     setupGPXFiltersButtons,
-    setupMeasurer
+    setupNewContextMenuItems
 ]
 
 function setupOSMWebsite() {
