@@ -1315,6 +1315,119 @@ const relationIcon =
 
 //</editor-fold>
 
+//<editor-fold desc="colors" defaultstate="collapsed">
+
+// prettier-ignore
+const colorsPalette = {
+    "#ff00e3" : "#ff00e3",
+    "#0022ff": "#0022ff",
+
+    "rgba(17, 238, 9, 0.6)": "rgba(17, 238, 9, 0.6)",              // .quick-look-new-tag
+    "rgba(223, 238, 9, 0.6)": "rgba(223, 238, 9, 0.6)",            // .quick-look-modified-tag
+    "rgba(238, 51, 9, 0.6)": "rgba(238, 51, 9, 0.6)",              // .quick-look-deleted-tag
+    "#000.quick-look-deleted-tag": "#000",                   // color.quick-look-deleted-tag
+    "#fff.quick-look-deleted-tag": "#fff",                   // color.quick-look-deleted-tag
+    "rgba(25, 223, 25, 0.6)": "rgba(25, 223, 25, 0.6)",      // .new-letter
+    "rgba(255, 144, 144, 0.6)": "rgba(255, 144, 144, 0.6)",  // .deleted-letter
+
+    "rgba(17, 238, 9, 0.3)": "rgba(17, 238, 9, 0.3)",              // dark.quick-look-new-tag
+    "rgba(238, 51, 9, 0.4)": "rgba(238, 51, 9, 0.4)",              // dark.quick-look-deleted-tag
+    "rgba(25, 223, 25, 0.9)": "rgba(25, 223, 25, 0.9)",      // dark.new-letter
+    "rgba(253, 83, 83, 0.8)": "rgba(253, 83, 83, 0.8)",      // dark.deleted-letter
+
+    "rgba(0, 128, 0, 0.6)": "rgba(0, 128, 0, 0.6)",                // displayWay for version 1
+    "rgba(120, 238, 9, 0.6)": "rgba(120, 238, 9, 0.6)",            // displayWay for restored way
+    "#ff0000.deleted-way-geom": "#ff0000",                   // displayWay for deleted
+
+    "#00a500.first-node-version": "#00a500",                 // showNodeMarker for version 1
+    "rgba(89, 170, 9, 0.6).restored-node-version": "#00a500",   // showNodeMarker for version 1
+    "#ff0000.deleted-node-geom": "#ff0000",                  // showNodeMarker for deleted
+
+    "rgba(17, 238, 9, 0.3).members-changed-flag": "rgba(17, 238, 9, 0.3)",  // dark
+    "rgba(101, 238, 9, 0.6).members-changed-flag": "rgba(101, 238, 9, 0.6)",
+    "rgba(238, 51, 9, 0.4).members-changed-flag": "rgba(238, 51, 9, 0.4)",  // dark
+    "rgba(238, 9, 9, 0.42).members-changed-flag": "rgba(238, 9, 9, 0.42)",
+
+    "rgba(17, 238, 9, 0.6).members-changed-row": "rgba(17, 238, 9, 0.6)",
+    "rgba(238, 51, 9, 0.6).members-changed-row": "rgba(238, 51, 9, 0.6)",
+
+    "rgba(17, 238, 9, 0.3).nodes-changed-flag": "rgba(17, 238, 9, 0.3)",  // dark
+    "rgba(101, 238, 9, 0.6).nodes-changed-flag": "rgba(101, 238, 9, 0.6)",
+    "rgba(238, 51, 9, 0.4).nodes-changed-flag": "rgba(238, 51, 9, 0.4)",  // dark
+    "rgba(238, 9, 9, 0.42).nodes-changed-flag": "rgba(238, 9, 9, 0.42)",
+
+    "rgba(17, 238, 9, 0.6).nodes-changed-row": "rgba(17, 238, 9, 0.6)",
+    "rgba(238, 51, 9, 0.6).nodes-changed-row": "rgba(238, 51, 9, 0.6)",
+
+    "rgba(4, 123, 0, 0.6).history-diff-new-tag" : "rgba(4, 123, 0, 0.6)",
+    "rgba(238, 51, 9, 0.4).history-diff-deleted-tag": "rgba(238, 51, 9, 0.4)"
+}
+
+// prettier-ignore
+const colorblindFriendlyPalette = {
+    "rgba(17, 238, 9, 0.6)": "#0074FF75",            // .quick-look-new-tag
+    "rgba(238, 51, 9, 0.6)": "#F80000",              // .quick-look-deleted-tag
+    "#000.quick-look-deleted-tag": "#fff",           // color.quick-look-deleted-tag
+
+    "rgba(25, 223, 25, 0.6)": "#8EA5FFC4",           // .new-letter
+    "rgba(255, 144, 144, 0.6)": "#FFB7B7",           // .deleted-letter
+
+    "rgba(25, 223, 25, 0.9)": "#8EA5FFC4",           // dark.new-letter
+    "rgba(253, 83, 83, 0.8)": "#FFB7B7",             // dark.deleted-letter
+
+    "rgba(17, 238, 9, 0.3)": "#1A385C",              // dark.quick-look-new-tag
+    "rgba(238, 51, 9, 0.4)": "#732a1d",              // dark.quick-look-deleted-tag
+
+    "rgba(0, 128, 0, 0.6)": "#0074FF75",                     // displayWay for version 1
+    "rgba(120, 238, 9, 0.6)": "rgba(64,152,255,0.46)",       // displayWay for restored way
+    "#ff0000.deleted-way-geom": "#f34c4c",                   // displayWay for deleted
+
+    "#00a500.first-node-version": "#0074FF75",                                // showNodeMarker for version 1
+    "rgba(89, 170, 9, 0.6).restored-node-version": "rgba(64,152,255,0.46)",   // showNodeMarker for version 1
+    "#ff0000.deleted-node-geom": "#f34c4c",                                   // showNodeMarker for deleted
+
+    "rgba(17, 238, 9, 0.3).members-changed-flag": "#0074FF75",   // dark
+    "rgba(101, 238, 9, 0.6).members-changed-flag": "#0074FF75",
+    "rgba(238, 51, 9, 0.4).members-changed-flag": "#f34c4c",     // dark
+    "rgba(238, 9, 9, 0.42).members-changed-flag": "rgb(242, 0, 0)",
+
+    "rgba(17, 238, 9, 0.6).members-changed-row": "#0074FF75",
+    "rgba(238, 51, 9, 0.6).members-changed-row": "rgb(242, 0, 0)",
+
+    "rgba(17, 238, 9, 0.3).nodes-changed-flag": "#0074FF75",       // dark
+    "rgba(101, 238, 9, 0.6).nodes-changed-flag": "#0074FF75",
+    "rgba(238, 51, 9, 0.4).nodes-changed-flag": "rgb(242, 0, 0)",  // dark
+    "rgba(238, 9, 9, 0.42).nodes-changed-flag": "rgb(242, 0, 0)",
+
+    "rgba(17, 238, 9, 0.6).nodes-changed-row": "#0074FF75",
+    "rgba(238, 51, 9, 0.6).nodes-changed-row": "rgb(242, 0, 0)",
+
+    "rgba(4, 123, 0, 0.6).history-diff-new-tag" : "#1A385C",
+    "rgba(238, 51, 9, 0.4).history-diff-deleted-tag": "#732a1d"
+}
+
+function setColorblindFriendlyPalette() {
+    Object.entries(colorblindFriendlyPalette).forEach(([k, v]) => {
+        colorsPalette[k] = v
+    })
+}
+
+/**
+ * @param color {string}
+ * @param context {string}
+ * @return {string}
+ */
+function c(color, context = "") {
+    const res = colorsPalette[color + context]
+    if (res) {
+        return res
+    }
+    debug_alert(`color ${color + context} not found in palette`)
+    return color
+}
+
+//</editor-fold>
+
 //<editor-fold desc="utils" defaultstate="collapsed">
 
 // For WebStorm: Settings | Editor | Language Injections
@@ -1572,119 +1685,6 @@ function ringArea(points) {
     }
 
     return area
-}
-
-//</editor-fold>
-
-//<editor-fold desc="colors" defaultstate="collapsed">
-
-// prettier-ignore
-const colorsPalette = {
-    "#ff00e3" : "#ff00e3",
-    "#0022ff": "#0022ff",
-
-    "rgba(17, 238, 9, 0.6)": "rgba(17, 238, 9, 0.6)",              // .quick-look-new-tag
-    "rgba(223, 238, 9, 0.6)": "rgba(223, 238, 9, 0.6)",            // .quick-look-modified-tag
-    "rgba(238, 51, 9, 0.6)": "rgba(238, 51, 9, 0.6)",              // .quick-look-deleted-tag
-    "#000.quick-look-deleted-tag": "#000",                   // color.quick-look-deleted-tag
-    "#fff.quick-look-deleted-tag": "#fff",                   // color.quick-look-deleted-tag
-    "rgba(25, 223, 25, 0.6)": "rgba(25, 223, 25, 0.6)",      // .new-letter
-    "rgba(255, 144, 144, 0.6)": "rgba(255, 144, 144, 0.6)",  // .deleted-letter
-
-    "rgba(17, 238, 9, 0.3)": "rgba(17, 238, 9, 0.3)",              // dark.quick-look-new-tag
-    "rgba(238, 51, 9, 0.4)": "rgba(238, 51, 9, 0.4)",              // dark.quick-look-deleted-tag
-    "rgba(25, 223, 25, 0.9)": "rgba(25, 223, 25, 0.9)",      // dark.new-letter
-    "rgba(253, 83, 83, 0.8)": "rgba(253, 83, 83, 0.8)",      // dark.deleted-letter
-
-    "rgba(0, 128, 0, 0.6)": "rgba(0, 128, 0, 0.6)",                // displayWay for version 1
-    "rgba(120, 238, 9, 0.6)": "rgba(120, 238, 9, 0.6)",            // displayWay for restored way
-    "#ff0000.deleted-way-geom": "#ff0000",                   // displayWay for deleted
-
-    "#00a500.first-node-version": "#00a500",                 // showNodeMarker for version 1
-    "rgba(89, 170, 9, 0.6).restored-node-version": "#00a500",   // showNodeMarker for version 1
-    "#ff0000.deleted-node-geom": "#ff0000",                  // showNodeMarker for deleted
-
-    "rgba(17, 238, 9, 0.3).members-changed-flag": "rgba(17, 238, 9, 0.3)",  // dark
-    "rgba(101, 238, 9, 0.6).members-changed-flag": "rgba(101, 238, 9, 0.6)",
-    "rgba(238, 51, 9, 0.4).members-changed-flag": "rgba(238, 51, 9, 0.4)",  // dark
-    "rgba(238, 9, 9, 0.42).members-changed-flag": "rgba(238, 9, 9, 0.42)",
-
-    "rgba(17, 238, 9, 0.6).members-changed-row": "rgba(17, 238, 9, 0.6)",
-    "rgba(238, 51, 9, 0.6).members-changed-row": "rgba(238, 51, 9, 0.6)",
-
-    "rgba(17, 238, 9, 0.3).nodes-changed-flag": "rgba(17, 238, 9, 0.3)",  // dark
-    "rgba(101, 238, 9, 0.6).nodes-changed-flag": "rgba(101, 238, 9, 0.6)",
-    "rgba(238, 51, 9, 0.4).nodes-changed-flag": "rgba(238, 51, 9, 0.4)",  // dark
-    "rgba(238, 9, 9, 0.42).nodes-changed-flag": "rgba(238, 9, 9, 0.42)",
-
-    "rgba(17, 238, 9, 0.6).nodes-changed-row": "rgba(17, 238, 9, 0.6)",
-    "rgba(238, 51, 9, 0.6).nodes-changed-row": "rgba(238, 51, 9, 0.6)",
-
-    "rgba(4, 123, 0, 0.6).history-diff-new-tag" : "rgba(4, 123, 0, 0.6)",
-    "rgba(238, 51, 9, 0.4).history-diff-deleted-tag": "rgba(238, 51, 9, 0.4)"
-}
-
-// prettier-ignore
-const colorblindFriendlyPalette = {
-    "rgba(17, 238, 9, 0.6)": "#0074FF75",            // .quick-look-new-tag
-    "rgba(238, 51, 9, 0.6)": "#F80000",              // .quick-look-deleted-tag
-    "#000.quick-look-deleted-tag": "#fff",           // color.quick-look-deleted-tag
-
-    "rgba(25, 223, 25, 0.6)": "#8EA5FFC4",           // .new-letter
-    "rgba(255, 144, 144, 0.6)": "#FFB7B7",           // .deleted-letter
-
-    "rgba(25, 223, 25, 0.9)": "#8EA5FFC4",           // dark.new-letter
-    "rgba(253, 83, 83, 0.8)": "#FFB7B7",             // dark.deleted-letter
-
-    "rgba(17, 238, 9, 0.3)": "#1A385C",              // dark.quick-look-new-tag
-    "rgba(238, 51, 9, 0.4)": "#732a1d",              // dark.quick-look-deleted-tag
-
-    "rgba(0, 128, 0, 0.6)": "#0074FF75",                     // displayWay for version 1
-    "rgba(120, 238, 9, 0.6)": "rgba(64,152,255,0.46)",       // displayWay for restored way
-    "#ff0000.deleted-way-geom": "#f34c4c",                   // displayWay for deleted
-
-    "#00a500.first-node-version": "#0074FF75",                                // showNodeMarker for version 1
-    "rgba(89, 170, 9, 0.6).restored-node-version": "rgba(64,152,255,0.46)",   // showNodeMarker for version 1
-    "#ff0000.deleted-node-geom": "#f34c4c",                                   // showNodeMarker for deleted
-
-    "rgba(17, 238, 9, 0.3).members-changed-flag": "#0074FF75",   // dark
-    "rgba(101, 238, 9, 0.6).members-changed-flag": "#0074FF75",
-    "rgba(238, 51, 9, 0.4).members-changed-flag": "#f34c4c",     // dark
-    "rgba(238, 9, 9, 0.42).members-changed-flag": "rgb(242, 0, 0)",
-
-    "rgba(17, 238, 9, 0.6).members-changed-row": "#0074FF75",
-    "rgba(238, 51, 9, 0.6).members-changed-row": "rgb(242, 0, 0)",
-
-    "rgba(17, 238, 9, 0.3).nodes-changed-flag": "#0074FF75",       // dark
-    "rgba(101, 238, 9, 0.6).nodes-changed-flag": "#0074FF75",
-    "rgba(238, 51, 9, 0.4).nodes-changed-flag": "rgb(242, 0, 0)",  // dark
-    "rgba(238, 9, 9, 0.42).nodes-changed-flag": "rgb(242, 0, 0)",
-
-    "rgba(17, 238, 9, 0.6).nodes-changed-row": "#0074FF75",
-    "rgba(238, 51, 9, 0.6).nodes-changed-row": "rgb(242, 0, 0)",
-
-    "rgba(4, 123, 0, 0.6).history-diff-new-tag" : "#1A385C",
-    "rgba(238, 51, 9, 0.4).history-diff-deleted-tag": "#732a1d"
-}
-
-function setColorblindFriendlyPalette() {
-    Object.entries(colorblindFriendlyPalette).forEach(([k, v]) => {
-        colorsPalette[k] = v
-    })
-}
-
-/**
- * @param color {string}
- * @param context {string}
- * @return {string}
- */
-function c(color, context = "") {
-    const res = colorsPalette[color + context]
-    if (res) {
-        return res
-    }
-    debug_alert(`color ${color + context} not found in palette`)
-    return color
 }
 
 //</editor-fold>
@@ -3138,6 +3138,61 @@ function makeAuth() {
 
 //</editor-fold>
 
+//<editor-fold desc="search-form-fixes" defaultstate="collapsed">
+
+function showSearchForm() {
+    document.querySelector("#sidebar .search_forms")?.removeAttribute("hidden")
+    document.querySelector("#sidebar .search_forms")?.style?.removeProperty("display") // quick fix
+}
+
+function hideSearchForm() {
+    if (location.pathname.startsWith("/search") || location.pathname.startsWith("/directions")) return
+    if (!document.querySelector("#sidebar .search_forms")?.hasAttribute("hidden")) {
+        document.querySelector("#sidebar .search_forms")?.setAttribute("hidden", "true")
+        document.querySelector("#sidebar .search_forms")?.style?.setProperty("display", "none", "important") // quick fix
+    }
+
+    document.querySelector(".sidebar-close-controls .btn-close:not(.hotkeyed)")?.addEventListener("click", () => {
+        showSearchForm()
+        cleanAllObjects()
+    })
+    document.querySelector(".sidebar-close-controls .btn-close:not(.hotkeyed)")?.classList?.add("hotkeyed")
+    document.querySelector("h1 .icon-link:not(.hotkeyed)")?.addEventListener("click", () => {
+        showSearchForm()
+        cleanAllObjects()
+    })
+    document.querySelector("h1 .icon-link:not(.hotkeyed)")?.classList?.add("hotkeyed")
+}
+
+function blurSearchField() {
+    if (document.querySelector("#sidebar #query") && !document.querySelector("#sidebar #query").getAttribute("blured")) {
+        document.querySelector("#sidebar #query").setAttribute("blured", "true")
+        document.querySelector("#sidebar #query").removeAttribute("autofocus")
+        if (document.activeElement?.nodeName === "INPUT") {
+            document.activeElement?.blur()
+        }
+        // dirty hack. If your one multiple tabs focus would reseted only on active tab
+        // In the case of Safari, this is generally a necessity.
+        // Sometimes it still doesn't help
+        ;[50, 100, 250, 500].forEach(ms => {
+            setTimeout(() => {
+                if (document.activeElement?.nodeName === "INPUT") {
+                    document.activeElement?.blur()
+                }
+            }, ms)
+        })
+    }
+}
+
+function resetSearchFormFocus() {
+    if (!GM_config.get("ResetSearchFormFocus")) {
+        return
+    }
+    blurSearchField()
+}
+
+//</editor-fold>
+
 //<editor-fold desc="changeset-page-fixes" defaultstate="collapsed">
 
 function makeUsernameInNotesFilterable() {
@@ -4393,61 +4448,6 @@ function makeHashtagsInNotesClickable() {
 
 //</editor-fold>
 
-//<editor-fold desc="search-form-fixes" defaultstate="collapsed">
-
-function showSearchForm() {
-    document.querySelector("#sidebar .search_forms")?.removeAttribute("hidden")
-    document.querySelector("#sidebar .search_forms")?.style?.removeProperty("display") // quick fix
-}
-
-function hideSearchForm() {
-    if (location.pathname.startsWith("/search") || location.pathname.startsWith("/directions")) return
-    if (!document.querySelector("#sidebar .search_forms")?.hasAttribute("hidden")) {
-        document.querySelector("#sidebar .search_forms")?.setAttribute("hidden", "true")
-        document.querySelector("#sidebar .search_forms")?.style?.setProperty("display", "none", "important") // quick fix
-    }
-
-    document.querySelector(".sidebar-close-controls .btn-close:not(.hotkeyed)")?.addEventListener("click", () => {
-        showSearchForm()
-        cleanAllObjects()
-    })
-    document.querySelector(".sidebar-close-controls .btn-close:not(.hotkeyed)")?.classList?.add("hotkeyed")
-    document.querySelector("h1 .icon-link:not(.hotkeyed)")?.addEventListener("click", () => {
-        showSearchForm()
-        cleanAllObjects()
-    })
-    document.querySelector("h1 .icon-link:not(.hotkeyed)")?.classList?.add("hotkeyed")
-}
-
-function blurSearchField() {
-    if (document.querySelector("#sidebar #query") && !document.querySelector("#sidebar #query").getAttribute("blured")) {
-        document.querySelector("#sidebar #query").setAttribute("blured", "true")
-        document.querySelector("#sidebar #query").removeAttribute("autofocus")
-        if (document.activeElement?.nodeName === "INPUT") {
-            document.activeElement?.blur()
-        }
-        // dirty hack. If your one multiple tabs focus would reseted only on active tab
-        // In the case of Safari, this is generally a necessity.
-        // Sometimes it still doesn't help
-        ;[50, 100, 250, 500].forEach(ms => {
-            setTimeout(() => {
-                if (document.activeElement?.nodeName === "INPUT") {
-                    document.activeElement?.blur()
-                }
-            }, ms)
-        })
-    }
-}
-
-function resetSearchFormFocus() {
-    if (!GM_config.get("ResetSearchFormFocus")) {
-        return
-    }
-    blurSearchField()
-}
-
-//</editor-fold>
-
 //<editor-fold desc="dark-map" defaultstate="collapsed">
 
 let darkModeForMap = false
@@ -4478,219 +4478,6 @@ function setupDarkModeForMap() {
     injectDarkMapStyle()
     darkModeForMap = true
 }
-//</editor-fold>
-
-//<editor-fold desc="object-editor" defaultstate="collapsed">
-
-function addDeleteButton() {
-    if (!location.pathname.startsWith("/node/") && !location.pathname.startsWith("/relation/")) return
-    if (location.pathname.includes("/history")) return
-
-    if (document.querySelector(".delete_object_button_class")) return true
-
-    const match = location.pathname.match(/(node|relation)\/(\d+)/)
-    if (!match) return
-    const object_type = match[1]
-    const object_id = match[2]
-
-    const auth = makeAuth()
-    const link = document.createElement("a")
-    link.text = ["ru-RU", "ru"].includes(navigator.language) ? "Выпилить!" : "Delete"
-    link.href = ""
-    link.classList.add("delete_object_button_class")
-    // skip deleted
-    if (object_type === "node") {
-        if (document.querySelectorAll("#sidebar_content > div:first-of-type h4").length < 2 && document.querySelector("#element_versions_list > div .latitude") === null) {
-            return
-        }
-    } else if (object_type === "relation") {
-        if (document.querySelectorAll("#sidebar_content > div:first-of-type h4").length < 2) {
-            return
-        }
-    }
-    // skip having a parent
-    if (object_type === "node" && document.querySelectorAll("#sidebar_content > div:first-of-type details").length !== 0) {
-        return
-    } else if (object_type === "relation") {
-        if (document.querySelectorAll("#sidebar_content > div:first-of-type details").length > 1) {
-            return
-        }
-        if (Array.from(document.querySelectorAll(".browse-tag-list th")).some(i => i.textContent === "wikidata")) {
-            return
-        }
-        const dangerousType = Array.from(document.querySelectorAll(".browse-tag-list td"))
-            .map(i => i.textContent)
-            .find(i => ["route_master", "route", "multipolygon", "public_transport"].includes(i))
-        if (dangerousType) {
-            if (dangerousType === "multipolygon") {
-                if (document.querySelectorAll("#sidebar_content > div:first-of-type details li").length > 1) {
-                    return
-                }
-            } else {
-                return
-            }
-        }
-    }
-
-    if (!document.querySelector(".secondary-actions")) return
-    document.querySelector(".secondary-actions").appendChild(link)
-    link.after(document.createTextNode("\xA0"))
-    link.before(document.createTextNode("\xA0· "))
-
-    if (!document.querySelector(".secondary-actions .edit_tags_class")) {
-        const tagsEditorExtensionWaiter = new MutationObserver(() => {
-            if (document.querySelector(".secondary-actions .edit_tags_class")) {
-                tagsEditorExtensionWaiter.disconnect()
-
-                const tmp = document.createComment("")
-                const node1 = document.querySelector(".delete_object_button_class")
-                const node2 = document.querySelector(".edit_tags_class")
-
-                node2.replaceWith(tmp)
-                node1.replaceWith(node2)
-                tmp.replaceWith(node1)
-
-                console.log("Delete button replaced for Tags editor extension capability")
-            }
-        })
-        tagsEditorExtensionWaiter.observe(document.querySelector(".secondary-actions"), {
-            childList: true,
-            subtree: true,
-        })
-        setTimeout(() => tagsEditorExtensionWaiter.disconnect(), 3000)
-    }
-
-    function deleteObject(e) {
-        e.preventDefault()
-        link.classList.add("dbclicked")
-
-        console.log("Delete clicked. Getting info")
-
-        auth.xhr(
-            {
-                method: "GET",
-                path: osm_server.apiBase + object_type + "/" + object_id,
-                prefix: false,
-            },
-            function (err, objectInfo) {
-                if (err) {
-                    console.log(err)
-                    return
-                }
-
-                let tagsHint = ""
-                const tags = Array.from(objectInfo.children[0].children[0]?.children)
-                for (const i of tags) {
-                    if (mainTags.includes(i.getAttribute("k"))) {
-                        tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
-                        break
-                    }
-                }
-                for (const i of tags) {
-                    if (i.getAttribute("k") === "type") {
-                        tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
-                    }
-                }
-                for (const i of tags) {
-                    if (i.getAttribute("k") === "restriction") {
-                        tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
-                    }
-                }
-                for (const i of tags) {
-                    if (i.getAttribute("k") === "name") {
-                        tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
-                        break
-                    }
-                }
-                const changesetTags = {
-                    created_by: `better osm.org v${GM_info.script.version}`,
-                    comment: tagsHint !== "" ? `Delete${tagsHint}` : `Delete ${object_type} ${object_id}`,
-                }
-
-                if (object_type === "relation" && !prompt("⚠️ Delete relation?\n\nChangeset comment:", changesetTags["comment"])) {
-                    return
-                }
-
-                const changesetPayload = document.implementation.createDocument(null, "osm")
-                const cs = changesetPayload.createElement("changeset")
-                changesetPayload.documentElement.appendChild(cs)
-                tagsToXml(changesetPayload, cs, changesetTags)
-                const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
-
-                console.log("Opening changeset")
-
-                auth.xhr(
-                    {
-                        method: "PUT",
-                        path: osm_server.apiBase + "changeset/create",
-                        prefix: false,
-                        content: chPayloadStr,
-                        headers: { "Content-Type": "application/xml; charset=utf-8" },
-                    },
-                    function (err1, result) {
-                        if (err1) {
-                            console.log({ changesetError: err1 })
-                            return
-                        }
-                        const changesetId = result
-                        console.log(changesetId)
-                        objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
-                        auth.xhr(
-                            {
-                                method: "DELETE",
-                                path: osm_server.apiBase + object_type + "/" + object_id,
-                                prefix: false,
-                                content: objectInfo,
-                                headers: { "Content-Type": "application/xml; charset=utf-8" },
-                            },
-                            function (err2) {
-                                if (err2) {
-                                    console.log({ changesetError: err2 })
-                                }
-                                auth.xhr(
-                                    {
-                                        method: "PUT",
-                                        path: osm_server.apiBase + "changeset/" + changesetId + "/close",
-                                        prefix: false,
-                                    },
-                                    function (err3) {
-                                        if (!err3) {
-                                            window.location.reload()
-                                        }
-                                    },
-                                )
-                            },
-                        )
-                    },
-                )
-            },
-        )
-    }
-    if (GM_config.get("OneClickDeletor") || object_type === "relation") {
-        link.onclick = deleteObject
-    } else {
-        link.onclick = e => {
-            e.preventDefault()
-            setTimeout(() => {
-                if (!link.classList.contains("dbclicked")) {
-                    link.text = "Double click please"
-                }
-            }, 200)
-        }
-        link.ondblclick = deleteObject
-    }
-}
-
-function setupDeletor(path) {
-    if (!path.startsWith("/node/") && !path.startsWith("/relation/")) return
-    const timerId = setInterval(addDeleteButton, 100)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop try add delete button")
-    }, 3000)
-    addDeleteButton()
-}
-
 //</editor-fold>
 
 //<editor-fold desc="notes" defaultstate="collapsed">
@@ -5645,6 +5432,219 @@ function setupGPXFiltersButtons() {
 
 //</editor-fold>
 
+//<editor-fold desc="object-editor" defaultstate="collapsed">
+
+function addDeleteButton() {
+    if (!location.pathname.startsWith("/node/") && !location.pathname.startsWith("/relation/")) return
+    if (location.pathname.includes("/history")) return
+
+    if (document.querySelector(".delete_object_button_class")) return true
+
+    const match = location.pathname.match(/(node|relation)\/(\d+)/)
+    if (!match) return
+    const object_type = match[1]
+    const object_id = match[2]
+
+    const auth = makeAuth()
+    const link = document.createElement("a")
+    link.text = ["ru-RU", "ru"].includes(navigator.language) ? "Выпилить!" : "Delete"
+    link.href = ""
+    link.classList.add("delete_object_button_class")
+    // skip deleted
+    if (object_type === "node") {
+        if (document.querySelectorAll("#sidebar_content > div:first-of-type h4").length < 2 && document.querySelector("#element_versions_list > div .latitude") === null) {
+            return
+        }
+    } else if (object_type === "relation") {
+        if (document.querySelectorAll("#sidebar_content > div:first-of-type h4").length < 2) {
+            return
+        }
+    }
+    // skip having a parent
+    if (object_type === "node" && document.querySelectorAll("#sidebar_content > div:first-of-type details").length !== 0) {
+        return
+    } else if (object_type === "relation") {
+        if (document.querySelectorAll("#sidebar_content > div:first-of-type details").length > 1) {
+            return
+        }
+        if (Array.from(document.querySelectorAll(".browse-tag-list th")).some(i => i.textContent === "wikidata")) {
+            return
+        }
+        const dangerousType = Array.from(document.querySelectorAll(".browse-tag-list td"))
+            .map(i => i.textContent)
+            .find(i => ["route_master", "route", "multipolygon", "public_transport"].includes(i))
+        if (dangerousType) {
+            if (dangerousType === "multipolygon") {
+                if (document.querySelectorAll("#sidebar_content > div:first-of-type details li").length > 1) {
+                    return
+                }
+            } else {
+                return
+            }
+        }
+    }
+
+    if (!document.querySelector(".secondary-actions")) return
+    document.querySelector(".secondary-actions").appendChild(link)
+    link.after(document.createTextNode("\xA0"))
+    link.before(document.createTextNode("\xA0· "))
+
+    if (!document.querySelector(".secondary-actions .edit_tags_class")) {
+        const tagsEditorExtensionWaiter = new MutationObserver(() => {
+            if (document.querySelector(".secondary-actions .edit_tags_class")) {
+                tagsEditorExtensionWaiter.disconnect()
+
+                const tmp = document.createComment("")
+                const node1 = document.querySelector(".delete_object_button_class")
+                const node2 = document.querySelector(".edit_tags_class")
+
+                node2.replaceWith(tmp)
+                node1.replaceWith(node2)
+                tmp.replaceWith(node1)
+
+                console.log("Delete button replaced for Tags editor extension capability")
+            }
+        })
+        tagsEditorExtensionWaiter.observe(document.querySelector(".secondary-actions"), {
+            childList: true,
+            subtree: true,
+        })
+        setTimeout(() => tagsEditorExtensionWaiter.disconnect(), 3000)
+    }
+
+    function deleteObject(e) {
+        e.preventDefault()
+        link.classList.add("dbclicked")
+
+        console.log("Delete clicked. Getting info")
+
+        auth.xhr(
+            {
+                method: "GET",
+                path: osm_server.apiBase + object_type + "/" + object_id,
+                prefix: false,
+            },
+            function (err, objectInfo) {
+                if (err) {
+                    console.log(err)
+                    return
+                }
+
+                let tagsHint = ""
+                const tags = Array.from(objectInfo.children[0].children[0]?.children)
+                for (const i of tags) {
+                    if (mainTags.includes(i.getAttribute("k"))) {
+                        tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
+                        break
+                    }
+                }
+                for (const i of tags) {
+                    if (i.getAttribute("k") === "type") {
+                        tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
+                    }
+                }
+                for (const i of tags) {
+                    if (i.getAttribute("k") === "restriction") {
+                        tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
+                    }
+                }
+                for (const i of tags) {
+                    if (i.getAttribute("k") === "name") {
+                        tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
+                        break
+                    }
+                }
+                const changesetTags = {
+                    created_by: `better osm.org v${GM_info.script.version}`,
+                    comment: tagsHint !== "" ? `Delete${tagsHint}` : `Delete ${object_type} ${object_id}`,
+                }
+
+                if (object_type === "relation" && !prompt("⚠️ Delete relation?\n\nChangeset comment:", changesetTags["comment"])) {
+                    return
+                }
+
+                const changesetPayload = document.implementation.createDocument(null, "osm")
+                const cs = changesetPayload.createElement("changeset")
+                changesetPayload.documentElement.appendChild(cs)
+                tagsToXml(changesetPayload, cs, changesetTags)
+                const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
+
+                console.log("Opening changeset")
+
+                auth.xhr(
+                    {
+                        method: "PUT",
+                        path: osm_server.apiBase + "changeset/create",
+                        prefix: false,
+                        content: chPayloadStr,
+                        headers: { "Content-Type": "application/xml; charset=utf-8" },
+                    },
+                    function (err1, result) {
+                        if (err1) {
+                            console.log({ changesetError: err1 })
+                            return
+                        }
+                        const changesetId = result
+                        console.log(changesetId)
+                        objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
+                        auth.xhr(
+                            {
+                                method: "DELETE",
+                                path: osm_server.apiBase + object_type + "/" + object_id,
+                                prefix: false,
+                                content: objectInfo,
+                                headers: { "Content-Type": "application/xml; charset=utf-8" },
+                            },
+                            function (err2) {
+                                if (err2) {
+                                    console.log({ changesetError: err2 })
+                                }
+                                auth.xhr(
+                                    {
+                                        method: "PUT",
+                                        path: osm_server.apiBase + "changeset/" + changesetId + "/close",
+                                        prefix: false,
+                                    },
+                                    function (err3) {
+                                        if (!err3) {
+                                            window.location.reload()
+                                        }
+                                    },
+                                )
+                            },
+                        )
+                    },
+                )
+            },
+        )
+    }
+    if (GM_config.get("OneClickDeletor") || object_type === "relation") {
+        link.onclick = deleteObject
+    } else {
+        link.onclick = e => {
+            e.preventDefault()
+            setTimeout(() => {
+                if (!link.classList.contains("dbclicked")) {
+                    link.text = "Double click please"
+                }
+            }, 200)
+        }
+        link.ondblclick = deleteObject
+    }
+}
+
+function setupDeletor(path) {
+    if (!path.startsWith("/node/") && !path.startsWith("/relation/")) return
+    const timerId = setInterval(addDeleteButton, 100)
+    setTimeout(() => {
+        clearInterval(timerId)
+        console.debug("stop try add delete button")
+    }, 3000)
+    addDeleteButton()
+}
+
+//</editor-fold>
+
 //<editor-fold desc="node-mover" defaultstate="collapsed">
 
 let nodeMoverMenuItem
@@ -6595,142 +6595,6 @@ function setupSatelliteLayers() {
         console.debug("stop try add resolve note button")
     }, 3000)
     addSatelliteLayers()
-}
-
-//</editor-fold>
-
-//<editor-fold desc="overpass search" defaultstate="collapsed">
-
-function yetAnotherWizard(s) {
-    // const [k, v] = s.split("=")
-    if (s[0] === "[") {
-        return `nwr${s};`
-    } else if (s.match(/^(node|way|rel|nwr|nw|nr|wr)/)) {
-        return `${s}` + (s.slice(-1) === ";" ? "" : ";")
-    } else {
-        return `nwr[${s}];`
-    }
-}
-
-let searchResultBBOX = null
-
-async function processOverpassQuery(query) {
-    if (!query.length) return
-    await GM.setValue("lastOverpassQuery", query)
-    const bound = getMap().getBounds()
-    const bboxString = [bound.getSouthWest().wrap().lat, bound.getSouthWest().wrap().lng, bound.getNorthEast().wrap().lat, bound.getNorthEast().wrap().lng]
-    const bboxExpr = query[query.length - 1] !== "!" ? "[bbox:" + bboxString + "]" : ""
-    if (query[query.length - 1] === "!") {
-        query = query.slice(0, -1)
-    }
-    const prevTitle = document.title
-    const newTitle = "◴" + prevTitle
-    document.title = newTitle
-
-    try {
-        const overpassQuery = `[out:xml]${bboxExpr};
-${yetAnotherWizard(query)}
-//(._;>;);
-out geom;
-`
-        console.log(overpassQuery)
-
-        console.time("download overpass data " + query)
-        const res = await externalFetchRetry({
-            // todo switcher
-            url:
-                overpass_server.apiUrl +
-                "/interpreter?" +
-                new URLSearchParams({
-                    data: overpassQuery,
-                }),
-            responseType: "xml",
-        })
-        console.timeEnd("download overpass data " + query)
-
-        const xml = new DOMParser().parseFromString(res.response, "text/xml")
-        const data_age = new Date(xml.querySelector("meta").getAttribute("osm_base"))
-        console.log(data_age)
-
-        getMap()?.invalidateSize()
-        const bbox = (searchResultBBOX = combineBBOXes(
-            Array.from(xml.querySelectorAll("bounds")).map(i => {
-                return {
-                    min_lat: i.getAttribute("minlat"),
-                    min_lon: i.getAttribute("minlon"),
-                    max_lat: i.getAttribute("maxlat"),
-                    max_lon: i.getAttribute("maxlon"),
-                }
-            }),
-        ))
-        // const points = []
-        Array.from(xml.querySelectorAll("node")).forEach(n => {
-            const lat = parseFloat(n.getAttribute("lat"))
-            const lon = parseFloat(n.getAttribute("lon"))
-            // points.push([lon, lat])
-
-            bbox.min_lat = min(bbox.min_lat, lat)
-            bbox.min_lon = min(bbox.min_lon, lon)
-            bbox.max_lat = max(bbox.max_lat, lat)
-            bbox.max_lon = max(bbox.max_lon, lon)
-        })
-        console.log(bbox)
-        if (bbox.min_lon === 10000000) {
-            alert("invalid query")
-        } else {
-            console.time("render overpass response")
-            fitBounds([
-                [bbox.min_lat, bbox.min_lon],
-                [bbox.max_lat, bbox.max_lon],
-            ])
-            loadBannedVersions()
-            preloadEditIcons()
-            cleanAllObjects()
-            getWindow().jsonLayer?.remove()
-            jsonLayer?.remove()
-            jsonLayer = renderOSMGeoJSON(xml, true)
-            console.timeEnd("render overpass response")
-
-            let statusPrefix = ""
-            if (!xml.querySelector("node,way,relation")) {
-                statusPrefix += "Empty result"
-            }
-
-            if ((new Date().getTime() - data_age.getTime()) / 1000 / 60 > 5) {
-                if (statusPrefix === "") {
-                    statusPrefix += "Currentless of the data: " + data_age.toLocaleDateString() + " " + data_age.toLocaleTimeString()
-                } else {
-                    statusPrefix += " | " + "Currentless of the data: " + data_age.toLocaleDateString() + " " + data_age.toLocaleTimeString()
-                }
-            }
-
-            getMap()?.attributionControl?.setPrefix(statusPrefix)
-
-            /*
-            const centroid = [...points.map(i => turf.point(i)), ...Array.from(xml.querySelectorAll("way")).map(w => {
-                return turf.center(
-                    turf.polygon([Array.from(w.querySelectorAll("nd")).map(n => {
-                        return [
-                            parseFloat(n.getAttribute("lon")),
-                            parseFloat(n.getAttribute("lat")),
-                        ]
-                    })])
-                )
-            })]
-            const voronoiPolygons = turf.voronoi(turf.featureCollection(centroid),
-                {
-                    bbox: [bbox.min_lon, bbox.min_lat, bbox.max_lon, bbox.max_lat]
-                }
-            );
-            renderGeoJSONwrapper(voronoiPolygons)
-            getWindow().jsonLayer.bringToBack()
-            */
-        }
-    } finally {
-        if (document.title === newTitle) {
-            document.title = prevTitle
-        }
-    }
 }
 
 //</editor-fold>
@@ -18916,6 +18780,142 @@ function renderOSMGeoJSON(xml, options = {}) {
     )
     jsonLayer.addTo(getMap())
     return jsonLayer
+}
+
+//</editor-fold>
+
+//<editor-fold desc="overpass search" defaultstate="collapsed">
+
+function yetAnotherWizard(s) {
+    // const [k, v] = s.split("=")
+    if (s[0] === "[") {
+        return `nwr${s};`
+    } else if (s.match(/^(node|way|rel|nwr|nw|nr|wr)/)) {
+        return `${s}` + (s.slice(-1) === ";" ? "" : ";")
+    } else {
+        return `nwr[${s}];`
+    }
+}
+
+let searchResultBBOX = null
+
+async function processOverpassQuery(query) {
+    if (!query.length) return
+    await GM.setValue("lastOverpassQuery", query)
+    const bound = getMap().getBounds()
+    const bboxString = [bound.getSouthWest().wrap().lat, bound.getSouthWest().wrap().lng, bound.getNorthEast().wrap().lat, bound.getNorthEast().wrap().lng]
+    const bboxExpr = query[query.length - 1] !== "!" ? "[bbox:" + bboxString + "]" : ""
+    if (query[query.length - 1] === "!") {
+        query = query.slice(0, -1)
+    }
+    const prevTitle = document.title
+    const newTitle = "◴" + prevTitle
+    document.title = newTitle
+
+    try {
+        const overpassQuery = `[out:xml]${bboxExpr};
+${yetAnotherWizard(query)}
+//(._;>;);
+out geom;
+`
+        console.log(overpassQuery)
+
+        console.time("download overpass data " + query)
+        const res = await externalFetchRetry({
+            // todo switcher
+            url:
+                overpass_server.apiUrl +
+                "/interpreter?" +
+                new URLSearchParams({
+                    data: overpassQuery,
+                }),
+            responseType: "xml",
+        })
+        console.timeEnd("download overpass data " + query)
+
+        const xml = new DOMParser().parseFromString(res.response, "text/xml")
+        const data_age = new Date(xml.querySelector("meta").getAttribute("osm_base"))
+        console.log(data_age)
+
+        getMap()?.invalidateSize()
+        const bbox = (searchResultBBOX = combineBBOXes(
+            Array.from(xml.querySelectorAll("bounds")).map(i => {
+                return {
+                    min_lat: i.getAttribute("minlat"),
+                    min_lon: i.getAttribute("minlon"),
+                    max_lat: i.getAttribute("maxlat"),
+                    max_lon: i.getAttribute("maxlon"),
+                }
+            }),
+        ))
+        // const points = []
+        Array.from(xml.querySelectorAll("node")).forEach(n => {
+            const lat = parseFloat(n.getAttribute("lat"))
+            const lon = parseFloat(n.getAttribute("lon"))
+            // points.push([lon, lat])
+
+            bbox.min_lat = min(bbox.min_lat, lat)
+            bbox.min_lon = min(bbox.min_lon, lon)
+            bbox.max_lat = max(bbox.max_lat, lat)
+            bbox.max_lon = max(bbox.max_lon, lon)
+        })
+        console.log(bbox)
+        if (bbox.min_lon === 10000000) {
+            alert("invalid query")
+        } else {
+            console.time("render overpass response")
+            fitBounds([
+                [bbox.min_lat, bbox.min_lon],
+                [bbox.max_lat, bbox.max_lon],
+            ])
+            loadBannedVersions()
+            preloadEditIcons()
+            cleanAllObjects()
+            getWindow().jsonLayer?.remove()
+            jsonLayer?.remove()
+            jsonLayer = renderOSMGeoJSON(xml, true)
+            console.timeEnd("render overpass response")
+
+            let statusPrefix = ""
+            if (!xml.querySelector("node,way,relation")) {
+                statusPrefix += "Empty result"
+            }
+
+            if ((new Date().getTime() - data_age.getTime()) / 1000 / 60 > 5) {
+                if (statusPrefix === "") {
+                    statusPrefix += "Currentless of the data: " + data_age.toLocaleDateString() + " " + data_age.toLocaleTimeString()
+                } else {
+                    statusPrefix += " | " + "Currentless of the data: " + data_age.toLocaleDateString() + " " + data_age.toLocaleTimeString()
+                }
+            }
+
+            getMap()?.attributionControl?.setPrefix(statusPrefix)
+
+            /*
+            const centroid = [...points.map(i => turf.point(i)), ...Array.from(xml.querySelectorAll("way")).map(w => {
+                return turf.center(
+                    turf.polygon([Array.from(w.querySelectorAll("nd")).map(n => {
+                        return [
+                            parseFloat(n.getAttribute("lon")),
+                            parseFloat(n.getAttribute("lat")),
+                        ]
+                    })])
+                )
+            })]
+            const voronoiPolygons = turf.voronoi(turf.featureCollection(centroid),
+                {
+                    bbox: [bbox.min_lon, bbox.min_lat, bbox.max_lon, bbox.max_lat]
+                }
+            );
+            renderGeoJSONwrapper(voronoiPolygons)
+            getWindow().jsonLayer.bringToBack()
+            */
+        }
+    } finally {
+        if (document.title === newTitle) {
+            document.title = prevTitle
+        }
+    }
 }
 
 //</editor-fold>
