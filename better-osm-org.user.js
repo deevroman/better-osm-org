@@ -5641,7 +5641,7 @@ function setupGPXFiltersButtons() {
 
 //</editor-fold>
 
-//<editor-fold desc="mode-mover" defaultstate="collapsed">
+//<editor-fold desc="node-mover" defaultstate="collapsed">
 
 let nodeMoverMenuItem
 
@@ -5764,7 +5764,7 @@ async function addPOIMoverItem(measuringMenuItem) {
 
 //</editor-fold>
 
-//<editor-fold desc="menu-items" defaultstate="collapsed">
+//<editor-fold desc="measurer" defaultstate="collapsed">
 
 let measurerAdded = false
 let measuring = false
@@ -6007,7 +6007,7 @@ function makeMeasureMouseHandlers() {
 
 //</editor-fold>
 
-//<editor-fold desc="menu-items" defaultstate="collapsed">
+//<editor-fold desc="context-menu-items" defaultstate="collapsed">
 
 let contextMenuObserver = null
 
