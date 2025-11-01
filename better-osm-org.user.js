@@ -5699,6 +5699,7 @@ async function addPOIMoverItem(measuringMenuItem) {
         ) * 1000) / 1000
         if (dist > 50) {
             if (!confirm(`⚠️ ${dist} kilometers.\n\nARE YOU SURE?`)) {
+                getMap().osm_contextmenu.hide()
                 return
             }
             getMap().osm_contextmenu.hide()
