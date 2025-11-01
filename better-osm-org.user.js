@@ -198,6 +198,8 @@ if (["Userscripts", "Greasemonkey", "Firemonkey", "OrangeMonkey"].includes(GM_in
 const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
 const isFirefox = navigator.userAgent.includes("Firefox")
 const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent)
+const isMac = navigator.platform?.toUpperCase()?.indexOf("MAC") >= 0
+const CtrlKeyName = isMac ? "Cmd" : "Ctrl"
 
 if (isSafari) {
     console.error("YOU ARE USING AN UNSUPPORTED BROWSER")
@@ -683,7 +685,7 @@ if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id
 
 //</editor-fold>
 
-//<editor-fold desc="" defaultstate="collapsed">
+//<editor-fold desc="init-config" defaultstate="collapsed">
 
 function makeRow(label, text, without_delete = false, placeholder = "comment that will be added when clicked") {
     const tr = document.createElement("tr")
@@ -1551,9 +1553,6 @@ async function abortableSleepUntilNextXthSeconds(X, { signal }) {
     const delay = nextTime - nowTime
     return await abortableSleep(delay, { signal })
 }
-
-const isMac = navigator.platform?.toUpperCase()?.indexOf("MAC") >= 0
-const CtrlKeyName = isMac ? "Cmd" : "Ctrl"
 
 /**
  * @param {Event} e
