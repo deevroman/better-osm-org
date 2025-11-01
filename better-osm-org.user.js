@@ -755,7 +755,7 @@ GM_config.init({
             default: false,
             labelPos: "right",
         },
-        BetterTagsPasteInId: {
+        BetterTagsPaste: {
             section: ["iD"],
             label: "Add = if key=value separated by spaces or tabs",
             type: "checkbox",
@@ -18993,7 +18993,7 @@ function fixTagsPaste() {
                 if (line.includes("=") || !line.includes(" ") && !line.includes("\t")) {
                     return line
                 }
-                ;[key, value] = line.split(/[ \t](.+)/)
+                const [key, value] = line.split(/[ \t](.+)/)
                 if (key === undefined || value === undefined) {
                     return line
                 }
@@ -19007,6 +19007,7 @@ function fixTagsPaste() {
     }
 
     document.addEventListener("paste", e => {
+        console.log("checking paste event")
         const t = e.target
         if (!(t instanceof HTMLTextAreaElement)) {
             return
@@ -19024,7 +19025,7 @@ function fixTagsPaste() {
             ) {
                 return
             }
-            if (t.getAttribute("row") !== "10" || t.getAttribute("cols") !== "40") {
+            if (t.getAttribute("rows") !== "10" || t.getAttribute("cols") !== "40") {
                 return
             }
             context = "osm.org tags editor"
@@ -19054,7 +19055,7 @@ function fixTagsPaste() {
     })
 }
 
-function setupBetterTagsPasteInId() {
+function setupBetterTagsPaste() {
     fixTagsPaste()
 }
 //</editor-fold>
@@ -20973,6 +20974,7 @@ function setupIDframe() {
         }
         alert(token)
     })
+    setupBetterTagsPaste()
 }
 
 //</editor-fold>
@@ -21005,7 +21007,7 @@ const modules = [
     setupClickableAvatar,
     setupOverzoomForDataLayer,
     setupDragAndDropViewers,
-    setupBetterTagsPasteInId
+    setupBetterTagsPaste
 ];
 // prettier-ignore
 const alwaysEnabledModules = [
