@@ -5212,7 +5212,7 @@ function setupHideNoteHighlight() {
 
 //</editor-fold>
 
-//<editor-fold desc="gpx" defaultstate="collapsed">
+//<editor-fold desc="gpx-filter" defaultstate="collapsed">
 
 function addGPXFiltersButtons() {
     if (document.getElementById("gpx-filter")) {
