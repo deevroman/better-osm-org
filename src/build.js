@@ -17,11 +17,14 @@ function readJsFilesRecursively(dir) {
     return result
 }
 
-const sources = readJsFilesRecursively(".").map(file => fs.readFileSync(file, "utf8"))
+setInterval(() => {
+    const sources = readJsFilesRecursively(".").map(file => fs.readFileSync(file, "utf8"))
 
-const outPath = "../better-osm-org.user.js"
-const oldFile = fs.readFileSync(outPath, "utf8")
-const newFile = sources.join("\n")
-if (oldFile !== newFile) {
-    fs.writeFileSync(outPath, newFile)
-}
+    const outPath = "../better-osm-org.user.js"
+    const oldFile = fs.readFileSync(outPath, "utf8")
+    const newFile = sources.join("\n")
+    if (oldFile !== newFile) {
+        fs.writeFileSync(outPath, newFile)
+    }
+    console.log(new Date())
+}, 500)
