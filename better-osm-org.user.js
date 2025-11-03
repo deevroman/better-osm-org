@@ -17787,9 +17787,75 @@ function simplifyHDCYIframe() {
 
 //<editor-fold desc="editors-links" defaultstate="collapsed">
 
+/** @type {null | {name: string, template: string, usage: string}[]}*/
+let externalLinks = null
+// const externalLinksURL = "http://localhost:7777/misc/assets/external-links.json"
+const externalLinksURL = "https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/dev/misc/assets/external-links.json"
+
+function makeSafeForCSS(name) {
+    return name.replace(/[^a-z0-9]/g, function (s) {
+        const c = s.charCodeAt(0)
+        if (c === 32) return "-"
+        if (c >= 65 && c <= 90) return "_" + s.toLowerCase()
+        return "__" + ("000" + c.toString(16)).slice(-4)
+    })
+}
+
+function addSafeNameForExternalLinks() {
+    externalLinks.forEach(i => {
+        i.safeName = makeSafeForCSS(i.name)
+    })
+}
+
+async function loadAndMakeExternalLinksList() {
+    const raw_data = (
+        await externalFetchRetry({
+            url: externalLinksURL,
+            responseType: "json",
+        })
+    ).response
+    if (!raw_data) {
+        throw "External link not downloaded"
+    }
+    externalLinks = raw_data.links
+    addSafeNameForExternalLinks()
+    await GM.setValue(
+        "external-links",
+        JSON.stringify({
+            raw_data: raw_data,
+            cacheTime: new Date(),
+        }),
+    )
+}
+
+async function initExternalLinksList() {
+    if (externalLinks) return
+    const cache = await GM.getValue("external-links", "")
+    if (externalLinks) return
+    if (!isDebug() && cache) { // TODO
+        console.log("external links cached")
+        const json = JSON.parse(cache)
+        const cacheTime = new Date(json["cacheTime"])
+        const threeDaysLater = new Date(cacheTime.getTime() + 3 * 24 * 60 * 60 * 1000)
+        if (threeDaysLater < new Date()) {
+            console.log("but cache outdated")
+            setTimeout(loadAndMakeExternalLinksList, 0)
+        }
+        externalLinks = JSON.parse(cache)["raw_data"].links
+        addSafeNameForExternalLinks()
+        return
+    }
+    console.log("loading external links")
+    try {
+        await loadAndMakeExternalLinksList()
+    } catch (e) {
+        console.log("loading external links list failed", e)
+    }
+}
+
 let coordinatesObserver = null
 
-function setupNewEditorsLinks() {
+async function setupNewEditorsLinks() {
     const firstRun = document.getElementsByClassName("custom_editors").length === 0
     const editorsList = document.querySelector("#edit_tab ul")
     if (!editorsList) {
@@ -17847,24 +17913,65 @@ function setupNewEditorsLinks() {
                 editorsList.appendChild(newElem)
             }
         }
-        /*
+        if (!isDebug()) {
+            return
+        }
+        if (!externalLinks) {
+            // await — bad idea in MutationObserver callback
+            await initExternalLinksList()
+        }
+        if (firstRun) {
+            const hr = document.createElement("hr")
+            hr.style.margin = "0px"
+            editorsList.appendChild(hr)
+        }
+        const context = {}
         {
-            // geo:
-            let newElem;
-            if (firstRun) {
-                newElem = editorsList.querySelector("li").cloneNode(true);
-                newElem.classList.add("custom_editors", "geo_btn")
-                newElem.querySelector("a").textContent = "Open geo:"
-            } else {
-                newElem = document.querySelector(".geo_btn")
+            const [x, y, z] = getCurrentXYZ()
+            context.latitude = context.lat = context.x = x
+            context.longitude = context.lon = y
+            context.zoom = context.z = z
+            const osm_m = location.pathname.match(/\/(node|way|relation|changeset|note)\/([0-9]+)/)
+            context.osm_type = osm_m?.[1]
+            context.osm_id = parseInt(osm_m?.[2])
+            context[`osm_${context.osm_type}_id`] = context.osm_id
+            context.selected_text = encodeURI(window.getSelection().toString())
+            context.raw_selected_text = window.getSelection().toString()
+        }
+        externalLinks.forEach(link => {
+            function makeUrl(template) {
+                return template.replaceAll(/\{([a-z_]+)}/g, (match, m1) => {
+                    const res = context[m1]
+                    if (res !== undefined) {
+                        return res
+                    }
+                    throw `unsupported "${m1}" substitution or page url`
+                })
             }
-            newElem.querySelector("a").href = `geo:${lat},${lon}?z=${zoom}`
+
+            let newElem = editorsList.querySelector(".custom-editor-" + link.safeName)
+            if (firstRun || !newElem) {
+                newElem = editorsList.querySelector("li").cloneNode(true)
+                newElem.classList.add("custom_editors", "custom-editor-" + link.safeName)
+                newElem.querySelector("a").textContent = link.name
+                newElem.querySelector("a").setAttribute("target", "_blank")
+            }
+            let actualHref
+            try {
+                actualHref = makeUrl(link.template)
+            } catch (e) {
+                newElem?.remove()
+                return
+            }
+            if (newElem.querySelector("a").href !== actualHref) {
+                newElem.querySelector("a").href = actualHref
+            }
             if (firstRun) {
                 editorsList.appendChild(newElem)
             }
-        }
-        */
+        })
     } finally {
+        coordinatesObserver?.disconnect()
         coordinatesObserver = new MutationObserver(setupNewEditorsLinks)
         coordinatesObserver.observe(editorsList, { subtree: true, childList: true, attributes: true })
     }
