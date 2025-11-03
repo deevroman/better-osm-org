@@ -5880,7 +5880,7 @@ function addMeasureMenuItem(customSeparator) {
         const initLat = getMap().osm_contextmenu._$element.data("lat")
         const initLng = getMap().osm_contextmenu._$element.data("lng")
         currentMeasuring.way.push({ lat: initLat, lng: initLng })
-        currentMeasuring.nodes.push(showNodeMarker(initLat, initLng, "#000000"))
+        currentMeasuring.nodes.push(showNodeMarker(initLat, initLng, darkModeForMap ? "#FFFFFF": "#000000"))
         if (currentMeasuring.way.length > 1) {
             currentMeasuring.wayLine?.remove()
             currentMeasuring.wayLine = displayWay(currentMeasuring.way)
@@ -5930,12 +5930,12 @@ function makeMeasureMouseHandlers() {
             return
         }
         currentMeasuring.way.push({ lat: lat, lng: lng })
-        currentMeasuring.nodes.push(showNodeMarker(lat, lng, "#000000"))
+        currentMeasuring.nodes.push(showNodeMarker(lat, lng, darkModeForMap ? "#FFFFFF": "#000000"))
         currentMeasuring.wayLine?.remove()
 
         const distInMeters = getMeasureDistance(currentMeasuring.way, { lat: lat, lng: lng })
         const text = formatMeasureDistance(distInMeters)
-        currentMeasuring.wayLine = displayWay(currentMeasuring.way, false, "#000000", 1)
+        currentMeasuring.wayLine = displayWay(currentMeasuring.way, false, darkModeForMap ? "#FFFFFF": "#000000", 1)
         movingTooltip?.remove()
         movingTooltip = getWindow()
             .L.tooltip(
@@ -5981,7 +5981,7 @@ function makeMeasureMouseHandlers() {
                     },
                 ],
                 false,
-                "#000000",
+                darkModeForMap ? "#FFFFFF": "#000000",
                 1,
             )
             movingTooltip?.remove()
@@ -5996,7 +5996,7 @@ function makeMeasureMouseHandlers() {
                 )
                 .addTo(getMap())
         } else {
-            showActiveNodeMarker(e.latlng.lat, e.latlng.lng, "#000000")
+            showActiveNodeMarker(e.latlng.lat, e.latlng.lng, darkModeForMap ? "#FFFFFF": "#000000")
         }
     })
 }
