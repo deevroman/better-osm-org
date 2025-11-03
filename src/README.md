@@ -14,7 +14,6 @@ if (isset($_GET['master_user_js'])) {
    $out = `cat better-osm-org.user.js`;
 }
 
-// echo str_replace("// @version         1.2.0", "// @version         1.2." . time(), $out);
 echo $out;
 ```
 
@@ -48,4 +47,4 @@ package.json
 }
 ```
 
-`while true; do npm run build; sleep 1; done`
+`npm run dev`
