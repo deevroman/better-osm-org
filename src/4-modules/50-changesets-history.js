@@ -528,18 +528,18 @@ if (isOsmServer()) {
     window.notesClosedFilter = "";
     window.notesCommentsFilter = "";
     window.notesIDsFilter = new Set();
-    
+
     // const cache = new Map();
 
-    // window.mapDataIDsFilter = new Set();
+   // window.mapDataIDsFilter = new Set();
 
     console.log('Fetch intercepted');
     window.fetch = async (...args) => {
         try {
             if (args[0]?.includes?.("notes.json") && (
-                window.notesDisplayName !== ""
-                || window.notesQFilter !== ""
-                || (window.notesClosedFilter !== "" && window.notesClosedFilter !== "7"))
+                    window.notesDisplayName !== ""
+                    || window.notesQFilter !== ""
+                    || (window.notesClosedFilter !== "" && window.notesClosedFilter !== "7"))
                 || window.notesCommentsFilter !== ""
                 || window.notesIDsFilter.size
             ) {
@@ -745,23 +745,126 @@ if (isOsmServer()) {
                 //     statusText: response.statusText,
                 //     headers: response.headers
                 // });
-            }
-            // } else if (args[0]?.includes?.("/map.json") && window.mapDataIDsFilter.size) {
-            //     const response = await originalFetch(...args);
-            //     const originalJSON = await response.json();
-            //     originalJSON.elements = originalJSON.elements.filter(obj => {
-            //         if (window.mapDataIDsFilter.has(obj.type + obj.id)) {
-            //             return false
-            //         }
-            //         return true
-            //     })
-            //
-            //     return new Response(JSON.stringify(originalJSON), {
-            //         status: response.status,
-            //         statusText: response.statusText,
-            //         headers: response.headers
-            //     });
-            else {
+            } else if (false && args[0]?.includes?.("/map.json")) {
+                const response = await originalFetch(...args);
+                const originalJSON = await response.json();
+                const reverseIndex = {}
+                originalJSON.elements?.forEach(i => {
+                    reverseIndex[i.type + i.id] = i
+                })
+                // todo clean prev handler
+                map.dataLayer.on('click', e => {
+                    if (!e.layer.feature) {
+                        return
+                    }
+                    if (!e.originalEvent.altKey) {
+                        return
+                    }
+                    window.mapDataIDsFilter.add(e.layer.feature.type + e.layer.feature.id)
+                    e.layer.remove()
+                })
+                map.dataLayer.on('layeradd', e => {
+                    queueMicrotask(() => {
+                        if (!e.layer.feature) {
+                            return
+                        }
+                        if (window.mapDataIDsFilter.has(e.layer.feature.type + e.layer.feature.id)) {
+                            e.layer.remove()
+                        }
+                        if (e.layer.feature.type === "node") {
+                            e.layer.remove()
+                            return
+                        }
+                        // if (e.layer.feature.tags["name"] && e.layer.feature.tags["landuse"]) {
+                        //     e.layer.bindTooltip(
+                        //         e.layer.feature.tags["name"],
+                        //         {
+                        //             content: e.layer.feature.tags["name"],
+                        //             sticky: true,
+                        //             permanent: true,
+                        //             offset: L.point(10, 0)
+                        //         },
+                        //     )
+                        //         .openTooltip()
+                        // }
+                        const layer = e.layer
+                        const f = e.layer.feature
+                        const t = f.tags || {};
+                        const palette = {
+                            background: "#ffeef7",
+                            border: "#ffb6c1",
+                            text: "#d81b60",
+                            pink1: "#f8bbd0",
+                            pink2: "#f48fb1",
+                            pink3: "#ec407a",
+                            pink4: "#ad1457",
+                            white: "#fff"
+                        };
+
+                        if (t.building) {
+                            layer.setStyle({
+                                color: palette.pink3,
+                                fillColor: palette.pink1,
+                                fillOpacity: 0.8,
+                                weight: 1
+                            });
+                        }
+                        else if (t.landuse) {
+                            if (["forest", "meadow", "grass", "farmland"].includes(t.landuse)) {
+                                layer.setStyle({
+                                    color: palette.pink2,
+                                    fillColor: palette.pink1,
+                                    fillOpacity: 0.6
+                                });
+                            } else if (["residential", "commercial", "industrial"].includes(t.landuse)) {
+                                layer.setStyle({
+                                    color: palette.pink4,
+                                    fillColor: palette.pink3,
+                                    fillOpacity: 0.5
+                                });
+                            } else {
+                                layer.setStyle({
+                                    color: palette.border,
+                                    fillColor: palette.pink1,
+                                    fillOpacity: 0.4
+                                });
+                            }
+                        }
+                        else if (t.highway) {
+                            layer.setStyle({
+                                color: palette.pink4,
+                                weight: 2,
+                                opacity: 0.9
+                            });
+                        }
+                        else if (t.natural === "water" || t.waterway) {
+                            layer.setStyle({
+                                color: "#ff80ab",
+                                fillColor: "#ffbcd9",
+                                fillOpacity: 0.5
+                            });
+                        }
+                        else {
+                            layer.setStyle({
+                                color: palette.border,
+                                fillColor: palette.background,
+                                fillOpacity: 0.2
+                            });
+                        }
+                        if (reverseIndex[f.type+f.id].user === "TrickyFoxy") {
+                            debugger
+                            layer.setStyle({
+                                color: "green"
+                            });
+                        }
+                    }, 0)
+                })
+                return new Response(JSON.stringify(originalJSON), {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: response.headers
+                });
+            } else {
                 // console.log("other requests", args[0])
                 // debugger
             }
