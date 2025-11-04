@@ -80,6 +80,10 @@ function addDropdownStyle() {
             display: block !important;
             top: -100px !important;
         }
+        #edit_tab > .dropdown-menu {
+            overflow-y: scroll;
+            height: 90vh;
+        }
     `)
 }
 
@@ -101,7 +105,7 @@ async function setupNewEditorsLinks() {
                 e.preventDefault()
                 e.stopPropagation()
                 document.querySelector("#edit_tab > ul").classList.toggle("open-dropdown")
-                document.querySelector("header").classList.toggle("closed")
+                document.querySelector("#menu-icon").click()
                 document.querySelector("#edit_tab > button").click()
             })
         })
@@ -163,6 +167,12 @@ async function setupNewEditorsLinks() {
                 editorsList.appendChild(newElem)
             }
         }
+        if (isMobile || isDebug()) {
+            const editJosmBtn = editorsList.querySelector('[href*="/edit?editor=remote"]')
+            if (editJosmBtn) {
+                editJosmBtn.textContent = editJosmBtn.textContent.replace("JOSM, Potlatch, Merkaartor", "JOSM")
+            }
+        }
         if (!isDebug()) {
             return
         }
@@ -187,6 +197,7 @@ async function setupNewEditorsLinks() {
             context[`osm_${context.osm_type}_id`] = context.osm_id
             context.selected_text = encodeURI(window.getSelection().toString())
             context.raw_selected_text = window.getSelection().toString()
+            context.random_param = Math.random().toString()
         }
         externalLinks.forEach(link => {
             function makeUrl(template) {
