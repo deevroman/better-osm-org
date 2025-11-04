@@ -17,7 +17,7 @@ async function setupNewContextMenuItems() {
         observer.disconnect()
         const customSeparator = addMenuSeparator(menu)
         addMeasureMenuItem(customSeparator)
-        addPOIMoverItem(measuringMenuItem)
+        addPOIMoverItem(measuringCleanMenuItem ?? measuringMenuItem)
 
         contextMenuObserver.observe(menu, { childList: true, subtree: true, attributes: true })
     })

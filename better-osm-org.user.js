@@ -5775,6 +5775,7 @@ function makeEmptyMeasuring() {
 }
 
 let currentMeasuring = makeEmptyMeasuring()
+let prevMeasurements = []
 
 let lastLatLng = null
 let movingTooltip = null
@@ -5812,10 +5813,17 @@ let measuringMouseDownHandler = null
 let measuringMouseUpHandler = null
 let measuringMouseMoveHandler = null
 let measuringMenuItem = null
+let measuringCleanMenuItem = null
 
 function endMeasuring() {
     document.querySelector("#map").style.cursor = "drag"
-    measuringMenuItem.querySelector("a").textContent = "Measure from here"
+    const a = measuringMenuItem.querySelector("a")
+    a.textContent = "Measure from here"
+
+    const i = document.createElement("i")
+    i.classList.add("bi", "bi-rulers")
+    a.prepend(i)
+
     measuring = false
 
     getMap().off("mousedown", measuringMouseDownHandler)
@@ -5837,6 +5845,7 @@ function endMeasuring() {
         )
         .openTooltip()
     currentMeasuring.tempLine?.remove()
+    prevMeasurements.push(currentMeasuring)
     currentMeasuring = makeEmptyMeasuring()
 }
 
@@ -5862,7 +5871,44 @@ function addMeasureMenuItem(customSeparator) {
     measuringMenuItem.classList.add("measurer-li")
     const a = document.createElement("a")
     a.classList.add("dropdown-item", "d-flex", "align-items-center", "gap-3")
-    a.textContent = "Measure from here"
+    a.textContent = measuring ? "End measure" : "Measure from here"
+    a.title = `Alt + Click: start new line
+Esc: stop measuring
+${CtrlKeyName} + Z: remove last node`
+    measuringCleanMenuItem = null
+    if (measuring && prevMeasurements.length && currentMeasuring.nodes.length) {
+        const hotkeyText = document.createElement("span")
+        hotkeyText.style.color = "gray"
+        hotkeyText.textContent = "esc"
+        a.appendChild(hotkeyText)
+
+        measuringCleanMenuItem = document.createElement("li")
+        measuringCleanMenuItem.classList.add("measurer-li-clean")
+
+        const cleanA = document.createElement("a")
+        cleanA.classList.add("dropdown-item", "d-flex", "align-items-center", "gap-3")
+        cleanA.textContent ="Clean measurements"
+
+        const cleanI = document.createElement("i")
+        cleanI.classList.add("bi", "bi-eraser")
+        cleanA.prepend(cleanI)
+
+        measuringCleanMenuItem.appendChild(cleanA)
+        cleanA.onclick = () => {
+            prevMeasurements.push(currentMeasuring)
+            prevMeasurements.forEach(m => {
+                m.wayLine?.remove()
+                m.tempLine?.remove()
+                m.nodes.forEach(i => i.remove())
+            })
+            prevMeasurements = []
+            currentMeasuring = makeEmptyMeasuring()
+            getMap().osm_contextmenu.hide()
+            movingTooltip?.remove()
+            measuringCleanMenuItem.remove()
+            measuringCleanMenuItem = null
+        }
+    }
 
     const i = document.createElement("i")
     i.classList.add("bi", "bi-rulers")
@@ -5874,20 +5920,22 @@ function addMeasureMenuItem(customSeparator) {
         e.stopImmediatePropagation()
         if (measuring) {
             endMeasuring()
+            getMap().osm_contextmenu.hide()
             return
         }
+        prevMeasurements.push(currentMeasuring)
         currentMeasuring = makeEmptyMeasuring()
         const initLat = getMap().osm_contextmenu._$element.data("lat")
         const initLng = getMap().osm_contextmenu._$element.data("lng")
         currentMeasuring.way.push({ lat: initLat, lng: initLng })
-        currentMeasuring.nodes.push(showNodeMarker(initLat, initLng, darkModeForMap ? "#FFFFFF": "#000000"))
+        currentMeasuring.nodes.push(showNodeMarker(initLat, initLng, darkModeForMap ? "#FFFFFF" : "#000000"))
         if (currentMeasuring.way.length > 1) {
             currentMeasuring.wayLine?.remove()
             currentMeasuring.wayLine = displayWay(currentMeasuring.way)
         } else {
             document.querySelector("#map").style.cursor = "pointer"
             measuring = true
-            measuringMenuItem.querySelector("a").textContent = "End measure"
+            a.textContent = "End measure"
 
             getMap().on("mousedown", measuringMouseDownHandler)
             getMap().on("mouseup", measuringMouseUpHandler)
@@ -5897,6 +5945,9 @@ function addMeasureMenuItem(customSeparator) {
     }
 
     measuringMenuItem.appendChild(a)
+    if (measuringCleanMenuItem) {
+        customSeparator.after(measuringCleanMenuItem)
+    }
     customSeparator.after(measuringMenuItem)
     measurerAdded = true
 }
@@ -5917,6 +5968,7 @@ function makeMeasureMouseHandlers() {
             return
         }
         if (e.originalEvent.altKey) {
+            prevMeasurements.push(currentMeasuring)
             currentMeasuring = makeEmptyMeasuring()
         }
 
@@ -5930,12 +5982,12 @@ function makeMeasureMouseHandlers() {
             return
         }
         currentMeasuring.way.push({ lat: lat, lng: lng })
-        currentMeasuring.nodes.push(showNodeMarker(lat, lng, darkModeForMap ? "#FFFFFF": "#000000"))
+        currentMeasuring.nodes.push(showNodeMarker(lat, lng, darkModeForMap ? "#FFFFFF" : "#000000"))
         currentMeasuring.wayLine?.remove()
 
         const distInMeters = getMeasureDistance(currentMeasuring.way, { lat: lat, lng: lng })
         const text = formatMeasureDistance(distInMeters)
-        currentMeasuring.wayLine = displayWay(currentMeasuring.way, false, darkModeForMap ? "#FFFFFF": "#000000", 1)
+        currentMeasuring.wayLine = displayWay(currentMeasuring.way, false, darkModeForMap ? "#FFFFFF" : "#000000", 1)
         movingTooltip?.remove()
         movingTooltip = getWindow()
             .L.tooltip(
@@ -5981,7 +6033,7 @@ function makeMeasureMouseHandlers() {
                     },
                 ],
                 false,
-                darkModeForMap ? "#FFFFFF": "#000000",
+                darkModeForMap ? "#FFFFFF" : "#000000",
                 1,
             )
             movingTooltip?.remove()
@@ -5996,7 +6048,7 @@ function makeMeasureMouseHandlers() {
                 )
                 .addTo(getMap())
         } else {
-            showActiveNodeMarker(e.latlng.lat, e.latlng.lng, darkModeForMap ? "#FFFFFF": "#000000")
+            showActiveNodeMarker(e.latlng.lat, e.latlng.lng, darkModeForMap ? "#FFFFFF" : "#000000")
         }
     })
 }
@@ -6022,7 +6074,7 @@ async function setupNewContextMenuItems() {
         observer.disconnect()
         const customSeparator = addMenuSeparator(menu)
         addMeasureMenuItem(customSeparator)
-        addPOIMoverItem(measuringMenuItem)
+        addPOIMoverItem(measuringCleanMenuItem ?? measuringMenuItem)
 
         contextMenuObserver.observe(menu, { childList: true, subtree: true, attributes: true })
     })
