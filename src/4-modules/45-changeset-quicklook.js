@@ -1401,8 +1401,9 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
  * @param {Element} i
  * @param {NodeVersion|WayVersion|RelationVersion} prevVersion
  * @param {NodeVersion|WayVersion|RelationVersion} targetVersion
+ * @param {NodeVersion[]|WayVersion[]|RelationVersion[]} objHistory
  */
-async function processObjectInteractions(changesetID, objType, objectsInComments, i, prevVersion, targetVersion) {
+async function processObjectInteractions(changesetID, objType, objectsInComments, i, prevVersion, targetVersion, objHistory) {
     let changesetMetadata = changesetMetadatas[targetVersion.changeset]
     if (!GM_config.get("ShowChangesetGeometry")) {
         i.parentElement.parentElement.classList.add("processed-object")
@@ -1641,7 +1642,25 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 return objectList.map(i => searchFinalVersion(i, timestamp, notLater, currentChangeset))
             }
 
-            const targetNodes = filterFinalObjectState(wayNodesHistories, targetVersion.timestamp, changesetMetadata.closed_at, changesetMetadata.id)
+            function upperBoundVersion(objHistory, version) {
+                let index = version - 1
+                if (objHistory[index]?.version === version) {
+                    return objHistory[index + 1]
+                }
+                index--
+                while (index >= 0) {
+                    if (objHistory[index]?.version === version) {
+                        return objHistory[index + 1]
+                    }
+                    index--
+                }
+                return undefined
+            }
+
+            const nextVersionTimestamp = upperBoundVersion(objHistory, targetVersion.version)?.timestamp
+            const notLater = !nextVersionTimestamp || new Date(nextVersionTimestamp) > new Date(changesetMetadata.closed_at) ? changesetMetadata.closed_at : nextVersionTimestamp
+            // notLater важен для правок от StreetComplete. Там часто линия обновляется несколько раз в правке
+            const targetNodes = filterFinalObjectState(wayNodesHistories, targetVersion.timestamp, notLater, changesetMetadata.id)
             if (hasInterChanges) {
                 const hasInterChangesWarn = document.createElement("span")
                 hasInterChangesWarn.textContent = "…"
