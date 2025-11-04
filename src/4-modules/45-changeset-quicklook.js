@@ -1620,6 +1620,8 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                     if (new Date(v.timestamp) <= targetTime) {
                         cur = v
                     } else {
+                        // Вообще v.changeset === currentChangeset не очень хорошо
+                        // Однако я не могу представить когда конкурирующий пакет правок может возникнуть непреднамеренно
                         if (new Date(v.timestamp) <= new Date(notLater) && v.changeset === currentChangeset) {
                             cur = v
                             hasInterChanges = true
