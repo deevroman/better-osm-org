@@ -5862,6 +5862,21 @@ function addMenuSeparator(menu) {
     return customSeparator
 }
 
+function cleanMeasurements() {
+    prevMeasurements.push(currentMeasuring)
+    prevMeasurements.forEach(m => {
+        m.wayLine?.remove()
+        m.tempLine?.remove()
+        m.nodes.forEach(i => i.remove())
+    })
+    prevMeasurements = []
+    currentMeasuring = makeEmptyMeasuring()
+    getMap().osm_contextmenu.hide()
+    movingTooltip?.remove()
+    measuringCleanMenuItem.remove()
+    measuringCleanMenuItem = null
+}
+
 function addMeasureMenuItem(customSeparator) {
     measuringMenuItem = document.querySelector(".measurer-li")
     if (measuringMenuItem) {
@@ -5876,7 +5891,7 @@ function addMeasureMenuItem(customSeparator) {
 Esc: stop measuring
 ${CtrlKeyName} + Z: remove last node`
     measuringCleanMenuItem = null
-    if (measuring && prevMeasurements.length && currentMeasuring.nodes.length) {
+    if (measuring && currentMeasuring.nodes.length || prevMeasurements.length) {
         const hotkeyText = document.createElement("span")
         hotkeyText.style.color = "gray"
         hotkeyText.textContent = "esc"
@@ -5894,20 +5909,7 @@ ${CtrlKeyName} + Z: remove last node`
         cleanA.prepend(cleanI)
 
         measuringCleanMenuItem.appendChild(cleanA)
-        cleanA.onclick = () => {
-            prevMeasurements.push(currentMeasuring)
-            prevMeasurements.forEach(m => {
-                m.wayLine?.remove()
-                m.tempLine?.remove()
-                m.nodes.forEach(i => i.remove())
-            })
-            prevMeasurements = []
-            currentMeasuring = makeEmptyMeasuring()
-            getMap().osm_contextmenu.hide()
-            movingTooltip?.remove()
-            measuringCleanMenuItem.remove()
-            measuringCleanMenuItem = null
-        }
+        cleanA.onclick = cleanMeasurements
     }
 
     const i = document.createElement("i")
@@ -20582,6 +20584,12 @@ function setupNavigationViaHotkeys() {
                 }
             } else if (e.code === "Escape") {
                 endMeasuring()
+            }
+        } else if (prevMeasurements.length) {
+            if (e.code === "Escape") {
+                if (confirm("Clean measurements?")) {
+                    cleanMeasurements()
+                }
             }
         }
         // if (drawingBuildings) {
