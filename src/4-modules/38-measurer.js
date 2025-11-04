@@ -141,6 +141,7 @@ ${CtrlKeyName} + Z: remove last node`
         const cleanA = document.createElement("a")
         cleanA.classList.add("dropdown-item", "d-flex", "align-items-center", "gap-3")
         cleanA.textContent ="Clean measurements"
+        cleanA.title = "Or press Escape twice"
 
         const cleanI = document.createElement("i")
         cleanI.classList.add("bi", "bi-eraser")
