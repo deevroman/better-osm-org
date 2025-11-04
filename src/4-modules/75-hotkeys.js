@@ -1168,6 +1168,12 @@ function setupNavigationViaHotkeys() {
             } else if (e.code === "Escape") {
                 endMeasuring()
             }
+        } else if (prevMeasurements.length) {
+            if (e.code === "Escape") {
+                if (confirm("Clean measurements?")) {
+                    cleanMeasurements()
+                }
+            }
         }
         // if (drawingBuildings) {
         //     if (e.code === "Escape") {
