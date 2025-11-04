@@ -17993,10 +17993,9 @@ function addDropdownStyle() {
     }
     dropdownStyleAdded = true
     injectCSSIntoOSMPage(`
-        .closed-dropdown {
+        .open-dropdown {
             display: block !important;
-            right = 10px !important;
-            top = -54px !important;
+            top: -100px !important;
         }
     `)
 }
@@ -18015,12 +18014,12 @@ async function setupNewEditorsLinks() {
             svg.setAttribute("height", 20)
             langSwitchBtn.before(linksBtn)
 
-            linksBtn.classList.add("closed-dropdown")
-
             linksBtn.addEventListener("click", e => {
                 e.preventDefault()
                 e.stopPropagation()
-                linksBtn.classList.toggle("closed-dropdown")
+                document.querySelector("#edit_tab > ul").classList.toggle("open-dropdown")
+                document.querySelector("header").classList.toggle("closed")
+                document.querySelector("#edit_tab > button").click()
             })
         })
     }
