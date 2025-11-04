@@ -9,6 +9,8 @@
         { "name": "Osmose (fix)", "template": "https://osmose.openstreetmap.fr/fr/map/#loc={zoom}/{latitude}/{longitude}", "usage": "QA" },
         { "name": "Flopp's Map", "template": "https://flopp.net/?c={latitude}:{longitude}&z={zoom}", "usage": "Map (OSM, Topo, Google Maps), waypoint tools" },
         { "name": "OpenRouteService", "template": "https://maps.openrouteservice.org/directions?n1={latitude}&n2={longitude}&n3={zoom}&b=0&k1=en-US&k2=km", "usage": "Router" },
+        { "name": "Organic Maps", "template": "om://map?v=1&ll={longitude},{latitude}", "usage": "Router" },
+        { "name": "Osmand", "template": "osmandmaps://?lat={latitude}&lon={longitude}&z={zoom}", "usage": "Router" },
         { "name": "Google Street View", "template": "https://www.google.com.tw/maps/?layer=c&cbll={latitude},{longitude}", "usage": "Street View ⚠© Not suitable as source" },
         { "name": "Yandex Maps", "template": "https://yandex.ru/maps/?l=stv,sta&ll={longitude},{latitude}&z={zoom}", "usage": "" },
         { "name": "Yandex Maps (Search)", "template": "https://yandex.ru/maps/?l=stv,sta&ll={longitude},{latitude}&z={zoom}&text={selected_text}", "usage": "" },
