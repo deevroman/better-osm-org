@@ -45,7 +45,8 @@ async function initExternalLinksList() {
     if (externalLinks) return
     const cache = await GM.getValue("external-links", "")
     if (externalLinks) return
-    if (!isDebug() && cache) { // TODO
+    if (!isDebug() && cache) {
+        // TODO
         console.log("external links cached")
         const json = JSON.parse(cache)
         const cacheTime = new Date(json["cacheTime"])
@@ -67,8 +68,45 @@ async function initExternalLinksList() {
 }
 
 let coordinatesObserver = null
+let dropdownStyleAdded = false
+
+function addDropdownStyle() {
+    if (dropdownStyleAdded) {
+        return
+    }
+    dropdownStyleAdded = true
+    injectCSSIntoOSMPage(`
+        .closed-dropdown {
+            display: block !important;
+            right = 10px !important;
+            top = -54px !important;
+        }
+    `)
+}
 
 async function setupNewEditorsLinks() {
+    if (isDebug() || isMobile) {
+        addDropdownStyle()
+        document.querySelectorAll('button[data-bs-target="#select_language_dialog"]:not(.with-link-before)').forEach(langSwitchBtn => {
+            langSwitchBtn.classList.add("with-link-before")
+            const linksBtn = langSwitchBtn.cloneNode()
+            linksBtn.removeAttribute("data-bs-target")
+            linksBtn.removeAttribute("data-bs-toggle")
+            linksBtn.innerHTML = externalLinkSvg
+            const svg = linksBtn.querySelector("svg")
+            svg.setAttribute("width", 20)
+            svg.setAttribute("height", 20)
+            langSwitchBtn.before(linksBtn)
+
+            linksBtn.classList.add("closed-dropdown")
+
+            linksBtn.addEventListener("click", e => {
+                e.preventDefault()
+                e.stopPropagation()
+                linksBtn.classList.toggle("closed-dropdown")
+            })
+        })
+    }
     const firstRun = document.getElementsByClassName("custom_editors").length === 0
     const editorsList = document.querySelector("#edit_tab ul")
     if (!editorsList) {
@@ -105,7 +143,7 @@ async function setupNewEditorsLinks() {
                 editorsList.appendChild(newElem)
             }
         }
-        {
+        if (!isMobile) {
             // https://osmpie.org/app/?pos=30.434481&pos=59.933311&zoom=18.91
             const osmpieLink = "https://osmpie.org/app/"
             let newElem
