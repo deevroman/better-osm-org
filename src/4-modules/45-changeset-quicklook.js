@@ -1598,7 +1598,56 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
 
         const currentNodesList = []
         if (targetVersion.visible !== false) {
-            const targetNodes = filterObjectListByTimestamp(wayNodesHistories, targetVersion.timestamp) // fixme what if changeset was long opened anf nodes changed after way?
+            // https://osm.org/changeset/174173815
+            // if changeset was long opened anв nodes changed after way
+            let hasInterChanges = false
+            /**
+             * @template {NodeVersion|WayVersion|RelationVersion} T
+             * @param {T[]} history
+             * @param {string} timestamp
+             * @param {string} notLater
+             * @param {number} currentChangeset
+             * @return {T|null}
+             */
+            function searchFinalVersion(history, timestamp, notLater, currentChangeset) {
+                const targetTime = new Date(timestamp)
+                let cur = history[0]
+                if (targetTime < new Date(cur.timestamp)) {
+                    return null
+                }
+                for (const v of history) {
+                    if (new Date(v.timestamp) <= targetTime) {
+                        cur = v
+                    } else {
+                        if (new Date(v.timestamp) <= new Date(notLater) && v.changeset === currentChangeset) {
+                            cur = v
+                            hasInterChanges = true
+                        } else {
+                            break
+                        }
+                    }
+                }
+                return cur
+            }
+            /**
+             * @template T
+             * @param {T[][]} objectList
+             * @param {string} timestamp
+             * @param {string} notLater
+             * @param {number} currentChangeset
+             * @return {T[]}
+             */
+            function filterFinalObjectState(objectList, timestamp, notLater, currentChangeset) {
+                return objectList.map(i => searchFinalVersion(i, timestamp, notLater, currentChangeset))
+            }
+
+            const targetNodes = filterFinalObjectState(wayNodesHistories, targetVersion.timestamp, changesetMetadata.closed_at, changesetMetadata.id)
+            if (hasInterChanges) {
+                const hasInterChangesWarn = document.createElement("span")
+                hasInterChangesWarn.textContent = "…"
+                hasInterChangesWarn.title = "The tags and coordinates of the way nodes were changed several times during the changeset"
+                i.querySelector("a ~ table.quick-look")?.before(hasInterChangesWarn)
+            }
             const nodesMap = {}
             targetNodes.forEach(elem => {
                 if (!elem) {
