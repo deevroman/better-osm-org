@@ -12518,9 +12518,14 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             // notLater важен для правок от StreetComplete. Там часто линия обновляется несколько раз в правке
             const targetNodes = filterFinalObjectState(wayNodesHistories, targetVersion.timestamp, notLater, changesetMetadata.id)
             if (hasInterChanges) {
-                const hasInterChangesWarn = document.createElement("span")
+                const hasInterChangesWarn = document.createElement("a")
                 hasInterChangesWarn.textContent = "…"
-                hasInterChangesWarn.title = "The tags and coordinates of the way nodes were changed several times during the changeset"
+                hasInterChangesWarn.setAttribute("href", `/way/${objID}/history`)
+                hasInterChangesWarn.setAttribute("target", `_blank`)
+                hasInterChangesWarn.title =
+                    "The tags and coordinates of the way nodes were changed several times during the changeset.\n" +
+                    "This may be intentional or it may occur when uploading a batch of edits using JOSM.\n" +
+                    "The final state is shown. Click to open full way history"
                 i.querySelector("a ~ table.quick-look")?.before(hasInterChangesWarn)
             }
             const nodesMap = {}
