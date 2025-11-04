@@ -20517,7 +20517,7 @@ function setupNavigationViaHotkeys() {
             }
         }
         if (measuring) {
-            if ((e.ctrlKey || e.metaKey) && e.code === "KeyZ") {
+            if ((e.ctrlKey || e.metaKey) && e.code === "KeyZ" || e.code === "Backspace" || e.code === "Delete") {
                 if (currentMeasuring.way.length) {
                     currentMeasuring.way.pop()
                     currentMeasuring.nodes.pop()?.remove()
