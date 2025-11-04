@@ -3,7 +3,7 @@
 /** @type {null | {name: string, template: string, usage: string}[]}*/
 let externalLinks = null
 // const externalLinksURL = "http://localhost:7777/misc/assets/external-links.json"
-const externalLinksURL = "https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/dev/misc/assets/external-links.json"
+const externalLinksURL = `https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/dev/misc/assets/external-links.json?bypasscache=${Math.random()}`
 
 function makeSafeForCSS(name) {
     return name.replace(/[^a-z0-9]/g, function (s) {
