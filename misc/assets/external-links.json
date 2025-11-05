@@ -6,19 +6,24 @@
       "usage": "Federated field photos database"
     },
     {
+      "name": "Mapillary",
+      "template": "https://www.mapillary.com/app/?lat={lat}&lng={lon}&z={zoom}",
+      "usage": "Field photos database"
+    },
+    {
       "name": "Commons: Nearby images",
       "template": "https://wikimap.toolforge.org/?wp=false&basemap=2&cluster=false&zoom={zoom}&lat={latitude}&lon={longitude}",
       "usage": "Pictures"
     },
     {
-      "name": "WaymarkedTrails",
-      "template": "https://hiking.waymarkedtrails.org/#?map={zoom}!{latitude}!{longitude}",
-      "usage": "Niche"
-    },
-    {
       "name": "Geohack",
       "template": "https://geohack.toolforge.org/geohack.php?params={latitude}_N_{longitude}_E",
       "usage": "List of lists"
+    },
+    {
+      "name": "F4map",
+      "template": "https://demo.f4map.com/#lat={latitude}&lon={longitude}&zoom={zoom}",
+      "usage": ""
     },
     {
       "name": "Bikerouter",
@@ -36,23 +41,13 @@
       "usage": "QA"
     },
     {
-      "name": "Flopp's Map",
-      "template": "https://flopp.net/?c={latitude}:{longitude}&z={zoom}",
-      "usage": "Map (OSM, Topo, Google Maps), waypoint tools"
-    },
-    {
-      "name": "OpenRouteService",
-      "template": "https://maps.openrouteservice.org/directions?n1={latitude}&n2={longitude}&n3={zoom}&b=0&k1=en-US&k2=km",
-      "usage": "Router"
-    },
-    {
       "name": "Organic Maps",
-      "template": "om://map?v=1&ll={longitude},{latitude}",
+      "template": "om://map?v=1&ll={latitude},{longitude}",
       "usage": "Router"
     },
     {
       "name": "Osmand",
-      "template": "osmandmaps://?lat={latitude}&lon={longitude}&z={zoom}",
+      "template": "osmand.geo://?lat={latitude}&lon={longitude}&z={zoom}",
       "usage": "Router"
     },
     {
@@ -71,9 +66,29 @@
       "usage": ""
     },
     {
+      "name": "Flopp's Map",
+      "template": "https://flopp.net/?c={latitude}:{longitude}&z={zoom}",
+      "usage": "Map (OSM, Topo, Google Maps), waypoint tools"
+    },
+    {
+      "name": "OpenRouteService",
+      "template": "https://maps.openrouteservice.org/directions?n1={latitude}&n2={longitude}&n3={zoom}&b=0&k1=en-US&k2=km",
+      "usage": "Router"
+    },
+    {
       "name": "OSM 411",
       "template": "https://osm411.org/#map={zoom}/{latitude}/{longitude}",
       "usage": ""
+    },
+    {
+      "name": "WaymarkedTrails",
+      "template": "https://hiking.waymarkedtrails.org/#?map={zoom}!{latitude}!{longitude}",
+      "usage": "Niche"
+    },
+    {
+      "name": "Apple Maps",
+      "template": "https://beta.maps.apple.com/?ll={latitude}%2C{longitude}&spn=0.02724242880691463%2C0.07252723824063878",
+      "usage": "Map, Street View ⚠© Not suitable as source"
     },
     {
       "name": "Opening hours",
@@ -100,11 +115,7 @@
       "template": "https://www.opensnowmap.org/#map={zoom}/{longitude}/{latitude}&b=snowmap&m=false&h=false",
       "usage": "QA"
     },
-    {
-      "name": "Apple Maps",
-      "template": "https://beta.maps.apple.com/?ll={latitude}%2C{longitude}&spn=0.02724242880691463%2C0.07252723824063878",
-      "usage": "Map, Street View ⚠© Not suitable as source"
-    },
+
     {
       "name": "iD development",
       "template": "https://ideditor.netlify.app/#background=Bing&disable_features=boundaries&map={zoom}/{latitude}/{longitude}",
@@ -201,8 +212,19 @@
       "usage": "QA"
     },
     {
+      "name": "OpenSwitchMapsWeb",
+      "template": "https://tankaru.github.io/OpenSwitchMapsWeb/index.html#https://www.openstreetmap.org/#map=${zoom}/${latitude}/${longitude}",
+      "usage": ""
+    },
+    {
       "name": "Check script updates",
       "template": "https://raw.githubusercontent.com/deevroman/better-osm-org/master/better-osm-org.user.js?bypasscache={random_param}",
+      "usage": "Useful links",
+      "onlyMobile": true
+    },
+    {
+      "name": "Check dev version script updates",
+      "template": "https://raw.githubusercontent.com/deevroman/better-osm-org/dev/better-osm-org.user.js?bypasscache={random_param}",
       "usage": "Useful links",
       "onlyMobile": true
     }

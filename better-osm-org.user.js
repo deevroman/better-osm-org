@@ -17999,10 +17999,13 @@ function addDropdownStyle() {
         }
         #edit_tab > .dropdown-menu {
             overflow-y: scroll;
-            height: 90vh;
+            height: 90dvh;
+            max-width: 100vw;
         }
     `)
 }
+
+let dropdownObserver = null
 
 async function setupNewEditorsLinks() {
     if (isDebug() || isMobile) {
@@ -18022,10 +18025,36 @@ async function setupNewEditorsLinks() {
                 e.preventDefault()
                 e.stopPropagation()
                 document.querySelector("#edit_tab > ul").classList.toggle("open-dropdown")
-                document.querySelector("#menu-icon").click()
+                // if (document.querySelector("header")?.classList?.contains("closed")) {
+                    document.querySelector("#menu-icon").click()
+                // }
                 document.querySelector("#edit_tab > button").click()
             })
         })
+        document.querySelectorAll("#menu-icon:not(.listen-click)").forEach(i => {
+            i.classList.add("listen-click")
+            i.addEventListener("click", e => {
+                if (!e.isTrusted) {
+                    return
+                }
+                document.querySelectorAll(".open-dropdown").forEach(d => {
+                    d.classList.remove("open-dropdown")
+                })
+            })
+        })
+        const dropdown = document.querySelector("#edit_tab > .dropdown-menu")
+        dropdownObserver?.disconnect()
+        dropdownObserver = new MutationObserver((mutations, observer) => {
+            if (!dropdown.classList.contains("show") && dropdown.classList.contains("open-dropdown")) {
+                observer.disconnect()
+                dropdown.classList.remove("open-dropdown")
+                document.querySelector("#menu-icon").click()
+            }
+        })
+        try {
+            dropdownObserver.observe(dropdown, {attributes: true })
+        } catch (e) {
+        }
     }
     const firstRun = document.getElementsByClassName("custom_editors").length === 0
     const editorsList = document.querySelector("#edit_tab ul")
@@ -18087,7 +18116,7 @@ async function setupNewEditorsLinks() {
         if (isMobile || isDebug()) {
             const editJosmBtn = editorsList.querySelector('[href*="/edit?editor=remote"]')
             if (editJosmBtn) {
-                editJosmBtn.textContent = editJosmBtn.textContent.replace("JOSM, Potlatch, Merkaartor", "JOSM")
+                editJosmBtn.textContent = editJosmBtn.textContent.replace(/JOSM, Potlat?ch, Merkaartor/, "JOSM")
             }
         }
         if (!isDebug()) {
