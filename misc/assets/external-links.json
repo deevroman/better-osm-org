@@ -18,7 +18,7 @@
     },
     {
       "name": "nakarte.me",
-      "template": "https://nakarte.me/#m=${zoom}/${latitude}/${longitude}&l=O",
+      "template": "https://nakarte.me/#m={zoom}/{latitude}/{longitude}&l=O",
       "usage": ""
     },
     {
@@ -224,7 +224,7 @@
     },
     {
       "name": "OpenSwitchMapsWeb",
-      "template": "https://tankaru.github.io/OpenSwitchMapsWeb/index.html#https://www.openstreetmap.org/#map=${zoom}/${latitude}/${longitude}",
+      "template": "https://tankaru.github.io/OpenSwitchMapsWeb/index.html#https://www.openstreetmap.org/#map={zoom}/{latitude}/{longitude}",
       "usage": ""
     },
     {
