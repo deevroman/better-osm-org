@@ -10436,7 +10436,7 @@ function addDiffInHistory(reason = "url_change") {
         return spoiler
     }
 
-    if (!document.querySelector(".tag-added") && document.querySelector(".tag-unmodified")) {
+    if (!document.querySelector(".tag-added") && !document.querySelector(".tag-unmodified")) {
         const versions = [{ tags: [], coordinates: "", wasModified: false, nodes: [], members: [], visible: true, membersCount: 0, versionNumber: 0 }]
         // add/modification
         const oldToNewHtmlVersions = Array.from(
