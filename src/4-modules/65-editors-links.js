@@ -229,6 +229,12 @@ async function setupNewEditorsLinks() {
             context.random_param = Math.random().toString()
         }
         externalLinks.forEach(link => {
+            if (link.onlyMobile && !isMobile && !isDebug()) {
+                return
+            }
+            if (link.onlyAndroid && isSafari && !isDebug()) {
+                return
+            }
             function makeUrl(template) {
                 return template.replaceAll(/\{([a-z_]+)}/g, (match, m1) => {
                     const res = context[m1]
