@@ -1,6 +1,12 @@
 {
   "links": [
     {
+      "name": "Vespucci",
+      "template": "josm:/zoom?left={longitude}&bottom={latitude}&right={longitude}&top={latitude}",
+      "usage": "",
+      "onlyAndroid": true
+    },
+    {
       "name": "Panoramax",
       "template": "https://panoramax.openstreetmap.fr/?background=streets&focus=map&map={zoom}/{latitude}/{longitude}",
       "usage": "Federated field photos database"
@@ -11,9 +17,9 @@
       "usage": "Field photos database"
     },
     {
-      "name": "Commons: Nearby images",
-      "template": "https://wikimap.toolforge.org/?wp=false&basemap=2&cluster=false&zoom={zoom}&lat={latitude}&lon={longitude}",
-      "usage": "Pictures"
+      "name": "nakarte.me",
+      "template": "https://nakarte.me/#m=${zoom}/${latitude}/${longitude}&l=O",
+      "usage": ""
     },
     {
       "name": "Geohack",
@@ -24,21 +30,6 @@
       "name": "F4map",
       "template": "https://demo.f4map.com/#lat={latitude}&lon={longitude}&zoom={zoom}",
       "usage": ""
-    },
-    {
-      "name": "Bikerouter",
-      "template": "https://bikerouter.de/#map={zoom}/{latitude}/{longitude}",
-      "usage": "Router (biking and hiking)"
-    },
-    {
-      "name": "Brouter Navigation",
-      "template": "http://brouter.de/brouter-web/#map={zoom}/{latitude}/{longitude}/standard",
-      "usage": "Router (biking and hiking)"
-    },
-    {
-      "name": "Osmose (fix)",
-      "template": "https://osmose.openstreetmap.fr/fr/map/#loc={zoom}/{latitude}/{longitude}",
-      "usage": "QA"
     },
     {
       "name": "Organic Maps",
@@ -64,6 +55,26 @@
       "name": "Yandex Maps (Search)",
       "template": "https://yandex.ru/maps/?l=stv,sta&ll={longitude},{latitude}&z={zoom}&text={selected_text}",
       "usage": ""
+    },
+    {
+      "name": "Commons: Nearby images",
+      "template": "https://wikimap.toolforge.org/?wp=false&basemap=2&cluster=false&zoom={zoom}&lat={latitude}&lon={longitude}",
+      "usage": "Pictures"
+    },
+    {
+      "name": "Bikerouter",
+      "template": "https://bikerouter.de/#map={zoom}/{latitude}/{longitude}",
+      "usage": "Router (biking and hiking)"
+    },
+    {
+      "name": "Brouter Navigation",
+      "template": "http://brouter.de/brouter-web/#map={zoom}/{latitude}/{longitude}/standard",
+      "usage": "Router (biking and hiking)"
+    },
+    {
+      "name": "Osmose (fix)",
+      "template": "https://osmose.openstreetmap.fr/fr/map/#loc={zoom}/{latitude}/{longitude}",
+      "usage": "QA"
     },
     {
       "name": "Flopp's Map",
