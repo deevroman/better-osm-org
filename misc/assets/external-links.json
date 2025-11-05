@@ -47,7 +47,7 @@
     },
     {
       "name": "Osmand",
-      "template": "osmand.geo://?lat={latitude}&lon={longitude}&z={zoom}",
+      "template": "https://osmand.net/go.html?lat={latitude}&lon={longitude}&z={zoom}",
       "usage": "Router"
     },
     {
