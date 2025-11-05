@@ -3178,207 +3178,182 @@ function addDiffInHistory(reason = "url_change") {
         return spoiler
     }
 
-    const versions = [{ tags: [], coordinates: "", wasModified: false, nodes: [], members: [], visible: true, membersCount: 0, versionNumber: 0 }]
-    // add/modification
-    const oldToNewHtmlVersions = Array.from(
-        document.querySelectorAll('#element_versions_list > div:not(.processed):not([way-version="inter"]):not(:has(a[href*="/redactions/"]:not([rel]):not(.unredacted)))'),
-    ).toReversed()
+    if (!document.querySelector(".tag-added") && document.querySelector(".tag-unmodified")) {
+        const versions = [{ tags: [], coordinates: "", wasModified: false, nodes: [], members: [], visible: true, membersCount: 0, versionNumber: 0 }]
+        // add/modification
+        const oldToNewHtmlVersions = Array.from(
+            document.querySelectorAll('#element_versions_list > div:not(.processed):not([way-version="inter"]):not(:has(a[href*="/redactions/"]:not([rel]):not(.unredacted)))'),
+        ).toReversed()
 
-    for (let verInd = 0; verInd < oldToNewHtmlVersions.length; verInd++) {
-        const ver = oldToNewHtmlVersions[verInd]
+        for (let verInd = 0; verInd < oldToNewHtmlVersions.length; verInd++) {
+            const ver = oldToNewHtmlVersions[verInd]
 
-        ver.classList.add("processed")
-        let wasModifiedObject = false
-        const version = parseInt(
-            ver
-                .querySelector("a")
-                .getAttribute("href")
-                .match(/\/history\/(\d+)$/)[1],
-        )
-        const kv = ver.querySelectorAll("tbody > tr") ?? []
-        const tags = []
+            ver.classList.add("processed")
+            let wasModifiedObject = false
+            const version = parseInt(
+                ver
+                    .querySelector("a")
+                    .getAttribute("href")
+                    .match(/\/history\/(\d+)$/)[1],
+            )
+            const kv = ver.querySelectorAll("tbody > tr") ?? []
+            const tags = []
 
-        const metainfoHTML = ver.querySelector("div:nth-of-type(1)")
+            const metainfoHTML = ver.querySelector("div:nth-of-type(1)")
 
-        const changesetA = ver.querySelector('div > div a[href^="/changeset/"]:not([rel])')
-        const changesetHTML = changesetA?.parentElement
-        const changesetID = changesetA.textContent
+            const changesetA = ver.querySelector('div > div a[href^="/changeset/"]:not([rel])')
+            const changesetHTML = changesetA?.parentElement
+            const changesetID = changesetA.textContent
 
-        const time = metainfoHTML.querySelector("time")
+            const time = metainfoHTML.querySelector("time")
 
-        const coordinates = ver.querySelector("div a:has(.latitude)")
-        const locationHTML = coordinates?.parentElement
-        const locationA = ver.querySelector("div a:has(.latitude)")
+            const coordinates = ver.querySelector("div a:has(.latitude)")
+            const locationHTML = coordinates?.parentElement
+            const locationA = ver.querySelector("div a:has(.latitude)")
 
-        if (metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')) {
-            const a = metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')
-            metainfoHTML.innerHTML = ""
-            metainfoHTML.appendChild(time)
-            metainfoHTML.appendChild(document.createTextNode(" "))
-            metainfoHTML.appendChild(a)
-            metainfoHTML.appendChild(document.createTextNode(" "))
-        } else {
-            metainfoHTML.innerHTML = ""
-            metainfoHTML.appendChild(time)
-            const findBtn = document.createElement("span")
-            findBtn.classList.add("find-user-btn")
-            findBtn.title = "Try find deleted user"
-            findBtn.textContent = " 🔍 "
-            findBtn.value = changesetID
-            findBtn.datetime = time.dateTime
-            findBtn.style.cursor = "pointer"
-            findBtn.onclick = findChangesetInDiff
-            metainfoHTML.appendChild(findBtn)
-        }
-
-        changesetHTML.innerHTML = ""
-        const hashtag = document.createTextNode("#")
-        metainfoHTML.appendChild(hashtag)
-        const changesetWrapper = document.createElement("span")
-        changesetA.classList.remove("comments-loaded")
-        changesetWrapper.appendChild(changesetA)
-        metainfoHTML.appendChild(changesetWrapper)
-        let visible = true
-
-        if (isNode) {
-            if (coordinates) {
-                locationHTML.innerHTML = ""
-                locationHTML.appendChild(locationA)
-                metainfoHTML.appendChild(locationHTML)
+            if (metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')) {
+                const a = metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')
+                metainfoHTML.innerHTML = ""
+                metainfoHTML.appendChild(time)
+                metainfoHTML.appendChild(document.createTextNode(" "))
+                metainfoHTML.appendChild(a)
+                metainfoHTML.appendChild(document.createTextNode(" "))
             } else {
-                visible = false
-                wasModifiedObject = true // because sometimes deleted object has tags
-                time.before(document.createTextNode("🗑 "))
+                metainfoHTML.innerHTML = ""
+                metainfoHTML.appendChild(time)
+                const findBtn = document.createElement("span")
+                findBtn.classList.add("find-user-btn")
+                findBtn.title = "Try find deleted user"
+                findBtn.textContent = " 🔍 "
+                findBtn.value = changesetID
+                findBtn.datetime = time.dateTime
+                findBtn.style.cursor = "pointer"
+                findBtn.onclick = findChangesetInDiff
+                metainfoHTML.appendChild(findBtn)
             }
-        } else if (isWay) {
-            if (!ver.querySelector("details")) {
-                time.before(document.createTextNode("🗑 "))
-            }
-        } else if (isRelation) {
-            if (!ver.querySelector("details")) {
-                time.before(document.createTextNode("🗑 "))
-            }
-        }
 
-        const valuesLinks = new Map()
-        document.querySelectorAll("#element_versions_list > div table td a").forEach(a => {
-            valuesLinks.set(a.textContent, a.href)
-        })
-        const showPreviousTagValue = GM_config.get("ShowPreviousTagValue", true)
-        kv.forEach(i => {
-            const k = i.querySelector("th > a")?.textContent ?? i.querySelector("th")?.textContent
-            i.querySelector("td .prev-value-span")?.remove()
-            if (i.querySelector("td .current-value-span")) {
-                i.querySelector("td .current-value-span").classList.remove("current-value-span")
-            }
-            i.querySelector(".wdt-preview svg title")?.remove()
-            let v = i.querySelector("td .wdplugin")?.textContent ?? i.querySelector("td")?.textContent
-            if (k === undefined) {
-                // todo support multiple wikidata
-                // Human-readable Wikidata extension compatibility
-                return
-            }
-            if (k.includes("colour")) {
-                const tmpV = i.querySelector("td").cloneNode(true)
-                tmpV.querySelector("svg")?.remove()
-                v = tmpV.textContent
-            }
-            tags.push([k, v])
+            changesetHTML.innerHTML = ""
+            const hashtag = document.createTextNode("#")
+            metainfoHTML.appendChild(hashtag)
+            const changesetWrapper = document.createElement("span")
+            changesetA.classList.remove("comments-loaded")
+            changesetWrapper.appendChild(changesetA)
+            metainfoHTML.appendChild(changesetWrapper)
+            let visible = true
 
-            const lastTags = versions.at(-1).tags
-            let tagWasModified = false
-            if (!lastTags.some(elem => elem[0] === k)) {
-                i.querySelector("th").classList.add("history-diff-new-tag")
-                i.querySelector("td").classList.add("history-diff-new-tag")
-                wasModifiedObject = tagWasModified = true
-            } else if (lastTags.some(elem => elem[0] === k)) {
-                lastTags.forEach(el => {
-                    if (el[0] === k && el[1] !== v) {
-                        i.querySelector("th").classList.add("history-diff-modified-key")
-                        const valCell = i.querySelector("td")
-                        if (isRTLLayout) {
-                            valCell.dir = ""
-                        }
-                        valCell.classList.add("history-diff-modified-tag")
-                        valCell.innerHTML = "<span class='current-value-span'>" + valCell.innerHTML + "</span>"
-                        valCell.onclick = e => {
-                            if (e.altKey) return
-                            if (window.getSelection().type === "Range") return
-                            if (e.target.nodeName === "A") return
+            if (isNode) {
+                if (coordinates) {
+                    locationHTML.innerHTML = ""
+                    locationHTML.appendChild(locationA)
+                    metainfoHTML.appendChild(locationHTML)
+                } else {
+                    visible = false
+                    wasModifiedObject = true // because sometimes deleted object has tags
+                    time.before(document.createTextNode("🗑 "))
+                }
+            } else if (isWay) {
+                if (!ver.querySelector("details")) {
+                    time.before(document.createTextNode("🗑 "))
+                }
+            } else if (isRelation) {
+                if (!ver.querySelector("details")) {
+                    time.before(document.createTextNode("🗑 "))
+                }
+            }
 
-                            e.preventDefault()
-                            e.stopPropagation()
-                            if (valCell.querySelector(".prev-value-span").classList.contains("hidden")) {
-                                document.querySelectorAll(".prev-value-span").forEach(span => span.classList.remove("hidden"))
-                            } else {
-                                document.querySelectorAll(".prev-value-span").forEach(span => span.classList.add("hidden"))
+            const valuesLinks = new Map()
+            document.querySelectorAll("#element_versions_list > div table td a").forEach(a => {
+                valuesLinks.set(a.textContent, a.href)
+            })
+            const showPreviousTagValue = GM_config.get("ShowPreviousTagValue", true)
+            kv.forEach(i => {
+                const k = i.querySelector("th > a")?.textContent ?? i.querySelector("th")?.textContent
+                i.querySelector("td .prev-value-span")?.remove()
+                if (i.querySelector("td .current-value-span")) {
+                    i.querySelector("td .current-value-span").classList.remove("current-value-span")
+                }
+                i.querySelector(".wdt-preview svg title")?.remove()
+                let v = i.querySelector("td .wdplugin")?.textContent ?? i.querySelector("td")?.textContent
+                if (k === undefined) {
+                    // todo support multiple wikidata
+                    // Human-readable Wikidata extension compatibility
+                    return
+                }
+                if (k.includes("colour")) {
+                    const tmpV = i.querySelector("td").cloneNode(true)
+                    tmpV.querySelector("svg")?.remove()
+                    v = tmpV.textContent
+                }
+                tags.push([k, v])
+
+                const lastTags = versions.at(-1).tags
+                let tagWasModified = false
+                if (!lastTags.some(elem => elem[0] === k)) {
+                    i.querySelector("th").classList.add("history-diff-new-tag")
+                    i.querySelector("td").classList.add("history-diff-new-tag")
+                    wasModifiedObject = tagWasModified = true
+                } else if (lastTags.some(elem => elem[0] === k)) {
+                    lastTags.forEach(el => {
+                        if (el[0] === k && el[1] !== v) {
+                            i.querySelector("th").classList.add("history-diff-modified-key")
+                            const valCell = i.querySelector("td")
+                            if (isRTLLayout) {
+                                valCell.dir = ""
                             }
-                        }
+                            valCell.classList.add("history-diff-modified-tag")
+                            valCell.innerHTML = "<span class='current-value-span'>" + valCell.innerHTML + "</span>"
+                            valCell.onclick = e => {
+                                if (e.altKey) return
+                                if (window.getSelection().type === "Range") return
+                                if (e.target.nodeName === "A") return
 
-                        const currentValueSpan = i.querySelector("td .current-value-span")
-                        const prevValueSpan = document.createElement("span")
-                        prevValueSpan.classList.add("prev-value-span")
-
-                        const diff = arraysDiff(Array.from(el[1]).toReversed(), Array.from(v).toReversed(), 1).toReversed()
-                        // todo unify with diff in changesets
-                        // todo detect asci -> unicode or less strict cond
-                        // prettier-ignore
-                        if (!i.querySelector("td a") && v.length > 1 && el[1].length > 1
-                            && (
-                                diff.length === v.length && el[1].length === v.length
-                                && diff.reduce((cnt, b) => cnt + (b[0] !== b[1]), 0) === 1
-                                || diff.reduce((cnt, b) => cnt + (b[0] !== b[1] && b[0] !== null), 0) === 0
-                                || diff.reduce((cnt, b) => cnt + (b[0] !== b[1] && b[1] !== null), 0) === 0
-                            )) {
-                            const prevText = document.createElement("span")
-                            const newText = document.createElement("span")
-                            diff.forEach(c => {
-                                if (c[0] !== c[1]) {
-                                    if (c[1]) {
-                                        const colored = document.createElement("span")
-                                        colored.classList.add("new-letter")
-                                        colored.textContent = c[1]
-                                        newText.appendChild(colored)
-                                    }
-                                    if (c[0]) {
-                                        const colored = document.createElement("span")
-                                        colored.classList.add("deleted-letter")
-                                        colored.textContent = c[0]
-                                        prevText.appendChild(colored)
-                                    }
+                                e.preventDefault()
+                                e.stopPropagation()
+                                if (valCell.querySelector(".prev-value-span").classList.contains("hidden")) {
+                                    document.querySelectorAll(".prev-value-span").forEach(span => span.classList.remove("hidden"))
                                 } else {
-                                    prevText.appendChild(document.createTextNode(c[0]))
-                                    newText.appendChild(document.createTextNode(c[1]))
+                                    document.querySelectorAll(".prev-value-span").forEach(span => span.classList.add("hidden"))
                                 }
-                            })
-                            prevText.normalize()
-                            newText.normalize()
-                            prevValueSpan.appendChild(prevText)
-                            prevValueSpan.appendChild(document.createTextNode(` ${arrowSymbolForChanges} `))
-                            newText.classList.add("current-value-span")
-                            newText.style.display = "inline-block"
-                            if (showPreviousTagValue) {
-                                currentValueSpan.replaceWith(newText)
-                            } else {
-                                currentValueSpan.replaceWith(v)
                             }
-                            prevText.dir = "auto"
-                            newText.dir = "auto"
-                        } else {
-                            if (valuesLinks.has(el[1])) {
-                                const valueLink = document.createElement("a")
-                                valueLink.href = valuesLinks.get(el[1])
-                                valueLink.target = "_blank"
-                                valueLink.title = ""
-                                valueLink.textContent = `${el[1]}`
-                                prevValueSpan.appendChild(valueLink)
-                                prevValueSpan.appendChild(document.createTextNode(` ${arrowSymbolForChanges} `))
-                            } else {
-                                const prevText = document.createElement("span")
-                                prevText.appendChild(document.createTextNode(el[1]))
-                                const newText = document.createElement("span")
-                                newText.appendChild(document.createTextNode(v))
 
+                            const currentValueSpan = i.querySelector("td .current-value-span")
+                            const prevValueSpan = document.createElement("span")
+                            prevValueSpan.classList.add("prev-value-span")
+
+                            const diff = arraysDiff(Array.from(el[1]).toReversed(), Array.from(v).toReversed(), 1).toReversed()
+                            // todo unify with diff in changesets
+                            // todo detect asci -> unicode or less strict cond
+                            // prettier-ignore
+                            if (!i.querySelector("td a") && v.length > 1 && el[1].length > 1
+                                && (
+                                    diff.length === v.length && el[1].length === v.length
+                                    && diff.reduce((cnt, b) => cnt + (b[0] !== b[1]), 0) === 1
+                                    || diff.reduce((cnt, b) => cnt + (b[0] !== b[1] && b[0] !== null), 0) === 0
+                                    || diff.reduce((cnt, b) => cnt + (b[0] !== b[1] && b[1] !== null), 0) === 0
+                                )) {
+                                const prevText = document.createElement("span")
+                                const newText = document.createElement("span")
+                                diff.forEach(c => {
+                                    if (c[0] !== c[1]) {
+                                        if (c[1]) {
+                                            const colored = document.createElement("span")
+                                            colored.classList.add("new-letter")
+                                            colored.textContent = c[1]
+                                            newText.appendChild(colored)
+                                        }
+                                        if (c[0]) {
+                                            const colored = document.createElement("span")
+                                            colored.classList.add("deleted-letter")
+                                            colored.textContent = c[0]
+                                            prevText.appendChild(colored)
+                                        }
+                                    } else {
+                                        prevText.appendChild(document.createTextNode(c[0]))
+                                        newText.appendChild(document.createTextNode(c[1]))
+                                    }
+                                })
+                                prevText.normalize()
+                                newText.normalize()
                                 prevValueSpan.appendChild(prevText)
                                 prevValueSpan.appendChild(document.createTextNode(` ${arrowSymbolForChanges} `))
                                 newText.classList.add("current-value-span")
@@ -3388,217 +3363,244 @@ function addDiffInHistory(reason = "url_change") {
                                 } else {
                                     currentValueSpan.replaceWith(v)
                                 }
+                                prevText.dir = "auto"
+                                newText.dir = "auto"
+                            } else {
+                                if (valuesLinks.has(el[1])) {
+                                    const valueLink = document.createElement("a")
+                                    valueLink.href = valuesLinks.get(el[1])
+                                    valueLink.target = "_blank"
+                                    valueLink.title = ""
+                                    valueLink.textContent = `${el[1]}`
+                                    prevValueSpan.appendChild(valueLink)
+                                    prevValueSpan.appendChild(document.createTextNode(` ${arrowSymbolForChanges} `))
+                                } else {
+                                    const prevText = document.createElement("span")
+                                    prevText.appendChild(document.createTextNode(el[1]))
+                                    const newText = document.createElement("span")
+                                    newText.appendChild(document.createTextNode(v))
+
+                                    prevValueSpan.appendChild(prevText)
+                                    prevValueSpan.appendChild(document.createTextNode(` ${arrowSymbolForChanges} `))
+                                    newText.classList.add("current-value-span")
+                                    newText.style.display = "inline-block"
+                                    if (showPreviousTagValue) {
+                                        currentValueSpan.replaceWith(newText)
+                                    } else {
+                                        currentValueSpan.replaceWith(v)
+                                    }
+                                }
                             }
-                        }
 
-                        currentValueSpan.setAttribute("value", v)
-                        currentValueSpan.classList.add("current-value-span")
-                        currentValueSpan.style.display = "inline-block"
-                        prevValueSpan.style.display = "inline-block"
-                        valCell.prepend(prevValueSpan)
-                        valCell.removeAttribute("dir")
-                        if (!showPreviousTagValue) {
-                            prevValueSpan.classList.add("hidden")
+                            currentValueSpan.setAttribute("value", v)
+                            currentValueSpan.classList.add("current-value-span")
+                            currentValueSpan.style.display = "inline-block"
+                            prevValueSpan.style.display = "inline-block"
+                            valCell.prepend(prevValueSpan)
+                            valCell.removeAttribute("dir")
+                            if (!showPreviousTagValue) {
+                                prevValueSpan.classList.add("hidden")
+                            }
+                            i.title = `Click for hide previous value`
+                            // i.title = `was: "${el[1]}"`;
+                            wasModifiedObject = tagWasModified = true
                         }
-                        i.title = `Click for hide previous value`
-                        // i.title = `was: "${el[1]}"`;
-                        wasModifiedObject = tagWasModified = true
-                    }
-                })
+                    })
+                }
+                if (!tagWasModified) {
+                    i.classList.add("non-modified-tag")
+                    i.querySelector("th").classList.add("non-modified-tag")
+                    i.querySelector("td").classList.add("non-modified-tag")
+                }
+            })
+            const lastCoordinates = versions.at(-1).coordinates
+            const lastVisible = versions.at(-1).visible
+            if (visible && coordinates && versions.length > 1 && coordinates.href !== lastCoordinates) {
+                if (lastCoordinates) {
+                    const curLat = coordinates.querySelector(".latitude").textContent.replace(",", ".")
+                    const curLon = coordinates.querySelector(".longitude").textContent.replace(",", ".")
+                    const lastLat = lastCoordinates.match(/#map=.+\/(.+)\/(.+)$/)[1]
+                    const lastLon = lastCoordinates.match(/#map=.+\/(.+)\/(.+)$/)[2]
+                    // prettier-ignore
+                    const distInMeters = getDistanceFromLatLonInKm(
+                        Number.parseFloat(lastLat),
+                        Number.parseFloat(lastLon),
+                        Number.parseFloat(curLat),
+                        Number.parseFloat(curLon)
+                    ) * 1000
+                    const distTxt = document.createElement("span")
+                    distTxt.textContent = `${distInMeters.toFixed(1)}m`
+                    distTxt.classList.add("history-diff-modified-tag")
+                    distTxt.classList.add("history-diff-modified-location")
+                    coordinates.after(distTxt)
+                    coordinates.after(document.createTextNode(" "))
+                }
+                wasModifiedObject = true
             }
-            if (!tagWasModified) {
-                i.classList.add("non-modified-tag")
-                i.querySelector("th").classList.add("non-modified-tag")
-                i.querySelector("td").classList.add("non-modified-tag")
-            }
-        })
-        const lastCoordinates = versions.at(-1).coordinates
-        const lastVisible = versions.at(-1).visible
-        if (visible && coordinates && versions.length > 1 && coordinates.href !== lastCoordinates) {
-            if (lastCoordinates) {
-                const curLat = coordinates.querySelector(".latitude").textContent.replace(",", ".")
-                const curLon = coordinates.querySelector(".longitude").textContent.replace(",", ".")
-                const lastLat = lastCoordinates.match(/#map=.+\/(.+)\/(.+)$/)[1]
-                const lastLon = lastCoordinates.match(/#map=.+\/(.+)\/(.+)$/)[2]
+            let membersCount = 0 // quick workaround for lazy versions
+            let childNodes = null
+            if (isWay) {
+                childNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent.match(/\d+/)[0])
+                const lastChildNodes = versions.at(-1).nodes
                 // prettier-ignore
-                const distInMeters = getDistanceFromLatLonInKm(
-                    Number.parseFloat(lastLat),
-                    Number.parseFloat(lastLon),
-                    Number.parseFloat(curLat),
-                    Number.parseFloat(curLon)
-                ) * 1000
-                const distTxt = document.createElement("span")
-                distTxt.textContent = `${distInMeters.toFixed(1)}m`
-                distTxt.classList.add("history-diff-modified-tag")
-                distTxt.classList.add("history-diff-modified-location")
-                coordinates.after(distTxt)
-                coordinates.after(document.createTextNode(" "))
-            }
-            wasModifiedObject = true
-        }
-        let membersCount = 0 // quick workaround for lazy versions
-        let childNodes = null
-        if (isWay) {
-            childNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent.match(/\d+/)[0])
-            const lastChildNodes = versions.at(-1).nodes
-            // prettier-ignore
-            if (version > 1 &&
-                (childNodes.length !== lastChildNodes.length
-                    || childNodes.some((el, index) => lastChildNodes[index] !== childNodes[index]))) {
-                ver.querySelector("details > summary")?.classList.add("history-diff-modified-tag")
-                wasModifiedObject = true
-            }
-            ver.querySelector("details")?.removeAttribute("open")
-        } else if (isRelation) {
-            membersCount = parseInt(ver.querySelector("details:not(.empty-version) summary")?.textContent?.match(/(\d+)/)?.[0]) ?? 0
-            childNodes = Array.from(ver.querySelectorAll("details:not(.empty-version) ul.list-unstyled li")).map(el => el.textContent)
+                if (version > 1 &&
+                    (childNodes.length !== lastChildNodes.length
+                        || childNodes.some((el, index) => lastChildNodes[index] !== childNodes[index]))) {
+                    ver.querySelector("details > summary")?.classList.add("history-diff-modified-tag")
+                    wasModifiedObject = true
+                }
+                ver.querySelector("details")?.removeAttribute("open")
+            } else if (isRelation) {
+                membersCount = parseInt(ver.querySelector("details:not(.empty-version) summary")?.textContent?.match(/(\d+)/)?.[0]) ?? 0
+                childNodes = Array.from(ver.querySelectorAll("details:not(.empty-version) ul.list-unstyled li")).map(el => el.textContent)
 
-            const olderMembersCount = versions.at(-1).membersCount
-            const olderMembers = versions.at(-1).members
+                const olderMembersCount = versions.at(-1).membersCount
+                const olderMembers = versions.at(-1).members
 
-            const unloadedMembersList = ver.querySelector("turbo-frame:has(.spinner-border)")
-            const olderUnloadedMembersList = oldToNewHtmlVersions[verInd - 1]?.querySelector("turbo-frame:has(.spinner-border)")
-            // https://osm.org/relation/9425522/history
-            if (version > 1 && membersCount !== olderMembersCount) {
-                ver.querySelector("details:not(.empty-version) > summary")?.classList.add("history-diff-modified-tag")
-                wasModifiedObject = true
-            } else if (version > 1 && !unloadedMembersList && !olderUnloadedMembersList) {
-                if (childNodes.length !== olderMembers.length || childNodes.some((el, index) => olderMembers[index] !== childNodes[index])) {
+                const unloadedMembersList = ver.querySelector("turbo-frame:has(.spinner-border)")
+                const olderUnloadedMembersList = oldToNewHtmlVersions[verInd - 1]?.querySelector("turbo-frame:has(.spinner-border)")
+                // https://osm.org/relation/9425522/history
+                if (version > 1 && membersCount !== olderMembersCount) {
                     ver.querySelector("details:not(.empty-version) > summary")?.classList.add("history-diff-modified-tag")
                     wasModifiedObject = true
-                } else if (!wasModifiedObject) {
-                    oldToNewHtmlVersions[verInd] = convertVersionIntoSpoiler(ver)
-                }
-            }
-            if (unloadedMembersList) {
-                function repairVersions() {
-                    const ver = oldToNewHtmlVersions[verInd]
-                    const olderVersion = oldToNewHtmlVersions[verInd - 1]
-                    const nextVersion = oldToNewHtmlVersions[verInd + 1]
-                    if (olderVersion && !olderVersion.querySelector("turbo-frame:has(.spinner-border)")) {
-                        const curChildNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
-                        const oldChildMembers = Array.from(olderVersion.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
-                        if (version > 1 && (curChildNodes.length !== oldChildMembers.length || curChildNodes.some((el, index) => curChildNodes[index] !== oldChildMembers[index]))) {
-                            ver.querySelector("details:not(.empty-version) > summary")?.classList.add("history-diff-modified-tag")
-                            wasModifiedObject = true
-                        } else if (!wasModifiedObject) {
-                            oldToNewHtmlVersions[verInd] = convertVersionIntoSpoiler(ver)
-                        }
+                } else if (version > 1 && !unloadedMembersList && !olderUnloadedMembersList) {
+                    if (childNodes.length !== olderMembers.length || childNodes.some((el, index) => olderMembers[index] !== childNodes[index])) {
+                        ver.querySelector("details:not(.empty-version) > summary")?.classList.add("history-diff-modified-tag")
+                        wasModifiedObject = true
+                    } else if (!wasModifiedObject) {
+                        oldToNewHtmlVersions[verInd] = convertVersionIntoSpoiler(ver)
                     }
-                    if (nextVersion && !nextVersion.querySelector("turbo-frame:has(.spinner-border)")) {
-                        const nextChildMembers = Array.from(nextVersion.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
-                        const curChildNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
+                }
+                if (unloadedMembersList) {
+                    function repairVersions() {
+                        const ver = oldToNewHtmlVersions[verInd]
+                        const olderVersion = oldToNewHtmlVersions[verInd - 1]
+                        const nextVersion = oldToNewHtmlVersions[verInd + 1]
+                        if (olderVersion && !olderVersion.querySelector("turbo-frame:has(.spinner-border)")) {
+                            const curChildNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
+                            const oldChildMembers = Array.from(olderVersion.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
+                            if (version > 1 && (curChildNodes.length !== oldChildMembers.length || curChildNodes.some((el, index) => curChildNodes[index] !== oldChildMembers[index]))) {
+                                ver.querySelector("details:not(.empty-version) > summary")?.classList.add("history-diff-modified-tag")
+                                wasModifiedObject = true
+                            } else if (!wasModifiedObject) {
+                                oldToNewHtmlVersions[verInd] = convertVersionIntoSpoiler(ver)
+                            }
+                        }
+                        if (nextVersion && !nextVersion.querySelector("turbo-frame:has(.spinner-border)")) {
+                            const nextChildMembers = Array.from(nextVersion.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
+                            const curChildNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
 
-                        if (nextChildMembers.length !== curChildNodes.length || curChildNodes.some((el, index) => curChildNodes[index] !== nextChildMembers[index])) {
-                            nextVersion.querySelector("details:not(.empty-version) > summary")?.classList.add("history-diff-modified-tag")
-                        } else {
-                            const nextVersionNumber = parseInt(
-                                nextVersion
-                                    .querySelector("a")
-                                    .getAttribute("href")
-                                    .match(/\/history\/(\d+)$/)[1],
-                            )
-                            if (versions.find(i => i.versionNumber === nextVersionNumber)?.wasModified === false) {
-                                oldToNewHtmlVersions[verInd + 1] = convertVersionIntoSpoiler(nextVersion)
+                            if (nextChildMembers.length !== curChildNodes.length || curChildNodes.some((el, index) => curChildNodes[index] !== nextChildMembers[index])) {
+                                nextVersion.querySelector("details:not(.empty-version) > summary")?.classList.add("history-diff-modified-tag")
+                            } else {
+                                const nextVersionNumber = parseInt(
+                                    nextVersion
+                                        .querySelector("a")
+                                        .getAttribute("href")
+                                        .match(/\/history\/(\d+)$/)[1],
+                                )
+                                if (versions.find(i => i.versionNumber === nextVersionNumber)?.wasModified === false) {
+                                    oldToNewHtmlVersions[verInd + 1] = convertVersionIntoSpoiler(nextVersion)
+                                }
                             }
                         }
                     }
-                }
 
-                const lazyMembersObserver = new MutationObserver(function (mutationsList, observer) {
-                    for (let mutationRecord of mutationsList) {
-                        for (let newNode of mutationRecord.addedNodes ?? []) {
-                            if (newNode.nodeName === "UL") {
-                                console.log("lazy version loaded")
-                                observer.disconnect()
-                                repairVersions()
+                    const lazyMembersObserver = new MutationObserver(function (mutationsList, observer) {
+                        for (let mutationRecord of mutationsList) {
+                            for (let newNode of mutationRecord.addedNodes ?? []) {
+                                if (newNode.nodeName === "UL") {
+                                    console.log("lazy version loaded")
+                                    observer.disconnect()
+                                    repairVersions()
+                                }
                             }
                         }
+                    })
+                    lazyMembersObserver.observe(unloadedMembersList, {
+                        childList: true,
+                        subtree: true,
+                    })
+                }
+                ver.querySelector("details")?.removeAttribute("open")
+            }
+            versions.push({
+                versionNumber: version,
+                tags: tags,
+                coordinates: coordinates?.href ?? lastCoordinates,
+                wasModified: wasModifiedObject || (visible && !lastVisible),
+                nodes: childNodes,
+                membersCount: membersCount,
+                members: childNodes,
+                visible: visible,
+            })
+            ver.querySelectorAll("h4").forEach((el, index) => (index !== 0 ? el.classList.add("hidden-h4") : null))
+            ver.title = makeTitleForTagsCount(tags.length)
+        }
+        // deletion
+        oldToNewHtmlVersions.toReversed().forEach((x, index) => {
+            if (oldToNewHtmlVersions.length <= index + 1) return
+            versions.toReversed()[index + 1].tags.forEach(tag => {
+                const k = tag[0]
+                const v = tag[1]
+                if (!versions.toReversed()[index].tags.some(elem => elem[0] === k)) {
+                    const tr = document.createElement("tr")
+                    tr.classList.add("history-diff-deleted-tag-tr")
+                    const th = document.createElement("th")
+                    th.textContent = k
+                    th.classList.add("history-diff-deleted-tag", "py-1", "border-grey", "table-light", "fw-normal", "border-start", "border-secondary-subtle")
+                    const td = document.createElement("td")
+                    if (k.includes("colour")) {
+                        td.innerHTML = `<svg width="14" height="14" class="float-end m-1"><title></title><rect x="0.5" y="0.5" width="13" height="13" fill="" stroke="#2222"></rect></svg>`
+                        td.querySelector("svg rect").setAttribute("fill", v)
+                        td.appendChild(document.createTextNode(v))
+                    } else {
+                        td.textContent = v
                     }
-                })
-                lazyMembersObserver.observe(unloadedMembersList, {
-                    childList: true,
-                    subtree: true,
-                })
-            }
-            ver.querySelector("details")?.removeAttribute("open")
-        }
-        versions.push({
-            versionNumber: version,
-            tags: tags,
-            coordinates: coordinates?.href ?? lastCoordinates,
-            wasModified: wasModifiedObject || (visible && !lastVisible),
-            nodes: childNodes,
-            membersCount: membersCount,
-            members: childNodes,
-            visible: visible,
-        })
-        ver.querySelectorAll("h4").forEach((el, index) => (index !== 0 ? el.classList.add("hidden-h4") : null))
-        ver.title = makeTitleForTagsCount(tags.length)
-    }
-    // deletion
-    oldToNewHtmlVersions.toReversed().forEach((x, index) => {
-        if (oldToNewHtmlVersions.length <= index + 1) return
-        versions.toReversed()[index + 1].tags.forEach(tag => {
-            const k = tag[0]
-            const v = tag[1]
-            if (!versions.toReversed()[index].tags.some(elem => elem[0] === k)) {
-                const tr = document.createElement("tr")
-                tr.classList.add("history-diff-deleted-tag-tr")
-                const th = document.createElement("th")
-                th.textContent = k
-                th.classList.add("history-diff-deleted-tag", "py-1", "border-grey", "table-light", "fw-normal", "border-start", "border-secondary-subtle")
-                const td = document.createElement("td")
-                if (k.includes("colour")) {
-                    td.innerHTML = `<svg width="14" height="14" class="float-end m-1"><title></title><rect x="0.5" y="0.5" width="13" height="13" fill="" stroke="#2222"></rect></svg>`
-                    td.querySelector("svg rect").setAttribute("fill", v)
-                    td.appendChild(document.createTextNode(v))
-                } else {
-                    td.textContent = v
+                    td.classList.add("history-diff-deleted-tag", "py-1", "border-grey", "table-light", "fw-normal", "border-start", "border-secondary-subtle")
+                    tr.appendChild(th)
+                    tr.appendChild(td)
+                    if (!x.querySelector("tbody")) {
+                        const tableDiv = document.createElement("table")
+                        tableDiv.classList.add("mb-3", "border", "border-secondary-subtle", "rounded", "overflow-hidden")
+                        const table = document.createElement("table")
+                        table.classList.add("mb-0", "browse-tag-list", "table", "align-middle")
+                        const tbody = document.createElement("tbody")
+                        table.appendChild(tbody)
+                        tableDiv.appendChild(table)
+                        x.appendChild(tableDiv)
+                    }
+                    const firstNonDeletedTag = x.querySelector("th:not(.history-diff-deleted-tag)")?.parentElement
+                    if (firstNonDeletedTag) {
+                        firstNonDeletedTag.before(tr)
+                    } else {
+                        x.querySelector("tbody").appendChild(tr)
+                    }
+                    versions[versions.length - index - 1].wasModified = true
                 }
-                td.classList.add("history-diff-deleted-tag", "py-1", "border-grey", "table-light", "fw-normal", "border-start", "border-secondary-subtle")
-                tr.appendChild(th)
-                tr.appendChild(td)
-                if (!x.querySelector("tbody")) {
-                    const tableDiv = document.createElement("table")
-                    tableDiv.classList.add("mb-3", "border", "border-secondary-subtle", "rounded", "overflow-hidden")
-                    const table = document.createElement("table")
-                    table.classList.add("mb-0", "browse-tag-list", "table", "align-middle")
-                    const tbody = document.createElement("tbody")
-                    table.appendChild(tbody)
-                    tableDiv.appendChild(table)
-                    x.appendChild(tableDiv)
-                }
-                const firstNonDeletedTag = x.querySelector("th:not(.history-diff-deleted-tag)")?.parentElement
-                if (firstNonDeletedTag) {
-                    firstNonDeletedTag.before(tr)
-                } else {
-                    x.querySelector("tbody").appendChild(tr)
-                }
-                versions[versions.length - index - 1].wasModified = true
+            })
+            if (!versions[versions.length - index - 1].wasModified && !isRelation) {
+                convertVersionIntoSpoiler(x)
             }
         })
-        if (!versions[versions.length - index - 1].wasModified && !isRelation) {
-            convertVersionIntoSpoiler(x)
+        if (document.querySelector("#older_element_versions_navigation a")) {
+            oldToNewHtmlVersions[0]?.classList?.remove("processed")
+            oldToNewHtmlVersions[0]?.querySelectorAll(".history-diff-new-tag, .history-diff-modified-tag")?.forEach(elem => {
+                elem.classList.remove("history-diff-new-tag")
+                elem.classList.remove("history-diff-modified-tag")
+            })
         }
-    })
-    if (document.querySelector("#older_element_versions_navigation a")) {
-        oldToNewHtmlVersions[0]?.classList?.remove("processed")
-        oldToNewHtmlVersions[0]?.querySelectorAll(".history-diff-new-tag, .history-diff-modified-tag")?.forEach(elem => {
-            elem.classList.remove("history-diff-new-tag")
-            elem.classList.remove("history-diff-modified-tag")
+        let hasRedacted = false
+        Array.from(document.querySelectorAll('#element_versions_list > div:has(a[href*="/redactions/"]:not([rel]):not(.unredacted))')).forEach(x => {
+            x.classList.add("hidden-version")
+            hasRedacted = true
         })
-    }
-    let hasRedacted = false
-    Array.from(document.querySelectorAll('#element_versions_list > div:has(a[href*="/redactions/"]:not([rel]):not(.unredacted))')).forEach(x => {
-        x.classList.add("hidden-version")
-        hasRedacted = true
-    })
-    if (hasRedacted) {
-        try {
-            setupViewRedactions()
-        } catch (e) {
-            console.error(e)
+        if (hasRedacted) {
+            try {
+                setupViewRedactions()
+            } catch (e) {
+                console.error(e)
+            }
         }
     }
     if (reason === "pagination") {
