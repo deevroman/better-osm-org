@@ -17995,9 +17995,13 @@ function addDropdownStyle() {
     }
     dropdownStyleAdded = true
     injectCSSIntoOSMPage(`
+        @media (max-width: 767.98px) {
+        
         .open-dropdown {
             display: block !important;
             top: -100px !important;
+        }
+        
         }
         #edit_tab > .dropdown-menu {
             overflow-y: scroll;

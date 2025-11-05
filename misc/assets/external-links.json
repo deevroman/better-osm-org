@@ -92,14 +92,19 @@
       "usage": ""
     },
     {
-      "name": "WaymarkedTrails",
-      "template": "https://hiking.waymarkedtrails.org/#?map={zoom}!{latitude}!{longitude}",
-      "usage": "Niche"
-    },
-    {
       "name": "Apple Maps",
       "template": "https://beta.maps.apple.com/?ll={latitude}%2C{longitude}&spn=0.02724242880691463%2C0.07252723824063878",
       "usage": "Map, Street View ⚠© Not suitable as source"
+    },
+    {
+      "name": "Achavi",
+      "template": "https://overpass-api.de/achavi/?changeset={osm_changeset_id}",
+      "usage": "Changeset-viewer"
+    },
+    {
+      "name": "WaymarkedTrails",
+      "template": "https://hiking.waymarkedtrails.org/#?map={zoom}!{latitude}!{longitude}",
+      "usage": "Niche"
     },
     {
       "name": "Opening hours",
@@ -126,10 +131,9 @@
       "template": "https://www.opensnowmap.org/#map={zoom}/{longitude}/{latitude}&b=snowmap&m=false&h=false",
       "usage": "QA"
     },
-
     {
       "name": "iD development",
-      "template": "https://ideditor.netlify.app/#background=Bing&disable_features=boundaries&map={zoom}/{latitude}/{longitude}",
+      "template": "https://ideditor.netlify.app/#map={zoom}/{latitude}/{longitude}",
       "usage": "Editor"
     },
     {
@@ -144,12 +148,12 @@
     },
     {
       "name": "OSM Relation Analyzer (map)",
-      "template": "http://ra.osmsurround.org/analyzeMap?relationId={osm_relation_id}",
+      "template": "https://ra.osmsurround.org/analyzeMap?relationId={osm_relation_id}",
       "usage": "QA"
     },
     {
       "name": "Destination Signs",
-      "template": "http://osm.mueschelsoft.de/destinationsign/example/#way={osm_way_id}&namedroutes=0&fromarrow=0&include_sgn=0&include_way=1&country=DE",
+      "template": "https://osm.mueschelsoft.de/destinationsign/example/#way={osm_way_id}&namedroutes=0&fromarrow=0&include_sgn=0&include_way=1&country=DE",
       "usage": "QA"
     },
     {
@@ -159,7 +163,7 @@
     },
     {
       "name": "Destination Signs Sandbox",
-      "template": "http://osm.mueschelsoft.de/destinations/example/sandbox.htm#country={osm_way_id}",
+      "template": "https://osm.mueschelsoft.de/destinations/example/sandbox.htm#country={osm_way_id}",
       "usage": "QA"
     },
     {
@@ -174,12 +178,7 @@
     },
     {
       "name": "Osmlab changeset map",
-      "template": "http://osmlab.github.io/changeset-map/#{osm_changeset_id}",
-      "usage": "Changeset-viewer"
-    },
-    {
-      "name": "Achavi",
-      "template": "https://overpass-api.de/achavi/?changeset={osm_changeset_id}",
+      "template": "https://osmlab.github.io/changeset-map/#{osm_changeset_id}",
       "usage": "Changeset-viewer"
     },
     {
@@ -194,7 +193,7 @@
     },
     {
       "name": "Level0",
-      "template": "http://level0.osmz.ru/?url=changeset/{osm_changeset_id}",
+      "template": "https://level0.osmz.ru/?url=changeset/{osm_changeset_id}",
       "usage": "Editor"
     },
     {
@@ -219,7 +218,7 @@
     },
     {
       "name": "OSM-Streetlight",
-      "template": "http://osmstreetlight.bplaced.net/#{zoom}/{latitude}/{longitude}",
+      "template": "https://osmstreetlight.bplaced.net/#{zoom}/{latitude}/{longitude}",
       "usage": "QA"
     },
     {
