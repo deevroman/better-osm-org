@@ -1,241 +1,284 @@
 {
   "links": [
     {
+      "name": "Edit with Rapid",
+      "template": "https://mapwith.ai/rapid#poweruser=true&map={zoom}/{latitude}/{longitude}",
+      "description": "",
+      "default": true,
+      "onlyAndroid": true
+    },
+    {
+      "name": "Edit with OSM Perfect Intersection Editor",
+      "template": "https://osmpie.org/app/?pos={longitude}&pos={latitude}&zoom={zoom}",
+      "description": "",
+      "default": true
+    },
+    {
       "name": "Vespucci",
       "template": "josm:/zoom?left={longitude}&bottom={latitude}&right={longitude}&top={latitude}",
-      "usage": "",
+      "description": "",
+      "default": true,
       "onlyAndroid": true
     },
     {
       "name": "Panoramax",
       "template": "https://panoramax.openstreetmap.fr/?background=streets&focus=map&map={zoom}/{latitude}/{longitude}",
-      "usage": "Federated field photos database"
+      "description": "Federated field photos database",
+      "default": true
     },
     {
       "name": "Mapillary",
       "template": "https://www.mapillary.com/app/?lat={lat}&lng={lon}&z={zoom}",
-      "usage": "Field photos database"
-    },
-    {
-      "name": "nakarte.me",
-      "template": "https://nakarte.me/#m={zoom}/{latitude}/{longitude}&l=O",
-      "usage": ""
-    },
-    {
-      "name": "Geohack",
-      "template": "https://geohack.toolforge.org/geohack.php?params={latitude}_N_{longitude}_E",
-      "usage": "List of lists"
-    },
-    {
-      "name": "F4map",
-      "template": "https://demo.f4map.com/#lat={latitude}&lon={longitude}&zoom={zoom}",
-      "usage": ""
-    },
-    {
-      "name": "Organic Maps",
-      "template": "om://map?v=1&ll={latitude},{longitude}",
-      "usage": "Router"
-    },
-    {
-      "name": "Osmand",
-      "template": "https://osmand.net/go.html?lat={latitude}&lon={longitude}&z={zoom}",
-      "usage": "Router"
-    },
-    {
-      "name": "Google Street View",
-      "template": "https://www.google.com.tw/maps/?layer=c&cbll={latitude},{longitude}",
-      "usage": "Street View ⚠© Not suitable as source"
-    },
-    {
-      "name": "Yandex Maps",
-      "template": "https://yandex.ru/maps/?l=stv,sta&ll={longitude},{latitude}&z={zoom}",
-      "usage": ""
-    },
-    {
-      "name": "Yandex Maps (Search)",
-      "template": "https://yandex.ru/maps/?l=stv,sta&ll={longitude},{latitude}&z={zoom}&text={selected_text}",
-      "usage": ""
-    },
-    {
-      "name": "Commons: Nearby images",
-      "template": "https://wikimap.toolforge.org/?wp=false&basemap=2&cluster=false&zoom={zoom}&lat={latitude}&lon={longitude}",
-      "usage": "Pictures"
-    },
-    {
-      "name": "Bikerouter",
-      "template": "https://bikerouter.de/#map={zoom}/{latitude}/{longitude}",
-      "usage": "Router (biking and hiking)"
-    },
-    {
-      "name": "Brouter Navigation",
-      "template": "http://brouter.de/brouter-web/#map={zoom}/{latitude}/{longitude}/standard",
-      "usage": "Router (biking and hiking)"
-    },
-    {
-      "name": "Osmose (fix)",
-      "template": "https://osmose.openstreetmap.fr/fr/map/#loc={zoom}/{latitude}/{longitude}",
-      "usage": "QA"
-    },
-    {
-      "name": "Flopp's Map",
-      "template": "https://flopp.net/?c={latitude}:{longitude}&z={zoom}",
-      "usage": "Map (OSM, Topo, Google Maps), waypoint tools"
-    },
-    {
-      "name": "OpenRouteService",
-      "template": "https://maps.openrouteservice.org/directions?n1={latitude}&n2={longitude}&n3={zoom}&b=0&k1=en-US&k2=km",
-      "usage": "Router"
-    },
-    {
-      "name": "OSM 411",
-      "template": "https://osm411.org/#map={zoom}/{latitude}/{longitude}",
-      "usage": ""
-    },
-    {
-      "name": "Apple Maps",
-      "template": "https://beta.maps.apple.com/?ll={latitude}%2C{longitude}&spn=0.02724242880691463%2C0.07252723824063878",
-      "usage": "Map, Street View ⚠© Not suitable as source"
-    },
-    {
-      "name": "Achavi",
-      "template": "https://overpass-api.de/achavi/?changeset={osm_changeset_id}",
-      "usage": "Changeset-viewer"
-    },
-    {
-      "name": "WaymarkedTrails",
-      "template": "https://hiking.waymarkedtrails.org/#?map={zoom}!{latitude}!{longitude}",
-      "usage": "Niche"
-    },
-    {
-      "name": "Opening hours",
-      "template": "https://openingh.ypid.de/?zoom={zoom}&lat={latitude}&lon={longitude}&layers=B0T&filter=none&tags=opening_hours",
-      "usage": ""
-    },
-    {
-      "name": "OSM Blitzermap",
-      "template": "http://frink.bplaced.de/blitzer/#map={zoom}/{latitude}/{longitude}",
-      "usage": "QA"
-    },
-    {
-      "name": "Map of turn restrictions",
-      "template": "https://ahorn.lima-city.de/tr/?zoom={zoom}&lat={latitude}&lon={longitude}&layer=Grayscale&overlays=TTT",
-      "usage": "QA"
-    },
-    {
-      "name": "OpenSkiMap",
-      "template": "https://openskimap.org/#{zoom}/{latitude}/{longitude}",
-      "usage": "QA"
-    },
-    {
-      "name": "OpenSnowMap",
-      "template": "https://www.opensnowmap.org/#map={zoom}/{longitude}/{latitude}&b=snowmap&m=false&h=false",
-      "usage": "QA"
-    },
-    {
-      "name": "iD development",
-      "template": "https://ideditor.netlify.app/#map={zoom}/{latitude}/{longitude}",
-      "usage": "Editor"
-    },
-    {
-      "name": "Maxspeed (OpenStreetBrowser)",
-      "template": "https://www.openstreetbrowser.org/#map={zoom}/{latitude}/{longitude}&categories=car_maxspeed",
-      "usage": "QA"
-    },
-    {
-      "name": "OSM Relation Analyzer (overview)",
-      "template": "http://ra.osmsurround.org/analyzeRelation?relationId={osm_relation_id}",
-      "usage": "QA"
-    },
-    {
-      "name": "OSM Relation Analyzer (map)",
-      "template": "https://ra.osmsurround.org/analyzeMap?relationId={osm_relation_id}",
-      "usage": "QA"
-    },
-    {
-      "name": "Destination Signs",
-      "template": "https://osm.mueschelsoft.de/destinationsign/example/#way={osm_way_id}&namedroutes=0&fromarrow=0&include_sgn=0&include_way=1&country=DE",
-      "usage": "QA"
-    },
-    {
-      "name": "Destination Signs",
-      "template": "http://osm.mueschelsoft.de/destinations/example/#wayid={osm_way_id}&direction=0&country=DE",
-      "usage": "QA"
-    },
-    {
-      "name": "Destination Signs Sandbox",
-      "template": "https://osm.mueschelsoft.de/destinations/example/sandbox.htm#country={osm_way_id}",
-      "usage": "QA"
-    },
-    {
-      "name": "OSM Lane Visualizer",
-      "template": "https://osm.mueschelsoft.de/lanes/render.pl?wayid={osm_way_id}&start=1&country=de",
-      "usage": "QA"
-    },
-    {
-      "name": "Maptiler VectorMap",
-      "template": "https://www.maptiler.com/maps/#streets//vector/{zoom}/{longitude}/{latitude}",
-      "usage": "Map"
-    },
-    {
-      "name": "Osmlab changeset map",
-      "template": "https://osmlab.github.io/changeset-map/#{osm_changeset_id}",
-      "usage": "Changeset-viewer"
-    },
-    {
-      "name": "OSMCha",
-      "template": "https://osmcha.org/changesets/{osm_changeset_id}",
-      "usage": "Changeset-viewer"
-    },
-    {
-      "name": "CbCV (Neis)",
-      "template": "https://resultmaps.neis-one.org/osm-change-viz?c={osm_changeset_id}",
-      "usage": "Changeset-viewer"
-    },
-    {
-      "name": "Level0",
-      "template": "https://level0.osmz.ru/?url=changeset/{osm_changeset_id}",
-      "usage": "Editor"
-    },
-    {
-      "name": "Lanes Map",
-      "template": "https://osm-tiles.james-ross.co.uk/?map={zoom}/{latitude}/{longitude}&layer=standard&layer=overlay&layer=roads",
-      "usage": "QA"
+      "description": "Field photos database"
     },
     {
       "name": "OSM Latest Changes rene78",
       "template": "https://rene78.github.io/latest-changes/#{zoom}/{latitude}/{longitude}",
-      "usage": "QA"
+      "description": "QA"
+    },
+    {
+      "name": "nakarte.me",
+      "template": "https://nakarte.me/#m={zoom}/{latitude}/{longitude}&l=O",
+      "description": "",
+      "default": true
+    },
+    {
+      "name": "World Imagery Wayback",
+      "template": "https://livingatlas.arcgis.com/wayback/#mapCenter={longitude}%2C{latitude}%2C{zoom}",
+      "description": "",
+      "default": true
+    },
+    {
+      "name": "F4map",
+      "template": "https://demo.f4map.com/#lat={latitude}&lon={longitude}&zoom={zoom}",
+      "description": "",
+      "default": true
+    },
+    {
+      "name": "Organic Maps",
+      "template": "om://map?v=1&ll={latitude},{longitude}",
+      "description": "Router",
+      "default": true,
+      "onlyAndroid": true
+    },
+    {
+      "name": "Osmand",
+      "template": "https://osmand.net/go.html?lat={latitude}&lon={longitude}&z={zoom}",
+      "description": "Router",
+      "default": true,
+      "onlyAndroid": true
+    },
+    {
+      "name": "Google Street View",
+      "template": "https://www.google.com.tw/maps/?layer=c&cbll={latitude},{longitude}",
+      "description": "Street View ⚠© Not suitable as source"
+    },
+    {
+      "name": "Yandex Panoramas",
+      "template": "https://yandex.ru/maps/?l=stv,sta&ll={longitude},{latitude}&z={zoom}",
+      "description": ""
+    },
+    {
+      "name": "Yandex Maps (search selection text)",
+      "template": "https://yandex.ru/maps/?l=stv,sta&ll={longitude},{latitude}&z={zoom}&text={selected_text}",
+      "description": ""
+    },
+    {
+      "name": "Geohack",
+      "template": "https://geohack.toolforge.org/geohack.php?params={latitude}_N_{longitude}_E",
+      "description": "List of lists"
+    },
+    {
+      "name": "Overpass",
+      "template": "https://overpass-turbo.eu/?Q=&C={latitude};{longitude};{zoom}",
+      "description": ""
+    },
+    {
+      "name": "Overpass (Mail.ru)",
+      "template": "https://maps.mail.ru/osm/tools/overpass/?Q=&C={latitude};{longitude};{zoom}",
+      "description": ""
+    },
+    {
+      "name": "geo:",
+      "template": "geo:{latitude},{longitude}?z={zoom}",
+      "description": ""
+    },
+    {
+      "name": "Commons: Nearby images",
+      "template": "https://wikimap.toolforge.org/?wp=false&basemap=2&cluster=false&zoom={zoom}&lat={latitude}&lon={longitude}",
+      "description": "Pictures"
+    },
+    {
+      "name": "Bikerouter",
+      "template": "https://bikerouter.de/#map={zoom}/{latitude}/{longitude}",
+      "description": "Router (biking and hiking)"
+    },
+    {
+      "name": "Brouter Navigation",
+      "template": "http://brouter.de/brouter-web/#map={zoom}/{latitude}/{longitude}/standard",
+      "description": "Router (biking and hiking)"
+    },
+    {
+      "name": "Osmose (fix)",
+      "template": "https://osmose.openstreetmap.fr/fr/map/#loc={zoom}/{latitude}/{longitude}",
+      "description": "QA"
+    },
+    {
+      "name": "wikimapia",
+      "template": "https://wikimapia.org/#lang=ru&lat={latitude}&lon={longitude}&z={zoom}",
+      "description": ""
+    },
+    {
+      "name": "pastvu (retro photos)",
+      "template": "https://pastvu.com/?g={latitude},{longitude}z={zoom}&s=osm&t=openstreetmap&type=1",
+      "description": ""
+    },
+    {
+      "name": "Flopp's Map",
+      "template": "https://flopp.net/?c={latitude}:{longitude}&z={zoom}",
+      "description": "Map (OSM, Topo, Google Maps), waypoint tools"
+    },
+    {
+      "name": "OpenRouteService",
+      "template": "https://maps.openrouteservice.org/directions?n1={latitude}&n2={longitude}&n3={zoom}&b=0&k1=en-US&k2=km",
+      "description": "Router"
+    },
+    {
+      "name": "Apple Maps",
+      "template": "https://beta.maps.apple.com/?ll={latitude}%2C{longitude}&spn=0.02724242880691463%2C0.07252723824063878",
+      "description": "Map, Street View ⚠© Not suitable as source"
+    },
+    {
+      "name": "Achavi",
+      "template": "https://overpass-api.de/achavi/?changeset={osm_changeset_id}",
+      "description": "Changeset-viewer",
+      "default": true
+    },
+    {
+      "name": "WaymarkedTrails",
+      "template": "https://hiking.waymarkedtrails.org/#?map={zoom}!{latitude}!{longitude}",
+      "description": "Niche"
+    },
+    {
+      "name": "Opening hours",
+      "template": "https://openingh.ypid.de/?zoom={zoom}&lat={latitude}&lon={longitude}&layers=B0T&filter=none&tags=opening_hours",
+      "description": ""
+    },
+    {
+      "name": "Map of turn restrictions",
+      "template": "https://ahorn.lima-city.de/tr/?zoom={zoom}&lat={latitude}&lon={longitude}&layer=Grayscale&overlays=TTT",
+      "description": "QA"
+    },
+    {
+      "name": "OpenSkiMap",
+      "template": "https://openskimap.org/#{zoom}/{latitude}/{longitude}",
+      "description": "QA"
+    },
+    {
+      "name": "OpenSnowMap",
+      "template": "https://www.opensnowmap.org/#map={zoom}/{longitude}/{latitude}&b=snowmap&m=false&h=false",
+      "description": "QA"
+    },
+    {
+      "name": "iD dev version",
+      "template": "https://ideditor.netlify.app/#map={zoom}/{latitude}/{longitude}",
+      "description": "Editor"
+    },
+    {
+      "name": "OSM-Streetlight",
+      "template": "https://sb12.github.io/OSMStreetLight/#{zoom}/{latitude}/{longitude}",
+      "description": "QA"
+    },
+    {
+      "name": "Maxspeed (OpenStreetBrowser)",
+      "template": "https://www.openstreetbrowser.org/#map={zoom}/{latitude}/{longitude}&categories=car_maxspeed",
+      "description": "QA"
+    },
+    {
+      "name": "OSM Relation Analyzer (overview)",
+      "template": "https://ra.osmsurround.org/analyzeRelation?relationId={osm_relation_id}",
+      "description": "QA"
+    },
+    {
+      "name": "OSM Relation Analyzer (map)",
+      "template": "https://ra.osmsurround.org/analyzeMap?relationId={osm_relation_id}",
+      "description": "QA"
+    },
+    {
+      "name": "Destination Signs",
+      "template": "https://osm.mueschelsoft.de/destinationsign/example/#way={osm_way_id}&namedroutes=0&fromarrow=0&include_sgn=0&include_way=1&country=DE",
+      "description": "QA"
+    },
+    {
+      "name": "Destination Signs",
+      "template": "https://osm.mueschelsoft.de/destinations/example/#wayid={osm_way_id}&direction=0&country=DE",
+      "description": "QA"
+    },
+    {
+      "name": "Destination Signs Sandbox",
+      "template": "https://osm.mueschelsoft.de/destinations/example/sandbox.htm#country={osm_way_id}",
+      "description": "QA"
+    },
+    {
+      "name": "OSM Lane Visualizer",
+      "template": "https://osm.mueschelsoft.de/lanes/render.pl?wayid={osm_way_id}&start=1&country=de",
+      "description": "QA"
+    },
+    {
+      "name": "Maptiler VectorMap",
+      "template": "https://www.maptiler.com/maps/#streets//vector/{zoom}/{longitude}/{latitude}",
+      "description": "Map"
+    },
+    {
+      "name": "Osmlab changeset map",
+      "template": "https://osmlab.github.io/changeset-map/#{osm_changeset_id}",
+      "description": "Changeset-viewer"
+    },
+    {
+      "name": "CbCV (Neis)",
+      "template": "https://resultmaps.neis-one.org/osm-change-viz?c={osm_changeset_id}",
+      "description": "Changeset-viewer"
+    },
+    {
+      "name": "Level0",
+      "template": "https://level0.osmz.ru/?url=changeset/{osm_changeset_id}",
+      "description": "Editor"
+    },
+    {
+      "name": "Lanes Map",
+      "template": "https://osm-tiles.james-ross.co.uk/?map={zoom}/{latitude}/{longitude}&layer=standard&layer=overlay&layer=roads",
+      "description": "QA"
     },
     {
       "name": "Parking lanes Map",
       "template": "https://zlant.github.io/parking-lanes/#{zoom}/{latitude}/{longitude}",
-      "usage": "QA"
+      "description": "QA"
     },
     {
       "name": "Bus lanes Map",
       "template": "https://zlant.github.io/bus-lanes/#{zoom}/{latitude}/{longitude}",
-      "usage": "QA"
+      "description": "QA"
     },
     {
-      "name": "OSM-Streetlight",
-      "template": "https://osmstreetlight.bplaced.net/#{zoom}/{latitude}/{longitude}",
-      "usage": "QA"
+      "name": "OSM 411",
+      "template": "https://osm411.org/#map={zoom}/{latitude}/{longitude}",
+      "description": ""
     },
     {
       "name": "OpenSwitchMapsWeb",
       "template": "https://tankaru.github.io/OpenSwitchMapsWeb/index.html#https://www.openstreetmap.org/#map={zoom}/{latitude}/{longitude}",
-      "usage": ""
+      "description": ""
     },
     {
       "name": "Check script updates",
       "template": "https://raw.githubusercontent.com/deevroman/better-osm-org/master/better-osm-org.user.js?bypasscache={random_param}",
-      "usage": "Useful links",
+      "description": "Useful links",
       "onlyMobile": true
     },
     {
       "name": "Check dev version script updates",
       "template": "https://raw.githubusercontent.com/deevroman/better-osm-org/dev/better-osm-org.user.js?bypasscache={random_param}",
-      "usage": "Useful links",
+      "description": "Useful links",
       "onlyMobile": true
     }
   ]
