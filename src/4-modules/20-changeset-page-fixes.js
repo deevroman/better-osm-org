@@ -1025,7 +1025,7 @@ function setupCompactChangesetsHistory() {
                 elem.classList.add("comments-loaded")
                 const commentsBadge = elem.querySelector(".changeset_num_comments")
                 // prettier-ignore
-                commentsBadge.querySelector("svg").outerHTML = commentSvg
+                commentsBadge.querySelector("i").outerHTML = commentSvg
                 const commentsCount = parseInt(commentsBadge.firstChild.textContent.trim())
                 if (commentsCount) {
                     if (commentsCount > 3) {
