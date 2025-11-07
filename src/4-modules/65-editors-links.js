@@ -50,7 +50,7 @@ async function initExternalLinksList() {
         console.log("external links cached")
         const json = JSON.parse(cache)
         const cacheTime = new Date(json["cacheTime"])
-        const threeDaysLater = new Date(cacheTime.getTime() + 3 * 24 * 60 * 60 * 1000)
+        const threeDaysLater = new Date(cacheTime.getTime() + 6 * 60 * 60 * 1000)
         if (threeDaysLater < new Date()) {
             console.log("but cache outdated")
             setTimeout(loadAndMakeExternalLinksList, 0)
@@ -88,13 +88,27 @@ function addDropdownStyle() {
             overflow-y: scroll;
             height: 90dvh;
             max-width: 100vw;
+            padding-bottom: 0px !important;
         }
     `)
 }
 
 let dropdownObserver = null
 
-async function setupNewEditorsLinks() {
+let currentLinksList = null
+
+async function loadCurrentLinksList() {
+    currentLinksList = JSON.parse(await GM.getValue("externalLinks", "[]"))
+}
+
+async function setupNewEditorsLinks(mutationsList) {
+    // little optimization for scroll
+    if (mutationsList.length === 1 && mutationsList[0].type === "attributes" && mutationsList[0].attributeName === "data-popper-placement") {
+        return
+    }
+    if (mutationsList.length === 1 && mutationsList[0].type === "attributes" && mutationsList[0].attributeName === "aria-describedby") {
+        document.querySelector("#" + mutationsList[0].target.getAttribute("aria-describedby"))?.remove()
+    }
     if (isDebug() || isMobile) {
         addDropdownStyle()
         document.querySelectorAll('button[data-bs-target="#select_language_dialog"]:not(.with-link-before)').forEach(langSwitchBtn => {
@@ -102,6 +116,7 @@ async function setupNewEditorsLinks() {
             const linksBtn = langSwitchBtn.cloneNode()
             linksBtn.removeAttribute("data-bs-target")
             linksBtn.removeAttribute("data-bs-toggle")
+            linksBtn.title = "Open place in external website"
             linksBtn.innerHTML = externalLinkSvg
             const svg = linksBtn.querySelector("svg")
             svg.setAttribute("width", 20)
@@ -112,9 +127,7 @@ async function setupNewEditorsLinks() {
                 e.preventDefault()
                 e.stopPropagation()
                 document.querySelector("#edit_tab > ul").classList.toggle("open-dropdown")
-                // if (document.querySelector("header")?.classList?.contains("closed")) {
-                    document.querySelector("#menu-icon").click()
-                // }
+                document.querySelector("#menu-icon").click()
                 document.querySelector("#edit_tab > button").click()
             })
         })
@@ -143,6 +156,9 @@ async function setupNewEditorsLinks() {
         } catch (e) {
         }
     }
+    if (!currentLinksList) {
+        await loadCurrentLinksList()
+    }
     const firstRun = document.getElementsByClassName("custom_editors").length === 0
     const editorsList = document.querySelector("#edit_tab ul")
     if (!editorsList) {
@@ -158,65 +174,28 @@ async function setupNewEditorsLinks() {
         if (!curURL.includes("edit?editor=id") || !match) {
             return
         }
-        const zoom = match[1]
-        const lat = match[2]
-        const lon = match[3]
-        {
-            const rapidLink = "https://mapwith.ai/rapid#poweruser=true&map="
-            let newElem
-            if (firstRun) {
-                newElem = editorsList.querySelector("li").cloneNode(true)
-                newElem.classList.add("custom_editors", "rapid_btn")
-                newElem.querySelector("a").textContent = "Edit with Rapid"
-            } else {
-                newElem = document.querySelector(".rapid_btn")
-            }
-            const actualHref = `${rapidLink}${zoom}/${lat}/${lon}`
-            if (newElem.querySelector("a").href !== actualHref) {
-                newElem.querySelector("a").href = actualHref
-            }
-            if (firstRun) {
-                editorsList.appendChild(newElem)
-            }
-        }
-        if (!isMobile) {
-            // https://osmpie.org/app/?pos=30.434481&pos=59.933311&zoom=18.91
-            const osmpieLink = "https://osmpie.org/app/"
-            let newElem
-            if (firstRun) {
-                newElem = editorsList.querySelector("li").cloneNode(true)
-                newElem.classList.add("custom_editors", "osmpie_btn")
-                newElem.querySelector("a").textContent = "Edit with OSM Perfect Intersection Editor"
-                newElem.querySelector("a").setAttribute("target", "_blank")
-                newElem.title = "OSM Perfect Intersection Editor"
-            } else {
-                newElem = document.querySelector(".osmpie_btn")
-            }
-            const actualHref = `${osmpieLink}?pos=${lon}&pos=${lat}&zoom=${parseInt(zoom)}`
-            if (newElem.querySelector("a").href !== actualHref) {
-                newElem.querySelector("a").href = actualHref
-            }
-            if (firstRun) {
-                editorsList.appendChild(newElem)
-            }
+        if (firstRun) {
+            const hr = document.createElement("hr")
+            hr.style.margin = "0px"
+            editorsList.appendChild(hr)
         }
         if (isMobile || isDebug()) {
             const editJosmBtn = editorsList.querySelector('[href*="/edit?editor=remote"]')
             if (editJosmBtn) {
-                editJosmBtn.textContent = editJosmBtn.textContent.replace(/JOSM, Potlat?ch, Merkaartor/, "JOSM")
+                editJosmBtn.textContent = editJosmBtn.textContent.replace("(JOSM, Potlatch, Merkaartor)", "")
             }
         }
         if (!isDebug()) {
             return
         }
-        if (!externalLinks) {
-            // await — bad idea in MutationObserver callback
-            await initExternalLinksList()
-        }
         if (firstRun) {
             const hr = document.createElement("hr")
             hr.style.margin = "0px"
             editorsList.appendChild(hr)
+        }
+        if (!externalLinks) {
+            // await — bad idea in MutationObserver callback
+            await initExternalLinksList()
         }
         const context = {}
         {
@@ -249,12 +228,14 @@ async function setupNewEditorsLinks() {
                 })
             }
 
-            let newElem = editorsList.querySelector(".custom-editor-" + link.safeName)
+            let newElem = editorsList.querySelector("#custom-editor-" + link.safeName)
             if (firstRun || !newElem) {
                 newElem = editorsList.querySelector("li").cloneNode(true)
-                newElem.classList.add("custom_editors", "custom-editor-" + link.safeName)
+                newElem.classList.add("custom_editors")
+                newElem.id = "custom-editor-" + link.safeName
                 newElem.querySelector("a").textContent = link.name
                 newElem.querySelector("a").setAttribute("target", "_blank")
+                newElem.querySelector("a").setAttribute("rel","noreferrer")
             }
             let actualHref
             try {
@@ -270,10 +251,35 @@ async function setupNewEditorsLinks() {
                 editorsList.appendChild(newElem)
             }
         })
+        editorsList.querySelectorAll("a").forEach(a => {
+            a?.classList?.remove("disabled")
+        })
+
+        if (!editorsList.querySelector("#editors-list")) {
+            const hr = document.createElement("hr")
+            hr.style.margin = "0px"
+            editorsList.appendChild(hr)
+
+            const editListBtn = editorsList.querySelector("li").cloneNode()
+            editListBtn.classList.add("dropdown-item")
+            const span = document.createElement("span")
+            span.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "настроить ссылки" : "setup links"
+            span.style.color = "gray"
+            span.style.cursor = "pointer"
+            span.id  = "editors-list"
+            editListBtn.appendChild(span)
+            editListBtn.onclick = e => {
+                e.preventDefault()
+                e.stopPropagation()
+                e.stopImmediatePropagation()
+            }
+            editorsList.appendChild(editListBtn)
+        }
+
     } finally {
         coordinatesObserver?.disconnect()
         coordinatesObserver = new MutationObserver(setupNewEditorsLinks)
-        coordinatesObserver.observe(editorsList, { subtree: true, childList: true, attributes: true })
+        coordinatesObserver.observe(document.querySelector("#edit_tab"), { subtree: true, childList: true, attributes: true })
     }
 }
 

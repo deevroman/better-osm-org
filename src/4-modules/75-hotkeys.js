@@ -1798,7 +1798,10 @@ function setupNavigationViaHotkeys() {
                 document.querySelector('a[href^="/user/"][href$="/blocks"]')?.click()
             }
             //setupBuildingTools()
-        } else {
+        } else if (e.code === "KeyX") {
+            document.querySelector("#edit_tab ul").tabIndex = -1
+            document.querySelector("#edit_tab button").click()
+        }else {
             // console.log(e.key, e.code)
         }
         if (location.pathname.startsWith("/changeset") && !location.pathname.includes("/changeset_comments")) {
