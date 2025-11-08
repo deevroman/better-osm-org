@@ -2,10 +2,9 @@
   "links": [
     {
       "name": "Edit with Rapid",
-      "template": "https://mapwith.ai/rapid#poweruser=true&map={zoom}/{latitude}/{longitude}",
+      "template": "https://rapideditor.org/rapid#poweruser=true&map={zoom}/{latitude}/{longitude}",
       "description": "",
-      "default": true,
-      "onlyAndroid": true
+      "default": true
     },
     {
       "name": "Edit with OSM Perfect Intersection Editor",
@@ -29,7 +28,8 @@
     {
       "name": "Mapillary",
       "template": "https://www.mapillary.com/app/?lat={lat}&lng={lon}&z={zoom}",
-      "description": "Field photos database"
+      "description": "Field photos database",
+      "default": true
     },
     {
       "name": "OSM Latest Changes rene78",
@@ -51,6 +51,18 @@
     {
       "name": "F4map",
       "template": "https://demo.f4map.com/#lat={latitude}&lon={longitude}&zoom={zoom}",
+      "description": "",
+      "default": true
+    },
+    {
+      "name": "indoor=",
+      "template": "https://indoorequal.org/#map=${zoom}/{latitude}/{longitude}",
+      "description": "",
+      "default": true
+    },
+    {
+      "name": "openlevelup",
+      "template": "https://openlevelup.net/#${zoom}/{latitude}/{longitude}",
       "description": "",
       "default": true
     },
@@ -147,6 +159,11 @@
       "name": "Apple Maps",
       "template": "https://beta.maps.apple.com/?ll={latitude}%2C{longitude}&spn=0.02724242880691463%2C0.07252723824063878",
       "description": "Map, Street View ⚠© Not suitable as source"
+    },
+    {
+      "name": "2GIS",
+      "template": "https://2gis.ru/?m=${longitude}%2C${latitude}%2F${zoom}",
+      "description": ""
     },
     {
       "name": "Achavi",
