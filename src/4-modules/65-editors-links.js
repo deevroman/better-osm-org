@@ -4,9 +4,9 @@
  *  name: string,
  *  template: string,
  *  description: string,
- *  onlyMobile: boolean,
- *  onlyAndroid: boolean,
- *  default: boolean,
+ *  onlyMobile: boolean|undefined,
+ *  onlyAndroid: boolean|undefined,
+ *  default: boolean|undefined,
  *  } } externalLink
  *  */
 
@@ -14,8 +14,8 @@
 let externalLinks = null
 /** @type {null | externalLink[]}*/
 let externalLinksDatabase = null
-const externalLinksURL = "http://localhost:7777/misc/assets/external-links.json"
-// const externalLinksURL = `https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/dev/misc/assets/external-links.json?bypasscache=${Math.random()}`
+// const externalLinksURL = "http://localhost:7777/misc/assets/external-links.json"
+const externalLinksURL = `https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/dev/misc/assets/external-links.json?bypasscache=${Math.random()}`
 
 function makeSafeForCSS(name) {
     return name.replace(/[^a-z0-9]/g, function (s) {
@@ -26,8 +26,8 @@ function makeSafeForCSS(name) {
     })
 }
 
-function addSafeNameForExternalLinks() {
-    externalLinksDatabase.forEach(i => {
+function addSafeNameForExternalLinks(links) {
+    links.forEach(i => {
         i.safeName = makeSafeForCSS(i.name)
     })
 }
@@ -42,8 +42,8 @@ async function loadAndMakeExternalLinksList() {
     if (!raw_data) {
         throw "External link not downloaded"
     }
-    externalLinksDatabase = raw_data.links
-    addSafeNameForExternalLinks()
+    externalLinksDatabase = raw_data.links.filter(l => l.disabled !== true)
+    addSafeNameForExternalLinks(externalLinksDatabase)
     await GM.setValue(
         "external-links",
         JSON.stringify({
@@ -79,6 +79,24 @@ async function initExternalLinksList() {
     }
 }
 
+let urlTemplateContext = {}
+
+function updateUrlTemplateContext() {
+    const [x, y, z] = getCurrentXYZ()
+    urlTemplateContext.latitude = urlTemplateContext.lat = urlTemplateContext.x = x
+    urlTemplateContext.longitude = urlTemplateContext.lon = urlTemplateContext.y = y
+    urlTemplateContext.zoom = urlTemplateContext.z = z
+    const osm_m = location.pathname.match(/\/(node|way|relation|changeset|note)\/([0-9]+)/)
+    urlTemplateContext.osm_type = osm_m?.[1]
+    urlTemplateContext.osm_type_first_letter = urlTemplateContext.osm_type?.[0]
+    urlTemplateContext.osm_id = parseInt(osm_m?.[2])
+    urlTemplateContext[`osm_${urlTemplateContext.osm_type}_id`] = urlTemplateContext.osm_id
+    // todo как мониторить изменения выделения?
+    // urlTemplateContext.raw_selected_text = window.getSelection().toString()
+    // urlTemplateContext.selected_text = encodeURI(urlTemplateContext.raw_selected_text)
+    urlTemplateContext.random_param = Math.random().toString()
+}
+
 let coordinatesObserver = null
 let dropdownStyleAdded = false
 
@@ -88,7 +106,7 @@ function addDropdownStyle() {
     }
     dropdownStyleAdded = true
     injectCSSIntoOSMPage(`
-        @media (max-width: 767.98px) {
+        @media (max-width: 767.910px) {
         
         .open-dropdown {
             display: block !important;
@@ -103,6 +121,74 @@ function addDropdownStyle() {
             padding-bottom: 0px !important;
         }
         
+        .dropdown-item.off-hover {
+            width: 80vw !important;
+        }
+        
+        .dropdown-item.off-hover:hover {
+            background: initial !important;
+        }
+        
+        ul:not(.editing) .invalid-external-link {
+            display: none !important;
+        }
+        
+        ul:not(.editing) .result-box {
+            display: none !important;
+        }
+        
+        ul:not(.editing) .edit-link-btn {
+            display: none !important;
+        }
+        
+        ul:not(.editing) .add-link-btn {
+            display: none !important;
+        }
+        
+        .edit-link-btn {
+            margin-right: 8px !important;
+            border-right: solid gray 1px !important;
+            padding-right: 8px !important;
+        }
+        
+        .edit-link-btn:hover {
+            color: black !important;
+        }
+        
+        .edit-link-btn {
+            margin-right: 8px !important;
+            border-right: solid gray 1px !important;
+            padding-right: 8px !important;
+        }
+        
+        .delete-link-btn:hover {
+            color: black !important;
+        }
+        
+        .add-link-btn {
+            margin-right: 8px !important;
+            border-right: solid gray 1px !important;
+            padding-right: 8px !important;
+        }
+        
+        .add-link-btn:hover {
+            color: black !important;
+        }
+        
+        .dropdown-item:has(#change-list-btn) {
+            color: gray !important;
+        }
+        
+        .dropdown-item:has(#change-list-btn):not(:has(.create-link-btn)):hover {
+            color: black !important;
+        }
+        
+        .add-item-a {
+            display: flex;
+            alignItems: center;
+            gap: 10px;
+        }
+        
         /* #edit_tab > .dropdown-menu > li > a {
             padding-left: 30px !important;
         }
@@ -113,25 +199,286 @@ function addDropdownStyle() {
 let dropdownObserver = null
 
 async function loadCurrentLinksList() {
-    const raw_data = await GM.getValue("externalLinks")
-    // if (!raw_data) {
-    externalLinks = externalLinksDatabase.filter(link => {
-        debugger
-        if (!link.default) {
-            return false
+    const raw_data = await GM.getValue("user-external-links")
+    if (!raw_data) {
+        externalLinks = externalLinksDatabase.filter(link => {
+            if (!link.default) {
+                return false
+            }
+            if (link.onlyAndroid) {
+                return !isSafari
+            }
+            if (link.onlyMobile) {
+                return !isMobile && !isDebug()
+            }
+            return true
+        })
+        await GM.setValue("user-external-links", JSON.stringify(externalLinks))
+    } else {
+        externalLinks = JSON.parse(raw_data)
+    }
+    addSafeNameForExternalLinks(externalLinks)
+    externalLinks.forEach(link => {
+        if (link.template.includes("$")) {
+            console.warn("$ in template. Possible error", link)
         }
-        if (link.onlyAndroid) {
-            return !isSafari
-        }
-        if (link.onlyMobile) {
-            return !isMobile && !isDebug()
-        }
-        return true
     })
-    await GM.setValue("externalLinks", JSON.stringify(externalLinks))
-    return
-    // }
-    externalLinks = JSON.parse(raw_data)
+}
+
+function makeUrlFromTemplate(template) {
+    return template.replaceAll(/\{([a-z_]+)}/g, (match, m1) => {
+        const res = urlTemplateContext[m1]
+        if (res !== undefined) {
+            return res
+        }
+        throw `failed to substitute a "${m1}" on current page`
+    })
+}
+
+function processExternalLink(link, firstRun, editorsListUl, isUserLink) {
+    if (link.template === "-" && firstRun) {
+        const hr = document.createElement("hr")
+        hr.style.margin = "0px"
+        editorsListUl.appendChild(hr)
+        return
+    }
+
+    let newElem = editorsListUl.querySelector("#custom-editor-" + link.safeName)
+    let resultBox = newElem?.querySelector(".result-box")
+    const alreadyAdded = !!newElem
+    if (!newElem) {
+        newElem = editorsListUl.querySelector("li").cloneNode(true)
+    }
+    if (!alreadyAdded || newElem.classList.contains("need-repair")) {
+        newElem.classList.remove("need-repair")
+        newElem.classList.add("custom_editors")
+        if (isUserLink) {
+            newElem.classList.add("user-external-link")
+        }
+        newElem.id = "custom-editor-" + link.safeName
+        const a = newElem.querySelector("a")
+        a.removeAttribute("href")
+        a.textContent = link.name
+        a.setAttribute("target", "_blank")
+        a.setAttribute("rel", "noreferrer")
+
+        resultBox = document.createElement("span")
+        resultBox.classList.add("result-box")
+        resultBox.style.color = "gray"
+        a.appendChild(resultBox)
+
+        newElem.style.display = "flex"
+        if (isUserLink) {
+            const editBtn = document.createElement("button")
+            editBtn.classList.add("edit-link-btn", "bi", "bi-pencil")
+            editBtn.style.all = "unset"
+            editBtn.title = "edit link"
+            a.prepend(editBtn)
+            editBtn.onclick = async e => {
+                e.preventDefault()
+                e.stopPropagation()
+
+                makeExternalLinkEditable(newElem, editorsListUl, link.name, link.template)
+                newElem.remove()
+            }
+        } else {
+            const addBtn = document.createElement("button")
+            addBtn.classList.add("add-link-btn", "bi", "bi-plus-lg")
+            addBtn.style.all = "unset"
+            addBtn.title = "pin this link"
+            a.prepend(addBtn)
+            addBtn.onclick = async e => {
+                e.preventDefault()
+                e.stopPropagation()
+
+                newElem.remove()
+                externalLinks.push(link)
+                await GM.setValue("user-external-links", JSON.stringify(externalLinks))
+                addUserExternalLinks(false, editorsListUl)
+                editorsListUl.querySelectorAll(".edit-link-btn").forEach(i => (i.style.display = ""))
+            }
+        }
+        // const host = new URL(link.template).host
+        // const favicon = GM_addElement("img", {
+        // src: `https://icons.duckduckgo.com/ip3/${host}.ico`,
+        // src: `https://www.google.com/s2/favicons?domain=${host}&sz=64`,
+        // src: `https://favicon.yandex.net/favicon/${host}`,
+        // height: "16",
+        // })
+        // favicon.onerror = () => {
+        //     favicon.style.display = "none"
+        // }
+        // favicon.style.position = "absolute"
+        // favicon.style.transform = "translateX(-120%)"
+        // a.style.alignItems = "center"
+        // a.style.position = "relative"
+        // a.style.display = "inline-flex"
+        // a.style.paddingLeft = "210px"
+        // newElem.querySelector("a").prepend(document.createTextNode("\xA0"))
+        // a.prepend(favicon)
+    }
+    let actualHref
+    try {
+        actualHref = makeUrlFromTemplate(link.template)
+    } catch (e) {
+        if (newElem) {
+            newElem.classList.add("invalid-external-link")
+        }
+        resultBox.textContent = ` (${e})`
+        return
+    } finally {
+        if (!alreadyAdded) {
+            if (isUserLink) {
+                const lastLink = Array.from(editorsListUl.querySelectorAll(".user-external-link")).at(-1)
+                if (lastLink) {
+                    lastLink.after(newElem)
+                } else {
+                    editorsListUl.appendChild(newElem)
+                }
+            } else {
+                editorsListUl.appendChild(newElem)
+            }
+        }
+    }
+    newElem.classList.remove("invalid-external-link")
+    const a = newElem.querySelector("a")
+    if (a.href !== actualHref) {
+        a.href = actualHref
+        a.title = link.template
+    }
+}
+
+function addUserExternalLinks(firstRun, editorsListUl) {
+    externalLinks.forEach(link => processExternalLink(link, firstRun, editorsListUl, true))
+}
+
+function addOtherExternalLinks(editorsListUl) {
+    if (!document.querySelector("#change-list-btn") || document.querySelector("#change-list-btn").classList.contains("closed")) {
+        return
+    }
+    externalLinksDatabase.forEach(link => processExternalLink(link, false, editorsListUl, false))
+}
+
+function makeExternalLinkEditable(targetLi, editorsListUl, nameValue = "", templateValue = "") {
+    const addItemLi = targetLi.cloneNode()
+    const addItemA = targetLi.querySelector(":where(a, span)").cloneNode()
+    addItemA.classList.add("add-item-a")
+    addItemA.onclick = e => {
+        e.preventDefault()
+        e.stopPropagation()
+        e.stopImmediatePropagation()
+    }
+    addItemA.href = ""
+    addItemLi.appendChild(addItemA)
+
+    const createLikBtn = document.createElement("button")
+    createLikBtn.classList.add("create-link-btn", "bi", "bi-plus-lg")
+    createLikBtn.style.all = "unset"
+    createLikBtn.style.cursor = "pointer"
+    createLikBtn.title = "save link"
+    addItemA.appendChild(createLikBtn)
+
+    const deleteBtn = document.createElement("button")
+    deleteBtn.classList.add("delete-link-btn", "bi", "bi-trash")
+    deleteBtn.style.all = "unset"
+    deleteBtn.style.display = "none"
+    deleteBtn.title = "remove link"
+    addItemA.prepend(deleteBtn)
+    deleteBtn.onclick = async e => {
+        e.preventDefault()
+        e.stopPropagation()
+
+        addItemLi.remove()
+        externalLinks = externalLinks.filter(i => i.name !== nameValue)
+        await GM.setValue("user-external-links", JSON.stringify(externalLinks))
+    }
+
+    const title = document.createElement("input")
+    title.placeholder = "Name of link"
+    title.value = nameValue
+    title.style.flex = "1"
+    addItemA.appendChild(title)
+
+    const template = document.createElement("input")
+    template.placeholder = "URL example: https://osm.org/{osm_type}/{osm_id}/#map={zoom}/{lon}/{lat}"
+    template.style.flex = "3"
+    template.name = "custom-link-template"
+    template.value = templateValue
+    addItemA.appendChild(template)
+
+    targetLi.replaceWith(addItemLi)
+    addItemLi.classList.add("off-hover")
+
+    editorsListUl.querySelectorAll(".edit-link-btn").forEach(i => (i.style.display = ""))
+    editorsListUl.querySelectorAll(".add-link-btn").forEach(i => (i.style.display = ""))
+
+    const inputHandler = () => {
+        if (title.value.trim() === "" && template.value.trim() === "") {
+            deleteBtn.style.display = ""
+            createLikBtn.style.display = "none"
+        } else {
+            deleteBtn.style.display = "none"
+            createLikBtn.style.display = ""
+        }
+    }
+
+    title.oninput = inputHandler
+    template.oninput = inputHandler
+
+
+    createLikBtn.onclick = async e => {
+        e.preventDefault()
+        e.stopPropagation()
+        e.stopImmediatePropagation()
+        /** @type {externalLink} */
+        const newLink = {
+            name: title.value,
+            safeName: makeSafeForCSS(title.value),
+            template: template.value,
+            description: "",
+        }
+        if (newLink.name.trim().length === 0) {
+            title.setCustomValidity("Set name")
+            title.reportValidity()
+            return
+        }
+        if (newLink.template.trim().length === 0 || !newLink.template.includes(":")) {
+            template.setCustomValidity("Set valid URL template")
+            template.reportValidity()
+            return
+        }
+        if (externalLinks.some(l => l.name === newLink.name) && nameValue === "") {
+            title.setCustomValidity("Name already used")
+            title.reportValidity()
+            return
+        }
+        console.log(newLink)
+        if (nameValue === "") {
+            externalLinks.push(newLink)
+        } else {
+            externalLinks = externalLinks.map(i => {
+                if (i.name === nameValue) {
+                    return newLink
+                } else {
+                    return i
+                }
+            })
+        }
+        addSafeNameForExternalLinks(externalLinks)
+        await GM.setValue("user-external-links", JSON.stringify(externalLinks))
+        if (nameValue !== "") {
+            title.remove()
+            template.remove()
+            createLikBtn.remove()
+            addItemLi.id = "custom-editor-" + newLink.safeName
+            addItemA.classList.remove("add-item-a")
+            addItemA.href = ""
+            addItemLi.classList.add("need-repair")
+            processExternalLink(newLink, false, editorsListUl, true)
+        }
+        addUserExternalLinks(false, editorsListUl)
+        editorsListUl.querySelectorAll(".edit-link-btn").forEach(i => (i.style.display = ""))
+    }
 }
 
 async function setupNewEditorsLinks(mutationsList) {
@@ -142,8 +489,8 @@ async function setupNewEditorsLinks(mutationsList) {
     if (mutationsList.length === 1 && mutationsList[0].type === "attributes" && mutationsList[0].attributeName === "aria-describedby") {
         document.querySelector("#" + mutationsList[0].target.getAttribute("aria-describedby"))?.remove()
     }
+    addDropdownStyle()
     if (isDebug() || isMobile) {
-        addDropdownStyle()
         document.querySelectorAll('button[data-bs-target="#select_language_dialog"]:not(.with-link-before)').forEach(langSwitchBtn => {
             langSwitchBtn.classList.add("with-link-before")
             const linksBtn = langSwitchBtn.cloneNode()
@@ -189,11 +536,11 @@ async function setupNewEditorsLinks(mutationsList) {
         } catch (e) {}
     }
     const firstRun = document.getElementsByClassName("custom_editors").length === 0
-    const editorsList = document.querySelector("#edit_tab ul")
-    if (!editorsList) {
+    const editorsListUl = document.querySelector("#edit_tab ul")
+    if (!editorsListUl) {
         return
     }
-    const curURL = editorsList.querySelector("li a").href
+    const curURL = editorsListUl.querySelector("li a").href
     const match = curURL.match(/map=(\d+)\/([-\d.]+)\/([-\d.]+)(&|$)/)
     if (!match && !curURL.includes("edit?editor=id")) {
         return
@@ -203,13 +550,8 @@ async function setupNewEditorsLinks(mutationsList) {
         if (!curURL.includes("edit?editor=id") || !match) {
             return
         }
-        if (firstRun) {
-            const hr = document.createElement("hr")
-            hr.style.margin = "0px"
-            editorsList.appendChild(hr)
-        }
         if (isMobile || isDebug()) {
-            const editJosmBtn = editorsList.querySelector('[href*="/edit?editor=remote"]')
+            const editJosmBtn = editorsListUl.querySelector('[href*="/edit?editor=remote"]')
             if (editJosmBtn) {
                 editJosmBtn.textContent = editJosmBtn.textContent.replace("(JOSM, Potlatch, Merkaartor)", "")
             }
@@ -220,7 +562,7 @@ async function setupNewEditorsLinks(mutationsList) {
         if (firstRun) {
             const hr = document.createElement("hr")
             hr.style.margin = "0px"
-            editorsList.appendChild(hr)
+            editorsListUl.appendChild(hr)
         }
         if (!externalLinksDatabase) {
             // await — bad idea in MutationObserver callback
@@ -229,126 +571,49 @@ async function setupNewEditorsLinks(mutationsList) {
         if (!externalLinks) {
             await loadCurrentLinksList()
         }
-        const context = {}
-        {
-            const [x, y, z] = getCurrentXYZ()
-            context.latitude = context.lat = context.x = x
-            context.longitude = context.lon = context.y = y
-            context.zoom = context.z = z
-            const osm_m = location.pathname.match(/\/(node|way|relation|changeset|note)\/([0-9]+)/)
-            context.osm_type = osm_m?.[1]
-            context.osm_type_first_letter = context.osm_type?.[0]
-            context.osm_id = parseInt(osm_m?.[2])
-            context[`osm_${context.osm_type}_id`] = context.osm_id
-            context.selected_text = encodeURI(window.getSelection().toString())
-            context.raw_selected_text = window.getSelection().toString()
-            context.random_param = Math.random().toString()
-        }
+        updateUrlTemplateContext()
 
-        function makeUrl(template) {
-            return template.replaceAll(/\{([a-z_]+)}/g, (match, m1) => {
-                const res = context[m1]
-                if (res !== undefined) {
-                    return res
-                }
-                throw `unsupported "${m1}" substitution or page url`
-            })
-        }
-
-        externalLinks.forEach(link => {
-            if (link.template === "-" && firstRun) {
-                const hr = document.createElement("hr")
-                hr.style.margin = "0px"
-                editorsList.appendChild(hr)
-                return
-            }
-
-            let newElem = editorsList.querySelector("#custom-editor-" + link.safeName)
-            if (firstRun || !newElem) {
-                newElem = editorsList.querySelector("li").cloneNode(true)
-                newElem.classList.add("custom_editors")
-                newElem.id = "custom-editor-" + link.safeName
-                const a = newElem.querySelector("a")
-                a.textContent = link.name
-                a.setAttribute("target", "_blank")
-                a.setAttribute("rel", "noreferrer")
-                // const host = new URL(link.template).host
-                // const favicon = GM_addElement("img", {
-                    // src: `https://icons.duckduckgo.com/ip3/${host}.ico`,
-                    // src: `https://www.google.com/s2/favicons?domain=${host}&sz=64`,
-                    // src: `https://favicon.yandex.net/favicon/${host}`,
-                    // height: "16",
-                // })
-                // favicon.onerror = () => {
-                //     favicon.style.display = "none"
-                // }
-                // favicon.style.position = "absolute"
-                // favicon.style.transform = "translateX(-120%)"
-                // a.style.alignItems = "center"
-                // a.style.position = "relative"
-                // a.style.display = "inline-flex"
-                // a.style.paddingLeft = "24px"
-                // newElem.querySelector("a").prepend(document.createTextNode("\xA0"))
-                // a.prepend(favicon)
-            }
-            let actualHref
-            try {
-                actualHref = makeUrl(link.template)
-            } catch (e) {
-                newElem?.remove()
-                return
-            }
-            if (newElem.querySelector("a").href !== actualHref) {
-                newElem.querySelector("a").href = actualHref
-            }
-            if (firstRun) {
-                editorsList.appendChild(newElem)
-            }
-        })
-        editorsList.querySelectorAll("a").forEach(a => {
+        addUserExternalLinks(firstRun, editorsListUl)
+        addOtherExternalLinks(editorsListUl)
+        editorsListUl.querySelectorAll("a").forEach(a => {
             a?.classList?.remove("disabled")
         })
 
-        if (!editorsList.querySelector("#change-list")) {
+        if (!editorsListUl.querySelector("#change-list-btn") && !editorsListUl.querySelector(".create-link-btn")) {
             const hr = document.createElement("hr")
             hr.style.margin = "0px"
-            editorsList.appendChild(hr)
+            editorsListUl.appendChild(hr)
 
-            const editListBtn = editorsList.querySelector("li").cloneNode()
-            editListBtn.classList.add("dropdown-item")
+            const editListLi = editorsListUl.querySelector("li").cloneNode()
+            editListLi.classList.add("dropdown-item")
             const span = document.createElement("span")
             span.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "больше ссылок" : "more links"
-            span.style.color = "gray"
             span.style.cursor = "pointer"
-            span.id = "change-list"
-            editListBtn.appendChild(span)
-            editListBtn.onclick = e => {
-                e.preventDefault()
-                e.stopPropagation()
-                e.stopImmediatePropagation()
-                externalLinksDatabase.forEach(link => {
-                    let newElem = editorsList.querySelector("#custom-editor-" + link.safeName)
-                    if (newElem) {
-                        return
+            span.id = "change-list-btn"
+            span.classList.add("closed")
+            editListLi.appendChild(span)
+            editListLi.addEventListener(
+                "click",
+                e => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    e.stopImmediatePropagation()
+                    span.classList.remove("closed")
+                    addOtherExternalLinks(editorsListUl)
+
+                    span.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "редактировать список" : "edit links list"
+                    editListLi.onclick = e => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        e.stopImmediatePropagation()
+
+                        editorsListUl.classList.add("editing")
+                        makeExternalLinkEditable(editListLi, editorsListUl)
                     }
-                    newElem = editorsList.querySelector("li").cloneNode(true)
-                    newElem.classList.add("custom_editors")
-                    newElem.id = "custom-editor-" + link.safeName
-                    const a = newElem.querySelector("a")
-                    a.textContent = link.name
-                    a.setAttribute("target", "_blank")
-                    a.setAttribute("rel", "noreferrer")
-                    let actualHref
-                    try {
-                        actualHref = makeUrl(link.template)
-                    } catch (e) {
-                        newElem?.remove()
-                        return
-                    }
-                    editorsList.appendChild(newElem)
-                })
-            }
-            editorsList.appendChild(editListBtn)
+                },
+                { once: true },
+            )
+            editorsListUl.appendChild(editListLi)
         }
     } finally {
         coordinatesObserver?.disconnect()
