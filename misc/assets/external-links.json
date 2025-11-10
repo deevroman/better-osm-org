@@ -7,7 +7,7 @@
       "default": true
     },
     {
-      "name": "Edit with OSM Perfect Intersection Editor",
+      "name": "Edit with OSM Perfect Intersection Editor β",
       "template": "https://osmpie.org/app/?pos={longitude}&pos={latitude}&zoom={zoom}",
       "description": "",
       "default": true
@@ -34,7 +34,8 @@
     {
       "name": "OSM Latest Changes rene78",
       "template": "https://rene78.github.io/latest-changes/#{zoom}/{latitude}/{longitude}",
-      "description": "QA"
+      "description": "QA",
+      "default": true
     },
     {
       "name": "nakarte.me",
@@ -56,13 +57,13 @@
     },
     {
       "name": "indoor=",
-      "template": "https://indoorequal.org/#map=${zoom}/{latitude}/{longitude}",
+      "template": "https://indoorequal.org/#map={zoom}/{latitude}/{longitude}",
       "description": "",
       "default": true
     },
     {
       "name": "openlevelup",
-      "template": "https://openlevelup.net/#${zoom}/{latitude}/{longitude}",
+      "template": "https://openlevelup.net/#{zoom}/{latitude}/{longitude}",
       "description": "",
       "default": true
     },
@@ -93,7 +94,8 @@
     {
       "name": "Yandex Maps (search selection text)",
       "template": "https://yandex.ru/maps/?l=stv,sta&ll={longitude},{latitude}&z={zoom}&text={selected_text}",
-      "description": ""
+      "description": "",
+      "disabled": true
     },
     {
       "name": "Geohack",
@@ -131,7 +133,7 @@
       "description": "Router (biking and hiking)"
     },
     {
-      "name": "Osmose (fix)",
+      "name": "Osmose",
       "template": "https://osmose.openstreetmap.fr/fr/map/#loc={zoom}/{latitude}/{longitude}",
       "description": "QA"
     },
@@ -162,8 +164,8 @@
     },
     {
       "name": "2GIS",
-      "template": "https://2gis.ru/?m=${longitude}%2C${latitude}%2F${zoom}",
-      "description": ""
+      "template": "https://2gis.ru/?m={longitude}%2C{latitude}%2F{zoom}",
+      "description": "⚠© Not suitable as source"
     },
     {
       "name": "Achavi",
@@ -212,16 +214,6 @@
       "description": "QA"
     },
     {
-      "name": "OSM Relation Analyzer (overview)",
-      "template": "https://ra.osmsurround.org/analyzeRelation?relationId={osm_relation_id}",
-      "description": "QA"
-    },
-    {
-      "name": "OSM Relation Analyzer (map)",
-      "template": "https://ra.osmsurround.org/analyzeMap?relationId={osm_relation_id}",
-      "description": "QA"
-    },
-    {
       "name": "Destination Signs",
       "template": "https://osm.mueschelsoft.de/destinationsign/example/#way={osm_way_id}&namedroutes=0&fromarrow=0&include_sgn=0&include_way=1&country=DE",
       "description": "QA"
@@ -252,7 +244,7 @@
       "description": "Changeset-viewer"
     },
     {
-      "name": "CbCV (Neis)",
+      "name": "Changeset by Comparison Visualization (Neis)",
       "template": "https://resultmaps.neis-one.org/osm-change-viz?c={osm_changeset_id}",
       "description": "Changeset-viewer"
     },
@@ -279,7 +271,8 @@
     {
       "name": "OSM 411",
       "template": "https://osm411.org/#map={zoom}/{latitude}/{longitude}",
-      "description": ""
+      "description": "",
+      "default": true
     },
     {
       "name": "OpenSwitchMapsWeb",

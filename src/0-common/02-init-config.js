@@ -58,8 +58,7 @@ const copyAnimationStyles = `
         }
     }
 `
-
-GM_config.init({
+const configOptions = {
     id: "Config",
     title: " ",
     fields: {
@@ -482,5 +481,7 @@ GM_config.init({
             doc.querySelector(".reset_holder").prepend(versionSection)
         },
     },
-})
+}
+
+GM_config.init(configOptions)
 //</editor-fold>
