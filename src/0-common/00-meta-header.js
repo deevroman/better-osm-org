@@ -1,7 +1,9 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.3.8
+// @version         1.4.0
+// @changelog       v1.4.0: More links in Edit menu, the ability to add custom links (like OSM Smart Menu)
+// @changelog       v1.4.0: A button for quickly opening the links list on phones
 // @changelog       v1.3.7: Add '=' when pasting tag into iD raw tags editor, big script refactor
 // @changelog       v1.3.2: Add OSM Perfect Intersection Editor into Edit menu, add statistics on the proposal voting
 // @changelog       v1.3.0: Mapki, Pewu, Relation Analizer, Osmlab links on relation history, keyO for open links list

@@ -4,8 +4,8 @@
  *  name: string,
  *  template: string,
  *  description: string,
+ *  warn: string|undefined,
  *  onlyMobile: boolean|undefined,
- *  onlyAndroid: boolean|undefined,
  *  default: boolean|undefined,
  *  } } externalLink
  *  */
@@ -32,7 +32,7 @@ function addSafeNameForExternalLinks(links) {
     })
 }
 
-async function loadAndMakeExternalLinksList() {
+async function loadAndMakeExternalLinksDatabase() {
     const raw_data = (
         await externalFetchRetry({
             url: externalLinksURL,
@@ -42,6 +42,7 @@ async function loadAndMakeExternalLinksList() {
     if (!raw_data) {
         throw "External link not downloaded"
     }
+    console.log("external links database updated")
     externalLinksDatabase = raw_data.links.filter(l => l.disabled !== true)
     addSafeNameForExternalLinks(externalLinksDatabase)
     await GM.setValue(
@@ -55,25 +56,27 @@ async function loadAndMakeExternalLinksList() {
 
 async function initExternalLinksList() {
     if (externalLinksDatabase) return
+    if (isDebug()) {
+        await loadAndMakeExternalLinksDatabase()
+    }
     const cache = await GM.getValue("external-links", "")
     if (externalLinksDatabase) return
-    if (!isDebug() && cache) {
-        // TODO
+    if (cache) {
         console.log("external links cached")
         const json = JSON.parse(cache)
         const cacheTime = new Date(json["cacheTime"])
         const threeDaysLater = new Date(cacheTime.getTime() + 6 * 60 * 60 * 1000)
         if (threeDaysLater < new Date()) {
             console.log("but cache outdated")
-            setTimeout(loadAndMakeExternalLinksList, 0)
+            setTimeout(loadAndMakeExternalLinksDatabase, 0)
         }
-        externalLinksDatabase = JSON.parse(cache)["raw_data"].links
-        addSafeNameForExternalLinks()
+        externalLinksDatabase = JSON.parse(cache)["raw_data"].links.filter(l => l.disabled !== true)
+        addSafeNameForExternalLinks(externalLinksDatabase)
         return
     }
     console.log("loading external links")
     try {
-        await loadAndMakeExternalLinksList()
+        await loadAndMakeExternalLinksDatabase()
     } catch (e) {
         console.log("loading external links list failed", e)
     }
@@ -175,7 +178,7 @@ function addDropdownStyle() {
             color: black !important;
         }
         
-        .dropdown-item:has(#change-list-btn) {
+        ul:not(.editing) > .dropdown-item:has(#change-list-btn) {
             color: gray !important;
         }
         
@@ -205,11 +208,8 @@ async function loadCurrentLinksList() {
             if (!link.default) {
                 return false
             }
-            if (link.onlyAndroid) {
-                return !isSafari
-            }
             if (link.onlyMobile) {
-                return !isMobile && !isDebug()
+                return isMobile
             }
             return true
         })
@@ -236,7 +236,7 @@ function makeUrlFromTemplate(template) {
 }
 
 function processExternalLink(link, firstRun, editorsListUl, isUserLink) {
-    if (link.template === "-" && firstRun) {
+    if (link.name === "-" && firstRun) {
         const hr = document.createElement("hr")
         hr.style.margin = "0px"
         editorsListUl.appendChild(hr)
@@ -244,6 +244,7 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink) {
     }
 
     let newElem = editorsListUl.querySelector("#custom-editor-" + link.safeName)
+    let warnBox = newElem?.querySelector(".warn-box")
     let resultBox = newElem?.querySelector(".result-box")
     const alreadyAdded = !!newElem
     if (!newElem) {
@@ -261,6 +262,14 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink) {
         a.textContent = link.name
         a.setAttribute("target", "_blank")
         a.setAttribute("rel", "noreferrer")
+
+        warnBox = document.createElement("span")
+        warnBox.classList.add("warn-box")
+        warnBox.style.color = "gray"
+        if (!isUserLink && link.warn) {
+            warnBox.textContent += ` (${link.warn})`
+        }
+        a.appendChild(warnBox)
 
         resultBox = document.createElement("span")
         resultBox.classList.add("result-box")
@@ -356,7 +365,12 @@ function addOtherExternalLinks(editorsListUl) {
     if (!document.querySelector("#change-list-btn") || document.querySelector("#change-list-btn").classList.contains("closed")) {
         return
     }
-    externalLinksDatabase.forEach(link => processExternalLink(link, false, editorsListUl, false))
+    externalLinksDatabase.forEach(link => {
+        if (link.onlyMobile && !isMobile) {
+            return
+        }
+        processExternalLink(link, false, editorsListUl, false);
+    })
 }
 
 function makeExternalLinkEditable(targetLi, editorsListUl, nameValue = "", templateValue = "") {
@@ -400,7 +414,7 @@ function makeExternalLinkEditable(targetLi, editorsListUl, nameValue = "", templ
     addItemA.appendChild(title)
 
     const template = document.createElement("input")
-    template.placeholder = "URL example: https://osm.org/{osm_type}/{osm_id}/#map={zoom}/{lon}/{lat}"
+    template.placeholder = (isMobile ? "" : "URL example: ") + "https://osm.org/{osm_type}/{osm_id}/#map={zoom}/{lon}/{lat}"
     template.style.flex = "3"
     template.name = "custom-link-template"
     template.value = templateValue
@@ -413,7 +427,7 @@ function makeExternalLinkEditable(targetLi, editorsListUl, nameValue = "", templ
     editorsListUl.querySelectorAll(".add-link-btn").forEach(i => (i.style.display = ""))
 
     const inputHandler = () => {
-        if (title.value.trim() === "" && template.value.trim() === "") {
+        if (title.value.trim() === "" || template.value.trim() === "") {
             deleteBtn.style.display = ""
             createLikBtn.style.display = "none"
         } else {
@@ -490,7 +504,7 @@ async function setupNewEditorsLinks(mutationsList) {
         document.querySelector("#" + mutationsList[0].target.getAttribute("aria-describedby"))?.remove()
     }
     addDropdownStyle()
-    if (isDebug() || isMobile) {
+    if (isMobile) {
         document.querySelectorAll('button[data-bs-target="#select_language_dialog"]:not(.with-link-before)').forEach(langSwitchBtn => {
             langSwitchBtn.classList.add("with-link-before")
             const linksBtn = langSwitchBtn.cloneNode()
@@ -550,14 +564,11 @@ async function setupNewEditorsLinks(mutationsList) {
         if (!curURL.includes("edit?editor=id") || !match) {
             return
         }
-        if (isMobile || isDebug()) {
+        if (isMobile) {
             const editJosmBtn = editorsListUl.querySelector('[href*="/edit?editor=remote"]')
             if (editJosmBtn) {
                 editJosmBtn.textContent = editJosmBtn.textContent.replace("(JOSM, Potlatch, Merkaartor)", "")
             }
-        }
-        if (!isDebug()) {
-            return
         }
         if (firstRun) {
             const hr = document.createElement("hr")
@@ -565,7 +576,6 @@ async function setupNewEditorsLinks(mutationsList) {
             editorsListUl.appendChild(hr)
         }
         if (!externalLinksDatabase) {
-            // await — bad idea in MutationObserver callback
             await initExternalLinksList()
         }
         if (!externalLinks) {

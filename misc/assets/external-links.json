@@ -17,7 +17,7 @@
       "template": "josm:/zoom?left={longitude}&bottom={latitude}&right={longitude}&top={latitude}",
       "description": "",
       "default": true,
-      "onlyAndroid": true
+      "onlyMobile": true
     },
     {
       "name": "Panoramax",
@@ -72,19 +72,31 @@
       "template": "om://map?v=1&ll={latitude},{longitude}",
       "description": "Router",
       "default": true,
-      "onlyAndroid": true
+      "onlyMobile": true
     },
     {
       "name": "Osmand",
       "template": "https://osmand.net/go.html?lat={latitude}&lon={longitude}&z={zoom}",
       "description": "Router",
       "default": true,
-      "onlyAndroid": true
+      "onlyMobile": true
+    },
+    {
+      "name": "Overpass",
+      "template": "https://overpass-turbo.eu/?Q=&C={latitude};{longitude};{zoom}",
+      "description": ""
+    },
+    {
+      "name": "Overpass (Mail.ru)",
+      "template": "https://maps.mail.ru/osm/tools/overpass/?Q=&C={latitude};{longitude};{zoom}",
+      "description": "",
+      "disabled": true
     },
     {
       "name": "Google Street View",
       "template": "https://www.google.com.tw/maps/?layer=c&cbll={latitude},{longitude}",
-      "description": "Street View ⚠© Not suitable as source"
+      "description": "",
+      "warn": "don't use for mapping"
     },
     {
       "name": "Yandex Panoramas",
@@ -98,21 +110,6 @@
       "disabled": true
     },
     {
-      "name": "Geohack",
-      "template": "https://geohack.toolforge.org/geohack.php?params={latitude}_N_{longitude}_E",
-      "description": "List of lists"
-    },
-    {
-      "name": "Overpass",
-      "template": "https://overpass-turbo.eu/?Q=&C={latitude};{longitude};{zoom}",
-      "description": ""
-    },
-    {
-      "name": "Overpass (Mail.ru)",
-      "template": "https://maps.mail.ru/osm/tools/overpass/?Q=&C={latitude};{longitude};{zoom}",
-      "description": ""
-    },
-    {
       "name": "geo:",
       "template": "geo:{latitude},{longitude}?z={zoom}",
       "description": ""
@@ -123,24 +120,63 @@
       "description": "Pictures"
     },
     {
+      "name": "Achavi",
+      "template": "https://overpass-api.de/achavi/?changeset={osm_changeset_id}",
+      "description": "Changeset-viewer",
+      "default": true
+    },
+    {
       "name": "Bikerouter",
       "template": "https://bikerouter.de/#map={zoom}/{latitude}/{longitude}",
       "description": "Router (biking and hiking)"
     },
     {
+      "name": "OpenTopoMap",
+      "template": "https://opentopomap.org/#map={zoom}/{latitude}/{longitude}",
+      "description": ""
+    },
+    {
       "name": "Brouter Navigation",
-      "template": "http://brouter.de/brouter-web/#map={zoom}/{latitude}/{longitude}/standard",
+      "template": "https://brouter.de/brouter-web/#map={zoom}/{latitude}/{longitude}/standard",
       "description": "Router (biking and hiking)"
     },
     {
-      "name": "Osmose",
-      "template": "https://osmose.openstreetmap.fr/fr/map/#loc={zoom}/{latitude}/{longitude}",
+      "name": "Nominatim QA",
+      "template": "https://nominatim.org/qa/#map={zoom}/{latitude}/{longitude}",
       "description": "QA"
+    },
+    {
+      "name": "Osmose",
+      "template": "https://osmose.openstreetmap.fr/map/#loc={zoom}/{latitude}/{longitude}",
+      "description": "QA"
+    },
+    {
+      "name": "Strava Heatmap",
+      "template": "https://strava.com/maps/global-heatmap/#{zoom}/{latitude}/{longitude}",
+      "description": ""
+    },
+    {
+      "name": "FacilMap",
+      "template": "https://facilmap.org/#{zoom}/{latitude}/{longitude}/Mpnk",
+      "description": ""
     },
     {
       "name": "wikimapia",
       "template": "https://wikimapia.org/#lang=ru&lat={latitude}&lon={longitude}&z={zoom}",
-      "description": ""
+      "description": "",
+      "warn": "don't use for mapping"
+    },
+    {
+      "name": "2GIS",
+      "template": "https://2gis.ru/?m={longitude}%2C{latitude}%2F{zoom}",
+      "description": "",
+      "warn": "don't use for mapping"
+    },
+    {
+      "name": "Apple Maps",
+      "template": "https://beta.maps.apple.com/?ll={latitude}%2C{longitude}",
+      "description": "",
+      "warn": "don't use for mapping"
     },
     {
       "name": "pastvu (retro photos)",
@@ -148,30 +184,9 @@
       "description": ""
     },
     {
-      "name": "Flopp's Map",
-      "template": "https://flopp.net/?c={latitude}:{longitude}&z={zoom}",
-      "description": "Map (OSM, Topo, Google Maps), waypoint tools"
-    },
-    {
       "name": "OpenRouteService",
       "template": "https://maps.openrouteservice.org/directions?n1={latitude}&n2={longitude}&n3={zoom}&b=0&k1=en-US&k2=km",
       "description": "Router"
-    },
-    {
-      "name": "Apple Maps",
-      "template": "https://beta.maps.apple.com/?ll={latitude}%2C{longitude}&spn=0.02724242880691463%2C0.07252723824063878",
-      "description": "Map, Street View ⚠© Not suitable as source"
-    },
-    {
-      "name": "2GIS",
-      "template": "https://2gis.ru/?m={longitude}%2C{latitude}%2F{zoom}",
-      "description": "⚠© Not suitable as source"
-    },
-    {
-      "name": "Achavi",
-      "template": "https://overpass-api.de/achavi/?changeset={osm_changeset_id}",
-      "description": "Changeset-viewer",
-      "default": true
     },
     {
       "name": "WaymarkedTrails",
@@ -275,8 +290,18 @@
       "default": true
     },
     {
+      "name": "Geohack",
+      "template": "https://geohack.toolforge.org/geohack.php?params={latitude}_N_{longitude}_E",
+      "description": "List of lists"
+    },
+    {
       "name": "OpenSwitchMapsWeb",
       "template": "https://tankaru.github.io/OpenSwitchMapsWeb/index.html#https://www.openstreetmap.org/#map={zoom}/{latitude}/{longitude}",
+      "description": ""
+    },
+    {
+      "name": "More links examples",
+      "template": "https://wiki.openstreetmap.org/wiki/OSM_Smart_Menu#More_examples_for_advanced_method_using_custom_code",
       "description": ""
     },
     {
