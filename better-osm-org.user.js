@@ -18005,6 +18005,7 @@ async function initExternalLinksList() {
 }
 
 let urlTemplateContext = {}
+const randomParam = Math.random().toString()
 
 function updateUrlTemplateContext() {
     const [x, y, z] = getCurrentXYZ()
@@ -18019,7 +18020,7 @@ function updateUrlTemplateContext() {
     // todo как мониторить изменения выделения?
     // urlTemplateContext.raw_selected_text = window.getSelection().toString()
     // urlTemplateContext.selected_text = encodeURI(urlTemplateContext.raw_selected_text)
-    urlTemplateContext.random_param = Math.random().toString()
+    urlTemplateContext.random_param = randomParam
 }
 
 let coordinatesObserver = null
@@ -18031,125 +18032,156 @@ function addDropdownStyle() {
     }
     dropdownStyleAdded = true
     injectCSSIntoOSMPage(`
-        /* make attribution panel compact */
-        @media (max-width: 500px) {
+    /* make attribution panel compact */
+    @media (max-width: 500px) {
 
-        .leaflet-control-attribution {
-            padding: 0 2px
-        }
-        
-        .leaflet-control-attribution a[href="https://wiki.osmfoundation.org/wiki/Terms_of_Use"] {
-            display: none;
-        }
-        
-        }
-
-        #edit_tab > .dropdown-menu {
-            overflow-y: scroll;
-            overflow-x: hidden;
-            max-height: min(85vh, 100vh - 160px);
-            max-width: 100vw;
-            padding-bottom: 0px !important;
-        }
-        
-        @media (max-width: 767.910px) {
-        
-        .open-dropdown {
-            display: block !important;
-            top: -100px !important;
-            max-height: min(85vh, 100vh - 55px) !important;
-        }
-        
-        }
-        
-        @media (min-width: 768px) {
-
-        .off-hover > #change-list-btn {
-            width: 80vw !important;
-        }
-        
-        }
-        
-        .off-hover:hover {
-            background: initial !important;
-        }
-        
-        ul:not(.editing) .invalid-external-link {
-            display: none !important;
-        }
-        
-        ul:not(.editing) .result-box {
-            display: none !important;
-        }
-        
-        ul:not(.editing) .edit-link-btn {
-            display: none !important;
-        }
-        
-        ul:not(.editing) .add-link-btn {
-            display: none !important;
-        }
-        
-        .edit-link-btn {
-            margin-right: 8px !important;
-            border-right: solid gray 1px !important;
-            padding-right: 8px !important;
-        }
-        
-        .edit-link-btn:hover {
-            color: black !important;
-        }
-        
-        .edit-link-btn {
-            margin-right: 8px !important;
-            border-right: solid gray 1px !important;
-            padding-right: 8px !important;
-        }
-        
-        .delete-link-btn:hover {
-            color: black !important;
-        }
-        
-        .add-link-btn {
-            margin-right: 8px !important;
-            border-right: solid gray 1px !important;
-            padding-right: 8px !important;
-        }
-        
-        .add-link-btn:hover {
-            color: black !important;
-        }
-        
-        ul:not(.editing) .dropdown-item#change-list-btn {
-            color: gray !important;
-        }
-        
-        .dropdown-item:has(#change-list-btn):not(:has(.create-link-btn)):hover {
-            color: black !important;
-        }
-
-        @media (max-width: 767.910px) {
-
-        ul.editing > li > :where(span,a) {
-            padding-left: 8px !important;
-        }
-        
-        ul.editing > li > #change-list-btn{
-            padding-right: 0px !important;
-        }
+    .leaflet-control-attribution {
+        padding: 0 2px
+    }
     
-        }        
+    .leaflet-control-attribution a[href="https://wiki.osmfoundation.org/wiki/Terms_of_Use"] {
+        display: none;
+    }
+    
+    }
+
+    #edit_tab > .dropdown-menu {
+        overflow-x: hidden;
+        max-height: min(85vh, 100vh - 160px);
+        max-width: 100vw;
+        padding-bottom: 0px !important;
+        overscroll-behavior: none;
+    }
+    
+    @media (max-width: 767.910px) {
+    
+    .open-dropdown {
+        display: block !important;
+        top: -100px !important;
+        max-height: min(85vh, 100vh - 55px) !important;
+    }
+    
+    }
+    
+    .off-hover:hover {
+        background: initial !important;
+    }
+    
+    ul:not(.editing) .invalid-external-link {
+        display: none !important;
+    }
+    
+    ul:not(.editing) .result-box {
+        display: none !important;
+    }
+    
+    ul:not(.editing) .edit-link-btn {
+        display: none !important;
+    }
+    
+    ul:not(.editing) .add-link-btn {
+        display: none !important;
+    }
+    
+    .edit-link-btn {
+        margin-right: 8px !important;
+        border-right: solid gray 1px !important;
+        padding-right: 8px !important;
+    }
+    
+    .edit-link-btn:hover {
+        color: var(--bs-body-color) !important;
+    }
+    
+    .edit-link-btn {
+        margin-right: 8px !important;
+        border-right: solid gray 1px !important;
+        padding-right: 8px !important;
+    }
+    
+    .delete-link-btn {
+        all: unset;
+        margin: 4px;
+    }
+    
+    #change-list-btn .delete-link-btn {
+        display: none;
+    }
+      
+    .add-link-btn {
+        margin-right: 8px !important;
+        border-right: solid gray 1px !important;
+        padding-right: 8px !important;
+    }
+    
+    .add-link-btn:hover {
+        color: var(--bs-body-color) !important;
+    }
+    
+    .create-link-btn:hover {
+        color: var(--bs-body-color) !important;
+    }
+    
+    ul:not(.editing) .dropdown-item#change-list-btn {
+        color: gray !important;
+    }
+    
+    .dropdown-item:has(#change-list-btn):not(:has(.create-link-btn)):hover {
+        color: var(--bs-body-color) !important;
+    }
+
+    ul.editing > li > :where(span,a) {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+    
+    .add-item-a {
+        display: flex;
+        alignItems: center;
+        gap: 5px;
+    }
+    
+    .add-item-a:hover {
+        color: var(--bs-body-color) !important;
+    }
+    
+    .add-item-a.in-editing:hover {
+        background: initial !important;
+    }
+    
+    .add-item-a.in-editing > span {
+        width: 100%
+    }
+    
+    .inputs-wrapper {
+        display: flex;
+        margin-left: 5px;
+        gap: 5px;
+    }
+    
+    .inputs-wrapper .title-input {
+        flex: 1;
+        width: 100%;
+    }
+    
+    .inputs-wrapper .template-input {
+        flex: 3;
+        width: 100%;
+    }
+    
+    @media (max-width: 767.910px) {
+    
+    .inputs-wrapper {
+        flex-direction: column;
+        row-gap: 10px;
+    }
+    
+    .add-item-a.in-editing input {
+        margin-left: 0px !important;
+    }
+    
+    }
         
-        .add-item-a {
-            display: flex;
-            alignItems: center;
-            gap: 5px;
-        }
-        
-        /* #edit_tab > .dropdown-menu > li > a {
-            padding-left: 30px !important;
-        }
-        */
     `)
 }
 
@@ -18261,24 +18293,6 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink) {
                 editorsListUl.querySelectorAll(".edit-link-btn").forEach(i => (i.style.display = ""))
             }
         }
-        // const host = new URL(link.template).host
-        // const favicon = GM_addElement("img", {
-        // src: `https://icons.duckduckgo.com/ip3/${host}.ico`,
-        // src: `https://www.google.com/s2/favicons?domain=${host}&sz=64`,
-        // src: `https://favicon.yandex.net/favicon/${host}`,
-        // height: "16",
-        // })
-        // favicon.onerror = () => {
-        //     favicon.style.display = "none"
-        // }
-        // favicon.style.position = "absolute"
-        // favicon.style.transform = "translateX(-120%)"
-        // a.style.alignItems = "center"
-        // a.style.position = "relative"
-        // a.style.display = "inline-flex"
-        // a.style.paddingLeft = "210px"
-        // newElem.querySelector("a").prepend(document.createTextNode("\xA0"))
-        // a.prepend(favicon)
     }
     let actualHref
     try {
@@ -18290,7 +18304,10 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink) {
         if (isMobile) {
             newElem.style.overflowY = "scroll"
         }
-        resultBox.textContent = ` (${e})`
+        const errorText = ` (${e})`
+        if (resultBox.textContent !== errorText) {
+            resultBox.textContent = ` (${e})`
+        }
         return
     } finally {
         if (!alreadyAdded) {
@@ -18342,63 +18359,53 @@ function makeExternalLinkEditable(targetLi, editorsListUl, nameValue = "", templ
     addItemA.href = ""
     addItemLi.appendChild(addItemA)
 
-    const createLikBtn = document.createElement("button")
-    createLikBtn.classList.add("create-link-btn", "bi", "bi-plus-lg")
-    createLikBtn.style.all = "unset"
-    createLikBtn.style.cursor = "pointer"
-    createLikBtn.title = "save link"
-    addItemA.appendChild(createLikBtn)
-
     const deleteBtn = document.createElement("button")
     deleteBtn.classList.add("delete-link-btn", "bi", "bi-trash")
-    deleteBtn.style.all = "unset"
-    deleteBtn.style.display = "none"
     deleteBtn.title = "remove link"
-    addItemA.prepend(deleteBtn)
     deleteBtn.onclick = async e => {
         e.preventDefault()
         e.stopPropagation()
-
+        if (!confirm(`Delete ${nameValue}`)) {
+            return
+        }
         addItemLi.remove()
         externalLinks = externalLinks.filter(i => i.name !== nameValue)
         await GM.setValue("user-external-links", JSON.stringify(externalLinks))
     }
 
     const title = document.createElement("input")
+    title.classList.add("title-input")
     title.placeholder = "Link name"
     title.value = nameValue
-    if (isMobile) {
-        title.size = 9
-    }
-    title.style.flex = "1"
-    title.style.marginLeft = "5px"
-    addItemA.appendChild(title)
+
+    const createLikBtn = document.createElement("button")
+    createLikBtn.classList.add("create-link-btn", "bi", nameValue === "" ? "bi-plus-lg" : "bi-floppy")
+    createLikBtn.style.all = "unset"
+    createLikBtn.style.cursor = "pointer"
+    createLikBtn.title = "save link"
 
     const template = document.createElement("input")
+    template.classList.add("template-input")
     template.placeholder = (isMobile ? "" : "URL example: ") + "https://osm.org/{osm_type}/{osm_id}/#map={zoom}/{lon}/{lat}"
-    template.style.flex = "3"
     template.name = "custom-link-template"
     template.value = templateValue
-    addItemA.appendChild(template)
+
+    addItemA.classList.add("in-editing")
+    addItemA.prepend(createLikBtn)
+
+    const inputWrapper = document.createElement("span")
+    inputWrapper.classList.add("inputs-wrapper")
+    inputWrapper.appendChild(title)
+    inputWrapper.appendChild(template)
+    addItemA.appendChild(inputWrapper)
+
+    addItemA.appendChild(deleteBtn)
 
     targetLi.replaceWith(addItemLi)
     addItemLi.classList.add("off-hover")
 
     editorsListUl.querySelectorAll(".edit-link-btn").forEach(i => (i.style.display = ""))
     editorsListUl.querySelectorAll(".add-link-btn").forEach(i => (i.style.display = ""))
-
-    const inputHandler = () => {
-        if (title.value.trim() === "" || template.value.trim() === "") {
-            deleteBtn.style.display = ""
-            createLikBtn.style.display = "none"
-        } else {
-            deleteBtn.style.display = "none"
-            createLikBtn.style.display = ""
-        }
-    }
-
-    title.oninput = inputHandler
-    template.oninput = inputHandler
 
     createLikBtn.onclick = async e => {
         e.preventDefault()
@@ -18452,6 +18459,7 @@ function makeExternalLinkEditable(targetLi, editorsListUl, nameValue = "", templ
         }
         addUserExternalLinks(false, editorsListUl)
         editorsListUl.querySelectorAll(".edit-link-btn").forEach(i => (i.style.display = ""))
+        addItemLi.classList.remove("in-editing")
     }
 }
 
@@ -18465,7 +18473,7 @@ async function setupNewEditorsLinks(mutationsList) {
         document.querySelector("#" + mutationsList[0].target.getAttribute("aria-describedby"))?.remove()
     }
     addDropdownStyle()
-    if (isMobile) {
+    if (isMobile && document.querySelector("#map")) {
         document.querySelectorAll('button[data-bs-target="#select_language_dialog"]:not(.with-link-before)').forEach(langSwitchBtn => {
             langSwitchBtn.classList.add("with-link-before")
             const linksBtn = langSwitchBtn.cloneNode()
@@ -18531,7 +18539,7 @@ async function setupNewEditorsLinks(mutationsList) {
                 if (isMobile) {
                     // editJosmBtn.textContent = editJosmBtn.textContent.replace("Редактировать с помощью", "")
                     editJosmBtn.style.overflowY = "scroll"
-                    editJosmBtn.style.scrollbarWidth = "none";
+                    editJosmBtn.style.scrollbarWidth = "none"
                 }
                 // editJosmBtn.textContent = editJosmBtn.textContent.replace("(JOSM, Potlatch, Merkaartor)", "")
             }
@@ -18539,7 +18547,7 @@ async function setupNewEditorsLinks(mutationsList) {
             if (editIdBtn) {
                 if (isMobile) {
                     editIdBtn.style.overflowY = "scroll"
-                    editIdBtn.style.scrollbarWidth = "none";
+                    editIdBtn.style.scrollbarWidth = "none"
                     // editIdBtn.textContent = editIdBtn.textContent.replace("Редактировать с помощью", "")
                 }
             }
@@ -18588,6 +18596,7 @@ async function setupNewEditorsLinks(mutationsList) {
                     addOtherExternalLinks(editorsListUl)
 
                     span.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "редактировать список" : "edit links list"
+                    editorsListUl.scrollIntoView()
                     editListLi.onclick = e => {
                         e.preventDefault()
                         e.stopPropagation()
@@ -18595,6 +18604,7 @@ async function setupNewEditorsLinks(mutationsList) {
 
                         editorsListUl.classList.add("editing")
                         makeExternalLinkEditable(editListLi, editorsListUl)
+                        editorsListUl.scrollIntoView()
                     }
                 },
                 { once: true },

@@ -259,7 +259,7 @@
       "description": "Changeset-viewer"
     },
     {
-      "name": "Changeset by Comparison Visualization (Neis)",
+      "name": "Changeset by Comparison Visualization",
       "template": "https://resultmaps.neis-one.org/osm-change-viz?c={osm_changeset_id}",
       "description": "Changeset-viewer"
     },
