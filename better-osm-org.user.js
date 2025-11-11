@@ -3,7 +3,7 @@
 // @name:ru         Better osm.org
 // @version         1.4.0
 // @changelog       v1.4.0: More links in Edit menu, the ability to add custom links (like OSM Smart Menu)
-// @changelog       v1.4.0: A button for quickly opening the links list on phones
+// @changelog       v1.4.0: A button for quickly opening the links list and shortening the map attribution on phones
 // @changelog       v1.3.7: Add '=' when pasting tag into iD raw tags editor, big script refactor
 // @changelog       v1.3.2: Add OSM Perfect Intersection Editor into Edit menu, add statistics on the proposal voting
 // @changelog       v1.3.0: Mapki, Pewu, Relation Analizer, Osmlab links on relation history, keyO for open links list
@@ -17936,8 +17936,8 @@ function simplifyHDCYIframe() {
 let externalLinks = null
 /** @type {null | externalLink[]}*/
 let externalLinksDatabase = null
-// const externalLinksURL = "http://localhost:7777/misc/assets/external-links.json"
-const externalLinksURL = `https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/dev/misc/assets/external-links.json?bypasscache=${Math.random()}`
+const externalLinksURL = "http://localhost:7777/misc/assets/external-links.json"
+// const externalLinksURL = `https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/dev/misc/assets/external-links.json?bypasscache=${Math.random()}`
 
 function makeSafeForCSS(name) {
     return name.replace(/[^a-z0-9]/g, function (s) {
@@ -18018,8 +18018,13 @@ function updateUrlTemplateContext() {
     urlTemplateContext.osm_id = parseInt(osm_m?.[2])
     urlTemplateContext[`osm_${urlTemplateContext.osm_type}_id`] = urlTemplateContext.osm_id
     // todo как мониторить изменения выделения?
+    // todo как быть с iD, который в iframe?
     // urlTemplateContext.raw_selected_text = window.getSelection().toString()
     // urlTemplateContext.selected_text = encodeURI(urlTemplateContext.raw_selected_text)
+    // if (urlTemplateContext.raw_selected_text === "") {
+    //     urlTemplateContext.raw_selected_text = undefined
+    //     urlTemplateContext.selected_text = undefined
+    // }
     urlTemplateContext.random_param = randomParam
 }
 
@@ -18047,13 +18052,18 @@ function addDropdownStyle() {
 
     #edit_tab > .dropdown-menu {
         overflow-x: hidden;
-        max-height: min(85vh, 100vh - 160px);
+        max-height: min(85vh, 100vh - 55px);
         max-width: 100vw;
         padding-bottom: 0px !important;
         overscroll-behavior: none;
     }
     
+    
     @media (max-width: 767.910px) {
+    
+    #edit_tab > .dropdown-menu {
+        max-height: min(85vh, 100vh - 160px);
+    }
     
     .open-dropdown {
         display: block !important;
@@ -18087,21 +18097,21 @@ function addDropdownStyle() {
         margin-right: 8px !important;
         border-right: solid gray 1px !important;
         padding-right: 8px !important;
+        cursor: pointer;
     }
     
     .edit-link-btn:hover {
         color: var(--bs-body-color) !important;
     }
     
-    .edit-link-btn {
-        margin-right: 8px !important;
-        border-right: solid gray 1px !important;
-        padding-right: 8px !important;
-    }
-    
     .delete-link-btn {
         all: unset;
         margin: 4px;
+        cursor: pointer;
+    }
+    
+    #edit-link-btn {
+        cursor: pointer;
     }
     
     #change-list-btn .delete-link-btn {
@@ -18112,6 +18122,7 @@ function addDropdownStyle() {
         margin-right: 8px !important;
         border-right: solid gray 1px !important;
         padding-right: 8px !important;
+        cursor: pointer;
     }
     
     .add-link-btn:hover {
@@ -18381,7 +18392,6 @@ function makeExternalLinkEditable(targetLi, editorsListUl, nameValue = "", templ
     const createLikBtn = document.createElement("button")
     createLikBtn.classList.add("create-link-btn", "bi", nameValue === "" ? "bi-plus-lg" : "bi-floppy")
     createLikBtn.style.all = "unset"
-    createLikBtn.style.cursor = "pointer"
     createLikBtn.title = "save link"
 
     const template = document.createElement("input")
@@ -18535,21 +18545,14 @@ async function setupNewEditorsLinks(mutationsList) {
         }
         if (isMobile) {
             const editJosmBtn = editorsListUl.querySelector('[href*="/edit?editor=remote"]')
-            if (editJosmBtn) {
-                if (isMobile) {
-                    // editJosmBtn.textContent = editJosmBtn.textContent.replace("Редактировать с помощью", "")
-                    editJosmBtn.style.overflowY = "scroll"
-                    editJosmBtn.style.scrollbarWidth = "none"
-                }
-                // editJosmBtn.textContent = editJosmBtn.textContent.replace("(JOSM, Potlatch, Merkaartor)", "")
+            if (editJosmBtn && isMobile) {
+                editJosmBtn.style.overflowY = "scroll"
+                editJosmBtn.style.scrollbarWidth = "none"
             }
             const editIdBtn = editorsListUl.querySelector('[href*="/edit?editor=id"]')
-            if (editIdBtn) {
-                if (isMobile) {
-                    editIdBtn.style.overflowY = "scroll"
-                    editIdBtn.style.scrollbarWidth = "none"
-                    // editIdBtn.textContent = editIdBtn.textContent.replace("Редактировать с помощью", "")
-                }
+            if (editIdBtn && isMobile) {
+                editIdBtn.style.overflowY = "scroll"
+                editIdBtn.style.scrollbarWidth = "none"
             }
         }
         if (firstRun) {
@@ -18579,13 +18582,19 @@ async function setupNewEditorsLinks(mutationsList) {
             const editListLi = editorsListUl.querySelector("li").cloneNode()
             const span = document.createElement("span")
             span.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "больше ссылок" : "more links"
-            span.style.cursor = "pointer"
             span.id = "change-list-btn"
             span.classList.add("closed", "dropdown-item")
             if (isMobile) {
                 span.classList.add("off-hover")
             }
             editListLi.appendChild(span)
+
+            // hack for preload bootstrap font
+            const dummy =  document.createElement("span")
+            dummy.classList.add("bi", "bi-pencil")
+            dummy.style.opacity = "0"
+            span.appendChild(dummy)
+
             editListLi.addEventListener(
                 "click",
                 e => {

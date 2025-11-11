@@ -259,7 +259,7 @@
       "description": "Changeset-viewer"
     },
     {
-      "name": "Changeset by Comparison Visualization",
+      "name": "Changeset by Comparison Visualization (Neis)",
       "template": "https://resultmaps.neis-one.org/osm-change-viz?c={osm_changeset_id}",
       "description": "Changeset-viewer"
     },
@@ -298,6 +298,12 @@
       "name": "OpenSwitchMapsWeb",
       "template": "https://tankaru.github.io/OpenSwitchMapsWeb/index.html#https://www.openstreetmap.org/#map={zoom}/{latitude}/{longitude}",
       "description": ""
+    },
+    {
+      "name": "Search selection in id-editor Transifex",
+      "template": "https://app.transifex.com/openstreetmap/id-editor/translate/#/$/13462506?q=text%3A'{selected_text}'",
+      "description": "",
+      "disabled": true
     },
     {
       "name": "More links examples",
