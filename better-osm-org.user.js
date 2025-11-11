@@ -18031,26 +18031,46 @@ function addDropdownStyle() {
     }
     dropdownStyleAdded = true
     injectCSSIntoOSMPage(`
+        /* make attribution panel compact */
+        @media (max-width: 500px) {
+
+        .leaflet-control-attribution {
+            padding: 0 2px
+        }
+        
+        .leaflet-control-attribution a[href="https://wiki.osmfoundation.org/wiki/Terms_of_Use"] {
+            display: none;
+        }
+        
+        }
+
+        #edit_tab > .dropdown-menu {
+            overflow-y: scroll;
+            overflow-x: hidden;
+            max-height: min(85vh, 100vh - 160px);
+            max-width: 100vw;
+            padding-bottom: 0px !important;
+        }
+        
         @media (max-width: 767.910px) {
         
         .open-dropdown {
             display: block !important;
             top: -100px !important;
+            max-height: min(85vh, 100vh - 55px) !important;
         }
         
         }
-        #edit_tab > .dropdown-menu {
-            overflow-y: scroll;
-            max-height: 90dvh;
-            max-width: 100vw;
-            padding-bottom: 0px !important;
-        }
         
-        .dropdown-item.off-hover {
+        @media (min-width: 768px) {
+
+        .off-hover > #change-list-btn {
             width: 80vw !important;
         }
         
-        .dropdown-item.off-hover:hover {
+        }
+        
+        .off-hover:hover {
             background: initial !important;
         }
         
@@ -18100,18 +18120,30 @@ function addDropdownStyle() {
             color: black !important;
         }
         
-        ul:not(.editing) > .dropdown-item:has(#change-list-btn) {
+        ul:not(.editing) .dropdown-item#change-list-btn {
             color: gray !important;
         }
         
         .dropdown-item:has(#change-list-btn):not(:has(.create-link-btn)):hover {
             color: black !important;
         }
+
+        @media (max-width: 767.910px) {
+
+        ul.editing > li > :where(span,a) {
+            padding-left: 8px !important;
+        }
+        
+        ul.editing > li > #change-list-btn{
+            padding-right: 0px !important;
+        }
+    
+        }        
         
         .add-item-a {
             display: flex;
             alignItems: center;
-            gap: 10px;
+            gap: 5px;
         }
         
         /* #edit_tab > .dropdown-menu > li > a {
@@ -18153,7 +18185,7 @@ function makeUrlFromTemplate(template) {
         if (res !== undefined) {
             return res
         }
-        throw `failed to substitute a "${m1}" on current page`
+        throw `failed to substitute "${m1}" on current page`
     })
 }
 
@@ -18255,6 +18287,9 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink) {
         if (newElem) {
             newElem.classList.add("invalid-external-link")
         }
+        if (isMobile) {
+            newElem.style.overflowY = "scroll"
+        }
         resultBox.textContent = ` (${e})`
         return
     } finally {
@@ -18291,7 +18326,7 @@ function addOtherExternalLinks(editorsListUl) {
         if (link.onlyMobile && !isMobile) {
             return
         }
-        processExternalLink(link, false, editorsListUl, false);
+        processExternalLink(link, false, editorsListUl, false)
     })
 }
 
@@ -18330,9 +18365,13 @@ function makeExternalLinkEditable(targetLi, editorsListUl, nameValue = "", templ
     }
 
     const title = document.createElement("input")
-    title.placeholder = "Name of link"
+    title.placeholder = "Link name"
     title.value = nameValue
+    if (isMobile) {
+        title.size = 9
+    }
     title.style.flex = "1"
+    title.style.marginLeft = "5px"
     addItemA.appendChild(title)
 
     const template = document.createElement("input")
@@ -18360,7 +18399,6 @@ function makeExternalLinkEditable(targetLi, editorsListUl, nameValue = "", templ
 
     title.oninput = inputHandler
     template.oninput = inputHandler
-
 
     createLikBtn.onclick = async e => {
         e.preventDefault()
@@ -18422,6 +18460,7 @@ async function setupNewEditorsLinks(mutationsList) {
     if (mutationsList.length === 1 && mutationsList[0].type === "attributes" && mutationsList[0].attributeName === "data-popper-placement") {
         return
     }
+    console.debug("setupNewEditorsLinks call")
     if (mutationsList.length === 1 && mutationsList[0].type === "attributes" && mutationsList[0].attributeName === "aria-describedby") {
         document.querySelector("#" + mutationsList[0].target.getAttribute("aria-describedby"))?.remove()
     }
@@ -18489,7 +18528,20 @@ async function setupNewEditorsLinks(mutationsList) {
         if (isMobile) {
             const editJosmBtn = editorsListUl.querySelector('[href*="/edit?editor=remote"]')
             if (editJosmBtn) {
-                editJosmBtn.textContent = editJosmBtn.textContent.replace("(JOSM, Potlatch, Merkaartor)", "")
+                if (isMobile) {
+                    // editJosmBtn.textContent = editJosmBtn.textContent.replace("Редактировать с помощью", "")
+                    editJosmBtn.style.overflowY = "scroll"
+                    editJosmBtn.style.scrollbarWidth = "none";
+                }
+                // editJosmBtn.textContent = editJosmBtn.textContent.replace("(JOSM, Potlatch, Merkaartor)", "")
+            }
+            const editIdBtn = editorsListUl.querySelector('[href*="/edit?editor=id"]')
+            if (editIdBtn) {
+                if (isMobile) {
+                    editIdBtn.style.overflowY = "scroll"
+                    editIdBtn.style.scrollbarWidth = "none";
+                    // editIdBtn.textContent = editIdBtn.textContent.replace("Редактировать с помощью", "")
+                }
             }
         }
         if (firstRun) {
@@ -18517,12 +18569,14 @@ async function setupNewEditorsLinks(mutationsList) {
             editorsListUl.appendChild(hr)
 
             const editListLi = editorsListUl.querySelector("li").cloneNode()
-            editListLi.classList.add("dropdown-item")
             const span = document.createElement("span")
             span.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "больше ссылок" : "more links"
             span.style.cursor = "pointer"
             span.id = "change-list-btn"
-            span.classList.add("closed")
+            span.classList.add("closed", "dropdown-item")
+            if (isMobile) {
+                span.classList.add("off-hover")
+            }
             editListLi.appendChild(span)
             editListLi.addEventListener(
                 "click",
@@ -21597,6 +21651,8 @@ function setupNavigationViaHotkeys() {
                                 // TODO
                             }
                         }
+                        showNodeMarker(nodesList[0][0], nodesList[0][1], "#ff0000", null, "customObjects", 8)
+                        showNodeMarker(nodesList.at(-1)[0], nodesList.at(-1)[1], "#00ff04", null, "customObjects", 8)
                         showActiveWay(nodesList, c("#0022ff"), false, null, true, 2)
                     })
                 }
