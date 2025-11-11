@@ -18093,6 +18093,10 @@ function addDropdownStyle() {
         display: none !important;
     }
     
+    ul:not(.editing) .delete-link-btn {
+        display: none !important;
+    }
+    
     .edit-link-btn {
         margin-right: 8px !important;
         border-right: solid gray 1px !important;
@@ -18106,8 +18110,14 @@ function addDropdownStyle() {
     
     .delete-link-btn {
         all: unset;
-        margin: 4px;
         cursor: pointer;
+        margin-left: 4px;
+        margin-right: 4px;
+    }
+    
+    .in-editing {
+        padding-top: 1px;
+        padding-bottom: 1px;
     }
     
     #edit-link-btn {
@@ -18287,6 +18297,11 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink) {
                 makeExternalLinkEditable(newElem, editorsListUl, link.name, link.template)
                 newElem.remove()
             }
+            const deleteBtn = makeDeleteLinkBtn(link.name, newElem);
+            deleteBtn.style.marginLeft = "auto"
+            a.appendChild(deleteBtn)
+            a.style.display = "flex"
+            a.style.alignItems = "baseline"
         } else {
             const addBtn = document.createElement("button")
             addBtn.classList.add("add-link-btn", "bi", "bi-plus-lg")
@@ -18358,6 +18373,23 @@ function addOtherExternalLinks(editorsListUl) {
     })
 }
 
+function makeDeleteLinkBtn(nameValue, addItemLi) {
+    const deleteBtn = document.createElement("button")
+    deleteBtn.classList.add("delete-link-btn", "bi", "bi-trash")
+    deleteBtn.title = "remove link"
+    deleteBtn.onclick = async e => {
+        e.preventDefault()
+        e.stopPropagation()
+        if (!confirm(`Delete ${nameValue}?`)) {
+            return
+        }
+        addItemLi.remove()
+        externalLinks = externalLinks.filter(i => i.name !== nameValue)
+        await GM.setValue("user-external-links", JSON.stringify(externalLinks))
+    }
+    return deleteBtn;
+}
+
 function makeExternalLinkEditable(targetLi, editorsListUl, nameValue = "", templateValue = "") {
     const addItemLi = targetLi.cloneNode()
     const addItemA = targetLi.querySelector(":where(a, span)").cloneNode()
@@ -18370,19 +18402,7 @@ function makeExternalLinkEditable(targetLi, editorsListUl, nameValue = "", templ
     addItemA.href = ""
     addItemLi.appendChild(addItemA)
 
-    const deleteBtn = document.createElement("button")
-    deleteBtn.classList.add("delete-link-btn", "bi", "bi-trash")
-    deleteBtn.title = "remove link"
-    deleteBtn.onclick = async e => {
-        e.preventDefault()
-        e.stopPropagation()
-        if (!confirm(`Delete ${nameValue}`)) {
-            return
-        }
-        addItemLi.remove()
-        externalLinks = externalLinks.filter(i => i.name !== nameValue)
-        await GM.setValue("user-external-links", JSON.stringify(externalLinks))
-    }
+    const deleteBtn = makeDeleteLinkBtn(nameValue, addItemLi);
 
     const title = document.createElement("input")
     title.classList.add("title-input")
