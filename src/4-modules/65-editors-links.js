@@ -229,9 +229,12 @@ function addDropdownStyle() {
     ul:not(.editing) .dropdown-item#change-list-btn:not(:hover) {
         color: gray !important;
     }
+
+    #edit_tab li:has(.dropdown-item):not(.off-hover):hover {
+        background-color: #7ebc6f;
+    }
     
-    
-    @media (max-width: 768px) {
+    @media (max-width: 767.910px) {
     
     li > .dropdown-item#change-list-btn:not(:has(.create-link-btn)):hover {
         color: gray !important;
@@ -611,7 +614,7 @@ async function setupNewEditorsLinks(mutationsList) {
             svg.setAttribute("height", 20)
             langSwitchBtn.before(linksBtn)
 
-            linksBtn.addEventListener("click", e => {
+            function linksMenuClickHandler(e) {
                 e.preventDefault()
                 e.stopPropagation()
                 if (document.querySelector("header").classList.contains("closed")) {
@@ -626,7 +629,26 @@ async function setupNewEditorsLinks(mutationsList) {
                     document.querySelector("#edit_tab > ul").classList.add("open-dropdown")
                     document.querySelector("#edit_tab > button").click()
                 }
-            })
+            }
+
+            linksBtn.addEventListener("click", linksMenuClickHandler)
+
+            if (isDebug() && !document.querySelector("#open-external-panel-btn")) {
+                setTimeout(async () => {
+                    for (let i = 0; i < 40; i++) {
+                        await sleep(30)
+                        if (document.querySelector("#open-external-panel-btn")) {
+                            break
+                        }
+                        const linksBtn2 = document.querySelector(".control-query").cloneNode(true)
+                        linksBtn2.id = "open-external-panel-btn"
+                        linksBtn2.querySelector("a").innerHTML = svg.outerHTML
+                        linksBtn2.querySelector("svg").setAttribute("stroke-width", "1.75")
+                        linksBtn2.addEventListener("click", linksMenuClickHandler)
+                        document.querySelector(".control-query").after(linksBtn2)
+                    }
+                })
+            }
         })
         document.querySelectorAll("#menu-icon:not(.listen-click)").forEach(i => {
             i.classList.add("listen-click")
