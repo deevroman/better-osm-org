@@ -17978,9 +17978,6 @@ async function loadAndMakeExternalLinksDatabase() {
 
 async function initExternalLinksList() {
     if (externalLinksDatabase) return
-    if (isDebug()) {
-        await loadAndMakeExternalLinksDatabase()
-    }
     const cache = await GM.getValue("external-links", "")
     if (externalLinksDatabase) return
     if (cache) {
