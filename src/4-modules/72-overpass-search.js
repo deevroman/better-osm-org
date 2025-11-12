@@ -7,7 +7,14 @@ function yetAnotherWizard(s) {
     } else if (s.match(/^(node|way|rel|nwr|nw|nr|wr)/)) {
         return `${s}` + (s.slice(-1) === ";" ? "" : ";")
     } else {
-        return `nwr[${s}];`
+        // name ~ пятёрочка, i
+        // https://github.com/drolbr/Overpass-API/issues/751
+        const kv_match = s.match(/^(?<prefix>[~!]?)(?<key>[a-zA-Z0-9_\p{L}^$.*+]+)\s*(?<op>(=|~|!=|!~))\s*(?<value>[a-zA-Z0-9_\p{L}^$.*+]+)(?<suffix>\s*,\s*i)?$/u)?.groups
+        if (kv_match) {
+            return `nwr[${kv_match["prefix"] ?? ""}"${kv_match["key"]}"${kv_match["op"]}"${kv_match["value"]}"${kv_match["suffix"] ?? ""}];`
+        } else {
+            return `nwr[${s}];`
+        }
     }
 }
 
@@ -45,10 +52,36 @@ out geom;
                     data: overpassQuery,
                 }),
             responseType: "xml",
+            _retryCallback: context => {
+                if (context.httpCode) {
+                    getMap()?.attributionControl?.setPrefix(`Overpass HTTP Code: ${context.httpCode}. Retry after ${(context.sleepTime / 1000).toFixed()}s. Your can select other server in script settings`)
+                }
+            },
+            _postSleepCallback: context => {
+                if (context.httpCode) {
+                    getMap()?.attributionControl?.setPrefix("")
+                }
+            },
         })
         console.timeEnd("download overpass data " + query)
-
         const xml = new DOMParser().parseFromString(res.response, "text/xml")
+        if (res.status !== 200) {
+            if (xml.querySelector("parsererror")) {
+                alert(`Error. HTTP Code: ${res.status}`)
+            } else {
+                let errorMessage = `Error. HTTP Code: ${res.status}\nSubmitted request:\n\n${overpassQuery}\n`
+
+                xml.querySelectorAll("p").forEach(i => {
+                    const lineText = i.textContent
+                    if (lineText.includes("Error")) {
+                        errorMessage += lineText + "\n"
+                    }
+                })
+                alert(errorMessage)
+            }
+            return
+        }
+
         const data_age = new Date(xml.querySelector("meta").getAttribute("osm_base"))
         console.log(data_age)
 
@@ -105,26 +138,6 @@ out geom;
             }
 
             getMap()?.attributionControl?.setPrefix(statusPrefix)
-
-            /*
-            const centroid = [...points.map(i => turf.point(i)), ...Array.from(xml.querySelectorAll("way")).map(w => {
-                return turf.center(
-                    turf.polygon([Array.from(w.querySelectorAll("nd")).map(n => {
-                        return [
-                            parseFloat(n.getAttribute("lon")),
-                            parseFloat(n.getAttribute("lat")),
-                        ]
-                    })])
-                )
-            })]
-            const voronoiPolygons = turf.voronoi(turf.featureCollection(centroid),
-                {
-                    bbox: [bbox.min_lon, bbox.min_lat, bbox.max_lon, bbox.max_lat]
-                }
-            );
-            renderGeoJSONwrapper(voronoiPolygons)
-            getWindow().jsonLayer.bringToBack()
-            */
         }
     } finally {
         if (document.title === newTitle) {
