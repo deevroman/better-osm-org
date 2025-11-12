@@ -15,6 +15,7 @@ let searchResultBBOX = null
 
 async function processOverpassQuery(query) {
     if (!query.length) return
+    query = query.trim()
     await GM.setValue("lastOverpassQuery", query)
     const bound = getMap().getBounds()
     const bboxString = [bound.getSouthWest().wrap().lat, bound.getSouthWest().wrap().lng, bound.getNorthEast().wrap().lat, bound.getNorthEast().wrap().lng]

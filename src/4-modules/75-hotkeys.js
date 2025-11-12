@@ -1154,7 +1154,7 @@ function setupNavigationViaHotkeys() {
             }
         }
         if (measuring) {
-            if ((e.ctrlKey || e.metaKey) && e.code === "KeyZ" || e.code === "Backspace" || e.code === "Delete") {
+            if (((e.ctrlKey || e.metaKey) && e.code === "KeyZ") || e.code === "Backspace" || e.code === "Delete") {
                 if (currentMeasuring.way.length) {
                     currentMeasuring.way.pop()
                     currentMeasuring.nodes.pop()?.remove()
@@ -1779,7 +1779,23 @@ function setupNavigationViaHotkeys() {
         } else if ((e.code === "Slash" || e.code === "Backslash" || e.code === "NumpadDivide" || e.key === "/") && e.shiftKey) {
             setTimeout(async () => {
                 getMap().getBounds()
-                const message = `Type overpass selector:\n\tkey\n\tkey=value\n\tkey~val,i\n\tway[footway=crossing](if: length() > 150)\nEnd with ! for global search\n⚠this is a simple prototype of search`
+                let message = `Type overpass selector:
+\tkey
+\tkey=value
+\tkey~val,i`
+                const currentUser = decodeURI(
+                    document
+                        .querySelector('.user-menu [href^="/user/"]')
+                        ?.getAttribute("href")
+                        ?.match(/\/user\/(.*)$/)?.[1] ?? ""
+                )
+                if (currentUser) {
+                    message += currentUser.match(/^[a-zA-Z0-9_]+$/) ? `\n\tnode(user:${currentUser})` : `\n\tnode(user:"${currentUser}")`
+                }
+                message += `
+\tway[footway=crossing](if: length() > 150)
+End with ! for global search
+⚠this is a simple prototype of search`
                 const query = prompt(message, await GM.getValue("lastOverpassQuery", ""))
                 if (query) {
                     insertOverlaysStyles()
@@ -1810,7 +1826,7 @@ function setupNavigationViaHotkeys() {
             } else {
                 document.querySelector("#edit_tab button").click()
             }
-        }else {
+        } else {
             // console.log(e.key, e.code)
         }
         if (location.pathname.startsWith("/changeset") && !location.pathname.includes("/changeset_comments")) {
