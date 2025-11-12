@@ -318,7 +318,7 @@ let dropdownObserver = null
 
 async function loadCurrentLinksList() {
     const raw_data = await GM.getValue("user-external-links")
-    if (!raw_data || isDebug()) {
+    if (!raw_data/* || isDebug()*/) {
         externalLinks = externalLinksDatabase.filter(link => {
             if (!link.default) {
                 return false
