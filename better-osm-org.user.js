@@ -1579,6 +1579,24 @@ function copyAnimation(e, text) {
  * @param details {Tampermonkey.Request}
  * @return {Promise<Tampermonkey.Response>}
  */
+async function externalFetch(details) {
+    if (GM_info.scriptHandler !== "FireMonkey") {
+        return await GM.xmlHttpRequest(details)
+    } else {
+        const res = await GM.fetch(details.url, details)
+        if (details["responseType"] === "json") {
+            res.response = res.json
+        } else {
+            res.responseText = res.text
+        }
+        return res
+    }
+}
+
+/**
+ * @param details {Tampermonkey.Request}
+ * @return {Promise<Tampermonkey.Response>}
+ */
 async function externalFetchRetry(details) {
     if (GM_info.scriptHandler !== "FireMonkey") {
         return await _fetchRetry(GM.xmlHttpRequest, details)
@@ -1620,19 +1638,7 @@ async function _fetchRetry(fetchImpl, ...args) {
                         sleepTime = (30 + Math.random() * 10) * 1000
                     }
                 }
-                const context = { httpCode: res.status, sleepTime: sleepTime }
-                try {
-                    args[0]?.["_retryCallback"]?.(context)
-                } catch (e) {
-                }
-                try {
-                    await abortableSleep(sleepTime, getAbortController());
-                } finally {
-                    try {
-                        args[0]?.["_postSleepCallback"]?.(context)
-                    } catch (e) {
-                    }
-                }
+                await abortableSleep(sleepTime, getAbortController());
                 count -= 1
                 if (count === 0) {
                     console.error("oops, DOS block")
@@ -19775,7 +19781,7 @@ out geom;
         console.log(overpassQuery)
 
         console.time("download overpass data " + query)
-        const res = await externalFetchRetry({
+        const res = await externalFetch({
             // todo switcher
             url:
                 overpass_server.apiUrl +
@@ -19783,17 +19789,7 @@ out geom;
                 new URLSearchParams({
                     data: overpassQuery,
                 }),
-            responseType: "xml",
-            _retryCallback: context => {
-                if (context.httpCode) {
-                    getMap()?.attributionControl?.setPrefix(`Overpass HTTP Code: ${context.httpCode}. Retry after ${(context.sleepTime / 1000).toFixed()}s. Your can select other server in script settings`)
-                }
-            },
-            _postSleepCallback: context => {
-                if (context.httpCode) {
-                    getMap()?.attributionControl?.setPrefix("")
-                }
-            },
+            responseType: "xml"
         })
         console.timeEnd("download overpass data " + query)
         const xml = new DOMParser().parseFromString(res.response, "text/xml")
