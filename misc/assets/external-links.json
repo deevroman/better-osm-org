@@ -115,7 +115,7 @@
       "description": ""
     },
     {
-      "name": "Commons: Nearby images",
+      "name": "Wikimedia Commons Images",
       "template": "https://wikimap.toolforge.org/?wp=false&basemap=2&cluster=false&zoom={zoom}&lat={latitude}&lon={longitude}",
       "description": "Pictures"
     },
@@ -126,19 +126,20 @@
       "default": true
     },
     {
-      "name": "Bikerouter",
-      "template": "https://bikerouter.de/#map={zoom}/{latitude}/{longitude}",
-      "description": "Router (biking and hiking)"
-    },
-    {
       "name": "OpenTopoMap",
       "template": "https://opentopomap.org/#map={zoom}/{latitude}/{longitude}",
       "description": ""
     },
     {
-      "name": "Brouter Navigation",
-      "template": "https://brouter.de/brouter-web/#map={zoom}/{latitude}/{longitude}/standard",
-      "description": "Router (biking and hiking)"
+      "name": "OSM-Streetlight \uD83D\uDCA1",
+      "template": "https://sb12.github.io/OSMStreetLight/#{zoom}/{latitude}/{longitude}",
+      "description": ""
+    },
+    {
+      "name": "Spy Glass",
+      "template": "http://test.osm2pgsql.org/?#p={zoom}/{latitude}/{longitude}",
+      "description": "",
+      "default": true
     },
     {
       "name": "Nominatim QA",
@@ -161,8 +162,8 @@
       "description": ""
     },
     {
-      "name": "wikimapia",
-      "template": "https://wikimapia.org/#lang=ru&lat={latitude}&lon={longitude}&z={zoom}",
+      "name": "Apple Maps",
+      "template": "https://beta.maps.apple.com/?ll={latitude}%2C{longitude}",
       "description": "",
       "warn": "don't use for mapping"
     },
@@ -173,8 +174,8 @@
       "warn": "don't use for mapping"
     },
     {
-      "name": "Apple Maps",
-      "template": "https://beta.maps.apple.com/?ll={latitude}%2C{longitude}",
+      "name": "wikimapia",
+      "template": "https://wikimapia.org/#lang=ru&lat={latitude}&lon={longitude}&z={zoom}",
       "description": "",
       "warn": "don't use for mapping"
     },
@@ -184,18 +185,38 @@
       "description": ""
     },
     {
-      "name": "OpenRouteService",
-      "template": "https://maps.openrouteservice.org/directions?n1={latitude}&n2={longitude}&n3={zoom}&b=0&k1=en-US&k2=km",
-      "description": "Router"
+      "name": "Bikerouter",
+      "template": "https://bikerouter.de/#map={zoom}/{latitude}/{longitude}",
+      "description": "Router (biking and hiking)"
     },
     {
-      "name": "WaymarkedTrails",
-      "template": "https://hiking.waymarkedtrails.org/#?map={zoom}!{latitude}!{longitude}",
-      "description": "Niche"
+      "name": "Brouter Navigation",
+      "template": "https://brouter.de/brouter-web/#map={zoom}/{latitude}/{longitude}/standard",
+      "description": "Router (biking and hiking)"
+    },
+    {
+      "name": "OpenRouteService",
+      "template": "https://maps.openrouteservice.org/directions?n1={latitude}&n2={longitude}&n3={zoom}&b=0&k1=en-US&k2=km",
+      "description": ""
     },
     {
       "name": "Opening hours",
       "template": "https://openingh.ypid.de/?zoom={zoom}&lat={latitude}&lon={longitude}&layers=B0T&filter=none&tags=opening_hours",
+      "description": ""
+    },
+    {
+      "name": "WaymarkedTrails",
+      "template": "https://hiking.waymarkedtrails.org/#?map={zoom}!{latitude}!{longitude}",
+      "description": ""
+    },
+    {
+      "name": "OpenSkiMap",
+      "template": "https://openskimap.org/#{zoom}/{latitude}/{longitude}",
+      "description": ""
+    },
+    {
+      "name": "OpenSnowMap",
+      "template": "https://www.opensnowmap.org/#map={zoom}/{longitude}/{latitude}&b=snowmap&m=false&h=false",
       "description": ""
     },
     {
@@ -204,54 +225,14 @@
       "description": "QA"
     },
     {
-      "name": "OpenSkiMap",
-      "template": "https://openskimap.org/#{zoom}/{latitude}/{longitude}",
-      "description": "QA"
-    },
-    {
-      "name": "OpenSnowMap",
-      "template": "https://www.opensnowmap.org/#map={zoom}/{longitude}/{latitude}&b=snowmap&m=false&h=false",
-      "description": "QA"
-    },
-    {
-      "name": "iD dev version",
-      "template": "https://ideditor.netlify.app/#map={zoom}/{latitude}/{longitude}",
-      "description": "Editor"
-    },
-    {
-      "name": "OSM-Streetlight",
-      "template": "https://sb12.github.io/OSMStreetLight/#{zoom}/{latitude}/{longitude}",
-      "description": "QA"
-    },
-    {
       "name": "Maxspeed (OpenStreetBrowser)",
       "template": "https://www.openstreetbrowser.org/#map={zoom}/{latitude}/{longitude}&categories=car_maxspeed",
-      "description": "QA"
-    },
-    {
-      "name": "Destination Signs",
-      "template": "https://osm.mueschelsoft.de/destinationsign/example/#way={osm_way_id}&namedroutes=0&fromarrow=0&include_sgn=0&include_way=1&country=DE",
-      "description": "QA"
-    },
-    {
-      "name": "Destination Signs",
-      "template": "https://osm.mueschelsoft.de/destinations/example/#wayid={osm_way_id}&direction=0&country=DE",
-      "description": "QA"
-    },
-    {
-      "name": "Destination Signs Sandbox",
-      "template": "https://osm.mueschelsoft.de/destinations/example/sandbox.htm#country={osm_way_id}",
       "description": "QA"
     },
     {
       "name": "OSM Lane Visualizer",
       "template": "https://osm.mueschelsoft.de/lanes/render.pl?wayid={osm_way_id}&start=1&country=de",
       "description": "QA"
-    },
-    {
-      "name": "Maptiler VectorMap",
-      "template": "https://www.maptiler.com/maps/#streets//vector/{zoom}/{longitude}/{latitude}",
-      "description": "Map"
     },
     {
       "name": "Osmlab changeset map",
@@ -271,7 +252,8 @@
     {
       "name": "Lanes Map",
       "template": "https://osm-tiles.james-ross.co.uk/?map={zoom}/{latitude}/{longitude}&layer=standard&layer=overlay&layer=roads",
-      "description": "QA"
+      "description": "QA",
+      "disabled": true
     },
     {
       "name": "Parking lanes Map",
@@ -284,10 +266,20 @@
       "description": "QA"
     },
     {
+      "name": "Maptiler VectorMap",
+      "template": "https://www.maptiler.com/maps/#streets//vector/{zoom}/{longitude}/{latitude}",
+      "description": "Map"
+    },
+    {
+      "name": "iD dev version",
+      "template": "https://ideditor.netlify.app/#map={zoom}/{latitude}/{longitude}",
+      "description": "Editor",
+      "disabled": true
+    },
+    {
       "name": "OSM 411",
       "template": "https://osm411.org/#map={zoom}/{latitude}/{longitude}",
-      "description": "",
-      "default": true
+      "description": ""
     },
     {
       "name": "Geohack",
@@ -297,7 +289,8 @@
     {
       "name": "OpenSwitchMapsWeb",
       "template": "https://tankaru.github.io/OpenSwitchMapsWeb/index.html#https://www.openstreetmap.org/#map={zoom}/{latitude}/{longitude}",
-      "description": ""
+      "description": "",
+      "disabled": true
     },
     {
       "name": "Search selection in id-editor Transifex",
@@ -306,7 +299,7 @@
       "disabled": true
     },
     {
-      "name": "More links examples",
+      "name": "More links examples \uD83D\uDEDF",
       "template": "https://wiki.openstreetmap.org/wiki/OSM_Smart_Menu#More_examples_for_advanced_method_using_custom_code",
       "description": ""
     },

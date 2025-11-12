@@ -1802,7 +1802,14 @@ function setupNavigationViaHotkeys() {
             //setupBuildingTools()
         } else if (e.code === "KeyX") {
             document.querySelector("#edit_tab ul").tabIndex = -1
-            document.querySelector("#edit_tab button").click()
+            if (document.querySelector("header").classList.contains("closed")) {
+                document.querySelector("#menu-icon").click()
+                document.querySelector("#edit_tab > button").click()
+            } else if (document.querySelector("#edit_tab > .dropdown-menu").classList.contains("show")) {
+                document.querySelector("#change-list-btn.closed")?.click()
+            } else {
+                document.querySelector("#edit_tab button").click()
+            }
         }else {
             // console.log(e.key, e.code)
         }
