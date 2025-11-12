@@ -14,8 +14,9 @@
 let externalLinks = null
 /** @type {null | externalLink[]}*/
 let externalLinksDatabase = null
-// const externalLinksURL = "http://localhost:7777/misc/assets/external-links.json"
-const externalLinksURL = `https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/dev/misc/assets/external-links.json?bypasscache=${Math.random()}`
+// const localExternalLinksURL = "http://localhost:7777/misc/assets/external-links.json"
+const githubExternalLinksURL = `https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/dev/misc/assets/external-links.json?bypasscache=${Math.random()}`
+const externalLinksURL = githubExternalLinksURL
 
 function makeSafeForCSS(name) {
     return name.replace(/[^a-z0-9]/g, function (s) {
@@ -57,6 +58,9 @@ async function loadAndMakeExternalLinksDatabase() {
 async function initExternalLinksList() {
     if (externalLinksDatabase) return
     const cache = await GM.getValue("external-links", "")
+    // if (isDebug()) {
+    //     await loadAndMakeExternalLinksDatabase()
+    // }
     if (externalLinksDatabase) return
     if (cache) {
         console.log("external links cached")
@@ -91,6 +95,9 @@ function updateUrlTemplateContext() {
     urlTemplateContext.osm_type = osm_m?.[1]
     urlTemplateContext.osm_type_first_letter = urlTemplateContext.osm_type?.[0]
     urlTemplateContext.osm_id = parseInt(osm_m?.[2])
+    ;["node", "way", "relation", "changeset", "note", "undefined"].forEach(i => {
+        delete urlTemplateContext[`osm_${i}_id`]
+    })
     urlTemplateContext[`osm_${urlTemplateContext.osm_type}_id`] = urlTemplateContext.osm_id
     // todo как мониторить изменения выделения?
     // todo как быть с iD, который в iframe?
@@ -293,6 +300,11 @@ function addDropdownStyle() {
         row-gap: 10px;
     }
     
+    .in-editing > .create-link-btn {
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
+    }
+    
     .add-item-a.in-editing input {
         margin-left: 0px !important;
     }
@@ -306,7 +318,7 @@ let dropdownObserver = null
 
 async function loadCurrentLinksList() {
     const raw_data = await GM.getValue("user-external-links")
-    if (!raw_data) {
+    if (!raw_data || isDebug()) {
         externalLinks = externalLinksDatabase.filter(link => {
             if (!link.default) {
                 return false
@@ -450,6 +462,7 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink) {
     if (a.href !== actualHref) {
         a.href = actualHref
         a.title = link.template
+        resultBox.textContent = ""
     }
 }
 

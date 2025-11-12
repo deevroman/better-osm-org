@@ -46,7 +46,7 @@
 // @changelog       New: Comments templates, support ways render in relation members list
 // @changelog       New: Q for close sidebar, shift + Z for real bbox of changeset
 // @changelog       New: displaying the full history of ways (You can disable it in settings)
-// @changelog       https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670/193
+// @changelog       https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670/196
 // @description     Several improvements for advanced users of openstreetmap.org
 // @description:ru  Скрипт, добавляющий на openstreetmap.org полезные картографам функции
 // @author       deevroman
@@ -17936,8 +17936,9 @@ function simplifyHDCYIframe() {
 let externalLinks = null
 /** @type {null | externalLink[]}*/
 let externalLinksDatabase = null
-const externalLinksURL = "http://localhost:7777/misc/assets/external-links.json"
-// const externalLinksURL = `https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/dev/misc/assets/external-links.json?bypasscache=${Math.random()}`
+// const localExternalLinksURL = "http://localhost:7777/misc/assets/external-links.json"
+const githubExternalLinksURL = `https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/dev/misc/assets/external-links.json?bypasscache=${Math.random()}`
+const externalLinksURL = githubExternalLinksURL
 
 function makeSafeForCSS(name) {
     return name.replace(/[^a-z0-9]/g, function (s) {
@@ -17979,6 +17980,9 @@ async function loadAndMakeExternalLinksDatabase() {
 async function initExternalLinksList() {
     if (externalLinksDatabase) return
     const cache = await GM.getValue("external-links", "")
+    // if (isDebug()) {
+    //     await loadAndMakeExternalLinksDatabase()
+    // }
     if (externalLinksDatabase) return
     if (cache) {
         console.log("external links cached")
@@ -18013,6 +18017,9 @@ function updateUrlTemplateContext() {
     urlTemplateContext.osm_type = osm_m?.[1]
     urlTemplateContext.osm_type_first_letter = urlTemplateContext.osm_type?.[0]
     urlTemplateContext.osm_id = parseInt(osm_m?.[2])
+    ;["node", "way", "relation", "changeset", "note", "undefined"].forEach(i => {
+        delete urlTemplateContext[`osm_${i}_id`]
+    })
     urlTemplateContext[`osm_${urlTemplateContext.osm_type}_id`] = urlTemplateContext.osm_id
     // todo как мониторить изменения выделения?
     // todo как быть с iD, который в iframe?
@@ -18215,6 +18222,11 @@ function addDropdownStyle() {
         row-gap: 10px;
     }
     
+    .in-editing > .create-link-btn {
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
+    }
+    
     .add-item-a.in-editing input {
         margin-left: 0px !important;
     }
@@ -18228,7 +18240,7 @@ let dropdownObserver = null
 
 async function loadCurrentLinksList() {
     const raw_data = await GM.getValue("user-external-links")
-    if (!raw_data) {
+    if (!raw_data || isDebug()) {
         externalLinks = externalLinksDatabase.filter(link => {
             if (!link.default) {
                 return false
@@ -18372,6 +18384,7 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink) {
     if (a.href !== actualHref) {
         a.href = actualHref
         a.title = link.template
+        resultBox.textContent = ""
     }
 }
 
@@ -21770,7 +21783,14 @@ function setupNavigationViaHotkeys() {
             //setupBuildingTools()
         } else if (e.code === "KeyX") {
             document.querySelector("#edit_tab ul").tabIndex = -1
-            document.querySelector("#edit_tab button").click()
+            if (document.querySelector("header").classList.contains("closed")) {
+                document.querySelector("#menu-icon").click()
+                document.querySelector("#edit_tab > button").click()
+            } else if (document.querySelector("#edit_tab > .dropdown-menu").classList.contains("show")) {
+                document.querySelector("#change-list-btn.closed")?.click()
+            } else {
+                document.querySelector("#edit_tab button").click()
+            }
         }else {
             // console.log(e.key, e.code)
         }
@@ -21866,6 +21886,28 @@ function setupOverzoomForDataLayer() {
     if (location.hash.includes("D") && location.hash.includes("layers")) {
         enableOverzoom()
     }
+}
+
+//</editor-fold>
+
+//<editor-fold desc="better-tags-paste" defaultstate="collapsed">
+
+function setupPrometheusLink() {
+    if (document.querySelector("h2")?.textContent !== "This website is under heavy load (queue full)") {
+        return
+    }
+    const hint = document.createElement("div")
+    hint.textContent = ""
+    hint.innerHTML = `
+<a href="https://prometheus.openstreetmap.org/d/5rTT87FMk/web-site">Website prometheus</a>
+<br>
+<br>
+<a href="https://github.com/openstreetmap/openstreetmap-website">GitHub openstreetmap-website</a>
+<br>
+<br>
+<a href="https://github.com/openstreetmap/operations/issues?q=sort%3Aupdated-desc+is%3Aissue+is%3Aopen">OpenStreetMap operations issues</a>
+`
+    document.body.appendChild(hint)
 }
 
 //</editor-fold>
@@ -22020,7 +22062,8 @@ const alwaysEnabledModules = [
     setupMakeVersionPageBetter,
     setupNotesFiltersButtons,
     setupGPXFiltersButtons,
-    setupNewContextMenuItems
+    setupNewContextMenuItems,
+    setupPrometheusLink
 ]
 
 function setupOSMWebsite() {

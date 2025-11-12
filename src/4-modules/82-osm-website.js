@@ -34,7 +34,8 @@ const alwaysEnabledModules = [
     setupMakeVersionPageBetter,
     setupNotesFiltersButtons,
     setupGPXFiltersButtons,
-    setupNewContextMenuItems
+    setupNewContextMenuItems,
+    setupPrometheusLink
 ]
 
 function setupOSMWebsite() {
