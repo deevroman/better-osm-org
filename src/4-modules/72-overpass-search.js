@@ -43,7 +43,7 @@ out geom;
         console.log(overpassQuery)
 
         console.time("download overpass data " + query)
-        const res = await externalFetchRetry({
+        const res = await externalFetch({
             // todo switcher
             url:
                 overpass_server.apiUrl +
@@ -51,17 +51,7 @@ out geom;
                 new URLSearchParams({
                     data: overpassQuery,
                 }),
-            responseType: "xml",
-            _retryCallback: context => {
-                if (context.httpCode) {
-                    getMap()?.attributionControl?.setPrefix(`Overpass HTTP Code: ${context.httpCode}. Retry after ${(context.sleepTime / 1000).toFixed()}s. Your can select other server in script settings`)
-                }
-            },
-            _postSleepCallback: context => {
-                if (context.httpCode) {
-                    getMap()?.attributionControl?.setPrefix("")
-                }
-            },
+            responseType: "xml"
         })
         console.timeEnd("download overpass data " + query)
         const xml = new DOMParser().parseFromString(res.response, "text/xml")
