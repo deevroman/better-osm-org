@@ -424,7 +424,7 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink) {
             newElem.style.overflowY = "scroll"
         }
         const errorText = ` (${e})`
-        if (resultBox.textContent !== errorText) {
+        if (resultBox && resultBox.textContent !== errorText) {
             resultBox.textContent = ` (${e})`
         }
         return
