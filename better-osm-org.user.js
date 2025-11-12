@@ -18052,7 +18052,7 @@ function addDropdownStyle() {
 
     #edit_tab > .dropdown-menu {
         overflow-x: hidden;
-        max-height: min(85vh, 100vh - 55px);
+        max-height: min(85vh, 100vh - 75px);
         max-width: 100vw;
         padding-bottom: 0px !important;
         overscroll-behavior: none;
@@ -18062,13 +18062,13 @@ function addDropdownStyle() {
     @media (max-width: 767.910px) {
     
     #edit_tab > .dropdown-menu {
-        max-height: min(85vh, 100vh - 160px);
+        max-height: min(85vh, 100vh - 170px);
     }
     
     .open-dropdown {
         display: block !important;
         top: -100px !important;
-        max-height: min(85vh, 100vh - 55px) !important;
+        max-height: min(85vh, 100vh - 75px) !important;
     }
     
     }
@@ -18112,6 +18112,10 @@ function addDropdownStyle() {
         all: unset;
         cursor: pointer;
         margin-left: 4px;
+        margin-right: 12px;
+    }
+    
+    .in-editing .delete-link-btn {
         margin-right: 4px;
     }
     
@@ -18144,12 +18148,22 @@ function addDropdownStyle() {
     }
     
     ul:not(.editing) .dropdown-item#change-list-btn {
+        cursor: pointer;
+    }
+
+    ul:not(.editing) .dropdown-item#change-list-btn:not(:hover) {
         color: gray !important;
     }
     
-    .dropdown-item:has(#change-list-btn):not(:has(.create-link-btn)):hover {
-        color: var(--bs-body-color) !important;
+    
+    @media (max-width: 768px) {
+    
+    li > .dropdown-item#change-list-btn:not(:has(.create-link-btn)):hover {
+        color: gray !important;
     }
+    
+    }
+    
 
     ul.editing > li > :where(span,a) {
         padding-left: 8px !important;
@@ -18191,6 +18205,10 @@ function addDropdownStyle() {
     }
     
     @media (max-width: 767.910px) {
+    
+    .in-editing {
+        align-items: center !important;
+    }
     
     .inputs-wrapper {
         flex-direction: column;
@@ -18297,9 +18315,9 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink) {
                 makeExternalLinkEditable(newElem, editorsListUl, link.name, link.template)
                 newElem.remove()
             }
-            const deleteBtn = makeDeleteLinkBtn(link.name, newElem);
+            const deleteBtn = makeDeleteLinkBtn(link.name, newElem)
             deleteBtn.style.marginLeft = "auto"
-            a.appendChild(deleteBtn)
+            a.after(deleteBtn)
             a.style.display = "flex"
             a.style.alignItems = "baseline"
         } else {
@@ -18387,7 +18405,7 @@ function makeDeleteLinkBtn(nameValue, addItemLi) {
         externalLinks = externalLinks.filter(i => i.name !== nameValue)
         await GM.setValue("user-external-links", JSON.stringify(externalLinks))
     }
-    return deleteBtn;
+    return deleteBtn
 }
 
 function makeExternalLinkEditable(targetLi, editorsListUl, nameValue = "", templateValue = "") {
@@ -18402,7 +18420,7 @@ function makeExternalLinkEditable(targetLi, editorsListUl, nameValue = "", templ
     addItemA.href = ""
     addItemLi.appendChild(addItemA)
 
-    const deleteBtn = makeDeleteLinkBtn(nameValue, addItemLi);
+    const deleteBtn = makeDeleteLinkBtn(nameValue, addItemLi)
 
     const title = document.createElement("input")
     title.classList.add("title-input")
@@ -18484,6 +18502,8 @@ function makeExternalLinkEditable(targetLi, editorsListUl, nameValue = "", templ
             addItemLi.id = "custom-editor-" + newLink.safeName
             addItemA.classList.remove("add-item-a")
             addItemA.href = ""
+            addItemA.classList.remove("in-editing")
+            addItemLi.classList.remove("off-hover")
             addItemLi.classList.add("need-repair")
             processExternalLink(newLink, false, editorsListUl, true)
         }
@@ -18519,9 +18539,18 @@ async function setupNewEditorsLinks(mutationsList) {
             linksBtn.addEventListener("click", e => {
                 e.preventDefault()
                 e.stopPropagation()
-                document.querySelector("#edit_tab > ul").classList.toggle("open-dropdown")
-                document.querySelector("#menu-icon").click()
-                document.querySelector("#edit_tab > button").click()
+                if (document.querySelector("header").classList.contains("closed")) {
+                    document.querySelector("#edit_tab > ul").classList.add("open-dropdown")
+                    document.querySelector("#menu-icon").click()
+                    document.querySelector("#edit_tab > button").click()
+                } else if (document.querySelector("#edit_tab > .dropdown-menu").classList.contains("show")) {
+                    document.querySelector("#edit_tab > ul").classList.remove("open-dropdown")
+                    document.querySelector("#edit_tab > button").click()
+                    document.querySelector("#menu-icon").click()
+                } else {
+                    document.querySelector("#edit_tab > ul").classList.add("open-dropdown")
+                    document.querySelector("#edit_tab > button").click()
+                }
             })
         })
         document.querySelectorAll("#menu-icon:not(.listen-click)").forEach(i => {
@@ -18610,7 +18639,7 @@ async function setupNewEditorsLinks(mutationsList) {
             editListLi.appendChild(span)
 
             // hack for preload bootstrap font
-            const dummy =  document.createElement("span")
+            const dummy = document.createElement("span")
             dummy.classList.add("bi", "bi-pencil")
             dummy.style.opacity = "0"
             span.appendChild(dummy)
