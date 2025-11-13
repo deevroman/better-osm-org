@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.4.1
+// @version         1.4.2
 // @changelog       v1.4.0: More links in Edit menu, the ability to add custom links (like OSM Smart Menu)
 // @changelog       v1.4.0: A button for quickly opening the links list and shortening the map attribution on phones
 // @changelog       v1.3.7: Add '=' when pasting tag into iD raw tags editor, big script refactor
@@ -18314,6 +18314,7 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink) {
             newElem.classList.add("user-external-link")
         }
         newElem.id = "custom-editor-" + link.safeName
+        newElem.setAttribute("url-template", link.template)
         const a = newElem.querySelector("a")
         a.removeAttribute("href")
         a.textContent = link.name
@@ -18372,7 +18373,7 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink) {
     }
     let actualHref
     try {
-        actualHref = makeUrlFromTemplate(link.template)
+        actualHref = makeUrlFromTemplate(newElem.getAttribute("url-template"))
     } catch (e) {
         if (newElem) {
             newElem.classList.add("invalid-external-link")
@@ -18404,7 +18405,9 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink) {
     if (a.href !== actualHref) {
         a.href = actualHref
         a.title = link.template
-        resultBox.textContent = ""
+        if (resultBox) {
+            resultBox.textContent = ""
+        }
     }
 }
 
@@ -18446,9 +18449,11 @@ function makeExternalLinkEditable(targetLi, editorsListUl, nameValue = "", templ
     const addItemA = targetLi.querySelector(":where(a, span)").cloneNode()
     addItemA.classList.add("add-item-a")
     addItemA.onclick = e => {
-        e.preventDefault()
-        e.stopPropagation()
-        e.stopImmediatePropagation()
+        if (addItemA.classList.contains("in-editing")) {
+            e.preventDefault()
+            e.stopPropagation()
+            e.stopImmediatePropagation()
+        }
     }
     addItemA.href = ""
     addItemLi.appendChild(addItemA)
