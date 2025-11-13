@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.4.0
+// @version         1.4.1
 // @changelog       v1.4.0: More links in Edit menu, the ability to add custom links (like OSM Smart Menu)
 // @changelog       v1.4.0: A button for quickly opening the links list and shortening the map attribution on phones
 // @changelog       v1.3.7: Add '=' when pasting tag into iD raw tags editor, big script refactor
@@ -18260,7 +18260,7 @@ let dropdownObserver = null
 
 async function loadCurrentLinksList() {
     const raw_data = await GM.getValue("user-external-links")
-    if (!raw_data || isDebug()) {
+    if (!raw_data/* || isDebug()*/) {
         externalLinks = externalLinksDatabase.filter(link => {
             if (!link.default) {
                 return false
@@ -18467,7 +18467,7 @@ function makeExternalLinkEditable(targetLi, editorsListUl, nameValue = "", templ
 
     const template = document.createElement("input")
     template.classList.add("template-input")
-    template.placeholder = (isMobile ? "" : "URL example: ") + "https://osm.org/{osm_type}/{osm_id}/#map={zoom}/{lon}/{lat}"
+    template.placeholder = (isMobile ? "" : "URL example: ") + "https://osm.org/{osm_type}/{osm_id}/#map={zoom}/{lat}/{lon}"
     template.name = "custom-link-template"
     template.value = templateValue
 
