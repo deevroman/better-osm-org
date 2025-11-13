@@ -35,13 +35,9 @@ Also works in Firefox for Android
 
   <img src="misc/img/hdyc.jpg" width="50%">
 
-### Dark mode for map and iD
+### Dark mode for map
 
 <img src="misc/img/dark-map.png" width="50%">
-
-<img src="misc/img/dark-id.png" width="50%">
-
-Based on [OpenStreetMap Dark Theme by AlexPS](https://userstyles.world/style/15596/openstreetmap-dark-theme)
 
 ### Edit war detector
 
@@ -52,6 +48,11 @@ Based on [OpenStreetMap Dark Theme by AlexPS](https://userstyles.world/style/155
 <img src="misc/img/photos-and-traces-in-notes.png" width="50%">
 
 Photos are also displayed in the tags `panoramax=*` and `wikimedia_commons=*`
+
+### Сustomizable external links
+
+<img src="misc/img/external-links.png" width="50%">
+
 
 ### Hotkeys
 
@@ -97,7 +98,7 @@ Experimental hotkeys:
 
 - [x] Search deleted author of changeset
 - [x] Template responses when closing notes/changeset 👌/ 👋
-+ [x] Add Rapid into Edit menu
+- [x] Links to geo services and OSM editors (like OSM Smart Menu)
 
 - Mass actions with changesets
 -
@@ -117,7 +118,7 @@ Experimental hotkeys:
 - [x] Settings
 - [x] Hide active note highlight
 - [x] Click on time for show ISO-time
-- [x] Open external links in new tab 
+- [x] Open external links in new tab
 - Clickable:
 - + [x] ID and names in object header
 - + [x] Hashtags in changeset comment
@@ -140,6 +141,7 @@ Experimental hotkeys:
 - File viewer via Drag&Drop β
 - + [x] geotagged photos
 - + [x] .gpx
+- + [x] .kmz
 - + [x] .geojson
 - + [x] .osm
 - Notes filters:
@@ -156,7 +158,6 @@ Experimental hotkeys:
 - [ ] in-browser reverter
 - [ ] Changesets feed like who did it
 - [ ] Jump to overpass from tags
-- [ ] Custom links to geo services (like OSM Smart Menu) 
 - [ ] Mark reviewed changesets
 - [ ] Public transport viewer and validator
 - [ ] Collapse name tags
