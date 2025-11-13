@@ -49,7 +49,7 @@ Also works in Firefox for Android
 
 Photos are also displayed in the tags `panoramax=*` and `wikimedia_commons=*`
 
-### Сustomizable external links
+### Customizable external links
 
 <img src="misc/img/external-links.png" width="50%">
 
