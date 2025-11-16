@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.4.3
+// @version         1.4.4
 // @changelog       v1.4.0: More links in Edit menu, the ability to add custom links (like OSM Smart Menu)
 // @changelog       v1.4.0: A button for quickly opening the links list and shortening the map attribution on phones
 // @changelog       v1.3.7: Add '=' when pasting tag into iD raw tags editor, big script refactor
@@ -10486,7 +10486,6 @@ function addDiffInHistory(reason = "url_change") {
 
     if (!document.querySelector(".tag-added") && !document.querySelector(".tag-unmodified")) {
         const versions = [{ tags: [], coordinates: "", wasModified: false, nodes: [], members: [], visible: true, membersCount: 0, versionNumber: 0 }]
-        // add/modification
         const oldToNewHtmlVersions = Array.from(
             document.querySelectorAll('#element_versions_list > div:not(.processed):not([way-version="inter"]):not(:has(a[href*="/redactions/"]:not([rel]):not(.unredacted)))'),
         ).toReversed()
@@ -10572,6 +10571,8 @@ function addDiffInHistory(reason = "url_change") {
                 valuesLinks.set(a.textContent, a.href)
             })
             const showPreviousTagValue = GM_config.get("ShowPreviousTagValue", true)
+            const lastTags = versions.at(-1).tags
+            // add/modification
             kv.forEach(i => {
                 const k = i.querySelector("th > a")?.textContent ?? i.querySelector("th")?.textContent
                 i.querySelector("td .prev-value-span")?.remove()
@@ -10592,7 +10593,6 @@ function addDiffInHistory(reason = "url_change") {
                 }
                 tags.push([k, v])
 
-                const lastTags = versions.at(-1).tags
                 let tagWasModified = false
                 if (!lastTags.some(elem => elem[0] === k)) {
                     i.querySelector("th").classList.add("history-diff-new-tag")
@@ -10719,6 +10719,48 @@ function addDiffInHistory(reason = "url_change") {
                     i.querySelector("td").classList.add("non-modified-tag")
                 }
             })
+            // deletion
+            lastTags.forEach(tag => {
+                const k = tag[0]
+                const v = tag[1]
+                const x = ver
+                if (tags.some(elem => elem[0] === k)) {
+                    return
+                }
+                const tr = document.createElement("tr")
+                tr.classList.add("history-diff-deleted-tag-tr")
+                const th = document.createElement("th")
+                th.textContent = k
+                th.classList.add("history-diff-deleted-tag", "py-1", "border-grey", "table-light", "fw-normal", "border-start", "border-secondary-subtle")
+                const td = document.createElement("td")
+                if (k.includes("colour")) {
+                    td.innerHTML = `<svg width="14" height="14" class="float-end m-1"><title></title><rect x="0.5" y="0.5" width="13" height="13" fill="" stroke="#2222"></rect></svg>`
+                    td.querySelector("svg rect").setAttribute("fill", v)
+                    td.appendChild(document.createTextNode(v))
+                } else {
+                    td.textContent = v
+                }
+                td.classList.add("history-diff-deleted-tag", "py-1", "border-grey", "table-light", "fw-normal", "border-start", "border-secondary-subtle")
+                tr.appendChild(th)
+                tr.appendChild(td)
+                if (!x.querySelector("tbody")) {
+                    const tableDiv = document.createElement("table")
+                    tableDiv.classList.add("mb-3", "border", "border-secondary-subtle", "rounded", "overflow-hidden")
+                    const table = document.createElement("table")
+                    table.classList.add("mb-0", "browse-tag-list", "table", "align-middle")
+                    const tbody = document.createElement("tbody")
+                    table.appendChild(tbody)
+                    tableDiv.appendChild(table)
+                    x.appendChild(tableDiv)
+                }
+                const firstNonDeletedTag = x.querySelector("th:not(.history-diff-deleted-tag)")?.parentElement
+                if (firstNonDeletedTag) {
+                    firstNonDeletedTag.before(tr)
+                } else {
+                    x.querySelector("tbody").appendChild(tr)
+                }
+                wasModifiedObject = true
+            })
             const lastCoordinates = versions.at(-1).coordinates
             const lastVisible = versions.at(-1).visible
             if (visible && coordinates && versions.length > 1 && coordinates.href !== lastCoordinates) {
@@ -10766,6 +10808,7 @@ function addDiffInHistory(reason = "url_change") {
                 const unloadedMembersList = ver.querySelector("turbo-frame:has(.spinner-border)")
                 const olderUnloadedMembersList = oldToNewHtmlVersions[verInd - 1]?.querySelector("turbo-frame:has(.spinner-border)")
                 // https://osm.org/relation/9425522/history
+                // https://osm.org/relation/17542348/history
                 if (version > 1 && membersCount !== olderMembersCount) {
                     ver.querySelector("details:not(.empty-version) > summary")?.classList.add("history-diff-modified-tag")
                     wasModifiedObject = true
@@ -10830,6 +10873,9 @@ function addDiffInHistory(reason = "url_change") {
                 }
                 ver.querySelector("details")?.removeAttribute("open")
             }
+            if (!wasModifiedObject && !isRelation) {
+                oldToNewHtmlVersions[verInd] = convertVersionIntoSpoiler(ver)
+            }
             versions.push({
                 versionNumber: version,
                 tags: tags,
@@ -10843,52 +10889,6 @@ function addDiffInHistory(reason = "url_change") {
             ver.querySelectorAll("h4").forEach((el, index) => (index !== 0 ? el.classList.add("hidden-h4") : null))
             ver.title = makeTitleForTagsCount(tags.length)
         }
-        // deletion
-        oldToNewHtmlVersions.toReversed().forEach((x, index) => {
-            if (oldToNewHtmlVersions.length <= index + 1) return
-            versions.toReversed()[index + 1].tags.forEach(tag => {
-                const k = tag[0]
-                const v = tag[1]
-                if (!versions.toReversed()[index].tags.some(elem => elem[0] === k)) {
-                    const tr = document.createElement("tr")
-                    tr.classList.add("history-diff-deleted-tag-tr")
-                    const th = document.createElement("th")
-                    th.textContent = k
-                    th.classList.add("history-diff-deleted-tag", "py-1", "border-grey", "table-light", "fw-normal", "border-start", "border-secondary-subtle")
-                    const td = document.createElement("td")
-                    if (k.includes("colour")) {
-                        td.innerHTML = `<svg width="14" height="14" class="float-end m-1"><title></title><rect x="0.5" y="0.5" width="13" height="13" fill="" stroke="#2222"></rect></svg>`
-                        td.querySelector("svg rect").setAttribute("fill", v)
-                        td.appendChild(document.createTextNode(v))
-                    } else {
-                        td.textContent = v
-                    }
-                    td.classList.add("history-diff-deleted-tag", "py-1", "border-grey", "table-light", "fw-normal", "border-start", "border-secondary-subtle")
-                    tr.appendChild(th)
-                    tr.appendChild(td)
-                    if (!x.querySelector("tbody")) {
-                        const tableDiv = document.createElement("table")
-                        tableDiv.classList.add("mb-3", "border", "border-secondary-subtle", "rounded", "overflow-hidden")
-                        const table = document.createElement("table")
-                        table.classList.add("mb-0", "browse-tag-list", "table", "align-middle")
-                        const tbody = document.createElement("tbody")
-                        table.appendChild(tbody)
-                        tableDiv.appendChild(table)
-                        x.appendChild(tableDiv)
-                    }
-                    const firstNonDeletedTag = x.querySelector("th:not(.history-diff-deleted-tag)")?.parentElement
-                    if (firstNonDeletedTag) {
-                        firstNonDeletedTag.before(tr)
-                    } else {
-                        x.querySelector("tbody").appendChild(tr)
-                    }
-                    versions[versions.length - index - 1].wasModified = true
-                }
-            })
-            if (!versions[versions.length - index - 1].wasModified && !isRelation) {
-                convertVersionIntoSpoiler(x)
-            }
-        })
         if (document.querySelector("#older_element_versions_navigation a")) {
             oldToNewHtmlVersions[0]?.classList?.remove("processed")
             oldToNewHtmlVersions[0]?.querySelectorAll(".history-diff-new-tag, .history-diff-modified-tag")?.forEach(elem => {
