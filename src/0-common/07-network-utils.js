@@ -105,7 +105,7 @@ async function _fetchRetry(fetchImpl, ...args) {
 const fetchBlobWithCache = (() => {
     const cache = new Map()
 
-    return async url => {
+    return async (url, options = {}) => {
         if (cache.has(url)) {
             return cache.get(url)
         }
@@ -119,6 +119,12 @@ const fetchBlobWithCache = (() => {
         try {
             const result = await promise
             cache.set(url, result)
+            if (options?.timeout) {
+                setTimeout(() => {
+                    cache.delete(url)
+                    console.debug("Purged cache for", url)
+                }, options.timeout)
+            }
             return result
         } catch (error) {
             cache.delete(url)
