@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.4.2
+// @version         1.4.3
 // @changelog       v1.4.0: More links in Edit menu, the ability to add custom links (like OSM Smart Menu)
 // @changelog       v1.4.0: A button for quickly opening the links list and shortening the map attribution on phones
 // @changelog       v1.3.7: Add '=' when pasting tag into iD raw tags editor, big script refactor
@@ -1680,7 +1680,7 @@ async function _fetchRetry(fetchImpl, ...args) {
 const fetchBlobWithCache = (() => {
     const cache = new Map()
 
-    return async url => {
+    return async (url, options = {}) => {
         if (cache.has(url)) {
             return cache.get(url)
         }
@@ -1694,6 +1694,12 @@ const fetchBlobWithCache = (() => {
         try {
             const result = await promise
             cache.set(url, result)
+            if (options?.timeout) {
+                setTimeout(() => {
+                    cache.delete(url)
+                    console.debug("Purged cache for", url)
+                }, options.timeout)
+            }
             return result
         } catch (error) {
             cache.delete(url)
@@ -7442,6 +7448,8 @@ async function getNodeHistory(nodeID) {
  * @typedef {WayVersion[]} WayHistory
  */
 
+const enrichedHistories = new Set()
+
 /**
  * @template T
  * @param apiHistory T[]
@@ -7450,6 +7458,9 @@ async function getNodeHistory(nodeID) {
  * @return {Promise<T[]>}
  */
 async function tryToRichObjHistory(apiHistory, objType, id) {
+    if (enrichedHistories.has(`${objType}${id}`)) {
+        return histories[objType][id]
+    }
     console.debug(`tryToRichObjHistory ${objType}, ${id}`)
     const versionNumbers = new Set()
     const mergedHistory = []
@@ -7472,6 +7483,7 @@ async function tryToRichObjHistory(apiHistory, objType, id) {
         if (a.version > b.version) return 1
         return 0
     })
+    enrichedHistories.add(`${objType}${id}`)
     return mergedHistory
 }
 
@@ -7506,6 +7518,8 @@ async function getWayHistory(wayID) {
     }
 }
 
+const overpassVersionsCache = new Map()
+
 async function loadHiddenWayVersionViaOverpass(wayID, version) {
     if (osm_server !== prod_server) {
         console.warn("Overpass works only for main OSM server")
@@ -7513,6 +7527,9 @@ async function loadHiddenWayVersionViaOverpass(wayID, version) {
     }
     if (parseInt(version) < 1) {
         return
+    }
+    if (overpassVersionsCache.has(`${wayID}${version}`)) {
+        return overpassVersionsCache.get(`${wayID}${version}`)
     }
     const query = `
 [out:json];
@@ -7541,6 +7558,7 @@ for (t["created"])
     if (!res.response.elements[0]) {
         console.log("version not found via overpass. There may be a version created before 2012")
     }
+    overpassVersionsCache.set(`${wayID}${version}`, res.response.elements[0])
     return res.response.elements[0]
 }
 
@@ -7550,13 +7568,13 @@ function convertXmlVersionToObject(xmlVersion) {
     }
     /** @type {NodeVersion|WayVersion|RelationVersion} */
     const resultObj = {
+        type: xmlVersion.nodeName,
         id: parseInt(xmlVersion.getAttribute("id")),
         changeset: parseInt(xmlVersion.getAttribute("changeset")),
         uid: parseInt(xmlVersion.getAttribute("uid")),
         user: xmlVersion.getAttribute("user"),
         version: parseInt(xmlVersion.getAttribute("version")),
         timestamp: xmlVersion.getAttribute("timestamp"),
-        type: xmlVersion.nodeName,
     }
     const tagsInXml = Array.from(xmlVersion.querySelectorAll("tag"))
     const tags = Object.fromEntries(
@@ -9628,6 +9646,8 @@ function setupRelationVersionView() {
     }
 }
 
+const OVERPASS_NEW_ERA_DATE = new Date("2012-09-12T06:55:00Z")
+
 /**
  * @param objID {number|string}
  * @param type {'node'|'way'|'relation'}
@@ -9636,6 +9656,15 @@ function setupRelationVersionView() {
 async function downloadVersionsOfObjectWithRedactionBefore2012(type, objID) {
     if (osm_server !== prod_server) {
         console.warn("Redaction bypass only for main OSM server")
+        return
+    }
+    if (type === "node" && parseInt(objID) > 1331076658) {
+        return
+    }
+    if (type === "way" && parseInt(objID) > 118351431) {
+        return
+    }
+    if (type === "relation" && parseInt(objID) > 1631294) {
         return
     }
     console.debug(`downloadVersionsOfObjectWithRedactionBefore2012 ${type} ${objID}`)
@@ -9650,11 +9679,7 @@ async function downloadVersionsOfObjectWithRedactionBefore2012(type, objID) {
 
     async function downloadArchiveData(url, objID, needUnzip = false) {
         try {
-            const diffGZ = await externalFetchRetry({
-                method: "GET",
-                url: url,
-                responseType: "blob",
-            })
+            const diffGZ = await fetchBlobWithCache(url, {timeout: 10 * 1000})
             const blob = needUnzip ? await decompressBlob(diffGZ.response) : diffGZ.response
             const diffXML = await blob.text()
 
@@ -9828,7 +9853,7 @@ async function restoreObjectHistory(showUnredactedBtn) {
         const tbody = document.createElement("tbody")
         table.appendChild(tbody)
 
-        Object.entries(target["tags"]).forEach(([k, v]) => {
+        Object.entries(target["tags"] ?? {}).forEach(([k, v]) => {
             const tr = document.createElement("tr")
 
             const th = document.createElement("th")
@@ -12596,6 +12621,9 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             }
 
             const nextVersionTimestamp = upperBoundVersion(objHistory, targetVersion.version)?.timestamp
+            if (!nextVersionTimestamp && !changesetMetadata) {
+                changesetMetadata = await loadChangesetMetadata(parseInt(changesetID))
+            }
             const notLater = !nextVersionTimestamp || new Date(nextVersionTimestamp) > new Date(changesetMetadata.closed_at) ? changesetMetadata.closed_at : nextVersionTimestamp
             // notLater важен для правок от StreetComplete. Там часто линия обновляется несколько раз в правке
             const targetNodes = filterFinalObjectState(wayNodesHistories, targetVersion.timestamp, notLater, changesetMetadata.id)
@@ -12892,18 +12920,37 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
     await getChangeset(changesetID)
 }
 
+/**
+ * @param {HTMLElement} elem
+ * @return {Promise<[NodeHistory|WayHistory|RelationHistory, number]>}
+ */
 async function getHistoryAndVersionByElem(elem) {
-    const [, objType, objID, version] = elem.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
+    const [, objType, objID, versionStr] = elem.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
+    const version = parseInt(versionStr)
     if (histories[objType][objID]) {
-        return [histories[objType][objID], parseInt(version)]
+        return [histories[objType][objID], version]
     }
+    let history
     if (objType === "node") {
-        return [await getNodeHistory(objID), parseInt(version)]
+        history = await getNodeHistory(objID)
     } else if (objType === "way") {
-        return [await getWayHistory(objID), parseInt(version)]
+        history = await getWayHistory(objID)
     } else if (objType === "relation") {
-        return [await getRelationHistory(objID), parseInt(version)]
+        history = await getRelationHistory(objID)
     }
+    if (history[version - 1]?.version === version) {
+        return [history, version]
+    }
+    for (let i = min(version - 1, history.length - 1); i > 0; i--) {
+        let versionObj = history[i];
+        if (versionObj.version === version) {
+            return [history, version]
+        }
+        if (versionObj.version < version) {
+            break
+        }
+    }
+    return [histories[objType][objID] = await tryToRichObjHistory(history, objType, objID), version]
 }
 
 /**
@@ -12918,6 +12965,7 @@ function getPrevTargetLastVersions(objHistory, version) {
     for (const objVersion of objHistory) {
         prevVersion = targetVersion
         targetVersion = objVersion
+        // FIXME а если версия скрыта?
         if (objVersion.version === version) {
             break
         }
@@ -13500,6 +13548,7 @@ async function processQuickLookInSidebar(changesetID) {
         }
 
         addCompactModeToggles(objType, uniqTypes)
+        console.debug("tags processing stage finished")
     }
 
     try {

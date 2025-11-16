@@ -161,6 +161,8 @@ async function getNodeHistory(nodeID) {
  * @typedef {WayVersion[]} WayHistory
  */
 
+const enrichedHistories = new Set()
+
 /**
  * @template T
  * @param apiHistory T[]
@@ -169,6 +171,9 @@ async function getNodeHistory(nodeID) {
  * @return {Promise<T[]>}
  */
 async function tryToRichObjHistory(apiHistory, objType, id) {
+    if (enrichedHistories.has(`${objType}${id}`)) {
+        return histories[objType][id]
+    }
     console.debug(`tryToRichObjHistory ${objType}, ${id}`)
     const versionNumbers = new Set()
     const mergedHistory = []
@@ -191,6 +196,7 @@ async function tryToRichObjHistory(apiHistory, objType, id) {
         if (a.version > b.version) return 1
         return 0
     })
+    enrichedHistories.add(`${objType}${id}`)
     return mergedHistory
 }
 
@@ -225,6 +231,8 @@ async function getWayHistory(wayID) {
     }
 }
 
+const overpassVersionsCache = new Map()
+
 async function loadHiddenWayVersionViaOverpass(wayID, version) {
     if (osm_server !== prod_server) {
         console.warn("Overpass works only for main OSM server")
@@ -232,6 +240,9 @@ async function loadHiddenWayVersionViaOverpass(wayID, version) {
     }
     if (parseInt(version) < 1) {
         return
+    }
+    if (overpassVersionsCache.has(`${wayID}${version}`)) {
+        return overpassVersionsCache.get(`${wayID}${version}`)
     }
     const query = `
 [out:json];
@@ -260,6 +271,7 @@ for (t["created"])
     if (!res.response.elements[0]) {
         console.log("version not found via overpass. There may be a version created before 2012")
     }
+    overpassVersionsCache.set(`${wayID}${version}`, res.response.elements[0])
     return res.response.elements[0]
 }
 
@@ -269,13 +281,13 @@ function convertXmlVersionToObject(xmlVersion) {
     }
     /** @type {NodeVersion|WayVersion|RelationVersion} */
     const resultObj = {
+        type: xmlVersion.nodeName,
         id: parseInt(xmlVersion.getAttribute("id")),
         changeset: parseInt(xmlVersion.getAttribute("changeset")),
         uid: parseInt(xmlVersion.getAttribute("uid")),
         user: xmlVersion.getAttribute("user"),
         version: parseInt(xmlVersion.getAttribute("version")),
         timestamp: xmlVersion.getAttribute("timestamp"),
-        type: xmlVersion.nodeName,
     }
     const tagsInXml = Array.from(xmlVersion.querySelectorAll("tag"))
     const tags = Object.fromEntries(
@@ -2347,6 +2359,8 @@ function setupRelationVersionView() {
     }
 }
 
+const OVERPASS_NEW_ERA_DATE = new Date("2012-09-12T06:55:00Z")
+
 /**
  * @param objID {number|string}
  * @param type {'node'|'way'|'relation'}
@@ -2355,6 +2369,15 @@ function setupRelationVersionView() {
 async function downloadVersionsOfObjectWithRedactionBefore2012(type, objID) {
     if (osm_server !== prod_server) {
         console.warn("Redaction bypass only for main OSM server")
+        return
+    }
+    if (type === "node" && parseInt(objID) > 1331076658) {
+        return
+    }
+    if (type === "way" && parseInt(objID) > 118351431) {
+        return
+    }
+    if (type === "relation" && parseInt(objID) > 1631294) {
         return
     }
     console.debug(`downloadVersionsOfObjectWithRedactionBefore2012 ${type} ${objID}`)
@@ -2369,11 +2392,7 @@ async function downloadVersionsOfObjectWithRedactionBefore2012(type, objID) {
 
     async function downloadArchiveData(url, objID, needUnzip = false) {
         try {
-            const diffGZ = await externalFetchRetry({
-                method: "GET",
-                url: url,
-                responseType: "blob",
-            })
+            const diffGZ = await fetchBlobWithCache(url, {timeout: 10 * 1000})
             const blob = needUnzip ? await decompressBlob(diffGZ.response) : diffGZ.response
             const diffXML = await blob.text()
 
@@ -2547,7 +2566,7 @@ async function restoreObjectHistory(showUnredactedBtn) {
         const tbody = document.createElement("tbody")
         table.appendChild(tbody)
 
-        Object.entries(target["tags"]).forEach(([k, v]) => {
+        Object.entries(target["tags"] ?? {}).forEach(([k, v]) => {
             const tr = document.createElement("tr")
 
             const th = document.createElement("th")

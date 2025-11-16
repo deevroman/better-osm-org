@@ -1660,6 +1660,9 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             }
 
             const nextVersionTimestamp = upperBoundVersion(objHistory, targetVersion.version)?.timestamp
+            if (!nextVersionTimestamp && !changesetMetadata) {
+                changesetMetadata = await loadChangesetMetadata(parseInt(changesetID))
+            }
             const notLater = !nextVersionTimestamp || new Date(nextVersionTimestamp) > new Date(changesetMetadata.closed_at) ? changesetMetadata.closed_at : nextVersionTimestamp
             // notLater важен для правок от StreetComplete. Там часто линия обновляется несколько раз в правке
             const targetNodes = filterFinalObjectState(wayNodesHistories, targetVersion.timestamp, notLater, changesetMetadata.id)
@@ -1956,18 +1959,37 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
     await getChangeset(changesetID)
 }
 
+/**
+ * @param {HTMLElement} elem
+ * @return {Promise<[NodeHistory|WayHistory|RelationHistory, number]>}
+ */
 async function getHistoryAndVersionByElem(elem) {
-    const [, objType, objID, version] = elem.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
+    const [, objType, objID, versionStr] = elem.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
+    const version = parseInt(versionStr)
     if (histories[objType][objID]) {
-        return [histories[objType][objID], parseInt(version)]
+        return [histories[objType][objID], version]
     }
+    let history
     if (objType === "node") {
-        return [await getNodeHistory(objID), parseInt(version)]
+        history = await getNodeHistory(objID)
     } else if (objType === "way") {
-        return [await getWayHistory(objID), parseInt(version)]
+        history = await getWayHistory(objID)
     } else if (objType === "relation") {
-        return [await getRelationHistory(objID), parseInt(version)]
+        history = await getRelationHistory(objID)
     }
+    if (history[version - 1]?.version === version) {
+        return [history, version]
+    }
+    for (let i = min(version - 1, history.length - 1); i > 0; i--) {
+        let versionObj = history[i];
+        if (versionObj.version === version) {
+            return [history, version]
+        }
+        if (versionObj.version < version) {
+            break
+        }
+    }
+    return [histories[objType][objID] = await tryToRichObjHistory(history, objType, objID), version]
 }
 
 /**
@@ -1982,6 +2004,7 @@ function getPrevTargetLastVersions(objHistory, version) {
     for (const objVersion of objHistory) {
         prevVersion = targetVersion
         targetVersion = objVersion
+        // FIXME а если версия скрыта?
         if (objVersion.version === version) {
             break
         }
@@ -2564,6 +2587,7 @@ async function processQuickLookInSidebar(changesetID) {
         }
 
         addCompactModeToggles(objType, uniqTypes)
+        console.debug("tags processing stage finished")
     }
 
     try {
