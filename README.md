@@ -138,6 +138,8 @@ Experimental hotkeys:
 - [ ] taginfo: new overpass links
 - + [x] search relation roles
 - + [x] search keys on Key length page
+- + [x] search values from key page
+- + [x] search tag by OSM type
 - File viewer via Drag&Drop β
 - + [x] geotagged photos
 - + [x] .gpx
@@ -156,8 +158,8 @@ Experimental hotkeys:
 ### Ideas
 
 - [ ] in-browser reverter
-- [ ] Changesets feed like who did it
-- [ ] Jump to overpass from tags
+- [ ] Changesets feed like "who did it?"
+- [ ] Jump to Overpass from tags
 - [ ] Mark reviewed changesets
 - [ ] Public transport viewer and validator
 - [ ] Collapse name tags
@@ -212,6 +214,7 @@ Maybe
 ### Other extensions
 - [OpenStreetMap Tags Editor](https://github.com/Zverik/osmtags-editor)
 - [OpenStreetMap Human-readable Wikidata](https://community.openstreetmap.org/t/announcing-human-readable-wikidata-browser-plugins-for-openstreetmap-org/108180)
+- [OpenSwitchMaps](https://github.com/tankaru/OpenSwitchMaps)
 
 ### Projects that are used directly or indirectly in the script
 
