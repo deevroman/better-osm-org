@@ -3586,7 +3586,7 @@ function addDiffInHistory(reason = "url_change") {
                 }
                 ver.querySelector("details")?.removeAttribute("open")
             }
-            if (!wasModifiedObject && !isRelation) {
+            if (!wasModifiedObject && !isRelation && verInd !== 0) {
                 oldToNewHtmlVersions[verInd] = convertVersionIntoSpoiler(ver)
             }
             versions.push({
