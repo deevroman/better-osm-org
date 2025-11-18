@@ -621,7 +621,7 @@ async function getWayNodesByTimestamp(targetTimestamp, wayID) {
         return
     }
     if (targetVersion.visible === false) {
-        return [targetVersion, currentNodesList]
+        return [targetVersion, []]
     }
     const [, wayNodesHistories] = await loadWayVersionNodes(wayID, targetVersion.version)
     const targetNodes = filterObjectListByTimestamp(wayNodesHistories, targetTimestamp)
