@@ -3572,10 +3572,11 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
                 }
             })
             const firstComment = document.querySelector("#sidebar_content article")
-            if (changesetProps["tags"].length > 2) {
+            if (changesetProps["tags"].length > 1) {
                 if (firstComment) {
-                    // https://www.openstreetmap.org/changeset/172368459
-                    firstComment.style.marginTop = 3 + 17 * (changesetProps["tags"].length - 2) + "px"
+                    // https://osm.org/changeset/172368459
+                    // https://osm.org/changeset/171888749
+                    firstComment.style.marginTop = 3 + 17 * (changesetProps["tags"].length - 1) + "px"
                 }
             }
             if (changesetProps["tags"].length > 0 && !firstComment) {
