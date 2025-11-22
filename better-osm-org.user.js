@@ -3487,6 +3487,11 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
         }
         await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/set-harmful/`, "PUT")
         await updateReactions()
+        if (isDebug()) {
+            e.stopPropagation()
+            e.stopImmediatePropagation()
+            contextMenuHandler(e)
+        }
     }
 
     let changesetProps = {}
@@ -3596,7 +3601,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
     reactionsContainer.appendChild(dislikeBtn)
     reactionsContainer.appendChild(document.createTextNode("\xA0"))
 
-    async function contextMenuHandler(e) {
+    function contextMenuHandler(e) {
         e.preventDefault()
         const currentUser = decodeURI(
             document
