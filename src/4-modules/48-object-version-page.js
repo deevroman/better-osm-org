@@ -55,9 +55,10 @@ async function addHoverForNodesParents() {
 /**
  * @param {number[]} nodesIds
  * @param {Map} nodesMap
+ * @param {"way"|"relation"} osm_type
  * @return {HTMLDivElement}
  */
-function makePolygonMeasureButtons(nodesIds, nodesMap) {
+function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type) {
     const nodes = nodesIds.map(i => nodesMap.get(i.toString()))
     const bbox = {
         min_lat: Math.min(...nodes.map(i => i.lat)),
@@ -85,17 +86,19 @@ function makePolygonMeasureButtons(nodesIds, nodesMap) {
     infos.style.display = "none"
     infos.style.paddingBottom = "5px"
 
-    const lengthElem = document.createElement("span")
-    const lengthText = wayLength < 1000 ? wayLength.toFixed(2) + " m" : wayLength.toFixed(0) + " m"
-    lengthElem.textContent = "Length: " + lengthText
-    infos.appendChild(lengthElem)
+    if (osm_type === "way") {
+        const lengthElem = document.createElement("span")
+        const lengthText = wayLength < 1000 ? wayLength.toFixed(2) + " m" : wayLength.toFixed(0) + " m"
+        lengthElem.textContent = "Length: " + lengthText
+        infos.appendChild(lengthElem)
 
-    if (wayArea !== null) {
-        infos.appendChild(document.createTextNode(",\xA0"))
-        const areaElem = document.createElement("span")
-        const areaText = wayLength < 1000 ? wayArea.toFixed(2) + " m²" : wayArea.toFixed(0) + " m²"
-        areaElem.textContent = "Area: " + areaText
-        infos.appendChild(areaElem)
+        if (wayArea !== null) {
+            infos.appendChild(document.createTextNode(",\xA0"))
+            const areaElem = document.createElement("span")
+            const areaText = wayLength < 1000 ? wayArea.toFixed(2) + " m²" : wayArea.toFixed(0) + " m²"
+            areaElem.textContent = "Area: " + areaText
+            infos.appendChild(areaElem)
+        }
     }
 
     const svg1 =
@@ -197,7 +200,7 @@ function makePolygonMeasureButtons(nodesIds, nodesMap) {
     icon4.onclick = e => {
         navigator.clipboard.writeText(text4).then(() => copyAnimation(e, text4))
     }
-
+    // todo нужно больше форматов bbox
     const icons = document.createElement("div")
     icons.style.paddingTop = "5px"
     infos.appendChild(icons)
@@ -292,7 +295,7 @@ async function addHoverForWayNodes() {
 
     if (infoBtn) {
         const nodesIds = wayData.elements.find(i => i.type === "way").nodes
-        const infos = makePolygonMeasureButtons(nodesIds, nodesMap)
+        const infos = makePolygonMeasureButtons(nodesIds, nodesMap, "way")
         document.querySelector("#sidebar_content h4:last-of-type").after(infos)
 
         infoBtn.onclick = () => {
@@ -328,7 +331,7 @@ async function addHoverForRelationMembers() {
     const relation_id = parseInt(match[1])
     let infoBtn
     // eslint-disable-next-line no-constant-condition no-constant-binary-expression
-    if (false && !document.querySelector(".relation-info-btn")) {
+    if (!document.querySelector(".relation-info-btn")) {
         infoBtn = document.createElement("span")
         infoBtn.textContent = "📐"
         infoBtn.classList.add("relation-info-btn")
@@ -558,8 +561,8 @@ async function addHoverForRelationMembers() {
     }
 
     if (infoBtn) {
-        const nodesIds = relationData.elements.find(i => i.type === "way").nodes
-        const infos = makePolygonMeasureButtons(nodesIds, nodesMap)
+        const nodesIds = relationData.elements.filter(i => i.type === "way").flatMap(i => i.nodes)
+        const infos = makePolygonMeasureButtons(nodesIds, nodesMap, "relation")
         document.querySelector("#sidebar_content h4:last-of-type").after(infos)
 
         infoBtn.onclick = () => {
