@@ -21824,7 +21824,10 @@ function setupNavigationViaHotkeys() {
             } else {
                 document.querySelector(".quick-look-compact-toggle-btn")?.click()
                 document.querySelector(".compact-toggle-btn")?.click()
+                document.querySelector("time[switchable]").click()
             }
+        } else if (e.code === "KeyT" && (e.altKey || e.shiftKey)) {
+            document.querySelector("time[switchable]").click()
         } else if (e.code === "KeyM" && !e.altKey && !e.metaKey && !e.ctrlKey) {
             if (e.shiftKey) {
                 if (location.pathname.includes("/user/")) {
