@@ -1,8 +1,10 @@
 //<editor-fold desc="context-menu-items" defaultstate="collapsed">
 
 let contextMenuObserver = null
+let coordinatesFormat = "Lat Lon"
 
 async function setupNewContextMenuItems() {
+    coordinatesFormat = await GM.getValue("CoordinatesFormat") ?? "Lat Lon"
     await interceptMapManually()
     if (!getMap) {
         await sleep(1000)
@@ -17,7 +19,8 @@ async function setupNewContextMenuItems() {
         observer.disconnect()
         const customSeparator = addMenuSeparator(menu)
         addMeasureMenuItem(customSeparator)
-        addPOIMoverItem(measuringCleanMenuItem ?? measuringMenuItem)
+        addCopyCoordinatesMenuItem(measuringCleanMenuItem ?? measuringMenuItem);
+        addPOIMoverItem(copyCoordinatesMenuItem ?? measuringCleanMenuItem ?? measuringMenuItem)
 
         contextMenuObserver.observe(menu, { childList: true, subtree: true, attributes: true })
     })

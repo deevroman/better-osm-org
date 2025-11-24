@@ -650,6 +650,20 @@ function makeContextMenuElem(e) {
     return menu
 }
 
+/**
+ * @param {number} lat
+ * @param {number} lon
+ * @return {Object.<string, {getter: function(): string}>}
+ */
+function makeCoordinatesFormatters(lat, lon) {
+    return {
+        "Lat Lon": { getter: () => `${lat.toFixed(6)} ${lon.toFixed(6)}` },
+        "Lon Lat": { getter: () => `${lon.toFixed(6)} ${lat.toFixed(6)}` },
+        "geo:": { getter: () => `geo:${lat.toFixed(6)},${lon.toFixed(6)}` },
+        "osm.org": { getter: () => `osm.org#map=${getZoom()}/${lat.toFixed(6)}/${lon.toFixed(6)}` },
+    }
+}
+
 function addCopyCoordinatesButtons() {
     const m = location.pathname.match(/^\/(node|way)\/(\d+)/)
     if (!m) {
@@ -661,12 +675,7 @@ function addCopyCoordinatesButtons() {
     }
 
     function addCopyButton(coordsElem, lat, lon) {
-        const coordinatesFormatters = {
-            "Lat Lon": { getter: () => `${lat} ${lon}` },
-            "Lon Lat": { getter: () => `${lon} ${lat}` },
-            "geo:": { getter: () => `geo:${lat},${lon}` },
-            "osm.org": { getter: () => `osm.org#map=${getZoom()}/${lat}/${lon}` },
-        }
+        const coordinatesFormatters = makeCoordinatesFormatters(parseFloat(lat), parseFloat(lon))
 
         coordsElem.onclick = async e => {
             e.preventDefault()
