@@ -5672,6 +5672,85 @@ function setupDeletor(path) {
 
 //</editor-fold>
 
+//<editor-fold desc="copy-coordinates" defaultstate="collapsed">
+
+let copyCoordinatesMenuItem
+
+function removeCopyCoordinatesMenuItem() {
+    copyCoordinatesMenuItem?.remove()
+    copyCoordinatesMenuItem = null
+}
+
+let contextMenuStylesAdded = false
+
+function addContextMenuStyles() {
+    if (contextMenuStylesAdded) return
+    contextMenuStylesAdded = true
+    injectCSSIntoOSMPage(`
+        .copy-coordinates-btn:not(:hover) {
+            color: gray;
+        }
+    `)
+}
+
+function addCopyCoordinatesMenuItem(prevItem) {
+    addContextMenuStyles()
+    removeCopyCoordinatesMenuItem()
+    if (!measurerAdded) {
+        return
+    }
+    const clickLat = parseFloat(getMap().osm_contextmenu._$element.data("lat"))
+    const clickLon = parseFloat(getMap().osm_contextmenu._$element.data("lng"))
+    const coordinatesFormatters = makeCoordinatesFormatters(clickLat, clickLon)
+    let text = coordinatesFormatters[coordinatesFormat]['getter']()
+
+    copyCoordinatesMenuItem = document.createElement("li")
+    copyCoordinatesMenuItem.classList.add("copy-li")
+    copyCoordinatesMenuItem.style.cursor = "pointer"
+
+    const a = document.createElement("a")
+    a.classList.add("dropdown-item", "d-flex", "align-items-center", "gap-3")
+    const textSpan = document.createElement("span")
+    textSpan.textContent = text
+    a.appendChild(textSpan)
+
+    const i = document.createElement("i")
+    i.classList.add("bi", "bi-copy")
+    a.prepend(i)
+    copyCoordinatesMenuItem.appendChild(a)
+    prevItem.after(copyCoordinatesMenuItem)
+
+    a.onclick = async function moveNode(e) {
+        e.preventDefault()
+        e.stopPropagation()
+        e.stopImmediatePropagation()
+        navigator.clipboard.writeText(text).catch(e => alert(`failed to copy:\n${text}`))
+        getMap().osm_contextmenu.hide()
+    }
+
+
+    const formatSwitch = document.createElement("span")
+    formatSwitch.classList.add("bi", "bi-arrow-left-right", "copy-coordinates-btn")
+    formatSwitch.style.marginLeft = "auto"
+    formatSwitch.title = `Change coordinates format\nCurrent: ${coordinatesFormat}`
+
+    formatSwitch.onclick = async e => {
+        e.preventDefault()
+        e.stopPropagation()
+        e.stopImmediatePropagation()
+
+        const formats = [...Object.keys(coordinatesFormatters), ...Object.keys(coordinatesFormatters)]
+        const nextFormat = formats.indexOf(coordinatesFormat) + 1
+        coordinatesFormat = formats[nextFormat]
+        await GM.setValue("CoordinatesFormat", coordinatesFormat)
+        text = coordinatesFormatters[coordinatesFormat]
+        textSpan.textContent = text
+    }
+    a.appendChild(formatSwitch)
+}
+
+//</editor-fold>
+
 //<editor-fold desc="node-mover" defaultstate="collapsed">
 
 let nodeMoverMenuItem
@@ -5681,19 +5760,13 @@ function removePOIMoverMenu() {
     nodeMoverMenuItem = null
 }
 
-async function addPOIMoverItem(measuringMenuItem) {
+function addPOIMoverItem(measuringMenuItem) {
     const object_type = location.pathname.startsWith("/node") ? "node" : ""
     if (object_type !== "node") return
     removePOIMoverMenu()
-    if (!getMap || !measurerAdded) {
-        await sleep(1110)
-    }
-    nodeMoverMenuItem = document.querySelector(".mover-li")
-    if (nodeMoverMenuItem) {
-        return
-    }
     nodeMoverMenuItem = document.createElement("li")
     nodeMoverMenuItem.classList.add("mover-li")
+    nodeMoverMenuItem.style.cursor = "pointer"
     const a = document.createElement("a")
     a.classList.add("dropdown-item", "d-flex", "align-items-center", "gap-3")
     a.textContent = "Move node to here"
@@ -5919,6 +5992,7 @@ function addMeasureMenuItem(customSeparator) {
     }
     measuringMenuItem = document.createElement("li")
     measuringMenuItem.classList.add("measurer-li")
+    measuringMenuItem.style.cursor = "pointer"
     const a = document.createElement("a")
     a.classList.add("dropdown-item", "d-flex", "align-items-center", "gap-3")
     a.textContent = measuring ? "End measure" : "Measure from here"
@@ -5934,6 +6008,7 @@ ${CtrlKeyName} + Z: remove last node`
 
         measuringCleanMenuItem = document.createElement("li")
         measuringCleanMenuItem.classList.add("measurer-li-clean")
+        measuringCleanMenuItem.style.cursor = "pointer"
 
         const cleanA = document.createElement("a")
         cleanA.classList.add("dropdown-item", "d-flex", "align-items-center", "gap-3")
@@ -6096,8 +6171,10 @@ function makeMeasureMouseHandlers() {
 //<editor-fold desc="context-menu-items" defaultstate="collapsed">
 
 let contextMenuObserver = null
+let coordinatesFormat = "Lat Lon"
 
 async function setupNewContextMenuItems() {
+    coordinatesFormat = await GM.getValue("CoordinatesFormat") ?? "Lat Lon"
     await interceptMapManually()
     if (!getMap) {
         await sleep(1000)
@@ -6112,7 +6189,8 @@ async function setupNewContextMenuItems() {
         observer.disconnect()
         const customSeparator = addMenuSeparator(menu)
         addMeasureMenuItem(customSeparator)
-        addPOIMoverItem(measuringCleanMenuItem ?? measuringMenuItem)
+        addCopyCoordinatesMenuItem(measuringCleanMenuItem ?? measuringMenuItem);
+        addPOIMoverItem(copyCoordinatesMenuItem ?? measuringCleanMenuItem ?? measuringMenuItem)
 
         contextMenuObserver.observe(menu, { childList: true, subtree: true, attributes: true })
     })
@@ -15095,6 +15173,20 @@ function makeContextMenuElem(e) {
     return menu
 }
 
+/**
+ * @param {number} lat
+ * @param {number} lon
+ * @return {Object.<string, {getter: function(): string}>}
+ */
+function makeCoordinatesFormatters(lat, lon) {
+    return {
+        "Lat Lon": { getter: () => `${lat.toFixed(6)} ${lon.toFixed(6)}` },
+        "Lon Lat": { getter: () => `${lon.toFixed(6)} ${lat.toFixed(6)}` },
+        "geo:": { getter: () => `geo:${lat.toFixed(6)},${lon.toFixed(6)}` },
+        "osm.org": { getter: () => `osm.org#map=${getZoom()}/${lat.toFixed(6)}/${lon.toFixed(6)}` },
+    }
+}
+
 function addCopyCoordinatesButtons() {
     const m = location.pathname.match(/^\/(node|way)\/(\d+)/)
     if (!m) {
@@ -15106,12 +15198,7 @@ function addCopyCoordinatesButtons() {
     }
 
     function addCopyButton(coordsElem, lat, lon) {
-        const coordinatesFormatters = {
-            "Lat Lon": { getter: () => `${lat} ${lon}` },
-            "Lon Lat": { getter: () => `${lon} ${lat}` },
-            "geo:": { getter: () => `geo:${lat},${lon}` },
-            "osm.org": { getter: () => `osm.org#map=${getZoom()}/${lat}/${lon}` },
-        }
+        const coordinatesFormatters = makeCoordinatesFormatters(parseFloat(lat), parseFloat(lon))
 
         coordsElem.onclick = async e => {
             e.preventDefault()

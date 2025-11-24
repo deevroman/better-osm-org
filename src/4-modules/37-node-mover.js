@@ -7,19 +7,13 @@ function removePOIMoverMenu() {
     nodeMoverMenuItem = null
 }
 
-async function addPOIMoverItem(measuringMenuItem) {
+function addPOIMoverItem(measuringMenuItem) {
     const object_type = location.pathname.startsWith("/node") ? "node" : ""
     if (object_type !== "node") return
     removePOIMoverMenu()
-    if (!getMap || !measurerAdded) {
-        await sleep(1110)
-    }
-    nodeMoverMenuItem = document.querySelector(".mover-li")
-    if (nodeMoverMenuItem) {
-        return
-    }
     nodeMoverMenuItem = document.createElement("li")
     nodeMoverMenuItem.classList.add("mover-li")
+    nodeMoverMenuItem.style.cursor = "pointer"
     const a = document.createElement("a")
     a.classList.add("dropdown-item", "d-flex", "align-items-center", "gap-3")
     a.textContent = "Move node to here"

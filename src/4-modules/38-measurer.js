@@ -122,6 +122,7 @@ function addMeasureMenuItem(customSeparator) {
     }
     measuringMenuItem = document.createElement("li")
     measuringMenuItem.classList.add("measurer-li")
+    measuringMenuItem.style.cursor = "pointer"
     const a = document.createElement("a")
     a.classList.add("dropdown-item", "d-flex", "align-items-center", "gap-3")
     a.textContent = measuring ? "End measure" : "Measure from here"
@@ -137,6 +138,7 @@ ${CtrlKeyName} + Z: remove last node`
 
         measuringCleanMenuItem = document.createElement("li")
         measuringCleanMenuItem.classList.add("measurer-li-clean")
+        measuringCleanMenuItem.style.cursor = "pointer"
 
         const cleanA = document.createElement("a")
         cleanA.classList.add("dropdown-item", "d-flex", "align-items-center", "gap-3")
