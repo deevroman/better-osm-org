@@ -34,6 +34,9 @@ function makeHashtagsInNotesClickable() {
             span.textContent = node.textContent
             span.innerHTML = span.innerHTML
                 .replaceAll(/(^|\B)(#[\p{L}\d_-]+)(\b|$)/gu, function (match) {
+                    if (match.match(/^#[0-9]+$/)) {
+                        return match
+                    }
                     // const notesReviewLink = "https://ent8r.github.io/NotesReview/?" + new URLSearchParams({
                     //     view: "map",
                     //     status: "open",
