@@ -722,7 +722,9 @@ function addCopyCoordinatesButtons() {
                 const a = document.createElement("a")
                 a.textContent = text
                 a.title = "Click to copy " + text
-                a.onclick = () => {
+                a.style.width = "100%"
+                a.onclick = e => {
+                    e.preventDefault()
                     navigator.clipboard.writeText(text)
                 }
 
