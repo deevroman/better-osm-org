@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.4.6
+// @version         1.4.7
 // @changelog       v1.4.6: Copy coordinates button in map context menu, copy coordinates button for relations
 // @changelog       v1.4.0: More links in Edit menu, the ability to add custom links (like OSM Smart Menu)
 // @changelog       v1.4.0: A button for quickly opening the links list and shortening the map attribution on phones
@@ -15249,7 +15249,9 @@ function addCopyCoordinatesButtons() {
                 const a = document.createElement("a")
                 a.textContent = text
                 a.title = "Click to copy " + text
-                a.onclick = () => {
+                a.style.width = "100%"
+                a.onclick = e => {
+                    e.preventDefault()
                     navigator.clipboard.writeText(text)
                 }
 
