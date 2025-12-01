@@ -56,12 +56,13 @@ async function getCachedUserInfo(username) {
     }
     const localUserInfo = await GM.getValue("userinfo-" + username, "")
     if (localUserInfo) {
-        const cacheTime = new Date(localUserInfo["cacheTime"])
-        const threeDaysLater = new Date(cacheTime.getTime() + 3 * 24 * 60 * 60 * 1000)
-        if (threeDaysLater < new Date() || localUserInfo["kontoras"] === undefined) {
+        const json = JSON.parse(localUserInfo)
+        const cacheTime = new Date(json["cacheTime"])
+        const threeDaysLater = new Date(cacheTime.getTime() + 24 * 60 * 60 * 1000)
+        if (threeDaysLater < new Date()) {
             setTimeout(updateUserInfo, 0, username)
         }
-        return JSON.parse(localUserInfo)
+        return json
     }
     return await updateUserInfo(username)
 }
@@ -341,31 +342,48 @@ function filterChangesets(htmlDocument = document) {
         .value.trim()
         .split(",")
         .filter(i => i.trim() !== "")
+    const changesetsLi = htmlDocument.querySelectorAll("ol li")
     let newHiddenChangesetsCount = 0
-    htmlDocument.querySelectorAll("ol li").forEach(i => {
-        const changesetComment = i.querySelector("p a bdi").textContent
-        const changesetAuthorLink = i.querySelector("div > a")
+    let newChangesetsCount = changesetsLi.length
+    changesetsLi.forEach(li => {
+        const changesetComment = li.querySelector("p a bdi").textContent
+        const changesetAuthorLink = li.querySelector("div > a")
         const changesetAuthor = changesetAuthorLink?.textContent ?? ""
         let bbox
-        if (i.getAttribute("data-changeset")) {
-            bbox = Object.values(JSON.parse(i.getAttribute("data-changeset")).bbox)
+        if (li.getAttribute("data-changeset")) {
+            bbox = Object.values(JSON.parse(li.getAttribute("data-changeset")).bbox)
         } else {
-            bbox = Object.values(JSON.parse(i.getAttribute("hidden-data-changeset")).bbox)
+            bbox = Object.values(JSON.parse(li.getAttribute("hidden-data-changeset")).bbox)
         }
         bbox = bbox.map(parseFloat)
         const deltaLon = bbox[2] - bbox[0]
         const deltaLat = bbox[3] - bbox[1]
         const bboxSizeLimit = 1
         let wasHidden = false
-        if (needHideBigChangesets && (deltaLat > bboxSizeLimit || deltaLon > bboxSizeLimit)) {
-            wasHidden = true
-            if (i.getAttribute("data-changeset")) {
-                i.setAttribute("hidden-data-changeset", i.getAttribute("data-changeset"))
-                i.removeAttribute("data-changeset")
-                i.setAttribute("hidden", true)
+
+        function hideLi(li) {
+            if (li.getAttribute("data-changeset")) {
+                li.setAttribute("hidden-data-changeset", li.getAttribute("data-changeset"))
+                li.removeAttribute("data-changeset")
+                li.setAttribute("hidden", true)
             } else {
                 // FIXME
             }
+            wasHidden = true
+        }
+
+        function unhideLi(li) {
+            if (li.getAttribute("hidden-data-changeset")) {
+                li.setAttribute("data-changeset", li.getAttribute("hidden-data-changeset"))
+                li.removeAttribute("hidden-data-changeset")
+                li.removeAttribute("hidden")
+            } else {
+                // FIXME
+            }
+        }
+
+        if (needHideBigChangesets && (deltaLat > bboxSizeLimit || deltaLon > bboxSizeLimit)) {
+            hideLi(li)
         }
         if (!wasHidden) {
             const invert = document.querySelector("#invert-user-filter-checkbox").getAttribute("checked") === "true"
@@ -378,17 +396,12 @@ function filterChangesets(htmlDocument = document) {
                         needHide = false
                     } else if (username === BAN_EMOJI && changesetAuthorLink?.previousElementSibling?.classList?.contains("banned-badge")) {
                         needHide = false
+                    } else if (username === REVIEW_REQUESTED_EMOJI && li.classList.contains("review-requested-changeset")) {
+                        needHide = false
                     }
                 })
-                if (needHide) {
-                    if (i.getAttribute("data-changeset")) {
-                        i.setAttribute("hidden-data-changeset", i.getAttribute("data-changeset"))
-                        i.removeAttribute("data-changeset")
-                        i.setAttribute("hidden", true)
-                    } else {
-                        // FIXME
-                    }
-                    wasHidden = true
+                if (usernameFilters.length && needHide) {
+                    hideLi(li)
                 }
             } else {
                 usernameFilters.forEach(username => {
@@ -396,15 +409,9 @@ function filterChangesets(htmlDocument = document) {
                     if (changesetAuthor.includes(username)
                         || username === CORPORATE_EMOJI && corporateMappers?.has(changesetAuthor)
                         || username === BAN_EMOJI && changesetAuthorLink?.previousElementSibling?.classList?.contains("banned-badge")
+                        || username === REVIEW_REQUESTED_EMOJI && li?.classList?.contains("review-requested-changeset")
                     ) {
-                        if (i.getAttribute("data-changeset")) {
-                            i.setAttribute("hidden-data-changeset", i.getAttribute("data-changeset"))
-                            i.removeAttribute("data-changeset")
-                            i.setAttribute("hidden", true)
-                        } else {
-                            // FIXME
-                        }
-                        wasHidden = true
+                        hideLi(li)
                     }
                 })
             }
@@ -413,33 +420,25 @@ function filterChangesets(htmlDocument = document) {
             const invert = document.querySelector("#invert-comment-filter-checkbox").getAttribute("checked") === "true"
             commentFilters.forEach(comment => {
                 if (changesetComment.includes(comment.trim()) ^ invert) {
-                    if (i.getAttribute("data-changeset")) {
-                        i.setAttribute("hidden-data-changeset", i.getAttribute("data-changeset"))
-                        i.removeAttribute("data-changeset")
-                        i.setAttribute("hidden", true)
-                    } else {
-                        // FIXME
-                    }
-                    wasHidden = true
+                    hideLi(li)
                 }
             })
         }
         if (!wasHidden) {
-            if (i.getAttribute("hidden-data-changeset")) {
-                i.setAttribute("data-changeset", i.getAttribute("hidden-data-changeset"))
-                i.removeAttribute("hidden-data-changeset")
-                i.removeAttribute("hidden")
-            } else {
-                // FIXME
-            }
+            unhideLi(li)
         } else {
             newHiddenChangesetsCount++
         }
     })
-    if (getWindow().hiddenChangesetsCount !== newHiddenChangesetsCount && htmlDocument === document) {
+
+    const counter = document.querySelector("#hidden-changeset-counter")
+    const needUpdateCounter = (getWindow().hiddenChangesetsCount !== newHiddenChangesetsCount || parseInt(counter.getAttribute("changesets-count")) !== newChangesetsCount) && htmlDocument === document
+
+    if (needUpdateCounter) {
         getWindow().hiddenChangesetsCount = newHiddenChangesetsCount
         const changesetsCount = document.querySelectorAll("ol > li").length
-        document.querySelector("#hidden-changeset-counter").textContent = ` Displayed ${changesetsCount - newHiddenChangesetsCount}/${changesetsCount}`
+        counter.textContent = ` Displayed ${changesetsCount - newHiddenChangesetsCount}/${changesetsCount}`
+        counter.setAttribute("changesets-count", changesetsCount)
         console.log(changesetsCount)
     }
 }
@@ -452,7 +451,7 @@ function updateMap() {
 
 async function addUsernameIntoChangesetsFilter(username) {
     const filterByUsersInput = document.querySelector("#filter-by-user-input")
-    if (filterByUsersInput.value === "") {
+    if (filterByUsersInput.value === "" || filterByUsersInput.value === username) {
         filterByUsersInput.value = username
     } else {
         filterByUsersInput.value = filterByUsersInput.value + "," + username
@@ -934,7 +933,7 @@ function addMassActionForGlobalChangesets() {
                 label.style.cursor = "pointer"
                 label.setAttribute("checked", false)
                 label.id = "invert-user-filter-checkbox"
-                label.onclick = e => {
+                label.onclick = e =>{
                     if (e.target.textContent === "🔄Hide changesets from ") {
                         e.target.textContent = "🔄Show changesets from "
                     } else {
@@ -1039,6 +1038,7 @@ function addMassActionForGlobalChangesets() {
 
 const CORPORATE_EMOJI = "🏢"
 const BAN_EMOJI = "⛔️"
+const REVIEW_REQUESTED_EMOJI = "🙏"
 
 // prettier-ignore
 const moderatorBadgeSvg =

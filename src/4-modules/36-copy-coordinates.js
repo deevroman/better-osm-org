@@ -27,7 +27,7 @@ function addCopyCoordinatesMenuItem(prevItem) {
     }
     const clickLat = parseFloat(getMap().osm_contextmenu._$element.data("lat"))
     const clickLon = parseFloat(getMap().osm_contextmenu._$element.data("lng"))
-    const coordinatesFormatters = makeCoordinatesFormatters(clickLat, clickLon)
+    const coordinatesFormatters = makeCoordinatesFormatters(clickLat, clickLon, 6)
     let text = coordinatesFormatters[coordinatesFormat]['getter']()
 
     copyCoordinatesMenuItem = document.createElement("li")

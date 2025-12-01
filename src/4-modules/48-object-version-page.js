@@ -653,14 +653,17 @@ function makeContextMenuElem(e) {
 /**
  * @param {number} lat
  * @param {number} lon
+ * @param {number} precision
  * @return {Object.<string, {getter: function(): string}>}
  */
-function makeCoordinatesFormatters(lat, lon) {
+function makeCoordinatesFormatters(lat, lon, precision) {
+    const latStr = lat.toFixed(precision)
+    const lonStr = lon.toFixed(precision)
     return {
-        "Lat Lon": { getter: () => `${lat.toFixed(6)} ${lon.toFixed(6)}` },
-        "Lon Lat": { getter: () => `${lon.toFixed(6)} ${lat.toFixed(6)}` },
-        "geo:": { getter: () => `geo:${lat.toFixed(6)},${lon.toFixed(6)}` },
-        "osm.org": { getter: () => `osm.org#map=${getZoom()}/${lat.toFixed(6)}/${lon.toFixed(6)}` },
+        "Lat Lon": { getter: () => `${latStr} ${lonStr}` },
+        "Lon Lat": { getter: () => `${lonStr} ${latStr}` },
+        "geo:": { getter: () => `geo:${latStr},${lonStr}` },
+        "osm.org": { getter: () => `osm.org#map=${getZoom()}/${latStr}/${lonStr}` },
     }
 }
 
@@ -675,7 +678,7 @@ function addCopyCoordinatesButtons() {
     }
 
     function addCopyButton(coordsElem, lat, lon) {
-        const coordinatesFormatters = makeCoordinatesFormatters(parseFloat(lat), parseFloat(lon))
+        const coordinatesFormatters = makeCoordinatesFormatters(parseFloat(lat), parseFloat(lon), 7)
 
         coordsElem.onclick = async e => {
             e.preventDefault()

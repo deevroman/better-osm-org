@@ -2740,7 +2740,7 @@ function addCommentsCount() {
             Array.from(links).map(i => {
                 i.classList.add("comments-loaded")
                 return parseInt(extractChangesetID(i.getAttribute("href")))
-            }),
+            }).filter(ch => !changesetMetadatas[ch]),
         )
         links.forEach(i => {
             const changesetID = extractChangesetID(i.getAttribute("href"))
