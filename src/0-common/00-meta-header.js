@@ -1,7 +1,8 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.4.7
+// @version         1.4.8
+// @changelog       v1.4.8: Highlight changesets with review_requested=yes
 // @changelog       v1.4.6: Copy coordinates button in map context menu, copy coordinates button for relations
 // @changelog       v1.4.0: More links in Edit menu, the ability to add custom links (like OSM Smart Menu)
 // @changelog       v1.4.0: A button for quickly opening the links list and shortening the map attribution on phones

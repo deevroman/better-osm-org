@@ -1152,7 +1152,7 @@ function setupCompactChangesetsHistory() {
                     li.title += "\n"
                 }
                 li.title += Object.entries(changesetMetadatas[changesetId]?.tags)
-                    .filter(([k, v]) => k !== "comment" && !(k === "host" && v === "https://www.openstreetmap.org/edit"))
+                    .filter(([k, v]) => k !== "comment" && !(k === "host" && v === "https://www.openstreetmap.org/edit") && !k.startsWith("v:"))
                     .map(([k, v]) => `${k}=${v}`)
                     .join("\n")
             })
