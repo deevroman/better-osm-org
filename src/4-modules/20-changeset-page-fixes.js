@@ -1112,6 +1112,7 @@ function setupCompactChangesetsHistory() {
                 })
             } else {
                 commentsBadge.classList.add("hidden-comments-badge")
+                elem.classList.add("has-hidden-comments-badge")
             }
         }
 
@@ -1131,8 +1132,15 @@ function setupCompactChangesetsHistory() {
                     li.classList.add("review-requested-changeset")
                     const reviewRequestedBadge = document.createElement("span")
                     reviewRequestedBadge.textContent = " " + REVIEW_REQUESTED_EMOJI
-                    reviewRequestedBadge.title = "Mapper requested changeset review\nClick to filter this changesets"
+                    reviewRequestedBadge.title = "Mapper requested changeset review\nClick to filter changesets with review_requested=yes"
                     reviewRequestedBadge.style.cursor = "pointer"
+                    if (!li.classList.contains("has-hidden-comments-badge")) {
+                        if (isDarkMode()) {
+                            reviewRequestedBadge.style.filter = "grayscale(1) brightness(0.5)"
+                        } else {
+                            reviewRequestedBadge.style.filter = "grayscale(1)"
+                        }
+                    }
                     elem.after(reviewRequestedBadge)
                     reviewRequestedBadge.onclick = () => {
                         if (!massModeActive) {
