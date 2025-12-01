@@ -1026,95 +1026,96 @@ function setupCompactChangesetsHistory() {
             description.textContent = shortOsmOrgLinksInText(description.textContent)
         })
 
-        setTimeout(async () => {
-            for (const elem of document.querySelectorAll("ol li:not(:has(.comment)):not(.comments-loaded)")) {
-                elem.classList.add("comments-loaded")
-                const commentsBadge = elem.querySelector(".changeset_num_comments")
-                // prettier-ignore
-                commentsBadge.querySelector("i").outerHTML = commentSvg
-                const commentsCount = parseInt(commentsBadge.firstChild.textContent.trim())
-                if (commentsCount) {
-                    if (commentsCount > 3) {
-                        commentsBadge.firstElementChild.style.setProperty("color", "red", "important")
-                    } else if (commentsCount > 1) {
-                        commentsBadge.firstElementChild.style.setProperty("color", "#ff7800", "important")
-                    } else if (commentsCount > 0) {
-                        commentsBadge.firstElementChild.style.setProperty("color", "#ffae00", "important")
-                    }
-
-                    const changeset_id = elem.querySelector(".changeset_id").href.match(/\/(\d+)/)[1]
-                    getChangesetComments(changeset_id).then(res => {
-                        res.forEach((comment, idx) => {
-                            const commentElem = document.createElement("div")
-                            commentElem.classList.add("comment")
-                            commentElem.style.fontSize = "0.7rem"
-                            commentElem.style.borderTopColor = "#0000"
-                            commentElem.style.borderTopStyle = "solid"
-                            commentElem.style.borderTopWidth = "1px"
-                            if (idx !== 0) {
-                                commentElem.style.display = "none"
-                            }
-                            elem.appendChild(commentElem)
-
-                            const userLink = document.createElement("a")
-                            userLink.href = osm_server.url + "/user/" + encodeURI(comment["user"])
-                            userLink.textContent = comment["user"]
-                            commentElem.appendChild(userLink)
-                            getCachedUserInfo(comment["user"]).then(res => {
-                                const badge = makeBadge(res /* fixme */)
-                                const svg = badge.querySelector("svg")
-                                if (svg) {
-                                    badge.style.marginLeft = "-4px"
-                                    badge.style.height = "1rem"
-                                    badge.style.float = "left"
-                                    svg.style.transform = "scale(0.7)"
-                                }
-                                userLink.before(badge)
-                            })
-                            const shortText = shortOsmOrgLinksInText(comment["text"])
-                            if (shortText.length > 500) {
-                                const text = document.createElement("span")
-                                text.textContent = " " + shortText.slice(0, 500)
-                                commentElem.appendChild(text)
-                                const more = document.createElement("span")
-                                more.textContent = "..."
-                                more.title = "Click for view more"
-                                more.style.cursor = "pointer"
-                                more.style.color = "rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1))"
-                                more.onclick = () => {
-                                    more.remove()
-                                    text.textContent = " " + shortText
-                                }
-                                commentElem.appendChild(more)
-                            } else {
-                                commentElem.appendChild(document.createTextNode(" " + shortText))
-                            }
-                        })
-
-                        commentsBadge.firstElementChild.style.cursor = "pointer"
-
-                        let state = commentsCount === 1 ? "" : "none"
-                        commentsBadge.firstElementChild.onclick = () => {
-                            elem.querySelectorAll(".comment").forEach(comment => {
-                                if (state === "none") {
-                                    comment.style.display = ""
-                                } else {
-                                    comment.style.display = "none"
-                                }
-                            })
-                            state = state === "none" ? "" : "none"
-                        }
-                        commentsBadge.firstElementChild.title = ""
-                        res.forEach(comment => {
-                            const shortText = shortOsmOrgLinksInText(comment["text"])
-                            commentsBadge.firstElementChild.title += `${comment["user"]}:\n${shortText}\n\n`
-                        })
-                        commentsBadge.firstElementChild.title = commentsBadge.firstElementChild.title.trimEnd()
-                    })
-                } else {
-                    commentsBadge.classList.add("hidden-comments-badge")
+        for (const elem of document.querySelectorAll("ol li:not(:has(.comment)):not(.comments-loaded)")) {
+            elem.classList.add("comments-loaded")
+            const commentsBadge = elem.querySelector(".changeset_num_comments")
+            // prettier-ignore
+            commentsBadge.querySelector("i").outerHTML = commentSvg
+            const commentsCount = parseInt(commentsBadge.firstChild.textContent.trim())
+            if (commentsCount) {
+                if (commentsCount > 3) {
+                    commentsBadge.firstElementChild.style.setProperty("color", "red", "important")
+                } else if (commentsCount > 1) {
+                    commentsBadge.firstElementChild.style.setProperty("color", "#ff7800", "important")
+                } else if (commentsCount > 0) {
+                    commentsBadge.firstElementChild.style.setProperty("color", "#ffae00", "important")
                 }
+
+                const changeset_id = elem.querySelector(".changeset_id").href.match(/\/(\d+)/)[1]
+                getChangesetComments(changeset_id).then(res => {
+                    res.forEach((comment, idx) => {
+                        const commentElem = document.createElement("div")
+                        commentElem.classList.add("comment")
+                        commentElem.style.fontSize = "0.7rem"
+                        commentElem.style.borderTopColor = "#0000"
+                        commentElem.style.borderTopStyle = "solid"
+                        commentElem.style.borderTopWidth = "1px"
+                        if (idx !== 0) {
+                            commentElem.style.display = "none"
+                        }
+                        elem.appendChild(commentElem)
+
+                        const userLink = document.createElement("a")
+                        userLink.href = osm_server.url + "/user/" + encodeURI(comment["user"])
+                        userLink.textContent = comment["user"]
+                        commentElem.appendChild(userLink)
+                        getCachedUserInfo(comment["user"]).then(res => {
+                            const badge = makeBadge(res /* fixme */)
+                            const svg = badge.querySelector("svg")
+                            if (svg) {
+                                badge.style.marginLeft = "-4px"
+                                badge.style.height = "1rem"
+                                badge.style.float = "left"
+                                svg.style.transform = "scale(0.7)"
+                            }
+                            userLink.before(badge)
+                        })
+                        const shortText = shortOsmOrgLinksInText(comment["text"])
+                        if (shortText.length > 500) {
+                            const text = document.createElement("span")
+                            text.textContent = " " + shortText.slice(0, 500)
+                            commentElem.appendChild(text)
+                            const more = document.createElement("span")
+                            more.textContent = "..."
+                            more.title = "Click for view more"
+                            more.style.cursor = "pointer"
+                            more.style.color = "rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1))"
+                            more.onclick = () => {
+                                more.remove()
+                                text.textContent = " " + shortText
+                            }
+                            commentElem.appendChild(more)
+                        } else {
+                            commentElem.appendChild(document.createTextNode(" " + shortText))
+                        }
+                    })
+
+                    commentsBadge.firstElementChild.style.cursor = "pointer"
+
+                    let state = commentsCount === 1 ? "" : "none"
+                    commentsBadge.firstElementChild.onclick = () => {
+                        elem.querySelectorAll(".comment").forEach(comment => {
+                            if (state === "none") {
+                                comment.style.display = ""
+                            } else {
+                                comment.style.display = "none"
+                            }
+                        })
+                        state = state === "none" ? "" : "none"
+                    }
+                    commentsBadge.firstElementChild.title = ""
+                    res.forEach(comment => {
+                        const shortText = shortOsmOrgLinksInText(comment["text"])
+                        commentsBadge.firstElementChild.title += `${comment["user"]}:\n${shortText}\n\n`
+                    })
+                    commentsBadge.firstElementChild.title = commentsBadge.firstElementChild.title.trimEnd()
+                })
+            } else {
+                commentsBadge.classList.add("hidden-comments-badge")
             }
+        }
+
+        queueMicrotask(async () => {
             const changesetIdElems = document.querySelectorAll("#sidebar ol li div .changeset_id:not(.metadata-loading)")
             const changesetsIDs = Array.from(changesetIdElems)
                 .map(elem => {
