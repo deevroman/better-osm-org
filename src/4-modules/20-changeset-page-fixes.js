@@ -823,11 +823,12 @@ const compactSidebarStyleText = `
         span:has(.changeset_id.custom-changeset-id-click) {
             color: #767676 !important;
         }
-
-        .changeset_id.custom-changeset-id-click {
-            color: #767676 !important;
-        }
     }
+
+    .changeset_id.custom-changeset-id-click {
+        color: #767676 !important;
+    }
+    
     #sidebar_content h2 ~ div > p:nth-of-type(1) {
         font-size: 14px !important;
         font-style: italic;
@@ -1009,11 +1010,10 @@ function setupCompactChangesetsHistory() {
             }
             const changesetIDspan = badgesDiv?.querySelector('a[href^="/changeset/"]:not([rel])')?.parentElement
             if (changesetIDspan) {
-                e.appendChild(document.createTextNode("·"))
                 e.appendChild(changesetIDspan)
             }
             const wrapper = document.createElement("div")
-            wrapper.classList.add("better-wrapper", "d-flex", "flex-nowrap", "gap-3", "justify-content-between", "align-items-end")
+            wrapper.classList.add("better-wrapper", "d-flex", "flex-nowrap", "justify-content-between", "align-items-end")
             e.parentElement.appendChild(wrapper)
             wrapper.appendChild(e)
             wrapper.appendChild(badgesDiv)
@@ -1115,6 +1115,47 @@ function setupCompactChangesetsHistory() {
                     commentsBadge.classList.add("hidden-comments-badge")
                 }
             }
+            const changesetIdElems = document.querySelectorAll("#sidebar ol li div .changeset_id:not(.metadata-loading)")
+            const changesetsIDs = Array.from(changesetIdElems)
+                .map(elem => {
+                    elem.classList.add("metadata-loading")
+                    return parseInt(elem.href.match(/\/(\d+)/)[1])
+                })
+                .filter(ch => !changesetMetadatas[ch])
+            await loadChangesetMetadatas(changesetsIDs)
+            changesetIdElems.forEach(elem => {
+                const changesetId = parseInt(elem.href.match(/\/(\d+)/)[1])
+                const li = elem.parentElement.parentElement.parentElement.parentElement
+                if (changesetMetadatas[changesetId]?.tags?.["review_requested"] === "yes") {
+                    li.classList.add("review-requested-changeset")
+                    const reviewRequestedBadge = document.createElement("span")
+                    reviewRequestedBadge.textContent = " " + REVIEW_REQUESTED_EMOJI
+                    reviewRequestedBadge.title = "Mapper requested changeset review\nClick to filter this changesets"
+                    reviewRequestedBadge.style.cursor = "pointer"
+                    elem.after(reviewRequestedBadge)
+                    reviewRequestedBadge.onclick = () => {
+                        if (!massModeActive) {
+                            document.querySelector("#changesets-filter-btn").click()
+                        }
+                        // dirty hack
+                        setTimeout(() => {
+                            if (document.querySelector("#invert-user-filter-checkbox").getAttribute("checked") === "false") {
+                                if (["", REVIEW_REQUESTED_EMOJI].includes(document.querySelector("#filter-by-user-input").value)) {
+                                    document.querySelector("#invert-user-filter-checkbox").click()
+                                }
+                            }
+                            addUsernameIntoChangesetsFilter(REVIEW_REQUESTED_EMOJI)
+                        })
+                    }
+                }
+                if (li.title !== "") {
+                    li.title += "\n"
+                }
+                li.title += Object.entries(changesetMetadatas[changesetId]?.tags)
+                    .filter(([k, v]) => k !== "comment" && !(k === "host" && v === "https://www.openstreetmap.org/edit"))
+                    .map(([k, v]) => `${k}=${v}`)
+                    .join("\n")
+            })
         })
     }
 

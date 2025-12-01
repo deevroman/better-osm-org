@@ -4041,11 +4041,12 @@ const compactSidebarStyleText = `
         span:has(.changeset_id.custom-changeset-id-click) {
             color: #767676 !important;
         }
-
-        .changeset_id.custom-changeset-id-click {
-            color: #767676 !important;
-        }
     }
+
+    .changeset_id.custom-changeset-id-click {
+        color: #767676 !important;
+    }
+    
     #sidebar_content h2 ~ div > p:nth-of-type(1) {
         font-size: 14px !important;
         font-style: italic;
@@ -4227,11 +4228,10 @@ function setupCompactChangesetsHistory() {
             }
             const changesetIDspan = badgesDiv?.querySelector('a[href^="/changeset/"]:not([rel])')?.parentElement
             if (changesetIDspan) {
-                e.appendChild(document.createTextNode("·"))
                 e.appendChild(changesetIDspan)
             }
             const wrapper = document.createElement("div")
-            wrapper.classList.add("better-wrapper", "d-flex", "flex-nowrap", "gap-3", "justify-content-between", "align-items-end")
+            wrapper.classList.add("better-wrapper", "d-flex", "flex-nowrap", "justify-content-between", "align-items-end")
             e.parentElement.appendChild(wrapper)
             wrapper.appendChild(e)
             wrapper.appendChild(badgesDiv)
@@ -4333,6 +4333,47 @@ function setupCompactChangesetsHistory() {
                     commentsBadge.classList.add("hidden-comments-badge")
                 }
             }
+            const changesetIdElems = document.querySelectorAll("#sidebar ol li div .changeset_id:not(.metadata-loading)")
+            const changesetsIDs = Array.from(changesetIdElems)
+                .map(elem => {
+                    elem.classList.add("metadata-loading")
+                    return parseInt(elem.href.match(/\/(\d+)/)[1])
+                })
+                .filter(ch => !changesetMetadatas[ch])
+            await loadChangesetMetadatas(changesetsIDs)
+            changesetIdElems.forEach(elem => {
+                const changesetId = parseInt(elem.href.match(/\/(\d+)/)[1])
+                const li = elem.parentElement.parentElement.parentElement.parentElement
+                if (changesetMetadatas[changesetId]?.tags?.["review_requested"] === "yes") {
+                    li.classList.add("review-requested-changeset")
+                    const reviewRequestedBadge = document.createElement("span")
+                    reviewRequestedBadge.textContent = " " + REVIEW_REQUESTED_EMOJI
+                    reviewRequestedBadge.title = "Mapper requested changeset review\nClick to filter this changesets"
+                    reviewRequestedBadge.style.cursor = "pointer"
+                    elem.after(reviewRequestedBadge)
+                    reviewRequestedBadge.onclick = () => {
+                        if (!massModeActive) {
+                            document.querySelector("#changesets-filter-btn").click()
+                        }
+                        // dirty hack
+                        setTimeout(() => {
+                            if (document.querySelector("#invert-user-filter-checkbox").getAttribute("checked") === "false") {
+                                if (["", REVIEW_REQUESTED_EMOJI].includes(document.querySelector("#filter-by-user-input").value)) {
+                                    document.querySelector("#invert-user-filter-checkbox").click()
+                                }
+                            }
+                            addUsernameIntoChangesetsFilter(REVIEW_REQUESTED_EMOJI)
+                        })
+                    }
+                }
+                if (li.title !== "") {
+                    li.title += "\n"
+                }
+                li.title += Object.entries(changesetMetadatas[changesetId]?.tags)
+                    .filter(([k, v]) => k !== "comment" && !(k === "host" && v === "https://www.openstreetmap.org/edit"))
+                    .map(([k, v]) => `${k}=${v}`)
+                    .join("\n")
+            })
         })
     }
 
@@ -4820,6 +4861,33 @@ out meta;
     })
 
     if (isClosedNote()) {
+        if (false && isDebug()) {
+            const lastCommentTime = Array.from(document.querySelectorAll("#sidebar_content article time")).at(-1)
+
+            const findChangesetsBtn = document.createElement("span")
+            findChangesetsBtn.textContent = " 🔍"
+            findChangesetsBtn.style.cursor = "pointer"
+            findChangesetsBtn.onclick = async e => {
+                e.preventDefault()
+                e.stopPropagation()
+                e.stopImmediatePropagation()
+                findChangesetsBtn.style.cursor = "progress"
+                const closeTime = new Date(lastCommentTime.getAttribute("datetime"))
+                const prevDay = new Date(closeTime.getTime() - 24 * 60 * 60 * 1000)
+                const nextDay = new Date(closeTime.getTime() + 24 * 60 * 60 * 1000)
+                const username = lastCommentTime.previousElementSibling.getAttribute("href").match(/user\/(.+)$/)[1]
+                const changesets = await loadChangesetsBetween(username, prevDay, nextDay)
+
+                const menu = makeContextMenuElem(e)
+                menu.appendChild(document.createTextNode("keke"))
+                document.body.appendChild(menu)
+                console.log(changesets)
+
+                findChangesetsBtn.style.cursor = "pointer"
+            }
+
+            lastCommentTime.after(findChangesetsBtn)
+        }
         return
     }
     const auth = makeAuth()
@@ -5705,7 +5773,7 @@ function addCopyCoordinatesMenuItem(prevItem) {
     }
     const clickLat = parseFloat(getMap().osm_contextmenu._$element.data("lat"))
     const clickLon = parseFloat(getMap().osm_contextmenu._$element.data("lng"))
-    const coordinatesFormatters = makeCoordinatesFormatters(clickLat, clickLon)
+    const coordinatesFormatters = makeCoordinatesFormatters(clickLat, clickLon, 6)
     let text = coordinatesFormatters[coordinatesFormat]['getter']()
 
     copyCoordinatesMenuItem = document.createElement("li")
@@ -10115,7 +10183,7 @@ function addCommentsCount() {
             Array.from(links).map(i => {
                 i.classList.add("comments-loaded")
                 return parseInt(extractChangesetID(i.getAttribute("href")))
-            }),
+            }).filter(ch => !changesetMetadatas[ch]),
         )
         links.forEach(i => {
             const changesetID = extractChangesetID(i.getAttribute("href"))
@@ -15180,14 +15248,17 @@ function makeContextMenuElem(e) {
 /**
  * @param {number} lat
  * @param {number} lon
+ * @param {number} precision
  * @return {Object.<string, {getter: function(): string}>}
  */
-function makeCoordinatesFormatters(lat, lon) {
+function makeCoordinatesFormatters(lat, lon, precision) {
+    const latStr = lat.toFixed(precision)
+    const lonStr = lon.toFixed(precision)
     return {
-        "Lat Lon": { getter: () => `${lat.toFixed(6)} ${lon.toFixed(6)}` },
-        "Lon Lat": { getter: () => `${lon.toFixed(6)} ${lat.toFixed(6)}` },
-        "geo:": { getter: () => `geo:${lat.toFixed(6)},${lon.toFixed(6)}` },
-        "osm.org": { getter: () => `osm.org#map=${getZoom()}/${lat.toFixed(6)}/${lon.toFixed(6)}` },
+        "Lat Lon": { getter: () => `${latStr} ${lonStr}` },
+        "Lon Lat": { getter: () => `${lonStr} ${latStr}` },
+        "geo:": { getter: () => `geo:${latStr},${lonStr}` },
+        "osm.org": { getter: () => `osm.org#map=${getZoom()}/${latStr}/${lonStr}` },
     }
 }
 
@@ -15202,7 +15273,7 @@ function addCopyCoordinatesButtons() {
     }
 
     function addCopyButton(coordsElem, lat, lon) {
-        const coordinatesFormatters = makeCoordinatesFormatters(parseFloat(lat), parseFloat(lon))
+        const coordinatesFormatters = makeCoordinatesFormatters(parseFloat(lat), parseFloat(lon), 7)
 
         coordsElem.onclick = async e => {
             e.preventDefault()
@@ -15539,12 +15610,13 @@ async function getCachedUserInfo(username) {
     }
     const localUserInfo = await GM.getValue("userinfo-" + username, "")
     if (localUserInfo) {
-        const cacheTime = new Date(localUserInfo["cacheTime"])
-        const threeDaysLater = new Date(cacheTime.getTime() + 3 * 24 * 60 * 60 * 1000)
-        if (threeDaysLater < new Date() || localUserInfo["kontoras"] === undefined) {
+        const json = JSON.parse(localUserInfo)
+        const cacheTime = new Date(json["cacheTime"])
+        const threeDaysLater = new Date(cacheTime.getTime() + 24 * 60 * 60 * 1000)
+        if (threeDaysLater < new Date()) {
             setTimeout(updateUserInfo, 0, username)
         }
-        return JSON.parse(localUserInfo)
+        return json
     }
     return await updateUserInfo(username)
 }
@@ -15824,31 +15896,48 @@ function filterChangesets(htmlDocument = document) {
         .value.trim()
         .split(",")
         .filter(i => i.trim() !== "")
+    const changesetsLi = htmlDocument.querySelectorAll("ol li")
     let newHiddenChangesetsCount = 0
-    htmlDocument.querySelectorAll("ol li").forEach(i => {
-        const changesetComment = i.querySelector("p a bdi").textContent
-        const changesetAuthorLink = i.querySelector("div > a")
+    let newChangesetsCount = changesetsLi.length
+    changesetsLi.forEach(li => {
+        const changesetComment = li.querySelector("p a bdi").textContent
+        const changesetAuthorLink = li.querySelector("div > a")
         const changesetAuthor = changesetAuthorLink?.textContent ?? ""
         let bbox
-        if (i.getAttribute("data-changeset")) {
-            bbox = Object.values(JSON.parse(i.getAttribute("data-changeset")).bbox)
+        if (li.getAttribute("data-changeset")) {
+            bbox = Object.values(JSON.parse(li.getAttribute("data-changeset")).bbox)
         } else {
-            bbox = Object.values(JSON.parse(i.getAttribute("hidden-data-changeset")).bbox)
+            bbox = Object.values(JSON.parse(li.getAttribute("hidden-data-changeset")).bbox)
         }
         bbox = bbox.map(parseFloat)
         const deltaLon = bbox[2] - bbox[0]
         const deltaLat = bbox[3] - bbox[1]
         const bboxSizeLimit = 1
         let wasHidden = false
-        if (needHideBigChangesets && (deltaLat > bboxSizeLimit || deltaLon > bboxSizeLimit)) {
-            wasHidden = true
-            if (i.getAttribute("data-changeset")) {
-                i.setAttribute("hidden-data-changeset", i.getAttribute("data-changeset"))
-                i.removeAttribute("data-changeset")
-                i.setAttribute("hidden", true)
+
+        function hideLi(li) {
+            if (li.getAttribute("data-changeset")) {
+                li.setAttribute("hidden-data-changeset", li.getAttribute("data-changeset"))
+                li.removeAttribute("data-changeset")
+                li.setAttribute("hidden", true)
             } else {
                 // FIXME
             }
+            wasHidden = true
+        }
+
+        function unhideLi(li) {
+            if (li.getAttribute("hidden-data-changeset")) {
+                li.setAttribute("data-changeset", li.getAttribute("hidden-data-changeset"))
+                li.removeAttribute("hidden-data-changeset")
+                li.removeAttribute("hidden")
+            } else {
+                // FIXME
+            }
+        }
+
+        if (needHideBigChangesets && (deltaLat > bboxSizeLimit || deltaLon > bboxSizeLimit)) {
+            hideLi(li)
         }
         if (!wasHidden) {
             const invert = document.querySelector("#invert-user-filter-checkbox").getAttribute("checked") === "true"
@@ -15861,17 +15950,12 @@ function filterChangesets(htmlDocument = document) {
                         needHide = false
                     } else if (username === BAN_EMOJI && changesetAuthorLink?.previousElementSibling?.classList?.contains("banned-badge")) {
                         needHide = false
+                    } else if (username === REVIEW_REQUESTED_EMOJI && li.classList.contains("review-requested-changeset")) {
+                        needHide = false
                     }
                 })
-                if (needHide) {
-                    if (i.getAttribute("data-changeset")) {
-                        i.setAttribute("hidden-data-changeset", i.getAttribute("data-changeset"))
-                        i.removeAttribute("data-changeset")
-                        i.setAttribute("hidden", true)
-                    } else {
-                        // FIXME
-                    }
-                    wasHidden = true
+                if (usernameFilters.length && needHide) {
+                    hideLi(li)
                 }
             } else {
                 usernameFilters.forEach(username => {
@@ -15879,15 +15963,9 @@ function filterChangesets(htmlDocument = document) {
                     if (changesetAuthor.includes(username)
                         || username === CORPORATE_EMOJI && corporateMappers?.has(changesetAuthor)
                         || username === BAN_EMOJI && changesetAuthorLink?.previousElementSibling?.classList?.contains("banned-badge")
+                        || username === REVIEW_REQUESTED_EMOJI && li?.classList?.contains("review-requested-changeset")
                     ) {
-                        if (i.getAttribute("data-changeset")) {
-                            i.setAttribute("hidden-data-changeset", i.getAttribute("data-changeset"))
-                            i.removeAttribute("data-changeset")
-                            i.setAttribute("hidden", true)
-                        } else {
-                            // FIXME
-                        }
-                        wasHidden = true
+                        hideLi(li)
                     }
                 })
             }
@@ -15896,33 +15974,25 @@ function filterChangesets(htmlDocument = document) {
             const invert = document.querySelector("#invert-comment-filter-checkbox").getAttribute("checked") === "true"
             commentFilters.forEach(comment => {
                 if (changesetComment.includes(comment.trim()) ^ invert) {
-                    if (i.getAttribute("data-changeset")) {
-                        i.setAttribute("hidden-data-changeset", i.getAttribute("data-changeset"))
-                        i.removeAttribute("data-changeset")
-                        i.setAttribute("hidden", true)
-                    } else {
-                        // FIXME
-                    }
-                    wasHidden = true
+                    hideLi(li)
                 }
             })
         }
         if (!wasHidden) {
-            if (i.getAttribute("hidden-data-changeset")) {
-                i.setAttribute("data-changeset", i.getAttribute("hidden-data-changeset"))
-                i.removeAttribute("hidden-data-changeset")
-                i.removeAttribute("hidden")
-            } else {
-                // FIXME
-            }
+            unhideLi(li)
         } else {
             newHiddenChangesetsCount++
         }
     })
-    if (getWindow().hiddenChangesetsCount !== newHiddenChangesetsCount && htmlDocument === document) {
+
+    const counter = document.querySelector("#hidden-changeset-counter")
+    const needUpdateCounter = (getWindow().hiddenChangesetsCount !== newHiddenChangesetsCount || parseInt(counter.getAttribute("changesets-count")) !== newChangesetsCount) && htmlDocument === document
+
+    if (needUpdateCounter) {
         getWindow().hiddenChangesetsCount = newHiddenChangesetsCount
         const changesetsCount = document.querySelectorAll("ol > li").length
-        document.querySelector("#hidden-changeset-counter").textContent = ` Displayed ${changesetsCount - newHiddenChangesetsCount}/${changesetsCount}`
+        counter.textContent = ` Displayed ${changesetsCount - newHiddenChangesetsCount}/${changesetsCount}`
+        counter.setAttribute("changesets-count", changesetsCount)
         console.log(changesetsCount)
     }
 }
@@ -15935,7 +16005,7 @@ function updateMap() {
 
 async function addUsernameIntoChangesetsFilter(username) {
     const filterByUsersInput = document.querySelector("#filter-by-user-input")
-    if (filterByUsersInput.value === "") {
+    if (filterByUsersInput.value === "" || filterByUsersInput.value === username) {
         filterByUsersInput.value = username
     } else {
         filterByUsersInput.value = filterByUsersInput.value + "," + username
@@ -16417,7 +16487,7 @@ function addMassActionForGlobalChangesets() {
                 label.style.cursor = "pointer"
                 label.setAttribute("checked", false)
                 label.id = "invert-user-filter-checkbox"
-                label.onclick = e => {
+                label.onclick = e =>{
                     if (e.target.textContent === "🔄Hide changesets from ") {
                         e.target.textContent = "🔄Show changesets from "
                     } else {
@@ -16522,6 +16592,7 @@ function addMassActionForGlobalChangesets() {
 
 const CORPORATE_EMOJI = "🏢"
 const BAN_EMOJI = "⛔️"
+const REVIEW_REQUESTED_EMOJI = "🙏"
 
 // prettier-ignore
 const moderatorBadgeSvg =

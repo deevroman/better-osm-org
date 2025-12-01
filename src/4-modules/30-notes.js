@@ -307,6 +307,33 @@ out meta;
     })
 
     if (isClosedNote()) {
+        if (false && isDebug()) {
+            const lastCommentTime = Array.from(document.querySelectorAll("#sidebar_content article time")).at(-1)
+
+            const findChangesetsBtn = document.createElement("span")
+            findChangesetsBtn.textContent = " 🔍"
+            findChangesetsBtn.style.cursor = "pointer"
+            findChangesetsBtn.onclick = async e => {
+                e.preventDefault()
+                e.stopPropagation()
+                e.stopImmediatePropagation()
+                findChangesetsBtn.style.cursor = "progress"
+                const closeTime = new Date(lastCommentTime.getAttribute("datetime"))
+                const prevDay = new Date(closeTime.getTime() - 24 * 60 * 60 * 1000)
+                const nextDay = new Date(closeTime.getTime() + 24 * 60 * 60 * 1000)
+                const username = lastCommentTime.previousElementSibling.getAttribute("href").match(/user\/(.+)$/)[1]
+                const changesets = await loadChangesetsBetween(username, prevDay, nextDay)
+
+                const menu = makeContextMenuElem(e)
+                menu.appendChild(document.createTextNode("keke"))
+                document.body.appendChild(menu)
+                console.log(changesets)
+
+                findChangesetsBtn.style.cursor = "pointer"
+            }
+
+            lastCommentTime.after(findChangesetsBtn)
+        }
         return
     }
     const auth = makeAuth()
