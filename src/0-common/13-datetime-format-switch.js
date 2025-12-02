@@ -52,7 +52,7 @@ function makeTimesSwitchable() {
             beforeChangesetPrefix = `[${adiff ? "adiff" : "date"}:"${createdAtDate.toISOString().slice(0, -5) + "Z"}"]; // time before opening changeset\n`
         }
         const closingTimePrefix = `[${adiff ? "adiff" : "date"}:"${elem.getAttribute("datetime")}"]; // changeset closing time\n`
-        const query = `(
+        const queryBody = `(
   node({{bbox}});
   way({{bbox}});
   //relation({{bbox}});
@@ -60,10 +60,8 @@ function makeTimesSwitchable() {
 (._;>;);
 out meta;
 `
-        if (beforeChangesetPrefix && !adiff && isDebug()) {
-            window.open(`${overpass_server.url}?Q=${encodeURI(beforeChangesetPrefix + query)}&C=${lat};${lon};${zoom}`, "_blank")
-        }
-        window.open(`${overpass_server.url}?Q=${encodeURI(closingTimePrefix + query)}&C=${lat};${lon};${zoom}${zoom > 15 ? "&R" : ""}`, "_blank")
+        const query = beforeChangesetPrefix && !adiff ? "//" + beforeChangesetPrefix + closingTimePrefix + queryBody : closingTimePrefix + queryBody
+        window.open(`${overpass_server.url}?Q=${encodeURI(query)}&C=${lat};${lon};${zoom}${zoom > 15 ? "&R" : ""}`, "_blank")
     }
 
     document.querySelectorAll("time:not([switchable])").forEach(i => {
