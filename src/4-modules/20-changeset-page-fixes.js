@@ -1132,7 +1132,7 @@ function setupCompactChangesetsHistory() {
                     li.classList.add("review-requested-changeset")
                     const reviewRequestedBadge = document.createElement("span")
                     reviewRequestedBadge.textContent = " " + REVIEW_REQUESTED_EMOJI
-                    reviewRequestedBadge.title = "Mapper requested changeset review\nClick to filter changesets with review_requested=yes"
+                    reviewRequestedBadge.title = "Mapper requested changeset review\n\nClick to filter changesets with review_requested=yes"
                     reviewRequestedBadge.style.cursor = "pointer"
                     if (!li.classList.contains("has-hidden-comments-badge")) {
                         if (isDarkMode()) {

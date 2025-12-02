@@ -37,12 +37,22 @@ function makeTimesSwitchable() {
     const isObjectPage = location.pathname.includes("node") || location.pathname.includes("way") || location.pathname.includes("relation")
     const isNotePage = location.pathname.includes("note")
 
-    function openMapStateInOverpass(elem, adiff = false) {
+    async function openMapStateInOverpass(elem, adiff = false) {
         const { lng: lon, lat: lat } = getMapCenter()
         const zoom = getZoom()
-        const query = `// via changeset closing time
-[${adiff ? "adiff" : "date"}:"${elem.getAttribute("datetime")}"];
-(
+        let beforeChangesetPrefix = ""
+        let changesetId = elem.parentElement.querySelector(".changeset_id")?.href?.match(/\/changeset\/([0-9]+)/)?.[1]
+        if (!changesetId) {
+            changesetId = location.pathname.match(/\/changeset\/([0-9]+)/)?.[1]
+        }
+        if (changesetId) {
+            const metadata = await loadChangesetMetadata(parseInt(changesetId))
+            const createdAtDate = new Date(metadata.created_at)
+            createdAtDate.setTime(createdAtDate.getTime() - 1000)
+            beforeChangesetPrefix = `[${adiff ? "adiff" : "date"}:"${createdAtDate.toISOString().slice(0, -5) + "Z"}"]; // time before opening changeset\n`
+        }
+        const closingTimePrefix = `[${adiff ? "adiff" : "date"}:"${elem.getAttribute("datetime")}"]; // changeset closing time\n`
+        const query = `(
   node({{bbox}});
   way({{bbox}});
   //relation({{bbox}});
@@ -50,7 +60,10 @@ function makeTimesSwitchable() {
 (._;>;);
 out meta;
 `
-        window.open(`${overpass_server.url}?Q=${encodeURI(query)}&C=${lat};${lon};${zoom}${zoom > 15 ? "&R" : ""}`, "_blank")
+        if (beforeChangesetPrefix && !adiff && isDebug()) {
+            window.open(`${overpass_server.url}?Q=${encodeURI(beforeChangesetPrefix + query)}&C=${lat};${lon};${zoom}`, "_blank")
+        }
+        window.open(`${overpass_server.url}?Q=${encodeURI(closingTimePrefix + query)}&C=${lat};${lon};${zoom}${zoom > 15 ? "&R" : ""}`, "_blank")
     }
 
     document.querySelectorAll("time:not([switchable])").forEach(i => {
@@ -60,12 +73,12 @@ out meta;
         i.title += `Click for change time format`
         i.title += `\nClick with ctrl for open the map state at the time of ${isObjectPage ? "version was created" : isNotePage ? "note was created" : "changeset was closed"}\nClick with Alt for view adiff`
 
-        function clickEvent(e) {
+        async function clickEvent(e) {
             if (e.metaKey || e.ctrlKey || e.altKey) {
                 if (window.getSelection().type === "Range") {
                     return
                 }
-                openMapStateInOverpass(i, e.altKey)
+                await openMapStateInOverpass(i, e.altKey)
             } else {
                 switchTimestamp()
             }
@@ -82,10 +95,10 @@ out meta;
         btn.style.cursor = "pointer"
         btn.style.display = "none"
         btn.style.userSelect = "none"
-        btn.onclick = e => {
+        btn.onclick = async e => {
             e.preventDefault()
             e.stopPropagation()
-            openMapStateInOverpass(i, e.altKey)
+            await openMapStateInOverpass(i, e.altKey)
         }
         i.appendChild(btn)
     })

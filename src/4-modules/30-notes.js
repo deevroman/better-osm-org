@@ -322,12 +322,18 @@ out meta;
                 const prevDay = new Date(closeTime.getTime() - 24 * 60 * 60 * 1000)
                 const nextDay = new Date(closeTime.getTime() + 24 * 60 * 60 * 1000)
                 const username = lastCommentTime.previousElementSibling.getAttribute("href").match(/user\/(.+)$/)[1]
-                const changesets = await loadChangesetsBetween(username, prevDay, nextDay)
+                const changesetsPrev = await loadChangesetsBetween(username, prevDay, closeTime)
+                const changesetsNext = await loadChangesetsBetween(username, closeTime, nextDay)
 
                 const menu = makeContextMenuElem(e)
-                menu.appendChild(document.createTextNode("keke"))
+                const ul = document.createElement("ul")
+                const li = document.createElement("li")
+                li.textContent = "test"
+                ul.appendChild(li)
+                menu.appendChild(ul)
                 document.body.appendChild(menu)
-                console.log(changesets)
+                console.log(changesetsPrev)
+                console.log(changesetsNext)
 
                 findChangesetsBtn.style.cursor = "pointer"
             }
