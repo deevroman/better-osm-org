@@ -15982,6 +15982,8 @@ function filterChangesets(htmlDocument = document) {
                         needHide = false
                     } else if (username === REVIEW_REQUESTED_EMOJI && li.classList.contains("review-requested-changeset")) {
                         needHide = false
+                    } else if (username === NEWBIE_EMOJI && changesetAuthorLink?.previousElementSibling?.classList?.contains(".newbie-badge")) {
+                        needHide = false
                     }
                 })
                 if (usernameFilters.length && needHide) {
@@ -15994,6 +15996,7 @@ function filterChangesets(htmlDocument = document) {
                         || username === CORPORATE_EMOJI && corporateMappers?.has(changesetAuthor)
                         || username === BAN_EMOJI && changesetAuthorLink?.previousElementSibling?.classList?.contains("banned-badge")
                         || username === REVIEW_REQUESTED_EMOJI && li?.classList?.contains("review-requested-changeset")
+                        || username === NEWBIE_EMOJI && li?.querySelector(".newbie-badge")
                     ) {
                         hideLi(li)
                     }
@@ -16517,7 +16520,7 @@ function addMassActionForGlobalChangesets() {
                 label.style.cursor = "pointer"
                 label.setAttribute("checked", false)
                 label.id = "invert-user-filter-checkbox"
-                label.onclick = e =>{
+                label.onclick = e => {
                     if (e.target.textContent === "🔄Hide changesets from ") {
                         e.target.textContent = "🔄Show changesets from "
                     } else {
@@ -16623,6 +16626,7 @@ function addMassActionForGlobalChangesets() {
 const CORPORATE_EMOJI = "🏢"
 const BAN_EMOJI = "⛔️"
 const REVIEW_REQUESTED_EMOJI = "🙏"
+const NEWBIE_EMOJI = "🍼"
 
 // prettier-ignore
 const moderatorBadgeSvg =
@@ -16688,8 +16692,28 @@ function makeBadge(userInfo, changesetDate = new Date()) {
     }
 
     function makeNewbieBadge() {
+        userBadge.classList.add("newbie-badge")
         userBadge.title = "At the time of creating the changeset/note, the user had been editing OpenStreetMap for less than a month"
-        userBadge.textContent = "🍼 "
+        userBadge.textContent = NEWBIE_EMOJI + " "
+        userBadge.style.cursor = "pointer"
+        userBadge.onclick = e => {
+            if (location.pathname !== "/history") {
+                return
+            }
+            e.preventDefault()
+            if (!massModeActive) {
+                document.querySelector("#changesets-filter-btn").click()
+            }
+            // dirty hack
+            setTimeout(async () => {
+                if (document.querySelector("#invert-user-filter-checkbox").getAttribute("checked") === "false") {
+                    if (["", NEWBIE_EMOJI].includes(document.querySelector("#filter-by-user-input").value)) {
+                        document.querySelector("#invert-user-filter-checkbox").click()
+                    }
+                }
+                await addUsernameIntoChangesetsFilter(NEWBIE_EMOJI)
+            })
+        }
     }
 
     function makeCorporateBadge() {
@@ -16698,12 +16722,13 @@ function makeBadge(userInfo, changesetDate = new Date()) {
         userBadge.textContent = CORPORATE_EMOJI + " "
         userBadge.classList.add("corporate-badge")
         userBadge.style.cursor = "pointer"
-        userBadge.onclick = e => {
+        userBadge.onclick = async e => {
+            e.preventDefault()
             if (e.altKey) {
                 window.open(corporationContributorsSource, "_blank")
             } else {
                 if (massModeActive && !e.ctrlKey && !e.metaKey) {
-                    addUsernameIntoChangesetsFilter(CORPORATE_EMOJI)
+                    await addUsernameIntoChangesetsFilter(CORPORATE_EMOJI)
                 } else {
                     info.forEach(k => {
                         window.open(corporatesLinks.get(k), "_blank")
