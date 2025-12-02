@@ -100,7 +100,8 @@ function addMenuSeparator(menu) {
     return customSeparator
 }
 
-function cleanMeasurements() {
+function cleanMeasurements(e) {
+    e.preventDefault()
     prevMeasurements.push(currentMeasuring)
     prevMeasurements.forEach(m => {
         m.wayLine?.remove()
