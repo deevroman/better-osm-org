@@ -6071,7 +6071,8 @@ function addMenuSeparator(menu) {
     return customSeparator
 }
 
-function cleanMeasurements() {
+function cleanMeasurements(e) {
+    e.preventDefault()
     prevMeasurements.push(currentMeasuring)
     prevMeasurements.forEach(m => {
         m.wayLine?.remove()
@@ -21432,7 +21433,7 @@ function setupNavigationViaHotkeys() {
         } else if (prevMeasurements.length) {
             if (e.code === "Escape") {
                 if (confirm("Clean measurements?")) {
-                    cleanMeasurements()
+                    cleanMeasurements(e)
                 }
             }
         }

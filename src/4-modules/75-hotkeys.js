@@ -1171,7 +1171,7 @@ function setupNavigationViaHotkeys() {
         } else if (prevMeasurements.length) {
             if (e.code === "Escape") {
                 if (confirm("Clean measurements?")) {
-                    cleanMeasurements()
+                    cleanMeasurements(e)
                 }
             }
         }
