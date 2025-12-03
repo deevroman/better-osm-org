@@ -15862,6 +15862,18 @@ function addMassActionForUserChangesets() {
     document.querySelector("#sidebar_content h2").appendChild(a)
     document.querySelector("#sidebar_content h2").appendChild(document.createTextNode("\xA0"))
     document.querySelector("#sidebar_content h2").appendChild(osmchaLink)
+    // setTimeout(async () => {
+    //     const res = await fetchJSONWithCache(
+    //         osm_server.apiBase +
+    //         "notes/search.json?" +
+    //         new URLSearchParams({
+    //             display_name: username,
+    //             closed: -1,
+    //             order: "newest",
+    //         }).toString(),
+    //     )
+    //     debugger
+    // })
 }
 
 function addChangesetCheckbox(chagesetElem) {
