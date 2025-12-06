@@ -53,8 +53,14 @@ async function getMapBounds() {
 }
 
 function getCurrentXYZ() {
-    const [, z, x, y] = new URL(document.querySelector("#editanchor").href).hash.match(/map=(\d+)\/([0-9.-]+)\/([0-9.-]+)/)
-    return [x, y, z]
+    try {
+        const [, z, x, y] = new URL(document.querySelector("#editanchor").href).hash.match(/map=([0-9]+)\/([0-9.-]+)\/([0-9.-]+)/)
+        return [x, y, z]
+    } catch (e) {
+        // for iD
+        const [, z, x, y] = location.hash.match(/map=([0-9.]+)\/([0-9.-]+)\/([0-9.-]+)/)
+        return [x, y, z]
+    }
 }
 
 /**
