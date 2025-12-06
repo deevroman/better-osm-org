@@ -1,5 +1,12 @@
 ## Dev notes
 
+Just edit the desired file and call `node build.js`. 
+It just merges all the files into one big better-osm-org.user.js and monitors changes on the disk.
+
+### Hot reload
+
+However, for serious development, you will need a couple more things:
+
 server.php:
 
 ```php
@@ -19,7 +26,14 @@ echo $out;
 
 ` php -S 0.0.0.0:7777`
 
+Open in browser.
 `http://localhost:7777/server.php?dev.user.js`
+
+Use ViolentMonkey for tracking changes in code and automatically apply them.
+
+### IDE
+
+This is optional. But if you want type hints to work in your IDE, you need several npm packages.
 
 package.json
 
@@ -27,7 +41,7 @@ package.json
 {
     "type": "module",
     "scripts": {
-        "build": "cd src && node build.js"
+        "dev": "cd src && node build.js"
     },
     "devDependencies": {
         "@eslint/js": "^9.21.0",
