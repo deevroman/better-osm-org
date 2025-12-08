@@ -527,7 +527,7 @@ function loadExternalVectorStyle() {
 if (isDebug()) {
     // loadExternalVectorStyle()
 }
-
+// TODO extract into file
 if (isOsmServer()) {
     injectJSIntoPage(`
     const originalFetch = window.fetch;
@@ -536,6 +536,7 @@ if (isOsmServer()) {
     window.needClearLoadMoreRequest = 0;
     window.needPatchLoadMoreRequest = null;
     window.hiddenChangesetsCount = null;
+    window.spyGlassMode = false;
 
     window.notesDisplayName = "";
     window.notesQFilter = "";
@@ -759,130 +760,261 @@ if (isOsmServer()) {
                 //     statusText: response.statusText,
                 //     headers: response.headers
                 // });
-            } else if (false && args[0]?.includes?.("/map.json")) {
+            } else if (spyGlassMode && args[0]?.includes?.("/map.json")) {
+                console.debug("replacing Map Data overlay")
                 const response = await originalFetch(...args);
                 const originalJSON = await response.json();
-                const reverseIndex = {}
-                originalJSON.elements?.forEach(i => {
-                    reverseIndex[i.type + i.id] = i
-                })
+                if (false) {
+                    const reverseIndex = {}
+                    originalJSON.elements?.forEach(i => {
+                        reverseIndex[i.type + i.id] = i
+                    })
+                    map.dataLayer.on('layeradd', e => {
+                        queueMicrotask(() => {
+                            if (!e.layer.feature) {
+                                return
+                            }
+                            if (window.mapDataIDsFilter.has(e.layer.feature.type + e.layer.feature.id)) {
+                                e.layer.remove()
+                            }
+                            if (e.layer.feature.type === "node") {
+                                e.layer.remove()
+                                return
+                            }
+                            // if (e.layer.feature.tags["name"] && e.layer.feature.tags["landuse"]) {
+                            //     e.layer.bindTooltip(
+                            //         e.layer.feature.tags["name"],
+                            //         {
+                            //             content: e.layer.feature.tags["name"],
+                            //             sticky: true,
+                            //             permanent: true,
+                            //             offset: L.point(10, 0)
+                            //         },
+                            //     )
+                            //         .openTooltip()
+                            // }
+                            const layer = e.layer
+                            const f = e.layer.feature
+                            const t = f.tags || {};
+                            const palette = {
+                                background: "#ffeef7",
+                                border: "#ffb6c1",
+                                text: "#d81b60",
+                                pink1: "#f8bbd0",
+                                pink2: "#f48fb1",
+                                pink3: "#ec407a",
+                                pink4: "#ad1457",
+                                white: "#fff"
+                            };
+
+                            if (t.building) {
+                                layer.setStyle({
+                                    color: palette.pink3,
+                                    fillColor: palette.pink1,
+                                    fillOpacity: 0.8,
+                                    weight: 1
+                                });
+                            } else if (t.landuse) {
+                                if (["forest", "meadow", "grass", "farmland"].includes(t.landuse)) {
+                                    layer.setStyle({
+                                        color: palette.pink2,
+                                        fillColor: palette.pink1,
+                                        fillOpacity: 0.6
+                                    });
+                                } else if (["residential", "commercial", "industrial"].includes(t.landuse)) {
+                                    layer.setStyle({
+                                        color: palette.pink4,
+                                        fillColor: palette.pink3,
+                                        fillOpacity: 0.5
+                                    });
+                                } else {
+                                    layer.setStyle({
+                                        color: palette.border,
+                                        fillColor: palette.pink1,
+                                        fillOpacity: 0.4
+                                    });
+                                }
+                            } else if (t.highway) {
+                                layer.setStyle({
+                                    color: palette.pink4,
+                                    weight: 2,
+                                    opacity: 0.9
+                                });
+                            } else if (t.natural === "water" || t.waterway) {
+                                layer.setStyle({
+                                    color: "#ff80ab",
+                                    fillColor: "#ffbcd9",
+                                    fillOpacity: 0.5
+                                });
+                            } else {
+                                layer.setStyle({
+                                    color: palette.border,
+                                    fillColor: palette.background,
+                                    fillOpacity: 0.2
+                                });
+                            }
+                            if (reverseIndex[f.type + f.id].user === "TrickyFoxy") {
+                                debugger
+                                layer.setStyle({
+                                    color: "green"
+                                });
+                            }
+                        }, 0)
+                    })
+                }
+                let rightPopup = document.getElementById("spy-glass-popup")
+                if (!rightPopup) {
+                    rightPopup = document.createElement("div")
+                    rightPopup.id = "spy-glass-popup"
+                    rightPopup.style.position = "absolute"
+                    rightPopup.style.top = "0px"
+                    rightPopup.style.width = "max(350px, 30%)"
+                    rightPopup.style.height = "fit-content"
+                    rightPopup.style.background = "white"
+                    document.getElementById("map").after(rightPopup)
+                }
+                rightPopup.style.zIndex = "99"
                 // todo clean prev handler
                 map.dataLayer.on('click', e => {
                     if (!e.layer.feature) {
                         return
                     }
                     if (!e.originalEvent.altKey) {
-                        return
+                        OSM.router.route("/" + e.layer.feature.type + "/" + e.layer.feature.id)
+                        rightPopup.style.zIndex = "0"
                     }
                     window.mapDataIDsFilter.add(e.layer.feature.type + e.layer.feature.id)
                     e.layer.remove()
                 })
-                map.dataLayer.on('layeradd', e => {
-                    queueMicrotask(() => {
-                        if (!e.layer.feature) {
-                            return
-                        }
-                        if (window.mapDataIDsFilter.has(e.layer.feature.type + e.layer.feature.id)) {
-                            e.layer.remove()
-                        }
-                        if (e.layer.feature.type === "node") {
-                            e.layer.remove()
-                            return
-                        }
-                        // if (e.layer.feature.tags["name"] && e.layer.feature.tags["landuse"]) {
-                        //     e.layer.bindTooltip(
-                        //         e.layer.feature.tags["name"],
-                        //         {
-                        //             content: e.layer.feature.tags["name"],
-                        //             sticky: true,
-                        //             permanent: true,
-                        //             offset: L.point(10, 0)
-                        //         },
-                        //     )
-                        //         .openTooltip()
-                        // }
-                        const layer = e.layer
-                        const f = e.layer.feature
-                        const t = f.tags || {};
-                        const palette = {
-                            background: "#ffeef7",
-                            border: "#ffb6c1",
-                            text: "#d81b60",
-                            pink1: "#f8bbd0",
-                            pink2: "#f48fb1",
-                            pink3: "#ec407a",
-                            pink4: "#ad1457",
-                            white: "#fff"
-                        };
+                map.dataLayer.clearLayers()
 
-                        if (t.building) {
-                            layer.setStyle({
-                                color: palette.pink3,
-                                fillColor: palette.pink1,
-                                fillOpacity: 0.8,
-                                weight: 1
-                            });
+                const features = map.dataLayer.buildFeatures(originalJSON)
+                const nodes = features.filter(i => i.type === "node")
+                const other = features.filter(i => i.type !== "node")
+                for (const feature of [...other, ...nodes]) {
+                    let layer;
+
+                    if (feature.type === "node") {
+                        layer = L.circleMarker(feature.latLng, {
+                            color: "black",
+                            weight: 2,
+                            radius: 2,
+                            opacity: 1,
+                            fillOpacity: 1
+                        });
+                    } else {
+                        var latLngs = new Array(feature.nodes.length);
+
+                        for (var j = 0; j < feature.nodes.length; j++) {
+                            latLngs[j] = feature.nodes[j].latLng;
                         }
-                        else if (t.landuse) {
-                            if (["forest", "meadow", "grass", "farmland"].includes(t.landuse)) {
-                                layer.setStyle({
-                                    color: palette.pink2,
-                                    fillColor: palette.pink1,
-                                    fillOpacity: 0.6
-                                });
-                            } else if (["residential", "commercial", "industrial"].includes(t.landuse)) {
-                                layer.setStyle({
-                                    color: palette.pink4,
-                                    fillColor: palette.pink3,
-                                    fillOpacity: 0.5
-                                });
-                            } else {
-                                layer.setStyle({
-                                    color: palette.border,
-                                    fillColor: palette.pink1,
-                                    fillOpacity: 0.4
-                                });
-                            }
-                        }
-                        else if (t.highway) {
-                            layer.setStyle({
-                                color: palette.pink4,
+
+                        if (map.dataLayer.isWayArea(feature)) {
+                            latLngs.pop();
+                            layer = L.polygon(latLngs, {
+                                color: "black",
                                 weight: 2,
-                                opacity: 0.9
+                                opacity: 1,
+                                fillOpacity: 0.5
                             });
-                        }
-                        else if (t.natural === "water" || t.waterway) {
-                            layer.setStyle({
-                                color: "#ff80ab",
-                                fillColor: "#ffbcd9",
+                        } else {
+                            layer = L.polyline(latLngs, {
+                                color: "black",
+                                weight: 2,
+                                radius: 4,
+                                opacity: 1,
                                 fillOpacity: 0.5
                             });
                         }
-                        else {
-                            layer.setStyle({
-                                color: palette.border,
-                                fillColor: palette.background,
-                                fillOpacity: 0.2
-                            });
+                    }
+                    layer.on('mouseover', function(e) {
+                        rightPopup.textContent = ""
+                        layer.setStyle({
+                            color: "red",
+                            weight: 2,
+                            radius: 2,
+                            opacity: 1,
+                            fillOpacity: 1
+                        })
+                        layer._path.classList.add("spy-glass-stroke-polyline")
+                        layer.bringToFront()
+
+                        const t = document.createElement("table")
+                        t.classList.add("spy-glass")
+                        t.style.margin = "4px"
+                        t.style.border = "solid 1px red"
+                        t.style.borderRadius = "4px"
+                        t.style.width = "97%"
+                        const tB = document.createElement("tbody")
+                        t.appendChild(tB)
+
+                        const thead = document.createElement("thead")
+                        thead.style.color = "black"
+                        thead.style.background = "yellow"
+                        thead.style.fontWeight = "bold"
+                        thead.style.fontSize = "large"
+                        thead.style.textAlign = "center"
+                        thead.style.borderBottom = "solid 1px gray"
+                        t.appendChild(thead)
+
+                        const th = document.createElement("th")
+                        th.colSpan = 2
+                        th.textContent = feature.type + " " + feature.id
+                        thead.appendChild(th)
+
+                        Object.entries(feature.tags ?? {}).forEach(([k, v]) => {
+                            const tr = document.createElement("tr")
+                            const tdKey = document.createElement("td")
+                            const tdValue = document.createElement("td")
+                            tdKey.textContent = k
+                            tdKey.style.color = "black"
+                            tdKey.style.fontWeight = "bold"
+                            tdValue.textContent = v
+                            tdValue.style.color = "black"
+                            tr.appendChild(tdKey)
+                            tr.appendChild(tdValue)
+                            tB.appendChild(tr)
+                        })
+
+                        rightPopup.appendChild(t)
+
+                        console.log(feature)
+                    })
+                    layer.on('mouseout', function(e) {
+                        layer.setStyle({
+                            color: "black",
+                            weight: 2,
+                            radius: 2,
+                            opacity: 1,
+                            fillOpacity: 1
+                        })
+                        layer._path.classList.remove("spy-glass-stroke-polyline")
+                    })
+
+                    layer.addTo(map);
+
+                    layer.feature = feature;
+                    layer._path.classList.add("spy-glass-" + feature.type)
+                    setTimeout(() => {
+                        if (feature.type === "node") {
+                            layer.bringToFront()
                         }
-                        if (reverseIndex[f.type+f.id].user === "TrickyFoxy") {
-                            debugger
-                            layer.setStyle({
-                                color: "green"
-                            });
-                        }
-                    }, 0)
-                })
-                return new Response(JSON.stringify(originalJSON), {
+                    })
+                }
+                throw "PreventMapData"
+                /*return new Response(JSON.stringify(originalJSON), {
                     status: response.status,
                     statusText: response.statusText,
                     headers: response.headers
-                });
+                });*/
             } else {
                 // console.log("other requests", args[0])
                 // debugger
             }
-        } catch {
+        } catch (e) {
+            if (e === "PreventMapData") {
+                throw { name: "AbortError" }
+            }
             return originalFetch(...args);
         } finally {
             document.querySelectorAll(".wait-fetch").forEach(elem => elem.classList.remove("wait-fetch"))
