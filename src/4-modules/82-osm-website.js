@@ -34,6 +34,7 @@ const alwaysEnabledModules = [
     setupMakeVersionPageBetter,
     setupNotesFiltersButtons,
     setupGPXFiltersButtons,
+    setupSpyGlassButtons,
     setupNewContextMenuItems,
     setupPrometheusLink
 ]

@@ -1207,13 +1207,20 @@ function setupNavigationViaHotkeys() {
                 }
             }
         } else if (e.code === "KeyD") {
-            if (e.altKey && isDebug()) {
+            if (e.altKey && e.shiftKey) {
+                location.search += "&kek"
+                return
+            } else if (e.altKey) {
                 // eslint-disable-next-line no-debugger
                 debugger
                 throw "debug"
             }
-            if (e.shiftKey && isDebug()) {
-                location.search += "&kek"
+            if (e.shiftKey) {
+                try {
+                    document.getElementById("spy-glass").click()
+                } catch (e) {
+                    debug_alert("script not injected :(")
+                }
                 return
             }
             if (e.altKey || e.shiftKey) {

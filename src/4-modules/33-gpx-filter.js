@@ -17,7 +17,7 @@ function addGPXFiltersButtons() {
     filters.onclick = async () => {
         const prevTracksList = document.getElementById("tracks-list")
 
-        const bounds = await getMapBounds() // todo try add safari support
+        const bounds = await getMapBounds()
         const lat1 = bounds.getNorthWest().lat
         const lng1 = bounds.getNorthWest().lng
         const lat2 = bounds.getSouthEast().lat
