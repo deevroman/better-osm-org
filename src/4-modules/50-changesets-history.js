@@ -546,7 +546,7 @@ if (isOsmServer()) {
 
     // const cache = new Map();
 
-   // window.mapDataIDsFilter = new Set();
+    // window.mapDataIDsFilter = new Set();
 
     console.log('Fetch intercepted');
     window.fetch = async (...args) => {
@@ -892,9 +892,16 @@ if (isOsmServer()) {
                 const nodes = features.filter(i => i.type === "node")
                 const other = features.filter(i => i.type !== "node")
                 for (const feature of [...other, ...nodes]) {
-                    let layer;
+                    let layer, layerShadow;
 
                     if (feature.type === "node") {
+                        layerShadow = L.circleMarker(feature.latLng, {
+                            color: "white",
+                            weight: 4,
+                            radius: 4,
+                            opacity: 1,
+                            fillOpacity: 1
+                        });
                         layer = L.circleMarker(feature.latLng, {
                             color: "black",
                             weight: 2,
@@ -903,9 +910,9 @@ if (isOsmServer()) {
                             fillOpacity: 1
                         });
                     } else {
-                        var latLngs = new Array(feature.nodes.length);
+                        const latLngs = new Array(feature.nodes.length);
 
-                        for (var j = 0; j < feature.nodes.length; j++) {
+                        for (let j = 0; j < feature.nodes.length; j++) {
                             latLngs[j] = feature.nodes[j].latLng;
                         }
 
@@ -927,79 +934,90 @@ if (isOsmServer()) {
                             });
                         }
                     }
-                    layer.on('mouseover', function(e) {
-                        rightPopup.textContent = ""
-                        layer.setStyle({
-                            color: "red",
-                            weight: 2,
-                            radius: 2,
-                            opacity: 1,
-                            fillOpacity: 1
-                        })
-                        layer._path.classList.add("spy-glass-stroke-polyline")
-                        layer.bringToFront()
 
-                        const t = document.createElement("table")
-                        t.classList.add("spy-glass")
-                        t.style.margin = "4px"
-                        t.style.border = "solid 1px red"
-                        t.style.borderRadius = "4px"
-                        t.style.width = "97%"
-                        const tB = document.createElement("tbody")
-                        t.appendChild(tB)
-
-                        const thead = document.createElement("thead")
-                        thead.style.color = "black"
-                        thead.style.background = "yellow"
-                        thead.style.fontWeight = "bold"
-                        thead.style.fontSize = "large"
-                        thead.style.textAlign = "center"
-                        thead.style.borderBottom = "solid 1px gray"
-                        t.appendChild(thead)
-
-                        const th = document.createElement("th")
-                        th.colSpan = 2
-                        th.textContent = feature.type + " " + feature.id
-                        thead.appendChild(th)
-
-                        Object.entries(feature.tags ?? {}).forEach(([k, v]) => {
-                            const tr = document.createElement("tr")
-                            const tdKey = document.createElement("td")
-                            const tdValue = document.createElement("td")
-                            tdKey.textContent = k
-                            tdKey.style.color = "black"
-                            tdKey.style.fontWeight = "bold"
-                            tdValue.textContent = v
-                            tdValue.style.color = "black"
-                            tr.appendChild(tdKey)
-                            tr.appendChild(tdValue)
-                            tB.appendChild(tr)
-                        })
-
-                        rightPopup.appendChild(t)
-
-                        console.log(feature)
-                    })
-                    layer.on('mouseout', function(e) {
-                        layer.setStyle({
-                            color: "black",
-                            weight: 2,
-                            radius: 2,
-                            opacity: 1,
-                            fillOpacity: 1
-                        })
-                        layer._path.classList.remove("spy-glass-stroke-polyline")
-                    })
-
-                    layer.addTo(map);
-
-                    layer.feature = feature;
-                    layer._path.classList.add("spy-glass-" + feature.type)
-                    setTimeout(() => {
-                        if (feature.type === "node") {
+                    function attachMouseHandlers(layer) {
+                        layer.on("mouseover", function(e) {
+                            rightPopup.textContent = ""
+                            layer.setStyle({
+                                color: "red",
+                                weight: 2,
+                                radius: 2,
+                                opacity: 1,
+                                fillOpacity: 1
+                            })
+                            layer._path.classList.add("spy-glass-stroke-polyline")
                             layer.bringToFront()
-                        }
-                    })
+
+                            const t = document.createElement("table")
+                            t.classList.add("spy-glass")
+                            t.style.margin = "4px"
+                            t.style.border = "solid 1px red"
+                            t.style.borderRadius = "4px"
+                            t.style.width = "97%"
+                            const tB = document.createElement("tbody")
+                            t.appendChild(tB)
+
+                            const thead = document.createElement("thead")
+                            thead.style.color = "black"
+                            thead.style.background = "yellow"
+                            thead.style.fontWeight = "bold"
+                            thead.style.fontSize = "large"
+                            thead.style.textAlign = "center"
+                            thead.style.borderBottom = "solid 1px gray"
+                            t.appendChild(thead)
+
+                            const th = document.createElement("th")
+                            th.colSpan = 2
+                            th.textContent = feature.type + " " + feature.id
+                            thead.appendChild(th)
+
+                            Object.entries(feature.tags ?? {}).forEach(([k, v]) => {
+                                const tr = document.createElement("tr")
+                                const tdKey = document.createElement("td")
+                                const tdValue = document.createElement("td")
+                                tdKey.textContent = k
+                                tdKey.style.color = "black"
+                                tdKey.style.fontWeight = "bold"
+                                tdValue.textContent = v
+                                tdValue.style.color = "black"
+                                tr.appendChild(tdKey)
+                                tr.appendChild(tdValue)
+                                tB.appendChild(tr)
+                            })
+
+                            rightPopup.appendChild(t)
+
+                            console.log(feature)
+                        })
+                        layer.on("mouseout", function(e) {
+                            layer.setStyle({
+                                color: "black",
+                                weight: 2,
+                                radius: 2,
+                                opacity: 1,
+                                fillOpacity: 1
+                            })
+                            layer._path.classList.remove("spy-glass-stroke-polyline")
+                            if (feature.type === "way") {
+                                layer.bringToBack()
+                            }
+                        })
+                    }
+
+                    attachMouseHandlers(layer)
+                    if (feature.type === "node") {
+                        layerShadow.addTo(map);
+                        queueMicrotask(() => {
+                            layer.addTo(map);
+                            layer.feature = feature;
+                            layer._path.classList.add("spy-glass-" + feature.type)
+                            layer.bringToFront()
+                        })
+                    } else {
+                        layer.addTo(map);
+                        layer.feature = feature;
+                        layer._path.classList.add("spy-glass-" + feature.type)
+                    }
                 }
                 throw "PreventMapData"
                 /*return new Response(JSON.stringify(originalJSON), {
