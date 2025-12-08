@@ -16,10 +16,6 @@ function addSpyGlassButtons() {
         filter: drop-shadow(2px 2px 0 yellow) drop-shadow(-2px -2px 0 yellow) drop-shadow(2px -2px 0 yellow) drop-shadow(-2px 2px 0 yellow);
     }
     
-    path.spy-glass-node {
-        filter: drop-shadow(1px 1px 0 white) drop-shadow(-1px -1px 0 white) drop-shadow(1px -1px 0 white) drop-shadow(-1px 1px 0 white);
-    }
-    
     table.spy-glass tr > td:first-of-type {
         width: 200px;
     }
