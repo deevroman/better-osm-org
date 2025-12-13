@@ -63,6 +63,7 @@
 // @exclude      https://www.openstreetmap.org/account*
 // @exclude      https://www.openstreetmap.org/oauth2/*
 // @exclude      https://www.openstreetmap.org/login*
+// @match        https://www.openhistoricalmap.org/*
 // @match        https://master.apis.dev.openstreetmap.org/*
 // @exclude      https://master.apis.dev.openstreetmap.org/api/*
 // @exclude      https://master.apis.dev.openstreetmap.org/account*
@@ -74,6 +75,7 @@
 // @match        https://www.hdyc.neis-one.org/*
 // @match        https://hdyc.neis-one.org/*
 // @match        https://osmcha.org/*
+// @match        https://osmcha.openhistoricalmap.org/*
 // @match        https://wiki.openstreetmap.org/wiki/Proposal:*
 // @exclude      https://taginfo.openstreetmap.org/embed/*
 // @match        https://github.com/openstreetmap/openstreetmap-website/issues/new*
@@ -318,8 +320,12 @@ const osm_server = (() => {
     else return null
 })()
 
+function isOHMServer() {
+    return location.origin === ohm_prod_server.origin
+}
+
 function isOsmServer() {
-    return !!osm_server
+    return !!osm_server && (isOHMServer() ? true : isDebug())
 }
 
 const planetOrigin = "https://planet.maps.mail.ru"
@@ -342,7 +348,18 @@ const PRIVATECOFFEE_OVERPASS_INSTANCE = {
     url: "https://turbo.overpass.private.coffee/",
 }
 
+const OHM_OVERPASS_INSTANCE = {
+    name: "overpass-api.openhistoricalmap.org",
+    apiUrl: "https://overpass-api.openhistoricalmap.org/api/",
+    url: "https://overpass-turbo.openhistoricalmap.org/",
+}
+
 let overpass_server = MAIN_OVERPASS_INSTANCE
+
+const MAIN_OSMCHA = "https://osmcha.org"
+const OHM_OSMCHA = "https://osmcha.openhistoricalmap.org"
+
+const osmcha_server_origin = isOHMServer() ? OHM_OSMCHA : MAIN_OSMCHA
 
 /**
  * @typedef {{
@@ -2009,8 +2026,14 @@ async function getMapBounds() {
 }
 
 function getCurrentXYZ() {
-    const [, z, x, y] = new URL(document.querySelector("#editanchor").href).hash.match(/map=(\d+)\/([0-9.-]+)\/([0-9.-]+)/)
-    return [x, y, z]
+    try {
+        const [, z, x, y] = new URL(document.querySelector("#editanchor").href).hash.match(/map=([0-9]+)\/([0-9.-]+)\/([0-9.-]+)/)
+        return [x, y, z]
+    } catch (e) {
+        // for iD
+        const [, z, x, y] = location.hash.match(/map=([0-9.]+)\/([0-9.-]+)\/([0-9.-]+)/)
+        return [x, y, z]
+    }
 }
 
 /**
@@ -2050,6 +2073,18 @@ function setZoom(zoomLevel) {
             location.hash = `map=${zoomLevel}/${x}/${y}`
         }
     }
+}
+
+function resetMapHover() {
+    document.querySelectorAll(".map-hover").forEach(el => {
+        el.classList.remove("map-hover")
+    })
+}
+
+function resetSelectedChangesets() {
+    document.querySelectorAll(".selected").forEach(el => {
+        el.classList.remove("selected")
+    })
 }
 
 /**
@@ -3438,7 +3473,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
     }
 
     async function uncheck(changeset_id) {
-        return await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/uncheck/`, "PUT")
+        return await osmchaRequest(`${osmcha_server_origin}/api/v1/changesets/${changeset_id}/uncheck/`, "PUT")
     }
 
     const likeBtn = document.createElement("span")
@@ -3454,7 +3489,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
         const osmchaToken = await GM.getValue("OSMCHA_TOKEN")
         if (!osmchaToken) {
             alert("Please, login into OSMCha")
-            window.open("https://osmcha.org")
+            window.open(osmcha_server_origin)
             return
         }
         if (e.target.hasAttribute("active")) {
@@ -3466,7 +3501,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             await uncheck(changeset_id)
             await updateReactions()
         }
-        await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/set-good/`, "PUT")
+        await osmchaRequest(`${osmcha_server_origin}/api/v1/changesets/${changeset_id}/set-good/`, "PUT")
         await updateReactions()
     }
     likeBtn.appendChild(likeImg)
@@ -3486,7 +3521,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
         const osmchaToken = await GM.getValue("OSMCHA_TOKEN")
         if (!osmchaToken) {
             alert("Please, login into OSMCha")
-            window.open("https://osmcha.org")
+            window.open(osmcha_server_origin)
             return
         }
         if (e.target.hasAttribute("active")) {
@@ -3498,7 +3533,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             await uncheck(changeset_id)
             await updateReactions()
         }
-        await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/set-harmful/`, "PUT")
+        await osmchaRequest(`${osmcha_server_origin}/api/v1/changesets/${changeset_id}/set-harmful/`, "PUT")
         await updateReactions()
         if (isDebug()) {
             e.stopPropagation()
@@ -3515,7 +3550,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             // todo
             throw "Open Osmcha for get access to reactions"
         }
-        const res = await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/`, "GET")
+        const res = await osmchaRequest(`${osmcha_server_origin}/api/v1/changesets/${changeset_id}/`, "GET")
         if (res.status === 404) {
             likeImg.title = "Changeset not found in OSMCha database.\nEither OSMCha did not have time to process this changeset, or it is too old."
             dislikeImg.title = "Changeset not found in OSMCha database.\nEither OSMCha did not have time to process this changeset, or it is too old."
@@ -3649,7 +3684,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
 
             ch.onchange = async () => {
                 if (ch.checked) {
-                    const res = await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/tags/${i.id}/`, "POST")
+                    const res = await osmchaRequest(`${osmcha_server_origin}/api/v1/changesets/${changeset_id}/tags/${i.id}/`, "POST")
                     if (res.status !== 200) {
                         console.trace(res)
                         ch.checked = "false"
@@ -3657,7 +3692,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
                         console.log(`${i.name} applied`)
                     }
                 } else {
-                    const res = await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/tags/${i.id}/`, "DELETE")
+                    const res = await osmchaRequest(`${osmcha_server_origin}/api/v1/changesets/${changeset_id}/tags/${i.id}/`, "DELETE")
                     if (res.status !== 200) {
                         console.trace(res)
                         ch.checked = "true"
@@ -3709,7 +3744,7 @@ function addRevertButton() {
         // prettier-ignore
         sidebar.innerHTML +=
             ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="${reverterTitle}">↩️</a>
-              <a href="https://osmcha.org/changesets/${changeset_id}" id="osmcha_link" target="_blank" rel="noreferrer">${osmchaSvgLogo}</a>`
+              <a href="${osmcha_server_origin}/changesets/${changeset_id}" id="osmcha_link" target="_blank" rel="noreferrer">${osmchaSvgLogo}</a>`
         changesetObjectsSelectionModeEnabled = false
         document.querySelector("#revert_button_class").onclick = async e => {
             if (changesetObjectsSelectionModeEnabled) {
@@ -4424,7 +4459,7 @@ function makeHashtagsClickable() {
         span.textContent = node.textContent
         span.innerHTML = span.innerHTML.replaceAll(/\B(#[\p{L}\d_-]+)\b/gu, function (match) {
             const osmchaFilter = { comment: [{ label: match, value: match }] }
-            const osmchaLink = "https://osmcha.org?" + new URLSearchParams({ filters: JSON.stringify(osmchaFilter) }).toString()
+            const osmchaLink = `${osmcha_server_origin}?` + new URLSearchParams({ filters: JSON.stringify(osmchaFilter) }).toString()
             const a = document.createElement("a")
             a.href = osmchaLink
             a.target = "_blank"
@@ -5339,6 +5374,74 @@ function setupHideNoteHighlight() {
 
 //</editor-fold>
 
+//<editor-fold desc="spy-glass" defaultstate="collapsed">
+
+function addSpyGlassButtons() {
+    if (getWindow().fetchIntercepterScriptInited !== true) {
+        return
+    }
+    if (document.getElementById("spy-glass")) {
+        return
+    }
+    const mapDataLabel = Array.from(document.querySelectorAll(".overlay-layers label"))[1]
+    if (!mapDataLabel) {
+        return
+    }
+    injectCSSIntoOSMPage(`
+    path.spy-glass-stroke-polyline {
+        filter: drop-shadow(2px 2px 0 yellow) drop-shadow(-2px -2px 0 yellow) drop-shadow(2px -2px 0 yellow) drop-shadow(-2px 2px 0 yellow);
+    }
+    
+    table.spy-glass tr > td:first-of-type {
+        width: 200px;
+    }
+    
+    #map.spy-glass {
+        cursor: pointer;
+    }
+    `)
+    const spyGlassBtn = document.createElement("span")
+    spyGlassBtn.id = "spy-glass"
+    spyGlassBtn.style.cursor = "pointer"
+    spyGlassBtn.style.marginLeft = "3px"
+    spyGlassBtn.classList.add("bi", "bi-eye-slash-fill")
+    spyGlassBtn.title = "Activate SpyGlass imitation mode"
+
+    spyGlassBtn.onclick = async () => {
+        getWindow().spyGlassMode = !getWindow().spyGlassMode
+        if (getWindow().spyGlassMode) {
+            spyGlassBtn.classList.remove("bi-eye-slash-fill")
+            spyGlassBtn.classList.add("bi-eye-fill")
+            document.getElementById("map").classList.add("spy-glass")
+            if (!location.hash.includes("D")) {
+                Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
+            } else {
+                const b = getMap().getBounds()
+                const c = getMap().getCenter()
+                getMap().setView({lat: c.lat, lng: c.lng + 0.000005})
+            }
+        } else {
+            spyGlassBtn.classList.remove("bi-eye-fill")
+            spyGlassBtn.classList.add("bi-eye-slash-fill")
+            document.getElementById("map").classList.remove("spy-glass")
+        }
+    }
+    mapDataLabel.after(spyGlassBtn)
+}
+
+function setupSpyGlassButtons() {
+    if (isDebug()) {
+        const timerId = setInterval(addSpyGlassButtons, 500)
+        setTimeout(() => {
+            clearInterval(timerId)
+            console.debug("stop try add SpyGlass buttons")
+        }, 5000)
+        addSpyGlassButtons()
+    }
+}
+
+//</editor-fold>
+
 //<editor-fold desc="gpx-filter" defaultstate="collapsed">
 
 function addGPXFiltersButtons() {
@@ -5358,7 +5461,7 @@ function addGPXFiltersButtons() {
     filters.onclick = async () => {
         const prevTracksList = document.getElementById("tracks-list")
 
-        const bounds = await getMapBounds() // todo try add safari support
+        const bounds = await getMapBounds()
         const lat1 = bounds.getNorthWest().lat
         const lng1 = bounds.getNorthWest().lng
         const lat2 = bounds.getSouthEast().lat
@@ -15814,7 +15917,7 @@ function makeOsmchaLinkForUsername(username) {
         users: [{ label: username, value: username }],
         date__gte: [{ label: "", value: "" }],
     }
-    return "https://osmcha.org?" + new URLSearchParams({ filters: JSON.stringify(osmchaFilter) }).toString()
+    return `${osmcha_server_origin}?${new URLSearchParams({ filters: JSON.stringify(osmchaFilter) }).toString()}`
 }
 
 function addMassActionForUserChangesets() {
@@ -15845,7 +15948,7 @@ function addMassActionForUserChangesets() {
     const osmchaLink = document.createElement("a")
     osmchaLink.innerHTML = osmchaSvgLogo
     osmchaLink.id = "osmcha_link"
-    osmchaLink.title = "Open profile in OSMCha.org"
+    osmchaLink.title = "Open profile in OSMCha"
     osmchaLink.href = makeOsmchaLinkForUsername(username)
     osmchaLink.target = "_blank"
     osmchaLink.rel = "noreferrer"
@@ -15862,6 +15965,18 @@ function addMassActionForUserChangesets() {
     document.querySelector("#sidebar_content h2").appendChild(a)
     document.querySelector("#sidebar_content h2").appendChild(document.createTextNode("\xA0"))
     document.querySelector("#sidebar_content h2").appendChild(osmchaLink)
+    // setTimeout(async () => {
+    //     const res = await fetchJSONWithCache(
+    //         osm_server.apiBase +
+    //         "notes/search.json?" +
+    //         new URLSearchParams({
+    //             display_name: username,
+    //             closed: -1,
+    //             order: "newest",
+    //         }).toString(),
+    //     )
+    //     debugger
+    // })
 }
 
 function addChangesetCheckbox(chagesetElem) {
@@ -16097,7 +16212,7 @@ function loadExternalVectorStyle() {
 if (isDebug()) {
     // loadExternalVectorStyle()
 }
-
+// TODO extract into file
 if (isOsmServer()) {
     injectJSIntoPage(`
     const originalFetch = window.fetch;
@@ -16106,6 +16221,7 @@ if (isOsmServer()) {
     window.needClearLoadMoreRequest = 0;
     window.needPatchLoadMoreRequest = null;
     window.hiddenChangesetsCount = null;
+    window.spyGlassMode = false;
 
     window.notesDisplayName = "";
     window.notesQFilter = "";
@@ -16115,7 +16231,7 @@ if (isOsmServer()) {
 
     // const cache = new Map();
 
-   // window.mapDataIDsFilter = new Set();
+    // window.mapDataIDsFilter = new Set();
 
     console.log('Fetch intercepted');
     window.fetch = async (...args) => {
@@ -16329,130 +16445,279 @@ if (isOsmServer()) {
                 //     statusText: response.statusText,
                 //     headers: response.headers
                 // });
-            } else if (false && args[0]?.includes?.("/map.json")) {
+            } else if (spyGlassMode && args[0]?.includes?.("/map.json")) {
+                console.debug("replacing Map Data overlay")
                 const response = await originalFetch(...args);
                 const originalJSON = await response.json();
-                const reverseIndex = {}
-                originalJSON.elements?.forEach(i => {
-                    reverseIndex[i.type + i.id] = i
-                })
+                if (false) {
+                    const reverseIndex = {}
+                    originalJSON.elements?.forEach(i => {
+                        reverseIndex[i.type + i.id] = i
+                    })
+                    map.dataLayer.on('layeradd', e => {
+                        queueMicrotask(() => {
+                            if (!e.layer.feature) {
+                                return
+                            }
+                            if (window.mapDataIDsFilter.has(e.layer.feature.type + e.layer.feature.id)) {
+                                e.layer.remove()
+                            }
+                            if (e.layer.feature.type === "node") {
+                                e.layer.remove()
+                                return
+                            }
+                            // if (e.layer.feature.tags["name"] && e.layer.feature.tags["landuse"]) {
+                            //     e.layer.bindTooltip(
+                            //         e.layer.feature.tags["name"],
+                            //         {
+                            //             content: e.layer.feature.tags["name"],
+                            //             sticky: true,
+                            //             permanent: true,
+                            //             offset: L.point(10, 0)
+                            //         },
+                            //     )
+                            //         .openTooltip()
+                            // }
+                            const layer = e.layer
+                            const f = e.layer.feature
+                            const t = f.tags || {};
+                            const palette = {
+                                background: "#ffeef7",
+                                border: "#ffb6c1",
+                                text: "#d81b60",
+                                pink1: "#f8bbd0",
+                                pink2: "#f48fb1",
+                                pink3: "#ec407a",
+                                pink4: "#ad1457",
+                                white: "#fff"
+                            };
+
+                            if (t.building) {
+                                layer.setStyle({
+                                    color: palette.pink3,
+                                    fillColor: palette.pink1,
+                                    fillOpacity: 0.8,
+                                    weight: 1
+                                });
+                            } else if (t.landuse) {
+                                if (["forest", "meadow", "grass", "farmland"].includes(t.landuse)) {
+                                    layer.setStyle({
+                                        color: palette.pink2,
+                                        fillColor: palette.pink1,
+                                        fillOpacity: 0.6
+                                    });
+                                } else if (["residential", "commercial", "industrial"].includes(t.landuse)) {
+                                    layer.setStyle({
+                                        color: palette.pink4,
+                                        fillColor: palette.pink3,
+                                        fillOpacity: 0.5
+                                    });
+                                } else {
+                                    layer.setStyle({
+                                        color: palette.border,
+                                        fillColor: palette.pink1,
+                                        fillOpacity: 0.4
+                                    });
+                                }
+                            } else if (t.highway) {
+                                layer.setStyle({
+                                    color: palette.pink4,
+                                    weight: 2,
+                                    opacity: 0.9
+                                });
+                            } else if (t.natural === "water" || t.waterway) {
+                                layer.setStyle({
+                                    color: "#ff80ab",
+                                    fillColor: "#ffbcd9",
+                                    fillOpacity: 0.5
+                                });
+                            } else {
+                                layer.setStyle({
+                                    color: palette.border,
+                                    fillColor: palette.background,
+                                    fillOpacity: 0.2
+                                });
+                            }
+                            if (reverseIndex[f.type + f.id].user === "TrickyFoxy") {
+                                debugger
+                                layer.setStyle({
+                                    color: "green"
+                                });
+                            }
+                        }, 0)
+                    })
+                }
+                let rightPopup = document.getElementById("spy-glass-popup")
+                if (!rightPopup) {
+                    rightPopup = document.createElement("div")
+                    rightPopup.id = "spy-glass-popup"
+                    rightPopup.style.position = "absolute"
+                    rightPopup.style.top = "0px"
+                    rightPopup.style.width = "max(350px, 30%)"
+                    rightPopup.style.height = "fit-content"
+                    rightPopup.style.background = "white"
+                    document.getElementById("map").after(rightPopup)
+                }
+                rightPopup.style.zIndex = "99"
                 // todo clean prev handler
                 map.dataLayer.on('click', e => {
                     if (!e.layer.feature) {
                         return
                     }
                     if (!e.originalEvent.altKey) {
-                        return
+                        OSM.router.route("/" + e.layer.feature.type + "/" + e.layer.feature.id)
+                        rightPopup.style.zIndex = "0"
                     }
                     window.mapDataIDsFilter.add(e.layer.feature.type + e.layer.feature.id)
                     e.layer.remove()
                 })
-                map.dataLayer.on('layeradd', e => {
-                    queueMicrotask(() => {
-                        if (!e.layer.feature) {
-                            return
-                        }
-                        if (window.mapDataIDsFilter.has(e.layer.feature.type + e.layer.feature.id)) {
-                            e.layer.remove()
-                        }
-                        if (e.layer.feature.type === "node") {
-                            e.layer.remove()
-                            return
-                        }
-                        // if (e.layer.feature.tags["name"] && e.layer.feature.tags["landuse"]) {
-                        //     e.layer.bindTooltip(
-                        //         e.layer.feature.tags["name"],
-                        //         {
-                        //             content: e.layer.feature.tags["name"],
-                        //             sticky: true,
-                        //             permanent: true,
-                        //             offset: L.point(10, 0)
-                        //         },
-                        //     )
-                        //         .openTooltip()
-                        // }
-                        const layer = e.layer
-                        const f = e.layer.feature
-                        const t = f.tags || {};
-                        const palette = {
-                            background: "#ffeef7",
-                            border: "#ffb6c1",
-                            text: "#d81b60",
-                            pink1: "#f8bbd0",
-                            pink2: "#f48fb1",
-                            pink3: "#ec407a",
-                            pink4: "#ad1457",
-                            white: "#fff"
-                        };
+                map.dataLayer.clearLayers()
 
-                        if (t.building) {
-                            layer.setStyle({
-                                color: palette.pink3,
-                                fillColor: palette.pink1,
-                                fillOpacity: 0.8,
-                                weight: 1
-                            });
+                const features = map.dataLayer.buildFeatures(originalJSON)
+                const nodes = features.filter(i => i.type === "node")
+                const other = features.filter(i => i.type !== "node")
+                for (const feature of [...other, ...nodes]) {
+                    let layer, layerShadow;
+
+                    if (feature.type === "node") {
+                        layerShadow = L.circleMarker(feature.latLng, {
+                            color: "white",
+                            weight: 4,
+                            radius: 4,
+                            opacity: 1,
+                            fillOpacity: 1
+                        });
+                        layer = L.circleMarker(feature.latLng, {
+                            color: "black",
+                            weight: 2,
+                            radius: 2,
+                            opacity: 1,
+                            fillOpacity: 1
+                        });
+                    } else {
+                        const latLngs = new Array(feature.nodes.length);
+
+                        for (let j = 0; j < feature.nodes.length; j++) {
+                            latLngs[j] = feature.nodes[j].latLng;
                         }
-                        else if (t.landuse) {
-                            if (["forest", "meadow", "grass", "farmland"].includes(t.landuse)) {
-                                layer.setStyle({
-                                    color: palette.pink2,
-                                    fillColor: palette.pink1,
-                                    fillOpacity: 0.6
-                                });
-                            } else if (["residential", "commercial", "industrial"].includes(t.landuse)) {
-                                layer.setStyle({
-                                    color: palette.pink4,
-                                    fillColor: palette.pink3,
-                                    fillOpacity: 0.5
-                                });
-                            } else {
-                                layer.setStyle({
-                                    color: palette.border,
-                                    fillColor: palette.pink1,
-                                    fillOpacity: 0.4
-                                });
-                            }
-                        }
-                        else if (t.highway) {
-                            layer.setStyle({
-                                color: palette.pink4,
+
+                        if (map.dataLayer.isWayArea(feature)) {
+                            latLngs.pop();
+                            layer = L.polygon(latLngs, {
+                                color: "black",
                                 weight: 2,
-                                opacity: 0.9
+                                opacity: 1,
+                                fillOpacity: 0.5
                             });
-                        }
-                        else if (t.natural === "water" || t.waterway) {
-                            layer.setStyle({
-                                color: "#ff80ab",
-                                fillColor: "#ffbcd9",
+                        } else {
+                            layer = L.polyline(latLngs, {
+                                color: "black",
+                                weight: 2,
+                                radius: 4,
+                                opacity: 1,
                                 fillOpacity: 0.5
                             });
                         }
-                        else {
+                    }
+
+                    function attachMouseHandlers(layer) {
+                        layer.on("mouseover", function(e) {
+                            rightPopup.textContent = ""
                             layer.setStyle({
-                                color: palette.border,
-                                fillColor: palette.background,
-                                fillOpacity: 0.2
-                            });
-                        }
-                        if (reverseIndex[f.type+f.id].user === "TrickyFoxy") {
-                            debugger
+                                color: "red",
+                                weight: 2,
+                                radius: 2,
+                                opacity: 1,
+                                fillOpacity: 1
+                            })
+                            layer._path.classList.add("spy-glass-stroke-polyline")
+                            layer.bringToFront()
+
+                            const t = document.createElement("table")
+                            t.classList.add("spy-glass")
+                            t.style.margin = "4px"
+                            t.style.border = "solid 1px red"
+                            t.style.borderRadius = "4px"
+                            t.style.width = "97%"
+                            const tB = document.createElement("tbody")
+                            t.appendChild(tB)
+
+                            const thead = document.createElement("thead")
+                            thead.style.color = "black"
+                            thead.style.background = "yellow"
+                            thead.style.fontWeight = "bold"
+                            thead.style.fontSize = "large"
+                            thead.style.textAlign = "center"
+                            thead.style.borderBottom = "solid 1px gray"
+                            t.appendChild(thead)
+
+                            const th = document.createElement("th")
+                            th.colSpan = 2
+                            th.textContent = feature.type + " " + feature.id
+                            thead.appendChild(th)
+
+                            Object.entries(feature.tags ?? {}).forEach(([k, v]) => {
+                                const tr = document.createElement("tr")
+                                const tdKey = document.createElement("td")
+                                const tdValue = document.createElement("td")
+                                tdKey.textContent = k
+                                tdKey.style.color = "black"
+                                tdKey.style.fontWeight = "bold"
+                                tdValue.textContent = v
+                                tdValue.style.color = "black"
+                                tr.appendChild(tdKey)
+                                tr.appendChild(tdValue)
+                                tB.appendChild(tr)
+                            })
+
+                            rightPopup.appendChild(t)
+
+                            console.log(feature)
+                        })
+                        layer.on("mouseout", function(e) {
                             layer.setStyle({
-                                color: "green"
-                            });
-                        }
-                    }, 0)
-                })
-                return new Response(JSON.stringify(originalJSON), {
+                                color: "black",
+                                weight: 2,
+                                radius: 2,
+                                opacity: 1,
+                                fillOpacity: 1
+                            })
+                            layer._path.classList.remove("spy-glass-stroke-polyline")
+                            if (feature.type === "way") {
+                                layer.bringToBack()
+                            }
+                        })
+                    }
+
+                    attachMouseHandlers(layer)
+                    if (feature.type === "node") {
+                        layerShadow.addTo(map);
+                        queueMicrotask(() => {
+                            layer.addTo(map);
+                            layer.feature = feature;
+                            layer._path.classList.add("spy-glass-" + feature.type)
+                            layer.bringToFront()
+                        })
+                    } else {
+                        layer.addTo(map);
+                        layer.feature = feature;
+                        layer._path.classList.add("spy-glass-" + feature.type)
+                    }
+                }
+                throw "PreventMapData"
+                /*return new Response(JSON.stringify(originalJSON), {
                     status: response.status,
                     statusText: response.statusText,
                     headers: response.headers
-                });
+                });*/
             } else {
                 // console.log("other requests", args[0])
                 // debugger
             }
-        } catch {
+        } catch (e) {
+            if (e === "PreventMapData") {
+                throw { name: "AbortError" }
+            }
             return originalFetch(...args);
         } finally {
             document.querySelectorAll(".wait-fetch").forEach(elem => elem.classList.remove("wait-fetch"))
@@ -17407,7 +17672,7 @@ async function makeProfileForDeletedUser(user) {
         const osmchaLink = document.createElement("a")
         osmchaLink.textContent = " [OSMCha] "
         osmchaLink.id = "osmcha_link"
-        osmchaLink.title = "Open profile in OSMCha.org"
+        osmchaLink.title = "Open profile in OSMCha"
         osmchaLink.href = makeOsmchaLinkForUsername(username)
         osmchaLink.target = "_blank"
         osmchaLink.rel = "noreferrer"
@@ -20522,18 +20787,6 @@ function runPositionTracker() {
 
 let newNotePlaceholder = null
 
-function resetMapHover() {
-    document.querySelectorAll(".map-hover").forEach(el => {
-        el.classList.remove("map-hover")
-    })
-}
-
-function resetSelectedChangesets() {
-    document.querySelectorAll(".selected").forEach(el => {
-        el.classList.remove("selected")
-    })
-}
-
 let overzoomObserver = null
 
 function enableOverzoom() {
@@ -21492,13 +21745,20 @@ function setupNavigationViaHotkeys() {
                 }
             }
         } else if (e.code === "KeyD") {
-            if (e.altKey && isDebug()) {
+            if (e.altKey && e.shiftKey) {
+                location.search += "&kek"
+                return
+            } else if (e.altKey) {
                 // eslint-disable-next-line no-debugger
                 debugger
                 throw "debug"
             }
-            if (e.shiftKey && isDebug()) {
-                location.search += "&kek"
+            if (e.shiftKey) {
+                try {
+                    document.getElementById("spy-glass").click()
+                } catch (e) {
+                    debug_alert("script not injected :(")
+                }
                 return
             }
             if (e.altKey || e.shiftKey) {
@@ -22326,6 +22586,69 @@ function setupBetterTagsPaste() {
 
 //<editor-fold desc="id-editor" defaultstate="collapsed">
 
+function addImageryOffsetsDB() {
+    console.log("addImageryOffsetsDB")
+    const offsetSelectionSection = document.querySelector(".disclosure-wrap-background_offset")
+    if (!offsetSelectionSection) {
+        return false
+    }
+    const loadBtn = document.createElement("button")
+    loadBtn.textContent = "Find offsets"
+    loadBtn.onclick = async () => {
+        loadBtn.style.cursor = "progress"
+        try {
+            const [x, y, z] = getCurrentXYZ()
+            const offsets = (await externalFetchRetry({
+                url: `https://offsets.textual.ru/get?lat=${x}&lon=${y}&format=json&radius=2`,
+                responseType: "json"
+            })).response.filter(i => i.type === "offset")
+            console.log(offsets)
+            document.querySelectorAll(".offsets-item").forEach(i => i.remove())
+            offsets.forEach(i => {
+                const lat = i.lat
+                const lon = i.lon
+                const imlat = i.imlat
+                const imlon = i.imlon
+                const latDiff = -getDistanceFromLatLonInKm(lat, lon, imlat, lon) * 1000
+                const lonDiff = getDistanceFromLatLonInKm(lat, lon, lat, imlon) * 1000
+
+                debugger
+                const item = document.createElement("div")
+                item.classList.add("offsets-item")
+                const btn = document.createElement("button")
+                btn.style.cursor = "pointer"
+                btn.style.textAlign = "left"
+                btn.style.width = "100%"
+                btn.style.marginTop = "2px"
+                btn.style.marginBottom = "2px"
+                btn.style.whiteSpace = "pre"
+                btn.textContent = `${latDiff.toFixed(2)} ${lonDiff.toFixed(2)} ${i.date} ${i.author}\n${i.imagery} ${i.description}`
+                btn.onclick = () => {
+                    offsetSelectionSection.querySelector("input").value = `${lonDiff.toFixed(2)}, ${latDiff.toFixed(2)}`
+                    offsetSelectionSection.querySelector("input").dispatchEvent(new Event('change'))
+                }
+                item.appendChild(btn)
+                loadBtn.after(item)
+            })
+        } finally {
+            loadBtn.style.cursor = "pointer"
+        }
+    }
+    offsetSelectionSection.appendChild(loadBtn)
+    return true
+}
+
+function setupImageryOffsetsDB() {
+    const timerId = setInterval(() => {
+        if (addImageryOffsetsDB()) clearInterval(timerId)
+    }, 2000)
+    setTimeout(() => {
+        clearInterval(timerId)
+        console.debug("stop try add imagery offset")
+    }, 10000)
+    addImageryOffsetsDB()
+}
+
 function setupIDframe() {
     if (GM_config.get("DarkModeForID")) {
         injectCSSIntoOSMPage(`
@@ -22345,6 +22668,9 @@ function setupIDframe() {
         alert(token)
     })
     setupBetterTagsPaste()
+    if (isDebug()) {
+        setupImageryOffsetsDB()
+    }
 }
 
 //</editor-fold>
@@ -22385,6 +22711,7 @@ const alwaysEnabledModules = [
     setupMakeVersionPageBetter,
     setupNotesFiltersButtons,
     setupGPXFiltersButtons,
+    setupSpyGlassButtons,
     setupNewContextMenuItems,
     setupPrometheusLink
 ]
@@ -22406,7 +22733,9 @@ function setupOSMWebsite() {
     }, 900)
 
     resetSearchFormFocus()
-    if (GM_config.get("OverpassInstance") === MAILRU_OVERPASS_INSTANCE.name) {
+    if (isOHMServer()) {
+        overpass_server = OHM_OVERPASS_INSTANCE
+    } else if (GM_config.get("OverpassInstance") === MAILRU_OVERPASS_INSTANCE.name) {
         overpass_server = MAILRU_OVERPASS_INSTANCE
     } else if (GM_config.get("OverpassInstance") === PRIVATECOFFEE_OVERPASS_INSTANCE.name) {
         overpass_server = PRIVATECOFFEE_OVERPASS_INSTANCE
@@ -22762,6 +23091,12 @@ function main() {
     if (location.origin === "https://osmcha.org") {
         setTimeout(async () => {
             await GM.setValue("OSMCHA_TOKEN", localStorage.getItem("token"))
+        }, 1000)
+        return
+    }
+    if (location.origin === "https://osmcha.openhistoricalmap.org") {
+        setTimeout(async () => {
+            await GM.setValue("OHM_OSMCHA_TOKEN", localStorage.getItem("token"))
         }, 1000)
         return
     }

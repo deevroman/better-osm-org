@@ -208,7 +208,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
     }
 
     async function uncheck(changeset_id) {
-        return await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/uncheck/`, "PUT")
+        return await osmchaRequest(`${osmcha_server_origin}/api/v1/changesets/${changeset_id}/uncheck/`, "PUT")
     }
 
     const likeBtn = document.createElement("span")
@@ -224,7 +224,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
         const osmchaToken = await GM.getValue("OSMCHA_TOKEN")
         if (!osmchaToken) {
             alert("Please, login into OSMCha")
-            window.open("https://osmcha.org")
+            window.open(osmcha_server_origin)
             return
         }
         if (e.target.hasAttribute("active")) {
@@ -236,7 +236,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             await uncheck(changeset_id)
             await updateReactions()
         }
-        await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/set-good/`, "PUT")
+        await osmchaRequest(`${osmcha_server_origin}/api/v1/changesets/${changeset_id}/set-good/`, "PUT")
         await updateReactions()
     }
     likeBtn.appendChild(likeImg)
@@ -256,7 +256,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
         const osmchaToken = await GM.getValue("OSMCHA_TOKEN")
         if (!osmchaToken) {
             alert("Please, login into OSMCha")
-            window.open("https://osmcha.org")
+            window.open(osmcha_server_origin)
             return
         }
         if (e.target.hasAttribute("active")) {
@@ -268,7 +268,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             await uncheck(changeset_id)
             await updateReactions()
         }
-        await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/set-harmful/`, "PUT")
+        await osmchaRequest(`${osmcha_server_origin}/api/v1/changesets/${changeset_id}/set-harmful/`, "PUT")
         await updateReactions()
         if (isDebug()) {
             e.stopPropagation()
@@ -285,7 +285,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             // todo
             throw "Open Osmcha for get access to reactions"
         }
-        const res = await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/`, "GET")
+        const res = await osmchaRequest(`${osmcha_server_origin}/api/v1/changesets/${changeset_id}/`, "GET")
         if (res.status === 404) {
             likeImg.title = "Changeset not found in OSMCha database.\nEither OSMCha did not have time to process this changeset, or it is too old."
             dislikeImg.title = "Changeset not found in OSMCha database.\nEither OSMCha did not have time to process this changeset, or it is too old."
@@ -419,7 +419,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
 
             ch.onchange = async () => {
                 if (ch.checked) {
-                    const res = await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/tags/${i.id}/`, "POST")
+                    const res = await osmchaRequest(`${osmcha_server_origin}/api/v1/changesets/${changeset_id}/tags/${i.id}/`, "POST")
                     if (res.status !== 200) {
                         console.trace(res)
                         ch.checked = "false"
@@ -427,7 +427,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
                         console.log(`${i.name} applied`)
                     }
                 } else {
-                    const res = await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/tags/${i.id}/`, "DELETE")
+                    const res = await osmchaRequest(`${osmcha_server_origin}/api/v1/changesets/${changeset_id}/tags/${i.id}/`, "DELETE")
                     if (res.status !== 200) {
                         console.trace(res)
                         ch.checked = "true"
@@ -479,7 +479,7 @@ function addRevertButton() {
         // prettier-ignore
         sidebar.innerHTML +=
             ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="${reverterTitle}">↩️</a>
-              <a href="https://osmcha.org/changesets/${changeset_id}" id="osmcha_link" target="_blank" rel="noreferrer">${osmchaSvgLogo}</a>`
+              <a href="${osmcha_server_origin}/changesets/${changeset_id}" id="osmcha_link" target="_blank" rel="noreferrer">${osmchaSvgLogo}</a>`
         changesetObjectsSelectionModeEnabled = false
         document.querySelector("#revert_button_class").onclick = async e => {
             if (changesetObjectsSelectionModeEnabled) {

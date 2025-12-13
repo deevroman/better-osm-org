@@ -63,6 +63,7 @@
 // @exclude      https://www.openstreetmap.org/account*
 // @exclude      https://www.openstreetmap.org/oauth2/*
 // @exclude      https://www.openstreetmap.org/login*
+// @match        https://www.openhistoricalmap.org/*
 // @match        https://master.apis.dev.openstreetmap.org/*
 // @exclude      https://master.apis.dev.openstreetmap.org/api/*
 // @exclude      https://master.apis.dev.openstreetmap.org/account*
@@ -75,6 +76,7 @@
 // @match        https://www.hdyc.neis-one.org/*
 // @match        https://hdyc.neis-one.org/*
 // @match        https://osmcha.org/*
+// @match        https://osmcha.openhistoricalmap.org/*
 // @match        https://wiki.openstreetmap.org/wiki/Proposal:*
 // @exclude      https://taginfo.openstreetmap.org/embed/*
 // @match        https://github.com/openstreetmap/openstreetmap-website/issues/new*

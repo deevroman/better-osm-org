@@ -10,7 +10,7 @@ function makeHashtagsClickable() {
         span.textContent = node.textContent
         span.innerHTML = span.innerHTML.replaceAll(/\B(#[\p{L}\d_-]+)\b/gu, function (match) {
             const osmchaFilter = { comment: [{ label: match, value: match }] }
-            const osmchaLink = "https://osmcha.org?" + new URLSearchParams({ filters: JSON.stringify(osmchaFilter) }).toString()
+            const osmchaLink = `${osmcha_server_origin}?` + new URLSearchParams({ filters: JSON.stringify(osmchaFilter) }).toString()
             const a = document.createElement("a")
             a.href = osmchaLink
             a.target = "_blank"
