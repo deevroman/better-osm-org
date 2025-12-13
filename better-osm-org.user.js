@@ -2058,6 +2058,18 @@ function setZoom(zoomLevel) {
     }
 }
 
+function resetMapHover() {
+    document.querySelectorAll(".map-hover").forEach(el => {
+        el.classList.remove("map-hover")
+    })
+}
+
+function resetSelectedChangesets() {
+    document.querySelectorAll(".selected").forEach(el => {
+        el.classList.remove("selected")
+    })
+}
+
 /**
  * @type {{
  *  customObjects: (import('leaflet').Path)[],
@@ -20757,18 +20769,6 @@ function runPositionTracker() {
 }
 
 let newNotePlaceholder = null
-
-function resetMapHover() {
-    document.querySelectorAll(".map-hover").forEach(el => {
-        el.classList.remove("map-hover")
-    })
-}
-
-function resetSelectedChangesets() {
-    document.querySelectorAll(".selected").forEach(el => {
-        el.classList.remove("selected")
-    })
-}
 
 let overzoomObserver = null
 
