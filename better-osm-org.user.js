@@ -63,6 +63,7 @@
 // @exclude      https://www.openstreetmap.org/account*
 // @exclude      https://www.openstreetmap.org/oauth2/*
 // @exclude      https://www.openstreetmap.org/login*
+// @match        https://www.openhistoricalmap.org/*
 // @match        https://master.apis.dev.openstreetmap.org/*
 // @exclude      https://master.apis.dev.openstreetmap.org/api/*
 // @exclude      https://master.apis.dev.openstreetmap.org/account*
@@ -74,6 +75,7 @@
 // @match        https://www.hdyc.neis-one.org/*
 // @match        https://hdyc.neis-one.org/*
 // @match        https://osmcha.org/*
+// @match        https://osmcha.openhistoricalmap.org/*
 // @match        https://wiki.openstreetmap.org/wiki/Proposal:*
 // @exclude      https://taginfo.openstreetmap.org/embed/*
 // @match        https://github.com/openstreetmap/openstreetmap-website/issues/new*
@@ -318,8 +320,12 @@ const osm_server = (() => {
     else return null
 })()
 
+function isOHMServer() {
+    return location.origin === ohm_prod_server.origin
+}
+
 function isOsmServer() {
-    return !!osm_server
+    return !!osm_server && (isOHMServer() ? true : isDebug())
 }
 
 const planetOrigin = "https://planet.maps.mail.ru"
@@ -342,7 +348,18 @@ const PRIVATECOFFEE_OVERPASS_INSTANCE = {
     url: "https://turbo.overpass.private.coffee/",
 }
 
+const OHM_OVERPASS_INSTANCE = {
+    name: "overpass-api.openhistoricalmap.org",
+    apiUrl: "https://overpass-api.openhistoricalmap.org/api/",
+    url: "https://overpass-turbo.openhistoricalmap.org/",
+}
+
 let overpass_server = MAIN_OVERPASS_INSTANCE
+
+const MAIN_OSMCHA = "https://osmcha.org"
+const OHM_OSMCHA = "https://osmcha.openhistoricalmap.org"
+
+const osmcha_server_origin = isOHMServer() ? OHM_OSMCHA : MAIN_OSMCHA
 
 /**
  * @typedef {{
@@ -3456,7 +3473,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
     }
 
     async function uncheck(changeset_id) {
-        return await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/uncheck/`, "PUT")
+        return await osmchaRequest(`${osmcha_server_origin}/api/v1/changesets/${changeset_id}/uncheck/`, "PUT")
     }
 
     const likeBtn = document.createElement("span")
@@ -3472,7 +3489,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
         const osmchaToken = await GM.getValue("OSMCHA_TOKEN")
         if (!osmchaToken) {
             alert("Please, login into OSMCha")
-            window.open("https://osmcha.org")
+            window.open(osmcha_server_origin)
             return
         }
         if (e.target.hasAttribute("active")) {
@@ -3484,7 +3501,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             await uncheck(changeset_id)
             await updateReactions()
         }
-        await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/set-good/`, "PUT")
+        await osmchaRequest(`${osmcha_server_origin}/api/v1/changesets/${changeset_id}/set-good/`, "PUT")
         await updateReactions()
     }
     likeBtn.appendChild(likeImg)
@@ -3504,7 +3521,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
         const osmchaToken = await GM.getValue("OSMCHA_TOKEN")
         if (!osmchaToken) {
             alert("Please, login into OSMCha")
-            window.open("https://osmcha.org")
+            window.open(osmcha_server_origin)
             return
         }
         if (e.target.hasAttribute("active")) {
@@ -3516,7 +3533,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             await uncheck(changeset_id)
             await updateReactions()
         }
-        await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/set-harmful/`, "PUT")
+        await osmchaRequest(`${osmcha_server_origin}/api/v1/changesets/${changeset_id}/set-harmful/`, "PUT")
         await updateReactions()
         if (isDebug()) {
             e.stopPropagation()
@@ -3533,7 +3550,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             // todo
             throw "Open Osmcha for get access to reactions"
         }
-        const res = await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/`, "GET")
+        const res = await osmchaRequest(`${osmcha_server_origin}/api/v1/changesets/${changeset_id}/`, "GET")
         if (res.status === 404) {
             likeImg.title = "Changeset not found in OSMCha database.\nEither OSMCha did not have time to process this changeset, or it is too old."
             dislikeImg.title = "Changeset not found in OSMCha database.\nEither OSMCha did not have time to process this changeset, or it is too old."
@@ -3667,7 +3684,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
 
             ch.onchange = async () => {
                 if (ch.checked) {
-                    const res = await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/tags/${i.id}/`, "POST")
+                    const res = await osmchaRequest(`${osmcha_server_origin}/api/v1/changesets/${changeset_id}/tags/${i.id}/`, "POST")
                     if (res.status !== 200) {
                         console.trace(res)
                         ch.checked = "false"
@@ -3675,7 +3692,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
                         console.log(`${i.name} applied`)
                     }
                 } else {
-                    const res = await osmchaRequest(`https://osmcha.org/api/v1/changesets/${changeset_id}/tags/${i.id}/`, "DELETE")
+                    const res = await osmchaRequest(`${osmcha_server_origin}/api/v1/changesets/${changeset_id}/tags/${i.id}/`, "DELETE")
                     if (res.status !== 200) {
                         console.trace(res)
                         ch.checked = "true"
@@ -3727,7 +3744,7 @@ function addRevertButton() {
         // prettier-ignore
         sidebar.innerHTML +=
             ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="${reverterTitle}">↩️</a>
-              <a href="https://osmcha.org/changesets/${changeset_id}" id="osmcha_link" target="_blank" rel="noreferrer">${osmchaSvgLogo}</a>`
+              <a href="${osmcha_server_origin}/changesets/${changeset_id}" id="osmcha_link" target="_blank" rel="noreferrer">${osmchaSvgLogo}</a>`
         changesetObjectsSelectionModeEnabled = false
         document.querySelector("#revert_button_class").onclick = async e => {
             if (changesetObjectsSelectionModeEnabled) {
@@ -4442,7 +4459,7 @@ function makeHashtagsClickable() {
         span.textContent = node.textContent
         span.innerHTML = span.innerHTML.replaceAll(/\B(#[\p{L}\d_-]+)\b/gu, function (match) {
             const osmchaFilter = { comment: [{ label: match, value: match }] }
-            const osmchaLink = "https://osmcha.org?" + new URLSearchParams({ filters: JSON.stringify(osmchaFilter) }).toString()
+            const osmchaLink = `${osmcha_server_origin}?` + new URLSearchParams({ filters: JSON.stringify(osmchaFilter) }).toString()
             const a = document.createElement("a")
             a.href = osmchaLink
             a.target = "_blank"
@@ -15900,7 +15917,7 @@ function makeOsmchaLinkForUsername(username) {
         users: [{ label: username, value: username }],
         date__gte: [{ label: "", value: "" }],
     }
-    return "https://osmcha.org?" + new URLSearchParams({ filters: JSON.stringify(osmchaFilter) }).toString()
+    return `${osmcha_server_origin}?${new URLSearchParams({ filters: JSON.stringify(osmchaFilter) }).toString()}`
 }
 
 function addMassActionForUserChangesets() {
@@ -15931,7 +15948,7 @@ function addMassActionForUserChangesets() {
     const osmchaLink = document.createElement("a")
     osmchaLink.innerHTML = osmchaSvgLogo
     osmchaLink.id = "osmcha_link"
-    osmchaLink.title = "Open profile in OSMCha.org"
+    osmchaLink.title = "Open profile in OSMCha"
     osmchaLink.href = makeOsmchaLinkForUsername(username)
     osmchaLink.target = "_blank"
     osmchaLink.rel = "noreferrer"
@@ -17655,7 +17672,7 @@ async function makeProfileForDeletedUser(user) {
         const osmchaLink = document.createElement("a")
         osmchaLink.textContent = " [OSMCha] "
         osmchaLink.id = "osmcha_link"
-        osmchaLink.title = "Open profile in OSMCha.org"
+        osmchaLink.title = "Open profile in OSMCha"
         osmchaLink.href = makeOsmchaLinkForUsername(username)
         osmchaLink.target = "_blank"
         osmchaLink.rel = "noreferrer"
@@ -22716,7 +22733,9 @@ function setupOSMWebsite() {
     }, 900)
 
     resetSearchFormFocus()
-    if (GM_config.get("OverpassInstance") === MAILRU_OVERPASS_INSTANCE.name) {
+    if (isOHMServer()) {
+        overpass_server = OHM_OVERPASS_INSTANCE
+    } else if (GM_config.get("OverpassInstance") === MAILRU_OVERPASS_INSTANCE.name) {
         overpass_server = MAILRU_OVERPASS_INSTANCE
     } else if (GM_config.get("OverpassInstance") === PRIVATECOFFEE_OVERPASS_INSTANCE.name) {
         overpass_server = PRIVATECOFFEE_OVERPASS_INSTANCE
@@ -23072,6 +23091,12 @@ function main() {
     if (location.origin === "https://osmcha.org") {
         setTimeout(async () => {
             await GM.setValue("OSMCHA_TOKEN", localStorage.getItem("token"))
+        }, 1000)
+        return
+    }
+    if (location.origin === "https://osmcha.openhistoricalmap.org") {
+        setTimeout(async () => {
+            await GM.setValue("OHM_OSMCHA_TOKEN", localStorage.getItem("token"))
         }, 1000)
         return
     }

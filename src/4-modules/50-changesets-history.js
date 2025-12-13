@@ -232,7 +232,7 @@ function makeOsmchaLinkForUsername(username) {
         users: [{ label: username, value: username }],
         date__gte: [{ label: "", value: "" }],
     }
-    return "https://osmcha.org?" + new URLSearchParams({ filters: JSON.stringify(osmchaFilter) }).toString()
+    return `${osmcha_server_origin}?${new URLSearchParams({ filters: JSON.stringify(osmchaFilter) }).toString()}`
 }
 
 function addMassActionForUserChangesets() {
@@ -263,7 +263,7 @@ function addMassActionForUserChangesets() {
     const osmchaLink = document.createElement("a")
     osmchaLink.innerHTML = osmchaSvgLogo
     osmchaLink.id = "osmcha_link"
-    osmchaLink.title = "Open profile in OSMCha.org"
+    osmchaLink.title = "Open profile in OSMCha"
     osmchaLink.href = makeOsmchaLinkForUsername(username)
     osmchaLink.target = "_blank"
     osmchaLink.rel = "noreferrer"
