@@ -171,8 +171,12 @@ const osm_server = (() => {
     else return null
 })()
 
+function isOHMServer() {
+    return location.origin === ohm_prod_server.origin
+}
+
 function isOsmServer() {
-    return !!osm_server
+    return !!osm_server && (isOHMServer() ? true : isDebug())
 }
 
 const planetOrigin = "https://planet.maps.mail.ru"
@@ -195,7 +199,18 @@ const PRIVATECOFFEE_OVERPASS_INSTANCE = {
     url: "https://turbo.overpass.private.coffee/",
 }
 
+const OHM_OVERPASS_INSTANCE = {
+    name: "overpass-api.openhistoricalmap.org",
+    apiUrl: "https://overpass-api.openhistoricalmap.org/api/",
+    url: "https://overpass-turbo.openhistoricalmap.org/",
+}
+
 let overpass_server = MAIN_OVERPASS_INSTANCE
+
+const MAIN_OSMCHA = "https://osmcha.org"
+const OHM_OSMCHA = "https://osmcha.openhistoricalmap.org"
+
+const osmcha_server_origin = isOHMServer() ? OHM_OSMCHA : MAIN_OSMCHA
 
 /**
  * @typedef {{

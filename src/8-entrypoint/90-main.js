@@ -18,6 +18,12 @@ function main() {
         }, 1000)
         return
     }
+    if (location.origin === "https://osmcha.openhistoricalmap.org") {
+        setTimeout(async () => {
+            await GM.setValue("OHM_OSMCHA_TOKEN", localStorage.getItem("token"))
+        }, 1000)
+        return
+    }
     makeCommandsMenu()
     if (location.origin === "https://taginfo.openstreetmap.org" || location.origin === "https://taginfo.geofabrik.de") {
         new MutationObserver(

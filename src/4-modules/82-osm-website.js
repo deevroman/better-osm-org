@@ -56,7 +56,9 @@ function setupOSMWebsite() {
     }, 900)
 
     resetSearchFormFocus()
-    if (GM_config.get("OverpassInstance") === MAILRU_OVERPASS_INSTANCE.name) {
+    if (isOHMServer()) {
+        overpass_server = OHM_OVERPASS_INSTANCE
+    } else if (GM_config.get("OverpassInstance") === MAILRU_OVERPASS_INSTANCE.name) {
         overpass_server = MAILRU_OVERPASS_INSTANCE
     } else if (GM_config.get("OverpassInstance") === PRIVATECOFFEE_OVERPASS_INSTANCE.name) {
         overpass_server = PRIVATECOFFEE_OVERPASS_INSTANCE

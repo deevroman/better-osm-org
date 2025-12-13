@@ -472,7 +472,7 @@ async function makeProfileForDeletedUser(user) {
         const osmchaLink = document.createElement("a")
         osmchaLink.textContent = " [OSMCha] "
         osmchaLink.id = "osmcha_link"
-        osmchaLink.title = "Open profile in OSMCha.org"
+        osmchaLink.title = "Open profile in OSMCha"
         osmchaLink.href = makeOsmchaLinkForUsername(username)
         osmchaLink.target = "_blank"
         osmchaLink.rel = "noreferrer"
