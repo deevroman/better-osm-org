@@ -14,6 +14,10 @@ async function setupNewContextMenuItems() {
         return
     }
     const menu = document.getElementById("map-context-menu")
+    if (!menu) {
+        console.error("context menu not found on page")
+        return
+    }
     makeMeasureMouseHandlers()
     contextMenuObserver = new MutationObserver((mutationList, observer) => {
         observer.disconnect()
