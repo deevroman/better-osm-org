@@ -146,6 +146,10 @@ function makeUsernameTitle(userInfo) {
     return title
 }
 
+async function getOsmchaToken() {
+    return await GM.getValue(isOHMServer() ? "OHM_OSMCHA_TOKEN" : "OSMCHA_TOKEN")
+}
+
 function addOsmchaButtons(changeset_id, reactionsContainer) {
     // https://osmcha.org/api/v1/tags/
     const osmchaTags = [
@@ -200,7 +204,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
         return await externalFetchRetry({
             url: url,
             headers: {
-                Authorization: "Token " + (await GM.getValue("OSMCHA_TOKEN")),
+                Authorization: "Token " + (await getOsmchaToken()),
             },
             method: method,
             responseType: "json",
@@ -221,7 +225,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
     likeImg.style.filter = "grayscale(1)"
     likeImg.style.marginTop = "-8px"
     likeBtn.onclick = async e => {
-        const osmchaToken = await GM.getValue("OSMCHA_TOKEN")
+        const osmchaToken = await getOsmchaToken()
         if (!osmchaToken) {
             alert("Please, login into OSMCha")
             window.open(osmcha_server_origin)
@@ -253,7 +257,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
     dislikeImg.style.marginTop = "3px"
     dislikeBtn.appendChild(dislikeImg)
     dislikeBtn.onclick = async e => {
-        const osmchaToken = await GM.getValue("OSMCHA_TOKEN")
+        const osmchaToken = await getOsmchaToken()
         if (!osmchaToken) {
             alert("Please, login into OSMCha")
             window.open(osmcha_server_origin)
@@ -280,7 +284,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
     let changesetProps = {}
 
     async function updateReactions() {
-        const osmchaToken = await GM.getValue("OSMCHA_TOKEN")
+        const osmchaToken = await getOsmchaToken()
         if (!osmchaToken) {
             // todo
             throw "Open Osmcha for get access to reactions"
@@ -761,7 +765,7 @@ function addRevertButton() {
     if (primaryButtons?.getAttribute("name") === "subscribe") {
         primaryButtons.tabIndex = -1
     }
-    if (primaryButtons && osm_server.url === prod_server.url) {
+    if (primaryButtons && (osm_server.url === prod_server.url || osm_server.url === ohm_prod_server.url)) {
         const changeset_id = sidebar.innerHTML.match(/(\d+)/)[0]
         const reactionsContainer = document.createElement("span")
         primaryButtons.before(reactionsContainer)
