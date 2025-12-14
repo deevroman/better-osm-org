@@ -1,4 +1,4 @@
-//<editor-fold desc="better-tags-paste" defaultstate="collapsed">
+//<editor-fold desc="better-error-page" defaultstate="collapsed">
 
 function setupPrometheusLink() {
     if (document.querySelector("h2")?.textContent !== "This website is under heavy load (queue full)") {
