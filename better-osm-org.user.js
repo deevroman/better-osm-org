@@ -555,7 +555,7 @@ let getMap = null
  */
 
 /** @type {null|(function(): null|(boWindowObject & windowOSM)|(window & windowOSM))}*/
-let getWindow = null
+const getWindow = isSafari && GM_info.scriptHandler === "Userscripts" ? () => window : () => boWindowObject
 
 /**
  * @template T
@@ -620,7 +620,6 @@ if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id
 
     if (isSafari && GM_info.scriptHandler === "Userscripts") {
         getMap = () => null
-        getWindow = () => window
     } else {
         boWindowObject.mapHook = exportFunction(mapHook, boWindowObject)
         boWindowObject.mapHook()
@@ -633,7 +632,6 @@ if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id
         }
 
         getMap = () => boWindowObject.map
-        getWindow = () => boWindowObject
     }
 
     // try {
