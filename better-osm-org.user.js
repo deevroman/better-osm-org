@@ -18491,7 +18491,7 @@ function simplifyHDCYIframe() {
 
 //</editor-fold>
 
-//<editor-fold desc="editors-links" defaultstate="collapsed">
+//<editor-fold desc="edit-menu-links" defaultstate="collapsed">
 
 /** @typedef {null | {
  *  name: string,
