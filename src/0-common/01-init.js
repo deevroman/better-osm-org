@@ -176,7 +176,7 @@ function isOHMServer() {
 }
 
 function isOsmServer() {
-    return !!osm_server && (isOHMServer() ? true : isDebug())
+    return !!osm_server && (isOHMServer() ? isDebug() : true)
 }
 
 const planetOrigin = "https://planet.maps.mail.ru"
