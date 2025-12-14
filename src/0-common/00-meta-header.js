@@ -77,6 +77,11 @@
 // @match        https://hdyc.neis-one.org/*
 // @match        https://osmcha.org/*
 // @match        https://osmcha.openhistoricalmap.org/*
+// @exclude      https://www.openhistoricalmap.org/api*
+// @exclude      https:///www.openhistoricalmap.org/account*
+// @exclude      https:///www.openhistoricalmap.org/messages/*
+// @exclude      https:///www.openhistoricalmap.org/diary/*
+// @exclude      https:///www.openhistoricalmap.org/oauth2/*
 // @match        https://wiki.openstreetmap.org/wiki/Proposal:*
 // @exclude      https://taginfo.openstreetmap.org/embed/*
 // @match        https://github.com/openstreetmap/openstreetmap-website/issues/new*
@@ -113,6 +118,7 @@
 // @connect      maps.mail.ru
 // @connect      overpass.private.coffee
 // @connect      turbo.overpass.private.coffee
+// @connect      overpass-api.openhistoricalmap.org
 // @connect      overpass-api.de
 // @connect      www.hdyc.neis-one.org
 // @connect      hdyc.neis-one.org
