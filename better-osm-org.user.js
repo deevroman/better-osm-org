@@ -117,6 +117,7 @@
 // @connect      maps.mail.ru
 // @connect      overpass.private.coffee
 // @connect      turbo.overpass.private.coffee
+// @connect      overpass-api.openhistoricalmap.org
 // @connect      overpass-api.de
 // @connect      www.hdyc.neis-one.org
 // @connect      hdyc.neis-one.org
