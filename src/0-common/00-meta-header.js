@@ -144,6 +144,8 @@
 // @connect      server.arcgisonline.com
 // @connect      clarity.maptiles.arcgis.com
 // @connect      wayback.maptiles.arcgis.com
+// @connect      geoscribble.osmz.ru
+// @connect      geoportal.dgu.hr
 // @comment      geocoder
 // @connect      photon.komoot.io
 // @connect      whosthat.osmz.ru

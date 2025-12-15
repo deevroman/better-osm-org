@@ -186,7 +186,16 @@ function makeOSMGPSURL(x, y, z) {
     return OSMGPSPrefix + z + "/" + x + "/" + y + ".png"
 }
 
+let vectorLayerOverlayUrl = null
+let lastVectorLayerOverlayUrl = null
+
+GM.getValue("lastVectorLayerOverlayUrl").then(res => lastVectorLayerOverlayUrl = res)
+
 function vectorSwitch() {
+    const enabledLayers = new URLSearchParams(location.hash).get("layers")
+    if (!enabledLayers.includes("S") && !enabledLayers.includes("V")) {
+        return
+    }
     let vectorMap
     for (const i of getWindow().mapGL) {
         if (i && i.getMaplibreMap?.()) {
@@ -198,11 +207,46 @@ function vectorSwitch() {
         return
     }
     if (currentTilesMode === SAT_MODE) {
+        // vectorMap.addSource("satellite", {
+        //     type: "raster",
+        //     tiles: [`${SatellitePrefix}{z}/{y}/{x}`],
+        //     tileSize: 256,
+        //     attribution: "Esri",
+        // })
+        // vectorMap.addSource("satellite", {
+        //     type: "raster",
+        //     tiles: [`https://geoscribble.osmz.ru/wms?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.1.1&SERVICE=WMS&REQUEST=GetMap&LAYERS=scribbles&STYLES=&SRS=EPSG:3857&WIDTH=512&HEIGHT=512&BBOX={bbox-epsg-3857}`],
+        //     tileSize: 512,
+        //     attribution: "geoscribble",
+        // })
+        // vectorMap.addSource("satellite", {
+        //     type: "raster",
+        //     tiles: [
+        //         `https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.3.0&SERVICE=WMS&REQUEST=GetMap&LAYERS=OI.OrthoimageCoverage&STYLES=&CRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}`,
+        //     ],
+        //     tileSize: 256,
+        //     attribution: "geoportal.dgu.hr",
+        // })
+        if (vectorLayerOverlayUrl === null) {
+            vectorLayerOverlayUrl = prompt(
+                `Enter tile URL template for maplibre.js. Examples:
+
+https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}
+                
+https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.3.0&SERVICE=WMS&REQUEST=GetMap&LAYERS=OI.OrthoimageCoverage&STYLES=&CRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}
+`,
+            lastVectorLayerOverlayUrl ?? "")
+            if (vectorLayerOverlayUrl){
+                lastVectorLayerOverlayUrl = vectorLayerOverlayUrl
+                void GM.setValue("lastVectorLayerOverlayUrl", lastVectorLayerOverlayUrl)
+                getWindow().customLayer = new URL(vectorLayerOverlayUrl).origin
+            }
+        }
         vectorMap.addSource("satellite", {
             type: "raster",
-            tiles: [`${SatellitePrefix}{z}/{y}/{x}`],
+            tiles: [vectorLayerOverlayUrl],
             tileSize: 256,
-            attribution: "Esri",
+            attribution: "geoportal.dgu.hr",
         })
         vectorMap.addLayer({
             id: "satellite-layer",
