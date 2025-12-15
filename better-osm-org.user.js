@@ -6513,6 +6513,7 @@ async function bypassChromeCSPForImagesSrc(imgElem, url, isStrava = true) {
     })
     if (currentTilesMode === SAT_MODE || currentOverlayModeIsStrava) {
         imgElem.src = satTile
+        imgElem.setAttribute("real-url", url)
     }
 }
 
@@ -21794,6 +21795,9 @@ function setupNavigationViaHotkeys() {
             enableOverzoom()
             if (e.shiftKey) {
                 switchESRIbeta()
+                if (currentTilesMode !== SAT_MODE) {
+                    switchTiles()
+                }
                 return
             } else if (e.altKey) {
                 bypassCaches()
