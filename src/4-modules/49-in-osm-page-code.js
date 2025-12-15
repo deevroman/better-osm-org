@@ -29,6 +29,8 @@ if (isOsmServer()) {
     window.notesClosedFilter = "";
     window.notesCommentsFilter = "";
     window.notesIDsFilter = new Set();
+    
+    window.customLayer = null
 
     // const cache = new Map();
 
@@ -198,7 +200,12 @@ if (isOsmServer()) {
                         headers: response.headers
                     });
                 }
-            } else if (window.mapGLIntercepted && args?.[0]?.url?.startsWith?.("https://server.arcgisonline.com/")) {
+            } else if (window.mapGLIntercepted && (
+                args?.[0]?.url?.startsWith?.("https://server.arcgisonline.com/") 
+                || args?.[0]?.url?.startsWith?.("https://geoscribble.osmz.ru/")
+                || args?.[0]?.url?.startsWith?.("https://geoportal.dgu.hr/")
+                || window.customLayer && args?.[0]?.url?.startsWith?.(window.customLayer)
+            )) {
                 const tile_url = args[0].url
                 const resultCallback = new Promise((resolve, reject) => {
                     window.addEventListener("message", e => {
