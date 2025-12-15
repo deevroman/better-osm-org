@@ -1243,6 +1243,9 @@ function setupNavigationViaHotkeys() {
             enableOverzoom()
             if (e.shiftKey) {
                 switchESRIbeta()
+                if (currentTilesMode !== SAT_MODE) {
+                    switchTiles()
+                }
                 return
             } else if (e.altKey) {
                 bypassCaches()

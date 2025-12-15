@@ -111,6 +111,7 @@ async function bypassChromeCSPForImagesSrc(imgElem, url, isStrava = true) {
     })
     if (currentTilesMode === SAT_MODE || currentOverlayModeIsStrava) {
         imgElem.src = satTile
+        imgElem.setAttribute("real-url", url)
     }
 }
 
