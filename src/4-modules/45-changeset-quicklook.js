@@ -41,7 +41,7 @@ function arraysDiff(arg_a, arg_b, one_replace_cost = 2) {
 
     const min = Math.min // fuck Tampermonkey
     // for some fucking reason every math.min call goes through TM wrapper code
-    // that is not optimised by the JIT compiler
+    // that is not optimized by the JIT compiler
     if (arg_a.length && Object.prototype.hasOwnProperty.call(arg_a[0], "role")) {
         for (let i = 1; i <= a.length; i++) {
             for (let j = 1; j <= b.length; j++) {
@@ -1600,17 +1600,16 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
         const currentNodesList = []
         if (targetVersion.visible !== false) {
             // https://osm.org/changeset/174173815
-            // if changeset was long opened anв nodes changed after way
+            // if changeset was long opened and nodes changed after way
             let hasInterChanges = false
             /**
-             * @template {NodeVersion|WayVersion|RelationVersion} T
-             * @param {T[]} history
-             * @param {string} timestamp
-             * @param {string} notLater
-             * @param {number} currentChangeset
-             * @return {T|null}
+             * @type {
+             * (function(NodeVersion, string, string, number): NodeVersion|null) |
+             * (function(WayVersion, string, string, number): WayVersion|null) |
+             * (function(RelationVersion, string, string, number): RelationVersion|null)
+             * }
              */
-            function searchFinalVersion(history, timestamp, notLater, currentChangeset) {
+            const searchFinalVersion = (history, timestamp, notLater, currentChangeset) => {
                 const targetTime = new Date(timestamp)
                 let cur = history[0]
                 if (targetTime < new Date(cur.timestamp)) {
@@ -1632,18 +1631,24 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 }
                 return cur
             }
+
             /**
-             * @template T
-             * @param {T[][]} objectList
-             * @param {string} timestamp
-             * @param {string} notLater
-             * @param {number} currentChangeset
-             * @return {T[]}
+             * @type {
+             * (function(NodeHistory[], string, string, number): NodeHistory) |
+             * (function(WayHistory[], string, string, number): WayHistory) |
+             * (function(RelationHistory[], string, string, number): RelationHistory)
+             * }
              */
-            function filterFinalObjectState(objectList, timestamp, notLater, currentChangeset) {
+            const filterFinalObjectState = (objectList, timestamp, notLater, currentChangeset) => {
                 return objectList.map(i => searchFinalVersion(i, timestamp, notLater, currentChangeset))
             }
 
+            /**
+             * @template T
+             * @param {T[]} objHistory
+             * @param {number} version
+             * @return {T|undefined}
+             */
             function upperBoundVersion(objHistory, version) {
                 let index = version - 1
                 if (objHistory[index]?.version === version) {
