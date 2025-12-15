@@ -2042,7 +2042,7 @@ function getCurrentXYZ() {
 
 /**
  * @name getZoom
- * @memberof unsafeWindow
+ * @return {number}
  */
 function getZoom() {
     try {
@@ -2060,7 +2060,6 @@ function getZoom() {
 /**
  * @name setZoom
  * @param {number} zoomLevel
- * @memberof unsafeWindow
  */
 function setZoom(zoomLevel) {
     try {
@@ -2116,7 +2115,6 @@ function cleanAllObjects() {
 /**
  * @name cleanObjectsByKey
  * @param {string} key
- * @memberof unsafeWindow
  */
 function cleanObjectsByKey(key) {
     if (layers[key]) {
@@ -2127,7 +2125,6 @@ function cleanObjectsByKey(key) {
 
 /**
  * @name cleanCustomObjects
- * @memberof unsafeWindow
  */
 function cleanCustomObjects() {
     layers["customObjects"].forEach(i => i.remove())
@@ -2136,7 +2133,6 @@ function cleanCustomObjects() {
 
 /**
  * @name showWay
- * @memberof unsafeWindow
  * @param {[]} nodesList
  * @param {string=} color
  * @param {boolean} needFly
@@ -2169,7 +2165,6 @@ function showWay(nodesList, color = "#000000", needFly = false, addStroke = fals
 
 /**
  * @name showWays
- * @memberof unsafeWindow
  * @param {[][]} ListOfNodesList
  * @param {string=} layerName
  * @param {string=} color
@@ -2195,7 +2190,6 @@ function showWays(ListOfNodesList, layerName = "customObjects", color = "#000000
 
 /**
  * @name displayWay
- * @memberof unsafeWindow
  * @param {any[]} nodesList
  * @param {boolean=} needFly
  * @param {string=} color
@@ -2266,7 +2260,6 @@ function displayWay(nodesList, needFly = false, color = "#000000", width = 4, in
 
 /**
  * @name showNodeMarker
- * @memberof unsafeWindow
  * @param {string|number} a
  * @param {string|number} b
  * @param {string=} color
@@ -2303,7 +2296,6 @@ function showNodeMarker(a, b, color = "#00a500", infoElemID = null, layerName = 
 
 /**
  * @name showActiveNodeMarker
- * @memberof unsafeWindow
  * @param {string} lat
  * @param {string} lon
  * @param {string} color
@@ -2326,7 +2318,6 @@ function showActiveNodeMarker(lat, lon, color, removeActiveObjects = true, radiu
 
 /**
  * @name showActiveNodeIconMarker
- * @memberof unsafeWindow
  * @param {string} lat
  * @param {string} lon
  * @param {string|null=} color
@@ -2342,7 +2333,6 @@ function showActiveNodeIconMarker(lat, lon, color = null, removeActiveObjects = 
 
 /**
  * @name showActiveWay
- * @memberof unsafeWindow
  * @param {any[]} nodesList
  * @param {string=} color
  * @param {boolean=} needFly
@@ -2391,7 +2381,6 @@ function showActiveWay(nodesList, color = c("#ff00e3"), needFly = false, infoEle
 
 /**
  * @name panTo
- * @memberof unsafeWindow
  * @param {string} lat
  * @param {string} lon
  * @param {number=} zoom
@@ -2420,7 +2409,6 @@ function panTo(lat, lon, zoom = 18, animate = false) {
 
 /**
  * @name panInside
- * @memberof unsafeWindow
  * @param {string} lat
  * @param {string} lon
  * @param {boolean=} animate
@@ -2445,7 +2433,6 @@ function get4Bounds(b) {
  * @name fitBounds
  * @param {import('leaflet').LatLngBoundsExpression} bound
  * @param {number} maxZoom
- * @memberof unsafeWindow
  */
 function fitBounds(bound, maxZoom = 19) {
     fitBoundsWithPadding(bound, 0, maxZoom)
@@ -2456,7 +2443,6 @@ function fitBounds(bound, maxZoom = 19) {
  * @param {import('leaflet').LatLngBoundsExpression} bound
  * @param {number} padding
  * @param {number} maxZoom
- * @memberof unsafeWindow
  */
 function fitBoundsWithPadding(bound, padding, maxZoom = 19) {
     if (!getMap()?.fitBounds) {
