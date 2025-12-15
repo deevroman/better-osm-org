@@ -186,6 +186,35 @@ function makeOSMGPSURL(x, y, z) {
     return OSMGPSPrefix + z + "/" + x + "/" + y + ".png"
 }
 
+function vectorSwitch() {
+    let vectorMap
+    for (const i of getWindow().mapGL) {
+        if (i && i.getMaplibreMap?.()) {
+            vectorMap = i.getMaplibreMap()
+            break
+        }
+    }
+    if (!vectorMap) {
+        return
+    }
+    if (currentTilesMode === SAT_MODE) {
+        vectorMap.addSource("satellite", {
+            type: "raster",
+            tiles: [`${SatellitePrefix}{z}/{y}/{x}`],
+            tileSize: 256,
+            attribution: "Esri",
+        })
+        vectorMap.addLayer({
+            id: "satellite-layer",
+            type: "raster",
+            source: "satellite",
+        })
+    } else {
+        vectorMap.removeLayer("satellite-layer")
+        vectorMap.removeSource("satellite")
+    }
+}
+
 function switchTiles() {
     if (tilesObserver) {
         tilesObserver?.disconnect()
@@ -307,6 +336,7 @@ function switchTiles() {
     })
     tilesObserver = observer
     observer.observe(document.body, { childList: true, subtree: true })
+    vectorSwitch()
 }
 
 let osmTilesObserver = undefined
