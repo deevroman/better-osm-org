@@ -1,4 +1,18 @@
 //<editor-fold desc="in-osm-page-code" defaultstate="collapsed">
+window.addEventListener("message", async e => {
+    if (e.origin !== location.origin) return
+    if (e.data.type !== "bypass_tiles_csp") {
+        return
+    }
+    window.postMessage(
+        {
+            type: "tile_data",
+            url: e.data.url,
+            data: await fetchBlobWithCache(e.data.url),
+        },
+        e.origin,
+    )
+})
 
 if (isOsmServer()) {
     injectJSIntoPage(`
@@ -184,6 +198,26 @@ if (isOsmServer()) {
                         headers: response.headers
                     });
                 }
+            } else if (window.mapGLIntercepted && args?.[0]?.url?.startsWith?.("https://server.arcgisonline.com/")) {
+                const tile_url = args[0].url
+                const resultCallback = new Promise((resolve, reject) => {
+                    window.addEventListener("message", e => {
+                        if (e.origin !== location.origin) return
+                        if (e.data.type !== "tile_data") {
+                            return
+                        }
+                        if (e.data.url !== tile_url) {
+                            return
+                        }
+                        resolve(e.data.data)
+                    })
+                })
+                window.postMessage({ "type": "bypass_tiles_csp", url: tile_url }, location.origin)
+                const res = await resultCallback
+                return new Response(res.response, {
+                    status: res.status,
+                    statusText: res.statusText,
+                });
             } else if (args?.[0]?.url === "https://vector.openstreetmap.org/demo/shortbread/colorful.json"
                 || args?.[0]?.url === "https://vector.openstreetmap.org/demo/shortbread/eclipse.json") {
                 return originalFetch(...args);

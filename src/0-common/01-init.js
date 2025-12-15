@@ -455,6 +455,18 @@ if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id
                     }
                 }, boWindowObject),
             )
+            boWindowObject.L.OSM.MaplibreGL.addInitHook(
+                exportFunction(function () {
+                    // if (this._container?.id === "map") {
+                        if (!boGlobalThis.mapGL) {
+                            boGlobalThis.mapGL = intoPage([])
+                        }
+                        boGlobalThis.mapGL.push(this)
+                        boGlobalThis.mapGLIntercepted = true
+                        console.log("%cMapGL intercepted", "background: #000; color: #0f0")
+                    // }
+                }, boWindowObject),
+            )
         } else {
             console.error("the script could not access the L.Map object. Some of the functions will not work")
             console.log(GM_info)

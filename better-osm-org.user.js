@@ -610,6 +610,18 @@ if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id
                     }
                 }, boWindowObject),
             )
+            boWindowObject.L.OSM.MaplibreGL.addInitHook(
+                exportFunction(function () {
+                    // if (this._container?.id === "map") {
+                        if (!boGlobalThis.mapGL) {
+                            boGlobalThis.mapGL = intoPage([])
+                        }
+                        boGlobalThis.mapGL.push(this)
+                        boGlobalThis.mapGLIntercepted = true
+                        console.log("%cMapGL intercepted", "background: #000; color: #0f0")
+                    // }
+                }, boWindowObject),
+            )
         } else {
             console.error("the script could not access the L.Map object. Some of the functions will not work")
             console.log(GM_info)
@@ -6588,6 +6600,35 @@ function makeOSMGPSURL(x, y, z) {
     return OSMGPSPrefix + z + "/" + x + "/" + y + ".png"
 }
 
+function vectorSwitch() {
+    let vectorMap
+    for (const i of getWindow().mapGL) {
+        if (i && i.getMaplibreMap?.()) {
+            vectorMap = i.getMaplibreMap()
+            break
+        }
+    }
+    if (!vectorMap) {
+        return
+    }
+    if (currentTilesMode === SAT_MODE) {
+        vectorMap.addSource("satellite", {
+            type: "raster",
+            tiles: [`${SatellitePrefix}{z}/{y}/{x}`],
+            tileSize: 256,
+            attribution: "Esri",
+        })
+        vectorMap.addLayer({
+            id: "satellite-layer",
+            type: "raster",
+            source: "satellite",
+        })
+    } else {
+        vectorMap.removeLayer("satellite-layer")
+        vectorMap.removeSource("satellite")
+    }
+}
+
 function switchTiles() {
     if (tilesObserver) {
         tilesObserver?.disconnect()
@@ -6709,6 +6750,7 @@ function switchTiles() {
     })
     tilesObserver = observer
     observer.observe(document.body, { childList: true, subtree: true })
+    vectorSwitch()
 }
 
 let osmTilesObserver = undefined
@@ -15688,6 +15730,20 @@ function setupMakeVersionPageBetter() {
 //</editor-fold>
 
 //<editor-fold desc="in-osm-page-code" defaultstate="collapsed">
+window.addEventListener("message", async e => {
+    if (e.origin !== location.origin) return
+    if (e.data.type !== "bypass_tiles_csp") {
+        return
+    }
+    window.postMessage(
+        {
+            type: "tile_data",
+            url: e.data.url,
+            data: await fetchBlobWithCache(e.data.url),
+        },
+        e.origin,
+    )
+})
 
 if (isOsmServer()) {
     injectJSIntoPage(`
@@ -15873,6 +15929,26 @@ if (isOsmServer()) {
                         headers: response.headers
                     });
                 }
+            } else if (window.mapGLIntercepted && args?.[0]?.url?.startsWith?.("https://server.arcgisonline.com/")) {
+                const tile_url = args[0].url
+                const resultCallback = new Promise((resolve, reject) => {
+                    window.addEventListener("message", e => {
+                        if (e.origin !== location.origin) return
+                        if (e.data.type !== "tile_data") {
+                            return
+                        }
+                        if (e.data.url !== tile_url) {
+                            return
+                        }
+                        resolve(e.data.data)
+                    })
+                })
+                window.postMessage({ "type": "bypass_tiles_csp", url: tile_url }, location.origin)
+                const res = await resultCallback
+                return new Response(res.response, {
+                    status: res.status,
+                    statusText: res.statusText,
+                });
             } else if (args?.[0]?.url === "https://vector.openstreetmap.org/demo/shortbread/colorful.json"
                 || args?.[0]?.url === "https://vector.openstreetmap.org/demo/shortbread/eclipse.json") {
                 return originalFetch(...args);
