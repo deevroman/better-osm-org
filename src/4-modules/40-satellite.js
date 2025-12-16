@@ -193,7 +193,7 @@ GM.getValue("lastVectorLayerOverlayUrl").then(res => lastVectorLayerOverlayUrl =
 
 function vectorSwitch() {
     const enabledLayers = new URLSearchParams(location.hash).get("layers")
-    if (!enabledLayers.includes("S") && !enabledLayers.includes("V")) {
+    if (!enabledLayers.includes("S") && !enabledLayers.includes("V") && !document.querySelector("#map canvas")) {
         return
     }
     let vectorMap
