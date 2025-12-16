@@ -73,6 +73,7 @@ function setupOSMWebsite() {
             try {
                 shiftKeyZClicks = 0
                 abortPrevControllers(ABORT_ERROR_WHEN_PAGE_CHANGED)
+                tracksCounter = 0
                 cleanAllObjects()
                 getMap()?.attributionControl?.setPrefix("")
                 addSwipes()

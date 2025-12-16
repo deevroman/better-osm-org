@@ -1,6 +1,9 @@
 //<editor-fold desc="geojson" defaultstate="collapsed">
 
+let tracksCounter = 0
 let trackMetadata = null
+
+const trackColors = ["rgb(255,0,47)", "rgb(0,34,255)", "rgb(64,255,0)", "#000000", "#ff00e3", "#00ffce", "#ff4d00", "#a1a1a1"]
 
 /**
  * @param {string|Document} xml
@@ -30,6 +33,8 @@ function displayGPXTrack(xml) {
     console.time("start gpx track render")
     const min = Math.min
     const max = Math.max
+    const trackColor = trackColors[tracksCounter % trackColors.length]
+    tracksCounter++
     trackMetadata = {
         min_lat: 10000000,
         min_lon: 10000000,
@@ -48,12 +53,12 @@ function displayGPXTrack(xml) {
             trackMetadata.max_lat = max(trackMetadata.max_lat, lat)
             trackMetadata.max_lon = max(trackMetadata.max_lon, lon)
         })
-        displayWay(nodesList, false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML)
+        displayWay(nodesList, false, trackColor, 5, null, "customObjects", null, popup.outerHTML)
     })
     doc.querySelectorAll("gpx wpt").forEach(wpt => {
         const lat = wpt.getAttribute("lat")
         const lon = wpt.getAttribute("lon")
-        const marker = showNodeMarker(lat, lon, "rgb(255,0,47)", null, "customObjects", 3)
+        const marker = showNodeMarker(lat, lon, trackColor, null, "customObjects", 3)
         const name = wpt.querySelector("name")
         const desc = wpt.querySelector("desc")
         if (name || desc) {
@@ -109,13 +114,14 @@ function displayKMLTrack(xml) {
     console.time("start kml track render")
     const min = Math.min
     const max = Math.max
+    const trackColor = trackColors[tracksCounter % trackColors.length]
+    tracksCounter++
     trackMetadata = {
         min_lat: 10000000,
         min_lon: 10000000,
         max_lat: -10000000,
         max_lon: -100000000,
     }
-
     doc.querySelectorAll("Document Placemark:has(LineString)").forEach(trk => {
         const nodesList = []
         trk.querySelectorAll("LineString coordinates").forEach(i => {
@@ -134,7 +140,7 @@ function displayKMLTrack(xml) {
                     trackMetadata.max_lon = max(trackMetadata.max_lon, lon)
                 })
         })
-        displayWay(nodesList, false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML)
+        displayWay(nodesList, false, trackColor, 5, null, "customObjects", null, popup.outerHTML)
     })
     doc.querySelectorAll("Document Placemark:has(LinearRing)").forEach(trk => {
         const nodesList = []
@@ -154,11 +160,11 @@ function displayKMLTrack(xml) {
                     trackMetadata.max_lon = max(trackMetadata.max_lon, lon)
                 })
         })
-        displayWay(nodesList, false, "rgb(255,0,47)", 5, null, "customObjects", null, popup.outerHTML)
+        displayWay(nodesList, false, trackColor, 5, null, "customObjects", null, popup.outerHTML)
     })
     doc.querySelectorAll("Document Placemark:has(Point)").forEach(pointXml => {
         const [lon, lat] = pointXml.querySelector("coordinates").firstChild.textContent.trim().split(",").map(parseFloat).slice(0, 2)
-        const marker = showNodeMarker(lat, lon, "rgb(255,0,47)", null, "customObjects", 3)
+        const marker = showNodeMarker(lat, lon, trackColor, null, "customObjects", 3)
         const name = pointXml.querySelector("name")
         const desc = pointXml.querySelector("description")
         if (name || desc) {
