@@ -1427,7 +1427,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
     }
 
     function processNode() {
-        i.id = `${changesetID}n${objID}`
+        i.id = `${changesetID}n${objID}v${version}`
 
         function mouseoverHandler(e) {
             if (e.relatedTarget?.parentElement === e.target) {
@@ -1571,7 +1571,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
 
     // old changeset with redactions https://osm.org/changeset/10934800
     async function processWay() {
-        i.id = `${changesetID}w${objID}`
+        i.id = `${changesetID}w${objID}v${version}`
 
         // TODO для полной истории кеш нужен, а вот для правок сомнительно, если нужно перемещаться между ними
         // хотя при отображении нескольких правок разом тоже полезно
@@ -1796,7 +1796,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
     }
 
     function processRelation() {
-        i.id = `${changesetID}r${objID}`
+        i.id = `${changesetID}r${objID}v${version}`
         const btn = document.createElement("a")
         btn.textContent = "📥"
         btn.classList.add("load-relation-version")
@@ -2694,7 +2694,7 @@ async function processQuickLookInSidebar(changesetID) {
 
         function replaceNodes(nodes, nodesUl) {
             nodes.forEach(node => {
-                if (document.getElementById(`${changesetID}n${node.id}`)) {
+                if (document.getElementById(`${changesetID}n${node.id}v${node.getAttribute("version")}`)) {
                     return
                 }
                 const ulItem = document.createElement("li")
@@ -2713,7 +2713,7 @@ async function processQuickLookInSidebar(changesetID) {
                 div1.appendChild(div2)
 
                 div2.classList.add("node")
-                div2.id = `${changesetID}n${node.id}`
+                div2.id = `${changesetID}n${node.id}v${node.getAttribute("version")}`
 
                 const nodeLink = document.createElement("a")
                 nodeLink.rel = "nofollow"
@@ -2783,7 +2783,7 @@ async function processQuickLookInSidebar(changesetID) {
         // todo unify
         function replaceWays(ways, waysUl) {
             ways.forEach(way => {
-                if (document.getElementById(`${changesetID}w${way.id}`)) {
+                if (document.getElementById(`${changesetID}w${way.id}v${way.getAttribute("version")}`)) {
                     return
                 }
                 const ulItem = document.createElement("li")
@@ -2802,7 +2802,7 @@ async function processQuickLookInSidebar(changesetID) {
                 div1.appendChild(div2)
 
                 div2.classList.add("way")
-                div2.id = `${changesetID}w${way.id}`
+                div2.id = `${changesetID}w${way.id}v${way.getAttribute("version")}`
 
                 const wayLink = document.createElement("a")
                 wayLink.rel = "nofollow"
@@ -2909,6 +2909,13 @@ async function processQuickLookInSidebar(changesetID) {
 
         async function findParents() {
             performance.mark("FIND_PARENTS_BEGIN_" + changesetID)
+            const nodesInChangesets = {}
+            document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_nodes li:has(a[href^="/node/"]) > div > div`).forEach(div => {
+                const prefix = div.id.match(/^([0-9]+n[0-9]+)/)[1]
+                if (!nodesInChangesets[prefix]) {
+                    nodesInChangesets[prefix] = div
+                }
+            })
             const nodesCount = changesetData.querySelectorAll(`node`)
             for (const i of changesetData.querySelectorAll(`node[version="1"]`)) {
                 const nodeID = i.getAttribute("id")
@@ -3025,8 +3032,8 @@ async function processQuickLookInSidebar(changesetID) {
 
                             // ховер в списке объектов, который показывает родительскую линию
                             way.nodes.forEach(n => {
-                                if (!document.getElementById(`${changesetID}n${n}`)) return
-                                document.getElementById(`${changesetID}n${n}`).parentElement.parentElement.addEventListener("mouseover", async e => {
+                                if (!nodesInChangesets[`${changesetID}n${n}`]) return
+                                nodesInChangesets[`${changesetID}n${n}`].parentElement.parentElement.addEventListener("mouseover", async e => {
                                     if (e.relatedTarget?.parentElement === e.target) {
                                         return
                                     }
