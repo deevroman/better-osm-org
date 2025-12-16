@@ -608,6 +608,7 @@ const emptyVersion = {
     lat: null,
     lon: null,
     visible: false,
+    timestamp: new Date(0).toISOString().slice(0, -5) + "Z",
 }
 
 /**
@@ -1386,6 +1387,26 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
     return tagsTable
 }
 
+function minusSecondInStringTimestamp(t) {
+    if (!t) {
+        return t
+    }
+    const res = new Date(t)
+    res.setTime(res.getTime() - 1000)
+    return res.toISOString().slice(0, -5) + "Z"
+}
+
+/**
+ * @param t1 {string|Date}
+ * @param t2 {string|Date}
+ * @return {Date}
+ */
+function maxDate(t1, t2) {
+    const d1 = new Date(t1)
+    const d2 = new Date(t2)
+    return d1 > d2 ? d1 : d2
+}
+
 /**
  * @typedef {{
  * nodes: Array<HTMLElement>,
@@ -1401,9 +1422,10 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
  * @param {Element} i
  * @param {NodeVersion|WayVersion|RelationVersion} prevVersion
  * @param {NodeVersion|WayVersion|RelationVersion} targetVersion
+ * @param {NodeVersion|WayVersion|RelationVersion} lastVersion
  * @param {NodeVersion[]|WayVersion[]|RelationVersion[]} objHistory
  */
-async function processObjectInteractions(changesetID, objType, objectsInComments, i, prevVersion, targetVersion, objHistory) {
+async function processObjectInteractions(changesetID, objType, objectsInComments, i, prevVersion, targetVersion, lastVersion, objHistory) {
     let changesetMetadata = changesetMetadatas[targetVersion.changeset]
     if (!GM_config.get("ShowChangesetGeometry")) {
         i.parentElement.parentElement.classList.add("processed-object")
@@ -1671,7 +1693,8 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 return undefined
             }
 
-            const nextVersionTimestamp = upperBoundVersion(objHistory, targetVersion.version)?.timestamp
+            const nextVersion = upperBoundVersion(objHistory, targetVersion.version)
+            const nextVersionTimestamp = nextVersion?.visible === false ? minusSecondInStringTimestamp(nextVersion?.timestamp) : nextVersion?.timestamp
             if (!nextVersionTimestamp && !changesetMetadata) {
                 changesetMetadata = await loadChangesetMetadata(parseInt(changesetID))
             }
@@ -1721,7 +1744,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             if (version > 1) {
                 // show prev version
                 const [, nodesHistory] = await loadWayVersionNodes(objID, version - 1)
-                const targetTimestamp = new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1).toISOString()
+                const targetTimestamp = maxDate(prevVersion.timestamp, new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1)).toISOString()
                 const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
                 showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", currentNodesList.length === 0, `${changesetID}w${objID}v${targetVersion.version}`, false, 4, "4, 4")
 
@@ -1742,7 +1765,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
         }
         if (targetVersion.visible === false) {
             const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version)
-            const targetTimestamp = new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString()
+            const targetTimestamp = new Date(maxDate(changesetMetadata.created_at, prevVersion.timestamp).getTime() - 1).toISOString()
             const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
             if (!nodesList.some(i => i.visible === false)) {
                 const closedTime = new Date(changesetMetadata.closed_at ?? new Date()).toISOString()
@@ -1772,7 +1795,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             if (version > 1) {
                 // show prev version
                 const [, nodesHistory] = await loadWayVersionNodes(objID, version - 1)
-                const targetTimestamp = new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1).toISOString()
+                const targetTimestamp = maxDate(prevVersion.timestamp, new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1)).toISOString()
                 const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
                 showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, `${changesetID}w${objID}v${targetVersion.version}`, false, 4, "4, 4")
 
@@ -1993,7 +2016,7 @@ async function getHistoryAndVersionByElem(elem) {
         return [history, version]
     }
     for (let i = min(version - 1, history.length - 1); i > 0; i--) {
-        let versionObj = history[i];
+        let versionObj = history[i]
         if (versionObj.version === version) {
             return [history, version]
         }
@@ -2001,12 +2024,14 @@ async function getHistoryAndVersionByElem(elem) {
             break
         }
     }
-    return [histories[objType][objID] = await tryToRichObjHistory(history, objType, objID), version]
+    return [(histories[objType][objID] = await tryToRichObjHistory(history, objType, objID)), version]
 }
 
 /**
- * @param {[]} objHistory
+ * @template T
+ * @param {T[]} objHistory
  * @param {number} version
+ * @return {[T, T, T, T[]]}
  */
 function getPrevTargetLastVersions(objHistory, version) {
     let prevVersion = emptyVersion
