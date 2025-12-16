@@ -1827,6 +1827,20 @@ End with ! for global search
             } else {
                 document.querySelector("#edit_tab button").click()
             }
+        } else if (e.code === "KeyV") {
+            const layers = `; ${document.cookie}`.split(`; _osm_location=`).pop().split(";").shift().split("|").at(-1)
+            const currentLayersIsVector = layers.includes("S") || layers.includes("V")
+            const hashParams = new URLSearchParams(location.hash)
+            if (currentLayersIsVector) {
+                if (layers.includes("S")) {
+                    hashParams.set("layers", (hashParams.get("layers") ?? "").replace("S", "").replace("V", "") + "M")
+                } else {
+                    hashParams.set("layers", (hashParams.get("layers") ?? "").replace("V", "") + "S")
+                }
+            } else {
+                hashParams.set("layers", (hashParams.get("layers") ?? "") + "V")
+            }
+            location.hash = hashParams.toString()
         } else {
             // console.log(e.key, e.code)
         }
