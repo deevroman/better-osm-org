@@ -934,7 +934,7 @@ function zoomToCurrentObject(e) {
                         })
                     } else {
                         const version = searchVersionByTimestamp(await getNodeHistory(node.getAttribute("id")), new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString())
-                        if (version?.visible !== false) {
+                        if (version && version.visible !== false) {
                             nodesBag.push({
                                 lat: version.lat,
                                 lon: version.lon,
@@ -945,13 +945,17 @@ function zoomToCurrentObject(e) {
                 if ((await getChangeset(changesetID)).data.querySelectorAll("relation").length && shiftKeyZClicks % 2 === 1) {
                     for (const way of (await getChangeset(changesetID)).data.querySelectorAll("way")) {
                         const targetTime = way.getAttribute("visible") === "false" ? new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString() : changesetMetadata.closed_at
-                        const [, currentNodesList] = await getWayNodesByTimestamp(targetTime, way.getAttribute("id"))
-                        currentNodesList.forEach(coords => {
-                            nodesBag.push({
-                                lat: coords[0],
-                                lon: coords[1],
+                        try {
+                            const [, currentNodesList] = await getWayNodesByTimestamp(targetTime, way.getAttribute("id"))
+                            currentNodesList.forEach(coords => {
+                                nodesBag.push({
+                                    lat: coords[0],
+                                    lon: coords[1]
+                                })
                             })
-                        })
+                        } catch (e) {
+                            console.error(e)
+                        }
                     }
                 }
                 getMap()?.invalidateSize()
