@@ -21665,7 +21665,7 @@ function zoomToCurrentObject(e) {
                         })
                     } else {
                         const version = searchVersionByTimestamp(await getNodeHistory(node.getAttribute("id")), new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString())
-                        if (version.visible !== false) {
+                        if (version?.visible !== false) {
                             nodesBag.push({
                                 lat: version.lat,
                                 lon: version.lon,
