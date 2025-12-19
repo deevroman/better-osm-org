@@ -833,16 +833,24 @@ const compactSidebarStyleText = `
         color: #767676 !important;
     }
     
-    #sidebar_content h2 ~ div > p:nth-of-type(1) {
+    #sidebar_content h2 ~ div > div > p:nth-of-type(1) {
         font-size: 14px !important;
         font-style: italic;
         font-synthesis: none;
     }
 
-    #element_versions_list div > p:nth-of-type(1) {
+    #element_versions_list div > div > p:nth-of-type(1) {
         font-size: 14px !important;
         font-style: italic;
         font-synthesis: none;
+    }
+    
+    #sidebar_content h2 ~ div > h4 + div {
+        margin-bottom: 0px !important;
+    }
+
+    #element_versions_list div > h4 + div {
+        margin-bottom: 0px !important;
     }
 
     .hidden-comments-badge:not(.increased-specificity-for-fucked-safari) {

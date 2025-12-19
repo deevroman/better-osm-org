@@ -8,6 +8,7 @@ function addImageryOffsetsDB() {
     }
     const loadBtn = document.createElement("button")
     loadBtn.textContent = "Find offsets"
+    loadBtn.title = "better-osm-org experimental feature"
     loadBtn.onclick = async () => {
         loadBtn.style.cursor = "progress"
         try {
