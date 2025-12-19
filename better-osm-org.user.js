@@ -4105,7 +4105,11 @@ const compactSidebarStyleText = `
         color: #767676 !important;
     }
     
-    #sidebar_content h2 ~ div:not(:has(.turn-on-satellite)) > div > p:nth-of-type(1) {
+    #sidebar_content h2 + div:not(:has(.turn-on-satellite)) > div:has(p) {
+        overflow-x: visible !important;
+    }
+    
+    #sidebar_content h2 + div:not(:has(.turn-on-satellite)) > div > p:nth-of-type(1) {
         font-size: 14px !important;
         font-style: italic;
         font-synthesis: none;
@@ -4117,8 +4121,9 @@ const compactSidebarStyleText = `
         font-synthesis: none;
     }
     
-    #sidebar_content h2 ~ div > h4 + div {
+    #sidebar_content h2 + div > h4 + div {
         margin-bottom: 0px !important;
+        overflow-x: visible !important;
     }
 
     #element_versions_list div > h4 + div {
