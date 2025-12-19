@@ -905,7 +905,7 @@ function makeVersionPageBetter() {
                 ver.title = makeTitleForTagsCount(tagsCount)
             }
 
-            const metainfoHTML = ver?.querySelector(":scope > div > div")
+            const metainfoHTML = ver?.querySelector(":scope > div > div:has(time)")
             if (metainfoHTML && !metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')) {
                 const time = metainfoHTML.querySelector("time")
                 const changesetID = ver.querySelector(':scope div a[href^="/changeset/"]:not([rel])').textContent

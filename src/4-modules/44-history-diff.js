@@ -3217,7 +3217,7 @@ function addDiffInHistory(reason = "url_change") {
             const kv = ver.querySelectorAll("tbody > tr") ?? []
             const tags = []
 
-            const metainfoHTML = ver.querySelector("div:nth-of-type(1)")
+            const metainfoHTML = ver.querySelector("div:nth-of-type(1):has(time)")
 
             const changesetA = ver.querySelector('div > div a[href^="/changeset/"]:not([rel])')
             const changesetHTML = changesetA?.parentElement

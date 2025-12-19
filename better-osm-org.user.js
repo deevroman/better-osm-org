@@ -4102,16 +4102,24 @@ const compactSidebarStyleText = `
         color: #767676 !important;
     }
     
-    #sidebar_content h2 ~ div > p:nth-of-type(1) {
+    #sidebar_content h2 ~ div > div > p:nth-of-type(1) {
         font-size: 14px !important;
         font-style: italic;
         font-synthesis: none;
     }
 
-    #element_versions_list div > p:nth-of-type(1) {
+    #element_versions_list div > div > p:nth-of-type(1) {
         font-size: 14px !important;
         font-style: italic;
         font-synthesis: none;
+    }
+    
+    #sidebar_content h2 ~ div > h4 + div {
+        margin-bottom: 0px !important;
+    }
+
+    #element_versions_list div > h4 + div {
+        margin-bottom: 0px !important;
     }
 
     .hidden-comments-badge:not(.increased-specificity-for-fucked-safari) {
@@ -10880,7 +10888,7 @@ function addDiffInHistory(reason = "url_change") {
             const kv = ver.querySelectorAll("tbody > tr") ?? []
             const tags = []
 
-            const metainfoHTML = ver.querySelector("div:nth-of-type(1)")
+            const metainfoHTML = ver.querySelector("div:nth-of-type(1):has(time)")
 
             const changesetA = ver.querySelector('div > div a[href^="/changeset/"]:not([rel])')
             const changesetHTML = changesetA?.parentElement
@@ -15764,7 +15772,7 @@ function makeVersionPageBetter() {
                 ver.title = makeTitleForTagsCount(tagsCount)
             }
 
-            const metainfoHTML = ver?.querySelector(":scope > div > div")
+            const metainfoHTML = ver?.querySelector(":scope > div > div:has(time)")
             if (metainfoHTML && !metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')) {
                 const time = metainfoHTML.querySelector("time")
                 const changesetID = ver.querySelector(':scope div a[href^="/changeset/"]:not([rel])').textContent
@@ -22808,6 +22816,7 @@ function addImageryOffsetsDB() {
     }
     const loadBtn = document.createElement("button")
     loadBtn.textContent = "Find offsets"
+    loadBtn.title = "better-osm-org experimental feature"
     loadBtn.onclick = async () => {
         loadBtn.style.cursor = "progress"
         try {
