@@ -116,6 +116,42 @@ async function bypassChromeCSPForImagesSrc(imgElem, url, isStrava = true) {
 }
 
 let blankSuffix = ""
+let lastEsriZoom = 0
+
+function addEsriDate() {
+    console.debug("Updating imagery date")
+    const [x, y, z] = getCurrentXYZ()
+    const zoom = min(19, parseInt(z))
+    lastEsriZoom = zoom
+    const centerPoint = y + "," + x
+    externalFetch({
+        url: `https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/4/query?returnGeometry=false&geometry='${centerPoint}'&inSR=4326&geometryType=esriGeometryPoint&outFields=*&f=json`,
+        responseType: "json",
+    }).then(res => {
+        if (currentTilesMode !== SAT_MODE || SatellitePrefix !== ESRIPrefix) {
+            return
+        }
+        console.debug(res.response)
+        const result = res.response.features.map(f => f.attributes).filter(a => a.MinMapLevel <= zoom && a.MaxMapLevel >= zoom)[0]
+        console.debug(result)
+        if (result && result.SRC_DATE2) {
+            const date = new Date(result.SRC_DATE2)
+            const strDate = `${date.getUTCFullYear()}-${(date.getUTCMonth() + 1).toString().padStart(2, "0")}-${date.getUTCDate().toString().padStart(2, "0")}`
+            getMap()?.attributionControl?.setPrefix(strDate + " ESRI")
+        }
+    })
+}
+
+function addEsriPrefix() {
+    if (SatellitePrefix === ESRIBetaPrefix) {
+        getMap()?.attributionControl?.setPrefix("ESRI Beta")
+    } else {
+        getMap()?.attributionControl?.setPrefix("ESRI")
+    }
+    if (SatellitePrefix === ESRIPrefix && isDebug()) {
+        addEsriDate()
+    }
+}
 
 function switchESRIbeta() {
     const NewSatellitePrefix = SatellitePrefix === ESRIPrefix ? ESRIBetaPrefix : ESRIPrefix
@@ -133,11 +169,7 @@ function switchESRIbeta() {
         }
     })
     SatellitePrefix = NewSatellitePrefix
-    if (SatellitePrefix === ESRIBetaPrefix) {
-        getMap()?.attributionControl?.setPrefix("ESRI Beta")
-    } else {
-        getMap()?.attributionControl?.setPrefix("ESRI")
-    }
+    addEsriPrefix()
 }
 
 const needBypassSatellite = !isFirefox || GM_info.scriptHandler === "Violentmonkey"
@@ -189,7 +221,7 @@ function makeOSMGPSURL(x, y, z) {
 let vectorLayerOverlayUrl = null
 let lastVectorLayerOverlayUrl = null
 
-GM.getValue("lastVectorLayerOverlayUrl").then(res => lastVectorLayerOverlayUrl = res)
+GM.getValue("lastVectorLayerOverlayUrl").then(res => (lastVectorLayerOverlayUrl = res))
 
 function vectorSwitch() {
     const enabledLayers = new URLSearchParams(location.hash).get("layers")
@@ -235,8 +267,9 @@ https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/til
                 
 https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.3.0&SERVICE=WMS&REQUEST=GetMap&LAYERS=OI.OrthoimageCoverage&STYLES=&CRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}
 `,
-            lastVectorLayerOverlayUrl ?? "")
-            if (vectorLayerOverlayUrl){
+                lastVectorLayerOverlayUrl ?? "",
+            )
+            if (vectorLayerOverlayUrl) {
                 lastVectorLayerOverlayUrl = vectorLayerOverlayUrl
                 void GM.setValue("lastVectorLayerOverlayUrl", lastVectorLayerOverlayUrl)
                 getWindow().customLayer = new URL(vectorLayerOverlayUrl).origin
@@ -265,11 +298,7 @@ function switchTiles() {
     }
     currentTilesMode = invertTilesMode(currentTilesMode)
     if (currentTilesMode === SAT_MODE) {
-        if (SatellitePrefix === ESRIBetaPrefix) {
-            getMap()?.attributionControl?.setPrefix("ESRI Beta")
-        } else {
-            getMap()?.attributionControl?.setPrefix("ESRI")
-        }
+        addEsriPrefix()
     } else {
         getMap()?.attributionControl?.setPrefix("")
     }
@@ -359,6 +388,11 @@ function switchTiles() {
                             { once: true },
                         )
                     }
+                    setTimeout(() => {
+                        if (lastEsriZoom !== parseInt(getCurrentXYZ()[2]) && SatellitePrefix === ESRIPrefix && isDebug()) {
+                            addEsriDate()
+                        }
+                    })
                 } else {
                     const xyz = parseESRITileURL(!needBypassSatellite ? node.src : node.getAttribute("real-url"))
                     if (!xyz) return
