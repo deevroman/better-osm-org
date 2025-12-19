@@ -18,6 +18,12 @@ let prevMeasurements = []
 let lastLatLng = null
 let movingTooltip = null
 
+let measuringUnits = "km"
+
+GM.getValue("measuringUnits").then(res => {
+    measuringUnits = res ?? "km"
+})
+
 function getMeasureDistance(way, floatingCoord) {
     const [res] = way.reduce(
         ([dist, prev], cur) => {
@@ -44,7 +50,13 @@ function getMeasureDistance(way, floatingCoord) {
 }
 
 function formatMeasureDistance(distInMeters) {
-    return distInMeters < 2500 ? distInMeters.toString() + "m" : (Math.round(distInMeters) / 1000).toString() + "km"
+    if (measuringUnits === "km") {
+        return distInMeters < 2500 ? distInMeters.toString() + "m" : (Math.round(distInMeters) / 1000).toString() + "km"
+    } else {
+        const distInFeets = distInMeters * 3.28084
+        const distInMiles = distInMeters * 0.000621371192
+        return distInFeets < 1200 ? Math.round(distInFeets).toString() + "ft" : (Math.round(distInMiles * 100) / 100).toString() + "mi"
+    }
 }
 
 let measuringMouseDownHandler = null
@@ -130,8 +142,24 @@ function addMeasureMenuItem(customSeparator) {
     a.title = `Alt + Click: start new line
 Esc: stop measuring
 ${CtrlKeyName} + Z: remove last node`
+
+    const unitsSwitch = document.createElement("span")
+    unitsSwitch.style.color = "gray"
+    unitsSwitch.style.cursor = "pointer"
+    unitsSwitch.style.marginLeft = "auto"
+    unitsSwitch.textContent = measuringUnits
+    unitsSwitch.title = "Click to switch units of measurement"
+    unitsSwitch.onclick = e => {
+        e.preventDefault()
+        e.stopPropagation()
+        measuringUnits = measuringUnits === "km" ? "mi" : "km"
+        GM.setValue("measuringUnits", measuringUnits)
+        unitsSwitch.textContent = measuringUnits
+    }
+    a.appendChild(unitsSwitch)
+
     measuringCleanMenuItem = null
-    if (measuring && currentMeasuring.nodes.length || prevMeasurements.length) {
+    if ((measuring && currentMeasuring.nodes.length) || prevMeasurements.length) {
         const hotkeyText = document.createElement("span")
         hotkeyText.style.color = "gray"
         hotkeyText.textContent = "esc"
@@ -143,7 +171,7 @@ ${CtrlKeyName} + Z: remove last node`
 
         const cleanA = document.createElement("a")
         cleanA.classList.add("dropdown-item", "d-flex", "align-items-center", "gap-3")
-        cleanA.textContent ="Clean measurements"
+        cleanA.textContent = "Clean measurements"
         cleanA.title = "Or press Escape twice"
 
         const cleanI = document.createElement("i")
