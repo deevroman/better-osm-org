@@ -4102,7 +4102,7 @@ const compactSidebarStyleText = `
         color: #767676 !important;
     }
     
-    #sidebar_content h2 ~ div > div > p:nth-of-type(1) {
+    #sidebar_content h2 ~ div:not(:has(.turn-on-satellite)) > div > p:nth-of-type(1) {
         font-size: 14px !important;
         font-style: italic;
         font-synthesis: none;
