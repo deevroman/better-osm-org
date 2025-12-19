@@ -52,6 +52,9 @@ async function getMapBounds() {
     }
 }
 
+/**
+ * @return {[string, string, string]}
+ */
 function getCurrentXYZ() {
     try {
         const [, z, x, y] = new URL(document.querySelector("#editanchor").href).hash.match(/map=([0-9]+)\/([0-9.-]+)\/([0-9.-]+)/)
