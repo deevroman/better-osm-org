@@ -29,7 +29,7 @@ function addSpyGlassButtons() {
     spyGlassBtn.style.cursor = "pointer"
     spyGlassBtn.style.marginLeft = "3px"
     spyGlassBtn.classList.add("bi", "bi-eye-slash-fill")
-    spyGlassBtn.title = "Activate SpyGlass imitation mode"
+    spyGlassBtn.title = "Activate SpyGlass imitation mode (better-osm-org experiment)"
 
     spyGlassBtn.onclick = async () => {
         getWindow().spyGlassMode = !getWindow().spyGlassMode
