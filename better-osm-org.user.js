@@ -6736,17 +6736,17 @@ https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/
                 getWindow().customLayer = new URL(vectorLayerOverlayUrl).origin
             }
         }
-        vectorMap.addSource("satellite", {
+        vectorMap.addSource("satellite", intoPage({
             type: "raster",
             tiles: [vectorLayerOverlayUrl],
             tileSize: 256,
             attribution: "geoportal.dgu.hr",
-        })
-        vectorMap.addLayer({
+        }))
+        vectorMap.addLayer(intoPage({
             id: "satellite-layer",
             type: "raster",
             source: "satellite",
-        })
+        }))
     } else {
         vectorMap.removeLayer("satellite-layer")
         vectorMap.removeSource("satellite")
@@ -15901,11 +15901,17 @@ window.addEventListener("message", async e => {
     if (e.data.type !== "bypass_tiles_csp") {
         return
     }
+    // fuck TM, need imitate Response
+    const res = await fetchBlobWithCache(e.data.url)
     window.postMessage(
         {
             type: "tile_data",
             url: e.data.url,
-            data: await fetchBlobWithCache(e.data.url),
+            data: {
+                status: res.status,
+                statusText: res.statusText,
+                response: res.response,
+            },
         },
         e.origin,
     )

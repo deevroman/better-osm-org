@@ -4,11 +4,17 @@ window.addEventListener("message", async e => {
     if (e.data.type !== "bypass_tiles_csp") {
         return
     }
+    // fuck TM, need imitate Response
+    const res = await fetchBlobWithCache(e.data.url)
     window.postMessage(
         {
             type: "tile_data",
             url: e.data.url,
-            data: await fetchBlobWithCache(e.data.url),
+            data: {
+                status: res.status,
+                statusText: res.statusText,
+                response: res.response,
+            },
         },
         e.origin,
     )
