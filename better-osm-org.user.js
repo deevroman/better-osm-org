@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.4.9
+// @version         1.4.9.1
 // @changelog       v1.4.8: Highlight changesets with review_requested=yes
 // @changelog       v1.4.6: Copy coordinates button in map context menu, copy coordinates button for relations
 // @changelog       v1.4.0: More links in Edit menu, the ability to add custom links (like OSM Smart Menu)
@@ -6607,6 +6607,9 @@ function addEsriDate() {
 }
 
 function addEsriPrefix() {
+    if (document.querySelector("#map canvas")) {
+        return
+    }
     if (SatellitePrefix === ESRIBetaPrefix) {
         getMap()?.attributionControl?.setPrefix("ESRI Beta")
     } else {
@@ -6737,19 +6740,31 @@ https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/
                 lastVectorLayerOverlayUrl = vectorLayerOverlayUrl
                 void GM.setValue("lastVectorLayerOverlayUrl", lastVectorLayerOverlayUrl)
                 getWindow().customLayer = new URL(vectorLayerOverlayUrl).origin
+            } else {
+                return
             }
         }
-        vectorMap.addSource("satellite", intoPage({
-            type: "raster",
-            tiles: [vectorLayerOverlayUrl],
-            tileSize: 256,
-            attribution: "geoportal.dgu.hr",
-        }))
-        vectorMap.addLayer(intoPage({
-            id: "satellite-layer",
-            type: "raster",
-            source: "satellite",
-        }))
+        function addLayer() {
+            vectorMap.addSource("satellite", intoPage({
+                type: "raster",
+                tiles: [vectorLayerOverlayUrl],
+                tileSize: 256,
+                attribution: "geoportal.dgu.hr",
+            }))
+            vectorMap.addLayer(intoPage({
+                id: "satellite-layer",
+                type: "raster",
+                source: "satellite",
+            }))
+        }
+
+        try {
+            addLayer()
+        } catch (e) {
+            console.error(e)
+            // dirty hack for wait styles downloading
+            setTimeout(addLayer, 1000)
+        }
     } else {
         vectorMap.removeLayer("satellite-layer")
         vectorMap.removeSource("satellite")
@@ -6879,6 +6894,12 @@ function switchTiles() {
     tilesObserver = observer
     observer.observe(document.body, { childList: true, subtree: true })
     vectorSwitch()
+}
+
+function switchTilesAndButtons() {
+    switchTiles()
+    document.querySelectorAll(".turn-on-satellite").forEach(btn => (btn.textContent = invertTilesMode(currentTilesMode)))
+    document.querySelectorAll(".turn-on-satellite-from-pane").forEach(btn => (btn.textContent = invertTilesMode(currentTilesMode)))
 }
 
 let osmTilesObserver = undefined
@@ -7056,50 +7077,15 @@ function switchOverlayTiles() {
 }
 
 if (isOsmServer() && new URLSearchParams(location.search).has("sat-tiles")) {
-    switchTiles()
-    if (document.querySelector(".turn-on-satellite")) {
-        document.querySelector(".turn-on-satellite").textContent = invertTilesMode(currentTilesMode)
-    }
-    if (document.querySelector(".turn-on-satellite-from-pane")) {
-        document.querySelector(".turn-on-satellite-from-pane").textContent = invertTilesMode(currentTilesMode)
-    }
+    switchTilesAndButtons()
 }
 
-function addSatelliteLayers() {
-    const btnOnPane = document.createElement("span")
-    const btnOnNotePage = document.createElement("span")
-    if (!document.querySelector(".turn-on-satellite-from-pane")) {
-        const mapnikBtn = document.querySelector(".layers-ui label span")
-        if (mapnikBtn) {
-            if (!tilesObserver) {
-                btnOnPane.textContent = "🛰"
-            } else {
-                btnOnPane.textContent = invertTilesMode(currentTilesMode)
-            }
-            btnOnPane.style.cursor = "pointer"
-            btnOnPane.classList.add("turn-on-satellite-from-pane")
-            btnOnPane.title = "Switch between map and satellite images (S key)\nPress (Shift+S) for ESRI beta"
-            mapnikBtn.appendChild(document.createTextNode("\xA0"))
-            mapnikBtn.appendChild(btnOnPane)
-
-            btnOnPane.onclick = e => {
-                e.stopImmediatePropagation()
-                enableOverzoom()
-                if (e.shiftKey) {
-                    switchESRIbeta()
-                    return
-                }
-                switchTiles()
-                btnOnNotePage.textContent = invertTilesMode(currentTilesMode)
-                btnOnPane.textContent = invertTilesMode(currentTilesMode)
-            }
-        }
-    }
-    if (!location.pathname.includes("/note")) return
+function addSwitchTilesBtnOnNotePage() {
     if (document.querySelector(".turn-on-satellite")) return true
     if (!document.querySelector("#sidebar_content h4")) {
         return
     }
+    const btnOnNotePage = document.createElement("span")
     if (!tilesObserver) {
         btnOnNotePage.textContent = "🛰"
     } else {
@@ -7114,9 +7100,57 @@ function addSatelliteLayers() {
 
     btnOnNotePage.onclick = () => {
         enableOverzoom()
-        switchTiles()
-        btnOnNotePage.textContent = invertTilesMode(currentTilesMode)
+        switchTilesAndButtons()
+    }
+}
+
+function createSwitchTilesBtn() {
+    const btnOnPane = document.createElement("span")
+    if (!tilesObserver) {
+        btnOnPane.textContent = "🛰"
+    } else {
         btnOnPane.textContent = invertTilesMode(currentTilesMode)
+    }
+    btnOnPane.style.cursor = "pointer"
+    btnOnPane.classList.add("turn-on-satellite-from-pane")
+    btnOnPane.title = "Switch between map and satellite images (S key)\nPress (Shift+S) for ESRI beta"
+    btnOnPane.onclick = e => {
+        e.stopImmediatePropagation()
+        enableOverzoom()
+        if (e.shiftKey) {
+            switchESRIbeta()
+            return
+        }
+        setTimeout(() => {
+            switchTilesAndButtons()
+        })
+    }
+    return btnOnPane
+}
+
+function addSwitchTilesButtonsOnPane() {
+    if (document.querySelector(".turn-on-satellite-from-pane")) {
+        return
+    }
+    const layers = Array.from(document.querySelectorAll(".layers-ui label span"))
+    const mapnikBtn = layers[0]
+    if (mapnikBtn) {
+        const btnOnPane = createSwitchTilesBtn()
+        mapnikBtn.appendChild(document.createTextNode("\xA0"))
+        mapnikBtn.appendChild(btnOnPane)
+    }
+    const omtBtn = layers.at(-1)
+    if (omtBtn) {
+        const btnOnPane = createSwitchTilesBtn()
+        omtBtn.appendChild(document.createTextNode("\xA0"))
+        omtBtn.appendChild(btnOnPane)
+    }
+}
+
+function addSatelliteLayers() {
+    addSwitchTilesButtonsOnPane()
+    if (location.pathname.includes("/note")) {
+        addSwitchTilesBtnOnNotePage()
     }
 }
 
@@ -22064,13 +22098,7 @@ function setupNavigationViaHotkeys() {
             } else if (e.altKey) {
                 bypassCaches()
             } else {
-                switchTiles()
-                if (document.querySelector(".turn-on-satellite")) {
-                    document.querySelector(".turn-on-satellite").textContent = invertTilesMode(currentTilesMode)
-                }
-                if (document.querySelector(".turn-on-satellite-from-pane")) {
-                    document.querySelector(".turn-on-satellite-from-pane").textContent = invertTilesMode(currentTilesMode)
-                }
+                switchTilesAndButtons()
             }
         } else if (e.code === "KeyE") {
             if (e.altKey) {
