@@ -275,17 +275,17 @@ https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/
                 getWindow().customLayer = new URL(vectorLayerOverlayUrl).origin
             }
         }
-        vectorMap.addSource("satellite", {
+        vectorMap.addSource("satellite", intoPage({
             type: "raster",
             tiles: [vectorLayerOverlayUrl],
             tileSize: 256,
             attribution: "geoportal.dgu.hr",
-        })
-        vectorMap.addLayer({
+        }))
+        vectorMap.addLayer(intoPage({
             id: "satellite-layer",
             type: "raster",
             source: "satellite",
-        })
+        }))
     } else {
         vectorMap.removeLayer("satellite-layer")
         vectorMap.removeSource("satellite")
