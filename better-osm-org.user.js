@@ -4384,6 +4384,7 @@ function setupCompactChangesetsHistory() {
                     })
 
                     commentsBadge.firstElementChild.style.cursor = "pointer"
+                    commentsBadge.firstElementChild.style.overflow = "visible"
 
                     let state = commentsCount === 1 ? "" : "none"
                     commentsBadge.firstElementChild.onclick = () => {
