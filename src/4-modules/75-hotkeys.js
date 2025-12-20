@@ -1254,13 +1254,7 @@ function setupNavigationViaHotkeys() {
             } else if (e.altKey) {
                 bypassCaches()
             } else {
-                switchTiles()
-                if (document.querySelector(".turn-on-satellite")) {
-                    document.querySelector(".turn-on-satellite").textContent = invertTilesMode(currentTilesMode)
-                }
-                if (document.querySelector(".turn-on-satellite-from-pane")) {
-                    document.querySelector(".turn-on-satellite-from-pane").textContent = invertTilesMode(currentTilesMode)
-                }
+                switchTilesAndButtons()
             }
         } else if (e.code === "KeyE") {
             if (e.altKey) {
