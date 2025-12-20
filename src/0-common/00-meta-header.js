@@ -142,6 +142,7 @@
 // @connect      amazonaws.com
 // @comment      for satellite images
 // @connect      server.arcgisonline.com
+// @connect      services.arcgisonline.com
 // @connect      clarity.maptiles.arcgis.com
 // @connect      wayback.maptiles.arcgis.com
 // @connect      geoscribble.osmz.ru
