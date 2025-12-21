@@ -176,7 +176,7 @@ function isOHMServer() {
 }
 
 function isOsmServer() {
-    return !!osm_server && (isOHMServer() ? isDebug() : true)
+    return !!osm_server
 }
 
 const planetOrigin = "https://planet.maps.mail.ru"
@@ -420,7 +420,9 @@ function intoPageWithFun(obj) {
     return cloneInto(obj, getWindow(), { cloneFunctions: true })
 }
 
-let _isDebug = document.querySelector("head")?.getAttribute("data-user") === "11528195" || osm_server === local_server || osm_server === dev_server
+const dataUser = document.querySelector("head")?.getAttribute("data-user")
+// TrickyFoxy on osm.org and OHM
+let _isDebug = dataUser === "11528195" || dataUser === "15560" || osm_server === local_server || osm_server === dev_server
 
 function isDebug() {
     return _isDebug
@@ -437,7 +439,21 @@ function debug_alert() {
 
 //</editor-fold>
 
-if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id-embed")) {
+function printScriptDebugInfo() {
+    console.log(`Script version: ${GM_info.script.version}`)
+    console.debug(
+        "Settings:",
+        Object.entries(GM_config.fields).map(i => {
+            if (typeof i[1].value === "boolean" || typeof i[1].value === "number") {
+                return [i[0], i[1].value]
+            } else {
+                return [i[0], `length: ${i[1].value.length}`]
+            }
+        })
+    )
+}
+
+function injectMapHooks() {
     function mapHook() {
         console.log("start map intercepting")
         if (boWindowObject.L && boWindowObject.L.Map) {
@@ -458,12 +474,12 @@ if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id
             boWindowObject.L.OSM.MaplibreGL.addInitHook(
                 exportFunction(function () {
                     // if (this._container?.id === "map") {
-                        if (!boGlobalThis.mapGL) {
-                            boGlobalThis.mapGL = intoPage([])
-                        }
-                        boGlobalThis.mapGL.push(this)
-                        boGlobalThis.mapGLIntercepted = true
-                        console.log("%cMapGL intercepted", "background: #000; color: #0f0")
+                    if (!boGlobalThis.mapGL) {
+                        boGlobalThis.mapGL = intoPage([])
+                    }
+                    boGlobalThis.mapGL.push(this)
+                    boGlobalThis.mapGLIntercepted = true
+                    console.log("%cMapGL intercepted", "background: #000; color: #0f0")
                     // }
                 }, boWindowObject),
             )
@@ -490,25 +506,15 @@ if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id
 
         getMap = () => boWindowObject.map
     }
+}
 
+if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id-embed")) {
+    injectMapHooks()
     // try {
     //     interceptRectangle()
     // } catch (e) {
     // }
-
-    setTimeout(() => {
-        console.log(`Script version: ${GM_info.script.version}`)
-        console.debug(
-            "Settings:",
-            Object.entries(GM_config.fields).map(i => {
-                if (typeof i[1].value === "boolean" || typeof i[1].value === "number") {
-                    return [i[0], i[1].value]
-                } else {
-                    return [i[0], `length: ${i[1].value.length}`]
-                }
-            }),
-        )
-    }, 1500)
+    setTimeout(printScriptDebugInfo, 1500)
 } else if (isOsmServer() && ["/edit", "/id"].includes(location.pathname)) {
     if (isDarkMode()) {
         if (location.pathname === "/edit") {
