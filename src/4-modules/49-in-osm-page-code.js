@@ -22,6 +22,15 @@ window.addEventListener("message", async e => {
 
 if (isOsmServer()) {
     injectJSIntoPage(`
+    // const OriginalWorker = window.Worker
+    //
+    // window.Worker = function (url, options) {
+    //     const proxyUrl = URL.createObjectURL(
+    //         new Blob(["self.fetch = (...args) => {console.log('fetch in worker', args);return fetch(...args);};importScripts(" + JSON.stringify(url) + ");"], { type: "application/javascript" }),
+    //     )
+    //     return new OriginalWorker(proxyUrl, options)
+    // }
+        
     const originalFetch = window.fetch;
 
     window.fetchIntercepterScriptInited = true;
