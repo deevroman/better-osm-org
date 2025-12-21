@@ -1839,6 +1839,12 @@ https://map.atownsend.org.uk/vector/style_svwd03.json
 https://vector.openstreetmap.org/styles/shortbread/colorful.json
 
 https://vector.openstreetmap.org/styles/shortbread/eclipse.json
+
+https://vector.openstreetmap.org/styles/shortbread/neutrino.json
+
+https://vector.openstreetmap.org/styles/shortbread/shadow.json
+
+https://vector.openstreetmap.org/styles/shortbread/graybeard.json
 `,
                         lastVectorLayerUrl ?? "",
                     )
