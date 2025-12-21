@@ -234,6 +234,7 @@ if (isOsmServer()) {
                 });
             } else if (window.customVectorLayer && args?.[0]?.url?.startsWith?.(window.customVectorLayer)) {
                 const resourceUrl = args?.[0]?.url
+                console.log(window.customVectorLayer, resourceUrl)
                 const resultCallback = new Promise((resolve, reject) => {
                     window.addEventListener("message", e => {
                         if (e.origin !== location.origin) return

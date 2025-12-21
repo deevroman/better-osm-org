@@ -145,6 +145,7 @@
 // @connect      clarity.maptiles.arcgis.com
 // @connect      wayback.maptiles.arcgis.com
 // @connect      map.atownsend.org.uk
+// @connect      tiles.openfreemap.org
 // @comment      * for custom layers. ViolentMonkey ignores @connect by default,
 // @comment      Tampermonkey will show a warning before connecting to a host that is not listed above
 // @connect      *
@@ -16189,6 +16190,7 @@ if (isOsmServer()) {
                 });
             } else if (window.customVectorLayer && args?.[0]?.url?.startsWith?.(window.customVectorLayer)) {
                 const resourceUrl = args?.[0]?.url
+                console.log(window.customVectorLayer, resourceUrl)
                 const resultCallback = new Promise((resolve, reject) => {
                     window.addEventListener("message", e => {
                         if (e.origin !== location.origin) return
@@ -22712,7 +22714,7 @@ https://vector.openstreetmap.org/styles/shortbread/eclipse.json
                     if (vectorLayerUrl) {
                         lastVectorLayerUrl = vectorLayerUrl
                         void GM.setValue("lastVectorLayerUrl", lastVectorLayerUrl)
-                        getWindow().customLayer = new URL(vectorLayerUrl).origin
+                        getWindow().customVectorLayer = new URL(vectorLayerUrl).origin
                         await loadExternalVectorStyle(vectorLayerUrl)
                         findVectorMap().setStyle(vectorLayerUrl)
                     }
