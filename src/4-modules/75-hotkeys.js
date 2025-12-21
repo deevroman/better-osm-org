@@ -1845,7 +1845,7 @@ https://vector.openstreetmap.org/styles/shortbread/eclipse.json
                     if (vectorLayerUrl) {
                         lastVectorLayerUrl = vectorLayerUrl
                         void GM.setValue("lastVectorLayerUrl", lastVectorLayerUrl)
-                        getWindow().customLayer = new URL(vectorLayerUrl).origin
+                        getWindow().customVectorLayer = new URL(vectorLayerUrl).origin
                         await loadExternalVectorStyle(vectorLayerUrl)
                         findVectorMap().setStyle(vectorLayerUrl)
                     }
