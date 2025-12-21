@@ -950,7 +950,7 @@ function zoomToCurrentObject(e) {
                             currentNodesList.forEach(coords => {
                                 nodesBag.push({
                                     lat: coords[0],
-                                    lon: coords[1]
+                                    lon: coords[1],
                                 })
                             })
                         } catch (e) {
@@ -1786,7 +1786,7 @@ function setupNavigationViaHotkeys() {
                     document
                         .querySelector('.user-menu [href^="/user/"]')
                         ?.getAttribute("href")
-                        ?.match(/\/user\/(.*)$/)?.[1] ?? ""
+                        ?.match(/\/user\/(.*)$/)?.[1] ?? "",
                 )
                 if (currentUser) {
                     message += currentUser.match(/^[a-zA-Z0-9_]+$/) ? `\n\tnode(user:${currentUser})` : `\n\tnode(user:"${currentUser}")`
@@ -1826,19 +1826,45 @@ End with ! for global search
                 document.querySelector("#edit_tab button").click()
             }
         } else if (e.code === "KeyV") {
-            const layers = `; ${document.cookie}`.split(`; _osm_location=`).pop().split(";").shift().split("|").at(-1)
-            const currentLayersIsVector = layers.includes("S") || layers.includes("V")
-            const hashParams = new URLSearchParams(location.hash)
-            if (currentLayersIsVector) {
-                if (layers.includes("S")) {
-                    hashParams.set("layers", (hashParams.get("layers") ?? "").replace("S", "").replace("V", "") + "M")
-                } else {
-                    hashParams.set("layers", (hashParams.get("layers") ?? "").replace("V", "") + "S")
+            if (e.shiftKey) {
+                if (!document.querySelector("#map canvas")) {
+                    Array.from(document.querySelectorAll(".layers-ui .base-layers label")).at(-2).click()
                 }
+                setTimeout(async () => {
+                    vectorLayerUrl = prompt(
+                        `Enter URL with style.json for maplibre.js. Examples:
+
+https://map.atownsend.org.uk/vector/style_svwd03.json
+
+https://vector.openstreetmap.org/styles/shortbread/colorful.json
+
+https://vector.openstreetmap.org/styles/shortbread/eclipse.json
+`,
+                        lastVectorLayerUrl ?? "",
+                    )
+                    if (vectorLayerUrl) {
+                        lastVectorLayerUrl = vectorLayerUrl
+                        void GM.setValue("lastVectorLayerUrl", lastVectorLayerUrl)
+                        getWindow().customLayer = new URL(vectorLayerUrl).origin
+                        await loadExternalVectorStyle(vectorLayerUrl)
+                        findVectorMap().setStyle(vectorLayerUrl)
+                    }
+                })
             } else {
-                hashParams.set("layers", (hashParams.get("layers") ?? "") + "V")
+                const layers = `; ${document.cookie}`.split(`; _osm_location=`).pop().split(";").shift().split("|").at(-1)
+                const currentLayersIsVector = layers.includes("S") || layers.includes("V")
+                const hashParams = new URLSearchParams(location.hash)
+                if (currentLayersIsVector) {
+                    if (layers.includes("S")) {
+                        hashParams.set("layers", (hashParams.get("layers") ?? "").replace("S", "").replace("V", "") + "M")
+                    } else {
+                        hashParams.set("layers", (hashParams.get("layers") ?? "").replace("V", "") + "S")
+                    }
+                } else {
+                    hashParams.set("layers", (hashParams.get("layers") ?? "") + "V")
+                }
+                location.hash = hashParams.toString()
             }
-            location.hash = hashParams.toString()
         } else {
             // console.log(e.key, e.code)
         }

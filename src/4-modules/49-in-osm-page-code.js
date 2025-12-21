@@ -1,14 +1,14 @@
 //<editor-fold desc="in-osm-page-code" defaultstate="collapsed">
 window.addEventListener("message", async e => {
     if (e.origin !== location.origin) return
-    if (e.data.type !== "bypass_tiles_csp") {
+    if (e.data.type !== "bypass_csp") {
         return
     }
     // fuck TM, need imitate Response
     const res = await fetchBlobWithCache(e.data.url)
     window.postMessage(
         {
-            type: "tile_data",
+            type: "bypass_csp_response",
             url: e.data.url,
             data: {
                 status: res.status,
@@ -35,8 +35,9 @@ if (isOsmServer()) {
     window.notesClosedFilter = "";
     window.notesCommentsFilter = "";
     window.notesIDsFilter = new Set();
-    
+
     window.customLayer = null
+    window.customVectorLayer = null
 
     // const cache = new Map();
 
@@ -207,7 +208,7 @@ if (isOsmServer()) {
                     });
                 }
             } else if (window.mapGLIntercepted && (
-                args?.[0]?.url?.startsWith?.("https://server.arcgisonline.com/") 
+                args?.[0]?.url?.startsWith?.("https://server.arcgisonline.com/")
                 || args?.[0]?.url?.startsWith?.("https://geoscribble.osmz.ru/")
                 || args?.[0]?.url?.startsWith?.("https://geoportal.dgu.hr/")
                 || window.customLayer && args?.[0]?.url?.startsWith?.(window.customLayer)
@@ -216,7 +217,7 @@ if (isOsmServer()) {
                 const resultCallback = new Promise((resolve, reject) => {
                     window.addEventListener("message", e => {
                         if (e.origin !== location.origin) return
-                        if (e.data.type !== "tile_data") {
+                        if (e.data.type !== "bypass_csp_response") {
                             return
                         }
                         if (e.data.url !== tile_url) {
@@ -225,40 +226,55 @@ if (isOsmServer()) {
                         resolve(e.data.data)
                     })
                 })
-                window.postMessage({ "type": "bypass_tiles_csp", url: tile_url }, location.origin)
+                window.postMessage({ "type": "bypass_csp", url: tile_url }, location.origin)
                 const res = await resultCallback
                 return new Response(res.response, {
                     status: res.status,
                     statusText: res.statusText,
                 });
-            } else if (args?.[0]?.url === "https://vector.openstreetmap.org/demo/shortbread/colorful.json"
-                || args?.[0]?.url === "https://vector.openstreetmap.org/demo/shortbread/eclipse.json") {
+            } else if (window.customVectorLayer && args?.[0]?.url?.startsWith?.(window.customVectorLayer)) {
+                const resourceUrl = args?.[0]?.url
+                const resultCallback = new Promise((resolve, reject) => {
+                    window.addEventListener("message", e => {
+                        if (e.origin !== location.origin) return
+                        if (e.data.type !== "bypass_csp_response") {
+                            return
+                        }
+                        if (e.data.url !== resourceUrl) {
+                            return
+                        }
+                        resolve(e.data.data)
+                    })
+                })
+                window.postMessage({ "type": "bypass_csp", url: resourceUrl }, location.origin)
+                const res = await resultCallback
+                return new Response(res.response, {
+                    status: res.status,
+                    statusText: res.statusText,
+                });
+            } else if (args?.[0]?.url === "https://vector.openstreetmap.org/styles/shortbread/colorful.json"
+                || args?.[0]?.url === "https://vector.openstreetmap.org/styles/shortbread/eclipse.json") {
                 return originalFetch(...args);
                 console.log("vector tiles request", args)
                 if (!window.vectorStyle) {
                     console.log("wait external vector style")
                     await new Promise(r => setTimeout(r, 1000))
                 }
-                // debugger
                 const originalJSON = window.vectorStyle
-                // debugger
+                console.log(originalJSON)
                 // const response = await originalFetch(...args);
                 // const originalJSON = await response.json();
                 // originalJSON.layers[originalJSON.layers.findIndex(i => i.id === "water-river")].paint['line-color'] = "red"
-                originalJSON.layers.forEach(i => {
-                    if (i.paint && i.paint['line-color']) {
-                        i.paint['line-color'] = "red"
-                    }
-                    if (i.paint && i.paint['fill-color']) {
-                        i.paint['fill-color'] = "black"
-                    }
-                })
-                // debugger
-                return new Response(JSON.stringify(originalJSON), {
-                    status: response.status,
-                    statusText: response.statusText,
-                    headers: response.headers
-                });
+                // originalJSON.layers.forEach(i => {
+                //     if (i.paint && i.paint['line-color']) {
+                //         i.paint['line-color'] = "red"
+                //     }
+                //     if (i.paint && i.paint['fill-color']) {
+                //         i.paint['fill-color'] = "black"
+                //     }
+                // })
+                // console.log(originalJSON)
+                return new Response(JSON.stringify(originalJSON));
             } else if (args[0]?.includes?.("/members")) {
                 // console.log("freeeeeze", args[0])
                 // await new Promise(() => setTimeout(() => true, 1000 * 1000))
