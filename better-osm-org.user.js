@@ -144,6 +144,7 @@
 // @connect      services.arcgisonline.com
 // @connect      clarity.maptiles.arcgis.com
 // @connect      wayback.maptiles.arcgis.com
+// @connect      map.atownsend.org.uk
 // @comment      * for custom layers. ViolentMonkey ignores @connect by default,
 // @comment      Tampermonkey will show a warning before connecting to a host that is not listed above
 // @connect      *
@@ -6686,26 +6687,38 @@ function makeOSMGPSURL(x, y, z) {
     return OSMGPSPrefix + z + "/" + x + "/" + y + ".png"
 }
 
+async function loadExternalVectorStyle(url) {
+    try {
+        const res = await externalFetchRetry({
+            url: url,
+            responseType: "json",
+        })
+        console.debug((getWindow().vectorStyle = await res.response))
+    } catch (e) {}
+}
+
 let vectorLayerOverlayUrl = null
 let lastVectorLayerOverlayUrl = null
-
 GM.getValue("lastVectorLayerOverlayUrl").then(res => (lastVectorLayerOverlayUrl = res))
+
+let vectorLayerUrl = null
+let lastVectorLayerUrl = null
+GM.getValue("lastVectorLayerUrl").then(res => (lastVectorLayerUrl = res))
+
+function findVectorMap() {
+    for (const i of getWindow().mapGL) {
+        if (i && i.getMaplibreMap?.()) {
+            return i.getMaplibreMap()
+        }
+    }
+}
 
 function vectorSwitch() {
     const enabledLayers = new URLSearchParams(location.hash).get("layers")
     if (!enabledLayers.includes("S") && !enabledLayers.includes("V") && !document.querySelector("#map canvas")) {
         return
     }
-    let vectorMap
-    for (const i of getWindow().mapGL) {
-        if (i && i.getMaplibreMap?.()) {
-            vectorMap = i.getMaplibreMap()
-            break
-        }
-    }
-    if (!vectorMap) {
-        return
-    }
+    const vectorMap = findVectorMap()
     if (currentTilesMode === SAT_MODE) {
         // vectorMap.addSource("satellite", {
         //     type: "raster",
@@ -6746,17 +6759,22 @@ https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/
             }
         }
         function addLayer() {
-            vectorMap.addSource("satellite", intoPage({
-                type: "raster",
-                tiles: [vectorLayerOverlayUrl],
-                tileSize: 256,
-                attribution: "geoportal.dgu.hr",
-            }))
-            vectorMap.addLayer(intoPage({
-                id: "satellite-layer",
-                type: "raster",
-                source: "satellite",
-            }))
+            vectorMap.addSource(
+                "satellite",
+                intoPage({
+                    type: "raster",
+                    tiles: [vectorLayerOverlayUrl],
+                    tileSize: 256,
+                    attribution: "geoportal.dgu.hr",
+                }),
+            )
+            vectorMap.addLayer(
+                intoPage({
+                    id: "satellite-layer",
+                    type: "raster",
+                    source: "satellite",
+                }),
+            )
         }
 
         try {
@@ -7133,7 +7151,7 @@ function addSwitchTilesButtonsOnPane() {
     if (document.querySelector(".turn-on-satellite-from-pane")) {
         return
     }
-    const layers = Array.from(document.querySelectorAll(".layers-ui label span"))
+    const layers = Array.from(document.querySelectorAll(".layers-ui .base-layers label span"))
     const mapnikBtn = layers[0]
     if (mapnikBtn) {
         const btnOnPane = createSwitchTilesBtn()
@@ -15936,14 +15954,14 @@ function setupMakeVersionPageBetter() {
 //<editor-fold desc="in-osm-page-code" defaultstate="collapsed">
 window.addEventListener("message", async e => {
     if (e.origin !== location.origin) return
-    if (e.data.type !== "bypass_tiles_csp") {
+    if (e.data.type !== "bypass_csp") {
         return
     }
     // fuck TM, need imitate Response
     const res = await fetchBlobWithCache(e.data.url)
     window.postMessage(
         {
-            type: "tile_data",
+            type: "bypass_csp_response",
             url: e.data.url,
             data: {
                 status: res.status,
@@ -15970,8 +15988,9 @@ if (isOsmServer()) {
     window.notesClosedFilter = "";
     window.notesCommentsFilter = "";
     window.notesIDsFilter = new Set();
-    
+
     window.customLayer = null
+    window.customVectorLayer = null
 
     // const cache = new Map();
 
@@ -16142,7 +16161,7 @@ if (isOsmServer()) {
                     });
                 }
             } else if (window.mapGLIntercepted && (
-                args?.[0]?.url?.startsWith?.("https://server.arcgisonline.com/") 
+                args?.[0]?.url?.startsWith?.("https://server.arcgisonline.com/")
                 || args?.[0]?.url?.startsWith?.("https://geoscribble.osmz.ru/")
                 || args?.[0]?.url?.startsWith?.("https://geoportal.dgu.hr/")
                 || window.customLayer && args?.[0]?.url?.startsWith?.(window.customLayer)
@@ -16151,7 +16170,7 @@ if (isOsmServer()) {
                 const resultCallback = new Promise((resolve, reject) => {
                     window.addEventListener("message", e => {
                         if (e.origin !== location.origin) return
-                        if (e.data.type !== "tile_data") {
+                        if (e.data.type !== "bypass_csp_response") {
                             return
                         }
                         if (e.data.url !== tile_url) {
@@ -16160,40 +16179,55 @@ if (isOsmServer()) {
                         resolve(e.data.data)
                     })
                 })
-                window.postMessage({ "type": "bypass_tiles_csp", url: tile_url }, location.origin)
+                window.postMessage({ "type": "bypass_csp", url: tile_url }, location.origin)
                 const res = await resultCallback
                 return new Response(res.response, {
                     status: res.status,
                     statusText: res.statusText,
                 });
-            } else if (args?.[0]?.url === "https://vector.openstreetmap.org/demo/shortbread/colorful.json"
-                || args?.[0]?.url === "https://vector.openstreetmap.org/demo/shortbread/eclipse.json") {
+            } else if (window.customVectorLayer && args?.[0]?.url?.startsWith?.(window.customVectorLayer)) {
+                const resourceUrl = args?.[0]?.url
+                const resultCallback = new Promise((resolve, reject) => {
+                    window.addEventListener("message", e => {
+                        if (e.origin !== location.origin) return
+                        if (e.data.type !== "bypass_csp_response") {
+                            return
+                        }
+                        if (e.data.url !== resourceUrl) {
+                            return
+                        }
+                        resolve(e.data.data)
+                    })
+                })
+                window.postMessage({ "type": "bypass_csp", url: resourceUrl }, location.origin)
+                const res = await resultCallback
+                return new Response(res.response, {
+                    status: res.status,
+                    statusText: res.statusText,
+                });
+            } else if (args?.[0]?.url === "https://vector.openstreetmap.org/styles/shortbread/colorful.json"
+                || args?.[0]?.url === "https://vector.openstreetmap.org/styles/shortbread/eclipse.json") {
                 return originalFetch(...args);
                 console.log("vector tiles request", args)
                 if (!window.vectorStyle) {
                     console.log("wait external vector style")
                     await new Promise(r => setTimeout(r, 1000))
                 }
-                // debugger
                 const originalJSON = window.vectorStyle
-                // debugger
+                console.log(originalJSON)
                 // const response = await originalFetch(...args);
                 // const originalJSON = await response.json();
                 // originalJSON.layers[originalJSON.layers.findIndex(i => i.id === "water-river")].paint['line-color'] = "red"
-                originalJSON.layers.forEach(i => {
-                    if (i.paint && i.paint['line-color']) {
-                        i.paint['line-color'] = "red"
-                    }
-                    if (i.paint && i.paint['fill-color']) {
-                        i.paint['fill-color'] = "black"
-                    }
-                })
-                // debugger
-                return new Response(JSON.stringify(originalJSON), {
-                    status: response.status,
-                    statusText: response.statusText,
-                    headers: response.headers
-                });
+                // originalJSON.layers.forEach(i => {
+                //     if (i.paint && i.paint['line-color']) {
+                //         i.paint['line-color'] = "red"
+                //     }
+                //     if (i.paint && i.paint['fill-color']) {
+                //         i.paint['fill-color'] = "black"
+                //     }
+                // })
+                // console.log(originalJSON)
+                return new Response(JSON.stringify(originalJSON));
             } else if (args[0]?.includes?.("/members")) {
                 // console.log("freeeeeze", args[0])
                 // await new Promise(() => setTimeout(() => true, 1000 * 1000))
@@ -17002,20 +17036,6 @@ function makeUsernamesFilterable(usernameLink) {
     // }
 }
 
-function loadExternalVectorStyle() {
-    try {
-        externalFetchRetry({
-            url: "",
-            responseType: "json",
-        }).then(async res => {
-            getWindow().vectorStyle = await res.response
-        })
-    } catch (e) {}
-}
-
-if (isDebug()) {
-    // loadExternalVectorStyle()
-}
 function getScrollbarWidth() {
     const outer = document.createElement("div")
     outer.style.visibility = "hidden"
@@ -21795,7 +21815,7 @@ function zoomToCurrentObject(e) {
                             currentNodesList.forEach(coords => {
                                 nodesBag.push({
                                     lat: coords[0],
-                                    lon: coords[1]
+                                    lon: coords[1],
                                 })
                             })
                         } catch (e) {
@@ -22631,7 +22651,7 @@ function setupNavigationViaHotkeys() {
                     document
                         .querySelector('.user-menu [href^="/user/"]')
                         ?.getAttribute("href")
-                        ?.match(/\/user\/(.*)$/)?.[1] ?? ""
+                        ?.match(/\/user\/(.*)$/)?.[1] ?? "",
                 )
                 if (currentUser) {
                     message += currentUser.match(/^[a-zA-Z0-9_]+$/) ? `\n\tnode(user:${currentUser})` : `\n\tnode(user:"${currentUser}")`
@@ -22671,19 +22691,45 @@ End with ! for global search
                 document.querySelector("#edit_tab button").click()
             }
         } else if (e.code === "KeyV") {
-            const layers = `; ${document.cookie}`.split(`; _osm_location=`).pop().split(";").shift().split("|").at(-1)
-            const currentLayersIsVector = layers.includes("S") || layers.includes("V")
-            const hashParams = new URLSearchParams(location.hash)
-            if (currentLayersIsVector) {
-                if (layers.includes("S")) {
-                    hashParams.set("layers", (hashParams.get("layers") ?? "").replace("S", "").replace("V", "") + "M")
-                } else {
-                    hashParams.set("layers", (hashParams.get("layers") ?? "").replace("V", "") + "S")
+            if (e.shiftKey) {
+                if (!document.querySelector("#map canvas")) {
+                    Array.from(document.querySelectorAll(".layers-ui .base-layers label")).at(-2).click()
                 }
+                setTimeout(async () => {
+                    vectorLayerUrl = prompt(
+                        `Enter URL with style.json for maplibre.js. Examples:
+
+https://map.atownsend.org.uk/vector/style_svwd03.json
+
+https://vector.openstreetmap.org/styles/shortbread/colorful.json
+
+https://vector.openstreetmap.org/styles/shortbread/eclipse.json
+`,
+                        lastVectorLayerUrl ?? "",
+                    )
+                    if (vectorLayerUrl) {
+                        lastVectorLayerUrl = vectorLayerUrl
+                        void GM.setValue("lastVectorLayerUrl", lastVectorLayerUrl)
+                        getWindow().customLayer = new URL(vectorLayerUrl).origin
+                        await loadExternalVectorStyle(vectorLayerUrl)
+                        findVectorMap().setStyle(vectorLayerUrl)
+                    }
+                })
             } else {
-                hashParams.set("layers", (hashParams.get("layers") ?? "") + "V")
+                const layers = `; ${document.cookie}`.split(`; _osm_location=`).pop().split(";").shift().split("|").at(-1)
+                const currentLayersIsVector = layers.includes("S") || layers.includes("V")
+                const hashParams = new URLSearchParams(location.hash)
+                if (currentLayersIsVector) {
+                    if (layers.includes("S")) {
+                        hashParams.set("layers", (hashParams.get("layers") ?? "").replace("S", "").replace("V", "") + "M")
+                    } else {
+                        hashParams.set("layers", (hashParams.get("layers") ?? "").replace("V", "") + "S")
+                    }
+                } else {
+                    hashParams.set("layers", (hashParams.get("layers") ?? "") + "V")
+                }
+                location.hash = hashParams.toString()
             }
-            location.hash = hashParams.toString()
         } else {
             // console.log(e.key, e.code)
         }

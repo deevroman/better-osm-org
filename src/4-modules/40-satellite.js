@@ -221,26 +221,38 @@ function makeOSMGPSURL(x, y, z) {
     return OSMGPSPrefix + z + "/" + x + "/" + y + ".png"
 }
 
+async function loadExternalVectorStyle(url) {
+    try {
+        const res = await externalFetchRetry({
+            url: url,
+            responseType: "json",
+        })
+        console.debug((getWindow().vectorStyle = await res.response))
+    } catch (e) {}
+}
+
 let vectorLayerOverlayUrl = null
 let lastVectorLayerOverlayUrl = null
-
 GM.getValue("lastVectorLayerOverlayUrl").then(res => (lastVectorLayerOverlayUrl = res))
+
+let vectorLayerUrl = null
+let lastVectorLayerUrl = null
+GM.getValue("lastVectorLayerUrl").then(res => (lastVectorLayerUrl = res))
+
+function findVectorMap() {
+    for (const i of getWindow().mapGL) {
+        if (i && i.getMaplibreMap?.()) {
+            return i.getMaplibreMap()
+        }
+    }
+}
 
 function vectorSwitch() {
     const enabledLayers = new URLSearchParams(location.hash).get("layers")
     if (!enabledLayers.includes("S") && !enabledLayers.includes("V") && !document.querySelector("#map canvas")) {
         return
     }
-    let vectorMap
-    for (const i of getWindow().mapGL) {
-        if (i && i.getMaplibreMap?.()) {
-            vectorMap = i.getMaplibreMap()
-            break
-        }
-    }
-    if (!vectorMap) {
-        return
-    }
+    const vectorMap = findVectorMap()
     if (currentTilesMode === SAT_MODE) {
         // vectorMap.addSource("satellite", {
         //     type: "raster",
@@ -281,17 +293,22 @@ https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/
             }
         }
         function addLayer() {
-            vectorMap.addSource("satellite", intoPage({
-                type: "raster",
-                tiles: [vectorLayerOverlayUrl],
-                tileSize: 256,
-                attribution: "geoportal.dgu.hr",
-            }))
-            vectorMap.addLayer(intoPage({
-                id: "satellite-layer",
-                type: "raster",
-                source: "satellite",
-            }))
+            vectorMap.addSource(
+                "satellite",
+                intoPage({
+                    type: "raster",
+                    tiles: [vectorLayerOverlayUrl],
+                    tileSize: 256,
+                    attribution: "geoportal.dgu.hr",
+                }),
+            )
+            vectorMap.addLayer(
+                intoPage({
+                    id: "satellite-layer",
+                    type: "raster",
+                    source: "satellite",
+                }),
+            )
         }
 
         try {
@@ -668,7 +685,7 @@ function addSwitchTilesButtonsOnPane() {
     if (document.querySelector(".turn-on-satellite-from-pane")) {
         return
     }
-    const layers = Array.from(document.querySelectorAll(".layers-ui label span"))
+    const layers = Array.from(document.querySelectorAll(".layers-ui .base-layers label span"))
     const mapnikBtn = layers[0]
     if (mapnikBtn) {
         const btnOnPane = createSwitchTilesBtn()

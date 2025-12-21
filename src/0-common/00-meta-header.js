@@ -145,6 +145,7 @@
 // @connect      services.arcgisonline.com
 // @connect      clarity.maptiles.arcgis.com
 // @connect      wayback.maptiles.arcgis.com
+// @connect      map.atownsend.org.uk
 // @comment      * for custom layers. ViolentMonkey ignores @connect by default,
 // @comment      Tampermonkey will show a warning before connecting to a host that is not listed above
 // @connect      *
