@@ -359,7 +359,7 @@ function makeLinksInVersionTagsClickable() {
                 }
             }
         } else if (["building", "building:part"].includes(key) || (key === "type" && valueCell.textContent === "building")) {
-            if (document.querySelector(".view-3d-link")) {
+            if (location.pathname.includes("/history") || document.querySelector(".view-3d-link")) {
                 return
             }
             const m = location.pathname.match(/\/(way|relation)\/(\d+)/)
