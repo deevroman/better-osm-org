@@ -226,6 +226,10 @@ async function loadExternalVectorStyle(url) {
         const res = await externalFetchRetry({
             url: url,
             responseType: "json",
+            headers: {
+                Origin: "https://www.openstreetmap.org",
+                Referer: "https://www.openstreetmap.org/",
+            },
         })
         console.debug((getWindow().vectorStyle = await res.response))
     } catch (e) {}
