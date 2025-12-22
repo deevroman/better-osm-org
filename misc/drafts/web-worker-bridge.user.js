@@ -71,7 +71,7 @@ injectJSIntoPage(`
     window.Blob = function Blob(parts = [], options = {}) {
         if (parts?.[0]?.startsWith?.("var sharedModule = {};")) {
             console.log('Blob created:', parts, options);
-            window.maplibre_worker_source_code = parts[0]
+            window.maplibreWorkerSourceCode = parts[0]
             window.Blob = OriginalBlob
         }
         return new OriginalBlob(parts, options);
