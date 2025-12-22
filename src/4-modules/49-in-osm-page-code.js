@@ -4,8 +4,12 @@ window.addEventListener("message", async e => {
     if (e.data.type !== "bypass_csp") {
         return
     }
+    const opt = {}
+    if (e.data.url.startsWith("https://tiles.openrailwaymap.org")) {
+        opt.headers = { Referer: "https://www.openrailwaymap.org/" }
+    }
     // fuck TM, need imitate Response
-    const res = await fetchBlobWithCache(e.data.url)
+    const res = await fetchBlobWithCache(e.data.url, opt)
     window.postMessage(
         {
             type: "bypass_csp_response",
