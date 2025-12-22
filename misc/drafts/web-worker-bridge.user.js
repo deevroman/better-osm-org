@@ -34,6 +34,7 @@ window.addEventListener("message", async (e) => {
       if (e.data.type !== "bypass_csp") {
         return;
       }
+      // console.log(e.data)
       const res = await GM.xmlHttpRequest({
         url: e.data.url,
         responseType: "blob",

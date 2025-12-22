@@ -6700,6 +6700,10 @@ async function loadExternalVectorStyle(url) {
         const res = await externalFetchRetry({
             url: url,
             responseType: "json",
+            headers: {
+                Origin: "https://www.openstreetmap.org",
+                Referer: "https://www.openstreetmap.org/",
+            },
         })
         console.debug((getWindow().vectorStyle = await res.response))
     } catch (e) {}
@@ -15967,6 +15971,7 @@ window.addEventListener("message", async e => {
     if (e.data.type !== "bypass_csp") {
         return
     }
+    // console.log(e.data)
     const opt = {}
     if (e.data.url.startsWith("https://tiles.openrailwaymap.org")) {
         opt.headers = { Referer: "https://www.openrailwaymap.org/" }
@@ -16208,7 +16213,7 @@ if (isOsmServer()) {
                     status: res.status,
                     statusText: res.statusText,
                 });
-            } else if (window.customVectorLayer && args?.[0]?.url?.startsWith?.(window.customVectorLayer)) {
+            } else if (window.customVectorLayer && (window.customVectorLayer.startsWith("http://localhost") || args?.[0]?.url?.startsWith?.(window.customVectorLayer))) {
                 const resourceUrl = args?.[0]?.url
                 console.log(window.customVectorLayer, resourceUrl)
                 const resultCallback = new Promise((resolve, reject) => {
