@@ -6591,6 +6591,11 @@ async function bypassChromeCSPForImagesSrc(imgElem, url, isStrava = true) {
 
 let blankSuffix = ""
 let lastEsriZoom = 0
+let lastEsriDate = ""
+
+function updateShotEsriDateNeeded() {
+    return lastEsriZoom !== parseInt(getCurrentXYZ()[2]) && SatellitePrefix === ESRIPrefix && isDebug()
+}
 
 function addEsriDate() {
     console.debug("Updating imagery date")
@@ -6611,7 +6616,11 @@ function addEsriDate() {
         if (result && result.SRC_DATE2) {
             const date = new Date(result.SRC_DATE2)
             const strDate = `${date.getUTCFullYear()}-${(date.getUTCMonth() + 1).toString().padStart(2, "0")}-${date.getUTCDate().toString().padStart(2, "0")}`
+            lastEsriDate = strDate
             getMap()?.attributionControl?.setPrefix(strDate + " ESRI")
+        } else if (result && !result.SRC_DATE2) {
+            lastEsriDate = ""
+            getMap()?.attributionControl?.setPrefix("ESRI")
         }
     })
 }
@@ -6727,7 +6736,7 @@ function findVectorMap() {
 
 function vectorSwitch() {
     const enabledLayers = new URLSearchParams(location.hash).get("layers")
-    if (!enabledLayers.includes("S") && !enabledLayers.includes("V") && !document.querySelector("#map canvas")) {
+    if (enabledLayers && !enabledLayers.includes("S") && !enabledLayers.includes("V") && !document.querySelector("#map canvas")) {
         return
     }
     const vectorMap = findVectorMap()
@@ -6806,7 +6815,29 @@ https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/
     }
 }
 
+let moveAndZoomForEsriDateObserverEnabled = false
+
+function addEsriShotDateCollector() {
+    if (moveAndZoomForEsriDateObserverEnabled) {
+        return
+    }
+    moveAndZoomForEsriDateObserverEnabled = true
+    try {
+        getMap().on(
+            "moveend zoomend",
+            intoPageWithFun(function () {
+                if (updateShotEsriDateNeeded()) {
+                    addEsriDate()
+                }
+            }),
+        )
+    } catch (e) {
+        console.error(e)
+    }
+}
+
 function switchTiles() {
+    addEsriShotDateCollector()
     if (tilesObserver) {
         tilesObserver?.disconnect()
     }
@@ -6903,12 +6934,12 @@ function switchTiles() {
                         )
                     }
                     setTimeout(() => {
-                        if (lastEsriZoom !== parseInt(getCurrentXYZ()[2]) && SatellitePrefix === ESRIPrefix && isDebug()) {
+                        if (updateShotEsriDateNeeded()) {
                             addEsriDate()
                         }
                     })
                 } else {
-                    const xyz = parseESRITileURL(!needBypassSatellite ? node.src : node.getAttribute("real-url"))
+                    const xyz = parseESRITileURL(!needBypassSatellite ? node.src : node.getAttribute("real-url") ?? "")
                     if (!xyz) return
                     node.src = makeBaseLayerURL(xyz.x, xyz.y, xyz.z)
                     if (node.complete) {
