@@ -85,7 +85,7 @@ injectJSIntoPage(`
             "self.fetch = async (...args) => {" +
             "   const url = args[0].url;" +
             "   const resultCallback = new Promise((resolve, reject) => {" +
-            "       console.log('fetch in worker', args);" +
+            "       console.log('fetch in worker', url);" +
             "       self.addEventListener('message', (e) => {" +
             "           if (e.data.type !== 'bypass_csp_response') { return; } " +
             "           if (e.data.url !== url) { return; }" +
