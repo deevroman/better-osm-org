@@ -262,7 +262,7 @@ function findVectorMap() {
 
 function vectorSwitch() {
     const enabledLayers = new URLSearchParams(location.hash).get("layers")
-    if (enabledLayers && !enabledLayers.includes("S") && !enabledLayers.includes("V") && !document.querySelector("#map canvas")) {
+    if (!enabledLayers || !enabledLayers.includes("S") && !enabledLayers.includes("V") && !document.querySelector("#map canvas")) {
         return
     }
     const vectorMap = findVectorMap()
