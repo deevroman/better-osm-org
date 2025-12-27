@@ -1500,7 +1500,7 @@ function injectJSIntoPage(text) {
  * @param {string} text
  */
 function injectCSSIntoOSMPage(text) {
-    if (GM_info.scriptHandler === "FireMonkey" || GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Greasemonkey" || isSafari) {
+    if ((GM_info.scriptHandler === "FireMonkey" && parseFloat(GM_info.version) < 3.0) || GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Greasemonkey" || isSafari) {
         const styleElem = document.querySelector("style")
         if (!styleElem) {
             console.trace("<style> elem not found. Try wait this elem")
