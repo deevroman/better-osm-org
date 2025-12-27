@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.4.9
+// @version         1.4.9.1
 // @changelog       v1.4.8: Highlight changesets with review_requested=yes
 // @changelog       v1.4.6: Copy coordinates button in map context menu, copy coordinates button for relations
 // @changelog       v1.4.0: More links in Edit menu, the ability to add custom links (like OSM Smart Menu)
@@ -142,8 +142,14 @@
 // @connect      amazonaws.com
 // @comment      for satellite images
 // @connect      server.arcgisonline.com
+// @connect      services.arcgisonline.com
 // @connect      clarity.maptiles.arcgis.com
 // @connect      wayback.maptiles.arcgis.com
+// @connect      map.atownsend.org.uk
+// @connect      tiles.openfreemap.org
+// @comment      * for custom layers. ViolentMonkey ignores @connect by default,
+// @comment      Tampermonkey will show a warning before connecting to a host that is not listed above
+// @connect      *
 // @connect      geoscribble.osmz.ru
 // @connect      geoportal.dgu.hr
 // @comment      geocoder

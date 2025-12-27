@@ -113,6 +113,7 @@ const fetchBlobWithCache = (() => {
         const promise = externalFetchRetry({
             url: url,
             responseType: "blob",
+            headers: options.headers ?? {},
         })
         cache.set(url, promise)
 

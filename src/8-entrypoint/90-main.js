@@ -34,7 +34,11 @@ function main() {
         ).observe(document, { subtree: true, childList: true })
         return
     }
-    if (isOsmServer()) {
+    if (isOHMServer()) {
+        if (isDebug()) {
+            setupOSMWebsite()
+        }
+    } else if (isOsmServer()) {
         setupOSMWebsite()
     }
     if (location.origin === "https://wiki.openstreetmap.org") {

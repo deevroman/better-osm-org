@@ -513,20 +513,6 @@ function makeUsernamesFilterable(usernameLink) {
     // }
 }
 
-function loadExternalVectorStyle() {
-    try {
-        externalFetchRetry({
-            url: "",
-            responseType: "json",
-        }).then(async res => {
-            getWindow().vectorStyle = await res.response
-        })
-    } catch (e) {}
-}
-
-if (isDebug()) {
-    // loadExternalVectorStyle()
-}
 function getScrollbarWidth() {
     const outer = document.createElement("div")
     outer.style.visibility = "hidden"

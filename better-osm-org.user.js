@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.4.9
+// @version         1.4.9.1
 // @changelog       v1.4.8: Highlight changesets with review_requested=yes
 // @changelog       v1.4.6: Copy coordinates button in map context menu, copy coordinates button for relations
 // @changelog       v1.4.0: More links in Edit menu, the ability to add custom links (like OSM Smart Menu)
@@ -141,8 +141,14 @@
 // @connect      amazonaws.com
 // @comment      for satellite images
 // @connect      server.arcgisonline.com
+// @connect      services.arcgisonline.com
 // @connect      clarity.maptiles.arcgis.com
 // @connect      wayback.maptiles.arcgis.com
+// @connect      map.atownsend.org.uk
+// @connect      tiles.openfreemap.org
+// @comment      * for custom layers. ViolentMonkey ignores @connect by default,
+// @comment      Tampermonkey will show a warning before connecting to a host that is not listed above
+// @connect      *
 // @connect      geoscribble.osmz.ru
 // @connect      geoportal.dgu.hr
 // @comment      geocoder
@@ -333,7 +339,7 @@ function isOHMServer() {
 }
 
 function isOsmServer() {
-    return !!osm_server && (isOHMServer() ? isDebug() : true)
+    return !!osm_server
 }
 
 const planetOrigin = "https://planet.maps.mail.ru"
@@ -577,7 +583,9 @@ function intoPageWithFun(obj) {
     return cloneInto(obj, getWindow(), { cloneFunctions: true })
 }
 
-let _isDebug = document.querySelector("head")?.getAttribute("data-user") === "11528195" || osm_server === local_server || osm_server === dev_server
+const dataUser = document.querySelector("head")?.getAttribute("data-user")
+// TrickyFoxy on osm.org and OHM
+let _isDebug = dataUser === "11528195" || dataUser === "15560" || osm_server === local_server || osm_server === dev_server
 
 function isDebug() {
     return _isDebug
@@ -594,7 +602,21 @@ function debug_alert() {
 
 //</editor-fold>
 
-if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id-embed")) {
+function printScriptDebugInfo() {
+    console.log(`Script version: ${GM_info.script.version}`)
+    console.debug(
+        "Settings:",
+        Object.entries(GM_config.fields).map(i => {
+            if (typeof i[1].value === "boolean" || typeof i[1].value === "number") {
+                return [i[0], i[1].value]
+            } else {
+                return [i[0], `length: ${i[1].value.length}`]
+            }
+        })
+    )
+}
+
+function injectMapHooks() {
     function mapHook() {
         console.log("start map intercepting")
         if (boWindowObject.L && boWindowObject.L.Map) {
@@ -615,12 +637,12 @@ if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id
             boWindowObject.L.OSM.MaplibreGL.addInitHook(
                 exportFunction(function () {
                     // if (this._container?.id === "map") {
-                        if (!boGlobalThis.mapGL) {
-                            boGlobalThis.mapGL = intoPage([])
-                        }
-                        boGlobalThis.mapGL.push(this)
-                        boGlobalThis.mapGLIntercepted = true
-                        console.log("%cMapGL intercepted", "background: #000; color: #0f0")
+                    if (!boGlobalThis.mapGL) {
+                        boGlobalThis.mapGL = intoPage([])
+                    }
+                    boGlobalThis.mapGL.push(this)
+                    boGlobalThis.mapGLIntercepted = true
+                    console.log("%cMapGL intercepted", "background: #000; color: #0f0")
                     // }
                 }, boWindowObject),
             )
@@ -647,25 +669,15 @@ if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id
 
         getMap = () => boWindowObject.map
     }
+}
 
+if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id-embed")) {
+    injectMapHooks()
     // try {
     //     interceptRectangle()
     // } catch (e) {
     // }
-
-    setTimeout(() => {
-        console.log(`Script version: ${GM_info.script.version}`)
-        console.debug(
-            "Settings:",
-            Object.entries(GM_config.fields).map(i => {
-                if (typeof i[1].value === "boolean" || typeof i[1].value === "number") {
-                    return [i[0], i[1].value]
-                } else {
-                    return [i[0], `length: ${i[1].value.length}`]
-                }
-            }),
-        )
-    }, 1500)
+    setTimeout(printScriptDebugInfo, 1500)
 } else if (isOsmServer() && ["/edit", "/id"].includes(location.pathname)) {
     if (isDarkMode()) {
         if (location.pathname === "/edit") {
@@ -1488,7 +1500,7 @@ function injectJSIntoPage(text) {
  * @param {string} text
  */
 function injectCSSIntoOSMPage(text) {
-    if (GM_info.scriptHandler === "FireMonkey" || GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Greasemonkey" || isSafari) {
+    if ((GM_info.scriptHandler === "FireMonkey" && parseFloat(GM_info.version) < 3.0) || GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Greasemonkey" || isSafari) {
         const styleElem = document.querySelector("style")
         if (!styleElem) {
             console.trace("<style> elem not found. Try wait this elem")
@@ -1725,6 +1737,7 @@ const fetchBlobWithCache = (() => {
         const promise = externalFetchRetry({
             url: url,
             responseType: "blob",
+            headers: options.headers ?? {},
         })
         cache.set(url, promise)
 
@@ -4380,6 +4393,7 @@ function setupCompactChangesetsHistory() {
                     })
 
                     commentsBadge.firstElementChild.style.cursor = "pointer"
+                    commentsBadge.firstElementChild.style.overflow = "visible"
 
                     let state = commentsCount === 1 ? "" : "none"
                     commentsBadge.firstElementChild.onclick = () => {
@@ -6577,6 +6591,11 @@ async function bypassChromeCSPForImagesSrc(imgElem, url, isStrava = true) {
 
 let blankSuffix = ""
 let lastEsriZoom = 0
+let lastEsriDate = ""
+
+function updateShotEsriDateNeeded() {
+    return lastEsriZoom !== parseInt(getCurrentXYZ()[2]) && SatellitePrefix === ESRIPrefix && isDebug()
+}
 
 function addEsriDate() {
     console.debug("Updating imagery date")
@@ -6597,12 +6616,19 @@ function addEsriDate() {
         if (result && result.SRC_DATE2) {
             const date = new Date(result.SRC_DATE2)
             const strDate = `${date.getUTCFullYear()}-${(date.getUTCMonth() + 1).toString().padStart(2, "0")}-${date.getUTCDate().toString().padStart(2, "0")}`
+            lastEsriDate = strDate
             getMap()?.attributionControl?.setPrefix(strDate + " ESRI")
+        } else if (result && !result.SRC_DATE2) {
+            lastEsriDate = ""
+            getMap()?.attributionControl?.setPrefix("ESRI")
         }
     })
 }
 
 function addEsriPrefix() {
+    if (document.querySelector("#map canvas")) {
+        return
+    }
     if (SatellitePrefix === ESRIBetaPrefix) {
         getMap()?.attributionControl?.setPrefix("ESRI Beta")
     } else {
@@ -6678,26 +6704,42 @@ function makeOSMGPSURL(x, y, z) {
     return OSMGPSPrefix + z + "/" + x + "/" + y + ".png"
 }
 
+async function loadExternalVectorStyle(url) {
+    try {
+        const res = await externalFetchRetry({
+            url: url,
+            responseType: "json",
+            headers: {
+                Origin: "https://www.openstreetmap.org",
+                Referer: "https://www.openstreetmap.org/",
+            },
+        })
+        console.debug((getWindow().vectorStyle = await res.response))
+    } catch (e) {}
+}
+
 let vectorLayerOverlayUrl = null
 let lastVectorLayerOverlayUrl = null
-
 GM.getValue("lastVectorLayerOverlayUrl").then(res => (lastVectorLayerOverlayUrl = res))
+
+let vectorLayerUrl = null
+let lastVectorLayerUrl = null
+GM.getValue("lastVectorLayerUrl").then(res => (lastVectorLayerUrl = res))
+
+function findVectorMap() {
+    for (const i of getWindow().mapGL) {
+        if (i && i.getMaplibreMap?.()) {
+            return i.getMaplibreMap()
+        }
+    }
+}
 
 function vectorSwitch() {
     const enabledLayers = new URLSearchParams(location.hash).get("layers")
-    if (!enabledLayers.includes("S") && !enabledLayers.includes("V") && !document.querySelector("#map canvas")) {
+    if (!enabledLayers || !enabledLayers.includes("S") && !enabledLayers.includes("V") && !document.querySelector("#map canvas")) {
         return
     }
-    let vectorMap
-    for (const i of getWindow().mapGL) {
-        if (i && i.getMaplibreMap?.()) {
-            vectorMap = i.getMaplibreMap()
-            break
-        }
-    }
-    if (!vectorMap) {
-        return
-    }
+    const vectorMap = findVectorMap()
     if (currentTilesMode === SAT_MODE) {
         // vectorMap.addSource("satellite", {
         //     type: "raster",
@@ -6723,36 +6765,79 @@ function vectorSwitch() {
             vectorLayerOverlayUrl = prompt(
                 `Enter tile URL template for maplibre.js. Examples:
 
-https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}
-                
-https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.3.0&SERVICE=WMS&REQUEST=GetMap&LAYERS=OI.OrthoimageCoverage&STYLES=&CRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}
-`,
+https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}` +
+                    (!isMobile
+                        ? `
+
+https://geoscribble.osmz.ru/wms?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.1.1&SERVICE=WMS&REQUEST=GetMap&LAYERS=scribbles&STYLES=&SRS=EPSG:3857&WIDTH=512&HEIGHT=512&BBOX={bbox-epsg-3857}
+
+https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.3.0&SERVICE=WMS&REQUEST=GetMap&LAYERS=OI.OrthoimageCoverage&STYLES=&CRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}`
+                        : ""),
                 lastVectorLayerOverlayUrl ?? "",
             )
             if (vectorLayerOverlayUrl) {
                 lastVectorLayerOverlayUrl = vectorLayerOverlayUrl
                 void GM.setValue("lastVectorLayerOverlayUrl", lastVectorLayerOverlayUrl)
                 getWindow().customLayer = new URL(vectorLayerOverlayUrl).origin
+            } else {
+                return
             }
         }
-        vectorMap.addSource("satellite", {
-            type: "raster",
-            tiles: [vectorLayerOverlayUrl],
-            tileSize: 256,
-            attribution: "geoportal.dgu.hr",
-        })
-        vectorMap.addLayer({
-            id: "satellite-layer",
-            type: "raster",
-            source: "satellite",
-        })
+        function addLayer() {
+            vectorMap.addSource(
+                "satellite",
+                intoPage({
+                    type: "raster",
+                    tiles: [vectorLayerOverlayUrl],
+                    tileSize: 256,
+                    attribution: "geoportal.dgu.hr",
+                }),
+            )
+            vectorMap.addLayer(
+                intoPage({
+                    id: "satellite-layer",
+                    type: "raster",
+                    source: "satellite",
+                }),
+            )
+        }
+
+        try {
+            addLayer()
+        } catch (e) {
+            console.error(e)
+            // dirty hack for wait styles downloading
+            setTimeout(addLayer, 1000)
+        }
     } else {
         vectorMap.removeLayer("satellite-layer")
         vectorMap.removeSource("satellite")
     }
 }
 
+let moveAndZoomForEsriDateObserverEnabled = false
+
+function addEsriShotDateCollector() {
+    if (moveAndZoomForEsriDateObserverEnabled) {
+        return
+    }
+    moveAndZoomForEsriDateObserverEnabled = true
+    try {
+        getMap().on(
+            "moveend zoomend",
+            intoPageWithFun(function () {
+                if (updateShotEsriDateNeeded()) {
+                    addEsriDate()
+                }
+            }),
+        )
+    } catch (e) {
+        console.error(e)
+    }
+}
+
 function switchTiles() {
+    addEsriShotDateCollector()
     if (tilesObserver) {
         tilesObserver?.disconnect()
     }
@@ -6849,12 +6934,12 @@ function switchTiles() {
                         )
                     }
                     setTimeout(() => {
-                        if (lastEsriZoom !== parseInt(getCurrentXYZ()[2]) && SatellitePrefix === ESRIPrefix && isDebug()) {
+                        if (updateShotEsriDateNeeded()) {
                             addEsriDate()
                         }
                     })
                 } else {
-                    const xyz = parseESRITileURL(!needBypassSatellite ? node.src : node.getAttribute("real-url"))
+                    const xyz = parseESRITileURL(!needBypassSatellite ? node.src : node.getAttribute("real-url") ?? "")
                     if (!xyz) return
                     node.src = makeBaseLayerURL(xyz.x, xyz.y, xyz.z)
                     if (node.complete) {
@@ -6875,6 +6960,12 @@ function switchTiles() {
     tilesObserver = observer
     observer.observe(document.body, { childList: true, subtree: true })
     vectorSwitch()
+}
+
+function switchTilesAndButtons() {
+    switchTiles()
+    document.querySelectorAll(".turn-on-satellite").forEach(btn => (btn.textContent = invertTilesMode(currentTilesMode)))
+    document.querySelectorAll(".turn-on-satellite-from-pane").forEach(btn => (btn.textContent = invertTilesMode(currentTilesMode)))
 }
 
 let osmTilesObserver = undefined
@@ -7052,50 +7143,15 @@ function switchOverlayTiles() {
 }
 
 if (isOsmServer() && new URLSearchParams(location.search).has("sat-tiles")) {
-    switchTiles()
-    if (document.querySelector(".turn-on-satellite")) {
-        document.querySelector(".turn-on-satellite").textContent = invertTilesMode(currentTilesMode)
-    }
-    if (document.querySelector(".turn-on-satellite-from-pane")) {
-        document.querySelector(".turn-on-satellite-from-pane").textContent = invertTilesMode(currentTilesMode)
-    }
+    switchTilesAndButtons()
 }
 
-function addSatelliteLayers() {
-    const btnOnPane = document.createElement("span")
-    const btnOnNotePage = document.createElement("span")
-    if (!document.querySelector(".turn-on-satellite-from-pane")) {
-        const mapnikBtn = document.querySelector(".layers-ui label span")
-        if (mapnikBtn) {
-            if (!tilesObserver) {
-                btnOnPane.textContent = "🛰"
-            } else {
-                btnOnPane.textContent = invertTilesMode(currentTilesMode)
-            }
-            btnOnPane.style.cursor = "pointer"
-            btnOnPane.classList.add("turn-on-satellite-from-pane")
-            btnOnPane.title = "Switch between map and satellite images (S key)\nPress (Shift+S) for ESRI beta"
-            mapnikBtn.appendChild(document.createTextNode("\xA0"))
-            mapnikBtn.appendChild(btnOnPane)
-
-            btnOnPane.onclick = e => {
-                e.stopImmediatePropagation()
-                enableOverzoom()
-                if (e.shiftKey) {
-                    switchESRIbeta()
-                    return
-                }
-                switchTiles()
-                btnOnNotePage.textContent = invertTilesMode(currentTilesMode)
-                btnOnPane.textContent = invertTilesMode(currentTilesMode)
-            }
-        }
-    }
-    if (!location.pathname.includes("/note")) return
+function addSwitchTilesBtnOnNotePage() {
     if (document.querySelector(".turn-on-satellite")) return true
     if (!document.querySelector("#sidebar_content h4")) {
         return
     }
+    const btnOnNotePage = document.createElement("span")
     if (!tilesObserver) {
         btnOnNotePage.textContent = "🛰"
     } else {
@@ -7110,9 +7166,57 @@ function addSatelliteLayers() {
 
     btnOnNotePage.onclick = () => {
         enableOverzoom()
-        switchTiles()
-        btnOnNotePage.textContent = invertTilesMode(currentTilesMode)
+        switchTilesAndButtons()
+    }
+}
+
+function createSwitchTilesBtn() {
+    const btnOnPane = document.createElement("span")
+    if (!tilesObserver) {
+        btnOnPane.textContent = "🛰"
+    } else {
         btnOnPane.textContent = invertTilesMode(currentTilesMode)
+    }
+    btnOnPane.style.cursor = "pointer"
+    btnOnPane.classList.add("turn-on-satellite-from-pane")
+    btnOnPane.title = "Switch between map and satellite images (S key)\nPress (Shift+S) for ESRI beta"
+    btnOnPane.onclick = e => {
+        e.stopImmediatePropagation()
+        enableOverzoom()
+        if (e.shiftKey) {
+            switchESRIbeta()
+            return
+        }
+        setTimeout(() => {
+            switchTilesAndButtons()
+        })
+    }
+    return btnOnPane
+}
+
+function addSwitchTilesButtonsOnPane() {
+    if (document.querySelector(".turn-on-satellite-from-pane")) {
+        return
+    }
+    const layers = Array.from(document.querySelectorAll(".layers-ui .base-layers label span"))
+    const mapnikBtn = layers[0]
+    if (mapnikBtn) {
+        const btnOnPane = createSwitchTilesBtn()
+        mapnikBtn.appendChild(document.createTextNode("\xA0"))
+        mapnikBtn.appendChild(btnOnPane)
+    }
+    const omtBtn = layers.at(-1)
+    if (omtBtn) {
+        const btnOnPane = createSwitchTilesBtn()
+        omtBtn.appendChild(document.createTextNode("\xA0"))
+        omtBtn.appendChild(btnOnPane)
+    }
+}
+
+function addSatelliteLayers() {
+    addSwitchTilesButtonsOnPane()
+    if (location.pathname.includes("/note")) {
+        addSwitchTilesBtnOnNotePage()
     }
 }
 
@@ -7488,7 +7592,7 @@ function makeLinksInVersionTagsClickable() {
                 }
             }
         } else if (["building", "building:part"].includes(key) || (key === "type" && valueCell.textContent === "building")) {
-            if (document.querySelector(".view-3d-link")) {
+            if (location.pathname.includes("/history") || document.querySelector(".view-3d-link")) {
                 return
             }
             const m = location.pathname.match(/\/(way|relation)\/(\d+)/)
@@ -15897,14 +16001,25 @@ function setupMakeVersionPageBetter() {
 //<editor-fold desc="in-osm-page-code" defaultstate="collapsed">
 window.addEventListener("message", async e => {
     if (e.origin !== location.origin) return
-    if (e.data.type !== "bypass_tiles_csp") {
+    if (e.data.type !== "bypass_csp") {
         return
     }
+    // console.log(e.data)
+    const opt = {}
+    if (e.data.url.startsWith("https://tiles.openrailwaymap.org")) {
+        opt.headers = { Referer: "https://www.openrailwaymap.org/" }
+    }
+    // fuck TM, need imitate Response
+    const res = await fetchBlobWithCache(e.data.url, opt)
     window.postMessage(
         {
-            type: "tile_data",
+            type: "bypass_csp_response",
             url: e.data.url,
-            data: await fetchBlobWithCache(e.data.url),
+            data: {
+                status: res.status,
+                statusText: res.statusText,
+                response: res.response,
+            },
         },
         e.origin,
     )
@@ -15912,6 +16027,15 @@ window.addEventListener("message", async e => {
 
 if (isOsmServer()) {
     injectJSIntoPage(`
+    // const OriginalWorker = window.Worker
+    //
+    // window.Worker = function (url, options) {
+    //     const proxyUrl = URL.createObjectURL(
+    //         new Blob(["self.fetch = (...args) => {console.log('fetch in worker', args);return fetch(...args);};importScripts(" + JSON.stringify(url) + ");"], { type: "application/javascript" }),
+    //     )
+    //     return new OriginalWorker(proxyUrl, options)
+    // }
+        
     const originalFetch = window.fetch;
 
     window.fetchIntercepterScriptInited = true;
@@ -15925,8 +16049,9 @@ if (isOsmServer()) {
     window.notesClosedFilter = "";
     window.notesCommentsFilter = "";
     window.notesIDsFilter = new Set();
-    
+
     window.customLayer = null
+    window.customVectorLayer = null
 
     // const cache = new Map();
 
@@ -16097,7 +16222,7 @@ if (isOsmServer()) {
                     });
                 }
             } else if (window.mapGLIntercepted && (
-                args?.[0]?.url?.startsWith?.("https://server.arcgisonline.com/") 
+                args?.[0]?.url?.startsWith?.("https://server.arcgisonline.com/")
                 || args?.[0]?.url?.startsWith?.("https://geoscribble.osmz.ru/")
                 || args?.[0]?.url?.startsWith?.("https://geoportal.dgu.hr/")
                 || window.customLayer && args?.[0]?.url?.startsWith?.(window.customLayer)
@@ -16106,7 +16231,7 @@ if (isOsmServer()) {
                 const resultCallback = new Promise((resolve, reject) => {
                     window.addEventListener("message", e => {
                         if (e.origin !== location.origin) return
-                        if (e.data.type !== "tile_data") {
+                        if (e.data.type !== "bypass_csp_response") {
                             return
                         }
                         if (e.data.url !== tile_url) {
@@ -16115,40 +16240,56 @@ if (isOsmServer()) {
                         resolve(e.data.data)
                     })
                 })
-                window.postMessage({ "type": "bypass_tiles_csp", url: tile_url }, location.origin)
+                window.postMessage({ "type": "bypass_csp", url: tile_url }, location.origin)
                 const res = await resultCallback
                 return new Response(res.response, {
                     status: res.status,
                     statusText: res.statusText,
                 });
-            } else if (args?.[0]?.url === "https://vector.openstreetmap.org/demo/shortbread/colorful.json"
-                || args?.[0]?.url === "https://vector.openstreetmap.org/demo/shortbread/eclipse.json") {
+            } else if (window.customVectorLayer && (window.customVectorLayer.startsWith("http://localhost") || args?.[0]?.url?.startsWith?.(window.customVectorLayer))) {
+                const resourceUrl = args?.[0]?.url
+                console.log(window.customVectorLayer, resourceUrl)
+                const resultCallback = new Promise((resolve, reject) => {
+                    window.addEventListener("message", e => {
+                        if (e.origin !== location.origin) return
+                        if (e.data.type !== "bypass_csp_response") {
+                            return
+                        }
+                        if (e.data.url !== resourceUrl) {
+                            return
+                        }
+                        resolve(e.data.data)
+                    })
+                })
+                window.postMessage({ "type": "bypass_csp", url: resourceUrl }, location.origin)
+                const res = await resultCallback
+                return new Response(res.response, {
+                    status: res.status,
+                    statusText: res.statusText,
+                });
+            } else if (args?.[0]?.url === "https://vector.openstreetmap.org/styles/shortbread/colorful.json"
+                || args?.[0]?.url === "https://vector.openstreetmap.org/styles/shortbread/eclipse.json") {
                 return originalFetch(...args);
                 console.log("vector tiles request", args)
                 if (!window.vectorStyle) {
                     console.log("wait external vector style")
                     await new Promise(r => setTimeout(r, 1000))
                 }
-                // debugger
                 const originalJSON = window.vectorStyle
-                // debugger
+                console.log(originalJSON)
                 // const response = await originalFetch(...args);
                 // const originalJSON = await response.json();
                 // originalJSON.layers[originalJSON.layers.findIndex(i => i.id === "water-river")].paint['line-color'] = "red"
-                originalJSON.layers.forEach(i => {
-                    if (i.paint && i.paint['line-color']) {
-                        i.paint['line-color'] = "red"
-                    }
-                    if (i.paint && i.paint['fill-color']) {
-                        i.paint['fill-color'] = "black"
-                    }
-                })
-                // debugger
-                return new Response(JSON.stringify(originalJSON), {
-                    status: response.status,
-                    statusText: response.statusText,
-                    headers: response.headers
-                });
+                // originalJSON.layers.forEach(i => {
+                //     if (i.paint && i.paint['line-color']) {
+                //         i.paint['line-color'] = "red"
+                //     }
+                //     if (i.paint && i.paint['fill-color']) {
+                //         i.paint['fill-color'] = "black"
+                //     }
+                // })
+                // console.log(originalJSON)
+                return new Response(JSON.stringify(originalJSON));
             } else if (args[0]?.includes?.("/members")) {
                 // console.log("freeeeeze", args[0])
                 // await new Promise(() => setTimeout(() => true, 1000 * 1000))
@@ -16957,20 +17098,6 @@ function makeUsernamesFilterable(usernameLink) {
     // }
 }
 
-function loadExternalVectorStyle() {
-    try {
-        externalFetchRetry({
-            url: "",
-            responseType: "json",
-        }).then(async res => {
-            getWindow().vectorStyle = await res.response
-        })
-    } catch (e) {}
-}
-
-if (isDebug()) {
-    // loadExternalVectorStyle()
-}
 function getScrollbarWidth() {
     const outer = document.createElement("div")
     outer.style.visibility = "hidden"
@@ -21750,7 +21877,7 @@ function zoomToCurrentObject(e) {
                             currentNodesList.forEach(coords => {
                                 nodesBag.push({
                                     lat: coords[0],
-                                    lon: coords[1]
+                                    lon: coords[1],
                                 })
                             })
                         } catch (e) {
@@ -22054,13 +22181,7 @@ function setupNavigationViaHotkeys() {
             } else if (e.altKey) {
                 bypassCaches()
             } else {
-                switchTiles()
-                if (document.querySelector(".turn-on-satellite")) {
-                    document.querySelector(".turn-on-satellite").textContent = invertTilesMode(currentTilesMode)
-                }
-                if (document.querySelector(".turn-on-satellite-from-pane")) {
-                    document.querySelector(".turn-on-satellite-from-pane").textContent = invertTilesMode(currentTilesMode)
-                }
+                switchTilesAndButtons()
             }
         } else if (e.code === "KeyE") {
             if (e.altKey) {
@@ -22592,7 +22713,7 @@ function setupNavigationViaHotkeys() {
                     document
                         .querySelector('.user-menu [href^="/user/"]')
                         ?.getAttribute("href")
-                        ?.match(/\/user\/(.*)$/)?.[1] ?? ""
+                        ?.match(/\/user\/(.*)$/)?.[1] ?? "",
                 )
                 if (currentUser) {
                     message += currentUser.match(/^[a-zA-Z0-9_]+$/) ? `\n\tnode(user:${currentUser})` : `\n\tnode(user:"${currentUser}")`
@@ -22632,19 +22753,51 @@ End with ! for global search
                 document.querySelector("#edit_tab button").click()
             }
         } else if (e.code === "KeyV") {
-            const layers = `; ${document.cookie}`.split(`; _osm_location=`).pop().split(";").shift().split("|").at(-1)
-            const currentLayersIsVector = layers.includes("S") || layers.includes("V")
-            const hashParams = new URLSearchParams(location.hash)
-            if (currentLayersIsVector) {
-                if (layers.includes("S")) {
-                    hashParams.set("layers", (hashParams.get("layers") ?? "").replace("S", "").replace("V", "") + "M")
-                } else {
-                    hashParams.set("layers", (hashParams.get("layers") ?? "").replace("V", "") + "S")
+            if (e.shiftKey) {
+                if (!document.querySelector("#map canvas")) {
+                    Array.from(document.querySelectorAll(".layers-ui .base-layers label")).at(-2).click()
                 }
+                setTimeout(async () => {
+                    vectorLayerUrl = prompt(
+                        `Enter URL with style.json for maplibre.js. Examples:
+
+https://map.atownsend.org.uk/vector/style_svwd03.json
+
+https://vector.openstreetmap.org/styles/shortbread/colorful.json
+
+https://vector.openstreetmap.org/styles/shortbread/eclipse.json
+
+https://vector.openstreetmap.org/styles/shortbread/neutrino.json
+
+https://vector.openstreetmap.org/styles/shortbread/shadow.json
+
+https://vector.openstreetmap.org/styles/shortbread/graybeard.json
+`,
+                        lastVectorLayerUrl ?? "",
+                    )
+                    if (vectorLayerUrl) {
+                        lastVectorLayerUrl = vectorLayerUrl
+                        void GM.setValue("lastVectorLayerUrl", lastVectorLayerUrl)
+                        getWindow().customVectorLayer = new URL(vectorLayerUrl).origin
+                        await loadExternalVectorStyle(vectorLayerUrl)
+                        findVectorMap().setStyle(vectorLayerUrl)
+                    }
+                })
             } else {
-                hashParams.set("layers", (hashParams.get("layers") ?? "") + "V")
+                const layers = `; ${document.cookie}`.split(`; _osm_location=`).pop().split(";").shift().split("|").at(-1)
+                const currentLayersIsVector = layers.includes("S") || layers.includes("V")
+                const hashParams = new URLSearchParams(location.hash)
+                if (currentLayersIsVector) {
+                    if (layers.includes("S")) {
+                        hashParams.set("layers", (hashParams.get("layers") ?? "").replace("S", "").replace("V", "") + "M")
+                    } else {
+                        hashParams.set("layers", (hashParams.get("layers") ?? "").replace("V", "") + "S")
+                    }
+                } else {
+                    hashParams.set("layers", (hashParams.get("layers") ?? "") + "V")
+                }
+                location.hash = hashParams.toString()
             }
-            location.hash = hashParams.toString()
         } else {
             // console.log(e.key, e.code)
         }
@@ -23393,7 +23546,11 @@ function main() {
         ).observe(document, { subtree: true, childList: true })
         return
     }
-    if (isOsmServer()) {
+    if (isOHMServer()) {
+        if (isDebug()) {
+            setupOSMWebsite()
+        }
+    } else if (isOsmServer()) {
         setupOSMWebsite()
     }
     if (location.origin === "https://wiki.openstreetmap.org") {
