@@ -144,6 +144,8 @@
 // @connect      services.arcgisonline.com
 // @connect      clarity.maptiles.arcgis.com
 // @connect      wayback.maptiles.arcgis.com
+// @connect      vector.openstreetmap.org
+// @connect      api.maptiler.com
 // @connect      map.atownsend.org.uk
 // @connect      tiles.openfreemap.org
 // @comment      * for custom layers. ViolentMonkey ignores @connect by default,
