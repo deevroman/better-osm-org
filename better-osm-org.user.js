@@ -227,7 +227,7 @@ if (isSafari) {
     console.error("YOU ARE USING AN UNSUPPORTED BROWSER")
 }
 
-if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Greasemonkey" || GM_info.scriptHandler === "OrangeMonkey") {
+function initGmApiPolyfills() {
     if (typeof GM_getResourceURL === "undefined") {
         const resources = {}
         setTimeout(async () => {
@@ -283,6 +283,10 @@ if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Grease
             return fn
         }
     }
+}
+
+if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Greasemonkey" || GM_info.scriptHandler === "OrangeMonkey") {
+    initGmApiPolyfills()
 }
 
 const accountForceLightTheme = document.querySelector("html")?.getAttribute("data-bs-theme") === "light"
