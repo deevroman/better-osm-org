@@ -521,6 +521,7 @@ function runOnDOMContentLoaded(callback) {
         console.log("Waiting DOMContentLoaded...")
         document.addEventListener("DOMContentLoaded", callback)
     } else {
+        console.log("DOMContentLoaded has already happened. Run immediately")
         callback()
     }
 }
