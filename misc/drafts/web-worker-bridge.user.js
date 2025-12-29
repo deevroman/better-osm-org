@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        CSP bridge for Web Workers fetch() requests
+// @name        DEV-ONLY! CSP bridge for Web Workers fetch() requests
 // @version     1.0
 // @author      deevroman
 // @license     WTFPL
@@ -10,7 +10,6 @@
 // @grant       GM.xmlHttpRequest
 // @run-at      document-start
 // @sandbox     JavaScript
-
 // ==/UserScript==
 
 const boWindowObject =
@@ -23,7 +22,7 @@ function intoPageWithFun(obj) {
 }
 
 window.addEventListener("message", async (e) => {
-  if (e.origin !== "https://www.openstreetmap.org") {
+  if (e.origin !== location.origin) {
     return;
   }
   if (e.data.type !== "create_worker") {
@@ -39,8 +38,8 @@ window.addEventListener("message", async (e) => {
         url: e.data.url,
         responseType: "blob",
         headers: {
-          Origin: "https://www.openstreetmap.org",
-          Referer: "https://www.openstreetmap.org/",
+          Origin: location.origin,
+          Referer: location.origin + "/",
         },
       });
       boWindowObject.maplibreOverridedWorker.postMessage(
@@ -102,7 +101,7 @@ injectJSIntoPage(`
         )
         const maplibreOverridedWorker = new OriginalWorker(proxyUrl, options);
         window.maplibreOverridedWorker = maplibreOverridedWorker
-        window.postMessage({ type: "create_worker" }, "https://www.openstreetmap.org")
+        window.postMessage({ type: "create_worker" }, location.origin)
         
         return maplibreOverridedWorker
     }
