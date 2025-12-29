@@ -8240,7 +8240,7 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
         return [targetVersion, await loadNodesViaHistoryCalls(targetVersion.nodes)]
     }
     // todo batchSize должен быть динамический
-    // Максимальная длина урла 8213 символов.
+    // Максимальная длина урла (согласно вики) 8213 символов.
     // 400 взято с запасом, что для точки нужно 20 символов
     // пример точки: 123456789012v1234,
     const batchSize = 410
@@ -8275,7 +8275,10 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
     }
 
     const queryArgs = [""]
-    const maxQueryArgLen = 8213 - (osm_server.apiBase.length + "nodes.json?nodes=".length)
+    // OSM Wiki говорит, что можно 8213 символов
+    // на практике можно 8219 символов
+    // Однако для OHM можно только 8210 символов
+    const maxQueryArgLen = 8210 - (osm_server.apiBase.length + "nodes.json?nodes=".length)
     for (const lastVersion of longHistoryNodes) {
         for (let v = 1; v < lastVersion.version; v++) {
             // todo не нужно загружать версию, которая в текущем пакете правок (если уже успели его загрузить)
@@ -8302,7 +8305,8 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
     // console.groupCollapsed(`w${wayID}v${version}`)
     await Promise.all(
         queryArgs.map(async args => {
-            const res = await fetchRetry(osm_server.apiBase + "nodes.json?nodes=" + args, { signal: getAbortController().signal })
+            const url = osm_server.apiBase + "nodes.json?nodes=" + args
+            const res = await fetchRetry(url, { signal: getAbortController().signal })
             if (res.status === 404) {
                 console.log("%c Some nodes was hidden. Start slow fetching :(", "background: #222; color: #bada55")
                 const newArgs = args.split(",").map(i => parseInt(i.match(/(\d+)v(\d+)/)[1]))
@@ -8313,7 +8317,8 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
                     versions.push(...i)
                 })
             } else if (res.status === 414) {
-                console.error("hmm, the maximum length of the URI is incorrectly calculated")
+                console.error("hmm, the maximum length of the URI is incorrectly calculated", url.length)
+                console.error("url:", url)
                 console.trace()
             } else {
                 if (!res.ok) {
