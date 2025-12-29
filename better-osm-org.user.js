@@ -16000,6 +16000,9 @@ function setupMakeVersionPageBetter() {
 
 //<editor-fold desc="in-osm-page-code" defaultstate="collapsed">
 window.addEventListener("message", async e => {
+    if (!getWindow().customLayer && !getWindow().customVectorLayer) {
+        return
+    }
     if (e.origin !== location.origin) return
     if (e.data.type !== "bypass_csp") {
         return
