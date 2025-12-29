@@ -181,30 +181,31 @@
 /*global runSnowAnimation*/
 /*global unzipit*/
 /*global bz2*/
-if ((location.origin + location.pathname).startsWith("https://github.com/openstreetmap/openstreetmap-website/issues/new")) {
-    function tryAddWarn() {
-        if (document.querySelector(".better-osm-org-warn")) {
-            return
-        }
-        let result = document.evaluate("//h1[normalize-space(text())='Create new issue']", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue
-        if (!result) {
-            result = document.evaluate("//h2[normalize-space(text())='Create new issue']", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue
-        }
-        if (result) {
-            const warn = document.createElement("div")
-            warn.textContent = "⚠️⚠️⚠️️ "
-            warn.classList.add("better-osm-org-warn")
-            const subWarn = document.createElement("span")
-            subWarn.textContent = "Disable better-osm-org"
-            subWarn.style.color = "red"
-            warn.appendChild(subWarn)
-            warn.appendChild(document.createTextNode(" before reporting bugs or asking questions about features ⚠️⚠️⚠️"))
-            result.before(warn)
-            result.before(document.createElement("br"))
-        }
+function tryAddWarnAboutScriptIntoOsmOrgRepo() {
+    if (document.querySelector(".better-osm-org-warn")) {
+        return
     }
-    setInterval(tryAddWarn, 3000)
-    setTimeout(tryAddWarn, 100)
+    let result = document.evaluate("//h1[normalize-space(text())='Create new issue']", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue
+    if (!result) {
+        result = document.evaluate("//h2[normalize-space(text())='Create new issue']", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue
+    }
+    if (result) {
+        const warn = document.createElement("div")
+        warn.textContent = "⚠️⚠️⚠️️ "
+        warn.classList.add("better-osm-org-warn")
+        const subWarn = document.createElement("span")
+        subWarn.textContent = "Disable better-osm-org"
+        subWarn.style.color = "red"
+        warn.appendChild(subWarn)
+        warn.appendChild(document.createTextNode(" before reporting bugs or asking questions about features ⚠️⚠️⚠️"))
+        result.before(warn)
+        result.before(document.createElement("br"))
+    }
+}
+
+if ((location.origin + location.pathname).startsWith("https://github.com/openstreetmap/openstreetmap-website/issues/new")) {
+    setInterval(tryAddWarnAboutScriptIntoOsmOrgRepo, 3000)
+    setTimeout(tryAddWarnAboutScriptIntoOsmOrgRepo, 100)
     throw "skip better-osm-org run on GitHub"
 }
 
@@ -612,7 +613,7 @@ function printScriptDebugInfo() {
             } else {
                 return [i[0], `length: ${i[1].value.length}`]
             }
-        })
+        }),
     )
 }
 
@@ -16032,7 +16033,7 @@ function initCspBridge() {
 
 initCspBridge()
 
-if (isOsmServer()) {
+function runInOsmPageCode() {
     injectJSIntoPage(`
     // const OriginalWorker = window.Worker
     //
@@ -16586,6 +16587,10 @@ if (isOsmServer()) {
         return originalFetch(...args);
     }
     `)
+}
+
+if (isOsmServer()) {
+    runInOsmPageCode()
 }
 
 //</editor-fold>
