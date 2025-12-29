@@ -3167,7 +3167,7 @@ async function processQuickLookInSidebar(changesetID) {
                     /* empty */
                 }
                 if (isDebug()) {
-                    alert("⚠ read logs.\nOnly the script developer should see this message")
+                    alert("⚠ read logs in browser console (F12).\nOnly the script developer should see this message")
                 }
                 // eslint-disable-next-line no-debugger
                 debugger
