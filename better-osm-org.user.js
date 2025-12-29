@@ -16039,7 +16039,7 @@ function initCspBridge() {
 
 function initMaplibreWorkerOverrider() {
     window.addEventListener("message", async e => {
-        if (e.origin !== "https://www.openstreetmap.org") {
+        if (e.origin !== location.origin) {
             return
         }
         if (e.data.type !== "create_worker") {
@@ -16054,8 +16054,8 @@ function initMaplibreWorkerOverrider() {
                 url: e.data.url,
                 responseType: "blob",
                 headers: {
-                    Origin: "https://www.openstreetmap.org",
-                    Referer: "https://www.openstreetmap.org/",
+                    Origin: location.origin,
+                    Referer: location.origin + "/",
                 },
             })
             boWindowObject.maplibreOverridedWorker.postMessage(
@@ -16074,11 +16074,11 @@ function initMaplibreWorkerOverrider() {
             )
         })
     })
-
 }
-
-initCspBridge()
-initMaplibreWorkerOverrider()
+if ([prod_server.origin, dev_server.origin, local_server.origin, ohm_prod_server.origin].includes(location.origin)) {
+    initCspBridge()
+    initMaplibreWorkerOverrider()
+}
 
 function runInOsmPageCode() {
     injectJSIntoPage(`
@@ -16116,7 +16116,7 @@ function runInOsmPageCode() {
         )
         const maplibreOverridedWorker = new OriginalWorker(proxyUrl, options);
         window.maplibreOverridedWorker = maplibreOverridedWorker
-        window.postMessage({ type: "create_worker" }, "https://www.openstreetmap.org")
+        window.postMessage({ type: "create_worker" }, location.origin)
 
         return maplibreOverridedWorker
     }
