@@ -15999,34 +15999,38 @@ function setupMakeVersionPageBetter() {
 //</editor-fold>
 
 //<editor-fold desc="in-osm-page-code" defaultstate="collapsed">
-window.addEventListener("message", async e => {
-    if (!getWindow().customLayer && !getWindow().customVectorLayer) {
-        return
-    }
-    if (e.origin !== location.origin) return
-    if (e.data.type !== "bypass_csp") {
-        return
-    }
-    // console.log(e.data)
-    const opt = {}
-    if (e.data.url.startsWith("https://tiles.openrailwaymap.org")) {
-        opt.headers = { Referer: "https://www.openrailwaymap.org/" }
-    }
-    // fuck TM, need imitate Response
-    const res = await fetchBlobWithCache(e.data.url, opt)
-    window.postMessage(
-        {
-            type: "bypass_csp_response",
-            url: e.data.url,
-            data: {
-                status: res.status,
-                statusText: res.statusText,
-                response: res.response,
+function initCspBridge() {
+    window.addEventListener("message", async e => {
+        if (!getWindow().customLayer && !getWindow().customVectorLayer) {
+            return
+        }
+        if (e.origin !== location.origin) return
+        if (e.data.type !== "bypass_csp") {
+            return
+        }
+        // console.log(e.data)
+        const opt = {}
+        if (e.data.url.startsWith("https://tiles.openrailwaymap.org")) {
+            opt.headers = { Referer: "https://www.openrailwaymap.org/" }
+        }
+        // fuck TM, need imitate Response
+        const res = await fetchBlobWithCache(e.data.url, opt)
+        window.postMessage(
+            {
+                type: "bypass_csp_response",
+                url: e.data.url,
+                data: {
+                    status: res.status,
+                    statusText: res.statusText,
+                    response: res.response,
+                },
             },
-        },
-        e.origin,
-    )
-})
+            e.origin,
+        )
+    })
+}
+
+initCspBridge()
 
 if (isOsmServer()) {
     injectJSIntoPage(`
