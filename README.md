@@ -196,10 +196,10 @@ Experimental hotkeys:
 - [ ] website & iD helper for translator (open search query into translation platform)
 - [ ] show in quick look the base way tag
 - [ ] Fast tags copy from wiki
+- [ ] Support OpenHistoricalMap
 
 Maybe
 
-- [ ] Support OpenHistoricalMap
 - [ ] Move object from OSM into OpenHistoricalMap
 - [ ] Bookmarks on map (like Organic Maps)
 
