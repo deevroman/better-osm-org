@@ -1,6 +1,6 @@
 //<editor-fold desc="main" defaultstate="collapsed">
 // TODO сначала проверить сайт, а после инициализировать GM_config и вызывать main
-function main() {
+function _main() {
     "use strict"
     if (GM_config.get("DebugMode")) {
         _isDebug = true
@@ -46,4 +46,7 @@ function main() {
     }
 }
 
+function main() {
+    runOnDOMContentLoaded(_main)
+}
 //</editor-fold>
