@@ -218,6 +218,15 @@ const OHM_OSMCHA = "https://osmcha.openhistoricalmap.org"
 
 const osmcha_server_origin = isOHMServer() ? OHM_OSMCHA : MAIN_OSMCHA
 
+const MAIN_OSM_REVERT = "https://revert.monicz.dev"
+const OHM_OSM_REVERT = "https://ohm-revert.monicz.dev"
+
+const MAIN_OSM_REVERT_NAME = "osm-revert"
+const OHM_OSM_REVERT_NAME = "ohm-revert"
+
+const osm_revert_origin = isOHMServer() ? OHM_OSM_REVERT : MAIN_OSM_REVERT
+const osm_revert_name = isOHMServer() ? OHM_OSM_REVERT_NAME : MAIN_OSM_REVERT_NAME
+
 /**
  * @typedef {{
  *     [type]: "node"|"way"|"relation",

@@ -383,6 +383,15 @@ const OHM_OSMCHA = "https://osmcha.openhistoricalmap.org"
 
 const osmcha_server_origin = isOHMServer() ? OHM_OSMCHA : MAIN_OSMCHA
 
+const MAIN_OSM_REVERT = "https://revert.monicz.dev"
+const OHM_OSM_REVERT = "https://ohm-revert.monicz.dev"
+
+const MAIN_OSM_REVERT_NAME = "osm-revert"
+const OHM_OSM_REVERT_NAME = "ohm-revert"
+
+const osm_revert_origin = isOHMServer() ? OHM_OSM_REVERT : MAIN_OSM_REVERT
+const osm_revert_name = isOHMServer() ? OHM_OSM_REVERT_NAME : MAIN_OSM_REVERT_NAME
+
 /**
  * @typedef {{
  *     [type]: "node"|"way"|"relation",
@@ -3771,18 +3780,20 @@ function addRevertButton() {
         hideSearchForm()
         // sidebar.classList.add("changeset-header")
         const changeset_id = sidebar.innerHTML.match(/([0-9]+)/)[0]
-        const reverterTitle = "Open osm-revert\nShift + click for revert via JOSM\nPress R for partial revert"
+        const reverterTitle = `Open ${osm_revert_name}
+Shift + click for revert via JOSM
+Press R for partial revert`
         // prettier-ignore
         sidebar.innerHTML +=
-            ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="${reverterTitle}">↩️</a>
+            ` <a href="${osm_revert_origin}/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="${reverterTitle}">↩️</a>
               <a href="${osmcha_server_origin}/changesets/${changeset_id}" id="osmcha_link" target="_blank" rel="noreferrer">${osmchaSvgLogo}</a>`
         changesetObjectsSelectionModeEnabled = false
         document.querySelector("#revert_button_class").onclick = async e => {
             if (changesetObjectsSelectionModeEnabled) {
                 e.preventDefault()
-                if (osm_server !== prod_server) {
+                if (osm_server !== prod_server && osm_server !== ohm_prod_server) {
                     e.preventDefault()
-                    alert("osm-revert works only for www.openstreetmap.org")
+                    alert(`${osm_revert_name} works only for www.OpenStreetMap.org and www.OpenHistoricalMap.org`)
                     return
                 }
 
@@ -3823,7 +3834,7 @@ function addRevertButton() {
                 }
 
                 window.open(
-                    "https://revert.monicz.dev/?" +
+                    `${osm_revert_origin}/?` +
                         new URLSearchParams({
                             changesets: changeset_id,
                             "query-filter": selector,
@@ -3833,10 +3844,10 @@ function addRevertButton() {
                 return
             }
             if (!e.shiftKey) {
-                if (osm_server !== prod_server) {
+                if (osm_server !== prod_server && osm_server !== ohm_prod_server) {
                     e.preventDefault()
                     alert(
-                        "osm-revert works only for www.openstreetmap.org\n\n" +
+                        "${osm_revert_name} works only for www.OpenStreetMap.org and www.OpenHistoricalMap.org\n\n" +
                             "But you can install reverter plugin in JOSM and use shift+click for other OSM servers.\n\n" +
                             "⚠️Change the osm server in the josm settings!",
                     )
@@ -3844,13 +3855,25 @@ function addRevertButton() {
                 return
             }
             e.preventDefault()
-            if (!(await validateOsmServerInJOSM())) {
-                return
-            }
-
-            if (osm_server !== prod_server) {
-                if (!confirm("⚠️This is not the main OSM server!\n\n⚠️To change the OSM server in the JOSM settings!")) {
+            if (!isOHMServer()) {
+                if (!(await validateOsmServerInJOSM())) {
                     return
+                }
+
+                if (osm_server !== prod_server) {
+                    if (!confirm("⚠️This is not the main OSM server!\n\n⚠️To change the OSM server in the JOSM settings!")) {
+                        return
+                    }
+                }
+            } else {
+                if (await validateOsmServerInJOSM()) {
+                    return
+                }
+
+                if (osm_server !== ohm_prod_server) {
+                    if (!confirm("⚠️This is not the OHM server!\n\n⚠️To change the OSM server in the JOSM settings!")) {
+                        return
+                    }
                 }
             }
             window.location = "http://127.0.0.1:8111/revert_changeset?id=" + changeset_id // todo open in new tab. It's broken in Firefox and open new window
@@ -16798,12 +16821,12 @@ function makeTopActionBar() {
     }
     const revertButton = document.createElement("button")
     revertButton.textContent = "↩️"
-    revertButton.title = "revert via osm-revert"
+    revertButton.title = `revert via ${osm_revert_name}`
     revertButton.onclick = () => {
         const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked"))
             .map(i => i.value)
             .join(",")
-        open("https://revert.monicz.dev/?changesets=" + ids, "_blank")
+        open(`${osm_revert_origin}/?changesets=` + ids, "_blank")
     }
     const revertViaJOSMButton = document.createElement("button")
     revertViaJOSMButton.textContent = "↩️ via JOSM"
@@ -16859,12 +16882,12 @@ function makeBottomActionBar() {
     }
     const revertButton = document.createElement("button")
     revertButton.textContent = "↩️"
-    revertButton.title = "revert via osm-revert"
+    revertButton.title = `revert via ${osm_revert_name}`
     revertButton.onclick = () => {
         const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked"))
             .map(i => i.value)
             .join(",")
-        window.location = "https://revert.monicz.dev/?changesets=" + ids
+        window.location = `${osm_revert_origin}/?changesets=` + ids
     }
     revertButton.classList.add("page-link")
     const viewChangesetsButton = document.createElement("button")
@@ -22316,7 +22339,10 @@ function setupNavigationViaHotkeys() {
                 document.querySelectorAll(`${selector} .browse-element-list li`).forEach(obj => {
                     const checkbox = document.createElement("input")
                     checkbox.type = "checkbox"
-                    checkbox.title = "Click with Shift for select range\nPress R for revert via osm-revert\nPress J for open objects in JOSM\nPress alt + J for open objects in Level0"
+                    checkbox.title = `Click with Shift for select range
+Press R for revert via ${osm_revert_name}
+Press J for open objects in JOSM
+Press alt + J for open objects in Level0`
                     checkbox.tabIndex = 0
                     checkbox.style.width = "18px"
                     checkbox.style.height = "18px"

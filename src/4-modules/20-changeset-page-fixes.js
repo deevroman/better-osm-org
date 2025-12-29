@@ -479,18 +479,20 @@ function addRevertButton() {
         hideSearchForm()
         // sidebar.classList.add("changeset-header")
         const changeset_id = sidebar.innerHTML.match(/([0-9]+)/)[0]
-        const reverterTitle = "Open osm-revert\nShift + click for revert via JOSM\nPress R for partial revert"
+        const reverterTitle = `Open ${osm_revert_name}
+Shift + click for revert via JOSM
+Press R for partial revert`
         // prettier-ignore
         sidebar.innerHTML +=
-            ` <a href="https://revert.monicz.dev/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="${reverterTitle}">↩️</a>
+            ` <a href="${osm_revert_origin}/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="${reverterTitle}">↩️</a>
               <a href="${osmcha_server_origin}/changesets/${changeset_id}" id="osmcha_link" target="_blank" rel="noreferrer">${osmchaSvgLogo}</a>`
         changesetObjectsSelectionModeEnabled = false
         document.querySelector("#revert_button_class").onclick = async e => {
             if (changesetObjectsSelectionModeEnabled) {
                 e.preventDefault()
-                if (osm_server !== prod_server) {
+                if (osm_server !== prod_server && osm_server !== ohm_prod_server) {
                     e.preventDefault()
-                    alert("osm-revert works only for www.openstreetmap.org")
+                    alert(`${osm_revert_name} works only for www.OpenStreetMap.org and www.OpenHistoricalMap.org`)
                     return
                 }
 
@@ -531,7 +533,7 @@ function addRevertButton() {
                 }
 
                 window.open(
-                    "https://revert.monicz.dev/?" +
+                    `${osm_revert_origin}/?` +
                         new URLSearchParams({
                             changesets: changeset_id,
                             "query-filter": selector,
@@ -541,10 +543,10 @@ function addRevertButton() {
                 return
             }
             if (!e.shiftKey) {
-                if (osm_server !== prod_server) {
+                if (osm_server !== prod_server && osm_server !== ohm_prod_server) {
                     e.preventDefault()
                     alert(
-                        "osm-revert works only for www.openstreetmap.org\n\n" +
+                        "${osm_revert_name} works only for www.OpenStreetMap.org and www.OpenHistoricalMap.org\n\n" +
                             "But you can install reverter plugin in JOSM and use shift+click for other OSM servers.\n\n" +
                             "⚠️Change the osm server in the josm settings!",
                     )
@@ -552,13 +554,25 @@ function addRevertButton() {
                 return
             }
             e.preventDefault()
-            if (!(await validateOsmServerInJOSM())) {
-                return
-            }
-
-            if (osm_server !== prod_server) {
-                if (!confirm("⚠️This is not the main OSM server!\n\n⚠️To change the OSM server in the JOSM settings!")) {
+            if (!isOHMServer()) {
+                if (!(await validateOsmServerInJOSM())) {
                     return
+                }
+
+                if (osm_server !== prod_server) {
+                    if (!confirm("⚠️This is not the main OSM server!\n\n⚠️To change the OSM server in the JOSM settings!")) {
+                        return
+                    }
+                }
+            } else {
+                if (await validateOsmServerInJOSM()) {
+                    return
+                }
+
+                if (osm_server !== ohm_prod_server) {
+                    if (!confirm("⚠️This is not the OHM server!\n\n⚠️To change the OSM server in the JOSM settings!")) {
+                        return
+                    }
                 }
             }
             window.location = "http://127.0.0.1:8111/revert_changeset?id=" + changeset_id // todo open in new tab. It's broken in Firefox and open new window

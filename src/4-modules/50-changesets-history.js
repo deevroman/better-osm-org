@@ -124,12 +124,12 @@ function makeTopActionBar() {
     }
     const revertButton = document.createElement("button")
     revertButton.textContent = "↩️"
-    revertButton.title = "revert via osm-revert"
+    revertButton.title = `revert via ${osm_revert_name}`
     revertButton.onclick = () => {
         const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked"))
             .map(i => i.value)
             .join(",")
-        open("https://revert.monicz.dev/?changesets=" + ids, "_blank")
+        open(`${osm_revert_origin}/?changesets=` + ids, "_blank")
     }
     const revertViaJOSMButton = document.createElement("button")
     revertViaJOSMButton.textContent = "↩️ via JOSM"
@@ -185,12 +185,12 @@ function makeBottomActionBar() {
     }
     const revertButton = document.createElement("button")
     revertButton.textContent = "↩️"
-    revertButton.title = "revert via osm-revert"
+    revertButton.title = `revert via ${osm_revert_name}`
     revertButton.onclick = () => {
         const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked"))
             .map(i => i.value)
             .join(",")
-        window.location = "https://revert.monicz.dev/?changesets=" + ids
+        window.location = `${osm_revert_origin}/?changesets=` + ids
     }
     revertButton.classList.add("page-link")
     const viewChangesetsButton = document.createElement("button")
