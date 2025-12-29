@@ -23568,7 +23568,7 @@ function main() {
 //</editor-fold>
 
 // garbage collection for cached infos (user info, changeset history)
-setTimeout(async function () {
+async function runGC() {
     if (Math.random() > 0.5) return
     if (!location.pathname.includes("/history") && !location.pathname.includes("/note")) return
     const lastGC = await GM.getValue("last-garbage-collection-time")
@@ -23599,4 +23599,5 @@ setTimeout(async function () {
         }
     }
     console.log("Old cache cleaned")
-}, 1000 * 12)
+}
+setTimeout(runGC, 1000 * 12)
