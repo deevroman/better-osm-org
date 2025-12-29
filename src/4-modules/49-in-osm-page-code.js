@@ -32,7 +32,7 @@ function initCspBridge() {
 
 initCspBridge()
 
-if (isOsmServer()) {
+function runInOsmPageCode() {
     injectJSIntoPage(`
     // const OriginalWorker = window.Worker
     //
@@ -586,6 +586,10 @@ if (isOsmServer()) {
         return originalFetch(...args);
     }
     `)
+}
+
+if (isOsmServer()) {
+    runInOsmPageCode()
 }
 
 //</editor-fold>
