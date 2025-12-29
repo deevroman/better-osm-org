@@ -10580,7 +10580,7 @@ function addCommentsCount() {
             document.querySelectorAll(".changeset_num_comments").forEach(i => i.style.setProperty("display", "none", "important"))
         }
         const sectionSelector = isVersionPage() ? "#sidebar_content > div:first-of-type" : "#sidebar_content #element_versions_list > div"
-        const links = document.querySelectorAll(`${sectionSelector} div:first-of-type a[href^="/changeset"]:not(.comments-loaded):not(.comments-link)`)
+        const links = document.querySelectorAll(`${sectionSelector} div a[href^="/changeset"]:not(.comments-loaded):not(.comments-link):not([rel])`)
         await loadChangesetMetadatas(
             Array.from(links).map(i => {
                 i.classList.add("comments-loaded")
