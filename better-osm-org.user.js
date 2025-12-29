@@ -158,7 +158,7 @@
 // @sandbox      JavaScript
 // @resource     OAUTH_HTML https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/assets/finish-oauth.html?bypass_cache
 // @resource     DARK_THEME_FOR_ID_CSS https://gist.githubusercontent.com/deevroman/55f35da68ab1efb57b7ba4636bdf013d/raw/1e91d589ca8cb51c693a119424a45d9f773c265e/dark.css
-// @run-at       document-end
+// @run-at       document-start
 // ==/UserScript==
 
 //<editor-fold desc="init" defaultstate="collapsed">
@@ -621,7 +621,10 @@ function printScriptDebugInfo() {
     )
 }
 
+setTimeout(printScriptDebugInfo, 2000)
+
 function injectMapHooks() {
+    console.log("injectMapHooks called")
     function mapHook() {
         console.log("start map intercepting")
         if (boWindowObject.L && boWindowObject.L.Map) {
@@ -676,25 +679,18 @@ function injectMapHooks() {
     }
 }
 
-if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id-embed")) {
-    injectMapHooks()
-    // try {
-    //     interceptRectangle()
-    // } catch (e) {
-    // }
-    setTimeout(printScriptDebugInfo, 1500)
-} else if (isOsmServer() && ["/edit", "/id"].includes(location.pathname)) {
+function runOnDOMContentLoaded(callback) {
+    if (document.readyState === "loading") {
+        console.log("Waiting DOMContentLoaded...")
+        document.addEventListener("DOMContentLoaded", callback)
+    } else {
+        callback()
+    }
+}
+
+function preventWhiteFlashesInIdEditor() {
     if (isDarkMode()) {
         if (location.pathname === "/edit") {
-            // document.querySelector("#id-embed").style.visibility = "hidden"
-            // window.addEventListener("message", (event) => {
-            //     console.log("making iD visible")
-            //     if (event.origin !== location.origin)
-            //         return;
-            //     if (event.data === "kek") {
-            //         document.querySelector("#id-embed").style.visibility = "visible"
-            //     }
-            // });
             injectCSSIntoOSMPage(
                 `@media ${mediaQueryForWebsiteTheme} {
                 #id-embed {
@@ -722,12 +718,14 @@ if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id
                 }
             }`,
             )
-            // if (location.pathname === "/id") {
-            //     console.log("post")
-            //     window.parent.postMessage("kek", location.origin);
-            // }
         }
     }
+}
+
+if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id-embed")) {
+    runOnDOMContentLoaded(injectMapHooks)
+} else if (isOsmServer() && ["/edit", "/id"].includes(location.pathname)) {
+    preventWhiteFlashesInIdEditor()
     GM_registerMenuCommand("JOSM!", function () {
         const iframe = GM_addElement("iframe", {
             src: "https://deevroman.github.io/web-josm",
@@ -23528,7 +23526,7 @@ function makeCommandsMenu() {
 
 //<editor-fold desc="main" defaultstate="collapsed">
 // TODO сначала проверить сайт, а после инициализировать GM_config и вызывать main
-function main() {
+function _main() {
     "use strict"
     if (GM_config.get("DebugMode")) {
         _isDebug = true
@@ -23574,6 +23572,9 @@ function main() {
     }
 }
 
+function main() {
+    runOnDOMContentLoaded(_main)
+}
 //</editor-fold>
 
 // garbage collection for cached infos (user info, changeset history)
