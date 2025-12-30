@@ -54,7 +54,6 @@
 // @author       deevroman
 // @match        https://www.openstreetmap.org/*
 // @exclude      https://www.openstreetmap.org/api*
-// @exclude      https://www.openstreetmap.org/diary/new
 // @exclude      https://www.openstreetmap.org/message/new/*
 // @exclude      https://www.openstreetmap.org/reports/new/*
 // @exclude      https://www.openstreetmap.org/profile/*
