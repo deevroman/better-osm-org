@@ -10,7 +10,7 @@ async function loadChangesetMetadata(changeset_id = null) {
     if (!changeset_id) {
         const match = location.pathname.match(/changeset\/(\d+)/)
         if (!match) {
-            console.trace("loadChangesetMetadata called without changeset_id and on not /changeset page")
+            // console.trace("loadChangesetMetadata called without changeset_id and on not /changeset page")
             return
         }
         changeset_id = parseInt(match[1])
