@@ -21053,7 +21053,7 @@ async function setupDragAndDropViewers() {
 
 //<editor-fold desc="hotkeys">
 let hotkeysConfigured = false
-
+//TODO extract load functions
 /**
  * @param {number|null=} changeset_id
  * @return {Promise<ChangesetMetadata>}
@@ -21063,6 +21063,7 @@ async function loadChangesetMetadata(changeset_id = null) {
     if (!changeset_id) {
         const match = location.pathname.match(/changeset\/(\d+)/)
         if (!match) {
+            console.trace("loadChangesetMetadata called without changeset_id and on not /changeset page")
             return
         }
         changeset_id = parseInt(match[1])
