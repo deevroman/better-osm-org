@@ -24,14 +24,14 @@ async function addHoverForNodesParents() {
             wayLi.onmouseenter = () => {
                 const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
                 const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-                showActiveWay(cloneInto(currentNodesList, unsafeWindow), color)
+                showActiveWay(currentNodesList, color)
             }
             wayLi.onclick = e => {
                 if (e.altKey) return
                 if (e.target.tagName === "A") return
                 const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
                 const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-                showActiveWay(cloneInto(currentNodesList, unsafeWindow), color, true)
+                showActiveWay(currentNodesList, color, true)
             }
             wayLi.ondblclick = zoomToCurrentObject
             if (wayInfo.tags) {
@@ -438,7 +438,7 @@ async function addHoverForRelationMembers() {
         wayLi.onmouseenter = () => {
             const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
             const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-            showActiveWay(cloneInto(currentNodesList, unsafeWindow), color)
+            showActiveWay(currentNodesList, color)
             bringRestrictionArrowsToFront()
         }
         wayLi.onclick = e => {
@@ -446,7 +446,7 @@ async function addHoverForRelationMembers() {
             if (e.target.tagName === "A") return
             const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
             const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-            showActiveWay(cloneInto(currentNodesList, unsafeWindow), color, true)
+            showActiveWay(currentNodesList, color, true)
             bringRestrictionArrowsToFront()
         }
         wayLi.ondblclick = zoomToCurrentObject
@@ -469,7 +469,7 @@ async function addHoverForRelationMembers() {
                     showActiveNodeMarker(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString(), color, true, 6, 3)
                 } else if (i.type === "way") {
                     const currentNodesList = waysMap[i.id].nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
-                    showActiveWay(cloneInto(currentNodesList, unsafeWindow), color)
+                    showActiveWay(currentNodesList, color)
                 } else {
                     // todo
                 }
@@ -487,7 +487,7 @@ async function addHoverForRelationMembers() {
                     showActiveNodeMarker(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString(), color, true, 6, 3)
                 } else if (i.type === "way") {
                     const currentNodesList = waysMap[i.id].nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
-                    showActiveWay(cloneInto(currentNodesList, unsafeWindow), color, true)
+                    showActiveWay(currentNodesList, color, true)
                 } else {
                     // todo
                 }
