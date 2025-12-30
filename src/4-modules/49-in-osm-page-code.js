@@ -78,7 +78,7 @@ function runInOsmPageCode() {
     const OriginalBlob = window.Blob;
     window.Blob = function Blob(parts = [], options = {}) {
         if (parts?.[0]?.startsWith?.("var sharedModule = {};")) {
-            console.log('Blob created:', parts, options);
+            console.debug('Blob intercepted:', options, "len", parts[0].length);
             window.maplibreWorkerSourceCode = parts[0]
             window.Blob = OriginalBlob
         }
@@ -107,6 +107,7 @@ function runInOsmPageCode() {
         const proxyUrl = URL.createObjectURL(
             new OriginalBlob([fetchCode + window.maplibreWorkerSourceCode], { type: "application/javascript" }),
         )
+        console.count("newWorkerCounter")
         const maplibreOverridedWorker = new OriginalWorker(proxyUrl, options);
         window.maplibreOverridedWorker = maplibreOverridedWorker
         window.postMessage({ type: "create_worker" }, location.origin)
