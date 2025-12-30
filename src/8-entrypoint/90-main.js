@@ -47,6 +47,7 @@ function _main() {
 }
 
 function main() {
+    performance.mark("BETTER_OSM_MAIN_CALL")
     runOnDOMContentLoaded(_main)
 }
 //</editor-fold>
