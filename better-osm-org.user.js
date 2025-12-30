@@ -22883,6 +22883,8 @@ End with ! for global search
 
 https://map.atownsend.org.uk/vector/style_svwd03.json
 
+https://tiles.openfreemap.org/styles/positron
+
 https://vector.openstreetmap.org/styles/shortbread/colorful.json
 
 https://vector.openstreetmap.org/styles/shortbread/eclipse.json
@@ -23679,6 +23681,7 @@ function _main() {
 }
 
 function main() {
+    performance.mark("BETTER_OSM_MAIN_CALL")
     runOnDOMContentLoaded(_main)
 }
 //</editor-fold>
