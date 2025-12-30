@@ -5,9 +5,7 @@
  * @return {Promise<Tampermonkey.Response>}
  */
 async function externalFetch(details) {
-    if (GM_info.scriptHandler !== "FireMonkey") {
-        return await GM.xmlHttpRequest(details)
-    } else {
+    if (GM_info.scriptHandler === "FireMonkey" && parseFloat(GM_info.version) < 3.0) {
         const res = await GM.fetch(details.url, details)
         if (details["responseType"] === "json") {
             res.response = res.json
@@ -15,6 +13,8 @@ async function externalFetch(details) {
             res.responseText = res.text
         }
         return res
+    } else {
+        return await GM.xmlHttpRequest(details)
     }
 }
 
@@ -23,9 +23,7 @@ async function externalFetch(details) {
  * @return {Promise<Tampermonkey.Response>}
  */
 async function externalFetchRetry(details) {
-    if (GM_info.scriptHandler !== "FireMonkey") {
-        return await _fetchRetry(GM.xmlHttpRequest, details)
-    } else {
+    if (GM_info.scriptHandler === "FireMonkey" && parseFloat(GM_info.version) < 3.0) {
         const res = await _fetchRetry(GM.fetch, details.url, details)
         if (details["responseType"] === "json") {
             res.response = res.json
@@ -33,6 +31,9 @@ async function externalFetchRetry(details) {
             res.responseText = res.text
         }
         return res
+    } else {
+        // https://github.com/erosman/firemonkey/issues/33
+        return await _fetchRetry(async (...args) => await GM.xmlHttpRequest(...args), details)
     }
 }
 

@@ -621,6 +621,7 @@ function debug_alert() {
 
 function printScriptDebugInfo() {
     console.log(`Script version: ${GM_info.script.version}`)
+    console.log(`Script manager: ${GM_info.scriptHandler}`)
     console.debug(
         "Settings:",
         Object.entries(GM_config.fields).map(i => {
@@ -1645,9 +1646,7 @@ function copyAnimation(e, text) {
  * @return {Promise<Tampermonkey.Response>}
  */
 async function externalFetch(details) {
-    if (GM_info.scriptHandler !== "FireMonkey") {
-        return await GM.xmlHttpRequest(details)
-    } else {
+    if (GM_info.scriptHandler === "FireMonkey" && parseFloat(GM_info.version) < 3.0) {
         const res = await GM.fetch(details.url, details)
         if (details["responseType"] === "json") {
             res.response = res.json
@@ -1655,6 +1654,8 @@ async function externalFetch(details) {
             res.responseText = res.text
         }
         return res
+    } else {
+        return await GM.xmlHttpRequest(details)
     }
 }
 
@@ -1663,9 +1664,7 @@ async function externalFetch(details) {
  * @return {Promise<Tampermonkey.Response>}
  */
 async function externalFetchRetry(details) {
-    if (GM_info.scriptHandler !== "FireMonkey") {
-        return await _fetchRetry(GM.xmlHttpRequest, details)
-    } else {
+    if (GM_info.scriptHandler === "FireMonkey" && parseFloat(GM_info.version) < 3.0) {
         const res = await _fetchRetry(GM.fetch, details.url, details)
         if (details["responseType"] === "json") {
             res.response = res.json
@@ -1673,6 +1672,9 @@ async function externalFetchRetry(details) {
             res.responseText = res.text
         }
         return res
+    } else {
+        // https://github.com/erosman/firemonkey/issues/33
+        return await _fetchRetry(async (...args) => await GM.xmlHttpRequest(...args), details)
     }
 }
 
@@ -8737,7 +8739,7 @@ async function replaceDownloadWayButton(btn, wayID) {
         interVersionDiv.onclick = e => {
             resetMapHover()
             cleanAllObjects()
-            showWay(cloneInto(currentNodes, unsafeWindow), "#000000", e.isTrusted, darkModeForMap && isDarkMode())
+            showWay(currentNodes, "#000000", e.isTrusted, darkModeForMap && isDarkMode())
             currentNodes.forEach(node => {
                 if (node.tags && Object.keys(node.tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
                     showNodeMarker(node.lat.toString(), node.lon.toString(), "rgb(161,161,161)", null, "customObjects", 3)
@@ -9018,7 +9020,7 @@ function setupWayVersionView() {
         } else {
             if (needShowWay) {
                 cleanAllObjects()
-                showWay(cloneInto(nodesList, unsafeWindow), "#000000", needFly, darkModeForMap && isDarkMode())
+                showWay(nodesList, "#000000", needFly, darkModeForMap && isDarkMode())
                 nodesList.forEach(node => {
                     if (node.tags && Object.keys(node.tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
                         showNodeMarker(node.lat.toString(), node.lon.toString(), "rgb(161,161,161)", null, "customObjects", 3)
@@ -9633,7 +9635,7 @@ async function replaceDownloadRelationButton(btn, relationID) {
             const uniq_key = `${member.type} ${member.ref}`
             currentMembers.push(objectStates[uniq_key])
             if (member.type === "way") {
-                currentWaysNodes[member.ref] = cloneInto(
+                currentWaysNodes[member.ref] = intoPage(
                     objectStates[uniq_key].nodes.map(n => {
                         const objectState = objectStates[`node ${n}`]
                         if (!objectState) {
@@ -9641,7 +9643,6 @@ async function replaceDownloadRelationButton(btn, relationID) {
                         }
                         return objectState
                     }),
-                    unsafeWindow,
                 )
             }
             if (currentChanges[uniq_key] !== undefined) return
@@ -12631,7 +12632,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                         }
                     } else if (left.type === "way") {
                         const [, currentNodesList] = await getWayNodesByTimestamp(targetTimestamp, left.ref)
-                        showActiveWay(cloneInto(currentNodesList, unsafeWindow))
+                        showActiveWay(currentNodesList)
                         const version = searchVersionByTimestamp(await getWayHistory(left.ref), targetTimestamp)
                         tagTd.title = ""
                         for (let tagsKey in version.tags ?? {}) {
@@ -12653,7 +12654,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                         panTo(version.lat.toString(), version.lon.toString())
                     } else if (left.type === "way") {
                         const [, currentNodesList] = await getWayNodesByTimestamp(targetTimestamp, left.ref)
-                        showActiveWay(cloneInto(currentNodesList, unsafeWindow), c("#ff00e3"), true)
+                        showActiveWay(currentNodesList, c("#ff00e3"), true)
                     }
                 }
             }
@@ -12672,7 +12673,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                         }
                     } else if (right.type === "way") {
                         const [, currentNodesList] = await getWayNodesByTimestamp(targetTimestamp, right.ref)
-                        showActiveWay(cloneInto(currentNodesList, unsafeWindow))
+                        showActiveWay(currentNodesList)
                         const version = searchVersionByTimestamp(await getWayHistory(right.ref), targetTimestamp)
                         tagTd2.title = ""
                         for (let tagsKey in version.tags ?? {}) {
@@ -12693,7 +12694,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                         panTo(version.lat.toString(), version.lon.toString())
                     } else if (right.type === "way") {
                         const [, currentNodesList] = await getWayNodesByTimestamp(targetTimestamp, right.ref)
-                        showActiveWay(cloneInto(currentNodesList, unsafeWindow), c("#ff00e3"), true)
+                        showActiveWay(currentNodesList, c("#ff00e3"), true)
                     }
                 }
             }
@@ -13293,25 +13294,25 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             document.querySelector("#element_versions_list > div.active-object")?.classList?.remove()
             i.parentElement.parentElement.classList.add("active-object")
 
-            showActiveWay(cloneInto(currentNodesList, unsafeWindow), c("#ff00e3"), currentNodesList.length !== 0, `${changesetID}w${objID}v${targetVersion.version}`)
+            showActiveWay(currentNodesList, c("#ff00e3"), currentNodesList.length !== 0, `${changesetID}w${objID}v${targetVersion.version}`)
 
             if (version > 1) {
                 // show prev version
                 const [, nodesHistory] = await loadWayVersionNodes(objID, version - 1)
                 const targetTimestamp = maxDate(prevVersion.timestamp, new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1)).toISOString()
                 const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", currentNodesList.length === 0, `${changesetID}w${objID}v${targetVersion.version}`, false, 4, "4, 4")
+                showActiveWay(nodesList, "rgb(238,146,9)", currentNodesList.length === 0, `${changesetID}w${objID}v${targetVersion.version}`, false, 4, "4, 4")
 
-                showActiveWay(cloneInto(currentNodesList, unsafeWindow), c("#ff00e3"), false, `${changesetID}w${objID}v${targetVersion.version}`, false)
+                showActiveWay(currentNodesList, c("#ff00e3"), false, `${changesetID}w${objID}v${targetVersion.version}`, false)
             } else {
                 const targetTimestamp = new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1).toISOString()
                 const prevVersion = searchVersionByTimestamp(await getWayHistory(objID), targetTimestamp)
                 if (prevVersion) {
                     const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version)
                     const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                    showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", currentNodesList.length === 0, `${changesetID}w${objID}v${targetVersion.version}`, false, 4, "4, 4")
+                    showActiveWay(nodesList, "rgb(238,146,9)", currentNodesList.length === 0, `${changesetID}w${objID}v${targetVersion.version}`, false, 4, "4, 4")
                 }
-                showActiveWay(cloneInto(currentNodesList, unsafeWindow), c("#ff00e3"), false, `${changesetID}w${objID}v${targetVersion.version}`, false)
+                showActiveWay(currentNodesList, c("#ff00e3"), false, `${changesetID}w${objID}v${targetVersion.version}`, false)
             }
         }
         if (!changesetMetadata) {
@@ -13344,25 +13345,25 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
         }
 
         async function mouseenterHandler() {
-            showActiveWay(cloneInto(currentNodesList, unsafeWindow))
+            showActiveWay(currentNodesList)
             resetMapHover()
             if (version > 1) {
                 // show prev version
                 const [, nodesHistory] = await loadWayVersionNodes(objID, version - 1)
                 const targetTimestamp = maxDate(prevVersion.timestamp, new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1)).toISOString()
                 const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, `${changesetID}w${objID}v${targetVersion.version}`, false, 4, "4, 4")
+                showActiveWay(nodesList, "rgb(238,146,9)", false, `${changesetID}w${objID}v${targetVersion.version}`, false, 4, "4, 4")
 
-                showActiveWay(cloneInto(currentNodesList, unsafeWindow), c("#ff00e3"), false, `${changesetID}w${objID}v${targetVersion.version}`, false, lineWidth)
+                showActiveWay(currentNodesList, c("#ff00e3"), false, `${changesetID}w${objID}v${targetVersion.version}`, false, lineWidth)
             } else {
                 const targetTimestamp = new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1).toISOString()
                 const prevVersion = searchVersionByTimestamp(await getWayHistory(objID), targetTimestamp)
                 if (prevVersion) {
                     const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version)
                     const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                    showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, `${changesetID}w${objID}v${targetVersion.version}`, false, 4, "4, 4")
+                    showActiveWay(nodesList, "rgb(238,146,9)", false, `${changesetID}w${objID}v${targetVersion.version}`, false, 4, "4, 4")
                 }
-                showActiveWay(cloneInto(currentNodesList, unsafeWindow), c("#ff00e3"), false, `${changesetID}w${objID}v${targetVersion.version}`, false, lineWidth)
+                showActiveWay(currentNodesList, c("#ff00e3"), false, `${changesetID}w${objID}v${targetVersion.version}`, false, lineWidth)
             }
         }
 
@@ -14602,7 +14603,7 @@ async function processQuickLookInSidebar(changesetID) {
                             // todo показать по ховеру прошлую версию?
                             // prettier-ignore
                             const line = displayWay(
-                                cloneInto(currentNodesList, unsafeWindow),
+                                currentNodesList,
                                 false,
                                 "rgba(55,55,55,0.5)",
                                 4,
@@ -14623,7 +14624,7 @@ async function processQuickLookInSidebar(changesetID) {
                                     if (e.relatedTarget?.parentElement === e.target) {
                                         return
                                     }
-                                    showActiveWay(cloneInto(currentNodesList, unsafeWindow))
+                                    showActiveWay(currentNodesList)
                                     resetMapHover()
                                     const targetTimestamp = new Date(new Date(changesetMetadatas[changesetID].created_at).getTime() - 1).toISOString()
                                     if (targetVersion.version > 1) {
@@ -14631,17 +14632,17 @@ async function processQuickLookInSidebar(changesetID) {
                                         const prevVersion = searchVersionByTimestamp(await getWayHistory(way.id), targetTimestamp)
                                         const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version)
                                         const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                                        showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, `${changesetID}w${objID}v${targetVersion.version}`, false, 4, "4, 4")
+                                        showActiveWay(nodesList, "rgb(238,146,9)", false, `${changesetID}w${objID}v${targetVersion.version}`, false, 4, "4, 4")
 
-                                        // showActiveWay(cloneInto(currentNodesList, unsafeWindow), "rgba(55,55,55,0.5)", false, objID, false)
+                                        // showActiveWay(currentNodesList, "rgba(55,55,55,0.5)", false, objID, false)
                                     } else {
                                         const prevVersion = searchVersionByTimestamp(await getWayHistory(way.id), targetTimestamp)
                                         if (prevVersion) {
                                             const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version)
                                             const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                                            showActiveWay(cloneInto(nodesList, unsafeWindow), "rgb(238,146,9)", false, `${changesetID}w${objID}v${targetVersion.version}`, false, 4, "4, 4")
+                                            showActiveWay(nodesList, "rgb(238,146,9)", false, `${changesetID}w${objID}v${targetVersion.version}`, false, 4, "4, 4")
 
-                                            // showActiveWay(cloneInto(currentNodesList, unsafeWindow), "rgba(55,55,55,0.5)", false, objID, false)
+                                            // showActiveWay(currentNodesList, "rgba(55,55,55,0.5)", false, objID, false)
                                         }
                                     }
                                     const curVersion = searchVersionByTimestamp(await getNodeHistory(n), changesetMetadatas[changesetID].closed_at ?? new Date())
@@ -15100,14 +15101,14 @@ async function addHoverForNodesParents() {
             wayLi.onmouseenter = () => {
                 const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
                 const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-                showActiveWay(cloneInto(currentNodesList, unsafeWindow), color)
+                showActiveWay(currentNodesList, color)
             }
             wayLi.onclick = e => {
                 if (e.altKey) return
                 if (e.target.tagName === "A") return
                 const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
                 const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-                showActiveWay(cloneInto(currentNodesList, unsafeWindow), color, true)
+                showActiveWay(currentNodesList, color, true)
             }
             wayLi.ondblclick = zoomToCurrentObject
             if (wayInfo.tags) {
@@ -15514,7 +15515,7 @@ async function addHoverForRelationMembers() {
         wayLi.onmouseenter = () => {
             const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
             const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-            showActiveWay(cloneInto(currentNodesList, unsafeWindow), color)
+            showActiveWay(currentNodesList, color)
             bringRestrictionArrowsToFront()
         }
         wayLi.onclick = e => {
@@ -15522,7 +15523,7 @@ async function addHoverForRelationMembers() {
             if (e.target.tagName === "A") return
             const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
             const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-            showActiveWay(cloneInto(currentNodesList, unsafeWindow), color, true)
+            showActiveWay(currentNodesList, color, true)
             bringRestrictionArrowsToFront()
         }
         wayLi.ondblclick = zoomToCurrentObject
@@ -15545,7 +15546,7 @@ async function addHoverForRelationMembers() {
                     showActiveNodeMarker(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString(), color, true, 6, 3)
                 } else if (i.type === "way") {
                     const currentNodesList = waysMap[i.id].nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
-                    showActiveWay(cloneInto(currentNodesList, unsafeWindow), color)
+                    showActiveWay(currentNodesList, color)
                 } else {
                     // todo
                 }
@@ -15563,7 +15564,7 @@ async function addHoverForRelationMembers() {
                     showActiveNodeMarker(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString(), color, true, 6, 3)
                 } else if (i.type === "way") {
                     const currentNodesList = waysMap[i.id].nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
-                    showActiveWay(cloneInto(currentNodesList, unsafeWindow), color, true)
+                    showActiveWay(currentNodesList, color, true)
                 } else {
                     // todo
                 }

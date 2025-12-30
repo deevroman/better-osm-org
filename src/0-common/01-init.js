@@ -456,6 +456,7 @@ function debug_alert() {
 
 function printScriptDebugInfo() {
     console.log(`Script version: ${GM_info.script.version}`)
+    console.log(`Script manager: ${GM_info.scriptHandler}`)
     console.debug(
         "Settings:",
         Object.entries(GM_config.fields).map(i => {

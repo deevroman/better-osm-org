@@ -862,7 +862,7 @@ async function replaceDownloadWayButton(btn, wayID) {
         interVersionDiv.onclick = e => {
             resetMapHover()
             cleanAllObjects()
-            showWay(cloneInto(currentNodes, unsafeWindow), "#000000", e.isTrusted, darkModeForMap && isDarkMode())
+            showWay(currentNodes, "#000000", e.isTrusted, darkModeForMap && isDarkMode())
             currentNodes.forEach(node => {
                 if (node.tags && Object.keys(node.tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
                     showNodeMarker(node.lat.toString(), node.lon.toString(), "rgb(161,161,161)", null, "customObjects", 3)
@@ -1143,7 +1143,7 @@ function setupWayVersionView() {
         } else {
             if (needShowWay) {
                 cleanAllObjects()
-                showWay(cloneInto(nodesList, unsafeWindow), "#000000", needFly, darkModeForMap && isDarkMode())
+                showWay(nodesList, "#000000", needFly, darkModeForMap && isDarkMode())
                 nodesList.forEach(node => {
                     if (node.tags && Object.keys(node.tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
                         showNodeMarker(node.lat.toString(), node.lon.toString(), "rgb(161,161,161)", null, "customObjects", 3)
@@ -1758,7 +1758,7 @@ async function replaceDownloadRelationButton(btn, relationID) {
             const uniq_key = `${member.type} ${member.ref}`
             currentMembers.push(objectStates[uniq_key])
             if (member.type === "way") {
-                currentWaysNodes[member.ref] = cloneInto(
+                currentWaysNodes[member.ref] = intoPage(
                     objectStates[uniq_key].nodes.map(n => {
                         const objectState = objectStates[`node ${n}`]
                         if (!objectState) {
@@ -1766,7 +1766,6 @@ async function replaceDownloadRelationButton(btn, relationID) {
                         }
                         return objectState
                     }),
-                    unsafeWindow,
                 )
             }
             if (currentChanges[uniq_key] !== undefined) return
