@@ -13980,12 +13980,12 @@ function makeCrashReportText(err) {
     return `
   **Page:** ${location.origin}${location.pathname}
 
-  **Error:** \`${err.toString().replace("`", "\\`")}\`
+  **Error:** \`${err?.toString()?.replace("`", "\\`")}\`
 
   **StackTrace:**
 
   \`\`\`
-  ${err.stack.replace("`", "\\`").replaceAll(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gm, "<hidden>")}
+  ${err?.stack?.replace("`", "\\`")?.replaceAll(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gm, "<hidden>")}
   \`\`\`
 
   **Script handler:** \`${GM_info.scriptHandler} v${GM_info.version}\`
@@ -14701,7 +14701,7 @@ async function processQuickLookInSidebar(changesetID) {
                         labels: "bug,crash",
                     }).toString()
                 a.target = "_blank"
-                a.appendChild(document.createTextNode("Send Bug Report"))
+                a.appendChild(document.createTextNode("⚠️ Send Bug Report"))
                 a.title = "better-osm-org was unable to display some data"
                 return a
             }
