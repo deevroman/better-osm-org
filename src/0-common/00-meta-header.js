@@ -146,6 +146,7 @@
 // @connect      clarity.maptiles.arcgis.com
 // @connect      wayback.maptiles.arcgis.com
 // @connect      vector.openstreetmap.org
+// @connect      vtiles.openhistoricalmap.org
 // @connect      api.maptiler.com
 // @connect      map.atownsend.org.uk
 // @connect      tiles.openfreemap.org

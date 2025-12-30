@@ -145,6 +145,7 @@
 // @connect      clarity.maptiles.arcgis.com
 // @connect      wayback.maptiles.arcgis.com
 // @connect      vector.openstreetmap.org
+// @connect      vtiles.openhistoricalmap.org
 // @connect      api.maptiler.com
 // @connect      map.atownsend.org.uk
 // @connect      tiles.openfreemap.org
@@ -18976,6 +18977,7 @@ function simplifyHDCYIframe() {
  *  description: string,
  *  warn: string|undefined,
  *  onlyMobile: boolean|undefined,
+ *  disableOnOpenHistoricalMap: boolean|undefined,
  *  default: boolean|undefined,
  *  } } externalLink
  *  */
@@ -19296,6 +19298,9 @@ async function loadCurrentLinksList() {
             if (link.onlyMobile) {
                 return isMobile
             }
+            if (link.disableOnOpenHistoricalMap && isOHMServer()) {
+                return
+            }
             return true
         })
         await GM.setValue("user-external-links", JSON.stringify(externalLinks))
@@ -19449,6 +19454,9 @@ function addOtherExternalLinks(editorsListUl) {
     }
     externalLinksDatabase.forEach(link => {
         if (link.onlyMobile && !isMobile) {
+            return
+        }
+        if (link.disableOnOpenHistoricalMap && isOHMServer()) {
             return
         }
         processExternalLink(link, false, editorsListUl, false)

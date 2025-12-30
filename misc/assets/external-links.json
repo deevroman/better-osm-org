@@ -126,11 +126,6 @@
       "default": true
     },
     {
-      "name": "OpenTopoMap",
-      "template": "https://opentopomap.org/#map={zoom}/{latitude}/{longitude}",
-      "description": ""
-    },
-    {
       "name": "OSM-Streetlight \uD83D\uDCA1",
       "template": "https://sb12.github.io/OSMStreetLight/#{zoom}/{latitude}/{longitude}",
       "description": ""
@@ -174,6 +169,12 @@
       "warn": "don't use for mapping"
     },
     {
+      "name": "Mapy.com",
+      "template": "https://mapy.com?x={longitude}&y={latitude}&z={zoom}",
+      "description": "",
+      "warn": "don't use for mapping"
+    },
+    {
       "name": "wikimapia",
       "template": "https://wikimapia.org/#lang=ru&lat={latitude}&lon={longitude}&z={zoom}",
       "description": "",
@@ -183,6 +184,12 @@
       "name": "pastvu (retro photos)",
       "template": "https://pastvu.com/?g={latitude},{longitude}z={zoom}&s=osm&t=openstreetmap&type=1",
       "description": ""
+    },
+    {
+      "name": "OpenHistoricalMap",
+      "template": "https://www.openhistoricalmap.org/#map={zoom}/{latitude}/{longitude}",
+      "description": "",
+      "disableOnOpenHistoricalMap": true
     },
     {
       "name": "Bikerouter",
@@ -220,6 +227,11 @@
       "description": ""
     },
     {
+      "name": "OpenTopoMap",
+      "template": "https://opentopomap.org/#map={zoom}/{latitude}/{longitude}",
+      "description": ""
+    },
+    {
       "name": "Map of turn restrictions",
       "template": "https://ahorn.lima-city.de/tr/?zoom={zoom}&lat={latitude}&lon={longitude}&layer=Grayscale&overlays=TTT",
       "description": "QA"
@@ -237,17 +249,20 @@
     {
       "name": "Osmlab changeset map",
       "template": "https://osmlab.github.io/changeset-map/#{osm_changeset_id}",
-      "description": "Changeset-viewer"
+      "description": "Changeset-viewer",
+      "disableOnOpenHistoricalMap": true
     },
     {
       "name": "Changeset by Comparison Visualization (Neis)",
       "template": "https://resultmaps.neis-one.org/osm-change-viz?c={osm_changeset_id}",
-      "description": "Changeset-viewer"
+      "description": "Changeset-viewer",
+      "disableOnOpenHistoricalMap": true
     },
     {
       "name": "Level0",
       "template": "https://level0.osmz.ru/?url=changeset/{osm_changeset_id}",
-      "description": "Editor"
+      "description": "Editor",
+      "disableOnOpenHistoricalMap": true
     },
     {
       "name": "Lanes Map",
