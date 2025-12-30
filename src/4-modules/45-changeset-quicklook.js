@@ -1695,7 +1695,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
 
             const nextVersion = upperBoundVersion(objHistory, targetVersion.version)
             const nextVersionTimestamp = nextVersion?.visible === false ? minusSecondInStringTimestamp(nextVersion?.timestamp) : nextVersion?.timestamp
-            if (nextVersionTimestamp && !changesetMetadata) {
+            if (!changesetMetadata) {
                 changesetMetadata = await loadChangesetMetadata(parseInt(changesetID))
             }
             const notLater = !nextVersionTimestamp || new Date(nextVersionTimestamp) > new Date(changesetMetadata.closed_at) ? changesetMetadata.closed_at : nextVersionTimestamp
