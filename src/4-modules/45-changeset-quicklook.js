@@ -1426,7 +1426,6 @@ function maxDate(t1, t2) {
  * @param {NodeVersion[]|WayVersion[]|RelationVersion[]} objHistory
  */
 async function processObjectInteractions(changesetID, objType, objectsInComments, i, prevVersion, targetVersion, lastVersion, objHistory) {
-    let changesetMetadata = changesetMetadatas[targetVersion.changeset]
     if (!GM_config.get("ShowChangesetGeometry")) {
         i.parentElement.parentElement.classList.add("processed-object")
         return
@@ -1607,6 +1606,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
         const res = await fetchJSONorResWithCache(osm_server.apiBase + objType + "/" + objID + "/full.json", { signal: getAbortController().signal })
         // todo по-хорошему нужно проверять, а не успела ли измениться история линии
         // будет более актуально после добавление предзагрузки
+        let changesetMetadata = changesetMetadatas[targetVersion.changeset]
         const nowDeleted = res instanceof Response
         const dashArray = nowDeleted ? "4, 4" : null
         let lineWidth = nowDeleted ? 4 : 3
@@ -1695,7 +1695,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
 
             const nextVersion = upperBoundVersion(objHistory, targetVersion.version)
             const nextVersionTimestamp = nextVersion?.visible === false ? minusSecondInStringTimestamp(nextVersion?.timestamp) : nextVersion?.timestamp
-            if (!nextVersionTimestamp && !changesetMetadata) {
+            if (nextVersionTimestamp && !changesetMetadata) {
                 changesetMetadata = await loadChangesetMetadata(parseInt(changesetID))
             }
             const notLater = !nextVersionTimestamp || new Date(nextVersionTimestamp) > new Date(changesetMetadata.closed_at) ? changesetMetadata.closed_at : nextVersionTimestamp
