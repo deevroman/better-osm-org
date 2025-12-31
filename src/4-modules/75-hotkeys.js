@@ -1863,8 +1863,7 @@ https://vector.openstreetmap.org/styles/shortbread/graybeard.json
                     }
                 })
             } else {
-                const layers = `; ${document.cookie}`.split(`; _osm_location=`).pop().split(";").shift().split("|").at(-1)
-                const currentLayersIsVector = layers.includes("S") || layers.includes("V")
+                const currentLayersIsVector = vectorLayerEnabled()
                 const hashParams = new URLSearchParams(location.hash)
                 if (currentLayersIsVector) {
                     if (layers.includes("S")) {

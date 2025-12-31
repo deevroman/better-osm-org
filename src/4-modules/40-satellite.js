@@ -120,10 +120,13 @@ let lastEsriZoom = 0
 let lastEsriDate = ""
 
 function updateShotEsriDateNeeded() {
-    return lastEsriZoom !== parseInt(getCurrentXYZ()[2]) && SatellitePrefix === ESRIPrefix && isDebug()
+    return lastEsriZoom !== parseInt(getCurrentXYZ()[2]) && SatellitePrefix === ESRIPrefix
 }
 
 function addEsriDate() {
+    if (vectorLayerEnabled()) {
+        return
+    }
     console.debug("Updating imagery date")
     const [x, y, z] = getCurrentXYZ()
     const zoom = min(19, parseInt(z))
@@ -160,7 +163,7 @@ function addEsriPrefix() {
     } else {
         getMap()?.attributionControl?.setPrefix("ESRI")
     }
-    if (SatellitePrefix === ESRIPrefix && isDebug()) {
+    if (SatellitePrefix === ESRIPrefix) {
         addEsriDate()
     }
 }
@@ -260,38 +263,22 @@ function findVectorMap() {
     }
 }
 
+function vectorLayerEnabled() {
+    const layers = `; ${document.cookie}`.split(`; _osm_location=`).pop().split(";").shift().split("|").at(-1)
+    return layers.includes("S") || layers.includes("V")
+}
+
 function vectorSwitch() {
-    const enabledLayers = new URLSearchParams(location.hash).get("layers")
-    if (!enabledLayers || !enabledLayers.includes("S") && !enabledLayers.includes("V") && !document.querySelector("#map canvas")) {
+    if (!vectorLayerEnabled()) {
         return
     }
     const vectorMap = findVectorMap()
     if (currentTilesMode === SAT_MODE) {
-        // vectorMap.addSource("satellite", {
-        //     type: "raster",
-        //     tiles: [`${SatellitePrefix}{z}/{y}/{x}`],
-        //     tileSize: 256,
-        //     attribution: "Esri",
-        // })
-        // vectorMap.addSource("satellite", {
-        //     type: "raster",
-        //     tiles: [`https://geoscribble.osmz.ru/wms?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.1.1&SERVICE=WMS&REQUEST=GetMap&LAYERS=scribbles&STYLES=&SRS=EPSG:3857&WIDTH=512&HEIGHT=512&BBOX={bbox-epsg-3857}`],
-        //     tileSize: 512,
-        //     attribution: "geoscribble",
-        // })
-        // vectorMap.addSource("satellite", {
-        //     type: "raster",
-        //     tiles: [
-        //         `https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.3.0&SERVICE=WMS&REQUEST=GetMap&LAYERS=OI.OrthoimageCoverage&STYLES=&CRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}`,
-        //     ],
-        //     tileSize: 256,
-        //     attribution: "geoportal.dgu.hr",
-        // })
         if (vectorLayerOverlayUrl === null) {
             vectorLayerOverlayUrl = prompt(
                 `Enter tile URL template for maplibre.js. Examples:
 
-https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}` +
+https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?blankTile=false` +
                     (!isMobile
                         ? `
 
