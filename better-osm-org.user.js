@@ -3206,10 +3206,20 @@ function renderDirectionTag(lat, lon, values, color = c("#ff00e3")) {
         NNW: 337.0,
     }
     values.split(";").forEach(angleStr => {
-        const angle = cardinalToAngle[angleStr] !== undefined ? cardinalToAngle[angleStr] : parseFloat(angleStr)
-        if (!isNaN(angle)) {
-            drawRay(lat, lon, angle - 30, color)
-            drawRay(lat, lon, angle + 30, color)
+        if (angleStr.slice(1).includes("-")) {
+            const [firstAngleStr, remAngleStr] = angleStr.split("-")
+            const firstAngle = cardinalToAngle[firstAngleStr] !== undefined ? cardinalToAngle[firstAngleStr] : parseFloat(firstAngleStr)
+            const remAngle = cardinalToAngle[remAngleStr] !== undefined ? cardinalToAngle[remAngleStr] : parseFloat(remAngleStr)
+            if (!isNaN(firstAngle) && !isNaN(remAngle)) {
+                drawRay(lat, lon, firstAngle, color)
+                drawRay(lat, lon, remAngle, color)
+            }
+        } else {
+            const angle = cardinalToAngle[angleStr] !== undefined ? cardinalToAngle[angleStr] : parseFloat(angleStr)
+            if (!isNaN(angle)) {
+                drawRay(lat, lon, angle - 30, color)
+                drawRay(lat, lon, angle + 30, color)
+            }
         }
     })
 }
