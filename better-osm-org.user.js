@@ -2792,6 +2792,99 @@ async function checkAAA(AAA, targetTime, targetChangesetID) {
     return foundedChangeset
 }
 
+/**
+ * @param {string} datetime
+ * @return {Promise<{user: string|null, uid: string|null}>}
+ */
+async function tryFindDeletedChangesetAuthorViaOverpass(datetime) {
+    let foundedChangesetXml
+    const match = location.pathname.match(/\/(node|way|relation|changeset)\/(\d+)/)
+    let [, type, objID] = match
+    if (type === "changeset") {
+        const ch = (await getChangeset(objID)).data
+        type = ch.querySelector(`[changeset="${objID}"]`).nodeName
+        objID = ch.querySelector(`[changeset="${objID}"]`).getAttribute("id")
+    }
+    if (new Date(datetime) > OVERPASS_NEW_ERA_DATE) {
+        if (type === "node") {
+            foundedChangesetXml = await getNodeViaOverpassXML(objID, datetime)
+        } else if (type === "way") {
+            foundedChangesetXml = await getWayViaOverpassXML(objID, datetime)
+        } else if (type === "relation") {
+            foundedChangesetXml = await getRelationViaOverpassXML(objID, datetime)
+        }
+    }
+    if (!foundedChangesetXml?.getAttribute("user")) {
+        foundedChangesetXml = null
+        console.log("Loading via overpass failed. Try via diffs")
+    }
+    return {
+        user: foundedChangesetXml?.getAttribute("user"),
+        uid: foundedChangesetXml?.getAttribute("uid"),
+    }
+}
+/**
+ * @param {string} datetime
+ * @param {number} targetChangesetID
+ * @return {Promise<{user: string|null, uid: string|null}>}
+ */
+async function tryFindDeletedChangesetAuthorViaDiffs(datetime, targetChangesetID) {
+    if (new Date(datetime) < OVERPASS_NEW_ERA_DATE) {
+        return { user: null, uid: null }
+    }
+    const response = await externalFetchRetry({
+        method: "GET",
+        url: planetOrigin + "/replication/changesets/",
+    })
+    const AAAHTML = new DOMParser().parseFromString(response.responseText, "text/html")
+    const targetTime = new Date(datetime)
+    targetTime.setSeconds(0)
+
+    const a = Array.from(AAAHTML.querySelector("pre").childNodes).slice(2).slice(0, -4)
+    a.push(...a.slice(-2))
+    let x = 0
+    for (x; x < a.length - 2; x += 2) {
+        const d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim())
+        if (targetTime < d) break
+    }
+    let AAAs
+    if (x === 0) {
+        AAAs = [a[x].getAttribute("href"), a[x].getAttribute("href")]
+    } else {
+        AAAs = [a[x - 2].getAttribute("href"), a[x].getAttribute("href")]
+    }
+
+    let foundedChangeset = await checkAAA(AAAs[0], targetTime, targetChangesetID)
+    if (!foundedChangeset) {
+        foundedChangeset = await checkAAA(AAAs[1], targetTime, targetChangesetID)
+    }
+    return {
+        user: foundedChangeset?.getAttribute("user"),
+        uid: foundedChangeset?.getAttribute("uid"),
+    }
+}
+
+/**
+ * @param {string} datetime
+ * @param {number} targetChangesetID
+ * @return {Promise<{user: string|null, uid: string|null}>}
+ */
+async function tryFindDeletedChangesetAuthorViaWhosthat(datetime, targetChangesetID) {
+    const userID = (await loadChangesetMetadata(targetChangesetID)).uid
+
+    const res = await externalFetchRetry({
+        url: "https://whosthat.osmz.ru/whosthat.php?action=names&id=" + userID,
+        responseType: "json",
+    })
+    // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
+    // but here need resolve problem with return promise
+    const userInfo = structuredClone(res.response)
+    if (userInfo?.[0]?.["names"]?.length > 1) {
+        return { user: userInfo[0]["names"][0], uid: userID }
+    }
+    return { user: null, uid: null }
+}
+
 // tests
 // https://osm.org/way/488322838/history
 // https://osm.org/way/74034517/history
@@ -2799,71 +2892,30 @@ async function checkAAA(AAA, targetTime, targetChangesetID) {
 // https://osm.org/way/554280669/history
 // https://osm.org/node/4122049406 (/replication/changesets/005/638/ contains .tmp files)
 // https://osm.org/node/2/history (very hard)
+// https://osm.org/changeset/5427478
 async function findChangesetInDiff(e) {
     e.preventDefault()
     e.stopPropagation()
     e.target.style.cursor = "progress"
 
-    let foundedChangeset
-    try {
-        const match = location.pathname.match(/\/(node|way|relation|changeset)\/(\d+)/)
-        let [, type, objID] = match
-        if (type === "changeset") {
-            const ch = (await getChangeset(objID)).data
-            type = ch.querySelector(`[changeset="${objID}"]`).nodeName
-            objID = ch.querySelector(`[changeset="${objID}"]`).getAttribute("id")
-        }
-        if (type === "node") {
-            foundedChangeset = await getNodeViaOverpassXML(objID, e.target.datetime)
-        } else if (type === "way") {
-            foundedChangeset = await getWayViaOverpassXML(objID, e.target.datetime)
-        } else if (type === "relation") {
-            foundedChangeset = await getRelationViaOverpassXML(objID, e.target.datetime)
-        }
-        if (!foundedChangeset?.getAttribute("user")) {
-            foundedChangeset = null
-            console.log("Loading via overpass failed. Try via diffs")
-            throw ""
-        }
-    } catch {
-        const response = await externalFetchRetry({
-            method: "GET",
-            url: planetOrigin + "/replication/changesets/",
-        })
-        const parser = new DOMParser()
-        const AAAHTML = parser.parseFromString(response.responseText, "text/html")
-        const targetTime = new Date(e.target.datetime)
-        targetTime.setSeconds(0)
-        const targetChangesetID = e.target.value
-
-        const a = Array.from(AAAHTML.querySelector("pre").childNodes).slice(2).slice(0, -4)
-        a.push(...a.slice(-2))
-        let x = 0
-        for (x; x < a.length - 2; x += 2) {
-            const d = new Date(a[x + 1].textContent.trim().slice(0, -1).trim())
-            if (targetTime < d) break
-        }
-        let AAAs
-        if (x === 0) {
-            AAAs = [a[x].getAttribute("href"), a[x].getAttribute("href")]
-        } else {
-            AAAs = [a[x - 2].getAttribute("href"), a[x].getAttribute("href")]
-        }
-
-        foundedChangeset = await checkAAA(AAAs[0], targetTime, targetChangesetID)
-        if (!foundedChangeset) {
-            foundedChangeset = await checkAAA(AAAs[1], targetTime, targetChangesetID)
-        }
-        if (!foundedChangeset) {
-            alert(":(")
-            return
+    const changesetID = parseInt(e.target.value)
+    let foundedInfo = await tryFindDeletedChangesetAuthorViaOverpass(e.target.datetime)
+    if (!foundedInfo.user) {
+        foundedInfo = await tryFindDeletedChangesetAuthorViaDiffs(e.target.datetime, changesetID)
+        if (!foundedInfo.user) {
+            foundedInfo = await tryFindDeletedChangesetAuthorViaWhosthat(e.target.datetime, changesetID)
+            if (!foundedInfo.user) {
+                alert(":(")
+                e.target.style.cursor = "pointer"
+                return
+            }
         }
     }
-
+    let { user: foundedUser, uid: foundedUserUid } = foundedInfo
     const userInfo = document.createElement("a")
-    userInfo.setAttribute("href", "/user/" + foundedChangeset.getAttribute("user"))
+    userInfo.setAttribute("href", "/user/" + foundedUser)
     userInfo.style.cursor = "pointer"
-    userInfo.textContent = foundedChangeset.getAttribute("user")
+    userInfo.textContent = foundedUser
 
     e.target.before(document.createTextNode("\xA0"))
     e.target.before(userInfo)
@@ -2873,10 +2925,10 @@ async function findChangesetInDiff(e) {
     uid.style.cursor = "pointer"
     uid.title = "Click for copy user ID"
     uid.onclick = e => {
-        const text = foundedChangeset.getAttribute("uid")
+        const text = foundedUserUid
         navigator.clipboard.writeText(text).then(() => copyAnimation(e, text))
     }
-    uid.textContent = `${foundedChangeset.getAttribute("uid")}`
+    uid.textContent = foundedUserUid
 
     e.target.before(document.createTextNode("ID: "))
     e.target.before(uid)
@@ -2885,7 +2937,7 @@ async function findChangesetInDiff(e) {
     const webArchiveLink = document.createElement("a")
     webArchiveLink.textContent = "WebArchive"
     webArchiveLink.target = "_blank"
-    webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + foundedChangeset.getAttribute("user")
+    webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + foundedUser
     e.target.before(webArchiveLink)
     e.target.before(document.createTextNode("\xA0"))
 
