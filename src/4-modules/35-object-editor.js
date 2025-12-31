@@ -21,6 +21,8 @@ function addDeleteButton() {
         if (document.querySelectorAll("#sidebar_content > div:first-of-type h4").length < 2 && document.querySelector("#sidebar_content > div .latitude") === null) {
             return
         }
+    } else if (object_type === "way") {
+
     } else if (object_type === "relation") {
         if (document.querySelectorAll("#sidebar_content > div:first-of-type h4").length < 2) {
             return
@@ -200,7 +202,7 @@ function addDeleteButton() {
 }
 
 function setupDeletor(path) {
-    if (!path.startsWith("/node/") && !path.startsWith("/relation/")) return
+    if (!path.startsWith("/node/") && /*!path.startsWith("/way/") &&*/ path.startsWith("/relation/")) return
     const timerId = setInterval(addDeleteButton, 100)
     setTimeout(() => {
         clearInterval(timerId)
