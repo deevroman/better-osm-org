@@ -2880,6 +2880,7 @@ async function tryFindDeletedChangesetAuthorViaWhosthat(datetime, targetChangese
     // but here need resolve problem with return promise
     const userInfo = structuredClone(res.response)
     if (userInfo?.[0]?.["names"]?.length > 1) {
+        // todo what if multiple names?
         return { user: userInfo[0]["names"][0], uid: userID }
     }
     return { user: null, uid: null }
