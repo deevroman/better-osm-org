@@ -92,7 +92,7 @@ function setupNodeVersionView() {
             versionDiv.querySelectorAll(".browse-tag-list tr").forEach(row => {
                 const key = row.querySelector("th")?.textContent?.toLowerCase()
                 if (!key) return
-                if (key === "direction" || key === "camera:direction") {
+                if (key === "direction" || key === "camera:direction" || key === "light:direction") {
                     renderDirectionTag(parseFloat(lat), parseFloat(lon), row.querySelector("td").textContent, c("#ff00e3"))
                     row.onmouseenter = () => {
                         renderDirectionTag(parseFloat(lat), parseFloat(lon), row.querySelector("td").textContent, c("#ff00e3"))

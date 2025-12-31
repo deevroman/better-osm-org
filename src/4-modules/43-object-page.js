@@ -329,7 +329,7 @@ function makeLinksInVersionTagsClickable() {
             }
         } else if (key === "wikimedia_commons") {
             makeWikimediaCommonsValue(valueCell)
-        } else if (key === "direction" || key === "camera:direction") {
+        } else if (key === "direction" || key === "camera:direction" || key === "light:direction") {
             const coords = row.parentElement.parentElement.parentElement.parentElement.querySelector("span.latitude")
             if (coords) {
                 const lat = coords.textContent.replace(",", ".")

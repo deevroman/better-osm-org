@@ -1457,14 +1457,14 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             if (targetVersion.visible === false) {
                 if (prevVersion.visible !== false) {
                     showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), c("#0022ff"))
-                    const direction = prevVersion.tags?.["direction"] ?? prevVersion.tags?.["camera:direction"]
+                    const direction = prevVersion.tags?.["direction"] ?? prevVersion.tags?.["camera:direction"] ?? prevVersion.tags?.["light:direction"]
                     if (direction) {
                         renderDirectionTag(prevVersion.lat, prevVersion.lon, direction, c("#0022ff"))
                     }
                 }
             } else {
                 showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), c("#ff00e3"))
-                const direction = targetVersion.tags?.["direction"] ?? targetVersion.tags?.["camera:direction"]
+                const direction = targetVersion.tags?.["direction"] ?? targetVersion.tags?.["camera:direction"] ?? targetVersion.tags?.["light:direction"]
                 if (direction) {
                     renderDirectionTag(targetVersion.lat, targetVersion.lon, direction, c("#ff00e3"))
                 }
@@ -1504,18 +1504,18 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 )
                 showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), c("#0022ff"), true)
                 showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), c("#ff00e3"), false)
-                const direction = prevVersion.tags?.["direction"] ?? prevVersion.tags?.["camera:direction"]
+                const direction = prevVersion.tags?.["direction"] ?? prevVersion.tags?.["camera:direction"] ?? prevVersion.tags?.["light:direction"]
                 if (direction) {
                     renderDirectionTag(prevVersion.lat, prevVersion.lon, direction, c("#0022ff"))
                 }
-                const newDirection = targetVersion.tags?.["direction"] ?? targetVersion.tags?.["camera:direction"]
+                const newDirection = targetVersion.tags?.["direction"] ?? targetVersion.tags?.["camera:direction"] ?? targetVersion.tags?.["light:direction"]
                 if (direction) {
                     renderDirectionTag(targetVersion.lat, targetVersion.lon, newDirection, c("#ff00e3"))
                 }
             } else if (targetVersion.visible === false) {
                 panTo(prevVersion.lat.toString(), prevVersion.lon.toString(), 18, false)
                 showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), c("#0022ff"), true)
-                const direction = prevVersion.tags?.["direction"] ?? prevVersion.tags?.["camera:direction"]
+                const direction = prevVersion.tags?.["direction"] ?? prevVersion.tags?.["camera:direction"] ?? prevVersion.tags?.["light:direction"]
                 if (direction) {
                     renderDirectionTag(prevVersion.lat, prevVersion.lon, direction, c("#0022ff"))
                 }
@@ -1555,7 +1555,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                     panTo(targetVersion.lat.toString(), targetVersion.lon.toString(), 18, false)
                 }
                 showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), c("#ff00e3"), true)
-                const direction = targetVersion.tags?.["direction"] ?? targetVersion.tags?.["camera:direction"]
+                const direction = targetVersion.tags?.["direction"] ?? targetVersion.tags?.["camera:direction"] ?? targetVersion.tags?.["light:direction"]
                 if (direction) {
                     renderDirectionTag(targetVersion.lat, targetVersion.lon, direction, c("#ff00e3"))
                 }
