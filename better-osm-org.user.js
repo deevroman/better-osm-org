@@ -14572,11 +14572,12 @@ async function processQuickLookInSidebar(changesetID) {
             const nodesCount = changesetData.querySelectorAll(`node`)
             for (const i of changesetData.querySelectorAll(`node[version="1"]`)) {
                 const nodeID = i.getAttribute("id")
+                const nodeVersion = i.getAttribute("version")
                 if (!i.querySelector("tag")) {
                     if (i.getAttribute("visible") === "false") {
                         // todo
                     } else if (i.getAttribute("version") === "1" && !(await getChangeset(parseInt(changesetID))).nodesWithParentWays.has(parseInt(nodeID))) {
-                        showNodeMarker(i.getAttribute("lat"), i.getAttribute("lon"), "#00a500", `${changesetID}n${nodeID}v${targetVersion.version}`)
+                        showNodeMarker(i.getAttribute("lat"), i.getAttribute("lon"), "#00a500", `${changesetID}n${nodeID}v${nodeVersion}`)
                     }
                 }
             }
