@@ -31,6 +31,10 @@
       "description": "rendering the direction of the surveillance camera on the map"
     },
     {
+      "key": "light:direction",
+      "description": "rendering the direction of the street lamp on the map"
+    },
+    {
       "key": "opening_hours",
       "description": "highlighting errors in tag syntax via opeining_hours.js"
     },

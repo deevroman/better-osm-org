@@ -3207,6 +3207,9 @@ function renderDirectionTag(lat, lon, values, color = c("#ff00e3")) {
     }
     values.split(";").forEach(angleStr => {
         if (angleStr.slice(1).includes("-")) {
+            if (angleStr === "0-360") {
+                return
+            }
             const [firstAngleStr, remAngleStr] = angleStr.split("-")
             const firstAngle = cardinalToAngle[firstAngleStr] !== undefined ? cardinalToAngle[firstAngleStr] : parseFloat(firstAngleStr)
             const remAngle = cardinalToAngle[remAngleStr] !== undefined ? cardinalToAngle[remAngleStr] : parseFloat(remAngleStr)
@@ -7604,7 +7607,7 @@ function makeLinksInVersionTagsClickable() {
             }
         } else if (key === "wikimedia_commons") {
             makeWikimediaCommonsValue(valueCell)
-        } else if (key === "direction" || key === "camera:direction") {
+        } else if (key === "direction" || key === "camera:direction" || key === "light:direction") {
             const coords = row.parentElement.parentElement.parentElement.parentElement.querySelector("span.latitude")
             if (coords) {
                 const lat = coords.textContent.replace(",", ".")
@@ -7979,7 +7982,7 @@ function setupNodeVersionView() {
             versionDiv.querySelectorAll(".browse-tag-list tr").forEach(row => {
                 const key = row.querySelector("th")?.textContent?.toLowerCase()
                 if (!key) return
-                if (key === "direction" || key === "camera:direction") {
+                if (key === "direction" || key === "camera:direction" || key === "light:direction") {
                     renderDirectionTag(parseFloat(lat), parseFloat(lon), row.querySelector("td").textContent, c("#ff00e3"))
                     row.onmouseenter = () => {
                         renderDirectionTag(parseFloat(lat), parseFloat(lon), row.querySelector("td").textContent, c("#ff00e3"))
@@ -13022,14 +13025,14 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             if (targetVersion.visible === false) {
                 if (prevVersion.visible !== false) {
                     showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), c("#0022ff"))
-                    const direction = prevVersion.tags?.["direction"] ?? prevVersion.tags?.["camera:direction"]
+                    const direction = prevVersion.tags?.["direction"] ?? prevVersion.tags?.["camera:direction"] ?? prevVersion.tags?.["light:direction"]
                     if (direction) {
                         renderDirectionTag(prevVersion.lat, prevVersion.lon, direction, c("#0022ff"))
                     }
                 }
             } else {
                 showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), c("#ff00e3"))
-                const direction = targetVersion.tags?.["direction"] ?? targetVersion.tags?.["camera:direction"]
+                const direction = targetVersion.tags?.["direction"] ?? targetVersion.tags?.["camera:direction"] ?? targetVersion.tags?.["light:direction"]
                 if (direction) {
                     renderDirectionTag(targetVersion.lat, targetVersion.lon, direction, c("#ff00e3"))
                 }
@@ -13069,18 +13072,18 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 )
                 showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), c("#0022ff"), true)
                 showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), c("#ff00e3"), false)
-                const direction = prevVersion.tags?.["direction"] ?? prevVersion.tags?.["camera:direction"]
+                const direction = prevVersion.tags?.["direction"] ?? prevVersion.tags?.["camera:direction"] ?? prevVersion.tags?.["light:direction"]
                 if (direction) {
                     renderDirectionTag(prevVersion.lat, prevVersion.lon, direction, c("#0022ff"))
                 }
-                const newDirection = targetVersion.tags?.["direction"] ?? targetVersion.tags?.["camera:direction"]
+                const newDirection = targetVersion.tags?.["direction"] ?? targetVersion.tags?.["camera:direction"] ?? targetVersion.tags?.["light:direction"]
                 if (direction) {
                     renderDirectionTag(targetVersion.lat, targetVersion.lon, newDirection, c("#ff00e3"))
                 }
             } else if (targetVersion.visible === false) {
                 panTo(prevVersion.lat.toString(), prevVersion.lon.toString(), 18, false)
                 showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), c("#0022ff"), true)
-                const direction = prevVersion.tags?.["direction"] ?? prevVersion.tags?.["camera:direction"]
+                const direction = prevVersion.tags?.["direction"] ?? prevVersion.tags?.["camera:direction"] ?? prevVersion.tags?.["light:direction"]
                 if (direction) {
                     renderDirectionTag(prevVersion.lat, prevVersion.lon, direction, c("#0022ff"))
                 }
@@ -13120,7 +13123,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                     panTo(targetVersion.lat.toString(), targetVersion.lon.toString(), 18, false)
                 }
                 showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), c("#ff00e3"), true)
-                const direction = targetVersion.tags?.["direction"] ?? targetVersion.tags?.["camera:direction"]
+                const direction = targetVersion.tags?.["direction"] ?? targetVersion.tags?.["camera:direction"] ?? targetVersion.tags?.["light:direction"]
                 if (direction) {
                     renderDirectionTag(targetVersion.lat, targetVersion.lon, direction, c("#ff00e3"))
                 }

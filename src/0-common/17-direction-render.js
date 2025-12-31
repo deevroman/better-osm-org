@@ -32,6 +32,9 @@ function renderDirectionTag(lat, lon, values, color = c("#ff00e3")) {
     }
     values.split(";").forEach(angleStr => {
         if (angleStr.slice(1).includes("-")) {
+            if (angleStr === "0-360") {
+                return
+            }
             const [firstAngleStr, remAngleStr] = angleStr.split("-")
             const firstAngle = cardinalToAngle[firstAngleStr] !== undefined ? cardinalToAngle[firstAngleStr] : parseFloat(firstAngleStr)
             const remAngle = cardinalToAngle[remAngleStr] !== undefined ? cardinalToAngle[remAngleStr] : parseFloat(remAngleStr)
