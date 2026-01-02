@@ -1866,7 +1866,7 @@ https://vector.openstreetmap.org/styles/shortbread/graybeard.json
                 const currentLayersIsVector = vectorLayerEnabled()
                 const hashParams = new URLSearchParams(location.hash)
                 if (currentLayersIsVector) {
-                    if (layers.includes("S")) {
+                    if (getCurrentLayers().includes("S")) {
                         hashParams.set("layers", (hashParams.get("layers") ?? "").replace("S", "").replace("V", "") + "M")
                     } else {
                         hashParams.set("layers", (hashParams.get("layers") ?? "").replace("V", "") + "S")

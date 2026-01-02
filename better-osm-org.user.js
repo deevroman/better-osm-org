@@ -6837,8 +6837,11 @@ function findVectorMap() {
     }
 }
 
+function getCurrentLayers() {
+    return `; ${document.cookie}`.split(`; _osm_location=`).pop().split(";").shift().split("|").at(-1);
+}
 function vectorLayerEnabled() {
-    const layers = `; ${document.cookie}`.split(`; _osm_location=`).pop().split(";").shift().split("|").at(-1)
+    const layers = getCurrentLayers()
     return layers.includes("S") || layers.includes("V")
 }
 
@@ -22975,7 +22978,7 @@ https://vector.openstreetmap.org/styles/shortbread/graybeard.json
                 const currentLayersIsVector = vectorLayerEnabled()
                 const hashParams = new URLSearchParams(location.hash)
                 if (currentLayersIsVector) {
-                    if (layers.includes("S")) {
+                    if (getCurrentLayers().includes("S")) {
                         hashParams.set("layers", (hashParams.get("layers") ?? "").replace("S", "").replace("V", "") + "M")
                     } else {
                         hashParams.set("layers", (hashParams.get("layers") ?? "").replace("V", "") + "S")
