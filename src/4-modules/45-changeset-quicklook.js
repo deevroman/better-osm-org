@@ -2603,6 +2603,7 @@ async function processQuickLookInSidebar(changesetID) {
         }
 
         // reorder non-interesting-objects
+        // todo potential crash
         const objectsList = document.querySelector(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li`).parentElement
         Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li.tags-uninterested-modified.location-modified`)).forEach(i => {
             objectsList.appendChild(i)

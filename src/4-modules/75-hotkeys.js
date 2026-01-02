@@ -1835,7 +1835,7 @@ End with ! for global search
                     Array.from(document.querySelectorAll(".layers-ui .base-layers label")).at(-2).click()
                 }
                 setTimeout(async () => {
-                    vectorLayerUrl = prompt(
+                    vectorLayerStyleUrl = prompt(
                         `Enter URL with style.json for maplibre.js. Examples:
 
 https://map.atownsend.org.uk/vector/style_svwd03.json
@@ -1852,14 +1852,15 @@ https://vector.openstreetmap.org/styles/shortbread/shadow.json
 
 https://vector.openstreetmap.org/styles/shortbread/graybeard.json
 `,
-                        lastVectorLayerUrl ?? "",
+                        lastVectorLayerStyleUrl ?? "",
                     )
-                    if (vectorLayerUrl) {
-                        lastVectorLayerUrl = vectorLayerUrl
-                        void GM.setValue("lastVectorLayerUrl", lastVectorLayerUrl)
-                        getWindow().customVectorLayer = new URL(vectorLayerUrl).origin
-                        await loadExternalVectorStyle(vectorLayerUrl)
-                        findVectorMap().setStyle(vectorLayerUrl)
+                    if (vectorLayerStyleUrl) {
+                        lastVectorLayerStyleUrl = vectorLayerStyleUrl
+                        void GM.setValue("lastVectorLayerStyleUrl", lastVectorLayerStyleUrl)
+                        getWindow().customVectorStyleLayer = lastVectorLayerStyleUrlOrigin = new URL(vectorLayerStyleUrl).origin
+                        initCustomFetch()
+                        await loadExternalVectorStyle(vectorLayerStyleUrl)
+                        findVectorMap().setStyle(vectorLayerStyleUrl)
                     }
                 })
             } else {
