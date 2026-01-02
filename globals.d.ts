@@ -26,8 +26,6 @@ declare const osmAuth
 // declare const GM_info: Tampermonkey.ScriptInfo
 // declare const GM_config: GM_configStruct
 // declare const GM_addElement: Tampermonkey.GM_addElement
-// declare const GM_listValues
-// declare const GM_deleteValue
 // declare const GM_getResourceURL
 // declare const GM_getResourceText
 // declare const GM_registerMenuCommand

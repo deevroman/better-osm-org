@@ -101,9 +101,9 @@
 // @incompatible safari https://github.com/deevroman/better-osm-org/issues/13
 // @grant        GM.getValue
 // @grant        GM.setValue
+// @grant        GM.listValues
+// @grant        GM.deleteValue
 // @grant        GM_registerMenuCommand
-// @grant        GM_listValues
-// @grant        GM_deleteValue
 // @grant        GM_getResourceURL
 // @grant        GM_getResourceText
 // @grant        GM_addElement
