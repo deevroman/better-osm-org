@@ -4,8 +4,6 @@
 /*global GM_info*/
 /*global GM_config*/
 /*global GM_addElement*/
-/*global GM_listValues*/
-/*global GM_deleteValue*/
 /*global GM_getResourceURL*/
 /*global GM_getResourceText*/
 /*global GM_registerMenuCommand*/
