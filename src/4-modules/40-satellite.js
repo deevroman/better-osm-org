@@ -263,8 +263,11 @@ function findVectorMap() {
     }
 }
 
+function getCurrentLayers() {
+    return `; ${document.cookie}`.split(`; _osm_location=`).pop().split(";").shift().split("|").at(-1);
+}
 function vectorLayerEnabled() {
-    const layers = `; ${document.cookie}`.split(`; _osm_location=`).pop().split(";").shift().split("|").at(-1)
+    const layers = getCurrentLayers()
     return layers.includes("S") || layers.includes("V")
 }
 
