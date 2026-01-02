@@ -6821,11 +6821,13 @@ async function loadExternalVectorStyle(url) {
 
 let vectorLayerOverlayUrl = null
 let lastVectorLayerOverlayUrl = null
+let lastVectorLayerOverlayUrlOrigin = null
 GM.getValue("lastVectorLayerOverlayUrl").then(res => (lastVectorLayerOverlayUrl = res))
 
-let vectorLayerUrl = null
-let lastVectorLayerUrl = null
-GM.getValue("lastVectorLayerUrl").then(res => (lastVectorLayerUrl = res))
+let vectorLayerStyleUrl = null
+let lastVectorLayerStyleUrl = null
+let lastVectorLayerStyleUrlOrigin = null
+GM.getValue("lastVectorLayerStyleUrl").then(res => (lastVectorLayerStyleUrl = res))
 
 function findVectorMap() {
     for (const i of getWindow().mapGL) {
@@ -6835,9 +6837,13 @@ function findVectorMap() {
     }
 }
 
+/**
+ * @return {string}
+ */
 function getCurrentLayers() {
-    return `; ${document.cookie}`.split(`; _osm_location=`).pop().split(";").shift().split("|").at(-1);
+    return `; ${document.cookie}`.split(`; _osm_location=`).pop().split(";").shift().split("|").at(-1)
 }
+
 function vectorLayerEnabled() {
     const layers = getCurrentLayers()
     return layers.includes("S") || layers.includes("V")
@@ -6866,7 +6872,7 @@ https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/
             if (vectorLayerOverlayUrl) {
                 lastVectorLayerOverlayUrl = vectorLayerOverlayUrl
                 void GM.setValue("lastVectorLayerOverlayUrl", lastVectorLayerOverlayUrl)
-                getWindow().customLayer = new URL(vectorLayerOverlayUrl).origin
+                getWindow().customLayer = lastVectorLayerOverlayUrlOrigin = new URL(vectorLayerOverlayUrl).origin
             } else {
                 return
             }
@@ -6878,7 +6884,7 @@ https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/
                     type: "raster",
                     tiles: [vectorLayerOverlayUrl],
                     tileSize: 256,
-                    attribution: "geoportal.dgu.hr",
+                    attribution: "",
                 }),
             )
             vectorMap.addLayer(
@@ -14214,6 +14220,7 @@ async function processQuickLookInSidebar(changesetID) {
         }
 
         // reorder non-interesting-objects
+        // todo potential crash
         const objectsList = document.querySelector(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li`).parentElement
         Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li.tags-uninterested-modified.location-modified`)).forEach(i => {
             objectsList.appendChild(i)
@@ -16092,12 +16099,18 @@ function setupMakeVersionPageBetter() {
 //</editor-fold>
 
 //<editor-fold desc="in-osm-page-code" defaultstate="collapsed">
+
+function allowedCspBridgeOrigin(origin) {
+    return origin === prod_server.origin || origin === dev_server.origin || origin === ohm_prod_server.origin
+}
+
 function initCspBridge() {
     window.addEventListener("message", async e => {
-        if (!getWindow().customLayer && !getWindow().customVectorLayer) {
+        if (!lastVectorLayerOverlayUrlOrigin && !lastVectorLayerStyleUrlOrigin) {
             return
         }
         if (e.origin !== location.origin) return
+        if (!allowedCspBridgeOrigin(e.origin)) return
         if (e.data.type !== "bypass_csp") {
             return
         }
@@ -16123,6 +16136,8 @@ function initCspBridge() {
     })
 }
 
+let initCustomFetch
+
 function initMaplibreWorkerOverrider() {
     window.addEventListener("message", async e => {
         if (e.origin !== location.origin) {
@@ -16131,34 +16146,43 @@ function initMaplibreWorkerOverrider() {
         if (e.data.type !== "create_worker") {
             return
         }
-        boWindowObject.maplibreOverridedWorker.onmessage = intoPageWithFun(async e => {
+        const worker = boWindowObject.maplibreOverriddenWorker
+        worker.onmessage = intoPageWithFun(async e => {
             if (e.data.type !== "bypass_csp") {
                 return
             }
             // console.log(e.data)
-            const res = await GM.xmlHttpRequest({
-                url: e.data.url,
-                responseType: "blob",
-                headers: {
-                    Origin: location.origin,
-                    Referer: location.origin + "/",
-                },
-            })
-            boWindowObject.maplibreOverridedWorker.postMessage(
-                cloneInto(
-                    {
-                        type: "bypass_csp_response",
-                        url: e.data.url,
-                        data: {
-                            status: res.status,
-                            statusText: res.statusText,
-                            response: res.response,
-                        },
+            if (!lastVectorLayerStyleUrlOrigin && !lastVectorLayerStyleUrlOrigin) {
+            } else {
+                const res = await GM.xmlHttpRequest({
+                    url: e.data.url,
+                    responseType: "blob",
+                    headers: {
+                        Origin: location.origin,
+                        Referer: location.origin + "/",
                     },
-                    boWindowObject,
-                ),
-            )
+                })
+                worker.postMessage(
+                    cloneInto(
+                        {
+                            type: "bypass_csp_response",
+                            url: e.data.url,
+                            data: {
+                                status: res.status,
+                                statusText: res.statusText,
+                                response: res.response,
+                            },
+                        },
+                        boWindowObject,
+                    ),
+                )
+            }
         })
+        initCustomFetch = () => {
+            worker.postMessage({ type: "init_custom_fetch" })
+        }
+        delete boWindowObject.maplibreOverriddenWorker
+        // лучше убрать воркер из глобального скоупа
     })
 }
 if ([prod_server.origin, dev_server.origin, local_server.origin, ohm_prod_server.origin].includes(location.origin)) {
@@ -16182,7 +16206,13 @@ function runInOsmPageCode() {
     const OriginalWorker = window.Worker
     window.Worker = function (url, options) {
         const fetchCode = "const originalFetch = self.fetch;" +
+            "let customFetchEnabled = false;" +
+            "self.addEventListener('message', (e) => {" +
+            "    if (e.data.type !== 'init_custom_fetch') { return; } " +
+            "    customFetchEnabled = true;" +
+            "});" +
             "self.fetch = async (...args) => {" +
+            "   if (!customFetchEnabled || args.length > 1) return await originalFetch(...args);" +
             "   const url = args[0].url;" +
             "   const resultCallback = new Promise((resolve, reject) => {" +
             "       console.log('fetch in worker', url);" +
@@ -16195,17 +16225,16 @@ function runInOsmPageCode() {
             "   self.postMessage({ type: 'bypass_csp', url: url });" +
             "   const res = await resultCallback;" +
             "   return new Response(res.response, { status: res.status, statusText: res.statusText });" +
-            "   /*return originalFetch(...args);*/" +
             "};"
         const proxyUrl = URL.createObjectURL(
             new OriginalBlob([fetchCode + window.maplibreWorkerSourceCode], { type: "application/javascript" }),
         )
         console.count("newWorkerCounter")
-        const maplibreOverridedWorker = new OriginalWorker(proxyUrl, options);
-        window.maplibreOverridedWorker = maplibreOverridedWorker
+        const maplibreOverriddenWorker = new OriginalWorker(proxyUrl, options);
+        window.maplibreOverriddenWorker = maplibreOverriddenWorker
         window.postMessage({ type: "create_worker" }, location.origin)
 
-        return maplibreOverridedWorker
+        return maplibreOverriddenWorker
     }
         
     const originalFetch = window.fetch;
@@ -16223,7 +16252,7 @@ function runInOsmPageCode() {
     window.notesIDsFilter = new Set();
 
     window.customLayer = null
-    window.customVectorLayer = null
+    window.customVectorStyleLayer = null
 
     // const cache = new Map();
 
@@ -16418,9 +16447,9 @@ function runInOsmPageCode() {
                     status: res.status,
                     statusText: res.statusText,
                 });
-            } else if (window.customVectorLayer && (window.customVectorLayer.startsWith("http://localhost") || args?.[0]?.url?.startsWith?.(window.customVectorLayer))) {
+            } else if (window.customVectorStyleLayer && (window.customVectorStyleLayer.startsWith("http://localhost") || args?.[0]?.url?.startsWith?.(window.customVectorStyleLayer))) {
                 const resourceUrl = args?.[0]?.url
-                console.log(window.customVectorLayer, resourceUrl)
+                console.log(window.customVectorStyleLayer, resourceUrl)
                 const resultCallback = new Promise((resolve, reject) => {
                     window.addEventListener("message", e => {
                         if (e.origin !== location.origin) return
@@ -22945,7 +22974,7 @@ End with ! for global search
                     Array.from(document.querySelectorAll(".layers-ui .base-layers label")).at(-2).click()
                 }
                 setTimeout(async () => {
-                    vectorLayerUrl = prompt(
+                    vectorLayerStyleUrl = prompt(
                         `Enter URL with style.json for maplibre.js. Examples:
 
 https://map.atownsend.org.uk/vector/style_svwd03.json
@@ -22962,14 +22991,15 @@ https://vector.openstreetmap.org/styles/shortbread/shadow.json
 
 https://vector.openstreetmap.org/styles/shortbread/graybeard.json
 `,
-                        lastVectorLayerUrl ?? "",
+                        lastVectorLayerStyleUrl ?? "",
                     )
-                    if (vectorLayerUrl) {
-                        lastVectorLayerUrl = vectorLayerUrl
-                        void GM.setValue("lastVectorLayerUrl", lastVectorLayerUrl)
-                        getWindow().customVectorLayer = new URL(vectorLayerUrl).origin
-                        await loadExternalVectorStyle(vectorLayerUrl)
-                        findVectorMap().setStyle(vectorLayerUrl)
+                    if (vectorLayerStyleUrl) {
+                        lastVectorLayerStyleUrl = vectorLayerStyleUrl
+                        void GM.setValue("lastVectorLayerStyleUrl", lastVectorLayerStyleUrl)
+                        getWindow().customVectorStyleLayer = lastVectorLayerStyleUrlOrigin = new URL(vectorLayerStyleUrl).origin
+                        initCustomFetch()
+                        await loadExternalVectorStyle(vectorLayerStyleUrl)
+                        findVectorMap().setStyle(vectorLayerStyleUrl)
                     }
                 })
             } else {

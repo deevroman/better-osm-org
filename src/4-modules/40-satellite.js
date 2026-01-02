@@ -249,11 +249,13 @@ async function loadExternalVectorStyle(url) {
 
 let vectorLayerOverlayUrl = null
 let lastVectorLayerOverlayUrl = null
+let lastVectorLayerOverlayUrlOrigin = null
 GM.getValue("lastVectorLayerOverlayUrl").then(res => (lastVectorLayerOverlayUrl = res))
 
-let vectorLayerUrl = null
-let lastVectorLayerUrl = null
-GM.getValue("lastVectorLayerUrl").then(res => (lastVectorLayerUrl = res))
+let vectorLayerStyleUrl = null
+let lastVectorLayerStyleUrl = null
+let lastVectorLayerStyleUrlOrigin = null
+GM.getValue("lastVectorLayerStyleUrl").then(res => (lastVectorLayerStyleUrl = res))
 
 function findVectorMap() {
     for (const i of getWindow().mapGL) {
@@ -263,9 +265,13 @@ function findVectorMap() {
     }
 }
 
+/**
+ * @return {string}
+ */
 function getCurrentLayers() {
-    return `; ${document.cookie}`.split(`; _osm_location=`).pop().split(";").shift().split("|").at(-1);
+    return `; ${document.cookie}`.split(`; _osm_location=`).pop().split(";").shift().split("|").at(-1)
 }
+
 function vectorLayerEnabled() {
     const layers = getCurrentLayers()
     return layers.includes("S") || layers.includes("V")
@@ -294,7 +300,7 @@ https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/
             if (vectorLayerOverlayUrl) {
                 lastVectorLayerOverlayUrl = vectorLayerOverlayUrl
                 void GM.setValue("lastVectorLayerOverlayUrl", lastVectorLayerOverlayUrl)
-                getWindow().customLayer = new URL(vectorLayerOverlayUrl).origin
+                getWindow().customLayer = lastVectorLayerOverlayUrlOrigin = new URL(vectorLayerOverlayUrl).origin
             } else {
                 return
             }
@@ -306,7 +312,7 @@ https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/
                     type: "raster",
                     tiles: [vectorLayerOverlayUrl],
                     tileSize: 256,
-                    attribution: "geoportal.dgu.hr",
+                    attribution: "",
                 }),
             )
             vectorMap.addLayer(
