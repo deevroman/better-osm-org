@@ -6,7 +6,7 @@ function allowedCspBridgeOrigin(origin) {
 
 function initCspBridge() {
     window.addEventListener("message", async e => {
-        if (!lastVectorLayerOverlayUrlOrigin && !lastVectorLayerStyleUrlOrigin) {
+        if (!lastCustomLayerUrlOrigin && !lastVectorLayerStyleUrlOrigin) {
             return
         }
         if (e.origin !== location.origin) return
