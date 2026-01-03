@@ -53,6 +53,16 @@ if (["Userscripts", "Greasemonkey", "Firemonkey", "OrangeMonkey"].includes(GM_in
     console.error("YOU ARE USING AN UNSUPPORTED SCRIPT MANAGER")
 }
 
+if (GM_info.scriptHandler === "Greasemonkey") {
+    confirm(
+        "better-osm-org will not work in GreasyMonkey :(\n\n" +
+        "It does not support important APIs without which most of the script's functions will not work.\n\n" +
+        "Use ViolentMonkey or Tampermonkey\n\n" +
+        "Discussion: https://github.com/deevroman/better-osm-org/issues/217",
+    )
+    throw ""
+}
+
 const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
 const isFirefox = navigator.userAgent.includes("Firefox")
 const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent)
