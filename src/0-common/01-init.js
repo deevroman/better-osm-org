@@ -54,10 +54,10 @@ if (["Userscripts", "Greasemonkey", "Firemonkey", "OrangeMonkey"].includes(GM_in
 }
 
 if (GM_info.scriptHandler === "Greasemonkey") {
-    confirm(
+    alert(
         "better-osm-org will not work in GreasyMonkey :(\n\n" +
         "It does not support important APIs without which most of the script's functions will not work.\n\n" +
-        "Use ViolentMonkey or Tampermonkey\n\n" +
+        "Use ViolentMonkey or TamperMonkey\n\n" +
         "Discussion: https://github.com/deevroman/better-osm-org/issues/217",
     )
     throw ""
