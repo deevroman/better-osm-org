@@ -187,6 +187,7 @@ function runInOsmPageCode() {
                 if (response.status !== 200) {
                     return response
                 }
+                /** @type import('geojson').GeoJSON */
                 const originalJSON = await response.json();
                 originalJSON.features = originalJSON.features?.filter(note => {
                     if (window.notesCommentsFilter) {
