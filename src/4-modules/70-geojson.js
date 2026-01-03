@@ -949,6 +949,7 @@ function renderOSMGeoJSON(xml, options = {}) {
         )
     }
     xml.querySelectorAll("[action=delete]").forEach(i => i.remove())
+    /** @type import('geojson').GeoJSON */
     const geojson = osmtogeojson(xml, { flatProperties: false })
     if (options["skip_tainted"]) {
         geojson.features = geojson.features.filter(f => !f.properties["tainted"])
