@@ -1247,7 +1247,7 @@ function setupNavigationViaHotkeys() {
             // satellite
             enableOverzoom()
             if (e.shiftKey) {
-                switchESRIbeta()
+                askCustomTileUrl()
                 if (currentTilesMode !== SAT_MODE) {
                     switchTiles()
                 }

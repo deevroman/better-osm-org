@@ -73,7 +73,7 @@ function parseStravaTileURL(url) {
 
 let needStravaAuth = false
 
-async function bypassChromeCSPForImagesSrc(imgElem, url, isStrava = true) {
+async function bypassCSPForImagesSrc(imgElem, url, isStrava = true) {
     const res = await fetchBlobWithCache(url)
     if (res.status !== 200) {
         if (!GM_config.get("OverzoomForDataLayer")) {
@@ -111,7 +111,7 @@ async function bypassChromeCSPForImagesSrc(imgElem, url, isStrava = true) {
     })
     if (currentTilesMode === SAT_MODE || currentOverlayModeIsStrava) {
         imgElem.src = satTile
-        imgElem.setAttribute("real-url", url)
+        imgElem.setAttribute("custom-tile-url", url)
     }
 }
 
@@ -158,32 +158,28 @@ function addEsriPrefix() {
     if (document.querySelector("#map canvas")) {
         return
     }
-    if (SatellitePrefix === ESRIBetaPrefix) {
-        getMap()?.attributionControl?.setPrefix("ESRI Beta")
-    } else {
-        getMap()?.attributionControl?.setPrefix("ESRI")
-    }
+    getMap()?.attributionControl?.setPrefix("ESRI")
     if (SatellitePrefix === ESRIPrefix) {
         addEsriDate()
     }
 }
 
 function switchESRIbeta() {
-    const NewSatellitePrefix = SatellitePrefix === ESRIPrefix ? ESRIBetaPrefix : ESRIPrefix
+    SatellitePrefix = SatellitePrefix === ESRIPrefix ? ESRIBetaPrefix : ESRIPrefix
+    customLayerUrl = SatellitePrefix + "{z}/{y}/{x}" + blankSuffix
     document.querySelectorAll(".leaflet-tile").forEach(i => {
         if (i.nodeName !== "IMG") {
             return
         }
-        const xyz = parseESRITileURL(!needBypassSatellite ? i.src : i.getAttribute("real-url") ?? "")
+        const xyz = xyzFromTileElem(i)
         if (!xyz) return
-        const newUrl = NewSatellitePrefix + xyz.z + "/" + xyz.y + "/" + xyz.x + blankSuffix
+        const newUrl = makeCustomTileUrl(customLayerUrl, xyz)
         if (!needBypassSatellite) {
             i.src = newUrl
         } else {
-            bypassChromeCSPForImagesSrc(i, newUrl)
+            bypassCSPForImagesSrc(i, newUrl)
         }
     })
-    SatellitePrefix = NewSatellitePrefix
     addEsriPrefix()
 }
 
@@ -199,8 +195,8 @@ function tileErrorHandler(e, url = null) {
         }
         let tileURL = e?.currentTarget?.src?.match(/(tile|org)\/([0-9]+)/)
         if (!tileURL) {
-            tileURL = e.currentTarget.getAttribute("real-url").match(/(tile|org)\/([0-9]+)/)
-            console.log(e.currentTarget.getAttribute("real-url"))
+            tileURL = e.currentTarget.getAttribute("custom-tile-url").match(/(tile|org)\/([0-9]+)/)
+            console.log(e.currentTarget.getAttribute("custom-tile-url"))
         }
         const zoomStr = tileURL[2]
         if (zoomStr) {
@@ -211,8 +207,13 @@ function tileErrorHandler(e, url = null) {
     }
 }
 
+function makeCustomTileUrl(template, xyz) {
+    return template.replaceAll("{x}", xyz.x).replaceAll("{y}", xyz.y).replaceAll("{z}", xyz.z)
+}
+
 function makeSatelliteURL(x, y, z) {
-    return SatellitePrefix + z + "/" + y + "/" + x + blankSuffix
+    return makeCustomTileUrl(SatellitePrefix + "{z}/{y}/{x}" + blankSuffix, { x, y, z })
+    // return SatellitePrefix + z + "/" + y + "/" + x + blankSuffix
 }
 
 const retina = window.retina || window.devicePixelRatio > 1
@@ -247,10 +248,10 @@ async function loadExternalVectorStyle(url) {
     } catch (e) {}
 }
 
-let vectorLayerOverlayUrl = null
-let lastVectorLayerOverlayUrl = null
-let lastVectorLayerOverlayUrlOrigin = null
-GM.getValue("lastVectorLayerOverlayUrl").then(res => (lastVectorLayerOverlayUrl = res))
+let customLayerUrl = null
+let lastCustomLayerUrl = null
+let lastCustomLayerUrlOrigin = null
+GM.getValue("lastCustomLayerUrl").then(res => (lastCustomLayerUrl = res))
 
 let vectorLayerStyleUrl = null
 let lastVectorLayerStyleUrl = null
@@ -277,40 +278,42 @@ function vectorLayerEnabled() {
     return layers.includes("S") || layers.includes("V")
 }
 
+function askCustomTileUrl() {
+    customLayerUrl = prompt(
+        `Enter tile URL template for maplibre.js. Examples:
+
+https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?blankTile=false` +
+            (!isMobile
+                ? `
+
+https://geoscribble.osmz.ru/wms?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.1.1&SERVICE=WMS&REQUEST=GetMap&LAYERS=scribbles&STYLES=&SRS=EPSG:3857&WIDTH=512&HEIGHT=512&BBOX={bbox-epsg-3857}
+
+https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.3.0&SERVICE=WMS&REQUEST=GetMap&LAYERS=OI.OrthoimageCoverage&STYLES=&CRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}`
+                : ""),
+        lastCustomLayerUrl ?? "",
+    )
+    if (customLayerUrl) {
+        lastCustomLayerUrl = customLayerUrl
+        void GM.setValue("lastCustomLayerUrl", lastCustomLayerUrl)
+    } else {
+        return
+    }
+    getWindow().customLayer = lastCustomLayerUrlOrigin = new URL(customLayerUrl).origin
+}
+
 function vectorSwitch() {
     if (!vectorLayerEnabled()) {
         return
     }
     const vectorMap = findVectorMap()
     if (currentTilesMode === SAT_MODE) {
-        if (vectorLayerOverlayUrl === null) {
-            vectorLayerOverlayUrl = prompt(
-                `Enter tile URL template for maplibre.js. Examples:
-
-https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?blankTile=false` +
-                    (!isMobile
-                        ? `
-
-https://geoscribble.osmz.ru/wms?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.1.1&SERVICE=WMS&REQUEST=GetMap&LAYERS=scribbles&STYLES=&SRS=EPSG:3857&WIDTH=512&HEIGHT=512&BBOX={bbox-epsg-3857}
-
-https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.3.0&SERVICE=WMS&REQUEST=GetMap&LAYERS=OI.OrthoimageCoverage&STYLES=&CRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}`
-                        : ""),
-                lastVectorLayerOverlayUrl ?? "",
-            )
-            if (vectorLayerOverlayUrl) {
-                lastVectorLayerOverlayUrl = vectorLayerOverlayUrl
-                void GM.setValue("lastVectorLayerOverlayUrl", lastVectorLayerOverlayUrl)
-                getWindow().customLayer = lastVectorLayerOverlayUrlOrigin = new URL(vectorLayerOverlayUrl).origin
-            } else {
-                return
-            }
-        }
+        askCustomTileUrl()
         function addLayer() {
             vectorMap.addSource(
                 "satellite",
                 intoPage({
                     type: "raster",
-                    tiles: [vectorLayerOverlayUrl],
+                    tiles: [customLayerUrl],
                     tileSize: 256,
                     attribution: "",
                 }),
@@ -358,13 +361,96 @@ function addEsriShotDateCollector() {
     }
 }
 
+function xyzFromTileElem(elem) {
+    if (elem.hasAttribute("x")) {
+        return {
+            x: elem.getAttribute("x"),
+            y: elem.getAttribute("y"),
+            z: elem.getAttribute("z"),
+        }
+    }
+}
+
+function replaceToSatTile(imgElem, xyz) {
+    const newUrl = makeCustomTileUrl(customLayerUrl, xyz)
+    if (imgElem.getAttribute("custom-tile-url") === newUrl) {
+        return
+    }
+    // unsafeWindow.L.DomEvent.off(i, "error") // todo добавить перехватчик 404
+    try {
+        imgElem.onerror = tileErrorHandler
+    } catch {
+        /* empty */
+    }
+    if (!needBypassSatellite) {
+        imgElem.src = newUrl
+    } else {
+        imgElem.setAttribute("custom-tile-url", newUrl)
+    }
+    if (needBypassSatellite) {
+        bypassCSPForImagesSrc(imgElem, newUrl)
+    }
+    if (imgElem.complete && !needBypassSatellite) {
+        imgElem.classList.add("no-invert")
+    } else {
+        imgElem.addEventListener(
+            "load",
+            e => {
+                e.target.classList.add("no-invert")
+            },
+            { once: true },
+        )
+    }
+}
+
+function replaceToBaseTile(imgElem, xyz) {
+    const newUrl = makeBaseLayerURL(xyz.x, xyz.y, xyz.z)
+    if (!imgElem.getAttribute("custom-tile-url")) {
+        return
+    }
+    imgElem.removeAttribute("custom-tile-url")
+    imgElem.src = newUrl
+    if (imgElem.complete) {
+        imgElem.classList.remove("no-invert")
+    } else {
+        imgElem.addEventListener(
+            "load",
+            e => {
+                e.target.classList.remove("no-invert")
+            },
+            { once: true },
+        )
+    }
+}
+
+function replaceTileSrc(imgElem) {
+    if (!imgElem.hasAttribute("x")) {
+        const xyz = parseOSMTileURL(imgElem.src)
+        if (!xyz) {
+            return
+        }
+        imgElem.setAttribute("x", xyz.x)
+        imgElem.setAttribute("y", xyz.y)
+        imgElem.setAttribute("z", xyz.z)
+    }
+    const xyz = xyzFromTileElem(imgElem)
+    if (currentTilesMode === SAT_MODE) {
+        replaceToSatTile(imgElem, xyz)
+    } else {
+        replaceToBaseTile(imgElem, xyz)
+    }
+}
+
 function switchTiles() {
-    addEsriShotDateCollector()
     if (tilesObserver) {
         tilesObserver?.disconnect()
     }
+    addEsriShotDateCollector()
     currentTilesMode = invertTilesMode(currentTilesMode)
     if (currentTilesMode === SAT_MODE) {
+        if (!customLayerUrl) {
+            customLayerUrl = SatellitePrefix + "{z}/{y}/{x}" + blankSuffix
+        }
         addEsriPrefix()
     } else {
         getMap()?.attributionControl?.setPrefix("")
@@ -373,51 +459,7 @@ function switchTiles() {
         if (i.nodeName !== "IMG") {
             return
         }
-        if (currentTilesMode === SAT_MODE) {
-            const xyz = parseOSMTileURL(i.src)
-            if (!xyz) return
-            // unsafeWindow.L.DomEvent.off(i, "error") // todo добавить перехватчик 404
-            try {
-                i.onerror = tileErrorHandler
-            } catch {
-                /* empty */
-            }
-            const newUrl = makeSatelliteURL(xyz.x, xyz.y, xyz.z)
-            if (!needBypassSatellite) {
-                i.src = newUrl
-            } else {
-                i.setAttribute("real-url", newUrl)
-            }
-            if (needBypassSatellite) {
-                bypassChromeCSPForImagesSrc(i, newUrl)
-            }
-            if (i.complete && !needBypassSatellite) {
-                i.classList.add("no-invert")
-            } else {
-                i.addEventListener(
-                    "load",
-                    e => {
-                        e.target.classList.add("no-invert")
-                    },
-                    { once: true },
-                )
-            }
-        } else {
-            const xyz = parseESRITileURL(!needBypassSatellite ? i.src : i.getAttribute("real-url") ?? "")
-            if (!xyz) return
-            i.src = makeBaseLayerURL(xyz.x, xyz.y, xyz.z)
-            if (i.complete) {
-                i.classList.remove("no-invert")
-            } else {
-                i.addEventListener(
-                    "load",
-                    e => {
-                        e.target.classList.remove("no-invert")
-                    },
-                    { once: true },
-                )
-            }
-        }
+        replaceTileSrc(i)
     })
     const observer = new MutationObserver(mutations => {
         mutations.forEach(mutation => {
@@ -425,56 +467,13 @@ function switchTiles() {
                 if (node.nodeName !== "IMG") {
                     return
                 }
+                replaceTileSrc(node)
                 if (currentTilesMode === SAT_MODE) {
-                    const xyz = parseOSMTileURL(node.src)
-                    if (!xyz) return
-                    // unsafeWindow.L.DomEvent.off(node, "error")
-                    try {
-                        node.onerror = tileErrorHandler
-                    } catch {
-                        /* empty */
-                    }
-                    const newURL = makeSatelliteURL(xyz.x, xyz.y, xyz.z)
-                    if (!needBypassSatellite) {
-                        node.src = newURL
-                    } else {
-                        node.src = "/dev/null"
-                    }
-                    node.setAttribute("real-url", newURL)
-                    if (needBypassSatellite) {
-                        bypassChromeCSPForImagesSrc(node, newURL)
-                    }
-                    if (node.complete) {
-                        node.classList.add("no-invert")
-                    } else {
-                        node.addEventListener(
-                            "load",
-                            e => {
-                                e.target.classList.add("no-invert")
-                            },
-                            { once: true },
-                        )
-                    }
                     setTimeout(() => {
                         if (updateShotEsriDateNeeded()) {
                             addEsriDate()
                         }
                     })
-                } else {
-                    const xyz = parseESRITileURL(!needBypassSatellite ? node.src : node.getAttribute("real-url") ?? "")
-                    if (!xyz) return
-                    node.src = makeBaseLayerURL(xyz.x, xyz.y, xyz.z)
-                    if (node.complete) {
-                        node.classList.remove("no-invert")
-                    } else {
-                        node.addEventListener(
-                            "load",
-                            e => {
-                                e.target.classList.remove("no-invert")
-                            },
-                            { once: true },
-                        )
-                    }
                 }
             })
         })
@@ -581,8 +580,8 @@ function switchOverlayTiles() {
                 /* empty */
             }
             const newUrl = makeStravaURL(xyz.x, xyz.y, xyz.z)
-            i.setAttribute("real-url", newUrl)
-            bypassChromeCSPForImagesSrc(i, newUrl, true)
+            i.setAttribute("custom-tile-url", newUrl)
+            bypassCSPForImagesSrc(i, newUrl, true)
             if (i.complete) {
                 i.classList.add("no-invert")
             } else {
@@ -595,7 +594,7 @@ function switchOverlayTiles() {
                 )
             }
         } else {
-            const xyz = parseStravaTileURL(i.getAttribute("real-url") ?? "")
+            const xyz = parseStravaTileURL(i.getAttribute("custom-tile-url") ?? "")
             if (!xyz) return
             i.src = makeOSMGPSURL(xyz.x, xyz.y, xyz.z)
             if (i.complete) {
@@ -628,8 +627,8 @@ function switchOverlayTiles() {
                     }
                     const newURL = makeStravaURL(xyz.x, xyz.y, xyz.z)
                     node.src = "/dev/null"
-                    node.setAttribute("real-url", newURL)
-                    bypassChromeCSPForImagesSrc(node, newURL, true)
+                    node.setAttribute("custom-tile-url", newURL)
+                    bypassCSPForImagesSrc(node, newURL, true)
                     if (node.complete) {
                         node.classList.add("no-invert")
                     } else {
@@ -642,7 +641,7 @@ function switchOverlayTiles() {
                         )
                     }
                 } else {
-                    const xyz = parseStravaTileURL(node.getAttribute("real-url"))
+                    const xyz = parseStravaTileURL(node.getAttribute("custom-tile-url"))
                     if (!xyz) return
                     node.src = makeOSMGPSURL(xyz.x, xyz.y, xyz.z)
                     if (node.complete) {
