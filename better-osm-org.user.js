@@ -1909,6 +1909,55 @@ const originalFetchTextWithCache = (() => {
     }
 })()
 
+function resourceCacher(url, storageKey, name, dateDelta, type) {
+    let database
+    async function load() {
+        const raw_data = (
+            await externalFetchRetry({
+                url: url,
+                responseType: type,
+            })
+        ).response
+        if (!raw_data) {
+            throw `${name} not downloaded`
+        }
+        console.log(`${name} database updated`)
+        await GM.setValue(
+            storageKey,
+            JSON.stringify({
+                raw_data: raw_data,
+                cacheTime: new Date(),
+            }),
+        )
+    }
+    return {
+        get: () => database,
+        init: async function () {
+            if (database) return
+            const cache = await GM.getValue(storageKey, "")
+            if (database) return
+            if (cache) {
+                console.log(`${name} cached`)
+                const json = JSON.parse(cache)
+                const cacheTime = new Date(json["cacheTime"])
+                const timeLater = new Date(cacheTime.getTime() + dateDelta)
+                if (timeLater < new Date()) {
+                    console.log("but cache outdated")
+                    setTimeout(load, 0)
+                }
+                database = JSON.parse(cache)["raw_data"]
+                return
+            }
+            console.log(`loading ${name}`)
+            try {
+                await load()
+            } catch (e) {
+                console.log(`loading ${name} failed`, e)
+            }
+        },
+    }
+}
+
 //</editor-fold>
 
 //<editor-fold desc="geom utils" defaultstate="collapsed">
@@ -6869,59 +6918,14 @@ function vectorLayerEnabled() {
     return layers.includes("S") || layers.includes("V")
 }
 
-let mapStylesDatabase = null
 // const localMapStylesURL = "http://localhost:7777/misc/assets/vector-map-styles.json"
-// const mapStylesURL = localMapStylesURL
 const githubMapStylesURL = `https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/dev/misc/assets/vector-map-styles.json?bypasscache=${Math.random()}`
-const mapStylesURL = githubMapStylesURL
 
-async function loadAndMakeMapStylesDatabase() {
-    const raw_data = (
-        await externalFetchRetry({
-            url: mapStylesURL,
-            responseType: "json",
-        })
-    ).response
-    if (!raw_data) {
-        throw "Vector map styles not downloaded"
-    }
-    console.log("Vector map styles database updated")
-    await GM.setValue(
-        "vector-map-styles",
-        JSON.stringify({
-            raw_data: raw_data,
-            cacheTime: new Date(),
-        }),
-    )
-}
-
-async function initMapStylesList() {
-    if (mapStylesDatabase) return
-    const cache = await GM.getValue("vector-map-styles", "")
-    if (mapStylesDatabase) return
-    if (cache) {
-        console.log("vector map styles cached")
-        const json = JSON.parse(cache)
-        const cacheTime = new Date(json["cacheTime"])
-        const sixHoursLater = new Date(cacheTime.getTime() + 6 * 60 * 60 * 1000)
-        if (sixHoursLater < new Date()) {
-            console.log("but cache outdated")
-            setTimeout(loadAndMakeMapStylesDatabase, 0)
-        }
-        mapStylesDatabase = JSON.parse(cache)["raw_data"]
-        return
-    }
-    console.log("loading vector map styles")
-    try {
-        await loadAndMakeMapStylesDatabase()
-    } catch (e) {
-        console.log("loading vector map styles list failed", e)
-    }
-}
+const mapStylesDatabase = resourceCacher(githubMapStylesURL, "custom-vector-map-styles", "vector map styles list", 6 * 60 * 60 * 1000, "json")
 
 async function askCustomStyleUrl() {
-    await initMapStylesList()
-    const options = mapStylesDatabase?.styles ?? [
+    await mapStylesDatabase.init()
+    const options = mapStylesDatabase.get()?.styles ?? [
         { label: "SomeoneElse's vector map style", value: "https://map.atownsend.org.uk/vector/style_svwd03.json", about: "https://github.com/SomeoneElseOSM/SomeoneElse-vector-web-display" },
         {
             label: "StreetComplete map style",
@@ -7513,7 +7517,7 @@ function addSwitchTilesButtonsOnPane() {
         btnOnPane.style.cursor = "pointer"
         btnOnPane.textContent = "🎨"
         btnOnPane.onmouseover = async () => {
-            await initMapStylesList()
+            await mapStylesDatabase.init()
         }
         btnOnPane.onclick = async e => {
             await askCustomStyleUrl()
