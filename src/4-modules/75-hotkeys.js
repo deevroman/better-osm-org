@@ -1658,6 +1658,7 @@ Press alt + J for open objects in Level0`
                 document.querySelectorAll(".sidebar-close-controls .btn-close").forEach(i => i?.click())
                 document.querySelector(".welcome .btn-close")?.click()
                 document.querySelector("#banner .btn-close")?.click()
+                document.querySelector(".better-btn-close")?.click()
             }
         } else if (e.code === "KeyT" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
             if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
@@ -1832,37 +1833,9 @@ End with ! for global search
         } else if (e.code === "KeyV") {
             if (e.shiftKey) {
                 if (!document.querySelector("#map canvas")) {
-                    Array.from(document.querySelectorAll(".layers-ui .base-layers label")).at(-2).click()
+                    Array.from(document.querySelectorAll(".layers-ui .base-layers label")).at(-2)?.click()
                 }
-                setTimeout(async () => {
-                    vectorLayerStyleUrl = prompt(
-                        `Enter URL with style.json for maplibre.js. Examples:
-
-https://map.atownsend.org.uk/vector/style_svwd03.json
-
-https://tiles.openfreemap.org/styles/positron
-
-https://vector.openstreetmap.org/styles/shortbread/colorful.json
-
-https://vector.openstreetmap.org/styles/shortbread/eclipse.json
-
-https://vector.openstreetmap.org/styles/shortbread/neutrino.json
-
-https://vector.openstreetmap.org/styles/shortbread/shadow.json
-
-https://vector.openstreetmap.org/styles/shortbread/graybeard.json
-`,
-                        lastVectorLayerStyleUrl ?? "",
-                    )
-                    if (vectorLayerStyleUrl) {
-                        lastVectorLayerStyleUrl = vectorLayerStyleUrl
-                        void GM.setValue("lastVectorLayerStyleUrl", lastVectorLayerStyleUrl)
-                        getWindow().customVectorStyleLayer = lastVectorLayerStyleUrlOrigin = new URL(vectorLayerStyleUrl).origin
-                        initCustomFetch()
-                        await loadExternalVectorStyle(vectorLayerStyleUrl)
-                        findVectorMap().setStyle(vectorLayerStyleUrl)
-                    }
-                })
+                void askCustomStyleUrl()
             } else {
                 const currentLayersIsVector = vectorLayerEnabled()
                 const hashParams = new URLSearchParams(location.hash)

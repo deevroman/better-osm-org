@@ -3358,7 +3358,7 @@ function blurSearchField() {
         // Sometimes it still doesn't help
         ;[50, 100, 250, 500].forEach(ms => {
             setTimeout(() => {
-                if (document.activeElement?.nodeName === "INPUT") {
+                if (document.activeElement?.nodeName === "INPUT" && document.activeElement.getAttribute("type") !== "radio") {
                     document.activeElement?.blur()
                 }
             }, ms)
@@ -6848,6 +6848,15 @@ function findVectorMap() {
     }
 }
 
+async function applyCustomVectorMapStyle(vectorLayerStyleUrl) {
+    lastVectorLayerStyleUrl = vectorLayerStyleUrl
+    void GM.setValue("lastVectorLayerStyleUrl", lastVectorLayerStyleUrl)
+    getWindow().customVectorStyleLayer = lastVectorLayerStyleUrlOrigin = new URL(vectorLayerStyleUrl).origin
+    initCustomFetch()
+    await loadExternalVectorStyle(vectorLayerStyleUrl)
+    findVectorMap().setStyle(vectorLayerStyleUrl)
+}
+
 /**
  * @return {string}
  */
@@ -6858,6 +6867,196 @@ function getCurrentLayers() {
 function vectorLayerEnabled() {
     const layers = getCurrentLayers()
     return layers.includes("S") || layers.includes("V")
+}
+
+let mapStylesDatabase = null
+// const localMapStylesURL = "http://localhost:7777/misc/assets/vector-map-styles.json"
+// const mapStylesURL = localMapStylesURL
+const githubMapStylesURL = `https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/dev/misc/assets/vector-map-styles.json?bypasscache=${Math.random()}`
+const mapStylesURL = githubMapStylesURL
+
+async function loadAndMakeMapStylesDatabase() {
+    const raw_data = (
+        await externalFetchRetry({
+            url: mapStylesURL,
+            responseType: "json",
+        })
+    ).response
+    if (!raw_data) {
+        throw "Vector map styles not downloaded"
+    }
+    console.log("Vector map styles database updated")
+    await GM.setValue(
+        "vector-map-styles",
+        JSON.stringify({
+            raw_data: raw_data,
+            cacheTime: new Date(),
+        }),
+    )
+}
+
+async function initMapStylesList() {
+    if (mapStylesDatabase) return
+    const cache = await GM.getValue("vector-map-styles", "")
+    if (mapStylesDatabase) return
+    if (cache) {
+        console.log("vector map styles cached")
+        const json = JSON.parse(cache)
+        const cacheTime = new Date(json["cacheTime"])
+        const sixHoursLater = new Date(cacheTime.getTime() + 6 * 60 * 60 * 1000)
+        if (sixHoursLater < new Date()) {
+            console.log("but cache outdated")
+            setTimeout(loadAndMakeMapStylesDatabase, 0)
+        }
+        mapStylesDatabase = JSON.parse(cache)["raw_data"]
+        return
+    }
+    console.log("loading vector map styles")
+    try {
+        await loadAndMakeMapStylesDatabase()
+    } catch (e) {
+        console.log("loading vector map styles list failed", e)
+    }
+}
+
+async function askCustomStyleUrl() {
+    await initMapStylesList()
+    const options = mapStylesDatabase?.styles ?? [
+        { label: "SomeoneElse's vector map style", value: "https://map.atownsend.org.uk/vector/style_svwd03.json", about: "https://github.com/SomeoneElseOSM/SomeoneElse-vector-web-display" },
+        {
+            label: "StreetComplete map style",
+            value: "https://raw.githubusercontent.com/streetcomplete/maplibre-streetcomplete-style/refs/heads/master/demo/streetcomplete.json",
+            about: "https://github.com/streetcomplete/maplibre-streetcomplete-style",
+        },
+        { label: "OpenFreeMap Positron", value: "https://tiles.openfreemap.org/styles/positron" },
+        { label: "VersaTiles Colorful (Shortbread)", value: "https://vector.openstreetmap.org/styles/shortbread/colorful.json", about: "https://github.com/versatiles-org/versatiles-style" },
+        { label: "VersaTiles Shadow", value: "https://vector.openstreetmap.org/styles/shortbread/shadow.json", about: "https://github.com/versatiles-org/versatiles-style" },
+        { label: "VersaTiles Graybeard", value: "https://vector.openstreetmap.org/styles/shortbread/graybeard.json", about: "https://github.com/versatiles-org/versatiles-style" },
+    ]
+    const popup = document.createElement("div")
+    popup.classList.add("vector-tiles-selector-popup")
+    const radioContainer = document.createElement("div")
+
+    injectCSSIntoOSMPage(`
+    .vector-tiles-selector-popup {
+        position: relative;
+        width: fit-content;
+        background: var(--bs-body-bg);
+        border: 1px solid rgba(204,204,204,0.5);
+        padding: 12px;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0,0,0,.2);
+        font-family: sans-serif;
+        z-index: 9999;
+    }
+    .vector-tiles-selector-popup label:hover {
+        background: light-dark("gray", "gray");
+    }
+`)
+
+    const h = document.createElement("h3")
+    h.style.display = "flex"
+    h.style.gap = "25px"
+    h.style.marginLeft = "auto"
+    h.textContent = "Setup custom style.json for MapLibre.js"
+    popup.appendChild(h)
+
+    const closeBtn = document.createElement("button")
+    closeBtn.classList.add("better-btn-close")
+    closeBtn.style.all = "unset"
+    closeBtn.style.cursor = "pointer"
+    closeBtn.innerHTML =
+        '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">' +
+        '  <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>' +
+        "</svg>"
+    closeBtn.querySelector("svg").style.height = "1.5rem"
+    closeBtn.onclick = () => popup.remove()
+    h.append(closeBtn)
+
+    popup.appendChild(radioContainer)
+
+    const radiosName = `vector-styles-url`
+
+    function makeWrapper() {
+        const wrapper = document.createElement("label")
+        wrapper.style.display = "flex"
+        wrapper.style.paddingTop = "2px"
+        wrapper.style.paddingBottom = "2px"
+        wrapper.style.margin = "2px"
+        wrapper.style.gap = "4px"
+        return wrapper
+    }
+
+    function addRadio({ label, value, about }) {
+        const wrapper = makeWrapper()
+
+        const input = document.createElement("input")
+        input.type = "radio"
+        input.name = radiosName
+        wrapper.title = input.value = value
+
+        input.addEventListener("change", async () => {
+            if (input.checked) {
+                await applyCustomVectorMapStyle(value)
+                getMap()?.attributionControl?.setPrefix(label)
+            }
+        })
+
+        const externalLink = document.createElement("a")
+        externalLink.title = "Open map style home page"
+        externalLink.setAttribute("href", about)
+        externalLink.innerHTML = externalLinkSvg
+        externalLink.style.marginLeft = "auto"
+        externalLink.style.marginRight = "2px"
+        externalLink.style.color = "gray"
+        externalLink.tabIndex = -1
+
+        const labelSpan = document.createElement("span")
+        labelSpan.textContent = label
+        wrapper.append(input, labelSpan, externalLink)
+        radioContainer.appendChild(wrapper)
+    }
+
+    options.forEach(addRadio)
+    {
+        const wrapper = makeWrapper()
+
+        const input = document.createElement("input")
+        input.type = "radio"
+        input.name = radiosName
+        input.value = ""
+
+        wrapper.append(input)
+        const urlInput = document.createElement("input")
+        urlInput.type = "text"
+        urlInput.placeholder = "example: https://vector.openstreetmap.org/styles/shortbread/neutrino.json"
+        urlInput.style.width = "100%"
+        wrapper.append(urlInput)
+
+        input.onchange = async () => {
+            if (input.checked && urlInput.value.trim() !== "") {
+                await applyCustomVectorMapStyle(urlInput.value)
+            }
+        }
+
+        urlInput.onkeydown = async e => {
+            if (e.key === "Enter" && urlInput.value.trim() !== "") {
+                input.click()
+                await applyCustomVectorMapStyle(urlInput.value)
+                getMap()?.attributionControl?.setPrefix("Custom map style from " + escapeHtml(new URL(urlInput.value).host))
+            }
+        }
+
+        radioContainer.appendChild(wrapper)
+    }
+
+    const note = document.createElement("span")
+    note.style.color = "gray"
+    note.innerHTML =
+        "You can <a href='https://github.com/deevroman/better-osm-org/issues/new?body=#Custom vector styles'>suggest</a> other styles. One of styles <a href='https://github.com/pnorman/maplibre-styles'>collection</a>"
+    popup.appendChild(note)
+    document.body.appendChild(popup)
+    popup.querySelector('label:has([href^="https://github.com/versatiles-org/versatiles-style"])')?.querySelector("input")?.focus()
 }
 
 function askCustomTileUrl() {
@@ -7310,7 +7509,15 @@ function addSwitchTilesButtonsOnPane() {
     }
     const omtBtn = layers.at(-1)
     if (omtBtn) {
-        const btnOnPane = createSwitchTilesBtn()
+        const btnOnPane = document.createElement("span")
+        btnOnPane.style.cursor = "pointer"
+        btnOnPane.textContent = "🎨"
+        btnOnPane.onmouseover = async () => {
+            await initMapStylesList()
+        }
+        btnOnPane.onclick = async e => {
+            await askCustomStyleUrl()
+        }
         omtBtn.appendChild(document.createTextNode("\xA0"))
         omtBtn.appendChild(btnOnPane)
     }
@@ -19127,16 +19334,13 @@ async function loadAndMakeExternalLinksDatabase() {
 async function initExternalLinksList() {
     if (externalLinksDatabase) return
     const cache = await GM.getValue("external-links", "")
-    // if (isDebug()) {
-    //     await loadAndMakeExternalLinksDatabase()
-    // }
     if (externalLinksDatabase) return
     if (cache) {
         console.log("external links cached")
         const json = JSON.parse(cache)
         const cacheTime = new Date(json["cacheTime"])
-        const threeDaysLater = new Date(cacheTime.getTime() + 6 * 60 * 60 * 1000)
-        if (threeDaysLater < new Date()) {
+        const sixHoursLater = new Date(cacheTime.getTime() + 6 * 60 * 60 * 1000)
+        if (sixHoursLater < new Date()) {
             console.log("but cache outdated")
             setTimeout(loadAndMakeExternalLinksDatabase, 0)
         }
@@ -22808,6 +23012,7 @@ Press alt + J for open objects in Level0`
                 document.querySelectorAll(".sidebar-close-controls .btn-close").forEach(i => i?.click())
                 document.querySelector(".welcome .btn-close")?.click()
                 document.querySelector("#banner .btn-close")?.click()
+                document.querySelector(".better-btn-close")?.click()
             }
         } else if (e.code === "KeyT" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
             if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
@@ -22982,37 +23187,9 @@ End with ! for global search
         } else if (e.code === "KeyV") {
             if (e.shiftKey) {
                 if (!document.querySelector("#map canvas")) {
-                    Array.from(document.querySelectorAll(".layers-ui .base-layers label")).at(-2).click()
+                    Array.from(document.querySelectorAll(".layers-ui .base-layers label")).at(-2)?.click()
                 }
-                setTimeout(async () => {
-                    vectorLayerStyleUrl = prompt(
-                        `Enter URL with style.json for maplibre.js. Examples:
-
-https://map.atownsend.org.uk/vector/style_svwd03.json
-
-https://tiles.openfreemap.org/styles/positron
-
-https://vector.openstreetmap.org/styles/shortbread/colorful.json
-
-https://vector.openstreetmap.org/styles/shortbread/eclipse.json
-
-https://vector.openstreetmap.org/styles/shortbread/neutrino.json
-
-https://vector.openstreetmap.org/styles/shortbread/shadow.json
-
-https://vector.openstreetmap.org/styles/shortbread/graybeard.json
-`,
-                        lastVectorLayerStyleUrl ?? "",
-                    )
-                    if (vectorLayerStyleUrl) {
-                        lastVectorLayerStyleUrl = vectorLayerStyleUrl
-                        void GM.setValue("lastVectorLayerStyleUrl", lastVectorLayerStyleUrl)
-                        getWindow().customVectorStyleLayer = lastVectorLayerStyleUrlOrigin = new URL(vectorLayerStyleUrl).origin
-                        initCustomFetch()
-                        await loadExternalVectorStyle(vectorLayerStyleUrl)
-                        findVectorMap().setStyle(vectorLayerStyleUrl)
-                    }
-                })
+                void askCustomStyleUrl()
             } else {
                 const currentLayersIsVector = vectorLayerEnabled()
                 const hashParams = new URLSearchParams(location.hash)
