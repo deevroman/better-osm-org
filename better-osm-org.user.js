@@ -12231,7 +12231,7 @@ async function initCorporateMappersList() {
         console.log("corporate mappers cached")
         const json = JSON.parse(cache)
         const cacheTime = new Date(json["cacheTime"])
-        const threeDaysLater = new Date(cacheTime.getTime() + 3 * 24 * 60 * 60 * 1000)
+        const threeDaysLater = new Date(cacheTime.getTime() + 2 * 24 * 60 * 60 * 1000)
         if (threeDaysLater < new Date()) {
             console.log("but cache outdated")
             setTimeout(loadAndMakeCorporateMappersList, 0)
