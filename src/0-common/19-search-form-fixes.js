@@ -36,7 +36,7 @@ function blurSearchField() {
         // Sometimes it still doesn't help
         ;[50, 100, 250, 500].forEach(ms => {
             setTimeout(() => {
-                if (document.activeElement?.nodeName === "INPUT") {
+                if (document.activeElement?.nodeName === "INPUT" && document.activeElement.getAttribute("type") !== "radio") {
                     document.activeElement?.blur()
                 }
             }, ms)

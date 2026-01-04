@@ -59,16 +59,13 @@ async function loadAndMakeExternalLinksDatabase() {
 async function initExternalLinksList() {
     if (externalLinksDatabase) return
     const cache = await GM.getValue("external-links", "")
-    // if (isDebug()) {
-    //     await loadAndMakeExternalLinksDatabase()
-    // }
     if (externalLinksDatabase) return
     if (cache) {
         console.log("external links cached")
         const json = JSON.parse(cache)
         const cacheTime = new Date(json["cacheTime"])
-        const threeDaysLater = new Date(cacheTime.getTime() + 6 * 60 * 60 * 1000)
-        if (threeDaysLater < new Date()) {
+        const sixHoursLater = new Date(cacheTime.getTime() + 6 * 60 * 60 * 1000)
+        if (sixHoursLater < new Date()) {
             console.log("but cache outdated")
             setTimeout(loadAndMakeExternalLinksDatabase, 0)
         }

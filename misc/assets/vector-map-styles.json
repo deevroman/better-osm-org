@@ -1,0 +1,48 @@
+{
+  "styles": [
+    {
+      "label": "VersaTiles Colorful (Shortbread)",
+      "value": "https://vector.openstreetmap.org/styles/shortbread/colorful.json",
+      "about": "https://github.com/versatiles-org/versatiles-style"
+    },
+    {
+      "label": "SomeoneElse's vector map style",
+      "value": "https://map.atownsend.org.uk/vector/style_svwd03.json",
+      "about": "https://github.com/SomeoneElseOSM/SomeoneElse-vector-web-display"
+    },
+    {
+      "label": "StreetComplete map style",
+      "value": "https://raw.githubusercontent.com/streetcomplete/maplibre-streetcomplete-style/refs/heads/master/demo/streetcomplete.json",
+      "about": "https://github.com/streetcomplete/maplibre-streetcomplete-style"
+    },
+    {
+      "label": "OpenFreeMap Positron",
+      "value": "https://tiles.openfreemap.org/styles/positron"
+    },
+    {
+      "label": "VersaTiles Eclipse",
+      "value": "https://vector.openstreetmap.org/styles/shortbread/eclipse.json",
+      "about": "https://github.com/versatiles-org/versatiles-style"
+    },
+    {
+      "label": "VersaTiles Neutrino",
+      "value": "https://vector.openstreetmap.org/styles/shortbread/neutrino.json",
+      "about": "https://github.com/versatiles-org/versatiles-style"
+    },
+    {
+      "label": "VersaTiles Shadow",
+      "value": "https://vector.openstreetmap.org/styles/shortbread/shadow.json",
+      "about": "https://github.com/versatiles-org/versatiles-style"
+    },
+    {
+      "label": "VersaTiles Graybeard",
+      "value": "https://vector.openstreetmap.org/styles/shortbread/graybeard.json",
+      "about": "https://github.com/versatiles-org/versatiles-style"
+    },
+    {
+      "label": "FreeExec background style",
+      "value": "https://frexosm.ru/power/power.json",
+      "about": "https://frexosm.ru/power"
+    }
+  ]
+}
