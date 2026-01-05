@@ -73,6 +73,37 @@ function parseStravaTileURL(url) {
 
 let needStravaAuth = false
 
+const r2d = 180 / Math.PI
+
+function tile2lon(x, z) {
+    return (x / Math.pow(2, z)) * 360 - 180
+}
+
+function tile2lat(y, z) {
+    const n = Math.PI - (2 * Math.PI * y) / Math.pow(2, z)
+    return r2d * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)))
+}
+
+function tileToBBOX(tile) {
+    const e = tile2lon(tile[0] + 1, tile[2])
+    const w = tile2lon(tile[0], tile[2])
+    const s = tile2lat(tile[1] + 1, tile[2])
+    const n = tile2lat(tile[1], tile[2])
+    return [w, s, e, n]
+}
+
+function coord4326To3857(lon, lat) {
+    const X = 20037508.34
+    let long3857 = (lon * X) / 180
+    let lat3857 = parseFloat(lat) + 90
+    lat3857 = lat3857 * (Math.PI / 360)
+    lat3857 = Math.tan(lat3857)
+    lat3857 = Math.log(lat3857)
+    lat3857 = lat3857 / (Math.PI / 180)
+    lat3857 = (lat3857 * X) / 180
+    return [long3857, lat3857]
+}
+
 async function bypassCSPForImagesSrc(imgElem, url, isStrava = true) {
     const res = await fetchBlobWithCache(url)
     if (res.status !== 200) {
@@ -155,9 +186,6 @@ function addEsriDate() {
 }
 
 function addEsriPrefix() {
-    if (document.querySelector("#map canvas")) {
-        return
-    }
     getMap()?.attributionControl?.setPrefix("ESRI")
     if (SatellitePrefix === ESRIPrefix) {
         addEsriDate()
@@ -167,6 +195,7 @@ function addEsriPrefix() {
 function switchESRIbeta() {
     SatellitePrefix = SatellitePrefix === ESRIPrefix ? ESRIBetaPrefix : ESRIPrefix
     customLayerUrl = SatellitePrefix + "{z}/{y}/{x}" + blankSuffix
+    customLayerUrlIsWms = false
     document.querySelectorAll(".leaflet-tile").forEach(i => {
         if (i.nodeName !== "IMG") {
             return
@@ -208,12 +237,13 @@ function tileErrorHandler(e, url = null) {
 }
 
 function makeCustomTileUrl(template, xyz) {
-    return template.replaceAll("{x}", xyz.x).replaceAll("{y}", xyz.y).replaceAll("{z}", xyz.z)
-}
-
-function makeSatelliteURL(x, y, z) {
-    return makeCustomTileUrl(SatellitePrefix + "{z}/{y}/{x}" + blankSuffix, { x, y, z })
-    // return SatellitePrefix + z + "/" + y + "/" + x + blankSuffix
+    if (!customLayerUrlIsWms) {
+        return template.replaceAll("{x}", xyz.x).replaceAll("{y}", xyz.y).replaceAll("{z}", xyz.z)
+    }
+    const bbox = tileToBBOX([parseInt(xyz.x), parseInt(xyz.y), parseInt(xyz.z)])
+    const a = coord4326To3857(bbox[0], bbox[1])
+    const b = coord4326To3857(bbox[2], bbox[3])
+    return template.replaceAll("{bbox-epsg-3857}", [...a, ...b].join(","))
 }
 
 const retina = window.retina || window.devicePixelRatio > 1
@@ -249,11 +279,11 @@ async function loadExternalVectorStyle(url) {
 }
 
 let customLayerUrl = null
+let customLayerUrlIsWms = false
 let lastCustomLayerUrl = null
 let lastCustomLayerUrlOrigin = null
 GM.getValue("lastCustomLayerUrl").then(res => (lastCustomLayerUrl = res))
 
-let vectorLayerStyleUrl = null
 let lastVectorLayerStyleUrl = null
 let lastVectorLayerStyleUrlOrigin = null
 GM.getValue("lastVectorLayerStyleUrl").then(res => (lastVectorLayerStyleUrl = res))
@@ -273,6 +303,13 @@ async function applyCustomVectorMapStyle(vectorLayerStyleUrl) {
     initCustomFetch()
     await loadExternalVectorStyle(vectorLayerStyleUrl)
     findVectorMap().setStyle(vectorLayerStyleUrl)
+}
+
+function applyCustomLayer(layerUrl) {
+    lastCustomLayerUrl = customLayerUrl = layerUrl
+    customLayerUrlIsWms = customLayerUrl.includes("{bbox-epsg-3857}")
+    void GM.setValue("lastCustomLayerUrl", lastCustomLayerUrl)
+    getWindow().customLayer = lastVectorLayerStyleUrlOrigin = new URL(customLayerUrl).origin
 }
 
 /**
@@ -426,33 +463,167 @@ async function askCustomStyleUrl() {
     const note = document.createElement("span")
     note.style.color = "gray"
     note.innerHTML =
-        "You can <a href='https://github.com/deevroman/better-osm-org/issues/new?body=#Custom vector styles'>suggest</a> other styles. One of styles <a href='https://github.com/pnorman/maplibre-styles'>collection</a>"
+        "You can <a target='_blank' href='https://github.com/deevroman/better-osm-org/issues/new?body=#Custom vector styles'>suggest</a> other styles. One of styles <a target='_blank' href='https://github.com/pnorman/maplibre-styles'>collection</a>"
     popup.appendChild(note)
     document.body.appendChild(popup)
     popup.querySelector('label:has([href^="https://github.com/versatiles-org/versatiles-style"])')?.querySelector("input")?.focus()
 }
 
-function askCustomTileUrl() {
-    customLayerUrl = prompt(
-        `Enter tile URL template for maplibre.js. Examples:
+async function askCustomTileUrl() {
+    const options = [
+        {
+            label: "ESRI",
+            value: "https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?blankTile=false",
+            about: "https://osm.wiki/Esri",
+        },
+        {
+            label: "ESRI beta (slow layer)",
+            value: "https://clarity.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?blankTile=false",
+            about: "https://osm.wiki/Esri",
+        },
+        // {
+        //     label: "GeoScribbles",
+        //     value: "https://geoscribble.osmz.ru/wms?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.1.1&SERVICE=WMS&REQUEST=GetMap&LAYERS=scribbles&STYLES=&SRS=EPSG:3857&WIDTH=512&HEIGHT=512&BBOX={bbox-epsg-3857}",
+        //     about: "https://osm.wiki/GeoScribble",
+        // },
+        {
+            label: "OpenRailwayMap",
+            value: "https://tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png",
+            about: "https://www.openrailwaymap.org",
+        },
+        {
+            label: "Hr GeoPortal",
+            value: "https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.3.0&SERVICE=WMS&REQUEST=GetMap&LAYERS=OI.OrthoimageCoverage&STYLES=&CRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}",
+            about: "https://osm.wiki/GeoScribble",
+        },
+    ]
+    const popup = document.createElement("div")
+    popup.classList.add("map-layers-selector-popup")
+    const radioContainer = document.createElement("div")
 
-https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?blankTile=false` +
-            (!isMobile
-                ? `
-
-https://geoscribble.osmz.ru/wms?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.1.1&SERVICE=WMS&REQUEST=GetMap&LAYERS=scribbles&STYLES=&SRS=EPSG:3857&WIDTH=512&HEIGHT=512&BBOX={bbox-epsg-3857}
-
-https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.3.0&SERVICE=WMS&REQUEST=GetMap&LAYERS=OI.OrthoimageCoverage&STYLES=&CRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}`
-                : ""),
-        lastCustomLayerUrl ?? "",
-    )
-    if (customLayerUrl) {
-        lastCustomLayerUrl = customLayerUrl
-        void GM.setValue("lastCustomLayerUrl", lastCustomLayerUrl)
-    } else {
-        return
+    injectCSSIntoOSMPage(`
+    .map-layers-selector-popup {
+        position: relative;
+        width: fit-content;
+        background: var(--bs-body-bg);
+        border: 1px solid rgba(204,204,204,0.5);
+        padding: 12px;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0,0,0,.2);
+        font-family: sans-serif;
+        z-index: 9999;
     }
-    getWindow().customLayer = lastCustomLayerUrlOrigin = new URL(customLayerUrl).origin
+    .map-layers-selector-popup label:hover {
+        background: light-dark("gray", "gray");
+    }
+`)
+
+    const h = document.createElement("h3")
+    h.style.display = "flex"
+    h.style.gap = "25px"
+    h.style.marginLeft = "auto"
+    h.textContent = "Setup custom map layers"
+    popup.appendChild(h)
+
+    const closeBtn = document.createElement("button")
+    closeBtn.classList.add("better-btn-close")
+    closeBtn.style.all = "unset"
+    closeBtn.style.cursor = "pointer"
+    closeBtn.innerHTML =
+        '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">' +
+        '  <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>' +
+        "</svg>"
+    closeBtn.querySelector("svg").style.height = "1.5rem"
+    closeBtn.onclick = () => popup.remove()
+    h.append(closeBtn)
+
+    popup.appendChild(radioContainer)
+
+    const radiosName = `map-layer-url`
+
+    function makeWrapper() {
+        const wrapper = document.createElement("label")
+        wrapper.style.display = "flex"
+        wrapper.style.paddingTop = "2px"
+        wrapper.style.paddingBottom = "2px"
+        wrapper.style.margin = "2px"
+        wrapper.style.gap = "4px"
+        return wrapper
+    }
+
+    function addRadio({ label, value, about }) {
+        const wrapper = makeWrapper()
+
+        const input = document.createElement("input")
+        input.type = "radio"
+        input.name = radiosName
+        wrapper.title = input.value = value
+
+        input.addEventListener("change", async () => {
+            if (input.checked) {
+                applyCustomLayer(input.value)
+                switchTiles(currentTilesMode === MAPNIK_MODE)
+                getMap()?.attributionControl?.setPrefix(label)
+            }
+        })
+
+        const externalLink = document.createElement("a")
+        externalLink.title = "Open map layer home page"
+        externalLink.setAttribute("href", about)
+        externalLink.innerHTML = externalLinkSvg
+        externalLink.style.marginLeft = "auto"
+        externalLink.style.marginRight = "2px"
+        externalLink.style.color = "gray"
+        externalLink.tabIndex = -1
+
+        const labelSpan = document.createElement("span")
+        labelSpan.textContent = label
+        wrapper.append(input, labelSpan, externalLink)
+        radioContainer.appendChild(wrapper)
+    }
+
+    options.forEach(addRadio)
+    {
+        const wrapper = makeWrapper()
+
+        const input = document.createElement("input")
+        input.type = "radio"
+        input.name = radiosName
+        input.value = ""
+
+        wrapper.append(input)
+        const urlInput = document.createElement("input")
+        urlInput.type = "text"
+        urlInput.placeholder = "example: https://vector.openstreetmap.org/styles/shortbread/neutrino.json"
+        urlInput.style.width = "100%"
+        wrapper.append(urlInput)
+
+        input.onchange = async () => {
+            if (input.checked && urlInput.value.trim() !== "") {
+                applyCustomLayer(urlInput.value)
+                switchTiles(currentTilesMode === MAPNIK_MODE)
+            }
+        }
+
+        urlInput.onkeydown = async e => {
+            if (e.key === "Enter" && urlInput.value.trim() !== "") {
+                input.click()
+                applyCustomLayer(urlInput.value)
+                switchTiles(currentTilesMode === MAPNIK_MODE)
+                getMap()?.attributionControl?.setPrefix("Custom map style from " + escapeHtml(new URL(urlInput.value).host))
+            }
+        }
+
+        radioContainer.appendChild(wrapper)
+    }
+
+    const note = document.createElement("span")
+    note.style.color = "gray"
+    note.innerHTML =
+        "You can <a href='https://github.com/deevroman/better-osm-org/issues/new?body=#Custom vector styles'>suggest</a> other layer. One of <a href='https://github.com/osmlab/editor-layer-index'>layers collection</a>"
+    popup.appendChild(note)
+    document.body.appendChild(popup)
+    popup.querySelector('label:has([href^="https://github.com/versatiles-org/versatiles-style"])')?.querySelector("input")?.focus()
 }
 
 function vectorSwitch() {
@@ -460,28 +631,33 @@ function vectorSwitch() {
         return
     }
     const vectorMap = findVectorMap()
-    if (currentTilesMode === SAT_MODE) {
-        askCustomTileUrl()
-        function addLayer() {
-            vectorMap.addSource(
-                "satellite",
-                intoPage({
-                    type: "raster",
-                    tiles: [customLayerUrl],
-                    tileSize: 256,
-                    attribution: "",
-                }),
-            )
-            vectorMap.addLayer(
-                intoPage({
-                    id: "satellite-layer",
-                    type: "raster",
-                    source: "satellite",
-                }),
-            )
-        }
-
+    function addLayer() {
+        vectorMap.addSource(
+            "satellite",
+            intoPage({
+                type: "raster",
+                tiles: [customLayerUrl],
+                tileSize: 256,
+                attribution: "",
+            }),
+        )
+        vectorMap.addLayer(
+            intoPage({
+                id: "satellite-layer",
+                type: "raster",
+                source: "satellite",
+            }),
+        )
+    }
+    function removeLayer() {
         try {
+            vectorMap.removeLayer("satellite-layer")
+            vectorMap.removeSource("satellite")
+        } catch (e) {}
+    }
+    if (currentTilesMode === SAT_MODE) {
+        try {
+            removeLayer()
             addLayer()
         } catch (e) {
             console.error(e)
@@ -489,8 +665,7 @@ function vectorSwitch() {
             setTimeout(addLayer, 1000)
         }
     } else {
-        vectorMap.removeLayer("satellite-layer")
-        vectorMap.removeSource("satellite")
+        removeLayer()
     }
 }
 
@@ -536,7 +711,7 @@ function replaceToSatTile(imgElem, xyz) {
     } catch {
         /* empty */
     }
-    if (!needBypassSatellite) {
+    if (!needBypassSatellite && !customLayerUrlIsWms) {
         imgElem.src = newUrl
     } else {
         imgElem.setAttribute("custom-tile-url", newUrl)
@@ -595,17 +770,12 @@ function replaceTileSrc(imgElem) {
     }
 }
 
-function switchTiles() {
-    if (tilesObserver) {
-        tilesObserver?.disconnect()
-    }
-    addEsriShotDateCollector()
-    currentTilesMode = invertTilesMode(currentTilesMode)
+function rasterSwitch() {
     if (currentTilesMode === SAT_MODE) {
         if (!customLayerUrl) {
-            customLayerUrl = SatellitePrefix + "{z}/{y}/{x}" + blankSuffix
+            applyCustomLayer(SatellitePrefix + "{z}/{y}/{x}" + blankSuffix)
+            addEsriPrefix()
         }
-        addEsriPrefix()
     } else {
         getMap()?.attributionControl?.setPrefix("")
     }
@@ -634,6 +804,17 @@ function switchTiles() {
     })
     tilesObserver = observer
     observer.observe(document.body, { childList: true, subtree: true })
+}
+
+function switchTiles(invertMode = true) {
+    if (tilesObserver) {
+        tilesObserver?.disconnect()
+    }
+    addEsriShotDateCollector()
+    if (invertMode) {
+        currentTilesMode = invertTilesMode(currentTilesMode)
+    }
+    rasterSwitch()
     vectorSwitch()
 }
 

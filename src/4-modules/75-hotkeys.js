@@ -1244,13 +1244,9 @@ function setupNavigationViaHotkeys() {
                 Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
             }
         } else if (e.code === "KeyS") {
-            // satellite
             enableOverzoom()
             if (e.shiftKey) {
                 askCustomTileUrl()
-                if (currentTilesMode !== SAT_MODE) {
-                    switchTiles()
-                }
                 return
             } else if (e.altKey) {
                 bypassCaches()
