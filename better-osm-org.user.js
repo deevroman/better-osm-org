@@ -147,8 +147,10 @@
 // @connect      vtiles.openhistoricalmap.org
 // @connect      api.maptiler.com
 // @connect      api.jawg.io
+// @connect      tile.jawg.io
 // @connect      map.atownsend.org.uk
 // @connect      tiles.openfreemap.org
+// @connect      tiles.openrailwaymap.org
 // @comment      * for custom layers. ViolentMonkey ignores @connect by default,
 // @comment      Tampermonkey will show a warning before connecting to a host that is not listed above
 // @connect      *
@@ -6954,6 +6956,10 @@ const githubMapStylesURL = `https://raw.githubusercontent.com/deevroman/better-o
 const mapStylesDatabase = resourceCacher(githubMapStylesURL, "custom-vector-map-styles", "vector map styles list", 6 * 60 * 60 * 1000, "json")
 
 async function askCustomStyleUrl() {
+    if (!initCustomFetch) {
+        alert("Please, reload page.\np.s. F*cking Chrome")
+        return
+    }
     if (document.querySelector(".vector-tiles-selector-popup")) {
         document.querySelector(".vector-tiles-selector-popup").remove()
         return
@@ -16555,6 +16561,7 @@ function initMaplibreWorkerOverrider() {
         if (e.data.type !== "create_worker") {
             return
         }
+        console.log("create_worker message")
         const worker = boWindowObject.maplibreOverriddenWorker
         worker.onmessage = intoPageWithFun(async e => {
             if (e.data.type !== "bypass_csp") {

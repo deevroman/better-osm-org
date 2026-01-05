@@ -148,8 +148,10 @@
 // @connect      vtiles.openhistoricalmap.org
 // @connect      api.maptiler.com
 // @connect      api.jawg.io
+// @connect      tile.jawg.io
 // @connect      map.atownsend.org.uk
 // @connect      tiles.openfreemap.org
+// @connect      tiles.openrailwaymap.org
 // @comment      * for custom layers. ViolentMonkey ignores @connect by default,
 // @comment      Tampermonkey will show a warning before connecting to a host that is not listed above
 // @connect      *

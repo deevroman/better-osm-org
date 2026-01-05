@@ -322,6 +322,10 @@ const githubMapStylesURL = `https://raw.githubusercontent.com/deevroman/better-o
 const mapStylesDatabase = resourceCacher(githubMapStylesURL, "custom-vector-map-styles", "vector map styles list", 6 * 60 * 60 * 1000, "json")
 
 async function askCustomStyleUrl() {
+    if (!initCustomFetch) {
+        alert("Please, reload page.\np.s. F*cking Chrome")
+        return
+    }
     if (document.querySelector(".vector-tiles-selector-popup")) {
         document.querySelector(".vector-tiles-selector-popup").remove()
         return
