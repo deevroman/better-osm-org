@@ -6954,6 +6954,10 @@ const githubMapStylesURL = `https://raw.githubusercontent.com/deevroman/better-o
 const mapStylesDatabase = resourceCacher(githubMapStylesURL, "custom-vector-map-styles", "vector map styles list", 6 * 60 * 60 * 1000, "json")
 
 async function askCustomStyleUrl() {
+    if (document.querySelector(".vector-tiles-selector-popup")) {
+        document.querySelector(".vector-tiles-selector-popup").remove()
+        return
+    }
     await mapStylesDatabase.init()
     const options = mapStylesDatabase.get()?.styles ?? [
         { label: "SomeoneElse's vector map style", value: "https://map.atownsend.org.uk/vector/style_svwd03.json", about: "https://github.com/SomeoneElseOSM/SomeoneElse-vector-web-display" },
@@ -7090,13 +7094,17 @@ async function askCustomStyleUrl() {
     const note = document.createElement("span")
     note.style.color = "gray"
     note.innerHTML =
-        "You can <a target='_blank' href='https://github.com/deevroman/better-osm-org/issues/new?body=#Custom vector styles'>suggest</a> other styles. One of styles <a target='_blank' href='https://github.com/pnorman/maplibre-styles'>collection</a>"
+        "You can <a target='_blank' href='https://github.com/deevroman/better-osm-org/issues/new'>suggest</a> other styles. One of styles <a target='_blank' href='https://github.com/pnorman/maplibre-styles'>collection</a>"
     popup.appendChild(note)
     document.body.appendChild(popup)
     popup.querySelector('label:has([href^="https://github.com/versatiles-org/versatiles-style"])')?.querySelector("input")?.focus()
 }
 
 async function askCustomTileUrl() {
+    if (document.querySelector(".map-layers-selector-popup")) {
+        document.querySelector(".map-layers-selector-popup").remove()
+        return
+    }
     const options = [
         {
             label: "ESRI",
@@ -7250,7 +7258,7 @@ async function askCustomTileUrl() {
     const note = document.createElement("span")
     note.style.color = "gray"
     note.innerHTML =
-        "You can <a target='_blank' href='https://github.com/deevroman/better-osm-org/issues/new?body=#Custom vector styles'>suggest</a> other layer. " +
+        "You can <a target='_blank' href='https://github.com/deevroman/better-osm-org/issues/new'>suggest</a> other layer. " +
         "One of <a href='https://github.com/osmlab/editor-layer-index'>layers collection</a>"
     popup.appendChild(note)
     document.body.appendChild(popup)
