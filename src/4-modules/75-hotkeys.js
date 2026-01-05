@@ -1117,7 +1117,9 @@ function setupNavigationViaHotkeys() {
                 }
             }
         }
-        if (["TEXTAREA", "INPUT", "SELECT"].includes(document.activeElement?.nodeName) && document.activeElement?.getAttribute("type") !== "checkbox") {
+        if (["TEXTAREA", "INPUT", "SELECT"].includes(document.activeElement?.nodeName)
+            && document.activeElement?.getAttribute("type") !== "checkbox"
+            && document.activeElement?.getAttribute("type") !== "radio") {
             return
         }
         if (document.activeElement?.getAttribute("contenteditable")) {
