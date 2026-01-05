@@ -634,7 +634,7 @@ async function askCustomTileUrl() {
         "One of <a href='https://github.com/osmlab/editor-layer-index'>layers collection</a>"
     popup.appendChild(note)
     document.body.appendChild(popup)
-    popup.querySelector('label:has([href^="https://github.com/versatiles-org/versatiles-style"])')?.querySelector("input")?.focus()
+    popup.querySelector('label:has([href^="https://osm.wiki/Esri"])')?.querySelector("input")?.focus()
 }
 
 function vectorSwitch() {

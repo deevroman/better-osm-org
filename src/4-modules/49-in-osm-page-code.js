@@ -331,7 +331,7 @@ function runInOsmPageCode() {
                     || args?.[0]?.url?.startsWith?.(window.customVectorStyleLayerOrigin)
                 )) {
                 const resourceUrl = args?.[0]?.url
-                console.log("overridden fetch in page", window.customVectorStyleLayerOrigin, resourceUrl)
+                console.log("overridden fetch in page", window.customLayerOrigin, window.customVectorStyleLayerOrigin, resourceUrl)
                 const resultCallback = new Promise((resolve, reject) => {
                     window.addEventListener("message", e => {
                         if (e.origin !== location.origin) return
