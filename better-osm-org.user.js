@@ -7268,7 +7268,7 @@ async function askCustomTileUrl() {
         "One of <a href='https://github.com/osmlab/editor-layer-index'>layers collection</a>"
     popup.appendChild(note)
     document.body.appendChild(popup)
-    popup.querySelector('label:has([href^="https://github.com/versatiles-org/versatiles-style"])')?.querySelector("input")?.focus()
+    popup.querySelector('label:has([href^="https://osm.wiki/Esri"])')?.querySelector("input")?.focus()
 }
 
 function vectorSwitch() {
@@ -16846,7 +16846,7 @@ function runInOsmPageCode() {
                     || args?.[0]?.url?.startsWith?.(window.customVectorStyleLayerOrigin)
                 )) {
                 const resourceUrl = args?.[0]?.url
-                console.log("overridden fetch in page", window.customVectorStyleLayerOrigin, resourceUrl)
+                console.log("overridden fetch in page", window.customLayerOrigin, window.customVectorStyleLayerOrigin, resourceUrl)
                 const resultCallback = new Promise((resolve, reject) => {
                     window.addEventListener("message", e => {
                         if (e.origin !== location.origin) return
