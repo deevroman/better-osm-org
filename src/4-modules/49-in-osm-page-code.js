@@ -46,6 +46,7 @@ function initMaplibreWorkerOverrider() {
         if (e.data.type !== "create_worker") {
             return
         }
+        console.log("create_worker message")
         const worker = boWindowObject.maplibreOverriddenWorker
         worker.onmessage = intoPageWithFun(async e => {
             if (e.data.type !== "bypass_csp") {
