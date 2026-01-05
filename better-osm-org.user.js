@@ -6918,22 +6918,20 @@ function findVectorMap() {
     }
 }
 
-async function applyCustomVectorMapStyle(vectorLayerStyleUrl, updateUrlInStorage = false) {
+async function applyCustomVectorMapStyle(styleUrl, updateUrlInStorage = false) {
     if (updateUrlInStorage) {
-        lastVectorLayerStyleUrl = vectorLayerStyleUrl
-        void GM.setValue("lastVectorLayerStyleUrl", lastVectorLayerStyleUrl)
+        void GM.setValue("lastVectorLayerStyleUrl", (lastVectorLayerStyleUrl = styleUrl))
     }
-    getWindow().customVectorStyleLayerOrigin = vectorLayerStyleUrlOrigin = new URL(vectorLayerStyleUrl).origin
+    getWindow().customVectorStyleLayerOrigin = vectorLayerStyleUrlOrigin = new URL(styleUrl).origin
     initCustomFetch()
-    findVectorMap().setStyle(vectorLayerStyleUrl)
+    findVectorMap().setStyle(styleUrl)
 }
 
 function applyCustomLayer(layerUrl, updateUrlInStorage = false) {
     customLayerUrl = layerUrl
     customLayerUrlIsWms = customLayerUrl.includes("{bbox-epsg-3857}")
     if (updateUrlInStorage) {
-        lastCustomLayerUrl = customLayerUrl
-        void GM.setValue("lastCustomLayerUrl", lastCustomLayerUrl)
+        void GM.setValue("lastCustomLayerUrl", (lastCustomLayerUrl = customLayerUrl))
     }
     getWindow().customLayerOrigin = customLayerUrlOrigin = new URL(customLayerUrl).origin
 }
@@ -7067,8 +7065,8 @@ async function askCustomStyleUrl() {
         urlInput.type = "text"
         urlInput.placeholder = "example: https://vector.openstreetmap.org/styles/shortbread/neutrino.json"
         urlInput.style.width = "100%"
-        if (lastCustomLayerUrl) {
-            urlInput.value = lastCustomLayerUrl
+        if (lastVectorLayerStyleUrl) {
+            urlInput.value = lastVectorLayerStyleUrl
         }
         wrapper.append(urlInput)
 
