@@ -715,8 +715,6 @@ function replaceToSatTile(imgElem, xyz) {
         imgElem.src = newUrl
     } else {
         imgElem.setAttribute("custom-tile-url", newUrl)
-    }
-    if (needBypassSatellite) {
         bypassCSPForImagesSrc(imgElem, newUrl)
     }
     if (imgElem.complete && !needBypassSatellite) {
