@@ -6,7 +6,7 @@ function allowedCspBridgeOrigin(origin) {
 
 function initCspBridge() {
     window.addEventListener("message", async e => {
-        if (!lastCustomLayerUrlOrigin && !lastVectorLayerStyleUrlOrigin) {
+        if (!customLayerUrlOrigin && !vectorLayerStyleUrlOrigin) {
             return
         }
         if (e.origin !== location.origin) return
@@ -52,7 +52,7 @@ function initMaplibreWorkerOverrider() {
                 return
             }
             // console.log(e.data)
-            if (!lastVectorLayerStyleUrlOrigin && !lastVectorLayerStyleUrlOrigin) {
+            if (!customLayerUrlOrigin && !vectorLayerStyleUrlOrigin) {
             } else {
                 const res = await GM.xmlHttpRequest({
                     url: e.data.url,
@@ -151,8 +151,8 @@ function runInOsmPageCode() {
     window.notesCommentsFilter = "";
     window.notesIDsFilter = new Set();
 
-    window.customLayer = null
-    window.customVectorStyleLayer = null
+    window.customLayerOrigin = null
+    window.customVectorStyleLayerOrigin = null
 
     // const cache = new Map();
 
@@ -323,34 +323,14 @@ function runInOsmPageCode() {
                         headers: response.headers
                     });
                 }
-            } else if (window.mapGLIntercepted && (
-                args?.[0]?.url?.startsWith?.("https://server.arcgisonline.com/")
-                || args?.[0]?.url?.startsWith?.("https://geoscribble.osmz.ru/")
-                || args?.[0]?.url?.startsWith?.("https://geoportal.dgu.hr/")
-                || window.customLayer && args?.[0]?.url?.startsWith?.(window.customLayer)
-            )) {
-                const tile_url = args[0].url
-                const resultCallback = new Promise((resolve, reject) => {
-                    window.addEventListener("message", e => {
-                        if (e.origin !== location.origin) return
-                        if (e.data.type !== "bypass_csp_response") {
-                            return
-                        }
-                        if (e.data.url !== tile_url) {
-                            return
-                        }
-                        resolve(e.data.data)
-                    })
-                })
-                window.postMessage({ "type": "bypass_csp", url: tile_url }, location.origin)
-                const res = await resultCallback
-                return new Response(res.response, {
-                    status: res.status,
-                    statusText: res.statusText,
-                });
-            } else if (window.customVectorStyleLayer && (window.customVectorStyleLayer.startsWith("http://localhost") || args?.[0]?.url?.startsWith?.(window.customVectorStyleLayer))) {
+            } else if (window.mapGLIntercepted && window.customLayerOrigin && args?.[0]?.url?.startsWith?.(window.customLayerOrigin)
+            || window.mapGLIntercepted && window.customVectorStyleLayerOrigin && (
+                    window.customVectorStyleLayerOrigin.startsWith("http://localhost") 
+                    || window.customVectorStyleLayerOrigin.startsWith("https://raw.githubusercontent.com") 
+                    || args?.[0]?.url?.startsWith?.(window.customVectorStyleLayerOrigin)
+                )) {
                 const resourceUrl = args?.[0]?.url
-                console.log(window.customVectorStyleLayer, resourceUrl)
+                console.log("overridden fetch in page", window.customVectorStyleLayerOrigin, resourceUrl)
                 const resultCallback = new Promise((resolve, reject) => {
                     window.addEventListener("message", e => {
                         if (e.origin !== location.origin) return
@@ -372,13 +352,6 @@ function runInOsmPageCode() {
             } else if (args?.[0]?.url === "https://vector.openstreetmap.org/styles/shortbread/colorful.json"
                 || args?.[0]?.url === "https://vector.openstreetmap.org/styles/shortbread/eclipse.json") {
                 return originalFetch(...args);
-                console.log("vector tiles request", args)
-                if (!window.vectorStyle) {
-                    console.log("wait external vector style")
-                    await new Promise(r => setTimeout(r, 1000))
-                }
-                const originalJSON = window.vectorStyle
-                console.log(originalJSON)
                 // const response = await originalFetch(...args);
                 // const originalJSON = await response.json();
                 // originalJSON.layers[originalJSON.layers.findIndex(i => i.id === "water-river")].paint['line-color'] = "red"
@@ -391,7 +364,7 @@ function runInOsmPageCode() {
                 //     }
                 // })
                 // console.log(originalJSON)
-                return new Response(JSON.stringify(originalJSON));
+                // return new Response(JSON.stringify(originalJSON));
             } else if (args[0]?.includes?.("/members")) {
                 // console.log("freeeeeze", args[0])
                 // await new Promise(() => setTimeout(() => true, 1000 * 1000))

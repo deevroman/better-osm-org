@@ -147,6 +147,7 @@
 // @connect      vector.openstreetmap.org
 // @connect      vtiles.openhistoricalmap.org
 // @connect      api.maptiler.com
+// @connect      api.jawg.io
 // @connect      map.atownsend.org.uk
 // @connect      tiles.openfreemap.org
 // @comment      * for custom layers. ViolentMonkey ignores @connect by default,

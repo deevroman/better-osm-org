@@ -104,13 +104,13 @@ function coord4326To3857(lon, lat) {
     return [long3857, lat3857]
 }
 
-async function bypassCSPForImagesSrc(imgElem, url, isStrava = true) {
+async function bypassCSPForImagesSrc(imgElem, url) {
     const res = await fetchBlobWithCache(url)
     if (res.status !== 200) {
         if (!GM_config.get("OverzoomForDataLayer")) {
             return
         }
-        if (isStrava && res.status === 403) {
+        if (res.status === 403 && url.includes("strava")) {
             if (!needStravaAuth) {
                 needStravaAuth = true
                 alert("Need login in Strava for access to heatmap")
@@ -155,9 +155,6 @@ function updateShotEsriDateNeeded() {
 }
 
 function addEsriDate() {
-    if (vectorLayerEnabled()) {
-        return
-    }
     console.debug("Updating imagery date")
     const [x, y, z] = getCurrentXYZ()
     const zoom = min(19, parseInt(z))
@@ -186,7 +183,11 @@ function addEsriDate() {
 }
 
 function addEsriPrefix() {
-    getMap()?.attributionControl?.setPrefix("ESRI")
+    if (SatellitePrefix === ESRIBetaPrefix) {
+        getMap()?.attributionControl?.setPrefix("ESRI beta")
+    } else {
+        getMap()?.attributionControl?.setPrefix("ESRI")
+    }
     if (SatellitePrefix === ESRIPrefix) {
         addEsriDate()
     }
@@ -200,6 +201,7 @@ function switchESRIbeta() {
         if (i.nodeName !== "IMG") {
             return
         }
+        addXyzToTile(i)
         const xyz = xyzFromTileElem(i)
         if (!xyz) return
         const newUrl = makeCustomTileUrl(customLayerUrl, xyz)
@@ -264,28 +266,16 @@ function makeOSMGPSURL(x, y, z) {
     return OSMGPSPrefix + z + "/" + x + "/" + y + ".png"
 }
 
-async function loadExternalVectorStyle(url) {
-    try {
-        const res = await externalFetchRetry({
-            url: url,
-            responseType: "json",
-            headers: {
-                Origin: "https://www.openstreetmap.org",
-                Referer: "https://www.openstreetmap.org/",
-            },
-        })
-        console.debug((getWindow().vectorStyle = await res.response))
-    } catch (e) {}
-}
-
+/** @type {string|null} */
 let customLayerUrl = null
+/** @type {boolean} */
 let customLayerUrlIsWms = false
 let lastCustomLayerUrl = null
-let lastCustomLayerUrlOrigin = null
+let customLayerUrlOrigin = null
 GM.getValue("lastCustomLayerUrl").then(res => (lastCustomLayerUrl = res))
 
 let lastVectorLayerStyleUrl = null
-let lastVectorLayerStyleUrlOrigin = null
+let vectorLayerStyleUrlOrigin = null
 GM.getValue("lastVectorLayerStyleUrl").then(res => (lastVectorLayerStyleUrl = res))
 
 function findVectorMap() {
@@ -296,20 +286,24 @@ function findVectorMap() {
     }
 }
 
-async function applyCustomVectorMapStyle(vectorLayerStyleUrl) {
-    lastVectorLayerStyleUrl = vectorLayerStyleUrl
-    void GM.setValue("lastVectorLayerStyleUrl", lastVectorLayerStyleUrl)
-    getWindow().customVectorStyleLayer = lastVectorLayerStyleUrlOrigin = new URL(vectorLayerStyleUrl).origin
+async function applyCustomVectorMapStyle(vectorLayerStyleUrl, updateUrlInStorage = false) {
+    if (updateUrlInStorage) {
+        lastVectorLayerStyleUrl = vectorLayerStyleUrl
+        void GM.setValue("lastVectorLayerStyleUrl", lastVectorLayerStyleUrl)
+    }
+    getWindow().customVectorStyleLayerOrigin = vectorLayerStyleUrlOrigin = new URL(vectorLayerStyleUrl).origin
     initCustomFetch()
-    await loadExternalVectorStyle(vectorLayerStyleUrl)
     findVectorMap().setStyle(vectorLayerStyleUrl)
 }
 
-function applyCustomLayer(layerUrl) {
-    lastCustomLayerUrl = customLayerUrl = layerUrl
+function applyCustomLayer(layerUrl, updateUrlInStorage = false) {
+    customLayerUrl = layerUrl
     customLayerUrlIsWms = customLayerUrl.includes("{bbox-epsg-3857}")
-    void GM.setValue("lastCustomLayerUrl", lastCustomLayerUrl)
-    getWindow().customLayer = lastVectorLayerStyleUrlOrigin = new URL(customLayerUrl).origin
+    if (updateUrlInStorage) {
+        lastCustomLayerUrl = customLayerUrl
+        void GM.setValue("lastCustomLayerUrl", lastCustomLayerUrl)
+    }
+    getWindow().customLayerOrigin = customLayerUrlOrigin = new URL(customLayerUrl).origin
 }
 
 /**
@@ -441,18 +435,21 @@ async function askCustomStyleUrl() {
         urlInput.type = "text"
         urlInput.placeholder = "example: https://vector.openstreetmap.org/styles/shortbread/neutrino.json"
         urlInput.style.width = "100%"
+        if (lastCustomLayerUrl) {
+            urlInput.value = lastCustomLayerUrl
+        }
         wrapper.append(urlInput)
 
         input.onchange = async () => {
             if (input.checked && urlInput.value.trim() !== "") {
-                await applyCustomVectorMapStyle(urlInput.value)
+                await applyCustomVectorMapStyle(urlInput.value, true)
             }
         }
 
         urlInput.onkeydown = async e => {
             if (e.key === "Enter" && urlInput.value.trim() !== "") {
                 input.click()
-                await applyCustomVectorMapStyle(urlInput.value)
+                await applyCustomVectorMapStyle(urlInput.value, true)
                 getMap()?.attributionControl?.setPrefix("Custom map style from " + escapeHtml(new URL(urlInput.value).host))
             }
         }
@@ -492,7 +489,7 @@ async function askCustomTileUrl() {
             about: "https://www.openrailwaymap.org",
         },
         {
-            label: "Hr GeoPortal",
+            label: "Hrvatska GeoPortal",
             value: "https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.3.0&SERVICE=WMS&REQUEST=GetMap&LAYERS=OI.OrthoimageCoverage&STYLES=&CRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}",
             about: "https://osm.wiki/GeoScribble",
         },
@@ -596,11 +593,14 @@ async function askCustomTileUrl() {
         urlInput.type = "text"
         urlInput.placeholder = "example: https://tile.openstreetmap.org/{z}/{x}/{y}.png"
         urlInput.style.width = "100%"
+        if (lastCustomLayerUrl) {
+            urlInput.value = lastCustomLayerUrl
+        }
         wrapper.append(urlInput)
 
         input.onchange = async () => {
             if (input.checked && urlInput.value.trim() !== "") {
-                applyCustomLayer(urlInput.value)
+                applyCustomLayer(urlInput.value, true)
                 switchTiles(currentTilesMode === MAPNIK_MODE)
             }
         }
@@ -608,7 +608,7 @@ async function askCustomTileUrl() {
         urlInput.onkeydown = async e => {
             if (e.key === "Enter" && urlInput.value.trim() !== "") {
                 input.click()
-                applyCustomLayer(urlInput.value)
+                applyCustomLayer(urlInput.value, true)
                 switchTiles(currentTilesMode === MAPNIK_MODE)
                 getMap()?.attributionControl?.setPrefix("Custom map style from " + escapeHtml(new URL(urlInput.value).host))
             }
@@ -620,7 +620,8 @@ async function askCustomTileUrl() {
     const note = document.createElement("span")
     note.style.color = "gray"
     note.innerHTML =
-        "You can <a href='https://github.com/deevroman/better-osm-org/issues/new?body=#Custom vector styles'>suggest</a> other layer. One of <a href='https://github.com/osmlab/editor-layer-index'>layers collection</a>"
+        "You can <a target='_blank' href='https://github.com/deevroman/better-osm-org/issues/new?body=#Custom vector styles'>suggest</a> other layer. " +
+        "One of <a href='https://github.com/osmlab/editor-layer-index'>layers collection</a>"
     popup.appendChild(note)
     document.body.appendChild(popup)
     popup.querySelector('label:has([href^="https://github.com/versatiles-org/versatiles-style"])')?.querySelector("input")?.focus()
@@ -680,7 +681,7 @@ function addEsriShotDateCollector() {
         getMap().on(
             "moveend zoomend",
             intoPageWithFun(function () {
-                if (updateShotEsriDateNeeded()) {
+                if (customLayerUrl.includes(ESRIPrefix) && updateShotEsriDateNeeded()) {
                     addEsriDate()
                 }
             }),
@@ -750,15 +751,19 @@ function replaceToBaseTile(imgElem, xyz) {
     }
 }
 
+function addXyzToTile(imgElem) {
+    const xyz = parseOSMTileURL(imgElem.src)
+    if (!xyz) {
+        return
+    }
+    imgElem.setAttribute("x", xyz.x)
+    imgElem.setAttribute("y", xyz.y)
+    imgElem.setAttribute("z", xyz.z)
+}
+
 function replaceTileSrc(imgElem) {
     if (!imgElem.hasAttribute("x")) {
-        const xyz = parseOSMTileURL(imgElem.src)
-        if (!xyz) {
-            return
-        }
-        imgElem.setAttribute("x", xyz.x)
-        imgElem.setAttribute("y", xyz.y)
-        imgElem.setAttribute("z", xyz.z)
+        addXyzToTile(imgElem)
     }
     const xyz = xyzFromTileElem(imgElem)
     if (currentTilesMode === SAT_MODE) {
@@ -914,7 +919,7 @@ function switchOverlayTiles() {
             }
             const newUrl = makeStravaURL(xyz.x, xyz.y, xyz.z)
             i.setAttribute("custom-tile-url", newUrl)
-            bypassCSPForImagesSrc(i, newUrl, true)
+            bypassCSPForImagesSrc(i, newUrl)
             if (i.complete) {
                 i.classList.add("no-invert")
             } else {
@@ -961,7 +966,7 @@ function switchOverlayTiles() {
                     const newURL = makeStravaURL(xyz.x, xyz.y, xyz.z)
                     node.src = "/dev/null"
                     node.setAttribute("custom-tile-url", newURL)
-                    bypassCSPForImagesSrc(node, newURL, true)
+                    bypassCSPForImagesSrc(node, newURL)
                     if (node.complete) {
                         node.classList.add("no-invert")
                     } else {
@@ -1033,7 +1038,7 @@ function createSwitchTilesBtn() {
     }
     btnOnPane.style.cursor = "pointer"
     btnOnPane.classList.add("turn-on-satellite-from-pane")
-    btnOnPane.title = "Switch between map and satellite images (S key)\nPress (Shift+S) for ESRI beta"
+    btnOnPane.title = "Switch between map and satellite images (S key)\nPress Shift+S for set custom imagery"
     btnOnPane.onclick = e => {
         e.stopImmediatePropagation()
         enableOverzoom()
@@ -1041,9 +1046,7 @@ function createSwitchTilesBtn() {
             switchESRIbeta()
             return
         }
-        setTimeout(() => {
-            switchTilesAndButtons()
-        })
+        switchTilesAndButtons()
     }
     return btnOnPane
 }
