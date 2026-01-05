@@ -594,7 +594,7 @@ async function askCustomTileUrl() {
         wrapper.append(input)
         const urlInput = document.createElement("input")
         urlInput.type = "text"
-        urlInput.placeholder = "example: https://vector.openstreetmap.org/styles/shortbread/neutrino.json"
+        urlInput.placeholder = "example: https://tile.openstreetmap.org/{z}/{x}/{y}.png"
         urlInput.style.width = "100%"
         wrapper.append(urlInput)
 
