@@ -1120,6 +1120,10 @@ function addSwitchTilesButtonsOnPane() {
         btnOnPane.onclick = async e => {
             await askCustomStyleUrl()
         }
+        btnOnPane.oncontextmenu = async e => {
+            e.preventDefault()
+            await askCustomStyleUrl()
+        }
         omtBtn.appendChild(document.createTextNode("\xA0"))
         omtBtn.appendChild(btnOnPane)
     }
