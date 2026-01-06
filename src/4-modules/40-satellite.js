@@ -1036,6 +1036,11 @@ function addSwitchTilesBtnOnNotePage() {
         enableOverzoom()
         switchTilesAndButtons()
     }
+    btnOnNotePage.oncontextmenu = async e => {
+        e.preventDefault()
+        enableOverzoom()
+        await askCustomTileUrl()
+    }
 }
 
 function createSwitchTilesBtn() {
@@ -1066,6 +1071,19 @@ function createSwitchTilesBtn() {
     return btnOnPane
 }
 
+function createCustomLayerBtn() {
+    const btn = document.createElement("span")
+    btn.classList.add("set-custom-layer-btn")
+    btn.textContent = " ⚙️"
+    btn.style.cursor = "pointer"
+    btn.title = "Set custom layer (Shift + S)\nbetter-osm-org feature"
+    btn.onclick = async () => {
+        enableOverzoom()
+        await askCustomTileUrl()
+    }
+    return btn
+}
+
 function addSwitchTilesButtonsOnPane() {
     if (document.querySelector(".turn-on-satellite-from-pane")) {
         return
@@ -1077,11 +1095,16 @@ function addSwitchTilesButtonsOnPane() {
         mapnikBtn.appendChild(document.createTextNode("\xA0"))
         mapnikBtn.appendChild(btnOnPane)
     }
+    const h2 = document.querySelector(".layers-ui h2")
+    if (h2 && !document.querySelector(".set-custom-layer-btn")) {
+        h2.appendChild(createCustomLayerBtn())
+    }
     const omtBtn = layers.at(-1)
     if (omtBtn) {
         const btnOnPane = document.createElement("span")
         btnOnPane.style.cursor = "pointer"
         btnOnPane.textContent = "🎨"
+        btnOnPane.title = "Set custom vector style (Shift + V)"
         btnOnPane.onmouseover = async () => {
             await mapStylesDatabase.init()
         }
