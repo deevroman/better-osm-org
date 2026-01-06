@@ -7396,10 +7396,10 @@ function replaceToSatTile(imgElem, xyz) {
     } catch {
         /* empty */
     }
+    imgElem.setAttribute("custom-tile-url", newUrl)
     if (!needBypassSatellite && !customLayerUrlIsWms) {
         imgElem.src = newUrl
     } else {
-        imgElem.setAttribute("custom-tile-url", newUrl)
         bypassCSPForImagesSrc(imgElem, newUrl)
     }
     if (imgElem.complete && !needBypassSatellite) {
@@ -7451,7 +7451,6 @@ function replaceTileSrc(imgElem) {
     }
     const xyz = xyzFromTileElem(imgElem)
     if (!xyz) {
-        console.error("failed to parse tile src", imgElem.src)
         return
     }
     if (currentTilesMode === SAT_MODE) {
@@ -7726,7 +7725,7 @@ function createSwitchTilesBtn() {
     }
     btnOnPane.style.cursor = "pointer"
     btnOnPane.classList.add("turn-on-satellite-from-pane")
-    btnOnPane.title = "Switch between map and satellite images (S key)\nPress Shift+S for set custom imagery"
+    btnOnPane.title = "Switch between map and satellite images (S key)\nPress Shift+S for set custom imagery\nOn mobile use long tap"
     btnOnPane.onclick = e => {
         e.stopImmediatePropagation()
         enableOverzoom()
