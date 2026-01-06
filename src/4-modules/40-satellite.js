@@ -805,6 +805,7 @@ function replaceTileSrc(imgElem) {
     const xyz = xyzFromTileElem(imgElem)
     if (!xyz) {
         console.error("failed to parse tile src", imgElem.src)
+        return
     }
     if (currentTilesMode === SAT_MODE) {
         replaceToSatTile(imgElem, xyz)
