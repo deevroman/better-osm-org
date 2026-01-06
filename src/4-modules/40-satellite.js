@@ -327,7 +327,7 @@ const mapStylesDatabase = resourceCacher(githubMapStylesURL, "custom-vector-map-
 
 async function askCustomStyleUrl() {
     if (!initCustomFetch) {
-        alert("Try reload page page without cache Ctrl + F5.\nOr use Firefox ;-)")
+        alert("Try reload page page without cache Ctrl + F5.\nOr use Firefox with ViolentMonkey ;-)")
         return
     }
     if (document.querySelector(".vector-tiles-selector-popup")) {

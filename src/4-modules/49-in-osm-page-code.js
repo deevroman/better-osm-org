@@ -80,7 +80,7 @@ function initMaplibreWorkerOverrider() {
             }
         })
         initCustomFetch = () => {
-            worker.postMessage({ type: "init_custom_fetch" })
+            worker.postMessage(intoPage({ type: "init_custom_fetch" }))
         }
         delete boWindowObject.maplibreOverriddenWorker
         // лучше убрать воркер из глобального скоупа

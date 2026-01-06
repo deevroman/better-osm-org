@@ -6973,7 +6973,7 @@ const mapStylesDatabase = resourceCacher(githubMapStylesURL, "custom-vector-map-
 
 async function askCustomStyleUrl() {
     if (!initCustomFetch) {
-        alert("Try reload page page without cache Ctrl + F5.\nOr use Firefox ;-)")
+        alert("Try reload page page without cache Ctrl + F5." + isFirefox ? "" :"\nOr use Firefox ;-)")
         return
     }
     if (document.querySelector(".vector-tiles-selector-popup")) {
@@ -16643,7 +16643,7 @@ function initMaplibreWorkerOverrider() {
             }
         })
         initCustomFetch = () => {
-            worker.postMessage({ type: "init_custom_fetch" })
+            worker.postMessage(intoPage({ type: "init_custom_fetch" }))
         }
         delete boWindowObject.maplibreOverriddenWorker
         // лучше убрать воркер из глобального скоупа
