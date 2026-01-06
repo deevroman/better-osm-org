@@ -149,6 +149,7 @@
 // @connect      apps.kontur.io
 // @connect      vector.openstreetmap.org
 // @connect      vtiles.openhistoricalmap.org
+// @connect      openhistoricalmap.org
 // @connect      api.maptiler.com
 // @connect      api.jawg.io
 // @connect      tile.jawg.io
