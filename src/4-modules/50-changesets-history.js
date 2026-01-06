@@ -1,4 +1,5 @@
 //<editor-fold desc="/history, /user/*/history">
+const storagePrefix = (isOHMServer() ? "ohm-" : (location.origin === dev_server.origin ? "dev-" : ""))
 async function updateUserInfo(username) {
     void initCorporateMappersList()
     const res = await fetchJSONWithCache(
@@ -41,7 +42,7 @@ async function updateUserInfo(username) {
     if (firstChangesetID) {
         userInfo["firstChangesetID"] = firstChangesetID
     }
-    await GM.setValue("userinfo-" + username, JSON.stringify(userInfo))
+    await GM.setValue(storagePrefix + "userinfo-" + username, JSON.stringify(userInfo))
     return userInfo
 }
 
@@ -54,7 +55,7 @@ async function getCachedUserInfo(username) {
         console.trace("invalid username")
         return
     }
-    const localUserInfo = await GM.getValue("userinfo-" + username, "")
+    const localUserInfo = await GM.getValue(storagePrefix + "userinfo-" + username, "")
     if (localUserInfo) {
         const json = JSON.parse(localUserInfo)
         const cacheTime = new Date(json["cacheTime"])
