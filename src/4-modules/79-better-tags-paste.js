@@ -52,6 +52,9 @@ function fixTagsPaste() {
             return
         }
         const raw = e.clipboardData.getData("text")
+        if (!raw.trim().match(/^[0-9_:a-zA-Z]+\s/)) {
+            return
+        }
         const fixedText = repairTags(raw)
         if (raw === fixedText) {
             return
