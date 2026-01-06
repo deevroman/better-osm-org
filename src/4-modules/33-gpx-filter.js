@@ -97,7 +97,7 @@ function addGPXFiltersButtons() {
                         const trackForDisplay = document.implementation.createDocument(null, "gpx")
                         trackForDisplay.documentElement.appendChild(trk)
                         cleanAllObjects()
-                        displayGPXTrack(trackForDisplay)
+                        displayGPXTrack(trackForDisplay, "rgb(255,0,47)")
                     }
                     trackInfo.onclick = e => {
                         if (!e.altKey) {
@@ -142,7 +142,7 @@ function addGPXFiltersButtons() {
                                 throw `Unknown track #${trackID} format: ` + contentType
                             }
                             cleanAllObjects()
-                            displayGPXTrack(xml)
+                            displayGPXTrack(xml, "rgb(255,0,47)")
 
                             function hoverHandler() {
                                 bbox?.remove()
@@ -157,7 +157,7 @@ function addGPXFiltersButtons() {
                                     .addTo(getMap())
 
                                 cleanAllObjects()
-                                displayGPXTrack(xml)
+                                displayGPXTrack(xml, "rgb(255,0,47)")
                             }
                             trackInfo.onmouseenter = hoverHandler
                             downloadBtn.onmouseenter = hoverHandler

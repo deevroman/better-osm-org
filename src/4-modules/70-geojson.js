@@ -7,8 +7,9 @@ const trackColors = ["rgb(255,0,47)", "rgb(0,34,255)", "rgb(64,255,0)", "#000000
 
 /**
  * @param {string|Document} xml
+ * @param {string|null} color
  */
-function displayGPXTrack(xml) {
+function displayGPXTrack(xml, color = null) {
     const doc = typeof xml === "string" ? new DOMParser().parseFromString(xml, "application/xml") : xml
 
     const popup = document.createElement("span")
@@ -33,7 +34,7 @@ function displayGPXTrack(xml) {
     console.time("start gpx track render")
     const min = Math.min
     const max = Math.max
-    const trackColor = trackColors[tracksCounter % trackColors.length]
+    const trackColor = color ?? trackColors[tracksCounter % trackColors.length]
     tracksCounter++
     trackMetadata = {
         min_lat: 10000000,

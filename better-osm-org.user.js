@@ -5749,7 +5749,7 @@ function addGPXFiltersButtons() {
                         const trackForDisplay = document.implementation.createDocument(null, "gpx")
                         trackForDisplay.documentElement.appendChild(trk)
                         cleanAllObjects()
-                        displayGPXTrack(trackForDisplay)
+                        displayGPXTrack(trackForDisplay, "rgb(255,0,47)")
                     }
                     trackInfo.onclick = e => {
                         if (!e.altKey) {
@@ -5794,7 +5794,7 @@ function addGPXFiltersButtons() {
                                 throw `Unknown track #${trackID} format: ` + contentType
                             }
                             cleanAllObjects()
-                            displayGPXTrack(xml)
+                            displayGPXTrack(xml, "rgb(255,0,47)")
 
                             function hoverHandler() {
                                 bbox?.remove()
@@ -5809,7 +5809,7 @@ function addGPXFiltersButtons() {
                                     .addTo(getMap())
 
                                 cleanAllObjects()
-                                displayGPXTrack(xml)
+                                displayGPXTrack(xml, "rgb(255,0,47)")
                             }
                             trackInfo.onmouseenter = hoverHandler
                             downloadBtn.onmouseenter = hoverHandler
@@ -7764,6 +7764,10 @@ function addSwitchTilesButtonsOnPane() {
             await mapStylesDatabase.init()
         }
         btnOnPane.onclick = async e => {
+            await askCustomStyleUrl()
+        }
+        btnOnPane.oncontextmenu = async e => {
+            e.preventDefault()
             await askCustomStyleUrl()
         }
         omtBtn.appendChild(document.createTextNode("\xA0"))
@@ -20352,8 +20356,9 @@ const trackColors = ["rgb(255,0,47)", "rgb(0,34,255)", "rgb(64,255,0)", "#000000
 
 /**
  * @param {string|Document} xml
+ * @param {string|null} color
  */
-function displayGPXTrack(xml) {
+function displayGPXTrack(xml, color = null) {
     const doc = typeof xml === "string" ? new DOMParser().parseFromString(xml, "application/xml") : xml
 
     const popup = document.createElement("span")
@@ -20378,7 +20383,7 @@ function displayGPXTrack(xml) {
     console.time("start gpx track render")
     const min = Math.min
     const max = Math.max
-    const trackColor = trackColors[tracksCounter % trackColors.length]
+    const trackColor = color ?? trackColors[tracksCounter % trackColors.length]
     tracksCounter++
     trackMetadata = {
         min_lat: 10000000,
