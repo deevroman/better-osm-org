@@ -9,7 +9,7 @@ async function runGC() {
 
     const keys = await GM.listValues()
     for (const i of keys) {
-        if (i.startsWith("userinfo-")) {
+        if (i.startsWith("userinfo-") || i.startsWith("ohm-userinfo-") || i.startsWith("dev-userinfo-")) {
             try {
                 const userinfo = JSON.parse(await GM.getValue(i))
                 if (userinfo.cacheTime && new Date(userinfo.cacheTime).getTime() + 1000 * 60 * 60 * 24 * 14 < Date.now()) {
@@ -18,7 +18,7 @@ async function runGC() {
             } catch {
                 /* empty */
             }
-        } else if (i.startsWith("useridinfo-")) {
+        } else if (i.startsWith("useridinfo-") || i.startsWith("ohm-useridinfo-") || i.startsWith("dev-useridinfo-")) {
             try {
                 const userIDInfo = JSON.parse(await GM.getValue(i))
                 if (userIDInfo.cacheTime && new Date(userIDInfo.cacheTime).getTime() + 1000 * 60 * 60 * 24 * 14 < Date.now()) {

@@ -896,7 +896,32 @@ async function makeProfileForDeletedUser(user) {
     content.appendChild(div)
 }
 
+function addColorForActiveBlock() {
+    const blocksLink = document.querySelector('a[href$="/blocks"]')
+    if (blocksLink?.nextElementSibling?.textContent > 0) {
+        blocksLink.nextElementSibling.style.background = "rgba(255, 0, 0, 0.3)"
+        if (isDarkMode()) {
+            blocksLink.nextElementSibling.style.color = "white"
+        }
+        getCachedUserInfo(decodeURI(user)).then(userInfo => {
+            if (userInfo["blocks"]["received"]["active"] === 0) {
+                updateUserInfo(decodeURI(user))
+            }
+        })
+    } else if (blocksLink?.nextElementSibling?.textContent === "0") {
+        getCachedUserInfo(decodeURI(user)).then(userInfo => {
+            if (userInfo["blocks"]["received"]["active"] !== 0) {
+                updateUserInfo(decodeURI(user))
+            }
+        })
+    }
+}
+
 async function setupHDYCInProfile(path) {
+    addColorForActiveBlock()
+    if (isOHMServer()) {
+        return
+    }
     const match = path.match(/^\/user\/([^/]+)(\/|\/notes)?$/)
     if (!match || path.includes("/history")) {
         return
@@ -926,23 +951,6 @@ async function setupHDYCInProfile(path) {
             width: "100%",
             id: "hdyc-iframe",
             scrolling: "no",
-        })
-    }
-    if (document.querySelector('a[href$="/blocks"]')?.nextElementSibling?.textContent > 0) {
-        document.querySelector('a[href$="/blocks"]').nextElementSibling.style.background = "rgba(255, 0, 0, 0.3)"
-        if (isDarkMode()) {
-            document.querySelector('a[href$="/blocks"]').nextElementSibling.style.color = "white"
-        }
-        getCachedUserInfo(decodeURI(user)).then(userInfo => {
-            if (userInfo["blocks"]["received"]["active"] === 0) {
-                updateUserInfo(decodeURI(user))
-            }
-        })
-    } else if (document.querySelector('a[href$="/blocks"]')?.nextElementSibling?.textContent === "0") {
-        getCachedUserInfo(decodeURI(user)).then(userInfo => {
-            if (userInfo["blocks"]["received"]["active"] !== 0) {
-                updateUserInfo(decodeURI(user))
-            }
         })
     }
     const isDeletedUser = !document.querySelector(".user_image")
@@ -1013,7 +1021,7 @@ async function setupHDYCInProfile(path) {
                 }
                 if (userInfo.data[0]["names"].length > 1) {
                     userInfo["cacheTime"] = new Date()
-                    await GM.setValue("useridinfo-" + userID, JSON.stringify(userInfo))
+                    await GM.setValue(storagePrefix + "useridinfo-" + userID, JSON.stringify(userInfo))
 
                     const usernames = userInfo.data[0]["names"].filter(i => i !== decodeURI(user)).join(", ")
                     if (document.querySelector(".prev-usernames")) {
@@ -1024,7 +1032,7 @@ async function setupHDYCInProfile(path) {
             }
 
             async function getCachedUserIDInfo(userID) {
-                const localUserInfo = await GM.getValue("useridinfo-" + userID, "")
+                const localUserInfo = await GM.getValue(storagePrefix + "useridinfo-" + userID, "")
                 if (localUserInfo) {
                     setTimeout(updateUserIDInfo, 0, userID)
                     return JSON.parse(localUserInfo)
