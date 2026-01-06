@@ -1092,7 +1092,7 @@ function createSwitchTilesBtn() {
         e.preventDefault()
         e.stopImmediatePropagation()
         enableOverzoom()
-        await askCustomStyleUrl()
+        await askCustomTileUrl()
     }
     return btnOnPane
 }
