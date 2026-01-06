@@ -239,16 +239,21 @@ function runPositionTracker() {
 let newNotePlaceholder = null
 
 let overzoomObserver = null
+const blankSuffix = "?blankTile=false"
 
 function enableOverzoom() {
     if (!GM_config.get("OverzoomForDataLayer")) {
         return
     }
-    blankSuffix = "?blankTile=false"
-    console.log("Enabling overzoom for map layer")
-    if (overzoomObserver) {
-        overzoomObserver.disconnect()
+    if (customLayerUrl === ESRITemplate) {
+        customLayerUrl = ESRIPrefix + "{z}/{y}/{x}" + blankSuffix
+    } else if (customLayerUrl === ESRIBetaTemplate) {
+        customLayerUrl = ESRIBetaPrefix + "{z}/{y}/{x}" + blankSuffix
     }
+    ESRITemplate = ESRIPrefix + "{z}/{y}/{x}" + blankSuffix
+    ESRIBetaTemplate = ESRIBetaPrefix + "{z}/{y}/{x}" + blankSuffix
+    console.log("Enabling overzoom for map layer")
+    overzoomObserver?.disconnect()
 
     injectJSIntoPage(`
     (function () {
@@ -284,6 +289,13 @@ function disableOverzoom() {
     if (!GM_config.get("OverzoomForDataLayer")) {
         return
     }
+    if (customLayerUrl === ESRITemplate) {
+        customLayerUrl = ESRIPrefix + "{z}/{y}/{x}"
+    } else if (customLayerUrl === ESRIBetaTemplate) {
+        customLayerUrl = ESRIBetaPrefix + "{z}/{y}/{x}"
+    }
+    ESRITemplate = ESRIPrefix + "{z}/{y}/{x}"
+    ESRIBetaTemplate = ESRIBetaPrefix + "{z}/{y}/{x}"
     injectJSIntoPage(`
     (function () {
         map.options.maxZoom = 19
@@ -292,6 +304,7 @@ function disableOverzoom() {
         layers[0].options.maxZoom = 19
     })()
     `)
+    console.log("Overzoom disabled")
 }
 
 const ABORT_ERROR_PREV = "Abort requests for moving to prev changeset"
@@ -1132,9 +1145,7 @@ function setupNavigationViaHotkeys() {
                 }
             }
         }
-        if (["TEXTAREA", "INPUT", "SELECT"].includes(document.activeElement?.nodeName)
-            && document.activeElement?.getAttribute("type") !== "checkbox"
-            && document.activeElement?.getAttribute("type") !== "radio") {
+        if (["TEXTAREA", "INPUT", "SELECT"].includes(document.activeElement?.nodeName) && document.activeElement?.getAttribute("type") !== "checkbox" && document.activeElement?.getAttribute("type") !== "radio") {
             return
         }
         if (document.activeElement?.getAttribute("contenteditable")) {
