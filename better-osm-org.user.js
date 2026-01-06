@@ -6648,9 +6648,12 @@ async function setupNewContextMenuItems() {
 //<editor-fold desc="satellite switching">
 const OSMPrefix = "https://tile.openstreetmap.org/"
 let BaseLayerPrefix = OSMPrefix
+
 const ESRIPrefix = "https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
+let ESRITemplate = ESRIPrefix + "{z}/{y}/{x}"
 const ESRIBetaPrefix = "https://clarity.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
-let SatellitePrefix = ESRIPrefix
+let ESRIBetaTemplate = ESRIBetaPrefix + "{z}/{y}/{x}"
+
 const SAT_MODE = "🛰"
 const MAPNIK_MODE = "🗺️"
 let currentTilesMode = MAPNIK_MODE
@@ -6690,18 +6693,6 @@ function parseOSMGPSTileURL(url) {
     return {
         x: match[2],
         y: match[3],
-        z: match[1],
-    }
-}
-
-function parseESRITileURL(url) {
-    const match = url.match(new RegExp(`${SatellitePrefix}(\\d+)\\/(\\d+)\\/(\\d+)`))
-    if (!match) {
-        return false
-    }
-    return {
-        x: match[3],
-        y: match[2],
         z: match[1],
     }
 }
@@ -6797,12 +6788,11 @@ async function bypassCSPForImagesSrc(imgElem, url) {
     }
 }
 
-let blankSuffix = ""
 let lastEsriZoom = 0
 let lastEsriDate = ""
 
 function updateShotEsriDateNeeded() {
-    return lastEsriZoom !== parseInt(getCurrentXYZ()[2]) && SatellitePrefix === ESRIPrefix
+    return lastEsriZoom !== parseInt(getCurrentXYZ()[2]) && customLayerUrl === ESRITemplate
 }
 
 function addEsriDate() {
@@ -6815,7 +6805,7 @@ function addEsriDate() {
         url: `https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/4/query?returnGeometry=false&geometry='${centerPoint}'&inSR=4326&geometryType=esriGeometryPoint&outFields=*&f=json`,
         responseType: "json",
     }).then(res => {
-        if (currentTilesMode !== SAT_MODE || SatellitePrefix !== ESRIPrefix) {
+        if (currentTilesMode !== SAT_MODE || customLayerUrl !== ESRITemplate) {
             return
         }
         console.debug(res.response)
@@ -6834,35 +6824,14 @@ function addEsriDate() {
 }
 
 function addEsriPrefix() {
-    if (SatellitePrefix === ESRIBetaPrefix) {
+    if (customLayerUrl === ESRIBetaTemplate) {
         getMap()?.attributionControl?.setPrefix("ESRI beta")
     } else {
         getMap()?.attributionControl?.setPrefix("ESRI")
     }
-    if (SatellitePrefix === ESRIPrefix) {
+    if (customLayerUrl === ESRITemplate) {
         addEsriDate()
     }
-}
-
-function switchESRIbeta() {
-    SatellitePrefix = SatellitePrefix === ESRIPrefix ? ESRIBetaPrefix : ESRIPrefix
-    customLayerUrl = SatellitePrefix + "{z}/{y}/{x}" + blankSuffix
-    customLayerUrlIsWms = false
-    document.querySelectorAll(".leaflet-tile").forEach(i => {
-        if (i.nodeName !== "IMG") {
-            return
-        }
-        addXyzToTile(i)
-        const xyz = xyzFromTileElem(i)
-        if (!xyz) return
-        const newUrl = makeCustomTileUrl(customLayerUrl, xyz)
-        if (!needBypassSatellite) {
-            i.src = newUrl
-        } else {
-            bypassCSPForImagesSrc(i, newUrl)
-        }
-    })
-    addEsriPrefix()
 }
 
 const needBypassSatellite = !isFirefox || GM_info.scriptHandler === "Violentmonkey"
@@ -7463,7 +7432,7 @@ function replaceTileSrc(imgElem) {
 function rasterSwitch() {
     if (currentTilesMode === SAT_MODE) {
         if (!customLayerUrl) {
-            applyCustomLayer(SatellitePrefix + "{z}/{y}/{x}" + blankSuffix)
+            applyCustomLayer(ESRITemplate)
             addEsriPrefix()
         }
     } else {
@@ -7725,12 +7694,12 @@ function createSwitchTilesBtn() {
     }
     btnOnPane.style.cursor = "pointer"
     btnOnPane.classList.add("turn-on-satellite-from-pane")
-    btnOnPane.title = "Switch between map and satellite images (S key)\nPress Shift+S for set custom imagery\nOn mobile use long tap"
-    btnOnPane.onclick = e => {
+    btnOnPane.title = "Switch between map and satellite images (S key)\nPress Shift+S or click with Shift for set custom imagery\nOn mobile use long tap"
+    btnOnPane.onclick = async e => {
         e.stopImmediatePropagation()
         enableOverzoom()
         if (e.shiftKey) {
-            switchESRIbeta()
+            await askCustomTileUrl()
             return
         }
         switchTilesAndButtons()
@@ -21829,16 +21798,21 @@ function runPositionTracker() {
 let newNotePlaceholder = null
 
 let overzoomObserver = null
+const blankSuffix = "?blankTile=false"
 
 function enableOverzoom() {
     if (!GM_config.get("OverzoomForDataLayer")) {
         return
     }
-    blankSuffix = "?blankTile=false"
-    console.log("Enabling overzoom for map layer")
-    if (overzoomObserver) {
-        overzoomObserver.disconnect()
+    if (customLayerUrl === ESRITemplate) {
+        customLayerUrl = ESRIPrefix + "{z}/{y}/{x}" + blankSuffix
+    } else if (customLayerUrl === ESRIBetaTemplate) {
+        customLayerUrl = ESRIBetaPrefix + "{z}/{y}/{x}" + blankSuffix
     }
+    ESRITemplate = ESRIPrefix + "{z}/{y}/{x}" + blankSuffix
+    ESRIBetaTemplate = ESRIBetaPrefix + "{z}/{y}/{x}" + blankSuffix
+    console.log("Enabling overzoom for map layer")
+    overzoomObserver?.disconnect()
 
     injectJSIntoPage(`
     (function () {
@@ -21874,6 +21848,13 @@ function disableOverzoom() {
     if (!GM_config.get("OverzoomForDataLayer")) {
         return
     }
+    if (customLayerUrl === ESRITemplate) {
+        customLayerUrl = ESRIPrefix + "{z}/{y}/{x}"
+    } else if (customLayerUrl === ESRIBetaTemplate) {
+        customLayerUrl = ESRIBetaPrefix + "{z}/{y}/{x}"
+    }
+    ESRITemplate = ESRIPrefix + "{z}/{y}/{x}"
+    ESRIBetaTemplate = ESRIBetaPrefix + "{z}/{y}/{x}"
     injectJSIntoPage(`
     (function () {
         map.options.maxZoom = 19
@@ -21882,6 +21863,7 @@ function disableOverzoom() {
         layers[0].options.maxZoom = 19
     })()
     `)
+    console.log("Overzoom disabled")
 }
 
 const ABORT_ERROR_PREV = "Abort requests for moving to prev changeset"
@@ -22722,9 +22704,7 @@ function setupNavigationViaHotkeys() {
                 }
             }
         }
-        if (["TEXTAREA", "INPUT", "SELECT"].includes(document.activeElement?.nodeName)
-            && document.activeElement?.getAttribute("type") !== "checkbox"
-            && document.activeElement?.getAttribute("type") !== "radio") {
+        if (["TEXTAREA", "INPUT", "SELECT"].includes(document.activeElement?.nodeName) && document.activeElement?.getAttribute("type") !== "checkbox" && document.activeElement?.getAttribute("type") !== "radio") {
             return
         }
         if (document.activeElement?.getAttribute("contenteditable")) {
