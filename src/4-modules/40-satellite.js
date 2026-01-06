@@ -105,7 +105,11 @@ function coord4326To3857(lon, lat) {
 }
 
 async function bypassCSPForImagesSrc(imgElem, url) {
-    const res = await fetchBlobWithCache(url)
+    const opt = {}
+    if (url.startsWith("https://tiles.openrailwaymap.org")) {
+        opt.headers = { Referer: "https://www.openrailwaymap.org/" }
+    }
+    const res = await fetchBlobWithCache(url, opt)
     if (res.status !== 200) {
         if (!GM_config.get("OverzoomForDataLayer")) {
             return
@@ -323,7 +327,7 @@ const mapStylesDatabase = resourceCacher(githubMapStylesURL, "custom-vector-map-
 
 async function askCustomStyleUrl() {
     if (!initCustomFetch) {
-        alert("Please, reload page.\np.s. F*cking Chrome")
+        alert("Try reload page page without cache Ctrl + F5.\nOr use Firefox ;-)")
         return
     }
     if (document.querySelector(".vector-tiles-selector-popup")) {
@@ -415,6 +419,7 @@ async function askCustomStyleUrl() {
         const externalLink = document.createElement("a")
         externalLink.title = "Open map style home page"
         externalLink.setAttribute("href", about)
+        externalLink.setAttribute("target", "_blank")
         externalLink.innerHTML = externalLinkSvg
         externalLink.style.marginLeft = "auto"
         externalLink.style.marginRight = "2px"
@@ -492,17 +497,24 @@ async function askCustomTileUrl() {
         //     label: "GeoScribbles",
         //     value: "https://geoscribble.osmz.ru/wms?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.1.1&SERVICE=WMS&REQUEST=GetMap&LAYERS=scribbles&STYLES=&SRS=EPSG:3857&WIDTH=512&HEIGHT=512&BBOX={bbox-epsg-3857}",
         //     about: "https://osm.wiki/GeoScribble",
+        //     forceVector: true,
         // },
         {
             label: "OpenRailwayMap",
             value: "https://tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png",
             about: "https://www.openrailwaymap.org",
+            forceVector: true,
         },
         {
             label: "Hrvatska GeoPortal",
             value: "https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.3.0&SERVICE=WMS&REQUEST=GetMap&LAYERS=OI.OrthoimageCoverage&STYLES=&CRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}",
             about: "https://osm.wiki/GeoScribble",
         },
+        // {
+        //     label: "OsmAnd HD tiles",
+        //     value: "https://tile.osmand.net/hd/{z}/{x}/{y}.png",
+        //     about: "https://osmand.net/map",
+        // },
     ]
     const popup = document.createElement("div")
     popup.classList.add("map-layers-selector-popup")
@@ -558,7 +570,7 @@ async function askCustomTileUrl() {
         return wrapper
     }
 
-    function addRadio({ label, value, about }) {
+    function addRadio({ label, value, about, forceVector }) {
         const wrapper = makeWrapper()
 
         const input = document.createElement("input")
@@ -566,13 +578,19 @@ async function askCustomTileUrl() {
         input.name = radiosName
         wrapper.title = input.value = value
 
-        input.addEventListener("change", async () => {
+        async function onChange() {
             if (input.checked) {
+                if (forceVector && !vectorLayerEnabled()) {
+                    nextVectorLayer()
+                    await sleep(100)
+                }
                 applyCustomLayer(input.value)
                 switchTiles(currentTilesMode === MAPNIK_MODE)
                 getMap()?.attributionControl?.setPrefix(label)
             }
-        })
+        }
+        input.addEventListener("change", onChange)
+        input.addEventListener("click", onChange)
 
         const externalLink = document.createElement("a")
         externalLink.title = "Open map layer home page"
@@ -630,8 +648,7 @@ async function askCustomTileUrl() {
     const note = document.createElement("span")
     note.style.color = "gray"
     note.innerHTML =
-        "You can <a target='_blank' href='https://github.com/deevroman/better-osm-org/issues/new'>suggest</a> other layer. " +
-        "One of <a href='https://github.com/osmlab/editor-layer-index'>layers collection</a>"
+        "You can <a target='_blank' href='https://github.com/deevroman/better-osm-org/issues/new'>suggest</a> other layer. " + "One of <a href='https://github.com/osmlab/editor-layer-index'>layers collection</a>"
     popup.appendChild(note)
     document.body.appendChild(popup)
     popup.querySelector('label:has([href^="https://osm.wiki/Esri"])')?.querySelector("input")?.focus()
@@ -776,6 +793,9 @@ function replaceTileSrc(imgElem) {
         addXyzToTile(imgElem)
     }
     const xyz = xyzFromTileElem(imgElem)
+    if (!xyz) {
+        console.error("failed to parse tile src", imgElem.src)
+    }
     if (currentTilesMode === SAT_MODE) {
         replaceToSatTile(imgElem, xyz)
     } else {
@@ -1057,6 +1077,12 @@ function createSwitchTilesBtn() {
             return
         }
         switchTilesAndButtons()
+    }
+    btnOnPane.oncontextmenu = async e => {
+        e.preventDefault()
+        e.stopImmediatePropagation()
+        enableOverzoom()
+        await askCustomStyleUrl()
     }
     return btnOnPane
 }

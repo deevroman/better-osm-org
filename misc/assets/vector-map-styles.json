@@ -40,6 +40,11 @@
       "about": "https://github.com/versatiles-org/versatiles-style"
     },
     {
+      "label": "OpenHistoricalMap style",
+      "value": "https://openhistoricalmap.org/map-styles/main/main.json",
+      "about": "osm.wiki/OpenHistoricalMap/Reuse#Displaying_a_map"
+    },
+    {
       "label": "FreeExec's background style",
       "value": "https://frexosm.ru/power/power.json",
       "about": "https://frexosm.ru/power"

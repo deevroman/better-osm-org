@@ -129,9 +129,15 @@ function initGmApiPolyfills() {
             return fn
         }
     }
+
+    if (typeof cloneInto === "undefined") {
+        window.cloneInto = function (obj) {
+            return obj
+        }
+    }
 }
 
-if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Greasemonkey" || GM_info.scriptHandler === "OrangeMonkey") {
+if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Greasemonkey" || GM_info.scriptHandler === "OrangeMonkey" || GM_info.scriptHandler === "ScriptCat") {
     initGmApiPolyfills()
 }
 

@@ -1089,6 +1089,21 @@ function zoomToCurrentObject(e) {
     }
 }
 
+function nextVectorLayer() {
+    const currentLayersIsVector = vectorLayerEnabled()
+    const hashParams = new URLSearchParams(location.hash)
+    if (currentLayersIsVector) {
+        if (getCurrentLayers().includes("S")) {
+            hashParams.set("layers", (hashParams.get("layers") ?? "").replace("S", "").replace("V", "") + "M")
+        } else {
+            hashParams.set("layers", (hashParams.get("layers") ?? "").replace("V", "") + "S")
+        }
+    } else {
+        hashParams.set("layers", (hashParams.get("layers") ?? "") + "V")
+    }
+    location.hash = hashParams.toString()
+}
+
 function setupNavigationViaHotkeys() {
     if ("/id" === location.pathname || document.querySelector("#id-embed")) return
     updateCurrentObjectMetadata()
@@ -1835,18 +1850,7 @@ End with ! for global search
                 }
                 void askCustomStyleUrl()
             } else {
-                const currentLayersIsVector = vectorLayerEnabled()
-                const hashParams = new URLSearchParams(location.hash)
-                if (currentLayersIsVector) {
-                    if (getCurrentLayers().includes("S")) {
-                        hashParams.set("layers", (hashParams.get("layers") ?? "").replace("S", "").replace("V", "") + "M")
-                    } else {
-                        hashParams.set("layers", (hashParams.get("layers") ?? "").replace("V", "") + "S")
-                    }
-                } else {
-                    hashParams.set("layers", (hashParams.get("layers") ?? "") + "V")
-                }
-                location.hash = hashParams.toString()
+                nextVectorLayer()
             }
         } else {
             // console.log(e.key, e.code)

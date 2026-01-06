@@ -272,6 +272,7 @@ function resourceCacher(url, storageKey, name, dateDelta, type) {
         if (!raw_data) {
             throw `${name} not downloaded`
         }
+        database = raw_data
         console.log(`${name} database updated`)
         await GM.setValue(
             storageKey,
