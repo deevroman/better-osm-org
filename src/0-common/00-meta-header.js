@@ -147,6 +147,7 @@
 // @connect      services.arcgisonline.com
 // @connect      clarity.maptiles.arcgis.com
 // @connect      wayback.maptiles.arcgis.com
+// @connect      apps.kontur.io
 // @connect      vector.openstreetmap.org
 // @connect      vtiles.openhistoricalmap.org
 // @connect      api.maptiler.com

@@ -493,6 +493,16 @@ async function askCustomTileUrl() {
             value: "https://clarity.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?blankTile=false",
             about: "https://osm.wiki/Esri",
         },
+        {
+            label: "ESRI Wayback 2014",
+            value: "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/10/{z}/{y}/{x}?blankTile=false",
+            about: "https://osm.wiki/Esri",
+        },
+        {
+            label: "OpenAerialMap Mosaic, by Kontur.io",
+            value: "https://apps.kontur.io/raster-tiler/oam/mosaic/{z}/{x}/{y}.png",
+            about: "https://www.kontur.io/solutions/global-orthomosaic-layer/",
+        },
         // {
         //     label: "GeoScribbles",
         //     value: "https://geoscribble.osmz.ru/wms?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.1.1&SERVICE=WMS&REQUEST=GetMap&LAYERS=scribbles&STYLES=&SRS=EPSG:3857&WIDTH=512&HEIGHT=512&BBOX={bbox-epsg-3857}",

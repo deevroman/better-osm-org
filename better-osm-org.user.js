@@ -146,6 +146,7 @@
 // @connect      services.arcgisonline.com
 // @connect      clarity.maptiles.arcgis.com
 // @connect      wayback.maptiles.arcgis.com
+// @connect      apps.kontur.io
 // @connect      vector.openstreetmap.org
 // @connect      vtiles.openhistoricalmap.org
 // @connect      api.maptiler.com
@@ -7137,6 +7138,16 @@ async function askCustomTileUrl() {
             label: "ESRI beta (slow layer)",
             value: "https://clarity.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?blankTile=false",
             about: "https://osm.wiki/Esri",
+        },
+        {
+            label: "ESRI Wayback 2014",
+            value: "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/10/{z}/{y}/{x}?blankTile=false",
+            about: "https://osm.wiki/Esri",
+        },
+        {
+            label: "OpenAerialMap Mosaic, by Kontur.io",
+            value: "https://apps.kontur.io/raster-tiler/oam/mosaic/{z}/{x}/{y}.png",
+            about: "https://www.kontur.io/solutions/global-orthomosaic-layer/",
         },
         // {
         //     label: "GeoScribbles",
