@@ -444,6 +444,11 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink) {
         if (resultBox && resultBox.textContent !== errorText) {
             resultBox.textContent = ` (${e})`
         }
+        newElem.onclick = e => {
+            if (newElem.classList.contains("invalid-external-link")) {
+                e.preventDefault()
+            }
+        }
         return
     } finally {
         if (!alreadyAdded) {
@@ -461,7 +466,7 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink) {
     }
     newElem.classList.remove("invalid-external-link")
     const a = newElem.querySelector("a")
-    if (a.href !== actualHref) {
+    if (a.href !== actualHref && !a.classList.contains("in-editing")) {
         a.href = actualHref
         a.title = link.template
         if (resultBox) {
@@ -512,12 +517,12 @@ function makeExternalLinkEditable(targetLi, editorsListUl, nameValue = "", templ
     addItemA.classList.add("add-item-a")
     addItemA.onclick = e => {
         if (addItemA.classList.contains("in-editing")) {
-            e.preventDefault()
+            // e.preventDefault()
             e.stopPropagation()
             e.stopImmediatePropagation()
         }
     }
-    addItemA.href = ""
+    addItemA.removeAttribute("href")
     addItemLi.appendChild(addItemA)
 
     const deleteBtn = makeDeleteLinkBtn(nameValue, addItemLi)
