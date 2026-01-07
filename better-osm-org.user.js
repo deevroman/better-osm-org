@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.5.0
+// @version         1.5.1
 // @changelog       v1.5.0: Shift + S: custom map layers, Shift + V: custom vector map styles, date for ESRI layer
 // @changelog       v1.5.0: KeyV: switch between raster and vector styles, render light:direction=* and direction=12-34
 // @changelog       v1.5.0: Initial OpenHistoricalMap support: changeset viewer
@@ -19946,6 +19946,11 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink) {
         if (resultBox && resultBox.textContent !== errorText) {
             resultBox.textContent = ` (${e})`
         }
+        newElem.onclick = e => {
+            if (newElem.classList.contains("invalid-external-link")) {
+                e.preventDefault()
+            }
+        }
         return
     } finally {
         if (!alreadyAdded) {
@@ -19963,7 +19968,7 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink) {
     }
     newElem.classList.remove("invalid-external-link")
     const a = newElem.querySelector("a")
-    if (a.href !== actualHref) {
+    if (a.href !== actualHref && !a.classList.contains("in-editing")) {
         a.href = actualHref
         a.title = link.template
         if (resultBox) {
@@ -20014,12 +20019,12 @@ function makeExternalLinkEditable(targetLi, editorsListUl, nameValue = "", templ
     addItemA.classList.add("add-item-a")
     addItemA.onclick = e => {
         if (addItemA.classList.contains("in-editing")) {
-            e.preventDefault()
+            // e.preventDefault()
             e.stopPropagation()
             e.stopImmediatePropagation()
         }
     }
-    addItemA.href = ""
+    addItemA.removeAttribute("href")
     addItemLi.appendChild(addItemA)
 
     const deleteBtn = makeDeleteLinkBtn(nameValue, addItemLi)
