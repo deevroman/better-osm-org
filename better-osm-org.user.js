@@ -23113,7 +23113,7 @@ Press alt + J for open objects in Level0`
                     window.open("https://level0.osmz.ru/?" + new URLSearchParams({
                         url: [
                             Array.from(nodes).map(i => "n" + i).join(","),
-                            Array.from(ways).map(i => "w" + i).join(","),
+                            Array.from(ways).map(i => "w" + i + (e.shiftKey ? "!" : "")).join(","),
                             Array.from(relations).map(i => "r" + i).join(",")
                         ].join(",").replace(/,,/, ",").replace(/,$/, "").replace(/^,/, "")
                     }).toString())
