@@ -19675,7 +19675,7 @@ function addDropdownStyle() {
         display: none !important;
     }
     
-    ul:not(.editing) .delete-link-btn {
+    ul:not(.editing) .delete-link-btn, ul:not(.editing) .move-up-link-btn, ul:not(.editing) .move-down-link-btn {
         display: none !important;
     }
     
@@ -19690,7 +19690,7 @@ function addDropdownStyle() {
         color: var(--bs-body-color) !important;
     }
     
-    .delete-link-btn {
+    .delete-link-btn, .move-up-link-btn, .move-down-link-btn {
         all: unset;
         cursor: pointer;
         margin-left: 4px;
@@ -19818,7 +19818,7 @@ let dropdownObserver = null
 
 async function loadCurrentLinksList() {
     const raw_data = await GM.getValue("user-external-links")
-    if (!raw_data/* || isDebug()*/) {
+    if (!raw_data /* || isDebug()*/) {
         externalLinks = externalLinksDatabase.filter(link => {
             if (!link.default) {
                 return false
@@ -19853,7 +19853,7 @@ function makeUrlFromTemplate(template) {
     })
 }
 
-function processExternalLink(link, firstRun, editorsListUl, isUserLink) {
+function processExternalLink(link, firstRun, editorsListUl, isUserLink, index) {
     if (link.name === "-" && firstRun) {
         const hr = document.createElement("hr")
         hr.style.margin = "0px"
@@ -19912,6 +19912,21 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink) {
             const deleteBtn = makeDeleteLinkBtn(link.name, newElem)
             deleteBtn.style.marginLeft = "auto"
             a.after(deleteBtn)
+
+            const moveDownBtn = makeMoveDownLinkBtn(link.name, newElem)
+            moveDownBtn.style.marginLeft = "auto"
+            a.after(moveDownBtn)
+            if (index + 1 === externalLinks.length) {
+                moveDownBtn.style.visibility = "hidden"
+            }
+
+            const moveUpBtn = makeMoveUpLinkBtn(link.name, newElem)
+            moveUpBtn.style.marginLeft = "auto"
+            a.after(moveUpBtn)
+            if (index === 0) {
+                moveUpBtn.style.visibility = "hidden"
+            }
+
             a.style.display = "flex"
             a.style.alignItems = "baseline"
         } else {
@@ -19978,7 +19993,7 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink) {
 }
 
 function addUserExternalLinks(firstRun, editorsListUl) {
-    externalLinks.forEach(link => processExternalLink(link, firstRun, editorsListUl, true))
+    externalLinks.forEach((link, index) => processExternalLink(link, firstRun, editorsListUl, true, index))
 }
 
 function addOtherExternalLinks(editorsListUl) {
@@ -19994,6 +20009,52 @@ function addOtherExternalLinks(editorsListUl) {
         }
         processExternalLink(link, false, editorsListUl, false)
     })
+}
+
+function makeMoveUpLinkBtn(nameValue, addItemLi) {
+    const upBtn = document.createElement("button")
+    upBtn.classList.add("move-up-link-btn", "bi", "bi-chevron-up")
+    upBtn.title = "move up link"
+    upBtn.onclick = async e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const currentLinkIndex = externalLinks.findIndex(i => i.name === nameValue)
+        if (currentLinkIndex === -1) {
+            throw "not found" + nameValue
+        }
+        if (currentLinkIndex === 0) {
+            return
+        }
+        addItemLi.parentNode.insertBefore(addItemLi, addItemLi.previousElementSibling)
+        const tmp = externalLinks[currentLinkIndex]
+        externalLinks[currentLinkIndex] = externalLinks[currentLinkIndex - 1]
+        externalLinks[currentLinkIndex - 1] = tmp
+        await GM.setValue("user-external-links", JSON.stringify(externalLinks))
+    }
+    return upBtn
+}
+
+function makeMoveDownLinkBtn(nameValue, addItemLi) {
+    const downBtn = document.createElement("button")
+    downBtn.classList.add("move-down-link-btn", "bi", "bi-chevron-down")
+    downBtn.title = "move down link"
+    downBtn.onclick = async e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const currentLinkIndex = externalLinks.findIndex(i => i.name === nameValue)
+        if (currentLinkIndex === -1) {
+            throw "not found" + nameValue
+        }
+        if (currentLinkIndex + 1 === externalLinks.length) {
+            return
+        }
+        addItemLi.parentNode.insertBefore(addItemLi.nextElementSibling, addItemLi)
+        const tmp = externalLinks[currentLinkIndex]
+        externalLinks[currentLinkIndex] = externalLinks[currentLinkIndex + 1]
+        externalLinks[currentLinkIndex + 1] = tmp
+        await GM.setValue("user-external-links", JSON.stringify(externalLinks))
+    }
+    return downBtn
 }
 
 function makeDeleteLinkBtn(nameValue, addItemLi) {
