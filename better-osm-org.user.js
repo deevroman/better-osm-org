@@ -86,6 +86,7 @@
 // @match        https://wiki.openstreetmap.org/wiki/Proposal:*
 // @exclude      https://taginfo.openstreetmap.org/embed/*
 // @match        https://github.com/openstreetmap/openstreetmap-website/issues/new*
+// @match        https://github.com/deevroman/better-osm-org/issues/new*
 // @license      WTFPL
 // @namespace    https://github.com/deevroman/better-osm-org
 // @updateURL    https://github.com/deevroman/better-osm-org/raw/master/better-osm-org.user.js
@@ -218,6 +219,27 @@ if ((location.origin + location.pathname).startsWith("https://github.com/openstr
     setTimeout(tryAddWarnAboutScriptIntoOsmOrgRepo, 100)
     throw "skip better-osm-org run on GitHub"
 }
+
+function tryAddScriptInfo() {
+    if (document.querySelector(".better-osm-org-rich-textarea")) {
+        return
+    }
+    const textarea = document.querySelector('[class*="CreateIssueForm"] textarea')
+    if (!textarea) return
+    if (textarea.value.trim() !== "") return
+    textarea.value += `\n\n\nScript version: \`${GM_info.script.version}\`
+Script manager: \`${GM_info.scriptHandler}\`
+User Agent: \`${navigator.userAgent}\``
+    textarea.classList.add("better-osm-org-rich-textarea")
+    textarea.dispatchEvent(new Event("input", { bubbles: true }))
+}
+
+if ((location.origin + location.pathname).startsWith("https://github.com/deevroman/better-osm-org/issues/new")) {
+    setInterval(tryAddScriptInfo, 3000)
+    setTimeout(tryAddScriptInfo, 1000)
+    throw "skip better-osm-org run on GitHub"
+}
+
 
 if (location.search.includes("&kek")) {
     throw "better-osm-org disable via url param"

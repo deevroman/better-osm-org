@@ -45,6 +45,27 @@ if ((location.origin + location.pathname).startsWith("https://github.com/openstr
     throw "skip better-osm-org run on GitHub"
 }
 
+function tryAddScriptInfo() {
+    if (document.querySelector(".better-osm-org-rich-textarea")) {
+        return
+    }
+    const textarea = document.querySelector('[class*="CreateIssueForm"] textarea')
+    if (!textarea) return
+    if (textarea.value.trim() !== "") return
+    textarea.value += `\n\n\nScript version: \`${GM_info.script.version}\`
+Script manager: \`${GM_info.scriptHandler}\`
+User Agent: \`${navigator.userAgent}\``
+    textarea.classList.add("better-osm-org-rich-textarea")
+    textarea.dispatchEvent(new Event("input", { bubbles: true }))
+}
+
+if ((location.origin + location.pathname).startsWith("https://github.com/deevroman/better-osm-org/issues/new")) {
+    setInterval(tryAddScriptInfo, 3000)
+    setTimeout(tryAddScriptInfo, 1000)
+    throw "skip better-osm-org run on GitHub"
+}
+
+
 if (location.search.includes("&kek")) {
     throw "better-osm-org disable via url param"
 }
