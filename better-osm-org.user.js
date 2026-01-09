@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.5.2
+// @version         1.5.3
 // @changelog       v1.5.0: Shift + S: custom map layers, Shift + V: custom vector map styles, date for ESRI layer
 // @changelog       v1.5.0: KeyV: switch between raster and vector styles, render light:direction=* and direction=12-34
 // @changelog       v1.5.0: Initial OpenHistoricalMap support: changeset viewer
@@ -15843,7 +15843,7 @@ function addUploadPanoramaxBtn() {
         return
     }
     if (
-        !document.querySelector(':where(a[href^="https://wiki.openstreetmap.org/wiki/Key:shop"], a[href^="https://wiki.openstreetmap.org/wiki/Key:amenity"], a[href^="https://wiki.openstreetmap.org/wiki/Key:tourism"])')
+        !document.querySelector(':where(a[href*="Key:shop"], a[href*="Key:amenity"], a[href*="Key:tourism"])')
     ) {
         return
     }
