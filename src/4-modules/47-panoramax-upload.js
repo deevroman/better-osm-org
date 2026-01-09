@@ -229,6 +229,12 @@ function addUploadPanoramaxBtn() {
         wrapper.classList.add("is-loading")
         uploadImgBtn.style.display = "none"
         const file = fileInput.files[0]
+        let metadata
+        if (file.type.startsWith("image/jpeg")) {
+            metadata = EXIF.readFromBinaryFile(await file.arrayBuffer())
+            console.log(metadata)
+            console.log(metadata.DateTime, metadata.GPSLatitude, metadata.GPSLongitude)
+        }
         // TODO add client side validation
         try {
             const token = await getPanoramaxToken()
@@ -242,7 +248,7 @@ function addUploadPanoramaxBtn() {
             location.reload()
         } catch (err) {
             console.error(err)
-            alert("Error: " + err.message)
+            alert(`Error: ${err.message}\n\n` + metadata ? `Info from EXIF:\\nDateTime: ${metadata.DateTime} Lat: ${metadata.GPSLatitude} Lon: ${metadata.GPSLongitude}`: "")
         } finally {
             wrapper.classList.remove("is-loading")
         }
