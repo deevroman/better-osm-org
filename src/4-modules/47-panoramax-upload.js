@@ -96,10 +96,10 @@ GM.getValue("lastUploadedPanoramaxPicture").then(res => {
 
 async function uploadImage(token, file, title) {
     const uploadSetId = await createUploadSet(panoramaxInstance, token, title)
-    console.log("Upload set created:", uploadSetId)
+    console.log("Upload set created:", uploadSetId, "Uploading...")
 
     const uploadRes = await uploadPhotoToSet(panoramaxInstance, token, uploadSetId, file)
-    console.log("Uploaded file:", uploadRes)
+    console.log("Uploaded file:", uploadRes, "Finishing...")
 
     try {
         const completeRes = await completeUploadSet(panoramaxInstance, token, uploadSetId)
