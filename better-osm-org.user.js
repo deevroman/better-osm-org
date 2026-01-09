@@ -15835,7 +15835,7 @@ async function addPanoramaxTag(pictureId, object_type, object_id) {
 }
 
 function addUploadPanoramaxBtn() {
-    if (!isDebug()) return
+    if (!isDebug() || isMobile) return
     if (!location.pathname.match(/\/(node|way|relation)\/[0-9]+\/?$/)) {
         return
     }
