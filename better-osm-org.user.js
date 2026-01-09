@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.5.1
+// @version         1.5.2
 // @changelog       v1.5.0: Shift + S: custom map layers, Shift + V: custom vector map styles, date for ESRI layer
 // @changelog       v1.5.0: KeyV: switch between raster and vector styles, render light:direction=* and direction=12-34
 // @changelog       v1.5.0: Initial OpenHistoricalMap support: changeset viewer
@@ -15835,7 +15835,7 @@ async function addPanoramaxTag(pictureId, object_type, object_id) {
 }
 
 function addUploadPanoramaxBtn() {
-    if (!isDebug() || isMobile) return
+    if (!isDebug() && !isMobile) return
     if (!location.pathname.match(/\/(node|way|relation)\/[0-9]+\/?$/)) {
         return
     }
