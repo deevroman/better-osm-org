@@ -15678,7 +15678,7 @@ async function getPanoramaxToken() {
     return res1.response.jwt_token
 }
 
-async function createUploadSet(apiUrl, token) {
+async function createUploadSet(apiUrl, token, title) {
     const response = await externalFetch({
         url: `${apiUrl}/api/upload_sets`,
         method: "POST",
@@ -15688,7 +15688,7 @@ async function createUploadSet(apiUrl, token) {
             "User-Agent": `better osm.org v${GM_info.script.version}`,
         },
         data: JSON.stringify({
-            title: "Upload from better-osm-org",
+            title: title,
             estimated_nb_files: 1,
         }),
         responseType: "json",
@@ -15754,8 +15754,8 @@ GM.getValue("lastUploadedPanoramaxPicture").then(res => {
     }
 })
 
-async function uploadImage(token, file) {
-    const uploadSetId = await createUploadSet(panoramaxInstance, token)
+async function uploadImage(token, file, title) {
+    const uploadSetId = await createUploadSet(panoramaxInstance, token, title)
     console.log("Upload set created:", uploadSetId)
 
     const uploadRes = await uploadPhotoToSet(panoramaxInstance, token, uploadSetId, file)
@@ -15795,8 +15795,7 @@ async function openOsmChangeset(comment) {
     return changesetId
 }
 
-async function addPanoramaxTag(pictureId) {
-    const [, object_type, object_id] = location.pathname.match(/\/(node|way|relation)\/([0-9]+)/)
+async function addPanoramaxTag(pictureId, object_type, object_id) {
     const rawObjectInfo = await (
         await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
             method: "GET",
@@ -15899,18 +15898,19 @@ function addUploadPanoramaxBtn() {
         }
         // TODO add client side validation
         try {
+            const [, object_type, object_id] = location.pathname.match(/\/(node|way|relation)\/([0-9]+)/)
             const token = await getPanoramaxToken()
             if (!token) {
                 return
             }
-            const uuid = await uploadImage(token, file)
-            await addPanoramaxTag(uuid)
+            const uuid = await uploadImage(token, file, `Upload from better-osm-org for ${object_type}/${object_id}`)
+            await addPanoramaxTag(uuid, object_type, object_id)
             await GM.setValue("lastUploadedPanoramaxPicture", JSON.stringify({ uuid: uuid, instance: panoramaxInstance }))
             await sleep(1000)
             location.reload()
         } catch (err) {
             console.error(err)
-            alert(`Error: ${err.message}\n\n` + metadata ? `Info from EXIF:\\nDateTime: ${metadata.DateTime} Lat: ${metadata.GPSLatitude} Lon: ${metadata.GPSLongitude}`: "")
+            alert(`Error: ${err.message}\n\n` + metadata ? `Info from EXIF:\\nDateTime: ${metadata.DateTime}\nLat: ${metadata.GPSLatitude}\nLon: ${metadata.GPSLongitude}`: "")
         } finally {
             wrapper.classList.remove("is-loading")
         }
