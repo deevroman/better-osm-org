@@ -1,5 +1,24 @@
 //<editor-fold desc="panoramax-upload" defaultstate="collapsed">
 
+async function getPanoramaxToken() {
+    try {
+        const res = await externalFetch({
+            url: `${panoramaxInstance}/api/users/me/tokens`,
+            responseType: "json",
+        })
+        const res1 = await externalFetch({
+            url: res.response[0].links[0].href,
+            responseType: "json",
+        })
+        console.log("Panoramax token obtained")
+        return res1.response.jwt_token
+    } catch (e) {
+        alert("Please, login to Panoramax")
+        window.open(panoramaxInstance, "_blank")
+        throw e
+    }
+}
+
 async function createUploadSet(apiUrl, token) {
     const response = await externalFetch({
         url: `${apiUrl}/api/upload_sets`,
@@ -17,7 +36,7 @@ async function createUploadSet(apiUrl, token) {
     })
 
     if (response.status !== 200) {
-        throw new Error("Failed to create upload set: " + response.statusText)
+        throw new Error(`Failed to create upload set: HTTP ${response.status}\n\n${response.response?.details?.error}`)
     }
 
     const data = await response.response
@@ -40,7 +59,7 @@ async function uploadPhotoToSet(apiUrl, token, uploadSetId, file) {
 
     if (response.status < 200 || response.status >= 300) {
         console.error(response)
-        throw new Error(`Photo upload failed, HTTP ${response.status}. More info in browser console (F12)`)
+        throw new Error(`Photo upload failed, HTTP ${response.status}:\n\n${response.response?.details?.error}\n\nFull log in browser console (F12)`)
     }
 
     return await response.response
@@ -58,7 +77,7 @@ async function completeUploadSet(apiUrl, token, uploadSetId) {
     })
 
     if (response.status !== 200) {
-        throw new Error("Failed to complete upload set: " + response.statusText)
+        throw new Error("Failed to complete upload set: " + response.status)
     }
 
     return await response.response
@@ -69,24 +88,6 @@ let panoramaxInstance = "https://panoramax.openstreetmap.fr"
 GM.getValue("panoramaxInstance").then(res => {
     panoramaxInstance = res ?? "https://panoramax.openstreetmap.fr"
 })
-
-async function getPanoramaxToken() {
-    try {
-        const res = await externalFetch({
-            url: `${panoramaxInstance}/api/users/me/tokens`,
-            responseType: "json",
-        })
-        const res1 = await externalFetch({
-            url: res.response[0].links[0].href,
-            responseType: "json",
-        })
-        return res1.response.jwt_token
-    } catch (e) {
-        alert("Please, login to Panoramax")
-        window.open(panoramaxInstance, "_blank")
-        throw e
-    }
-}
 
 async function uploadImage(token, file) {
     const uploadSetId = await createUploadSet(panoramaxInstance, token)
@@ -189,14 +190,23 @@ function addUploadPanoramaxBtn() {
     }
     const wrapper = document.createElement("div")
     wrapper.style.setProperty("padding-bottom", "1px", "important")
-    wrapper.appendChild(document.createTextNode("Upload photo to Panoramax"))
+    const firstBlock = document.createElement("div")
+    const secondBlock = document.createElement("div")
+    secondBlock.style.paddingTop = "5px"
+    wrapper.appendChild(firstBlock)
+    wrapper.appendChild(secondBlock)
+
+    firstBlock.appendChild(document.createTextNode("Upload photo to Panoramax"))
+
     const fileInput = document.createElement("input")
     fileInput.type = "file"
     fileInput.accept = "image/*"
     fileInput.onchange = () => {
         uploadImgBtn.style.removeProperty("display")
+        instanceInput.style.removeProperty("display")
+        instanceInput.value = panoramaxInstance
     }
-    wrapper.appendChild(fileInput)
+    firstBlock.appendChild(fileInput)
 
     const uploadImgBtn = document.createElement("button")
     uploadImgBtn.style.all = "unset"
@@ -208,16 +218,13 @@ function addUploadPanoramaxBtn() {
         if (osmEditAuth === null) {
             osmEditAuth = makeAuth()
         }
-        const instance = prompt("Type Panoramax instance URL\nExample: https://panoramax.openstreetmap.fr", panoramaxInstance)
-        if (!instance) {
-            return
-        }
+        new URL(instanceInput.value)
+        void GM.setValue("panoramaxInstance", panoramaxInstance = instanceInput.value)
         if (!fileInput.files.length) {
             return alert("Select file")
         }
         wrapper.classList.add("is-loading")
-        uploadImgBtn.remove()
-        panoramaxInstance = instance
+        uploadImgBtn.style.display = "none"
         const file = fileInput.files[0]
         // TODO add client side validation
         try {
@@ -232,9 +239,15 @@ function addUploadPanoramaxBtn() {
             wrapper.classList.remove("is-loading")
         }
     }
-    fileInput.after(uploadImgBtn)
 
     document.querySelector("#sidebar_content").appendChild(wrapper)
+
+    const instanceInput = document.createElement("input")
+    instanceInput.type = "url"
+    instanceInput.style.display = "none"
+    instanceInput.style.width = "300px"
+    secondBlock.appendChild(instanceInput)
+    secondBlock.appendChild(uploadImgBtn)
 }
 
 //</editor-fold>
