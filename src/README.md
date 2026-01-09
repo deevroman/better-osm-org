@@ -24,7 +24,7 @@ if (isset($_GET['master_user_js'])) {
 echo $out;
 ```
 
-` php -S 0.0.0.0:7777`
+`php -S 0.0.0.0:7777 1>&2 2> /dev/null`
 
 Open in browser.
 `http://localhost:7777/server.php?dev.user.js`
