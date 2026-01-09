@@ -7856,6 +7856,55 @@ function makeElementHistoryCompact(forceState = null) {
     document.querySelector(".compact-toggle-btn").innerHTML = shouldBeCompact ? expandModeSvg : compactModeSvg
 }
 
+function addPanoramaxPicIntoA(uuid, a, panoramaxServer) {
+    const imgSrc = `${panoramaxServer}/api/pictures/${uuid}/sd.jpg`
+    if (isSafari) {
+        fetchImageWithCache(imgSrc).then(async imgData => {
+            const img = document.createElement("img")
+            img.src = imgData
+            img.style.width = "100%"
+            a.appendChild(img)
+        })
+    } else {
+        const img = GM_addElement("img", {
+            src: imgSrc,
+            // crossorigin: "anonymous"
+        })
+        img.onerror = () => {
+            img.style.display = "none"
+        }
+        img.onload = () => {
+            img.style.width = "100%"
+        }
+        a.appendChild(img)
+    }
+    setTimeout(async () => {
+        const res = (
+            await externalFetchRetry({
+                url: `${panoramaxServer}/api/search?limit=1&ids=${uuid}`,
+                responseType: "json",
+            })
+        ).response
+        if (!res["error"] && res["features"].length > 0) {
+            a.onmouseenter = () => {
+                const lat = res["features"][0]["geometry"]["coordinates"][1]
+                const lon = res["features"][0]["geometry"]["coordinates"][0]
+                const raw_angle = res["features"][0]["properties"]["exif"]["Exif.GPSInfo.GPSImgDirection"]
+                const angle = raw_angle?.includes("/") ? raw_angle.split("/")[0] / raw_angle.split("/")[1] : parseFloat(raw_angle)
+
+                showActiveNodeMarker(lat, lon, "#0022ff", true)
+
+                if (angle) {
+                    drawRay(lat, lon, angle - 30, "#0022ff")
+                    drawRay(lat, lon, angle + 30, "#0022ff")
+                }
+            }
+        } else {
+            console.error(res)
+        }
+    })
+}
+
 // https://osm.org/node/12559772251
 // https://osm.org/node/10588878341
 // https://osm.org/way/1264114016
@@ -7879,54 +7928,16 @@ function makePanoramaxValue(elem) {
     })
     elem.querySelectorAll(`a:not(.added-preview-img)[href^="${MAIN_PANORAMAX_DISCOVERY_SERVER}/"]`).forEach(a => {
         a.classList.add("added-preview-img")
-        const uuid = a.textContent.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)
+        const uuid = a.textContent.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)?.[0]
         if (!uuid) {
             return
         }
-        const imgSrc = `${panoramaxDiscoveryServer}/api/pictures/${uuid}/sd.jpg`
-        if (isSafari) {
-            fetchImageWithCache(imgSrc).then(async imgData => {
-                const img = document.createElement("img")
-                img.src = imgData
-                img.style.width = "100%"
-                a.appendChild(img)
-            })
+        if (lastUploadedPanoramaxPicture?.uuid === uuid) {
+            console.log(lastUploadedPanoramaxPicture)
+            addPanoramaxPicIntoA(uuid, a, lastUploadedPanoramaxPicture.instance)
         } else {
-            const img = GM_addElement("img", {
-                src: imgSrc,
-                // crossorigin: "anonymous"
-            })
-            img.onerror = () => {
-                img.style.display = "none"
-            }
-            img.onload = () => {
-                img.style.width = "100%"
-            }
-            a.appendChild(img)
+            addPanoramaxPicIntoA(uuid, a, panoramaxDiscoveryServer)
         }
-        setTimeout(async () => {
-            const res = (
-                await externalFetchRetry({
-                    url: `${panoramaxDiscoveryServer}/api/search?limit=1&ids=${uuid}`,
-                    responseType: "json",
-                })
-            ).response
-            if (!res["error"]) {
-                a.onmouseenter = () => {
-                    const lat = res["features"][0]["geometry"]["coordinates"][1]
-                    const lon = res["features"][0]["geometry"]["coordinates"][0]
-                    const raw_angle = res["features"][0]["properties"]["exif"]["Exif.GPSInfo.GPSImgDirection"]
-                    const angle = raw_angle?.includes("/") ? raw_angle.split("/")[0] / raw_angle.split("/")[1] : parseFloat(raw_angle)
-
-                    showActiveNodeMarker(lat, lon, "#0022ff", true)
-
-                    if (angle) {
-                        drawRay(lat, lon, angle - 30, "#0022ff")
-                        drawRay(lat, lon, angle + 30, "#0022ff")
-                    }
-                }
-            }
-        })
     })
     elem.onclick = e => {
         e.stopImmediatePropagation()
@@ -15733,9 +15744,15 @@ async function completeUploadSet(apiUrl, token, uploadSetId) {
 }
 
 let panoramaxInstance = "https://panoramax.openstreetmap.fr"
+let lastUploadedPanoramaxPicture
 
 GM.getValue("panoramaxInstance").then(res => {
     panoramaxInstance = res ?? "https://panoramax.openstreetmap.fr"
+})
+GM.getValue("lastUploadedPanoramaxPicture").then(res => {
+    if (res) {
+        lastUploadedPanoramaxPicture = JSON.parse(res)
+    }
 })
 
 async function uploadImage(token, file) {
@@ -15828,9 +15845,7 @@ function addUploadPanoramaxBtn() {
         return
     }
     if (
-        !document.querySelector(
-            ':where(a[href^="https://wiki.openstreetmap.org/wiki/Key:shop"], a[href^="https://wiki.openstreetmap.org/wiki/Key:amenity"], a[href^="https://wiki.openstreetmap.org/wiki/Key:tourism"])',
-        )
+        !document.querySelector(':where(a[href^="https://wiki.openstreetmap.org/wiki/Key:shop"], a[href^="https://wiki.openstreetmap.org/wiki/Key:amenity"], a[href^="https://wiki.openstreetmap.org/wiki/Key:tourism"])')
     ) {
         return
     }
@@ -15868,7 +15883,7 @@ function addUploadPanoramaxBtn() {
             osmEditAuth = makeAuth()
         }
         new URL(instanceInput.value)
-        void GM.setValue("panoramaxInstance", panoramaxInstance = instanceInput.value)
+        void GM.setValue("panoramaxInstance", (panoramaxInstance = instanceInput.value))
         if (!fileInput.files.length) {
             return alert("Select file")
         }
@@ -15878,7 +15893,9 @@ function addUploadPanoramaxBtn() {
         // TODO add client side validation
         try {
             const token = await getPanoramaxToken()
-            await addPanoramaxTag(await uploadImage(token, file))
+            const uuid = await uploadImage(token, file)
+            await addPanoramaxTag(uuid)
+            await GM.setValue("lastUploadedPanoramaxPicture", JSON.stringify({ uuid: uuid, instance: panoramaxInstance }))
             await sleep(1000)
             location.reload()
         } catch (err) {

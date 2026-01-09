@@ -84,9 +84,15 @@ async function completeUploadSet(apiUrl, token, uploadSetId) {
 }
 
 let panoramaxInstance = "https://panoramax.openstreetmap.fr"
+let lastUploadedPanoramaxPicture
 
 GM.getValue("panoramaxInstance").then(res => {
     panoramaxInstance = res ?? "https://panoramax.openstreetmap.fr"
+})
+GM.getValue("lastUploadedPanoramaxPicture").then(res => {
+    if (res) {
+        lastUploadedPanoramaxPicture = JSON.parse(res)
+    }
 })
 
 async function uploadImage(token, file) {
@@ -179,9 +185,7 @@ function addUploadPanoramaxBtn() {
         return
     }
     if (
-        !document.querySelector(
-            ':where(a[href^="https://wiki.openstreetmap.org/wiki/Key:shop"], a[href^="https://wiki.openstreetmap.org/wiki/Key:amenity"], a[href^="https://wiki.openstreetmap.org/wiki/Key:tourism"])',
-        )
+        !document.querySelector(':where(a[href^="https://wiki.openstreetmap.org/wiki/Key:shop"], a[href^="https://wiki.openstreetmap.org/wiki/Key:amenity"], a[href^="https://wiki.openstreetmap.org/wiki/Key:tourism"])')
     ) {
         return
     }
@@ -219,7 +223,7 @@ function addUploadPanoramaxBtn() {
             osmEditAuth = makeAuth()
         }
         new URL(instanceInput.value)
-        void GM.setValue("panoramaxInstance", panoramaxInstance = instanceInput.value)
+        void GM.setValue("panoramaxInstance", (panoramaxInstance = instanceInput.value))
         if (!fileInput.files.length) {
             return alert("Select file")
         }
@@ -229,7 +233,9 @@ function addUploadPanoramaxBtn() {
         // TODO add client side validation
         try {
             const token = await getPanoramaxToken()
-            await addPanoramaxTag(await uploadImage(token, file))
+            const uuid = await uploadImage(token, file)
+            await addPanoramaxTag(uuid)
+            await GM.setValue("lastUploadedPanoramaxPicture", JSON.stringify({ uuid: uuid, instance: panoramaxInstance }))
             await sleep(1000)
             location.reload()
         } catch (err) {
