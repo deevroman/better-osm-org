@@ -968,6 +968,35 @@ ${copyAnimationStyles}
         /* background: rgba(255, 0, 0, 0.3); */
         background: transparent;
     }
+    
+    .is-loading {
+      position: relative;
+      pointer-events: none;
+    }
+    
+    .is-loading {
+      position: relative;
+      pointer-events: none;
+    }
+    
+    .is-loading::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,.4),
+        transparent
+      );
+      animation: sweep 1s infinite;
+    }
+    
+    @keyframes sweep {
+      from { transform: translateX(-100%); }
+      to   { transform: translateX(100%); }
+    }
+
     `
 
 let styleForSidebarApplied = false

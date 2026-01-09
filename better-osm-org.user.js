@@ -4436,6 +4436,35 @@ ${copyAnimationStyles}
         /* background: rgba(255, 0, 0, 0.3); */
         background: transparent;
     }
+    
+    .is-loading {
+      position: relative;
+      pointer-events: none;
+    }
+    
+    .is-loading {
+      position: relative;
+      pointer-events: none;
+    }
+    
+    .is-loading::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,.4),
+        transparent
+      );
+      animation: sweep 1s infinite;
+    }
+    
+    @keyframes sweep {
+      from { transform: translateX(-100%); }
+      to   { transform: translateX(100%); }
+    }
+
     `
 
 let styleForSidebarApplied = false
@@ -15660,7 +15689,7 @@ async function uploadPhotoToSet(apiUrl, token, uploadSetId, file) {
 
     if (response.status < 200 || response.status >= 300) {
         console.error(response)
-        throw new Error("Photo upload failed. More info in browser console (F12)")
+        throw new Error(`Photo upload failed, HTTP ${response.status}. More info in browser console (F12)`)
     }
 
     return await response.response
@@ -15786,7 +15815,6 @@ async function addPanoramaxTag(pictureId) {
             method: "PUT",
             prefix: false,
         })
-        location.reload()
     }
 }
 
@@ -15808,22 +15836,23 @@ function addUploadPanoramaxBtn() {
     if (document.querySelector('a[href^="https://wiki.openstreetmap.org/wiki/Key:panoramax"]')) {
         return
     }
-    const sidebar_content = document.querySelector("#sidebar_content")
-    sidebar_content.appendChild(document.createTextNode("Upload photo to Panoramax"))
+    const wrapper = document.createElement("div")
+    wrapper.style.setProperty("padding-bottom", "1px", "important")
+    wrapper.appendChild(document.createTextNode("Upload photo to Panoramax"))
     const fileInput = document.createElement("input")
     fileInput.type = "file"
     fileInput.accept = "image/*"
     fileInput.onchange = () => {
         uploadImgBtn.style.removeProperty("display")
     }
-    sidebar_content.appendChild(fileInput)
+    wrapper.appendChild(fileInput)
 
     const uploadImgBtn = document.createElement("button")
     uploadImgBtn.style.all = "unset"
     uploadImgBtn.style.cursor = "pointer"
-    uploadImgBtn.classList.add("upload-to-panoramax")
-    uploadImgBtn.textContent = "📤"
+    uploadImgBtn.classList.add("upload-to-panoramax", "bi", "bi-upload")
     uploadImgBtn.style.display = "none"
+    uploadImgBtn.style.paddingLeft = "5px"
     uploadImgBtn.onclick = async () => {
         if (osmEditAuth === null) {
             osmEditAuth = makeAuth()
@@ -15835,21 +15864,26 @@ function addUploadPanoramaxBtn() {
         if (!fileInput.files.length) {
             return alert("Select file")
         }
-        uploadImgBtn.style.cursor = "progress"
+        wrapper.classList.add("is-loading")
+        uploadImgBtn.remove()
         panoramaxInstance = instance
         const file = fileInput.files[0]
         // TODO add client side validation
         try {
             const token = await getPanoramaxToken()
             await addPanoramaxTag(await uploadImage(token, file))
+            await sleep(1000)
+            location.reload()
         } catch (err) {
             console.error(err)
             alert("Error: " + err.message)
         } finally {
-            uploadImgBtn.style.cursor = "pointer"
+            wrapper.classList.remove("is-loading")
         }
     }
     fileInput.after(uploadImgBtn)
+
+    document.querySelector("#sidebar_content").appendChild(wrapper)
 }
 
 //</editor-fold>
