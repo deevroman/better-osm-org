@@ -986,7 +986,7 @@ ${copyAnimationStyles}
       background: linear-gradient(
         90deg,
         transparent,
-        rgba(255,255,255,.4),
+        light-dark(rgba(153,212,255,0.4), rgba(255,255,255,.4)),
         transparent
       );
       animation: sweep 1s infinite;
