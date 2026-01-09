@@ -183,7 +183,7 @@ function addUploadPanoramaxBtn() {
         return
     }
     if (
-        !document.querySelector(':where(a[href^="https://wiki.openstreetmap.org/wiki/Key:shop"], a[href^="https://wiki.openstreetmap.org/wiki/Key:amenity"], a[href^="https://wiki.openstreetmap.org/wiki/Key:tourism"])')
+        !document.querySelector(':where(a[href*="Key:shop"], a[href*="Key:amenity"], a[href*="Key:tourism"])')
     ) {
         return
     }
