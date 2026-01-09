@@ -15627,13 +15627,13 @@ async function createUploadSet(apiUrl, token) {
         headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
-            "User-Agent": `better osm.org v${GM_info.script.version}`
+            "User-Agent": `better osm.org v${GM_info.script.version}`,
         },
         data: JSON.stringify({
             title: "Upload from better-osm-org",
             estimated_nb_files: 1,
         }),
-        responseType: "json"
+        responseType: "json",
     })
 
     if (response.status !== 200) {
@@ -15684,7 +15684,7 @@ async function completeUploadSet(apiUrl, token, uploadSetId) {
     return await response.response
 }
 
-let panoramaxInstance = 'https://panoramax.openstreetmap.fr'
+let panoramaxInstance = "https://panoramax.openstreetmap.fr"
 
 GM.getValue("panoramaxInstance").then(res => {
     panoramaxInstance = res ?? "https://panoramax.openstreetmap.fr"
@@ -15694,11 +15694,11 @@ async function getPanoramaxToken() {
     try {
         const res = await externalFetch({
             url: `${panoramaxInstance}/api/users/me/tokens`,
-            responseType: "json"
+            responseType: "json",
         })
         const res1 = await externalFetch({
             url: res.response[0].links[0].href,
-            responseType: "json"
+            responseType: "json",
         })
         return res1.response.jwt_token
     } catch (e) {
@@ -15718,12 +15718,10 @@ async function uploadImage(token, file) {
     try {
         const completeRes = await completeUploadSet(panoramaxInstance, token, uploadSetId)
         console.log("Upload set completed:", completeRes)
-    } catch (e) {
-    }
+    } catch (e) {}
 
     return uploadRes.picture_id
 }
-
 
 async function openOsmChangeset(comment) {
     const changesetTags = {
@@ -15800,7 +15798,11 @@ function addUploadPanoramaxBtn() {
     if (document.querySelector(".upload-to-panoramax")) {
         return
     }
-    if (!document.querySelector(':where(a[href^="https://wiki.openstreetmap.org/wiki/Key:shop"], a[href^="https://wiki.openstreetmap.org/wiki/Key:amenity"])')) {
+    if (
+        !document.querySelector(
+            ':where(a[href^="https://wiki.openstreetmap.org/wiki/Key:shop"], a[href^="https://wiki.openstreetmap.org/wiki/Key:amenity"], a[href^="https://wiki.openstreetmap.org/wiki/Key:tourism"])',
+        )
+    ) {
         return
     }
     if (document.querySelector('a[href^="https://wiki.openstreetmap.org/wiki/Key:panoramax"]')) {
@@ -15810,7 +15812,7 @@ function addUploadPanoramaxBtn() {
     sidebar_content.appendChild(document.createTextNode("Upload photo to Panoramax"))
     const fileInput = document.createElement("input")
     fileInput.type = "file"
-    fileInput.accept = 'image/*'
+    fileInput.accept = "image/*"
     fileInput.onchange = () => {
         uploadImgBtn.style.removeProperty("display")
     }
