@@ -4454,7 +4454,7 @@ ${copyAnimationStyles}
       background: linear-gradient(
         90deg,
         transparent,
-        rgba(255,255,255,.4),
+        light-dark(rgba(153,212,255,0.4), rgba(255,255,255,.4)),
         transparent
       );
       animation: sweep 1s infinite;
@@ -15661,22 +15661,21 @@ function setupChangesetQuickLook(path) {
 //<editor-fold desc="panoramax-upload" defaultstate="collapsed">
 
 async function getPanoramaxToken() {
-    try {
-        const res = await externalFetch({
-            url: `${panoramaxInstance}/api/users/me/tokens`,
-            responseType: "json",
-        })
-        const res1 = await externalFetch({
-            url: res.response[0].links[0].href,
-            responseType: "json",
-        })
-        console.log("Panoramax token obtained")
-        return res1.response.jwt_token
-    } catch (e) {
+    const res = await externalFetch({
+        url: `${panoramaxInstance}/api/users/me/tokens`,
+        responseType: "json",
+    })
+    if (!res.response?.[0]?.links?.[0]?.href) {
         alert("Please, login to Panoramax")
         window.open(panoramaxInstance, "_blank")
-        throw e
+        return
     }
+    const res1 = await externalFetch({
+        url: res.response[0].links[0].href,
+        responseType: "json",
+    })
+    console.log("Panoramax token obtained")
+    return res1.response.jwt_token
 }
 
 async function createUploadSet(apiUrl, token) {
@@ -15893,6 +15892,9 @@ function addUploadPanoramaxBtn() {
         // TODO add client side validation
         try {
             const token = await getPanoramaxToken()
+            if (!token) {
+                return
+            }
             const uuid = await uploadImage(token, file)
             await addPanoramaxTag(uuid)
             await GM.setValue("lastUploadedPanoramaxPicture", JSON.stringify({ uuid: uuid, instance: panoramaxInstance }))
