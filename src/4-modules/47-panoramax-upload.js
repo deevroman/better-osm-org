@@ -203,7 +203,9 @@ function addUploadPanoramaxBtn() {
 
     const fileInput = document.createElement("input")
     fileInput.type = "file"
-    fileInput.accept = "image/*"
+    if (!isMobile) {
+        fileInput.accept = "image/*"
+    }
     fileInput.onchange = () => {
         uploadImgBtn.style.removeProperty("display")
         instanceInput.style.removeProperty("display")
