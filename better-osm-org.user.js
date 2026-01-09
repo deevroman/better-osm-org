@@ -15691,15 +15691,21 @@ GM.getValue("panoramaxInstance").then(res => {
 })
 
 async function getPanoramaxToken() {
-    const res = await externalFetch({
-        url: `${panoramaxInstance}/api/users/me/tokens`,
-        responseType: "json",
-    })
-    const res1 = await externalFetch({
-        url: res.response[0].links[0].href,
-        responseType: "json",
-    })
-    return res1.response.jwt_token
+    try {
+        const res = await externalFetch({
+            url: `${panoramaxInstance}/api/users/me/tokens`,
+            responseType: "json"
+        })
+        const res1 = await externalFetch({
+            url: res.response[0].links[0].href,
+            responseType: "json"
+        })
+        return res1.response.jwt_token
+    } catch (e) {
+        alert("Please, login to Panoramax")
+        window.open(panoramaxInstance, "_blank")
+        throw e
+    }
 }
 
 async function uploadImage(token, file) {
@@ -15829,11 +15835,10 @@ function addUploadPanoramaxBtn() {
         }
         uploadImgBtn.style.cursor = "progress"
         panoramaxInstance = instance
-        const token = await getPanoramaxToken()
-
         const file = fileInput.files[0]
         // TODO add client side validation
         try {
+            const token = await getPanoramaxToken()
             await addPanoramaxTag(await uploadImage(token, file))
         } catch (err) {
             console.error(err)
