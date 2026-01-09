@@ -32,7 +32,9 @@ function addPOIMoverItem(measuringMenuItem) {
         if (!match) return
         const object_type = match[1]
         const object_id = match[2]
-        const auth = makeAuth()
+        if (osmEditAuth === null) {
+            osmEditAuth = makeAuth()
+        }
         if (!confirm("⚠️ move node?")) {
             return
         }
@@ -40,7 +42,7 @@ function addPOIMoverItem(measuringMenuItem) {
         const newLon = getMap().osm_contextmenu._$element.data("lng")
         console.log("Opening changeset")
         const rawObjectInfo = await (
-            await auth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
+            await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
                 method: "GET",
                 prefix: false,
             })
@@ -63,35 +65,14 @@ function addPOIMoverItem(measuringMenuItem) {
         objectInfo.querySelector("node").setAttribute("lat", newLat)
         objectInfo.querySelector("node").setAttribute("lon", newLon)
 
-        const changesetTags = {
-            created_by: `better osm.org v${GM_info.script.version}`,
-            comment: "Moving node",
-        }
-
-        const changesetPayload = document.implementation.createDocument(null, "osm")
-        const cs = changesetPayload.createElement("changeset")
-        changesetPayload.documentElement.appendChild(cs)
-        tagsToXml(changesetPayload, cs, changesetTags)
-        const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
-
-        const changesetId = await auth
-            .fetch(osm_server.apiBase + "changeset/create", {
-                method: "PUT",
-                prefix: false,
-                body: chPayloadStr,
-            })
-            .then(res => {
-                if (res.ok) return res.text()
-                throw new Error(res)
-            })
-        console.log(changesetId)
+        const changesetId = await openOsmChangeset("Moving node")
 
         try {
             objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
 
             const objectInfoStr = new XMLSerializer().serializeToString(objectInfo).replace(/xmlns="[^"]+"/, "")
             console.log(objectInfoStr)
-            await auth
+            await osmEditAuth
                 .fetch(osm_server.apiBase + object_type + "/" + object_id, {
                     method: "PUT",
                     prefix: false,
@@ -104,7 +85,7 @@ function addPOIMoverItem(measuringMenuItem) {
                     throw new Error(text)
                 })
         } finally {
-            await auth.fetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
+            await osmEditAuth.fetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
                 method: "PUT",
                 prefix: false,
             })

@@ -25,6 +25,6 @@ setInterval(() => {
     const newFile = sources.join("\n")
     if (oldFile !== newFile) {
         fs.writeFileSync(outPath, newFile)
+        console.log(new Date())
     }
-    console.log(new Date())
 }, 500)

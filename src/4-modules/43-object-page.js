@@ -39,16 +39,16 @@ function makePanoramaxValue(elem) {
         const browseSection = elem?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement
         const lat = browseSection?.querySelector(".latitude")?.textContent?.replace(",", ".")
         const lon = browseSection?.querySelector(".longitude")?.textContent?.replace(",", ".")
-        a.href = "https://api.panoramax.xyz/#focus=pic&pic=" + match.replaceAll("&amp;", "&") + (lat ? `&map=16/${lat}/${lon}` : "")
+        a.href = `${panoramaxDiscoveryServer}/#focus=pic&pic=` + match.replaceAll("&amp;", "&") + (lat ? `&map=16/${lat}/${lon}` : "")
         return a.outerHTML
     })
-    elem.querySelectorAll('a:not(.added-preview-img)[href^="https://api.panoramax.xyz/"]').forEach(a => {
+    elem.querySelectorAll(`a:not(.added-preview-img)[href^="${MAIN_PANORAMAX_DISCOVERY_SERVER}/"]`).forEach(a => {
         a.classList.add("added-preview-img")
         const uuid = a.textContent.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)
         if (!uuid) {
             return
         }
-        const imgSrc = `https://api.panoramax.xyz/api/pictures/${uuid}/sd.jpg`
+        const imgSrc = `${panoramaxDiscoveryServer}/api/pictures/${uuid}/sd.jpg`
         if (isSafari) {
             fetchImageWithCache(imgSrc).then(async imgData => {
                 const img = document.createElement("img")
@@ -72,7 +72,7 @@ function makePanoramaxValue(elem) {
         setTimeout(async () => {
             const res = (
                 await externalFetchRetry({
-                    url: `https://api.panoramax.xyz/api/search?limit=1&ids=${uuid}`,
+                    url: `${panoramaxDiscoveryServer}/api/search?limit=1&ids=${uuid}`,
                     responseType: "json",
                 })
             ).response

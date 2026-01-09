@@ -815,29 +815,7 @@ function renderOSMGeoJSON(xml, options = {}) {
                         return tagsHint !== "" ? tagsHint.slice(0, 255) : `Update tags of ${object_type} ${object_id}`
                     }
 
-                    const changesetTags = {
-                        created_by: `better osm.org v${GM_info.script.version}`,
-                        comment: makeComment(object_type, object_id, prevTags, newTags),
-                    }
-
-                    const changesetPayload = document.implementation.createDocument(null, "osm")
-                    const cs = changesetPayload.createElement("changeset")
-                    changesetPayload.documentElement.appendChild(cs)
-                    tagsToXml(changesetPayload, cs, changesetTags)
-                    const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
-
-                    const changesetId = await osmEditAuth
-                        .fetch(osm_server.apiBase + "changeset/create", {
-                            method: "PUT",
-                            prefix: false,
-                            body: chPayloadStr,
-                        })
-                        .then(res => {
-                            if (res.ok) return res.text()
-                            throw new Error(res)
-                        })
-                    console.log(changesetId)
-
+                    const changesetId = await openOsmChangeset(makeComment(object_type, object_id, prevTags, newTags))
                     try {
                         objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
 
