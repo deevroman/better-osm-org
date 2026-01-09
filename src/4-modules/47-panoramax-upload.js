@@ -248,11 +248,29 @@ function addUploadPanoramaxBtn() {
 
     document.querySelector("#sidebar_content").appendChild(wrapper)
 
+    const datalistInstances = document.createElement("datalist")
+    datalistInstances.id = "panoramax-instances"
+    ;[
+        // prettier-ignore
+        "https://panoramax.openstreetmap.fr",
+        "https://panoramax.ign.fr",
+        "https://panoramax.mapcomplete.org",
+        "https://panoramax.multimob.be",
+        "https://panoramax.liswu.me",
+        "https://panoramax.osm-hr.org",
+    ].forEach(i => {
+        const opt = document.createElement("option")
+        opt.value = i
+        datalistInstances.appendChild(opt)
+    })
+
     const instanceInput = document.createElement("input")
     instanceInput.type = "url"
     instanceInput.style.display = "none"
     instanceInput.style.width = "300px"
+    instanceInput.setAttribute("list", "panoramax-instances")
     secondBlock.appendChild(instanceInput)
+    secondBlock.appendChild(datalistInstances)
     secondBlock.appendChild(uploadImgBtn)
 }
 
