@@ -138,6 +138,7 @@
 // @connect      panoramax.mapcomplete.org
 // @connect      panoramax.multimob.be
 // @connect      panoramax.liswu.me
+// @connect      panoramax.osm-hr.org
 // @connect      westnordost.de
 // @connect      streetcomplete.app
 // @comment      for downloading gps-tracks — osm stores tracks in AWS
@@ -436,6 +437,9 @@ const OHM_OSM_REVERT_NAME = "ohm-revert"
 
 const osm_revert_origin = isOHMServer() ? OHM_OSM_REVERT : MAIN_OSM_REVERT
 const osm_revert_name = isOHMServer() ? OHM_OSM_REVERT_NAME : MAIN_OSM_REVERT_NAME
+
+const MAIN_PANORAMAX_DISCOVERY_SERVER = "https://api.panoramax.xyz"
+const panoramaxDiscoveryServer = MAIN_PANORAMAX_DISCOVERY_SERVER
 
 /**
  * @typedef {{
@@ -6220,7 +6224,9 @@ function addPOIMoverItem(measuringMenuItem) {
         if (!match) return
         const object_type = match[1]
         const object_id = match[2]
-        const auth = makeAuth()
+        if (osmEditAuth === null) {
+            osmEditAuth = makeAuth()
+        }
         if (!confirm("⚠️ move node?")) {
             return
         }
@@ -6228,7 +6234,7 @@ function addPOIMoverItem(measuringMenuItem) {
         const newLon = getMap().osm_contextmenu._$element.data("lng")
         console.log("Opening changeset")
         const rawObjectInfo = await (
-            await auth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
+            await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
                 method: "GET",
                 prefix: false,
             })
@@ -6251,35 +6257,14 @@ function addPOIMoverItem(measuringMenuItem) {
         objectInfo.querySelector("node").setAttribute("lat", newLat)
         objectInfo.querySelector("node").setAttribute("lon", newLon)
 
-        const changesetTags = {
-            created_by: `better osm.org v${GM_info.script.version}`,
-            comment: "Moving node",
-        }
-
-        const changesetPayload = document.implementation.createDocument(null, "osm")
-        const cs = changesetPayload.createElement("changeset")
-        changesetPayload.documentElement.appendChild(cs)
-        tagsToXml(changesetPayload, cs, changesetTags)
-        const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
-
-        const changesetId = await auth
-            .fetch(osm_server.apiBase + "changeset/create", {
-                method: "PUT",
-                prefix: false,
-                body: chPayloadStr,
-            })
-            .then(res => {
-                if (res.ok) return res.text()
-                throw new Error(res)
-            })
-        console.log(changesetId)
+        const changesetId = await openOsmChangeset("Moving node")
 
         try {
             objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
 
             const objectInfoStr = new XMLSerializer().serializeToString(objectInfo).replace(/xmlns="[^"]+"/, "")
             console.log(objectInfoStr)
-            await auth
+            await osmEditAuth
                 .fetch(osm_server.apiBase + object_type + "/" + object_id, {
                     method: "PUT",
                     prefix: false,
@@ -6292,7 +6277,7 @@ function addPOIMoverItem(measuringMenuItem) {
                     throw new Error(text)
                 })
         } finally {
-            await auth.fetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
+            await osmEditAuth.fetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
                 method: "PUT",
                 prefix: false,
             })
@@ -6965,7 +6950,15 @@ const mapStylesDatabase = resourceCacher(githubMapStylesURL, "custom-vector-map-
 
 async function askCustomStyleUrl() {
     if (!initCustomFetch) {
-        alert("Try reload page page without cache Ctrl + F5.\nOr use Firefox with ViolentMonkey ;-)")
+        alert(
+            "Try reload page page without cache Ctrl + F5.\n" +
+                "Or:\n" +
+                "1. In TamperMonkey settings enable Advanced Config Mode\n" +
+                '2. In TamperMonkey settings change "Content Script API" to "UserScript API Dynamic"\n' +
+                "More info: https://c.osm.org/t/121670/208\n" +
+                "\n" +
+                "Or use Firefox with ViolentMonkey ;-)",
+        )
         return
     }
     if (document.querySelector(".vector-tiles-selector-popup")) {
@@ -7089,13 +7082,15 @@ async function askCustomStyleUrl() {
         }
         wrapper.append(urlInput)
 
-        input.onchange = async () => {
+        input.onchange = async e => {
+            if (!e.isTrusted) return
             if (input.checked && urlInput.value.trim() !== "") {
                 await applyCustomVectorMapStyle(urlInput.value, true)
             }
         }
 
         urlInput.onkeydown = async e => {
+            if (!e.isTrusted) return
             if (e.key === "Enter" && urlInput.value.trim() !== "") {
                 input.click()
                 await applyCustomVectorMapStyle(urlInput.value, true)
@@ -7274,7 +7269,8 @@ async function askCustomTileUrl() {
         }
         wrapper.append(urlInput)
 
-        input.onchange = async () => {
+        input.onchange = async e => {
+            if (!e.isTrusted) return
             if (input.checked && urlInput.value.trim() !== "") {
                 applyCustomLayer(urlInput.value, true)
                 switchTiles(currentTilesMode === MAPNIK_MODE)
@@ -7282,6 +7278,7 @@ async function askCustomTileUrl() {
         }
 
         urlInput.onkeydown = async e => {
+            if (!e.isTrusted) return
             if (e.key === "Enter" && urlInput.value.trim() !== "") {
                 input.click()
                 applyCustomLayer(urlInput.value, true)
@@ -7848,16 +7845,16 @@ function makePanoramaxValue(elem) {
         const browseSection = elem?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement
         const lat = browseSection?.querySelector(".latitude")?.textContent?.replace(",", ".")
         const lon = browseSection?.querySelector(".longitude")?.textContent?.replace(",", ".")
-        a.href = "https://api.panoramax.xyz/#focus=pic&pic=" + match.replaceAll("&amp;", "&") + (lat ? `&map=16/${lat}/${lon}` : "")
+        a.href = `${panoramaxDiscoveryServer}/#focus=pic&pic=` + match.replaceAll("&amp;", "&") + (lat ? `&map=16/${lat}/${lon}` : "")
         return a.outerHTML
     })
-    elem.querySelectorAll('a:not(.added-preview-img)[href^="https://api.panoramax.xyz/"]').forEach(a => {
+    elem.querySelectorAll(`a:not(.added-preview-img)[href^="${MAIN_PANORAMAX_DISCOVERY_SERVER}/"]`).forEach(a => {
         a.classList.add("added-preview-img")
         const uuid = a.textContent.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)
         if (!uuid) {
             return
         }
-        const imgSrc = `https://api.panoramax.xyz/api/pictures/${uuid}/sd.jpg`
+        const imgSrc = `${panoramaxDiscoveryServer}/api/pictures/${uuid}/sd.jpg`
         if (isSafari) {
             fetchImageWithCache(imgSrc).then(async imgData => {
                 const img = document.createElement("img")
@@ -7881,7 +7878,7 @@ function makePanoramaxValue(elem) {
         setTimeout(async () => {
             const res = (
                 await externalFetchRetry({
-                    url: `https://api.panoramax.xyz/api/search?limit=1&ids=${uuid}`,
+                    url: `${panoramaxDiscoveryServer}/api/search?limit=1&ids=${uuid}`,
                     responseType: "json",
                 })
             ).response
@@ -15621,6 +15618,235 @@ function setupChangesetQuickLook(path) {
 
 //</editor-fold>
 
+//<editor-fold desc="panoramax-upload" defaultstate="collapsed">
+
+async function createUploadSet(apiUrl, token) {
+    const response = await externalFetch({
+        url: `${apiUrl}/api/upload_sets`,
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            "User-Agent": `better osm.org v${GM_info.script.version}`
+        },
+        data: JSON.stringify({
+            title: "Upload from better-osm-org",
+            estimated_nb_files: 1,
+        }),
+        responseType: "json"
+    })
+
+    if (response.status !== 200) {
+        throw new Error("Failed to create upload set: " + response.statusText)
+    }
+
+    const data = await response.response
+    return data.id || data.upload_set_id
+}
+
+async function uploadPhotoToSet(apiUrl, token, uploadSetId, file) {
+    const formData = new FormData()
+    formData.append("file", file)
+
+    const response = await externalFetch({
+        url: `${apiUrl}/api/upload_sets/${uploadSetId}/files`,
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+        responseType: "json",
+        data: formData,
+    })
+
+    if (response.status < 200 || response.status >= 300) {
+        console.error(response)
+        throw new Error("Photo upload failed. More info in browser console (F12)")
+    }
+
+    return await response.response
+}
+
+async function completeUploadSet(apiUrl, token, uploadSetId) {
+    const response = await externalFetch({
+        url: `${apiUrl}/api/upload_sets/${uploadSetId}/complete`,
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+        },
+        responseType: "json",
+    })
+
+    if (response.status !== 200) {
+        throw new Error("Failed to complete upload set: " + response.statusText)
+    }
+
+    return await response.response
+}
+
+let panoramaxInstance = 'https://panoramax.openstreetmap.fr'
+
+GM.getValue("panoramaxInstance").then(res => {
+    panoramaxInstance = res ?? "https://panoramax.openstreetmap.fr"
+})
+
+async function getPanoramaxToken() {
+    const res = await externalFetch({
+        url: `${panoramaxInstance}/api/users/me/tokens`,
+        responseType: "json",
+    })
+    const res1 = await externalFetch({
+        url: res.response[0].links[0].href,
+        responseType: "json",
+    })
+    return res1.response.jwt_token
+}
+
+async function uploadImage(token, file) {
+    const uploadSetId = await createUploadSet(panoramaxInstance, token)
+    console.log("Upload set created:", uploadSetId)
+
+    const uploadRes = await uploadPhotoToSet(panoramaxInstance, token, uploadSetId, file)
+    console.log("Uploaded file:", uploadRes)
+
+    try {
+        const completeRes = await completeUploadSet(panoramaxInstance, token, uploadSetId)
+        console.log("Upload set completed:", completeRes)
+    } catch (e) {
+    }
+
+    return uploadRes.picture_id
+}
+
+
+async function openOsmChangeset(comment) {
+    const changesetTags = {
+        created_by: `better osm.org v${GM_info.script.version}`,
+        comment: comment,
+    }
+
+    const changesetPayload = document.implementation.createDocument(null, "osm")
+    const cs = changesetPayload.createElement("changeset")
+    changesetPayload.documentElement.appendChild(cs)
+    tagsToXml(changesetPayload, cs, changesetTags)
+    const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
+
+    const changesetId = await osmEditAuth
+        .fetch(osm_server.apiBase + "changeset/create", {
+            method: "PUT",
+            prefix: false,
+            body: chPayloadStr,
+        })
+        .then(res => {
+            if (res.ok) return res.text()
+            throw new Error(res)
+        })
+    console.log("Open changeset", changesetId)
+    return changesetId
+}
+
+async function addPanoramaxTag(pictureId) {
+    const [, object_type, object_id] = location.pathname.match(/\/(node|way|relation)\/([0-9]+)/)
+    const rawObjectInfo = await (
+        await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
+            method: "GET",
+            prefix: false,
+        })
+    ).text()
+    const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
+    const newTag = objectInfo.createElement("tag")
+    newTag.setAttribute("k", "panoramax")
+    newTag.setAttribute("v", pictureId)
+    objectInfo.querySelector("tag").after(newTag)
+
+    const changesetId = await openOsmChangeset("Add Panoramax image")
+    try {
+        objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
+
+        const objectInfoStr = new XMLSerializer().serializeToString(objectInfo).replace(/xmlns="[^"]+"/, "")
+        console.log(objectInfoStr)
+        await osmEditAuth
+            .fetch(osm_server.apiBase + object_type + "/" + object_id, {
+                method: "PUT",
+                prefix: false,
+                body: objectInfoStr,
+            })
+            .then(async res => {
+                const text = await res.text()
+                if (res.ok) return text
+                alert(text)
+                throw new Error(text)
+            })
+    } finally {
+        await osmEditAuth.fetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
+            method: "PUT",
+            prefix: false,
+        })
+        location.reload()
+    }
+}
+
+function addUploadPanoramaxBtn() {
+    if (!isDebug()) return
+    if (!location.pathname.match(/\/(node|way|relation)\/[0-9]+\/?$/)) {
+        return
+    }
+    if (document.querySelector(".upload-to-panoramax")) {
+        return
+    }
+    if (!document.querySelector(':where(a[href^="https://wiki.openstreetmap.org/wiki/Key:shop"], a[href^="https://wiki.openstreetmap.org/wiki/Key:amenity"])')) {
+        return
+    }
+    if (document.querySelector('a[href^="https://wiki.openstreetmap.org/wiki/Key:panoramax"]')) {
+        return
+    }
+    const sidebar_content = document.querySelector("#sidebar_content")
+    sidebar_content.appendChild(document.createTextNode("Upload photo to Panoramax"))
+    const fileInput = document.createElement("input")
+    fileInput.type = "file"
+    fileInput.accept = 'image/*'
+    fileInput.onchange = () => {
+        uploadImgBtn.style.removeProperty("display")
+    }
+    sidebar_content.appendChild(fileInput)
+
+    const uploadImgBtn = document.createElement("button")
+    uploadImgBtn.style.all = "unset"
+    uploadImgBtn.style.cursor = "pointer"
+    uploadImgBtn.classList.add("upload-to-panoramax")
+    uploadImgBtn.textContent = "📤"
+    uploadImgBtn.style.display = "none"
+    uploadImgBtn.onclick = async () => {
+        if (osmEditAuth === null) {
+            osmEditAuth = makeAuth()
+        }
+        const instance = prompt("Type Panoramax instance URL\nExample: https://panoramax.openstreetmap.fr", panoramaxInstance)
+        if (!instance) {
+            return
+        }
+        if (!fileInput.files.length) {
+            return alert("Select file")
+        }
+        uploadImgBtn.style.cursor = "progress"
+        panoramaxInstance = instance
+        const token = await getPanoramaxToken()
+
+        const file = fileInput.files[0]
+        // TODO add client side validation
+        try {
+            await addPanoramaxTag(await uploadImage(token, file))
+        } catch (err) {
+            console.error(err)
+            alert("Error: " + err.message)
+        } finally {
+            uploadImgBtn.style.cursor = "pointer"
+        }
+    }
+    fileInput.after(uploadImgBtn)
+}
+
+//</editor-fold>
+
 //<editor-fold desc="object-version-page" defaultstate="collapsed">
 
 async function addHoverForNodesParents() {
@@ -16560,6 +16786,7 @@ function makeVersionPageBetter() {
     void addHoverForNodesParents()
     void addHoverForWayNodes()
     void addHoverForRelationMembers()
+    addUploadPanoramaxBtn()
     // костыль для KeyK/L и OSM tags editor
     document.querySelector("#sidebar_content > div:first-of-type")?.classList?.add("browse-section")
     document.querySelectorAll("#element_versions_list > div").forEach(i => i.classList.add("browse-section"))
@@ -21244,29 +21471,7 @@ function renderOSMGeoJSON(xml, options = {}) {
                         return tagsHint !== "" ? tagsHint.slice(0, 255) : `Update tags of ${object_type} ${object_id}`
                     }
 
-                    const changesetTags = {
-                        created_by: `better osm.org v${GM_info.script.version}`,
-                        comment: makeComment(object_type, object_id, prevTags, newTags),
-                    }
-
-                    const changesetPayload = document.implementation.createDocument(null, "osm")
-                    const cs = changesetPayload.createElement("changeset")
-                    changesetPayload.documentElement.appendChild(cs)
-                    tagsToXml(changesetPayload, cs, changesetTags)
-                    const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
-
-                    const changesetId = await osmEditAuth
-                        .fetch(osm_server.apiBase + "changeset/create", {
-                            method: "PUT",
-                            prefix: false,
-                            body: chPayloadStr,
-                        })
-                        .then(res => {
-                            if (res.ok) return res.text()
-                            throw new Error(res)
-                        })
-                    console.log(changesetId)
-
+                    const changesetId = await openOsmChangeset(makeComment(object_type, object_id, prevTags, newTags))
                     try {
                         objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
 

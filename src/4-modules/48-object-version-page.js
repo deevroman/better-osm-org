@@ -937,6 +937,7 @@ function makeVersionPageBetter() {
     void addHoverForNodesParents()
     void addHoverForWayNodes()
     void addHoverForRelationMembers()
+    addUploadPanoramaxBtn()
     // костыль для KeyK/L и OSM tags editor
     document.querySelector("#sidebar_content > div:first-of-type")?.classList?.add("browse-section")
     document.querySelectorAll("#element_versions_list > div").forEach(i => i.classList.add("browse-section"))

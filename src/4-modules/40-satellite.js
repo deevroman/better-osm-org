@@ -296,7 +296,15 @@ const mapStylesDatabase = resourceCacher(githubMapStylesURL, "custom-vector-map-
 
 async function askCustomStyleUrl() {
     if (!initCustomFetch) {
-        alert("Try reload page page without cache Ctrl + F5.\nOr use Firefox with ViolentMonkey ;-)")
+        alert(
+            "Try reload page page without cache Ctrl + F5.\n" +
+                "Or:\n" +
+                "1. In TamperMonkey settings enable Advanced Config Mode\n" +
+                '2. In TamperMonkey settings change "Content Script API" to "UserScript API Dynamic"\n' +
+                "More info: https://c.osm.org/t/121670/208\n" +
+                "\n" +
+                "Or use Firefox with ViolentMonkey ;-)",
+        )
         return
     }
     if (document.querySelector(".vector-tiles-selector-popup")) {
@@ -420,13 +428,15 @@ async function askCustomStyleUrl() {
         }
         wrapper.append(urlInput)
 
-        input.onchange = async () => {
+        input.onchange = async e => {
+            if (!e.isTrusted) return
             if (input.checked && urlInput.value.trim() !== "") {
                 await applyCustomVectorMapStyle(urlInput.value, true)
             }
         }
 
         urlInput.onkeydown = async e => {
+            if (!e.isTrusted) return
             if (e.key === "Enter" && urlInput.value.trim() !== "") {
                 input.click()
                 await applyCustomVectorMapStyle(urlInput.value, true)
@@ -605,7 +615,8 @@ async function askCustomTileUrl() {
         }
         wrapper.append(urlInput)
 
-        input.onchange = async () => {
+        input.onchange = async e => {
+            if (!e.isTrusted) return
             if (input.checked && urlInput.value.trim() !== "") {
                 applyCustomLayer(urlInput.value, true)
                 switchTiles(currentTilesMode === MAPNIK_MODE)
@@ -613,6 +624,7 @@ async function askCustomTileUrl() {
         }
 
         urlInput.onkeydown = async e => {
+            if (!e.isTrusted) return
             if (e.key === "Enter" && urlInput.value.trim() !== "") {
                 input.click()
                 applyCustomLayer(urlInput.value, true)

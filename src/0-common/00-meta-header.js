@@ -139,6 +139,7 @@
 // @connect      panoramax.mapcomplete.org
 // @connect      panoramax.multimob.be
 // @connect      panoramax.liswu.me
+// @connect      panoramax.osm-hr.org
 // @connect      westnordost.de
 // @connect      streetcomplete.app
 // @comment      for downloading gps-tracks — osm stores tracks in AWS
