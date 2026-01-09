@@ -217,7 +217,7 @@ function addUploadPanoramaxBtn() {
     uploadImgBtn.style.cursor = "pointer"
     uploadImgBtn.classList.add("upload-to-panoramax", "bi", "bi-upload")
     uploadImgBtn.style.display = "none"
-    uploadImgBtn.style.paddingLeft = "5px"
+    uploadImgBtn.style.paddingLeft = "10px"
     uploadImgBtn.onclick = async () => {
         if (osmEditAuth === null) {
             osmEditAuth = makeAuth()
@@ -250,7 +250,7 @@ function addUploadPanoramaxBtn() {
             location.reload()
         } catch (err) {
             console.error(err)
-            alert(`Error: ${err.message}\n\n` + metadata ? `Info from EXIF:\\nDateTime: ${metadata.DateTime}\nLat: ${metadata.GPSLatitude}\nLon: ${metadata.GPSLongitude}`: "")
+            alert(`Error: ${err.message}\n\n` + metadata ? `Info from EXIF:\nDateTime: ${metadata.DateTime}\nLat: ${metadata.GPSLatitude}\nLon: ${metadata.GPSLongitude}`: "")
         } finally {
             wrapper.classList.remove("is-loading")
         }
