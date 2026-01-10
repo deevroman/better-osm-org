@@ -182,11 +182,13 @@ function addUploadPanoramaxBtn() {
     if (document.querySelector(".upload-to-panoramax")) {
         return
     }
-    if (
-        !document.querySelector(':where(a[href*="Key:shop"], a[href*="Key:amenity"], a[href*="Key:tourism"])')
-    ) {
+
+    if (!document.querySelector('a[href*="https://wiki.openstreetmap.org/wiki/"]')) {
         return
     }
+    // if (!document.querySelector(':where(a[href*="Key:shop"], a[href*="Key:amenity"], a[href*="Key:tourism"], a[href*="Key:utility"], a[href*="Tag:natural=tree"])')) {
+    //     return
+    // }
     if (document.querySelector('a[href^="https://wiki.openstreetmap.org/wiki/Key:panoramax"]')) {
         return
     }
