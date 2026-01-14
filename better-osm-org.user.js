@@ -18997,7 +18997,7 @@ async function betterUserStat(user) {
             }
             filterInputByEditor.appendChild(item)
         })
-
+    filterInputByEditor.appendChild(document.createElement("hr"))
     Array.from(new Set(changesets.map(i => i.tags?.["created_by"])))
         .sort()
         .forEach(i => {
