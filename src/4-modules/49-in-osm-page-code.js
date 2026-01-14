@@ -130,6 +130,7 @@ function runInOsmPageCode() {
         const proxyUrl = URL.createObjectURL(
             new OriginalBlob([fetchCode + window.maplibreWorkerSourceCode], { type: "application/javascript" }),
         )
+        // TODO FIXME proxyUrl = URL.createObjectURL — memory leak?
         console.count("newWorkerCounter")
         const maplibreOverriddenWorker = new OriginalWorker(proxyUrl, options);
         window.maplibreOverriddenWorker = maplibreOverriddenWorker
