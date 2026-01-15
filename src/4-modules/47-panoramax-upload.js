@@ -258,7 +258,7 @@ function addUploadPanoramaxBtn() {
         }
     }
 
-    document.querySelector("#sidebar_content").appendChild(wrapper)
+    document.querySelector("#sidebar_content nav").appendChild(wrapper)
 
     const datalistInstances = document.createElement("datalist")
     datalistInstances.id = "panoramax-instances"

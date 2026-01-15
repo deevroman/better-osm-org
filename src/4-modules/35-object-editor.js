@@ -201,14 +201,9 @@ function addDeleteButton() {
     }
 }
 
-function setupDeletor(path) {
-    if (!path.startsWith("/node/") && /*!path.startsWith("/way/") &&*/ path.startsWith("/relation/")) return
-    const timerId = setInterval(addDeleteButton, 100)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop try add delete button")
-    }, 3000)
-    addDeleteButton()
+function setupDeletor() {
+    if (!location.pathname.startsWith("/node/") && /*!location.pathname.startsWith("/way/") &&*/ location.pathname.startsWith("/relation/")) return
+    tryApplyModule(addDeleteButton, 100, 3000)
 }
 
 //</editor-fold>

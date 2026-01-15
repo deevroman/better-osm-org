@@ -55,12 +55,7 @@ function addSpyGlassButtons() {
 
 function setupSpyGlassButtons() {
     if (isDebug()) {
-        const timerId = setInterval(addSpyGlassButtons, 500)
-        setTimeout(() => {
-            clearInterval(timerId)
-            console.debug("stop try add SpyGlass buttons")
-        }, 5000)
-        addSpyGlassButtons()
+        tryApplyModule(addSpyGlassButtons, 500, 5000)
     }
 }
 

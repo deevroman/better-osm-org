@@ -948,12 +948,7 @@ function setupMakeVersionPageBetter() {
     if (!match) {
         return
     }
-    const timerId = setInterval(makeVersionPageBetter, 500)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop adding MakeVersionPageBetter")
-    }, 3000)
-    makeVersionPageBetter()
+    tryApplyModule(makeVersionPageBetter, 500, 3000)
 }
 
 //</editor-fold>

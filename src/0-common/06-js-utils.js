@@ -136,4 +136,27 @@ function copyAnimation(e, text) {
     }, 300)
 }
 
+/**
+ * @param {function(): boolean|void} fn
+ * @param {number} interval
+ * @param {number} timeout
+ */
+function tryApplyModule(fn, interval, timeout) {
+    const intervalTimerId = setInterval(() => {
+        if (fn()) {
+            console.debug("fast stop calling", fn.name)
+            clearInterval(intervalTimerId)
+            clearTimeout(timeoutTimerId)
+        }
+    }, interval)
+    const timeoutTimerId = setTimeout(() => {
+        clearInterval(intervalTimerId)
+        console.debug("stop calling", fn.name)
+    }, timeout)
+    if (fn()) {
+        clearInterval(intervalTimerId)
+        clearTimeout(timeoutTimerId)
+    }
+}
+
 //</editor-fold>

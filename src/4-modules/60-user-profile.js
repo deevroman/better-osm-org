@@ -204,7 +204,12 @@ async function makeEditorNormalizer() {
     }
 }
 
-async function betterUserStat(user) {
+async function betterUserStat() {
+    const match = location.pathname.match(/^\/user\/([^/]+)\/?$/)
+    if (!match) {
+        return
+    }
+    const user = decodeURI(match[1])
     if (!GM_config.get("BetterProfileStat") || !location.pathname.match(/^\/user\/([^/]+)\/?$/)) {
         return
     }
@@ -896,7 +901,10 @@ async function makeProfileForDeletedUser(user) {
     content.appendChild(div)
 }
 
-function addColorForActiveBlock() {
+/**
+ * @param {string} user
+ */
+function addColorForActiveBlock(user) {
     const blocksLink = document.querySelector('a[href$="/blocks"]')
     if (blocksLink?.nextElementSibling?.textContent > 0) {
         blocksLink.nextElementSibling.style.background = "rgba(255, 0, 0, 0.3)"
@@ -917,20 +925,20 @@ function addColorForActiveBlock() {
     }
 }
 
-async function setupHDYCInProfile(path) {
-    addColorForActiveBlock()
-    if (isOHMServer()) {
+async function setupHDYCInProfile() {
+    const match = location.pathname.match(/^\/user\/([^/]+)(\/|\/notes)?$/)
+    if (!match || location.pathname.includes("/history")) {
         return
     }
-    const match = path.match(/^\/user\/([^/]+)(\/|\/notes)?$/)
-    if (!match || path.includes("/history")) {
+    /** @type {string} **/
+    const user = match[1]
+    addColorForActiveBlock(user)
+    if (isOHMServer()) {
         return
     }
     if (document.getElementById("hdyc-iframe")) {
         return
     }
-    /** @type {string} **/
-    const user = match[1]
     if (user === "forgot-password" || user === "new") return
     document.querySelector(".content-body > .content-inner").style.paddingBottom = "0px"
     if (isDarkMode()) {
@@ -1099,13 +1107,7 @@ function setupBetterProfileStat() {
     if (!match) {
         return
     }
-    const user = match[1]
-    const timerId = setInterval(betterUserStat, 300, decodeURI(user))
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop try add heatmap filters")
-    }, 5000)
-    void betterUserStat(decodeURI(user))
+    tryApplyModule(betterUserStat, 300, 5000)
 }
 
 function inFrame() {
