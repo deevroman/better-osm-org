@@ -502,6 +502,13 @@ function makeLinksInChangesetObjectRowClickable(row) {
                     valueCell.classList.add("fixme-tag")
                 }
             }
+        } else if (key === "roof:direction") {
+            if (valueCell.textContent === "across" || valueCell.textContent === "along") {
+                valueCell.classList.add("fixme-tag")
+                valueCell.title = "it seems to need to be changed to roof:orientation"
+            }
+        } else if (key === "roof:orientation") {
+            makeRoofOrientationValue(valueCell)
         }
     }
 }

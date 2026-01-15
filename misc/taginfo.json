@@ -133,6 +133,14 @@
       "object_types": ["relation"]
     },
     {
+      "key": "roof:direction",
+      "description": "tag value validation"
+    },
+    {
+      "key": "roof:orientation",
+      "description": "tag value validation"
+    },
+    {
       "key": "fixme",
       "description": "Highlighting a tag in a tag list"
     },
