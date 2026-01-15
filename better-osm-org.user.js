@@ -1686,6 +1686,29 @@ function copyAnimation(e, text) {
     }, 300)
 }
 
+/**
+ * @param {function(): boolean|void} fn
+ * @param {number} interval
+ * @param {number} timeout
+ */
+function tryApplyModule(fn, interval, timeout) {
+    const intervalTimerId = setInterval(() => {
+        if (fn()) {
+            console.debug("fast stop calling", fn.name)
+            clearInterval(intervalTimerId)
+            clearTimeout(timeoutTimerId)
+        }
+    }, interval)
+    const timeoutTimerId = setTimeout(() => {
+        clearInterval(intervalTimerId)
+        console.debug("stop calling", fn.name)
+    }, timeout)
+    if (fn()) {
+        clearInterval(intervalTimerId)
+        clearTimeout(timeoutTimerId)
+    }
+}
+
 //</editor-fold>
 
 //<editor-fold desc="network-utils" defaultstate="collapsed">
@@ -4275,14 +4298,7 @@ Press R for partial revert`
 
 function setupRevertButton() {
     if (!location.pathname.startsWith("/changeset")) return
-    const timerId = setInterval(() => {
-        if (addRevertButton()) clearInterval(timerId)
-    }, 100)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop try add revert button")
-    }, 3000)
-    addRevertButton()
+    tryApplyModule(addRevertButton, 100, 3000)
 }
 
 // noinspection CssUnusedSymbol,CssUnresolvedCustomProperty
@@ -5266,14 +5282,9 @@ out meta;
     }
 }
 
-function setupResolveNotesButton(path) {
-    if (!path.startsWith("/note")) return
-    const timerId = setInterval(addResolveNotesButton, 100)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop try add resolve note button")
-    }, 3000)
-    addResolveNotesButton()
+function setupResolveNotesButton() {
+    if (!location.pathname.startsWith("/note")) return
+    tryApplyModule(addResolveNotesButton, 100, 3000)
 }
 
 let updateNotesLayer = null
@@ -5583,12 +5594,7 @@ function addNotesFiltersButtons() {
 }
 
 function setupNotesFiltersButtons() {
-    const timerId = setInterval(addNotesFiltersButtons, 200)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop try add notes filters buttons")
-    }, 5000)
-    addNotesFiltersButtons()
+    tryApplyModule(addNotesFiltersButtons, 200, 5000)
 }
 
 let mapDataSwitcherUnderSupervision = false
@@ -5628,12 +5634,7 @@ function hideNoteHighlight() {
 
 function setupHideNoteHighlight() {
     if (!location.pathname.startsWith("/note/")) return
-    const timerId = setInterval(hideNoteHighlight, 1000)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop removing note highlight")
-    }, 5000)
-    hideNoteHighlight()
+    tryApplyModule(hideNoteHighlight, 1000, 5000)
 }
 
 //</editor-fold>
@@ -5695,12 +5696,7 @@ function addSpyGlassButtons() {
 
 function setupSpyGlassButtons() {
     if (isDebug()) {
-        const timerId = setInterval(addSpyGlassButtons, 500)
-        setTimeout(() => {
-            clearInterval(timerId)
-            console.debug("stop try add SpyGlass buttons")
-        }, 5000)
-        addSpyGlassButtons()
+        tryApplyModule(addSpyGlassButtons, 500, 5000)
     }
 }
 
@@ -5915,12 +5911,7 @@ function addGPXFiltersButtons() {
 }
 
 function setupGPXFiltersButtons() {
-    const timerId = setInterval(addGPXFiltersButtons, 100)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop try add gpx filters buttons")
-    }, 3000)
-    addGPXFiltersButtons()
+    tryApplyModule(addGPXFiltersButtons, 100, 3000)
 }
 
 //</editor-fold>
@@ -6128,14 +6119,9 @@ function addDeleteButton() {
     }
 }
 
-function setupDeletor(path) {
-    if (!path.startsWith("/node/") && /*!path.startsWith("/way/") &&*/ path.startsWith("/relation/")) return
-    const timerId = setInterval(addDeleteButton, 100)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop try add delete button")
-    }, 3000)
-    addDeleteButton()
+function setupDeletor() {
+    if (!location.pathname.startsWith("/node/") && /*!location.pathname.startsWith("/way/") &&*/ location.pathname.startsWith("/relation/")) return
+    tryApplyModule(addDeleteButton, 100, 3000)
 }
 
 //</editor-fold>
@@ -7177,6 +7163,11 @@ async function askCustomTileUrl() {
             about: "https://www.openrailwaymap.org",
             forceVector: true,
         },
+        // {
+        //     label: "F4map",
+        //     value: "https://tile.f4map.com/tiles/f4_3d/{z}/{x}/{y}.png",
+        //     about: "https://demo.f4map.com",
+        // },
         {
             label: "Hrvatska GeoPortal",
             value: "https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.3.0&SERVICE=WMS&REQUEST=GetMap&LAYERS=OI.OrthoimageCoverage&STYLES=&CRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}",
@@ -7823,12 +7814,7 @@ function addSatelliteLayers() {
 }
 
 function setupSatelliteLayers() {
-    const timerId = setInterval(addSatelliteLayers, 100)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop try add resolve note button")
-    }, 3000)
-    addSatelliteLayers()
+    tryApplyModule(addSatelliteLayers, 100, 3000)
 }
 
 //</editor-fold>
@@ -12116,7 +12102,8 @@ function addDiffInHistory(reason = "url_change") {
     }
 }
 
-function setupVersionsDiff(path) {
+function setupVersionsDiff() {
+    const path = location.pathname
     // prettier-ignore
     if (!path.includes("/history")
         || !path.startsWith("/node")
@@ -12124,12 +12111,7 @@ function setupVersionsDiff(path) {
         && !path.startsWith("/relation")) {
         return;
     }
-    const timerId = setInterval(addDiffInHistory, 500)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop adding diff in history")
-    }, 25000)
-    addDiffInHistory()
+    tryApplyModule(addDiffInHistory, 500, 25000)
 }
 
 //</editor-fold>
@@ -15646,14 +15628,9 @@ async function addChangesetQuickLook() {
     }
 }
 
-function setupChangesetQuickLook(path) {
-    if (!path.startsWith("/changeset")) return
-    const timerId = setInterval(addChangesetQuickLook, 100)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop try add QuickLook")
-    }, 4000)
-    void addChangesetQuickLook()
+function setupChangesetQuickLook() {
+    if (!location.pathname.startsWith("/changeset")) return
+    tryApplyModule(addChangesetQuickLook, 100, 4000)
 }
 
 //</editor-fold>
@@ -15918,7 +15895,7 @@ function addUploadPanoramaxBtn() {
         }
     }
 
-    document.querySelector("#sidebar_content").appendChild(wrapper)
+    document.querySelector("#sidebar_content nav").appendChild(wrapper)
 
     const datalistInstances = document.createElement("datalist")
     datalistInstances.id = "panoramax-instances"
@@ -16898,12 +16875,7 @@ function setupMakeVersionPageBetter() {
     if (!match) {
         return
     }
-    const timerId = setInterval(makeVersionPageBetter, 500)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop adding MakeVersionPageBetter")
-    }, 3000)
-    makeVersionPageBetter()
+    tryApplyModule(makeVersionPageBetter, 500, 3000)
 }
 
 //</editor-fold>
@@ -18494,12 +18466,7 @@ function addMassChangesetsActions() {
 
 function setupMassChangesetsActions() {
     if (location.pathname !== "/history" && location.pathname !== "/history/friends" && !(location.pathname.includes("/history") && location.pathname.includes("/user/"))) return
-    const timerId = setInterval(addMassChangesetsActions, 300)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop try add mass changesets actions")
-    }, 5000)
-    addMassChangesetsActions()
+    tryApplyModule(addMassChangesetsActions, 300, 5000)
 }
 
 //</editor-fold>
@@ -18551,12 +18518,7 @@ function setupRelationVersionViewer() {
     if (!match) {
         return
     }
-    const timerId = setInterval(addRelationVersionView, 500)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop adding RelationVersionView")
-    }, 25000)
-    addRelationVersionView()
+    tryApplyModule(addRelationVersionView, 500, 25000)
 }
 
 //</editor-fold>
@@ -18767,7 +18729,12 @@ async function makeEditorNormalizer() {
     }
 }
 
-async function betterUserStat(user) {
+async function betterUserStat() {
+    const match = location.pathname.match(/^\/user\/([^/]+)\/?$/)
+    if (!match) {
+        return
+    }
+    const user = decodeURI(match[1])
     if (!GM_config.get("BetterProfileStat") || !location.pathname.match(/^\/user\/([^/]+)\/?$/)) {
         return
     }
@@ -19459,7 +19426,10 @@ async function makeProfileForDeletedUser(user) {
     content.appendChild(div)
 }
 
-function addColorForActiveBlock() {
+/**
+ * @param {string} user
+ */
+function addColorForActiveBlock(user) {
     const blocksLink = document.querySelector('a[href$="/blocks"]')
     if (blocksLink?.nextElementSibling?.textContent > 0) {
         blocksLink.nextElementSibling.style.background = "rgba(255, 0, 0, 0.3)"
@@ -19480,20 +19450,20 @@ function addColorForActiveBlock() {
     }
 }
 
-async function setupHDYCInProfile(path) {
-    addColorForActiveBlock()
-    if (isOHMServer()) {
+async function setupHDYCInProfile() {
+    const match = location.pathname.match(/^\/user\/([^/]+)(\/|\/notes)?$/)
+    if (!match || location.pathname.includes("/history")) {
         return
     }
-    const match = path.match(/^\/user\/([^/]+)(\/|\/notes)?$/)
-    if (!match || path.includes("/history")) {
+    /** @type {string} **/
+    const user = match[1]
+    addColorForActiveBlock(user)
+    if (isOHMServer()) {
         return
     }
     if (document.getElementById("hdyc-iframe")) {
         return
     }
-    /** @type {string} **/
-    const user = match[1]
     if (user === "forgot-password" || user === "new") return
     document.querySelector(".content-body > .content-inner").style.paddingBottom = "0px"
     if (isDarkMode()) {
@@ -19662,13 +19632,7 @@ function setupBetterProfileStat() {
     if (!match) {
         return
     }
-    const user = match[1]
-    const timerId = setInterval(betterUserStat, 300, decodeURI(user))
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop try add heatmap filters")
-    }, 5000)
-    void betterUserStat(decodeURI(user))
+    tryApplyModule(betterUserStat, 300, 5000)
 }
 
 function inFrame() {
@@ -20532,14 +20496,20 @@ function makeExternalLinkEditable(targetLi, editorsListUl, nameValue = "", templ
     }
 }
 
-async function setupNewEditorsLinks(mutationsList) {
-    // little optimization for scroll
-    if (mutationsList.length === 1 && mutationsList[0].type === "attributes" && mutationsList[0].attributeName === "data-popper-placement") {
-        return
-    }
-    console.debug("setupNewEditorsLinks call")
-    if (mutationsList.length === 1 && mutationsList[0].type === "attributes" && mutationsList[0].attributeName === "aria-describedby") {
-        document.querySelector("#" + mutationsList[0].target.getAttribute("aria-describedby"))?.remove()
+async function setupNewEditorsLinks() {
+    await _setupNewEditorsLinks()
+}
+
+async function _setupNewEditorsLinks(mutationsList) {
+    if (mutationsList) {
+        // little optimization for scroll
+        if (mutationsList.length === 1 && mutationsList[0].type === "attributes" && mutationsList[0].attributeName === "data-popper-placement") {
+            return
+        }
+        console.debug("setupNewEditorsLinks call")
+        if (mutationsList.length === 1 && mutationsList[0].type === "attributes" && mutationsList[0].attributeName === "aria-describedby") {
+            document.querySelector("#" + mutationsList[0].target.getAttribute("aria-describedby"))?.remove()
+        }
     }
     addDropdownStyle()
     if (isMobile && document.querySelector("#map")) {
@@ -20709,7 +20679,7 @@ async function setupNewEditorsLinks(mutationsList) {
         }
     } finally {
         coordinatesObserver?.disconnect()
-        coordinatesObserver = new MutationObserver(setupNewEditorsLinks)
+        coordinatesObserver = new MutationObserver(_setupNewEditorsLinks)
         coordinatesObserver.observe(document.querySelector("#edit_tab"), { subtree: true, childList: true, attributes: true })
     }
 }
@@ -24119,14 +24089,7 @@ function addImageryOffsetsDB() {
 }
 
 function setupImageryOffsetsDB() {
-    const timerId = setInterval(() => {
-        if (addImageryOffsetsDB()) clearInterval(timerId)
-    }, 2000)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop try add imagery offset")
-    }, 10000)
-    addImageryOffsetsDB()
+    tryApplyModule(addImageryOffsetsDB, 2000, 10000)
 }
 
 function setupIDframe() {
@@ -24163,7 +24126,7 @@ function setupIDframe() {
 // - для модулей, которые внедряются через setInterval можно сохранить таймер, чтобы предотвратить дублирование вызовов
 // - возможность сохранить результат внедрения
 
-/***@type {((function(string): Promise<void>|void))[]}*/
+/***@type {((function(): Promise<void>|void))[]}*/
 // prettier-ignore
 const modules = [
     setupDarkModeForMap,
@@ -24196,6 +24159,75 @@ const alwaysEnabledModules = [
     setupPrometheusLink
 ]
 
+function selectOverpassServer() {
+    if (isOHMServer()) {
+        overpass_server = OHM_OVERPASS_INSTANCE
+    } else if (GM_config.get("OverpassInstance") === MAILRU_OVERPASS_INSTANCE.name) {
+        overpass_server = MAILRU_OVERPASS_INSTANCE
+    } else if (GM_config.get("OverpassInstance") === PRIVATECOFFEE_OVERPASS_INSTANCE.name) {
+        overpass_server = PRIVATECOFFEE_OVERPASS_INSTANCE
+    } else {
+        overpass_server = MAIN_OVERPASS_INSTANCE
+    }
+}
+
+function applyModules(path) {
+    for (const module of modules.filter(module => GM_config.get(module.name.slice("setup".length)))) {
+        queueMicrotask(() => {
+            // console.log(module.name)
+            module(path)
+        })
+    }
+    for (const module of alwaysEnabledModules) {
+        queueMicrotask(() => {
+            // console.log(module.name)
+            void module(path)
+        })
+    }
+}
+
+function cleanupBeforeNewLocation(path) {
+    try {
+        shiftKeyZClicks = 0
+        abortPrevControllers(ABORT_ERROR_WHEN_PAGE_CHANGED)
+        tracksCounter = 0
+        cleanAllObjects()
+        getMap()?.attributionControl?.setPrefix("")
+        addSwipes()
+        document.querySelector("#fixed-rss-feed")?.remove()
+        buildingViewerIframe?.remove()
+        buildingViewerIframe = null
+        historyPagePaginationDeletingObserver?.disconnect()
+        historyPagePaginationDeletingObserver = null
+        paginationInHistoryStepObserver?.disconnect()
+        paginationInHistoryStepObserver = null
+        removePOIMoverMenu()
+        // prettier-ignore
+        if (!path.startsWith("/changeset") && !path.startsWith("/history") &&
+            !path.startsWith("/node") && !path.startsWith("/way") && path !== "/relation" &&
+            !path.startsWith("/note")) {
+            showSearchForm()
+        }
+    } catch {
+        /* empty */
+    }
+}
+
+function registerFastOneTimeModulesApplier(path) {
+    const sidebarContent = document.getElementById("sidebar_content")
+    if (!sidebarContent || sidebarContent.childNodes.length) return
+    try {
+        new MutationObserver(function (_, observer) {
+            observer.disconnect()
+            console.log("%c⚡️Fast modules apply!", "background: #000; color: #0f0")
+            console.log(path)
+            applyModules(path)
+        }).observe(sidebarContent, { subtree: true, childList: true })
+    } catch (e) {
+        console.error(e)
+    }
+}
+
 function setupOSMWebsite() {
     if (location.pathname === "/id") {
         setupIDframe()
@@ -24213,57 +24245,16 @@ function setupOSMWebsite() {
     }, 900)
 
     resetSearchFormFocus()
-    if (isOHMServer()) {
-        overpass_server = OHM_OVERPASS_INSTANCE
-    } else if (GM_config.get("OverpassInstance") === MAILRU_OVERPASS_INSTANCE.name) {
-        overpass_server = MAILRU_OVERPASS_INSTANCE
-    } else if (GM_config.get("OverpassInstance") === PRIVATECOFFEE_OVERPASS_INSTANCE.name) {
-        overpass_server = PRIVATECOFFEE_OVERPASS_INSTANCE
-    } else {
-        overpass_server = MAIN_OVERPASS_INSTANCE
-    }
+    selectOverpassServer()
     let lastPath = ""
     new MutationObserver(
         (function mainObserverHandler() {
             const path = location.pathname
             if (path === lastPath) return
-            try {
-                shiftKeyZClicks = 0
-                abortPrevControllers(ABORT_ERROR_WHEN_PAGE_CHANGED)
-                tracksCounter = 0
-                cleanAllObjects()
-                getMap()?.attributionControl?.setPrefix("")
-                addSwipes()
-                document.querySelector("#fixed-rss-feed")?.remove()
-                buildingViewerIframe?.remove()
-                buildingViewerIframe = null
-                historyPagePaginationDeletingObserver?.disconnect()
-                historyPagePaginationDeletingObserver = null
-                paginationInHistoryStepObserver?.disconnect()
-                paginationInHistoryStepObserver = null
-                removePOIMoverMenu()
-                // prettier-ignore
-                if (!path.startsWith("/changeset") && !path.startsWith("/history") &&
-                    !path.startsWith("/node") && !path.startsWith("/way") && path !== "/relation" &&
-                    !path.startsWith("/note")) {
-                    showSearchForm()
-                }
-            } catch {
-                /* empty */
-            }
+            cleanupBeforeNewLocation(path)
             lastPath = path
-            for (const module of modules.filter(module => GM_config.get(module.name.slice("setup".length)))) {
-                queueMicrotask(() => {
-                    // console.log(module.name)
-                    module(path)
-                })
-            }
-            for (const module of alwaysEnabledModules) {
-                queueMicrotask(() => {
-                    // console.log(module.name)
-                    void module(path)
-                })
-            }
+            applyModules(path)
+            registerFastOneTimeModulesApplier(path)
             return mainObserverHandler
         })(),
     ).observe(document, { subtree: true, childList: true })

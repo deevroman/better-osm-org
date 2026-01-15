@@ -207,12 +207,7 @@ function addGPXFiltersButtons() {
 }
 
 function setupGPXFiltersButtons() {
-    const timerId = setInterval(addGPXFiltersButtons, 100)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop try add gpx filters buttons")
-    }, 3000)
-    addGPXFiltersButtons()
+    tryApplyModule(addGPXFiltersButtons, 100, 3000)
 }
 
 //</editor-fold>

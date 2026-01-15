@@ -918,12 +918,7 @@ function addMassChangesetsActions() {
 
 function setupMassChangesetsActions() {
     if (location.pathname !== "/history" && location.pathname !== "/history/friends" && !(location.pathname.includes("/history") && location.pathname.includes("/user/"))) return
-    const timerId = setInterval(addMassChangesetsActions, 300)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop try add mass changesets actions")
-    }, 5000)
-    addMassChangesetsActions()
+    tryApplyModule(addMassChangesetsActions, 300, 5000)
 }
 
 //</editor-fold>

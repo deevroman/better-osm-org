@@ -3510,14 +3510,9 @@ async function addChangesetQuickLook() {
     }
 }
 
-function setupChangesetQuickLook(path) {
-    if (!path.startsWith("/changeset")) return
-    const timerId = setInterval(addChangesetQuickLook, 100)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop try add QuickLook")
-    }, 4000)
-    void addChangesetQuickLook()
+function setupChangesetQuickLook() {
+    if (!location.pathname.startsWith("/changeset")) return
+    tryApplyModule(addChangesetQuickLook, 100, 4000)
 }
 
 //</editor-fold>

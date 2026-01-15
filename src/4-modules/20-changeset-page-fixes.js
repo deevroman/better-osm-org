@@ -807,14 +807,7 @@ Press R for partial revert`
 
 function setupRevertButton() {
     if (!location.pathname.startsWith("/changeset")) return
-    const timerId = setInterval(() => {
-        if (addRevertButton()) clearInterval(timerId)
-    }, 100)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop try add revert button")
-    }, 3000)
-    addRevertButton()
+    tryApplyModule(addRevertButton, 100, 3000)
 }
 
 // noinspection CssUnusedSymbol,CssUnresolvedCustomProperty

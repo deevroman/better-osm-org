@@ -54,14 +54,7 @@ function addImageryOffsetsDB() {
 }
 
 function setupImageryOffsetsDB() {
-    const timerId = setInterval(() => {
-        if (addImageryOffsetsDB()) clearInterval(timerId)
-    }, 2000)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop try add imagery offset")
-    }, 10000)
-    addImageryOffsetsDB()
+    tryApplyModule(addImageryOffsetsDB, 2000, 10000)
 }
 
 function setupIDframe() {

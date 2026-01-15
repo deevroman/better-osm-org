@@ -392,14 +392,9 @@ out meta;
     }
 }
 
-function setupResolveNotesButton(path) {
-    if (!path.startsWith("/note")) return
-    const timerId = setInterval(addResolveNotesButton, 100)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop try add resolve note button")
-    }, 3000)
-    addResolveNotesButton()
+function setupResolveNotesButton() {
+    if (!location.pathname.startsWith("/note")) return
+    tryApplyModule(addResolveNotesButton, 100, 3000)
 }
 
 let updateNotesLayer = null
@@ -709,12 +704,7 @@ function addNotesFiltersButtons() {
 }
 
 function setupNotesFiltersButtons() {
-    const timerId = setInterval(addNotesFiltersButtons, 200)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop try add notes filters buttons")
-    }, 5000)
-    addNotesFiltersButtons()
+    tryApplyModule(addNotesFiltersButtons, 200, 5000)
 }
 
 let mapDataSwitcherUnderSupervision = false
@@ -754,12 +744,7 @@ function hideNoteHighlight() {
 
 function setupHideNoteHighlight() {
     if (!location.pathname.startsWith("/note/")) return
-    const timerId = setInterval(hideNoteHighlight, 1000)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop removing note highlight")
-    }, 5000)
-    hideNoteHighlight()
+    tryApplyModule(hideNoteHighlight, 1000, 5000)
 }
 
 //</editor-fold>

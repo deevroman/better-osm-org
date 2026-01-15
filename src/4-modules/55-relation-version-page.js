@@ -45,12 +45,7 @@ function setupRelationVersionViewer() {
     if (!match) {
         return
     }
-    const timerId = setInterval(addRelationVersionView, 500)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop adding RelationVersionView")
-    }, 25000)
-    addRelationVersionView()
+    tryApplyModule(addRelationVersionView, 500, 25000)
 }
 
 //</editor-fold>

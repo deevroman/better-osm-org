@@ -494,6 +494,11 @@ async function askCustomTileUrl() {
             about: "https://www.openrailwaymap.org",
             forceVector: true,
         },
+        // {
+        //     label: "F4map",
+        //     value: "https://tile.f4map.com/tiles/f4_3d/{z}/{x}/{y}.png",
+        //     about: "https://demo.f4map.com",
+        // },
         {
             label: "Hrvatska GeoPortal",
             value: "https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.3.0&SERVICE=WMS&REQUEST=GetMap&LAYERS=OI.OrthoimageCoverage&STYLES=&CRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}",
@@ -1140,12 +1145,7 @@ function addSatelliteLayers() {
 }
 
 function setupSatelliteLayers() {
-    const timerId = setInterval(addSatelliteLayers, 100)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop try add resolve note button")
-    }, 3000)
-    addSatelliteLayers()
+    tryApplyModule(addSatelliteLayers, 100, 3000)
 }
 
 //</editor-fold>

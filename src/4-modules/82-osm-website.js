@@ -6,7 +6,7 @@
 // - для модулей, которые внедряются через setInterval можно сохранить таймер, чтобы предотвратить дублирование вызовов
 // - возможность сохранить результат внедрения
 
-/***@type {((function(string): Promise<void>|void))[]}*/
+/***@type {((function(): Promise<void>|void))[]}*/
 // prettier-ignore
 const modules = [
     setupDarkModeForMap,
@@ -39,6 +39,75 @@ const alwaysEnabledModules = [
     setupPrometheusLink
 ]
 
+function selectOverpassServer() {
+    if (isOHMServer()) {
+        overpass_server = OHM_OVERPASS_INSTANCE
+    } else if (GM_config.get("OverpassInstance") === MAILRU_OVERPASS_INSTANCE.name) {
+        overpass_server = MAILRU_OVERPASS_INSTANCE
+    } else if (GM_config.get("OverpassInstance") === PRIVATECOFFEE_OVERPASS_INSTANCE.name) {
+        overpass_server = PRIVATECOFFEE_OVERPASS_INSTANCE
+    } else {
+        overpass_server = MAIN_OVERPASS_INSTANCE
+    }
+}
+
+function applyModules(path) {
+    for (const module of modules.filter(module => GM_config.get(module.name.slice("setup".length)))) {
+        queueMicrotask(() => {
+            // console.log(module.name)
+            module(path)
+        })
+    }
+    for (const module of alwaysEnabledModules) {
+        queueMicrotask(() => {
+            // console.log(module.name)
+            void module(path)
+        })
+    }
+}
+
+function cleanupBeforeNewLocation(path) {
+    try {
+        shiftKeyZClicks = 0
+        abortPrevControllers(ABORT_ERROR_WHEN_PAGE_CHANGED)
+        tracksCounter = 0
+        cleanAllObjects()
+        getMap()?.attributionControl?.setPrefix("")
+        addSwipes()
+        document.querySelector("#fixed-rss-feed")?.remove()
+        buildingViewerIframe?.remove()
+        buildingViewerIframe = null
+        historyPagePaginationDeletingObserver?.disconnect()
+        historyPagePaginationDeletingObserver = null
+        paginationInHistoryStepObserver?.disconnect()
+        paginationInHistoryStepObserver = null
+        removePOIMoverMenu()
+        // prettier-ignore
+        if (!path.startsWith("/changeset") && !path.startsWith("/history") &&
+            !path.startsWith("/node") && !path.startsWith("/way") && path !== "/relation" &&
+            !path.startsWith("/note")) {
+            showSearchForm()
+        }
+    } catch {
+        /* empty */
+    }
+}
+
+function registerFastOneTimeModulesApplier(path) {
+    const sidebarContent = document.getElementById("sidebar_content")
+    if (!sidebarContent || sidebarContent.childNodes.length) return
+    try {
+        new MutationObserver(function (_, observer) {
+            observer.disconnect()
+            console.log("%c⚡️Fast modules apply!", "background: #000; color: #0f0")
+            console.log(path)
+            applyModules(path)
+        }).observe(sidebarContent, { subtree: true, childList: true })
+    } catch (e) {
+        console.error(e)
+    }
+}
+
 function setupOSMWebsite() {
     if (location.pathname === "/id") {
         setupIDframe()
@@ -56,57 +125,16 @@ function setupOSMWebsite() {
     }, 900)
 
     resetSearchFormFocus()
-    if (isOHMServer()) {
-        overpass_server = OHM_OVERPASS_INSTANCE
-    } else if (GM_config.get("OverpassInstance") === MAILRU_OVERPASS_INSTANCE.name) {
-        overpass_server = MAILRU_OVERPASS_INSTANCE
-    } else if (GM_config.get("OverpassInstance") === PRIVATECOFFEE_OVERPASS_INSTANCE.name) {
-        overpass_server = PRIVATECOFFEE_OVERPASS_INSTANCE
-    } else {
-        overpass_server = MAIN_OVERPASS_INSTANCE
-    }
+    selectOverpassServer()
     let lastPath = ""
     new MutationObserver(
         (function mainObserverHandler() {
             const path = location.pathname
             if (path === lastPath) return
-            try {
-                shiftKeyZClicks = 0
-                abortPrevControllers(ABORT_ERROR_WHEN_PAGE_CHANGED)
-                tracksCounter = 0
-                cleanAllObjects()
-                getMap()?.attributionControl?.setPrefix("")
-                addSwipes()
-                document.querySelector("#fixed-rss-feed")?.remove()
-                buildingViewerIframe?.remove()
-                buildingViewerIframe = null
-                historyPagePaginationDeletingObserver?.disconnect()
-                historyPagePaginationDeletingObserver = null
-                paginationInHistoryStepObserver?.disconnect()
-                paginationInHistoryStepObserver = null
-                removePOIMoverMenu()
-                // prettier-ignore
-                if (!path.startsWith("/changeset") && !path.startsWith("/history") &&
-                    !path.startsWith("/node") && !path.startsWith("/way") && path !== "/relation" &&
-                    !path.startsWith("/note")) {
-                    showSearchForm()
-                }
-            } catch {
-                /* empty */
-            }
+            cleanupBeforeNewLocation(path)
             lastPath = path
-            for (const module of modules.filter(module => GM_config.get(module.name.slice("setup".length)))) {
-                queueMicrotask(() => {
-                    // console.log(module.name)
-                    module(path)
-                })
-            }
-            for (const module of alwaysEnabledModules) {
-                queueMicrotask(() => {
-                    // console.log(module.name)
-                    void module(path)
-                })
-            }
+            applyModules(path)
+            registerFastOneTimeModulesApplier(path)
             return mainObserverHandler
         })(),
     ).observe(document, { subtree: true, childList: true })

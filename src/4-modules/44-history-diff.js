@@ -3658,7 +3658,8 @@ function addDiffInHistory(reason = "url_change") {
     }
 }
 
-function setupVersionsDiff(path) {
+function setupVersionsDiff() {
+    const path = location.pathname
     // prettier-ignore
     if (!path.includes("/history")
         || !path.startsWith("/node")
@@ -3666,12 +3667,7 @@ function setupVersionsDiff(path) {
         && !path.startsWith("/relation")) {
         return;
     }
-    const timerId = setInterval(addDiffInHistory, 500)
-    setTimeout(() => {
-        clearInterval(timerId)
-        console.debug("stop adding diff in history")
-    }, 25000)
-    addDiffInHistory()
+    tryApplyModule(addDiffInHistory, 500, 25000)
 }
 
 //</editor-fold>
