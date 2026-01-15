@@ -228,6 +228,13 @@ function makeWikimediaCommonsValue(elem) {
     })
 }
 
+function makeRoofOrientationValue(elem) {
+    if (elem.textContent !== "across" && elem.textContent !== "along") {
+        elem.classList.add("fixme-tag")
+        elem.title = 'roof:orientation must be either "across" or "along"'
+    }
+}
+
 function makeRefBelpostValue(elem) {
     if (!GM_config.get("ImagesAndLinksInTags")) return
     if (elem.innerHTML.match(/^[0-9]+$/)) {
@@ -355,6 +362,34 @@ function makeLinksInVersionTagsClickable() {
                     renderDirectionTag(parseFloat(lat), parseFloat(lon), valueCell.textContent, c("#ff00e3"))
                 }
             }
+        } else if (key === "roof:direction") {
+            if (valueCell.textContent === "across" || valueCell.textContent === "along") { // todo more
+                valueCell.classList.add("fixme-tag")
+                valueCell.title = "it seems to need to be changed to roof:orientation"
+            } else {
+                setTimeout(async () => {
+                    // todo
+                    const metadata = await loadWayMetadata()
+                    const nodes = metadata.elements.filter(i => i.type === "node")
+                    let lat = 0.0
+                    let lon = 0.0
+                    nodes.forEach(i => {
+                        lat += i.lat
+                        lon += i.lon
+                    })
+                    lat /= nodes.length
+                    lon /= nodes.length
+                    row.onmouseenter = () => {
+                        cleanObjectsByKey("activeObjects")
+                        renderDirectionTag(lat, lon, valueCell.textContent, c("#ff00e3"))
+                    }
+                    row.onmouseleave = () => {
+                        cleanObjectsByKey("activeObjects")
+                    }
+                })
+            }
+        } else if (key === "roof:orientation") {
+            makeRoofOrientationValue(valueCell)
         } else if (
             key.startsWith("opening_hours") || // https://github.com/opening-hours/opening_hours.js/blob/master/scripts/related_tags.txt
             key.startsWith("happy_hours") ||
