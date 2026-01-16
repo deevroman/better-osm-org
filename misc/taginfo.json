@@ -141,6 +141,38 @@
       "description": "tag value validation"
     },
     {
+      "key": "maxspeed:conditional",
+      "description": "tag value validation"
+    },
+    {
+      "key": "access:conditional",
+      "description": "tag value validation"
+    },
+    {
+      "key": "motor_vehicle:conditional",
+      "description": "tag value validation"
+    },
+    {
+      "key": "maxspeed:hgv:conditional",
+      "description": "tag value validation"
+    },
+    {
+      "key": "fee:conditional",
+      "description": "tag value validation"
+    },
+    {
+      "key": "hgv:conditional",
+      "description": "tag value validation"
+    },
+    {
+      "key": "maxweightrating:hgv:conditional",
+      "description": "tag value validation"
+    },
+    {
+      "key": "restriction:conditional",
+      "description": "tag value validation"
+    },
+    {
       "key": "fixme",
       "description": "Highlighting a tag in a tag list"
     },

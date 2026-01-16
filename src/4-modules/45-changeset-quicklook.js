@@ -509,6 +509,15 @@ function makeLinksInChangesetObjectRowClickable(row) {
             }
         } else if (key === "roof:orientation") {
             makeRoofOrientationValue(valueCell)
+        } else if (
+            // prettier-ignore
+            key.endsWith(":conditional")
+            && !key.startsWith("fixme:")
+            && !key.startsWith("source:")
+            && !key.startsWith("check_date:")
+            && !key.startsWith("description:")
+        ) {
+            makeConditionalValue(valueCell)
         }
     }
 }
