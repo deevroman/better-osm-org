@@ -8056,6 +8056,25 @@ function makeRoofOrientationValue(elem) {
     }
 }
 
+function makeConditionalValue(elem) {
+    if (!elem.textContent.includes("@")) {
+        elem.classList.add("fixme-tag")
+        elem.title = ':conditional tag value must be contain @'
+    }
+    if (elem.textContent.match(/@\s*$/)) {
+        elem.classList.add("fixme-tag")
+        elem.title = "empty part after @"
+    }
+    if (elem.textContent.match(/^\s*@/)) {
+        elem.classList.add("fixme-tag")
+        elem.title = "empty part before @"
+    }
+    if (elem.textContent.match(/@\s*@/)) {
+        elem.classList.add("fixme-tag")
+        elem.title = "empty part between @"
+    }
+}
+
 function makeRefBelpostValue(elem) {
     if (!GM_config.get("ImagesAndLinksInTags")) return
     if (elem.innerHTML.match(/^[0-9]+$/)) {
@@ -8184,7 +8203,8 @@ function makeLinksInVersionTagsClickable() {
                 }
             }
         } else if (key === "roof:direction") {
-            if (valueCell.textContent === "across" || valueCell.textContent === "along") { // todo more
+            if (valueCell.textContent === "across" || valueCell.textContent === "along") {
+                // todo more
                 valueCell.classList.add("fixme-tag")
                 valueCell.title = "it seems to need to be changed to roof:orientation"
             } else {
@@ -8211,6 +8231,15 @@ function makeLinksInVersionTagsClickable() {
             }
         } else if (key === "roof:orientation") {
             makeRoofOrientationValue(valueCell)
+        } else if (
+            // prettier-ignore
+            key.endsWith(":conditional")
+            && !key.startsWith("fixme:")
+            && !key.startsWith("source:")
+            && !key.startsWith("check_date:")
+            && !key.startsWith("description:")
+        ) {
+            makeConditionalValue(valueCell)
         } else if (
             key.startsWith("opening_hours") || // https://github.com/opening-hours/opening_hours.js/blob/master/scripts/related_tags.txt
             key.startsWith("happy_hours") ||
@@ -12662,6 +12691,15 @@ function makeLinksInChangesetObjectRowClickable(row) {
             }
         } else if (key === "roof:orientation") {
             makeRoofOrientationValue(valueCell)
+        } else if (
+            // prettier-ignore
+            key.endsWith(":conditional")
+            && !key.startsWith("fixme:")
+            && !key.startsWith("source:")
+            && !key.startsWith("check_date:")
+            && !key.startsWith("description:")
+        ) {
+            makeConditionalValue(valueCell)
         }
     }
 }
