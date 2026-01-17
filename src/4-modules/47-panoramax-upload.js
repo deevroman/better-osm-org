@@ -176,6 +176,9 @@ async function addPanoramaxTag(pictureId, object_type, object_id) {
 
 function addUploadPanoramaxBtn() {
     if (!isDebug() && !isMobile) return
+    if (!document.querySelector("#sidebar_content nav")) {
+        return
+    }
     if (!location.pathname.match(/\/(node|way|relation)\/[0-9]+\/?$/)) {
         return
     }
@@ -258,8 +261,6 @@ function addUploadPanoramaxBtn() {
         }
     }
 
-    document.querySelector("#sidebar_content nav").appendChild(wrapper)
-
     const datalistInstances = document.createElement("datalist")
     datalistInstances.id = "panoramax-instances"
     ;[
@@ -284,6 +285,8 @@ function addUploadPanoramaxBtn() {
     secondBlock.appendChild(instanceInput)
     secondBlock.appendChild(datalistInstances)
     secondBlock.appendChild(uploadImgBtn)
+
+    document.querySelector("#sidebar_content nav").appendChild(wrapper)
 }
 
 //</editor-fold>

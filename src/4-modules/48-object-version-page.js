@@ -1,55 +1,63 @@
 //<editor-fold desc="object-version-page" defaultstate="collapsed">
 
+let addHoverForNodesParentsLock = false
+
 async function addHoverForNodesParents() {
     if (!location.pathname.match(/^\/node\/(\d+)\/?$/)) {
         return
     }
-    document.querySelectorAll(`details [href^="/way/"]:not(.hover-added)`).forEach(elem => {
-        elem.classList.add("hover-added")
-        setTimeout(async () => {
-            const wayID = parseInt(elem.href.match(/way\/(\d+)/)[1])
-            const wayData = await loadWayMetadata(wayID)
-            const wayInfo = wayData.elements.find(i => i.id === wayID)
-            /*** @type {Map<string, NodeVersion>}*/
-            const nodesMap = new Map(
-                Object.entries(
-                    Object.groupBy(
-                        wayData.elements.filter(i => i.type === "node"),
-                        i => i.id,
-                    ),
-                ).map(([k, v]) => [k, v[0]]),
-            )
-            const wayLi = elem?.parentElement?.parentElement?.parentElement
-            wayLi.classList.add("node-last-version-parent")
-            wayLi.onmouseenter = () => {
-                const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
-                const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-                showActiveWay(currentNodesList, color)
-            }
-            wayLi.onclick = e => {
-                if (e.altKey) return
-                if (e.target.tagName === "A") return
-                const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
-                const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-                showActiveWay(currentNodesList, color, true)
-            }
-            wayLi.ondblclick = zoomToCurrentObject
-            if (wayInfo.tags) {
-                Object.entries(wayInfo.tags).forEach(([k, v]) => {
-                    wayLi.title += `\n${k}=${v}`
-                })
-                wayLi.title = wayLi.title.trim()
-            }
+    if (addHoverForNodesParentsLock) return
+    addHoverForNodesParentsLock = true
+    try {
+        document.querySelectorAll(`details [href^="/way/"]:not(.hover-added)`).forEach(elem => {
+            elem.classList.add("hover-added")
+            setTimeout(async () => {
+                const wayID = parseInt(elem.href.match(/way\/(\d+)/)[1])
+                const wayData = await loadWayMetadata(wayID)
+                const wayInfo = wayData.elements.find(i => i.id === wayID)
+                /*** @type {Map<string, NodeVersion>}*/
+                const nodesMap = new Map(
+                    Object.entries(
+                        Object.groupBy(
+                            wayData.elements.filter(i => i.type === "node"),
+                            i => i.id,
+                        ),
+                    ).map(([k, v]) => [k, v[0]]),
+                )
+                const wayLi = elem?.parentElement?.parentElement?.parentElement
+                wayLi.classList.add("node-last-version-parent")
+                wayLi.onmouseenter = () => {
+                    const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
+                    const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
+                    showActiveWay(currentNodesList, color)
+                }
+                wayLi.onclick = e => {
+                    if (e.altKey) return
+                    if (e.target.tagName === "A") return
+                    const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
+                    const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
+                    showActiveWay(currentNodesList, color, true)
+                }
+                wayLi.ondblclick = zoomToCurrentObject
+                if (wayInfo.tags) {
+                    Object.entries(wayInfo.tags).forEach(([k, v]) => {
+                        wayLi.title += `\n${k}=${v}`
+                    })
+                    wayLi.title = wayLi.title.trim()
+                }
+            })
         })
-    })
-    // prettier-ignore
-    document.querySelector(".node-last-version-parent")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
-        cleanObjectsByKey("activeObjects")
-    })
-    document.querySelector(".secondary-actions")?.addEventListener("mouseenter", () => {
-        cleanObjectsByKey("activeObjects")
-    })
-    console.log("addHoverForWayNodes finished")
+        // prettier-ignore
+        document.querySelector(".node-last-version-parent")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
+            cleanObjectsByKey("activeObjects")
+        })
+        document.querySelector(".secondary-actions")?.addEventListener("mouseenter", () => {
+            cleanObjectsByKey("activeObjects")
+        })
+        console.log("addHoverForWayNodes finished")
+    } finally {
+        addHoverForNodesParentsLock = true
+    }
 }
 
 /**
@@ -224,85 +232,93 @@ function isDarkTiles() {
     return layers && (layers.includes("S") || layers.includes("T")) && isDarkMode()
 }
 
+let addHoverForWayNodesLock = false
+
 async function addHoverForWayNodes() {
     if (!location.pathname.match(/^\/way\/(\d+)\/?$/)) {
         return
     }
-    // todo relations
-    let infoBtn
-    if (!document.querySelector(".way-info-btn") && document.querySelector("#sidebar_content h4:last-of-type")) {
-        infoBtn = document.createElement("span")
-        infoBtn.textContent = "📐"
-        infoBtn.classList.add("way-info-btn")
-        infoBtn.classList.add("completed")
-        infoBtn.style.fontSize = "large"
-        infoBtn.style.cursor = "pointer"
+    if (addHoverForWayNodesLock) return
+    addHoverForWayNodesLock = true
+    try {
+        // todo relations
+        let infoBtn
+        if (!document.querySelector(".way-info-btn") && document.querySelector("#sidebar_content h4:last-of-type")) {
+            infoBtn = document.createElement("span")
+            infoBtn.textContent = "📐"
+            infoBtn.classList.add("way-info-btn")
+            infoBtn.classList.add("completed")
+            infoBtn.style.fontSize = "large"
+            infoBtn.style.cursor = "pointer"
 
-        document.querySelector("#sidebar_content h4:last-of-type").appendChild(document.createTextNode("\xA0"))
-        document.querySelector("#sidebar_content h4:last-of-type").appendChild(infoBtn)
-    }
+            document.querySelector("#sidebar_content h4:last-of-type").appendChild(document.createTextNode("\xA0"))
+            document.querySelector("#sidebar_content h4:last-of-type").appendChild(infoBtn)
+        }
 
-    const wayData = await loadWayMetadata().catch(() => {
+        const wayData = await loadWayMetadata().catch(() => {
+            if (infoBtn) {
+                infoBtn.style.display = "none"
+            }
+        })
+        if (!wayData) {
+            if (infoBtn) {
+                infoBtn.style.display = "none"
+            }
+            return
+        }
+        /*** @type {Map<string, NodeVersion>}*/
+        const nodesMap = new Map(
+            Object.entries(
+                Object.groupBy(
+                    wayData.elements.filter(i => i.type === "node"),
+                    i => i.id,
+                ),
+            ).map(([k, v]) => [k, v[0]]),
+        )
+        document.querySelectorAll(`details [href^="/node/"]:not(.hover-added)`).forEach(elem => {
+            elem.classList.add("hover-added")
+            const nodeInfo = nodesMap.get(elem.href.match(/node\/(\d+)/)[1])
+            const nodeLi = elem?.parentElement?.parentElement?.parentElement
+            nodeLi.classList.add("way-last-version-node")
+            nodeLi.onmouseenter = () => {
+                const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
+                showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
+            }
+            nodeLi.onclick = e => {
+                if (e.altKey) return
+                panTo(nodeInfo.lat.toString(), nodeInfo.lon.toString())
+                const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
+                showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
+            }
+            nodeLi.ondblclick = zoomToCurrentObject
+            if (nodeInfo.tags) {
+                Object.entries(nodeInfo.tags).forEach(([k, v]) => {
+                    nodeLi.title += `\n${k}=${v}`
+                })
+                nodeLi.title = nodeLi.title.trim()
+            }
+        })
+        // prettier-ignore
+        document.querySelector(".way-last-version-node")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
+            cleanObjectsByKey("activeObjects")
+        })
+        document.querySelector(".secondary-actions")?.addEventListener("mouseenter", () => {
+            cleanObjectsByKey("activeObjects")
+        })
+
         if (infoBtn) {
-            infoBtn.style.display = "none"
-        }
-    })
-    if (!wayData) {
-        if (infoBtn) {
-            infoBtn.style.display = "none"
-        }
-        return
-    }
-    /*** @type {Map<string, NodeVersion>}*/
-    const nodesMap = new Map(
-        Object.entries(
-            Object.groupBy(
-                wayData.elements.filter(i => i.type === "node"),
-                i => i.id,
-            ),
-        ).map(([k, v]) => [k, v[0]]),
-    )
-    document.querySelectorAll(`details [href^="/node/"]:not(.hover-added)`).forEach(elem => {
-        elem.classList.add("hover-added")
-        const nodeInfo = nodesMap.get(elem.href.match(/node\/(\d+)/)[1])
-        const nodeLi = elem?.parentElement?.parentElement?.parentElement
-        nodeLi.classList.add("way-last-version-node")
-        nodeLi.onmouseenter = () => {
-            const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
-        }
-        nodeLi.onclick = e => {
-            if (e.altKey) return
-            panTo(nodeInfo.lat.toString(), nodeInfo.lon.toString())
-            const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
-        }
-        nodeLi.ondblclick = zoomToCurrentObject
-        if (nodeInfo.tags) {
-            Object.entries(nodeInfo.tags).forEach(([k, v]) => {
-                nodeLi.title += `\n${k}=${v}`
-            })
-            nodeLi.title = nodeLi.title.trim()
-        }
-    })
-    // prettier-ignore
-    document.querySelector(".way-last-version-node")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
-        cleanObjectsByKey("activeObjects")
-    })
-    document.querySelector(".secondary-actions")?.addEventListener("mouseenter", () => {
-        cleanObjectsByKey("activeObjects")
-    })
+            const nodesIds = wayData.elements.find(i => i.type === "way").nodes
+            const infos = makePolygonMeasureButtons(nodesIds, nodesMap, "way")
+            document.querySelector("#sidebar_content h4:last-of-type").after(infos)
 
-    if (infoBtn) {
-        const nodesIds = wayData.elements.find(i => i.type === "way").nodes
-        const infos = makePolygonMeasureButtons(nodesIds, nodesMap, "way")
-        document.querySelector("#sidebar_content h4:last-of-type").after(infos)
-
-        infoBtn.onclick = () => {
-            infos.style.display = infos.style.display === "none" ? "" : "none"
+            infoBtn.onclick = () => {
+                infos.style.display = infos.style.display === "none" ? "" : "none"
+            }
         }
+        console.log("addHoverForWayNodes finished")
+    } finally {
+        addHoverForWayNodesLock = false
     }
-    console.log("addHoverForWayNodes finished")
 }
 
 /**
@@ -322,6 +338,8 @@ function showRestrictionValidationStatus(restrictionRelationErrors, targetElem) 
     }
 }
 
+let addHoverForRelationMembersLock = false
+
 async function addHoverForRelationMembers() {
     // todo make async safe
     const match = location.pathname.match(/^\/relation\/(\d+)\/?$/)
@@ -329,247 +347,304 @@ async function addHoverForRelationMembers() {
         return
     }
     const relation_id = parseInt(match[1])
-    let infoBtn
-    // eslint-disable-next-line no-constant-condition no-constant-binary-expression
-    if (!document.querySelector(".relation-info-btn")) {
-        infoBtn = document.createElement("span")
-        infoBtn.textContent = "📐"
-        infoBtn.classList.add("relation-info-btn")
-        infoBtn.classList.add("completed")
-        infoBtn.style.fontSize = "large"
-        infoBtn.style.cursor = "pointer"
+    if (addHoverForRelationMembersLock) return
+    addHoverForRelationMembersLock = true
+    try {
+        let infoBtn
+        if (!document.querySelector(".relation-info-btn")) {
+            infoBtn = document.createElement("span")
+            infoBtn.textContent = "📐"
+            infoBtn.classList.add("relation-info-btn")
+            infoBtn.classList.add("completed")
+            infoBtn.style.fontSize = "large"
+            infoBtn.style.cursor = "pointer"
 
-        document.querySelector("#sidebar_content h4:last-of-type").appendChild(document.createTextNode("\xA0"))
-        document.querySelector("#sidebar_content h4:last-of-type").appendChild(infoBtn)
-    }
-    const relationData = await loadRelationMetadata(relation_id)
-    if (!relationData) return
-    while (document.querySelector("details turbo-frame .spinner-border")) {
-        console.log("wait members list loading")
-        await sleep(1000)
-    }
-    /*** @type {Map<string, NodeVersion>}*/
-    const nodesMap = new Map(
-        Object.entries(
-            Object.groupBy(
-                relationData.elements.filter(i => i.type === "node"),
-                i => i.id,
-            ),
-        ).map(([k, v]) => [k, v[0]]),
-    )
-    /*** @type {Map<string, WayVersion>}*/
-    const waysMap = new Map(
-        Object.entries(
-            Object.groupBy(
-                relationData.elements.filter(i => i.type === "way"),
-                i => i.id,
-            ),
-        ).map(([k, v]) => [k, v[0]]),
-    )
-    /*** @type {Map<string, RelationVersion>}*/
-    const relationsMap = new Map(
-        Object.entries(
-            Object.groupBy(
-                relationData.elements.filter(i => i.type === "relation"),
-                i => i.id,
-            ),
-        ).map(([k, v]) => [k, v[0]]),
-    )
-    let restrictionArrows = []
-    const pinSign = document.createElement("span")
+            document.querySelector("#sidebar_content h4:last-of-type").appendChild(document.createTextNode("\xA0"))
+            document.querySelector("#sidebar_content h4:last-of-type").appendChild(infoBtn)
+        }
+        const relationData = await loadRelationMetadata(relation_id)
+        if (!relationData) return
+        while (document.querySelector("details turbo-frame .spinner-border")) {
+            console.log("wait members list loading")
+            await sleep(1000)
+        }
+        /*** @type {Map<number, NodeVersion>}*/
+        const nodesMap = new Map(
+            Object.entries(
+                Object.groupBy(
+                    relationData.elements.filter(i => i.type === "node"),
+                    i => i.id,
+                ),
+            ).map(([k, v]) => [parseInt(k), v[0]]),
+        )
+        /*** @type {Map<number, WayVersion>}*/
+        const waysMap = new Map(
+            Object.entries(
+                Object.groupBy(
+                    relationData.elements.filter(i => i.type === "way"),
+                    i => i.id,
+                ),
+            ).map(([k, v]) => [parseInt(k), v[0]]),
+        )
+        let restrictionArrows = []
+        const pinSign = document.createElement("span")
 
-    function bringRestrictionArrowsToFront() {
-        restrictionArrows.forEach(i => i.bringToFront())
-    }
+        function bringRestrictionArrowsToFront() {
+            restrictionArrows.forEach(i => i.bringToFront())
+        }
 
-    let isRestriction = false
-    document.querySelectorAll(`details [href^="/node/"]:not(.hover-added)`).forEach(elem => {
-        elem.classList.add("hover-added")
-        const nodeInfo = nodesMap.get(elem.href.match(/node\/(\d+)/)[1])
-        const nodeLi = elem?.parentElement?.parentElement?.parentElement
-        nodeLi.classList.add("relation-last-version-member")
-        nodeLi.onmouseenter = () => {
-            const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
-            bringRestrictionArrowsToFront()
-            if (isRestriction && pinSign.classList.contains("pinned")) {
-                // https://github.com/deevroman/better-osm-org/pull/324#issuecomment-2993733516
-                injectJSIntoPage(`
-                (() => {
-                    let tmp = document.createElement("span")
-                    tmp.innerHTML = '<svg id="kek" width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="6" stroke="black" stroke-width="3" fill="none" /></svg>'
-                    window.prevdo = {
-                        maxWidth: 10,
-                        maxHeight: 10,
-                        className: "restriction-via-node-workaround",
-                        icon: L.icon({
-                            iconUrl: "data:image/svg+xml;base64," + btoa(tmp.innerHTML),
-                            iconSize: [100, 100],
-                            iconAnchor: [50, 50]
-                        })
-                    };
-                })()
-                `)
-                const m = getWindow().L.marker(getWindow().L.latLng(nodeInfo.lat, nodeInfo.lon), getWindow().prevdo)
-                layers["activeObjects"].push(m)
-                m.addTo(getMap())
+        let isRestriction = false
+        document.querySelectorAll(`details [href^="/node/"]:not(.hover-added)`).forEach(elem => {
+            elem.classList.add("hover-added")
+            const nodeInfo = nodesMap.get(parseInt(elem.href.match(/node\/(\d+)/)[1]))
+            const nodeLi = elem?.parentElement?.parentElement?.parentElement
+            nodeLi.classList.add("relation-last-version-member")
+            nodeLi.onmouseenter = () => {
+                const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
+                showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
+                bringRestrictionArrowsToFront()
+                if (isRestriction && pinSign.classList.contains("pinned")) {
+                    // https://github.com/deevroman/better-osm-org/pull/324#issuecomment-2993733516
+                    injectJSIntoPage(`
+                    (() => {
+                        let tmp = document.createElement("span")
+                        tmp.innerHTML = '<svg id="kek" width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="6" stroke="black" stroke-width="3" fill="none" /></svg>'
+                        window.prevdo = {
+                            maxWidth: 10,
+                            maxHeight: 10,
+                            className: "restriction-via-node-workaround",
+                            icon: L.icon({
+                                iconUrl: "data:image/svg+xml;base64," + btoa(tmp.innerHTML),
+                                iconSize: [100, 100],
+                                iconAnchor: [50, 50]
+                            })
+                        };
+                    })()
+                    `)
+                    const m = getWindow().L.marker(getWindow().L.latLng(nodeInfo.lat, nodeInfo.lon), getWindow().prevdo)
+                    layers["activeObjects"].push(m)
+                    m.addTo(getMap())
+                }
             }
-        }
-        nodeLi.onclick = e => {
-            if (e.altKey) return
-            panTo(nodeInfo.lat.toString(), nodeInfo.lon.toString())
-            const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-            showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
-            bringRestrictionArrowsToFront()
-        }
-        nodeLi.ondblclick = zoomToCurrentObject
-        if (nodeInfo.tags) {
-            Object.entries(nodeInfo.tags).forEach(([k, v]) => {
-                nodeLi.title += `\n${k}=${v}`
-            })
-            nodeLi.title = nodeLi.title.trim()
-        }
-    })
-    document.querySelectorAll(`details [href^="/way/"]:not(.hover-added)`).forEach(elem => {
-        elem.classList.add("hover-added")
-        const wayInfo = waysMap.get(elem.href.match(/way\/(\d+)/)[1])
-        const wayLi = elem?.parentElement?.parentElement?.parentElement
-        wayLi.classList.add("relation-last-version-member")
-        wayLi.onmouseenter = () => {
-            const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
-            const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-            showActiveWay(currentNodesList, color)
-            bringRestrictionArrowsToFront()
-        }
-        wayLi.onclick = e => {
-            if (e.altKey) return
-            if (e.target.tagName === "A") return
-            const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
-            const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-            showActiveWay(currentNodesList, color, true)
-            bringRestrictionArrowsToFront()
-        }
-        wayLi.ondblclick = zoomToCurrentObject
-        if (wayInfo.tags) {
-            Object.entries(wayInfo.tags).forEach(([k, v]) => {
-                wayLi.title += `\n${k}=${v}`
-            })
-            wayLi.title = wayLi.title.trim()
-        }
-    })
-    document.querySelectorAll(`details:last-of-type [href^="/relation/"]:not(.hover-added)`).forEach(elem => {
-        elem.classList.add("hover-added")
-        const relationInfo = relationsMap.get(elem.href.match(/relation\/(\d+)/)[1])
-        const relationLi = elem?.parentElement?.parentElement?.parentElement
-        relationLi.classList.add("relation-last-version-member")
-        relationLi.onmouseenter = () => {
-            relationInfo.members.forEach(i => {
+            nodeLi.onclick = e => {
+                if (e.altKey) return
+                panTo(nodeInfo.lat.toString(), nodeInfo.lon.toString())
                 const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-                if (i.type === "node") {
-                    showActiveNodeMarker(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString(), color, true, 6, 3)
-                } else if (i.type === "way") {
-                    const currentNodesList = waysMap[i.id].nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
-                    showActiveWay(currentNodesList, color)
-                } else {
-                    // todo
-                }
-            })
-            bringRestrictionArrowsToFront()
-        }
-        relationLi.onclick = e => {
-            if (e.altKey) return
-            if (e.target.tagName === "A") return
-            relationInfo.members.forEach(i => {
-                const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-                if (i.type === "node") {
-                    if (e.altKey) return
-                    panTo(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString())
-                    showActiveNodeMarker(nodesMap[i.id].lat.toString(), nodesMap[i.id].lon.toString(), color, true, 6, 3)
-                } else if (i.type === "way") {
-                    const currentNodesList = waysMap[i.id].nodes.map(i => [nodesMap.get(i.toString()).lat, nodesMap.get(i.toString()).lon])
-                    showActiveWay(currentNodesList, color, true)
-                } else {
-                    // todo
-                }
-            })
-            bringRestrictionArrowsToFront()
-        }
-        relationLi.ondblclick = zoomToCurrentObject
-        if (relationInfo.tags) {
-            Object.entries(relationInfo.tags).forEach(([k, v]) => {
-                relationLi.title += `\n${k}=${v}`
-            })
-            relationLi.title = relationLi.title.trim()
-        }
-    })
-    // prettier-ignore
-    document.querySelector(".relation-last-version-member")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
-        cleanObjectsByKey("activeObjects")
-    })
-    document.querySelector(".secondary-actions")?.addEventListener("mouseenter", () => {
-        cleanObjectsByKey("activeObjects")
-    })
-    if (document.querySelector("#sidebar_content h2:not(.restriction-rendered)") && isRestrictionObj(relationsMap.get(relation_id.toString()).tags ?? {})) {
-        isRestriction = true
-        document.querySelector("#sidebar_content h2").classList.add("restriction-rendered")
-        const extendedRelationVersion = relationsMap.get(relation_id.toString())
-        extendedRelationVersion.members = extendedRelationVersion.members.map(mem => {
-            if (mem.type === "node") {
-                mem["lat"] = nodesMap.get(mem.ref.toString()).lat
-                mem["lon"] = nodesMap.get(mem.ref.toString()).lon
-                return /** @type {ExtendedRelationNodeMember} */ mem
-            } else if (mem.type === "way") {
-                mem["geometry"] = waysMap.get(mem.ref.toString()).nodes.map(n => ({
-                    lat: nodesMap.get(n.toString()).lat,
-                    lon: nodesMap.get(n.toString()).lon,
-                }))
-                return /** @type {ExtendedRelationWayMember} */ mem
-            } else if (mem.type === "relation") {
-                // todo
-                return /** @type {ExtendedRelationMember} */ mem
+                showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
+                bringRestrictionArrowsToFront()
+            }
+            nodeLi.ondblclick = zoomToCurrentObject
+            if (nodeInfo.tags) {
+                Object.entries(nodeInfo.tags).forEach(([k, v]) => {
+                    nodeLi.title += `\n${k}=${v}`
+                })
+                nodeLi.title = nodeLi.title.trim()
             }
         })
-        const errors = validateRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion)
-        if (errors.length) {
-            showRestrictionValidationStatus(errors, document.querySelector("#sidebar_content > div:first-of-type details:last-of-type summary"))
-        } else {
-            restrictionArrows = renderRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion, restrictionColors[extendedRelationVersion.tags["restriction"]] ?? "#000", "customObjects")
-            pinSign.classList.add("pinned")
-            pinSign.textContent = "📌"
-            pinSign.tabIndex = 0
-            pinSign.title = "Pin restriction sign on map.\nYou can hide all the objects that better-osm-org adds by pressing ` or ~"
-            pinSign.style.cursor = "pointer"
-            pinSign.onkeypress = pinSign.onclick = async e => {
-                e.preventDefault()
-                e.stopImmediatePropagation()
-                if (pinSign.classList.contains("pinned")) {
-                    pinSign.style.cursor = "pointer"
-                    pinSign.classList.remove("pinned")
-                    pinSign.style.filter = "grayscale(1)"
-                    pinSign.title = "Hide restriction sign"
-                    restrictionArrows.forEach(i => (i.getElement().style.display = "none"))
-                } else {
-                    pinSign.title = "Hide restriction sign"
-                    pinSign.classList.add("pinned")
-                    pinSign.style.filter = ""
-                    restrictionArrows.forEach(i => (i.getElement().style.display = ""))
-                }
+        document.querySelectorAll(`details [href^="/way/"]:not(.hover-added)`).forEach(elem => {
+            elem.classList.add("hover-added")
+            const wayInfo = waysMap.get(parseInt(elem.href.match(/way\/(\d+)/)[1]))
+            const wayLi = elem?.parentElement?.parentElement?.parentElement
+            wayLi.classList.add("relation-last-version-member")
+            wayLi.onmouseenter = () => {
+                const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i).lat, nodesMap.get(i).lon])
+                const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
+                showActiveWay(currentNodesList, color)
+                bringRestrictionArrowsToFront()
             }
-            document.querySelector("#sidebar_content > div:first-of-type details:last-of-type summary").appendChild(document.createTextNode(" "))
-            document.querySelector("#sidebar_content > div:first-of-type details:last-of-type summary").appendChild(pinSign)
-        }
-    }
+            wayLi.onclick = e => {
+                if (e.altKey) return
+                if (e.target.tagName === "A") return
+                const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i).lat, nodesMap.get(i).lon])
+                const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
+                showActiveWay(currentNodesList, color, true)
+                bringRestrictionArrowsToFront()
+            }
+            wayLi.ondblclick = zoomToCurrentObject
+            if (wayInfo.tags) {
+                Object.entries(wayInfo.tags).forEach(([k, v]) => {
+                    wayLi.title += `\n${k}=${v}`
+                })
+                wayLi.title = wayLi.title.trim()
+            }
+        })
 
-    if (infoBtn) {
-        const nodesIds = relationData.elements.filter(i => i.type === "way").flatMap(i => i.nodes)
-        const infos = makePolygonMeasureButtons(nodesIds, nodesMap, "relation")
-        document.querySelector("#sidebar_content h4:last-of-type").after(infos)
+        /** @type {RelationVersion[]}*/
+        const childRelations = relationData.elements.filter(i => i.type === "relation")
+        /*** @type {Map<number, RelationVersion>}*/
+        const relationsMap = new Map(Object.entries(Object.groupBy(childRelations, i => i.id)).map(([k, v]) => [parseInt(k), v[0]]))
+        const downloadedRelations = new Set([relation_id])
 
-        infoBtn.onclick = () => {
-            infos.style.display = infos.style.display === "none" ? "" : "none"
+        for (const elem of document.querySelectorAll(`details:last-of-type [href^="/relation/"]:not(.hover-added)`)) {
+            elem.classList.add("hover-added")
+            const childRelationId = parseInt(elem.href.match(/relation\/(\d+)/)[1])
+            if (!downloadedRelations.has(childRelationId)) {
+                downloadedRelations.add(childRelationId)
+                const relationData = await loadRelationMetadata(childRelationId)
+                relationData?.elements?.forEach(i => {
+                    if (i.type === "node") {
+                        if (!nodesMap.has(i.id)) {
+                            nodesMap.set(i.id, i)
+                        }
+                    } else if (i.type === "way") {
+                        if (!waysMap.has(i.id)) {
+                            waysMap.set(i.id, i)
+                        }
+                    } else if (i.type === "relation") {
+                        if (!relationsMap.has(i.id)) {
+                            relationsMap.set(i.id, i)
+                        }
+                    }
+                })
+            }
+
+            const relationInfo = relationsMap.get(childRelationId)
+            const relationLi = elem?.parentElement?.parentElement?.parentElement
+            relationLi.classList.add("relation-last-version-member")
+            relationLi.onmouseenter = () => {
+                cleanObjectsByKey("activeObjects")
+                relationInfo.members.forEach(i => {
+                    const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
+                    if (i.type === "node") {
+                        showActiveNodeMarker(nodesMap.get(i.ref).lat.toString(), nodesMap.get(i.ref).lon.toString(), color, false, 6, 3)
+                    } else if (i.type === "way") {
+                        const currentNodesList = waysMap.get(i.ref).nodes.map(i => [nodesMap.get(i).lat, nodesMap.get(i).lon])
+                        showActiveWay(currentNodesList, color, false, null, false)
+                    } else {
+                        // todo
+                    }
+                })
+                bringRestrictionArrowsToFront()
+            }
+            relationLi.onclick = e => {
+                if (e.altKey) return
+                if (e.target.tagName === "A") return
+                cleanObjectsByKey("activeObjects")
+                relationInfo.members.forEach(i => {
+                    const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
+                    if (i.type === "node") {
+                        if (e.altKey) return
+                        showActiveNodeMarker(nodesMap.get(i.ref).lat.toString(), nodesMap.get(i.ref).lon.toString(), color, false, 6, 3)
+                    } else if (i.type === "way") {
+                        const currentNodesList = waysMap.get(i.ref).nodes.map(i => [nodesMap.get(i).lat, nodesMap.get(i).lon])
+                        showActiveWay(currentNodesList, color, false, null, false)
+                    } else {
+                        // todo
+                    }
+                })
+                const nodes = []
+                relationInfo.members.forEach(i => {
+                    if (i.type === "node") {
+                        nodes.push(nodesMap.get(i.ref))
+                    } else if (i.type === "way") {
+                        waysMap.get(i.ref).nodes.map(i => nodes.push(nodesMap.get(i)))
+                    } else {
+                        // todo
+                    }
+                })
+                const bbox = {
+                    min_lat: Math.min(...nodes.map(i => i.lat)),
+                    min_lon: Math.min(...nodes.map(i => i.lon)),
+                    max_lat: Math.max(...nodes.map(i => i.lat)),
+                    max_lon: Math.max(...nodes.map(i => i.lon)),
+                }
+                fitBounds([
+                    [bbox.min_lat, bbox.min_lon],
+                    [bbox.max_lat, bbox.max_lon],
+                ])
+                bringRestrictionArrowsToFront()
+            }
+            relationLi.ondblclick = () => {
+                const nodes = Array.from(nodesMap.values())
+                const bbox = {
+                    min_lat: Math.min(...nodes.map(i => i.lat)),
+                    min_lon: Math.min(...nodes.map(i => i.lon)),
+                    max_lat: Math.max(...nodes.map(i => i.lat)),
+                    max_lon: Math.max(...nodes.map(i => i.lon)),
+                }
+                fitBounds([
+                    [bbox.min_lat, bbox.min_lon],
+                    [bbox.max_lat, bbox.max_lon],
+                ])
+            }
+            if (relationInfo.tags) {
+                Object.entries(relationInfo.tags).forEach(([k, v]) => {
+                    relationLi.title += `\n${k}=${v}`
+                })
+                relationLi.title = relationLi.title.trim()
+            }
         }
+        // prettier-ignore
+        document.querySelector(".relation-last-version-member")?.parentElement?.parentElement?.querySelector("summary")?.addEventListener("mouseenter", () => {
+            cleanObjectsByKey("activeObjects")
+        })
+        document.querySelector(".secondary-actions")?.addEventListener("mouseenter", () => {
+            cleanObjectsByKey("activeObjects")
+        })
+        if (document.querySelector("#sidebar_content h2:not(.restriction-rendered)") && isRestrictionObj(relationsMap.get(relation_id).tags ?? {})) {
+            isRestriction = true
+            document.querySelector("#sidebar_content h2").classList.add("restriction-rendered")
+            const extendedRelationVersion = relationsMap.get(relation_id)
+            extendedRelationVersion.members = extendedRelationVersion.members.map(mem => {
+                if (mem.type === "node") {
+                    mem["lat"] = nodesMap.get(mem.ref).lat
+                    mem["lon"] = nodesMap.get(mem.ref).lon
+                    return /** @type {ExtendedRelationNodeMember} */ mem
+                } else if (mem.type === "way") {
+                    mem["geometry"] = waysMap.get(mem.ref).nodes.map(n => ({
+                        lat: nodesMap.get(n).lat,
+                        lon: nodesMap.get(n).lon,
+                    }))
+                    return /** @type {ExtendedRelationWayMember} */ mem
+                } else if (mem.type === "relation") {
+                    // todo
+                    return /** @type {ExtendedRelationMember} */ mem
+                }
+            })
+            const errors = validateRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion)
+            if (errors.length) {
+                showRestrictionValidationStatus(errors, document.querySelector("#sidebar_content > div:first-of-type details:last-of-type summary"))
+            } else {
+                restrictionArrows = renderRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion, restrictionColors[extendedRelationVersion.tags["restriction"]] ?? "#000", "customObjects")
+                pinSign.classList.add("pinned")
+                pinSign.textContent = "📌"
+                pinSign.tabIndex = 0
+                pinSign.title = "Pin restriction sign on map.\nYou can hide all the objects that better-osm-org adds by pressing ` or ~"
+                pinSign.style.cursor = "pointer"
+                pinSign.onkeypress = pinSign.onclick = async e => {
+                    e.preventDefault()
+                    e.stopImmediatePropagation()
+                    if (pinSign.classList.contains("pinned")) {
+                        pinSign.style.cursor = "pointer"
+                        pinSign.classList.remove("pinned")
+                        pinSign.style.filter = "grayscale(1)"
+                        pinSign.title = "Hide restriction sign"
+                        restrictionArrows.forEach(i => (i.getElement().style.display = "none"))
+                    } else {
+                        pinSign.title = "Hide restriction sign"
+                        pinSign.classList.add("pinned")
+                        pinSign.style.filter = ""
+                        restrictionArrows.forEach(i => (i.getElement().style.display = ""))
+                    }
+                }
+                document.querySelector("#sidebar_content > div:first-of-type details:last-of-type summary").appendChild(document.createTextNode(" "))
+                document.querySelector("#sidebar_content > div:first-of-type details:last-of-type summary").appendChild(pinSign)
+            }
+        }
+
+        if (infoBtn) {
+            const nodesIds = relationData.elements.filter(i => i.type === "way").flatMap(i => i.nodes)
+            const infos = makePolygonMeasureButtons(nodesIds, nodesMap, "relation")
+            document.querySelector("#sidebar_content h4:last-of-type").after(infos)
+
+            infoBtn.onclick = () => {
+                infos.style.display = infos.style.display === "none" ? "" : "none"
+            }
+        }
+        console.log("addHoverForRelationMembers finished")
+    } finally {
+        addHoverForRelationMembersLock = false
     }
-    console.log("addHoverForRelationMembers finished")
 }
 
 function makeHeaderPartsClickable() {
