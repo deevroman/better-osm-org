@@ -1145,7 +1145,9 @@ function addSatelliteLayers() {
 }
 
 function setupSatelliteLayers() {
-    tryApplyModule(addSatelliteLayers, 100, 3000)
+    if (document.getElementById("map")) {
+        tryApplyModule(addSatelliteLayers, 100, 3000)
+    }
 }
 
 //</editor-fold>

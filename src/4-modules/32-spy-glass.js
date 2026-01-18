@@ -54,7 +54,7 @@ function addSpyGlassButtons() {
 }
 
 function setupSpyGlassButtons() {
-    if (isDebug()) {
+    if (document.getElementById("map") && isDebug()) {
         tryApplyModule(addSpyGlassButtons, 500, 5000)
     }
 }

@@ -142,8 +142,8 @@ function copyAnimation(e, text) {
  * @param {number} timeout
  */
 function tryApplyModule(fn, interval, timeout) {
-    const intervalTimerId = setInterval(() => {
-        if (fn()) {
+    const intervalTimerId = setInterval(async () => {
+        if ((await fn()) === true) {
             console.debug("fast stop calling", fn.name)
             clearInterval(intervalTimerId)
             clearTimeout(timeoutTimerId)
@@ -153,7 +153,7 @@ function tryApplyModule(fn, interval, timeout) {
         clearInterval(intervalTimerId)
         console.debug("stop calling", fn.name)
     }, timeout)
-    if (fn()) {
+    if (fn() === true) {
         clearInterval(intervalTimerId)
         clearTimeout(timeoutTimerId)
     }

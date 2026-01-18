@@ -1692,8 +1692,8 @@ function copyAnimation(e, text) {
  * @param {number} timeout
  */
 function tryApplyModule(fn, interval, timeout) {
-    const intervalTimerId = setInterval(() => {
-        if (fn()) {
+    const intervalTimerId = setInterval(async () => {
+        if ((await fn()) === true) {
             console.debug("fast stop calling", fn.name)
             clearInterval(intervalTimerId)
             clearTimeout(timeoutTimerId)
@@ -1703,7 +1703,7 @@ function tryApplyModule(fn, interval, timeout) {
         clearInterval(intervalTimerId)
         console.debug("stop calling", fn.name)
     }, timeout)
-    if (fn()) {
+    if (fn() === true) {
         clearInterval(intervalTimerId)
         clearTimeout(timeoutTimerId)
     }
@@ -5594,7 +5594,9 @@ function addNotesFiltersButtons() {
 }
 
 function setupNotesFiltersButtons() {
-    tryApplyModule(addNotesFiltersButtons, 200, 5000)
+    if (document.getElementById("map")) {
+        tryApplyModule(addNotesFiltersButtons, 200, 5000)
+    }
 }
 
 let mapDataSwitcherUnderSupervision = false
@@ -5695,7 +5697,7 @@ function addSpyGlassButtons() {
 }
 
 function setupSpyGlassButtons() {
-    if (isDebug()) {
+    if (document.getElementById("map") && isDebug()) {
         tryApplyModule(addSpyGlassButtons, 500, 5000)
     }
 }
@@ -5911,7 +5913,9 @@ function addGPXFiltersButtons() {
 }
 
 function setupGPXFiltersButtons() {
-    tryApplyModule(addGPXFiltersButtons, 100, 3000)
+    if (document.getElementById("map")) {
+        tryApplyModule(addGPXFiltersButtons, 100, 3000)
+    }
 }
 
 //</editor-fold>
@@ -7814,7 +7818,9 @@ function addSatelliteLayers() {
 }
 
 function setupSatelliteLayers() {
-    tryApplyModule(addSatelliteLayers, 100, 3000)
+    if (document.getElementById("map")) {
+        tryApplyModule(addSatelliteLayers, 100, 3000)
+    }
 }
 
 //</editor-fold>
@@ -15602,9 +15608,10 @@ function interceptRectangle() {
 */
 
 async function interceptMapManually() {
-    // if (!getWindow().rectangleIntercepted) {
-    //     interceptRectangle()
-    // }
+    if (!document.getElementById("map")) {
+        console.log("#map for manually intercepting not found")
+        return
+    }
     if (getWindow().mapIntercepted) return
     try {
         console.warn("try intercept map manually")
@@ -19135,6 +19142,7 @@ async function betterUserStat() {
 
     filterInputByEditor.after(filterInputByEditor)
     console.log("setuping filters finished")
+    return true
 }
 
 // https://osm.org/user/Молотов-Прибой
