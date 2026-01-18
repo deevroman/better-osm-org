@@ -452,6 +452,7 @@ async function betterUserStat() {
 
     filterInputByEditor.after(filterInputByEditor)
     console.log("setuping filters finished")
+    return true
 }
 
 // https://osm.org/user/Молотов-Прибой

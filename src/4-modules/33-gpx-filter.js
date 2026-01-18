@@ -207,7 +207,9 @@ function addGPXFiltersButtons() {
 }
 
 function setupGPXFiltersButtons() {
-    tryApplyModule(addGPXFiltersButtons, 100, 3000)
+    if (document.getElementById("map")) {
+        tryApplyModule(addGPXFiltersButtons, 100, 3000)
+    }
 }
 
 //</editor-fold>

@@ -3420,9 +3420,10 @@ function interceptRectangle() {
 */
 
 async function interceptMapManually() {
-    // if (!getWindow().rectangleIntercepted) {
-    //     interceptRectangle()
-    // }
+    if (!document.getElementById("map")) {
+        console.log("#map for manually intercepting not found")
+        return
+    }
     if (getWindow().mapIntercepted) return
     try {
         console.warn("try intercept map manually")

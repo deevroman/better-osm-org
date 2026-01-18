@@ -704,7 +704,9 @@ function addNotesFiltersButtons() {
 }
 
 function setupNotesFiltersButtons() {
-    tryApplyModule(addNotesFiltersButtons, 200, 5000)
+    if (document.getElementById("map")) {
+        tryApplyModule(addNotesFiltersButtons, 200, 5000)
+    }
 }
 
 let mapDataSwitcherUnderSupervision = false
