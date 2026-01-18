@@ -42,8 +42,9 @@ async function createUploadSet(apiUrl, token, title) {
     return data.id || data.upload_set_id
 }
 
-async function uploadPhotoToSet(apiUrl, token, uploadSetId, file) {
+async function uploadPhotoToSet(apiUrl, token, uploadSetId, file, isBlurred) {
     const formData = new FormData()
+    formData.append("isBlurred", isBlurred)
     formData.append("file", file)
 
     const response = await externalFetch({
@@ -59,6 +60,24 @@ async function uploadPhotoToSet(apiUrl, token, uploadSetId, file) {
     if (response.status < 200 || response.status >= 300) {
         console.error(response)
         throw new Error(`Photo upload failed, HTTP ${response.status}:\n\n${response.response?.details?.error}\n\nFull log in browser console (F12)`)
+    }
+
+    return await response.response
+}
+
+async function deleteUploadSet(apiUrl, token, uploadSetId) {
+    const response = await externalFetch({
+        url: `${apiUrl}/api/upload_sets/${uploadSetId}`,
+        method: "DELETE",
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+        },
+        responseType: "json",
+    })
+
+    if (response.status !== 204) {
+        throw new Error("Failed to delete upload set: " + response.status)
     }
 
     return await response.response
@@ -94,19 +113,32 @@ GM.getValue("lastUploadedPanoramaxPicture").then(res => {
     }
 })
 
-async function uploadImage(token, file, title) {
+async function uploadImage(token, file, title, needBlur) {
     const uploadSetId = await createUploadSet(panoramaxInstance, token, title)
-    console.log("Upload set created:", uploadSetId, "Uploading...")
+    console.log(`Upload set created:${uploadSetId}. ${(needBlur ? "Upload with blurring" : "Upload without blurring")}. Uploading...`)
 
-    const uploadRes = await uploadPhotoToSet(panoramaxInstance, token, uploadSetId, file)
-    console.log("Uploaded file:", uploadRes, "Finishing...")
+    let picture_id
+    try {
+        const uploadRes = await uploadPhotoToSet(panoramaxInstance, token, uploadSetId, file, !needBlur)
+        picture_id = uploadRes.picture_id
+        console.log("Uploaded file:", uploadRes, "Finishing...")
+    } catch (e) {
+        console.log("failed upload. Cleaning uploadSet...")
+        try {
+            await deleteUploadSet(panoramaxInstance, token, uploadSetId)
+        } catch (e) {
+            console.error("Cleaning uploadSet failed", e)
+        }
+        console.log("uploadSet cleaned")
+        throw e
+    }
 
     try {
         const completeRes = await completeUploadSet(panoramaxInstance, token, uploadSetId)
         console.log("Upload set completed:", completeRes)
     } catch (e) {}
 
-    return uploadRes.picture_id
+    return picture_id
 }
 
 async function openOsmChangeset(comment) {
@@ -200,8 +232,11 @@ function addUploadPanoramaxBtn() {
     const firstBlock = document.createElement("div")
     const secondBlock = document.createElement("div")
     secondBlock.style.paddingTop = "5px"
+    const thirdBlock = document.createElement("div")
+    thirdBlock.style.paddingTop = "5px"
     wrapper.appendChild(firstBlock)
     wrapper.appendChild(secondBlock)
+    wrapper.appendChild(thirdBlock)
 
     firstBlock.appendChild(document.createTextNode("Upload photo to Panoramax"))
 
@@ -210,10 +245,19 @@ function addUploadPanoramaxBtn() {
     if (!isMobile) {
         fileInput.accept = "image/*"
     }
-    fileInput.onchange = () => {
+    const preview = document.createElement("img")
+    fileInput.onchange = async () => {
         uploadImgBtn.style.removeProperty("display")
         instanceInput.style.removeProperty("display")
+        needBlueLabel.style.removeProperty("display")
         instanceInput.value = panoramaxInstance
+        const fr = new FileReader()
+        fr.onload = function () {
+            preview.style.width = "100%"
+            preview.src = fr.result
+            thirdBlock.after(preview)
+        }
+        fr.readAsDataURL(fileInput.files[0])
     }
     firstBlock.appendChild(fileInput)
 
@@ -248,14 +292,14 @@ function addUploadPanoramaxBtn() {
             if (!token) {
                 return
             }
-            const uuid = await uploadImage(token, file, `Upload from better-osm-org for ${object_type}/${object_id}`)
+            const uuid = await uploadImage(token, file, `Upload from better-osm-org for ${object_type}/${object_id}`, needBlur.checked)
             await addPanoramaxTag(uuid, object_type, object_id)
             await GM.setValue("lastUploadedPanoramaxPicture", JSON.stringify({ uuid: uuid, instance: panoramaxInstance }))
             await sleep(1000)
             location.reload()
         } catch (err) {
             console.error(err)
-            alert(`Error: ${err.message}\n\n` + metadata ? `Info from EXIF:\nDateTime: ${metadata.DateTime}\nLat: ${metadata.GPSLatitude}\nLon: ${metadata.GPSLongitude}`: "")
+            alert(`Error: ${err.message}\n\n` + metadata ? `Info from EXIF:\nDateTime: ${metadata.DateTime}\nLat: ${metadata.GPSLatitude}\nLon: ${metadata.GPSLongitude}` : "")
         } finally {
             wrapper.classList.remove("is-loading")
         }
@@ -285,6 +329,18 @@ function addUploadPanoramaxBtn() {
     secondBlock.appendChild(instanceInput)
     secondBlock.appendChild(datalistInstances)
     secondBlock.appendChild(uploadImgBtn)
+
+    const needBlur = document.createElement("input")
+    needBlur.type = "checkbox"
+    needBlur.checked = true
+    needBlur.style.marginRight = "5px"
+
+    const needBlueLabel = document.createElement("label")
+    needBlueLabel.textContent = "Blur faces"
+    needBlueLabel.style.display = "none"
+    needBlueLabel.prepend(needBlur)
+
+    thirdBlock.appendChild(needBlueLabel)
 
     document.querySelector("#sidebar_content nav").appendChild(wrapper)
 }
