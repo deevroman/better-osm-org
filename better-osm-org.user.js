@@ -16554,10 +16554,12 @@ async function addHoverForRelationMembers() {
             elem.classList.add("hover-added")
             const childRelationId = parseInt(elem.href.match(/relation\/(\d+)/)[1])
             if (!downloadedRelations.has(childRelationId)) {
+                elem.parentElement.style.cursor = "progress"
                 console.debug("downloading child relation", childRelationId)
                 downloadedRelations.add(childRelationId)
                 /** @type {{elements: (NodeVersion|WayVersion|RelationVersion)[]}} */
                 const relationData = await fetchJSONWithCache(osm_server.apiBase + "relation" + "/" + childRelationId + "/full.json")
+                elem.parentElement.style.cursor = ""
                 relationData?.elements?.forEach(i => {
                     if (i.type === "node") {
                         if (!nodesMap.has(i.id)) {
