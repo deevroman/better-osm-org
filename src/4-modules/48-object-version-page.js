@@ -67,7 +67,7 @@ async function addHoverForNodesParents() {
  * @return {HTMLDivElement}
  */
 function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type) {
-    const nodes = nodesIds.map(i => nodesMap.get(i.toString()))
+    const nodes = nodesIds.map(i => nodesMap.get(i.toString()) ?? nodesMap.get(i)) // todo dirty hack
     const bbox = {
         min_lat: Math.min(...nodes.map(i => i.lat)),
         min_lon: Math.min(...nodes.map(i => i.lon)),
@@ -362,8 +362,10 @@ async function addHoverForRelationMembers() {
             document.querySelector("#sidebar_content h4:last-of-type").appendChild(document.createTextNode("\xA0"))
             document.querySelector("#sidebar_content h4:last-of-type").appendChild(infoBtn)
         }
-        const relationData = await loadRelationMetadata(relation_id)
-        if (!relationData) return
+        /** @type {{elements: (NodeVersion|WayVersion|RelationVersion)[]}} */
+        const topRelationData = await fetchJSONWithCache(osm_server.apiBase + "relation" + "/" + relation_id + "/full.json")
+
+        if (!topRelationData) return
         while (document.querySelector("details turbo-frame .spinner-border")) {
             console.log("wait members list loading")
             await sleep(1000)
@@ -372,7 +374,7 @@ async function addHoverForRelationMembers() {
         const nodesMap = new Map(
             Object.entries(
                 Object.groupBy(
-                    relationData.elements.filter(i => i.type === "node"),
+                    topRelationData.elements.filter(i => i.type === "node"),
                     i => i.id,
                 ),
             ).map(([k, v]) => [parseInt(k), v[0]]),
@@ -381,7 +383,7 @@ async function addHoverForRelationMembers() {
         const waysMap = new Map(
             Object.entries(
                 Object.groupBy(
-                    relationData.elements.filter(i => i.type === "way"),
+                    topRelationData.elements.filter(i => i.type === "way"),
                     i => i.id,
                 ),
             ).map(([k, v]) => [parseInt(k), v[0]]),
@@ -446,9 +448,9 @@ async function addHoverForRelationMembers() {
             const wayInfo = waysMap.get(parseInt(elem.href.match(/way\/(\d+)/)[1]))
             const wayLi = elem?.parentElement?.parentElement?.parentElement
             wayLi.classList.add("relation-last-version-member")
+            const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
             wayLi.onmouseenter = () => {
                 const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i).lat, nodesMap.get(i).lon])
-                const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
                 showActiveWay(currentNodesList, color)
                 bringRestrictionArrowsToFront()
             }
@@ -456,7 +458,6 @@ async function addHoverForRelationMembers() {
                 if (e.altKey) return
                 if (e.target.tagName === "A") return
                 const currentNodesList = wayInfo.nodes.map(i => [nodesMap.get(i).lat, nodesMap.get(i).lon])
-                const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
                 showActiveWay(currentNodesList, color, true)
                 bringRestrictionArrowsToFront()
             }
@@ -470,7 +471,7 @@ async function addHoverForRelationMembers() {
         })
 
         /** @type {RelationVersion[]}*/
-        const childRelations = relationData.elements.filter(i => i.type === "relation")
+        const childRelations = topRelationData.elements.filter(i => i.type === "relation")
         /*** @type {Map<number, RelationVersion>}*/
         const relationsMap = new Map(Object.entries(Object.groupBy(childRelations, i => i.id)).map(([k, v]) => [parseInt(k), v[0]]))
         const downloadedRelations = new Set([relation_id])
@@ -479,8 +480,10 @@ async function addHoverForRelationMembers() {
             elem.classList.add("hover-added")
             const childRelationId = parseInt(elem.href.match(/relation\/(\d+)/)[1])
             if (!downloadedRelations.has(childRelationId)) {
+                console.debug("downloading child relation", childRelationId)
                 downloadedRelations.add(childRelationId)
-                const relationData = await loadRelationMetadata(childRelationId)
+                /** @type {{elements: (NodeVersion|WayVersion|RelationVersion)[]}} */
+                const relationData = await fetchJSONWithCache(osm_server.apiBase + "relation" + "/" + childRelationId + "/full.json")
                 relationData?.elements?.forEach(i => {
                     if (i.type === "node") {
                         if (!nodesMap.has(i.id)) {
@@ -501,58 +504,89 @@ async function addHoverForRelationMembers() {
             const relationInfo = relationsMap.get(childRelationId)
             const relationLi = elem?.parentElement?.parentElement?.parentElement
             relationLi.classList.add("relation-last-version-member")
+
+            let cache
+
+            function renderRelation(relationInfo) {
+                const addStroke = darkModeForMap && isDarkMode()
+                const layer = "activeObjects"
+                const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
+                if (!cache) {
+                    let wayCounts = 0
+                    /** @type {LatLonPair[][]} */
+                    const mergedGeometry = []
+                    relationInfo.members?.forEach(i => {
+                        if (i.type === "way") {
+                            const w = waysMap.get(i.ref)
+                            wayCounts++
+                            const nodesList = w.nodes.map(i => nodesMap.get(i)).map(p => [p.lat, p.lon])
+                            if (mergedGeometry.length === 0) {
+                                mergedGeometry.push(nodesList)
+                            } else {
+                                const lastWay = mergedGeometry[mergedGeometry.length - 1]
+                                const [lastLat, lastLon] = lastWay[lastWay.length - 1]
+                                if (lastLat === nodesList[0][0] && lastLon === nodesList[0][1]) {
+                                    mergedGeometry[mergedGeometry.length - 1].push(...nodesList.slice(1))
+                                } else {
+                                    mergedGeometry.push(nodesList)
+                                }
+                            }
+                        } else if (i.type === "node") {
+                            showNodeMarker(nodesMap.get(i.ref).lat, nodesMap.get(i.ref).lon, color, null, layer)
+                        } else if (i.type === "relation") {
+                            // todo
+                        }
+                    })
+                    cache = {
+                        geom: mergedGeometry.map(i => intoPage(i)),
+                    }
+                    console.log(`${cache.geom.length}/${wayCounts} for render`)
+                } else {
+                    relationInfo.members?.forEach(i => {
+                        if (i.type === "node") {
+                            showNodeMarker(nodesMap.get(i.ref).lat, nodesMap.get(i.ref).lon, color, null, layer)
+                        }
+                    })
+                }
+
+                cache.geom.forEach(nodesList => {
+                    displayWay(nodesList, false, color, 4, null, layer, null, null, addStroke, true)
+                })
+            }
             relationLi.onmouseenter = () => {
                 cleanObjectsByKey("activeObjects")
-                relationInfo.members.forEach(i => {
-                    const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-                    if (i.type === "node") {
-                        showActiveNodeMarker(nodesMap.get(i.ref).lat.toString(), nodesMap.get(i.ref).lon.toString(), color, false, 6, 3)
-                    } else if (i.type === "way") {
-                        const currentNodesList = waysMap.get(i.ref).nodes.map(i => [nodesMap.get(i).lat, nodesMap.get(i).lon])
-                        showActiveWay(currentNodesList, color, false, null, false)
-                    } else {
-                        // todo
-                    }
-                })
-                bringRestrictionArrowsToFront()
+                renderRelation(relationInfo)
             }
             relationLi.onclick = e => {
                 if (e.altKey) return
                 if (e.target.tagName === "A") return
                 cleanObjectsByKey("activeObjects")
-                relationInfo.members.forEach(i => {
-                    const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
-                    if (i.type === "node") {
-                        if (e.altKey) return
-                        showActiveNodeMarker(nodesMap.get(i.ref).lat.toString(), nodesMap.get(i.ref).lon.toString(), color, false, 6, 3)
-                    } else if (i.type === "way") {
-                        const currentNodesList = waysMap.get(i.ref).nodes.map(i => [nodesMap.get(i).lat, nodesMap.get(i).lon])
-                        showActiveWay(currentNodesList, color, false, null, false)
-                    } else {
-                        // todo
+                renderRelation(relationInfo)
+
+                function zoomToRelation(relationInfo) {
+                    const nodes = []
+                    relationInfo.members.forEach(i => {
+                        if (i.type === "node") {
+                            nodes.push(nodesMap.get(i.ref))
+                        } else if (i.type === "way") {
+                            waysMap.get(i.ref).nodes.map(i => nodes.push(nodesMap.get(i)))
+                        } else {
+                            // todo
+                        }
+                    })
+                    const bbox = {
+                        min_lat: Math.min(...nodes.map(i => i.lat)),
+                        min_lon: Math.min(...nodes.map(i => i.lon)),
+                        max_lat: Math.max(...nodes.map(i => i.lat)),
+                        max_lon: Math.max(...nodes.map(i => i.lon)),
                     }
-                })
-                const nodes = []
-                relationInfo.members.forEach(i => {
-                    if (i.type === "node") {
-                        nodes.push(nodesMap.get(i.ref))
-                    } else if (i.type === "way") {
-                        waysMap.get(i.ref).nodes.map(i => nodes.push(nodesMap.get(i)))
-                    } else {
-                        // todo
-                    }
-                })
-                const bbox = {
-                    min_lat: Math.min(...nodes.map(i => i.lat)),
-                    min_lon: Math.min(...nodes.map(i => i.lon)),
-                    max_lat: Math.max(...nodes.map(i => i.lat)),
-                    max_lon: Math.max(...nodes.map(i => i.lon)),
+                    fitBounds([
+                        [bbox.min_lat, bbox.min_lon],
+                        [bbox.max_lat, bbox.max_lon],
+                    ])
                 }
-                fitBounds([
-                    [bbox.min_lat, bbox.min_lon],
-                    [bbox.max_lat, bbox.max_lon],
-                ])
-                bringRestrictionArrowsToFront()
+
+                zoomToRelation(relationInfo)
             }
             relationLi.ondblclick = () => {
                 const nodes = Array.from(nodesMap.values())
@@ -633,7 +667,7 @@ async function addHoverForRelationMembers() {
         }
 
         if (infoBtn) {
-            const nodesIds = relationData.elements.filter(i => i.type === "way").flatMap(i => i.nodes)
+            const nodesIds = topRelationData.elements.filter(i => i.type === "way").flatMap(i => i.nodes)
             const infos = makePolygonMeasureButtons(nodesIds, nodesMap, "relation")
             document.querySelector("#sidebar_content h4:last-of-type").after(infos)
 
