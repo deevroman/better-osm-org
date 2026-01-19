@@ -1507,7 +1507,7 @@ async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObj
             isRestriction: isRestriction,
             restrictionRelationErrors: isRestriction ? validateRestriction(overpassGeom.elements[0]) : [],
         }
-        console.log(`${cache.length}/${wayCounts} for render`)
+        console.log(`${cache.geom.length}/${wayCounts} for render`)
     } else {
         overpassGeom.elements[0]?.members?.forEach(i => {
             if (i.type === "node") {
