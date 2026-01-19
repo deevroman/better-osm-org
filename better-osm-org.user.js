@@ -8241,6 +8241,7 @@ function makeLinksInVersionTagsClickable() {
             // prettier-ignore
             key.endsWith(":conditional")
             && !key.startsWith("fixme:")
+            && !key.startsWith("note:")
             && !key.startsWith("source:")
             && !key.startsWith("check_date:")
             && !key.startsWith("description:")
