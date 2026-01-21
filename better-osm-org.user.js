@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.5.5
+// @version         1.5.5.1
 // @changelog       v1.5.5: render child relations on relation page by hover
 // @changelog       v1.5.0: Shift + S: custom map layers, Shift + V: custom vector map styles, date for ESRI layer
 // @changelog       v1.5.0: KeyV: switch between raster and vector styles, render light:direction=* and direction=12-34
@@ -5060,7 +5060,7 @@ function addCreateNewPOIButton() {
     }
 }
 
-const noteHashtags = ["#added", "#fixed", "#irrelevant", "#alreadyfixed", "#needmoreinfo", "#notenoughinfo", "#inacurratelocation", "#needconfirmation"]
+const noteHashtags = ["#added", "#fixed", "#irrelevant", "#alreadyfixed", "#needmoreinfo", "#surveyme", "#tooold", "#notonortophoto", "#notenoughinfo", "#inacurratelocation", "#needconfirmation"]
 
 function addAutoComplete() {
     const container = document.querySelector("#sidebar")
@@ -5129,6 +5129,7 @@ function addAutoComplete() {
             }
             d.onmousedown = e => {
                 e.preventDefault()
+                index = i
                 apply()
             }
             box.appendChild(d)
