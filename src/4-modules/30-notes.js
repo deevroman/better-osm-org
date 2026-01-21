@@ -169,7 +169,7 @@ function addCreateNewPOIButton() {
     }
 }
 
-const noteHashtags = ["#added", "#fixed", "#irrelevant", "#alreadyfixed", "#needmoreinfo", "#notenoughinfo", "#inacurratelocation", "#needconfirmation"]
+const noteHashtags = ["#added", "#fixed", "#irrelevant", "#alreadyfixed", "#needmoreinfo", "#surveyme", "#tooold", "#notonortophoto", "#notenoughinfo", "#inacurratelocation", "#needconfirmation"]
 
 function addAutoComplete() {
     const container = document.querySelector("#sidebar")
@@ -238,6 +238,7 @@ function addAutoComplete() {
             }
             d.onmousedown = e => {
                 e.preventDefault()
+                index = i
                 apply()
             }
             box.appendChild(d)
