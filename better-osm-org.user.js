@@ -16272,7 +16272,7 @@ async function addHoverForNodesParents() {
         })
         console.log("addHoverForWayNodes finished")
     } finally {
-        addHoverForNodesParentsLock = true
+        addHoverForNodesParentsLock = false
     }
 }
 
