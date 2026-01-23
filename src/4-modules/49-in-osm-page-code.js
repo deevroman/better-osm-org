@@ -182,7 +182,20 @@ function runInOsmPageCode() {
                 //     url.searchParams.set("q", window.notesQFilter)
                 // }
                 if (window.notesClosedFilter) {
-                    url.searchParams.set("closed", window.notesClosedFilter)
+                    if (window.notesClosedFilter < -1) {
+                        if (window.notesClosedFilter < -365) {
+                            url.searchParams.set("from", new Date("2000-01-01T00:00:00Z").toISOString().slice(0, -5) + "Z")
+                            const d = new Date()
+                            d.setTime(d.getTime() - 1000 * 86400 * -notesClosedFilter)
+                            url.searchParams.set("to", d.toISOString().slice(0, -5) + "Z")
+                        } else {
+                            const d = new Date()
+                            d.setTime(d.getTime() - 1000 * 86400 * -notesClosedFilter)
+                            url.searchParams.set("from", d.toISOString().slice(0, -5) + "Z")
+                        }
+                    } else {
+                        url.searchParams.set("closed", window.notesClosedFilter)
+                    }
                 }
                 args[0] = url.toString()
                 const response = await originalFetch(...args);
