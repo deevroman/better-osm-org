@@ -776,6 +776,9 @@ function addNotesFiltersButtons() {
             ["❌ + ✅ at 7 days ago", 7],
             ["❌ + ✅ at 30 days ago", 30],
             ["❌ + ✅ at 365 days ago", 365],
+            ["created 7 days ago", -7],
+            ["created 30 days ago", -30],
+            ["created > 3 years ago", -365 * 3],
             ["only opened", 0],
             ["all notes", -1],
         ].forEach(([title, value]) => {

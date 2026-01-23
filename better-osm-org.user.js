@@ -5667,6 +5667,9 @@ function addNotesFiltersButtons() {
             ["❌ + ✅ at 7 days ago", 7],
             ["❌ + ✅ at 30 days ago", 30],
             ["❌ + ✅ at 365 days ago", 365],
+            ["created 7 days ago", -7],
+            ["created 30 days ago", -30],
+            ["created > 3 years ago", -365 * 3],
             ["only opened", 0],
             ["all notes", -1],
         ].forEach(([title, value]) => {
@@ -17464,7 +17467,20 @@ function runInOsmPageCode() {
                 //     url.searchParams.set("q", window.notesQFilter)
                 // }
                 if (window.notesClosedFilter) {
-                    url.searchParams.set("closed", window.notesClosedFilter)
+                    if (window.notesClosedFilter < -1) {
+                        if (window.notesClosedFilter < -365) {
+                            url.searchParams.set("from", new Date("2000-01-01T00:00:00Z").toISOString().slice(0, -5) + "Z")
+                            const d = new Date()
+                            d.setTime(d.getTime() - 1000 * 86400 * -notesClosedFilter)
+                            url.searchParams.set("to", d.toISOString().slice(0, -5) + "Z")
+                        } else {
+                            const d = new Date()
+                            d.setTime(d.getTime() - 1000 * 86400 * -notesClosedFilter)
+                            url.searchParams.set("from", d.toISOString().slice(0, -5) + "Z")
+                        }
+                    } else {
+                        url.searchParams.set("closed", window.notesClosedFilter)
+                    }
                 }
                 args[0] = url.toString()
                 const response = await originalFetch(...args);
