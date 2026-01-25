@@ -690,6 +690,21 @@ function addNotesFiltersButtons() {
             updateNotesLayer()
         }
 
+        const datalistInstances = document.createElement("datalist")
+        datalistInstances.id = "words-in-notes-filter"
+        ;[
+            // prettier-ignore
+            "StreetComplete",
+            "never exist",
+            "photo",
+            "#EveryDoor",
+        ].forEach(i => {
+            const opt = document.createElement("option")
+            opt.value = i
+            datalistInstances.appendChild(opt)
+        })
+        filterByString.setAttribute("list", "words-in-notes-filter")
+
         const wrapper = document.createElement("div")
         wrapper.style.display = "flex"
         wrapper.style.alignItems = "center"
@@ -697,6 +712,7 @@ function addNotesFiltersButtons() {
         wrapper.appendChild(inverterForFilterByString)
         wrapper.appendChild(filterByString)
         wrapper.appendChild(resetFilter)
+        // wrapper.appendChild(datalistInstances) // TODO
 
         return wrapper
     }
