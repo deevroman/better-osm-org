@@ -3213,6 +3213,17 @@ function getRestrictionKeyValue(tags) {
     }
 }
 
+function renderArrowHead(startPoint, endPoint, angle, len, arrows, layer, color) {
+    const { lat: p1_lat, lon: p1_lon } = startPoint
+    const { lat: p2_lat, lon: p2_lon } = endPoint
+    const rotated1 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, -angle, len)
+    const rotated2 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, angle, len)
+    arrows.push(displayWay([startPoint, rotated1], false, "white", 7, null, layer))
+    arrows.push(displayWay([startPoint, rotated2], false, "white", 7, null, layer))
+    arrows.push(displayWay([startPoint, rotated1], false, color, 4, null, layer))
+    arrows.push(displayWay([startPoint, rotated2], false, color, 4, null, layer))
+}
+
 /**
  * @param {ExtendedRelationVersion} rel
  * @param {string} color
@@ -3268,14 +3279,7 @@ function renderRestriction(rel, color, layer) {
         }
         signAngle = 360 - azimuth(endPoint.lat, endPoint.lon, startPoint.lat, startPoint.lon)
         console.debug(signAngle)
-        // const {lat: p1_lat, lon: p1_lon} = startPoint;
-        // const {lat: p2_lat, lon: p2_lon} = endPoint
-        // const rotated1 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, -angle, len)
-        // const rotated2 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, angle, len)
-        // arrows.push(displayWay([startPoint, rotated1], false, "white", 7, null, layer))
-        // arrows.push(displayWay([startPoint, rotated2], false, "white", 7, null, layer))
-        // arrows.push(displayWay([startPoint, rotated1], false, color, 4, null, layer))
-        // arrows.push(displayWay([startPoint, rotated2], false, color, 4, null, layer))
+        // renderArrowHead(startPoint, endPoint, angle, len, arrows, layer, color)
     })
     to.forEach(t => {
         let startPoint = t.geometry[0]
@@ -3291,15 +3295,8 @@ function renderRestriction(rel, color, layer) {
                 signAngle = 360 - azimuth(t.geometry[t.geometry.length - 2].lat, t.geometry[t.geometry.length - 2].lon, t.geometry[t.geometry.length - 1].lat, t.geometry[t.geometry.length - 1].lon)
             }
         }
-        const { lat: p1_lat, lon: p1_lon } = startPoint
-        const { lat: p2_lat, lon: p2_lon } = endPoint
-        const rotated1 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, -angle, len)
-        const rotated2 = rotateSegment(p1_lat, p1_lon, p2_lat, p2_lon, angle, len)
         if (restrictionValue === "no_exit" || restrictionValue === "no_entry") {
-            arrows.push(displayWay([startPoint, rotated1], false, "white", 7, null, layer))
-            arrows.push(displayWay([startPoint, rotated2], false, "white", 7, null, layer))
-            arrows.push(displayWay([startPoint, rotated1], false, color, 4, null, layer))
-            arrows.push(displayWay([startPoint, rotated2], false, color, 4, null, layer))
+            renderArrowHead(startPoint, endPoint, angle, len, arrows, layer, color)
         }
     })
     ;[100, 250, 500, 1000].forEach(t => {
