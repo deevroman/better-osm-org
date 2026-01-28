@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.5.5.1
+// @version         1.5.5.2
 // @changelog       v1.5.5: render child relations on relation page by hover
 // @changelog       v1.5.0: Shift + S: custom map layers, Shift + V: custom vector map styles, date for ESRI layer
 // @changelog       v1.5.0: KeyV: switch between raster and vector styles, render light:direction=* and direction=12-34
@@ -3690,6 +3690,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
     const dislikeTitle = "OSMCha review dislike\n\nRight click to add review tags"
 
     async function osmchaRequest(url, method) {
+        console.debug(`osmchaRequest(${url}, ${method})`)
         return await externalFetchRetry({
             url: url,
             headers: {
@@ -6931,6 +6932,7 @@ async function bypassCSPForImagesSrc(imgElem, url) {
     if (url.startsWith("https://tiles.openrailwaymap.org")) {
         opt.headers = { Referer: "https://www.openrailwaymap.org/" }
     }
+    console.log("bypassCSPForImagesSrc", url)
     const res = await fetchBlobWithCache(url, opt)
     if (res.status !== 200) {
         if (!GM_config.get("OverzoomForDataLayer")) {
@@ -7557,6 +7559,7 @@ function xyzFromTileElem(elem) {
 
 function replaceToSatTile(imgElem, xyz) {
     const newUrl = makeCustomTileUrl(customLayerUrl, xyz)
+    console.log("replaceToSatTile", newUrl)
     if (imgElem.getAttribute("custom-tile-url") === newUrl) {
         return
     }
@@ -7673,6 +7676,7 @@ function switchTiles(invertMode = true) {
     addEsriShotDateCollector()
     if (invertMode) {
         currentTilesMode = invertTilesMode(currentTilesMode)
+        console.log("Current tiles mode", currentTilesMode)
     }
     rasterSwitch()
     vectorSwitch()

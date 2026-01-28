@@ -100,6 +100,7 @@ async function bypassCSPForImagesSrc(imgElem, url) {
     if (url.startsWith("https://tiles.openrailwaymap.org")) {
         opt.headers = { Referer: "https://www.openrailwaymap.org/" }
     }
+    console.log("bypassCSPForImagesSrc", url)
     const res = await fetchBlobWithCache(url, opt)
     if (res.status !== 200) {
         if (!GM_config.get("OverzoomForDataLayer")) {
@@ -726,6 +727,7 @@ function xyzFromTileElem(elem) {
 
 function replaceToSatTile(imgElem, xyz) {
     const newUrl = makeCustomTileUrl(customLayerUrl, xyz)
+    console.log("replaceToSatTile", newUrl)
     if (imgElem.getAttribute("custom-tile-url") === newUrl) {
         return
     }
@@ -842,6 +844,7 @@ function switchTiles(invertMode = true) {
     addEsriShotDateCollector()
     if (invertMode) {
         currentTilesMode = invertTilesMode(currentTilesMode)
+        console.log("Current tiles mode", currentTilesMode)
     }
     rasterSwitch()
     vectorSwitch()

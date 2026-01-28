@@ -201,6 +201,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
     const dislikeTitle = "OSMCha review dislike\n\nRight click to add review tags"
 
     async function osmchaRequest(url, method) {
+        console.debug(`osmchaRequest(${url}, ${method})`)
         return await externalFetchRetry({
             url: url,
             headers: {
