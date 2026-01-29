@@ -228,8 +228,15 @@ function tryAddScriptInfo() {
     }
     const textarea = document.querySelector('[class*="CreateIssueForm"] textarea')
     if (!textarea) return
-    if (textarea.value.trim() !== "") return
-    textarea.value += `\n\n\nScript version: \`${GM_info.script.version}\`
+    const cleanedPart = textarea.value
+        .replaceAll(/^Script version:.*$/gm, "")
+        .replaceAll(/^Script manager:.*$/gm, "")
+        .replaceAll(/^User Agent:.*$/gm, "")
+        .trim()
+    if (cleanedPart !== "") {
+        return
+    }
+    textarea.value = cleanedPart + `\n\n\nScript version: \`${GM_info.script.version}\`
 Script manager: \`${GM_info.scriptHandler} ${GM_info.version}\`
 User Agent: \`${navigator.userAgent}\``
     textarea.classList.add("better-osm-org-rich-textarea")
@@ -237,11 +244,11 @@ User Agent: \`${navigator.userAgent}\``
 }
 
 if ((location.origin + location.pathname).startsWith("https://github.com/deevroman/better-osm-org/issues/new")) {
-    setInterval(tryAddScriptInfo, 3000)
+    const timerId = setInterval(tryAddScriptInfo, 3000)
+    setTimeout(() => clearInterval(timerId), 30000)
     setTimeout(tryAddScriptInfo, 1000)
     throw "skip better-osm-org run on GitHub"
 }
-
 
 if (location.search.includes("&kek")) {
     throw "better-osm-org disable via url param"
