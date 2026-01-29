@@ -53,7 +53,7 @@ function tryAddScriptInfo() {
     if (!textarea) return
     if (textarea.value.trim() !== "") return
     textarea.value += `\n\n\nScript version: \`${GM_info.script.version}\`
-Script manager: \`${GM_info.scriptHandler}\`
+Script manager: \`${GM_info.scriptHandler} ${GM_info.version}\`
 User Agent: \`${navigator.userAgent}\``
     textarea.classList.add("better-osm-org-rich-textarea")
     textarea.dispatchEvent(new Event("input", { bubbles: true }))
