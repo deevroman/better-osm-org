@@ -103,6 +103,7 @@ async function bypassCSPForImagesSrc(imgElem, url) {
     console.log("bypassCSPForImagesSrc", url)
     const res = await fetchBlobWithCache(url, opt)
     if (res.status !== 200) {
+        console.log("bypassCSPForImagesSrc", url, res.status)
         if (!GM_config.get("OverzoomForDataLayer")) {
             return
         }
@@ -128,6 +129,7 @@ async function bypassCSPForImagesSrc(imgElem, url) {
         imgElem.src = "/dev/null"
         return
     }
+    console.log("bypassCSPForImagesSrc", url, res.status)
 
     const blob = res.response
 
@@ -727,7 +729,6 @@ function xyzFromTileElem(elem) {
 
 function replaceToSatTile(imgElem, xyz) {
     const newUrl = makeCustomTileUrl(customLayerUrl, xyz)
-    console.log("replaceToSatTile", newUrl)
     if (imgElem.getAttribute("custom-tile-url") === newUrl) {
         return
     }

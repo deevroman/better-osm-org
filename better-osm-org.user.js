@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.5.5.2
+// @version         1.5.5.3
 // @changelog       v1.5.5: render child relations on relation page by hover
 // @changelog       v1.5.0: Shift + S: custom map layers, Shift + V: custom vector map styles, date for ESRI layer
 // @changelog       v1.5.0: KeyV: switch between raster and vector styles, render light:direction=* and direction=12-34
@@ -6935,6 +6935,7 @@ async function bypassCSPForImagesSrc(imgElem, url) {
     console.log("bypassCSPForImagesSrc", url)
     const res = await fetchBlobWithCache(url, opt)
     if (res.status !== 200) {
+        console.log("bypassCSPForImagesSrc", url, res.status)
         if (!GM_config.get("OverzoomForDataLayer")) {
             return
         }
@@ -6960,6 +6961,7 @@ async function bypassCSPForImagesSrc(imgElem, url) {
         imgElem.src = "/dev/null"
         return
     }
+    console.log("bypassCSPForImagesSrc", url, res.status)
 
     const blob = res.response
 
@@ -7559,7 +7561,6 @@ function xyzFromTileElem(elem) {
 
 function replaceToSatTile(imgElem, xyz) {
     const newUrl = makeCustomTileUrl(customLayerUrl, xyz)
-    console.log("replaceToSatTile", newUrl)
     if (imgElem.getAttribute("custom-tile-url") === newUrl) {
         return
     }
