@@ -230,7 +230,7 @@ function tryAddScriptInfo() {
     if (!textarea) return
     if (textarea.value.trim() !== "") return
     textarea.value += `\n\n\nScript version: \`${GM_info.script.version}\`
-Script manager: \`${GM_info.scriptHandler}\`
+Script manager: \`${GM_info.scriptHandler} ${GM_info.version}\`
 User Agent: \`${navigator.userAgent}\``
     textarea.classList.add("better-osm-org-rich-textarea")
     textarea.dispatchEvent(new Event("input", { bubbles: true }))
@@ -6932,7 +6932,6 @@ async function bypassCSPForImagesSrc(imgElem, url) {
     if (url.startsWith("https://tiles.openrailwaymap.org")) {
         opt.headers = { Referer: "https://www.openrailwaymap.org/" }
     }
-    console.log("bypassCSPForImagesSrc", url)
     const res = await fetchBlobWithCache(url, opt)
     if (res.status !== 200) {
         console.log("bypassCSPForImagesSrc", url, res.status)
@@ -6961,7 +6960,6 @@ async function bypassCSPForImagesSrc(imgElem, url) {
         imgElem.src = "/dev/null"
         return
     }
-    console.log("bypassCSPForImagesSrc", url, res.status)
 
     const blob = res.response
 

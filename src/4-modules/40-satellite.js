@@ -100,7 +100,6 @@ async function bypassCSPForImagesSrc(imgElem, url) {
     if (url.startsWith("https://tiles.openrailwaymap.org")) {
         opt.headers = { Referer: "https://www.openrailwaymap.org/" }
     }
-    console.log("bypassCSPForImagesSrc", url)
     const res = await fetchBlobWithCache(url, opt)
     if (res.status !== 200) {
         console.log("bypassCSPForImagesSrc", url, res.status)
@@ -129,7 +128,6 @@ async function bypassCSPForImagesSrc(imgElem, url) {
         imgElem.src = "/dev/null"
         return
     }
-    console.log("bypassCSPForImagesSrc", url, res.status)
 
     const blob = res.response
 
