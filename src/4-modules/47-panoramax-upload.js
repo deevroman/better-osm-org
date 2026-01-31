@@ -207,7 +207,7 @@ async function addPanoramaxTag(pictureId, object_type, object_id) {
 }
 
 function addUploadPanoramaxBtn() {
-    if (!isDebug() && !isMobile) return
+    if (!isDebug() && !GM_config.get("PanoramaxUploader") && !isMobile) return
     if (!document.querySelector("#sidebar_content nav")) {
         return
     }
