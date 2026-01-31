@@ -269,18 +269,18 @@ const configOptions = {
             type: "select",
             options: [MAIN_OVERPASS_INSTANCE.name, MAILRU_OVERPASS_INSTANCE.name, PRIVATECOFFEE_OVERPASS_INSTANCE.name],
         },
+        PanoramaxUploader: {
+            label: "Add form for uploading photos into Panoramax",
+            type: "checkbox",
+            default: false,
+            labelPos: "right",
+        },
         DebugMode: {
             label: "Enable debug and experimental features",
             type: "checkbox",
             default: false,
             labelPos: "right",
         },
-        // CustomLayers: {
-        //     label: "Custom map layers: β",
-        //     type: "menu",
-        //     default: "[]",
-        //     placeholder: "TMS URL",
-        // },
     },
     types: {
         menu: {

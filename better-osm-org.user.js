@@ -1,7 +1,8 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.5.6
+// @version         1.5.7
+// @changelog       v1.5.7: filter notes by creation date, Panoramax uploader (you need to enable it in the settings)
 // @changelog       v1.5.5: render child relations on relation page by hover
 // @changelog       v1.5.0: Shift + S: custom map layers, Shift + V: custom vector map styles, date for ESRI layer
 // @changelog       v1.5.0: KeyV: switch between raster and vector styles, render light:direction=* and direction=12-34
@@ -1081,18 +1082,18 @@ const configOptions = {
             type: "select",
             options: [MAIN_OVERPASS_INSTANCE.name, MAILRU_OVERPASS_INSTANCE.name, PRIVATECOFFEE_OVERPASS_INSTANCE.name],
         },
+        PanoramaxUploader: {
+            label: "Add form for uploading photos into Panoramax",
+            type: "checkbox",
+            default: false,
+            labelPos: "right",
+        },
         DebugMode: {
             label: "Enable debug and experimental features",
             type: "checkbox",
             default: false,
             labelPos: "right",
         },
-        // CustomLayers: {
-        //     label: "Custom map layers: β",
-        //     type: "menu",
-        //     default: "[]",
-        //     placeholder: "TMS URL",
-        // },
     },
     types: {
         menu: {
@@ -16100,7 +16101,7 @@ async function addPanoramaxTag(pictureId, object_type, object_id) {
 }
 
 function addUploadPanoramaxBtn() {
-    if (!isDebug() && !isMobile) return
+    if (!isDebug() && !GM_config.get("PanoramaxUploader") && !isMobile) return
     if (!document.querySelector("#sidebar_content nav")) {
         return
     }
