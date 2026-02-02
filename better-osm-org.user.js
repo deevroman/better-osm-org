@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.5.7
+// @version         1.5.8
 // @changelog       v1.5.7: filter notes by creation date, Panoramax uploader (you need to enable it in the settings)
 // @changelog       v1.5.5: render child relations on relation page by hover
 // @changelog       v1.5.0: Shift + S: custom map layers, Shift + V: custom vector map styles, date for ESRI layer
@@ -4739,7 +4739,7 @@ function setupCompactChangesetsHistory() {
 function makeHashtagsClickable() {
     if (!GM_config.get("ImagesAndLinksInTags")) return
 
-    const comment = document.querySelector("#element_versions_list > div p") ?? document.querySelector(".browse_section > div p") ?? document.querySelector("#sidebar_content h2 + div > p")
+    const comment = document.querySelector("#element_versions_list > div p") ?? document.querySelector(".browse_section > div p") ?? document.querySelector("#sidebar_content h2 + div > div > p")
     comment?.childNodes?.forEach(node => {
         if (node.nodeType !== Node.TEXT_NODE) return
         const span = document.createElement("span")
