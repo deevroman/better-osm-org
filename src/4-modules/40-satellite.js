@@ -873,6 +873,7 @@ function bypassCaches() {
             method: "GET",
             url: newUrl,
             headers: {
+                Accept: "image/*",
                 "Cache-Control": "no-cache",
                 Pragma: "no-cache",
                 Referer: "https://www.openstreetmap.org/",
