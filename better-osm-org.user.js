@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.5.8
+// @version         1.5.8.1
 // @changelog       v1.5.7: filter notes by creation date, Panoramax uploader (you need to enable it in the settings)
 // @changelog       v1.5.5: render child relations on relation page by hover
 // @changelog       v1.5.0: Shift + S: custom map layers, Shift + V: custom vector map styles, date for ESRI layer
@@ -7713,6 +7713,7 @@ function bypassCaches() {
             method: "GET",
             url: newUrl,
             headers: {
+                Accept: "image/*",
                 "Cache-Control": "no-cache",
                 Pragma: "no-cache",
                 Referer: "https://www.openstreetmap.org/",
