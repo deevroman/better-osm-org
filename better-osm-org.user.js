@@ -8430,6 +8430,7 @@ function makeLinksInVersionTagsClickable() {
                 } catch (e) {
                     valueCell.title = e
                     valueCell.classList.add("fixme-tag")
+                    valueCell.querySelectorAll("a").forEach(i => i.classList.add("fixme-tag"))
                 }
             }
         } else if (["building", "building:part"].includes(key) || (key === "type" && valueCell.textContent === "building")) {
