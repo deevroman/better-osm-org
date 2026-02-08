@@ -69,7 +69,7 @@ function setupWiki() {
         abstain.insertCell().appendChild(document.createTextNode(`${abstainList.length}`))
         abstain.insertCell().appendChild(document.createTextNode(``))
 
-        Array.from(document.querySelectorAll("h2:has(#Voting) ~ ul")).at(-1).after(results)
+        Array.from(document.querySelectorAll(":is(h2,h1):has(#Voting) ~ ul")).at(-1).after(results)
         results.before(document.createElement("br"))
         results.before(document.createTextNode("Interim results calculated by better-osm-org:"))
     }
