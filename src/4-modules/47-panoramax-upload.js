@@ -6,6 +6,7 @@ async function getPanoramaxToken() {
         responseType: "json",
     })
     if (!res.response?.[0]?.links?.[0]?.href) {
+        console.error(res.responseText)
         alert("Please, login to Panoramax")
         window.open(panoramaxInstance, "_blank")
         return
@@ -282,7 +283,7 @@ function addUploadPanoramaxBtn() {
         let metadata
         if (file.type.startsWith("image/jpeg")) {
             metadata = EXIF.readFromBinaryFile(await file.arrayBuffer())
-            console.log(metadata)
+            console.log("Metadata from EXIF", metadata)
             console.log(metadata.DateTime, metadata.GPSLatitude, metadata.GPSLongitude)
         }
         // TODO add client side validation

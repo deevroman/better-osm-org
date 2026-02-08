@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.5.8.1
+// @version         1.5.8.2
 // @changelog       v1.5.7: filter notes by creation date, Panoramax uploader (you need to enable it in the settings)
 // @changelog       v1.5.5: render child relations on relation page by hover
 // @changelog       v1.5.0: Shift + S: custom map layers, Shift + V: custom vector map styles, date for ESRI layer
@@ -15903,6 +15903,7 @@ async function getPanoramaxToken() {
         responseType: "json",
     })
     if (!res.response?.[0]?.links?.[0]?.href) {
+        console.error(res.responseText)
         alert("Please, login to Panoramax")
         window.open(panoramaxInstance, "_blank")
         return
@@ -16179,7 +16180,7 @@ function addUploadPanoramaxBtn() {
         let metadata
         if (file.type.startsWith("image/jpeg")) {
             metadata = EXIF.readFromBinaryFile(await file.arrayBuffer())
-            console.log(metadata)
+            console.log("Metadata from EXIF", metadata)
             console.log(metadata.DateTime, metadata.GPSLatitude, metadata.GPSLongitude)
         }
         // TODO add client side validation
@@ -24943,7 +24944,7 @@ function setupWiki() {
         abstain.insertCell().appendChild(document.createTextNode(`${abstainList.length}`))
         abstain.insertCell().appendChild(document.createTextNode(``))
 
-        Array.from(document.querySelectorAll("h2:has(#Voting) ~ ul")).at(-1).after(results)
+        Array.from(document.querySelectorAll(":is(h2,h1):has(#Voting) ~ ul")).at(-1).after(results)
         results.before(document.createElement("br"))
         results.before(document.createTextNode("Interim results calculated by better-osm-org:"))
     }
