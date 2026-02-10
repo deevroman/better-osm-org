@@ -8423,7 +8423,7 @@ function makeLinksInVersionTagsClickable() {
             key.startsWith("happy_hours") ||
             ["delivery_hours", "smoking_hours", "collection_times", "service_times"].includes(key)
         ) {
-            if (key !== "opening_hours:signed" && typeof opening_hours !== "undefined") {
+            if (key !== "opening_hours:signed" && key !== "opening_hours:url" && key !== "opening_hours:description" && typeof opening_hours !== "undefined") {
                 try {
                     new opening_hours(valueCell.textContent, null, { tag_key: key })
                     valueCell.title = "no errors were found by opening_hours.js 👍"
@@ -12855,7 +12855,7 @@ function makeLinksInChangesetObjectRowClickable(row) {
             key.startsWith("happy_hours") ||
             ["delivery_hours", "smoking_hours", "collection_times", "service_times"].includes(key)
         ) {
-            if (key !== "opening_hours:signed" && typeof opening_hours !== "undefined") {
+            if (key !== "opening_hours:signed" && key !== "opening_hours:url" && key !== "opening_hours:description" && typeof opening_hours !== "undefined") {
                 try {
                     new opening_hours(valueCell.textContent, null, { tag_key: key })
                 } catch (e) {
