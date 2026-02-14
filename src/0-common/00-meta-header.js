@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.5.8.3
+// @version         1.5.8.4
 // @changelog       v1.5.7: filter notes by creation date, Panoramax uploader (you need to enable it in the settings)
 // @changelog       v1.5.5: render child relations on relation page by hover
 // @changelog       v1.5.0: Shift + S: custom map layers, Shift + V: custom vector map styles, date for ESRI layer
