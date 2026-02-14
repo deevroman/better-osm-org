@@ -275,6 +275,12 @@ const configOptions = {
             default: false,
             labelPos: "right",
         },
+        RoutersTimestamps: {
+            label: "Add routing data date",
+            type: "checkbox",
+            default: true,
+            labelPos: "right",
+        },
         DebugMode: {
             label: "Enable debug and experimental features",
             type: "checkbox",
