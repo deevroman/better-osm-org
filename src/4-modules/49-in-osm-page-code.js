@@ -654,7 +654,24 @@ function runInOsmPageCode() {
                     }
                 }
                 throw "PreventMapData"
-            } else {
+            } else if (args[0]?.includes?.("graphhopper.com/api/1/route")) {
+                const response = await originalFetch(...args);
+                if (response.status !== 200) {
+                    return response
+                }
+                const originalJSON = await response.json();
+                window.postMessage({type: "add_router_data_date", url: args[0], time: originalJSON["info"]["road_data_timestamp"]})
+                return new Response(JSON.stringify(originalJSON), {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: response.headers
+                });
+            } else if (args[0]?.startsWith?.("https://routing.openstreetmap.de")) { 
+                window.postMessage({type: "add_router_data_date", url: args[0]})
+            } else if (args[0]?.startsWith?.("https://valhalla1.openstreetmap.de")) {
+                window.postMessage({type: "add_router_data_date", url: args[0]})
+            }
+            else {
                 // console.log("other requests", args[0])
                 // debugger
             }
