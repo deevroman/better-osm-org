@@ -48,6 +48,11 @@
       "label": "FreeExec's background style",
       "value": "https://frexosm.ru/power/power.json",
       "about": "https://frexosm.ru/power"
+    },
+    {
+      "label": "indoorequal.com tiles for level=0",
+      "value": "https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/dev/misc/assets/vector-styles/indoorequal-style.json",
+      "about": "https://github.com/deevroman/better-osm-org/blob/master/misc/assets/vector-styles/indoorequal-style.json"
     }
   ]
 }

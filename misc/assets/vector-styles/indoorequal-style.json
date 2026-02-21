@@ -1,0 +1,102 @@
+{
+  "version": 8,
+  "name": "IndoorEqual Level 0",
+  "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+  "sources": {
+    "osm": {
+      "type": "raster",
+      "tiles": ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+      "tileSize": 256,
+      "attribution": "© OpenStreetMap contributors",
+      "minzoom": 0,
+      "maxzoom": 19
+    },
+    "indoorequal": {
+      "type": "vector",
+      "tiles": [
+        "https://tiles.indoorequal.org/tiles/{z}/{x}/{y}.pbf?key=iek_q6yS2DRtKY5NynhL6EYm6S2AqZoM"
+      ],
+      "minzoom": 14,
+      "maxzoom": 22
+    }
+  },
+  "layers": [
+    {
+      "id": "osm-background",
+      "type": "raster",
+      "source": "osm"
+    },
+    {
+      "id": "indoor-area-outline",
+      "type": "line",
+      "source": "indoorequal",
+      "source-layer": "area",
+      "filter": ["all", ["==", ["get", "level"], "0"]],
+      "layout": {
+        "line-join": "round",
+        "line-cap": "round"
+      },
+      "paint": {
+        "line-color": "#000000",
+        "line-width": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          14,
+          0.4,
+          18,
+          0.8,
+          22,
+          1.2
+        ],
+        "line-opacity": 1
+      }
+    },
+    {
+      "id": "indoor-area-name",
+      "type": "symbol",
+      "source": "indoorequal",
+      "source-layer": "area_name",
+      "filter": ["all", ["==", ["get", "level"], "0"], ["has", "name"]],
+      "layout": {
+        "text-field": ["coalesce", ["get", "name_en"], ["get", "name"]],
+        "text-size": 12,
+        "text-anchor": "center"
+      },
+      "paint": {
+        "text-color": "#333333",
+        "text-halo-color": "#ffffff",
+        "text-halo-width": 1
+      }
+    },
+    {
+      "id": "indoor-poi-symbol",
+      "type": "symbol",
+      "source": "indoorequal",
+      "source-layer": "poi",
+      "filter": ["all", ["==", ["get", "level"], "0"]],
+      "layout": {
+        "text-field": ["coalesce", ["get", "name"], ""],
+        "text-offset": [0, 1.2],
+        "text-size": 10,
+        "icon-image": "marker-15",
+        "icon-size": 1
+      },
+      "paint": {
+        "text-color": "#444444"
+      }
+    },
+    {
+      "id": "indoor-transport-line",
+      "type": "line",
+      "source": "indoorequal",
+      "source-layer": "transportation",
+      "filter": ["all", ["==", ["get", "level"], "0"]],
+      "paint": {
+        "line-color": "#888888",
+        "line-dasharray": [2, 2],
+        "line-width": 1.5
+      }
+    }
+  ]
+}
