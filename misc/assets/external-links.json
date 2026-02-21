@@ -132,7 +132,7 @@
     },
     {
       "name": "Spy Glass",
-      "template": "http://test.osm2pgsql.org/?#p={zoom}/{latitude}/{longitude}",
+      "template": "https://spyglass.jochentopf.com/?#p={zoom}/{latitude}/{longitude}",
       "description": "",
       "default": true
     },
