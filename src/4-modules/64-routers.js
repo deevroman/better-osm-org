@@ -10,13 +10,14 @@ window.addEventListener("message", async e => {
         const elem = document.createElement("p")
         elem.classList.add("text-center", "routing-timestamp")
         elem.textContent = text
+        elem.title = "added by better-osm-org"
         document.querySelector("#sidebar_content").appendChild(elem)
     }
 
     const url = e.data.url
     if (url.startsWith("https://valhalla1.openstreetmap.de")) {
+        await abortableSleep(500, getAbortController())
         // TODO abortion controller
-        await sleep(500)
         externalFetchRetry({ url: "https://valhalla1.openstreetmap.de/status", responseType: "json" }).then(r => {
             addTime("Valhalla data time: " + new Date(r.response["tileset_last_modified"] * 1000).toISOString())
         })
@@ -56,6 +57,7 @@ window.addEventListener("message", async e => {
                 const elem = document.createElement("p")
                 elem.classList.add("text-center", "routing-timestamp")
                 elem.textContent = `Routing data time for ${name}: ` + time
+                elem.title = "added by better-osm-org"
                 document.querySelector("#sidebar_content").appendChild(elem)
             })
         })
