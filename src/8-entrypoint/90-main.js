@@ -13,14 +13,22 @@ function _main() {
         return
     }
     if (location.origin === "https://osmcha.org") {
+        let token = localStorage.getItem("token")
+        if (!token) {
+            token = JSON.parse(localStorage.getItem("auth"))["state"]["token"]
+        }
         setTimeout(async () => {
-            await GM.setValue("OSMCHA_TOKEN", localStorage.getItem("token"))
+            await GM.setValue("OSMCHA_TOKEN", token)
         }, 1000)
         return
     }
     if (location.origin === "https://osmcha.openhistoricalmap.org") {
         setTimeout(async () => {
-            await GM.setValue("OHM_OSMCHA_TOKEN", localStorage.getItem("token"))
+            let token = localStorage.getItem("token")
+            if (!token) {
+                token = JSON.parse(localStorage.getItem("auth"))["state"]["token"]
+            }
+            await GM.setValue("OHM_OSMCHA_TOKEN", token)
         }, 1000)
         return
     }
