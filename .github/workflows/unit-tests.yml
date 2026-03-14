@@ -1,0 +1,29 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Run arraysDiff test
+        run: node --test src/tests/42-diff-algorithm.test.js
+
+      - name: Ensure localhost @match is absent
+        run: |
+          if grep -Fq 'http://localhost:3000/*' better-osm-org.user.js; then
+            echo 'Forbidden @match found in better-osm-org.user.js. Only for local development'
+            exit 1
+          fi
