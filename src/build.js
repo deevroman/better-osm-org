@@ -12,6 +12,9 @@ function readJsFilesRecursively(dir) {
 
     for (const entry of entries) {
         const fullPath = path.join(dir, entry.name)
+        if (fullPath.includes("tests")) {
+            continue
+        }
         if (entry.isDirectory()) {
             result = result.concat(readJsFilesRecursively(fullPath))
         } else if (/^\d+.+\.js$/.test(entry.name)) {
