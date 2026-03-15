@@ -17408,19 +17408,34 @@ function initCspBridge() {
             opt.headers = { Referer: "https://www.openrailwaymap.org/" }
         }
         // fuck TM, need imitate Response
-        const res = await fetchBlobWithCache(e.data.url, opt)
-        window.postMessage(
-            {
-                type: "bypass_csp_response",
-                url: e.data.url,
-                data: {
-                    status: res.status,
-                    statusText: res.statusText,
-                    response: res.response,
+        try {
+            const res = await fetchBlobWithCache(e.data.url, opt)
+            window.postMessage(
+                {
+                    type: "bypass_csp_response",
+                    url: e.data.url,
+                    data: {
+                        status: res.status,
+                        statusText: res.statusText,
+                        response: res.response
+                    }
                 },
-            },
-            e.origin,
-        )
+                e.origin
+            )
+        } catch (err) {
+            window.postMessage(
+                {
+                    type: "bypass_csp_response",
+                    url: e.data.url,
+                    data: {
+                        status: err.status,
+                        statusText: err.statusText,
+                        response: err.response,
+                    },
+                },
+                e.origin,
+            )
+        }
     })
 }
 
