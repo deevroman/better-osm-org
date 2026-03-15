@@ -304,7 +304,7 @@ async function askCustomStyleUrl() {
                 '2. In TamperMonkey settings change "Content Script API" to "UserScript API Dynamic"\n' +
                 "More info: https://c.osm.org/t/121670/208\n" +
                 "\n" +
-                "Or use Firefox with ViolentMonkey ;-)",
+                "Or try to use Firefox with ViolentMonkey",
         )
         return
     }

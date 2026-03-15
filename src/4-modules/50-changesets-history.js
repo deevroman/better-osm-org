@@ -38,7 +38,7 @@ async function updateUserInfo(username) {
     try {
         userInfo["cacheTime"] = new Date()
     } catch (e) {
-        alert("Open debugger")
+        debug_alert("Open debugger")
         debugger
     }
     userInfo["description"] = ""
