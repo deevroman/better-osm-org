@@ -20429,6 +20429,8 @@ window.addEventListener("message", async e => {
         }
         setTimeout(() => {
             document.querySelectorAll(".routing-timestamp").forEach(i => i.remove())
+            document.querySelector(".osrm-debug-link")?.remove()
+
             times.forEach(([name, time]) => {
                 const elem = document.createElement("p")
                 elem.classList.add("text-center", "routing-timestamp")
@@ -20436,6 +20438,16 @@ window.addEventListener("message", async e => {
                 elem.title = "added by better-osm-org"
                 document.querySelector("#sidebar_content").appendChild(elem)
             })
+
+            const [x, y, z] = getCurrentXYZ()
+            const p = document.createElement("p")
+            p.classList.add("osrm-debug-link", "text-center", "routing-timestamp")
+            const a = document.createElement("a")
+            a.href = `https://map.project-osrm.org/debug/#${z}/${x}/${y}`
+            a.textContent = "Open Debug Map"
+            p.appendChild(a)
+            document.querySelector("#sidebar_content").appendChild(p)
+
         })
     } else if (url.startsWith("https://graphhopper.com/api/1/route")) {
         document.querySelectorAll(".routing-timestamp").forEach(i => i.remove())
