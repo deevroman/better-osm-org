@@ -1,0 +1,459 @@
+{
+  "version": 8,
+  "name": "OSRM MVT Debug (minimal)",
+  "sources": {
+    "osrm": {
+      "type": "vector",
+      "tiles": [
+        "https://router.project-osrm.org/tile/v1/car/tile({x},{y},{z}).mvt"
+      ],
+      "minzoom": 12,
+      "maxzoom": 19
+    }
+  },
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {
+        "background-color": "#111"
+      }
+    },
+    {
+      "id": "speeds outline",
+      "type": "line",
+      "source": "osrm",
+      "source-layer": "speeds",
+      "filter": ["==", "$type", "LineString"],
+      "layout": {
+        "visibility": "visible",
+        "line-cap": "round"
+      },
+      "paint": {
+        "line-width": {
+          "base": 1.5,
+          "stops": [
+            [12.5, 4],
+            [14, 6],
+            [18, 24]
+          ]
+        },
+        "line-color": "hsl(0, 0%, 0%)",
+        "line-offset": {
+          "base": 1.5,
+          "stops": [
+            [12.5, 0.25],
+            [14, 1],
+            [18, 9]
+          ]
+        }
+      },
+      "minzoom": 12
+    },
+    {
+      "id": "speeds small components",
+      "type": "line",
+      "source": "osrm",
+      "source-layer": "speeds",
+      "filter": [
+        "all",
+        ["==", "$type", "LineString"],
+        ["==", "is_small", true]
+      ],
+      "layout": {
+        "visibility": "visible",
+        "line-cap": "round"
+      },
+      "paint": {
+        "line-width": {
+          "base": 1.5,
+          "stops": [
+            [12.5, 6],
+            [14, 8],
+            [18, 28]
+          ]
+        },
+        "line-color": "#ff37ef",
+        "line-offset": {
+          "base": 1.5,
+          "stops": [
+            [12.5, 0.25],
+            [14, 1],
+            [18, 9]
+          ]
+        }
+      },
+      "minzoom": 12
+    },
+    {
+      "id": "speeds < 10",
+      "type": "line",
+      "source": "osrm",
+      "source-layer": "speeds",
+      "filter": ["all", ["==", "$type", "LineString"], ["<=", "speed", 10]],
+      "layout": {
+        "visibility": "visible",
+        "line-cap": "round"
+      },
+      "paint": {
+        "line-color": "#5e4fa2",
+        "line-width": {
+          "base": 1.5,
+          "stops": [
+            [12.5, 0.5],
+            [14, 2],
+            [18, 18]
+          ]
+        },
+        "line-offset": {
+          "base": 1.5,
+          "stops": [
+            [12.5, 0.25],
+            [14, 1],
+            [18, 9]
+          ]
+        }
+      },
+      "minzoom": 12
+    },
+    {
+      "id": "speeds 10-20",
+      "type": "line",
+      "source": "osrm",
+      "source-layer": "speeds",
+      "filter": [
+        "all",
+        ["==", "$type", "LineString"],
+        ["all", ["<=", "speed", 20], [">", "speed", 10]]
+      ],
+      "layout": {
+        "line-cap": "round"
+      },
+      "paint": {
+        "line-color": "#3288bd",
+        "line-width": {
+          "base": 1.5,
+          "stops": [
+            [12.5, 0.5],
+            [14, 2],
+            [18, 18]
+          ]
+        },
+        "line-offset": {
+          "base": 1.5,
+          "stops": [
+            [12.5, 0.25],
+            [14, 1],
+            [18, 9]
+          ]
+        }
+      },
+      "minzoom": 12
+    },
+    {
+      "id": "speeds 20-30",
+      "type": "line",
+      "source": "osrm",
+      "source-layer": "speeds",
+      "filter": [
+        "all",
+        ["==", "$type", "LineString"],
+        ["all", ["<=", "speed", 30], [">", "speed", 20]]
+      ],
+      "layout": {
+        "line-cap": "round"
+      },
+      "paint": {
+        "line-color": "#66c2a5",
+        "line-width": {
+          "base": 1.5,
+          "stops": [
+            [12.5, 0.5],
+            [14, 2],
+            [18, 18]
+          ]
+        },
+        "line-offset": {
+          "base": 1.5,
+          "stops": [
+            [12.5, 0.25],
+            [14, 1],
+            [18, 9]
+          ]
+        }
+      },
+      "minzoom": 12
+    },
+    {
+      "id": "speeds 30-40",
+      "type": "line",
+      "source": "osrm",
+      "source-layer": "speeds",
+      "filter": [
+        "all",
+        ["==", "$type", "LineString"],
+        ["all", ["<=", "speed", 40], [">", "speed", 30]]
+      ],
+      "layout": {
+        "line-cap": "round"
+      },
+      "paint": {
+        "line-color": "#abdda4",
+        "line-width": {
+          "base": 1.5,
+          "stops": [
+            [12.5, 0.5],
+            [14, 2],
+            [18, 18]
+          ]
+        },
+        "line-offset": {
+          "base": 1.5,
+          "stops": [
+            [12.5, 0.25],
+            [14, 1],
+            [18, 9]
+          ]
+        }
+      },
+      "minzoom": 12
+    },
+    {
+      "id": "speeds 40-50",
+      "type": "line",
+      "source": "osrm",
+      "source-layer": "speeds",
+      "filter": [
+        "all",
+        ["==", "$type", "LineString"],
+        ["all", ["<=", "speed", 50], [">", "speed", 40]]
+      ],
+      "layout": {
+        "line-cap": "round"
+      },
+      "paint": {
+        "line-color": "#e6f598",
+        "line-width": {
+          "base": 1.5,
+          "stops": [
+            [12.5, 0.5],
+            [14, 2],
+            [18, 18]
+          ]
+        },
+        "line-offset": {
+          "base": 1.5,
+          "stops": [
+            [12.5, 0.25],
+            [14, 1],
+            [18, 9]
+          ]
+        }
+      },
+      "minzoom": 12
+    },
+    {
+      "id": "speeds 50-60",
+      "type": "line",
+      "source": "osrm",
+      "source-layer": "speeds",
+      "filter": [
+        "all",
+        ["==", "$type", "LineString"],
+        ["all", ["<=", "speed", 60], [">", "speed", 50]]
+      ],
+      "layout": {
+        "line-cap": "round"
+      },
+      "paint": {
+        "line-color": "#fee08b",
+        "line-width": {
+          "base": 1.5,
+          "stops": [
+            [12.5, 0.5],
+            [14, 2],
+            [18, 18]
+          ]
+        },
+        "line-offset": {
+          "base": 1.5,
+          "stops": [
+            [12.5, 0.25],
+            [14, 1],
+            [18, 9]
+          ]
+        }
+      },
+      "minzoom": 12
+    },
+    {
+      "id": "speeds 60-70",
+      "type": "line",
+      "source": "osrm",
+      "source-layer": "speeds",
+      "filter": [
+        "all",
+        ["==", "$type", "LineString"],
+        ["all", ["<=", "speed", 70], [">", "speed", 60]]
+      ],
+      "layout": {
+        "line-cap": "round"
+      },
+      "paint": {
+        "line-color": "#fdae61",
+        "line-width": {
+          "base": 1.5,
+          "stops": [
+            [12.5, 0.5],
+            [14, 2],
+            [18, 18]
+          ]
+        },
+        "line-offset": {
+          "base": 1.5,
+          "stops": [
+            [12.5, 0.25],
+            [14, 1],
+            [18, 9]
+          ]
+        }
+      },
+      "minzoom": 12
+    },
+    {
+      "id": "speeds 70-80",
+      "type": "line",
+      "source": "osrm",
+      "source-layer": "speeds",
+      "filter": [
+        "all",
+        ["==", "$type", "LineString"],
+        ["all", ["<=", "speed", 80], [">", "speed", 70]]
+      ],
+      "layout": {
+        "line-cap": "round"
+      },
+      "paint": {
+        "line-color": "#f46d43",
+        "line-width": {
+          "base": 1.5,
+          "stops": [
+            [12.5, 0.5],
+            [14, 2],
+            [18, 18]
+          ]
+        },
+        "line-offset": {
+          "base": 1.5,
+          "stops": [
+            [12.5, 0.25],
+            [14, 1],
+            [18, 9]
+          ]
+        }
+      },
+      "minzoom": 12
+    },
+    {
+      "id": "speeds 80-90",
+      "type": "line",
+      "source": "osrm",
+      "source-layer": "speeds",
+      "filter": [
+        "all",
+        ["==", "$type", "LineString"],
+        ["all", ["<=", "speed", 90], [">", "speed", 80]]
+      ],
+      "layout": {
+        "line-cap": "round"
+      },
+      "paint": {
+        "line-color": "#d53e4f",
+        "line-width": {
+          "base": 1.5,
+          "stops": [
+            [12.5, 0.5],
+            [14, 2],
+            [18, 18]
+          ]
+        },
+        "line-offset": {
+          "base": 1.5,
+          "stops": [
+            [12.5, 0.25],
+            [14, 1],
+            [18, 9]
+          ]
+        }
+      },
+      "minzoom": 12
+    },
+    {
+      "id": "speeds 90+",
+      "type": "line",
+      "source": "osrm",
+      "source-layer": "speeds",
+      "filter": ["all", ["==", "$type", "LineString"], [">", "speed", 90]],
+      "layout": {
+        "line-cap": "round"
+      },
+      "paint": {
+        "line-color": "#9e0142",
+        "line-width": {
+          "base": 1.5,
+          "stops": [
+            [12.5, 0.5],
+            [14, 2],
+            [18, 18]
+          ]
+        },
+        "line-offset": {
+          "base": 1.5,
+          "stops": [
+            [12.5, 0.25],
+            [14, 1],
+            [18, 9]
+          ]
+        }
+      },
+      "minzoom": 12
+    },
+    {
+      "id": "speeds labels",
+      "type": "symbol",
+      "source": "osrm",
+      "source-layer": "speeds",
+      "filter": ["==", "$type", "LineString"],
+      "minzoom": 12,
+      "layout": {
+        "symbol-placement": "line",
+        "symbol-spacing": 180,
+        "text-field": "{speed} km/h ➜",
+        "text-size": {
+          "base": 1,
+          "stops": [
+            [10, 8],
+            [18, 11]
+          ]
+        },
+        "text-font": ["Noto Sans Regular"],
+        "text-allow-overlap": false,
+        "symbol-avoid-edges": false,
+        "text-ignore-placement": false,
+        "text-justify": "center",
+        "text-padding": 4,
+        "text-offset": [0, 1],
+        "text-rotation-alignment": "map",
+        "text-anchor": "center",
+        "text-keep-upright": false
+      },
+      "paint": {
+        "text-color": "#ffffff",
+        "text-halo-color": "#000000",
+        "text-halo-width": 1,
+        "text-halo-blur": 0
+      }
+    }
+  ],
+  "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf"
+}

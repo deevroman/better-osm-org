@@ -70,23 +70,6 @@
       }
     },
     {
-      "id": "indoor-poi-symbol",
-      "type": "symbol",
-      "source": "indoorequal",
-      "source-layer": "poi",
-      "filter": ["all", ["==", ["get", "level"], "1"]],
-      "layout": {
-        "text-field": ["coalesce", ["get", "name"], ""],
-        "text-offset": [0, 1.2],
-        "text-size": 10,
-        "icon-image": "marker-15",
-        "icon-size": 1
-      },
-      "paint": {
-        "text-color": "#444444"
-      }
-    },
-    {
       "id": "indoor-transport-line",
       "type": "line",
       "source": "indoorequal",
