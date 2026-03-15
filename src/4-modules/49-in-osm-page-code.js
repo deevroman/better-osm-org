@@ -358,7 +358,8 @@ function runInOsmPageCode() {
                 }
             } else if (window.mapGLIntercepted && window.customLayerOrigin && args?.[0]?.url?.startsWith?.(window.customLayerOrigin)
             || window.mapGLIntercepted && window.customVectorStyleLayerOrigin && (
-                    window.customVectorStyleLayerOrigin.startsWith("http://localhost") 
+                    window.customVectorStyleLayerOrigin.startsWith("https://www.openstreetmap.org") 
+                    || window.customVectorStyleLayerOrigin.startsWith("http://localhost") 
                     || window.customVectorStyleLayerOrigin.startsWith("https://raw.githubusercontent.com") 
                     || args?.[0]?.url?.startsWith?.(window.customVectorStyleLayerOrigin)
                     || args?.[0]?.url?.startsWith?.("https://demotiles.maplibre.org/")

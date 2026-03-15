@@ -7096,9 +7096,14 @@ let customLayerUrlOrigin = null
 GM.getValue("lastCustomLayerUrl").then(res => (lastCustomLayerUrl = res))
 
 let lastVectorLayerStyleUrl = null
+let customLayerTextArea = null
 let vectorLayerStyleUrlOrigin = null
 GM.getValue("lastVectorLayerStyleUrl").then(res => (lastVectorLayerStyleUrl = res))
+GM.getValue("customLayerTextarea").then(res => (customLayerTextArea = res))
 
+/**
+ * @return {import('maplibre-gl').Map}
+ */
 function findVectorMap() {
     for (const i of getWindow().mapGL) {
         if (i && i.getMaplibreMap?.()) {
@@ -7107,13 +7112,34 @@ function findVectorMap() {
     }
 }
 
+let vectorStyleValidatorTimer = null
+
 async function applyCustomVectorMapStyle(styleUrl, updateUrlInStorage = false) {
-    if (updateUrlInStorage) {
-        void GM.setValue("lastVectorLayerStyleUrl", (lastVectorLayerStyleUrl = styleUrl))
+    try {
+        getWindow().customVectorStyleLayerOrigin = vectorLayerStyleUrlOrigin = new URL(styleUrl).origin
+        if (updateUrlInStorage) {
+            void GM.setValue("lastVectorLayerStyleUrl", (lastVectorLayerStyleUrl = styleUrl))
+        }
+    } catch (e) {
+        const parsedJson = JSON.parse(styleUrl)
+        void GM.setValue("customLayerTextarea", styleUrl)
+        styleUrl = parsedJson
+        getWindow().customVectorStyleLayerOrigin = vectorLayerStyleUrlOrigin = "https://www.openstreetmap.org"
     }
-    getWindow().customVectorStyleLayerOrigin = vectorLayerStyleUrlOrigin = new URL(styleUrl).origin
     initCustomFetch()
-    findVectorMap().setStyle(styleUrl)
+    const map = findVectorMap()
+    map.on("error", e => {
+        if (typeof styleUrl === "object") {
+            if (vectorStyleValidatorTimer) clearTimeout(vectorStyleValidatorTimer)
+            vectorStyleValidatorTimer = setTimeout(() => {
+                const ta = document.querySelector(".custom-layer-textarea")
+                ta.setCustomValidity(e.error.toString())
+                ta.reportValidity()
+                ta.style.borderColor = "red"
+            }, 1000)
+        }
+    })
+    map.setStyle(styleUrl)
 }
 
 function applyCustomLayer(layerUrl, updateUrlInStorage = false) {
@@ -7180,6 +7206,8 @@ async function askCustomStyleUrl() {
     .vector-tiles-selector-popup {
         position: relative;
         width: fit-content;
+        max-height: calc(100vh - 55px);
+        overflow-y: auto;
         background: var(--bs-body-bg);
         border: 1px solid rgba(204,204,204,0.5);
         padding: 12px;
@@ -7204,6 +7232,7 @@ async function askCustomStyleUrl() {
     closeBtn.classList.add("better-btn-close")
     closeBtn.style.all = "unset"
     closeBtn.style.cursor = "pointer"
+    closeBtn.style.marginLeft = "auto"
     closeBtn.innerHTML =
         '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">' +
         '  <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>' +
@@ -7241,19 +7270,43 @@ async function askCustomStyleUrl() {
             }
         })
 
+        const editBtn = document.createElement("button")
+        editBtn.classList.add("edit-vector-style-btn", "bi", "bi-download")
+        editBtn.style.all = "unset"
+        editBtn.style.cursor = "pointer"
+        editBtn.style.marginLeft = "auto"
+        editBtn.style.marginRight = "10px"
+        editBtn.style.color = "gray"
+        editBtn.title = "duplicate style and edit it"
+        editBtn.onclick = async e => {
+            if (!e.isTrusted) return
+            editBtn.style.cursor = "progress"
+            const r = await externalFetch({
+                url: value,
+                responseType: "json",
+            })
+            editBtn.style.cursor = "pointer"
+            const ta = document.querySelector(".custom-layer-textarea")
+            ta.focus()
+            ta.setSelectionRange(0, ta.value.length)
+            document.execCommand("insertText", false, JSON.stringify(r.response, null, 2))
+            ta.setSelectionRange(0, 0)
+            ta.click()
+            ta.parentElement.click()
+        }
+
         const externalLink = document.createElement("a")
         externalLink.title = "Open map style home page"
         externalLink.setAttribute("href", about)
         externalLink.setAttribute("target", "_blank")
-        externalLink.innerHTML = externalLinkSvg
-        externalLink.style.marginLeft = "auto"
+        externalLink.innerHTML = '<i class="bi bi-box-arrow-up-right"></i>'
         externalLink.style.marginRight = "2px"
         externalLink.style.color = "gray"
         externalLink.tabIndex = -1
 
         const labelSpan = document.createElement("span")
         labelSpan.textContent = label
-        wrapper.append(input, labelSpan, externalLink)
+        wrapper.append(input, labelSpan, editBtn, externalLink)
         radioContainer.appendChild(wrapper)
     }
 
@@ -7290,6 +7343,68 @@ async function askCustomStyleUrl() {
                 await applyCustomVectorMapStyle(urlInput.value, true)
                 getMap()?.attributionControl?.setPrefix("Custom map style from " + escapeHtml(new URL(urlInput.value).host))
             }
+        }
+        radioContainer.appendChild(wrapper)
+    }
+    {
+        const wrapper = makeWrapper()
+
+        const input = document.createElement("input")
+        input.type = "radio"
+        input.name = radiosName
+        input.value = ""
+
+        wrapper.append(input)
+        const jsonArea = document.createElement("textarea")
+        jsonArea.classList.add("custom-layer-textarea")
+        jsonArea.type = "text"
+        if (customLayerTextArea) {
+            jsonArea.value = customLayerTextArea
+            jsonArea.rows = 3
+        } else {
+            jsonArea.rows = 1
+        }
+        jsonArea.placeholder = `Paste style.json`
+        jsonArea.style.width = "100%"
+        jsonArea.style.fontFamily = "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+        jsonArea.addEventListener(
+            "click",
+            () => {
+                popup.style.minWidth = "50vw"
+                popup.style.resize = "horizontal"
+                jsonArea.style.height = "80vh"
+                jsonArea.scrollIntoView({ block: "nearest", inline: "nearest" })
+            },
+            { once: true },
+        )
+        wrapper.append(jsonArea)
+
+        input.onchange = async e => {
+            if (!e.isTrusted) return
+            if (input.checked) {
+                if (jsonArea.value.trim() !== "") {
+                    await applyCustomVectorMapStyle(jsonArea.value, true)
+                } else {
+                    void GM.setValue("customLayerTextarea", "")
+                }
+            }
+        }
+
+        jsonArea.onkeyup = async e => {
+            if (!e.isTrusted) return
+            try {
+                JSON.parse(jsonArea.value)
+            } catch {
+                if (vectorStyleValidatorTimer) clearTimeout(vectorStyleValidatorTimer)
+                vectorStyleValidatorTimer = setTimeout(() => (jsonArea.style.borderColor = "red"), 1000)
+                return
+            }
+            if (vectorStyleValidatorTimer) clearTimeout(vectorStyleValidatorTimer)
+            jsonArea.style.removeProperty("border-color")
+            jsonArea.setCustomValidity("")
+            input.click()
+            await applyCustomVectorMapStyle(jsonArea.value, true)
+            getMap()?.attributionControl?.setPrefix("Custom map style")
         }
 
         radioContainer.appendChild(wrapper)
@@ -7366,6 +7481,8 @@ async function askCustomTileUrl() {
     .map-layers-selector-popup {
         position: relative;
         width: fit-content;
+        max-height: calc(100vh - 55px);
+        overflow-y: auto;
         background: var(--bs-body-bg);
         border: 1px solid rgba(204,204,204,0.5);
         padding: 12px;
@@ -7390,6 +7507,7 @@ async function askCustomTileUrl() {
     closeBtn.classList.add("better-btn-close")
     closeBtn.style.all = "unset"
     closeBtn.style.cursor = "pointer"
+    closeBtn.style.marginLeft = "auto"
     closeBtn.innerHTML =
         '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">' +
         '  <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>' +
@@ -17747,7 +17865,8 @@ function runInOsmPageCode() {
                 }
             } else if (window.mapGLIntercepted && window.customLayerOrigin && args?.[0]?.url?.startsWith?.(window.customLayerOrigin)
             || window.mapGLIntercepted && window.customVectorStyleLayerOrigin && (
-                    window.customVectorStyleLayerOrigin.startsWith("http://localhost") 
+                    window.customVectorStyleLayerOrigin.startsWith("https://www.openstreetmap.org") 
+                    || window.customVectorStyleLayerOrigin.startsWith("http://localhost") 
                     || window.customVectorStyleLayerOrigin.startsWith("https://raw.githubusercontent.com") 
                     || args?.[0]?.url?.startsWith?.(window.customVectorStyleLayerOrigin)
                     || args?.[0]?.url?.startsWith?.("https://demotiles.maplibre.org/")
