@@ -8015,64 +8015,8 @@ function setupSatelliteLayers() {
 function arraysDiff(arg_a, arg_b, one_replace_cost = 2) {
     const isRelation = arg_a.length && Object.prototype.hasOwnProperty.call(arg_a[0], "role")
 
-    const groupedPairStarters = new Set([" ", ";"])
-
-    const tokenizeCharArray = arr => {
-        const tokens = []
-        for (let i = 0; i < arr.length; i++) {
-            if (arr[i] === "h") {
-                const matchedPrefixToken = ["https://", "http://"].find(token => i + token.length <= arr.length && arr.slice(i, i + token.length).join("") === token)
-                if (matchedPrefixToken) {
-                    tokens.push(matchedPrefixToken)
-                    i += matchedPrefixToken.length - 1
-                    continue
-                }
-            }
-            if (i + 1 < arr.length && groupedPairStarters.has(arr[i]) && arr[i] === arr[i + 1]) {
-                tokens.push(arr[i] + arr[i + 1])
-                i += 1
-                continue
-            }
-            tokens.push(arr[i])
-        }
-        return tokens
-    }
-    const detokenizeDiff = diff => {
-        if (isRelation) {
-            return diff
-        }
-        const expanded = []
-        for (const pair of diff) {
-            const left = pair[0]
-            const right = pair[1]
-            if (left === null && typeof right === "string" && right.length > 1) {
-                for (const ch of Array.from(right)) {
-                    expanded.push([null, ch])
-                }
-                continue
-            }
-            if (right === null && typeof left === "string" && left.length > 1) {
-                for (const ch of Array.from(left)) {
-                    expanded.push([ch, null])
-                }
-                continue
-            }
-            if (typeof left === "string" && typeof right === "string" && (left.length > 1 || right.length > 1)) {
-                const leftChars = Array.from(left)
-                const rightChars = Array.from(right)
-                const maxLen = Math.max(leftChars.length, rightChars.length)
-                for (let k = 0; k < maxLen; k++) {
-                    expanded.push([leftChars[k] ?? null, rightChars[k] ?? null])
-                }
-                continue
-            }
-            expanded.push(pair)
-        }
-        return expanded
-    }
-
-    let a = (isRelation ? arg_a : tokenizeCharArray(arg_a)).map(i => JSON.stringify(i))
-    let b = (isRelation ? arg_b : tokenizeCharArray(arg_b)).map(i => JSON.stringify(i))
+    let a = arg_a.map(i => JSON.stringify(i))
+    let b = arg_b.map(i => JSON.stringify(i))
     const dp = []
     for (let i = 0; i < a.length + 1; i++) {
         dp[i] = new Uint32Array(b.length + 1)
@@ -8151,7 +8095,70 @@ function arraysDiff(arg_a, arg_b, one_replace_cost = 2) {
             j = j - 1
         }
     }
-    return detokenizeDiff(answer.toReversed())
+    const result = answer.toReversed()
+    if (isRelation) {
+        return result
+    }
+
+    function insideArray(i) {
+        return i >= 0 && i < result.length
+    }
+
+    let step = -1
+
+    for (let iter = 0; iter < 2; iter++) {
+        step *= -1
+        for (let i = step > 0 ? 0 : result.length - 1; step > 0 ? i < result.length : i >= 0; i += step) {
+            if (result[i][0] === result[i][1]) {
+                continue
+            }
+            if (result[i][0] !== null && result[i][1] !== null) {
+                continue
+            }
+            const a_or_b = result[i][0] === null ? 0 : 1
+            const opposite = 1 - a_or_b
+            let j = i
+            let was_merged = false
+            while (true) {
+                while (insideArray(j) && result[j][a_or_b] === null) {
+                    j += step
+                }
+                if (!insideArray(j)) {
+                    break
+                }
+
+                let try_i = i
+                let try_j = j
+                while (insideArray(try_j) && result[try_i][opposite] === result[try_j][opposite] && result[try_j][a_or_b] === result[try_j][opposite]) {
+                    try_i += step
+                    try_j += step
+                }
+                if (!insideArray(try_j) || result[try_j][a_or_b] === null) {
+                    was_merged = true
+                    while (insideArray(j) && result[i][opposite] === result[j][opposite] && result[j][a_or_b] === result[j][opposite]) {
+                        result[i][a_or_b] = result[j][a_or_b]
+                        result[j][a_or_b] = null
+                        i += step
+                        j += step
+                    }
+                } else {
+                    break
+                }
+            }
+            i = j - step
+        }
+    }
+    return result
+}
+
+/**
+ * @param {string} a
+ * @param {string} b
+ * @param {number} one_replace_cost
+ * @return {[string,string][]}
+ */
+function stringsDiff(a, b, one_replace_cost = 2) {
+    return arraysDiff(Array.from(a), Array.from(b), one_replace_cost)
 }
 
 //</editor-fold>
@@ -12190,7 +12197,7 @@ function addDiffInHistory(reason = "url_change") {
                             const prevValueSpan = document.createElement("span")
                             prevValueSpan.classList.add("prev-value-span")
 
-                            const diff = arraysDiff(Array.from(el[1]), Array.from(v), 1)
+                            const diff = stringsDiff(el[1], v, 1)
                             // todo unify with diff in changesets
                             // todo detect asci -> unicode or less strict cond
                             // prettier-ignore
@@ -13158,7 +13165,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             }
             row.classList.add("quick-look-modified-tag")
             // toReversed is dirty hack for group inserted/deleted symbols https://osm.org/changeset/157338007
-            const diff = arraysDiff(Array.from(prevVersion.tags[key]), Array.from(valCell.textContent), 1)
+            const diff = stringsDiff(prevVersion.tags[key], valCell.textContent, 1)
             // for one character diff
             // example: https://osm.org/changeset/157002657
             // prettier-ignore

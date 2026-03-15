@@ -637,7 +637,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             }
             row.classList.add("quick-look-modified-tag")
             // toReversed is dirty hack for group inserted/deleted symbols https://osm.org/changeset/157338007
-            const diff = arraysDiff(Array.from(prevVersion.tags[key]), Array.from(valCell.textContent), 1)
+            const diff = stringsDiff(prevVersion.tags[key], valCell.textContent, 1)
             // for one character diff
             // example: https://osm.org/changeset/157002657
             // prettier-ignore

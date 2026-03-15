@@ -3343,7 +3343,7 @@ function addDiffInHistory(reason = "url_change") {
                             const prevValueSpan = document.createElement("span")
                             prevValueSpan.classList.add("prev-value-span")
 
-                            const diff = arraysDiff(Array.from(el[1]), Array.from(v), 1)
+                            const diff = stringsDiff(el[1], v, 1)
                             // todo unify with diff in changesets
                             // todo detect asci -> unicode or less strict cond
                             // prettier-ignore
