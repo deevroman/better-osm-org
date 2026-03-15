@@ -18119,9 +18119,16 @@ async function updateUserInfo(username) {
 
     const res2 = await fetchJSONWithCache(osm_server.apiBase + "user/" + uid + ".json")
     const userInfo = structuredClone(res2.user) // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
-    userInfo["cacheTime"] = new Date()
+    try {
+        userInfo["cacheTime"] = new Date()
+    } catch (e) {
+        alert("Open debugger")
+        debugger
+    }
+    userInfo["description"] = ""
+    userInfo["cacheTime"] = JSON.stringify(new Date())
     if (firstObjectCreationTime) {
-        userInfo["firstChangesetCreationTime"] = new Date(firstObjectCreationTime)
+        userInfo["firstChangesetCreationTime"] = JSON.stringify(new Date(firstObjectCreationTime))
     }
     if (firstChangesetID) {
         userInfo["firstChangesetID"] = firstChangesetID
