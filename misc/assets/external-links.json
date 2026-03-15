@@ -207,6 +207,11 @@
       "description": ""
     },
     {
+      "name": "OSRM Debug Map",
+      "template": "https://map.project-osrm.org/debug/#{zoom}/{latitude}/{longitude}",
+      "description": ""
+    },
+    {
       "name": "Opening hours",
       "template": "https://openingh.ypid.de/?zoom={zoom}&lat={latitude}&lon={longitude}&layers=B0T&filter=none&tags=opening_hours",
       "description": ""

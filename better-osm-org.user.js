@@ -161,6 +161,7 @@
 // @connect      tiles.openfreemap.org
 // @connect      tiles.openrailwaymap.org
 // @connect      frexosm.ru
+// @connect      demotiles.maplibre.org
 // @comment      * for custom layers. ViolentMonkey ignores @connect by default,
 // @comment      Tampermonkey will show a warning before connecting to a host that is not listed above
 // @connect      *
@@ -7150,7 +7151,7 @@ async function askCustomStyleUrl() {
                 '2. In TamperMonkey settings change "Content Script API" to "UserScript API Dynamic"\n' +
                 "More info: https://c.osm.org/t/121670/208\n" +
                 "\n" +
-                "Or use Firefox with ViolentMonkey ;-)",
+                "Or try to use Firefox with ViolentMonkey",
         )
         return
     }
@@ -17407,6 +17408,9 @@ function initCspBridge() {
         if (e.data.url.startsWith("https://tiles.openrailwaymap.org")) {
             opt.headers = { Referer: "https://www.openrailwaymap.org/" }
         }
+        if (e.data.url.startsWith("https://tile.openstreetmap.org")) {
+            opt.headers = { Accept: "image/*", Referer: "https://www.openstreetmap.org/" }
+        }
         // fuck TM, need imitate Response
         try {
             const res = await fetchBlobWithCache(e.data.url, opt)
@@ -17417,10 +17421,10 @@ function initCspBridge() {
                     data: {
                         status: res.status,
                         statusText: res.statusText,
-                        response: res.response
-                    }
+                        response: res.response,
+                    },
                 },
-                e.origin
+                e.origin,
             )
         } catch (err) {
             window.postMessage(
@@ -17746,6 +17750,7 @@ function runInOsmPageCode() {
                     window.customVectorStyleLayerOrigin.startsWith("http://localhost") 
                     || window.customVectorStyleLayerOrigin.startsWith("https://raw.githubusercontent.com") 
                     || args?.[0]?.url?.startsWith?.(window.customVectorStyleLayerOrigin)
+                    || args?.[0]?.url?.startsWith?.("https://demotiles.maplibre.org/")
                 )) {
                 const resourceUrl = args?.[0]?.url
                 console.log("overridden fetch in page", window.customLayerOrigin, window.customVectorStyleLayerOrigin, resourceUrl)
@@ -18137,7 +18142,7 @@ async function updateUserInfo(username) {
     try {
         userInfo["cacheTime"] = new Date()
     } catch (e) {
-        alert("Open debugger")
+        debug_alert("Open debugger")
         debugger
     }
     userInfo["description"] = ""
@@ -20444,6 +20449,7 @@ window.addEventListener("message", async e => {
             p.classList.add("osrm-debug-link", "text-center", "routing-timestamp")
             const a = document.createElement("a")
             a.href = `https://map.project-osrm.org/debug/#${z}/${x}/${y}`
+            a.target = "_blank"
             a.textContent = "Open Debug Map"
             p.appendChild(a)
             document.querySelector("#sidebar_content").appendChild(p)
