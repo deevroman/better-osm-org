@@ -24335,8 +24335,13 @@ function setupNavigationViaHotkeys() {
         } else if (e.code === "KeyE") {
             if (e.altKey) {
                 if (location.pathname.startsWith("/changeset/")) {
-                    const activeObjectUrl = document.querySelector(".active-object").querySelector("a").getAttribute("href")
-                    window.open(activeObjectUrl, "_blank")
+                    if (document.querySelector(".active-object")) {
+                        const activeObjectUrl = document.querySelector(".active-object").querySelector("a").getAttribute("href")
+                        window.open(activeObjectUrl, "_blank")
+                    } else {
+                        const firstObjectUrl = document.querySelector("turbo-frame:is(#changeset_nodes, #changeset_ways, #changeset_relations)").querySelector("ul a").getAttribute("href")
+                        window.open(firstObjectUrl, "_blank")
+                    }
                 } else {
                     document.querySelector(".edit_tags_class").click()
                 }
