@@ -1205,7 +1205,7 @@ async function openSelectedObjectsOnChangesetPage(e) {
         }).toString())
     } else {
         const prefix = isMobile ? "josm:/load_object?objects=" : "http://localhost:8111/load_object?"
-        if (!(await validateOsmServerInJOSM())) {
+        if (!isMobile && !(await validateOsmServerInJOSM())) {
             return
         }
         // prettier-ignore
