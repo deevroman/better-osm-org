@@ -22,6 +22,9 @@ function initCspBridge() {
         if (e.data.url.startsWith("https://tile.openstreetmap.org")) {
             opt.headers = { Accept: "image/*", Referer: "https://www.openstreetmap.org/" }
         }
+        if (e.data.url.startsWith("https://tiles.indoorequal.org")) {
+            opt.headers = { Referer: "https://www.openstreetmap.org/" }
+        }
         // fuck TM, need imitate Response
         try {
             const res = await fetchBlobWithCache(e.data.url, opt)
@@ -143,7 +146,7 @@ function runInOsmPageCode() {
             "   });" +
             "   self.postMessage({ type: 'bypass_csp', url: url });" +
             "   const res = await resultCallback;" +
-            "   return new Response(res.response, { status: res.status, statusText: res.statusText });" +
+            "   return new Response(res.status === 204 ? null : res.response, { status: res.status, statusText: res.statusText });" +
             "};"
         const proxyUrl = URL.createObjectURL(
             new OriginalBlob([fetchCode + window.maplibreWorkerSourceCode], { type: "application/javascript" }),
@@ -380,7 +383,7 @@ function runInOsmPageCode() {
                 })
                 window.postMessage({ "type": "bypass_csp", url: resourceUrl }, location.origin)
                 const res = await resultCallback
-                return new Response(res.response, {
+                return new Response(res.status === 204 ? null : res.response, {
                     status: res.status,
                     statusText: res.statusText,
                 });
