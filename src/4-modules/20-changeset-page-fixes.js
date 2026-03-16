@@ -662,7 +662,7 @@ Press R for partial revert`
         if (secondaryActionsWithXml && !document.querySelector(".objects-selector")) {
             const selectObjects = document.createElement("a")
             selectObjects.classList.add("select-objects-btn")
-            selectObjects.textContent = "Select objects"
+            selectObjects.textContent = "Select\xA0objects"
             selectObjects.href = ""
             selectObjects.title = "to partial revert or edit in JOSM/Level0"
             selectObjects.onclick = e => {
