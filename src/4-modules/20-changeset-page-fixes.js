@@ -472,6 +472,76 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
     reactionsContainer.addEventListener("contextmenu", contextMenuHandler)
 }
 
+function addCheckboxesForChangesetObjects() {
+    if (changesetObjectsSelectionModeEnabled) return
+    changesetObjectsSelectionModeEnabled = true
+    document.querySelectorAll("#changeset_nodes, #changeset_ways, #changeset_relations").forEach(i => {
+        i.querySelectorAll("button, input, a, textarea, select, [tabindex]").forEach(el => {
+            el.setAttribute("tabindex", "-1")
+        })
+    })
+    ;["#changeset_nodes", "#changeset_ways", "#changeset_relations"].forEach(selector => {
+        document.querySelectorAll(`${selector} .browse-element-list li`).forEach(obj => {
+            const checkbox = document.createElement("input")
+            checkbox.type = "checkbox"
+            checkbox.title = `Click with Shift for select range
+Press R for revert via ${osm_revert_name}
+Press J for open objects in JOSM
+Press alt + J for open objects in Level0`
+            checkbox.tabIndex = 0
+            checkbox.style.width = "18px"
+            checkbox.style.height = "18px"
+            checkbox.style.margin = "1px"
+            checkbox.classList.add("align-bottom", "object-fit-none", "browse-icon")
+
+            function selectRange() {
+                let currentCheckboxFound = false
+                const checkboxes = Array.from(document.querySelectorAll(`#changeset_nodes li input[type=checkbox], #changeset_ways li input[type=checkbox], #changeset_relations li input[type=checkbox]`))
+                for (const cBox of checkboxes.toReversed()) {
+                    if (!currentCheckboxFound) {
+                        if (cBox === checkbox) {
+                            currentCheckboxFound = true
+                        }
+                    } else {
+                        if (cBox.checked) {
+                            break
+                        }
+                        cBox.checked = true
+                    }
+                }
+            }
+
+            checkbox.onclick = e => {
+                e.stopPropagation()
+                e.stopImmediatePropagation()
+                if (e.shiftKey) {
+                    selectRange()
+                }
+            }
+            checkbox.onkeydown = e => {
+                if (e.shiftKey && e.code === "Space") {
+                    selectRange()
+                } else if (e.code === "Enter") {
+                    e.target.click()
+                    if (e.shiftKey) {
+                        selectRange()
+                    }
+                }
+            }
+            const icon = obj.querySelector("img")
+            icon.style.display = "none"
+            const label = document.createElement("label")
+            label.appendChild(checkbox)
+            label.onclick = e => {
+                e.stopPropagation()
+                e.stopImmediatePropagation()
+            }
+            icon.after(label)
+        })
+    })
+    document.querySelector("#changeset_nodes input[type=checkbox], #changeset_ways input[type=checkbox], #changeset_relations input[type=checkbox]").focus()
+}
+
 function addRevertButton() {
     if (!location.pathname.startsWith("/changeset")) return
     if (document.querySelector("#revert_button_class")) return true
@@ -586,6 +656,63 @@ Press R for partial revert`
         osmcha_link.title = "Open changeset in OSMCha (or press O)\n(shift + O for open Achavi)"
         if (isDarkMode()) {
             osmcha_link.style.filter = "invert(0.7)"
+        }
+
+        const secondaryActionsWithXml = document.querySelector('.secondary-actions:has(a[href$="/download"])')
+        if (secondaryActionsWithXml && !document.querySelector(".objects-selector")) {
+            const selectObjects = document.createElement("a")
+            selectObjects.classList.add("select-objects-btn")
+            selectObjects.textContent = "Select objects"
+            selectObjects.href = ""
+            selectObjects.title = "to partial revert or edit in JOSM/Level0"
+            selectObjects.onclick = e => {
+                e.preventDefault()
+                e.stopPropagation()
+                e.stopImmediatePropagation()
+                addCheckboxesForChangesetObjects()
+                selectObjects.style.display = "none"
+                separator.remove()
+
+                const wrapper = document.createElement("div")
+
+                const revertBtn = document.createElement("button")
+                revertBtn.textContent = "Revert via osm-revert"
+                revertBtn.title = "Hotkey: R"
+                revertBtn.style.marginBottom = "4px"
+                revertBtn.onclick = () => document.querySelector("#revert_button_class").click()
+                wrapper.appendChild(revertBtn)
+                wrapper.appendChild(document.createTextNode("\xA0"))
+
+                const josmBtn = document.createElement("button")
+                josmBtn.textContent = "Open in " + (isMobile ? "Vespucci" : "JOSM")
+                josmBtn.title = "Hotkey: J"
+                josmBtn.style.marginBottom = "4px"
+                josmBtn.onclick = openSelectedObjectsOnChangesetPage
+                wrapper.appendChild(josmBtn)
+                wrapper.appendChild(document.createElement("br"))
+
+                const level0Btn = document.createElement("button")
+                level0Btn.textContent = "Open in Level0"
+                level0Btn.title = "Hotkey: Alt + J"
+                level0Btn.style.marginBottom = "4px"
+                level0Btn.onclick = () => openSelectedObjectsOnChangesetPage({ altKey: true })
+                wrapper.appendChild(level0Btn)
+                wrapper.appendChild(document.createTextNode("\xA0"))
+
+                const level0BtnWithGeometry = document.createElement("button")
+                level0BtnWithGeometry.textContent = "Open in Level0 with ways geometry"
+                level0BtnWithGeometry.title = "Hotkey: Shift + Alt + J"
+                level0BtnWithGeometry.style.marginBottom = "4px"
+                level0BtnWithGeometry.onclick = () => openSelectedObjectsOnChangesetPage({ altKey: true, shiftKey: true})
+                wrapper.appendChild(level0BtnWithGeometry)
+
+                secondaryActionsWithXml.before(wrapper)
+            }
+            const separator = document.createTextNode("·\xA0")
+            secondaryActionsWithXml.appendChild(separator)
+            secondaryActionsWithXml.appendChild(selectObjects)
+        } else {
+            console.trace()
         }
 
         // find deleted user

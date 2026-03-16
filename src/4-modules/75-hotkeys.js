@@ -1117,6 +1117,109 @@ function nextVectorLayer() {
     location.hash = hashParams.toString()
 }
 
+async function openObjectInJosmOrLevel0(e) {
+    const m = location.pathname.match(/\/(node|way|relation)\/([0-9]+)/)
+    if (!m) return
+    const [, type, id] = m
+    const shortType = type === "node" ? "n" : type === "way" ? "w" : "r"
+    if (e.altKey) {
+        if (osm_server !== prod_server) {
+            alert("level0 works only with osm.org")
+            return
+        }
+        window.open(
+            "https://level0.osmz.ru/?" +
+                new URLSearchParams({
+                    url: shortType + id + "!",
+                }).toString(),
+        )
+    } else {
+        if (!(await validateOsmServerInJOSM())) {
+            return
+        }
+        window.open(
+            "http://localhost:8111/load_object?" +
+                new URLSearchParams({
+                    objects: [shortType + id],
+                    relation_members: true,
+                }).toString(),
+        )
+    }
+}
+
+async function openSelectedObjectsOnChangesetPage(e) {
+    const nodes = new Set()
+    const ways = new Set()
+    const relations = new Set()
+
+    const changesetID = parseInt(location.pathname.match(/changeset\/(\d+)/)[1])
+    const changesetData = (await getChangeset(changesetID)).data
+
+    function processChangeset(data) {
+        if (changesetObjectsSelectionModeEnabled) {
+            document.querySelectorAll("#changeset_nodes input[type=checkbox]:checked").forEach(n => {
+                nodes.add(parseInt(n.parentElement.nextElementSibling.id.match(/[0-9]+n([0-9]+)/)[1]))
+            })
+            document.querySelectorAll("#changeset_ways input[type=checkbox]:checked").forEach(w => {
+                ways.add(parseInt(w.parentElement.nextElementSibling.id.match(/[0-9]+w([0-9]+)/)[1]))
+            })
+            document.querySelectorAll("#changeset_relations input[type=checkbox]:checked").forEach(r => {
+                relations.add(parseInt(r.parentElement.nextElementSibling.id.match(/[0-9]+r([0-9]+)/)[1]))
+            })
+        } else {
+            Array.from(data.querySelectorAll("node")).map(i => nodes.add(parseInt(i.getAttribute("id"))))
+            Array.from(data.querySelectorAll("way")).map(i => ways.add(parseInt(i.getAttribute("id"))))
+            Array.from(data.querySelectorAll("relation")).map(i => relations.add(parseInt(i.getAttribute("id"))))
+        }
+    }
+
+    processChangeset(changesetData)
+
+    if (location.search.includes("changesets=")) {
+        const params = new URLSearchParams(location.search)
+        const changesetIDs =
+            params
+                .get("changesets")
+                ?.split(",")
+                ?.filter(i => i !== changesetID) ?? []
+        await Promise.all(
+            changesetIDs.map(async i => {
+                if (i === changesetID) return
+                processChangeset((await getChangeset(i)).data)
+            }),
+        )
+    }
+
+    if (e.altKey) {
+        if (osm_server !== prod_server) {
+            alert("level0 works only with osm.org")
+            return
+        }
+        // prettier-ignore
+        window.open("https://level0.osmz.ru/?" + new URLSearchParams({
+            url: [
+                Array.from(nodes).map(i => "n" + i).join(","),
+                Array.from(ways).map(i => "w" + i + (e.shiftKey ? "!" : "")).join(","),
+                Array.from(relations).map(i => "r" + i).join(",")
+            ].join(",").replace(/,,/, ",").replace(/,$/, "").replace(/^,/, "")
+        }).toString())
+    } else {
+        const prefix = isMobile ? "josm:/load_object?objects=" : "http://localhost:8111/load_object?"
+        if (!(await validateOsmServerInJOSM())) {
+            return
+        }
+        // prettier-ignore
+        window.open(prefix + new URLSearchParams({
+            new_layer: "true",
+            objects: [
+                Array.from(nodes).map(i => "n" + i).join(","),
+                Array.from(ways).map(i => "w" + i).join(","),
+                Array.from(relations).map(i => "r" + i).join(",")
+            ].join(",")
+        }).toString())
+    }
+}
+
 function setupNavigationViaHotkeys() {
     if ("/id" === location.pathname || document.querySelector("#id-embed")) return
     updateCurrentObjectMetadata()
@@ -1315,173 +1418,17 @@ function setupNavigationViaHotkeys() {
                 document.querySelector("#revert_button_class").click()
                 return
             }
-            changesetObjectsSelectionModeEnabled = true
-            document.querySelectorAll("#changeset_nodes, #changeset_ways, #changeset_relations").forEach(i => {
-                i.querySelectorAll("button, input, a, textarea, select, [tabindex]").forEach(el => {
-                    el.setAttribute("tabindex", "-1")
-                })
-            })
-            ;["#changeset_nodes", "#changeset_ways", "#changeset_relations"].forEach(selector => {
-                document.querySelectorAll(`${selector} .browse-element-list li`).forEach(obj => {
-                    const checkbox = document.createElement("input")
-                    checkbox.type = "checkbox"
-                    checkbox.title = `Click with Shift for select range
-Press R for revert via ${osm_revert_name}
-Press J for open objects in JOSM
-Press alt + J for open objects in Level0`
-                    checkbox.tabIndex = 0
-                    checkbox.style.width = "18px"
-                    checkbox.style.height = "18px"
-                    checkbox.style.margin = "1px"
-                    checkbox.classList.add("align-bottom", "object-fit-none", "browse-icon")
-
-                    function selectRange() {
-                        let currentCheckboxFound = false
-                        const checkboxes = Array.from(document.querySelectorAll(`#changeset_nodes li input[type=checkbox], #changeset_ways li input[type=checkbox], #changeset_relations li input[type=checkbox]`))
-                        for (const cBox of checkboxes.toReversed()) {
-                            if (!currentCheckboxFound) {
-                                if (cBox === checkbox) {
-                                    currentCheckboxFound = true
-                                }
-                            } else {
-                                if (cBox.checked) {
-                                    break
-                                }
-                                cBox.checked = true
-                            }
-                        }
-                    }
-
-                    checkbox.onclick = e => {
-                        e.stopPropagation()
-                        e.stopImmediatePropagation()
-                        if (e.shiftKey) {
-                            selectRange()
-                        }
-                    }
-                    checkbox.onkeydown = e => {
-                        if (e.shiftKey && e.code === "Space") {
-                            selectRange()
-                        } else if (e.code === "Enter") {
-                            e.target.click()
-                            if (e.shiftKey) {
-                                selectRange()
-                            }
-                        }
-                    }
-                    const icon = obj.querySelector("img")
-                    icon.style.display = "none"
-                    const label = document.createElement("label")
-                    label.appendChild(checkbox)
-                    label.onclick = e => {
-                        e.stopPropagation()
-                        e.stopImmediatePropagation()
-                    }
-                    icon.after(label)
-                })
-            })
-            document.querySelector("#changeset_nodes input[type=checkbox], #changeset_ways input[type=checkbox], #changeset_relations input[type=checkbox]").focus()
+            if (document.querySelector(".select-objects-btn")) {
+                document.querySelector(".select-objects-btn").click()
+            } else {
+                addCheckboxesForChangesetObjects()
+            }
         } else if (e.code === "KeyJ") {
             setTimeout(async () => {
-                if (!location.pathname.includes("changeset")) {
-                    const m = location.pathname.match(/\/(node|way|relation)\/([0-9]+)/)
-                    if (!m) return
-                    const [, type, id] = m
-                    const shortType = type === "node" ? "n" : type === "way" ? "w" : "r"
-                    if (e.altKey) {
-                        if (osm_server !== prod_server) {
-                            alert("level0 works only with osm.org")
-                            return
-                        }
-                        window.open(
-                            "https://level0.osmz.ru/?" +
-                                new URLSearchParams({
-                                    url: shortType + id + "!",
-                                }).toString(),
-                        )
-                    } else {
-                        if (!(await validateOsmServerInJOSM())) {
-                            return
-                        }
-                        window.open(
-                            "http://localhost:8111/load_object?" +
-                                new URLSearchParams({
-                                    objects: [shortType + id],
-                                    relation_members: true,
-                                }).toString(),
-                        )
-                    }
-                    return
-                }
-
-                const nodes = new Set()
-                const ways = new Set()
-                const relations = new Set()
-
-                const changesetID = parseInt(location.pathname.match(/changeset\/(\d+)/)[1])
-                const changesetData = (await getChangeset(changesetID)).data
-
-                function processChangeset(data) {
-                    if (changesetObjectsSelectionModeEnabled) {
-                        document.querySelectorAll("#changeset_nodes input[type=checkbox]:checked").forEach(n => {
-                            nodes.add(parseInt(n.parentElement.nextElementSibling.id.match(/[0-9]+n([0-9]+)/)[1]))
-                        })
-                        document.querySelectorAll("#changeset_ways input[type=checkbox]:checked").forEach(w => {
-                            ways.add(parseInt(w.parentElement.nextElementSibling.id.match(/[0-9]+w([0-9]+)/)[1]))
-                        })
-                        document.querySelectorAll("#changeset_relations input[type=checkbox]:checked").forEach(r => {
-                            relations.add(parseInt(r.parentElement.nextElementSibling.id.match(/[0-9]+r([0-9]+)/)[1]))
-                        })
-                    } else {
-                        Array.from(data.querySelectorAll("node")).map(i => nodes.add(parseInt(i.getAttribute("id"))))
-                        Array.from(data.querySelectorAll("way")).map(i => ways.add(parseInt(i.getAttribute("id"))))
-                        Array.from(data.querySelectorAll("relation")).map(i => relations.add(parseInt(i.getAttribute("id"))))
-                    }
-                }
-
-                processChangeset(changesetData)
-
-                if (location.search.includes("changesets=")) {
-                    const params = new URLSearchParams(location.search)
-                    const changesetIDs =
-                        params
-                            .get("changesets")
-                            ?.split(",")
-                            ?.filter(i => i !== changesetID) ?? []
-                    await Promise.all(
-                        changesetIDs.map(async i => {
-                            if (i === changesetID) return
-                            processChangeset((await getChangeset(i)).data)
-                        }),
-                    )
-                }
-
-                if (e.altKey) {
-                    if (osm_server !== prod_server) {
-                        alert("level0 works only with osm.org")
-                        return
-                    }
-                    // prettier-ignore
-                    window.open("https://level0.osmz.ru/?" + new URLSearchParams({
-                        url: [
-                            Array.from(nodes).map(i => "n" + i).join(","),
-                            Array.from(ways).map(i => "w" + i + (e.shiftKey ? "!" : "")).join(","),
-                            Array.from(relations).map(i => "r" + i).join(",")
-                        ].join(",").replace(/,,/, ",").replace(/,$/, "").replace(/^,/, "")
-                    }).toString())
+                if (location.pathname.includes("changeset")) {
+                    await openSelectedObjectsOnChangesetPage(e)
                 } else {
-                    if (!(await validateOsmServerInJOSM())) {
-                        return
-                    }
-                    // prettier-ignore
-                    window.open("http://localhost:8111/load_object?" + new URLSearchParams({
-                        new_layer: "true",
-                        objects: [
-                            Array.from(nodes).map(i => "n" + i).join(","),
-                            Array.from(ways).map(i => "w" + i).join(","),
-                            Array.from(relations).map(i => "r" + i).join(",")
-                        ].join(",")
-                    }).toString())
+                    await openObjectInJosmOrLevel0(e)
                 }
             })
         } else if (e.code === "KeyH") {
