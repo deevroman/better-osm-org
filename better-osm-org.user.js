@@ -1,7 +1,8 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.5.8.6
+// @version         1.5.9
+// @changelog       v1.5.9: memorizing the last satellite layer, simple vector style editor
 // @changelog       v1.5.7: filter notes by creation date, Panoramax uploader (you need to enable it in the settings)
 // @changelog       v1.5.5: render child relations on relation page by hover
 // @changelog       v1.5.0: Shift + S: custom map layers, Shift + V: custom vector map styles, date for ESRI layer
@@ -1645,6 +1646,13 @@ function abortPrevControllers(reason = null) {
     })
 }
 
+let tilesAbortController = new AbortController()
+
+function abortTilesAbortController(reason) {
+    tilesAbortController.abort(reason)
+    tilesAbortController = new AbortController()
+}
+
 /**
  * @param ms {number}
  * @param signal {AbortSignal}
@@ -1751,6 +1759,40 @@ async function externalFetch(details) {
  * @param details {Tampermonkey.Request}
  * @return {Promise<Tampermonkey.Response>}
  */
+async function abortableXmlHttpRequest(details) {
+    if (details.signal) {
+        // + GM API doesn't reject await GM.xmlHttpRequest. Workaround
+        return await new Promise((resolve, reject) => {
+            details.onabort = () => {
+                // https://github.com/violentmonkey/violentmonkey/issues/2474
+                console.log("abort in onabort", details.url)
+                reject(new DOMException("Aborted", "AbortError"))
+            }
+            details.onerror = reject
+            details.ontimeout = reject
+            details.onload = resolve
+            const req = GM.xmlHttpRequest(details)
+            if (details.signal?.aborted) {
+                req.abort()
+                console.log("abort", details.url)
+                reject(new DOMException("Aborted", "AbortError"))
+                return
+            }
+            details.signal?.addEventListener("abort", () => {
+                req.abort()
+                console.log("abort", details.url)
+                reject(new DOMException("Aborted", "AbortError"))
+            }, { once: true })
+        })
+    } else {
+        return await GM.xmlHttpRequest(details)
+    }
+}
+
+/**
+ * @param details {Tampermonkey.Request}
+ * @return {Promise<Tampermonkey.Response>}
+ */
 async function externalFetchRetry(details) {
     if (GM_info.scriptHandler === "FireMonkey" && parseFloat(GM_info.version) < 3.0) {
         const res = await _fetchRetry(GM.fetch, details.url, details)
@@ -1761,8 +1803,7 @@ async function externalFetchRetry(details) {
         }
         return res
     } else {
-        // https://github.com/erosman/firemonkey/issues/33
-        return await _fetchRetry(async (...args) => await GM.xmlHttpRequest(...args), details)
+        return await _fetchRetry(abortableXmlHttpRequest, details)
     }
 }
 
@@ -1793,7 +1834,7 @@ async function _fetchRetry(fetchImpl, ...args) {
                         sleepTime = (30 + Math.random() * 10) * 1000
                     }
                 }
-                await abortableSleep(sleepTime, getAbortController());
+                await abortableSleep(sleepTime, getAbortController())
                 count -= 1
                 if (count === 0) {
                     console.error("oops, DOS block")
@@ -1844,6 +1885,7 @@ const fetchBlobWithCache = (() => {
             url: url,
             responseType: "blob",
             headers: options.headers ?? {},
+            signal: options.signal,
         })
         cache.set(url, promise)
 
@@ -6993,7 +7035,7 @@ let lastEsriZoom = 0
 let lastEsriDate = ""
 
 function updateShotEsriDateNeeded() {
-    return lastEsriZoom !== parseInt(getCurrentXYZ()[2]) && customLayerUrl === ESRITemplate
+    return lastEsriZoom !== parseInt(getCurrentXYZ()[2]) && customLayerInfo.url === ESRITemplate
 }
 
 function addEsriDate() {
@@ -7006,7 +7048,7 @@ function addEsriDate() {
         url: `https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/4/query?returnGeometry=false&geometry='${centerPoint}'&inSR=4326&geometryType=esriGeometryPoint&outFields=*&f=json`,
         responseType: "json",
     }).then(res => {
-        if (currentTilesMode !== SAT_MODE || customLayerUrl !== ESRITemplate) {
+        if (currentTilesMode !== SAT_MODE || customLayerInfo.url !== ESRITemplate) {
             return
         }
         console.debug(res.response)
@@ -7024,13 +7066,15 @@ function addEsriDate() {
     })
 }
 
-function addEsriPrefix() {
-    if (customLayerUrl === ESRIBetaTemplate) {
+function addLayerPrefix() {
+    if (customLayerInfo.url === ESRIBetaTemplate) {
         getMap()?.attributionControl?.setPrefix("ESRI beta")
-    } else {
+    } else if (customLayerInfo.url === ESRITemplate) {
         getMap()?.attributionControl?.setPrefix("ESRI")
+    } else if (customLayerInfo.url) {
+        getMap()?.attributionControl?.setPrefix(customLayerInfo.label)
     }
-    if (customLayerUrl === ESRITemplate) {
+    if (customLayerInfo.url === ESRITemplate) {
         addEsriDate()
     }
 }
@@ -7060,7 +7104,7 @@ function tileErrorHandler(e, url = null) {
 }
 
 function makeCustomTileUrl(template, xyz) {
-    if (!customLayerUrlIsWms) {
+    if (!customLayerInfo.isWms) {
         return template.replaceAll("{x}", xyz.x).replaceAll("{y}", xyz.y).replaceAll("{z}", xyz.z)
     }
     const bbox = tileToBBOX([parseInt(xyz.x), parseInt(xyz.y), parseInt(xyz.z)])
@@ -7087,10 +7131,17 @@ function makeOSMGPSURL(x, y, z) {
     return OSMGPSPrefix + z + "/" + x + "/" + y + ".png"
 }
 
-/** @type {string|null} */
-let customLayerUrl = null
-/** @type {boolean} */
-let customLayerUrlIsWms = false
+/** @type {{url : string, label: string, isWms: boolean|undefined}} */
+let customLayerInfo = { url: "", label: "", isWms: false }
+
+GM.getValue("customLayerUrlInfo").then(res => {
+    if (!res) return
+    customLayerInfo = JSON.parse(res)
+    if (customLayerInfo.url.trim()) {
+        applyCustomLayer(customLayerInfo)
+    }
+})
+
 let lastCustomLayerUrl = null
 let customLayerUrlOrigin = null
 GM.getValue("lastCustomLayerUrl").then(res => (lastCustomLayerUrl = res))
@@ -7146,13 +7197,14 @@ async function applyCustomVectorMapStyle(styleUrl, updateUrlInStorage = false) {
     map.setStyle(styleUrl)
 }
 
-function applyCustomLayer(layerUrl, updateUrlInStorage = false) {
-    customLayerUrl = layerUrl
-    customLayerUrlIsWms = customLayerUrl.includes("{bbox-epsg-3857}")
-    if (updateUrlInStorage) {
-        void GM.setValue("lastCustomLayerUrl", (lastCustomLayerUrl = customLayerUrl))
-    }
-    getWindow().customLayerOrigin = customLayerUrlOrigin = new URL(customLayerUrl).origin
+/**
+ * @param {{url : string, label: string, isWms: boolean|undefined}} layerInfo
+ */
+function applyCustomLayer(layerInfo) {
+    layerInfo.isWms = layerInfo.url.includes("{bbox-epsg-3857}")
+    customLayerInfo = layerInfo
+    void GM.setValue("customLayerUrlInfo", JSON.stringify(layerInfo))
+    getWindow().customLayerOrigin = customLayerUrlOrigin = new URL(layerInfo.url).origin
 }
 
 /**
@@ -7181,6 +7233,8 @@ async function askCustomStyleUrl() {
                 '2. In TamperMonkey settings change "Content Script API" to "UserScript API Dynamic"\n' +
                 "More info: https://c.osm.org/t/121670/208\n" +
                 "\n" +
+                "Or close this tab and open new tab\n" +
+                "Or switch on/off script\n" +
                 "Or try to use Firefox with ViolentMonkey",
         )
         return
@@ -7557,6 +7611,9 @@ async function askCustomTileUrl() {
         const input = document.createElement("input")
         input.type = "radio"
         input.name = radiosName
+        if (customLayerInfo.url === value) {
+            input.checked = true
+        }
         wrapper.title = input.value = value
 
         async function onChange() {
@@ -7565,7 +7622,8 @@ async function askCustomTileUrl() {
                     nextVectorLayer()
                     await sleep(100)
                 }
-                applyCustomLayer(input.value)
+                abortTilesAbortController(customLayerUrlOrigin)
+                applyCustomLayer({ url: input.value, label: label })
                 switchTiles(currentTilesMode === MAPNIK_MODE)
                 getMap()?.attributionControl?.setPrefix(label)
             }
@@ -7605,12 +7663,17 @@ async function askCustomTileUrl() {
         if (lastCustomLayerUrl) {
             urlInput.value = lastCustomLayerUrl
         }
+        if (customLayerInfo.url === lastCustomLayerUrl) {
+            input.checked = true
+        }
         wrapper.append(urlInput)
 
         input.onchange = async e => {
             if (!e.isTrusted) return
             if (input.checked && urlInput.value.trim() !== "") {
-                applyCustomLayer(urlInput.value, true)
+                abortTilesAbortController(customLayerUrlOrigin)
+                applyCustomLayer({ url: urlInput.value, label: "Custom map style from " + escapeHtml(new URL(urlInput.value).host) })
+                void GM.setValue("lastCustomLayerUrl", (lastCustomLayerUrl = urlInput.value))
                 switchTiles(currentTilesMode === MAPNIK_MODE)
             }
         }
@@ -7619,9 +7682,13 @@ async function askCustomTileUrl() {
             if (!e.isTrusted) return
             if (e.key === "Enter" && urlInput.value.trim() !== "") {
                 input.click()
-                applyCustomLayer(urlInput.value, true)
+                abortTilesAbortController(customLayerUrlOrigin)
+                applyCustomLayer({ url: urlInput.value, label: "Custom map style from " + escapeHtml(new URL(urlInput.value).host) })
+                void GM.setValue("lastCustomLayerUrl", (lastCustomLayerUrl = urlInput.value))
                 switchTiles(currentTilesMode === MAPNIK_MODE)
-                getMap()?.attributionControl?.setPrefix("Custom map style from " + escapeHtml(new URL(urlInput.value).host))
+            }
+            if (urlInput.value.trim() === "") {
+                void GM.setValue("lastCustomLayerUrl", "")
             }
         }
 
@@ -7634,7 +7701,10 @@ async function askCustomTileUrl() {
         "You can <a target='_blank' href='https://github.com/deevroman/better-osm-org/issues/new'>suggest</a> other layer. " + "One of <a href='https://github.com/osmlab/editor-layer-index'>layers collection</a>"
     popup.appendChild(note)
     document.body.appendChild(popup)
-    popup.querySelector('label:has([href^="https://osm.wiki/Esri"])')?.querySelector("input")?.focus()
+    popup.querySelector("label:has(:checked)")?.querySelector("input")?.focus()
+    if (currentTilesMode !== SAT_MODE && popup.querySelector("label :checked")) {
+        popup.querySelector("label :checked").checked = false
+    }
 }
 
 function vectorSwitch() {
@@ -7647,7 +7717,7 @@ function vectorSwitch() {
             "satellite",
             intoPage({
                 type: "raster",
-                tiles: [customLayerUrl],
+                tiles: [customLayerInfo.url],
                 tileSize: 256,
                 attribution: "",
             }),
@@ -7691,7 +7761,7 @@ function addEsriShotDateCollector() {
         getMap().on(
             "moveend zoomend",
             intoPageWithFun(function () {
-                if (customLayerUrl.includes(ESRIPrefix) && updateShotEsriDateNeeded()) {
+                if (customLayerInfo.url.includes(ESRIPrefix) && updateShotEsriDateNeeded()) {
                     addEsriDate()
                 }
             }),
@@ -7712,7 +7782,7 @@ function xyzFromTileElem(elem) {
 }
 
 function replaceToSatTile(imgElem, xyz) {
-    const newUrl = makeCustomTileUrl(customLayerUrl, xyz)
+    const newUrl = makeCustomTileUrl(customLayerInfo.url, xyz)
     if (imgElem.getAttribute("custom-tile-url") === newUrl) {
         return
     }
@@ -7723,7 +7793,7 @@ function replaceToSatTile(imgElem, xyz) {
         /* empty */
     }
     imgElem.setAttribute("custom-tile-url", newUrl)
-    if (!needBypassSatellite && !customLayerUrlIsWms) {
+    if (!needBypassSatellite && !customLayerInfo.isWms) {
         imgElem.src = newUrl
     } else {
         bypassCSPForImagesSrc(imgElem, newUrl)
@@ -7788,10 +7858,10 @@ function replaceTileSrc(imgElem) {
 
 function rasterSwitch() {
     if (currentTilesMode === SAT_MODE) {
-        if (!customLayerUrl) {
-            applyCustomLayer(ESRITemplate)
-            addEsriPrefix()
+        if (!customLayerInfo.url) {
+            applyCustomLayer({ url: ESRITemplate, label: "ESRI" })
         }
+        addLayerPrefix()
     } else {
         getMap()?.attributionControl?.setPrefix("")
     }
@@ -17544,6 +17614,9 @@ function initCspBridge() {
         }
         // console.log(e.data)
         const opt = {}
+        if (e.data.url.startsWith(customLayerUrlOrigin)) {
+            opt.signal = tilesAbortController.signal
+        }
         if (e.data.url.startsWith("https://tiles.openrailwaymap.org")) {
             opt.headers = { Referer: "https://www.openrailwaymap.org/" }
         }
@@ -17577,6 +17650,7 @@ function initCspBridge() {
                         status: err.status,
                         statusText: err.statusText,
                         response: err.response,
+                        aborted: opt.signal?.aborted,
                     },
                 },
                 e.origin,
@@ -17911,10 +17985,14 @@ function runInOsmPageCode() {
                 })
                 window.postMessage({ "type": "bypass_csp", url: resourceUrl }, location.origin)
                 const res = await resultCallback
-                return new Response(res.status === 204 ? null : res.response, {
-                    status: res.status,
-                    statusText: res.statusText,
-                });
+                if (res.aborted) {
+                    throw "AbortError"
+                } else {
+                    return new Response(res.status === 204 ? null : res.response, {
+                        status: res.status,
+                        statusText: res.statusText,
+                    });
+                }
             } else if (args?.[0]?.url === "https://vector.openstreetmap.org/styles/shortbread/colorful.json"
                 || args?.[0]?.url === "https://vector.openstreetmap.org/styles/shortbread/eclipse.json") {
                 return originalFetch(...args);
@@ -18227,7 +18305,7 @@ function runInOsmPageCode() {
                 // debugger
             }
         } catch (e) {
-            if (e === "PreventMapData") {
+            if (e === "PreventMapData" || e === "AbortError") {
                 throw { name: "AbortError" }
             }
             return originalFetch(...args);
@@ -22985,10 +23063,10 @@ function enableOverzoom() {
     if (!GM_config.get("OverzoomForDataLayer")) {
         return
     }
-    if (customLayerUrl === ESRITemplate) {
-        customLayerUrl = ESRIPrefix + "{z}/{y}/{x}" + blankSuffix
-    } else if (customLayerUrl === ESRIBetaTemplate) {
-        customLayerUrl = ESRIBetaPrefix + "{z}/{y}/{x}" + blankSuffix
+    if (customLayerInfo.url === ESRITemplate) {
+        customLayerInfo.url = ESRIPrefix + "{z}/{y}/{x}" + blankSuffix
+    } else if (customLayerInfo.url === ESRIBetaTemplate) {
+        customLayerInfo.url = ESRIBetaPrefix + "{z}/{y}/{x}" + blankSuffix
     }
     ESRITemplate = ESRIPrefix + "{z}/{y}/{x}" + blankSuffix
     ESRIBetaTemplate = ESRIBetaPrefix + "{z}/{y}/{x}" + blankSuffix
@@ -23029,10 +23107,10 @@ function disableOverzoom() {
     if (!GM_config.get("OverzoomForDataLayer")) {
         return
     }
-    if (customLayerUrl === ESRITemplate) {
-        customLayerUrl = ESRIPrefix + "{z}/{y}/{x}"
-    } else if (customLayerUrl === ESRIBetaTemplate) {
-        customLayerUrl = ESRIBetaPrefix + "{z}/{y}/{x}"
+    if (customLayerInfo.url === ESRITemplate) {
+        customLayerInfo.url = ESRIPrefix + "{z}/{y}/{x}"
+    } else if (customLayerInfo.url === ESRIBetaTemplate) {
+        customLayerInfo.url = ESRIBetaPrefix + "{z}/{y}/{x}"
     }
     ESRITemplate = ESRIPrefix + "{z}/{y}/{x}"
     ESRIBetaTemplate = ESRIBetaPrefix + "{z}/{y}/{x}"

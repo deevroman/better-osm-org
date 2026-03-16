@@ -16,6 +16,9 @@ function initCspBridge() {
         }
         // console.log(e.data)
         const opt = {}
+        if (e.data.url.startsWith(customLayerUrlOrigin)) {
+            opt.signal = tilesAbortController.signal
+        }
         if (e.data.url.startsWith("https://tiles.openrailwaymap.org")) {
             opt.headers = { Referer: "https://www.openrailwaymap.org/" }
         }
@@ -49,6 +52,7 @@ function initCspBridge() {
                         status: err.status,
                         statusText: err.statusText,
                         response: err.response,
+                        aborted: opt.signal?.aborted,
                     },
                 },
                 e.origin,
@@ -383,10 +387,14 @@ function runInOsmPageCode() {
                 })
                 window.postMessage({ "type": "bypass_csp", url: resourceUrl }, location.origin)
                 const res = await resultCallback
-                return new Response(res.status === 204 ? null : res.response, {
-                    status: res.status,
-                    statusText: res.statusText,
-                });
+                if (res.aborted) {
+                    throw "AbortError"
+                } else {
+                    return new Response(res.status === 204 ? null : res.response, {
+                        status: res.status,
+                        statusText: res.statusText,
+                    });
+                }
             } else if (args?.[0]?.url === "https://vector.openstreetmap.org/styles/shortbread/colorful.json"
                 || args?.[0]?.url === "https://vector.openstreetmap.org/styles/shortbread/eclipse.json") {
                 return originalFetch(...args);
@@ -699,7 +707,7 @@ function runInOsmPageCode() {
                 // debugger
             }
         } catch (e) {
-            if (e === "PreventMapData") {
+            if (e === "PreventMapData" || e === "AbortError") {
                 throw { name: "AbortError" }
             }
             return originalFetch(...args);
