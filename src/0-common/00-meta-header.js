@@ -164,6 +164,7 @@
 // @connect      tiles.openrailwaymap.org
 // @connect      frexosm.ru
 // @connect      demotiles.maplibre.org
+// @connect      router.project-osrm.org
 // @comment      * for custom layers. ViolentMonkey ignores @connect by default,
 // @comment      Tampermonkey will show a warning before connecting to a host that is not listed above
 // @connect      *
