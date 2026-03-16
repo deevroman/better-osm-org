@@ -20,6 +20,13 @@
       "onlyMobile": true
     },
     {
+      "name": "Edit object in Vespucci",
+      "template": "josm:/load_object?objects={osm_type_first_letter}{osm_id}",
+      "description": "",
+      "default": true,
+      "onlyMobile": true
+    },
+    {
       "name": "Panoramax",
       "template": "https://panoramax.openstreetmap.fr/?background=streets&focus=map&map={zoom}/{latitude}/{longitude}",
       "description": "Federated field photos database",
