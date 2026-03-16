@@ -24149,7 +24149,7 @@ async function openSelectedObjectsOnChangesetPage(e) {
             ].join(",").replace(/,,/, ",").replace(/,$/, "").replace(/^,/, "")
         }).toString())
     } else {
-        const prefix = isMobile ? "josm:/load_object?objects=" : "http://localhost:8111/load_object?"
+        const prefix = isMobile ? "josm:/load_object?" : "http://localhost:8111/load_object?"
         if (!isMobile && !(await validateOsmServerInJOSM())) {
             return
         }
