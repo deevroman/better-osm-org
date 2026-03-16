@@ -146,7 +146,7 @@ let lastEsriZoom = 0
 let lastEsriDate = ""
 
 function updateShotEsriDateNeeded() {
-    return lastEsriZoom !== parseInt(getCurrentXYZ()[2]) && customLayerUrl === ESRITemplate
+    return lastEsriZoom !== parseInt(getCurrentXYZ()[2]) && customLayerInfo.url === ESRITemplate
 }
 
 function addEsriDate() {
@@ -159,7 +159,7 @@ function addEsriDate() {
         url: `https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/4/query?returnGeometry=false&geometry='${centerPoint}'&inSR=4326&geometryType=esriGeometryPoint&outFields=*&f=json`,
         responseType: "json",
     }).then(res => {
-        if (currentTilesMode !== SAT_MODE || customLayerUrl !== ESRITemplate) {
+        if (currentTilesMode !== SAT_MODE || customLayerInfo.url !== ESRITemplate) {
             return
         }
         console.debug(res.response)
@@ -177,13 +177,15 @@ function addEsriDate() {
     })
 }
 
-function addEsriPrefix() {
-    if (customLayerUrl === ESRIBetaTemplate) {
+function addLayerPrefix() {
+    if (customLayerInfo.url === ESRIBetaTemplate) {
         getMap()?.attributionControl?.setPrefix("ESRI beta")
-    } else {
+    } else if (customLayerInfo.url === ESRITemplate) {
         getMap()?.attributionControl?.setPrefix("ESRI")
+    } else if (customLayerInfo.url) {
+        getMap()?.attributionControl?.setPrefix(customLayerInfo.label)
     }
-    if (customLayerUrl === ESRITemplate) {
+    if (customLayerInfo.url === ESRITemplate) {
         addEsriDate()
     }
 }
@@ -213,7 +215,7 @@ function tileErrorHandler(e, url = null) {
 }
 
 function makeCustomTileUrl(template, xyz) {
-    if (!customLayerUrlIsWms) {
+    if (!customLayerInfo.isWms) {
         return template.replaceAll("{x}", xyz.x).replaceAll("{y}", xyz.y).replaceAll("{z}", xyz.z)
     }
     const bbox = tileToBBOX([parseInt(xyz.x), parseInt(xyz.y), parseInt(xyz.z)])
@@ -240,10 +242,17 @@ function makeOSMGPSURL(x, y, z) {
     return OSMGPSPrefix + z + "/" + x + "/" + y + ".png"
 }
 
-/** @type {string|null} */
-let customLayerUrl = null
-/** @type {boolean} */
-let customLayerUrlIsWms = false
+/** @type {{url : string, label: string, isWms: boolean|undefined}} */
+let customLayerInfo = { url: "", label: "", isWms: false }
+
+GM.getValue("customLayerUrlInfo").then(res => {
+    if (!res) return
+    customLayerInfo = JSON.parse(res)
+    if (customLayerInfo.url.trim()) {
+        applyCustomLayer(customLayerInfo)
+    }
+})
+
 let lastCustomLayerUrl = null
 let customLayerUrlOrigin = null
 GM.getValue("lastCustomLayerUrl").then(res => (lastCustomLayerUrl = res))
@@ -299,13 +308,14 @@ async function applyCustomVectorMapStyle(styleUrl, updateUrlInStorage = false) {
     map.setStyle(styleUrl)
 }
 
-function applyCustomLayer(layerUrl, updateUrlInStorage = false) {
-    customLayerUrl = layerUrl
-    customLayerUrlIsWms = customLayerUrl.includes("{bbox-epsg-3857}")
-    if (updateUrlInStorage) {
-        void GM.setValue("lastCustomLayerUrl", (lastCustomLayerUrl = customLayerUrl))
-    }
-    getWindow().customLayerOrigin = customLayerUrlOrigin = new URL(customLayerUrl).origin
+/**
+ * @param {{url : string, label: string, isWms: boolean|undefined}} layerInfo
+ */
+function applyCustomLayer(layerInfo) {
+    layerInfo.isWms = layerInfo.url.includes("{bbox-epsg-3857}")
+    customLayerInfo = layerInfo
+    void GM.setValue("customLayerUrlInfo", JSON.stringify(layerInfo))
+    getWindow().customLayerOrigin = customLayerUrlOrigin = new URL(layerInfo.url).origin
 }
 
 /**
@@ -334,6 +344,8 @@ async function askCustomStyleUrl() {
                 '2. In TamperMonkey settings change "Content Script API" to "UserScript API Dynamic"\n' +
                 "More info: https://c.osm.org/t/121670/208\n" +
                 "\n" +
+                "Or close this tab and open new tab\n" +
+                "Or switch on/off script\n" +
                 "Or try to use Firefox with ViolentMonkey",
         )
         return
@@ -710,6 +722,9 @@ async function askCustomTileUrl() {
         const input = document.createElement("input")
         input.type = "radio"
         input.name = radiosName
+        if (customLayerInfo.url === value) {
+            input.checked = true
+        }
         wrapper.title = input.value = value
 
         async function onChange() {
@@ -718,7 +733,8 @@ async function askCustomTileUrl() {
                     nextVectorLayer()
                     await sleep(100)
                 }
-                applyCustomLayer(input.value)
+                abortTilesAbortController(customLayerUrlOrigin)
+                applyCustomLayer({ url: input.value, label: label })
                 switchTiles(currentTilesMode === MAPNIK_MODE)
                 getMap()?.attributionControl?.setPrefix(label)
             }
@@ -758,12 +774,17 @@ async function askCustomTileUrl() {
         if (lastCustomLayerUrl) {
             urlInput.value = lastCustomLayerUrl
         }
+        if (customLayerInfo.url === lastCustomLayerUrl) {
+            input.checked = true
+        }
         wrapper.append(urlInput)
 
         input.onchange = async e => {
             if (!e.isTrusted) return
             if (input.checked && urlInput.value.trim() !== "") {
-                applyCustomLayer(urlInput.value, true)
+                abortTilesAbortController(customLayerUrlOrigin)
+                applyCustomLayer({ url: urlInput.value, label: "Custom map style from " + escapeHtml(new URL(urlInput.value).host) })
+                void GM.setValue("lastCustomLayerUrl", (lastCustomLayerUrl = urlInput.value))
                 switchTiles(currentTilesMode === MAPNIK_MODE)
             }
         }
@@ -772,9 +793,13 @@ async function askCustomTileUrl() {
             if (!e.isTrusted) return
             if (e.key === "Enter" && urlInput.value.trim() !== "") {
                 input.click()
-                applyCustomLayer(urlInput.value, true)
+                abortTilesAbortController(customLayerUrlOrigin)
+                applyCustomLayer({ url: urlInput.value, label: "Custom map style from " + escapeHtml(new URL(urlInput.value).host) })
+                void GM.setValue("lastCustomLayerUrl", (lastCustomLayerUrl = urlInput.value))
                 switchTiles(currentTilesMode === MAPNIK_MODE)
-                getMap()?.attributionControl?.setPrefix("Custom map style from " + escapeHtml(new URL(urlInput.value).host))
+            }
+            if (urlInput.value.trim() === "") {
+                void GM.setValue("lastCustomLayerUrl", "")
             }
         }
 
@@ -787,7 +812,10 @@ async function askCustomTileUrl() {
         "You can <a target='_blank' href='https://github.com/deevroman/better-osm-org/issues/new'>suggest</a> other layer. " + "One of <a href='https://github.com/osmlab/editor-layer-index'>layers collection</a>"
     popup.appendChild(note)
     document.body.appendChild(popup)
-    popup.querySelector('label:has([href^="https://osm.wiki/Esri"])')?.querySelector("input")?.focus()
+    popup.querySelector("label:has(:checked)")?.querySelector("input")?.focus()
+    if (currentTilesMode !== SAT_MODE && popup.querySelector("label :checked")) {
+        popup.querySelector("label :checked").checked = false
+    }
 }
 
 function vectorSwitch() {
@@ -800,7 +828,7 @@ function vectorSwitch() {
             "satellite",
             intoPage({
                 type: "raster",
-                tiles: [customLayerUrl],
+                tiles: [customLayerInfo.url],
                 tileSize: 256,
                 attribution: "",
             }),
@@ -844,7 +872,7 @@ function addEsriShotDateCollector() {
         getMap().on(
             "moveend zoomend",
             intoPageWithFun(function () {
-                if (customLayerUrl.includes(ESRIPrefix) && updateShotEsriDateNeeded()) {
+                if (customLayerInfo.url.includes(ESRIPrefix) && updateShotEsriDateNeeded()) {
                     addEsriDate()
                 }
             }),
@@ -865,7 +893,7 @@ function xyzFromTileElem(elem) {
 }
 
 function replaceToSatTile(imgElem, xyz) {
-    const newUrl = makeCustomTileUrl(customLayerUrl, xyz)
+    const newUrl = makeCustomTileUrl(customLayerInfo.url, xyz)
     if (imgElem.getAttribute("custom-tile-url") === newUrl) {
         return
     }
@@ -876,7 +904,7 @@ function replaceToSatTile(imgElem, xyz) {
         /* empty */
     }
     imgElem.setAttribute("custom-tile-url", newUrl)
-    if (!needBypassSatellite && !customLayerUrlIsWms) {
+    if (!needBypassSatellite && !customLayerInfo.isWms) {
         imgElem.src = newUrl
     } else {
         bypassCSPForImagesSrc(imgElem, newUrl)
@@ -941,10 +969,10 @@ function replaceTileSrc(imgElem) {
 
 function rasterSwitch() {
     if (currentTilesMode === SAT_MODE) {
-        if (!customLayerUrl) {
-            applyCustomLayer(ESRITemplate)
-            addEsriPrefix()
+        if (!customLayerInfo.url) {
+            applyCustomLayer({ url: ESRITemplate, label: "ESRI" })
         }
+        addLayerPrefix()
     } else {
         getMap()?.attributionControl?.setPrefix("")
     }

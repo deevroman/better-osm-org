@@ -245,10 +245,10 @@ function enableOverzoom() {
     if (!GM_config.get("OverzoomForDataLayer")) {
         return
     }
-    if (customLayerUrl === ESRITemplate) {
-        customLayerUrl = ESRIPrefix + "{z}/{y}/{x}" + blankSuffix
-    } else if (customLayerUrl === ESRIBetaTemplate) {
-        customLayerUrl = ESRIBetaPrefix + "{z}/{y}/{x}" + blankSuffix
+    if (customLayerInfo.url === ESRITemplate) {
+        customLayerInfo.url = ESRIPrefix + "{z}/{y}/{x}" + blankSuffix
+    } else if (customLayerInfo.url === ESRIBetaTemplate) {
+        customLayerInfo.url = ESRIBetaPrefix + "{z}/{y}/{x}" + blankSuffix
     }
     ESRITemplate = ESRIPrefix + "{z}/{y}/{x}" + blankSuffix
     ESRIBetaTemplate = ESRIBetaPrefix + "{z}/{y}/{x}" + blankSuffix
@@ -289,10 +289,10 @@ function disableOverzoom() {
     if (!GM_config.get("OverzoomForDataLayer")) {
         return
     }
-    if (customLayerUrl === ESRITemplate) {
-        customLayerUrl = ESRIPrefix + "{z}/{y}/{x}"
-    } else if (customLayerUrl === ESRIBetaTemplate) {
-        customLayerUrl = ESRIBetaPrefix + "{z}/{y}/{x}"
+    if (customLayerInfo.url === ESRITemplate) {
+        customLayerInfo.url = ESRIPrefix + "{z}/{y}/{x}"
+    } else if (customLayerInfo.url === ESRIBetaTemplate) {
+        customLayerInfo.url = ESRIBetaPrefix + "{z}/{y}/{x}"
     }
     ESRITemplate = ESRIPrefix + "{z}/{y}/{x}"
     ESRIBetaTemplate = ESRIBetaPrefix + "{z}/{y}/{x}"

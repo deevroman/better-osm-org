@@ -22,6 +22,40 @@ async function externalFetch(details) {
  * @param details {Tampermonkey.Request}
  * @return {Promise<Tampermonkey.Response>}
  */
+async function abortableXmlHttpRequest(details) {
+    if (details.signal) {
+        // + GM API doesn't reject await GM.xmlHttpRequest. Workaround
+        return await new Promise((resolve, reject) => {
+            details.onabort = () => {
+                // https://github.com/violentmonkey/violentmonkey/issues/2474
+                console.log("abort in onabort", details.url)
+                reject(new DOMException("Aborted", "AbortError"))
+            }
+            details.onerror = reject
+            details.ontimeout = reject
+            details.onload = resolve
+            const req = GM.xmlHttpRequest(details)
+            if (details.signal?.aborted) {
+                req.abort()
+                console.log("abort", details.url)
+                reject(new DOMException("Aborted", "AbortError"))
+                return
+            }
+            details.signal?.addEventListener("abort", () => {
+                req.abort()
+                console.log("abort", details.url)
+                reject(new DOMException("Aborted", "AbortError"))
+            }, { once: true })
+        })
+    } else {
+        return await GM.xmlHttpRequest(details)
+    }
+}
+
+/**
+ * @param details {Tampermonkey.Request}
+ * @return {Promise<Tampermonkey.Response>}
+ */
 async function externalFetchRetry(details) {
     if (GM_info.scriptHandler === "FireMonkey" && parseFloat(GM_info.version) < 3.0) {
         const res = await _fetchRetry(GM.fetch, details.url, details)
@@ -32,8 +66,7 @@ async function externalFetchRetry(details) {
         }
         return res
     } else {
-        // https://github.com/erosman/firemonkey/issues/33
-        return await _fetchRetry(async (...args) => await GM.xmlHttpRequest(...args), details)
+        return await _fetchRetry(abortableXmlHttpRequest, details)
     }
 }
 
@@ -64,7 +97,7 @@ async function _fetchRetry(fetchImpl, ...args) {
                         sleepTime = (30 + Math.random() * 10) * 1000
                     }
                 }
-                await abortableSleep(sleepTime, getAbortController());
+                await abortableSleep(sleepTime, getAbortController())
                 count -= 1
                 if (count === 0) {
                     console.error("oops, DOS block")
@@ -115,6 +148,7 @@ const fetchBlobWithCache = (() => {
             url: url,
             responseType: "blob",
             headers: options.headers ?? {},
+            signal: options.signal,
         })
         cache.set(url, promise)
 

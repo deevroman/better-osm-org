@@ -79,6 +79,13 @@ function abortPrevControllers(reason = null) {
     })
 }
 
+let tilesAbortController = new AbortController()
+
+function abortTilesAbortController(reason) {
+    tilesAbortController.abort(reason)
+    tilesAbortController = new AbortController()
+}
+
 /**
  * @param ms {number}
  * @param signal {AbortSignal}
