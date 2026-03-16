@@ -286,9 +286,13 @@ async function applyCustomVectorMapStyle(styleUrl, updateUrlInStorage = false) {
             if (vectorStyleValidatorTimer) clearTimeout(vectorStyleValidatorTimer)
             vectorStyleValidatorTimer = setTimeout(() => {
                 const ta = document.querySelector(".custom-layer-textarea")
-                ta.setCustomValidity(e.error.toString())
+                if (e.source) {
+                    ta.setCustomValidity(JSON.stringify(e.source) + ":" + e.error.toString())
+                } else {
+                    ta.setCustomValidity(e.error.toString())
+                }
                 ta.reportValidity()
-                ta.style.borderColor = "red"
+                ta.style.borderColor = "orange"
             }, 1000)
         }
     })
@@ -442,10 +446,21 @@ async function askCustomStyleUrl() {
             const ta = document.querySelector(".custom-layer-textarea")
             ta.focus()
             ta.setSelectionRange(0, ta.value.length)
+            document.execCommand("insertText", false, ta.value)
+            ta.setSelectionRange(0, ta.value.length)
             document.execCommand("insertText", false, JSON.stringify(r.response, null, 2))
             ta.setSelectionRange(0, 0)
             ta.click()
-            ta.parentElement.click()
+            if (ta.parentElement.querySelector("input")?.checked) {
+                ta.style.removeProperty("border-color")
+                if (ta.value.trim() !== "") {
+                    await applyCustomVectorMapStyle(ta.value, true)
+                } else {
+                    void GM.setValue("customLayerTextarea", "")
+                }
+            } else {
+                ta.parentElement.click()
+            }
         }
 
         const externalLink = document.createElement("a")
@@ -527,6 +542,7 @@ async function askCustomStyleUrl() {
                 popup.style.resize = "horizontal"
                 jsonArea.style.height = "80vh"
                 jsonArea.scrollIntoView({ block: "nearest", inline: "nearest" })
+                setTimeout(() => jsonArea.focus(), 0)
             },
             { once: true },
         )
@@ -535,6 +551,7 @@ async function askCustomStyleUrl() {
         input.onchange = async e => {
             if (!e.isTrusted) return
             if (input.checked) {
+                jsonArea.style.removeProperty("border-color")
                 if (jsonArea.value.trim() !== "") {
                     await applyCustomVectorMapStyle(jsonArea.value, true)
                 } else {
@@ -545,6 +562,10 @@ async function askCustomStyleUrl() {
 
         jsonArea.onkeyup = async e => {
             if (!e.isTrusted) return
+            if (!jsonArea.value.trim()) {
+                void GM.setValue("customLayerTextarea", "")
+                return
+            }
             try {
                 JSON.parse(jsonArea.value)
             } catch {
