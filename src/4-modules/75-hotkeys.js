@@ -1209,14 +1209,17 @@ async function openSelectedObjectsOnChangesetPage(e) {
             return
         }
         // prettier-ignore
-        window.open(prefix + new URLSearchParams({
-            new_layer: "true",
+        const params = {
             objects: [
                 Array.from(nodes).map(i => "n" + i).join(","),
                 Array.from(ways).map(i => "w" + i).join(","),
                 Array.from(relations).map(i => "r" + i).join(",")
             ].join(",")
-        }).toString())
+        }
+        if (!isMobile) {
+            params.new_layer = "true"
+        }
+        window.open(prefix + new URLSearchParams(params).toString())
     }
 }
 
