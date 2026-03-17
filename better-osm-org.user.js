@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.5.9.1
+// @version         1.5.9.2
 // @changelog       v1.5.9: memorizing the last satellite layer, simple vector style editor
 // @changelog       v1.5.7: filter notes by creation date, Panoramax uploader (you need to enable it in the settings)
 // @changelog       v1.5.5: render child relations on relation page by hover
@@ -146,7 +146,7 @@
 // @connect      streetcomplete.app
 // @comment      for downloading gps-tracks — osm stores tracks in AWS
 // @connect      amazonaws.com
-// @comment      for satellite images
+// @comment      for satellite images and custom tiles
 // @connect      server.arcgisonline.com
 // @connect      services.arcgisonline.com
 // @connect      clarity.maptiles.arcgis.com
@@ -164,6 +164,8 @@
 // @connect      frexosm.ru
 // @connect      demotiles.maplibre.org
 // @connect      router.project-osrm.org
+// @connect      tiles.indoorequal.org
+// @connect      tile.openstreetmap.org
 // @comment      * for custom layers. ViolentMonkey ignores @connect by default,
 // @comment      Tampermonkey will show a warning before connecting to a host that is not listed above
 // @connect      *
@@ -7322,7 +7324,7 @@ async function applyCustomVectorMapStyle(styleUrl, updateUrlInStorage = false) {
             }, 1000)
         }
     })
-    map.setStyle(styleUrl)
+    map.setStyle(intoPage(styleUrl))
 }
 
 /**

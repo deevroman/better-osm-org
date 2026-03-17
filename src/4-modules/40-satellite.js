@@ -305,7 +305,7 @@ async function applyCustomVectorMapStyle(styleUrl, updateUrlInStorage = false) {
             }, 1000)
         }
     })
-    map.setStyle(styleUrl)
+    map.setStyle(intoPage(styleUrl))
 }
 
 /**
