@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.5.9.2
+// @version         1.5.9.3
 // @changelog       v1.5.9: memorizing the last satellite layer, simple vector style editor
 // @changelog       v1.5.7: filter notes by creation date, Panoramax uploader (you need to enable it in the settings)
 // @changelog       v1.5.5: render child relations on relation page by hover
@@ -167,6 +167,14 @@
 // @connect      router.project-osrm.org
 // @connect      tiles.indoorequal.org
 // @connect      tile.openstreetmap.org
+// @connect      a.tile-cyclosm.openstreetmap.fr
+// @connect      b.tile-cyclosm.openstreetmap.fr
+// @connect      c.tile-cyclosm.openstreetmap.fr
+// @connect      tile-a.openstreetmap.fr
+// @connect      tile-b.openstreetmap.fr
+// @connect      tile-c.openstreetmap.fr
+// @connect      api.thunderforest.com
+// @connect      tile.tracestrack.com
 // @comment      * for custom layers. ViolentMonkey ignores @connect by default,
 // @comment      Tampermonkey will show a warning before connecting to a host that is not listed above
 // @connect      *
