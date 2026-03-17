@@ -42,9 +42,9 @@ async function updateUserInfo(username) {
         debugger
     }
     userInfo["description"] = ""
-    userInfo["cacheTime"] = JSON.stringify(new Date())
+    userInfo["cacheTime"] = new Date().toISOString()
     if (firstObjectCreationTime) {
-        userInfo["firstChangesetCreationTime"] = JSON.stringify(new Date(firstObjectCreationTime))
+        userInfo["firstChangesetCreationTime"] = new Date(firstObjectCreationTime).toISOString()
     }
     if (firstChangesetID) {
         userInfo["firstChangesetID"] = firstChangesetID

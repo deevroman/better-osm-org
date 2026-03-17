@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.5.9
+// @version         1.5.9.1
 // @changelog       v1.5.9: memorizing the last satellite layer, simple vector style editor
 // @changelog       v1.5.7: filter notes by creation date, Panoramax uploader (you need to enable it in the settings)
 // @changelog       v1.5.5: render child relations on relation page by hover
@@ -18495,9 +18495,9 @@ async function updateUserInfo(username) {
         debugger
     }
     userInfo["description"] = ""
-    userInfo["cacheTime"] = JSON.stringify(new Date())
+    userInfo["cacheTime"] = new Date().toISOString()
     if (firstObjectCreationTime) {
-        userInfo["firstChangesetCreationTime"] = JSON.stringify(new Date(firstObjectCreationTime))
+        userInfo["firstChangesetCreationTime"] = new Date(firstObjectCreationTime).toISOString()
     }
     if (firstChangesetID) {
         userInfo["firstChangesetID"] = firstChangesetID
