@@ -19630,6 +19630,38 @@ async function makeEditorNormalizer() {
     }
 }
 
+async function getUserBlocks(user) {
+    if (document.querySelector('a[href$="/blocks"]')?.nextElementSibling?.textContent === undefined) {
+        return
+    }
+    const xml = (
+        await externalFetchRetry({
+            url: `/user/${user}/blocks`,
+            headers: { "turbo-frame": "pagination" },
+        })
+    ).response
+    const blocks = []
+    new DOMParser()
+        .parseFromString(xml, "text/html")
+        .querySelectorAll("table tr")
+        .forEach(i => {
+            if (i.querySelector("th")) {
+                return
+            }
+            blocks.push({
+                id: parseInt(
+                    i
+                        .querySelector('td a[href^="/user_blocks/"]')
+                        .getAttribute("href")
+                        .match(/\/user_blocks\/([0-9]+)/)[1],
+                ),
+                startTime: i.querySelector("td time").getAttribute("datetime"),
+            })
+        })
+    console.log(blocks)
+    return blocks
+}
+
 async function betterUserStat() {
     const match = location.pathname.match(/^\/user\/([^/]+)\/?$/)
     if (!match) {
@@ -19684,8 +19716,42 @@ async function betterUserStat() {
     filterInputByEditor.before(searchByComment)
 
     const _replace_with_rules = makeEditorNormalizer()
+    const _blocks_list = getUserBlocks(user).then(async blocks => {
+        for (let block of blocks) {
+            block.text = (await getBlockInfo(block.id)).replaceAll("\r\n\r\n", "\n")
+        }
+        let curBlockIndex = 0
+        for (let day of Array.from(document.querySelectorAll("[data-date]"))) {
+            const dayDate = day.getAttribute("data-date")
+            if (curBlockIndex < blocks.length) {
+                if (blocks[curBlockIndex].startTime.startsWith(dayDate)) {
+                    day.style.opacity = "1"
+                    day.style.fontSize = "smaller"
+                    day.textContent = "⛔"
+                    curBlockIndex++
+                    day.addEventListener(
+                        "mouseenter",
+                        () => {
+                            if (searchByComment.hasAttribute("disabled")) {
+                                searchByComment.setAttribute("need-activate-immediately", "true")
+                            } else {
+                                searchByComment.dispatchEvent(new Event("input", { bubbles: true }))
+                            }
+                        },
+                        { once: true },
+                    )
+                }
+            } else {
+                break
+            }
+        }
+        console.log(blocks)
+        return blocks
+    })
     const changesets = await loadChangesets(user)
     const replace_with_rules = await _replace_with_rules
+    const blocks_list = await _blocks_list
+
     const editorOfChangesets = {}
     changesets.forEach(ch => (editorOfChangesets[ch.id] = replace_with_rules(ch.tags?.["created_by"])))
     filterInputByEditor.removeAttribute("disabled")
@@ -19750,15 +19816,30 @@ async function betterUserStat() {
         getWindow().$("[rel=tooltip]").tooltip("dispose")
         document.querySelectorAll(".tooltip").forEach(i => i.remove())
         const hrefPrefix = location.href.endsWith("/") ? location.href.slice(0, -1) : location.href
+        let curBlockIndex = 0
         for (let day of Array.from(document.querySelectorAll("[data-date]"))) {
             day = replaceElementTag(day, "a")
-            const newData = newHeatmapData[day.getAttribute("data-date")]
+            const dayDate = day.getAttribute("data-date")
+            let banInfo = null
+            if (curBlockIndex < blocks_list.length) {
+                if (blocks_list[curBlockIndex].startTime.startsWith(dayDate)) {
+                    banInfo = blocks_list[curBlockIndex]
+                    curBlockIndex++
+                }
+            }
+            const newData = newHeatmapData[dayDate]
             if (newData) {
                 day.setAttribute("data-count", newData[0])
                 day.setAttribute("href", hrefPrefix + "/history?before=" + (newData[1] + 1))
                 day.innerHTML = ""
                 const colorDiff = document.createElement("span")
-                colorDiff.style.opacity = `${Math.sqrt(newData[0] / maxPerDay)}`
+                if (banInfo) {
+                    colorDiff.style.opacity = "1"
+                    colorDiff.style.fontSize = "smaller"
+                    colorDiff.textContent = "⛔"
+                } else {
+                    colorDiff.style.opacity = `${Math.sqrt(newData[0] / maxPerDay)}`
+                }
                 let tooltipText = getTooltipSummary(new Date(day.getAttribute("data-date")), newData[0])
                 if (newData[0]) {
                     tooltipText += "\n"
@@ -19780,7 +19861,9 @@ async function betterUserStat() {
                         tooltipText += changesetComment + "\n"
                     }
                 }
-
+                if (banInfo) {
+                    tooltipText += "\n⛔" + banInfo.text
+                }
                 day.appendChild(colorDiff)
                 getWindow()
                     .$(day)
@@ -19798,7 +19881,22 @@ async function betterUserStat() {
                 if (day.nodeName === "A") {
                     day = replaceElementTag(day, "span")
                 }
-                getWindow().$(day).tooltip("disable")
+                if (banInfo) {
+                    day.style.opacity = "1"
+                    day.style.fontSize = "smaller"
+                    day.textContent = "⛔"
+                    getWindow()
+                        .$(day)
+                        .tooltip(
+                            intoPage({
+                                title: "⛔" + banInfo.text,
+                                customClass: "wide",
+                                delay: { show: 0, hide: 0 },
+                            }),
+                        )
+                } else {
+                    getWindow().$(day).tooltip("disable")
+                }
             }
         }
     }
@@ -19878,7 +19976,21 @@ async function betterUserStat() {
 
     filterInputByEditor.after(filterInputByEditor)
     console.log("setuping filters finished")
+    if (searchByComment.hasAttribute("need-activate-immediately")) {
+        searchByComment.dispatchEvent(new Event("input", { bubbles: true }))
+    }
     return true
+}
+
+async function getBlockInfo(blockID) {
+    const blockInfo = (
+        await externalFetchRetry({
+            url: "/api/0.6/user_blocks/" + blockID + ".json",
+            responseType: "json",
+            headers: { "turbo-frame": "pagination" },
+        })
+    ).response
+    return `${blockInfo["user_block"]["created_at"]}\n${blockInfo["user_block"]["creator"]["user"]}: ${blockInfo["user_block"]["reason"]}`
 }
 
 // https://osm.org/user/Молотов-Прибой
@@ -20011,17 +20123,6 @@ async function makeProfileForDeletedUser(user) {
                             }
                         })
                     return [foundUserBlock, lastUserBlock]
-                }
-
-                async function getBlockInfo(blockID) {
-                    const blockInfo = (
-                        await externalFetchRetry({
-                            url: "/api/0.6/user_blocks/" + blockID + ".json",
-                            responseType: "json",
-                            headers: { "turbo-frame": "pagination" },
-                        })
-                    ).response
-                    return `${blockInfo["user_block"]["created_at"]}\n${blockInfo["user_block"]["creator"]["user"]}: ${blockInfo["user_block"]["reason"]}`
                 }
 
                 function processFoundedBlocks(foundUserBlock) {
@@ -20340,13 +20441,13 @@ function addColorForActiveBlock(user) {
         }
         getCachedUserInfo(decodeURI(user)).then(userInfo => {
             if (userInfo["blocks"]["received"]["active"] === 0) {
-                updateUserInfo(decodeURI(user))
+                void updateUserInfo(decodeURI(user))
             }
         })
     } else if (blocksLink?.nextElementSibling?.textContent === "0") {
         getCachedUserInfo(decodeURI(user)).then(userInfo => {
             if (userInfo["blocks"]["received"]["active"] !== 0) {
-                updateUserInfo(decodeURI(user))
+                void updateUserInfo(decodeURI(user))
             }
         })
     }
