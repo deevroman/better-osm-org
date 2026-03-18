@@ -122,6 +122,7 @@
 // @connect      tiles.openfreemap.org
 // @connect      tiles.openrailwaymap.org
 // @connect      frexosm.ru
+// @connect      static-tiles-lclu.s3.us-west-1.amazonaws.com
 // @connect      demotiles.maplibre.org
 // @connect      router.project-osrm.org
 // @connect      tiles.indoorequal.org
