@@ -5112,6 +5112,7 @@ function addCreateNewPOIButton() {
     const b = document.createElement("span")
     b.classList.add("add-new-object-btn", "btn", "btn-primary")
     b.textContent = "➕"
+    b.style.marginLeft = "auto"
     if (!getMap()?.getZoom) {
         b.style.display = "none"
         interceptMapManually().then(() => {
@@ -5120,6 +5121,7 @@ function addCreateNewPOIButton() {
     }
     b.title = `Add new object on map\nPaste tags in textarea\nkey=value\nkey2=value2\n...`
     document.querySelector("#sidebar_content form div:has(input)").appendChild(b)
+    b.parentElement.style.display = "flex"
     b.before(document.createTextNode("\xA0"))
     b.onclick = e => {
         e.stopImmediatePropagation()
