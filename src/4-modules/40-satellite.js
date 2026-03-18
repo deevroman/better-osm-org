@@ -294,7 +294,7 @@ async function applyCustomVectorMapStyle(styleUrl, updateUrlInStorage = false) {
         if (typeof styleUrl === "object") {
             if (vectorStyleValidatorTimer) clearTimeout(vectorStyleValidatorTimer)
             vectorStyleValidatorTimer = setTimeout(() => {
-                const ta = document.querySelector(".custom-layer-textarea")
+                const ta = document.querySelector("#custom-layer-textarea")
                 if (e.source) {
                     ta.setCustomValidity(JSON.stringify(e.source) + ":" + e.error.toString())
                 } else {
@@ -455,14 +455,18 @@ async function askCustomStyleUrl() {
                 responseType: "json",
             })
             editBtn.style.cursor = "pointer"
-            const ta = document.querySelector(".custom-layer-textarea")
-            ta.focus()
-            ta.setSelectionRange(0, ta.value.length)
-            document.execCommand("insertText", false, ta.value)
-            ta.setSelectionRange(0, ta.value.length)
-            document.execCommand("insertText", false, JSON.stringify(r.response, null, 2))
-            ta.setSelectionRange(0, 0)
+            const ta = document.querySelector("textarea#custom-layer-textarea")
             ta.click()
+            ta.select()
+            if (isFirefox) {
+                document.execCommand("insertText", false, ta.value)
+                ta.select()
+                document.execCommand("insertText", false, JSON.stringify(r.response, null, 2))
+            } else {
+                // fucking Chrome. Or Ctrl + Z, or fast insert
+                ta.setRangeText(JSON.stringify(r.response, null, 2), 0, ta.value.length, "start")
+            }
+            ta.setSelectionRange(0, 0)
             if (ta.parentElement.querySelector("input")?.checked) {
                 ta.style.removeProperty("border-color")
                 if (ta.value.trim() !== "") {
@@ -536,7 +540,7 @@ async function askCustomStyleUrl() {
 
         wrapper.append(input)
         const jsonArea = document.createElement("textarea")
-        jsonArea.classList.add("custom-layer-textarea")
+        jsonArea.id = "custom-layer-textarea"
         jsonArea.type = "text"
         if (customLayerTextArea) {
             jsonArea.value = customLayerTextArea
