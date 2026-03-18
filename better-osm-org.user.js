@@ -5351,6 +5351,15 @@ function addAutoComplete() {
     })
 }
 
+function tryReloadSidebar() {
+    try {
+        getWindow().OSM.router.route(location.pathname)
+    } catch (e) {
+        console.error(e)
+        window.location.reload()
+    }
+}
+
 function addResolveNotesButton() {
     if (!location.pathname.includes("/note")) return
     if (location.pathname.includes("/note/new")) {
@@ -5564,12 +5573,7 @@ out meta;
                         if (err) {
                             alert(err)
                         }
-                        try {
-                            getWindow().OSM.router.route(location.pathname)
-                        } catch (e) {
-                            console.error(e)
-                            window.location.reload()
-                        }
+                        tryReloadSidebar()
                     },
                 )
             }
