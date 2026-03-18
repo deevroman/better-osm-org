@@ -4220,7 +4220,7 @@ Press R for partial revert`
                 level0BtnWithGeometry.textContent = "Open in Level0 with ways geometry"
                 level0BtnWithGeometry.title = "Hotkey: Shift + Alt + J"
                 level0BtnWithGeometry.style.marginBottom = "4px"
-                level0BtnWithGeometry.onclick = () => openSelectedObjectsOnChangesetPage({ altKey: true, shiftKey: true})
+                level0BtnWithGeometry.onclick = () => openSelectedObjectsOnChangesetPage({ altKey: true, shiftKey: true })
                 wrapper.appendChild(level0BtnWithGeometry)
 
                 secondaryActionsWithXml.before(wrapper)
@@ -4392,6 +4392,11 @@ Press R for partial revert`
             }
             const templates = /** @type {string} */ (GM_config.get("ChangesetsTemplates"))
             if (templates) {
+                const buttonsWrapper = document.querySelectorAll("form.mb-3 [name=comment]")[0].parentElement
+                buttonsWrapper.style.display = "flex"
+                buttonsWrapper.style.flexWrap = "wrap"
+                buttonsWrapper.style.gap = "4px"
+                buttonsWrapper.style.rowGap = "4px"
                 JSON.parse(templates).forEach(row => {
                     const label = row["label"]
                     let text = label
@@ -4402,15 +4407,20 @@ Press R for partial revert`
                     b.classList.add("comment-template", "btn", "btn-primary")
                     b.textContent = label
                     b.title = `Add into the comment "${text}".\nYou can change text in userscript settings`
-                    document.querySelectorAll("form.mb-3 [name=comment]")[0].parentElement.appendChild(b)
-                    b.after(document.createTextNode("\xA0"))
+                    buttonsWrapper.appendChild(b)
+                    b.onmousedown = e => {
+                        e.preventDefault()
+                    }
                     b.onclick = e => {
+                        e.preventDefault()
                         e.stopImmediatePropagation()
                         const textarea = document.querySelector("form.mb-3 textarea")
                         const prev = textarea.value
                         const cursor = textarea.selectionEnd
                         textarea.value = prev.substring(0, cursor) + text + prev.substring(cursor)
-                        textarea.focus()
+
+                        const ev = new InputEvent("input", { bubbles: true, cancelable: false, data: textarea.value, inputType: "insertFromPaste" })
+                        textarea.dispatchEvent(ev)
                     }
                 })
             }
