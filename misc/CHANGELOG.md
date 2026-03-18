@@ -1,0 +1,56 @@
+# Changelog archive
+
+[Changelog with illustrations on OSM Community Forum](https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670)
+
+- v1.5.9: memorizing the last satellite layer, simple vector style editor
+- v1.5.7: filter notes by creation date, Panoramax uploader (you need to enable it in the settings)
+- v1.5.5: render child relations on relation page by hover
+- v1.5.0: Shift + S: custom map layers, Shift + V: custom vector map styles, date for ESRI layer
+- v1.5.0: KeyV: switch between raster and vector styles, render light:direction=* and direction=12-34
+- v1.5.0: Initial OpenHistoricalMap support: changeset viewer
+- v1.4.8: Highlight changesets with review_requested=yes
+- v1.4.6: Copy coordinates button in map context menu, copy coordinates button for relations
+- v1.4.0: More links in Edit menu, the ability to add custom links (like OSM Smart Menu)
+- v1.4.0: A button for quickly opening the links list and shortening the map attribution on phones
+- v1.3.7: Add '=' when pasting tag into iD raw tags editor, big script refactor
+- v1.3.2: Add OSM Perfect Intersection Editor into Edit menu, add statistics on the proposal voting
+- v1.3.0: Mapki, Pewu, Relation Analizer, Osmlab links on relation history, keyO for open links list
+- v1.3.0: link to ptna.openstreetmap.de and OSM Relatify editor for Public Transport routes
+- v1.3.0: Linkify Node/Way/Relation on tag page in taginfo,
+- v1.2.0: Colorblind-friendly palette in settings
+- v1.2.0: Osmcha review tags, links to waymarkedtrails.org for type=route, alt + E to click Edits tags
+- v1.2.0: notes word also check comments text, filter by notes comments count and anon authors
+- v1.1.9: badges for corporate cartographers, ability to press the Z key several times for nodes/notes
+- v1.1.8: show gpx tracks in current map view, copy coordinates for ways, alt + C for copy map center
+- v1.1.8: more filters for notes, alt + click for hide note, initial support for KML/KMZ files
+- v1.1.6: copy coordinates for nodes, autoexpand wikidata preview, Shift + M for send message to user
+- v1.0.0: type=restriction render, user ID in profile, profile for deleted user
+- v1.0.0: notes filter, Overpass link in taginfo for key values, ruler, nodes mover
+- v0.9.9: Button for 3D view building in OSMBuilding, F4map and other viewers
+- v0.9.9: Key1 for open first user's changeset, add poweruser=true in Rapid link
+- v0.9.9: Restore navigation links on changeset page of deleted user
+- v0.9.9: KeyR select object for partial revert or open in JOSM/Level0 (KeyJ)
+- v0.9.9: You can replace iD with JOSM (click on extension icon)
+- v0.9.8: Hover for nodes/members in nodes way or relation members list, better RTL support
+- v0.9.8: Show past usernames of user, click for copy ID from header, adoption to updates osm.org
+- v0.9.6: Filter by editor for edits heatmap
+- v0.9.5: Adoption to updates osm.org, render camera:direction=*
+- v0.9.1: script should work more stably in Chrome
+- v0.9.1: display prev value in history diff cell
+- v0.9.1: Alt + click by <time> for open augmented diffs
+- v0.9.1: adapting to changes on the page /history
+- v0.8.9: Satellite layer in Chrome
+- v0.8.9: Support Mapillary images in tags
+- v0.8.9: KeyJ — open in JOSM current state of objects from changeset, alt + J — in Level0
+- v0.8.9: Ctrl + click by <time> for open  state of the map as of the selected date
+- v0.8.9: Shift + / for simple search and editor via Overpass
+- v0.8: https://osm.org/user/TrickyFoxy/diary/406061
+- v0.8: Images from Panoramax, StreetComplete, Wikipedia Commons in changeset and notes
+- v0.8: GPX-tracks render (also in StreetComplete notes)
+- v0.8: Show first comment in changesets history, user badge for your friends
+- v0.8: T — toggle between compact and full tags diff mode, U — open user profile from changeset, note, ...
+- v0.8: Hotkeys on user profile Page (H — user changesets, T — tracks, D — Diary, C — comments, N — notes)
+- v0.8: Drag&Drop for geotagged photos, GeoJSON and GPX files
+- New: Comments templates, support ways render in relation members list
+- New: Q for close sidebar, shift + Z for real bbox of changeset
+- New: displaying the full history of ways (You can disable it in settings)
