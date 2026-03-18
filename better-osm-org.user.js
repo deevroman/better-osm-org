@@ -5564,7 +5564,12 @@ out meta;
                         if (err) {
                             alert(err)
                         }
-                        window.location.reload()
+                        try {
+                            getWindow().OSM.router.route(location.pathname)
+                        } catch (e) {
+                            console.error(e)
+                            window.location.reload()
+                        }
                     },
                 )
             }
