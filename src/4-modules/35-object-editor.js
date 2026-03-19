@@ -175,7 +175,11 @@ function addDeleteButton() {
                                     },
                                     function (err3) {
                                         if (!err3) {
-                                            window.location.reload()
+                                            if (location.hash.includes("D")) {
+                                                window.location.reload()
+                                            } else {
+                                                tryReloadSidebar()
+                                            }
                                         }
                                     },
                                 )
