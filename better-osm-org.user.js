@@ -3799,7 +3799,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
         }
     }
 
-    let changesetProps = {}
+    let changesetProps = null
 
     async function updateReactions() {
         const osmchaToken = await getOsmchaToken()
@@ -3914,6 +3914,10 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
                 .getAttribute("href")
                 .match(/\/user\/(.*)$/)[1],
         )
+        if (!changesetProps) {
+            alert("Changeset not found in OSMCha database")
+            return
+        }
         if (changesetProps["check_user"] && changesetProps["check_user"] !== currentUser) {
             return
         }
