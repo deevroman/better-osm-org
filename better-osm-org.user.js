@@ -13619,13 +13619,13 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 tagTd.onmouseenter = async e => {
                     e.stopPropagation() // fixme
                     e.target.classList.add("way-version-node")
-                    const targetTimestamp = new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1).toISOString()
+                    const targetTimestamp = new Date(new Date(targetVersion.timestamp).getTime() - 1).toISOString()
                     const version = searchVersionByTimestamp(await getNodeHistory(left), targetTimestamp)
                     showActiveNodeMarker(version.lat.toString(), version.lon.toString(), c("#ff00e3"))
                 }
                 tagTd.onclick = async e => {
                     e.stopPropagation() // fixme
-                    const targetTimestamp = new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1).toISOString()
+                    const targetTimestamp = new Date(new Date(targetVersion.timestamp).getTime() - 1).toISOString()
                     const version = searchVersionByTimestamp(await getNodeHistory(left), targetTimestamp)
                     panTo(version.lat.toString(), version.lon.toString())
                 }
@@ -13639,16 +13639,24 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             }
 
             if (typeof right === "number") {
+                function calcTimestamp() {
+                    let targetTimestamp = changesetMetadatas[targetVersion.changeset].closed_at ?? new Date().toISOString()
+                    const nextVersion = upperBoundVersion(objHistory, targetVersion.version)
+                    if (nextVersion && nextVersion.changeset === targetVersion.changeset) {
+                        targetTimestamp = minusSecondInStringTimestamp(nextVersion.timestamp)
+                    }
+                    return targetTimestamp
+                }
                 tagTd2.onmouseenter = async e => {
                     e.stopPropagation() // fixme
                     e.target.classList.add("way-version-node")
-                    const version = searchVersionByTimestamp(await getNodeHistory(right), changesetMetadatas[targetVersion.changeset].closed_at ?? new Date().toISOString())
+                    const version = searchVersionByTimestamp(await getNodeHistory(right), calcTimestamp())
                     showActiveNodeMarker(version.lat.toString(), version.lon.toString(), c("#ff00e3"))
                 }
                 tagTd2.onclick = async e => {
                     e.stopPropagation() // fixme
                     e.target.classList.add("way-version-node")
-                    const version = searchVersionByTimestamp(await getNodeHistory(right), changesetMetadatas[targetVersion.changeset].closed_at ?? new Date().toISOString())
+                    const version = searchVersionByTimestamp(await getNodeHistory(right), calcTimestamp())
                     panTo(version.lat.toString(), version.lon.toString())
                 }
                 tagTd2.onmouseleave = e => {
@@ -14209,6 +14217,27 @@ function maxDate(t1, t2) {
  */
 
 /**
+ * @template T
+ * @param {T[]} objHistory
+ * @param {number} version
+ * @return {T|undefined}
+ */
+function upperBoundVersion(objHistory, version) {
+    let index = version - 1
+    if (objHistory[index]?.version === version) {
+        return objHistory[index + 1]
+    }
+    index--
+    while (index >= 0) {
+        if (objHistory[index]?.version === version) {
+            return objHistory[index + 1]
+        }
+        index--
+    }
+    return undefined
+}
+
+/**
  * @param {string} changesetID
  * @param {string} objType
  * @param {ObjectsInComments} objectsInComments
@@ -14446,6 +14475,9 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                         if (new Date(v.timestamp) <= new Date(notLater) && v.changeset === currentChangeset) {
                             cur = v
                             hasInterChanges = true
+                            if (cur.visible === false) {
+                                console.trace(history, timestamp, notLater, currentChangeset)
+                            }
                         } else {
                             break
                         }
@@ -14465,29 +14497,14 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 return objectList.map(i => searchFinalVersion(i, timestamp, notLater, currentChangeset))
             }
 
-            /**
-             * @template T
-             * @param {T[]} objHistory
-             * @param {number} version
-             * @return {T|undefined}
-             */
-            function upperBoundVersion(objHistory, version) {
-                let index = version - 1
-                if (objHistory[index]?.version === version) {
-                    return objHistory[index + 1]
-                }
-                index--
-                while (index >= 0) {
-                    if (objHistory[index]?.version === version) {
-                        return objHistory[index + 1]
-                    }
-                    index--
-                }
-                return undefined
-            }
-
             const nextVersion = upperBoundVersion(objHistory, targetVersion.version)
-            const nextVersionTimestamp = nextVersion?.visible === false ? minusSecondInStringTimestamp(nextVersion?.timestamp) : nextVersion?.timestamp
+            let nextVersionTimestamp
+            // https://osm.org/changeset/178767978
+            if (nextVersion?.visible === false || nextVersion?.changeset === parseInt(changesetID)) {
+                nextVersionTimestamp = minusSecondInStringTimestamp(nextVersion?.timestamp)
+            } else {
+                nextVersionTimestamp = nextVersion?.timestamp
+            }
             if (!changesetMetadata) {
                 changesetMetadata = await loadChangesetMetadata(parseInt(changesetID))
             }
