@@ -771,6 +771,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
 
             if (typeof right === "number") {
                 function calcTimestamp() {
+                    // нужно лениво считать, ибо информация о пакете правок может быть ещё не загружена
                     let targetTimestamp = changesetMetadatas[targetVersion.changeset].closed_at ?? new Date().toISOString()
                     const nextVersion = upperBoundVersion(objHistory, targetVersion.version)
                     if (nextVersion && nextVersion.changeset === targetVersion.changeset) {
