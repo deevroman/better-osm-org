@@ -532,6 +532,7 @@ out meta;
                             alert(err)
                         }
                         tryReloadSidebar()
+                        getMap().fire("moveend")
                     },
                 )
             }
