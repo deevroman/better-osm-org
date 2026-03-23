@@ -175,7 +175,7 @@ function addDeleteButton() {
                                     },
                                     function (err3) {
                                         if (!err3) {
-                                            if (location.hash.includes("D")) {
+                                            if (location.hash.includes("D") || Object.keys(getMap?.()?.dataLayer?._layers ?? {}).length) {
                                                 window.location.reload()
                                             } else {
                                                 tryReloadSidebar()
