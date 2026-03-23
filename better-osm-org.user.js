@@ -19656,9 +19656,13 @@ async function makeEditorNormalizer() {
     }
 }
 
+/**
+ * @param {string} user
+ * @return {Promise<{id: number, startTime: string}[]>}
+ */
 async function getUserBlocks(user) {
     if (document.querySelector('a[href$="/blocks"]')?.nextElementSibling?.textContent === undefined) {
-        return
+        return []
     }
     const xml = (
         await externalFetchRetry({
@@ -19743,6 +19747,10 @@ async function betterUserStat() {
 
     const _replace_with_rules = makeEditorNormalizer()
     const _blocks_list = getUserBlocks(user).then(async blocks => {
+        if (!blocks) {
+            console.debug("user blocks not found")
+            return []
+        }
         for (let block of blocks) {
             block.text = (await getBlockInfo(block.id)).replaceAll("\r\n\r\n", "\n")
         }
@@ -19847,7 +19855,7 @@ async function betterUserStat() {
             day = replaceElementTag(day, "a")
             const dayDate = day.getAttribute("data-date")
             let banInfo = null
-            if (curBlockIndex < blocks_list.length) {
+            if (blocks_list && curBlockIndex < blocks_list.length) {
                 if (blocks_list[curBlockIndex].startTime.startsWith(dayDate)) {
                     banInfo = blocks_list[curBlockIndex]
                     curBlockIndex++
