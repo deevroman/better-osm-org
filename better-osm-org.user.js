@@ -7126,7 +7126,7 @@ async function bypassCSPForImagesSrc(imgElem, url) {
         if (res.status === 403 && url.includes("strava")) {
             if (!needStravaAuth) {
                 needStravaAuth = true
-                alert("Need login in Strava for access to heatmap")
+                alert("Need login in Strava for access to heatmap.\nAnd after that, reload the tab.")
                 const [x, y, z] = getCurrentXYZ()
                 const hash = `#${z}/${x}/${y}`
                 window.open("https://www.strava.com/maps/global-heatmap" + hash, "_blank")
@@ -7673,6 +7673,18 @@ async function askCustomTileUrl() {
             label: "Hrvatska GeoPortal",
             value: "https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.3.0&SERVICE=WMS&REQUEST=GetMap&LAYERS=OI.OrthoimageCoverage&STYLES=&CRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}",
             about: "https://osm.wiki/GeoScribble",
+        },
+        {
+            label: "Strava Heatmap β",
+            value: "https://content-a.strava.com/identified/globalheat/all/blue/{z}/{x}/{y}@2x.png",
+            about: "https://www.strava.com/maps/global-heatmap",
+            forceVector: true,
+        },
+        {
+            label: "Strava Heatmap (only run)",
+            value: "https://content-a.strava.com/identified/globalheat/run/blue/{z}/{x}/{y}@2x.png",
+            about: "https://www.strava.com/maps/global-heatmap",
+            forceVector: true,
         },
         // {
         //     label: "OsmAnd HD tiles",
