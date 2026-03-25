@@ -31,6 +31,9 @@ function initCspBridge() {
         // fuck TM, need imitate Response
         try {
             const res = await fetchBlobWithCache(e.data.url, opt)
+            if (res.status === 403 && e.data.url.includes("strava")) {
+                stravaAuthNotify()
+            }
             window.postMessage(
                 {
                     type: "bypass_csp_response",
