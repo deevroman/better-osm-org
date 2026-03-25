@@ -95,6 +95,16 @@ function coord4326To3857(lon, lat) {
     return [long3857, lat3857]
 }
 
+function stravaAuthNotify() {
+    if (!needStravaAuth) {
+        needStravaAuth = true
+        alert("Need login in Strava for access to heatmap.\nAnd after that, reload the tab.")
+        const [x, y, z] = getCurrentXYZ()
+        const hash = `#${z}/${x}/${y}`
+        window.open("https://www.strava.com/maps/global-heatmap" + hash, "_blank")
+    }
+}
+
 async function bypassCSPForImagesSrc(imgElem, url) {
     const opt = {}
     if (url.startsWith("https://tiles.openrailwaymap.org")) {
@@ -107,13 +117,7 @@ async function bypassCSPForImagesSrc(imgElem, url) {
             return
         }
         if (res.status === 403 && url.includes("strava")) {
-            if (!needStravaAuth) {
-                needStravaAuth = true
-                alert("Need login in Strava for access to heatmap.\nAnd after that, reload the tab.")
-                const [x, y, z] = getCurrentXYZ()
-                const hash = `#${z}/${x}/${y}`
-                window.open("https://www.strava.com/maps/global-heatmap" + hash, "_blank")
-            }
+            stravaAuthNotify()
             return
         }
         if (getZoom() >= 18) {
