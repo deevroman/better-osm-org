@@ -2499,7 +2499,7 @@ async function restoreObjectHistory(showUnredactedBtn) {
                 target = convertXmlVersionToObject(await getRelationViaOverpassXML(objID, targetDatetime))
             }
             if (!target) {
-                console.error(`v${version} not founded`, objID, targetDatetime)
+                console.error(`v${version} not found`, objID, targetDatetime)
                 continue
             }
         }

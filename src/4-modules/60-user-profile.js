@@ -707,7 +707,7 @@ async function makeProfileForDeletedUser(user) {
                     return [foundUserBlock, lastUserBlock]
                 }
 
-                function processFoundedBlocks(foundUserBlock) {
+                function processFoundBlocks(foundUserBlock) {
                     foundUserBlock.forEach(blockId => {
                         const blockLink = document.createElement("a")
                         blockLink.href = "/user_blocks/" + blockId
@@ -723,7 +723,7 @@ async function makeProfileForDeletedUser(user) {
 
                 let [foundUserBlock, lastUserBlock] = findBlocks(startPage.response)
                 if (foundUserBlock.length) {
-                    processFoundedBlocks(foundUserBlock)
+                    processFoundBlocks(foundUserBlock)
                 } else {
                     while (lastUserBlock > 1) {
                         async function processBlocks(before) {
@@ -739,7 +739,7 @@ async function makeProfileForDeletedUser(user) {
                                 return
                             }
                             if (foundUserBlock.length) {
-                                processFoundedBlocks(foundUserBlock)
+                                processFoundBlocks(foundUserBlock)
                             }
                         }
 
