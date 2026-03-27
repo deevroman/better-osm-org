@@ -23949,7 +23949,7 @@ function goToPrevObjectVersion() {
     }
 }
 
-function gotNextObjectVersion() {
+function goToNextObjectVersion() {
     if (document.querySelector("#sidebar").matches(":hover")) {
         preventHoverEvents()
     }
@@ -24965,7 +24965,7 @@ End with ! for global search
                 if (e.code === "KeyK") {
                     goToPrevObjectVersion()
                 } else if (e.code === "KeyL" && !e.shiftKey) {
-                    gotNextObjectVersion()
+                    goToNextObjectVersion()
                 }
             }
         } else if (
