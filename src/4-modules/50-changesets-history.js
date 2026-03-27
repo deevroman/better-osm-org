@@ -1,5 +1,4 @@
 //<editor-fold desc="/history, /user/*/history">
-const storagePrefix = (isOHMServer() ? "ohm-" : (location.origin === dev_server.origin ? "dev-" : ""))
 async function updateUserInfo(username) {
     void initCorporateMappersList()
     const res = await fetchJSONWithCache(

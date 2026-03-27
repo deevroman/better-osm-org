@@ -378,6 +378,8 @@ function isOsmServer() {
     return !!osm_server
 }
 
+const storagePrefix = isOHMServer() ? "ohm-" : location.origin === dev_server.origin ? "dev-" : ""
+
 const planetOrigin = "https://planet.maps.mail.ru"
 
 const MAIN_OVERPASS_INSTANCE = {
@@ -18488,7 +18490,6 @@ if (isOsmServer()) {
 //</editor-fold>
 
 //<editor-fold desc="/history, /user/*/history">
-const storagePrefix = (isOHMServer() ? "ohm-" : (location.origin === dev_server.origin ? "dev-" : ""))
 async function updateUserInfo(username) {
     void initCorporateMappersList()
     const res = await fetchJSONWithCache(
