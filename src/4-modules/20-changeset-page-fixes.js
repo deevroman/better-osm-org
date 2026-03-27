@@ -1,5 +1,15 @@
 //<editor-fold desc="changeset-page-fixes" defaultstate="collapsed">
 
+function makeContextMenuElem(e) {
+    const x = e.pageX ? e.pageX : e.target.getBoundingClientRect().right
+    const y = e.pageY ? e.pageY : e.target.getBoundingClientRect().bottom
+    const menu = document.createElement("div")
+    menu.classList.add("betterOsmContextMenu")
+    menu.style.left = `${max(5, x - 30)}px`
+    menu.style.top = `${y}px`
+    return menu
+}
+
 function makeUsernameInNotesFilterable() {
     let usernameLink = document.querySelector("#sidebar_content .details p")?.querySelector('a[href^="/user/"]')
     if (!usernameLink) {
