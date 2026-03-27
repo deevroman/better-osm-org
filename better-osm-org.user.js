@@ -25704,6 +25704,24 @@ function main() {
 
 // garbage collection for cached infos (user info, changeset history)
 async function runGC() {
+    const USERINFO_PREFIXES = ["userinfo-", "ohm-userinfo-", "dev-userinfo-"]
+    const USER_ID_INFO_PREFIXES = ["useridinfo-", "ohm-useridinfo-", "dev-useridinfo-"]
+    const USER_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 14
+
+    async function deleteIfExpiredCache(key) {
+        try {
+            const cacheData = JSON.parse(await GM.getValue(key))
+            if (!cacheData.cacheTime) return
+
+            const cacheTime = new Date(cacheData.cacheTime).getTime()
+            if (isNaN(cacheTime) || cacheTime + USER_CACHE_TTL_MS < Date.now()) {
+                await GM.deleteValue(key)
+            }
+        } catch {
+            /* empty */
+        }
+    }
+
     if (Math.random() > 0.5) return
     if (!location.pathname.includes("/history") && !location.pathname.includes("/note") && !location.pathname.includes("/user")) return
     const lastGC = await GM.getValue("last-garbage-collection-time")
@@ -25713,24 +25731,8 @@ async function runGC() {
 
     const keys = await GM.listValues()
     for (const i of keys) {
-        if (i.startsWith("userinfo-") || i.startsWith("ohm-userinfo-") || i.startsWith("dev-userinfo-")) {
-            try {
-                const userinfo = JSON.parse(await GM.getValue(i))
-                if (userinfo.cacheTime && (isNaN(new Date(userinfo.cacheTime)) || new Date(userinfo.cacheTime).getTime() + 1000 * 60 * 60 * 24 * 14 < Date.now())) {
-                    await GM.deleteValue(i)
-                }
-            } catch {
-                /* empty */
-            }
-        } else if (i.startsWith("useridinfo-") || i.startsWith("ohm-useridinfo-") || i.startsWith("dev-useridinfo-")) {
-            try {
-                const userIDInfo = JSON.parse(await GM.getValue(i))
-                if (userIDInfo.cacheTime && (isNaN(new Date(userIDInfo.cacheTime)) || new Date(userIDInfo.cacheTime).getTime() + 1000 * 60 * 60 * 24 * 14 < Date.now())) {
-                    await GM.deleteValue(i)
-                }
-            } catch {
-                /* empty */
-            }
+        if ([...USERINFO_PREFIXES, ...USER_ID_INFO_PREFIXES].some(prefix => i.startsWith(prefix))) {
+            await deleteIfExpiredCache(i)
         }
     }
     console.log("Old cache cleaned")
