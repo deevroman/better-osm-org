@@ -1142,6 +1142,10 @@ async function getChangesetComments(changeset_id) {
     return res["changeset"]["comments"]
 }
 
+function externalizeLinks(links) {
+    links?.forEach(i => i.setAttribute("target", "_blank"))
+}
+
 let sidebarObserver = null
 
 function setupCompactChangesetsHistory() {

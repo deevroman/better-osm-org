@@ -4659,6 +4659,10 @@ async function getChangesetComments(changeset_id) {
     return res["changeset"]["comments"]
 }
 
+function externalizeLinks(links) {
+    links?.forEach(i => i.setAttribute("target", "_blank"))
+}
+
 let sidebarObserver = null
 
 function setupCompactChangesetsHistory() {
@@ -12088,10 +12092,6 @@ function makeTitleForTagsCount(tagsCount) {
     } else {
         return tagsCount + (["ru-RU", "ru"].includes(navigator.language) ? " тегов" : " tags")
     }
-}
-
-function externalizeLinks(links) {
-    links?.forEach(i => i.setAttribute("target", "_blank"))
 }
 
 function addDiffInHistoryStyle() {
