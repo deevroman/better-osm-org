@@ -2876,7 +2876,7 @@ function makeTitleForTagsCount(tagsCount) {
     if (tagsCount === 1) {
         // fixme after adding localization
         return tagsCount + (["ru-RU", "ru"].includes(navigator.language) ? " тег" : " tag")
-    } else if (tagsCount < 10 && tagsCount > 20 && [2, 3, 4].includes(tagsCount % 10)) {
+    } else if ((tagsCount < 10 || tagsCount > 20) && [2, 3, 4].includes(tagsCount % 10)) {
         return tagsCount + (["ru-RU", "ru"].includes(navigator.language) ? " тега" : " tags")
     } else {
         return tagsCount + (["ru-RU", "ru"].includes(navigator.language) ? " тегов" : " tags")
