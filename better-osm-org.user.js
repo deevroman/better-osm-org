@@ -18906,7 +18906,7 @@ function filterChangesets(htmlDocument = document) {
                         needHide = false
                     } else if (username === REVIEW_REQUESTED_EMOJI && li.classList.contains("review-requested-changeset")) {
                         needHide = false
-                    } else if (username === NEWBIE_EMOJI && changesetAuthorLink?.previousElementSibling?.classList?.contains(".newbie-badge")) {
+                    } else if (username === NEWBIE_EMOJI && changesetAuthorLink?.previousElementSibling?.classList?.contains("newbie-badge")) {
                         needHide = false
                     }
                 })
