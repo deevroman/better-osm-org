@@ -2883,10 +2883,6 @@ function makeTitleForTagsCount(tagsCount) {
     }
 }
 
-function externalizeLinks(links) {
-    links?.forEach(i => i.setAttribute("target", "_blank"))
-}
-
 function addDiffInHistoryStyle() {
     const styleText =
         `
