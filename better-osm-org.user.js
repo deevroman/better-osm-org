@@ -18751,29 +18751,31 @@ function openCombinedChangesetsMap() {
     }
 }
 
+function onClickByCopyIds() {
+    const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked"))
+        .map(i => i.value)
+        .join(",")
+    if (ids !== "") {
+        navigator.clipboard.writeText(ids).then(() => {
+            console.log(ids, "ids copied")
+        })
+    } else {
+        const ids = Array.from(document.querySelectorAll(".mass-action-checkbox"))
+            .map(i => i.value)
+            .join(",")
+        navigator.clipboard.writeText(ids).then(() => {
+            console.log(ids, "ids copied")
+        })
+    }
+}
+
 function makeTopActionBar() {
     const actionsBar = document.createElement("div")
     actionsBar.classList.add("actions-bar")
     const copyIds = document.createElement("button")
     copyIds.textContent = "Copy IDs"
     copyIds.classList.add("copy-changesets-ids-btn")
-    copyIds.onclick = () => {
-        const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked"))
-            .map(i => i.value)
-            .join(",")
-        if (ids !== "") {
-            navigator.clipboard.writeText(ids).then(() => {
-                console.log(ids, "ids copied")
-            })
-        } else {
-            const ids = Array.from(document.querySelectorAll(".mass-action-checkbox"))
-                .map(i => i.value)
-                .join(",")
-            navigator.clipboard.writeText(ids).then(() => {
-                console.log(ids, "ids copied")
-            })
-        }
-    }
+    copyIds.onclick = onClickByCopyIds
     const revertButton = document.createElement("button")
     revertButton.textContent = "↩️"
     revertButton.title = `revert via ${osm_revert_name}`
@@ -18818,23 +18820,7 @@ function makeBottomActionBar() {
     copyIds.classList.add("copy-changesets-ids-btn")
     copyIds.classList.add("buttom-btn")
     copyIds.classList.add("page-link")
-    copyIds.onclick = () => {
-        const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked"))
-            .map(i => i.value)
-            .join(",")
-        if (ids !== "") {
-            navigator.clipboard.writeText(ids).then(() => {
-                console.log(ids, "ids copied")
-            })
-        } else {
-            const ids = Array.from(document.querySelectorAll(".mass-action-checkbox"))
-                .map(i => i.value)
-                .join(",")
-            navigator.clipboard.writeText(ids).then(() => {
-                console.log(ids, "ids copied")
-            })
-        }
-    }
+    copyIds.onclick = onClickByCopyIds
     const revertButton = document.createElement("button")
     revertButton.textContent = "↩️"
     revertButton.title = `revert via ${osm_revert_name}`
