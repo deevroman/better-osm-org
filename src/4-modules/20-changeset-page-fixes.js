@@ -1109,11 +1109,6 @@ ${copyAnimationStyles}
       pointer-events: none;
     }
     
-    .is-loading {
-      position: relative;
-      pointer-events: none;
-    }
-    
     .is-loading::after {
       content: "";
       position: absolute;
