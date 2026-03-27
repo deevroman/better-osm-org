@@ -751,16 +751,6 @@ function expandWikidata() {
     }, 1000)
 }
 
-function makeContextMenuElem(e) {
-    const x = e.pageX ? e.pageX : e.target.getBoundingClientRect().right
-    const y = e.pageY ? e.pageY : e.target.getBoundingClientRect().bottom
-    const menu = document.createElement("div")
-    menu.classList.add("betterOsmContextMenu")
-    menu.style.left = `${max(5, x - 30)}px`
-    menu.style.top = `${y}px`
-    return menu
-}
-
 /**
  * @param {number} lat
  * @param {number} lon
