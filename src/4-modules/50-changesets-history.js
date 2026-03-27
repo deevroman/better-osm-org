@@ -226,8 +226,8 @@ function addMassActionForUserChangesets() {
     // })
 }
 
-function addChangesetCheckbox(chagesetElem) {
-    if (chagesetElem.querySelector(".mass-action-checkbox")) {
+function addChangesetCheckbox(changesetElem) {
+    if (changesetElem.querySelector(".mass-action-checkbox")) {
         return
     }
     const a = document.createElement("a")
@@ -235,7 +235,7 @@ function addChangesetCheckbox(chagesetElem) {
     const checkbox = document.createElement("input")
     checkbox.type = "checkbox"
     checkbox.classList.add("mass-action-checkbox")
-    checkbox.value = chagesetElem.querySelector(".changeset_id").href.match(/\/(\d+)/)[1]
+    checkbox.value = changesetElem.querySelector(".changeset_id").href.match(/\/(\d+)/)[1]
     checkbox.style.cursor = "pointer"
     checkbox.title = "Shift + click for select a range of empty checkboxes"
     checkbox.onclick = e => {
@@ -264,8 +264,8 @@ function addChangesetCheckbox(chagesetElem) {
         })
     }
     a.appendChild(checkbox)
-    chagesetElem.querySelector("p").prepend(a)
-    chagesetElem.querySelectorAll("a.changeset_id").forEach(i => {
+    changesetElem.querySelector("p").prepend(a)
+    changesetElem.querySelectorAll("a.changeset_id").forEach(i => {
         i.onclick = e => {
             if (massModeActive) {
                 e.preventDefault()
