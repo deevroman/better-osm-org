@@ -227,6 +227,8 @@ function isOsmServer() {
     return !!osm_server
 }
 
+const storagePrefix = isOHMServer() ? "ohm-" : location.origin === dev_server.origin ? "dev-" : ""
+
 const planetOrigin = "https://planet.maps.mail.ru"
 
 const MAIN_OVERPASS_INSTANCE = {
