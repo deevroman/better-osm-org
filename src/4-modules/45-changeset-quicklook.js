@@ -133,20 +133,6 @@ function addSwipes() {
 }
 
 /**
- * @param {string} unsafe
- * @returns {string}
- */
-function escapeHtml(unsafe) {
-    // prettier-ignore
-    return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
-/**
  *
  * @param {string} key
  * @param {number} ms

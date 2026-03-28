@@ -166,4 +166,18 @@ function tryApplyModule(fn, interval, timeout) {
     }
 }
 
+/**
+ * @param {string} unsafe
+ * @returns {string}
+ */
+function escapeHtml(unsafe) {
+    // prettier-ignore
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 //</editor-fold>
