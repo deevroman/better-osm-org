@@ -1720,6 +1720,21 @@ function escapeHtml(unsafe) {
         .replace(/'/g, "&#039;");
 }
 
+/**
+ * @template T
+ * @param {T[]} arr
+ * @param N
+ * @return {T[][]}
+ */
+function arraySplit(arr, N = 2) {
+    const chunkSize = Math.max(1, Math.floor(arr.length / N)) // todo это неправильно, но и так сойдёт
+    const res = []
+    for (let i = 0; i < arr.length; i += chunkSize) {
+        res.push(arr.slice(i, i + chunkSize))
+    }
+    return res
+}
+
 //</editor-fold>
 
 //<editor-fold desc="network-utils" defaultstate="collapsed">
@@ -13150,21 +13165,6 @@ function setupVersionsDiff() {
 // Restored tags                                        https://osm.org/changeset/141362243
 let quickLookInjectingStarted = false
 let allTagsOfObjectsVisible = true
-
-/**
- * @template T
- * @param {T[]} arr
- * @param N
- * @return {T[][]}
- */
-function arraySplit(arr, N = 2) {
-    const chunkSize = Math.max(1, Math.floor(arr.length / N)) // todo это неправильно, но и так сойдёт
-    const res = []
-    for (let i = 0; i < arr.length; i += chunkSize) {
-        res.push(arr.slice(i, i + chunkSize))
-    }
-    return res
-}
 
 /**
  * @typedef {{
