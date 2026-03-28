@@ -3460,6 +3460,40 @@ function makeAuth() {
     })
 }
 
+/**
+ *
+ * @param {string} text
+ * @param {boolean} strict
+ * @return {Object.<string, string>}
+ */
+function buildTags(text, strict = false) {
+    const lines = text.split("\n")
+    const json = {}
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i]
+        let eqPos = line.indexOf("=")
+        if (eqPos <= 0 || eqPos === line.length - 1) {
+            eqPos = line.indexOf("\t")
+            if (eqPos <= 0 || eqPos === line.length - 1) {
+                if (strict && line.trim() !== "") {
+                    throw `Empty key or value in line №${i}: ${line}`
+                }
+                continue
+            }
+        }
+        const k = line.substring(0, eqPos).trim()
+        const v = line.substring(eqPos + 1).trim()
+        if (v === "" || k === "") {
+            if (strict && line.trim() !== "") {
+                throw `Empty key or value in line №${i + 1}: ${line}`
+            }
+            continue
+        }
+        json[k] = v.replaceAll("\\\\", "\n")
+    }
+    return json
+}
+
 //</editor-fold>
 
 //<editor-fold desc="search-form-fixes" defaultstate="collapsed">
@@ -5297,40 +5331,6 @@ function setupDarkModeForMap() {
 //</editor-fold>
 
 //<editor-fold desc="notes" defaultstate="collapsed">
-
-/**
- *
- * @param {string} text
- * @param {boolean} strict
- * @return {Object.<string, string>}
- */
-function buildTags(text, strict = false) {
-    const lines = text.split("\n")
-    const json = {}
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i]
-        let eqPos = line.indexOf("=")
-        if (eqPos <= 0 || eqPos === line.length - 1) {
-            eqPos = line.indexOf("\t")
-            if (eqPos <= 0 || eqPos === line.length - 1) {
-                if (strict && line.trim() !== "") {
-                    throw `Empty key or value in line №${i}: ${line}`
-                }
-                continue
-            }
-        }
-        const k = line.substring(0, eqPos).trim()
-        const v = line.substring(eqPos + 1).trim()
-        if (v === "" || k === "") {
-            if (strict && line.trim() !== "") {
-                throw `Empty key or value in line №${i + 1}: ${line}`
-            }
-            continue
-        }
-        json[k] = v.replaceAll("\\\\", "\n")
-    }
-    return json
-}
 
 function makeTextareaFromTagsTable(table) {
     const textarea = document.createElement("textarea")
