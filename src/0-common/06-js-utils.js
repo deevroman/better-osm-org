@@ -180,4 +180,19 @@ function escapeHtml(unsafe) {
         .replace(/'/g, "&#039;");
 }
 
+/**
+ * @template T
+ * @param {T[]} arr
+ * @param N
+ * @return {T[][]}
+ */
+function arraySplit(arr, N = 2) {
+    const chunkSize = Math.max(1, Math.floor(arr.length / N)) // todo это неправильно, но и так сойдёт
+    const res = []
+    for (let i = 0; i < arr.length; i += chunkSize) {
+        res.push(arr.slice(i, i + chunkSize))
+    }
+    return res
+}
+
 //</editor-fold>
