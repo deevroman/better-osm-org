@@ -4174,9 +4174,8 @@ function addUserChangesetRssLink(username) {
  * @param changeset_id {string}
  */
 function addUsernameBadgesOrRestoreAction(changeset_id) {
-    // find deleted user
-    const metainfoHTML = document.querySelector("#sidebar_content h2 ~ div > .details")
-    const time = metainfoHTML.querySelector("time")
+    const metainfoHTML = document.querySelector("#sidebar_content .details")
+    const time = metainfoHTML.querySelector("time") ?? (isOGFServer() && metainfoHTML.querySelector("abbr"))
     if (metainfoHTML.querySelector("a[href*=\"/user/\"]:not([rel])")) {
         const usernameA = metainfoHTML.querySelector("a[href*=\"/user/\"]:not([rel])")
         metainfoHTML.innerHTML = ""
@@ -4213,7 +4212,6 @@ function addUsernameBadgesOrRestoreAction(changeset_id) {
         })
         addUserChangesetRssLink(usernameA.textContent)
     } else {
-        const time = metainfoHTML.querySelector("time")
         metainfoHTML.innerHTML = ""
         metainfoHTML.appendChild(time)
         const findBtn = document.createElement("span")
@@ -6234,7 +6232,7 @@ function addNotesFiltersButtons() {
     updateNotesFilters()
     addAltClickHandlerForNotes()
     document.querySelector(".overlay-layers p").style.display = "none"
-    document.querySelector(".layers-ui h2").style.fontSize = "20px"
+    document.querySelector(".layers-ui :is(h2,h4)").style.fontSize = "20px"
 }
 
 function setupNotesFiltersButtons() {
