@@ -1,6 +1,7 @@
 //<editor-fold desc="satellite switching">
 const OSMPrefix = "https://tile.openstreetmap.org/"
-let BaseLayerPrefix = OSMPrefix
+const OGFPrefix = "https://tiles05.opengeofiction.net/ogf-carto/"
+const BaseLayerPrefix = isOGFServer() ? OGFPrefix : OSMPrefix
 
 const ESRIPrefix = "https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
 let ESRITemplate = ESRIPrefix + "{z}/{y}/{x}"
@@ -27,7 +28,7 @@ function invertOverlayMode(mode) {
 }
 
 function parseOSMTileURL(url) {
-    const match = url.match(new RegExp(`${OSMPrefix}(\\d+)\\/(\\d+)\\/(\\d+)\\.png`))
+    const match = url.match(new RegExp(`${BaseLayerPrefix}(\\d+)\\/(\\d+)\\/(\\d+)\\.png`))
     if (!match) {
         return false
     }
@@ -235,7 +236,7 @@ function makeStravaURL(x, y, z) {
 }
 
 function makeOSMURL(x, y, z) {
-    return OSMPrefix + z + "/" + x + "/" + y + ".png"
+    return BaseLayerPrefix + z + "/" + x + "/" + y + ".png"
 }
 
 function makeBaseLayerURL(x, y, z) {

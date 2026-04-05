@@ -197,6 +197,13 @@ const ohm_prod_server = {
     origin: "https://www.openhistoricalmap.org",
 }
 
+const ogf_prod_server = {
+    apiBase: "https://opengeofiction.net/api/0.6/",
+    apiUrl: "https://opengeofiction.net/api/0.6",
+    url: "https://opengeofiction.net",
+    origin: "https://opengeofiction.net",
+}
+
 const dev_server = {
     apiBase: "https://master.apis.dev.openstreetmap.org/api/0.6/",
     apiUrl: "https://master.apis.dev.openstreetmap.org/api/0.6",
@@ -215,6 +222,7 @@ const osm_server = (() => {
     if (location.origin === prod_server.origin) return prod_server
     else if (location.origin === dev_server.origin) return dev_server
     else if (location.origin === ohm_prod_server.origin) return ohm_prod_server
+    else if (location.origin === ogf_prod_server.origin) return ogf_prod_server
     else if (location.origin === local_server.origin) return local_server
     else return null
 })()
@@ -223,11 +231,15 @@ function isOHMServer() {
     return location.origin === ohm_prod_server.origin
 }
 
+function isOGFServer() {
+    return location.origin === ogf_prod_server.origin
+}
+
 function isOsmServer() {
     return !!osm_server
 }
 
-const storagePrefix = isOHMServer() ? "ohm-" : location.origin === dev_server.origin ? "dev-" : ""
+const storagePrefix = isOHMServer() ? "ohm-" : location.origin === dev_server.origin ? "dev-" : isOGFServer() ? "ogf-" : ""
 
 const planetOrigin = "https://planet.maps.mail.ru"
 
@@ -483,8 +495,8 @@ function intoPageWithFun(obj) {
 }
 
 const dataUser = document.querySelector("head")?.getAttribute("data-user")
-// TrickyFoxy on osm.org and OHM
-let _isDebug = dataUser === "11528195" || dataUser === "15560" || osm_server === local_server || osm_server === dev_server
+// TrickyFoxy on osm.org, OHM, OGF
+let _isDebug = dataUser === "11528195" || dataUser === "15560" || dataUser === "26980" || osm_server === local_server || osm_server === dev_server
 
 function isDebug() {
     return _isDebug
@@ -537,7 +549,10 @@ function injectMapHooks() {
                     }
                 }, boWindowObject),
             )
-            boWindowObject.L.OSM.MaplibreGL.addInitHook(
+            if (!boWindowObject.L.OSM.MaplibreGL) {
+                console.warn("L.OSM.MaplibreGL not found")
+            }
+            boWindowObject.L.OSM.MaplibreGL?.addInitHook(
                 exportFunction(function () {
                     // if (this._container?.id === "map") {
                     if (!boGlobalThis.mapGL) {

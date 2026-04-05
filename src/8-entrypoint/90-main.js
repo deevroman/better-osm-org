@@ -5,6 +5,9 @@ function _main() {
     if (GM_config.get("DebugMode")) {
         _isDebug = true
     }
+    if (location.origin === ogf_prod_server.origin && !isDebug()) {
+        return
+    }
     if (GM_config.get("ColorblindFriendlyPalette")) {
         setColorblindFriendlyPalette()
     }
