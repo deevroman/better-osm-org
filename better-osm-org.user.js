@@ -15739,9 +15739,12 @@ async function processQuickLookInSidebar(changesetID) {
         /** @type {0|1|2|3} */
         let uniqTypes = 0
         for (const objType of osmTypesOrder) {
-            if (document.querySelectorAll(`.list-unstyled li.${objType}`).length > 0) {
+            if (document.querySelectorAll(`#changeset_${objType}s`).length > 0) {
                 uniqTypes++
             }
+        }
+        if (uniqTypes === 0) {
+            console.warn("found 0 uniqTypes")
         }
 
         for (const objType of osmTypesOrder) {
