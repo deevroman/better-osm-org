@@ -4170,6 +4170,65 @@ function addUserChangesetRssLink(username) {
     document.head.appendChild(rssfeed)
 }
 
+/**
+ * @param changeset_id {string}
+ */
+function addUsernameBadgesOrRestoreAction(changeset_id) {
+    // find deleted user
+    const metainfoHTML = document.querySelector("#sidebar_content h2 ~ div > .details")
+    const time = metainfoHTML.querySelector("time")
+    if (metainfoHTML.querySelector("a[href*=\"/user/\"]:not([rel])")) {
+        const usernameA = metainfoHTML.querySelector("a[href*=\"/user/\"]:not([rel])")
+        metainfoHTML.innerHTML = ""
+        metainfoHTML.appendChild(time)
+        metainfoHTML.appendChild(document.createTextNode(" "))
+        metainfoHTML.appendChild(usernameA)
+        metainfoHTML.appendChild(document.createTextNode(" "))
+        getCachedUserInfo(usernameA.textContent).then(res => {
+            usernameA.before(makeBadge(res, new Date(time.getAttribute("datetime"))))
+            usernameA.before(document.createTextNode(" "))
+            usernameA.title = makeUsernameTitle(res)
+
+            document.querySelectorAll(".browse-tag-list tr").forEach(i => {
+                const key = i.querySelector("th")
+                if (!key) return
+                if (key.textContent === "changesets_count") {
+                    function insertAllChangesets(info) {
+                        const allChangesets = document.createElement("span")
+                        allChangesets.textContent = `/${info["changesets"]["count"]}`
+                        allChangesets.style.color = "gray"
+                        allChangesets.title = "how many changesets does the user have in total"
+                        i.querySelector("td").appendChild(allChangesets)
+                    }
+
+                    if (parseInt(i.querySelector("td").textContent) >= res["changesets"]["count"]) {
+                        updateUserInfo(usernameA.textContent).then(res => {
+                            insertAllChangesets(res)
+                        })
+                    } else {
+                        insertAllChangesets(res)
+                    }
+                }
+            })
+        })
+        addUserChangesetRssLink(usernameA.textContent)
+    } else {
+        const time = metainfoHTML.querySelector("time")
+        metainfoHTML.innerHTML = ""
+        metainfoHTML.appendChild(time)
+        const findBtn = document.createElement("span")
+        findBtn.title = "Try find deleted user"
+        findBtn.textContent = " 🔍 "
+        findBtn.value = changeset_id
+        findBtn.datetime = time.dateTime
+        findBtn.style.cursor = "pointer"
+        findBtn.onclick = findChangesetInDiff
+        metainfoHTML.appendChild(findBtn)
+
+        void restorePrevNextChangesetButtons(parseInt(changeset_id))
+    }
+}
+
 function addRevertButton() {
     if (!location.pathname.startsWith("/changeset")) return
     if (document.querySelector("#revert_button_class")) return true
@@ -4347,60 +4406,7 @@ Press R for partial revert`
             console.trace()
         }
 
-        // find deleted user
-        // todo extract
-        const metainfoHTML = document.querySelector("#sidebar_content h2 ~ div > .details")
-        const time = metainfoHTML.querySelector("time")
-        if (metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')) {
-            const usernameA = metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')
-            metainfoHTML.innerHTML = ""
-            metainfoHTML.appendChild(time)
-            metainfoHTML.appendChild(document.createTextNode(" "))
-            metainfoHTML.appendChild(usernameA)
-            metainfoHTML.appendChild(document.createTextNode(" "))
-            getCachedUserInfo(usernameA.textContent).then(res => {
-                usernameA.before(makeBadge(res, new Date(time.getAttribute("datetime"))))
-                usernameA.before(document.createTextNode(" "))
-                usernameA.title = makeUsernameTitle(res)
-
-                document.querySelectorAll(".browse-tag-list tr").forEach(i => {
-                    const key = i.querySelector("th")
-                    if (!key) return
-                    if (key.textContent === "changesets_count") {
-                        function insertAllChangesets(info) {
-                            const allChangesets = document.createElement("span")
-                            allChangesets.textContent = `/${info["changesets"]["count"]}`
-                            allChangesets.style.color = "gray"
-                            allChangesets.title = "how many changesets does the user have in total"
-                            i.querySelector("td").appendChild(allChangesets)
-                        }
-
-                        if (parseInt(i.querySelector("td").textContent) >= res["changesets"]["count"]) {
-                            updateUserInfo(usernameA.textContent).then(res => {
-                                insertAllChangesets(res)
-                            })
-                        } else {
-                            insertAllChangesets(res)
-                        }
-                    }
-                })
-            })
-            addUserChangesetRssLink(usernameA.textContent)
-        } else {
-            const time = metainfoHTML.querySelector("time")
-            metainfoHTML.innerHTML = ""
-            metainfoHTML.appendChild(time)
-            const findBtn = document.createElement("span")
-            findBtn.title = "Try find deleted user"
-            findBtn.textContent = " 🔍 "
-            findBtn.value = changeset_id
-            findBtn.datetime = time.dateTime
-            findBtn.style.cursor = "pointer"
-            findBtn.onclick = findChangesetInDiff
-            metainfoHTML.appendChild(findBtn)
-
-            void restorePrevNextChangesetButtons(parseInt(changeset_id))
-        }
+        addUsernameBadgesOrRestoreAction(changeset_id)
         // compact changeset tags
         if (!document.querySelector(".browse-tag-list[compacted]")) {
             makeHashtagsClickable()
