@@ -138,6 +138,9 @@ async function globalRateLimitByKey(key, ms) {
 const cachedNominatimRequests = new Set()
 
 async function geocodeCurrentView(attempts = 5) {
+    if (isOGFServer()) {
+        return
+    }
     if (!GM_config.get("AddLocationFromNominatim")) return
     if (location.search.includes("changesets")) return
     await interceptMapManually()
@@ -3384,8 +3387,10 @@ async function addChangesetQuickLook() {
         return
     }
     if (!document.querySelector("turbo-frame:is(#changeset_nodes,#changeset_ways,#changeset_relations)")) {
-        console.log("changeset is empty")
-        return
+        if (!isOGFServer()) {
+            console.log("changeset is empty")
+            return
+        }
     }
     quickLookInjectingStarted = true
     resetSearchFormFocus()
