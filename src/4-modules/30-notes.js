@@ -838,7 +838,7 @@ function addNotesFiltersButtons() {
     updateNotesFilters()
     addAltClickHandlerForNotes()
     document.querySelector(".overlay-layers p").style.display = "none"
-    document.querySelector(".layers-ui h2").style.fontSize = "20px"
+    document.querySelector(".layers-ui :is(h2,h4)").style.fontSize = "20px"
 }
 
 function setupNotesFiltersButtons() {
