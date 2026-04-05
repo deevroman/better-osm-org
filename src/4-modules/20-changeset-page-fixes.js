@@ -574,6 +574,10 @@ Press R for partial revert`
         changesetObjectsSelectionModeEnabled = false
         document.querySelector("#revert_button_class").onclick = async e => {
             if (changesetObjectsSelectionModeEnabled) {
+                if (e.shiftKey) {
+                    alert("JOSM doesn't support partial revert")
+                    return
+                }
                 e.preventDefault()
                 if (osm_server !== prod_server && osm_server !== ohm_prod_server) {
                     e.preventDefault()
