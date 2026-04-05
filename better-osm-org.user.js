@@ -4159,6 +4159,17 @@ Press alt + J for open objects in Level0`
     document.querySelector("#changeset_nodes input[type=checkbox], #changeset_ways input[type=checkbox], #changeset_relations input[type=checkbox]").focus()
 }
 
+function addUserChangesetRssLink(username) {
+    //<link rel="alternate" type="application/atom+xml" title="ATOM" href="https://www.openstreetmap.org/user/Elizen/history/feed">
+    const rssfeed = document.createElement("link")
+    rssfeed.id = "fixed-rss-feed"
+    rssfeed.type = "application/atom+xml"
+    rssfeed.title = "ATOM"
+    rssfeed.rel = "alternate"
+    rssfeed.href = `https://www.openstreetmap.org/user/${encodeURI(username)}/history/feed`
+    document.head.appendChild(rssfeed)
+}
+
 function addRevertButton() {
     if (!location.pathname.startsWith("/changeset")) return
     if (document.querySelector("#revert_button_class")) return true
@@ -4374,14 +4385,7 @@ Press R for partial revert`
                     }
                 })
             })
-            //<link rel="alternate" type="application/atom+xml" title="ATOM" href="https://www.openstreetmap.org/user/Elizen/history/feed">
-            const rssfeed = document.createElement("link")
-            rssfeed.id = "fixed-rss-feed"
-            rssfeed.type = "application/atom+xml"
-            rssfeed.title = "ATOM"
-            rssfeed.rel = "alternate"
-            rssfeed.href = `https://www.openstreetmap.org/user/${encodeURI(usernameA.textContent)}/history/feed`
-            document.head.appendChild(rssfeed)
+            addUserChangesetRssLink(usernameA.textContent)
         } else {
             const time = metainfoHTML.querySelector("time")
             metainfoHTML.innerHTML = ""
