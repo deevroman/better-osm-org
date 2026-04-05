@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.5.9.5
+// @version         1.5.9.6
 // @changelog       v1.5.9: memorizing the last satellite layer, simple vector style editor
 // @changelog       v1.5.7: filter notes by creation date, Panoramax uploader (you need to enable it in the settings)
 // @changelog       v1.5.5: render child relations on relation page by hover
@@ -28,6 +28,7 @@
 // @exclude      https://www.openstreetmap.org/oauth2/*
 // @exclude      https://www.openstreetmap.org/login*
 // @match        https://www.openhistoricalmap.org/*
+// @match        https://opengeofiction.net/*
 // @match        https://master.apis.dev.openstreetmap.org/*
 // @exclude      https://master.apis.dev.openstreetmap.org/api/*
 // @exclude      https://master.apis.dev.openstreetmap.org/account*
@@ -42,10 +43,15 @@
 // @match        https://osmcha.org/*
 // @match        https://osmcha.openhistoricalmap.org/*
 // @exclude      https://www.openhistoricalmap.org/api*
-// @exclude      https:///www.openhistoricalmap.org/account*
-// @exclude      https:///www.openhistoricalmap.org/messages/*
-// @exclude      https:///www.openhistoricalmap.org/diary/*
-// @exclude      https:///www.openhistoricalmap.org/oauth2/*
+// @exclude      https://www.openhistoricalmap.org/account*
+// @exclude      https://www.openhistoricalmap.org/messages/*
+// @exclude      https://www.openhistoricalmap.org/diary/*
+// @exclude      https://www.openhistoricalmap.org/oauth2/*
+// @exclude      https://opengeofiction.net/api*
+// @exclude      https://opengeofiction.net/account*
+// @exclude      https://opengeofiction.net/messages/*
+// @exclude      https://opengeofiction.net/diary/*
+// @exclude      https://opengeofiction.net/oauth2/*
 // @match        https://wiki.openstreetmap.org/wiki/Proposal:*
 // @exclude      https://taginfo.openstreetmap.org/embed/*
 // @match        https://github.com/openstreetmap/openstreetmap-website/issues/new*

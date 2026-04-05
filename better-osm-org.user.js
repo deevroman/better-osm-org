@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.5.9.5
+// @version         1.5.9.6
 // @changelog       v1.5.9: memorizing the last satellite layer, simple vector style editor
 // @changelog       v1.5.7: filter notes by creation date, Panoramax uploader (you need to enable it in the settings)
 // @changelog       v1.5.5: render child relations on relation page by hover
@@ -28,6 +28,7 @@
 // @exclude      https://www.openstreetmap.org/oauth2/*
 // @exclude      https://www.openstreetmap.org/login*
 // @match        https://www.openhistoricalmap.org/*
+// @match        https://opengeofiction.net/*
 // @match        https://master.apis.dev.openstreetmap.org/*
 // @exclude      https://master.apis.dev.openstreetmap.org/api/*
 // @exclude      https://master.apis.dev.openstreetmap.org/account*
@@ -41,10 +42,15 @@
 // @match        https://osmcha.org/*
 // @match        https://osmcha.openhistoricalmap.org/*
 // @exclude      https://www.openhistoricalmap.org/api*
-// @exclude      https:///www.openhistoricalmap.org/account*
-// @exclude      https:///www.openhistoricalmap.org/messages/*
-// @exclude      https:///www.openhistoricalmap.org/diary/*
-// @exclude      https:///www.openhistoricalmap.org/oauth2/*
+// @exclude      https://www.openhistoricalmap.org/account*
+// @exclude      https://www.openhistoricalmap.org/messages/*
+// @exclude      https://www.openhistoricalmap.org/diary/*
+// @exclude      https://www.openhistoricalmap.org/oauth2/*
+// @exclude      https://opengeofiction.net/api*
+// @exclude      https://opengeofiction.net/account*
+// @exclude      https://opengeofiction.net/messages/*
+// @exclude      https://opengeofiction.net/diary/*
+// @exclude      https://opengeofiction.net/oauth2/*
 // @match        https://wiki.openstreetmap.org/wiki/Proposal:*
 // @exclude      https://taginfo.openstreetmap.org/embed/*
 // @match        https://github.com/openstreetmap/openstreetmap-website/issues/new*
@@ -348,6 +354,13 @@ const ohm_prod_server = {
     origin: "https://www.openhistoricalmap.org",
 }
 
+const ogf_prod_server = {
+    apiBase: "https://opengeofiction.net/api/0.6/",
+    apiUrl: "https://opengeofiction.net/api/0.6",
+    url: "https://opengeofiction.net",
+    origin: "https://opengeofiction.net",
+}
+
 const dev_server = {
     apiBase: "https://master.apis.dev.openstreetmap.org/api/0.6/",
     apiUrl: "https://master.apis.dev.openstreetmap.org/api/0.6",
@@ -366,6 +379,7 @@ const osm_server = (() => {
     if (location.origin === prod_server.origin) return prod_server
     else if (location.origin === dev_server.origin) return dev_server
     else if (location.origin === ohm_prod_server.origin) return ohm_prod_server
+    else if (location.origin === ogf_prod_server.origin) return ogf_prod_server
     else if (location.origin === local_server.origin) return local_server
     else return null
 })()
@@ -374,11 +388,15 @@ function isOHMServer() {
     return location.origin === ohm_prod_server.origin
 }
 
+function isOGFServer() {
+    return location.origin === ogf_prod_server.origin
+}
+
 function isOsmServer() {
     return !!osm_server
 }
 
-const storagePrefix = isOHMServer() ? "ohm-" : location.origin === dev_server.origin ? "dev-" : ""
+const storagePrefix = isOHMServer() ? "ohm-" : location.origin === dev_server.origin ? "dev-" : isOGFServer() ? "ogf-" : ""
 
 const planetOrigin = "https://planet.maps.mail.ru"
 
@@ -634,8 +652,8 @@ function intoPageWithFun(obj) {
 }
 
 const dataUser = document.querySelector("head")?.getAttribute("data-user")
-// TrickyFoxy on osm.org and OHM
-let _isDebug = dataUser === "11528195" || dataUser === "15560" || osm_server === local_server || osm_server === dev_server
+// TrickyFoxy on osm.org, OHM, OGF
+let _isDebug = dataUser === "11528195" || dataUser === "15560" || dataUser === "26980" || osm_server === local_server || osm_server === dev_server
 
 function isDebug() {
     return _isDebug
@@ -688,7 +706,10 @@ function injectMapHooks() {
                     }
                 }, boWindowObject),
             )
-            boWindowObject.L.OSM.MaplibreGL.addInitHook(
+            if (!boWindowObject.L.OSM.MaplibreGL) {
+                console.warn("L.OSM.MaplibreGL not found")
+            }
+            boWindowObject.L.OSM.MaplibreGL?.addInitHook(
                 exportFunction(function () {
                     // if (this._container?.id === "map") {
                     if (!boGlobalThis.mapGL) {
@@ -7290,7 +7311,8 @@ async function setupNewContextMenuItems() {
 
 //<editor-fold desc="satellite switching">
 const OSMPrefix = "https://tile.openstreetmap.org/"
-let BaseLayerPrefix = OSMPrefix
+const OGFPrefix = "https://tiles05.opengeofiction.net/ogf-carto/"
+const BaseLayerPrefix = isOGFServer() ? OGFPrefix : OSMPrefix
 
 const ESRIPrefix = "https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/"
 let ESRITemplate = ESRIPrefix + "{z}/{y}/{x}"
@@ -7317,7 +7339,7 @@ function invertOverlayMode(mode) {
 }
 
 function parseOSMTileURL(url) {
-    const match = url.match(new RegExp(`${OSMPrefix}(\\d+)\\/(\\d+)\\/(\\d+)\\.png`))
+    const match = url.match(new RegExp(`${BaseLayerPrefix}(\\d+)\\/(\\d+)\\/(\\d+)\\.png`))
     if (!match) {
         return false
     }
@@ -7525,7 +7547,7 @@ function makeStravaURL(x, y, z) {
 }
 
 function makeOSMURL(x, y, z) {
-    return OSMPrefix + z + "/" + x + "/" + y + ".png"
+    return BaseLayerPrefix + z + "/" + x + "/" + y + ".png"
 }
 
 function makeBaseLayerURL(x, y, z) {
@@ -25643,6 +25665,9 @@ function _main() {
     "use strict"
     if (GM_config.get("DebugMode")) {
         _isDebug = true
+    }
+    if (location.origin === ogf_prod_server.origin && !isDebug()) {
+        return
     }
     if (GM_config.get("ColorblindFriendlyPalette")) {
         setColorblindFriendlyPalette()
