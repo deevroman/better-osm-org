@@ -1,0 +1,68 @@
+name: E2E Firefox + Violentmonkey
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "better-osm-org.user.js"
+      - "src/**"
+      - "package.json"
+      - "package-lock.json"
+      - "src/tests/e2e/**"
+      - ".github/workflows/e2e-firefox-violentmonkey.yml"
+  push:
+    branches:
+      - master
+      - dev
+    paths:
+      - "better-osm-org.user.js"
+      - "src/**"
+      - "package.json"
+      - "package-lock.json"
+      - "src/tests/e2e/**"
+      - ".github/workflows/e2e-firefox-violentmonkey.yml"
+
+concurrency:
+  group: e2e-firefox-violentmonkey-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e-firefox-violentmonkey:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Violentmonkey add-on
+        run: |
+          mkdir -p src/tests/e2e/artifacts
+          curl -fL "https://addons.mozilla.org/firefox/downloads/latest/violentmonkey/latest.xpi" \
+            -o src/tests/e2e/artifacts/violentmonkey.xpi
+          ls -lh src/tests/e2e/artifacts/violentmonkey.xpi
+
+      - name: Run E2E in Docker
+        env:
+          E2E_TARGET_URL: https://www.openstreetmap.org
+          E2E_ASSERT_SELECTOR: .turn-on-satellite-from-pane
+          E2E_PRINT_BROWSER_CONSOLE: "1"
+        run: |
+          docker compose -f src/tests/e2e/docker-compose.yml up \
+            --build \
+            --abort-on-container-exit \
+            --exit-code-from e2e-firefox
+
+      - name: Upload E2E debug artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-firefox-violentmonkey-artifacts
+          path: |
+            src/tests/e2e/artifacts/last-failure.png
+            src/tests/e2e/artifacts/last-failure.html
+          if-no-files-found: ignore
+
+      - name: Cleanup Docker compose
+        if: always()
+        run: docker compose -f src/tests/e2e/docker-compose.yml down --volumes --remove-orphans

@@ -1,0 +1,16 @@
+services:
+  e2e-firefox:
+    build:
+      context: ../../..
+      dockerfile: src/tests/e2e/Dockerfile
+    working_dir: /workspace
+    shm_size: 2gb
+    environment:
+      SELENIUM_REMOTE_URL: http://127.0.0.1:4444/wd/hub
+      E2E_HEADLESS: "${E2E_HEADLESS:-1}"
+      E2E_TARGET_URL: "${E2E_TARGET_URL:-https://www.openstreetmap.org}"
+      E2E_ASSERT_SELECTOR: "${E2E_ASSERT_SELECTOR:-.turn-on-satellite-from-pane}"
+      E2E_PRINT_BROWSER_CONSOLE: "${E2E_PRINT_BROWSER_CONSOLE:-1}"
+      VIOLENTMONKEY_XPI: "${VIOLENTMONKEY_XPI:-/workspace/src/tests/e2e/artifacts/violentmonkey.xpi}"
+    volumes:
+      - ../../..:/workspace
