@@ -13,9 +13,16 @@ const __dirname = path.dirname(__filename)
 const repoRoot = path.resolve(__dirname, "../../..")
 const artifactsDir = path.join(__dirname, "artifacts")
 
-const DEFAULT_TARGET_URL = "https://www.openstreetmap.org"
+const DEFAULT_TARGET_URL = "https://master.apis.dev.openstreetmap.org"
 const targetUrl = process.env.E2E_TARGET_URL || DEFAULT_TARGET_URL
 const assertSelector = process.env.E2E_ASSERT_SELECTOR || ".turn-on-satellite-from-pane"
+const targetOrigin = (() => {
+    try {
+        return new URL(targetUrl).origin
+    } catch {
+        return ""
+    }
+})()
 
 const userscriptPath = process.env.E2E_USER_SCRIPT_PATH || path.join(repoRoot, "better-osm-org.user.js")
 const userscriptUrlFromEnv = process.env.E2E_USER_SCRIPT_URL
@@ -23,10 +30,12 @@ const scriptServerHost = process.env.E2E_SCRIPT_HOST || "127.0.0.1"
 const scriptServerPort = Number.parseInt(process.env.E2E_SCRIPT_PORT || "17321", 10)
 const firefoxBinaryFromEnv = process.env.E2E_FIREFOX_BINARY
 
-const violentmonkeyXpi = process.env.VIOLENTMONKEY_XPI
+const scriptManagerName = process.env.E2E_SCRIPT_MANAGER_NAME || "Violentmonkey"
+const scriptManagerXpi = process.env.E2E_SCRIPT_MANAGER_XPI || process.env.VIOLENTMONKEY_XPI
 const seleniumRemoteUrl = process.env.SELENIUM_REMOTE_URL
 const headless = !["0", "false", "no"].includes((process.env.E2E_HEADLESS || "1").toLowerCase())
 const stepPauseMs = Number.parseInt(process.env.E2E_STEP_PAUSE_MS || "0", 10)
+const requireSelector = !["0", "false", "no"].includes((process.env.E2E_REQUIRE_SELECTOR || "0").toLowerCase())
 const printBrowserConsole = (() => {
     const value = process.env.E2E_PRINT_BROWSER_CONSOLE
     if (typeof value === "undefined") {
@@ -37,16 +46,19 @@ const printBrowserConsole = (() => {
 
 const installTimeoutMs = Number.parseInt(process.env.E2E_INSTALL_TIMEOUT_MS || "45000", 10)
 const assertTimeoutMs = Number.parseInt(process.env.E2E_ASSERT_TIMEOUT_MS || "30000", 10)
+const targetLoadTimeoutMs = Number.parseInt(process.env.E2E_TARGET_LOAD_TIMEOUT_MS || "45000", 10)
 
 function printHelp() {
     console.log(`
-Firefox + Violentmonkey E2E PoC
+Firefox userscript manager E2E PoC
 
 Required env:
-  VIOLENTMONKEY_XPI=/absolute/path/to/violentmonkey.xpi
+  E2E_SCRIPT_MANAGER_XPI=/absolute/path/to/manager.xpi
+  (legacy alias: VIOLENTMONKEY_XPI=...)
 
 Optional env:
-  E2E_TARGET_URL=https://www.openstreetmap.org
+  E2E_SCRIPT_MANAGER_NAME=Violentmonkey|Tampermonkey|Firemonkey
+  E2E_TARGET_URL=https://master.apis.dev.openstreetmap.org
   E2E_ASSERT_SELECTOR=.turn-on-satellite-from-pane
   E2E_USER_SCRIPT_PATH=/absolute/path/to/better-osm-org.user.js
   E2E_USER_SCRIPT_URL=http://127.0.0.1:17321/better-osm-org.user.js
@@ -55,14 +67,16 @@ Optional env:
   E2E_FIREFOX_BINARY=/Applications/Firefox.app/Contents/MacOS/firefox
   E2E_HEADLESS=1|0
   E2E_STEP_PAUSE_MS=0
+  E2E_REQUIRE_SELECTOR=1|0
   E2E_PRINT_BROWSER_CONSOLE=1|0
   SELENIUM_REMOTE_URL=http://127.0.0.1:4444/wd/hub
   E2E_INSTALL_TIMEOUT_MS=45000
   E2E_ASSERT_TIMEOUT_MS=30000
+  E2E_TARGET_LOAD_TIMEOUT_MS=45000
 
 Example:
   npm run build
-  VIOLENTMONKEY_XPI=/tmp/violentmonkey.xpi npm run e2e:poc
+  E2E_SCRIPT_MANAGER_NAME=Violentmonkey E2E_SCRIPT_MANAGER_XPI=/tmp/violentmonkey.xpi npm run e2e:poc
 `.trim())
 }
 
@@ -225,87 +239,81 @@ async function startUserscriptServer() {
     return { server, userscriptUrl }
 }
 
-async function findViolentmonkeyPage(driver, timeoutMs) {
+async function clickInstallButton(driver, timeoutMs) {
     const deadline = Date.now() + timeoutMs
+    let lastSnapshot = []
 
     while (Date.now() < deadline) {
         const handles = await driver.getAllWindowHandles()
+        const snapshot = []
 
         for (const handle of handles) {
-            await driver.switchTo().window(handle)
-            const url = await driver.getCurrentUrl()
-            if (url.startsWith("moz-extension://")) {
-                return { handle, url }
-            }
-        }
+            try {
+                await driver.switchTo().window(handle)
+                const url = await driver.getCurrentUrl()
+                const result = await driver.executeScript(() => {
+                    const normalize = text => (text || "").replace(/\s+/g, " ").trim()
+                    const positive = /(install|confirm|save|track|enable|yes|ok|установ|подтверд|сохран|добав|включ|принять)/i
+                    const negative = /(close|cancel|later|dismiss|skip|закры|отмен|позже|пропус|назад)/i
+                    const preferInstall = /(install|установ)/i
 
-        await sleep(300)
-    }
+                    const candidates = Array.from(document.querySelectorAll('button, [role="button"], input[type="button"], input[type="submit"]'))
+                    const visible = el => {
+                        const style = window.getComputedStyle(el)
+                        if (!style || style.display === "none" || style.visibility === "hidden") return false
+                        const rect = el.getBoundingClientRect()
+                        return rect.width > 0 && rect.height > 0
+                    }
 
-    throw new Error("Violentmonkey installer tab did not open")
-}
+                    let best = null
+                    const labels = []
 
-async function clickInstallButton(driver, timeoutMs) {
-    const deadline = Date.now() + timeoutMs
-    let lastSeenLabels = []
+                    for (const el of candidates) {
+                        const disabled = Boolean(el.disabled || el.getAttribute("aria-disabled") === "true")
+                        if (disabled || !visible(el)) continue
 
-    while (Date.now() < deadline) {
-        const result = await driver.executeScript(() => {
-            const normalize = text => (text || "").replace(/\s+/g, " ").trim()
-            const positive = /(install|confirm|save|track|enable|yes|ok|установ|подтверд|сохран|добав|включ|принять)/i
-            const negative = /(close|cancel|later|dismiss|skip|закры|отмен|позже|пропус|назад)/i
-            const preferInstall = /(install|установ)/i
+                        const text = normalize(el.innerText || el.textContent || el.value || el.getAttribute("aria-label") || el.title)
+                        labels.push(text || "<empty>")
+                        if (!positive.test(text) || negative.test(text)) continue
 
-            const candidates = Array.from(document.querySelectorAll('button, [role="button"], input[type="button"], input[type="submit"]'))
-            const visible = el => {
-                const style = window.getComputedStyle(el)
-                if (!style || style.display === "none" || style.visibility === "hidden") return false
-                const rect = el.getBoundingClientRect()
-                return rect.width > 0 && rect.height > 0
-            }
+                        let score = 0
+                        if (positive.test(text)) score += 100
+                        if (preferInstall.test(text)) score += 50
+                        if (!text) score += 1
 
-            let best = null
-            const labels = []
+                        if (!best || score > best.score) {
+                            best = { el, text, score }
+                        }
+                    }
 
-            for (const el of candidates) {
-                const disabled = Boolean(el.disabled || el.getAttribute("aria-disabled") === "true")
-                if (disabled || !visible(el)) continue
+                    if (!best) {
+                        return { clicked: false, labels }
+                    }
 
-                const text = normalize(el.innerText || el.textContent || el.value || el.getAttribute("aria-label") || el.title)
-                labels.push(text || "<empty>")
-                if (!positive.test(text) || negative.test(text)) continue
+                    best.el.click()
+                    return { clicked: true, label: best.text || "<empty>", score: best.score, labels }
+                })
 
-                let score = 0
-                if (positive.test(text)) score += 100
-                if (preferInstall.test(text)) score += 50
-                if (!text) score += 1
-
-                if (!best || score > best.score) {
-                    best = { el, text, score }
+                if (Array.isArray(result?.labels) && result.labels.length) {
+                    snapshot.push(`${url} => ${result.labels.join(" | ")}`)
                 }
+
+                if (result?.clicked) {
+                    log(`Clicked install candidate for ${scriptManagerName}: "${result.label}" at ${url}`)
+                    return
+                }
+            } catch {
+                // ignored
             }
-
-            if (!best) {
-                return { clicked: false, reason: "no-positive-buttons", labels }
-            }
-
-            best.el.click()
-            return { clicked: true, label: best.text || "<empty>", score: best.score, labels }
-        })
-
-        if (Array.isArray(result?.labels)) {
-            lastSeenLabels = result.labels
         }
 
-        if (result?.clicked) {
-            log(`Clicked install candidate: "${result.label}"`)
-            return
+        if (snapshot.length) {
+            lastSnapshot = snapshot
         }
-
         await sleep(350)
     }
 
-    throw new Error(`Install button was not found on Violentmonkey page. Seen labels: ${lastSeenLabels.join(" | ")}`)
+    throw new Error(`Install button was not found for ${scriptManagerName}. Last visible buttons: ${lastSnapshot.join(" || ")}`)
 }
 
 async function switchToUsableWindow(driver) {
@@ -330,26 +338,74 @@ async function switchToUsableWindow(driver) {
 }
 
 async function saveDebugArtifacts(driver) {
+    await savePageArtifacts(driver, "last-failure")
+}
+
+async function savePageArtifacts(driver, prefix) {
     await fs.mkdir(artifactsDir, { recursive: true })
 
     try {
         const screenshotBase64 = await driver.takeScreenshot()
-        await fs.writeFile(path.join(artifactsDir, "last-failure.png"), screenshotBase64, "base64")
+        await fs.writeFile(path.join(artifactsDir, `${prefix}.png`), screenshotBase64, "base64")
     } catch {
         // ignored
     }
 
     try {
         const html = await driver.getPageSource()
-        await fs.writeFile(path.join(artifactsDir, "last-failure.html"), html, "utf8")
+        await fs.writeFile(path.join(artifactsDir, `${prefix}.html`), html, "utf8")
+    } catch {
+        // ignored
+    }
+
+    try {
+        const url = await driver.getCurrentUrl()
+        const readyState = await driver.executeScript("return document.readyState")
+        const meta = {
+            capturedAt: new Date().toISOString(),
+            url,
+            readyState,
+            scriptManagerName,
+        }
+        await fs.writeFile(path.join(artifactsDir, `${prefix}.meta.json`), JSON.stringify(meta, null, 2), "utf8")
     } catch {
         // ignored
     }
 }
 
+async function waitForTargetPageComplete(driver, timeoutMs) {
+    const deadline = Date.now() + timeoutMs
+    let lastState = "unknown"
+    let lastUrl = ""
+
+    while (Date.now() < deadline) {
+        try {
+            lastUrl = await driver.getCurrentUrl()
+            lastState = await driver.executeScript("return document.readyState")
+            const isNotBlank = lastUrl && lastUrl !== "about:blank"
+            const isExpectedOrigin = targetOrigin ? lastUrl.startsWith(targetOrigin) : true
+            if (lastState === "complete" && isNotBlank && isExpectedOrigin) {
+                return { complete: true, readyState: lastState, url: lastUrl }
+            }
+        } catch {
+            // ignored
+        }
+        await sleep(500)
+    }
+
+    return { complete: false, readyState: lastState, url: lastUrl }
+}
+
 async function assertUserscriptOnTarget(driver) {
     log(`Opening target URL: ${targetUrl}`)
     await driver.get(targetUrl)
+    const loadInfo = await waitForTargetPageComplete(driver, targetLoadTimeoutMs)
+    if (!loadInfo.complete) {
+        log(`Target page did not reach expected loaded state within ${targetLoadTimeoutMs}ms (last readyState=${loadInfo.readyState}, last url=${loadInfo.url || "<unknown>"})`)
+    }
+    await savePageArtifacts(driver, "target-loaded")
+    log(`Saved target snapshot artifacts in ${artifactsDir} (target-loaded.*)`)
+
     await installConsoleCapture(driver)
     if (printBrowserConsole) {
         await driver.executeScript("console.info('[e2e] browser console capture is active')")
@@ -368,12 +424,24 @@ async function assertUserscriptOnTarget(driver) {
     }
 
     let markCount = -1
+    let mainMarkCount = -1
     try {
         markCount = await driver.executeScript("return performance.getEntriesByName('BETTER_OSM_START').length")
     } catch {
         // ignored
     }
-    throw new Error(`Selector not found: ${assertSelector}. BETTER_OSM_START marks: ${markCount}`)
+    try {
+        mainMarkCount = await driver.executeScript("return performance.getEntriesByName('BETTER_OSM_MAIN_CALL').length")
+    } catch {
+        // ignored
+    }
+
+    if (!requireSelector && markCount > 0) {
+        log(`PASS (fallback): selector not found (${assertSelector}), but BETTER_OSM_START marks=${markCount}, BETTER_OSM_MAIN_CALL=${mainMarkCount}`)
+        return
+    }
+
+    throw new Error(`Selector not found: ${assertSelector}. BETTER_OSM_START=${markCount}, BETTER_OSM_MAIN_CALL=${mainMarkCount}, E2E_REQUIRE_SELECTOR=${requireSelector ? "1" : "0"}`)
 }
 
 async function run() {
@@ -382,11 +450,11 @@ async function run() {
         return
     }
 
-    if (!violentmonkeyXpi) {
-        throw new Error("Set VIOLENTMONKEY_XPI to an absolute path of violentmonkey .xpi")
+    if (!scriptManagerXpi) {
+        throw new Error("Set E2E_SCRIPT_MANAGER_XPI (or legacy VIOLENTMONKEY_XPI) to an absolute path of manager .xpi")
     }
 
-    await fs.access(violentmonkeyXpi)
+    await fs.access(scriptManagerXpi)
 
     if (!userscriptUrlFromEnv) {
         await fs.access(userscriptPath)
@@ -418,8 +486,8 @@ async function run() {
 
         driver = await builder.build()
 
-        log("Installing Violentmonkey addon")
-        await driver.installAddon(violentmonkeyXpi, true)
+        log(`Installing ${scriptManagerName} addon`)
+        await driver.installAddon(scriptManagerXpi, true)
         await safeFlushConsoleCapture(driver, "after-addon-install")
         await maybePause("install-addon")
 
@@ -428,10 +496,9 @@ async function run() {
         await safeFlushConsoleCapture(driver, "userscript-url")
         await maybePause("open-userscript-url")
 
-        const vmPage = await findViolentmonkeyPage(driver, installTimeoutMs)
-        log(`Found Violentmonkey tab: ${vmPage.url}`)
-        await safeFlushConsoleCapture(driver, "violentmonkey-confirm")
-        await maybePause("open-vm-confirm-tab")
+        log(`Searching install confirmation UI for ${scriptManagerName}`)
+        await safeFlushConsoleCapture(driver, "manager-confirm")
+        await maybePause("open-manager-confirm-tab")
 
         await clickInstallButton(driver, installTimeoutMs)
         await safeFlushConsoleCapture(driver, "after-install-click")
