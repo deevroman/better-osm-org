@@ -8,9 +8,11 @@ services:
     environment:
       SELENIUM_REMOTE_URL: http://127.0.0.1:4444/wd/hub
       E2E_HEADLESS: "${E2E_HEADLESS:-1}"
-      E2E_TARGET_URL: "${E2E_TARGET_URL:-https://www.openstreetmap.org}"
+      E2E_TARGET_URL: "${E2E_TARGET_URL:-https://master.apis.dev.openstreetmap.org}"
       E2E_ASSERT_SELECTOR: "${E2E_ASSERT_SELECTOR:-.turn-on-satellite-from-pane}"
+      E2E_REQUIRE_SELECTOR: "${E2E_REQUIRE_SELECTOR:-0}"
       E2E_PRINT_BROWSER_CONSOLE: "${E2E_PRINT_BROWSER_CONSOLE:-1}"
-      VIOLENTMONKEY_XPI: "${VIOLENTMONKEY_XPI:-/workspace/src/tests/e2e/artifacts/violentmonkey.xpi}"
+      E2E_SCRIPT_MANAGER_NAME: "${E2E_SCRIPT_MANAGER_NAME:-Violentmonkey}"
+      E2E_SCRIPT_MANAGER_XPI: "${E2E_SCRIPT_MANAGER_XPI:-/workspace/src/tests/e2e/artifacts/manager.xpi}"
     volumes:
       - ../../..:/workspace

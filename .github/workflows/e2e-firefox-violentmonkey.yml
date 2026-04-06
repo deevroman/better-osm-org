@@ -1,15 +1,7 @@
-name: E2E Firefox + Violentmonkey
+name: E2E Firefox Userscript Managers
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - "better-osm-org.user.js"
-      - "src/**"
-      - "package.json"
-      - "package-lock.json"
-      - "src/tests/e2e/**"
-      - ".github/workflows/e2e-firefox-violentmonkey.yml"
   push:
     branches:
       - master
@@ -23,45 +15,93 @@ on:
       - ".github/workflows/e2e-firefox-violentmonkey.yml"
 
 concurrency:
-  group: e2e-firefox-violentmonkey-${{ github.ref }}
+  group: e2e-firefox-userscript-managers-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  e2e-firefox-violentmonkey:
+  e2e-firefox-managers:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    continue-on-error: ${{ matrix.manager.allow_failure }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        manager:
+          - id: violentmonkey
+            name: Violentmonkey
+            xpi_url: https://addons.mozilla.org/firefox/downloads/latest/violentmonkey/latest.xpi
+            allow_failure: false
+          - id: tampermonkey
+            name: Tampermonkey
+            xpi_url: https://addons.mozilla.org/firefox/downloads/latest/tampermonkey/latest.xpi
+            allow_failure: false
+          - id: firemonkey
+            name: Firemonkey
+            xpi_url: https://addons.mozilla.org/firefox/downloads/latest/firemonkey/latest.xpi
+            allow_failure: true
+
+    name: Firefox + ${{ matrix.manager.name }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download Violentmonkey add-on
+      - name: Download userscript manager add-on
         run: |
           mkdir -p src/tests/e2e/artifacts
-          curl -fL "https://addons.mozilla.org/firefox/downloads/latest/violentmonkey/latest.xpi" \
-            -o src/tests/e2e/artifacts/violentmonkey.xpi
-          ls -lh src/tests/e2e/artifacts/violentmonkey.xpi
+          chmod 0777 src/tests/e2e/artifacts
+          curl -fL "${{ matrix.manager.xpi_url }}" -o src/tests/e2e/artifacts/manager.xpi
+          ls -lh src/tests/e2e/artifacts/manager.xpi
 
       - name: Run E2E in Docker
         env:
-          E2E_TARGET_URL: https://www.openstreetmap.org
+          E2E_SCRIPT_MANAGER_NAME: ${{ matrix.manager.name }}
+          E2E_SCRIPT_MANAGER_XPI: /workspace/src/tests/e2e/artifacts/manager.xpi
+          E2E_TARGET_URL: https://master.apis.dev.openstreetmap.org
           E2E_ASSERT_SELECTOR: .turn-on-satellite-from-pane
+          E2E_REQUIRE_SELECTOR: "0"
           E2E_PRINT_BROWSER_CONSOLE: "1"
         run: |
+          set +e
           docker compose -f src/tests/e2e/docker-compose.yml up \
             --build \
             --abort-on-container-exit \
             --exit-code-from e2e-firefox
+          E2E_EXIT_CODE=$?
+          set -e
+
+          mkdir -p src/tests/e2e/artifacts
+          CONTAINER_ID="$(docker compose -f src/tests/e2e/docker-compose.yml ps -aq e2e-firefox | head -n 1)"
+          if [ -n "${CONTAINER_ID}" ]; then
+            docker cp "${CONTAINER_ID}:/tmp/workspace/src/tests/e2e/artifacts/." src/tests/e2e/artifacts/ 2>/dev/null || true
+            docker logs "${CONTAINER_ID}" > src/tests/e2e/artifacts/container.log 2>&1 || true
+          fi
+          docker compose -f src/tests/e2e/docker-compose.yml logs --no-color > src/tests/e2e/artifacts/docker-compose.log 2>&1 || true
+
+          exit "${E2E_EXIT_CODE}"
+
+      - name: Collect artifacts from container (fallback)
+        if: always()
+        run: |
+          mkdir -p src/tests/e2e/artifacts
+          CONTAINER_ID="$(docker compose -f src/tests/e2e/docker-compose.yml ps -q e2e-firefox)"
+          if [ -n "${CONTAINER_ID}" ]; then
+            docker cp "${CONTAINER_ID}:/tmp/workspace/src/tests/e2e/artifacts/." src/tests/e2e/artifacts/ 2>/dev/null || true
+          fi
+
+      - name: List local artifact files
+        if: always()
+        run: |
+          ls -lah src/tests/e2e/artifacts || true
 
       - name: Upload E2E debug artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-firefox-violentmonkey-artifacts
+          name: e2e-firefox-${{ matrix.manager.id }}-artifacts
           path: |
-            src/tests/e2e/artifacts/last-failure.png
-            src/tests/e2e/artifacts/last-failure.html
-          if-no-files-found: ignore
+            src/tests/e2e/artifacts/**
+          if-no-files-found: warn
 
       - name: Cleanup Docker compose
         if: always()
