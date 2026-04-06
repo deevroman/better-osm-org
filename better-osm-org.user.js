@@ -89,6 +89,7 @@
 // @connect      overpass.private.coffee
 // @connect      turbo.overpass.private.coffee
 // @connect      overpass-api.openhistoricalmap.org
+// @connect      overpass.opengeofiction.net
 // @connect      overpass-api.de
 // @connect      www.hdyc.neis-one.org
 // @connect      hdyc.neis-one.org
@@ -422,6 +423,12 @@ const OHM_OVERPASS_INSTANCE = {
     name: "overpass-api.openhistoricalmap.org",
     apiUrl: "https://overpass-api.openhistoricalmap.org/api/",
     url: "https://overpass-turbo.openhistoricalmap.org/",
+}
+
+const OGF_OVERPASS_INSTANCE = {
+    name: "overpass.opengeofiction.net",
+    apiUrl: "https://overpass.opengeofiction.net/api/",
+    url: "https://overpass.opengeofiction.net/",
 }
 
 let overpass_server = MAIN_OVERPASS_INSTANCE
@@ -25348,6 +25355,8 @@ const alwaysEnabledModules = [
 function selectOverpassServer() {
     if (isOHMServer()) {
         overpass_server = OHM_OVERPASS_INSTANCE
+    } else if (isOGFServer()) {
+        overpass_server = OGF_OVERPASS_INSTANCE
     } else if (GM_config.get("OverpassInstance") === MAILRU_OVERPASS_INSTANCE.name) {
         overpass_server = MAILRU_OVERPASS_INSTANCE
     } else if (GM_config.get("OverpassInstance") === PRIVATECOFFEE_OVERPASS_INSTANCE.name) {
