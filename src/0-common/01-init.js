@@ -267,6 +267,12 @@ const OHM_OVERPASS_INSTANCE = {
     url: "https://overpass-turbo.openhistoricalmap.org/",
 }
 
+const OGF_OVERPASS_INSTANCE = {
+    name: "overpass.opengeofiction.net",
+    apiUrl: "https://overpass.opengeofiction.net/api/",
+    url: "https://overpass.opengeofiction.net/",
+}
+
 let overpass_server = MAIN_OVERPASS_INSTANCE
 
 const MAIN_OSMCHA = "https://osmcha.org"
