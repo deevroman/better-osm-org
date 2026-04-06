@@ -15768,7 +15768,7 @@ async function processQuickLookInSidebar(changesetID) {
             if (!pagination) {
                 return false
             }
-            const nodesUl = pagination.parentElement.querySelector("ul.list-unstyled")
+            const nodesUl = pagination.parentElement.querySelector("ul.list-unstyled") ?? pagination.parentElement.parentElement.querySelector("ul.list-unstyled")
             const nodes = Array.from(changesetData.querySelectorAll("node"))
             const other = changesetData.querySelectorAll("way,relation").length
             if (nodes.length > 1200 && !isDebug()) {
@@ -15895,7 +15895,7 @@ async function processQuickLookInSidebar(changesetID) {
             if (!pagination) {
                 return false
             }
-            const waysUl = pagination.parentElement.querySelector("ul.list-unstyled")
+            const waysUl = pagination.parentElement.querySelector("ul.list-unstyled") ?? pagination.parentElement.parentElement.querySelector("ul.list-unstyled")
             const ways = Array.from(changesetData.querySelectorAll("way"))
             if (ways.length > 50 && !isDebug()) {
                 if (ways.length > 200 && changesetData.querySelectorAll("node") > 40) {
@@ -16562,7 +16562,7 @@ async function interceptMapManually() {
     }
 }
 
-function addTurboFramesOnOgf(changeset_id) {
+function ogfFixes(changeset_id) {
     for (let type of ["node", "way", "relation"]) {
         const wrapper = document.createElement("turbo-frame")
         wrapper.setAttribute("id", `changeset_${type}s`)
@@ -16590,6 +16590,11 @@ function addTurboFramesOnOgf(changeset_id) {
             a.after(versionLink)
 
             a.textContent = a.textContent.replace(`v${v}`, "")
+        })
+
+        wrapper.querySelector(".paginate")?.classList?.add("pagination")
+        wrapper.querySelectorAll(`.paginate a[href*="?${type}_page"]`).forEach(a => {
+            a.classList.add("page-link")
         })
     }
 }
@@ -16624,7 +16629,7 @@ async function addChangesetQuickLook() {
 
     const changesetID = location.pathname.match(/changeset\/(\d+)/)[1]
     if (isOGFServer() && !document.querySelector("turbo-frame")) {
-        addTurboFramesOnOgf(changesetID)
+        ogfFixes(changesetID)
     }
     document.querySelectorAll("turbo-frame:is(#changeset_nodes,#changeset_ways,#changeset_relations)").forEach(i => i.setAttribute("changeset-id", changesetID))
 
