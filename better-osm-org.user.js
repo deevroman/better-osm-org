@@ -23061,7 +23061,7 @@ async function processOverpassQuery(query) {
     document.title = newTitle
 
     try {
-        const overpassQuery = `[out:xml]${bboxExpr};
+        const overpassQuery = `[out:xml][maxsize:64Mi]${bboxExpr};
 ${yetAnotherWizard(query)}
 //(._;>;);
 out geom;
