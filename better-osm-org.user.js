@@ -12679,6 +12679,21 @@ function ogfHistoryFixes() {
         a.href = `${location.pathname}/history/${versionNum}`
         a.textContent = `#${versionNum}`
         versionH.appendChild(a)
+
+        const changesetA = i.querySelector('a[href^="/changeset/"]:not([rel])')
+
+        const changesetDiv = document.createElement("div")
+        changesetA.parentElement.appendChild(changesetDiv)
+
+        const changesetDiv2 = document.createElement("div")
+        changesetDiv2.classList.add("changeset_line")
+        changesetDiv.appendChild(changesetDiv2)
+
+        const changesetSpan = document.createElement("span")
+        changesetDiv2.appendChild(changesetSpan)
+
+        changesetSpan.appendChild(changesetA.previousSibling)
+        changesetSpan.appendChild(changesetA)
     })
 }
 
