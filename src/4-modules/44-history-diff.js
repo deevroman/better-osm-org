@@ -982,7 +982,11 @@ async function replaceDownloadWayButton(btn, wayID) {
                 div2.classList.add("align-self-center")
                 div.appendChild(div2)
 
-                div2.before(img.cloneNode(true))
+                if (img) {
+                    div2.before(img.cloneNode(true))
+                } else {
+                    console.warn("img is undefined")
+                }
 
                 const aHistory = document.createElement("a")
                 aHistory.classList.add("node")
@@ -2028,7 +2032,11 @@ async function replaceDownloadRelationButton(btn, relationID) {
                 div2.classList.add("align-self-center")
                 div.appendChild(div2)
 
-                div2.before(img.cloneNode(true))
+                if (img) {
+                    div2.before(img.cloneNode(true))
+                } else {
+                    console.warn("img is undefined")
+                }
 
                 const aHistory = document.createElement("a")
                 aHistory.classList.add(i.type)
@@ -3136,7 +3144,26 @@ function historyPaginationClick() {
     paginationBtn?.click()
 }
 
+function ogfHistoryFixes() {
+    const wrapper = document.createElement("div")
+    wrapper.setAttribute("id", "element_versions_list")
+    document.querySelector(".browse-section").before(wrapper)
+    document.querySelectorAll(".browse-section").forEach(i => {
+        wrapper.appendChild(i)
+        const versionH = i.querySelector(".details")
+        const [, versionNum] = versionH.textContent.match(/#([0-9]+)/)
+        versionH.textContent = versionH.textContent.replace(/(#[0-9]+)/, "")
+        const a = document.createElement("a")
+        a.href = `${location.pathname}/history/${versionNum}`
+        a.textContent = `#${versionNum}`
+        versionH.appendChild(a)
+    })
+}
+
 function transformDiffWithColors() {
+    if (isOGFServer()) {
+        ogfHistoryFixes()
+    }
     const isNode = location.pathname.startsWith("/node")
     const isWay = location.pathname.startsWith("/way")
     const isRelation = location.pathname.startsWith("/relation")
@@ -3183,13 +3210,13 @@ function transformDiffWithColors() {
         const kv = ver.querySelectorAll("tbody > tr") ?? []
         const tags = []
 
-        const metainfoHTML = ver.querySelector("div:nth-of-type(1):has(time)")
+        const metainfoHTML = ver.querySelector("div:nth-of-type(1):has(:is(time,abbr))")
 
         const changesetA = ver.querySelector('div > div a[href^="/changeset/"]:not([rel])')
         const changesetHTML = changesetA?.parentElement
         const changesetID = changesetA.textContent
 
-        const time = metainfoHTML.querySelector("time")
+        const time = metainfoHTML.querySelector("time") ?? metainfoHTML.querySelector("abbr")
 
         const coordinates = ver.querySelector("div a:has(.latitude)")
         const locationHTML = coordinates?.parentElement
