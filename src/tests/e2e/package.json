@@ -1,0 +1,13 @@
+{
+  "name": "better-osm-org-e2e",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "poc": "node poc-firefox-violentmonkey.mjs",
+    "poc:macos": "E2E_HEADLESS=0 E2E_STEP_PAUSE_MS=800 node poc-firefox-violentmonkey.mjs"
+  },
+  "devDependencies": {
+    "geckodriver": "^6.1.0",
+    "selenium-webdriver": "^4.41.0"
+  }
+}
