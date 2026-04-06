@@ -1,7 +1,7 @@
 // garbage collection for cached infos (user info, changeset history)
 async function runGC() {
-    const USERINFO_PREFIXES = ["userinfo-", "ohm-userinfo-", "dev-userinfo-"]
-    const USER_ID_INFO_PREFIXES = ["useridinfo-", "ohm-useridinfo-", "dev-useridinfo-"]
+    const USERINFO_PREFIXES = ["userinfo-", "ohm-userinfo-", "ogf-userinfo-", "dev-userinfo-"]
+    const USER_ID_INFO_PREFIXES = ["useridinfo-", "ohm-useridinfo-", "ogf-useridinfo-", "dev-useridinfo-"]
     const USER_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 14
 
     async function deleteIfExpiredCache(key) {
