@@ -169,14 +169,6 @@ if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Grease
     initGmApiPolyfills()
 }
 
-const accountForceLightTheme = document.querySelector("html")?.getAttribute("data-bs-theme") === "light"
-const accountForceDarkTheme = document.querySelector("html")?.getAttribute("data-bs-theme") === "dark"
-const mediaQueryForWebsiteTheme = `${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""}`
-
-function isDarkMode() {
-    return (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches && !accountForceLightTheme) || accountForceDarkTheme
-}
-
 const isRTLLayout = document.querySelector("html").dir === "rtl"
 const arrowSymbolForChanges = !isRTLLayout ? " → " : " ← "
 
@@ -240,6 +232,14 @@ function isOsmServer() {
 }
 
 const storagePrefix = isOHMServer() ? "ohm-" : location.origin === dev_server.origin ? "dev-" : isOGFServer() ? "ogf-" : ""
+
+const accountForceLightTheme = document.querySelector("html")?.getAttribute("data-bs-theme") === "light" || isOGFServer()
+const accountForceDarkTheme = document.querySelector("html")?.getAttribute("data-bs-theme") === "dark"
+const mediaQueryForWebsiteTheme = `${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""}`
+
+function isDarkMode() {
+    return (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches && !accountForceLightTheme) || accountForceDarkTheme
+}
 
 const planetOrigin = "https://planet.maps.mail.ru"
 
