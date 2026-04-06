@@ -3377,6 +3377,38 @@ async function interceptMapManually() {
     }
 }
 
+function addTurboFramesOnOgf(changeset_id) {
+    for (let type of ["node", "way", "relation"]) {
+        const wrapper = document.createElement("turbo-frame")
+        wrapper.setAttribute("id", `changeset_${type}s`)
+        const ul = document.querySelector(`ul:has(.${type})`)
+        if (!ul) {
+            continue
+        }
+        ul.before(wrapper)
+        wrapper.appendChild(ul)
+        wrapper.prepend(wrapper.previousElementSibling)
+
+        wrapper.querySelectorAll(`li a[href^="/${type}"]`).forEach(a => {
+            const div1 = document.createElement("div")
+            const div2 = document.createElement("div")
+            div1.appendChild(div2)
+            a.parentElement.prepend(div1)
+            div2.appendChild(a)
+            const [, id] = a.getAttribute("href").match(/\/([0-9]+)/)
+            const [, v] = a.textContent.match(/v([0-9]+)/)
+            div2.setAttribute("id", `${changeset_id}${type.slice(0, 1)}${id}v${v}`)
+
+            const versionLink = document.createElement("a")
+            versionLink.setAttribute("href", `/${type}/${id}/history/${v}`)
+            versionLink.textContent = `v${v}`
+            a.after(versionLink)
+
+            a.textContent = a.textContent.replace(`v${v}`, "")
+        })
+    }
+}
+
 async function addChangesetQuickLook() {
     if (quickLookInjectingStarted) return
     if (!location.pathname.startsWith("/changeset")) {
@@ -3406,6 +3438,9 @@ async function addChangesetQuickLook() {
     removeEditTagsButton()
 
     const changesetID = location.pathname.match(/changeset\/(\d+)/)[1]
+    if (isOGFServer() && !document.querySelector("turbo-frame")) {
+        addTurboFramesOnOgf(changesetID)
+    }
     document.querySelectorAll("turbo-frame:is(#changeset_nodes,#changeset_ways,#changeset_relations)").forEach(i => i.setAttribute("changeset-id", changesetID))
 
     const params = new URLSearchParams(location.search)
