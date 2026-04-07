@@ -22,7 +22,6 @@ function addDeleteButton() {
             return
         }
     } else if (object_type === "way") {
-
     } else if (object_type === "relation") {
         if (document.querySelectorAll("#sidebar_content > div:first-of-type h4").length < 2) {
             return

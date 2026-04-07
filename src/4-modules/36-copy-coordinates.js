@@ -28,7 +28,7 @@ function addCopyCoordinatesMenuItem(prevItem) {
     const clickLat = parseFloat(getMap().osm_contextmenu._$element.data("lat"))
     const clickLon = parseFloat(getMap().osm_contextmenu._$element.data("lng"))
     const coordinatesFormatters = makeCoordinatesFormatters(clickLat, clickLon, 6)
-    let text = coordinatesFormatters[coordinatesFormat]['getter']()
+    let text = coordinatesFormatters[coordinatesFormat]["getter"]()
 
     copyCoordinatesMenuItem = document.createElement("li")
     copyCoordinatesMenuItem.classList.add("copy-li")
@@ -53,7 +53,6 @@ function addCopyCoordinatesMenuItem(prevItem) {
         navigator.clipboard.writeText(text).catch(e => alert(`failed to copy:\n${text}`))
         getMap().osm_contextmenu.hide()
     }
-
 
     const formatSwitch = document.createElement("span")
     formatSwitch.classList.add("bi", "bi-arrow-left-right", "copy-coordinates-btn")

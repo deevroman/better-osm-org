@@ -238,7 +238,7 @@ function makeRoofOrientationValue(elem) {
 function makeConditionalValue(elem) {
     if (!elem.textContent.includes("@")) {
         elem.classList.add("fixme-tag")
-        elem.title = ':conditional tag value must be contain @'
+        elem.title = ":conditional tag value must be contain @"
     }
     if (elem.textContent.match(/@\s*$/)) {
         elem.classList.add("fixme-tag")

@@ -51,7 +51,7 @@ out geom;
                 new URLSearchParams({
                     data: overpassQuery,
                 }),
-            responseType: "xml"
+            responseType: "xml",
         })
         console.timeEnd("download overpass data " + query)
         const xml = new DOMParser().parseFromString(res.response, "text/xml")

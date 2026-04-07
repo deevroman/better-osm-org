@@ -573,8 +573,8 @@ function addUserChangesetRssLink(username) {
 function addUsernameBadgesOrRestoreAction(changeset_id) {
     const metainfoHTML = document.querySelector("#sidebar_content .details")
     const time = metainfoHTML.querySelector("time") ?? (isOGFServer() && metainfoHTML.querySelector("abbr"))
-    if (metainfoHTML.querySelector("a[href*=\"/user/\"]:not([rel])")) {
-        const usernameA = metainfoHTML.querySelector("a[href*=\"/user/\"]:not([rel])")
+    if (metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')) {
+        const usernameA = metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')
         metainfoHTML.innerHTML = ""
         metainfoHTML.appendChild(time)
         metainfoHTML.appendChild(document.createTextNode(" "))

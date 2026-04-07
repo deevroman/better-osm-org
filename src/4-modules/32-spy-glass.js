@@ -42,7 +42,7 @@ function addSpyGlassButtons() {
             } else {
                 const b = getMap().getBounds()
                 const c = getMap().getCenter()
-                getMap().setView({lat: c.lat, lng: c.lng + 0.000005})
+                getMap().setView({ lat: c.lat, lng: c.lng + 0.000005 })
             }
         } else {
             spyGlassBtn.classList.remove("bi-eye-fill")

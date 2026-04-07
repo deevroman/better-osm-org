@@ -59,6 +59,7 @@ function tryAddScriptInfo() {
     if (cleanedPart !== "") {
         return
     }
+    // prettier-ignore
     textarea.value = cleanedPart + `\n\n\nScript version: \`${GM_info.script.version}\`
 Script manager: \`${GM_info.scriptHandler} ${GM_info.version}\`
 User Agent: \`${navigator.userAgent}\``
@@ -82,6 +83,7 @@ if (["Userscripts", "Greasemonkey", "Firemonkey", "OrangeMonkey"].includes(GM_in
 }
 
 if (GM_info.scriptHandler === "Greasemonkey") {
+    // prettier-ignore
     alert(
         "better-osm-org will not work in GreasyMonkey :(\n\n" +
         "It does not support important APIs without which most of the script's functions will not work.\n\n" +
