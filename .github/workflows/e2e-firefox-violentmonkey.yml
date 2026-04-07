@@ -66,24 +66,40 @@ jobs:
           E2E_SCRIPT_MANAGER_XPI: /workspace/src/tests/e2e/artifacts/manager.xpi
         run: |
           mkdir -p src/tests/e2e/artifacts
+          COMPOSE_BUILD_LOG="src/tests/e2e/artifacts/compose-build.log"
           COMPOSE_UP_LOG="src/tests/e2e/artifacts/compose-up.log"
 
-          echo "::group::Docker Compose (compact mode)"
+          echo "::group::Docker Compose build (compact mode)"
           set +e
-          docker compose -f src/tests/e2e/docker-compose.yml up \
-            --build \
-            --quiet-build \
-            --abort-on-container-exit \
-            --exit-code-from e2e-firefox \
-            > "${COMPOSE_UP_LOG}" 2>&1
-          E2E_EXIT_CODE=$?
+          docker compose -f src/tests/e2e/docker-compose.yml build > "${COMPOSE_BUILD_LOG}" 2>&1
+          BUILD_EXIT_CODE=$?
           set -e
           echo "::endgroup::"
 
-          echo "Compose output saved to ${COMPOSE_UP_LOG}"
-          echo "Key E2E lines (including script manager install):"
-          grep -E "\\[test:|Using manager package|Installing .* addon|Opening userscript URL|Searching install confirmation UI|Clicked install candidate|PASS:|FAIL:|E2E finished|Copied artifact|Error:" "${COMPOSE_UP_LOG}" | tail -n 120 || true
-          if [ "${E2E_EXIT_CODE}" -ne 0 ]; then
+          if [ "${BUILD_EXIT_CODE}" -ne 0 ]; then
+            E2E_EXIT_CODE="${BUILD_EXIT_CODE}"
+            echo "Docker compose build failed, showing last 200 lines from ${COMPOSE_BUILD_LOG}:"
+            tail -n 200 "${COMPOSE_BUILD_LOG}" || true
+          else
+            echo "Docker compose build log saved to ${COMPOSE_BUILD_LOG}"
+            echo "::group::Docker Compose up (compact mode)"
+            set +e
+            docker compose -f src/tests/e2e/docker-compose.yml up \
+              --no-build \
+              --abort-on-container-exit \
+              --exit-code-from e2e-firefox \
+              > "${COMPOSE_UP_LOG}" 2>&1
+            E2E_EXIT_CODE=$?
+            set -e
+            echo "::endgroup::"
+          fi
+
+          if [ -f "${COMPOSE_UP_LOG}" ]; then
+            echo "Compose output saved to ${COMPOSE_UP_LOG}"
+            echo "Key E2E lines (including script manager install):"
+            grep -E "\\[test:|Using manager package|Installing .* addon|Opening userscript URL|Searching install confirmation UI|Clicked install candidate|PASS:|FAIL:|E2E finished|Copied artifact|Error:" "${COMPOSE_UP_LOG}" | tail -n 120 || true
+          fi
+          if [ "${E2E_EXIT_CODE}" -ne 0 ] && [ -f "${COMPOSE_UP_LOG}" ]; then
             echo "Docker compose failed, showing last 250 lines from ${COMPOSE_UP_LOG}:"
             tail -n 250 "${COMPOSE_UP_LOG}" || true
           fi
