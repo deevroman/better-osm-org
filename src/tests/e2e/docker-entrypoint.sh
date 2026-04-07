@@ -83,7 +83,7 @@ else
 fi
 
 if [ "${INSTALL_EXIT_CODE}" -eq 0 ]; then
-  npm --prefix src/tests/e2e run poc
+  npm --prefix src/tests/e2e run run
   TEST_EXIT_CODE=$?
 else
   TEST_EXIT_CODE="${INSTALL_EXIT_CODE}"
