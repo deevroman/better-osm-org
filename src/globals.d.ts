@@ -29,6 +29,7 @@ declare const osmAuth: typeof import("osm-auth")
 // declare const GM_getResourceURL
 // declare const GM_getResourceText
 // declare const GM_registerMenuCommand
+// @ts-ignore
 declare const unsafeWindow
 declare const EXIF: typeof import("exif-js")
 // @ts-ignore
