@@ -65,15 +65,28 @@ jobs:
           E2E_SCRIPT_MANAGER_NAME: ${{ matrix.manager.name }}
           E2E_SCRIPT_MANAGER_XPI: /workspace/src/tests/e2e/artifacts/manager.xpi
         run: |
+          mkdir -p src/tests/e2e/artifacts
+          COMPOSE_UP_LOG="src/tests/e2e/artifacts/compose-up.log"
+
+          echo "::group::Docker Compose (compact mode)"
           set +e
           docker compose -f src/tests/e2e/docker-compose.yml up \
             --build \
             --abort-on-container-exit \
-            --exit-code-from e2e-firefox
+            --exit-code-from e2e-firefox \
+            > "${COMPOSE_UP_LOG}" 2>&1
           E2E_EXIT_CODE=$?
           set -e
+          echo "::endgroup::"
 
-          mkdir -p src/tests/e2e/artifacts
+          echo "Compose output saved to ${COMPOSE_UP_LOG}"
+          echo "Key E2E lines:"
+          grep -E "\\[test:|PASS:|FAIL:|E2E finished|Copied artifact|Error:" "${COMPOSE_UP_LOG}" | tail -n 80 || true
+          if [ "${E2E_EXIT_CODE}" -ne 0 ]; then
+            echo "Docker compose failed, showing last 250 lines from ${COMPOSE_UP_LOG}:"
+            tail -n 250 "${COMPOSE_UP_LOG}" || true
+          fi
+
           CONTAINER_ID="$(docker compose -f src/tests/e2e/docker-compose.yml ps -aq e2e-firefox | head -n 1)"
           if [ -n "${CONTAINER_ID}" ]; then
             docker cp "${CONTAINER_ID}:/tmp/workspace/src/tests/e2e/artifacts/." src/tests/e2e/artifacts/ 2>/dev/null || true
