@@ -1,6 +1,7 @@
 // import "typed-query-selector/strict"
 // import "types/tampermonkey"
 // import "GM_config.d.ts"
+import { osmAuth as osmAuthClass } from "osm-auth"
 
 declare function exportFunction<T extends Function>(
     func: T,
@@ -21,7 +22,7 @@ declare function cloneInto<T>(
     },
 ): T
 
-declare const osmAuth
+declare const osmAuth: osmAuthClass
 // declare const GM: Tampermonkey.GM & { fetch: (url: string) => Response }
 // declare const GM_info: Tampermonkey.ScriptInfo
 // declare const GM_config: GM_configStruct

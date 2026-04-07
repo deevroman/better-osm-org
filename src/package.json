@@ -1,0 +1,15 @@
+{
+  "name": "better-osm-org-src",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint:format": "prettier --check \"**/*.js\"",
+    "lint:oxlint": "oxlint . -A no-constant-binary-expression -A no-constant-condition",
+    "lint:eslint": "eslint build.js tests/**/*.js --global process --no-config-lookup"
+  },
+  "devDependencies": {
+    "eslint": "^10.1.0",
+    "oxlint": "^1.57.0",
+    "prettier": "^3.8.1"
+  }
+}
