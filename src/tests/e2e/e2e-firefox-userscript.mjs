@@ -7,6 +7,7 @@ import fs from "node:fs/promises"
 import http from "node:http"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
+import zlib from "node:zlib"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -15,7 +16,6 @@ const artifactsDir = path.join(__dirname, "artifacts")
 
 const DEFAULT_TARGET_URL = "https://master.apis.dev.openstreetmap.org"
 const targetUrl = process.env.E2E_TARGET_URL || DEFAULT_TARGET_URL
-const assertSelector = process.env.E2E_ASSERT_SELECTOR || ".turn-on-satellite-from-pane"
 const targetOrigin = (() => {
     try {
         return new URL(targetUrl).origin
@@ -35,22 +35,51 @@ const scriptManagerXpi = process.env.E2E_SCRIPT_MANAGER_XPI || process.env.VIOLE
 const seleniumRemoteUrl = process.env.SELENIUM_REMOTE_URL
 const headless = !["0", "false", "no"].includes((process.env.E2E_HEADLESS || "1").toLowerCase())
 const stepPauseMs = Number.parseInt(process.env.E2E_STEP_PAUSE_MS || "0", 10)
-const requireSelector = !["0", "false", "no"].includes((process.env.E2E_REQUIRE_SELECTOR || "0").toLowerCase())
-const printBrowserConsole = (() => {
-    const value = process.env.E2E_PRINT_BROWSER_CONSOLE
-    if (typeof value === "undefined") {
-        return Boolean(process.env.CI)
-    }
-    return !["0", "false", "no"].includes(value.toLowerCase())
-})()
+const localeInput = process.env.E2E_LOCALE || "en"
+const targetTests = [
+    {
+        id: "main-map-ui",
+        description: "Userscript injects controls on target page",
+        assertSelector: ".turn-on-satellite-from-pane",
+        allowMarkFallback: true,
+    },
+]
 
 const installTimeoutMs = Number.parseInt(process.env.E2E_INSTALL_TIMEOUT_MS || "45000", 10)
 const assertTimeoutMs = Number.parseInt(process.env.E2E_ASSERT_TIMEOUT_MS || "30000", 10)
 const targetLoadTimeoutMs = Number.parseInt(process.env.E2E_TARGET_LOAD_TIMEOUT_MS || "45000", 10)
+let managerXpiInfo = null
+
+function resolveLocaleConfig(input) {
+    const normalized = (input || "en").trim().toLowerCase()
+    if (normalized === "ru" || normalized === "ru-ru") {
+        return {
+            id: "ru",
+            browserLocale: "ru-RU",
+            acceptLanguage: "ru-RU,ru,en-US,en",
+        }
+    }
+
+    if (normalized === "en" || normalized === "en-us") {
+        return {
+            id: "en",
+            browserLocale: "en-US",
+            acceptLanguage: "en-US,en",
+        }
+    }
+
+    return {
+        id: normalized || "en",
+        browserLocale: input,
+        acceptLanguage: input,
+    }
+}
+
+const locale = resolveLocaleConfig(localeInput)
 
 function printHelp() {
     console.log(`
-Firefox userscript manager E2E PoC
+Firefox userscript manager E2E runner
 
 Required env:
   E2E_SCRIPT_MANAGER_XPI=/absolute/path/to/manager.xpi
@@ -59,7 +88,6 @@ Required env:
 Optional env:
   E2E_SCRIPT_MANAGER_NAME=Violentmonkey|Tampermonkey|Firemonkey
   E2E_TARGET_URL=https://master.apis.dev.openstreetmap.org
-  E2E_ASSERT_SELECTOR=.turn-on-satellite-from-pane
   E2E_USER_SCRIPT_PATH=/absolute/path/to/better-osm-org.user.js
   E2E_USER_SCRIPT_URL=http://127.0.0.1:17321/better-osm-org.user.js
   E2E_SCRIPT_HOST=127.0.0.1
@@ -67,8 +95,7 @@ Optional env:
   E2E_FIREFOX_BINARY=/Applications/Firefox.app/Contents/MacOS/firefox
   E2E_HEADLESS=1|0
   E2E_STEP_PAUSE_MS=0
-  E2E_REQUIRE_SELECTOR=1|0
-  E2E_PRINT_BROWSER_CONSOLE=1|0
+  E2E_LOCALE=en|ru
   SELENIUM_REMOTE_URL=http://127.0.0.1:4444/wd/hub
   E2E_INSTALL_TIMEOUT_MS=45000
   E2E_ASSERT_TIMEOUT_MS=30000
@@ -76,7 +103,7 @@ Optional env:
 
 Example:
   npm run build
-  E2E_SCRIPT_MANAGER_NAME=Violentmonkey E2E_SCRIPT_MANAGER_XPI=/tmp/violentmonkey.xpi npm run e2e:poc
+  E2E_SCRIPT_MANAGER_NAME=Violentmonkey E2E_SCRIPT_MANAGER_XPI=/tmp/violentmonkey.xpi npm run e2e:run
 `.trim())
 }
 
@@ -89,6 +116,95 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms))
 }
 
+function findZipEocdOffset(buffer) {
+    const minLen = 22
+    if (!Buffer.isBuffer(buffer) || buffer.length < minLen) {
+        return -1
+    }
+
+    const signature = 0x06054b50
+    const maxCommentLen = 0xffff
+    const start = Math.max(0, buffer.length - (minLen + maxCommentLen))
+
+    for (let offset = buffer.length - minLen; offset >= start; offset -= 1) {
+        if (buffer.readUInt32LE(offset) === signature) {
+            return offset
+        }
+    }
+    return -1
+}
+
+function readZipEntryUtf8(zipBuffer, requestedName) {
+    const eocdOffset = findZipEocdOffset(zipBuffer)
+    if (eocdOffset === -1) {
+        return null
+    }
+
+    const centralDirSize = zipBuffer.readUInt32LE(eocdOffset + 12)
+    const centralDirOffset = zipBuffer.readUInt32LE(eocdOffset + 16)
+    const centralDirEnd = centralDirOffset + centralDirSize
+    const centralSignature = 0x02014b50
+    const localSignature = 0x04034b50
+
+    let ptr = centralDirOffset
+    while (ptr < centralDirEnd) {
+        if (zipBuffer.readUInt32LE(ptr) !== centralSignature) {
+            break
+        }
+
+        const compressionMethod = zipBuffer.readUInt16LE(ptr + 10)
+        const compressedSize = zipBuffer.readUInt32LE(ptr + 20)
+        const fileNameLen = zipBuffer.readUInt16LE(ptr + 28)
+        const extraLen = zipBuffer.readUInt16LE(ptr + 30)
+        const commentLen = zipBuffer.readUInt16LE(ptr + 32)
+        const localHeaderOffset = zipBuffer.readUInt32LE(ptr + 42)
+        const fileName = zipBuffer.subarray(ptr + 46, ptr + 46 + fileNameLen).toString("utf8")
+        const isRequested = fileName === requestedName || fileName.endsWith(`/${requestedName}`)
+
+        if (isRequested) {
+            if (zipBuffer.readUInt32LE(localHeaderOffset) !== localSignature) {
+                return null
+            }
+
+            const localNameLen = zipBuffer.readUInt16LE(localHeaderOffset + 26)
+            const localExtraLen = zipBuffer.readUInt16LE(localHeaderOffset + 28)
+            const dataStart = localHeaderOffset + 30 + localNameLen + localExtraLen
+            const compressedData = zipBuffer.subarray(dataStart, dataStart + compressedSize)
+
+            if (compressionMethod === 0) {
+                return compressedData.toString("utf8")
+            }
+            if (compressionMethod === 8) {
+                return zlib.inflateRawSync(compressedData).toString("utf8")
+            }
+            return null
+        }
+
+        ptr += 46 + fileNameLen + extraLen + commentLen
+    }
+
+    return null
+}
+
+async function readManagerXpiInfo(xpiPath) {
+    try {
+        const zipBuffer = await fs.readFile(xpiPath)
+        const manifestText = readZipEntryUtf8(zipBuffer, "manifest.json")
+        if (!manifestText) {
+            return null
+        }
+
+        const manifest = JSON.parse(manifestText)
+        const info = {
+            name: typeof manifest?.name === "string" ? manifest.name : null,
+            version: typeof manifest?.version === "string" ? manifest.version : null,
+        }
+        return info
+    } catch {
+        return null
+    }
+}
+
 async function maybePause(stage) {
     if (!Number.isFinite(stepPauseMs) || stepPauseMs <= 0) {
         return
@@ -98,9 +214,6 @@ async function maybePause(stage) {
 }
 
 async function installConsoleCapture(driver) {
-    if (!printBrowserConsole) {
-        return
-    }
     await driver.executeScript(() => {
         if (window.__e2eConsoleCaptureInstalled) {
             return
@@ -147,9 +260,6 @@ async function installConsoleCapture(driver) {
 }
 
 async function flushConsoleCapture(driver, label) {
-    if (!printBrowserConsole) {
-        return
-    }
     const entries = await driver.executeScript(() => {
         const buffer = Array.isArray(window.__e2eConsoleBuffer) ? window.__e2eConsoleBuffer : []
         window.__e2eConsoleBuffer = []
@@ -163,9 +273,6 @@ async function flushConsoleCapture(driver, label) {
 }
 
 async function safeFlushConsoleCapture(driver, label) {
-    if (!printBrowserConsole) {
-        return
-    }
     try {
         await installConsoleCapture(driver)
         await flushConsoleCapture(driver, label)
@@ -366,6 +473,11 @@ async function savePageArtifacts(driver, prefix) {
             url,
             readyState,
             scriptManagerName,
+            managerPackageName: managerXpiInfo?.name || null,
+            managerPackageVersion: managerXpiInfo?.version || null,
+            locale: locale.id,
+            browserLocale: locale.browserLocale,
+            acceptLanguage: locale.acceptLanguage,
         }
         await fs.writeFile(path.join(artifactsDir, `${prefix}.meta.json`), JSON.stringify(meta, null, 2), "utf8")
     } catch {
@@ -396,28 +508,38 @@ async function waitForTargetPageComplete(driver, timeoutMs) {
     return { complete: false, readyState: lastState, url: lastUrl }
 }
 
-async function assertUserscriptOnTarget(driver) {
-    log(`Opening target URL: ${targetUrl}`)
+function toArtifactSlug(value) {
+    return (value || "test")
+        .toLowerCase()
+        .replace(/[^a-z0-9_-]+/g, "-")
+        .replace(/^-+|-+$/g, "") || "test"
+}
+
+async function runTargetTest(driver, testCase, testIndex) {
+    const slug = toArtifactSlug(testCase.id || `test-${testIndex + 1}`)
+
+    log(`[test:${slug}] Opening target URL: ${targetUrl}`)
     await driver.get(targetUrl)
     const loadInfo = await waitForTargetPageComplete(driver, targetLoadTimeoutMs)
     if (!loadInfo.complete) {
-        log(`Target page did not reach expected loaded state within ${targetLoadTimeoutMs}ms (last readyState=${loadInfo.readyState}, last url=${loadInfo.url || "<unknown>"})`)
+        log(`[test:${slug}] Target page did not reach expected loaded state within ${targetLoadTimeoutMs}ms (last readyState=${loadInfo.readyState}, last url=${loadInfo.url || "<unknown>"})`)
     }
-    await savePageArtifacts(driver, "target-loaded")
-    log(`Saved target snapshot artifacts in ${artifactsDir} (target-loaded.*)`)
+    await savePageArtifacts(driver, `target-loaded-${slug}`)
+    if (testIndex === 0) {
+        await savePageArtifacts(driver, "target-loaded")
+    }
+    log(`[test:${slug}] Saved target snapshot artifacts in ${artifactsDir}`)
 
     await installConsoleCapture(driver)
-    if (printBrowserConsole) {
-        await driver.executeScript("console.info('[e2e] browser console capture is active')")
-        await flushConsoleCapture(driver, "target")
-    }
+    await driver.executeScript("console.info('[e2e] browser console capture is active')")
+    await flushConsoleCapture(driver, `target:${slug}`)
 
     const deadline = Date.now() + assertTimeoutMs
     while (Date.now() < deadline) {
-        const foundElements = await driver.findElements(By.css(assertSelector))
-        await flushConsoleCapture(driver, "target")
+        const foundElements = await driver.findElements(By.css(testCase.assertSelector))
+        await flushConsoleCapture(driver, `target:${slug}`)
         if (foundElements.length) {
-            log(`PASS: selector found on target page: ${assertSelector}`)
+            log(`[test:${slug}] PASS: selector found on target page: ${testCase.assertSelector}`)
             return
         }
         await sleep(1000)
@@ -436,12 +558,24 @@ async function assertUserscriptOnTarget(driver) {
         // ignored
     }
 
-    if (!requireSelector && markCount > 0) {
-        log(`PASS (fallback): selector not found (${assertSelector}), but BETTER_OSM_START marks=${markCount}, BETTER_OSM_MAIN_CALL=${mainMarkCount}`)
+    if (testCase.allowMarkFallback && markCount > 0) {
+        log(`[test:${slug}] PASS (fallback): selector not found (${testCase.assertSelector}), but BETTER_OSM_START marks=${markCount}, BETTER_OSM_MAIN_CALL=${mainMarkCount}`)
         return
     }
 
-    throw new Error(`Selector not found: ${assertSelector}. BETTER_OSM_START=${markCount}, BETTER_OSM_MAIN_CALL=${mainMarkCount}, E2E_REQUIRE_SELECTOR=${requireSelector ? "1" : "0"}`)
+    throw new Error(`[test:${slug}] Selector not found: ${testCase.assertSelector}. BETTER_OSM_START=${markCount}, BETTER_OSM_MAIN_CALL=${mainMarkCount}, allowMarkFallback=${testCase.allowMarkFallback ? "true" : "false"}`)
+}
+
+async function runTargetTests(driver) {
+    if (!targetTests.length) {
+        throw new Error("No target tests configured")
+    }
+
+    for (const [index, testCase] of targetTests.entries()) {
+        log(`[test:${testCase.id}] START: ${testCase.description}`)
+        await runTargetTest(driver, testCase, index)
+        log(`[test:${testCase.id}] DONE`)
+    }
 }
 
 async function run() {
@@ -455,6 +589,12 @@ async function run() {
     }
 
     await fs.access(scriptManagerXpi)
+    managerXpiInfo = await readManagerXpiInfo(scriptManagerXpi)
+    if (managerXpiInfo?.version) {
+        log(`Using manager package from .xpi: ${managerXpiInfo.name || scriptManagerName} v${managerXpiInfo.version}`)
+    } else {
+        log(`Using manager package from .xpi: ${scriptManagerName} (version unknown)`)
+    }
 
     if (!userscriptUrlFromEnv) {
         await fs.access(userscriptPath)
@@ -472,6 +612,9 @@ async function run() {
         log(`Using Firefox binary: ${firefoxBinary}`)
     }
     options.setPreference("devtools.console.stdout.content", true)
+    options.setPreference("intl.locale.requested", locale.browserLocale)
+    options.setPreference("intl.accept_languages", locale.acceptLanguage)
+    log(`Using locale: ${locale.id} (browser=${locale.browserLocale}, accept-language=${locale.acceptLanguage})`)
 
     let driver
 
@@ -507,7 +650,7 @@ async function run() {
         await switchToUsableWindow(driver)
         await maybePause("switch-to-target-window")
 
-        await assertUserscriptOnTarget(driver)
+        await runTargetTests(driver)
     } catch (error) {
         if (driver) {
             await saveDebugArtifacts(driver)

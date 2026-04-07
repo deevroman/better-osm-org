@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "poc": "node poc-firefox-violentmonkey.mjs",
-    "poc:macos": "E2E_HEADLESS=0 E2E_STEP_PAUSE_MS=800 node poc-firefox-violentmonkey.mjs"
+    "run": "node e2e-firefox-userscript.mjs",
+    "run:macos": "E2E_HEADLESS=0 E2E_STEP_PAUSE_MS=800 node e2e-firefox-userscript.mjs"
   },
   "devDependencies": {
     "geckodriver": "^6.1.0",

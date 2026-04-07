@@ -14,6 +14,9 @@ on:
       - "src/tests/e2e/**"
       - ".github/workflows/e2e-firefox-violentmonkey.yml"
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 concurrency:
   group: e2e-firefox-userscript-managers-${{ github.ref }}
   cancel-in-progress: true
@@ -26,6 +29,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        locale:
+          - id: en
+            name: English
+          - id: ru
+            name: Russian
         manager:
           - id: violentmonkey
             name: Violentmonkey
@@ -40,11 +48,11 @@ jobs:
             xpi_url: https://addons.mozilla.org/firefox/downloads/latest/firemonkey/latest.xpi
             allow_failure: true
 
-    name: Firefox + ${{ matrix.manager.name }}
+    name: Firefox + ${{ matrix.manager.name }} + ${{ matrix.locale.name }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download userscript manager add-on
         run: |
@@ -55,12 +63,9 @@ jobs:
 
       - name: Run E2E in Docker
         env:
+          E2E_LOCALE: ${{ matrix.locale.id }}
           E2E_SCRIPT_MANAGER_NAME: ${{ matrix.manager.name }}
           E2E_SCRIPT_MANAGER_XPI: /workspace/src/tests/e2e/artifacts/manager.xpi
-          E2E_TARGET_URL: https://master.apis.dev.openstreetmap.org
-          E2E_ASSERT_SELECTOR: .turn-on-satellite-from-pane
-          E2E_REQUIRE_SELECTOR: "0"
-          E2E_PRINT_BROWSER_CONSOLE: "1"
         run: |
           set +e
           docker compose -f src/tests/e2e/docker-compose.yml up \
@@ -96,9 +101,9 @@ jobs:
 
       - name: Upload E2E debug artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
-          name: e2e-firefox-${{ matrix.manager.id }}-artifacts
+          name: e2e-firefox-${{ matrix.manager.id }}-${{ matrix.locale.id }}-artifacts
           path: |
             src/tests/e2e/artifacts/**
           if-no-files-found: warn
