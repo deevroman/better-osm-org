@@ -72,6 +72,7 @@ jobs:
           set +e
           docker compose -f src/tests/e2e/docker-compose.yml up \
             --build \
+            --quiet-build \
             --abort-on-container-exit \
             --exit-code-from e2e-firefox \
             > "${COMPOSE_UP_LOG}" 2>&1
@@ -80,8 +81,8 @@ jobs:
           echo "::endgroup::"
 
           echo "Compose output saved to ${COMPOSE_UP_LOG}"
-          echo "Key E2E lines:"
-          grep -E "\\[test:|PASS:|FAIL:|E2E finished|Copied artifact|Error:" "${COMPOSE_UP_LOG}" | tail -n 80 || true
+          echo "Key E2E lines (including script manager install):"
+          grep -E "\\[test:|Using manager package|Installing .* addon|Opening userscript URL|Searching install confirmation UI|Clicked install candidate|PASS:|FAIL:|E2E finished|Copied artifact|Error:" "${COMPOSE_UP_LOG}" | tail -n 120 || true
           if [ "${E2E_EXIT_CODE}" -ne 0 ]; then
             echo "Docker compose failed, showing last 250 lines from ${COMPOSE_UP_LOG}:"
             tail -n 250 "${COMPOSE_UP_LOG}" || true
