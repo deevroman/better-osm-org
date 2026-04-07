@@ -2,6 +2,7 @@ import { By } from "selenium-webdriver"
 import fs from "node:fs/promises"
 import path from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
+import { clearTestRuntime, setTestRuntime } from "./runtime.mjs"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -124,15 +125,35 @@ async function runTargetTest(driver, testCase, testIndex, context) {
         }
     }
 
-    await testCase.run({
+    const waitForPerformanceMark = async (markName, timeoutMs = assertTimeoutMs) => {
+        const deadline = Date.now() + timeoutMs
+        let lastCount = -1
+        while (Date.now() < deadline) {
+            lastCount = await getPerformanceMarkCount(markName)
+            await flushConsoleCapture(driver, `target:${slug}`)
+            if (lastCount > 0) {
+                return lastCount
+            }
+            await sleep(500)
+        }
+        return lastCount
+    }
+
+    setTestRuntime({
         driver,
         testCase,
         slug,
         log: message => log(`[test:${slug}] ${message}`),
         waitForSelectorWithConsole,
         getPerformanceMarkCount,
+        waitForPerformanceMark,
         savePageArtifacts: prefix => savePageArtifacts(driver, prefix),
     })
+    try {
+        await testCase.run()
+    } finally {
+        clearTestRuntime()
+    }
 }
 
 export async function runTargetTests(driver, context) {
@@ -145,7 +166,7 @@ export async function runTargetTests(driver, context) {
     for (const [index, testCase] of targetTests.entries()) {
         log(`[test:${testCase.id}] START: ${testCase.description}`)
         if (typeof testCase.run !== "function") {
-            throw new Error(`Test "${testCase.id}" must provide run(ctx) function`)
+            throw new Error(`Test "${testCase.id}" must provide run() function`)
         }
         await runTargetTest(driver, testCase, index, context)
         log(`[test:${testCase.id}] DONE`)
