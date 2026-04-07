@@ -31,6 +31,7 @@ declare const osmAuth: typeof import("osm-auth")
 // declare const GM_registerMenuCommand
 declare const unsafeWindow
 declare const EXIF: typeof import("exif-js")
+// @ts-ignore
 declare const osmtogeojson: typeof import("osmtogeojson")
-declare const opening_hours
-declare const runSnowAnimation
+declare const opening_hours: typeof import("opening_hours").opening_hours
+declare const runSnowAnimation: () => void
