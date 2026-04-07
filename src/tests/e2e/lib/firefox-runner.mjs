@@ -3,6 +3,11 @@ import { Builder } from "selenium-webdriver"
 import firefox from "selenium-webdriver/firefox.js"
 import { log as defaultLog } from "./runtime-utils.mjs"
 
+/**
+ * Resolves Firefox binary path for local macOS runs.
+ * @param {string|undefined} firefoxBinaryFromEnv
+ * @returns {Promise<string|null>}
+ */
 export async function resolveFirefoxBinary(firefoxBinaryFromEnv) {
     if (firefoxBinaryFromEnv) {
         return firefoxBinaryFromEnv
@@ -28,6 +33,16 @@ export async function resolveFirefoxBinary(firefoxBinaryFromEnv) {
     return null
 }
 
+/**
+ * Creates Firefox options used by Selenium.
+ * @param {{
+ *   headless: boolean,
+ *   firefoxBinary: string|null,
+ *   locale: {id: string, browserLocale: string, acceptLanguage: string},
+ *   logFn?: (message: string) => void
+ * }} config
+ * @returns {import("selenium-webdriver/firefox.js").Options}
+ */
 export function createFirefoxOptions({ headless, firefoxBinary, locale, logFn = defaultLog }) {
     const options = new firefox.Options()
     if (headless) {
@@ -44,6 +59,15 @@ export function createFirefoxOptions({ headless, firefoxBinary, locale, logFn = 
     return options
 }
 
+/**
+ * Creates Selenium builder configured for local geckodriver or remote Selenium.
+ * @param {{
+ *   options: import("selenium-webdriver/firefox.js").Options,
+ *   seleniumRemoteUrl?: string,
+ *   logFn?: (message: string) => void
+ * }} config
+ * @returns {Builder}
+ */
 export function createFirefoxBuilder({ options, seleniumRemoteUrl, logFn = defaultLog }) {
     let builder = new Builder()
         .forBrowser("firefox")

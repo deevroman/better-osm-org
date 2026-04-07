@@ -1,17 +1,21 @@
-import { runtime } from "../runtime.mjs"
-
-export async function testMainMapUi() {
+/**
+ * Verifies userscript UI is available on the target page.
+ * @param {import("../types.mjs").TestRuntime} testRuntime
+ * @returns {Promise<void>}
+ */
+export async function testMainMapUi(testRuntime) {
+    const { waitForSelectorWithConsole, getPerformanceMarkCount, log } = testRuntime
     const selector = ".turn-on-satellite-from-pane"
-    const found = await runtime.waitForSelectorWithConsole(selector)
+    const found = await waitForSelectorWithConsole(selector)
     if (found) {
-        runtime.log(`PASS: selector found on target page: ${selector}`)
+        log(`PASS: selector found on target page: ${selector}`)
         return
     }
 
-    const markCount = await runtime.getPerformanceMarkCount("BETTER_OSM_START")
-    const mainMarkCount = await runtime.getPerformanceMarkCount("BETTER_OSM_MAIN_CALL")
+    const markCount = await getPerformanceMarkCount("BETTER_OSM_START")
+    const mainMarkCount = await getPerformanceMarkCount("BETTER_OSM_MAIN_CALL")
     if (markCount > 0) {
-        runtime.log(
+        log(
             `PASS (fallback): selector not found (${selector}), but BETTER_OSM_START marks=${markCount}, BETTER_OSM_MAIN_CALL=${mainMarkCount}`,
         )
         return

@@ -2,6 +2,17 @@ import fs from "node:fs/promises"
 import http from "node:http"
 import { log } from "./runtime-utils.mjs"
 
+/**
+ * Starts local HTTP server that serves userscript source, unless URL is provided via env.
+ * @param {{
+ *   userscriptUrlFromEnv?: string,
+ *   userscriptPath: string,
+ *   scriptServerHost: string,
+ *   scriptServerPort: number,
+ *   logFn?: (message: string) => void
+ * }} config
+ * @returns {Promise<{server: import("node:http").Server|null, userscriptUrl: string}>}
+ */
 export async function startUserscriptServer({
     userscriptUrlFromEnv,
     userscriptPath,

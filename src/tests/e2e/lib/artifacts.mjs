@@ -2,6 +2,18 @@ import fs from "node:fs/promises"
 import path from "node:path"
 import { sleep as defaultSleep } from "./runtime-utils.mjs"
 
+/**
+ * Saves screenshot, HTML and metadata for the current browser page.
+ * @param {import("selenium-webdriver").WebDriver} driver
+ * @param {string} prefix
+ * @param {{
+ *   artifactsDir: string,
+ *   scriptManagerName: string,
+ *   managerXpiInfo?: {name?: string|null, version?: string|null}|null,
+ *   locale: {id: string, browserLocale: string, acceptLanguage: string}
+ * }} context
+ * @returns {Promise<void>}
+ */
 export async function savePageArtifacts(driver, prefix, context) {
     const { artifactsDir, scriptManagerName, managerXpiInfo, locale } = context
     await fs.mkdir(artifactsDir, { recursive: true })
@@ -40,10 +52,26 @@ export async function savePageArtifacts(driver, prefix, context) {
     }
 }
 
+/**
+ * Saves standard failure artifacts.
+ * @param {import("selenium-webdriver").WebDriver} driver
+ * @param {Parameters<typeof savePageArtifacts>[2]} context
+ * @returns {Promise<void>}
+ */
 export async function saveDebugArtifacts(driver, context) {
     await savePageArtifacts(driver, "last-failure", context)
 }
 
+/**
+ * Waits until target page reaches readyState=complete and expected origin.
+ * @param {import("selenium-webdriver").WebDriver} driver
+ * @param {{
+ *   timeoutMs: number,
+ *   targetOrigin?: string,
+ *   sleepFn?: (ms: number) => Promise<void>
+ * }} options
+ * @returns {Promise<{complete: boolean, readyState: string, url: string}>}
+ */
 export async function waitForTargetPageComplete(driver, { timeoutMs, targetOrigin = "", sleepFn = defaultSleep }) {
     const deadline = Date.now() + timeoutMs
     let lastState = "unknown"
