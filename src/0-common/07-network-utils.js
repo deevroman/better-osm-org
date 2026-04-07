@@ -41,11 +41,15 @@ async function abortableXmlHttpRequest(details) {
                 reject(new DOMException("Aborted", "AbortError"))
                 return
             }
-            details.signal?.addEventListener("abort", () => {
-                req.abort()
-                console.log("abort", details.url)
-                reject(new DOMException("Aborted", "AbortError"))
-            }, { once: true })
+            details.signal?.addEventListener(
+                "abort",
+                () => {
+                    req.abort()
+                    console.log("abort", details.url)
+                    reject(new DOMException("Aborted", "AbortError"))
+                },
+                { once: true },
+            )
         })
     } else {
         return await GM.xmlHttpRequest(details)

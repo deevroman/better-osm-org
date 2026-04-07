@@ -13,10 +13,12 @@ function addImageryOffsetsDB() {
         loadBtn.style.cursor = "progress"
         try {
             const [x, y, z] = getCurrentXYZ()
-            const offsets = (await externalFetchRetry({
-                url: `https://offsets.textual.ru/get?lat=${x}&lon=${y}&format=json&radius=2`,
-                responseType: "json"
-            })).response.filter(i => i.type === "offset")
+            const offsets = (
+                await externalFetchRetry({
+                    url: `https://offsets.textual.ru/get?lat=${x}&lon=${y}&format=json&radius=2`,
+                    responseType: "json",
+                })
+            ).response.filter(i => i.type === "offset")
             console.log(offsets)
             document.querySelectorAll(".offsets-item").forEach(i => i.remove())
             offsets.forEach(i => {
@@ -40,7 +42,7 @@ function addImageryOffsetsDB() {
                 btn.textContent = `${latDiff.toFixed(2)} ${lonDiff.toFixed(2)} ${i.date} ${i.author}\n${i.imagery} ${i.description}`
                 btn.onclick = () => {
                     offsetSelectionSection.querySelector("input").value = `${lonDiff.toFixed(2)}, ${latDiff.toFixed(2)}`
-                    offsetSelectionSection.querySelector("input").dispatchEvent(new Event('change'))
+                    offsetSelectionSection.querySelector("input").dispatchEvent(new Event("change"))
                 }
                 item.appendChild(btn)
                 loadBtn.after(item)

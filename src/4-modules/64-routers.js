@@ -72,7 +72,6 @@ window.addEventListener("message", async e => {
             a.textContent = "Open Debug Map"
             p.appendChild(a)
             document.querySelector("#sidebar_content").appendChild(p)
-
         })
     } else if (url.startsWith("https://graphhopper.com/api/1/route")) {
         document.querySelectorAll(".routing-timestamp").forEach(i => i.remove())

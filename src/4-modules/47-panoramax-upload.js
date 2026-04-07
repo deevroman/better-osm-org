@@ -116,7 +116,7 @@ GM.getValue("lastUploadedPanoramaxPicture").then(res => {
 
 async function uploadImage(token, file, title, needBlur) {
     const uploadSetId = await createUploadSet(panoramaxInstance, token, title)
-    console.log(`Upload set created:${uploadSetId}. ${(needBlur ? "Upload with blurring" : "Upload without blurring")}. Uploading...`)
+    console.log(`Upload set created:${uploadSetId}. ${needBlur ? "Upload with blurring" : "Upload without blurring"}. Uploading...`)
 
     let picture_id
     try {

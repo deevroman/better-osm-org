@@ -217,6 +217,7 @@ function tryAddScriptInfo() {
     if (cleanedPart !== "") {
         return
     }
+    // prettier-ignore
     textarea.value = cleanedPart + `\n\n\nScript version: \`${GM_info.script.version}\`
 Script manager: \`${GM_info.scriptHandler} ${GM_info.version}\`
 User Agent: \`${navigator.userAgent}\``
@@ -240,6 +241,7 @@ if (["Userscripts", "Greasemonkey", "Firemonkey", "OrangeMonkey"].includes(GM_in
 }
 
 if (GM_info.scriptHandler === "Greasemonkey") {
+    // prettier-ignore
     alert(
         "better-osm-org will not work in GreasyMonkey :(\n\n" +
         "It does not support important APIs without which most of the script's functions will not work.\n\n" +
@@ -1808,11 +1810,15 @@ async function abortableXmlHttpRequest(details) {
                 reject(new DOMException("Aborted", "AbortError"))
                 return
             }
-            details.signal?.addEventListener("abort", () => {
-                req.abort()
-                console.log("abort", details.url)
-                reject(new DOMException("Aborted", "AbortError"))
-            }, { once: true })
+            details.signal?.addEventListener(
+                "abort",
+                () => {
+                    req.abort()
+                    console.log("abort", details.url)
+                    reject(new DOMException("Aborted", "AbortError"))
+                },
+                { once: true },
+            )
         })
     } else {
         return await GM.xmlHttpRequest(details)
@@ -3505,6 +3511,9 @@ function tagsToXml(doc, node, tags) {
     }
 }
 
+/**
+ * @return {import("osm-auth").OSMAuth}
+ */
 function makeAuth() {
     return osmAuth.osmAuth({
         apiUrl: osm_server.apiUrl,
@@ -4183,8 +4192,8 @@ function addUserChangesetRssLink(username) {
 function addUsernameBadgesOrRestoreAction(changeset_id) {
     const metainfoHTML = document.querySelector("#sidebar_content .details")
     const time = metainfoHTML.querySelector("time") ?? (isOGFServer() && metainfoHTML.querySelector("abbr"))
-    if (metainfoHTML.querySelector("a[href*=\"/user/\"]:not([rel])")) {
-        const usernameA = metainfoHTML.querySelector("a[href*=\"/user/\"]:not([rel])")
+    if (metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')) {
+        const usernameA = metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')
         metainfoHTML.innerHTML = ""
         metainfoHTML.appendChild(time)
         metainfoHTML.appendChild(document.createTextNode(" "))
@@ -6400,7 +6409,7 @@ function addSpyGlassButtons() {
             } else {
                 const b = getMap().getBounds()
                 const c = getMap().getCenter()
-                getMap().setView({lat: c.lat, lng: c.lng + 0.000005})
+                getMap().setView({ lat: c.lat, lng: c.lng + 0.000005 })
             }
         } else {
             spyGlassBtn.classList.remove("bi-eye-fill")
@@ -6659,7 +6668,6 @@ function addDeleteButton() {
             return
         }
     } else if (object_type === "way") {
-
     } else if (object_type === "relation") {
         if (document.querySelectorAll("#sidebar_content > div:first-of-type h4").length < 2) {
             return
@@ -6879,7 +6887,7 @@ function addCopyCoordinatesMenuItem(prevItem) {
     const clickLat = parseFloat(getMap().osm_contextmenu._$element.data("lat"))
     const clickLon = parseFloat(getMap().osm_contextmenu._$element.data("lng"))
     const coordinatesFormatters = makeCoordinatesFormatters(clickLat, clickLon, 6)
-    let text = coordinatesFormatters[coordinatesFormat]['getter']()
+    let text = coordinatesFormatters[coordinatesFormat]["getter"]()
 
     copyCoordinatesMenuItem = document.createElement("li")
     copyCoordinatesMenuItem.classList.add("copy-li")
@@ -6904,7 +6912,6 @@ function addCopyCoordinatesMenuItem(prevItem) {
         navigator.clipboard.writeText(text).catch(e => alert(`failed to copy:\n${text}`))
         getMap().osm_contextmenu.hide()
     }
-
 
     const formatSwitch = document.createElement("span")
     formatSwitch.classList.add("bi", "bi-arrow-left-right", "copy-coordinates-btn")
@@ -7361,7 +7368,7 @@ let contextMenuObserver = null
 let coordinatesFormat = "Lat Lon"
 
 async function setupNewContextMenuItems() {
-    coordinatesFormat = await GM.getValue("CoordinatesFormat") ?? "Lat Lon"
+    coordinatesFormat = (await GM.getValue("CoordinatesFormat")) ?? "Lat Lon"
     await interceptMapManually()
     if (!getMap) {
         await sleep(1000)
@@ -7380,7 +7387,7 @@ async function setupNewContextMenuItems() {
         observer.disconnect()
         const customSeparator = addMenuSeparator(menu)
         addMeasureMenuItem(customSeparator)
-        addCopyCoordinatesMenuItem(measuringCleanMenuItem ?? measuringMenuItem);
+        addCopyCoordinatesMenuItem(measuringCleanMenuItem ?? measuringMenuItem)
         addPOIMoverItem(copyCoordinatesMenuItem ?? measuringCleanMenuItem ?? measuringMenuItem)
 
         contextMenuObserver.observe(menu, { childList: true, subtree: true, attributes: true })
@@ -9137,7 +9144,7 @@ function makeRoofOrientationValue(elem) {
 function makeConditionalValue(elem) {
     if (!elem.textContent.includes("@")) {
         elem.classList.add("fixme-tag")
-        elem.title = ':conditional tag value must be contain @'
+        elem.title = ":conditional tag value must be contain @"
     }
     if (elem.textContent.match(/@\s*$/)) {
         elem.classList.add("fixme-tag")
@@ -16914,7 +16921,7 @@ GM.getValue("lastUploadedPanoramaxPicture").then(res => {
 
 async function uploadImage(token, file, title, needBlur) {
     const uploadSetId = await createUploadSet(panoramaxInstance, token, title)
-    console.log(`Upload set created:${uploadSetId}. ${(needBlur ? "Upload with blurring" : "Upload without blurring")}. Uploading...`)
+    console.log(`Upload set created:${uploadSetId}. ${needBlur ? "Upload with blurring" : "Upload without blurring"}. Uploading...`)
 
     let picture_id
     try {
@@ -21149,7 +21156,6 @@ window.addEventListener("message", async e => {
             a.textContent = "Open Debug Map"
             p.appendChild(a)
             document.querySelector("#sidebar_content").appendChild(p)
-
         })
     } else if (url.startsWith("https://graphhopper.com/api/1/route")) {
         document.querySelectorAll(".routing-timestamp").forEach(i => i.remove())
@@ -23077,7 +23083,7 @@ out geom;
                 new URLSearchParams({
                     data: overpassQuery,
                 }),
-            responseType: "xml"
+            responseType: "xml",
         })
         console.timeEnd("download overpass data " + query)
         const xml = new DOMParser().parseFromString(res.response, "text/xml")
@@ -25349,10 +25355,12 @@ function addImageryOffsetsDB() {
         loadBtn.style.cursor = "progress"
         try {
             const [x, y, z] = getCurrentXYZ()
-            const offsets = (await externalFetchRetry({
-                url: `https://offsets.textual.ru/get?lat=${x}&lon=${y}&format=json&radius=2`,
-                responseType: "json"
-            })).response.filter(i => i.type === "offset")
+            const offsets = (
+                await externalFetchRetry({
+                    url: `https://offsets.textual.ru/get?lat=${x}&lon=${y}&format=json&radius=2`,
+                    responseType: "json",
+                })
+            ).response.filter(i => i.type === "offset")
             console.log(offsets)
             document.querySelectorAll(".offsets-item").forEach(i => i.remove())
             offsets.forEach(i => {
@@ -25376,7 +25384,7 @@ function addImageryOffsetsDB() {
                 btn.textContent = `${latDiff.toFixed(2)} ${lonDiff.toFixed(2)} ${i.date} ${i.author}\n${i.imagery} ${i.description}`
                 btn.onclick = () => {
                     offsetSelectionSection.querySelector("input").value = `${lonDiff.toFixed(2)}, ${latDiff.toFixed(2)}`
-                    offsetSelectionSection.querySelector("input").dispatchEvent(new Event('change'))
+                    offsetSelectionSection.querySelector("input").dispatchEvent(new Event("change"))
                 }
                 item.appendChild(btn)
                 loadBtn.after(item)

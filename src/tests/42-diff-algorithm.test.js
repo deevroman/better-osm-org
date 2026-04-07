@@ -110,7 +110,6 @@ test("string diff domain -> full https URL with trailing slash", () => {
     ])
 })
 
-
 test("string diff Distrito de Baoshan -> Baoshan", () => {
     assertStringDiffBlocks("Distrito de Baoshan", "Baoshan", [
         { op: "-", text: "Distrito de " },
