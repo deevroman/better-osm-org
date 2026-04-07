@@ -2,12 +2,18 @@ import { By } from "selenium-webdriver"
 import fs from "node:fs/promises"
 import path from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
-import { clearTestRuntime, setTestRuntime } from "./runtime.mjs"
+/** @typedef {import("./types.mjs").DiscoveredTestCase} DiscoveredTestCase */
+/** @typedef {import("./types.mjs").TargetRunnerContext} TargetRunnerContext */
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const casesDir = path.join(__dirname, "cases")
 
+/**
+ * Recursively collects case files from `tests/cases`.
+ * @param {string} dir
+ * @returns {Promise<string[]>}
+ */
 async function collectCaseFiles(dir) {
     const entries = await fs.readdir(dir, { withFileTypes: true })
     let files = []
@@ -36,6 +42,10 @@ function toTestId(filePath, exportName) {
     return `${relPath}#${exportName}`
 }
 
+/**
+ * Discovers tests exported as functions with names starting with `test`.
+ * @returns {Promise<DiscoveredTestCase[]>}
+ */
 async function discoverTargetTests() {
     const files = await collectCaseFiles(casesDir)
     const tests = []
@@ -71,6 +81,14 @@ function toArtifactSlug(value) {
     )
 }
 
+/**
+ * Executes one discovered test with prepared runtime helpers.
+ * @param {import("selenium-webdriver").WebDriver} driver
+ * @param {DiscoveredTestCase} testCase
+ * @param {number} testIndex
+ * @param {TargetRunnerContext} context
+ * @returns {Promise<void>}
+ */
 async function runTargetTest(driver, testCase, testIndex, context) {
     const {
         targetUrl,
@@ -139,7 +157,7 @@ async function runTargetTest(driver, testCase, testIndex, context) {
         return lastCount
     }
 
-    setTestRuntime({
+    const testRuntime = {
         driver,
         testCase,
         slug,
@@ -148,14 +166,16 @@ async function runTargetTest(driver, testCase, testIndex, context) {
         getPerformanceMarkCount,
         waitForPerformanceMark,
         savePageArtifacts: prefix => savePageArtifacts(driver, prefix),
-    })
-    try {
-        await testCase.run()
-    } finally {
-        clearTestRuntime()
     }
+    await testCase.run(testRuntime)
 }
 
+/**
+ * Discovers and executes all target tests sequentially.
+ * @param {import("selenium-webdriver").WebDriver} driver
+ * @param {TargetRunnerContext} context
+ * @returns {Promise<void>}
+ */
 export async function runTargetTests(driver, context) {
     const targetTests = await discoverTargetTests()
     if (!targetTests.length) {
@@ -166,7 +186,7 @@ export async function runTargetTests(driver, context) {
     for (const [index, testCase] of targetTests.entries()) {
         log(`[test:${testCase.id}] START: ${testCase.description}`)
         if (typeof testCase.run !== "function") {
-            throw new Error(`Test "${testCase.id}" must provide run() function`)
+            throw new Error(`Test "${testCase.id}" must provide run(testRuntime) function`)
         }
         await runTargetTest(driver, testCase, index, context)
         log(`[test:${testCase.id}] DONE`)

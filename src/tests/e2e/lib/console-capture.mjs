@@ -1,5 +1,10 @@
 import { log } from "./runtime-utils.mjs"
 
+/**
+ * Installs browser-side console/event capture hook in current tab.
+ * @param {import("selenium-webdriver").WebDriver} driver
+ * @returns {Promise<void>}
+ */
 export async function installConsoleCapture(driver) {
     await driver.executeScript(() => {
         if (window.__e2eConsoleCaptureInstalled) {
@@ -50,6 +55,13 @@ export async function installConsoleCapture(driver) {
     })
 }
 
+/**
+ * Flushes captured browser console lines and forwards to runner logger.
+ * @param {import("selenium-webdriver").WebDriver} driver
+ * @param {string} label
+ * @param {(message: string) => void} [logFn=log]
+ * @returns {Promise<void>}
+ */
 export async function flushConsoleCapture(driver, label, logFn = log) {
     const entries = await driver.executeScript(() => {
         const buffer = Array.isArray(window.__e2eConsoleBuffer) ? window.__e2eConsoleBuffer : []
@@ -63,6 +75,13 @@ export async function flushConsoleCapture(driver, label, logFn = log) {
     }
 }
 
+/**
+ * Best-effort console flush without throwing.
+ * @param {import("selenium-webdriver").WebDriver} driver
+ * @param {string} label
+ * @param {(message: string) => void} [logFn=log]
+ * @returns {Promise<void>}
+ */
 export async function safeFlushConsoleCapture(driver, label, logFn = log) {
     try {
         await installConsoleCapture(driver)

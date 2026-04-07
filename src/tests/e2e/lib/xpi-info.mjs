@@ -1,6 +1,11 @@
 import fs from "node:fs/promises"
 import zlib from "node:zlib"
 
+/**
+ * Finds end-of-central-directory offset in ZIP buffer.
+ * @param {Buffer} buffer
+ * @returns {number}
+ */
 function findZipEocdOffset(buffer) {
     const minLen = 22
     if (!Buffer.isBuffer(buffer) || buffer.length < minLen) {
@@ -19,6 +24,12 @@ function findZipEocdOffset(buffer) {
     return -1
 }
 
+/**
+ * Reads UTF-8 text content of specific ZIP entry.
+ * @param {Buffer} zipBuffer
+ * @param {string} requestedName
+ * @returns {string|null}
+ */
 function readZipEntryUtf8(zipBuffer, requestedName) {
     const eocdOffset = findZipEocdOffset(zipBuffer)
     if (eocdOffset === -1) {
@@ -71,6 +82,11 @@ function readZipEntryUtf8(zipBuffer, requestedName) {
     return null
 }
 
+/**
+ * Reads extension name/version from manager XPI manifest.
+ * @param {string} xpiPath
+ * @returns {Promise<{name: string|null, version: string|null}|null>}
+ */
 export async function readManagerXpiInfo(xpiPath) {
     try {
         const zipBuffer = await fs.readFile(xpiPath)

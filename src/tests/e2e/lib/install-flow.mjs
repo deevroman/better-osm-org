@@ -1,5 +1,16 @@
 import { sleep as defaultSleep, log as defaultLog } from "./runtime-utils.mjs"
 
+/**
+ * Clicks manager-specific install/confirm button in currently open windows.
+ * @param {import("selenium-webdriver").WebDriver} driver
+ * @param {{
+ *   timeoutMs: number,
+ *   scriptManagerName: string,
+ *   sleepFn?: (ms: number) => Promise<void>,
+ *   logFn?: (message: string) => void
+ * }} options
+ * @returns {Promise<void>}
+ */
 export async function clickInstallButton(
     driver,
     { timeoutMs, scriptManagerName, sleepFn = defaultSleep, logFn = defaultLog },
@@ -89,6 +100,11 @@ export async function clickInstallButton(
     )
 }
 
+/**
+ * Switches focus to first non-extension window after installation flow.
+ * @param {import("selenium-webdriver").WebDriver} driver
+ * @returns {Promise<void>}
+ */
 export async function switchToUsableWindow(driver) {
     const handles = await driver.getAllWindowHandles()
     if (!handles.length) {
