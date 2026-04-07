@@ -14,6 +14,9 @@ function tagsToXml(doc, node, tags) {
     }
 }
 
+/**
+ * @return {import("osm-auth").OSMAuth}
+ */
 function makeAuth() {
     return osmAuth.osmAuth({
         apiUrl: osm_server.apiUrl,
