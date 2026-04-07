@@ -1,7 +1,6 @@
 // import "typed-query-selector/strict"
 // import "types/tampermonkey"
 // import "GM_config.d.ts"
-import { osmAuth as osmAuthClass } from "osm-auth"
 
 declare function exportFunction<T extends Function>(
     func: T,
@@ -22,7 +21,7 @@ declare function cloneInto<T>(
     },
 ): T
 
-declare const osmAuth: osmAuthClass
+declare const osmAuth: typeof import("osm-auth")
 // declare const GM: Tampermonkey.GM & { fetch: (url: string) => Response }
 // declare const GM_info: Tampermonkey.ScriptInfo
 // declare const GM_config: GM_configStruct
@@ -31,7 +30,7 @@ declare const osmAuth: osmAuthClass
 // declare const GM_getResourceText
 // declare const GM_registerMenuCommand
 declare const unsafeWindow
-declare const EXIF
-declare const osmtogeojson
+declare const EXIF: typeof import("exif-js")
+declare const osmtogeojson: typeof import("osmtogeojson")
 declare const opening_hours
 declare const runSnowAnimation
