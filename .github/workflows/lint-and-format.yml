@@ -31,10 +31,10 @@ jobs:
         run: npm run lint:format
         working-directory: src
 
-      - name: Lint final userscript
+      - name: Lint final via oxlint
         run: npm run lint:final:oxlint
         working-directory: src
 
-      - name: Lint final userscript (ESLint)
+      - name: Lint final via ESLint
         run: npm run lint:final:eslint
         working-directory: src
