@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 
 import "geckodriver"
-import { Builder, By } from "selenium-webdriver"
+import { Builder } from "selenium-webdriver"
 import firefox from "selenium-webdriver/firefox.js"
 import fs from "node:fs/promises"
 import http from "node:http"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import zlib from "node:zlib"
+import { runTargetTests } from "./tests/target-tests.mjs"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -36,14 +37,6 @@ const seleniumRemoteUrl = process.env.SELENIUM_REMOTE_URL
 const headless = !["0", "false", "no"].includes((process.env.E2E_HEADLESS || "1").toLowerCase())
 const stepPauseMs = Number.parseInt(process.env.E2E_STEP_PAUSE_MS || "0", 10)
 const localeInput = process.env.E2E_LOCALE || "en"
-const targetTests = [
-    {
-        id: "main-map-ui",
-        description: "Userscript injects controls on target page",
-        assertSelector: ".turn-on-satellite-from-pane",
-        allowMarkFallback: true,
-    },
-]
 
 const installTimeoutMs = Number.parseInt(process.env.E2E_INSTALL_TIMEOUT_MS || "45000", 10)
 const assertTimeoutMs = Number.parseInt(process.env.E2E_ASSERT_TIMEOUT_MS || "30000", 10)
@@ -523,84 +516,6 @@ async function waitForTargetPageComplete(driver, timeoutMs) {
     return { complete: false, readyState: lastState, url: lastUrl }
 }
 
-function toArtifactSlug(value) {
-    return (
-        (value || "test")
-            .toLowerCase()
-            .replace(/[^a-z0-9_-]+/g, "-")
-            .replace(/^-+|-+$/g, "") || "test"
-    )
-}
-
-async function runTargetTest(driver, testCase, testIndex) {
-    const slug = toArtifactSlug(testCase.id || `test-${testIndex + 1}`)
-
-    log(`[test:${slug}] Opening target URL: ${targetUrl}`)
-    await driver.get(targetUrl)
-    const loadInfo = await waitForTargetPageComplete(driver, targetLoadTimeoutMs)
-    if (!loadInfo.complete) {
-        log(
-            `[test:${slug}] Target page did not reach expected loaded state within ${targetLoadTimeoutMs}ms (last readyState=${loadInfo.readyState}, last url=${loadInfo.url || "<unknown>"})`,
-        )
-    }
-    await savePageArtifacts(driver, `target-loaded-${slug}`)
-    if (testIndex === 0) {
-        await savePageArtifacts(driver, "target-loaded")
-    }
-    log(`[test:${slug}] Saved target snapshot artifacts in ${artifactsDir}`)
-
-    await installConsoleCapture(driver)
-    await driver.executeScript("console.info('[e2e] browser console capture is active')")
-    await flushConsoleCapture(driver, `target:${slug}`)
-
-    const deadline = Date.now() + assertTimeoutMs
-    while (Date.now() < deadline) {
-        const foundElements = await driver.findElements(By.css(testCase.assertSelector))
-        await flushConsoleCapture(driver, `target:${slug}`)
-        if (foundElements.length) {
-            log(`[test:${slug}] PASS: selector found on target page: ${testCase.assertSelector}`)
-            return
-        }
-        await sleep(1000)
-    }
-
-    let markCount = -1
-    let mainMarkCount = -1
-    try {
-        markCount = await driver.executeScript("return performance.getEntriesByName('BETTER_OSM_START').length")
-    } catch {
-        // ignored
-    }
-    try {
-        mainMarkCount = await driver.executeScript("return performance.getEntriesByName('BETTER_OSM_MAIN_CALL').length")
-    } catch {
-        // ignored
-    }
-
-    if (testCase.allowMarkFallback && markCount > 0) {
-        log(
-            `[test:${slug}] PASS (fallback): selector not found (${testCase.assertSelector}), but BETTER_OSM_START marks=${markCount}, BETTER_OSM_MAIN_CALL=${mainMarkCount}`,
-        )
-        return
-    }
-
-    throw new Error(
-        `[test:${slug}] Selector not found: ${testCase.assertSelector}. BETTER_OSM_START=${markCount}, BETTER_OSM_MAIN_CALL=${mainMarkCount}, allowMarkFallback=${testCase.allowMarkFallback ? "true" : "false"}`,
-    )
-}
-
-async function runTargetTests(driver) {
-    if (!targetTests.length) {
-        throw new Error("No target tests configured")
-    }
-
-    for (const [index, testCase] of targetTests.entries()) {
-        log(`[test:${testCase.id}] START: ${testCase.description}`)
-        await runTargetTest(driver, testCase, index)
-        log(`[test:${testCase.id}] DONE`)
-    }
-}
-
 async function run() {
     if (process.argv.includes("--help") || process.argv.includes("-h")) {
         printHelp()
@@ -676,7 +591,18 @@ async function run() {
         await switchToUsableWindow(driver)
         await maybePause("switch-to-target-window")
 
-        await runTargetTests(driver)
+        await runTargetTests(driver, {
+            targetUrl,
+            targetLoadTimeoutMs,
+            assertTimeoutMs,
+            artifactsDir,
+            log,
+            waitForTargetPageComplete,
+            savePageArtifacts,
+            installConsoleCapture,
+            flushConsoleCapture,
+            sleep,
+        })
     } catch (error) {
         if (driver) {
             await saveDebugArtifacts(driver)

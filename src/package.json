@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "lint:format": "prettier --check \"build.js\" \"0-common/**/*.js\" \"4-modules/**/*.js\" \"6-not-osm-org/**/*.js\" \"8-entrypoint/**/*.js\" \"tests/*.js\" \"tests/e2e/*.mjs\"",
+    "lint:format": "prettier --check \"build.js\" \"0-common/**/*.js\" \"4-modules/**/*.js\" \"6-not-osm-org/**/*.js\" \"8-entrypoint/**/*.js\" \"tests/*.js\" \"tests/e2e/**/*.mjs\"",
     "lint:final:oxlint": "node build.js && oxlint \"$(realpath ../better-osm-org.user.js)\" --config .oxlintrc.json -f unix --quiet -A no-constant-binary-expression -A no-constant-condition",
     "lint:final:eslint": "node build.js && (cd .. && ./src/node_modules/.bin/eslint better-osm-org.user.js --no-config-lookup --global process --quiet)"
   },
