@@ -40,7 +40,9 @@ function assertStringDiffBlocks(from, to, expectedBlocks, oneReplaceCost = 2) {
     try {
         actualPairs = stringsDiff(from, to, oneReplaceCost)
     } catch (error) {
-        assert.fail(`stringsDiff threw for "${from}" -> "${to}":\n${error instanceof Error ? error.stack : String(error)}`)
+        assert.fail(
+            `stringsDiff threw for "${from}" -> "${to}":\n${error instanceof Error ? error.stack : String(error)}`,
+        )
     }
     assertDiffBlocks(actualPairs, expectedBlocks)
 }
@@ -87,12 +89,15 @@ test("uses replacement when one_replace_cost is 1", () => {
 })
 
 test("for relation-like members, matches by type+ref even when role changes", () => {
-    assert.deepStrictEqual(arraysDiff([{ type: "node", ref: 1, role: "outer" }], [{ type: "node", ref: 1, role: "inner" }]), [
+    assert.deepStrictEqual(
+        arraysDiff([{ type: "node", ref: 1, role: "outer" }], [{ type: "node", ref: 1, role: "inner" }]),
         [
-            { type: "node", ref: 1, role: "outer" },
-            { type: "node", ref: 1, role: "inner" },
+            [
+                { type: "node", ref: 1, role: "outer" },
+                { type: "node", ref: 1, role: "inner" },
+            ],
         ],
-    ])
+    )
 })
 
 test("string diff greek -> greek;kebab inserts ;kebab", () => {
@@ -139,10 +144,14 @@ test("string diff example.com -> example.com/about-company", () => {
 })
 
 test("string diff Красносельско-Калининская линия (Путиловская - Юго-Западная) -> Красносельско-Калининская линия", () => {
-    assertStringDiffBlocks("Красносельско-Калининская линия (Путиловская - Юго-Западная)", "Красносельско-Калининская линия", [
-        { op: "=", text: "Красносельско-Калининская линия" },
-        { op: "-", text: " (Путиловская - Юго-Западная)" },
-    ])
+    assertStringDiffBlocks(
+        "Красносельско-Калининская линия (Путиловская - Юго-Западная)",
+        "Красносельско-Калининская линия",
+        [
+            { op: "=", text: "Красносельско-Калининская линия" },
+            { op: "-", text: " (Путиловская - Юго-Западная)" },
+        ],
+    )
 })
 
 test("string diff 08:00-22:00 -> 08:00-13:00; 14:00-22:00", () => {

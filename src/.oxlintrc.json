@@ -1,0 +1,10 @@
+{
+  "rules": {
+    "no-redeclare": [
+      "error",
+      {
+        "builtinGlobals": false
+      }
+    ]
+  }
+}
