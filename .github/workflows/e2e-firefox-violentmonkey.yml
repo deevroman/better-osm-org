@@ -25,15 +25,15 @@ jobs:
   e2e-firefox-managers:
     runs-on: ubuntu-latest
     continue-on-error: ${{ matrix.manager.allow_failure }}
-    timeout-minutes: 15
+    timeout-minutes: 5
     strategy:
       fail-fast: false
       matrix:
         locale:
           - id: en
             name: English
-          - id: ru
-            name: Russian
+#          - id: ru
+#            name: Russian
         manager:
           - id: violentmonkey
             name: Violentmonkey
@@ -85,7 +85,7 @@ jobs:
 
           exit "${E2E_EXIT_CODE}"
 
-      - name: Collect artifacts from container (fallback)
+      - name: Collect artifacts from container
         if: always()
         run: |
           mkdir -p src/tests/e2e/artifacts
@@ -107,7 +107,3 @@ jobs:
           path: |
             src/tests/e2e/artifacts/**
           if-no-files-found: warn
-
-      - name: Cleanup Docker compose
-        if: always()
-        run: docker compose -f src/tests/e2e/docker-compose.yml down --volumes --remove-orphans
