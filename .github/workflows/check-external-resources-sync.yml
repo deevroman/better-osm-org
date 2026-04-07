@@ -1,0 +1,53 @@
+name: Check external resources sync
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * *"
+  push:
+    branches:
+      - master
+      - dev
+
+jobs:
+  compare-external-resources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Compare managed resources with upstream originals
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          BASE_MANAGED="https://raw.githubusercontent.com/deevroman/openstreetmap-statistics/refs/heads/master"
+          BASE_UPSTREAM="https://raw.githubusercontent.com/piebro/openstreetmap-statistics/refs/heads/master"
+          FILES=(
+            "config/replace_rules_created_by.json"
+            "config/organised_teams_contributors.json"
+          )
+
+          STATUS=0
+          WORKDIR="$(mktemp -d)"
+          trap 'rm -rf "$WORKDIR"' EXIT
+
+          for file in "${FILES[@]}"; do
+            managed_file="$WORKDIR/managed-$(basename "$file")"
+            upstream_file="$WORKDIR/upstream-$(basename "$file")"
+
+            curl --fail --silent --show-error --location \
+              "$BASE_MANAGED/$file" \
+              -o "$managed_file"
+            curl --fail --silent --show-error --location \
+              "$BASE_UPSTREAM/$file" \
+              -o "$upstream_file"
+
+            if ! diff -u "$managed_file" "$upstream_file"; then
+              echo "::error title=Resource drift detected::$file differs from upstream"
+              STATUS=1
+            else
+              echo "No changes: $file"
+            fi
+          done
+
+          exit "$STATUS"
