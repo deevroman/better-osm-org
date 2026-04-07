@@ -3,9 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "lint:format": "prettier --check \"**/*.js\"",
-    "lint:oxlint": "oxlint . -A no-constant-binary-expression -A no-constant-condition",
-    "lint:eslint": "eslint build.js tests/**/*.js --global process --no-config-lookup"
+    "lint:format": "prettier --check \"build.js\" \"0-common/**/*.js\" \"4-modules/**/*.js\" \"6-not-osm-org/**/*.js\" \"8-entrypoint/**/*.js\" \"tests/*.js\"",
+    "lint:oxlint": "oxlint 0-common 4-modules 6-not-osm-org 8-entrypoint build.js tests -f unix --ignore-pattern \"tests/e2e/**\" -A no-constant-binary-expression -A no-constant-condition",
+    "lint:eslint": "eslint build.js \"tests/**/*.js\" --global process --no-config-lookup --ignore-pattern \"tests/e2e/**\" --no-error-on-unmatched-pattern"
   },
   "devDependencies": {
     "eslint": "^10.1.0",
