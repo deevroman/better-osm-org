@@ -1,4 +1,4 @@
-name: E2E Firefox Userscript Managers
+name: E2E Tests
 
 on:
   workflow_dispatch:
@@ -9,8 +9,6 @@ on:
     paths:
       - "better-osm-org.user.js"
       - "src/**"
-      - "package.json"
-      - "package-lock.json"
       - "src/tests/e2e/**"
       - ".github/workflows/e2e-firefox-violentmonkey.yml"
 
