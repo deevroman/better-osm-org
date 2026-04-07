@@ -78,7 +78,8 @@ function resolveLocaleConfig(input) {
 const locale = resolveLocaleConfig(localeInput)
 
 function printHelp() {
-    console.log(`
+    console.log(
+        `
 Firefox userscript manager E2E runner
 
 Required env:
@@ -104,7 +105,8 @@ Optional env:
 Example:
   npm run build
   E2E_SCRIPT_MANAGER_NAME=Violentmonkey E2E_SCRIPT_MANAGER_XPI=/tmp/violentmonkey.xpi npm run e2e:run
-`.trim())
+`.trim(),
+    )
 }
 
 function log(message) {
@@ -248,7 +250,11 @@ async function installConsoleCapture(driver) {
         }
 
         window.addEventListener("error", event => {
-            push("error", [`window.onerror: ${event.message}`, event.filename || "", `${event.lineno || 0}:${event.colno || 0}`])
+            push("error", [
+                `window.onerror: ${event.message}`,
+                event.filename || "",
+                `${event.lineno || 0}:${event.colno || 0}`,
+            ])
         })
 
         window.addEventListener("unhandledrejection", event => {
@@ -360,11 +366,16 @@ async function clickInstallButton(driver, timeoutMs) {
                 const url = await driver.getCurrentUrl()
                 const result = await driver.executeScript(() => {
                     const normalize = text => (text || "").replace(/\s+/g, " ").trim()
-                    const positive = /(install|confirm|save|track|enable|yes|ok|установ|подтверд|сохран|добав|включ|принять)/i
+                    const positive =
+                        /(install|confirm|save|track|enable|yes|ok|установ|подтверд|сохран|добав|включ|принять)/i
                     const negative = /(close|cancel|later|dismiss|skip|закры|отмен|позже|пропус|назад)/i
                     const preferInstall = /(install|установ)/i
 
-                    const candidates = Array.from(document.querySelectorAll('button, [role="button"], input[type="button"], input[type="submit"]'))
+                    const candidates = Array.from(
+                        document.querySelectorAll(
+                            'button, [role="button"], input[type="button"], input[type="submit"]',
+                        ),
+                    )
                     const visible = el => {
                         const style = window.getComputedStyle(el)
                         if (!style || style.display === "none" || style.visibility === "hidden") return false
@@ -379,7 +390,9 @@ async function clickInstallButton(driver, timeoutMs) {
                         const disabled = Boolean(el.disabled || el.getAttribute("aria-disabled") === "true")
                         if (disabled || !visible(el)) continue
 
-                        const text = normalize(el.innerText || el.textContent || el.value || el.getAttribute("aria-label") || el.title)
+                        const text = normalize(
+                            el.innerText || el.textContent || el.value || el.getAttribute("aria-label") || el.title,
+                        )
                         labels.push(text || "<empty>")
                         if (!positive.test(text) || negative.test(text)) continue
 
@@ -420,7 +433,9 @@ async function clickInstallButton(driver, timeoutMs) {
         await sleep(350)
     }
 
-    throw new Error(`Install button was not found for ${scriptManagerName}. Last visible buttons: ${lastSnapshot.join(" || ")}`)
+    throw new Error(
+        `Install button was not found for ${scriptManagerName}. Last visible buttons: ${lastSnapshot.join(" || ")}`,
+    )
 }
 
 async function switchToUsableWindow(driver) {
@@ -509,10 +524,12 @@ async function waitForTargetPageComplete(driver, timeoutMs) {
 }
 
 function toArtifactSlug(value) {
-    return (value || "test")
-        .toLowerCase()
-        .replace(/[^a-z0-9_-]+/g, "-")
-        .replace(/^-+|-+$/g, "") || "test"
+    return (
+        (value || "test")
+            .toLowerCase()
+            .replace(/[^a-z0-9_-]+/g, "-")
+            .replace(/^-+|-+$/g, "") || "test"
+    )
 }
 
 async function runTargetTest(driver, testCase, testIndex) {
@@ -522,7 +539,9 @@ async function runTargetTest(driver, testCase, testIndex) {
     await driver.get(targetUrl)
     const loadInfo = await waitForTargetPageComplete(driver, targetLoadTimeoutMs)
     if (!loadInfo.complete) {
-        log(`[test:${slug}] Target page did not reach expected loaded state within ${targetLoadTimeoutMs}ms (last readyState=${loadInfo.readyState}, last url=${loadInfo.url || "<unknown>"})`)
+        log(
+            `[test:${slug}] Target page did not reach expected loaded state within ${targetLoadTimeoutMs}ms (last readyState=${loadInfo.readyState}, last url=${loadInfo.url || "<unknown>"})`,
+        )
     }
     await savePageArtifacts(driver, `target-loaded-${slug}`)
     if (testIndex === 0) {
@@ -559,11 +578,15 @@ async function runTargetTest(driver, testCase, testIndex) {
     }
 
     if (testCase.allowMarkFallback && markCount > 0) {
-        log(`[test:${slug}] PASS (fallback): selector not found (${testCase.assertSelector}), but BETTER_OSM_START marks=${markCount}, BETTER_OSM_MAIN_CALL=${mainMarkCount}`)
+        log(
+            `[test:${slug}] PASS (fallback): selector not found (${testCase.assertSelector}), but BETTER_OSM_START marks=${markCount}, BETTER_OSM_MAIN_CALL=${mainMarkCount}`,
+        )
         return
     }
 
-    throw new Error(`[test:${slug}] Selector not found: ${testCase.assertSelector}. BETTER_OSM_START=${markCount}, BETTER_OSM_MAIN_CALL=${mainMarkCount}, allowMarkFallback=${testCase.allowMarkFallback ? "true" : "false"}`)
+    throw new Error(
+        `[test:${slug}] Selector not found: ${testCase.assertSelector}. BETTER_OSM_START=${markCount}, BETTER_OSM_MAIN_CALL=${mainMarkCount}, allowMarkFallback=${testCase.allowMarkFallback ? "true" : "false"}`,
+    )
 }
 
 async function runTargetTests(driver) {
@@ -619,7 +642,10 @@ async function run() {
     let driver
 
     try {
-        let builder = new Builder().forBrowser("firefox").setFirefoxOptions(options).setCapability("pageLoadStrategy", "none")
+        let builder = new Builder()
+            .forBrowser("firefox")
+            .setFirefoxOptions(options)
+            .setCapability("pageLoadStrategy", "none")
         if (seleniumRemoteUrl) {
             builder = builder.usingServer(seleniumRemoteUrl)
             log(`Using remote Selenium server: ${seleniumRemoteUrl}`)
