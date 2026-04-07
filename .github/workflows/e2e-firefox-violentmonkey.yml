@@ -70,11 +70,15 @@ jobs:
           COMPOSE_UP_LOG="src/tests/e2e/artifacts/compose-up.log"
 
           echo "::group::Docker Compose build (compact mode)"
+          BUILD_STARTED_AT="$(date +%s)"
           set +e
           docker compose -f src/tests/e2e/docker-compose.yml build > "${COMPOSE_BUILD_LOG}" 2>&1
           BUILD_EXIT_CODE=$?
           set -e
+          BUILD_FINISHED_AT="$(date +%s)"
+          BUILD_DURATION_SEC="$((BUILD_FINISHED_AT - BUILD_STARTED_AT))"
           echo "::endgroup::"
+          echo "Docker compose build duration: ${BUILD_DURATION_SEC}s (exit=${BUILD_EXIT_CODE})"
 
           if [ "${BUILD_EXIT_CODE}" -ne 0 ]; then
             E2E_EXIT_CODE="${BUILD_EXIT_CODE}"
