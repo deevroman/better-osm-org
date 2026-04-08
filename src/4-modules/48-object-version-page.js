@@ -260,7 +260,14 @@ async function addHoverForWayNodes() {
                 infoBtn.style.display = "none"
             }
         })
-        if (!wayData) {
+        if (!wayData || !wayData.elements) {
+            if (infoBtn) {
+                infoBtn.style.display = "none"
+            }
+            return
+        }
+        const wayInfo = wayData.elements.find(i => i.type === "way")
+        if (!wayInfo) {
             if (infoBtn) {
                 infoBtn.style.display = "none"
             }
@@ -275,11 +282,24 @@ async function addHoverForWayNodes() {
                 ),
             ).map(([k, v]) => [k, v[0]]),
         )
+        const lineGeometryIssues = validateWayGeometry(wayInfo, nodesMap)
+        const affectedNodeIds = collectWayGeometryAffectedNodeIds(lineGeometryIssues)
+        const wayMembersSummary = document.querySelector("#sidebar_content > div:first-of-type details summary")
+        if (wayMembersSummary) {
+            showValidationStatus(
+                lineGeometryIssues.map(i => i.description),
+                wayMembersSummary,
+            )
+        }
         document.querySelectorAll(`details [href^="/node/"]:not(.hover-added)`).forEach(elem => {
             elem.classList.add("hover-added")
-            const nodeInfo = nodesMap.get(elem.href.match(/node\/(\d+)/)[1])
+            const nodeID = parseInt(elem.href.match(/node\/(\d+)/)[1])
+            const nodeInfo = nodesMap.get(nodeID.toString())
             const nodeLi = elem?.parentElement?.parentElement?.parentElement
             nodeLi.classList.add("way-last-version-node")
+            if (affectedNodeIds.has(nodeID)) {
+                nodeLi.querySelector("div > div").style.backgroundColor = "rgba(255, 80, 80, 0.28)"
+            }
             nodeLi.onmouseenter = () => {
                 const color = darkModeForMap || isDarkTiles() ? c("#ff00e3") : "#000000"
                 showActiveNodeMarker(nodeInfo.lat.toString(), nodeInfo.lon.toString(), color, true, 6, 3)
@@ -307,7 +327,7 @@ async function addHoverForWayNodes() {
         })
 
         if (infoBtn) {
-            const nodesIds = wayData.elements.find(i => i.type === "way").nodes
+            const nodesIds = wayInfo.nodes
             const infos = makePolygonMeasureButtons(nodesIds, nodesMap, "way")
             document.querySelector("#sidebar_content h4:last-of-type").after(infos)
 
@@ -322,18 +342,18 @@ async function addHoverForWayNodes() {
 }
 
 /**
- * @param {string[]} restrictionRelationErrors
+ * @param {string[]} errors
  * @param {HTMLElement} targetElem
  */
-function showRestrictionValidationStatus(restrictionRelationErrors, targetElem) {
-    if (restrictionRelationErrors.length === 0) {
+function showValidationStatus(errors, targetElem) {
+    if (errors.length === 0) {
         return
     }
     if (!targetElem.querySelector(".validation-status")) {
         const validationStatus = document.createElement("span")
         validationStatus.classList.add("validation-status")
         validationStatus.textContent = " ⚠️"
-        validationStatus.title = restrictionRelationErrors.join("\n")
+        validationStatus.title = errors.join("\n")
         targetElem.appendChild(validationStatus)
     }
 }
@@ -639,7 +659,7 @@ async function addHoverForRelationMembers() {
             })
             const errors = validateRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion)
             if (errors.length) {
-                showRestrictionValidationStatus(errors, document.querySelector("#sidebar_content > div:first-of-type details:last-of-type summary"))
+                showValidationStatus(errors, document.querySelector("#sidebar_content > div:first-of-type details:last-of-type summary"))
             } else {
                 restrictionArrows = renderRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion, restrictionColors[extendedRelationVersion.tags["restriction"]] ?? "#000", "customObjects")
                 pinSign.classList.add("pinned")

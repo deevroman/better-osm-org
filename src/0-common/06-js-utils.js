@@ -55,6 +55,7 @@ function injectCSSIntoSimplePage(text) {
 // In Tampermonkey access to Math.* very slow
 const min = Math.min
 const max = Math.max
+const abs = Math.abs
 
 /**
  * @type {Object.<string, AbortController>}

@@ -27,7 +27,7 @@ function addRelationVersionView() {
         const timestamp = document.querySelector("time").getAttribute("datetime")
         try {
             const { restrictionRelationErrors } = await loadRelationVersionMembersViaOverpass(id, timestamp)
-            showRestrictionValidationStatus(restrictionRelationErrors, document.querySelector("#sidebar_content > div details summary"))
+            showValidationStatus(restrictionRelationErrors, document.querySelector("#sidebar_content > div details summary"))
         } catch (e) {
             btn.style.cursor = "pointer"
             throw e
