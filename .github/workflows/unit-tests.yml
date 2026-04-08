@@ -24,6 +24,9 @@ jobs:
       - name: Run arraysDiff test
         run: node --test src/tests/42-diff-algorithm.test.js
 
+      - name: Run way geometry validator test
+        run: node --test src/tests/11-geometry-validator.test.js
+
       - name: Ensure localhost @match is absent
         run: |
           if grep -Fq 'http://localhost:3000/*' better-osm-org.user.js; then

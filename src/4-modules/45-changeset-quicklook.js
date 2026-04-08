@@ -1772,7 +1772,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             try {
                 const relationMetadata = await loadRelationVersionMembersViaOverpass(parseInt(objID), targetTimestamp, false, c("#ff00e3"))
                 if (relationMetadata.restrictionRelationErrors.length) {
-                    showRestrictionValidationStatus(relationMetadata.restrictionRelationErrors, i.parentElement)
+                    showValidationStatus(relationMetadata.restrictionRelationErrors, i.parentElement)
                 } else {
                     if (relationMetadata.isRestriction) {
                         i.parentElement.parentElement.title = 'Click with Shift for zoom to "via" members'
