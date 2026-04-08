@@ -319,7 +319,11 @@ const instancesOf3DViewers = [
         name: "OSM Building Viewer",
         url: "https://deevroman.github.io/OSMBuilding/",
         makeURL: function ({ type: type, id: id }) {
-            return `${this.url}?id=${id}&type=${type}` // TODO osmAPIurl
+            if (osm_server === prod_server) {
+                return `${this.url}?id=${id}&type=${type}`
+            } else {
+                return `${this.url}?id=${id}&type=${type}&osmApiUrl=${osm_server.apiUrl}`
+            }
         },
     },
     {
