@@ -9998,7 +9998,8 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
     // OSM Wiki говорит, что можно 8213 символов
     // на практике можно 8219 символов
     // Однако для OHM можно только 8210 символов
-    const maxQueryArgLen = 8210 - (osm_server.apiBase.length + "nodes.json?nodes=".length)
+    // upd: 2026: теперь уже OSM падает при 8208
+    const maxQueryArgLen = 8208 - (osm_server.apiBase.length + "nodes.json?nodes=".length)
     for (const lastVersion of longHistoryNodes) {
         for (let v = 1; v < lastVersion.version; v++) {
             // todo не нужно загружать версию, которая в текущем пакете правок (если уже успели его загрузить)
