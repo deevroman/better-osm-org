@@ -385,14 +385,14 @@ async function betterUserStat() {
             const localizedDate = getWindow().OSM.i18n.l("date.formats.long", intoPageWithFun(date))
             if (value > 0) {
                 return getWindow().OSM.i18n.t(
-                    "javascripts.heatmap.tooltip.contributions",
+                    "javascripts.contribution_calendar.tooltip.contributions",
                     intoPage({
                         count: value,
                         date: localizedDate,
                     }),
                 )
             }
-            return getWindow().OSM.i18n.t("javascripts.heatmap.tooltip.no_contributions", intoPage({ date: localizedDate }))
+            return getWindow().OSM.i18n.t("javascripts.contribution_calendar.tooltip.no_contributions", intoPage({ date: localizedDate }))
         }
 
         getWindow().$("[rel=tooltip]").tooltip("dispose")
