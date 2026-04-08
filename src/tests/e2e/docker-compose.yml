@@ -12,5 +12,8 @@ services:
       E2E_SCRIPT_MANAGER_NAME: "${E2E_SCRIPT_MANAGER_NAME:-Violentmonkey}"
       E2E_SCRIPT_MANAGER_XPI: "${E2E_SCRIPT_MANAGER_XPI:-/workspace/src/tests/e2e/artifacts/manager.xpi}"
       E2E_LOCALE: "${E2E_LOCALE:-en}"
+      E2E_VIEWPORT_WIDTH: "${E2E_VIEWPORT_WIDTH:-}"
+      E2E_VIEWPORT_HEIGHT: "${E2E_VIEWPORT_HEIGHT:-}"
+      E2E_USER_AGENT: "${E2E_USER_AGENT:-}"
     volumes:
       - ../../..:/workspace
