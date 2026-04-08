@@ -11,7 +11,12 @@ import { installConsoleCapture, flushConsoleCapture, safeFlushConsoleCapture } f
 import { startUserscriptServer } from "./lib/userscript-server.mjs"
 import { clickInstallButton, switchToUsableWindow } from "./lib/install-flow.mjs"
 import { saveDebugArtifacts, savePageArtifacts, waitForTargetPageComplete } from "./lib/artifacts.mjs"
-import { createFirefoxBuilder, createFirefoxOptions, resolveFirefoxBinary } from "./lib/firefox-runner.mjs"
+import {
+    applyViewportSize,
+    createFirefoxBuilder,
+    createFirefoxOptions,
+    resolveFirefoxBinary,
+} from "./lib/firefox-runner.mjs"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -40,6 +45,9 @@ const seleniumRemoteUrl = process.env.SELENIUM_REMOTE_URL
 const headless = !["0", "false", "no"].includes((process.env.E2E_HEADLESS || "1").toLowerCase())
 const stepPauseMs = Number.parseInt(process.env.E2E_STEP_PAUSE_MS || "0", 10)
 const locale = resolveLocaleConfig(process.env.E2E_LOCALE || "en")
+const viewportWidth = Number.parseInt(process.env.E2E_VIEWPORT_WIDTH || "", 10)
+const viewportHeight = Number.parseInt(process.env.E2E_VIEWPORT_HEIGHT || "", 10)
+const userAgentOverride = (process.env.E2E_USER_AGENT || "").trim()
 
 const installTimeoutMs = Number.parseInt(process.env.E2E_INSTALL_TIMEOUT_MS || "45000", 10)
 const assertTimeoutMs = Number.parseInt(process.env.E2E_ASSERT_TIMEOUT_MS || "30000", 10)
@@ -65,6 +73,9 @@ Optional env:
   E2E_HEADLESS=1|0
   E2E_STEP_PAUSE_MS=0
   E2E_LOCALE=en|ru
+  E2E_VIEWPORT_WIDTH=390
+  E2E_VIEWPORT_HEIGHT=844
+  E2E_USER_AGENT=Mozilla/5.0 (...)
   SELENIUM_REMOTE_URL=http://127.0.0.1:4444/wd/hub
   E2E_INSTALL_TIMEOUT_MS=45000
   E2E_ASSERT_TIMEOUT_MS=30000
@@ -120,6 +131,7 @@ async function run() {
         headless,
         firefoxBinary,
         locale,
+        userAgentOverride,
         logFn: log,
     })
     const builder = createFirefoxBuilder({
@@ -158,6 +170,11 @@ async function run() {
         await maybePause("after-click-install")
         await switchToUsableWindow(driver)
         await maybePause("switch-to-target-window")
+        await applyViewportSize(driver, {
+            width: viewportWidth,
+            height: viewportHeight,
+            logFn: log,
+        })
 
         await runTargetTests(driver, {
             targetUrl,

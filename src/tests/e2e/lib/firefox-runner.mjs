@@ -39,11 +39,12 @@ export async function resolveFirefoxBinary(firefoxBinaryFromEnv) {
  *   headless: boolean,
  *   firefoxBinary: string|null,
  *   locale: {id: string, browserLocale: string, acceptLanguage: string},
+ *   userAgentOverride?: string,
  *   logFn?: (message: string) => void
  * }} config
  * @returns {import("selenium-webdriver/firefox.js").Options}
  */
-export function createFirefoxOptions({ headless, firefoxBinary, locale, logFn = defaultLog }) {
+export function createFirefoxOptions({ headless, firefoxBinary, locale, userAgentOverride = "", logFn = defaultLog }) {
     const options = new firefox.Options()
     if (headless) {
         options.addArguments("-headless")
@@ -55,6 +56,10 @@ export function createFirefoxOptions({ headless, firefoxBinary, locale, logFn = 
     options.setPreference("devtools.console.stdout.content", true)
     options.setPreference("intl.locale.requested", locale.browserLocale)
     options.setPreference("intl.accept_languages", locale.acceptLanguage)
+    if (userAgentOverride) {
+        options.setPreference("general.useragent.override", userAgentOverride)
+        logFn(`Using user-agent override: ${userAgentOverride}`)
+    }
     logFn(`Using locale: ${locale.id} (browser=${locale.browserLocale}, accept-language=${locale.acceptLanguage})`)
     return options
 }
@@ -80,4 +85,28 @@ export function createFirefoxBuilder({ options, seleniumRemoteUrl, logFn = defau
         logFn("Using local geckodriver")
     }
     return builder
+}
+
+/**
+ * Applies browser window size for viewport-sensitive scenarios.
+ * @param {import("selenium-webdriver").WebDriver} driver
+ * @param {{
+ *   width?: number,
+ *   height?: number,
+ *   logFn?: (message: string) => void
+ * }} config
+ * @returns {Promise<void>}
+ */
+export async function applyViewportSize(driver, { width, height, logFn = defaultLog }) {
+    if (!Number.isFinite(width) || width <= 0 || !Number.isFinite(height) || height <= 0) {
+        return
+    }
+    await driver
+        .manage()
+        .window()
+        .setRect({
+            width: Number(width),
+            height: Number(height),
+        })
+    logFn(`Using viewport size: ${Number(width)}x${Number(height)}`)
 }
