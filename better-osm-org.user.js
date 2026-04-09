@@ -2780,6 +2780,32 @@ function drawRay(lat, lon, angle, color) {
  */
 function findDuplicatesPoints(points) {
     const issues = []
+
+    const isPolygon = isClosedWay(points)
+    if (!isPolygon) {
+        debugger
+        for (let i = 2; i < points.length; i++) {
+            const point = points[i]
+            if (points[i - 2].id === point.id || areSamePointCoordinates(points[i - 2], point)) {
+                const prevDup = points[i - 2]
+                issues.push({
+                    code: "duplicate_points",
+                    description: `Duplicate point in geometry at positions ${prevDup.index + 1} and ${point.index + 1}`,
+                    points: [prevDup, point],
+                })
+            }
+            if (points[i - 1].id === point.id || areSamePointCoordinates(points[i - 1], point)) {
+                const prevDup = points[i - 1]
+                issues.push({
+                    code: "duplicate_points",
+                    description: `Duplicate point in geometry at positions ${prevDup.index + 1} and ${point.index + 1}`,
+                    points: [prevDup, point],
+                })
+            }
+        }
+        return issues
+    }
+
     /** @type {Map<string, WayGeometryPoint[]>} */
     const duplicateGroupsMap = new Map()
     points.forEach(point => {
@@ -2823,6 +2849,9 @@ function findSelfIntersections(points, isPolygon) {
             }
             const c = points[j]
             const d = points[j + 1]
+            if (a.id === c.id || b.id === c.id || a.id === d.id || b.id === d.id) {
+                continue
+            }
             if (areSamePointCoordinates(c, d)) {
                 continue
             }
@@ -2976,27 +3005,11 @@ function areSamePointCoordinates(p1, p2) {
  * @param {LatLon} a
  * @param {LatLon} b
  * @param {LatLon} c
- * @param {LatLon} d
- * @return {boolean}
+ * @return {number}
  */
-function segmentsCrossOrOverlap(a, b, c, d) {
-    const o1 = orientation(a, b, c)
-    const o2 = orientation(a, b, d)
-    const o3 = orientation(c, d, a)
-    const o4 = orientation(c, d, b)
-
-    if (o1 * o2 < 0 && o3 * o4 < 0) {
-        return true
-    }
-
-    if (o1 === 0 && o2 === 0 && o3 === 0 && o4 === 0 && collinearSegmentsOverlapByLength(a, b, c, d)) {
-        return true
-    }
-
-    return false
+function area(a, b, c) {
+    return (b.lon - a.lon) * (c.lat - a.lat) - (b.lat - a.lat) * (c.lon - a.lon)
 }
-
-const EPS = 1e-9
 
 /**
  * @param {LatLon} a
@@ -3005,15 +3018,36 @@ const EPS = 1e-9
  * @return {-1|0|1}
  */
 function orientation(a, b, c) {
-    const cross = (b.lon - a.lon) * (c.lat - a.lat) - (b.lat - a.lat) * (c.lon - a.lon)
-    if (cross > EPS) {
-        return 1
-    }
-    if (cross < -EPS) {
-        return -1
-    }
-    return 0
+    const ar = area(a, b, c)
+    return ar > 0 ? 1 : ar < 0 ? -1 : 0
 }
+
+/**
+ * @param {LatLon} a
+ * @param {LatLon} b
+ * @param {LatLon} c
+ * @param {LatLon} d
+ * @return {boolean}
+ */
+function segmentsCrossOrOverlap(a, b, c, d) {
+    function intersect(a, b, c, d) {
+        if (a > b) {
+            ;[a, b] = [b, a]
+        }
+        if (c > d) {
+            ;[c, d] = [d, c]
+        }
+        return max(a, c) <= min(b, d)
+    }
+
+    // prettier-ignore
+    return intersect(a.lat, b.lat, c.lat, d.lat)
+        && intersect(a.lon, b.lon, c.lon, d.lon)
+        && area(a, b, c) * area(a, b, d) <= 0
+        && area(c, d, a) * area(c, d, b) <= 0
+}
+
+const EPS = 1e-9
 
 /**
  * @param {LatLon} p
@@ -3039,31 +3073,6 @@ function isPointOnSegmentStrict(p, a, b) {
  */
 function isPointOnSegment(p, a, b) {
     return p.lon <= max(a.lon, b.lon) + EPS && p.lon + EPS >= min(a.lon, b.lon) && p.lat <= max(a.lat, b.lat) + EPS && p.lat + EPS >= min(a.lat, b.lat)
-}
-
-/**
- * @param {LatLon} a
- * @param {LatLon} b
- * @param {LatLon} c
- * @param {LatLon} d
- * @return {boolean}
- */
-function collinearSegmentsOverlapByLength(a, b, c, d) {
-    const useLon = abs(a.lon - b.lon) >= abs(a.lat - b.lat)
-    const [aStart, aEnd] = sortPair(useLon ? a.lon : a.lat, useLon ? b.lon : b.lat)
-    const [cStart, cEnd] = sortPair(useLon ? c.lon : c.lat, useLon ? d.lon : d.lat)
-    const overlapStart = max(aStart, cStart)
-    const overlapEnd = min(aEnd, cEnd)
-    return overlapEnd - overlapStart > EPS
-}
-
-/**
- * @param {number} x
- * @param {number} y
- * @return {[number, number]}
- */
-function sortPair(x, y) {
-    return x <= y ? [x, y] : [y, x]
 }
 
 //</editor-fold>
