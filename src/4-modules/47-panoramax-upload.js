@@ -333,7 +333,7 @@ function addUploadPanoramaxBtn() {
 
     const needBlur = document.createElement("input")
     needBlur.type = "checkbox"
-    needBlur.checked = true
+    needBlur.checked = false
     needBlur.style.marginRight = "5px"
 
     const needBlueLabel = document.createElement("label")
