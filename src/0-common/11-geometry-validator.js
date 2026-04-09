@@ -26,7 +26,6 @@ function findDuplicatesPoints(points) {
 
     const isPolygon = isClosedWay(points)
     if (!isPolygon) {
-        debugger
         for (let i = 2; i < points.length; i++) {
             const point = points[i]
             if (points[i - 2].id === point.id || areSamePointCoordinates(points[i - 2], point)) {
@@ -136,10 +135,10 @@ function findPointsOnSegments(points) {
             if (areSamePointCoordinates(point, segmentStart) || areSamePointCoordinates(point, segmentEnd)) {
                 continue
             }
-            if (orientation(segmentStart, segmentEnd, point) !== 0) {
+            if (abs(area(segmentStart, segmentEnd, point)) >= EPS) {
                 continue
             }
-            if (!isPointOnSegmentStrict(point, segmentStart, segmentEnd)) {
+            if (!isPointInBbox(point, segmentStart, segmentEnd)) {
                 continue
             }
             issues.push({
@@ -290,7 +289,7 @@ function segmentsCrossOrOverlap(a, b, c, d) {
         && area(c, d, a) * area(c, d, b) <= 0
 }
 
-const EPS = 1e-9
+const EPS = 1e-10
 
 /**
  * @param {LatLon} p
@@ -298,24 +297,12 @@ const EPS = 1e-9
  * @param {LatLon} b
  * @return {boolean}
  */
-function isPointOnSegmentStrict(p, a, b) {
-    if (!isPointOnSegment(p, a, b)) {
-        return false
-    }
-    if (areSamePointCoordinates(p, a) || areSamePointCoordinates(p, b)) {
-        return false
-    }
-    return true
-}
-
-/**
- * @param {LatLon} p
- * @param {LatLon} a
- * @param {LatLon} b
- * @return {boolean}
- */
-function isPointOnSegment(p, a, b) {
-    return p.lon <= max(a.lon, b.lon) + EPS && p.lon + EPS >= min(a.lon, b.lon) && p.lat <= max(a.lat, b.lat) + EPS && p.lat + EPS >= min(a.lat, b.lat)
+function isPointInBbox(p, a, b) {
+    // prettier-ignore
+    return p.lon <= max(a.lon, b.lon) + EPS
+         && p.lon + EPS >= min(a.lon, b.lon)
+         && p.lat <= max(a.lat, b.lat) + EPS
+         && p.lat + EPS >= min(a.lat, b.lat)
 }
 
 //</editor-fold>
