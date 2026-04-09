@@ -233,6 +233,25 @@ test("point lying on another segment should be reported", () => {
     assert.equal(issue.description, "Point 3 lies on segment 1-2")
 })
 
+test("regression: way/1497981444 should have no geometry validation issues", () => {
+    const issues = validateWayGeometry(
+        {
+            nodes: [1, 2, 3, 4, 5, 6, 7, 8, 1],
+        },
+        makeNodesMap([
+            { id: 1, lat: -32.7705641, lon: 151.5898129 },
+            { id: 2, lat: -32.7705766, lon: 151.5899001 },
+            { id: 3, lat: -32.7705815, lon: 151.5898991 },
+            { id: 4, lat: -32.7705899, lon: 151.5899578 },
+            { id: 5, lat: -32.770396, lon: 151.5899968 },
+            { id: 6, lat: -32.7703805, lon: 151.5898884 },
+            { id: 7, lat: -32.7704833, lon: 151.5898677 },
+            { id: 8, lat: -32.770478, lon: 151.5898302 },
+        ]),
+    )
+    assert.deepEqual(issues, [])
+})
+
 test("issues should be converted to plain text messages", () => {
     const messages = getWayGeometryValidationMessages([
         { code: "too_few_points", description: "Line should contain at least 2 unique points" },
