@@ -17437,7 +17437,7 @@ function addUploadPanoramaxBtn() {
             location.reload()
         } catch (err) {
             console.error(err)
-            alert(`Error: ${err.message}\n\n` + metadata ? `Info from EXIF:\nDateTime: ${metadata.DateTime}\nLat: ${metadata.GPSLatitude}\nLon: ${metadata.GPSLongitude}` : "")
+            alert(`Error: ${err.message}\n\n` + (metadata ? `Info from EXIF:\nDateTime: ${metadata.DateTime}\nLat: ${metadata.GPSLatitude}\nLon: ${metadata.GPSLongitude}` : ""))
         } finally {
             wrapper.classList.remove("is-loading")
         }
