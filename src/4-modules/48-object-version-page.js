@@ -354,6 +354,7 @@ function showValidationStatus(errors, targetElem) {
         validationStatus.classList.add("validation-status")
         validationStatus.textContent = " ⚠️"
         validationStatus.title = errors.join("\n")
+        validationStatus.style.cursor = "help"
         targetElem.appendChild(validationStatus)
     }
 }

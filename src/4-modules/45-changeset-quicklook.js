@@ -1629,11 +1629,13 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 i.querySelector("a ~ table.quick-look")?.before(hasInterChangesWarn)
             }
             const nodesMap = {}
+            let broken = false
             targetNodes.forEach(elem => {
                 if (!elem) {
                     console.error(targetNodes, objID, targetVersion)
                 }
                 if (!elem.lon) {
+                    broken = true
                     console.error(elem, targetNodes, objID, targetVersion)
                 }
                 nodesMap[elem.id] = [elem.lat, elem.lon]
@@ -1645,6 +1647,17 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                     console.error("not found target nodes", objID, node)
                 }
             })
+            setTimeout(() => {
+                if (broken) {
+                    return
+                }
+                const nodesMap = new Map(Object.entries(Object.groupBy(targetNodes, i => i.id)).map(([k, v]) => [k, v[0]]))
+                const lineGeometryIssues = validateWayGeometry(targetVersion, nodesMap)
+                showValidationStatus(
+                    lineGeometryIssues.map(i => i.description),
+                    i,
+                )
+            }, 0)
         }
 
         i.parentElement.parentElement.onclick = async e => {
