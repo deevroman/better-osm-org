@@ -157,6 +157,9 @@ function findPointsOnSegments(points) {
  * @return {WayGeometryValidationIssue[]}
  */
 function validateWayGeometry(wayInfo, nodesMap) {
+    if (!isDebug()) {
+        return []
+    }
     /** @type {number[]} */
     const nodeIDs = wayInfo?.nodes ?? []
     /** @type {WayGeometryPoint[]} */
