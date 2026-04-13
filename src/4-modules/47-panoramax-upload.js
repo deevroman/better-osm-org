@@ -91,7 +91,7 @@ async function deleteUploadSet(apiUrl, token, uploadSetId) {
 }
 
 async function completeUploadSet(apiUrl, token, uploadSetId) {
-    const response = await externalFetch({
+    const response = await externalFetchRetry({
         url: `${apiUrl}/api/upload_sets/${uploadSetId}/complete`,
         method: "POST",
         headers: {
