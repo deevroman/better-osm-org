@@ -60,7 +60,7 @@ async function uploadPhotoToSet(apiUrl, token, uploadSetId, file, isBlurred) {
 
     if (response.status === 409) {
         return {
-            picture_id: (await response.response).upload_sets[0].existing_item_id
+            picture_id: (await response.response).upload_sets[0].existing_item_id,
         }
     }
 
