@@ -58,6 +58,12 @@ async function uploadPhotoToSet(apiUrl, token, uploadSetId, file, isBlurred) {
         data: formData,
     })
 
+    if (response.status === 409) {
+        return {
+            picture_id: (await response.response).upload_sets[0].existing_item_id
+        }
+    }
+
     if (response.status < 200 || response.status >= 300) {
         console.error(response)
         throw new Error(`Photo upload failed, HTTP ${response.status}:\n\n${response.response?.details?.error}\n\nFull log in browser console (F12)`)
