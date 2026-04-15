@@ -327,8 +327,24 @@ function addResolveNotesButton() {
         const lat = document.querySelector("#sidebar_content .latitude").textContent.replace(",", ".")
         const lon = document.querySelector("#sidebar_content .longitude").textContent.replace(",", ".")
         const zoom = 18
+        const styleSuffix = isDebug()
+            ? `
+make way ::geom = lstr(pt(${lat}, ${lon})), ::id = 0;
+out center;
+
+{{style:
+node[@id=0] {
+    color: red;
+    fill-color: red;
+    fill-opacity: 1;
+    opacity: 1;
+    symbol-size: 4;
+}
+}}
+`
+            : ""
         const query = `// via ${timeSource}
-[date:"${timestamp}"];
+[date:"${timestamp}"][maxsize:32Mi];
 (
   node({{bbox}});
   way({{bbox}});
@@ -336,7 +352,7 @@ function addResolveNotesButton() {
 );
 (._;>;);
 out meta;
-`
+${styleSuffix}`
         const btn = document.createElement("a")
         btn.id = "timeback-btn"
         if (organicmapsDate || mapsmeDate) {
