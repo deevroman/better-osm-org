@@ -221,7 +221,11 @@ function tileErrorHandler(e, url = null) {
 
 function makeCustomTileUrl(template, xyz) {
     if (!customLayerInfo.isWms) {
-        return template.replaceAll("{x}", xyz.x).replaceAll("{y}", xyz.y).replaceAll("{z}", xyz.z)
+        return template
+            .replaceAll("{x}", xyz.x)
+            .replaceAll("{y}", xyz.y)
+            .replaceAll("{z}", xyz.z)
+            .replaceAll("{wikimapia}", ((xyz.x % 4) + (xyz.y % 4) * 4).toString())
     }
     const bbox = tileToBBOX([parseInt(xyz.x), parseInt(xyz.y), parseInt(xyz.z)])
     const a = coord4326To3857(bbox[0], bbox[1])
