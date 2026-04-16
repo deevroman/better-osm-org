@@ -506,6 +506,13 @@ const instancesOf3DViewers = [
         },
     },
     {
+        name: "OSM2World Object Viewer",
+        url: "https://osm2world.org/object/",
+        makeURL: function ({ type: type, id: id }) {
+            return `${this.url}?id=${type[0]}${id}`
+        },
+    },
+    {
         name: "osmbuildings.org",
         url: "https://osmbuildings.org/",
         makeURL: function ({ x: x, y: y, z: z }) {
