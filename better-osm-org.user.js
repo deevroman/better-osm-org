@@ -6137,22 +6137,28 @@ function addResolveNotesButton() {
         const lat = document.querySelector("#sidebar_content .latitude").textContent.replace(",", ".")
         const lon = document.querySelector("#sidebar_content .longitude").textContent.replace(",", ".")
         const zoom = 18
-        const styleSuffix = isDebug()
-            ? `
-make way ::geom = lstr(pt(${lat}, ${lon})), ::id = 0;
+        const tooltipText = noteText
+            .trim()
+            .slice(0, 50)
+            .replaceAll('"', "")
+            .replaceAll("\n", " ")
+            .replace(/The place has gone.*$/, "")
+            .trim()
+        const styleSuffix = `
+
+make way ::geom = lstr(pt(${lat}, ${lon})), ::id=0;
 out center;
 
 {{style:
 node[@id=0] {
-    color: red;
-    fill-color: red;
-    fill-opacity: 1;
-    opacity: 1;
-    symbol-size: 4;
+  symbol-size: 2;
+  fill-opacity: 1;
+  color: white;
+  fill-color: white;
+  text: eval("'${tooltipText}'");
 }
 }}
 `
-            : ""
         const query = `// via ${timeSource}
 [date:"${timestamp}"][maxsize:32Mi];
 (
@@ -6175,7 +6181,11 @@ ${styleSuffix}`
         document.querySelector("#sidebar_content time").after(btn)
         btn.onclick = e => {
             e.preventDefault()
-            window.open(`${overpass_server.url}?Q=${encodeURI(query)}&C=${lat};${lon};${zoom}&R`)
+            const params = new URLSearchParams({
+                Q: query,
+                C: `${lat};${lon};${zoom}`,
+            })
+            window.open(`${overpass_server.url}?${params}&R`)
         }
     } catch (e) {
         console.error("setup timeback button fail", e)
