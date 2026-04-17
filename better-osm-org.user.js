@@ -1,7 +1,9 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.5.9.6
+// @version         1.6.0
+// @changelog       v1.6.0: Initial OpenGeoFiction support, add OSM2World 3D viewer, type=* validator
+// @changelog       v1.6.0: Note marker in Overpass Turbo, more stable Overpass search
 // @changelog       v1.5.9: memorizing the last satellite layer, simple vector style editor
 // @changelog       v1.5.7: filter notes by creation date, Panoramax uploader (you need to enable it in the settings)
 // @changelog       v1.5.5: render child relations on relation page by hover
@@ -9303,6 +9305,7 @@ function addPanoramaxPicIntoA(uuid, a, panoramaxServer) {
     } else {
         const img = GM_addElement("img", {
             src: imgSrc,
+            width: "100%",
             // crossorigin: "anonymous"
         })
         img.onerror = () => {
@@ -9431,6 +9434,7 @@ function makeMapillaryValue(elem) {
                         src: imgSrc,
                         alt: "image from Mapillary",
                         title: "Blue — position from GPS tracker\nOrange — estimated real position",
+                        width: "100%",
                         // crossorigin: "anonymous"
                     })
                     img.onerror = () => {
@@ -11540,7 +11544,7 @@ async function getNodeViaOverpassXML(id, timestamp) {
             `${overpass_server.apiUrl}/interpreter?` +
             new URLSearchParams({
                 data: `
-                [out:xml][date:"${timestamp}"];
+                [out:xml][maxsize:64Mi][date:"${timestamp}"];
                 node(${id});
                 out meta;
             `,
@@ -11559,7 +11563,7 @@ async function getWayViaOverpassXML(id, timestamp) {
             `${overpass_server.apiUrl}/interpreter?` +
             new URLSearchParams({
                 data: `
-                [out:xml][date:"${timestamp}"];
+                [out:xml][maxsize:64Mi][date:"${timestamp}"];
                 way(${id});
                 //(._;>;);
                 out meta;
@@ -12406,6 +12410,10 @@ async function downloadVersionsOfObjectWithRedactionBefore2012(type, objID) {
         try {
             const diffGZ = await fetchBlobWithCache(url, { timeout: 10 * 1000 })
             const blob = needUnzip ? await decompressBlob(diffGZ.response) : diffGZ.response
+            if (diffGZ.status !== 200) {
+                console.warn(diffGZ.status, diffGZ.statusText, url)
+                return
+            }
             const diffXML = await blob.text()
 
             const doc = new DOMParser().parseFromString(diffXML, "application/xml")

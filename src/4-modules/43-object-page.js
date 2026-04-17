@@ -33,6 +33,7 @@ function addPanoramaxPicIntoA(uuid, a, panoramaxServer) {
     } else {
         const img = GM_addElement("img", {
             src: imgSrc,
+            width: "100%",
             // crossorigin: "anonymous"
         })
         img.onerror = () => {
@@ -161,6 +162,7 @@ function makeMapillaryValue(elem) {
                         src: imgSrc,
                         alt: "image from Mapillary",
                         title: "Blue — position from GPS tracker\nOrange — estimated real position",
+                        width: "100%",
                         // crossorigin: "anonymous"
                     })
                     img.onerror = () => {
