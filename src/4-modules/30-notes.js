@@ -343,8 +343,8 @@ out center;
 node[@id=0] {
   symbol-size: 2;
   fill-opacity: 1;
-  color: white;
-  fill-color: white;
+  color: red;
+  fill-color: red;
   text: eval("'${tooltipText}'");
 }
 }}
