@@ -345,16 +345,24 @@ const allowedRelationTypes = new Set([
 
 function makeTypeValue(elem) {
     if (!location.pathname.includes("/relation")) {
+        const hint = "type=* only for relations"
+        elem.querySelectorAll("a:not(.warn-tag)").forEach(a => {
+            a.classList.add("warn-tag")
+            a.title = hint + "\n\n" + a.title
+        })
         elem.classList.add("warn-tag")
-        elem.querySelectorAll("a").forEach(a => a.classList.add("warn-tag"))
-        elem.title = "type=* only for relations"
+        elem.title = hint
         return
     }
     const value = elem.textContent.replace(/(^was:|^disused:|^abandoned:)/, "")
     if (!allowedRelationTypes.has(value)) {
+        const hint = `type=${value} used < 50 times. This is probably a mistake.`
+        elem.querySelectorAll("a:not(.warn-tag)").forEach(a => {
+            a.classList.add("warn-tag")
+            a.title = hint + "\n\n" + a.title
+        })
         elem.classList.add("warn-tag")
-        elem.querySelectorAll("a").forEach(a => a.classList.add("warn-tag"))
-        elem.title = `type=${value} used < 50 times. This is probably a mistake.`
+        elem.title = hint
     }
 }
 
