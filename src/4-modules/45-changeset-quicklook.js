@@ -400,6 +400,8 @@ function makeLinksInChangesetObjectRowClickable(row) {
             && !key.startsWith("description:")
         ) {
             makeConditionalValue(valueCell)
+        } else if (key === "type") {
+            makeTypeValue(valueCell)
         }
     }
 }

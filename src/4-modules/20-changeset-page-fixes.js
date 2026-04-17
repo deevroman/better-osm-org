@@ -1068,6 +1068,11 @@ ${copyAnimationStyles}
       color: red !important;
       font-weight: bold;
     }
+    
+    .warn-tag {
+      color: #ff5400 !important;
+      font-weight: bold;
+    }
 
     .note-tag {
       font-weight: bold;
@@ -1076,6 +1081,11 @@ ${copyAnimationStyles}
     @media ${mediaQueryForWebsiteTheme} {
       .fixme-tag {
         color: #ff5454 !important;
+        font-weight: unset;
+      }
+      
+      .warn-tag {
+        color: #ff5400 !important;
         font-weight: unset;
       }
 

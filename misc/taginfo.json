@@ -179,6 +179,10 @@
     {
       "key": "note",
       "description": "Highlighting a tag in a tag list"
+    },
+    {
+      "key": "type",
+      "description": "tag value validation"
     }
   ]
 }
