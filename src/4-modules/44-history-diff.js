@@ -1541,7 +1541,7 @@ async function getNodeViaOverpassXML(id, timestamp) {
             `${overpass_server.apiUrl}/interpreter?` +
             new URLSearchParams({
                 data: `
-                [out:xml][date:"${timestamp}"];
+                [out:xml][maxsize:64Mi][date:"${timestamp}"];
                 node(${id});
                 out meta;
             `,
@@ -1560,7 +1560,7 @@ async function getWayViaOverpassXML(id, timestamp) {
             `${overpass_server.apiUrl}/interpreter?` +
             new URLSearchParams({
                 data: `
-                [out:xml][date:"${timestamp}"];
+                [out:xml][maxsize:64Mi][date:"${timestamp}"];
                 way(${id});
                 //(._;>;);
                 out meta;
@@ -2407,6 +2407,10 @@ async function downloadVersionsOfObjectWithRedactionBefore2012(type, objID) {
         try {
             const diffGZ = await fetchBlobWithCache(url, { timeout: 10 * 1000 })
             const blob = needUnzip ? await decompressBlob(diffGZ.response) : diffGZ.response
+            if (diffGZ.status !== 200) {
+                console.warn(diffGZ.status, diffGZ.statusText, url)
+                return
+            }
             const diffXML = await blob.text()
 
             const doc = new DOMParser().parseFromString(diffXML, "application/xml")
