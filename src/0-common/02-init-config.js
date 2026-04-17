@@ -269,6 +269,11 @@ const configOptions = {
             type: "select",
             options: [MAIN_OVERPASS_INSTANCE.name, MAILRU_OVERPASS_INSTANCE.name, PRIVATECOFFEE_OVERPASS_INSTANCE.name],
         },
+        // CustomOverpassInstance: {
+        //     label: 'Custom Overpass API</a>',
+        //     labelPos: "left",
+        //     type: "input",
+        // },
         PanoramaxUploader: {
             label: "Add form for uploading photos into Panoramax",
             type: "checkbox",

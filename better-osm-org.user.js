@@ -2,7 +2,7 @@
 // @name            Better osm.org
 // @name:ru         Better osm.org
 // @version         1.6.0
-// @changelog       v1.6.0: Initial OpenGeoFiction support, add OSM2World 3D viewer, type=* validator
+// @changelog       v1.6.0: OpenGeoFiction support under debug flag in settings, add OSM2World 3D viewer, type=* validator
 // @changelog       v1.6.0: Note marker in Overpass Turbo, more stable Overpass search
 // @changelog       v1.5.9: memorizing the last satellite layer, simple vector style editor
 // @changelog       v1.5.7: filter notes by creation date, Panoramax uploader (you need to enable it in the settings)
@@ -1100,6 +1100,11 @@ const configOptions = {
             type: "select",
             options: [MAIN_OVERPASS_INSTANCE.name, MAILRU_OVERPASS_INSTANCE.name, PRIVATECOFFEE_OVERPASS_INSTANCE.name],
         },
+        // CustomOverpassInstance: {
+        //     label: 'Custom Overpass API</a>',
+        //     labelPos: "left",
+        //     type: "input",
+        // },
         PanoramaxUploader: {
             label: "Add form for uploading photos into Panoramax",
             type: "checkbox",
@@ -9617,8 +9622,8 @@ const allowedRelationTypes = new Set([
     "label", "defaults", "lanelet", "traffic separation scheme", "station",
 ])
 
-function makeTypeValue(elem) {
-    if (!location.pathname.includes("/relation")) {
+function makeTypeValue(elem, objType) {
+    if (objType !== "relation") {
         const hint = "type=* only for relations"
         elem.querySelectorAll("a:not(.warn-tag)").forEach(a => {
             a.classList.add("warn-tag")
@@ -9955,7 +9960,7 @@ function makeLinksInVersionTagsClickable() {
             document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(relationViewer)
             document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(relationEditor)
         } else if (key === "type") {
-            makeTypeValue(valueCell)
+            makeTypeValue(valueCell, location.pathname.match(/\/(node|way|relation)\/(\d+)/)?.[1])
         } else if (key === "ref:belpost") {
             if (!valueCell.querySelector("a")) {
                 makeRefBelpostValue(valueCell)
@@ -14087,7 +14092,7 @@ function makeTagRow(key, value, addTd = false) {
     return tagRow
 }
 
-function makeLinksInChangesetObjectRowClickable(row) {
+function makeLinksInChangesetObjectRowClickable(row, objType) {
     if (row.querySelector("td").textContent.match(/^https?:\/\//)) {
         const a = document.createElement("a")
         a.textContent = row.querySelector("td").textContent
@@ -14138,7 +14143,7 @@ function makeLinksInChangesetObjectRowClickable(row) {
         ) {
             makeConditionalValue(valueCell)
         } else if (key === "type") {
-            makeTypeValue(valueCell)
+            makeTypeValue(valueCell, objType)
         }
     }
 }
@@ -14316,7 +14321,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                     row.classList.add("restored-tag")
                     row.title = row.title + "The tag is now restored"
                 }
-                makeLinksInChangesetObjectRowClickable(row)
+                makeLinksInChangesetObjectRowClickable(row, objType)
                 detectEditsWars(prevVersion, targetVersion, objHistory, row, key)
             }
         }
@@ -14339,7 +14344,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                     row.title = `The tag is now deleted`
                 }
             }
-            makeLinksInChangesetObjectRowClickable(row)
+            makeLinksInChangesetObjectRowClickable(row, objType)
             tbody.appendChild(row)
             detectEditsWars(prevVersion, targetVersion, objHistory, row, key)
         } else if (prevVersion.tags[key] !== value) {
@@ -14420,7 +14425,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             detectEditsWars(prevVersion, targetVersion, objHistory, row, key)
         } else {
             row.classList.add("non-modified-tag-in-quick-view")
-            makeLinksInChangesetObjectRowClickable(row)
+            makeLinksInChangesetObjectRowClickable(row, objType)
             tbody.appendChild(row)
         }
     }
@@ -14572,7 +14577,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
 
         Object.entries(targetVersion.tags ?? {}).forEach(([k, v]) => {
             const row = makeTagRow(k, v)
-            makeLinksInChangesetObjectRowClickable(row)
+            makeLinksInChangesetObjectRowClickable(row, objType)
             tbodyForTags.appendChild(row)
         })
 
@@ -14871,7 +14876,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
 
         Object.entries(targetVersion.tags ?? {}).forEach(([k, v]) => {
             const row = makeTagRow(k, v)
-            makeLinksInChangesetObjectRowClickable(row)
+            makeLinksInChangesetObjectRowClickable(row, objType)
             tbodyForTags.appendChild(row)
         })
 

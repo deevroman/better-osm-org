@@ -350,7 +350,7 @@ function makeTagRow(key, value, addTd = false) {
     return tagRow
 }
 
-function makeLinksInChangesetObjectRowClickable(row) {
+function makeLinksInChangesetObjectRowClickable(row, objType) {
     if (row.querySelector("td").textContent.match(/^https?:\/\//)) {
         const a = document.createElement("a")
         a.textContent = row.querySelector("td").textContent
@@ -401,7 +401,7 @@ function makeLinksInChangesetObjectRowClickable(row) {
         ) {
             makeConditionalValue(valueCell)
         } else if (key === "type") {
-            makeTypeValue(valueCell)
+            makeTypeValue(valueCell, objType)
         }
     }
 }
@@ -579,7 +579,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                     row.classList.add("restored-tag")
                     row.title = row.title + "The tag is now restored"
                 }
-                makeLinksInChangesetObjectRowClickable(row)
+                makeLinksInChangesetObjectRowClickable(row, objType)
                 detectEditsWars(prevVersion, targetVersion, objHistory, row, key)
             }
         }
@@ -602,7 +602,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                     row.title = `The tag is now deleted`
                 }
             }
-            makeLinksInChangesetObjectRowClickable(row)
+            makeLinksInChangesetObjectRowClickable(row, objType)
             tbody.appendChild(row)
             detectEditsWars(prevVersion, targetVersion, objHistory, row, key)
         } else if (prevVersion.tags[key] !== value) {
@@ -683,7 +683,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             detectEditsWars(prevVersion, targetVersion, objHistory, row, key)
         } else {
             row.classList.add("non-modified-tag-in-quick-view")
-            makeLinksInChangesetObjectRowClickable(row)
+            makeLinksInChangesetObjectRowClickable(row, objType)
             tbody.appendChild(row)
         }
     }
@@ -835,7 +835,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
 
         Object.entries(targetVersion.tags ?? {}).forEach(([k, v]) => {
             const row = makeTagRow(k, v)
-            makeLinksInChangesetObjectRowClickable(row)
+            makeLinksInChangesetObjectRowClickable(row, objType)
             tbodyForTags.appendChild(row)
         })
 
@@ -1134,7 +1134,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
 
         Object.entries(targetVersion.tags ?? {}).forEach(([k, v]) => {
             const row = makeTagRow(k, v)
-            makeLinksInChangesetObjectRowClickable(row)
+            makeLinksInChangesetObjectRowClickable(row, objType)
             tbodyForTags.appendChild(row)
         })
 

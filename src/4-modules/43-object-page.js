@@ -345,8 +345,8 @@ const allowedRelationTypes = new Set([
     "label", "defaults", "lanelet", "traffic separation scheme", "station",
 ])
 
-function makeTypeValue(elem) {
-    if (!location.pathname.includes("/relation")) {
+function makeTypeValue(elem, objType) {
+    if (objType !== "relation") {
         const hint = "type=* only for relations"
         elem.querySelectorAll("a:not(.warn-tag)").forEach(a => {
             a.classList.add("warn-tag")
@@ -683,7 +683,7 @@ function makeLinksInVersionTagsClickable() {
             document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(relationViewer)
             document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(relationEditor)
         } else if (key === "type") {
-            makeTypeValue(valueCell)
+            makeTypeValue(valueCell, location.pathname.match(/\/(node|way|relation)\/(\d+)/)?.[1])
         } else if (key === "ref:belpost") {
             if (!valueCell.querySelector("a")) {
                 makeRefBelpostValue(valueCell)
