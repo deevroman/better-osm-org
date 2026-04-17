@@ -1,0 +1,37 @@
+name: Check allowed relation types
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "src/4-modules/43-object-page.js"
+      - "misc/check-allowed-relation-types.mjs"
+      - ".github/workflows/check-allowed-relation-types.yml"
+  push:
+    branches:
+      - master
+      - dev
+    paths:
+      - "src/4-modules/43-object-page.js"
+      - "misc/check-allowed-relation-types.mjs"
+      - ".github/workflows/check-allowed-relation-types.yml"
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  check-allowed-relation-types:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Validate allowedRelationTypes against taginfo
+        run: node misc/check-allowed-relation-types.mjs

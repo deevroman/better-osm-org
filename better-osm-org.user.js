@@ -5011,6 +5011,11 @@ ${copyAnimationStyles}
       color: red !important;
       font-weight: bold;
     }
+    
+    .warn-tag {
+      color: #ff5400 !important;
+      font-weight: bold;
+    }
 
     .note-tag {
       font-weight: bold;
@@ -5019,6 +5024,11 @@ ${copyAnimationStyles}
     @media ${mediaQueryForWebsiteTheme} {
       .fixme-tag {
         color: #ff5454 !important;
+        font-weight: unset;
+      }
+      
+      .warn-tag {
+        color: #ff5400 !important;
         font-weight: unset;
       }
 
@@ -9578,6 +9588,36 @@ function injectContextMenuCSS() {
     injectCSSIntoOSMPage(contextMenuCSS)
 }
 
+// prettier-ignore
+const allowedRelationTypes = new Set([
+    "multipolygon", "restriction", "route", "boundary", "associatedStreet", "public_transport", "site", "destination_sign",
+    "waterway", "route_master", "building", "enforcement", "street", "power", "connectivity", "provides_feature",
+    "turnlanes:turns", "bridge", "TMC", "network", "person", "superroute", "watershed", "collection", "tmc", "junction",
+    "tmc:point", "tunnel", "node", "associated_address", "turnlanes:lengths", "dual_carriageway", "level", "railway",
+    "tmc:link", "group", "traffic_signals_set", "multilinestring", "pipeline", "stop", "associated_entrance", "traffic_mirror",
+    "traffic_control", "manoeuvre", "tracks", "election", "destinationsign", "ridge", "surveillance", "region", "cluster",
+    "health", "roadAccess", "canal", "disc_golf_course", "circuit", "restriction:hgv", "give_way", "residential", "link",
+    "super-relation", "carriageway", "restriction:on_red", "area", "relation", "gallery", "through_route", "right_of_way",
+    "linestring", "unposted_route", "water", "operator", "land_area", "navigation", "golf_course", "traffic_signals_group",
+    "proposed", "segmented_tag", "road", "man_made", "transit", "construction", "access", "guidepost_destination", "fixme",
+    "label", "defaults", "lanelet", "traffic separation scheme", "station",
+])
+
+function makeTypeValue(elem) {
+    if (!location.pathname.includes("/relation")) {
+        elem.classList.add("warn-tag")
+        elem.querySelectorAll("a").forEach(a => a.classList.add("warn-tag"))
+        elem.title = "type=* only for relations"
+        return
+    }
+    const value = elem.textContent.replace(/(^was:|^disused:|^abandoned:)/, "")
+    if (!allowedRelationTypes.has(value)) {
+        elem.classList.add("warn-tag")
+        elem.querySelectorAll("a").forEach(a => a.classList.add("warn-tag"))
+        elem.title = `type=${value} used < 50 times. This is probably a mistake.`
+    }
+}
+
 // example https://osm.org/node/6506618057
 function makeLinksInVersionTagsClickable() {
     document.querySelectorAll(".browse-tag-list tr").forEach(row => {
@@ -9892,6 +9932,8 @@ function makeLinksInVersionTagsClickable() {
 
             document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(relationViewer)
             document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(relationEditor)
+        } else if (key === "type") {
+            makeTypeValue(valueCell)
         } else if (key === "ref:belpost") {
             if (!valueCell.querySelector("a")) {
                 makeRefBelpostValue(valueCell)
@@ -14069,6 +14111,8 @@ function makeLinksInChangesetObjectRowClickable(row) {
             && !key.startsWith("description:")
         ) {
             makeConditionalValue(valueCell)
+        } else if (key === "type") {
+            makeTypeValue(valueCell)
         }
     }
 }
