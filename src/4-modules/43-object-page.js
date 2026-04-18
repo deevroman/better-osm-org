@@ -278,7 +278,7 @@ const contextMenuCSS = `
         background: var(--bs-body-bg);
         border: 1px solid var(--bs-border-color);
         box-shadow: 0 2px 5px var(--bs-body-bg);
-        z-index: 1000;
+        z-index: 10000;
         padding: 5px 0;
         border-radius: 4px;
         min-width: 150px;
@@ -510,17 +510,30 @@ function makeLinksInVersionTagsClickable() {
                     }
             ` + contextMenuCSS,
             )
+            const parent = document.querySelector(".browse-tag-list").parentElement.previousElementSibling
+            parent.style.display = "flex"
+
+            const wrapper = document.createElement("span")
+            wrapper.classList.add("btn-group")
+            wrapper.style.marginLeft = "auto"
+            parent.appendChild(wrapper)
+
             const viewIn3D = document.createElement("span")
-            viewIn3D.classList.add("view-3d-link")
-            viewIn3D.textContent = " 🏯"
+            viewIn3D.classList.add("view-3d-link", "btn", "btn-outline-primary")
+            viewIn3D.textContent = "3D"
             viewIn3D.style.cursor = "pointer"
-            viewIn3D.title = "Click for show embedded 3D Viewer.\nRight click for select viewer\nClick with CTRL for open viewer in new tab\nIn userscript setting you can set open in tab by default"
+            viewIn3D.title = "Click for show embedded 3D Viewer.\nIn userscript setting you can set open in OSM page by default"
 
             async function contextMenuHandler(e) {
                 const buildingViewer = (await GM.getValue("3DViewer")) ?? "OSM Building Viewer"
                 e.preventDefault()
+                e.stopPropagation()
 
-                const menu = makeContextMenuElem(e)
+                const menu = makeContextMenuElem({
+                    ...e,
+                    pageX: e.target.getBoundingClientRect().right,
+                    pageY: e.target.getBoundingClientRect().bottom,
+                })
                 instancesOf3DViewers.forEach(i => {
                     const listItem = document.createElement("div")
                     const a = document.createElement("a")
@@ -528,6 +541,7 @@ function makeLinksInVersionTagsClickable() {
                     a.href = i.makeURL({ x, y, z, type, id })
                     a.textContent = i.name
                     a.target = "_blank"
+                    a.style.width = "100%"
 
                     const pin = document.createElement("input")
                     pin.id = i.name
@@ -546,6 +560,10 @@ function makeLinksInVersionTagsClickable() {
                     pin.onchange = async () => {
                         if (pin.checked) {
                             await GM.setValue("3DViewer", i.name)
+                            if (viewIn3D.classList.contains("active")) {
+                                viewIn3D.click()
+                                viewIn3D.click()
+                            }
                         }
                     }
                     listItem.appendChild(pin)
@@ -577,6 +595,7 @@ function makeLinksInVersionTagsClickable() {
                 if (buildingViewerIframe) {
                     buildingViewerIframe.remove()
                     buildingViewerIframe = null
+                    viewIn3D.classList.toggle("active")
                     return
                 }
                 const [x, y, z] = getCurrentXYZ()
@@ -587,6 +606,7 @@ function makeLinksInVersionTagsClickable() {
                     window.open(url, "_blank")
                     return
                 }
+                viewIn3D.classList.toggle("active")
 
                 buildingViewerIframe = GM_addElement("iframe", {
                     src: url,
@@ -602,7 +622,13 @@ function makeLinksInVersionTagsClickable() {
                 if (e.which !== 2) return
                 clickHandler(e)
             })
-            document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(viewIn3D)
+            wrapper.appendChild(viewIn3D)
+
+            const expand = document.createElement("span")
+            expand.classList.add("dropdown-toggle", "dropdown-toggle-split", "btn", "btn-outline-primary")
+            expand.style.cursor = "pointer"
+            wrapper.appendChild(expand)
+            expand.onclick = contextMenuHandler
         } else if (
             // prettier-ignore
             (key === "route" || key === "superroute") &&
