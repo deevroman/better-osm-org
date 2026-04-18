@@ -522,6 +522,8 @@ function makeLinksInVersionTagsClickable() {
             viewIn3D.classList.add("view-3d-link", "btn", "btn-outline-primary")
             viewIn3D.textContent = "3D"
             viewIn3D.style.cursor = "pointer"
+            viewIn3D.style.paddingTop = "3px"
+            viewIn3D.style.paddingBottom = "3px"
             viewIn3D.title = "Click for show embedded 3D Viewer.\nIn userscript setting you can set open in OSM page by default"
 
             async function contextMenuHandler(e) {
@@ -627,6 +629,8 @@ function makeLinksInVersionTagsClickable() {
             const expand = document.createElement("span")
             expand.classList.add("dropdown-toggle", "dropdown-toggle-split", "btn", "btn-outline-primary")
             expand.style.cursor = "pointer"
+            expand.style.paddingTop = "3px"
+            expand.style.paddingBottom = "3px"
             wrapper.appendChild(expand)
             expand.onclick = contextMenuHandler
         } else if (
