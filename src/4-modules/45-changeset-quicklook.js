@@ -374,23 +374,12 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
             makeMapillaryValue(valueCell)
         } else if (key.startsWith("wikimedia_commons")) {
             makeWikimediaCommonsValue(valueCell)
-        } else if (
-            key.startsWith("opening_hours") || // https://github.com/opening-hours/opening_hours.js/blob/master/scripts/related_tags.txt
-            key.startsWith("happy_hours") ||
-            ["delivery_hours", "smoking_hours", "collection_times", "service_times"].includes(key)
-        ) {
-            if (
-                key !== "opening_hours:signed" &&
-                key !== "opening_hours:url" &&
-                key !== "opening_hours:description" &&
-                typeof opening_hours !== "undefined"
-            ) {
-                try {
-                    new opening_hours(valueCell.textContent, null, { tag_key: key })
-                } catch (e) {
-                    valueCell.title = e
-                    valueCell.classList.add("fixme-tag")
-                }
+        } else if (needValidateOpeningHoursKey(key)) {
+            try {
+                new opening_hours(valueCell.textContent, null, { tag_key: key })
+            } catch (e) {
+                valueCell.title = e
+                valueCell.classList.add("fixme-tag")
             }
         } else if (key === "roof:direction") {
             if (valueCell.textContent === "across" || valueCell.textContent === "along") {
@@ -399,14 +388,7 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
             }
         } else if (key === "roof:orientation") {
             makeRoofOrientationValue(valueCell)
-        } else if (
-            // prettier-ignore
-            key.endsWith(":conditional")
-            && !key.startsWith("fixme:")
-            && !key.startsWith("source:")
-            && !key.startsWith("check_date:")
-            && !key.startsWith("description:")
-        ) {
+        } else if (needValidateConditionalAccessKey(key)) {
             makeConditionalValue(valueCell)
         } else if (key === "type") {
             makeTypeValue(valueCell, objType)

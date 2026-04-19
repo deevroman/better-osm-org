@@ -9816,6 +9816,30 @@ function makeTypeValue(elem, objType) {
     }
 }
 
+function needValidateOpeningHoursKey(key) {
+    return (
+        (key.startsWith("opening_hours") || // https://github.com/opening-hours/opening_hours.js/blob/master/scripts/related_tags.txt
+            key.startsWith("happy_hours") ||
+            ["delivery_hours", "smoking_hours", "collection_times", "service_times"].includes(key)) &&
+        key !== "opening_hours:signed" &&
+        key !== "opening_hours:url" &&
+        key !== "opening_hours:description" &&
+        key !== "opening_hours:note" &&
+        typeof opening_hours !== "undefined" // todo log this
+    )
+}
+
+function needValidateConditionalAccessKey(key) {
+    return (
+        key.endsWith(":conditional") &&
+        !key.startsWith("fixme:") &&
+        !key.startsWith("note:") &&
+        !key.startsWith("source:") &&
+        !key.startsWith("check_date:") &&
+        !key.startsWith("description:")
+    )
+}
+
 // example https://osm.org/node/6506618057
 function makeLinksInVersionTagClickable(row, objType) {
     const keyCell = row.querySelector("th")
@@ -9898,36 +9922,16 @@ function makeLinksInVersionTagClickable(row, objType) {
         }
     } else if (key === "roof:orientation") {
         makeRoofOrientationValue(valueCell)
-    } else if (
-        // prettier-ignore
-        key.endsWith(":conditional")
-        && !key.startsWith("fixme:")
-        && !key.startsWith("note:")
-        && !key.startsWith("source:")
-        && !key.startsWith("check_date:")
-        && !key.startsWith("description:")
-    ) {
+    } else if (needValidateConditionalAccessKey(key)) {
         makeConditionalValue(valueCell)
-    } else if (
-        key.startsWith("opening_hours") || // https://github.com/opening-hours/opening_hours.js/blob/master/scripts/related_tags.txt
-        key.startsWith("happy_hours") ||
-        ["delivery_hours", "smoking_hours", "collection_times", "service_times"].includes(key)
-    ) {
-        if (
-            key !== "opening_hours:signed" &&
-            key !== "opening_hours:url" &&
-            key !== "opening_hours:description" &&
-            key !== "opening_hours:note" &&
-            typeof opening_hours !== "undefined"
-        ) {
-            try {
-                new opening_hours(valueCell.textContent, null, { tag_key: key })
-                valueCell.title = "no errors were found by opening_hours.js 👍"
-            } catch (e) {
-                valueCell.title = e
-                valueCell.classList.add("fixme-tag")
-                valueCell.querySelectorAll("a").forEach(i => i.classList.add("fixme-tag"))
-            }
+    } else if (needValidateOpeningHoursKey(key)) {
+        try {
+            new opening_hours(valueCell.textContent, null, { tag_key: key })
+            valueCell.title = "no errors were found by opening_hours.js 👍"
+        } catch (e) {
+            valueCell.title = e
+            valueCell.classList.add("fixme-tag")
+            valueCell.querySelectorAll("a").forEach(i => i.classList.add("fixme-tag"))
         }
     } else if (["building", "building:part"].includes(key) || (key === "type" && valueCell.textContent === "building")) {
         if (location.pathname.includes("/history") || document.querySelector(".view-3d-link")) {
@@ -14474,23 +14478,12 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
             makeMapillaryValue(valueCell)
         } else if (key.startsWith("wikimedia_commons")) {
             makeWikimediaCommonsValue(valueCell)
-        } else if (
-            key.startsWith("opening_hours") || // https://github.com/opening-hours/opening_hours.js/blob/master/scripts/related_tags.txt
-            key.startsWith("happy_hours") ||
-            ["delivery_hours", "smoking_hours", "collection_times", "service_times"].includes(key)
-        ) {
-            if (
-                key !== "opening_hours:signed" &&
-                key !== "opening_hours:url" &&
-                key !== "opening_hours:description" &&
-                typeof opening_hours !== "undefined"
-            ) {
-                try {
-                    new opening_hours(valueCell.textContent, null, { tag_key: key })
-                } catch (e) {
-                    valueCell.title = e
-                    valueCell.classList.add("fixme-tag")
-                }
+        } else if (needValidateOpeningHoursKey(key)) {
+            try {
+                new opening_hours(valueCell.textContent, null, { tag_key: key })
+            } catch (e) {
+                valueCell.title = e
+                valueCell.classList.add("fixme-tag")
             }
         } else if (key === "roof:direction") {
             if (valueCell.textContent === "across" || valueCell.textContent === "along") {
@@ -14499,14 +14492,7 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
             }
         } else if (key === "roof:orientation") {
             makeRoofOrientationValue(valueCell)
-        } else if (
-            // prettier-ignore
-            key.endsWith(":conditional")
-            && !key.startsWith("fixme:")
-            && !key.startsWith("source:")
-            && !key.startsWith("check_date:")
-            && !key.startsWith("description:")
-        ) {
+        } else if (needValidateConditionalAccessKey(key)) {
             makeConditionalValue(valueCell)
         } else if (key === "type") {
             makeTypeValue(valueCell, objType)
