@@ -439,6 +439,38 @@ function needValidateConditionalAccessKey(key) {
     )
 }
 
+function makeRoofDirectionValue(valueCell, row, isVersionPage) {
+    if (valueCell.textContent === "across" || valueCell.textContent === "along") {
+        // todo more
+        valueCell.classList.add("fixme-tag")
+        valueCell.title = "it seems to need to be changed to roof:orientation"
+        return
+    }
+    if (!isVersionPage) {
+        return
+    }
+    setTimeout(async () => {
+        // todo
+        const metadata = await loadWayMetadata()
+        const nodes = metadata.elements.filter(i => i.type === "node")
+        let lat = 0.0
+        let lon = 0.0
+        nodes.forEach(i => {
+            lat += i.lat
+            lon += i.lon
+        })
+        lat /= nodes.length
+        lon /= nodes.length
+        row.onmouseenter = () => {
+            cleanObjectsByKey("activeObjects")
+            renderDirectionTag(lat, lon, valueCell.textContent, c("#ff00e3"))
+        }
+        row.onmouseleave = () => {
+            cleanObjectsByKey("activeObjects")
+        }
+    })
+}
+
 // example https://osm.org/node/6506618057
 function makeLinksInVersionTagClickable(row, objType) {
     const keyCell = row.querySelector("th")
@@ -473,32 +505,7 @@ function makeLinksInVersionTagClickable(row, objType) {
             }
         }
     } else if (key === "roof:direction") {
-        if (valueCell.textContent === "across" || valueCell.textContent === "along") {
-            // todo more
-            valueCell.classList.add("fixme-tag")
-            valueCell.title = "it seems to need to be changed to roof:orientation"
-        } else {
-            setTimeout(async () => {
-                // todo
-                const metadata = await loadWayMetadata()
-                const nodes = metadata.elements.filter(i => i.type === "node")
-                let lat = 0.0
-                let lon = 0.0
-                nodes.forEach(i => {
-                    lat += i.lat
-                    lon += i.lon
-                })
-                lat /= nodes.length
-                lon /= nodes.length
-                row.onmouseenter = () => {
-                    cleanObjectsByKey("activeObjects")
-                    renderDirectionTag(lat, lon, valueCell.textContent, c("#ff00e3"))
-                }
-                row.onmouseleave = () => {
-                    cleanObjectsByKey("activeObjects")
-                }
-            })
-        }
+        makeRoofDirectionValue(valueCell, row, true)
     } else if (key === "roof:orientation") {
         makeRoofOrientationValue(valueCell)
     } else if (needValidateConditionalAccessKey(key)) {
