@@ -429,6 +429,8 @@ const MAIN_OVERPASS_INSTANCE = {
     name: "overpass-api.de",
     apiUrl: "https://overpass-api.de/api",
     url: "https://overpass-turbo.eu/",
+    referer: "https://overpass-turbo.eu/",
+    origin: "https://overpass-turbo.eu",
 }
 
 const MAILRU_OVERPASS_INSTANCE = {
@@ -2166,6 +2168,34 @@ function resourceCacher(url, storageKey, name, dateDelta, type) {
             }
         },
     }
+}
+
+/**
+ * @param {string} query
+ * @param {"json"|"xml"} responseType
+ * @return {Promise<Tampermonkey.Response<unknown>>}
+ */
+async function overpassRequest(query, responseType = "json") {
+    console.log("overpass request", query)
+    await globalRateLimitByKey("overpass", 500)
+    if (overpass_server.referer) {
+        return await externalFetchRetry({
+            method: "POST",
+            url: overpass_server.apiUrl + "/interpreter",
+            data: query,
+            headers: {
+                Referer: overpass_server.referer,
+                Origin: overpass_server.origin,
+            },
+            responseType: responseType,
+        })
+    }
+    return await externalFetchRetry({
+        method: "POST",
+        url: overpass_server.apiUrl + "/interpreter",
+        data: query,
+        responseType: responseType,
+    })
 }
 
 //</editor-fold>
@@ -10514,16 +10544,7 @@ for (t["created"])
 }
 `
     console.time(`download overpass data for way ${wayID} v${version}`)
-    await globalRateLimitByKey("overpass", 500)
-    const res = await externalFetchRetry({
-        url:
-            overpass_server.apiUrl +
-            "/interpreter?" +
-            new URLSearchParams({
-                data: query,
-            }),
-        responseType: "json",
-    })
+    const res = await overpassRequest(query, "json")
     console.timeEnd(`download overpass data for way ${wayID} v${version}`)
     if (!res.response.elements[0]) {
         console.log("version not found via overpass. There may be a version created before 2012")
@@ -11698,19 +11719,15 @@ async function loadRelationVersionMembersViaOverpass(
         if (overpassCache[[id, timestamp]]) {
             return overpassCache[[id, timestamp]]
         } else {
-            const res = await externalFetchRetry({
-                url:
-                    `${overpass_server.apiUrl}/interpreter?` +
-                    new URLSearchParams({
-                        data: `
-                            [out:json][date:"${timestamp}"];
-                            relation(${id});
-                            //(._;>;);
-                            out geom;
-                        `,
-                    }),
-                responseType: "json",
-            })
+            const res = await overpassRequest(
+                `
+[out:json][date:"${timestamp}"];
+relation(${id});
+//(._;>;);
+out geom;
+`,
+                "json",
+            )
             return (overpassCache[[id, timestamp]] = res.response)
         }
     }
@@ -11836,18 +11853,15 @@ async function loadRelationVersionMembersViaOverpass(
 }
 
 async function getNodeViaOverpassXML(id, timestamp) {
-    const res = await externalFetchRetry({
-        url:
-            `${overpass_server.apiUrl}/interpreter?` +
-            new URLSearchParams({
-                data: `
-                [out:xml][maxsize:64Mi][date:"${timestamp}"];
-                node(${id});
-                out meta;
-            `,
-            }),
-        responseType: "xml",
-    })
+    const res = await overpassRequest(
+        `
+[out:xml][maxsize:64Mi][date:"${timestamp}"];
+node(${id});
+out meta;
+`,
+        "xml",
+    )
+
     if (res.status !== 200) {
         console.trace(res)
     }
@@ -11855,19 +11869,15 @@ async function getNodeViaOverpassXML(id, timestamp) {
 }
 
 async function getWayViaOverpassXML(id, timestamp) {
-    const res = await externalFetchRetry({
-        url:
-            `${overpass_server.apiUrl}/interpreter?` +
-            new URLSearchParams({
-                data: `
-                [out:xml][maxsize:64Mi][date:"${timestamp}"];
-                way(${id});
-                //(._;>;);
-                out meta;
-            `,
-            }),
-        responseType: "xml",
-    })
+    const res = await overpassRequest(
+        `
+[out:xml][maxsize:64Mi][date:"${timestamp}"];
+way(${id});
+//(._;>;);
+out meta;
+`,
+        "xml",
+    )
     if (res.status !== 200) {
         console.trace(res)
     }
@@ -11875,19 +11885,15 @@ async function getWayViaOverpassXML(id, timestamp) {
 }
 
 async function getRelationViaOverpassXML(id, timestamp) {
-    const res = await externalFetchRetry({
-        url:
-            `${overpass_server.apiUrl}/interpreter?` +
-            new URLSearchParams({
-                data: `
-                [out:xml][date:"${timestamp}"];
-                relation(${id});
-                //(._;>;);
-                out meta;
-            `,
-            }),
-        responseType: "xml",
-    })
+    const res = await overpassRequest(
+        `
+[out:xml][date:"${timestamp}"];
+relation(${id});
+//(._;>;);
+out meta;
+`,
+        "xml",
+    )
     if (res.status !== 200) {
         console.trace(res)
     }
@@ -12787,17 +12793,9 @@ for (t["created"])
 }
 `
     console.time(`download overpass history data for ${type} ${objID} via timeline`)
-    const res = await externalFetchRetry({
-        url:
-            overpass_server.apiUrl +
-            "/interpreter?" +
-            new URLSearchParams({
-                data: query,
-            }),
-        responseType: "json",
-    })
-    return res.response
+    const res = await overpassRequest(query, "json")
     console.timeEnd(`download overpass history data for ${type} ${objID} via timeline`)
+    return res.response
 }
 
 /**
@@ -21738,19 +21736,15 @@ async function makeProfileForDeletedUser(user) {
     } else {
         setTimeout(async () => {
             const res = (
-                await externalFetchRetry({
-                    url:
-                        `${overpass_server.apiUrl}/interpreter?` +
-                        new URLSearchParams({
-                            data: `
-                                [out:json];
-                                node(user:"${user.replace('"', '\\"')}")->.b;
-                                node.b(if:lat() == b.min(lat()));
-                                out meta;
-                            `,
-                        }),
-                    responseType: "json",
-                })
+                await overpassRequest(
+                    `
+[out:json];
+node(user:"${user.replace('"', '\\"')}")->.b;
+node.b(if:lat() == b.min(lat()));
+out meta;
+`,
+                    "json",
+                )
             ).response
             if (res.elements?.length) {
                 webArchiveLink.after(makeOSMChaLink(decodeURI(user)))
@@ -21779,19 +21773,15 @@ async function makeProfileForDeletedUser(user) {
         setTimeout(async () => {
             if (!names.length) {
                 const res = (
-                    await externalFetchRetry({
-                        url:
-                            `${overpass_server.apiUrl}/interpreter?` +
-                            new URLSearchParams({
-                                data: `
+                    await overpassRequest(
+                        `
                             [out:json];
                             node(uid:${userID})->.b;
                             node.b(if:lat() == b.min(lat()));
                             out meta;
                         `,
-                            }),
-                        responseType: "json",
-                    })
+                        "json",
+                    )
                 ).response
                 if (res?.elements?.length) {
                     names = [res.elements[0].user]

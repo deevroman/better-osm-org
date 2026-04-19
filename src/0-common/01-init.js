@@ -269,6 +269,8 @@ const MAIN_OVERPASS_INSTANCE = {
     name: "overpass-api.de",
     apiUrl: "https://overpass-api.de/api",
     url: "https://overpass-turbo.eu/",
+    referer: "https://overpass-turbo.eu/",
+    origin: "https://overpass-turbo.eu",
 }
 
 const MAILRU_OVERPASS_INSTANCE = {

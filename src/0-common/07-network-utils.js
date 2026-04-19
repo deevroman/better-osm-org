@@ -348,4 +348,32 @@ function resourceCacher(url, storageKey, name, dateDelta, type) {
     }
 }
 
+/**
+ * @param {string} query
+ * @param {"json"|"xml"} responseType
+ * @return {Promise<Tampermonkey.Response<unknown>>}
+ */
+async function overpassRequest(query, responseType = "json") {
+    console.log("overpass request", query)
+    await globalRateLimitByKey("overpass", 500)
+    if (overpass_server.referer) {
+        return await externalFetchRetry({
+            method: "POST",
+            url: overpass_server.apiUrl + "/interpreter",
+            data: query,
+            headers: {
+                Referer: overpass_server.referer,
+                Origin: overpass_server.origin,
+            },
+            responseType: responseType,
+        })
+    }
+    return await externalFetchRetry({
+        method: "POST",
+        url: overpass_server.apiUrl + "/interpreter",
+        data: query,
+        responseType: responseType,
+    })
+}
+
 //</editor-fold>

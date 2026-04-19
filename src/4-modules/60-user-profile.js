@@ -924,19 +924,15 @@ async function makeProfileForDeletedUser(user) {
     } else {
         setTimeout(async () => {
             const res = (
-                await externalFetchRetry({
-                    url:
-                        `${overpass_server.apiUrl}/interpreter?` +
-                        new URLSearchParams({
-                            data: `
-                                [out:json];
-                                node(user:"${user.replace('"', '\\"')}")->.b;
-                                node.b(if:lat() == b.min(lat()));
-                                out meta;
-                            `,
-                        }),
-                    responseType: "json",
-                })
+                await overpassRequest(
+                    `
+[out:json];
+node(user:"${user.replace('"', '\\"')}")->.b;
+node.b(if:lat() == b.min(lat()));
+out meta;
+`,
+                    "json",
+                )
             ).response
             if (res.elements?.length) {
                 webArchiveLink.after(makeOSMChaLink(decodeURI(user)))
@@ -965,19 +961,15 @@ async function makeProfileForDeletedUser(user) {
         setTimeout(async () => {
             if (!names.length) {
                 const res = (
-                    await externalFetchRetry({
-                        url:
-                            `${overpass_server.apiUrl}/interpreter?` +
-                            new URLSearchParams({
-                                data: `
+                    await overpassRequest(
+                        `
                             [out:json];
                             node(uid:${userID})->.b;
                             node.b(if:lat() == b.min(lat()));
                             out meta;
                         `,
-                            }),
-                        responseType: "json",
-                    })
+                        "json",
+                    )
                 ).response
                 if (res?.elements?.length) {
                     names = [res.elements[0].user]
