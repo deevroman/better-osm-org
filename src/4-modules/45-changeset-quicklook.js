@@ -375,12 +375,7 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
         } else if (key.startsWith("wikimedia_commons")) {
             makeWikimediaCommonsValue(valueCell)
         } else if (needValidateOpeningHoursKey(key)) {
-            try {
-                new opening_hours(valueCell.textContent, null, { tag_key: key })
-            } catch (e) {
-                valueCell.title = e
-                valueCell.classList.add("fixme-tag")
-            }
+            makeOpeningHoursValue(valueCell, key, false)
         } else if (key === "roof:direction") {
             if (valueCell.textContent === "across" || valueCell.textContent === "along") {
                 valueCell.classList.add("fixme-tag")
