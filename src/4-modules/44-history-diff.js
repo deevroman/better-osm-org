@@ -261,16 +261,7 @@ for (t["created"])
 }
 `
     console.time(`download overpass data for way ${wayID} v${version}`)
-    await globalRateLimitByKey("overpass", 500)
-    const res = await externalFetchRetry({
-        url:
-            overpass_server.apiUrl +
-            "/interpreter?" +
-            new URLSearchParams({
-                data: query,
-            }),
-        responseType: "json",
-    })
+    const res = await overpassRequest(query, "json")
     console.timeEnd(`download overpass data for way ${wayID} v${version}`)
     if (!res.response.elements[0]) {
         console.log("version not found via overpass. There may be a version created before 2012")
@@ -1445,19 +1436,15 @@ async function loadRelationVersionMembersViaOverpass(
         if (overpassCache[[id, timestamp]]) {
             return overpassCache[[id, timestamp]]
         } else {
-            const res = await externalFetchRetry({
-                url:
-                    `${overpass_server.apiUrl}/interpreter?` +
-                    new URLSearchParams({
-                        data: `
-                            [out:json][date:"${timestamp}"];
-                            relation(${id});
-                            //(._;>;);
-                            out geom;
-                        `,
-                    }),
-                responseType: "json",
-            })
+            const res = await overpassRequest(
+                `
+[out:json][date:"${timestamp}"];
+relation(${id});
+//(._;>;);
+out geom;
+`,
+                "json",
+            )
             return (overpassCache[[id, timestamp]] = res.response)
         }
     }
@@ -1583,18 +1570,15 @@ async function loadRelationVersionMembersViaOverpass(
 }
 
 async function getNodeViaOverpassXML(id, timestamp) {
-    const res = await externalFetchRetry({
-        url:
-            `${overpass_server.apiUrl}/interpreter?` +
-            new URLSearchParams({
-                data: `
-                [out:xml][maxsize:64Mi][date:"${timestamp}"];
-                node(${id});
-                out meta;
-            `,
-            }),
-        responseType: "xml",
-    })
+    const res = await overpassRequest(
+        `
+[out:xml][maxsize:64Mi][date:"${timestamp}"];
+node(${id});
+out meta;
+`,
+        "xml",
+    )
+
     if (res.status !== 200) {
         console.trace(res)
     }
@@ -1602,19 +1586,15 @@ async function getNodeViaOverpassXML(id, timestamp) {
 }
 
 async function getWayViaOverpassXML(id, timestamp) {
-    const res = await externalFetchRetry({
-        url:
-            `${overpass_server.apiUrl}/interpreter?` +
-            new URLSearchParams({
-                data: `
-                [out:xml][maxsize:64Mi][date:"${timestamp}"];
-                way(${id});
-                //(._;>;);
-                out meta;
-            `,
-            }),
-        responseType: "xml",
-    })
+    const res = await overpassRequest(
+        `
+[out:xml][maxsize:64Mi][date:"${timestamp}"];
+way(${id});
+//(._;>;);
+out meta;
+`,
+        "xml",
+    )
     if (res.status !== 200) {
         console.trace(res)
     }
@@ -1622,19 +1602,15 @@ async function getWayViaOverpassXML(id, timestamp) {
 }
 
 async function getRelationViaOverpassXML(id, timestamp) {
-    const res = await externalFetchRetry({
-        url:
-            `${overpass_server.apiUrl}/interpreter?` +
-            new URLSearchParams({
-                data: `
-                [out:xml][date:"${timestamp}"];
-                relation(${id});
-                //(._;>;);
-                out meta;
-            `,
-            }),
-        responseType: "xml",
-    })
+    const res = await overpassRequest(
+        `
+[out:xml][date:"${timestamp}"];
+relation(${id});
+//(._;>;);
+out meta;
+`,
+        "xml",
+    )
     if (res.status !== 200) {
         console.trace(res)
     }
@@ -2534,17 +2510,9 @@ for (t["created"])
 }
 `
     console.time(`download overpass history data for ${type} ${objID} via timeline`)
-    const res = await externalFetchRetry({
-        url:
-            overpass_server.apiUrl +
-            "/interpreter?" +
-            new URLSearchParams({
-                data: query,
-            }),
-        responseType: "json",
-    })
-    return res.response
+    const res = await overpassRequest(query, "json")
     console.timeEnd(`download overpass history data for ${type} ${objID} via timeline`)
+    return res.response
 }
 
 /**
