@@ -377,7 +377,7 @@ function makeTypeValue(elem, objType) {
 }
 
 // example https://osm.org/node/6506618057
-function makeLinksInVersionTagClickable(row) {
+function makeLinksInVersionTagClickable(row, objType) {
     const keyCell = row.querySelector("th")
     if (!keyCell) return
     const key = keyCell.textContent.toLowerCase()
@@ -730,7 +730,7 @@ function makeLinksInVersionTagClickable(row) {
         document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(relationViewer)
         document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(relationEditor)
     } else if (key === "type") {
-        makeTypeValue(valueCell, location.pathname.match(/\/(node|way|relation)\/(\d+)/)?.[1])
+        makeTypeValue(valueCell, objType)
     } else if (key === "ref:belpost") {
         if (!valueCell.querySelector("a")) {
             makeRefBelpostValue(valueCell)
@@ -742,7 +742,9 @@ function makeLinksInVersionTagClickable(row) {
 }
 
 function makeLinksInVersionTagsClickable() {
-    document.querySelectorAll(".browse-tag-list tr").forEach(makeLinksInVersionTagClickable)
+    document
+        .querySelectorAll(".browse-tag-list tr")
+        .forEach(row => makeLinksInVersionTagClickable(row, location.pathname.match(/\/(node|way|relation)\/(\d+)/)?.[1]))
     const tagsTable = document.querySelector(".browse-tag-list")
     if (tagsTable) {
         tagsTable.parentElement.previousElementSibling.title = tagsTable.querySelectorAll("tr th").length + " tags"
