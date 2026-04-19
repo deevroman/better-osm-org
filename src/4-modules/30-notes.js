@@ -137,7 +137,19 @@ function addCreateNewPOIButton() {
     }
 }
 
-const noteHashtags = ["#added", "#fixed", "#irrelevant", "#alreadyfixed", "#needmoreinfo", "#surveyme", "#tooold", "#notonortophoto", "#notenoughinfo", "#inacurratelocation", "#needconfirmation"]
+const noteHashtags = [
+    "#added",
+    "#fixed",
+    "#irrelevant",
+    "#alreadyfixed",
+    "#needmoreinfo",
+    "#surveyme",
+    "#tooold",
+    "#notonortophoto",
+    "#notenoughinfo",
+    "#inacurratelocation",
+    "#needconfirmation",
+]
 
 function addAutoComplete() {
     const container = document.querySelector("#sidebar")
@@ -893,7 +905,10 @@ function hideNoteHighlight() {
         return
     }
     console.log("hide halo around note")
-    if (g.childNodes[g.childElementCount - 1].getAttribute("stroke") === "#FF6200" && g.childNodes[g.childElementCount - 1].getAttribute("d").includes("a20,20 0 1,0 -40,0 ")) {
+    if (
+        g.childNodes[g.childElementCount - 1].getAttribute("stroke") === "#FF6200" &&
+        g.childNodes[g.childElementCount - 1].getAttribute("d").includes("a20,20 0 1,0 -40,0 ")
+    ) {
         g.childNodes[g.childElementCount - 1].remove()
         document.querySelector("div.leaflet-marker-icon:last-child").style.filter = "contrast(120%)"
     }

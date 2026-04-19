@@ -106,7 +106,8 @@ const restrictionColors = {
     no_exit:            "#ff0000",
 }
 
-const restrictionsImagesPrefix = "https://raw.githubusercontent.com/deevroman/better-osm-org/ad552f9f3a3d7a11a1448686fc0ccc164905bf62/misc/assets/icons/restrictions/"
+const restrictionsImagesPrefix =
+    "https://raw.githubusercontent.com/deevroman/better-osm-org/ad552f9f3a3d7a11a1448686fc0ccc164905bf62/misc/assets/icons/restrictions/"
 // prettier-ignore
 const restrictionsSignImages = {
     no_left_turn:       restrictionsImagesPrefix + "France_road_sign_B2a.svg",
@@ -180,7 +181,10 @@ function renderRestriction(rel, color, layer) {
     })
     let via = viaNodes?.[0]
     if (!via) {
-        if (isEqualCoordinates(from[0].geometry[0], viaWays[0].geometry[0]) || isEqualCoordinates(from[0].geometry[from[0].geometry.length - 1], viaWays[0].geometry[0])) {
+        if (
+            isEqualCoordinates(from[0].geometry[0], viaWays[0].geometry[0]) ||
+            isEqualCoordinates(from[0].geometry[from[0].geometry.length - 1], viaWays[0].geometry[0])
+        ) {
             via = viaWays[0].geometry[0]
         } else if (
             isEqualCoordinates(from[0].geometry[0], viaWays[0].geometry[viaWays[0].geometry.length - 1]) ||
@@ -220,7 +224,14 @@ function renderRestriction(rel, color, layer) {
             endPoint = t.geometry[t.geometry.length - 2]
         } else {
             if (from.length > 1) {
-                signAngle = 360 - azimuth(t.geometry[t.geometry.length - 2].lat, t.geometry[t.geometry.length - 2].lon, t.geometry[t.geometry.length - 1].lat, t.geometry[t.geometry.length - 1].lon)
+                signAngle =
+                    360 -
+                    azimuth(
+                        t.geometry[t.geometry.length - 2].lat,
+                        t.geometry[t.geometry.length - 2].lon,
+                        t.geometry[t.geometry.length - 1].lat,
+                        t.geometry[t.geometry.length - 1].lon,
+                    )
             }
         }
         if (restrictionValue === "no_exit" || restrictionValue === "no_entry") {

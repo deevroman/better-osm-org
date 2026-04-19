@@ -21,9 +21,21 @@ function tryAddWarnAboutScriptIntoOsmOrgRepo() {
     if (document.querySelector(".better-osm-org-warn")) {
         return
     }
-    let result = document.evaluate("//h1[normalize-space(text())='Create new issue']", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue
+    let result = document.evaluate(
+        "//h1[normalize-space(text())='Create new issue']",
+        document,
+        null,
+        XPathResult.FIRST_ORDERED_NODE_TYPE,
+        null,
+    ).singleNodeValue
     if (!result) {
-        result = document.evaluate("//h2[normalize-space(text())='Create new issue']", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue
+        result = document.evaluate(
+            "//h2[normalize-space(text())='Create new issue']",
+            document,
+            null,
+            XPathResult.FIRST_ORDERED_NODE_TYPE,
+            null,
+        ).singleNodeValue
     }
     if (result) {
         const warn = document.createElement("div")
@@ -110,7 +122,8 @@ function initGmApiPolyfills() {
             const REPO_PREFIX = "https://github.com/deevroman/better-osm-org/raw/master/misc/assets/"
             const resourcesName = {
                 OAUTH_HTML: REPO_PREFIX + "finish-oauth.html",
-                DARK_THEME_FOR_ID_CSS: "https://gist.githubusercontent.com/deevroman/55f35da68ab1efb57b7ba4636bdf013d/raw/7b94e3b7db91d023f1570ae415acd7ac989fffe0/dark.css",
+                DARK_THEME_FOR_ID_CSS:
+                    "https://gist.githubusercontent.com/deevroman/55f35da68ab1efb57b7ba4636bdf013d/raw/7b94e3b7db91d023f1570ae415acd7ac989fffe0/dark.css",
             }
             for (let resource in resourcesName) {
                 GM.xmlHttpRequest({
@@ -167,7 +180,12 @@ function initGmApiPolyfills() {
     }
 }
 
-if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Greasemonkey" || GM_info.scriptHandler === "OrangeMonkey" || GM_info.scriptHandler === "ScriptCat") {
+if (
+    GM_info.scriptHandler === "Userscripts" ||
+    GM_info.scriptHandler === "Greasemonkey" ||
+    GM_info.scriptHandler === "OrangeMonkey" ||
+    GM_info.scriptHandler === "ScriptCat"
+) {
     initGmApiPolyfills()
 }
 
@@ -240,7 +258,9 @@ const accountForceDarkTheme = document.querySelector("html")?.getAttribute("data
 const mediaQueryForWebsiteTheme = `${accountForceDarkTheme ? "all" : "(prefers-color-scheme: dark)"} ${accountForceLightTheme ? "and (not all)" : ""}`
 
 function isDarkMode() {
-    return (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches && !accountForceLightTheme) || accountForceDarkTheme
+    return (
+        (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches && !accountForceLightTheme) || accountForceDarkTheme
+    )
 }
 
 const planetOrigin = "https://planet.maps.mail.ru"
@@ -515,7 +535,8 @@ function intoPageWithFun(obj) {
 
 const dataUser = document.querySelector("head")?.getAttribute("data-user")
 // TrickyFoxy on osm.org, OHM, OGF
-let _isDebug = dataUser === "11528195" || dataUser === "15560" || dataUser === "26980" || osm_server === local_server || osm_server === dev_server
+let _isDebug =
+    dataUser === "11528195" || dataUser === "15560" || dataUser === "26980" || osm_server === local_server || osm_server === dev_server
 
 function isDebug() {
     return _isDebug
@@ -563,7 +584,9 @@ function injectMapHooks() {
                         if (!boGlobalThis.scriptInstance) {
                             boGlobalThis.scriptInstance = GM_info.scriptHandler
                         } else if (boGlobalThis.scriptInstance !== GM_info.scriptHandler) {
-                            console.error(`Two copies of the script were running simultaneously via ${boGlobalThis.scriptInstance} and ${GM_info.scriptHandler}. Turn off one of them`)
+                            console.error(
+                                `Two copies of the script were running simultaneously via ${boGlobalThis.scriptInstance} and ${GM_info.scriptHandler}. Turn off one of them`,
+                            )
                         }
                     }
                 }, boWindowObject),

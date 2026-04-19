@@ -81,17 +81,20 @@ function makePanoramaxValue(elem) {
         return
     }
     elem.classList.add("panoramaxed")
-    elem.innerHTML = elem.innerHTML.replaceAll(/(?<=(^|;))([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(&amp;xyz=-?[0-9]+(\.[0-9]+)?\/-?[0-9]+(\.[0-9]+)?\/-?[0-9]+(\.[0-9]+)?)?/gi, function (match) {
-        const a = document.createElement("a")
-        a.textContent = match.replaceAll("&amp;", "&")
-        a.classList.add("preview-img-link")
-        a.target = "_blank"
-        const browseSection = elem?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement
-        const lat = browseSection?.querySelector(".latitude")?.textContent?.replace(",", ".")
-        const lon = browseSection?.querySelector(".longitude")?.textContent?.replace(",", ".")
-        a.href = `${panoramaxDiscoveryServer}/#focus=pic&pic=` + match.replaceAll("&amp;", "&") + (lat ? `&map=16/${lat}/${lon}` : "")
-        return a.outerHTML
-    })
+    elem.innerHTML = elem.innerHTML.replaceAll(
+        /(?<=(^|;))([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(&amp;xyz=-?[0-9]+(\.[0-9]+)?\/-?[0-9]+(\.[0-9]+)?\/-?[0-9]+(\.[0-9]+)?)?/gi,
+        function (match) {
+            const a = document.createElement("a")
+            a.textContent = match.replaceAll("&amp;", "&")
+            a.classList.add("preview-img-link")
+            a.target = "_blank"
+            const browseSection = elem?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement
+            const lat = browseSection?.querySelector(".latitude")?.textContent?.replace(",", ".")
+            const lon = browseSection?.querySelector(".longitude")?.textContent?.replace(",", ".")
+            a.href = `${panoramaxDiscoveryServer}/#focus=pic&pic=` + match.replaceAll("&amp;", "&") + (lat ? `&map=16/${lat}/${lon}` : "")
+            return a.outerHTML
+        },
+    )
     elem.querySelectorAll(`a:not(.added-preview-img)[href^="${MAIN_PANORAMAX_DISCOVERY_SERVER}/"]`).forEach(a => {
         a.classList.add("added-preview-img")
         const uuid = a.textContent.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)?.[0]
@@ -126,17 +129,22 @@ function makeMapillaryValue(elem) {
         return
     }
     elem.classList.add("mapillared")
-    elem.innerHTML = elem.innerHTML.replaceAll(/(?<=(^|;))([0-9]+)(?=(;|&|$))(&amp;x=-?[0-9]+(\.[0-9]+)?&amp;y=-?[0-9]+(\.[0-9]+)?&amp;zoom=-?[0-9]+(\.[0-9]+)?)?/g, function (match) {
-        const a = document.createElement("a")
-        a.textContent = match.replaceAll("&amp;", "&")
-        a.classList.add("preview-mapillary-img-link")
-        a.target = "_blank"
-        const browseSection = elem?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement
-        const lat = browseSection?.querySelector(".latitude")?.textContent?.replace(",", ".")
-        const lon = browseSection?.querySelector(".longitude")?.textContent?.replace(",", ".")
-        a.href = `https://www.mapillary.com/app/?focus=photo${lat ? "&lat=" + lat + "&lng=" + lon + "&z=16" : ""}&pKey=` + arguments[0].replaceAll("&amp;", "&")
-        return a.outerHTML
-    })
+    elem.innerHTML = elem.innerHTML.replaceAll(
+        /(?<=(^|;))([0-9]+)(?=(;|&|$))(&amp;x=-?[0-9]+(\.[0-9]+)?&amp;y=-?[0-9]+(\.[0-9]+)?&amp;zoom=-?[0-9]+(\.[0-9]+)?)?/g,
+        function (match) {
+            const a = document.createElement("a")
+            a.textContent = match.replaceAll("&amp;", "&")
+            a.classList.add("preview-mapillary-img-link")
+            a.target = "_blank"
+            const browseSection = elem?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement
+            const lat = browseSection?.querySelector(".latitude")?.textContent?.replace(",", ".")
+            const lon = browseSection?.querySelector(".longitude")?.textContent?.replace(",", ".")
+            a.href =
+                `https://www.mapillary.com/app/?focus=photo${lat ? "&lat=" + lat + "&lng=" + lon + "&z=16" : ""}&pKey=` +
+                arguments[0].replaceAll("&amp;", "&")
+            return a.outerHTML
+        },
+    )
     setTimeout(async () => {
         for (const a of elem.querySelectorAll('a:not(.added-preview-mapillary-img-link)[href^="https://www.mapillary.com/app/"]')) {
             a.classList.add("added-preview-mapillary-img-link")
@@ -465,7 +473,13 @@ function makeLinksInVersionTagsClickable() {
             key.startsWith("happy_hours") ||
             ["delivery_hours", "smoking_hours", "collection_times", "service_times"].includes(key)
         ) {
-            if (key !== "opening_hours:signed" && key !== "opening_hours:url" && key !== "opening_hours:description" && key !== "opening_hours:note" && typeof opening_hours !== "undefined") {
+            if (
+                key !== "opening_hours:signed" &&
+                key !== "opening_hours:url" &&
+                key !== "opening_hours:description" &&
+                key !== "opening_hours:note" &&
+                typeof opening_hours !== "undefined"
+            ) {
                 try {
                     new opening_hours(valueCell.textContent, null, { tag_key: key })
                     valueCell.title = "no errors were found by opening_hours.js 👍"
@@ -674,7 +688,12 @@ function makeLinksInVersionTagsClickable() {
             relationViewer.rel = "noreferrer"
 
             document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(relationViewer)
-        } else if (key === "route" /*|| key === "route_master"*/ && ["bus", "trolleybus", "minibus", "share_taxi", /*"train",*/ "light_rail", "subway", "tram", "ferry"].includes(valueCell.textContent)) {
+        } else if (
+            key === "route" /*|| key === "route_master"*/ &&
+            ["bus", "trolleybus", "minibus", "share_taxi", /*"train",*/ "light_rail", "subway", "tram", "ferry"].includes(
+                valueCell.textContent,
+            )
+        ) {
             if (document.querySelector(".route-viewer-link")) {
                 return
             }
@@ -727,7 +746,11 @@ function makeLinksInVersionTagsClickable() {
 }
 
 function addHistoryLink() {
-    if ((!location.pathname.startsWith("/node") && !location.pathname.startsWith("/way") && !location.pathname.startsWith("/relation")) || location.pathname.includes("/history")) return
+    if (
+        (!location.pathname.startsWith("/node") && !location.pathname.startsWith("/way") && !location.pathname.startsWith("/relation")) ||
+        location.pathname.includes("/history")
+    )
+        return
     if (document.querySelector(".history_button_class")) return true
     const versionInSidebar = document.querySelector("#sidebar_content h4 a")
     if (!versionInSidebar) {

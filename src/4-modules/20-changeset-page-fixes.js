@@ -101,7 +101,8 @@ async function restorePrevNextChangesetButtons(changeset_id) {
         const prevLink = document.createElement("a")
         prevLink.classList.add("icon-link")
         prevLink.href = "/changeset/" + prevID
-        prevLink.innerHTML = '<svg width="8" height="11" viewBox="-8 0 8 11"><path d="M-2,2 l-3.5,3.5 l3.5,3.5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>'
+        prevLink.innerHTML =
+            '<svg width="8" height="11" viewBox="-8 0 8 11"><path d="M-2,2 l-3.5,3.5 l3.5,3.5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>'
         prevLink.appendChild(document.createTextNode(prevID.toString()))
         secondarySecondaryActions.appendChild(prevLink)
     }
@@ -110,7 +111,8 @@ async function restorePrevNextChangesetButtons(changeset_id) {
         const nextLink = document.createElement("a")
         nextLink.classList.add("icon-link")
         nextLink.href = "/changeset/" + nextID
-        nextLink.innerHTML = '<svg width="8" height="11"><path d="M2,2 l3.5,3.5 l-3.5,3.5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>'
+        nextLink.innerHTML =
+            '<svg width="8" height="11"><path d="M2,2 l3.5,3.5 l-3.5,3.5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>'
         nextLink.prepend(document.createTextNode(nextID.toString()))
         secondarySecondaryActions.appendChild(nextLink)
     }
@@ -302,8 +304,10 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
         }
         const res = await osmchaRequest(`${osmcha_server_origin}/api/v1/changesets/${changeset_id}/`, "GET")
         if (res.status === 404) {
-            likeImg.title = "Changeset not found in OSMCha database.\nEither OSMCha did not have time to process this changeset, or it is too old."
-            dislikeImg.title = "Changeset not found in OSMCha database.\nEither OSMCha did not have time to process this changeset, or it is too old."
+            likeImg.title =
+                "Changeset not found in OSMCha database.\nEither OSMCha did not have time to process this changeset, or it is too old."
+            dislikeImg.title =
+                "Changeset not found in OSMCha database.\nEither OSMCha did not have time to process this changeset, or it is too old."
             console.warn("Changeset not found in OSMCha database") // todo show alert/title
             return
         }
@@ -510,7 +514,11 @@ Press alt + J for open objects in Level0`
 
             function selectRange() {
                 let currentCheckboxFound = false
-                const checkboxes = Array.from(document.querySelectorAll(`#changeset_nodes li input[type=checkbox], #changeset_ways li input[type=checkbox], #changeset_relations li input[type=checkbox]`))
+                const checkboxes = Array.from(
+                    document.querySelectorAll(
+                        `#changeset_nodes li input[type=checkbox], #changeset_ways li input[type=checkbox], #changeset_relations li input[type=checkbox]`,
+                    ),
+                )
                 for (const cBox of checkboxes.toReversed()) {
                     if (!currentCheckboxFound) {
                         if (cBox === checkbox) {
@@ -553,7 +561,11 @@ Press alt + J for open objects in Level0`
             icon.after(label)
         })
     })
-    document.querySelector("#changeset_nodes input[type=checkbox], #changeset_ways input[type=checkbox], #changeset_relations input[type=checkbox]").focus()
+    document
+        .querySelector(
+            "#changeset_nodes input[type=checkbox], #changeset_ways input[type=checkbox], #changeset_relations input[type=checkbox]",
+        )
+        .focus()
 }
 
 function addUserChangesetRssLink(username) {
@@ -827,24 +839,36 @@ Press R for partial revert`
                 } else if (key.textContent === "revert:id") {
                     const cell = i.querySelector("td")
                     if (isSimpleNode(cell) && cell.textContent.match(/^((\d+(;|…?$))+$)/)) {
-                        cell.innerHTML = cell.innerHTML.replaceAll(/(\d+)(;|$)/g, `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>$2`)
+                        cell.innerHTML = cell.innerHTML.replaceAll(
+                            /(\d+)(;|$)/g,
+                            `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>$2`,
+                        )
                     } else if (cell.textContent.match(/https:\/\/(www\.)?openstreetmap.org\/changeset\//g)) {
                         cell.innerHTML = cell.innerHTML.replaceAll(/>https:\/\/(www\.)?openstreetmap.org\/changeset\//g, ">")
                     }
                 } else if (key.textContent === "revert:dmp:relation:id" || key.textContent === "revert:dmp:fail:relation:id") {
                     const cell = i.querySelector("td")
                     if (isSimpleNode(cell) && cell.textContent.match(/^((\d+(;|…?$))+$)/)) {
-                        cell.innerHTML = cell.innerHTML.replaceAll(/(\d+)(;|$)/g, `<a href="/relation/$1" class="relation_link_in_changeset_tags">$1</a>$2`)
+                        cell.innerHTML = cell.innerHTML.replaceAll(
+                            /(\d+)(;|$)/g,
+                            `<a href="/relation/$1" class="relation_link_in_changeset_tags">$1</a>$2`,
+                        )
                     }
                 } else if (key.textContent === "revert:dmp:way:id" || key.textContent === "revert:dmp:fail:way:id") {
                     const cell = i.querySelector("td")
                     if (isSimpleNode(cell) && cell.textContent.match(/^((\d+(;|…?$))+$)/)) {
-                        cell.innerHTML = cell.innerHTML.replaceAll(/(\d+)(;|$)/g, `<a href="/way/$1" class="way_link_in_changeset_tags">$1</a>$2`)
+                        cell.innerHTML = cell.innerHTML.replaceAll(
+                            /(\d+)(;|$)/g,
+                            `<a href="/way/$1" class="way_link_in_changeset_tags">$1</a>$2`,
+                        )
                     }
                 } else if (key.textContent === "redacted_changesets") {
                     const cell = i.querySelector("td")
                     if (isSimpleNode(cell) && cell.textContent.match(/^((\d+(,|$))+$)/)) {
-                        cell.innerHTML = cell.innerHTML.replaceAll(/(\d+)/g, `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>`)
+                        cell.innerHTML = cell.innerHTML.replaceAll(
+                            /(\d+)/g,
+                            `<a href="/changeset/$1" class="changeset_link_in_changeset_tags">$1</a>`,
+                        )
                     } else if (cell.textContent.match(/https:\/\/(www\.)?openstreetmap.org\/changeset\//g)) {
                         cell.innerHTML = cell.innerHTML.replaceAll(/>https:\/\/(www\.)?openstreetmap.org\/changeset\//g, ">")
                     }
@@ -928,7 +952,12 @@ Press R for partial revert`
                         const cursor = textarea.selectionEnd
                         textarea.value = prev.substring(0, cursor) + text + prev.substring(cursor)
 
-                        const ev = new InputEvent("input", { bubbles: true, cancelable: false, data: textarea.value, inputType: "insertFromPaste" })
+                        const ev = new InputEvent("input", {
+                            bubbles: true,
+                            cancelable: false,
+                            data: textarea.value,
+                            inputType: "insertFromPaste",
+                        })
                         textarea.dispatchEvent(ev)
                     }
                 })
@@ -1388,7 +1417,9 @@ function setupCompactChangesetsHistory() {
                     li.title += "\n"
                 }
                 li.title += Object.entries(changesetMetadatas[changesetId]?.tags)
-                    .filter(([k, v]) => k !== "comment" && !(k === "host" && v === "https://www.openstreetmap.org/edit") && !k.startsWith("v:"))
+                    .filter(
+                        ([k, v]) => k !== "comment" && !(k === "host" && v === "https://www.openstreetmap.org/edit") && !k.startsWith("v:"),
+                    )
                     .map(([k, v]) => `${k}=${v}`)
                     .join("\n")
             })

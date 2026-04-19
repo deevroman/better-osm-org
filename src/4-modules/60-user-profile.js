@@ -432,7 +432,11 @@ async function betterUserStat() {
                             colorDiff.style.background = "red"
                             changesetComment = "💬 " + changeset.comment
                             ;(await getChangesetComments(changeset.id)).forEach(mapperCommentText => {
-                                changesetComment += "\n - " + mapperCommentText["user"] + ": " + shortOsmOrgLinksInText(mapperCommentText["text"])?.slice(0, 500)
+                                changesetComment +=
+                                    "\n - " +
+                                    mapperCommentText["user"] +
+                                    ": " +
+                                    shortOsmOrgLinksInText(mapperCommentText["text"])?.slice(0, 500)
                                 if (mapperCommentText["text"].length > 500) {
                                     changesetComment += "..."
                                 }

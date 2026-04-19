@@ -66,7 +66,9 @@ async function uploadPhotoToSet(apiUrl, token, uploadSetId, file, isBlurred) {
 
     if (response.status < 200 || response.status >= 300) {
         console.error(response)
-        throw new Error(`Photo upload failed, HTTP ${response.status}:\n\n${response.response?.details?.error}\n\nFull log in browser console (F12)`)
+        throw new Error(
+            `Photo upload failed, HTTP ${response.status}:\n\n${response.response?.details?.error}\n\nFull log in browser console (F12)`,
+        )
     }
 
     return await response.response
@@ -306,7 +308,12 @@ function addUploadPanoramaxBtn() {
             location.reload()
         } catch (err) {
             console.error(err)
-            alert(`Error: ${err.message}\n\n` + (metadata ? `Info from EXIF:\nDateTime: ${metadata.DateTime}\nLat: ${metadata.GPSLatitude}\nLon: ${metadata.GPSLongitude}` : ""))
+            alert(
+                `Error: ${err.message}\n\n` +
+                    (metadata
+                        ? `Info from EXIF:\nDateTime: ${metadata.DateTime}\nLat: ${metadata.GPSLatitude}\nLon: ${metadata.GPSLongitude}`
+                        : ""),
+            )
         } finally {
             wrapper.classList.remove("is-loading")
         }

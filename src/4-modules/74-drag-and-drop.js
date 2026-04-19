@@ -20,8 +20,14 @@ async function setupDragAndDropViewers() {
                         const metadata = EXIF.readFromBinaryFile(await file.arrayBuffer())
                         console.log(metadata)
                         console.log(metadata.GPSLatitude, metadata.GPSLongitude)
-                        let lat = parseFloat(metadata.GPSLatitude[0]) + parseFloat(metadata.GPSLatitude[1]) / 60 + parseFloat(metadata.GPSLatitude[2]) / 3600
-                        let lon = parseFloat(metadata.GPSLongitude[0]) + parseFloat(metadata.GPSLongitude[1]) / 60 + parseFloat(metadata.GPSLongitude[2]) / 3600
+                        let lat =
+                            parseFloat(metadata.GPSLatitude[0]) +
+                            parseFloat(metadata.GPSLatitude[1]) / 60 +
+                            parseFloat(metadata.GPSLatitude[2]) / 3600
+                        let lon =
+                            parseFloat(metadata.GPSLongitude[0]) +
+                            parseFloat(metadata.GPSLongitude[1]) / 60 +
+                            parseFloat(metadata.GPSLongitude[2]) / 3600
 
                         if (metadata.GPSLatitudeRef === "S") {
                             lat = parseFloat(lat) * -1
@@ -104,7 +110,12 @@ async function setupDragAndDropViewers() {
             displayGPXTrack(await (await decompressBlob(res.response)).text())
         } else if (contentType === "application/x-bzip2") {
             // fuck Tampermonkey, structuredClone for TM
-            displayGPXTrack(new DOMParser().parseFromString(new TextDecoder().decode(bz2.decompress(structuredClone(await res.response.bytes()))), "application/xml"))
+            displayGPXTrack(
+                new DOMParser().parseFromString(
+                    new TextDecoder().decode(bz2.decompress(structuredClone(await res.response.bytes()))),
+                    "application/xml",
+                ),
+            )
         } else {
             throw `Unknown track #${trackID} format: ` + contentType
         }

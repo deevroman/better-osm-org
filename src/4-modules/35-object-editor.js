@@ -18,7 +18,10 @@ function addDeleteButton() {
     link.classList.add("delete_object_button_class")
     // skip deleted
     if (object_type === "node") {
-        if (document.querySelectorAll("#sidebar_content > div:first-of-type h4").length < 2 && document.querySelector("#sidebar_content > div .latitude") === null) {
+        if (
+            document.querySelectorAll("#sidebar_content > div:first-of-type h4").length < 2 &&
+            document.querySelector("#sidebar_content > div .latitude") === null
+        ) {
             return
         }
     } else if (object_type === "way") {
@@ -205,7 +208,8 @@ function addDeleteButton() {
 }
 
 function setupDeletor() {
-    if (!location.pathname.startsWith("/node/") && /*!location.pathname.startsWith("/way/") &&*/ location.pathname.startsWith("/relation/")) return
+    if (!location.pathname.startsWith("/node/") && /*!location.pathname.startsWith("/way/") &&*/ location.pathname.startsWith("/relation/"))
+        return
     tryApplyModule(addDeleteButton, 100, 3000)
 }
 

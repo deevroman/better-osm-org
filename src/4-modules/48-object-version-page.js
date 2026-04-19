@@ -638,7 +638,10 @@ async function addHoverForRelationMembers() {
         document.querySelector(".secondary-actions")?.addEventListener("mouseenter", () => {
             cleanObjectsByKey("activeObjects")
         })
-        if (document.querySelector("#sidebar_content h2:not(.restriction-rendered)") && isRestrictionObj(relationsMap.get(relation_id).tags ?? {})) {
+        if (
+            document.querySelector("#sidebar_content h2:not(.restriction-rendered)") &&
+            isRestrictionObj(relationsMap.get(relation_id).tags ?? {})
+        ) {
             isRestriction = true
             document.querySelector("#sidebar_content h2").classList.add("restriction-rendered")
             const extendedRelationVersion = relationsMap.get(relation_id)
@@ -662,7 +665,11 @@ async function addHoverForRelationMembers() {
             if (errors.length) {
                 showValidationStatus(errors, document.querySelector("#sidebar_content > div:first-of-type details:last-of-type summary"))
             } else {
-                restrictionArrows = renderRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion, restrictionColors[extendedRelationVersion.tags["restriction"]] ?? "#000", "customObjects")
+                restrictionArrows = renderRestriction(
+                    /** @type {ExtendedRelationVersion} */ extendedRelationVersion,
+                    restrictionColors[extendedRelationVersion.tags["restriction"]] ?? "#000",
+                    "customObjects",
+                )
                 pinSign.classList.add("pinned")
                 pinSign.textContent = "📌"
                 pinSign.tabIndex = 0
@@ -684,7 +691,9 @@ async function addHoverForRelationMembers() {
                         restrictionArrows.forEach(i => (i.getElement().style.display = ""))
                     }
                 }
-                document.querySelector("#sidebar_content > div:first-of-type details:last-of-type summary").appendChild(document.createTextNode(" "))
+                document
+                    .querySelector("#sidebar_content > div:first-of-type details:last-of-type summary")
+                    .appendChild(document.createTextNode(" "))
                 document.querySelector("#sidebar_content > div:first-of-type details:last-of-type summary").appendChild(pinSign)
             }
         }
@@ -763,7 +772,12 @@ function expandWikidata() {
         return
     }
     console.debug("Wikilinks count:", links.length)
-    ;(links.find(i => i.parentElement.classList.contains("history-diff-new-tag") || i.parentElement.classList.contains("history-diff-modified-tag")) ?? links?.[0])?.click()
+    ;(
+        links.find(
+            i =>
+                i.parentElement.classList.contains("history-diff-new-tag") || i.parentElement.classList.contains("history-diff-modified-tag"),
+        ) ?? links?.[0]
+    )?.click()
     setTimeout(() => {
         links.slice(0, 3).forEach(i => i.click())
     }, 100)

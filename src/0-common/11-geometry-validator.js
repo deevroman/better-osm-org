@@ -192,7 +192,9 @@ function validateWayGeometry(wayInfo, nodesMap) {
     if (uniquePointKeys.size < minPointsRequired) {
         issues.push({
             code: "too_few_points",
-            description: isPolygon ? `Polygon should contain at least ${minPointsRequired} unique points` : `Line should contain at least ${minPointsRequired} unique points`,
+            description: isPolygon
+                ? `Polygon should contain at least ${minPointsRequired} unique points`
+                : `Line should contain at least ${minPointsRequired} unique points`,
             points: pointsForValidation,
         })
         return issues

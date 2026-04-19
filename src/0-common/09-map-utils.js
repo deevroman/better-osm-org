@@ -227,7 +227,18 @@ function showWays(ListOfNodesList, layerName = "customObjects", color = "#000000
  * @param {boolean|null=} addStroke
  * @param {boolean=} geometryCached
  */
-function displayWay(nodesList, needFly = false, color = "#000000", width = 4, infoElemID = null, layerName = "customObjects", dashArray = null, popupContent = null, addStroke = null, geometryCached = false) {
+function displayWay(
+    nodesList,
+    needFly = false,
+    color = "#000000",
+    width = 4,
+    infoElemID = null,
+    layerName = "customObjects",
+    dashArray = null,
+    popupContent = null,
+    addStroke = null,
+    geometryCached = false,
+) {
     if (!layers[layerName]) {
         layers[layerName] = []
     }
@@ -353,7 +364,10 @@ function showActiveNodeIconMarker(lat, lon, color = null, removeActiveObjects = 
     if (removeActiveObjects) {
         cleanObjectsByKey("activeObjects")
     }
-    const marker = getWindow().L.marker(intoPage([lat, lon]), intoPage({ draggable: false, icon: getWindow().OSM.getMarker({ color: color ?? "var(--marker-blue)" }) }))
+    const marker = getWindow().L.marker(
+        intoPage([lat, lon]),
+        intoPage({ draggable: false, icon: getWindow().OSM.getMarker({ color: color ?? "var(--marker-blue)" }) }),
+    )
     layers["activeObjects"].push(marker.addTo(getMap()))
 }
 
@@ -367,7 +381,15 @@ function showActiveNodeIconMarker(lat, lon, color = null, removeActiveObjects = 
  * @param {number=} weight
  * @param {string=} dashArray
  */
-function showActiveWay(nodesList, color = c("#ff00e3"), needFly = false, infoElemID = null, removeActiveObjects = true, weight = 4, dashArray = null) {
+function showActiveWay(
+    nodesList,
+    color = c("#ff00e3"),
+    needFly = false,
+    infoElemID = null,
+    removeActiveObjects = true,
+    weight = 4,
+    dashArray = null,
+) {
     const line = getWindow()
         .L.polyline(
             intoPage(nodesList.map(elem => intoPage(getWindow().L.latLng(intoPage(elem))))),
