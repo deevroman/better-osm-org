@@ -275,6 +275,21 @@ function makeRefBelpostValue(elem) {
     }
 }
 
+function makeOpeningHoursValue(valueCell, key, isVersionPage) {
+    try {
+        new opening_hours(valueCell.textContent, null, { tag_key: key })
+        if (isVersionPage) {
+            valueCell.title = "no errors were found by opening_hours.js 👍"
+        }
+    } catch (e) {
+        valueCell.title = e
+        valueCell.classList.add("fixme-tag")
+        if (isVersionPage) {
+            valueCell.querySelectorAll("a").forEach(i => i.classList.add("fixme-tag"))
+        }
+    }
+}
+
 let buildingViewerIframe = null
 
 let contextMenuCSSInjected = false
@@ -485,14 +500,7 @@ function makeLinksInVersionTagClickable(row, objType) {
     } else if (needValidateConditionalAccessKey(key)) {
         makeConditionalValue(valueCell)
     } else if (needValidateOpeningHoursKey(key)) {
-        try {
-            new opening_hours(valueCell.textContent, null, { tag_key: key })
-            valueCell.title = "no errors were found by opening_hours.js 👍"
-        } catch (e) {
-            valueCell.title = e
-            valueCell.classList.add("fixme-tag")
-            valueCell.querySelectorAll("a").forEach(i => i.classList.add("fixme-tag"))
-        }
+        makeOpeningHoursValue(valueCell, key, true)
     } else if (["building", "building:part"].includes(key) || (key === "type" && valueCell.textContent === "building")) {
         if (location.pathname.includes("/history") || document.querySelector(".view-3d-link")) {
             return
