@@ -24180,12 +24180,16 @@ function yetAnotherWizard(s) {
         // name ~ пятёрочка, i
         // https://github.com/drolbr/Overpass-API/issues/751
         const kv_match = s.match(
-            /^(?<prefix>[~!]?)(?<key>[a-zA-Z0-9_\p{L}^$.*+]+)\s*(?<op>(=|~|!=|!~))\s*(?<value>[a-zA-Z0-9_\p{L}^$.*+]+)(?<suffix>\s*,\s*i)?$/u,
+            /^(?<prefix>[~!]?)(?<key>[a-zA-Z0-9_\p{L}^$:.*+]+)\s*(?<op>(=|~|!=|!~))\s*(?<value>[a-zA-Z0-9_\p{L}^$.*+]+)(?<suffix>\s*,\s*i)?$/u,
         )?.groups
         if (kv_match) {
             return `nwr[${kv_match["prefix"] ?? ""}"${kv_match["key"]}"${kv_match["op"]}"${kv_match["value"]}"${kv_match["suffix"] ?? ""}];`
         } else {
-            return `nwr[${s}];`
+            if (s.match(/^[a-zA-Z0-9_:]+$/)) {
+                return `nwr["${s}"];`
+            } else {
+                return `nwr[${s}];`
+            }
         }
     }
 }
