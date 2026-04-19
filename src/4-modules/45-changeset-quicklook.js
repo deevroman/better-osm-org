@@ -365,7 +365,8 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
         }
         row.querySelector("td").appendChild(a)
     } else {
-        const key = row.querySelector("th").textContent
+        const keyCell = row.querySelector("th")
+        const key = keyCell.textContent
         const valueCell = row.querySelector("td")
         if (key.startsWith("panoramax")) {
             makePanoramaxValue(valueCell)
@@ -409,6 +410,9 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
             makeConditionalValue(valueCell)
         } else if (key === "type") {
             makeTypeValue(valueCell, objType)
+        } else if (key.length <= 2 && (key !== "to" || key !== "tv")) {
+            keyCell.classList.add("fixme-tag")
+            keyCell.title = "The key is too short"
         }
     }
 }
