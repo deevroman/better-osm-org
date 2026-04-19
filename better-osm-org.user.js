@@ -9819,8 +9819,9 @@ function makeTypeValue(elem, objType) {
 // example https://osm.org/node/6506618057
 function makeLinksInVersionTagsClickable() {
     document.querySelectorAll(".browse-tag-list tr").forEach(row => {
-        const key = row.querySelector("th")?.textContent?.toLowerCase()
-        if (!key) return
+        const keyCell = row.querySelector("th")
+        if (!keyCell) return
+        const key = keyCell.textContent.toLowerCase()
         const valueCell = row.querySelector("td .current-value-span") ? row.querySelector("td .current-value-span") : row.querySelector("td")
         if (key === "fixme") {
             valueCell.classList.add("fixme-tag")
@@ -10177,6 +10178,9 @@ function makeLinksInVersionTagsClickable() {
             if (!valueCell.querySelector("a")) {
                 makeRefBelpostValue(valueCell)
             }
+        } else if (key.length <= 2 && (key !== "to" || key !== "tv")) {
+            keyCell.classList.add("fixme-tag")
+            keyCell.title = "The key is too short"
         }
     })
     const tagsTable = document.querySelector(".browse-tag-list")
@@ -14459,7 +14463,8 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
         }
         row.querySelector("td").appendChild(a)
     } else {
-        const key = row.querySelector("th").textContent
+        const keyCell = row.querySelector("th")
+        const key = keyCell.textContent
         const valueCell = row.querySelector("td")
         if (key.startsWith("panoramax")) {
             makePanoramaxValue(valueCell)
@@ -14503,6 +14508,9 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
             makeConditionalValue(valueCell)
         } else if (key === "type") {
             makeTypeValue(valueCell, objType)
+        } else if (key.length <= 2 && (key !== "to" || key !== "tv")) {
+            keyCell.classList.add("fixme-tag")
+            keyCell.title = "The key is too short"
         }
     }
 }
