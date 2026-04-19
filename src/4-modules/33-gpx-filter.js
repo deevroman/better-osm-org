@@ -137,7 +137,10 @@ function addGPXFiltersButtons() {
                                 xml = new DOMParser().parseFromString(await (await decompressBlob(res.response)).text(), "application/xml")
                             } else if (contentType === "application/x-bzip2") {
                                 // fuck Tampermonkey, structuredClone for TM
-                                xml = new DOMParser().parseFromString(new TextDecoder().decode(bz2.decompress(structuredClone(await res.response.bytes()))), "application/xml")
+                                xml = new DOMParser().parseFromString(
+                                    new TextDecoder().decode(bz2.decompress(structuredClone(await res.response.bytes()))),
+                                    "application/xml",
+                                )
                             } else {
                                 throw `Unknown track #${trackID} format: ` + contentType
                             }

@@ -451,7 +451,9 @@ function goToNextChangesetObject(e) {
         preventHoverEvents()
     }
     if (!document.querySelector("ul .active-object")) {
-        document.querySelector("#changeset_nodes li:not(.page-item), #changeset_ways li:not(.page-item), #changeset_relations li:not(.page-item)").classList.add("active-object")
+        document
+            .querySelector("#changeset_nodes li:not(.page-item), #changeset_ways li:not(.page-item), #changeset_relations li:not(.page-item)")
+            .classList.add("active-object")
         trustedEvent = false
         document.querySelector("ul .active-object").click()
         if (changesetObjectsSelectionModeEnabled) {
@@ -947,7 +949,10 @@ function zoomToCurrentObject(e) {
                             lon: parseFloat(node.getAttribute("lon")),
                         })
                     } else {
-                        const version = searchVersionByTimestamp(await getNodeHistory(node.getAttribute("id")), new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString())
+                        const version = searchVersionByTimestamp(
+                            await getNodeHistory(node.getAttribute("id")),
+                            new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString(),
+                        )
                         if (version && version.visible !== false) {
                             nodesBag.push({
                                 lat: version.lat,
@@ -958,7 +963,10 @@ function zoomToCurrentObject(e) {
                 }
                 if ((await getChangeset(changesetID)).data.querySelectorAll("relation").length && shiftKeyZClicks % 2 === 1) {
                     for (const way of (await getChangeset(changesetID)).data.querySelectorAll("way")) {
-                        const targetTime = way.getAttribute("visible") === "false" ? new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString() : changesetMetadata.closed_at
+                        const targetTime =
+                            way.getAttribute("visible") === "false"
+                                ? new Date(new Date(changesetMetadata.created_at).getTime() - 1).toISOString()
+                                : changesetMetadata.closed_at
                         try {
                             const [, currentNodesList] = await getWayNodesByTimestamp(targetTime, way.getAttribute("id"))
                             currentNodesList.forEach(coords => {
@@ -1251,7 +1259,11 @@ function setupNavigationViaHotkeys() {
                 }
             }
         }
-        if (["TEXTAREA", "INPUT", "SELECT"].includes(document.activeElement?.nodeName) && document.activeElement?.getAttribute("type") !== "checkbox" && document.activeElement?.getAttribute("type") !== "radio") {
+        if (
+            ["TEXTAREA", "INPUT", "SELECT"].includes(document.activeElement?.nodeName) &&
+            document.activeElement?.getAttribute("type") !== "checkbox" &&
+            document.activeElement?.getAttribute("type") !== "radio"
+        ) {
             return
         }
         if (document.activeElement?.getAttribute("contenteditable")) {
@@ -1289,7 +1301,12 @@ function setupNavigationViaHotkeys() {
                     currentMeasuring.wayLine?.remove()
                     if (currentMeasuring.way.length) {
                         currentMeasuring.wayLine = displayWay(currentMeasuring.way, false, "#000000", 1)
-                        currentMeasuring.tempLine = displayWay([currentMeasuring.way[currentMeasuring.way.length - 1], lastLatLng], false, "#000000", 1)
+                        currentMeasuring.tempLine = displayWay(
+                            [currentMeasuring.way[currentMeasuring.way.length - 1], lastLatLng],
+                            false,
+                            "#000000",
+                            1,
+                        )
                     }
                 }
             } else if (e.code === "Escape") {
@@ -1324,7 +1341,11 @@ function setupNavigationViaHotkeys() {
             } else {
                 // notes
                 if (e.shiftKey) {
-                    if (location.pathname.includes("/node") || location.pathname.includes("/way") || location.pathname.includes("/relation")) {
+                    if (
+                        location.pathname.includes("/node") ||
+                        location.pathname.includes("/way") ||
+                        location.pathname.includes("/relation")
+                    ) {
                         newNotePlaceholder = "\n \n" + location.href
                     }
                     document.querySelector(".control-note .control-button").click()
@@ -1394,7 +1415,10 @@ function setupNavigationViaHotkeys() {
                         const activeObjectUrl = document.querySelector(".active-object").querySelector("a").getAttribute("href")
                         window.open(activeObjectUrl, "_blank")
                     } else {
-                        const firstObjectUrl = document.querySelector("turbo-frame:is(#changeset_nodes, #changeset_ways, #changeset_relations)").querySelector("ul a").getAttribute("href")
+                        const firstObjectUrl = document
+                            .querySelector("turbo-frame:is(#changeset_nodes, #changeset_ways, #changeset_relations)")
+                            .querySelector("ul a")
+                            .getAttribute("href")
                         window.open(firstObjectUrl, "_blank")
                     }
                 } else {
@@ -1677,10 +1701,17 @@ function setupNavigationViaHotkeys() {
                     }
                     // todo fixme on changesets page with filter
                 } else {
-                    document.querySelector('#content a[href^="/user/"]:not([href$=rss]):not([href*="/diary"]):not([href*="/traces"])')?.click()
+                    document
+                        .querySelector('#content a[href^="/user/"]:not([href$=rss]):not([href*="/diary"]):not([href*="/traces"])')
+                        ?.click()
                 }
             }
-        } else if ((e.code === "Backquote" || e.code === "Quote" || e.key === "`" || e.key === "~") && !e.altKey && !e.metaKey && !e.ctrlKey) {
+        } else if (
+            (e.code === "Backquote" || e.code === "Quote" || e.key === "`" || e.key === "~") &&
+            !e.altKey &&
+            !e.metaKey &&
+            !e.ctrlKey
+        ) {
             if (!getWindow().mapIntercepted) return
             e.preventDefault()
             for (let member in layers) {
@@ -1892,7 +1923,11 @@ End with ! for global search
             } else if (e.code === "Period") {
                 document.querySelectorAll(".pagination li a")[1]?.click()
             }
-        } else if (e.code === "KeyH" && location.pathname.includes("/history") && (location.search.includes("after") || location.search.includes("before"))) {
+        } else if (
+            e.code === "KeyH" &&
+            location.pathname.includes("/history") &&
+            (location.search.includes("after") || location.search.includes("before"))
+        ) {
             try {
                 getWindow().OSM.router.route(location.pathname)
                 setupCompactChangesetsHistory()

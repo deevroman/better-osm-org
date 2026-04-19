@@ -25,7 +25,9 @@ function openCombinedChangesetsMap() {
         if (ids.length) {
             openIDs(ids)
         } else {
-            const ids = Array.from(document.querySelectorAll(`a[href^="/changeset/"].custom-changeset-id-click`)).map(i => i.getAttribute("href").match(/\/changeset\/([0-9]+)/)[1])
+            const ids = Array.from(document.querySelectorAll(`a[href^="/changeset/"].custom-changeset-id-click`)).map(
+                i => i.getAttribute("href").match(/\/changeset\/([0-9]+)/)[1],
+            )
             openIDs(ids)
         }
     }
@@ -328,7 +330,10 @@ function filterChangesets(htmlDocument = document) {
                         needHide = false
                     } else if (username === REVIEW_REQUESTED_EMOJI && li.classList.contains("review-requested-changeset")) {
                         needHide = false
-                    } else if (username === NEWBIE_EMOJI && changesetAuthorLink?.previousElementSibling?.classList?.contains("newbie-badge")) {
+                    } else if (
+                        username === NEWBIE_EMOJI &&
+                        changesetAuthorLink?.previousElementSibling?.classList?.contains("newbie-badge")
+                    ) {
                         needHide = false
                     }
                 })
@@ -365,7 +370,10 @@ function filterChangesets(htmlDocument = document) {
     })
 
     const counter = document.querySelector("#hidden-changeset-counter")
-    const needUpdateCounter = (getWindow().hiddenChangesetsCount !== newHiddenChangesetsCount || parseInt(counter.getAttribute("changesets-count")) !== newChangesetsCount) && htmlDocument === document
+    const needUpdateCounter =
+        (getWindow().hiddenChangesetsCount !== newHiddenChangesetsCount ||
+            parseInt(counter.getAttribute("changesets-count")) !== newChangesetsCount) &&
+        htmlDocument === document
 
     if (needUpdateCounter) {
         getWindow().hiddenChangesetsCount = newHiddenChangesetsCount
@@ -445,7 +453,11 @@ function getScrollbarWidth() {
 }
 
 function addMassActionForGlobalChangesets() {
-    if ((location.pathname === "/history" || location.pathname === "/history/friends") && document.querySelector("#sidebar_content h2") && !document.querySelector("#changesets-filter-btn")) {
+    if (
+        (location.pathname === "/history" || location.pathname === "/history/friends") &&
+        document.querySelector("#sidebar_content h2") &&
+        !document.querySelector("#changesets-filter-btn")
+    ) {
         const a = document.createElement("a")
         a.textContent = " 🔎"
         a.style.cursor = "pointer"
@@ -639,7 +651,12 @@ function addMassChangesetsActions() {
                 getCachedUserInfo(usernameA?.textContent).then(res => {
                     if (!res) return
                     usernameA.title = makeUsernameTitle(res)
-                    usernameA.before(makeBadge(res, new Date(item.parentElement.parentElement.querySelector("time")?.getAttribute("datetime") ?? new Date())))
+                    usernameA.before(
+                        makeBadge(
+                            res,
+                            new Date(item.parentElement.parentElement.querySelector("time")?.getAttribute("datetime") ?? new Date()),
+                        ),
+                    )
                 })
             }
         })
@@ -655,7 +672,8 @@ function addMassChangesetsActions() {
         } else if (currentMassDownloadedPages > MAX_PAGE_FOR_LOAD) {
             currentMassDownloadedPages = null
             const changesetsCount = document.querySelectorAll("ol > li").length
-            document.querySelector("#hidden-changeset-counter").textContent = ` Displayed ${changesetsCount - getWindow().hiddenChangesetsCount}/${changesetsCount}`
+            document.querySelector("#hidden-changeset-counter").textContent =
+                ` Displayed ${changesetsCount - getWindow().hiddenChangesetsCount}/${changesetsCount}`
         } else {
             if (!document.querySelector("#infinity-list-btn")) {
                 const moreButton = document.querySelector('.changeset_more:has([href*="before"]) a.page-link')
@@ -681,7 +699,12 @@ function addMassChangesetsActions() {
 }
 
 function setupMassChangesetsActions() {
-    if (location.pathname !== "/history" && location.pathname !== "/history/friends" && !(location.pathname.includes("/history") && location.pathname.includes("/user/"))) return
+    if (
+        location.pathname !== "/history" &&
+        location.pathname !== "/history/friends" &&
+        !(location.pathname.includes("/history") && location.pathname.includes("/user/"))
+    )
+        return
     tryApplyModule(addMassChangesetsActions, 300, 5000)
 }
 

@@ -372,8 +372,10 @@ function insertOverlaysStyles() {
 }
 
 // todo inline
-const rawEditIcon = "https://raw.githubusercontent.com/openstreetmap/iD/671e9f00699c3b2602b82b291c5cd776445032aa/svg/fontawesome/fas-i-cursor.svg"
-const tableEditIcon = "https://raw.githubusercontent.com/openstreetmap/iD/671e9f00699c3b2602b82b291c5cd776445032aa/svg/fontawesome/fas-th-list.svg"
+const rawEditIcon =
+    "https://raw.githubusercontent.com/openstreetmap/iD/671e9f00699c3b2602b82b291c5cd776445032aa/svg/fontawesome/fas-i-cursor.svg"
+const tableEditIcon =
+    "https://raw.githubusercontent.com/openstreetmap/iD/671e9f00699c3b2602b82b291c5cd776445032aa/svg/fontawesome/fas-th-list.svg"
 
 // const lastVersionsCache = {}
 
@@ -513,7 +515,11 @@ function renderOSMGeoJSON(xml, options = {}) {
             const th = document.createElement("th")
             th.textContent = key
             const td = document.createElement("td")
-            if (key === "id" && typeof value === "string" && (value.startsWith("node/") || value.startsWith("way/") || value.startsWith("relation/"))) {
+            if (
+                key === "id" &&
+                typeof value === "string" &&
+                (value.startsWith("node/") || value.startsWith("way/") || value.startsWith("relation/"))
+            ) {
                 const a = document.createElement("a")
                 a.textContent = value
                 a.href = "/" + value
@@ -660,7 +666,8 @@ function renderOSMGeoJSON(xml, options = {}) {
                 }
                 object_version = new_object_version
                 startEditEvent.target.parentElement.querySelector(".version-link").textContent = object_version ? "v" + object_version : ""
-                startEditEvent.target.parentElement.querySelector(".version-link").href = `/${object_type}/${object_id}/history/${object_version}`
+                startEditEvent.target.parentElement.querySelector(".version-link").href =
+                    `/${object_type}/${object_id}/history/${object_version}`
 
                 metaTable.querySelector("tbody")?.remove()
 
@@ -897,7 +904,8 @@ function renderOSMGeoJSON(xml, options = {}) {
                     if (currentVersionBanned("overpass_tags_editor")) {
                         editButton.classList.add("banned-feature")
                         editButton.textContent = "Need update better-osm-org"
-                        editButton.title = "Please click for update better-osm-org script.\nThe current version contains a bug that may corrupt OSM data."
+                        editButton.title =
+                            "Please click for update better-osm-org script.\nThe current version contains a bug that may corrupt OSM data."
                         editButton.addEventListener(
                             "click",
                             intoPageWithFun(() => {

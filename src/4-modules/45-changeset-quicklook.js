@@ -230,8 +230,10 @@ let corporatesLinks = null
 /** @type {null | Map}*/
 let corporateMappers = null
 
-const corporationContributorsURL = "https://raw.githubusercontent.com/deevroman/openstreetmap-statistics/refs/heads/master/config/organised_teams_contributors.json"
-const corporationContributorsSource = "https://github.com/deevroman/openstreetmap-statistics/blob/master/config/organised_teams_contributors.json"
+const corporationContributorsURL =
+    "https://raw.githubusercontent.com/deevroman/openstreetmap-statistics/refs/heads/master/config/organised_teams_contributors.json"
+const corporationContributorsSource =
+    "https://github.com/deevroman/openstreetmap-statistics/blob/master/config/organised_teams_contributors.json"
 
 /**
  * @param {Object} raw_data
@@ -376,7 +378,12 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
             key.startsWith("happy_hours") ||
             ["delivery_hours", "smoking_hours", "collection_times", "service_times"].includes(key)
         ) {
-            if (key !== "opening_hours:signed" && key !== "opening_hours:url" && key !== "opening_hours:description" && typeof opening_hours !== "undefined") {
+            if (
+                key !== "opening_hours:signed" &&
+                key !== "opening_hours:url" &&
+                key !== "opening_hours:description" &&
+                typeof opening_hours !== "undefined"
+            ) {
                 try {
                     new opening_hours(valueCell.textContent, null, { tag_key: key })
                 } catch (e) {
@@ -860,7 +867,11 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         geomChangedFlag.after(nodesTable)
         geomChangedFlag.after(tagsTable)
         if (lineWasReversed) {
-            geomChangedFlag.after(document.createTextNode(["ru-RU", "ru"].includes(navigator.language) ? " ⓘ Линию перевернули" : "ⓘ The line has been reversed"))
+            geomChangedFlag.after(
+                document.createTextNode(
+                    ["ru-RU", "ru"].includes(navigator.language) ? " ⓘ Линию перевернули" : "ⓘ The line has been reversed",
+                ),
+            )
         }
     }
     if (objType === "way" && targetVersion.visible !== false) {
@@ -976,7 +987,9 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 tagTd.onmouseenter = async e => {
                     e.stopPropagation()
                     e.target.classList.add("relation-version-node")
-                    const targetTimestamp = new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1).toISOString()
+                    const targetTimestamp = new Date(
+                        new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1,
+                    ).toISOString()
                     if (left.type === "node") {
                         const version = searchVersionByTimestamp(await getNodeHistory(left.ref), targetTimestamp)
                         showActiveNodeMarker(version.lat.toString(), version.lon.toString(), c("#ff00e3"))
@@ -1002,7 +1015,9 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 }
                 tagTd.onclick = async e => {
                     e.stopPropagation()
-                    const targetTimestamp = new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1).toISOString()
+                    const targetTimestamp = new Date(
+                        new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1,
+                    ).toISOString()
                     if (left.type === "node") {
                         const version = searchVersionByTimestamp(await getNodeHistory(left.ref), targetTimestamp)
                         panTo(version.lat.toString(), version.lon.toString())
@@ -1174,7 +1189,14 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 pinnedRelations.add(targetVersion.id)
                 pinRelation.style.cursor = "progress"
                 const color = darkModeForMap && isDarkMode() ? "#000" : "#373737"
-                await loadRelationVersionMembersViaOverpass(targetVersion.id, targetVersion.timestamp, false, color, `customObjects/${targetVersion.id}`, darkModeForMap && isDarkMode())
+                await loadRelationVersionMembersViaOverpass(
+                    targetVersion.id,
+                    targetVersion.timestamp,
+                    false,
+                    color,
+                    `customObjects/${targetVersion.id}`,
+                    darkModeForMap && isDarkMode(),
+                )
                 pinRelation.style.cursor = "pointer"
                 pinRelation.classList.add("pinned")
                 pinRelation.textContent = "📍"
@@ -1247,16 +1269,24 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
     if (targetVersion.version !== lastVersion.version && lastVersion.visible === false) {
         const objDeletedBadge = document.createElement("span")
         if (targetVersion.user === lastVersion.user) {
-            objDeletedBadge.textContent = ["ru-RU", "ru"].includes(navigator.language) ? " ⓘ Автор уже удалил объект" : " ⓘ The object is now deleted by author"
+            objDeletedBadge.textContent = ["ru-RU", "ru"].includes(navigator.language)
+                ? " ⓘ Автор уже удалил объект"
+                : " ⓘ The object is now deleted by author"
         } else {
-            objDeletedBadge.textContent = ["ru-RU", "ru"].includes(navigator.language) ? " ⓘ Объект уже удалён" : " ⓘ The object is now deleted"
+            objDeletedBadge.textContent = ["ru-RU", "ru"].includes(navigator.language)
+                ? " ⓘ Объект уже удалён"
+                : " ⓘ The object is now deleted"
         }
-        objDeletedBadge.title = ["ru-RU", "ru"].includes(navigator.language) ? `${lastVersion.user} удалил этот объект` : `${lastVersion.user} deleted this object`
+        objDeletedBadge.title = ["ru-RU", "ru"].includes(navigator.language)
+            ? `${lastVersion.user} удалил этот объект`
+            : `${lastVersion.user} deleted this object`
         i.appendChild(objDeletedBadge)
     }
     if (targetVersion.visible === false && lastVersion.visible !== false) {
         const objRestoredBadge = document.createElement("span")
-        objRestoredBadge.textContent = ["ru-RU", "ru"].includes(navigator.language) ? " ⓘ Объект сейчас восстановлен" : " ⓘ The object is now restored"
+        objRestoredBadge.textContent = ["ru-RU", "ru"].includes(navigator.language)
+            ? " ⓘ Объект сейчас восстановлен"
+            : " ⓘ The object is now restored"
         let lastRestoredVersion
         for (let versionInd = 1; versionInd < objHistory.length; versionInd++) {
             if (objHistory[versionInd].version <= targetVersion.version) {
@@ -1268,9 +1298,13 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         }
         if (lastRestoredVersion) {
             if (lastRestoredVersion.user === targetVersion.user) {
-                objRestoredBadge.textContent = ["ru-RU", "ru"].includes(navigator.language) ? " ⓘ Автор уже восстановил объект" : " ⓘ The object is now restored by author"
+                objRestoredBadge.textContent = ["ru-RU", "ru"].includes(navigator.language)
+                    ? " ⓘ Автор уже восстановил объект"
+                    : " ⓘ The object is now restored by author"
             } else {
-                objRestoredBadge.title = ["ru-RU", "ru"].includes(navigator.language) ? `${lastVersion.user} восстановил этот объект` : `${lastVersion.user} restored this object`
+                objRestoredBadge.title = ["ru-RU", "ru"].includes(navigator.language)
+                    ? `${lastVersion.user} восстановил этот объект`
+                    : `${lastVersion.user} restored this object`
             }
         }
         i.appendChild(objRestoredBadge)
@@ -1279,7 +1313,9 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
     //     i.appendChild(tagsTable)
     // }
     if (targetVersion.tags?.["type"] === "restriction") {
-        const key = Object.keys(targetVersion.tags).find(k => k === "restriction") ?? Object.keys(targetVersion.tags).find(k => k.startsWith("restriction"))
+        const key =
+            Object.keys(targetVersion.tags).find(k => k === "restriction") ??
+            Object.keys(targetVersion.tags).find(k => k.startsWith("restriction"))
         if (key && restrictionsSignImages[key]) {
             void fetchTextWithCache(restrictionsSignImages[key])
         }
@@ -1387,14 +1423,16 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             if (targetVersion.visible === false) {
                 if (prevVersion.visible !== false) {
                     showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), c("#0022ff"))
-                    const direction = prevVersion.tags?.["direction"] ?? prevVersion.tags?.["camera:direction"] ?? prevVersion.tags?.["light:direction"]
+                    const direction =
+                        prevVersion.tags?.["direction"] ?? prevVersion.tags?.["camera:direction"] ?? prevVersion.tags?.["light:direction"]
                     if (direction) {
                         renderDirectionTag(prevVersion.lat, prevVersion.lon, direction, c("#0022ff"))
                     }
                 }
             } else {
                 showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), c("#ff00e3"))
-                const direction = targetVersion.tags?.["direction"] ?? targetVersion.tags?.["camera:direction"] ?? targetVersion.tags?.["light:direction"]
+                const direction =
+                    targetVersion.tags?.["direction"] ?? targetVersion.tags?.["camera:direction"] ?? targetVersion.tags?.["light:direction"]
                 if (direction) {
                     renderDirectionTag(targetVersion.lat, targetVersion.lon, direction, c("#ff00e3"))
                 }
@@ -1434,18 +1472,21 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 )
                 showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), c("#0022ff"), true)
                 showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), c("#ff00e3"), false)
-                const direction = prevVersion.tags?.["direction"] ?? prevVersion.tags?.["camera:direction"] ?? prevVersion.tags?.["light:direction"]
+                const direction =
+                    prevVersion.tags?.["direction"] ?? prevVersion.tags?.["camera:direction"] ?? prevVersion.tags?.["light:direction"]
                 if (direction) {
                     renderDirectionTag(prevVersion.lat, prevVersion.lon, direction, c("#0022ff"))
                 }
-                const newDirection = targetVersion.tags?.["direction"] ?? targetVersion.tags?.["camera:direction"] ?? targetVersion.tags?.["light:direction"]
+                const newDirection =
+                    targetVersion.tags?.["direction"] ?? targetVersion.tags?.["camera:direction"] ?? targetVersion.tags?.["light:direction"]
                 if (direction) {
                     renderDirectionTag(targetVersion.lat, targetVersion.lon, newDirection, c("#ff00e3"))
                 }
             } else if (targetVersion.visible === false) {
                 panTo(prevVersion.lat.toString(), prevVersion.lon.toString(), 18, false)
                 showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), c("#0022ff"), true)
-                const direction = prevVersion.tags?.["direction"] ?? prevVersion.tags?.["camera:direction"] ?? prevVersion.tags?.["light:direction"]
+                const direction =
+                    prevVersion.tags?.["direction"] ?? prevVersion.tags?.["camera:direction"] ?? prevVersion.tags?.["light:direction"]
                 if (direction) {
                     renderDirectionTag(prevVersion.lat, prevVersion.lon, direction, c("#0022ff"))
                 }
@@ -1485,7 +1526,8 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                     panTo(targetVersion.lat.toString(), targetVersion.lon.toString(), 18, false)
                 }
                 showActiveNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), c("#ff00e3"), true)
-                const direction = targetVersion.tags?.["direction"] ?? targetVersion.tags?.["camera:direction"] ?? targetVersion.tags?.["light:direction"]
+                const direction =
+                    targetVersion.tags?.["direction"] ?? targetVersion.tags?.["camera:direction"] ?? targetVersion.tags?.["light:direction"]
                 if (direction) {
                     renderDirectionTag(targetVersion.lat, targetVersion.lon, direction, c("#ff00e3"))
                 }
@@ -1498,19 +1540,41 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             if (targetVersion.version !== 1 && prevVersion.visible !== false) {
                 // даа, такое есть https://www.openstreetmap.org/node/300524/history
                 if (prevVersion.tags) {
-                    showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), c("#ff0000", ".deleted-node-geom"), `${changesetID}n${prevVersion.id}v${targetVersion.version}`)
+                    showNodeMarker(
+                        prevVersion.lat.toString(),
+                        prevVersion.lon.toString(),
+                        c("#ff0000", ".deleted-node-geom"),
+                        `${changesetID}n${prevVersion.id}v${targetVersion.version}`,
+                    )
                 } else {
-                    showNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), c("#ff0000", ".deleted-node-geom"), `${changesetID}n${prevVersion.id}v${targetVersion.version}`, "customObjects", 2)
+                    showNodeMarker(
+                        prevVersion.lat.toString(),
+                        prevVersion.lon.toString(),
+                        c("#ff0000", ".deleted-node-geom"),
+                        `${changesetID}n${prevVersion.id}v${targetVersion.version}`,
+                        "customObjects",
+                        2,
+                    )
                     // todo show prev parent ways
                 }
             }
         } else if (targetVersion.version === 1) {
             if (targetVersion.tags) {
-                showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), c("#00a500", ".first-node-version"), `${changesetID}n${targetVersion.id}v${targetVersion.version}`)
+                showNodeMarker(
+                    targetVersion.lat.toString(),
+                    targetVersion.lon.toString(),
+                    c("#00a500", ".first-node-version"),
+                    `${changesetID}n${targetVersion.id}v${targetVersion.version}`,
+                )
             }
             setTimeout(async () => {
                 if ((await getChangeset(parseInt(changesetID))).nodesWithOldParentWays.has(parseInt(objID))) {
-                    showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), c("#00a500", ".first-node-version"), `${changesetID}n${targetVersion.id}v${targetVersion.version}`)
+                    showNodeMarker(
+                        targetVersion.lat.toString(),
+                        targetVersion.lon.toString(),
+                        c("#00a500", ".first-node-version"),
+                        `${changesetID}n${targetVersion.id}v${targetVersion.version}`,
+                    )
                 }
             }, 0) // dirty hack for https://osm.org/changeset/162017882
         } else if (prevVersion?.visible === false && targetVersion?.visible !== false) {
@@ -1523,7 +1587,12 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 2,
             )
         } else {
-            showNodeMarker(targetVersion.lat.toString(), targetVersion.lon.toString(), "rgb(255,245,41)", `${changesetID}n${targetVersion.id}v${targetVersion.version}`)
+            showNodeMarker(
+                targetVersion.lat.toString(),
+                targetVersion.lon.toString(),
+                "rgb(255,245,41)",
+                `${changesetID}n${targetVersion.id}v${targetVersion.version}`,
+            )
         }
     }
 
@@ -1533,7 +1602,9 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
 
         // TODO для полной истории кеш нужен, а вот для правок сомнительно, если нужно перемещаться между ними
         // хотя при отображении нескольких правок разом тоже полезно
-        const res = await fetchJSONorResWithCache(osm_server.apiBase + objType + "/" + objID + "/full.json", { signal: getAbortController().signal })
+        const res = await fetchJSONorResWithCache(osm_server.apiBase + objType + "/" + objID + "/full.json", {
+            signal: getAbortController().signal,
+        })
         // todo по-хорошему нужно проверять, а не успела ли измениться история линии
         // будет более актуально после добавление предзагрузки
         let changesetMetadata = changesetMetadatas[targetVersion.changeset]
@@ -1616,7 +1687,10 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             if (!changesetMetadata) {
                 changesetMetadata = await loadChangesetMetadata(parseInt(changesetID))
             }
-            const notLater = !nextVersionTimestamp || new Date(nextVersionTimestamp) > new Date(changesetMetadata.closed_at) ? changesetMetadata.closed_at : nextVersionTimestamp
+            const notLater =
+                !nextVersionTimestamp || new Date(nextVersionTimestamp) > new Date(changesetMetadata.closed_at)
+                    ? changesetMetadata.closed_at
+                    : nextVersionTimestamp
             // notLater важен для правок от StreetComplete. Там часто линия обновляется несколько раз в правке
             const targetNodes = filterFinalObjectState(wayNodesHistories, targetVersion.timestamp, notLater, changesetMetadata.id)
             if (hasInterChanges) {
@@ -1675,9 +1749,20 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             if (version > 1) {
                 // show prev version
                 const [, nodesHistory] = await loadWayVersionNodes(objID, version - 1)
-                const targetTimestamp = maxDate(prevVersion.timestamp, new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1)).toISOString()
+                const targetTimestamp = maxDate(
+                    prevVersion.timestamp,
+                    new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1),
+                ).toISOString()
                 const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                showActiveWay(nodesList, "rgb(238,146,9)", currentNodesList.length === 0, `${changesetID}w${objID}v${targetVersion.version}`, false, 4, "4, 4")
+                showActiveWay(
+                    nodesList,
+                    "rgb(238,146,9)",
+                    currentNodesList.length === 0,
+                    `${changesetID}w${objID}v${targetVersion.version}`,
+                    false,
+                    4,
+                    "4, 4",
+                )
 
                 showActiveWay(currentNodesList, c("#ff00e3"), false, `${changesetID}w${objID}v${targetVersion.version}`, false)
             } else {
@@ -1686,7 +1771,15 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 if (prevVersion) {
                     const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version)
                     const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                    showActiveWay(nodesList, "rgb(238,146,9)", currentNodesList.length === 0, `${changesetID}w${objID}v${targetVersion.version}`, false, 4, "4, 4")
+                    showActiveWay(
+                        nodesList,
+                        "rgb(238,146,9)",
+                        currentNodesList.length === 0,
+                        `${changesetID}w${objID}v${targetVersion.version}`,
+                        false,
+                        4,
+                        "4, 4",
+                    )
                 }
                 showActiveWay(currentNodesList, c("#ff00e3"), false, `${changesetID}w${objID}v${targetVersion.version}`, false)
             }
@@ -1702,10 +1795,26 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 const closedTime = new Date(changesetMetadata.closed_at ?? new Date()).toISOString()
                 const nodesAfterChangeset = filterObjectListByTimestamp(nodesHistory, closedTime)
                 if (nodesAfterChangeset.some(i => i.visible === false)) {
-                    displayWay(nodesList, false, c("#ff0000", ".deleted-way-geom"), 3, `${changesetID}w${objID}v${targetVersion.version}`, "customObjects", dashArray)
+                    displayWay(
+                        nodesList,
+                        false,
+                        c("#ff0000", ".deleted-way-geom"),
+                        3,
+                        `${changesetID}w${objID}v${targetVersion.version}`,
+                        "customObjects",
+                        dashArray,
+                    )
                 } else {
                     // скорее всего это объединение линий, поэтому это удаление линии нужно отправить на задний план
-                    const layer = displayWay(nodesList, false, c("#ff0000", ".deleted-way-geom"), 7, `${changesetID}w${objID}v${targetVersion.version}`, "customObjects", dashArray)
+                    const layer = displayWay(
+                        nodesList,
+                        false,
+                        c("#ff0000", ".deleted-way-geom"),
+                        7,
+                        `${changesetID}w${objID}v${targetVersion.version}`,
+                        "customObjects",
+                        dashArray,
+                    )
                     layer.bringToBack()
                     lineWidth = 8
                 }
@@ -1713,11 +1822,37 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 console.error(`broken way: ${objID}`, nodesList) // todo retry
             }
         } else if (version === 1 && targetVersion.changeset === parseInt(changesetID)) {
-            displayWay(currentNodesList, false, c("rgba(0, 128, 0, 0.6)"), lineWidth, `${changesetID}w${objID}v${targetVersion.version}`, "customObjects", dashArray)
+            displayWay(
+                currentNodesList,
+                false,
+                c("rgba(0, 128, 0, 0.6)"),
+                lineWidth,
+                `${changesetID}w${objID}v${targetVersion.version}`,
+                "customObjects",
+                dashArray,
+            )
         } else if (prevVersion?.visible === false) {
-            displayWay(currentNodesList, false, c("rgba(120, 238, 9, 0.6)"), lineWidth, `${changesetID}w${objID}v${targetVersion.version}`, "customObjects", dashArray)
+            displayWay(
+                currentNodesList,
+                false,
+                c("rgba(120, 238, 9, 0.6)"),
+                lineWidth,
+                `${changesetID}w${objID}v${targetVersion.version}`,
+                "customObjects",
+                dashArray,
+            )
         } else {
-            displayWay(currentNodesList, false, nowDeleted ? "rgb(0,0,0)" : "#373737", lineWidth, `${changesetID}w${objID}v${targetVersion.version}`, "customObjects", null, null, darkModeForMap && isDarkMode())
+            displayWay(
+                currentNodesList,
+                false,
+                nowDeleted ? "rgb(0,0,0)" : "#373737",
+                lineWidth,
+                `${changesetID}w${objID}v${targetVersion.version}`,
+                "customObjects",
+                null,
+                null,
+                darkModeForMap && isDarkMode(),
+            )
         }
 
         async function mouseenterHandler() {
@@ -1726,7 +1861,10 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             if (version > 1) {
                 // show prev version
                 const [, nodesHistory] = await loadWayVersionNodes(objID, version - 1)
-                const targetTimestamp = maxDate(prevVersion.timestamp, new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1)).toISOString()
+                const targetTimestamp = maxDate(
+                    prevVersion.timestamp,
+                    new Date(new Date(changesetMetadatas[targetVersion.changeset].created_at).getTime() - 1),
+                ).toISOString()
                 const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
                 showActiveWay(nodesList, "rgb(238,146,9)", false, `${changesetID}w${objID}v${targetVersion.version}`, false, 4, "4, 4")
 
@@ -1853,7 +1991,9 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
 }
 
 async function processObjectsInteractions(objType, uniqTypes, changesetID) {
-    const objects = document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object):not(.object-in-process)`)
+    const objects = document.querySelectorAll(
+        `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object):not(.object-in-process)`,
+    )
     if (objects.length === 0) {
         return
     }
@@ -1863,16 +2003,30 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
 
     const objectsLinksInComments = {
         // todo can be optimized
-        nodes: Array.from(document.querySelectorAll(`#element_versions_list > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="node/"]`)),
-        ways: Array.from(document.querySelectorAll(`#element_versions_list > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="way/"]`)),
-        relations: Array.from(document.querySelectorAll(`#element_versions_list > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="relation/"]`)),
+        nodes: Array.from(
+            document.querySelectorAll(
+                `#element_versions_list > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="node/"]`,
+            ),
+        ),
+        ways: Array.from(
+            document.querySelectorAll(
+                `#element_versions_list > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="way/"]`,
+            ),
+        ),
+        relations: Array.from(
+            document.querySelectorAll(
+                `#element_versions_list > div > div:has([name=subscribe],[name=unsubscribe]) ~ article div a[href*="relation/"]`,
+            ),
+        ),
     }
 
     try {
         const needFetch = []
 
         if (objType === "relation" && objects.length >= 2) {
-            for (let i of document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)) {
+            for (let i of document.querySelectorAll(
+                `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`,
+            )) {
                 const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
                 const version = parseInt(strVersion)
                 if (version === 1) {
@@ -1888,8 +2042,16 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
                 signal: getAbortController().signal,
             })
             if (res.status === 404) {
-                for (let i of document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)) {
-                    await processObjectInteractions(changesetID, objType, objectsLinksInComments, i, ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(i))))
+                for (let i of document.querySelectorAll(
+                    `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`,
+                )) {
+                    await processObjectInteractions(
+                        changesetID,
+                        objType,
+                        objectsLinksInComments,
+                        i,
+                        ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(i))),
+                    )
                 }
             } else {
                 /**
@@ -1901,18 +2063,40 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
                  */
                 const objectsVersions = {}
                 Object.entries(Object.groupBy(Array.from(versions), i => i.id)).forEach(([id, history]) => {
-                    objectsVersions[id] = Object.fromEntries(Object.entries(Object.groupBy(history, i => i.version)).map(([version, val]) => [version, val[0]]))
+                    objectsVersions[id] = Object.fromEntries(
+                        Object.entries(Object.groupBy(history, i => i.version)).map(([version, val]) => [version, val[0]]),
+                    )
                 })
-                for (let i of document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)) {
-                    const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
+                for (let i of document.querySelectorAll(
+                    `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`,
+                )) {
+                    const [, , objID, strVersion] = i
+                        .querySelector("a:nth-of-type(2)")
+                        .href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
                     const version = parseInt(strVersion)
-                    await processObjectInteractions(changesetID, objType, objectsLinksInComments, i, ...getPrevTargetLastVersions(Object.values(objectsVersions[objID]), version))
+                    await processObjectInteractions(
+                        changesetID,
+                        objType,
+                        objectsLinksInComments,
+                        i,
+                        ...getPrevTargetLastVersions(Object.values(objectsVersions[objID]), version),
+                    )
                 }
             }
         } else {
             await Promise.all(
-                Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)).map(async function (i) {
-                    await processObjectInteractions(changesetID, objType, objectsLinksInComments, i, ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(i))))
+                Array.from(
+                    document.querySelectorAll(
+                        `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`,
+                    ),
+                ).map(async function (i) {
+                    await processObjectInteractions(
+                        changesetID,
+                        objType,
+                        objectsLinksInComments,
+                        i,
+                        ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(i))),
+                    )
                 }),
             )
         }
@@ -2434,12 +2618,19 @@ async function processQuickLookInSidebar(changesetID) {
                 }
             }
         }
-        const objectListSection = document.querySelector(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li`).parentElement.parentElement.querySelector("h4")
+        const objectListSection = document
+            .querySelector(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li`)
+            .parentElement.parentElement.querySelector("h4")
         if (!objectListSection.querySelector(".quick-look-compact-toggle-btn")) {
             objectListSection.appendChild(compactToggle)
         }
         compactToggle.before(document.createTextNode("\xA0"))
-        if (uniqTypes === 1 && document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li .non-modified-tag-in-quick-view`).length < 5) {
+        if (
+            uniqTypes === 1 &&
+            document.querySelectorAll(
+                `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li .non-modified-tag-in-quick-view`,
+            ).length < 5
+        ) {
             compactToggle.style.display = "none"
             document.querySelectorAll(".non-modified-tag-in-quick-view").forEach(i => {
                 i.removeAttribute("hidden")
@@ -2447,7 +2638,9 @@ async function processQuickLookInSidebar(changesetID) {
         }
         if (multipleChangesets && compactToggle.style.display !== "none") {
             document.querySelectorAll(`[changeset-id="${changesetID}"]`).forEach(changeset => {
-                const forHide = document.querySelectorAll(`[changeset-id="${changeset.getAttribute("changeset-id")}"]#changeset_nodes .tags-non-modified:not(.location-modified)`)
+                const forHide = document.querySelectorAll(
+                    `[changeset-id="${changeset.getAttribute("changeset-id")}"]#changeset_nodes .tags-non-modified:not(.location-modified)`,
+                )
                 forHide.forEach(i => {
                     i.setAttribute("hidden", "true")
                 })
@@ -2468,7 +2661,9 @@ async function processQuickLookInSidebar(changesetID) {
      */
     async function processObjects(objType, uniqTypes) {
         pinnedRelations = new Set()
-        const objects = document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object):not(.object-in-process)`)
+        const objects = document.querySelectorAll(
+            `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object):not(.object-in-process)`,
+        )
         if (objects.length === 0) {
             return
         }
@@ -2480,8 +2675,12 @@ async function processQuickLookInSidebar(changesetID) {
 
         try {
             if (objType === "relation") {
-                for (let i of document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)) {
-                    const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
+                for (let i of document.querySelectorAll(
+                    `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`,
+                )) {
+                    const [, , objID, strVersion] = i
+                        .querySelector("a:nth-of-type(2)")
+                        .href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
                     const version = parseInt(strVersion)
                     if (version === 1) {
                         needFetch.push(objID + "v" + version)
@@ -2496,7 +2695,9 @@ async function processQuickLookInSidebar(changesetID) {
                     signal: getAbortController().signal,
                 })
                 if (res.status === 404) {
-                    for (let i of document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)) {
+                    for (let i of document.querySelectorAll(
+                        `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`,
+                    )) {
                         await processObject(i, objType, ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(i))))
                     }
                 } else {
@@ -2509,16 +2710,26 @@ async function processQuickLookInSidebar(changesetID) {
                      */
                     const objectsVersions = {}
                     Object.entries(Object.groupBy(Array.from(versions), i => i.id)).forEach(([id, history]) => {
-                        objectsVersions[id] = Object.fromEntries(Object.entries(Object.groupBy(history, i => i.version)).map(([version, val]) => [version, val[0]]))
+                        objectsVersions[id] = Object.fromEntries(
+                            Object.entries(Object.groupBy(history, i => i.version)).map(([version, val]) => [version, val[0]]),
+                        )
                     })
-                    for (let i of document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`)) {
-                        const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
+                    for (let i of document.querySelectorAll(
+                        `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`,
+                    )) {
+                        const [, , objID, strVersion] = i
+                            .querySelector("a:nth-of-type(2)")
+                            .href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
                         const version = parseInt(strVersion)
                         await processObject(i, objType, ...getPrevTargetLastVersions(Object.values(objectsVersions[objID]), version))
                     }
                 }
             } else {
-                const elems = Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`))
+                const elems = Array.from(
+                    document.querySelectorAll(
+                        `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`,
+                    ),
+                )
                 for (const elem of arraySplit(elems, elems.length > 520 ? 10 : 1)) {
                     await Promise.all(
                         elem.map(async function (i) {
@@ -2536,16 +2747,30 @@ async function processQuickLookInSidebar(changesetID) {
         // reorder non-interesting-objects
         // todo potential crash
         const objectsList = document.querySelector(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li`).parentElement
-        Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li.tags-uninterested-modified.location-modified`)).forEach(i => {
+        Array.from(
+            document.querySelectorAll(
+                `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li.tags-uninterested-modified.location-modified`,
+            ),
+        ).forEach(i => {
             objectsList.appendChild(i)
         })
-        Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li.tags-uninterested-modified:not(.location-modified)`)).forEach(i => {
+        Array.from(
+            document.querySelectorAll(
+                `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li.tags-uninterested-modified:not(.location-modified)`,
+            ),
+        ).forEach(i => {
             objectsList.appendChild(i)
         })
-        Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li.tags-non-modified`)).forEach(i => {
+        Array.from(
+            document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li.tags-non-modified`),
+        ).forEach(i => {
             objectsList.appendChild(i)
         })
-        Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li.tags-non-modified:not(.location-modified)`)).forEach(i => {
+        Array.from(
+            document.querySelectorAll(
+                `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li.tags-non-modified:not(.location-modified)`,
+            ),
+        ).forEach(i => {
             objectsList.appendChild(i)
         })
 
@@ -2592,13 +2817,17 @@ async function processQuickLookInSidebar(changesetID) {
 
         // osm.org/changeset/170309417
         function dropNodesPagination(changesetData) {
-            const pagination = Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_nodes ${paginationSelector}`)).find(i => {
+            const pagination = Array.from(
+                document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_nodes ${paginationSelector}`),
+            ).find(i => {
                 return Array.from(i.querySelectorAll("a.page-link")).some(a => a.href?.includes("node"))
             })
             if (!pagination) {
                 return false
             }
-            const nodesUl = pagination.parentElement.querySelector("ul.list-unstyled") ?? pagination.parentElement.parentElement.querySelector("ul.list-unstyled")
+            const nodesUl =
+                pagination.parentElement.querySelector("ul.list-unstyled") ??
+                pagination.parentElement.parentElement.querySelector("ul.list-unstyled")
             const nodes = Array.from(changesetData.querySelectorAll("node"))
             const other = changesetData.querySelectorAll("way,relation").length
             if (nodes.length > 1200 && !isDebug()) {
@@ -2719,13 +2948,17 @@ async function processQuickLookInSidebar(changesetID) {
         }
 
         function dropWaysPagination(changesetData) {
-            const pagination = Array.from(document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_ways ${paginationSelector}`)).find(i => {
+            const pagination = Array.from(
+                document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_ways ${paginationSelector}`),
+            ).find(i => {
                 return Array.from(i.querySelectorAll("a.page-link")).some(a => a.href?.includes("way"))
             })
             if (!pagination) {
                 return false
             }
-            const waysUl = pagination.parentElement.querySelector("ul.list-unstyled") ?? pagination.parentElement.parentElement.querySelector("ul.list-unstyled")
+            const waysUl =
+                pagination.parentElement.querySelector("ul.list-unstyled") ??
+                pagination.parentElement.parentElement.querySelector("ul.list-unstyled")
             const ways = Array.from(changesetData.querySelectorAll("way"))
             if (ways.length > 50 && !isDebug()) {
                 if (ways.length > 200 && changesetData.querySelectorAll("node") > 40) {
@@ -2877,12 +3110,14 @@ async function processQuickLookInSidebar(changesetID) {
         async function findParents() {
             performance.mark("FIND_PARENTS_BEGIN_" + changesetID)
             const nodesInChangesets = {}
-            document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_nodes li:has(a[href^="/node/"]) > div > div`).forEach(div => {
-                const prefix = div.id.match(/^([0-9]+n[0-9]+)/)[1]
-                if (!nodesInChangesets[prefix]) {
-                    nodesInChangesets[prefix] = div
-                }
-            })
+            document
+                .querySelectorAll(`[changeset-id="${changesetID}"]#changeset_nodes li:has(a[href^="/node/"]) > div > div`)
+                .forEach(div => {
+                    const prefix = div.id.match(/^([0-9]+n[0-9]+)/)[1]
+                    if (!nodesInChangesets[prefix]) {
+                        nodesInChangesets[prefix] = div
+                    }
+                })
             const nodesCount = changesetData.querySelectorAll(`node`)
             for (const i of changesetData.querySelectorAll(`node[version="1"]`)) {
                 const nodeID = i.getAttribute("id")
@@ -2890,7 +3125,10 @@ async function processQuickLookInSidebar(changesetID) {
                 if (!i.querySelector("tag")) {
                     if (i.getAttribute("visible") === "false") {
                         // todo
-                    } else if (i.getAttribute("version") === "1" && !(await getChangeset(parseInt(changesetID))).nodesWithParentWays.has(parseInt(nodeID))) {
+                    } else if (
+                        i.getAttribute("version") === "1" &&
+                        !(await getChangeset(parseInt(changesetID))).nodesWithParentWays.has(parseInt(nodeID))
+                    ) {
                         showNodeMarker(i.getAttribute("lat"), i.getAttribute("lon"), "#00a500", `${changesetID}n${nodeID}v${nodeVersion}`)
                     }
                 }
@@ -2907,7 +3145,10 @@ async function processQuickLookInSidebar(changesetID) {
             const changesetWaysSet = new Set(Array.from(changesetData.querySelectorAll(`way`)).map(i => parseInt(i.id)))
             const loadNodesParents = async nodes => {
                 for (const nodeID of nodes) {
-                    if (((await getChangeset(parseInt(changesetID))).nodesWithParentWays.has(nodeID) && nodesCount > 30) || processedNodes.has(parseInt(nodeID))) {
+                    if (
+                        ((await getChangeset(parseInt(changesetID))).nodesWithParentWays.has(nodeID) && nodesCount > 30) ||
+                        processedNodes.has(parseInt(nodeID))
+                    ) {
                         continue
                     }
                     const parents = await getParentWays(nodeID)
@@ -3001,44 +3242,70 @@ async function processQuickLookInSidebar(changesetID) {
                             // ховер в списке объектов, который показывает родительскую линию
                             way.nodes.forEach(n => {
                                 if (!nodesInChangesets[`${changesetID}n${n}`]) return
-                                nodesInChangesets[`${changesetID}n${n}`].parentElement.parentElement.addEventListener("mouseover", async e => {
-                                    if (e.relatedTarget?.parentElement === e.target) {
-                                        return
-                                    }
-                                    showActiveWay(currentNodesList)
-                                    resetMapHover()
-                                    const targetTimestamp = new Date(new Date(changesetMetadatas[changesetID].created_at).getTime() - 1).toISOString()
-                                    if (targetVersion.version > 1) {
-                                        // show prev version
-                                        const prevVersion = searchVersionByTimestamp(await getWayHistory(way.id), targetTimestamp)
-                                        const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version)
-                                        const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                                        showActiveWay(nodesList, "rgb(238,146,9)", false, `${changesetID}w${objID}v${targetVersion.version}`, false, 4, "4, 4")
-
-                                        // showActiveWay(currentNodesList, "rgba(55,55,55,0.5)", false, objID, false)
-                                    } else {
-                                        const prevVersion = searchVersionByTimestamp(await getWayHistory(way.id), targetTimestamp)
-                                        if (prevVersion) {
+                                nodesInChangesets[`${changesetID}n${n}`].parentElement.parentElement.addEventListener(
+                                    "mouseover",
+                                    async e => {
+                                        if (e.relatedTarget?.parentElement === e.target) {
+                                            return
+                                        }
+                                        showActiveWay(currentNodesList)
+                                        resetMapHover()
+                                        const targetTimestamp = new Date(
+                                            new Date(changesetMetadatas[changesetID].created_at).getTime() - 1,
+                                        ).toISOString()
+                                        if (targetVersion.version > 1) {
+                                            // show prev version
+                                            const prevVersion = searchVersionByTimestamp(await getWayHistory(way.id), targetTimestamp)
                                             const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version)
                                             const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
-                                            showActiveWay(nodesList, "rgb(238,146,9)", false, `${changesetID}w${objID}v${targetVersion.version}`, false, 4, "4, 4")
+                                            showActiveWay(
+                                                nodesList,
+                                                "rgb(238,146,9)",
+                                                false,
+                                                `${changesetID}w${objID}v${targetVersion.version}`,
+                                                false,
+                                                4,
+                                                "4, 4",
+                                            )
 
                                             // showActiveWay(currentNodesList, "rgba(55,55,55,0.5)", false, objID, false)
+                                        } else {
+                                            const prevVersion = searchVersionByTimestamp(await getWayHistory(way.id), targetTimestamp)
+                                            if (prevVersion) {
+                                                const [, nodesHistory] = await loadWayVersionNodes(objID, prevVersion.version)
+                                                const nodesList = filterObjectListByTimestamp(nodesHistory, targetTimestamp)
+                                                showActiveWay(
+                                                    nodesList,
+                                                    "rgb(238,146,9)",
+                                                    false,
+                                                    `${changesetID}w${objID}v${targetVersion.version}`,
+                                                    false,
+                                                    4,
+                                                    "4, 4",
+                                                )
+
+                                                // showActiveWay(currentNodesList, "rgba(55,55,55,0.5)", false, objID, false)
+                                            }
                                         }
-                                    }
-                                    const curVersion = searchVersionByTimestamp(await getNodeHistory(n), changesetMetadatas[changesetID].closed_at ?? new Date())
-                                    if (curVersion.version > 1) {
-                                        const prevVersion = searchVersionByTimestamp(await getNodeHistory(n), targetTimestamp)
-                                        showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), c("#0022ff"), false)
-                                    }
-                                    showActiveNodeMarker(curVersion.lat.toString(), curVersion.lon.toString(), c("#ff00e3"), false)
-                                })
+                                        const curVersion = searchVersionByTimestamp(
+                                            await getNodeHistory(n),
+                                            changesetMetadatas[changesetID].closed_at ?? new Date(),
+                                        )
+                                        if (curVersion.version > 1) {
+                                            const prevVersion = searchVersionByTimestamp(await getNodeHistory(n), targetTimestamp)
+                                            showActiveNodeMarker(prevVersion.lat.toString(), prevVersion.lon.toString(), c("#0022ff"), false)
+                                        }
+                                        showActiveNodeMarker(curVersion.lat.toString(), curVersion.lon.toString(), c("#ff00e3"), false)
+                                    },
+                                )
                             })
                         }),
                     )
                 }
             }
-            const nodesWithModifiedLocation = Array.from(document.querySelectorAll("#changeset_nodes .location-modified div div")).map(i => parseInt(i.id.match(/n(\d+)/)[1]))
+            const nodesWithModifiedLocation = Array.from(document.querySelectorAll("#changeset_nodes .location-modified div div")).map(i =>
+                parseInt(i.id.match(/n(\d+)/)[1]),
+            )
             await Promise.all(arraySplit(nodesWithModifiedLocation, 4).map(loadNodesParents))
             // fast hack
             // const someInterestingNodes = Array.from(changesetData.querySelectorAll("node")).filter(i => i.querySelector("tag[k=power],tag[k=entrance]")).map(i => parseInt(i.id))
@@ -3461,7 +3728,9 @@ async function addChangesetQuickLook() {
     if (isOGFServer() && !document.querySelector("turbo-frame")) {
         ogfFixes(changesetID)
     }
-    document.querySelectorAll("turbo-frame:is(#changeset_nodes,#changeset_ways,#changeset_relations)").forEach(i => i.setAttribute("changeset-id", changesetID))
+    document
+        .querySelectorAll("turbo-frame:is(#changeset_nodes,#changeset_ways,#changeset_relations)")
+        .forEach(i => i.setAttribute("changeset-id", changesetID))
 
     const params = new URLSearchParams(location.search)
     let changesetIDs = []

@@ -686,7 +686,11 @@ async function setupNewEditorsLinks() {
 async function _setupNewEditorsLinks(mutationsList) {
     if (mutationsList) {
         // little optimization for scroll
-        if (mutationsList.length === 1 && mutationsList[0].type === "attributes" && mutationsList[0].attributeName === "data-popper-placement") {
+        if (
+            mutationsList.length === 1 &&
+            mutationsList[0].type === "attributes" &&
+            mutationsList[0].attributeName === "data-popper-placement"
+        ) {
             return
         }
         console.debug("setupNewEditorsLinks call")

@@ -60,7 +60,8 @@ function makeTimesSwitchable() {
 (._;>;);
 out meta;
 `
-        const query = beforeChangesetPrefix && !adiff ? "//" + beforeChangesetPrefix + closingTimePrefix + queryBody : closingTimePrefix + queryBody
+        const query =
+            beforeChangesetPrefix && !adiff ? "//" + beforeChangesetPrefix + closingTimePrefix + queryBody : closingTimePrefix + queryBody
         window.open(`${overpass_server.url}?Q=${encodeURI(query)}&C=${lat};${lon};${zoom}${zoom > 15 ? "&R" : ""}`, "_blank")
     }
 

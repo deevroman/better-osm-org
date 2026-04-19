@@ -200,7 +200,12 @@ async function setupBuildingTools() {
             currentBuildingTools = makeEmptyBuildingTools()
         }
         const { lat: lat, lng: lng } = e.latlng
-        if (lastMouseDownX - e.originalEvent.clientX > 1 || lastMouseDownY - e.originalEvent.clientY > 1 || lastMouseDownX - e.originalEvent.clientX < -1 || lastMouseDownY - e.originalEvent.clientY < -1) {
+        if (
+            lastMouseDownX - e.originalEvent.clientX > 1 ||
+            lastMouseDownY - e.originalEvent.clientY > 1 ||
+            lastMouseDownX - e.originalEvent.clientX < -1 ||
+            lastMouseDownY - e.originalEvent.clientY < -1
+        ) {
             console.log("skipped click")
             console.log(lastMouseDownX - e.originalEvent.clientX)
             console.log(lastMouseDownY - e.originalEvent.clientY)

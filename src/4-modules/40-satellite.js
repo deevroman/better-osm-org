@@ -365,16 +365,32 @@ async function askCustomStyleUrl() {
     }
     await mapStylesDatabase.init()
     const options = mapStylesDatabase.get()?.styles ?? [
-        { label: "SomeoneElse's vector map style", value: "https://map.atownsend.org.uk/vector/style_svwd03.json", about: "https://github.com/SomeoneElseOSM/SomeoneElse-vector-web-display" },
+        {
+            label: "SomeoneElse's vector map style",
+            value: "https://map.atownsend.org.uk/vector/style_svwd03.json",
+            about: "https://github.com/SomeoneElseOSM/SomeoneElse-vector-web-display",
+        },
         {
             label: "StreetComplete map style",
             value: "https://raw.githubusercontent.com/streetcomplete/maplibre-streetcomplete-style/refs/heads/master/demo/streetcomplete.json",
             about: "https://github.com/streetcomplete/maplibre-streetcomplete-style",
         },
         { label: "OpenFreeMap Positron", value: "https://tiles.openfreemap.org/styles/positron" },
-        { label: "VersaTiles Colorful (Shortbread)", value: "https://vector.openstreetmap.org/styles/shortbread/colorful.json", about: "https://github.com/versatiles-org/versatiles-style" },
-        { label: "VersaTiles Shadow", value: "https://vector.openstreetmap.org/styles/shortbread/shadow.json", about: "https://github.com/versatiles-org/versatiles-style" },
-        { label: "VersaTiles Graybeard", value: "https://vector.openstreetmap.org/styles/shortbread/graybeard.json", about: "https://github.com/versatiles-org/versatiles-style" },
+        {
+            label: "VersaTiles Colorful (Shortbread)",
+            value: "https://vector.openstreetmap.org/styles/shortbread/colorful.json",
+            about: "https://github.com/versatiles-org/versatiles-style",
+        },
+        {
+            label: "VersaTiles Shadow",
+            value: "https://vector.openstreetmap.org/styles/shortbread/shadow.json",
+            about: "https://github.com/versatiles-org/versatiles-style",
+        },
+        {
+            label: "VersaTiles Graybeard",
+            value: "https://vector.openstreetmap.org/styles/shortbread/graybeard.json",
+            about: "https://github.com/versatiles-org/versatiles-style",
+        },
     ]
     const popup = document.createElement("div")
     popup.classList.add("vector-tiles-selector-popup")
@@ -834,7 +850,8 @@ async function askCustomTileUrl() {
     const note = document.createElement("span")
     note.style.color = "gray"
     note.innerHTML =
-        "You can <a target='_blank' href='https://github.com/deevroman/better-osm-org/issues/new'>suggest</a> other layer. " + "One of <a href='https://github.com/osmlab/editor-layer-index'>layers collection</a>"
+        "You can <a target='_blank' href='https://github.com/deevroman/better-osm-org/issues/new'>suggest</a> other layer. " +
+        "One of <a href='https://github.com/osmlab/editor-layer-index'>layers collection</a>"
     popup.appendChild(note)
     document.body.appendChild(popup)
     popup.querySelector("label:has(:checked)")?.querySelector("input")?.focus()
@@ -1265,7 +1282,8 @@ function createSwitchTilesBtn() {
     }
     btnOnPane.style.cursor = "pointer"
     btnOnPane.classList.add("turn-on-satellite-from-pane")
-    btnOnPane.title = "Switch between map and satellite images (S key)\nPress Shift+S or click with Shift for set custom imagery\nOn mobile use long tap"
+    btnOnPane.title =
+        "Switch between map and satellite images (S key)\nPress Shift+S or click with Shift for set custom imagery\nOn mobile use long tap"
     btnOnPane.onclick = async e => {
         e.stopImmediatePropagation()
         enableOverzoom()

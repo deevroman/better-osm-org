@@ -73,7 +73,9 @@ async function getChangeset(id) {
     return (changesetsCache[id] = {
         data: data,
         nodesWithParentWays: new Set(Array.from(data.querySelectorAll("way > nd")).map(i => parseInt(i.getAttribute("ref")))),
-        nodesWithOldParentWays: new Set(Array.from(data.querySelectorAll("way:not([version='1']) > nd")).map(i => parseInt(i.getAttribute("ref")))),
+        nodesWithOldParentWays: new Set(
+            Array.from(data.querySelectorAll("way:not([version='1']) > nd")).map(i => parseInt(i.getAttribute("ref"))),
+        ),
     })
 }
 
@@ -112,10 +114,12 @@ function setupNodeVersionView() {
     interceptMapManually().then(() => {
         displayWay(nodeHistoryPath, false, "rgba(251,156,112,0.86)", 2)
     })
-    document.querySelectorAll("#element_versions_list > div h4:nth-of-type(1):not(:has(.relation-version-view)) a:nth-of-type(1)").forEach(i => {
-        const version = i.href.match(/\/(\d+)$/)[1]
-        i.parentElement.parentElement.setAttribute("node-version", version)
-    })
+    document
+        .querySelectorAll("#element_versions_list > div h4:nth-of-type(1):not(:has(.relation-version-view)) a:nth-of-type(1)")
+        .forEach(i => {
+            const version = i.href.match(/\/(\d+)$/)[1]
+            i.parentElement.parentElement.setAttribute("node-version", version)
+        })
 }
 
 /**
@@ -351,7 +355,10 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
     console.debug("Loading way", wayID, version)
     const wayHistory = await getWayHistory(wayID)
 
-    const targetVersion = wayHistory.find(v => v.version === version) ?? (await loadHiddenWayVersionViaOverpass(wayID, version)) ?? (await loadHiddenWayVersionViaGithub(wayID, version))
+    const targetVersion =
+        wayHistory.find(v => v.version === version) ??
+        (await loadHiddenWayVersionViaOverpass(wayID, version)) ??
+        (await loadHiddenWayVersionViaGithub(wayID, version))
     if (!targetVersion) {
         throw `loadWayVersionNodes failed ${wayID}, ${version}`
     }
@@ -813,9 +820,22 @@ async function replaceDownloadWayButton(btn, wayID) {
 
             const curChange = currentChanges[`node ${i.id}`]
             const nodesHistory = nodesHistories[i.id]
-            const tagsTable = processObject(div2, "node", curChange[1] ?? curChange[2], curChange[2], nodesHistory[nodesHistory.length - 1], nodesHistory)
+            const tagsTable = processObject(
+                div2,
+                "node",
+                curChange[1] ?? curChange[2],
+                curChange[2],
+                nodesHistory[nodesHistory.length - 1],
+                nodesHistory,
+            )
             setTimeout(async () => {
-                await processObjectInteractions("", "node", { nodes: [] }, div2, ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))))
+                await processObjectInteractions(
+                    "",
+                    "node",
+                    { nodes: [] },
+                    div2,
+                    ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))),
+                )
             }, 0)
             tagsTable.then(table => {
                 if (nodeLi.classList.contains("tags-non-modified")) {
@@ -885,7 +905,9 @@ async function replaceDownloadWayButton(btn, wayID) {
                 }
             })
         }
-        let insertBeforeThat = document.querySelector(`#element_versions_list > :where(div, details)[way-version="${currentWayVersion.version}"]`)
+        let insertBeforeThat = document.querySelector(
+            `#element_versions_list > :where(div, details)[way-version="${currentWayVersion.version}"]`,
+        )
         while (insertBeforeThat.previousElementSibling?.getAttribute("way-version") === "inter") {
             // fixme O(n^2)
             insertBeforeThat = insertBeforeThat.previousElementSibling
@@ -1007,9 +1029,22 @@ async function replaceDownloadWayButton(btn, wayID) {
 
                 const curChange = currentChanges[`node ${i.id}`]
                 const nodesHistory = nodesHistories[i.id]
-                const tagsTable = processObject(div2, "node", curChange[1] ?? curChange[2], curChange[2], nodesHistory[nodesHistory.length - 1], nodesHistory)
+                const tagsTable = processObject(
+                    div2,
+                    "node",
+                    curChange[1] ?? curChange[2],
+                    curChange[2],
+                    nodesHistory[nodesHistory.length - 1],
+                    nodesHistory,
+                )
                 setTimeout(async () => {
-                    await processObjectInteractions("", "node", { nodes: [] }, div2, ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))))
+                    await processObjectInteractions(
+                        "",
+                        "node",
+                        { nodes: [] },
+                        div2,
+                        ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))),
+                    )
                 }, 0)
                 tagsTable.then(table => {
                     if (nodeLi.classList.contains("tags-non-modified")) {
@@ -1163,7 +1198,12 @@ function setupWayVersionView() {
                 loadWayVersion(e)
             }
             versionDiv.onclick = async e => {
-                if (e.target.tagName === "A" || e.target.tagName === "TIME" || e.target.tagName === "SUMMARY" || e.target.tagName === "BUTTON") {
+                if (
+                    e.target.tagName === "A" ||
+                    e.target.tagName === "TIME" ||
+                    e.target.tagName === "SUMMARY" ||
+                    e.target.tagName === "BUTTON"
+                ) {
                     return
                 }
                 await loadWayVersion(versionDiv, true, true, true)
@@ -1383,7 +1423,14 @@ const cachedRelations = {}
  * @param {boolean=} addStroke
  * @return {Promise<CachedRelation>}
  */
-async function loadRelationVersionMembersViaOverpass(id, timestamp, cleanPrevObjects = true, color = "#000000", layer = "activeObjects", addStroke = null) {
+async function loadRelationVersionMembersViaOverpass(
+    id,
+    timestamp,
+    cleanPrevObjects = true,
+    color = "#000000",
+    layer = "activeObjects",
+    addStroke = null,
+) {
     console.time(`Render ${id} relation`)
     console.log(id, timestamp)
 
@@ -1868,7 +1915,18 @@ async function replaceDownloadRelationButton(btn, relationID) {
             currentMembers.forEach(member => {
                 if (member.type === "way") {
                     const color = "#000000"
-                    displayWay(currentWaysNodes[member.id], false, color, 4, null, "customObjects", null, null, darkModeForMap && isDarkMode(), true)
+                    displayWay(
+                        currentWaysNodes[member.id],
+                        false,
+                        color,
+                        4,
+                        null,
+                        "customObjects",
+                        null,
+                        null,
+                        darkModeForMap && isDarkMode(),
+                        true,
+                    )
                 }
             })
             currentMembers.forEach(member => {
@@ -1900,7 +1958,18 @@ async function replaceDownloadRelationButton(btn, relationID) {
             cleanAllObjects()
             currentMembers.forEach(member => {
                 if (member.type === "way") {
-                    displayWay(currentWaysNodes[member.id], false, "#000000", 4, null, "customObjects", null, null, darkModeForMap && isDarkMode(), true)
+                    displayWay(
+                        currentWaysNodes[member.id],
+                        false,
+                        "#000000",
+                        4,
+                        null,
+                        "customObjects",
+                        null,
+                        null,
+                        darkModeForMap && isDarkMode(),
+                        true,
+                    )
                 }
             })
             currentMembers.forEach(member => {
@@ -1928,7 +1997,9 @@ async function replaceDownloadRelationButton(btn, relationID) {
             })
         }
         // fixme slow selector too much object
-        let insertBeforeThat = document.querySelector(`#element_versions_list > :where(div, details)[relation-version="${currentRelationVersion.version}"]`)
+        let insertBeforeThat = document.querySelector(
+            `#element_versions_list > :where(div, details)[relation-version="${currentRelationVersion.version}"]`,
+        )
         while (insertBeforeThat.previousElementSibling?.getAttribute("relation-version") === "inter") {
             // fixme O(n^2)
             insertBeforeThat = insertBeforeThat.previousElementSibling
@@ -1982,22 +2053,24 @@ async function replaceDownloadRelationButton(btn, relationID) {
             })
             if (it.version !== 1) {
                 const changedNodes = Object.values(currentChanges).filter(i => i[2].type === "node" && i[0] !== "location" && i[0] !== "")
-                document.querySelector(`#element_versions_list > div[relation-version="${it.version}"]`)?.addEventListener("mouseenter", () => {
-                    changedNodes.forEach(i => {
-                        if (i[2].visible === false) {
-                            if (i[1].visible !== false) {
-                                showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
-                            }
-                        } else if (i[0] === "new") {
-                            if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                document
+                    .querySelector(`#element_versions_list > div[relation-version="${it.version}"]`)
+                    ?.addEventListener("mouseenter", () => {
+                        changedNodes.forEach(i => {
+                            if (i[2].visible === false) {
+                                if (i[1].visible !== false) {
+                                    showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
+                                }
+                            } else if (i[0] === "new") {
+                                if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+                                }
                                 showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+                            } else {
+                                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
                             }
-                            showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
-                        } else {
-                            showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
-                        }
+                        })
                     })
-                })
                 document.querySelector(`#element_versions_list > div[relation-version="${it.version}"]`)?.addEventListener("click", () => {
                     changedNodes.forEach(i => {
                         if (i[2].visible === false) {
@@ -2058,7 +2131,14 @@ async function replaceDownloadRelationButton(btn, relationID) {
                 const curChange = currentChanges[`${i.type} ${i.id}`]
                 const memberHistory = histories[i.type][i.id]
                 // todo нужна предзагрузка пакетов правок, потому что теперь рендерятся и линии
-                const tagsTable = processObject(div2, i.type, curChange[1] ?? curChange[2], curChange[2], memberHistory[memberHistory.length - 1], memberHistory)
+                const tagsTable = processObject(
+                    div2,
+                    i.type,
+                    curChange[1] ?? curChange[2],
+                    curChange[2],
+                    memberHistory[memberHistory.length - 1],
+                    memberHistory,
+                )
                 setTimeout(async () => {
                     await processObjectInteractions(
                         "",
@@ -2276,7 +2356,11 @@ function setupRelationVersionView() {
                 if (errors.length) {
                     showValidationStatus(errors, document.querySelector("#element_versions_list > div details:last-of-type summary"))
                 } else {
-                    renderRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion, restrictionColors[extendedRelationVersion.tags["restriction"]] ?? "#000000", "customObjects")
+                    renderRestriction(
+                        /** @type {ExtendedRelationVersion} */ extendedRelationVersion,
+                        restrictionColors[extendedRelationVersion.tags["restriction"]] ?? "#000000",
+                        "customObjects",
+                    )
                 }
             }
             if (hasBrokenMembers) {
@@ -2288,7 +2372,12 @@ function setupRelationVersionView() {
             const versionDiv = htmlElem.parentNode.parentNode
             versionDiv.onmouseenter = loadRelationVersion
             versionDiv.onclick = async e => {
-                if (e.target.tagName === "A" || e.target.tagName === "TIME" || e.target.tagName === "SUMMARY" || e.target.tagName === "BUTTON") {
+                if (
+                    e.target.tagName === "A" ||
+                    e.target.tagName === "TIME" ||
+                    e.target.tagName === "SUMMARY" ||
+                    e.target.tagName === "BUTTON"
+                ) {
                     return
                 }
                 await loadRelationVersion(versionDiv) // todo params
@@ -2305,40 +2394,45 @@ function setupRelationVersionView() {
         }
     }
 
-    document.querySelectorAll("#element_versions_list > div h4:nth-of-type(1):not(:has(.relation-version-view)) a:nth-of-type(1)").forEach(i => {
-        const version = i.href.match(/\/(\d+)$/)[1]
-        const btn = document.createElement("a")
-        btn.classList.add("relation-version-view")
-        btn.textContent = "📥"
-        btn.style.cursor = "pointer"
-        btn.setAttribute("relation-version", version)
-        btn.addEventListener(
-            "mouseenter",
-            async e => {
-                i.parentElement.parentElement.querySelectorAll(".browse-tag-list tr").forEach(t => {
-                    if (t.querySelector("th")?.textContent?.includes("restriction")) {
-                        const key = t.querySelector("td")?.textContent
-                        if (restrictionsSignImages[key]) {
-                            void fetchTextWithCache(restrictionsSignImages[key])
+    document
+        .querySelectorAll("#element_versions_list > div h4:nth-of-type(1):not(:has(.relation-version-view)) a:nth-of-type(1)")
+        .forEach(i => {
+            const version = i.href.match(/\/(\d+)$/)[1]
+            const btn = document.createElement("a")
+            btn.classList.add("relation-version-view")
+            btn.textContent = "📥"
+            btn.style.cursor = "pointer"
+            btn.setAttribute("relation-version", version)
+            btn.addEventListener(
+                "mouseenter",
+                async e => {
+                    i.parentElement.parentElement.querySelectorAll(".browse-tag-list tr").forEach(t => {
+                        if (t.querySelector("th")?.textContent?.includes("restriction")) {
+                            const key = t.querySelector("td")?.textContent
+                            if (restrictionsSignImages[key]) {
+                                void fetchTextWithCache(restrictionsSignImages[key])
+                            }
                         }
+                    })
+                    try {
+                        await loadRelationVersion(e)
+                    } catch (e) {
+                        btn.textContent = ":("
+                        console.error(e)
                     }
-                })
-                try {
-                    await loadRelationVersion(e)
-                } catch (e) {
-                    btn.textContent = ":("
-                    console.error(e)
-                }
-            },
-            {
-                once: true,
-            },
-        )
-        i.after(btn)
-        i.after(document.createTextNode("\xA0"))
-    })
+                },
+                {
+                    once: true,
+                },
+            )
+            i.after(btn)
+            i.after(document.createTextNode("\xA0"))
+        })
 
-    if (document.querySelectorAll(`.relation-version-view:not([hidden])`).length > 1 && !document.getElementById("download-all-versions-btn")) {
+    if (
+        document.querySelectorAll(`.relation-version-view:not([hidden])`).length > 1 &&
+        !document.getElementById("download-all-versions-btn")
+    ) {
         // todo remove check after when would full history
         const downloadAllVersionsBtn = document.createElement("a")
         downloadAllVersionsBtn.id = "download-all-versions-btn"
@@ -2420,7 +2514,8 @@ async function downloadVersionsOfObjectWithRedactionBefore2012(type, objID) {
         }
     }
 
-    const urlPrefix = "https://raw.githubusercontent.com/osm-cc-by-sa/data/refs/heads/main/versions_affected_by_disagreed_users_and_all_after_with_redaction_period"
+    const urlPrefix =
+        "https://raw.githubusercontent.com/osm-cc-by-sa/data/refs/heads/main/versions_affected_by_disagreed_users_and_all_after_with_redaction_period"
     const url = `${urlPrefix}/${type}/${id_prefix}.osm` + (type === "relation" ? ".gz" : "")
     return await downloadArchiveData(url, objID, type === "relation")
 }
@@ -2684,7 +2779,13 @@ async function restoreObjectHistory(showUnredactedBtn) {
             i.classList.remove(className)
         })
     })
-    const elementClassesForRemove = ["history-diff-deleted-tag-tr", "history-diff-modified-location", "find-user-btn", "way-version-view", "relation-version-view"]
+    const elementClassesForRemove = [
+        "history-diff-deleted-tag-tr",
+        "history-diff-modified-location",
+        "find-user-btn",
+        "way-version-view",
+        "relation-version-view",
+    ]
     elementClassesForRemove.forEach(elemClass => {
         Array.from(document.getElementsByClassName(elemClass)).forEach(i => {
             i.remove()
@@ -2707,7 +2808,9 @@ function setupViewRedactions() {
     }
     const showUnredactedBtn = document.createElement("a")
     showUnredactedBtn.id = "show-unredacted-btn"
-    showUnredactedBtn.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Просмотр неотредактированной истории β" : "View Unredacted History β"
+    showUnredactedBtn.textContent = ["ru-RU", "ru"].includes(navigator.language)
+        ? "Просмотр неотредактированной истории β"
+        : "View Unredacted History β"
     showUnredactedBtn.style.cursor = "pointer"
     showUnredactedBtn.href = ""
     showUnredactedBtn.onmouseenter = () => {
@@ -2752,7 +2855,9 @@ function addCommentsCount() {
             document.querySelectorAll(".changeset_num_comments").forEach(i => i.style.setProperty("display", "none", "important"))
         }
         const sectionSelector = isVersionPage() ? "#sidebar_content > div:first-of-type" : "#sidebar_content #element_versions_list > div"
-        const links = document.querySelectorAll(`${sectionSelector} div a[href^="/changeset"]:not(.comments-loaded):not(.comments-link):not([rel])`)
+        const links = document.querySelectorAll(
+            `${sectionSelector} div a[href^="/changeset"]:not(.comments-loaded):not(.comments-link):not([rel])`,
+        )
         await loadChangesetMetadatas(
             Array.from(links)
                 .map(i => {
@@ -3213,7 +3318,9 @@ function transformDiffWithColors() {
         },
     ]
     const oldToNewHtmlVersions = Array.from(
-        document.querySelectorAll('#element_versions_list > div:not(.processed):not([way-version="inter"]):not(:has(a[href*="/redactions/"]:not([rel]):not(.unredacted)))'),
+        document.querySelectorAll(
+            '#element_versions_list > div:not(.processed):not([way-version="inter"]):not(:has(a[href*="/redactions/"]:not([rel]):not(.unredacted)))',
+        ),
     ).toReversed()
 
     for (let verInd = 0; verInd < oldToNewHtmlVersions.length; verInd++) {
@@ -3457,7 +3564,15 @@ function transformDiffWithColors() {
             tr.classList.add("history-diff-deleted-tag-tr")
             const th = document.createElement("th")
             th.textContent = k
-            th.classList.add("history-diff-deleted-tag", "py-1", "border-grey", "table-light", "fw-normal", "border-start", "border-secondary-subtle")
+            th.classList.add(
+                "history-diff-deleted-tag",
+                "py-1",
+                "border-grey",
+                "table-light",
+                "fw-normal",
+                "border-start",
+                "border-secondary-subtle",
+            )
             const td = document.createElement("td")
             if (k.includes("colour")) {
                 td.innerHTML = `<svg width="14" height="14" class="float-end m-1"><title></title><rect x="0.5" y="0.5" width="13" height="13" fill="" stroke="#2222"></rect></svg>`
@@ -3466,7 +3581,15 @@ function transformDiffWithColors() {
             } else {
                 td.textContent = v
             }
-            td.classList.add("history-diff-deleted-tag", "py-1", "border-grey", "table-light", "fw-normal", "border-start", "border-secondary-subtle")
+            td.classList.add(
+                "history-diff-deleted-tag",
+                "py-1",
+                "border-grey",
+                "table-light",
+                "fw-normal",
+                "border-start",
+                "border-secondary-subtle",
+            )
             tr.appendChild(th)
             tr.appendChild(td)
             if (!x.querySelector("tbody")) {
@@ -3553,8 +3676,14 @@ function transformDiffWithColors() {
                     const nextVersion = oldToNewHtmlVersions[verInd + 1]
                     if (olderVersion && !olderVersion.querySelector("turbo-frame:has(.spinner-border)")) {
                         const curChildNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
-                        const oldChildMembers = Array.from(olderVersion.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
-                        if (version > 1 && (curChildNodes.length !== oldChildMembers.length || curChildNodes.some((el, index) => curChildNodes[index] !== oldChildMembers[index]))) {
+                        const oldChildMembers = Array.from(olderVersion.querySelectorAll("details ul.list-unstyled li")).map(
+                            el => el.textContent,
+                        )
+                        if (
+                            version > 1 &&
+                            (curChildNodes.length !== oldChildMembers.length ||
+                                curChildNodes.some((el, index) => curChildNodes[index] !== oldChildMembers[index]))
+                        ) {
                             ver.querySelector("details:not(.empty-version) > summary")?.classList.add("history-diff-modified-tag")
                             wasModifiedObject = true
                         } else if (!wasModifiedObject) {
@@ -3562,10 +3691,15 @@ function transformDiffWithColors() {
                         }
                     }
                     if (nextVersion && !nextVersion.querySelector("turbo-frame:has(.spinner-border)")) {
-                        const nextChildMembers = Array.from(nextVersion.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
+                        const nextChildMembers = Array.from(nextVersion.querySelectorAll("details ul.list-unstyled li")).map(
+                            el => el.textContent,
+                        )
                         const curChildNodes = Array.from(ver.querySelectorAll("details ul.list-unstyled li")).map(el => el.textContent)
 
-                        if (nextChildMembers.length !== curChildNodes.length || curChildNodes.some((el, index) => curChildNodes[index] !== nextChildMembers[index])) {
+                        if (
+                            nextChildMembers.length !== curChildNodes.length ||
+                            curChildNodes.some((el, index) => curChildNodes[index] !== nextChildMembers[index])
+                        ) {
                             nextVersion.querySelector("details:not(.empty-version) > summary")?.classList.add("history-diff-modified-tag")
                         } else {
                             const nextVersionNumber = parseInt(
@@ -3623,10 +3757,12 @@ function transformDiffWithColors() {
         })
     }
     let hasRedacted = false
-    Array.from(document.querySelectorAll('#element_versions_list > div:has(a[href*="/redactions/"]:not([rel]):not(.unredacted))')).forEach(x => {
-        x.classList.add("hidden-version")
-        hasRedacted = true
-    })
+    Array.from(document.querySelectorAll('#element_versions_list > div:has(a[href*="/redactions/"]:not([rel]):not(.unredacted))')).forEach(
+        x => {
+            x.classList.add("hidden-version")
+            hasRedacted = true
+        },
+    )
     if (hasRedacted) {
         try {
             setupViewRedactions()

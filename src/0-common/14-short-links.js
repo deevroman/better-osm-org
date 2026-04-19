@@ -16,7 +16,9 @@ function shortOsmOrgLinksInText(text) {
 
 function shortOsmOrgLinks(elem) {
     if (!GM_config.get("ImagesAndLinksInTags")) return
-    elem?.querySelectorAll('a[href^="https://www.openstreetmap.org"], a[href^="https://wiki.openstreetmap.org"], a[href^="https://community.openstreetmap.org"], a[href^="https://openstreetmap.org"]')?.forEach(i => {
+    elem?.querySelectorAll(
+        'a[href^="https://www.openstreetmap.org"], a[href^="https://wiki.openstreetmap.org"], a[href^="https://community.openstreetmap.org"], a[href^="https://openstreetmap.org"]',
+    )?.forEach(i => {
         i.textContent = shortOsmOrgLinksInText(i.textContent)
     })
 }

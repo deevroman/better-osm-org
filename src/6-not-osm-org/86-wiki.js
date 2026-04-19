@@ -8,7 +8,8 @@ function setupWiki() {
 
         for (const ul of document.querySelectorAll(":is(h1,h2):has(#Voting) ~ ul")) {
             for (const li of ul.querySelectorAll('li:has([typeof="mw:File"])')) {
-                const who = (Array.from(li.querySelectorAll(":scope > a")).at(-2) ?? Array.from(li.querySelectorAll(":scope > a")).at(-1)).textContent
+                const who = (Array.from(li.querySelectorAll(":scope > a")).at(-2) ?? Array.from(li.querySelectorAll(":scope > a")).at(-1))
+                    .textContent
                 if (li.querySelectorAll('[href="/wiki/File:Symbol_support_vote.svg"]').length === 1) {
                     supportList.push(who)
                 } else if (li.querySelectorAll('[href="/wiki/File:Symbol_oppose_vote.svg"]').length === 1) {
@@ -58,7 +59,9 @@ function setupWiki() {
         if (supportList.length > opposeList.length * 3) {
             support.insertCell().appendChild(document.createTextNode(`> 75%`))
         } else {
-            support.insertCell().appendChild(document.createTextNode(`need ${3 * opposeList.length - supportList.length} more votes up to 75 %`))
+            support
+                .insertCell()
+                .appendChild(document.createTextNode(`need ${3 * opposeList.length - supportList.length} more votes up to 75 %`))
         }
 
         oppose.insertCell().appendChild(opposeImg)

@@ -323,7 +323,9 @@ const configOptions = {
                 if (label.querySelector("#last-comments-link")) {
                     const userId = document.querySelector("head")?.getAttribute("data-user")
                     if (userId) {
-                        label.querySelector("#last-comments-link").setAttribute("href", `https://resultmaps.neis-one.org/osm-discussion-comments?uid=${userId}&commented`)
+                        label
+                            .querySelector("#last-comments-link")
+                            .setAttribute("href", `https://resultmaps.neis-one.org/osm-discussion-comments?uid=${userId}&commented`)
                     } else {
                         label.querySelector("#last-comments-link").remove()
                     }
@@ -379,7 +381,9 @@ const configOptions = {
                         row.remove()
                     }
                     JSON.parse(/** @type {string} */ (this.settings.default)).forEach(i => {
-                        this.wrapper.querySelector(`#${this.configId}_${this.id}_var table`).lastElementChild.before(makeRow(i["label"], i["text"]))
+                        this.wrapper
+                            .querySelector(`#${this.configId}_${this.id}_var table`)
+                            .lastElementChild.before(makeRow(i["label"], i["text"]))
                     })
                 }
             },

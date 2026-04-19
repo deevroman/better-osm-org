@@ -35,7 +35,11 @@ function arraysDiff(arg_a, arg_b, one_replace_cost = 2) {
                 const del_cost = dp[i - 1][j]
                 const ins_cost = dp[i][j - 1]
                 const replace_cost = dp[i - 1][j - 1] + (a[i - 1] !== b[j - 1]) * one_replace_cost // replacement is not very desirable
-                const replace_role_cost = dp[i - 1][j - 1] + (!(arg_a[i - 1].type === arg_b[j - 1].type && arg_a[i - 1].ref === arg_b[j - 1].ref) || arg_a[i - 1].role === arg_b[j - 1].role) * one_replace_cost
+                const replace_role_cost =
+                    dp[i - 1][j - 1] +
+                    (!(arg_a[i - 1].type === arg_b[j - 1].type && arg_a[i - 1].ref === arg_b[j - 1].ref) ||
+                        arg_a[i - 1].role === arg_b[j - 1].role) *
+                        one_replace_cost
                 dp[i][j] = min(min(del_cost, ins_cost) + 1, min(replace_cost, replace_role_cost))
             }
         }
@@ -76,7 +80,12 @@ function arraysDiff(arg_a, arg_b, one_replace_cost = 2) {
         const ins_cost = dp[i][j - 1]
         let replace_cost = dp[i - 1][j - 1] + (JSON.stringify(a[i - 1]) !== JSON.stringify(b[j - 1])) * one_replace_cost
         if (isRelation) {
-            replace_cost = min(replace_cost, dp[i - 1][j - 1] + (!(a[i - 1].type === b[j - 1].type && a[i - 1].ref === b[j - 1].ref) || a[i - 1].role === b[j - 1].role) * one_replace_cost)
+            replace_cost = min(
+                replace_cost,
+                dp[i - 1][j - 1] +
+                    (!(a[i - 1].type === b[j - 1].type && a[i - 1].ref === b[j - 1].ref) || a[i - 1].role === b[j - 1].role) *
+                        one_replace_cost,
+            )
         }
 
         if (del_cost <= ins_cost && del_cost + 1 <= replace_cost) {
@@ -125,7 +134,11 @@ function arraysDiff(arg_a, arg_b, one_replace_cost = 2) {
 
                 let try_i = i
                 let try_j = j
-                while (insideArray(try_j) && result[try_i][opposite] === result[try_j][opposite] && result[try_j][a_or_b] === result[try_j][opposite]) {
+                while (
+                    insideArray(try_j) &&
+                    result[try_i][opposite] === result[try_j][opposite] &&
+                    result[try_j][a_or_b] === result[try_j][opposite]
+                ) {
                     try_i += step
                     try_j += step
                 }

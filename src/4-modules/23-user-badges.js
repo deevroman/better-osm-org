@@ -55,7 +55,10 @@ function makeBadge(userInfo, changesetDate = new Date()) {
                     url: "/user/" + userInfo["display_name"] + "/blocks",
                 })
             ).response
-            const lastBlockLinks = new DOMParser().parseFromString(xml, "text/html").querySelector('a[href^="/user_blocks/"]').getAttribute("href")
+            const lastBlockLinks = new DOMParser()
+                .parseFromString(xml, "text/html")
+                .querySelector('a[href^="/user_blocks/"]')
+                .getAttribute("href")
             const blockID = lastBlockLinks.match(/\/user_blocks\/([0-9]+)/)[1]
             const blockInfo = (
                 await externalFetchRetry({
@@ -132,7 +135,9 @@ function makeBadge(userInfo, changesetDate = new Date()) {
     } else if (userInfo["blocks"]["received"]["active"]) {
         makeBannedUserBadge()
     } else if (
-        new Date(userInfo["firstChangesetCreationTime"] ?? userInfo["account_created"]).setUTCDate(new Date(userInfo["firstChangesetCreationTime"] ?? userInfo["account_created"]).getUTCDate() + 30) > changesetDate
+        new Date(userInfo["firstChangesetCreationTime"] ?? userInfo["account_created"]).setUTCDate(
+            new Date(userInfo["firstChangesetCreationTime"] ?? userInfo["account_created"]).getUTCDate() + 30,
+        ) > changesetDate
     ) {
         makeNewbieBadge()
     } else if (!corporateMappers || corporateMappers?.has(userInfo["display_name"])) {

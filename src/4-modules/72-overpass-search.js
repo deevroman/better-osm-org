@@ -9,7 +9,9 @@ function yetAnotherWizard(s) {
     } else {
         // name ~ пятёрочка, i
         // https://github.com/drolbr/Overpass-API/issues/751
-        const kv_match = s.match(/^(?<prefix>[~!]?)(?<key>[a-zA-Z0-9_\p{L}^$.*+]+)\s*(?<op>(=|~|!=|!~))\s*(?<value>[a-zA-Z0-9_\p{L}^$.*+]+)(?<suffix>\s*,\s*i)?$/u)?.groups
+        const kv_match = s.match(
+            /^(?<prefix>[~!]?)(?<key>[a-zA-Z0-9_\p{L}^$.*+]+)\s*(?<op>(=|~|!=|!~))\s*(?<value>[a-zA-Z0-9_\p{L}^$.*+]+)(?<suffix>\s*,\s*i)?$/u,
+        )?.groups
         if (kv_match) {
             return `nwr[${kv_match["prefix"] ?? ""}"${kv_match["key"]}"${kv_match["op"]}"${kv_match["value"]}"${kv_match["suffix"] ?? ""}];`
         } else {
@@ -25,7 +27,12 @@ async function processOverpassQuery(query) {
     query = query.trim()
     await GM.setValue("lastOverpassQuery", query)
     const bound = getMap().getBounds()
-    const bboxString = [bound.getSouthWest().wrap().lat, bound.getSouthWest().wrap().lng, bound.getNorthEast().wrap().lat, bound.getNorthEast().wrap().lng]
+    const bboxString = [
+        bound.getSouthWest().wrap().lat,
+        bound.getSouthWest().wrap().lng,
+        bound.getNorthEast().wrap().lat,
+        bound.getNorthEast().wrap().lng,
+    ]
     const bboxExpr = query[query.length - 1] !== "!" ? "[bbox:" + bboxString + "]" : ""
     if (query[query.length - 1] === "!") {
         query = query.slice(0, -1)
