@@ -290,6 +290,30 @@ function makeOpeningHoursValue(valueCell, key, isVersionPage) {
     }
 }
 
+function makeXmasFeatureEasterEgg() {
+    const curDate = new Date()
+    if ((curDate.getMonth() === 11 && curDate.getDate() >= 18) || (curDate.getMonth() === 0 && curDate.getDate() < 10)) {
+        if (!document.querySelector(".egg-snow-tag")) {
+            const snowBtn = document.createElement("span")
+            snowBtn.classList.add("egg-snow-tag")
+            snowBtn.textContent = " ❄️"
+            snowBtn.style.cursor = "pointer"
+            snowBtn.title = "better-osm-org easter egg"
+            snowBtn.addEventListener(
+                "click",
+                e => {
+                    e.target.style.display = "none"
+                    runSnowAnimation()
+                },
+                {
+                    once: true,
+                },
+            )
+            document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(snowBtn)
+        }
+    }
+}
+
 let buildingViewerIframe = null
 
 let contextMenuCSSInjected = false
@@ -430,27 +454,7 @@ function makeLinksInVersionTagClickable(row, objType) {
     } else if (key.startsWith("mapillary")) {
         makeMapillaryValue(valueCell)
     } else if ((key === "xmas:feature" && !document.querySelector(".egg-snow-tag")) || valueCell.textContent.includes("snow")) {
-        const curDate = new Date()
-        if ((curDate.getMonth() === 11 && curDate.getDate() >= 18) || (curDate.getMonth() === 0 && curDate.getDate() < 10)) {
-            if (!document.querySelector(".egg-snow-tag")) {
-                const snowBtn = document.createElement("span")
-                snowBtn.classList.add("egg-snow-tag")
-                snowBtn.textContent = " ❄️"
-                snowBtn.style.cursor = "pointer"
-                snowBtn.title = "better-osm-org easter egg"
-                snowBtn.addEventListener(
-                    "click",
-                    e => {
-                        e.target.style.display = "none"
-                        runSnowAnimation()
-                    },
-                    {
-                        once: true,
-                    },
-                )
-                document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(snowBtn)
-            }
-        }
+        makeXmasFeatureEasterEgg()
     } else if (key === "wikimedia_commons") {
         makeWikimediaCommonsValue(valueCell)
     } else if (key === "direction" || key === "camera:direction" || key === "light:direction") {
