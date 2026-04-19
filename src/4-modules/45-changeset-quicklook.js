@@ -377,10 +377,7 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
         } else if (needValidateOpeningHoursKey(key)) {
             makeOpeningHoursValue(valueCell, key, false)
         } else if (key === "roof:direction") {
-            if (valueCell.textContent === "across" || valueCell.textContent === "along") {
-                valueCell.classList.add("fixme-tag")
-                valueCell.title = "it seems to need to be changed to roof:orientation"
-            }
+            makeRoofDirectionValue(valueCell, row, false)
         } else if (key === "roof:orientation") {
             makeRoofOrientationValue(valueCell)
         } else if (needValidateConditionalAccessKey(key)) {
