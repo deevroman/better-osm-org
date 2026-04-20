@@ -2476,11 +2476,11 @@ async function downloadVersionsOfObjectWithRedactionBefore2012(type, objID) {
     async function downloadArchiveData(url, objID, needUnzip = false) {
         try {
             const diffGZ = await fetchBlobWithCache(url, { timeout: 10 * 1000 })
-            const blob = needUnzip ? await decompressBlob(diffGZ.response) : diffGZ.response
             if (diffGZ.status !== 200) {
                 console.warn(diffGZ.status, diffGZ.statusText, url)
                 return
             }
+            const blob = needUnzip ? await decompressBlob(diffGZ.response) : diffGZ.response
             const diffXML = await blob.text()
 
             const doc = new DOMParser().parseFromString(diffXML, "application/xml")
