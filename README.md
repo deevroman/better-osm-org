@@ -154,6 +154,7 @@ Experimental hotkeys:
 - + [x] Ruler
 - + [ ] Calc area size
 - + [ ] Copy coordinates in multiple formats
+- [x] Custom layers and overlays
 
 ### Ideas
 
@@ -188,15 +189,12 @@ Experimental hotkeys:
   + [ ] Photon?
 -
   + [x] Overpass (`shift` + `/`)
-- [ ] Custom layers and overlays
--
-    + [ ] Strava for iD (Hard, need workaround for overzoom)
-    + [ ] Any layers on main page
 - [ ] Show nearest example for map legend
 - [ ] website & iD helper for translator (open search query into translation platform)
 - [ ] show in quick look the base way tag
 - [ ] Fast tags copy from wiki
 - [ ] Support OpenHistoricalMap
+- [ ] Support OpenGeoFiction
 
 Maybe
 
