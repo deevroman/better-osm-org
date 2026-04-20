@@ -1,5 +1,34 @@
 //<editor-fold desc="network-utils" defaultstate="collapsed">
 
+const limiterStorageWritesQueue = new Set()
+
+/**
+ *
+ * @param {string} key
+ * @param {number} ms
+ * @return {Promise<void>}
+ */
+async function globalRateLimitByKey(key, ms) {
+    // simple rate limiter
+    // fixme rate limiting only request start
+    while (true) {
+        const lastReqTime = await GM.getValue(key)
+        if (limiterStorageWritesQueue.has(key)) {
+            await abortableSleep(ms, getAbortController())
+            continue
+        }
+        if (!lastReqTime || new Date(lastReqTime).getTime() + ms < Date.now()) {
+            limiterStorageWritesQueue.add(key)
+            await GM.setValue(key, Date.now())
+            limiterStorageWritesQueue.delete(key)
+            break
+        }
+        const delay = 1100
+        console.log(`wait ${delay / 1000}s for "${key}" key`)
+        await abortableSleep(delay, getAbortController()) // todo extract const
+    }
+}
+
 /**
  * @param details {Tampermonkey.Request}
  * @return {Promise<Tampermonkey.Response>}
@@ -88,6 +117,9 @@ async function _fetchRetry(fetchImpl, ...args) {
     let count = RETRY_COUNT
     while (count > 0) {
         try {
+            if (args[0].rateLimiter) {
+                await globalRateLimitByKey(args[0].rateLimiter.key, args[0].rateLimiter.minDelay)
+            }
             const res = await fetchImpl(...args)
             if (res.status === 509 || res.status === 429 || res.status === 504) {
                 console.warn(`HTTP ${res.status}. Waiting before retry`)
@@ -355,7 +387,11 @@ function resourceCacher(url, storageKey, name, dateDelta, type) {
  */
 async function overpassRequest(query, responseType = "json") {
     console.log("overpass request", query)
-    await globalRateLimitByKey("overpass", 500)
+    console.count("kek")
+    const rateLimiter = {
+        key: "overpass",
+        minDelay: 1000,
+    }
     if (overpass_server.referer) {
         return await externalFetchRetry({
             method: "POST",
@@ -366,6 +402,7 @@ async function overpassRequest(query, responseType = "json") {
                 Origin: overpass_server.origin,
             },
             responseType: responseType,
+            rateLimiter: rateLimiter,
         })
     }
     return await externalFetchRetry({
@@ -373,6 +410,7 @@ async function overpassRequest(query, responseType = "json") {
         url: overpass_server.apiUrl + "/interpreter",
         data: query,
         responseType: responseType,
+        rateLimiter: rateLimiter,
     })
 }
 

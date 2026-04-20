@@ -117,24 +117,6 @@ function addSwipes() {
     }
 }
 
-/**
- *
- * @param {string} key
- * @param {number} ms
- * @return {Promise<void>}
- */
-async function globalRateLimitByKey(key, ms) {
-    // simple rate limiter
-    while (true) {
-        const lastReqTime = await GM.getValue(key)
-        if (!lastReqTime || new Date(lastReqTime).getTime() + ms < Date.now()) {
-            await GM.setValue(key, Date.now())
-            break
-        }
-        console.log(`wait 1s for "${key}" key`)
-        await abortableSleep(1000, getAbortController()) // todo extract const
-    }
-}
 const cachedNominatimRequests = new Set()
 
 async function geocodeCurrentView(attempts = 5) {
