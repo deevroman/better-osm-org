@@ -67,7 +67,7 @@ window.addEventListener("message", async e => {
             const p = document.createElement("p")
             p.classList.add("osrm-debug-link", "text-center", "routing-timestamp")
             const a = document.createElement("a")
-            a.href = `https://map.project-osrm.org/debug/#${z}/${x}/${y}`
+            a.href = `https://map.project-osrm.org/debug/#${max(12, parseInt(z))}/${x}/${y}`
             a.target = "_blank"
             a.textContent = "Open Debug Map"
             p.appendChild(a)
