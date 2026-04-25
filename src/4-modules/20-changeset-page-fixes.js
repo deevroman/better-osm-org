@@ -939,7 +939,7 @@ Press R for partial revert`
                     const b = document.createElement("span")
                     b.classList.add("comment-template", "btn", "btn-primary")
                     b.textContent = label
-                    b.title = `Add into the comment "${text}".\nYou can change text in userscript settings`
+                    b.title = `"${text}" will be added to the comment text.\nYou can change text in userscript settings`
                     buttonsWrapper.appendChild(b)
                     b.onmousedown = e => {
                         e.preventDefault()
