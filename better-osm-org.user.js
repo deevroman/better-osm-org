@@ -9531,12 +9531,16 @@ function makeElementHistoryCompact(forceState = null) {
 }
 
 function drawPanoramaxCapturePlace(feature) {
-    const lat = feature?.geometry?.coordinates?.[1]
-    const lon = feature?.geometry?.coordinates?.[0]
+    const lat = feature.geometry?.coordinates?.[1]
+    const lon = feature.geometry?.coordinates?.[0]
     if (lat === undefined || lon === undefined) {
         return
     }
-    const rawAngle = feature?.properties?.exif?.["Exif.GPSInfo.GPSImgDirection"]
+    const rawAngle = feature.properties?.exif?.["Exif.GPSInfo.GPSImgDirection"]
+    if (rawAngle === undefined) {
+        console.warn("no angle in feature", feature)
+        return
+    }
     const angle = rawAngle?.includes("/") ? rawAngle.split("/")[0] / rawAngle.split("/")[1] : parseFloat(rawAngle)
 
     showActiveNodeMarker(lat, lon, "#0022ff", true)
@@ -9558,6 +9562,21 @@ async function attachPanoramaxHoverCaptureHandler(a, uuid, panoramaxServer) {
         return
     }
     a.onmouseenter = () => drawPanoramaxCapturePlace(res["features"][0])
+    const author = res["features"][0]?.properties?.["geovisio:producer"]
+    const artist = res["features"][0]?.properties?.exif?.["Exif.Image.Artist"]
+    if (author) {
+        if (a.title && a.title?.length !== 0) {
+            a.title += "\n"
+        }
+        a.title += "Photo by " + author
+        if (artist && artist !== author) {
+            a.title += " / " + artist
+        }
+    }
+    const date = res["features"][0]?.properties?.exif?.["Exif.Image.DateTime"]
+    if (date) {
+        a.title += "\n" + date
+    }
 }
 
 function addPanoramaxPicIntoA(uuid, a, panoramaxServer) {
