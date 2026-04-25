@@ -119,6 +119,46 @@ if ([prod_server.origin, dev_server.origin, local_server.origin, ohm_prod_server
     initMaplibreWorkerOverrider()
 }
 
+function initPanoramaxPhotosPreviewMessageHandler() {
+    window.addEventListener("message", e => {
+        if (e.origin !== location.origin) {
+            return
+        }
+        if (e.data?.type !== "panoramax_photos_preview_added") {
+            return
+        }
+        document.querySelectorAll("#photos-preview-gallery .panoramax-preview[data-panoramax-uuid]").forEach(previewEl => {
+            const uuid = previewEl.getAttribute("data-panoramax-uuid")
+            if (!uuid) {
+                return
+            }
+            const osmPath = previewEl.getAttribute("data-osm-path")
+            if (osmPath && !previewEl.getAttribute("data-route-bound")) {
+                previewEl.setAttribute("data-route-bound", "1")
+                previewEl.onclick = e => {
+                    e.stopPropagation()
+                    getWindow().OSM.router.route(osmPath)
+                }
+            }
+            if (previewEl.querySelector("img")) {
+                return
+            }
+            const imgSrc = `${panoramaxDiscoveryServer}/api/pictures/${uuid}/thumb.jpg`
+            const img = GM_addElement("img", {
+                src: imgSrc,
+                width: "100%",
+            })
+            img.style.height = "100%"
+            img.style.objectFit = "cover"
+            img.onerror = () => {
+                img.style.display = "none"
+            }
+            previewEl.append(img)
+            void attachPanoramaxHoverCaptureHandler(previewEl, uuid, panoramaxDiscoveryServer)
+        })
+    })
+}
+
 function runInOsmPageCode() {
     injectJSIntoPage(`
     const OriginalBlob = window.Blob;
@@ -174,6 +214,7 @@ function runInOsmPageCode() {
     window.needPatchLoadMoreRequest = null;
     window.hiddenChangesetsCount = null;
     window.spyGlassMode = false;
+    window.photosMode = false;
 
     window.notesDisplayName = "";
     window.notesQFilter = "";
@@ -434,6 +475,90 @@ function runInOsmPageCode() {
                 //     statusText: response.statusText,
                 //     headers: response.headers
                 // });
+            } else if ((true || photosMode) && args[0]?.includes?.("/map.json")) {
+                console.debug("replacing Map Data overlay")
+                const response = await originalFetch(...args);
+                const originalJSON = await response.json();
+                setTimeout(() => {
+                    const withPhotos = []
+                    originalJSON.elements.forEach(i => {
+                        if (i.tags) {
+                            Object.keys(i.tags).forEach(k => {
+                                if (k.startsWith("panoramax")) {
+                                    withPhotos.push(i)
+                                }
+                            })
+                        }
+                    })
+
+                    const mapEl = document.getElementById("map")
+                    if (!mapEl) {
+                        return
+                    }
+                    mapEl.style.position = "relative"
+
+                    let photosPreviewGallery = document.getElementById("photos-preview-gallery")
+                    if (!photosPreviewGallery) {
+                        photosPreviewGallery = document.createElement("div")
+                        photosPreviewGallery.id = "photos-preview-gallery"
+                        photosPreviewGallery.style.position = "absolute"
+                        photosPreviewGallery.style.left = "50%"
+                        photosPreviewGallery.style.transform = "translateX(-50%)"
+                        photosPreviewGallery.style.bottom = "0"
+                        photosPreviewGallery.style.width = "fit-content"
+                        photosPreviewGallery.style.maxWidth = "calc(100% - 24px)"
+                        photosPreviewGallery.style.height = "88px"
+                        photosPreviewGallery.style.padding = "10px 12px"
+                        photosPreviewGallery.style.boxSizing = "border-box"
+                        photosPreviewGallery.style.display = "flex"
+                        photosPreviewGallery.style.gap = "8px"
+                        photosPreviewGallery.style.overflowX = "auto"
+                        photosPreviewGallery.style.overflowY = "hidden"
+                        photosPreviewGallery.style.zIndex = "99999"
+                        photosPreviewGallery.style.background = "transparent"
+                        photosPreviewGallery.style.touchAction = "pan-x"
+                        photosPreviewGallery.addEventListener("wheel", e => {
+                            e.stopPropagation()
+                            if (e.deltaX !== 0 || e.deltaY !== 0) {
+                                photosPreviewGallery.scrollLeft += e.deltaX + e.deltaY
+                                e.preventDefault()
+                            }
+                        }, { passive: false })
+                        photosPreviewGallery.addEventListener("pointerdown", e => {
+                            e.stopPropagation()
+                        })
+                        mapEl.append(photosPreviewGallery)
+                    }
+
+                    photosPreviewGallery.replaceChildren()
+                    withPhotos.forEach(photoObj => {
+                        const placeholder = document.createElement("div")
+                        placeholder.classList.add("panoramax-preview")
+                        placeholder.style.flex = "0 0 64px"
+                        placeholder.style.height = "64px"
+                        placeholder.style.border = "1px solid #c7c7c7"
+                        placeholder.style.borderRadius = "8px"
+                        placeholder.style.background = "#f3f3f3"
+                        placeholder.style.overflow = "hidden"
+                        placeholder.style.pointerEvents = "auto"
+                        placeholder.style.cursor = "pointer"
+                        const panoramaxTagValue = Object.entries(photoObj.tags || {}).find(([k, _]) => k.startsWith("panoramax"))?.[1]
+                        const panoramaxUuid = panoramaxTagValue?.match?.(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0]
+                        if (panoramaxUuid) {
+                            placeholder.setAttribute("data-panoramax-uuid", panoramaxUuid.toLowerCase())
+                        }
+                        if (photoObj.type && photoObj.id) {
+                            placeholder.setAttribute("data-osm-path", "/" + photoObj.type + "/" + photoObj.id)
+                        }
+                        photosPreviewGallery.append(placeholder)
+                    })
+                    window.postMessage({ type: "panoramax_photos_preview_added" }, location.origin)
+                })
+                return new Response(JSON.stringify(originalJSON), {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: response.headers
+                });
             } else if (spyGlassMode && args[0]?.includes?.("/map.json")) {
                 console.debug("replacing Map Data overlay")
                 const response = await originalFetch(...args);
@@ -723,6 +848,7 @@ function runInOsmPageCode() {
 }
 
 if (isOsmServer()) {
+    initPanoramaxPhotosPreviewMessageHandler()
     runInOsmPageCode()
 }
 

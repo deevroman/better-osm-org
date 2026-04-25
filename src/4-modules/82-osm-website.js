@@ -153,6 +153,18 @@ function setupOSMWebsite() {
                 { once: true },
             )
         }
+        document.querySelectorAll('nav a[href="/export"]').forEach(i =>
+            i.addEventListener("contextmenu", async e => {
+                e.preventDefault()
+                const bounds = await getMapBounds()
+                showBboxMenu(e, {
+                    max_lat: bounds.getNorthWest().lat,
+                    min_lon: bounds.getNorthWest().lng,
+                    min_lat: bounds.getSouthEast().lat,
+                    max_lon: bounds.getSouthEast().lng,
+                })
+            }),
+        )
     })
 }
 

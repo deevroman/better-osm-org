@@ -6960,6 +6960,7 @@ function addSpyGlassButtons() {
 
     spyGlassBtn.onclick = async () => {
         getWindow().spyGlassMode = !getWindow().spyGlassMode
+        getWindow().photosMode = !getWindow().photosMode
         if (getWindow().spyGlassMode) {
             spyGlassBtn.classList.remove("bi-eye-slash-fill")
             spyGlassBtn.classList.add("bi-eye-fill")
@@ -9529,6 +9530,36 @@ function makeElementHistoryCompact(forceState = null) {
     document.querySelector(".compact-toggle-btn").innerHTML = shouldBeCompact ? expandModeSvg : compactModeSvg
 }
 
+function drawPanoramaxCapturePlace(feature) {
+    const lat = feature?.geometry?.coordinates?.[1]
+    const lon = feature?.geometry?.coordinates?.[0]
+    if (lat === undefined || lon === undefined) {
+        return
+    }
+    const rawAngle = feature?.properties?.exif?.["Exif.GPSInfo.GPSImgDirection"]
+    const angle = rawAngle?.includes("/") ? rawAngle.split("/")[0] / rawAngle.split("/")[1] : parseFloat(rawAngle)
+
+    showActiveNodeMarker(lat, lon, "#0022ff", true)
+    if (angle) {
+        drawRay(lat, lon, angle - 30, "#0022ff")
+        drawRay(lat, lon, angle + 30, "#0022ff")
+    }
+}
+
+async function attachPanoramaxHoverCaptureHandler(a, uuid, panoramaxServer) {
+    const res = (
+        await externalFetchRetry({
+            url: `${panoramaxServer}/api/search?limit=1&ids=${uuid}`,
+            responseType: "json",
+        })
+    ).response
+    if (res["error"] || res["features"].length === 0) {
+        console.error(res)
+        return
+    }
+    a.onmouseenter = () => drawPanoramaxCapturePlace(res["features"][0])
+}
+
 function addPanoramaxPicIntoA(uuid, a, panoramaxServer) {
     const imgSrc = `${panoramaxServer}/api/pictures/${uuid}/sd.jpg`
     if (isSafari) {
@@ -9552,31 +9583,7 @@ function addPanoramaxPicIntoA(uuid, a, panoramaxServer) {
         }
         a.appendChild(img)
     }
-    setTimeout(async () => {
-        const res = (
-            await externalFetchRetry({
-                url: `${panoramaxServer}/api/search?limit=1&ids=${uuid}`,
-                responseType: "json",
-            })
-        ).response
-        if (!res["error"] && res["features"].length > 0) {
-            a.onmouseenter = () => {
-                const lat = res["features"][0]["geometry"]["coordinates"][1]
-                const lon = res["features"][0]["geometry"]["coordinates"][0]
-                const raw_angle = res["features"][0]["properties"]["exif"]["Exif.GPSInfo.GPSImgDirection"]
-                const angle = raw_angle?.includes("/") ? raw_angle.split("/")[0] / raw_angle.split("/")[1] : parseFloat(raw_angle)
-
-                showActiveNodeMarker(lat, lon, "#0022ff", true)
-
-                if (angle) {
-                    drawRay(lat, lon, angle - 30, "#0022ff")
-                    drawRay(lat, lon, angle + 30, "#0022ff")
-                }
-            }
-        } else {
-            console.error(res)
-        }
-    })
+    setTimeout(() => attachPanoramaxHoverCaptureHandler(a, uuid, panoramaxServer))
 }
 
 // https://osm.org/node/12559772251
@@ -18307,6 +18314,41 @@ async function addHoverForNodesParents() {
     }
 }
 
+function showBboxMenu(e, bbox) {
+    injectContextMenuCSS()
+    document.querySelectorAll(".betterOsmContextMenu").forEach(i => i.remove())
+    const menu = makeContextMenuElem(e)
+    ;[
+        `${bbox.min_lat.toFixed(6)} ${bbox.min_lon.toFixed(6)} ${bbox.max_lat.toFixed(6)} ${bbox.max_lon.toFixed(6)}`,
+        `${bbox.min_lon.toFixed(6)} ${bbox.min_lat.toFixed(6)} ${bbox.max_lon.toFixed(6)} ${bbox.max_lat.toFixed(6)}`,
+        `${bbox.min_lat.toFixed(6)},${bbox.min_lon.toFixed(6)},${bbox.max_lat.toFixed(6)},${bbox.max_lon.toFixed(6)}`,
+        `${bbox.min_lon.toFixed(6)},${bbox.min_lat.toFixed(6)},${bbox.max_lon.toFixed(6)},${bbox.max_lat.toFixed(6)}`,
+    ].forEach(text => {
+        const listItem = document.createElement("div")
+        const a = document.createElement("a")
+        a.textContent = text
+        a.title = "Click to copy " + text
+        a.style.width = "100%"
+        a.style.fontVariantNumeric = "tabular-nums"
+        a.onclick = e => {
+            e.preventDefault()
+            e.stopPropagation()
+            navigator.clipboard.writeText(text)
+            document.querySelectorAll(".betterOsmContextMenu").forEach(i => i.remove())
+        }
+        listItem.appendChild(a)
+        document.addEventListener(
+            "click",
+            function fn(e) {
+                menu.remove()
+            },
+            { once: true },
+        )
+        menu.appendChild(listItem)
+    })
+    document.body.appendChild(menu)
+}
+
 /**
  * @param {number[]} nodesIds
  * @param {Map} nodesMap
@@ -18437,8 +18479,7 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type) {
     const icon4 = document.createElement("span")
     icon4.innerHTML = svg4
     icon4.style.cursor = "pointer"
-    const text4 = `${bbox.min_lat.toString()} ${bbox.min_lon.toString()} ${bbox.max_lat.toString()} ${bbox.max_lon.toString()}`
-    icon4.title = "Click to copy bbox: " + text4
+    icon4.title = "Click to copy bbox"
     icon4.onmouseenter = () => {
         cleanObjectsByKey("activeObjects")
         const rect = getWindow()
@@ -18452,9 +18493,7 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type) {
             .addTo(getMap())
         layers["activeObjects"].push(rect)
     }
-    icon4.onclick = e => {
-        navigator.clipboard.writeText(text4).then(() => copyAnimation(e, text4))
-    }
+    icon4.onclick = e => showBboxMenu(e, bbox)
     // todo нужно больше форматов bbox
     const icons = document.createElement("div")
     icons.style.paddingTop = "5px"
@@ -18625,7 +18664,7 @@ async function addHoverForRelationMembers() {
             infoBtn.classList.add("relation-info-btn")
             infoBtn.classList.add("completed")
             infoBtn.style.fontSize = "large"
-            infoBtn.style.cursor = "pointer"
+            infoBtn.style.cursor = "progress"
 
             document.querySelector("#sidebar_content h4:last-of-type").appendChild(document.createTextNode("\xA0"))
             document.querySelector("#sidebar_content h4:last-of-type").appendChild(infoBtn)
@@ -18957,6 +18996,7 @@ async function addHoverForRelationMembers() {
         console.log("addHoverForRelationMembers finished")
     } finally {
         addHoverForRelationMembersLock = false
+        document.querySelector(".relation-info-btn").style.cursor = "pointer"
     }
 }
 
@@ -19457,6 +19497,46 @@ if ([prod_server.origin, dev_server.origin, local_server.origin, ohm_prod_server
     initMaplibreWorkerOverrider()
 }
 
+function initPanoramaxPhotosPreviewMessageHandler() {
+    window.addEventListener("message", e => {
+        if (e.origin !== location.origin) {
+            return
+        }
+        if (e.data?.type !== "panoramax_photos_preview_added") {
+            return
+        }
+        document.querySelectorAll("#photos-preview-gallery .panoramax-preview[data-panoramax-uuid]").forEach(previewEl => {
+            const uuid = previewEl.getAttribute("data-panoramax-uuid")
+            if (!uuid) {
+                return
+            }
+            const osmPath = previewEl.getAttribute("data-osm-path")
+            if (osmPath && !previewEl.getAttribute("data-route-bound")) {
+                previewEl.setAttribute("data-route-bound", "1")
+                previewEl.onclick = e => {
+                    e.stopPropagation()
+                    getWindow().OSM.router.route(osmPath)
+                }
+            }
+            if (previewEl.querySelector("img")) {
+                return
+            }
+            const imgSrc = `${panoramaxDiscoveryServer}/api/pictures/${uuid}/thumb.jpg`
+            const img = GM_addElement("img", {
+                src: imgSrc,
+                width: "100%",
+            })
+            img.style.height = "100%"
+            img.style.objectFit = "cover"
+            img.onerror = () => {
+                img.style.display = "none"
+            }
+            previewEl.append(img)
+            void attachPanoramaxHoverCaptureHandler(previewEl, uuid, panoramaxDiscoveryServer)
+        })
+    })
+}
+
 function runInOsmPageCode() {
     injectJSIntoPage(`
     const OriginalBlob = window.Blob;
@@ -19512,6 +19592,7 @@ function runInOsmPageCode() {
     window.needPatchLoadMoreRequest = null;
     window.hiddenChangesetsCount = null;
     window.spyGlassMode = false;
+    window.photosMode = false;
 
     window.notesDisplayName = "";
     window.notesQFilter = "";
@@ -19772,6 +19853,90 @@ function runInOsmPageCode() {
                 //     statusText: response.statusText,
                 //     headers: response.headers
                 // });
+            } else if ((true || photosMode) && args[0]?.includes?.("/map.json")) {
+                console.debug("replacing Map Data overlay")
+                const response = await originalFetch(...args);
+                const originalJSON = await response.json();
+                setTimeout(() => {
+                    const withPhotos = []
+                    originalJSON.elements.forEach(i => {
+                        if (i.tags) {
+                            Object.keys(i.tags).forEach(k => {
+                                if (k.startsWith("panoramax")) {
+                                    withPhotos.push(i)
+                                }
+                            })
+                        }
+                    })
+
+                    const mapEl = document.getElementById("map")
+                    if (!mapEl) {
+                        return
+                    }
+                    mapEl.style.position = "relative"
+
+                    let photosPreviewGallery = document.getElementById("photos-preview-gallery")
+                    if (!photosPreviewGallery) {
+                        photosPreviewGallery = document.createElement("div")
+                        photosPreviewGallery.id = "photos-preview-gallery"
+                        photosPreviewGallery.style.position = "absolute"
+                        photosPreviewGallery.style.left = "50%"
+                        photosPreviewGallery.style.transform = "translateX(-50%)"
+                        photosPreviewGallery.style.bottom = "0"
+                        photosPreviewGallery.style.width = "fit-content"
+                        photosPreviewGallery.style.maxWidth = "calc(100% - 24px)"
+                        photosPreviewGallery.style.height = "88px"
+                        photosPreviewGallery.style.padding = "10px 12px"
+                        photosPreviewGallery.style.boxSizing = "border-box"
+                        photosPreviewGallery.style.display = "flex"
+                        photosPreviewGallery.style.gap = "8px"
+                        photosPreviewGallery.style.overflowX = "auto"
+                        photosPreviewGallery.style.overflowY = "hidden"
+                        photosPreviewGallery.style.zIndex = "99999"
+                        photosPreviewGallery.style.background = "transparent"
+                        photosPreviewGallery.style.touchAction = "pan-x"
+                        photosPreviewGallery.addEventListener("wheel", e => {
+                            e.stopPropagation()
+                            if (e.deltaX !== 0 || e.deltaY !== 0) {
+                                photosPreviewGallery.scrollLeft += e.deltaX + e.deltaY
+                                e.preventDefault()
+                            }
+                        }, { passive: false })
+                        photosPreviewGallery.addEventListener("pointerdown", e => {
+                            e.stopPropagation()
+                        })
+                        mapEl.append(photosPreviewGallery)
+                    }
+
+                    photosPreviewGallery.replaceChildren()
+                    withPhotos.forEach(photoObj => {
+                        const placeholder = document.createElement("div")
+                        placeholder.classList.add("panoramax-preview")
+                        placeholder.style.flex = "0 0 64px"
+                        placeholder.style.height = "64px"
+                        placeholder.style.border = "1px solid #c7c7c7"
+                        placeholder.style.borderRadius = "8px"
+                        placeholder.style.background = "#f3f3f3"
+                        placeholder.style.overflow = "hidden"
+                        placeholder.style.pointerEvents = "auto"
+                        placeholder.style.cursor = "pointer"
+                        const panoramaxTagValue = Object.entries(photoObj.tags || {}).find(([k, _]) => k.startsWith("panoramax"))?.[1]
+                        const panoramaxUuid = panoramaxTagValue?.match?.(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0]
+                        if (panoramaxUuid) {
+                            placeholder.setAttribute("data-panoramax-uuid", panoramaxUuid.toLowerCase())
+                        }
+                        if (photoObj.type && photoObj.id) {
+                            placeholder.setAttribute("data-osm-path", "/" + photoObj.type + "/" + photoObj.id)
+                        }
+                        photosPreviewGallery.append(placeholder)
+                    })
+                    window.postMessage({ type: "panoramax_photos_preview_added" }, location.origin)
+                })
+                return new Response(JSON.stringify(originalJSON), {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: response.headers
+                });
             } else if (spyGlassMode && args[0]?.includes?.("/map.json")) {
                 console.debug("replacing Map Data overlay")
                 const response = await originalFetch(...args);
@@ -20061,6 +20226,7 @@ function runInOsmPageCode() {
 }
 
 if (isOsmServer()) {
+    initPanoramaxPhotosPreviewMessageHandler()
     runInOsmPageCode()
 }
 
@@ -26798,6 +26964,18 @@ function setupOSMWebsite() {
                 { once: true },
             )
         }
+        document.querySelectorAll('nav a[href="/export"]').forEach(i =>
+            i.addEventListener("contextmenu", async e => {
+                e.preventDefault()
+                const bounds = await getMapBounds()
+                showBboxMenu(e, {
+                    max_lat: bounds.getNorthWest().lat,
+                    min_lon: bounds.getNorthWest().lng,
+                    min_lat: bounds.getSouthEast().lat,
+                    max_lon: bounds.getSouthEast().lng,
+                })
+            }),
+        )
     })
 }
 

@@ -33,6 +33,7 @@ function addSpyGlassButtons() {
 
     spyGlassBtn.onclick = async () => {
         getWindow().spyGlassMode = !getWindow().spyGlassMode
+        getWindow().photosMode = !getWindow().photosMode
         if (getWindow().spyGlassMode) {
             spyGlassBtn.classList.remove("bi-eye-slash-fill")
             spyGlassBtn.classList.add("bi-eye-fill")

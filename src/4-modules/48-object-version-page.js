@@ -60,6 +60,41 @@ async function addHoverForNodesParents() {
     }
 }
 
+function showBboxMenu(e, bbox) {
+    injectContextMenuCSS()
+    document.querySelectorAll(".betterOsmContextMenu").forEach(i => i.remove())
+    const menu = makeContextMenuElem(e)
+    ;[
+        `${bbox.min_lat.toFixed(6)} ${bbox.min_lon.toFixed(6)} ${bbox.max_lat.toFixed(6)} ${bbox.max_lon.toFixed(6)}`,
+        `${bbox.min_lon.toFixed(6)} ${bbox.min_lat.toFixed(6)} ${bbox.max_lon.toFixed(6)} ${bbox.max_lat.toFixed(6)}`,
+        `${bbox.min_lat.toFixed(6)},${bbox.min_lon.toFixed(6)},${bbox.max_lat.toFixed(6)},${bbox.max_lon.toFixed(6)}`,
+        `${bbox.min_lon.toFixed(6)},${bbox.min_lat.toFixed(6)},${bbox.max_lon.toFixed(6)},${bbox.max_lat.toFixed(6)}`,
+    ].forEach(text => {
+        const listItem = document.createElement("div")
+        const a = document.createElement("a")
+        a.textContent = text
+        a.title = "Click to copy " + text
+        a.style.width = "100%"
+        a.style.fontVariantNumeric = "tabular-nums"
+        a.onclick = e => {
+            e.preventDefault()
+            e.stopPropagation()
+            navigator.clipboard.writeText(text)
+            document.querySelectorAll(".betterOsmContextMenu").forEach(i => i.remove())
+        }
+        listItem.appendChild(a)
+        document.addEventListener(
+            "click",
+            function fn(e) {
+                menu.remove()
+            },
+            { once: true },
+        )
+        menu.appendChild(listItem)
+    })
+    document.body.appendChild(menu)
+}
+
 /**
  * @param {number[]} nodesIds
  * @param {Map} nodesMap
@@ -190,8 +225,7 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type) {
     const icon4 = document.createElement("span")
     icon4.innerHTML = svg4
     icon4.style.cursor = "pointer"
-    const text4 = `${bbox.min_lat.toString()} ${bbox.min_lon.toString()} ${bbox.max_lat.toString()} ${bbox.max_lon.toString()}`
-    icon4.title = "Click to copy bbox: " + text4
+    icon4.title = "Click to copy bbox"
     icon4.onmouseenter = () => {
         cleanObjectsByKey("activeObjects")
         const rect = getWindow()
@@ -205,9 +239,7 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type) {
             .addTo(getMap())
         layers["activeObjects"].push(rect)
     }
-    icon4.onclick = e => {
-        navigator.clipboard.writeText(text4).then(() => copyAnimation(e, text4))
-    }
+    icon4.onclick = e => showBboxMenu(e, bbox)
     // todo нужно больше форматов bbox
     const icons = document.createElement("div")
     icons.style.paddingTop = "5px"
@@ -378,7 +410,7 @@ async function addHoverForRelationMembers() {
             infoBtn.classList.add("relation-info-btn")
             infoBtn.classList.add("completed")
             infoBtn.style.fontSize = "large"
-            infoBtn.style.cursor = "pointer"
+            infoBtn.style.cursor = "progress"
 
             document.querySelector("#sidebar_content h4:last-of-type").appendChild(document.createTextNode("\xA0"))
             document.querySelector("#sidebar_content h4:last-of-type").appendChild(infoBtn)
@@ -710,6 +742,7 @@ async function addHoverForRelationMembers() {
         console.log("addHoverForRelationMembers finished")
     } finally {
         addHoverForRelationMembersLock = false
+        document.querySelector(".relation-info-btn").style.cursor = "pointer"
     }
 }
 
