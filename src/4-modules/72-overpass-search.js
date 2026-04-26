@@ -124,6 +124,16 @@ out geom;
             getWindow().jsonLayer?.remove()
             jsonLayer?.remove()
             jsonLayer = renderOSMGeoJSON(xml, true)
+            setTimeout(() => {
+                const withPhotos = Array.from(xml.querySelectorAll(":has(>[k^=panoramax])")).map(i => {
+                    return {
+                        id: parseInt(i.getAttribute("id")),
+                        type: i.nodeName,
+                        tags: Object.fromEntries(Array.from(i.querySelectorAll("tag")).map(j => [j.getAttribute("k"), j.getAttribute("v")])),
+                    }
+                })
+                renderPanoramaxPhotosPreview(withPhotos)
+            })
             console.timeEnd("render overpass response")
 
             let statusPrefix = ""
