@@ -1396,6 +1396,115 @@ End with ! for global search
     }, 0)
 }
 
+function actionShowHotkeysHelp() {
+    const hotkeysList = getHotkeyActionsList()
+        .map(action => `${action.defaultBindings.join(", ")} - ${action.title}`)
+        .join("\n")
+    alert(`Hotkeys\n\n${hotkeysList}\n\nThis list currently includes commands moved to the new hotkey catalog.`)
+}
+
+const hotkeyActions = {
+    showHotkeysHelp: {
+        title: "Show hotkeys help",
+        defaultBindings: ["F1"],
+        preventDefault: true,
+        run: actionShowHotkeysHelp,
+    },
+    openYandexPanoramas: {
+        title: "Open Yandex panoramas",
+        defaultBindings: ["KeyY"],
+        run: actionOpenYandexPanoramas,
+    },
+    copyCurrentShortLink: {
+        title: "Copy current short link",
+        defaultBindings: ["KeyP"],
+        run: actionCopyCurrentShortLink,
+    },
+    closeUi: {
+        title: "Close open UI panels",
+        defaultBindings: ["KeyQ"],
+        run: actionCloseUi,
+    },
+    clearActiveObjectsAndContextMenus: {
+        title: "Clear active objects and context menus",
+        defaultBindings: ["Escape"],
+        run: actionClearActiveObjectsAndContextMenus,
+    },
+    goToUserLocation: {
+        title: "Go to user location",
+        defaultBindings: ["Shift+KeyL"],
+        run: actionGoToUserLocation,
+    },
+    toggleSwitchableTime: {
+        title: "Toggle switchable time",
+        defaultBindings: ["Shift+KeyT", "Alt+KeyT"],
+        run: actionToggleSwitchableTime,
+    },
+    toggleCompactTimeOrOpenTraces: {
+        title: "Toggle compact time or open traces",
+        defaultBindings: ["KeyT"],
+        run: actionHandleKeyT,
+    },
+    openOverpassSearch: {
+        title: "Open Overpass search",
+        defaultBindings: ["Shift+Slash"],
+        run: actionOpenOverpassSearch,
+    },
+}
+
+function runHotkeyAction(actionId) {
+    const action = hotkeyActions[actionId]
+    if (!action) {
+        console.warn(`Unknown hotkey action: ${actionId}`)
+        return false
+    }
+    action.run()
+    return true
+}
+
+function getHotkeyBaseCode(e) {
+    if (["Slash", "Backslash", "NumpadDivide"].includes(e.code) || e.key === "/") {
+        return "Slash"
+    }
+    return e.code || e.key
+}
+
+function getHotkeyCombo(e) {
+    const parts = []
+    if (e.ctrlKey) parts.push("Ctrl")
+    if (e.altKey) parts.push("Alt")
+    if (e.shiftKey) parts.push("Shift")
+    if (e.metaKey) parts.push("Meta")
+    parts.push(getHotkeyBaseCode(e))
+    return parts.join("+")
+}
+
+function getHotkeyActionIdForEvent(e) {
+    const combo = getHotkeyCombo(e)
+    return Object.entries(hotkeyActions).find(([, action]) => action.defaultBindings.includes(combo))?.[0] ?? null
+}
+
+function getHotkeyActionsList() {
+    return Object.entries(hotkeyActions).map(([id, action]) => ({
+        id,
+        title: action.title,
+        defaultBindings: [...action.defaultBindings],
+    }))
+}
+
+function runHotkeyActionForEvent(e) {
+    const actionId = getHotkeyActionIdForEvent(e)
+    if (!actionId) {
+        return false
+    }
+    if (hotkeyActions[actionId].preventDefault) {
+        e.preventDefault()
+        e.stopPropagation()
+        e.stopImmediatePropagation()
+    }
+    return runHotkeyAction(actionId)
+}
+
 function hotkeyKeydownHandler(e) {
     if (e.repeat && !["KeyK", "KeyL"].includes(e.code)) return
     if (shouldSkipHotkeyForActiveElement(e)) return
@@ -1406,13 +1515,14 @@ function hotkeyKeydownHandler(e) {
     //         firstBuilding = null
     //     }
     // }
-    if (e.metaKey || e.ctrlKey) {
-        return
-    }
     console.log("Key: ", e.key)
     console.log("Key code: ", e.code)
     if (e.code !== "KeyZ" && e.code !== "KeyD" && e.code !== "KeyS" && e.code !== "KeyS") {
         resetZoomClicks()
+    }
+    if (runHotkeyActionForEvent(e)) return
+    if (e.metaKey || e.ctrlKey) {
+        return
     }
     if (e.code === "KeyN") {
         if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
@@ -1569,8 +1679,6 @@ function hotkeyKeydownHandler(e) {
                 document.querySelector('a[href^="/user/"][href$="/history"]')?.click()
             }
         }
-    } else if (e.code === "KeyY") {
-        actionOpenYandexPanoramas()
     } else if (e.key === "1") {
         if (location.pathname.match(/\/(node|way|relation)\/\d+/)) {
             if (location.pathname.match(/\/(node|way|relation)\/\d+/)) {
@@ -1678,10 +1786,6 @@ function hotkeyKeydownHandler(e) {
                 }
             }
         }
-    } else if (e.code === "Escape") {
-        actionClearActiveObjectsAndContextMenus()
-    } else if (e.code === "KeyL" && e.shiftKey) {
-        actionGoToUserLocation()
     } else if (e.code === "KeyK" && location.pathname.match(/^(\/user\/.+)?\/history\/?$/)) {
         goToPrevChangeset(e)
     } else if (e.code === "KeyL" && location.pathname.match(/^(\/user\/.+)?\/history\/?$/)) {
@@ -1728,12 +1832,6 @@ function hotkeyKeydownHandler(e) {
                 }
             }
         }
-    } else if (e.code === "KeyQ" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
-        actionCloseUi()
-    } else if (e.code === "KeyT" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
-        actionHandleKeyT()
-    } else if (e.code === "KeyT" && (e.altKey || e.shiftKey)) {
-        actionToggleSwitchableTime()
     } else if (e.code === "KeyM" && !e.altKey && !e.metaKey && !e.ctrlKey) {
         if (e.shiftKey) {
             if (location.pathname.includes("/user/")) {
@@ -1844,8 +1942,6 @@ function hotkeyKeydownHandler(e) {
                 })
             }
         }
-    } else if ((e.code === "Slash" || e.code === "Backslash" || e.code === "NumpadDivide" || e.key === "/") && e.shiftKey) {
-        actionOpenOverpassSearch()
     } else if (e.altKey && e.code === "Backquote") {
         darkModeForMap = !darkModeForMap
         if (darkModeForMap) {
@@ -1853,8 +1949,6 @@ function hotkeyKeydownHandler(e) {
         } else {
             darkMapStyleElement?.remove()
         }
-    } else if (e.code === "KeyP") {
-        actionCopyCurrentShortLink()
     } else if (e.code === "KeyB") {
         if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
             document.querySelector('a[href^="/user/"][href$="/blocks"]')?.click()
