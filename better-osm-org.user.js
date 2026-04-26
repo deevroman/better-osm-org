@@ -26336,6 +26336,28 @@ function handleRelationViewerHotkeys(e) {
     return true
 }
 
+function actionOpenYandexPanoramas() {
+    const [x, y, z] = getCurrentXYZ()
+    window.open(`https://yandex.ru/maps/?l=stv,sta&ll=${y},${x}&z=${z}`, "_blank", "noreferrer")
+}
+
+function actionCopyCurrentShortLink() {
+    navigator.clipboard.writeText(shortOsmOrgLinksInText(location.origin + location.pathname))
+}
+
+function actionCloseUi() {
+    buildingViewerIframe?.remove()
+    buildingViewerIframe = null
+    if (document.querySelector("#osm_alert_modal")?.checkVisibility()) {
+        document.querySelector("#osm_alert_modal .btn-close").click()
+    } else {
+        document.querySelectorAll(".sidebar-close-controls .btn-close").forEach(i => i?.click())
+        document.querySelector(".welcome .btn-close")?.click()
+        document.querySelector("#banner .btn-close")?.click()
+        document.querySelector(".better-btn-close")?.click()
+    }
+}
+
 function hotkeyKeydownHandler(e) {
     if (e.repeat && !["KeyK", "KeyL"].includes(e.code)) return
     if (shouldSkipHotkeyForActiveElement(e)) return
@@ -26510,8 +26532,7 @@ function hotkeyKeydownHandler(e) {
             }
         }
     } else if (e.code === "KeyY") {
-        const [x, y, z] = getCurrentXYZ()
-        window.open(`https://yandex.ru/maps/?l=stv,sta&ll=${y},${x}&z=${z}`, "_blank", "noreferrer")
+        actionOpenYandexPanoramas()
     } else if (e.key === "1") {
         if (location.pathname.match(/\/(node|way|relation)\/\d+/)) {
             if (location.pathname.match(/\/(node|way|relation)\/\d+/)) {
@@ -26671,16 +26692,7 @@ function hotkeyKeydownHandler(e) {
             }
         }
     } else if (e.code === "KeyQ" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
-        buildingViewerIframe?.remove()
-        buildingViewerIframe = null
-        if (document.querySelector("#osm_alert_modal")?.checkVisibility()) {
-            document.querySelector("#osm_alert_modal .btn-close").click()
-        } else {
-            document.querySelectorAll(".sidebar-close-controls .btn-close").forEach(i => i?.click())
-            document.querySelector(".welcome .btn-close")?.click()
-            document.querySelector("#banner .btn-close")?.click()
-            document.querySelector(".better-btn-close")?.click()
-        }
+        actionCloseUi()
     } else if (e.code === "KeyT" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
         if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
             document.querySelector('a[href="/traces/mine"], a[href$="/traces"]:not(.nav-link):not(.dropdown-item)')?.click()
@@ -26835,7 +26847,7 @@ End with ! for global search
             darkMapStyleElement?.remove()
         }
     } else if (e.code === "KeyP") {
-        navigator.clipboard.writeText(shortOsmOrgLinksInText(location.origin + location.pathname))
+        actionCopyCurrentShortLink()
     } else if (e.code === "KeyB") {
         if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
             document.querySelector('a[href^="/user/"][href$="/blocks"]')?.click()
