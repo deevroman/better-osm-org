@@ -201,22 +201,57 @@ function attachPanoramaxCarouselHoverZoom(previewEl) {
         if (!zoomImgSrc) {
             return
         }
+        const thumbImgSrc = previewEl.getAttribute("data-panoramax-thumb-src")
+        if (!thumbImgSrc) {
+            return
+        }
         hoverZoomPopup.replaceChildren()
-        const zoomImg = GM_addElement("img", {
-            src: zoomImgSrc,
+        const zoomWrapper = document.createElement("div")
+        Object.assign(zoomWrapper.style, {
+            position: "relative",
+            width: "480px",
+            height: "360px",
+            borderRadius: "6px",
+            overflow: "hidden",
+            background: "var(--bs-body-bg)",
+        })
+        const thumbImg = GM_addElement("img", {
+            src: thumbImgSrc,
             width: "480",
         })
-        Object.assign(zoomImg.style, {
+        Object.assign(thumbImg.style, {
             display: "block",
             width: "480px",
             height: "360px",
             objectFit: "cover",
             borderRadius: "6px",
         })
+        const zoomImg = GM_addElement("img", {
+            src: zoomImgSrc,
+            width: "480",
+        })
+        Object.assign(zoomImg.style, {
+            display: "block",
+            position: "absolute",
+            inset: "0",
+            opacity: "0",
+            width: "480px",
+            height: "360px",
+            objectFit: "cover",
+            borderRadius: "6px",
+        })
         zoomImg.onerror = () => {
-            hoverZoomPopup.style.display = "none"
+            zoomImg.style.display = "none"
         }
-        hoverZoomPopup.append(zoomImg)
+        zoomImg.onload = () => {
+            if (hoverToken !== panoramaxHoverZoomToken) {
+                return
+            }
+            zoomImg.style.opacity = "1"
+        }
+        zoomWrapper.append(thumbImg)
+        zoomWrapper.append(zoomImg)
+        hoverZoomPopup.append(zoomWrapper)
         hoverZoomPopup.style.visibility = "hidden"
         hoverZoomPopup.style.display = "block"
         placePanoramaxHoverZoomPopup(previewEl, hoverZoomPopup)
@@ -319,6 +354,7 @@ function renderPanoramaxPhotosPreview(withPhotos) {
             return
         }
         previewEl.setAttribute("data-panoramax-zoom-src", `${panoramaxDiscoveryServer}/api/pictures/${uuid}/sd.jpg`)
+        previewEl.setAttribute("data-panoramax-thumb-src", `${panoramaxDiscoveryServer}/api/pictures/${uuid}/thumb.jpg`)
         const osmPath = previewEl.getAttribute("data-osm-path")
         if (osmPath && !previewEl.getAttribute("data-route-bound")) {
             previewEl.setAttribute("data-route-bound", "1")
