@@ -1272,22 +1272,7 @@ function shouldSkipHotkeyForActiveElement(e) {
     return false
 }
 
-function hotkeyKeydownHandler(e) {
-    if (e.repeat && !["KeyK", "KeyL"].includes(e.code)) return
-    if (shouldSkipHotkeyForActiveElement(e)) return
-    if (document.activeElement?.classList?.contains("relation-viewer-a")) {
-        if (e.code === "ArrowDown" || e.code === "ArrowUp") {
-            e.preventDefault()
-            e.stopPropagation()
-            e.stopImmediatePropagation()
-            if (e.code === "ArrowDown") {
-                e.target.parentElement.nextElementSibling?.querySelector("a")?.focus()
-            } else if (e.code === "ArrowUp") {
-                e.target.parentElement.previousElementSibling?.querySelector("a")?.focus()
-            }
-            return
-        }
-    }
+function handleMeasuringHotkeys(e) {
     if (measuring) {
         if (((e.ctrlKey || e.metaKey) && e.code === "KeyZ") || e.code === "Backspace" || e.code === "Delete") {
             if (currentMeasuring.way.length) {
@@ -1305,16 +1290,38 @@ function hotkeyKeydownHandler(e) {
                     )
                 }
             }
+            return true
         } else if (e.code === "Escape") {
             endMeasuring()
+            return true
         }
-    } else if (prevMeasurements.length) {
-        if (e.code === "Escape") {
-            if (confirm("Clean measurements?")) {
-                cleanMeasurements(e)
+        return false
+    } else if (prevMeasurements.length && e.code === "Escape") {
+        if (confirm("Clean measurements?")) {
+            cleanMeasurements(e)
+        }
+        return true
+    }
+    return false
+}
+
+function hotkeyKeydownHandler(e) {
+    if (e.repeat && !["KeyK", "KeyL"].includes(e.code)) return
+    if (shouldSkipHotkeyForActiveElement(e)) return
+    if (document.activeElement?.classList?.contains("relation-viewer-a")) {
+        if (e.code === "ArrowDown" || e.code === "ArrowUp") {
+            e.preventDefault()
+            e.stopPropagation()
+            e.stopImmediatePropagation()
+            if (e.code === "ArrowDown") {
+                e.target.parentElement.nextElementSibling?.querySelector("a")?.focus()
+            } else if (e.code === "ArrowUp") {
+                e.target.parentElement.previousElementSibling?.querySelector("a")?.focus()
             }
+            return
         }
     }
+    if (handleMeasuringHotkeys(e)) return
     // if (drawingBuildings) {
     //     if (e.code === "Escape") {
     //         firstBuilding = null
