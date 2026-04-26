@@ -10292,7 +10292,7 @@ function makeLinksInVersionTagClickable(row, objType) {
         if (!valueCell.querySelector("a")) {
             makeRefBelpostValue(valueCell)
         }
-    } else if (key.length <= 2 && (key !== "to" || key !== "tv")) {
+    } else if (key.length <= 2 && key !== "to" && key !== "tv") {
         keyCell.classList.add("fixme-tag")
         keyCell.title = "The key is too short"
     }
@@ -14551,7 +14551,7 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
             makeConditionalValue(valueCell)
         } else if (key === "type") {
             makeTypeValue(valueCell, objType)
-        } else if (key.length <= 2 && (key !== "to" || key !== "tv")) {
+        } else if (key.length <= 2 && key !== "to" && key !== "tv") {
             keyCell.classList.add("fixme-tag")
             keyCell.title = "The key is too short"
         }
