@@ -189,6 +189,9 @@ function displayKMLTrack(xml) {
     console.timeEnd("start kml track render")
 }
 
+/**
+ * @param {import('geojson').GeoJSON} geojson
+ */
 function renderGeoJSONwrapper(geojson) {
     injectJSIntoPage(`
     var jsonLayer = null;

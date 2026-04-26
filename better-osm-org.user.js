@@ -23770,6 +23770,9 @@ function displayKMLTrack(xml) {
     console.timeEnd("start kml track render")
 }
 
+/**
+ * @param {import('geojson').GeoJSON} geojson
+ */
 function renderGeoJSONwrapper(geojson) {
     injectJSIntoPage(`
     var jsonLayer = null;
@@ -24883,6 +24886,65 @@ async function setupDragAndDropViewers() {
                                 .find(i => i[0].endsWith(".kml"))[1]
                                 .text(),
                         )
+                    } else if (file.type === "text/csv") {
+                        const [header, ...lines] = (await file.text()).split("\n")
+                        let sep = header.includes(";") ? ";" : ","
+                        const columns = header
+                            .trim()
+                            .split(sep)
+                            .map(i => i.replace(/^"/g, "").replace(/"$/, ""))
+                        let latColumIndex = -1
+                        let lonColumIndex = -1
+                        columns.forEach((col, i) => {
+                            if (col.match(/(lat|широта)/i)) {
+                                latColumIndex = i
+                            } else if (col.match(/(lon|догота)/i)) {
+                                lonColumIndex = i
+                            }
+                        })
+                        if (latColumIndex === -1 || lonColumIndex === -1) {
+                            throw "Can't find lat/lon columns in CSV file"
+                        }
+
+                        /** @type {import("geojson").GeoJSON} */
+                        const geojson = {
+                            type: "FeatureCollection",
+                            features: [],
+                        }
+                        lines
+                            .map(line =>
+                                line
+                                    .trim()
+                                    .split(sep)
+                                    .map(i => {
+                                        if (i[0] === '"') {
+                                            if (i.at(-1) === '"') {
+                                                return i.slice(1, -1)
+                                            }
+                                            return i.slice(1)
+                                        }
+                                        if (i.at(-1) === '"') {
+                                            return i.slice(0, -1)
+                                        }
+                                        return i
+                                    }),
+                            )
+                            .forEach(values => {
+                                const lat = parseFloat(values[latColumIndex])
+                                const lon = parseFloat(values[lonColumIndex])
+                                if (isNaN(lat) || isNaN(lon)) {
+                                    console.warn("Invalid lat/lon in CSV file:", values)
+                                }
+                                geojson.features.push({
+                                    type: "Feature",
+                                    geometry: {
+                                        type: "Point",
+                                        coordinates: [lon, lat],
+                                    },
+                                    properties: Object.fromEntries(columns.map((col, i) => [col, values[i]])),
+                                })
+                            })
+                        renderGeoJSONwrapper(geojson)
                     } else {
                         console.log(file.type)
                     }
