@@ -26244,717 +26244,707 @@ async function openSelectedObjectsOnChangesetPage(e) {
     }
 }
 
+let defaultZoomKeysBehaviour = false
+
+function hotkeyKeydownHandler(e) {
+    if (e.repeat && !["KeyK", "KeyL"].includes(e.code)) return
+    if (document.activeElement?.name === "text") return
+    if (document.activeElement?.nodeName === "INPUT" && ["input", "text"].includes(document.activeElement.getAttribute("type"))) {
+        if (e.code === "Escape") {
+            document.activeElement.blur()
+        }
+        return
+    }
+    if (document.activeElement?.nodeName === "TEXTAREA" && e.code === "Enter") {
+        if (document.activeElement.parentElement?.parentElement?.querySelector(".btn-wrapper")) {
+            if (e.metaKey || e.ctrlKey) {
+                document.activeElement.parentElement.parentElement.querySelector(".btn-wrapper .btn-primary").click()
+                return
+            }
+        }
+    }
+    if (
+        ["TEXTAREA", "INPUT", "SELECT"].includes(document.activeElement?.nodeName) &&
+        document.activeElement?.getAttribute("type") !== "checkbox" &&
+        document.activeElement?.getAttribute("type") !== "radio"
+    ) {
+        return
+    }
+    if (document.activeElement?.getAttribute("contenteditable")) {
+        return
+    }
+    // prettier-ignore
+    if (["TH", "TD"].includes(document.activeElement?.nodeName)
+        && document.activeElement?.parentElement?.parentElement?.parentElement?.hasAttribute("contenteditable")) {
+        return
+    }
+    // prettier-ignore
+    if (["TR"].includes(document.activeElement?.nodeName)
+        && document.activeElement?.parentElement?.parentElement?.hasAttribute("contenteditable")) {
+        return
+    }
+    if (document.activeElement?.classList?.contains("relation-viewer-a")) {
+        if (e.code === "ArrowDown" || e.code === "ArrowUp") {
+            e.preventDefault()
+            e.stopPropagation()
+            e.stopImmediatePropagation()
+            if (e.code === "ArrowDown") {
+                e.target.parentElement.nextElementSibling?.querySelector("a")?.focus()
+            } else if (e.code === "ArrowUp") {
+                e.target.parentElement.previousElementSibling?.querySelector("a")?.focus()
+            }
+            return
+        }
+    }
+    if (measuring) {
+        if (((e.ctrlKey || e.metaKey) && e.code === "KeyZ") || e.code === "Backspace" || e.code === "Delete") {
+            if (currentMeasuring.way.length) {
+                currentMeasuring.way.pop()
+                currentMeasuring.nodes.pop()?.remove()
+                currentMeasuring.tempLine?.remove()
+                currentMeasuring.wayLine?.remove()
+                if (currentMeasuring.way.length) {
+                    currentMeasuring.wayLine = displayWay(currentMeasuring.way, false, "#000000", 1)
+                    currentMeasuring.tempLine = displayWay(
+                        [currentMeasuring.way[currentMeasuring.way.length - 1], lastLatLng],
+                        false,
+                        "#000000",
+                        1,
+                    )
+                }
+            }
+        } else if (e.code === "Escape") {
+            endMeasuring()
+        }
+    } else if (prevMeasurements.length) {
+        if (e.code === "Escape") {
+            if (confirm("Clean measurements?")) {
+                cleanMeasurements(e)
+            }
+        }
+    }
+    // if (drawingBuildings) {
+    //     if (e.code === "Escape") {
+    //         firstBuilding = null
+    //     }
+    // }
+    if (e.metaKey || e.ctrlKey) {
+        return
+    }
+    console.log("Key: ", e.key)
+    console.log("Key code: ", e.code)
+    if (e.code !== "KeyZ" && e.code !== "KeyD" && e.code !== "KeyS" && e.code !== "KeyS") {
+        resetZoomClicks()
+    }
+    if (e.code === "KeyN") {
+        if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
+            document.querySelector('a[href^="/user/"][href$="/notes"]')?.click()
+            addAltClickHandlerForNotes()
+        } else if (e.altKey && location.pathname.match(/note\/[0-9]+/)) {
+            window.open(document.querySelector('#sidebar_content a[href^="/user/"]').getAttribute("href") + "/notes", "_blank")
+        } else {
+            // notes
+            if (e.shiftKey) {
+                if (location.pathname.includes("/node") || location.pathname.includes("/way") || location.pathname.includes("/relation")) {
+                    newNotePlaceholder = "\n \n" + location.href
+                }
+                document.querySelector(".control-note .control-button").click()
+            } else {
+                Array.from(document.querySelectorAll(".overlay-layers label input"))[0].removeAttribute("disabled")
+                Array.from(document.querySelectorAll(".overlay-layers label"))[0].click()
+            }
+        }
+    } else if (e.code === "KeyD") {
+        if (e.altKey && e.shiftKey) {
+            location.search += "&kek"
+            return
+        } else if (e.altKey) {
+            // eslint-disable-next-line no-debugger
+            debugger
+            throw "debug"
+        }
+        if (e.shiftKey) {
+            try {
+                document.getElementById("spy-glass").click()
+            } catch (e) {
+                debug_alert("script not injected :(")
+            }
+            return
+        }
+        if (e.altKey || e.shiftKey) {
+            return
+        }
+        if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
+            document.querySelector('a[href^="/user/"][href$="/diary"]')?.click()
+        } else {
+            // map data
+            Array.from(document.querySelectorAll(".overlay-layers label input"))[1].removeAttribute("disabled")
+            Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
+            if (!location.hash.includes("D")) {
+                disableOverzoom()
+            } else {
+                enableOverzoom()
+            }
+        }
+    } else if (e.code === "KeyG") {
+        // gps tracks
+        if (e.shiftKey || e.altKey) {
+            enableOverzoom()
+            setZoom(Math.min(14, getZoom()))
+            if (!document.querySelectorAll(".overlay-layers label")[2].querySelector("input").checked) {
+                Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
+            }
+            switchOverlayTiles()
+        } else {
+            Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
+        }
+    } else if (e.code === "KeyS") {
+        enableOverzoom()
+        if (e.shiftKey) {
+            askCustomTileUrl()
+            return
+        } else if (e.altKey) {
+            bypassCaches()
+        } else {
+            switchTilesAndButtons()
+        }
+    } else if (e.code === "KeyE") {
+        if (e.altKey) {
+            if (location.pathname.startsWith("/changeset/")) {
+                if (document.querySelector(".active-object")) {
+                    const activeObjectUrl = document.querySelector(".active-object").querySelector("a").getAttribute("href")
+                    window.open(activeObjectUrl, "_blank")
+                } else {
+                    const firstObjectUrl = document
+                        .querySelector("turbo-frame:is(#changeset_nodes, #changeset_ways, #changeset_relations)")
+                        .querySelector("ul a")
+                        .getAttribute("href")
+                    window.open(firstObjectUrl, "_blank")
+                }
+            } else {
+                document.querySelector(".edit_tags_class").click()
+            }
+        } else if (!location.pathname.match(/^\/user\/([^/]+)\/?$/)) {
+            if (e.shiftKey) {
+                if (document.querySelector("#editanchor").getAttribute("data-editor") === "id") {
+                    document.querySelectorAll("#edit_tab .dropdown-menu .editlink")[1]?.click()
+                } else {
+                    document.querySelectorAll("#edit_tab .dropdown-menu .editlink")[0]?.click()
+                }
+            } else if (e.altKey && isDebug()) {
+                document.querySelectorAll("table.quick-look, table.geojson-props-table:not(.metainfo-table)").forEach(i => {
+                    i.setAttribute("contenteditable", "true")
+                })
+            } else {
+                document.querySelector("#editanchor")?.click()
+            }
+        } else {
+            document.querySelector('a[href^="/user/"][href$="/history"]')?.click()
+        }
+    } else if (e.code === "KeyR") {
+        if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
+            document.querySelector('a[href*="/reports/new"]')?.click()
+            return
+        }
+        if (changesetObjectsSelectionModeEnabled || e.altKey) {
+            document.querySelector("#revert_button_class").click()
+            return
+        }
+        if (document.querySelector(".select-objects-btn")) {
+            document.querySelector(".select-objects-btn").click()
+        } else {
+            addCheckboxesForChangesetObjects()
+        }
+    } else if (e.code === "KeyJ") {
+        setTimeout(async () => {
+            if (location.pathname.includes("changeset")) {
+                await openSelectedObjectsOnChangesetPage(e)
+            } else {
+                await openObjectInJosmOrLevel0(e)
+            }
+        })
+    } else if (e.code === "KeyH") {
+        if (e.shiftKey) {
+            const targetURL = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href") + "/history"
+            if (targetURL !== location.pathname) {
+                try {
+                    getWindow().OSM.router.route(targetURL)
+                } catch {
+                    window.location.pathname = targetURL
+                }
+            }
+        } else {
+            if (location.pathname.match(/(node|way|relation)\/\d+/)) {
+                if (location.pathname.match(/(node|way|relation)\/\d+\/?$/)) {
+                    getWindow().OSM.router.route(window.location.pathname + "/history")
+                } else if (location.pathname.match(/(node|way|relation)\/\d+\/history\/\d+\/?$/)) {
+                    const historyPath = window.location.pathname.match(/(\/(node|way|relation)\/\d+\/history)\/\d+/)[1]
+                    getWindow().OSM.router.route(historyPath)
+                } else {
+                    console.debug("skip H")
+                }
+            } else if (location.pathname === "/" || location.pathname.includes("/note")) {
+                // document.querySelector("#history_tab")?.click()
+                addCompactSidebarStyle()
+                document.querySelector('.nav-link[href^="/history"]')?.click()
+            } else if (location.pathname.includes("/user/")) {
+                document.querySelector('a[href^="/user/"][href$="/history"]')?.click()
+            }
+        }
+    } else if (e.code === "KeyY") {
+        const [x, y, z] = getCurrentXYZ()
+        window.open(`https://yandex.ru/maps/?l=stv,sta&ll=${y},${x}&z=${z}`, "_blank", "noreferrer")
+    } else if (e.key === "1") {
+        if (location.pathname.match(/\/(node|way|relation)\/\d+/)) {
+            if (location.pathname.match(/\/(node|way|relation)\/\d+/)) {
+                getWindow().OSM.router.route(location.pathname.match(/\/(node|way|relation)\/\d+/)[0] + "/history/1")
+            } else {
+                console.debug("skip 1")
+            }
+        } else if (location.pathname.startsWith("/changeset")) {
+            const user_link = document.querySelector('#sidebar_content a[href^="/user/"]')
+            if (user_link) {
+                const username = decodeURI(user_link.getAttribute("href").match(/\/user\/([^/]+)/)[1])
+                getCachedUserInfo(username).then(res => {
+                    if (res["firstChangesetID"]) {
+                        getWindow().OSM.router.route(`/changeset/${res["firstChangesetID"]}`)
+                    } else {
+                        console.warn("not found first changeset for " + username)
+                    }
+                })
+            }
+        } else if (location.pathname.match(/\/user\/[^\\]+\/history\/?/)) {
+            const user_link = document.querySelector('#sidebar_content a[href^="/user/"]')
+            if (user_link) {
+                const username = decodeURI(user_link.getAttribute("href").match(/\/user\/([^/]+)/)[1])
+                getCachedUserInfo(username).then(res => {
+                    if (res["firstChangesetID"]) {
+                        getWindow().OSM.router.route(`${location.pathname}?after=${res["firstChangesetID"] - 1}`)
+                    } else {
+                        console.warn("not found first changeset for " + username)
+                    }
+                })
+            }
+        }
+    } else if (e.key === "0") {
+        const center = getMapCenter()
+        setZoom(2)
+        fetch(`https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2`).then(res => {
+            res.json().then(r => {
+                if (r?.address?.state) {
+                    getMap().attributionControl?.setPrefix(`${r.address.state}`)
+                }
+            })
+        })
+    } else if (e.code === "KeyZ") {
+        if (e.shiftKey) {
+            shiftKeyZClicks += 1
+            document.addEventListener(
+                "mousemove",
+                () => {
+                    shiftKeyZClicks = 0
+                },
+                { once: true },
+            )
+        } else {
+            shiftKeyZClicks = 0
+        }
+        zoomToCurrentObject(e)
+    } else if (e.key === "8") {
+        if (mapPositionsHistory.length > 1) {
+            mapPositionsNextHistory.push(mapPositionsHistory[mapPositionsHistory.length - 1])
+            mapPositionsHistory.pop()
+            fitBounds(mapPositionsHistory[mapPositionsHistory.length - 1])
+        }
+    } else if (e.key === "9") {
+        if (mapPositionsNextHistory.length) {
+            mapPositionsHistory.push(mapPositionsNextHistory.pop())
+            fitBounds(mapPositionsHistory[mapPositionsHistory.length - 1])
+        }
+    } else if (e.code === "Minus" && !defaultZoomKeysBehaviour) {
+        if (document.activeElement?.id === "map") {
+            e.preventDefault()
+            e.stopImmediatePropagation()
+            e.stopPropagation()
+        }
+        if (!e.altKey) {
+            setZoom(getZoom() - 2)
+        } else {
+            setZoom(getZoom() - 1)
+        }
+        document.querySelector("#map").focus()
+    } else if (e.code === "Equal" && !defaultZoomKeysBehaviour) {
+        if (document.activeElement?.id === "map") {
+            e.preventDefault()
+            e.stopImmediatePropagation()
+            e.stopPropagation()
+        }
+        if (!e.altKey) {
+            setZoom(getZoom() + 2)
+        } else {
+            setZoom(getZoom() + 1)
+        }
+        document.querySelector("#map").focus()
+    } else if (e.code === "KeyO") {
+        if (e.shiftKey) {
+            window.open("https://overpass-api.de/achavi/?changeset=" + location.pathname.match(/\/changeset\/(\d+)/)[1])
+        } else if (!e.altKey) {
+            const usernameMatch = location.pathname.match(/^\/user\/([^/]+)\/?$/)
+            if (usernameMatch) {
+                window.open(makeOsmchaLinkForUsername(decodeURI(usernameMatch[1])))
+            } else {
+                const osmchaLink = document.querySelector("#osmcha_link")
+                if (osmchaLink) {
+                    osmchaLink?.click()
+                } else {
+                    document.querySelector(".relation-viewer-link")?.click()
+                }
+            }
+        }
+    } else if (e.code === "Escape") {
+        cleanObjectsByKey("activeObjects")
+        document.querySelectorAll(".betterOsmContextMenu").forEach(i => i.remove())
+    } else if (e.code === "KeyL" && e.shiftKey) {
+        document.querySelector(".control-locate .control-button").click()
+    } else if (e.code === "KeyK" && location.pathname.match(/^(\/user\/.+)?\/history\/?$/)) {
+        goToPrevChangeset(e)
+    } else if (e.code === "KeyL" && location.pathname.match(/^(\/user\/.+)?\/history\/?$/)) {
+        goToNextChangeset(e)
+    } else if (e.code === "KeyK" && location.pathname === "/search") {
+        goToPrevSearchResult(e)
+    } else if (e.code === "KeyL" && location.pathname === "/search") {
+        goToNextSearchResult(e)
+    } else if (e.code === "KeyC") {
+        if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
+            if (location.pathname.includes("/diary_comments")) {
+                document.querySelector('a[href^="/user/"][href$="changeset_comments"]')?.click()
+            } else {
+                document.querySelector('a[href^="/user/"][href$="_comments"]')?.click()
+            }
+        } else {
+            if (e.altKey) {
+                setTimeout(async () => {
+                    const center = getMapCenter()
+                    const format = (await GM.getValue("CoordinatesFormat")) ?? "Lat Lon"
+                    if (format === "Lon Lat") {
+                        navigator.clipboard.writeText(`${center.lng} ${center.lat}`)
+                    } else {
+                        navigator.clipboard.writeText(`${center.lat} ${center.lng}`)
+                    }
+                })
+            } else {
+                const activeObject = document.querySelector("#element_versions_list > div.active-object")
+                if (activeObject) {
+                    if (e.shiftKey) {
+                        window.open(activeObject.querySelector('a[href^="/changeset/"]').href, "_blank")
+                    } else {
+                        activeObject.querySelector('a[href^="/changeset/"]')?.click()
+                    }
+                } else {
+                    const changesetsLinks = document.querySelectorAll('a[href^="/changeset/"]:not([href*="?locale="])')
+                    if (e.shiftKey) {
+                        if (changesetsLinks?.[0]?.href) {
+                            window.open(changesetsLinks?.[0]?.href, "_blank")
+                        }
+                    } else {
+                        changesetsLinks?.[0]?.click()
+                    }
+                }
+            }
+        }
+    } else if (e.code === "KeyQ" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
+        buildingViewerIframe?.remove()
+        buildingViewerIframe = null
+        if (document.querySelector("#osm_alert_modal")?.checkVisibility()) {
+            document.querySelector("#osm_alert_modal .btn-close").click()
+        } else {
+            document.querySelectorAll(".sidebar-close-controls .btn-close").forEach(i => i?.click())
+            document.querySelector(".welcome .btn-close")?.click()
+            document.querySelector("#banner .btn-close")?.click()
+            document.querySelector(".better-btn-close")?.click()
+        }
+    } else if (e.code === "KeyT" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
+        if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
+            document.querySelector('a[href="/traces/mine"], a[href$="/traces"]:not(.nav-link):not(.dropdown-item)')?.click()
+        } else {
+            document.querySelector(".quick-look-compact-toggle-btn")?.click()
+            document.querySelector(".compact-toggle-btn")?.click()
+            document.querySelector("time[switchable]").click()
+        }
+    } else if (e.code === "KeyT" && (e.altKey || e.shiftKey)) {
+        document.querySelector("time[switchable]").click()
+    } else if (e.code === "KeyM" && !e.altKey && !e.metaKey && !e.ctrlKey) {
+        if (e.shiftKey) {
+            if (location.pathname.includes("/user/")) {
+                const username = location.pathname.match(/^\/user\/([^/]+)/)[1]
+                window.open("/messages/new/" + decodeURI(username))
+            } else {
+                const username = document
+                    .querySelector("#sidebar_content a[href^='/user/']")
+                    .getAttribute("href")
+                    .match(/^\/user\/([^/]+)/)[1]
+                window.open("/messages/new/" + decodeURI(username))
+            }
+        } else if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
+            document.querySelector('a[href^="/messages/new/"]')?.click()
+        }
+    } else if (e.code === "KeyU" && !e.altKey && !e.metaKey && !e.ctrlKey) {
+        if (e.shiftKey) {
+            window.location.pathname = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href")
+        } else {
+            const user_link = document.querySelector('#sidebar_content a[href^="/user/"]')
+            if (user_link) {
+                if (user_link.checkVisibility()) {
+                    user_link?.click()
+                } else {
+                    document.querySelector('#sidebar_content li:not([hidden-data-changeset]) a[href^="/user/"]')?.click()
+                }
+                // todo fixme on changesets page with filter
+            } else {
+                document.querySelector('#content a[href^="/user/"]:not([href$=rss]):not([href*="/diary"]):not([href*="/traces"])')?.click()
+            }
+        }
+    } else if ((e.code === "Backquote" || e.code === "Quote" || e.key === "`" || e.key === "~") && !e.altKey && !e.metaKey && !e.ctrlKey) {
+        if (!getWindow().mapIntercepted) return
+        e.preventDefault()
+        for (let member in layers) {
+            layers[member].forEach(i => {
+                if (layersHidden) {
+                    i.getElement().style.visibility = ""
+                } else {
+                    i.getElement().style.visibility = "hidden"
+                }
+            })
+        }
+        if (getWindow()?.jsonLayer) {
+            if (layersHidden) {
+                injectJSIntoPage(`jsonLayer.eachLayer(i => i.getElement().style.visibility = "")`)
+            } else {
+                injectJSIntoPage(`jsonLayer.eachLayer(i => i.getElement().style.visibility = "hidden")`)
+            }
+        } else if (jsonLayer) {
+            if (layersHidden) {
+                jsonLayer.eachLayer(intoPageWithFun(i => (getMap()._layers[i._leaflet_id].getElement().style.visibility = "")))
+            } else {
+                jsonLayer.eachLayer(intoPageWithFun(i => (getMap()._layers[i._leaflet_id].getElement().style.visibility = "hidden")))
+            }
+        }
+        layersHidden = !layersHidden
+    } else if (e.code === "KeyF" && !e.altKey && !e.metaKey && !e.ctrlKey) {
+        if (location.pathname.match(/^\/note\//) || location.pathname === "/") {
+            document.querySelector(".control-layers a").click()
+            if (document.querySelector(".layers-ui").style.display !== "none") {
+                Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({ block: "center" })
+                e.preventDefault()
+                document.querySelector("#filter-notes-by-string").focus()
+            }
+        } else {
+            if (!document.querySelector("#changesets-filter-btn") && !document.querySelector("#mass-action-btn")) {
+                document.querySelector(".control-layers a").click()
+                Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({ block: "center" })
+            } else {
+                document.querySelector("#changesets-filter-btn")?.click()
+                document.querySelector("#mass-action-btn")?.click()
+            }
+        }
+    } else if (isDebug() && e.code === "KeyP" && e.altKey) {
+        if (location.pathname.startsWith("/changeset")) {
+            const params = new URLSearchParams(location.search)
+            const changesetIDs = params.get("changesets")?.split(",") ?? [parseInt(location.pathname.match(/changeset\/(\d+)/)[1])]
+            const objects = []
+            if (changesetIDs) {
+                setTimeout(async () => {
+                    for (const i of changesetIDs) {
+                        ;(await getChangeset(i)).data.querySelectorAll("node,way,relation").forEach(obj => {
+                            objects.push(obj)
+                        })
+                    }
+                    objects.sort((a, b) => {
+                        const A = new Date(a.getAttribute("timestamp"))
+                        const B = new Date(b.getAttribute("timestamp"))
+                        if (A < B) return -1
+                        if (A > B) return 1
+                        return 0
+                    })
+                    const nodesList = []
+                    for (let object of objects) {
+                        if (object.nodeName === "node" && object.getAttribute("visible") === "true") {
+                            // debugger
+                            // showNodeMarker(object.getAttribute("lat"), object.getAttribute("lon"), "rgb(0,34,255)", null, 'customObjects')
+                            // await sleep(300)
+                            nodesList.push([object.getAttribute("lat"), object.getAttribute("lon")])
+                        } else if (object.nodeName === "way") {
+                            // TODO
+                        }
+                    }
+                    showNodeMarker(nodesList[0][0], nodesList[0][1], "#ff0000", null, "customObjects", 8)
+                    showNodeMarker(nodesList.at(-1)[0], nodesList.at(-1)[1], "#00ff04", null, "customObjects", 8)
+                    showActiveWay(nodesList, c("#0022ff"), false, null, true, 2)
+                })
+            }
+        }
+    } else if ((e.code === "Slash" || e.code === "Backslash" || e.code === "NumpadDivide" || e.key === "/") && e.shiftKey) {
+        setTimeout(async () => {
+            getMap().getBounds()
+            let message = `Type overpass selector:
+\tkey
+\tkey=value
+\tkey~val,i`
+            const currentUser = decodeURI(
+                document
+                    .querySelector('.user-menu [href^="/user/"]')
+                    ?.getAttribute("href")
+                    ?.match(/\/user\/(.*)$/)?.[1] ?? "",
+            )
+            if (currentUser) {
+                message += currentUser.match(/^[a-zA-Z0-9_]+$/) ? `\n\tnode(user:${currentUser})` : `\n\tnode(user:"${currentUser}")`
+            }
+            message += `
+\tway[footway=crossing](if: length() > 150)
+End with ! for global search
+⚠this is a simple prototype of search`
+            const query = prompt(message, await GM.getValue("lastOverpassQuery", ""))
+            if (query) {
+                insertOverlaysStyles()
+                processOverpassQuery(query)
+            }
+        }, 0)
+    } else if (e.altKey && e.code === "Backquote") {
+        darkModeForMap = !darkModeForMap
+        if (darkModeForMap) {
+            injectDarkMapStyle()
+        } else {
+            darkMapStyleElement?.remove()
+        }
+    } else if (e.code === "KeyP") {
+        navigator.clipboard.writeText(shortOsmOrgLinksInText(location.origin + location.pathname))
+    } else if (e.code === "KeyB") {
+        if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
+            document.querySelector('a[href^="/user/"][href$="/blocks"]')?.click()
+        }
+        //setupBuildingTools()
+    } else if (e.code === "KeyX") {
+        document.querySelector("#edit_tab ul").tabIndex = -1
+        if (document.querySelector("header").classList.contains("closed")) {
+            document.querySelector("#menu-icon").click()
+            document.querySelector("#edit_tab > button").click()
+        } else if (document.querySelector("#edit_tab > .dropdown-menu").classList.contains("show")) {
+            document.querySelector("#change-list-btn.closed")?.click()
+        } else {
+            document.querySelector("#edit_tab button").click()
+        }
+    } else if (e.code === "KeyV") {
+        if (e.shiftKey) {
+            if (!document.querySelector("#map canvas")) {
+                Array.from(document.querySelectorAll(".layers-ui .base-layers label")).at(-2)?.click()
+            }
+            void askCustomStyleUrl()
+        } else {
+            nextVectorLayer()
+        }
+    } else {
+        // console.log(e.key, e.code)
+    }
+    if (location.pathname.startsWith("/changeset") && !location.pathname.includes("/changeset_comments")) {
+        if (e.code === "Comma") {
+            const link = getPrevChangesetLink()
+            if (link) {
+                getAbortController().abort(ABORT_ERROR_PREV)
+                needPreloadChangesets = true
+                link.focus()
+                link.click()
+            }
+        } else if (e.code === "Period") {
+            const link = getNextChangesetLink()
+            if (link) {
+                getAbortController().abort(ABORT_ERROR_NEXT)
+                needPreloadChangesets = true
+                link.focus()
+                link.click()
+            }
+        } else if (e.code === "KeyH") {
+            const userChangesetsLink = document.querySelectorAll("div.secondary-actions")[1]?.querySelector('a[href^="/user/"]')
+            if (userChangesetsLink) {
+                getAbortController().abort(ABORT_ERROR_USER_CHANGESETS)
+                userChangesetsLink.focus()
+                userChangesetsLink.click()
+            }
+        } else if (e.code === "KeyK") {
+            goToPrevChangesetObject(e)
+        } else if (e.code === "KeyL" && !e.shiftKey) {
+            goToNextChangesetObject(e)
+        }
+    } else if (location.pathname.match(/^\/(node|way|relation)\/\d+/)) {
+        if (e.code === "Comma") {
+            const links = Array.from(document.querySelectorAll("#sidebar_content nav div ul a"))
+            for (let i = 0; i < links.length; i++) {
+                if (links[i].parentElement.classList.contains("active")) {
+                    links[i - 1]?.click()
+                    break
+                }
+            }
+        } else if (e.code === "Period") {
+            const links = Array.from(document.querySelectorAll("#sidebar_content nav div ul a"))
+            for (let i = 0; i < links.length; i++) {
+                if (links[i].parentElement.classList.contains("active")) {
+                    links[i + 1]?.click()
+                    break
+                }
+            }
+        }
+        if (location.pathname.match(/\/history$/)) {
+            if (e.code === "KeyK") {
+                goToPrevObjectVersion()
+            } else if (e.code === "KeyL" && !e.shiftKey) {
+                goToNextObjectVersion()
+            }
+        }
+    } else if (
+        // prettier-ignore
+        location.pathname.match(/user\/.+\/(traces|diary_comments|changeset_comments)/)
+        || location.pathname.match(/\/user_blocks($|\/)/)
+        || location.pathname.match(/\/blocks_by$/)
+    ) {
+        if (e.code === "Comma") {
+            document.querySelector('.pagination a[href*="after"]')?.click()
+        } else if (e.code === "Period") {
+            document.querySelector('.pagination a[href*="before"]')?.click()
+        }
+    } else if (location.pathname.match(/user\/.+\/(notes)/)) {
+        if (e.code === "Comma") {
+            document.querySelectorAll(".pagination li a")[0]?.click()
+        } else if (e.code === "Period") {
+            document.querySelectorAll(".pagination li a")[1]?.click()
+        }
+    } else if (
+        e.code === "KeyH" &&
+        location.pathname.includes("/history") &&
+        (location.search.includes("after") || location.search.includes("before"))
+    ) {
+        try {
+            getWindow().OSM.router.route(location.pathname)
+            setupCompactChangesetsHistory()
+        } catch {
+            if (isSafari) {
+                window.location.search = ""
+            } else {
+                window.location = location.pathname
+            }
+        }
+    }
+}
+
 function setupNavigationViaHotkeys() {
     if ("/id" === location.pathname || document.querySelector("#id-embed")) return
     updateCurrentObjectMetadata()
-    // if (!location.pathname.startsWith("/changeset")) return;
     if (hotkeysConfigured) return
     hotkeysConfigured = true
 
     runPositionTracker()
 
-    const defaultZoomKeysBehaviour = GM_config.get("DefaultZoomKeysBehaviour")
+    defaultZoomKeysBehaviour = GM_config.get("DefaultZoomKeysBehaviour")
 
-    function keydownHandler(e) {
-        if (e.repeat && !["KeyK", "KeyL"].includes(e.code)) return
-        if (document.activeElement?.name === "text") return
-        if (document.activeElement?.nodeName === "INPUT" && ["input", "text"].includes(document.activeElement.getAttribute("type"))) {
-            if (e.code === "Escape") {
-                document.activeElement.blur()
-            }
-            return
-        }
-        if (document.activeElement?.nodeName === "TEXTAREA" && e.code === "Enter") {
-            if (document.activeElement.parentElement?.parentElement?.querySelector(".btn-wrapper")) {
-                if (e.metaKey || e.ctrlKey) {
-                    document.activeElement.parentElement.parentElement.querySelector(".btn-wrapper .btn-primary").click()
-                    return
-                }
-            }
-        }
-        if (
-            ["TEXTAREA", "INPUT", "SELECT"].includes(document.activeElement?.nodeName) &&
-            document.activeElement?.getAttribute("type") !== "checkbox" &&
-            document.activeElement?.getAttribute("type") !== "radio"
-        ) {
-            return
-        }
-        if (document.activeElement?.getAttribute("contenteditable")) {
-            return
-        }
-        // prettier-ignore
-        if (["TH", "TD"].includes(document.activeElement?.nodeName)
-            && document.activeElement?.parentElement?.parentElement?.parentElement?.hasAttribute("contenteditable")) {
-            return
-        }
-        // prettier-ignore
-        if (["TR"].includes(document.activeElement?.nodeName)
-            && document.activeElement?.parentElement?.parentElement?.hasAttribute("contenteditable")) {
-            return
-        }
-        if (document.activeElement?.classList?.contains("relation-viewer-a")) {
-            if (e.code === "ArrowDown" || e.code === "ArrowUp") {
-                e.preventDefault()
-                e.stopPropagation()
-                e.stopImmediatePropagation()
-                if (e.code === "ArrowDown") {
-                    e.target.parentElement.nextElementSibling?.querySelector("a")?.focus()
-                } else if (e.code === "ArrowUp") {
-                    e.target.parentElement.previousElementSibling?.querySelector("a")?.focus()
-                }
-                return
-            }
-        }
-        if (measuring) {
-            if (((e.ctrlKey || e.metaKey) && e.code === "KeyZ") || e.code === "Backspace" || e.code === "Delete") {
-                if (currentMeasuring.way.length) {
-                    currentMeasuring.way.pop()
-                    currentMeasuring.nodes.pop()?.remove()
-                    currentMeasuring.tempLine?.remove()
-                    currentMeasuring.wayLine?.remove()
-                    if (currentMeasuring.way.length) {
-                        currentMeasuring.wayLine = displayWay(currentMeasuring.way, false, "#000000", 1)
-                        currentMeasuring.tempLine = displayWay(
-                            [currentMeasuring.way[currentMeasuring.way.length - 1], lastLatLng],
-                            false,
-                            "#000000",
-                            1,
-                        )
-                    }
-                }
-            } else if (e.code === "Escape") {
-                endMeasuring()
-            }
-        } else if (prevMeasurements.length) {
-            if (e.code === "Escape") {
-                if (confirm("Clean measurements?")) {
-                    cleanMeasurements(e)
-                }
-            }
-        }
-        // if (drawingBuildings) {
-        //     if (e.code === "Escape") {
-        //         firstBuilding = null
-        //     }
-        // }
-        if (e.metaKey || e.ctrlKey) {
-            return
-        }
-        console.log("Key: ", e.key)
-        console.log("Key code: ", e.code)
-        if (e.code !== "KeyZ" && e.code !== "KeyD" && e.code !== "KeyS" && e.code !== "KeyS") {
-            resetZoomClicks()
-        }
-        if (e.code === "KeyN") {
-            if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
-                document.querySelector('a[href^="/user/"][href$="/notes"]')?.click()
-                addAltClickHandlerForNotes()
-            } else if (e.altKey && location.pathname.match(/note\/[0-9]+/)) {
-                window.open(document.querySelector('#sidebar_content a[href^="/user/"]').getAttribute("href") + "/notes", "_blank")
-            } else {
-                // notes
-                if (e.shiftKey) {
-                    if (
-                        location.pathname.includes("/node") ||
-                        location.pathname.includes("/way") ||
-                        location.pathname.includes("/relation")
-                    ) {
-                        newNotePlaceholder = "\n \n" + location.href
-                    }
-                    document.querySelector(".control-note .control-button").click()
-                } else {
-                    Array.from(document.querySelectorAll(".overlay-layers label input"))[0].removeAttribute("disabled")
-                    Array.from(document.querySelectorAll(".overlay-layers label"))[0].click()
-                }
-            }
-        } else if (e.code === "KeyD") {
-            if (e.altKey && e.shiftKey) {
-                location.search += "&kek"
-                return
-            } else if (e.altKey) {
-                // eslint-disable-next-line no-debugger
-                debugger
-                throw "debug"
-            }
-            if (e.shiftKey) {
-                try {
-                    document.getElementById("spy-glass").click()
-                } catch (e) {
-                    debug_alert("script not injected :(")
-                }
-                return
-            }
-            if (e.altKey || e.shiftKey) {
-                return
-            }
-            if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
-                document.querySelector('a[href^="/user/"][href$="/diary"]')?.click()
-            } else {
-                // map data
-                Array.from(document.querySelectorAll(".overlay-layers label input"))[1].removeAttribute("disabled")
-                Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
-                if (!location.hash.includes("D")) {
-                    disableOverzoom()
-                } else {
-                    enableOverzoom()
-                }
-            }
-        } else if (e.code === "KeyG") {
-            // gps tracks
-            if (e.shiftKey || e.altKey) {
-                enableOverzoom()
-                setZoom(Math.min(14, getZoom()))
-                if (!document.querySelectorAll(".overlay-layers label")[2].querySelector("input").checked) {
-                    Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
-                }
-                switchOverlayTiles()
-            } else {
-                Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
-            }
-        } else if (e.code === "KeyS") {
-            enableOverzoom()
-            if (e.shiftKey) {
-                askCustomTileUrl()
-                return
-            } else if (e.altKey) {
-                bypassCaches()
-            } else {
-                switchTilesAndButtons()
-            }
-        } else if (e.code === "KeyE") {
-            if (e.altKey) {
-                if (location.pathname.startsWith("/changeset/")) {
-                    if (document.querySelector(".active-object")) {
-                        const activeObjectUrl = document.querySelector(".active-object").querySelector("a").getAttribute("href")
-                        window.open(activeObjectUrl, "_blank")
-                    } else {
-                        const firstObjectUrl = document
-                            .querySelector("turbo-frame:is(#changeset_nodes, #changeset_ways, #changeset_relations)")
-                            .querySelector("ul a")
-                            .getAttribute("href")
-                        window.open(firstObjectUrl, "_blank")
-                    }
-                } else {
-                    document.querySelector(".edit_tags_class").click()
-                }
-            } else if (!location.pathname.match(/^\/user\/([^/]+)\/?$/)) {
-                if (e.shiftKey) {
-                    if (document.querySelector("#editanchor").getAttribute("data-editor") === "id") {
-                        document.querySelectorAll("#edit_tab .dropdown-menu .editlink")[1]?.click()
-                    } else {
-                        document.querySelectorAll("#edit_tab .dropdown-menu .editlink")[0]?.click()
-                    }
-                } else if (e.altKey && isDebug()) {
-                    document.querySelectorAll("table.quick-look, table.geojson-props-table:not(.metainfo-table)").forEach(i => {
-                        i.setAttribute("contenteditable", "true")
-                    })
-                } else {
-                    document.querySelector("#editanchor")?.click()
-                }
-            } else {
-                document.querySelector('a[href^="/user/"][href$="/history"]')?.click()
-            }
-        } else if (e.code === "KeyR") {
-            if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
-                document.querySelector('a[href*="/reports/new"]')?.click()
-                return
-            }
-            if (changesetObjectsSelectionModeEnabled || e.altKey) {
-                document.querySelector("#revert_button_class").click()
-                return
-            }
-            if (document.querySelector(".select-objects-btn")) {
-                document.querySelector(".select-objects-btn").click()
-            } else {
-                addCheckboxesForChangesetObjects()
-            }
-        } else if (e.code === "KeyJ") {
-            setTimeout(async () => {
-                if (location.pathname.includes("changeset")) {
-                    await openSelectedObjectsOnChangesetPage(e)
-                } else {
-                    await openObjectInJosmOrLevel0(e)
-                }
-            })
-        } else if (e.code === "KeyH") {
-            if (e.shiftKey) {
-                const targetURL = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href") + "/history"
-                if (targetURL !== location.pathname) {
-                    try {
-                        getWindow().OSM.router.route(targetURL)
-                    } catch {
-                        window.location.pathname = targetURL
-                    }
-                }
-            } else {
-                if (location.pathname.match(/(node|way|relation)\/\d+/)) {
-                    if (location.pathname.match(/(node|way|relation)\/\d+\/?$/)) {
-                        getWindow().OSM.router.route(window.location.pathname + "/history")
-                    } else if (location.pathname.match(/(node|way|relation)\/\d+\/history\/\d+\/?$/)) {
-                        const historyPath = window.location.pathname.match(/(\/(node|way|relation)\/\d+\/history)\/\d+/)[1]
-                        getWindow().OSM.router.route(historyPath)
-                    } else {
-                        console.debug("skip H")
-                    }
-                } else if (location.pathname === "/" || location.pathname.includes("/note")) {
-                    // document.querySelector("#history_tab")?.click()
-                    addCompactSidebarStyle()
-                    document.querySelector('.nav-link[href^="/history"]')?.click()
-                } else if (location.pathname.includes("/user/")) {
-                    document.querySelector('a[href^="/user/"][href$="/history"]')?.click()
-                }
-            }
-        } else if (e.code === "KeyY") {
-            const [x, y, z] = getCurrentXYZ()
-            window.open(`https://yandex.ru/maps/?l=stv,sta&ll=${y},${x}&z=${z}`, "_blank", "noreferrer")
-        } else if (e.key === "1") {
-            if (location.pathname.match(/\/(node|way|relation)\/\d+/)) {
-                if (location.pathname.match(/\/(node|way|relation)\/\d+/)) {
-                    getWindow().OSM.router.route(location.pathname.match(/\/(node|way|relation)\/\d+/)[0] + "/history/1")
-                } else {
-                    console.debug("skip 1")
-                }
-            } else if (location.pathname.startsWith("/changeset")) {
-                const user_link = document.querySelector('#sidebar_content a[href^="/user/"]')
-                if (user_link) {
-                    const username = decodeURI(user_link.getAttribute("href").match(/\/user\/([^/]+)/)[1])
-                    getCachedUserInfo(username).then(res => {
-                        if (res["firstChangesetID"]) {
-                            getWindow().OSM.router.route(`/changeset/${res["firstChangesetID"]}`)
-                        } else {
-                            console.warn("not found first changeset for " + username)
-                        }
-                    })
-                }
-            } else if (location.pathname.match(/\/user\/[^\\]+\/history\/?/)) {
-                const user_link = document.querySelector('#sidebar_content a[href^="/user/"]')
-                if (user_link) {
-                    const username = decodeURI(user_link.getAttribute("href").match(/\/user\/([^/]+)/)[1])
-                    getCachedUserInfo(username).then(res => {
-                        if (res["firstChangesetID"]) {
-                            getWindow().OSM.router.route(`${location.pathname}?after=${res["firstChangesetID"] - 1}`)
-                        } else {
-                            console.warn("not found first changeset for " + username)
-                        }
-                    })
-                }
-            }
-        } else if (e.key === "0") {
-            const center = getMapCenter()
-            setZoom(2)
-            fetch(`https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2`).then(res => {
-                res.json().then(r => {
-                    if (r?.address?.state) {
-                        getMap().attributionControl?.setPrefix(`${r.address.state}`)
-                    }
-                })
-            })
-        } else if (e.code === "KeyZ") {
-            if (e.shiftKey) {
-                shiftKeyZClicks += 1
-                document.addEventListener(
-                    "mousemove",
-                    () => {
-                        shiftKeyZClicks = 0
-                    },
-                    { once: true },
-                )
-            } else {
-                shiftKeyZClicks = 0
-            }
-            zoomToCurrentObject(e)
-        } else if (e.key === "8") {
-            if (mapPositionsHistory.length > 1) {
-                mapPositionsNextHistory.push(mapPositionsHistory[mapPositionsHistory.length - 1])
-                mapPositionsHistory.pop()
-                fitBounds(mapPositionsHistory[mapPositionsHistory.length - 1])
-            }
-        } else if (e.key === "9") {
-            if (mapPositionsNextHistory.length) {
-                mapPositionsHistory.push(mapPositionsNextHistory.pop())
-                fitBounds(mapPositionsHistory[mapPositionsHistory.length - 1])
-            }
-        } else if (e.code === "Minus" && !defaultZoomKeysBehaviour) {
-            if (document.activeElement?.id === "map") {
-                e.preventDefault()
-                e.stopImmediatePropagation()
-                e.stopPropagation()
-            }
-            if (!e.altKey) {
-                setZoom(getZoom() - 2)
-            } else {
-                setZoom(getZoom() - 1)
-            }
-            document.querySelector("#map").focus()
-        } else if (e.code === "Equal" && !defaultZoomKeysBehaviour) {
-            if (document.activeElement?.id === "map") {
-                e.preventDefault()
-                e.stopImmediatePropagation()
-                e.stopPropagation()
-            }
-            if (!e.altKey) {
-                setZoom(getZoom() + 2)
-            } else {
-                setZoom(getZoom() + 1)
-            }
-            document.querySelector("#map").focus()
-        } else if (e.code === "KeyO") {
-            if (e.shiftKey) {
-                window.open("https://overpass-api.de/achavi/?changeset=" + location.pathname.match(/\/changeset\/(\d+)/)[1])
-            } else if (!e.altKey) {
-                const usernameMatch = location.pathname.match(/^\/user\/([^/]+)\/?$/)
-                if (usernameMatch) {
-                    window.open(makeOsmchaLinkForUsername(decodeURI(usernameMatch[1])))
-                } else {
-                    const osmchaLink = document.querySelector("#osmcha_link")
-                    if (osmchaLink) {
-                        osmchaLink?.click()
-                    } else {
-                        document.querySelector(".relation-viewer-link")?.click()
-                    }
-                }
-            }
-        } else if (e.code === "Escape") {
-            cleanObjectsByKey("activeObjects")
-            document.querySelectorAll(".betterOsmContextMenu").forEach(i => i.remove())
-        } else if (e.code === "KeyL" && e.shiftKey) {
-            document.querySelector(".control-locate .control-button").click()
-        } else if (e.code === "KeyK" && location.pathname.match(/^(\/user\/.+)?\/history\/?$/)) {
-            goToPrevChangeset(e)
-        } else if (e.code === "KeyL" && location.pathname.match(/^(\/user\/.+)?\/history\/?$/)) {
-            goToNextChangeset(e)
-        } else if (e.code === "KeyK" && location.pathname === "/search") {
-            goToPrevSearchResult(e)
-        } else if (e.code === "KeyL" && location.pathname === "/search") {
-            goToNextSearchResult(e)
-        } else if (e.code === "KeyC") {
-            if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
-                if (location.pathname.includes("/diary_comments")) {
-                    document.querySelector('a[href^="/user/"][href$="changeset_comments"]')?.click()
-                } else {
-                    document.querySelector('a[href^="/user/"][href$="_comments"]')?.click()
-                }
-            } else {
-                if (e.altKey) {
-                    setTimeout(async () => {
-                        const center = getMapCenter()
-                        const format = (await GM.getValue("CoordinatesFormat")) ?? "Lat Lon"
-                        if (format === "Lon Lat") {
-                            navigator.clipboard.writeText(`${center.lng} ${center.lat}`)
-                        } else {
-                            navigator.clipboard.writeText(`${center.lat} ${center.lng}`)
-                        }
-                    })
-                } else {
-                    const activeObject = document.querySelector("#element_versions_list > div.active-object")
-                    if (activeObject) {
-                        if (e.shiftKey) {
-                            window.open(activeObject.querySelector('a[href^="/changeset/"]').href, "_blank")
-                        } else {
-                            activeObject.querySelector('a[href^="/changeset/"]')?.click()
-                        }
-                    } else {
-                        const changesetsLinks = document.querySelectorAll('a[href^="/changeset/"]:not([href*="?locale="])')
-                        if (e.shiftKey) {
-                            if (changesetsLinks?.[0]?.href) {
-                                window.open(changesetsLinks?.[0]?.href, "_blank")
-                            }
-                        } else {
-                            changesetsLinks?.[0]?.click()
-                        }
-                    }
-                }
-            }
-        } else if (e.code === "KeyQ" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
-            buildingViewerIframe?.remove()
-            buildingViewerIframe = null
-            if (document.querySelector("#osm_alert_modal")?.checkVisibility()) {
-                document.querySelector("#osm_alert_modal .btn-close").click()
-            } else {
-                document.querySelectorAll(".sidebar-close-controls .btn-close").forEach(i => i?.click())
-                document.querySelector(".welcome .btn-close")?.click()
-                document.querySelector("#banner .btn-close")?.click()
-                document.querySelector(".better-btn-close")?.click()
-            }
-        } else if (e.code === "KeyT" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
-            if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
-                document.querySelector('a[href="/traces/mine"], a[href$="/traces"]:not(.nav-link):not(.dropdown-item)')?.click()
-            } else {
-                document.querySelector(".quick-look-compact-toggle-btn")?.click()
-                document.querySelector(".compact-toggle-btn")?.click()
-                document.querySelector("time[switchable]").click()
-            }
-        } else if (e.code === "KeyT" && (e.altKey || e.shiftKey)) {
-            document.querySelector("time[switchable]").click()
-        } else if (e.code === "KeyM" && !e.altKey && !e.metaKey && !e.ctrlKey) {
-            if (e.shiftKey) {
-                if (location.pathname.includes("/user/")) {
-                    const username = location.pathname.match(/^\/user\/([^/]+)/)[1]
-                    window.open("/messages/new/" + decodeURI(username))
-                } else {
-                    const username = document
-                        .querySelector("#sidebar_content a[href^='/user/']")
-                        .getAttribute("href")
-                        .match(/^\/user\/([^/]+)/)[1]
-                    window.open("/messages/new/" + decodeURI(username))
-                }
-            } else if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
-                document.querySelector('a[href^="/messages/new/"]')?.click()
-            }
-        } else if (e.code === "KeyU" && !e.altKey && !e.metaKey && !e.ctrlKey) {
-            if (e.shiftKey) {
-                window.location.pathname = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href")
-            } else {
-                const user_link = document.querySelector('#sidebar_content a[href^="/user/"]')
-                if (user_link) {
-                    if (user_link.checkVisibility()) {
-                        user_link?.click()
-                    } else {
-                        document.querySelector('#sidebar_content li:not([hidden-data-changeset]) a[href^="/user/"]')?.click()
-                    }
-                    // todo fixme on changesets page with filter
-                } else {
-                    document
-                        .querySelector('#content a[href^="/user/"]:not([href$=rss]):not([href*="/diary"]):not([href*="/traces"])')
-                        ?.click()
-                }
-            }
-        } else if (
-            (e.code === "Backquote" || e.code === "Quote" || e.key === "`" || e.key === "~") &&
-            !e.altKey &&
-            !e.metaKey &&
-            !e.ctrlKey
-        ) {
-            if (!getWindow().mapIntercepted) return
-            e.preventDefault()
-            for (let member in layers) {
-                layers[member].forEach(i => {
-                    if (layersHidden) {
-                        i.getElement().style.visibility = ""
-                    } else {
-                        i.getElement().style.visibility = "hidden"
-                    }
-                })
-            }
-            if (getWindow()?.jsonLayer) {
-                if (layersHidden) {
-                    injectJSIntoPage(`jsonLayer.eachLayer(i => i.getElement().style.visibility = "")`)
-                } else {
-                    injectJSIntoPage(`jsonLayer.eachLayer(i => i.getElement().style.visibility = "hidden")`)
-                }
-            } else if (jsonLayer) {
-                if (layersHidden) {
-                    jsonLayer.eachLayer(intoPageWithFun(i => (getMap()._layers[i._leaflet_id].getElement().style.visibility = "")))
-                } else {
-                    jsonLayer.eachLayer(intoPageWithFun(i => (getMap()._layers[i._leaflet_id].getElement().style.visibility = "hidden")))
-                }
-            }
-            layersHidden = !layersHidden
-        } else if (e.code === "KeyF" && !e.altKey && !e.metaKey && !e.ctrlKey) {
-            if (location.pathname.match(/^\/note\//) || location.pathname === "/") {
-                document.querySelector(".control-layers a").click()
-                if (document.querySelector(".layers-ui").style.display !== "none") {
-                    Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({ block: "center" })
-                    e.preventDefault()
-                    document.querySelector("#filter-notes-by-string").focus()
-                }
-            } else {
-                if (!document.querySelector("#changesets-filter-btn") && !document.querySelector("#mass-action-btn")) {
-                    document.querySelector(".control-layers a").click()
-                    Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({ block: "center" })
-                } else {
-                    document.querySelector("#changesets-filter-btn")?.click()
-                    document.querySelector("#mass-action-btn")?.click()
-                }
-            }
-        } else if (isDebug() && e.code === "KeyP" && e.altKey) {
-            if (location.pathname.startsWith("/changeset")) {
-                const params = new URLSearchParams(location.search)
-                const changesetIDs = params.get("changesets")?.split(",") ?? [parseInt(location.pathname.match(/changeset\/(\d+)/)[1])]
-                const objects = []
-                if (changesetIDs) {
-                    setTimeout(async () => {
-                        for (const i of changesetIDs) {
-                            ;(await getChangeset(i)).data.querySelectorAll("node,way,relation").forEach(obj => {
-                                objects.push(obj)
-                            })
-                        }
-                        objects.sort((a, b) => {
-                            const A = new Date(a.getAttribute("timestamp"))
-                            const B = new Date(b.getAttribute("timestamp"))
-                            if (A < B) return -1
-                            if (A > B) return 1
-                            return 0
-                        })
-                        const nodesList = []
-                        for (let object of objects) {
-                            if (object.nodeName === "node" && object.getAttribute("visible") === "true") {
-                                // debugger
-                                // showNodeMarker(object.getAttribute("lat"), object.getAttribute("lon"), "rgb(0,34,255)", null, 'customObjects')
-                                // await sleep(300)
-                                nodesList.push([object.getAttribute("lat"), object.getAttribute("lon")])
-                            } else if (object.nodeName === "way") {
-                                // TODO
-                            }
-                        }
-                        showNodeMarker(nodesList[0][0], nodesList[0][1], "#ff0000", null, "customObjects", 8)
-                        showNodeMarker(nodesList.at(-1)[0], nodesList.at(-1)[1], "#00ff04", null, "customObjects", 8)
-                        showActiveWay(nodesList, c("#0022ff"), false, null, true, 2)
-                    })
-                }
-            }
-        } else if ((e.code === "Slash" || e.code === "Backslash" || e.code === "NumpadDivide" || e.key === "/") && e.shiftKey) {
-            setTimeout(async () => {
-                getMap().getBounds()
-                let message = `Type overpass selector:
-\tkey
-\tkey=value
-\tkey~val,i`
-                const currentUser = decodeURI(
-                    document
-                        .querySelector('.user-menu [href^="/user/"]')
-                        ?.getAttribute("href")
-                        ?.match(/\/user\/(.*)$/)?.[1] ?? "",
-                )
-                if (currentUser) {
-                    message += currentUser.match(/^[a-zA-Z0-9_]+$/) ? `\n\tnode(user:${currentUser})` : `\n\tnode(user:"${currentUser}")`
-                }
-                message += `
-\tway[footway=crossing](if: length() > 150)
-End with ! for global search
-⚠this is a simple prototype of search`
-                const query = prompt(message, await GM.getValue("lastOverpassQuery", ""))
-                if (query) {
-                    insertOverlaysStyles()
-                    processOverpassQuery(query)
-                }
-            }, 0)
-        } else if (e.altKey && e.code === "Backquote") {
-            darkModeForMap = !darkModeForMap
-            if (darkModeForMap) {
-                injectDarkMapStyle()
-            } else {
-                darkMapStyleElement?.remove()
-            }
-        } else if (e.code === "KeyP") {
-            navigator.clipboard.writeText(shortOsmOrgLinksInText(location.origin + location.pathname))
-        } else if (e.code === "KeyB") {
-            if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
-                document.querySelector('a[href^="/user/"][href$="/blocks"]')?.click()
-            }
-            //setupBuildingTools()
-        } else if (e.code === "KeyX") {
-            document.querySelector("#edit_tab ul").tabIndex = -1
-            if (document.querySelector("header").classList.contains("closed")) {
-                document.querySelector("#menu-icon").click()
-                document.querySelector("#edit_tab > button").click()
-            } else if (document.querySelector("#edit_tab > .dropdown-menu").classList.contains("show")) {
-                document.querySelector("#change-list-btn.closed")?.click()
-            } else {
-                document.querySelector("#edit_tab button").click()
-            }
-        } else if (e.code === "KeyV") {
-            if (e.shiftKey) {
-                if (!document.querySelector("#map canvas")) {
-                    Array.from(document.querySelectorAll(".layers-ui .base-layers label")).at(-2)?.click()
-                }
-                void askCustomStyleUrl()
-            } else {
-                nextVectorLayer()
-            }
-        } else {
-            // console.log(e.key, e.code)
-        }
-        if (location.pathname.startsWith("/changeset") && !location.pathname.includes("/changeset_comments")) {
-            if (e.code === "Comma") {
-                const link = getPrevChangesetLink()
-                if (link) {
-                    getAbortController().abort(ABORT_ERROR_PREV)
-                    needPreloadChangesets = true
-                    link.focus()
-                    link.click()
-                }
-            } else if (e.code === "Period") {
-                const link = getNextChangesetLink()
-                if (link) {
-                    getAbortController().abort(ABORT_ERROR_NEXT)
-                    needPreloadChangesets = true
-                    link.focus()
-                    link.click()
-                }
-            } else if (e.code === "KeyH") {
-                const userChangesetsLink = document.querySelectorAll("div.secondary-actions")[1]?.querySelector('a[href^="/user/"]')
-                if (userChangesetsLink) {
-                    getAbortController().abort(ABORT_ERROR_USER_CHANGESETS)
-                    userChangesetsLink.focus()
-                    userChangesetsLink.click()
-                }
-            } else if (e.code === "KeyK") {
-                goToPrevChangesetObject(e)
-            } else if (e.code === "KeyL" && !e.shiftKey) {
-                goToNextChangesetObject(e)
-            }
-        } else if (location.pathname.match(/^\/(node|way|relation)\/\d+/)) {
-            if (e.code === "Comma") {
-                const links = Array.from(document.querySelectorAll("#sidebar_content nav div ul a"))
-                for (let i = 0; i < links.length; i++) {
-                    if (links[i].parentElement.classList.contains("active")) {
-                        links[i - 1]?.click()
-                        break
-                    }
-                }
-            } else if (e.code === "Period") {
-                const links = Array.from(document.querySelectorAll("#sidebar_content nav div ul a"))
-                for (let i = 0; i < links.length; i++) {
-                    if (links[i].parentElement.classList.contains("active")) {
-                        links[i + 1]?.click()
-                        break
-                    }
-                }
-            }
-            if (location.pathname.match(/\/history$/)) {
-                if (e.code === "KeyK") {
-                    goToPrevObjectVersion()
-                } else if (e.code === "KeyL" && !e.shiftKey) {
-                    goToNextObjectVersion()
-                }
-            }
-        } else if (
-            // prettier-ignore
-            location.pathname.match(/user\/.+\/(traces|diary_comments|changeset_comments)/)
-            || location.pathname.match(/\/user_blocks($|\/)/)
-            || location.pathname.match(/\/blocks_by$/)
-        ) {
-            if (e.code === "Comma") {
-                document.querySelector('.pagination a[href*="after"]')?.click()
-            } else if (e.code === "Period") {
-                document.querySelector('.pagination a[href*="before"]')?.click()
-            }
-        } else if (location.pathname.match(/user\/.+\/(notes)/)) {
-            if (e.code === "Comma") {
-                document.querySelectorAll(".pagination li a")[0]?.click()
-            } else if (e.code === "Period") {
-                document.querySelectorAll(".pagination li a")[1]?.click()
-            }
-        } else if (
-            e.code === "KeyH" &&
-            location.pathname.includes("/history") &&
-            (location.search.includes("after") || location.search.includes("before"))
-        ) {
-            try {
-                getWindow().OSM.router.route(location.pathname)
-                setupCompactChangesetsHistory()
-            } catch {
-                if (isSafari) {
-                    window.location.search = ""
-                } else {
-                    window.location = location.pathname
-                }
-            }
-        }
-    }
-
-    document.addEventListener("keydown", keydownHandler, false)
+    document.addEventListener("keydown", hotkeyKeydownHandler, false)
 }
 
 function setupOverzoomForDataLayer() {
