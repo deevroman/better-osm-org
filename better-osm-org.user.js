@@ -19704,13 +19704,17 @@ function renderPanoramaxPhotosPreview(withPhotos) {
             background: "transparent",
             touchAction: "pan-x",
         })
-        photosPreviewGallery.addEventListener("wheel", e => {
-            e.stopPropagation()
-            if (e.deltaX !== 0 || e.deltaY !== 0) {
-                photosPreviewGallery.scrollLeft += e.deltaX + e.deltaY
-                e.preventDefault()
-            }
-        }, { passive: false })
+        photosPreviewGallery.addEventListener(
+            "wheel",
+            e => {
+                e.stopPropagation()
+                if (e.deltaX !== 0 || e.deltaY !== 0) {
+                    photosPreviewGallery.scrollLeft += e.deltaX + e.deltaY
+                    e.preventDefault()
+                }
+            },
+            { passive: false },
+        )
         photosPreviewGallery.addEventListener("pointerdown", e => {
             e.stopPropagation()
         })
