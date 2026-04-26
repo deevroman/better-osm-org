@@ -26246,20 +26246,19 @@ async function openSelectedObjectsOnChangesetPage(e) {
 
 let defaultZoomKeysBehaviour = false
 
-function hotkeyKeydownHandler(e) {
-    if (e.repeat && !["KeyK", "KeyL"].includes(e.code)) return
-    if (document.activeElement?.name === "text") return
+function shouldSkipHotkeyForActiveElement(e) {
+    if (document.activeElement?.name === "text") return true
     if (document.activeElement?.nodeName === "INPUT" && ["input", "text"].includes(document.activeElement.getAttribute("type"))) {
         if (e.code === "Escape") {
             document.activeElement.blur()
         }
-        return
+        return true
     }
     if (document.activeElement?.nodeName === "TEXTAREA" && e.code === "Enter") {
         if (document.activeElement.parentElement?.parentElement?.querySelector(".btn-wrapper")) {
             if (e.metaKey || e.ctrlKey) {
                 document.activeElement.parentElement.parentElement.querySelector(".btn-wrapper .btn-primary").click()
-                return
+                return true
             }
         }
     }
@@ -26268,21 +26267,27 @@ function hotkeyKeydownHandler(e) {
         document.activeElement?.getAttribute("type") !== "checkbox" &&
         document.activeElement?.getAttribute("type") !== "radio"
     ) {
-        return
+        return true
     }
     if (document.activeElement?.getAttribute("contenteditable")) {
-        return
+        return true
     }
     // prettier-ignore
     if (["TH", "TD"].includes(document.activeElement?.nodeName)
         && document.activeElement?.parentElement?.parentElement?.parentElement?.hasAttribute("contenteditable")) {
-        return
+        return true
     }
     // prettier-ignore
     if (["TR"].includes(document.activeElement?.nodeName)
         && document.activeElement?.parentElement?.parentElement?.hasAttribute("contenteditable")) {
-        return
+        return true
     }
+    return false
+}
+
+function hotkeyKeydownHandler(e) {
+    if (e.repeat && !["KeyK", "KeyL"].includes(e.code)) return
+    if (shouldSkipHotkeyForActiveElement(e)) return
     if (document.activeElement?.classList?.contains("relation-viewer-a")) {
         if (e.code === "ArrowDown" || e.code === "ArrowUp") {
             e.preventDefault()
