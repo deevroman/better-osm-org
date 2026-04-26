@@ -1305,22 +1305,28 @@ function handleMeasuringHotkeys(e) {
     return false
 }
 
+function handleRelationViewerHotkeys(e) {
+    if (!document.activeElement?.classList?.contains("relation-viewer-a")) {
+        return false
+    }
+    if (e.code !== "ArrowDown" && e.code !== "ArrowUp") {
+        return false
+    }
+    e.preventDefault()
+    e.stopPropagation()
+    e.stopImmediatePropagation()
+    if (e.code === "ArrowDown") {
+        e.target.parentElement.nextElementSibling?.querySelector("a")?.focus()
+    } else if (e.code === "ArrowUp") {
+        e.target.parentElement.previousElementSibling?.querySelector("a")?.focus()
+    }
+    return true
+}
+
 function hotkeyKeydownHandler(e) {
     if (e.repeat && !["KeyK", "KeyL"].includes(e.code)) return
     if (shouldSkipHotkeyForActiveElement(e)) return
-    if (document.activeElement?.classList?.contains("relation-viewer-a")) {
-        if (e.code === "ArrowDown" || e.code === "ArrowUp") {
-            e.preventDefault()
-            e.stopPropagation()
-            e.stopImmediatePropagation()
-            if (e.code === "ArrowDown") {
-                e.target.parentElement.nextElementSibling?.querySelector("a")?.focus()
-            } else if (e.code === "ArrowUp") {
-                e.target.parentElement.previousElementSibling?.querySelector("a")?.focus()
-            }
-            return
-        }
-    }
+    if (handleRelationViewerHotkeys(e)) return
     if (handleMeasuringHotkeys(e)) return
     // if (drawingBuildings) {
     //     if (e.code === "Escape") {
