@@ -26358,6 +26358,57 @@ function actionCloseUi() {
     }
 }
 
+function actionClearActiveObjectsAndContextMenus() {
+    cleanObjectsByKey("activeObjects")
+    document.querySelectorAll(".betterOsmContextMenu").forEach(i => i.remove())
+}
+
+function actionGoToUserLocation() {
+    document.querySelector(".control-locate .control-button").click()
+}
+
+function actionToggleSwitchableTime() {
+    document.querySelector("time[switchable]")?.click()
+}
+
+function actionHandleKeyT() {
+    if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
+        document.querySelector('a[href="/traces/mine"], a[href$="/traces"]:not(.nav-link):not(.dropdown-item)')?.click()
+    } else {
+        document.querySelector(".quick-look-compact-toggle-btn")?.click()
+        document.querySelector(".compact-toggle-btn")?.click()
+        actionToggleSwitchableTime()
+    }
+}
+
+function actionOpenOverpassSearch() {
+    setTimeout(async () => {
+        getMap().getBounds()
+        let message = `Type overpass selector:
+\tkey
+\tkey=value
+\tkey~val,i`
+        const currentUser = decodeURI(
+            document
+                .querySelector('.user-menu [href^="/user/"]')
+                ?.getAttribute("href")
+                ?.match(/\/user\/(.*)$/)?.[1] ?? "",
+        )
+        if (currentUser) {
+            message += currentUser.match(/^[a-zA-Z0-9_]+$/) ? `\n\tnode(user:${currentUser})` : `\n\tnode(user:"${currentUser}")`
+        }
+        message += `
+\tway[footway=crossing](if: length() > 150)
+End with ! for global search
+⚠this is a simple prototype of search`
+        const query = prompt(message, await GM.getValue("lastOverpassQuery", ""))
+        if (query) {
+            insertOverlaysStyles()
+            processOverpassQuery(query)
+        }
+    }, 0)
+}
+
 function hotkeyKeydownHandler(e) {
     if (e.repeat && !["KeyK", "KeyL"].includes(e.code)) return
     if (shouldSkipHotkeyForActiveElement(e)) return
@@ -26641,10 +26692,9 @@ function hotkeyKeydownHandler(e) {
             }
         }
     } else if (e.code === "Escape") {
-        cleanObjectsByKey("activeObjects")
-        document.querySelectorAll(".betterOsmContextMenu").forEach(i => i.remove())
+        actionClearActiveObjectsAndContextMenus()
     } else if (e.code === "KeyL" && e.shiftKey) {
-        document.querySelector(".control-locate .control-button").click()
+        actionGoToUserLocation()
     } else if (e.code === "KeyK" && location.pathname.match(/^(\/user\/.+)?\/history\/?$/)) {
         goToPrevChangeset(e)
     } else if (e.code === "KeyL" && location.pathname.match(/^(\/user\/.+)?\/history\/?$/)) {
@@ -26694,15 +26744,9 @@ function hotkeyKeydownHandler(e) {
     } else if (e.code === "KeyQ" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
         actionCloseUi()
     } else if (e.code === "KeyT" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
-        if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
-            document.querySelector('a[href="/traces/mine"], a[href$="/traces"]:not(.nav-link):not(.dropdown-item)')?.click()
-        } else {
-            document.querySelector(".quick-look-compact-toggle-btn")?.click()
-            document.querySelector(".compact-toggle-btn")?.click()
-            document.querySelector("time[switchable]").click()
-        }
+        actionHandleKeyT()
     } else if (e.code === "KeyT" && (e.altKey || e.shiftKey)) {
-        document.querySelector("time[switchable]").click()
+        actionToggleSwitchableTime()
     } else if (e.code === "KeyM" && !e.altKey && !e.metaKey && !e.ctrlKey) {
         if (e.shiftKey) {
             if (location.pathname.includes("/user/")) {
@@ -26814,31 +26858,7 @@ function hotkeyKeydownHandler(e) {
             }
         }
     } else if ((e.code === "Slash" || e.code === "Backslash" || e.code === "NumpadDivide" || e.key === "/") && e.shiftKey) {
-        setTimeout(async () => {
-            getMap().getBounds()
-            let message = `Type overpass selector:
-\tkey
-\tkey=value
-\tkey~val,i`
-            const currentUser = decodeURI(
-                document
-                    .querySelector('.user-menu [href^="/user/"]')
-                    ?.getAttribute("href")
-                    ?.match(/\/user\/(.*)$/)?.[1] ?? "",
-            )
-            if (currentUser) {
-                message += currentUser.match(/^[a-zA-Z0-9_]+$/) ? `\n\tnode(user:${currentUser})` : `\n\tnode(user:"${currentUser}")`
-            }
-            message += `
-\tway[footway=crossing](if: length() > 150)
-End with ! for global search
-⚠this is a simple prototype of search`
-            const query = prompt(message, await GM.getValue("lastOverpassQuery", ""))
-            if (query) {
-                insertOverlaysStyles()
-                processOverpassQuery(query)
-            }
-        }, 0)
+        actionOpenOverpassSearch()
     } else if (e.altKey && e.code === "Backquote") {
         darkModeForMap = !darkModeForMap
         if (darkModeForMap) {
