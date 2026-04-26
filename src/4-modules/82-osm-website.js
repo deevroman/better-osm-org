@@ -7,7 +7,6 @@
 // - возможность сохранить результат внедрения
 
 /***@type {((function(): Promise<void>|void))[]}*/
-// prettier-ignore
 const modules = [
     setupDarkModeForMap,
     setupHDYCInProfile,
@@ -26,9 +25,9 @@ const modules = [
     setupClickableAvatar,
     setupOverzoomForDataLayer,
     setupDragAndDropViewers,
-    setupBetterTagsPaste
-];
-// prettier-ignore
+    setupBetterTagsPaste,
+]
+/***@type {((function(): Promise<void>|void))[]}*/
 const alwaysEnabledModules = [
     setupRelationVersionViewer,
     setupMakeVersionPageBetter,
@@ -36,7 +35,7 @@ const alwaysEnabledModules = [
     setupGPXFiltersButtons,
     setupSpyGlassButtons,
     setupNewContextMenuItems,
-    setupPrometheusLink
+    setupPrometheusLink,
 ]
 
 function selectOverpassServer() {
