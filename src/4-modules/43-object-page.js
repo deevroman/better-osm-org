@@ -783,7 +783,7 @@ function makeLinksInVersionTagClickable(row, objType) {
         if (!valueCell.querySelector("a")) {
             makeRefBelpostValue(valueCell)
         }
-    } else if (key.length <= 2 && (key !== "to" || key !== "tv")) {
+    } else if (key.length <= 2 && key !== "to" && key !== "tv") {
         keyCell.classList.add("fixme-tag")
         keyCell.title = "The key is too short"
     }
