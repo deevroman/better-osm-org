@@ -27655,9 +27655,9 @@ const hotkeyActions = {
         run: actionOpenOverpassSearch,
     },
     toggleMapLayersVisibility: {
-        title: "Toggle map layers visibility",
+        title: "Toggle objects layers visibility",
         defaultBindings: ["Backquote"],
-        contexts: ["Main pages"],
+        contexts: ["Changeset pages", "Object pages"],
         run: actionToggleMapLayersVisibility,
     },
     toggleDarkMapStyle: {
@@ -27702,13 +27702,13 @@ const hotkeyActions = {
     toggleSwitchableTime: {
         title: "Toggle switchable time",
         defaultBindings: ["Shift+KeyT", "Alt+KeyT"],
-        contexts: ["Main pages"],
+        contexts: ["Changeset pages", "Object pages", "History pages"],
         run: actionToggleSwitchableTime,
     },
     toggleCompactTimeOrOpenTraces: {
         title: "Toggle compact time or open traces",
         defaultBindings: ["KeyT"],
-        contexts: ["Main pages"],
+        contexts: ["Changeset pages", "Object pages", "History pages"],
         run: actionHandleKeyT,
     },
     openUserBlocks: {
@@ -27722,6 +27722,7 @@ const hotkeyActions = {
         defaultBindings: ["KeyX"],
         contexts: ["Main pages"],
         run: actionToggleEditMenu,
+        hideOnMobile: true,
     },
     nextVectorLayer: {
         title: "Switch to next vector layer",
@@ -27770,13 +27771,13 @@ const hotkeyActions = {
     openExternalService: {
         title: "Open OSMCha",
         defaultBindings: ["KeyO"],
-        contexts: ["Main pages"],
+        contexts: ["Changeset Page"],
         run: actionOpenExternalService,
     },
     openSecondExternalService: {
         title: "Open Achavi",
         defaultBindings: ["Shift+KeyO"],
-        contexts: ["Main pages"],
+        contexts: ["Changeset pages"],
         run: actionOpenExternalService,
     },
     openUserComments: {
@@ -27797,14 +27798,14 @@ const hotkeyActions = {
         title: "Open current changeset",
         defaultBindings: ["KeyC"],
         contexts: ["Main pages"],
-        when: () => !isUserPageWithoutHistory(),
+        when: () => !isUserPageWithoutHistory() && !isChangesetPage(),
         run: actionOpenPrimaryChangeset,
     },
     openPrimaryChangesetInNewTab: {
         title: "Open current changeset in new tab",
         defaultBindings: ["Shift+KeyC"],
         contexts: ["Main pages"],
-        when: () => !isUserPageWithoutHistory(),
+        when: () => !isUserPageWithoutHistory() && !isChangesetPage(),
         run: actionOpenPrimaryChangesetInNewTab,
     },
     toggleNotesLayer: {
@@ -27920,6 +27921,7 @@ const hotkeyActions = {
         defaultBindings: ["Alt+KeyE"],
         contexts: ["Main pages"],
         run: actionOpenSelectedObjectEditTarget,
+        hideOnMobile: true,
     },
     openAlternateEditor: {
         title: "Open alternate editor",
@@ -27927,6 +27929,7 @@ const hotkeyActions = {
         contexts: ["Main pages"],
         when: () => !/^\/user\/([^/]+)\/?$/.test(location.pathname),
         run: actionOpenAlternateEditor,
+        hideOnMobile: true,
     },
     openEditMenuPrimary: {
         title: "Open primary editor",
@@ -27966,19 +27969,19 @@ const hotkeyActions = {
     openInJosm: {
         title: "Open object in JOSM",
         defaultBindings: ["KeyJ"],
-        contexts: ["Main pages"],
+        contexts: ["Changeset pages", "Object pages"],
         run: actionOpenInJosmOrLevel0,
     },
     openInLevel0: {
         title: "Open object in Level0",
         defaultBindings: ["Shift+KeyJ", "Alt+KeyJ", "Shift+Alt+KeyJ"],
-        contexts: ["Main pages"],
+        contexts: ["Changeset pages", "Object pages"],
         run: actionOpenInJosmOrLevel0,
     },
     openInLevel0WithFullGeometry: {
         title: "Open object in Level0 with full geometry",
         defaultBindings: ["Shift+Alt+KeyJ"],
-        contexts: ["Main pages"],
+        contexts: ["Changeset pages", "Object pages"],
         run: actionOpenInJosmOrLevel0,
     },
     openOwnHistoryPage: {
@@ -28037,8 +28040,14 @@ const hotkeyActions = {
     },
     zoomToCurrentObjectHotkey: {
         title: "Zoom to current object",
-        defaultBindings: ["KeyZ", "Shift+KeyZ"],
-        contexts: ["Main pages"],
+        defaultBindings: ["KeyZ"],
+        contexts: ["Changeset pages", "Object pages"],
+        run: actionZoomToCurrentObjectHotkey,
+    },
+    smartZoomToCurrentObjectHotkey: {
+        title: "Zoom to current object nodes",
+        defaultBindings: ["Shift+KeyZ"],
+        contexts: ["Changeset pages", "Object pages"],
         run: actionZoomToCurrentObjectHotkey,
     },
     mapPositionBack: {
