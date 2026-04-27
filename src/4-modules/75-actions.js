@@ -2395,4 +2395,14 @@ function actionOpenDevScriptUpdateUrl() {
     window.open(`${DEV_SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`, "_blank")
 }
 
+function actionOpenLocalFilePicker() {
+    const input = document.createElement("input")
+    input.type = "file"
+    input.multiple = true
+    input.addEventListener("change", () => {
+        void handleDroppedFiles(Array.from(input.files ?? []))
+    })
+    input.click()
+}
+
 //</editor-fold>
