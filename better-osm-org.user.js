@@ -25200,8 +25200,7 @@ async function setupDragAndDropViewers() {
 
 //</editor-fold>
 
-//<editor-fold desc="hotkeys">
-let hotkeysConfigured = false
+//<editor-fold desc="actions">
 
 function updateCurrentObjectMetadata() {
     setTimeout(loadChangesetMetadata, 0)
@@ -27579,6 +27578,11 @@ function actionGoToNextChangesetListPage() {
         link.click()
     }
 }
+
+//</editor-fold>
+
+//<editor-fold desc="hotkeys">
+let hotkeysConfigured = false
 
 /**
  * @typedef {"All pages" | "Main pages" | "User pages" | "Changeset pages" | "Object pages" | "History pages" | "Search page" | "Debug"} HotkeyContext
