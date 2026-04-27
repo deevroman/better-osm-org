@@ -26558,6 +26558,9 @@ function getAvailableHotkeyCommandsForCurrentPage() {
 
     return Object.entries(hotkeyActions)
         .flatMap(([actionId, action]) => {
+            if (isMobile && action.hideOnMobile) {
+                return []
+            }
             if (!action.contexts.some(context => currentContexts.includes(context))) {
                 return []
             }
@@ -26596,6 +26599,12 @@ async function rememberRecentHotkeyAction(actionId) {
     const current = await getRecentHotkeyActionIds()
     const next = [actionId, ...current.filter(currentActionId => currentActionId !== actionId)].slice(0, recentHotkeyActionsLimit)
     await GM.setValue(recentHotkeyActionsStorageKey, next)
+}
+
+function actionClearRecentHotkeyActions() {
+    setTimeout(() => {
+        void GM.setValue(recentHotkeyActionsStorageKey, [])
+    })
 }
 
 function ensureHotkeyCommandsPopupStyles() {
@@ -27624,6 +27633,7 @@ let hotkeysConfigured = false
  * @property {string[]} defaultBindings
  * @property {HotkeyContext[]} contexts
  * @property {boolean=} preventDefault
+ * @property {boolean=} hideOnMobile
  * @property {(e: KeyboardEvent) => boolean=} when
  * @property {(e: KeyboardEvent) => void} run
  */
@@ -27635,6 +27645,7 @@ const hotkeyActions = {
         defaultBindings: ["F1"],
         contexts: ["All pages"],
         preventDefault: true,
+        hideOnMobile: true,
         run: actionShowHotkeysHelp,
     },
     openOverpassSearch: {
@@ -27662,7 +27673,7 @@ const hotkeyActions = {
         run: actionOpenYandexPanoramas,
     },
     copyCurrentShortLink: {
-        title: "Copy current short link",
+        title: "Copy current short URL",
         defaultBindings: ["KeyP"],
         contexts: ["Main pages"],
         run: actionCopyCurrentShortLink,
@@ -27672,18 +27683,21 @@ const hotkeyActions = {
         defaultBindings: ["KeyQ"],
         contexts: ["Main pages"],
         run: actionCloseUi,
+        hideOnMobile: true,
     },
     clearActiveObjectsAndContextMenus: {
         title: "Clear active objects and context menus",
         defaultBindings: ["Escape"],
         contexts: ["Main pages"],
         run: actionClearActiveObjectsAndContextMenus,
+        hideOnMobile: true,
     },
     goToUserLocation: {
         title: "Go to your location",
         defaultBindings: ["Shift+KeyL"],
         contexts: ["Main pages"],
         run: actionGoToUserLocation,
+        hideOnMobile: true,
     },
     toggleSwitchableTime: {
         title: "Toggle switchable time",
@@ -27751,6 +27765,7 @@ const hotkeyActions = {
         defaultBindings: ["KeyF"],
         contexts: ["Main pages"],
         run: actionOpenFiltersOrLayers,
+        hideOnMobile: true,
     },
     openExternalService: {
         title: "Open OSMCha",
@@ -27837,6 +27852,7 @@ const hotkeyActions = {
         defaultBindings: ["Shift+KeyN"],
         contexts: ["Main pages"],
         run: actionCreateNote,
+        hideOnMobile: true,
     },
     openUserDiary: {
         title: "Open current user's diary",
@@ -27874,6 +27890,12 @@ const hotkeyActions = {
         defaultBindings: [],
         contexts: ["Debug"],
         run: actionOpenDevScriptUpdateUrl,
+    },
+    clearRecentHotkeyActions: {
+        title: "Clear recent actions",
+        defaultBindings: [],
+        contexts: ["Debug"],
+        run: actionClearRecentHotkeyActions,
     },
     showGpsTracksOverlay: {
         title: "Show Strava GPS tracks overlay",
@@ -28037,6 +28059,7 @@ const hotkeyActions = {
         contexts: ["Main pages"],
         when: () => !defaultZoomKeysBehaviour,
         run: actionZoomOutHotkey,
+        hideOnMobile: true,
     },
     zoomInHotkey: {
         title: "Zoom in",
@@ -28044,6 +28067,7 @@ const hotkeyActions = {
         contexts: ["Main pages"],
         when: () => !defaultZoomKeysBehaviour,
         run: actionZoomInHotkey,
+        hideOnMobile: true,
     },
     goToPrevChangesetPage: {
         title: "Go to previous changeset page",

@@ -1356,6 +1356,9 @@ function getAvailableHotkeyCommandsForCurrentPage() {
 
     return Object.entries(hotkeyActions)
         .flatMap(([actionId, action]) => {
+            if (isMobile && action.hideOnMobile) {
+                return []
+            }
             if (!action.contexts.some(context => currentContexts.includes(context))) {
                 return []
             }
@@ -1394,6 +1397,12 @@ async function rememberRecentHotkeyAction(actionId) {
     const current = await getRecentHotkeyActionIds()
     const next = [actionId, ...current.filter(currentActionId => currentActionId !== actionId)].slice(0, recentHotkeyActionsLimit)
     await GM.setValue(recentHotkeyActionsStorageKey, next)
+}
+
+function actionClearRecentHotkeyActions() {
+    setTimeout(() => {
+        void GM.setValue(recentHotkeyActionsStorageKey, [])
+    })
 }
 
 function ensureHotkeyCommandsPopupStyles() {
