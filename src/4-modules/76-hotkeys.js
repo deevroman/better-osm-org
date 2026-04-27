@@ -491,12 +491,12 @@ const hotkeyActions = {
         when: () => isSearchPage(),
         run: actionGoToNextSearchResultPage,
     },
-    previewChangesetGeometryDebug: {
-        title: "Preview changeset geometry",
+    changesetObjectsTimeTrack: {
+        title: "Preview changeset objects time track",
         defaultBindings: ["Alt+KeyP"],
         contexts: ["Debug", "Changeset pages"],
         when: () => isDebug() && location.pathname.startsWith("/changeset"),
-        run: actionPreviewChangesetGeometryDebug,
+        run: actionChangesetObjectsTimeTrack,
     },
     goToPrevChangesetListPage: {
         title: "Previous changeset list page",
