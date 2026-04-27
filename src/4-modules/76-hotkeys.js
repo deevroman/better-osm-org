@@ -32,6 +32,12 @@ const hotkeyActions = {
         contexts: ["Main pages"],
         run: actionOpenOverpassSearch,
     },
+    openLocalFilePicker: {
+        title: "Open local file",
+        defaultBindings: [],
+        contexts: ["Main pages"],
+        run: actionOpenLocalFilePicker,
+    },
     toggleMapLayersVisibility: {
         title: "Toggle objects layers visibility",
         defaultBindings: ["Backquote"],
