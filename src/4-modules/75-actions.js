@@ -2377,4 +2377,12 @@ function actionGoToNextChangesetListPage() {
     }
 }
 
+function actionOpenScriptUpdateUrl() {
+    window.open(`${SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`, "_blank")
+}
+
+function actionOpenDevScriptUpdateUrl() {
+    window.open(`${DEV_SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`, "_blank")
+}
+
 //</editor-fold>
