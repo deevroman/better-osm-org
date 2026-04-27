@@ -26583,11 +26583,7 @@ function getAvailableHotkeyCommandsForCurrentPage() {
         .sort((a, b) => {
             const aContextIndex = hotkeyHelpContextsOrder.findIndex(context => a.contexts.includes(context))
             const bContextIndex = hotkeyHelpContextsOrder.findIndex(context => b.contexts.includes(context))
-            return (
-                aContextIndex - bContextIndex ||
-                a.title.localeCompare(b.title) ||
-                (a.binding || "").localeCompare(b.binding || "")
-            )
+            return aContextIndex - bContextIndex || a.title.localeCompare(b.title) || (a.binding || "").localeCompare(b.binding || "")
         })
 }
 
@@ -26617,7 +26613,6 @@ function ensureHotkeyCommandsPopupStyles() {
             display: flex;
             justify-content: center;
             padding: 8px;
-            background: rgba(0, 0, 0, 0.08);
             box-sizing: border-box;
 
             .better-osm-hotkey-commands-panel {
@@ -26709,7 +26704,8 @@ function ensureHotkeyCommandsPopupStyles() {
 
             .better-osm-hotkey-command-btn {
                 display: grid;
-                grid-template-columns: minmax(90px, 120px) 1fr;
+                grid-template-columns: 1fr${isMobile ? "" : " minmax(90px, 120px)"};
+                align-items: baseline;
                 gap: 10px;
                 width: 100%;
                 border: 0;
@@ -26735,6 +26731,7 @@ function ensureHotkeyCommandsPopupStyles() {
                 font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
                 font-size: 0.875rem;
                 white-space: nowrap;
+                line-height: 1.3;
                 opacity: 0.65;
             }
 
@@ -26789,10 +26786,10 @@ async function showHotkeyCommandsPopup() {
     const headerText = document.createElement("div")
     const title = document.createElement("h3")
     title.classList.add("better-osm-hotkey-commands-title")
-    title.textContent = "Commands available on this page"
+    title.textContent = "Available commands"
     const subtitle = document.createElement("p")
     subtitle.classList.add("better-osm-hotkey-commands-subtitle")
-    subtitle.textContent = `Current contexts: ${currentContexts.join(", ")}`
+    // subtitle.textContent = `Current contexts: ${currentContexts.join(", ")}`
     headerText.append(title, subtitle)
 
     const closeBtn = document.createElement("button")
@@ -26887,10 +26884,17 @@ async function showHotkeyCommandsPopup() {
                 label.classList.add("better-osm-hotkey-command-title")
                 label.textContent = command.title
 
-                button.append(binding, label)
+                if (isMobile) {
+                    button.append(label)
+                } else {
+                    button.append(label, binding)
+                }
                 button.addEventListener("click", () => {
                     closeHotkeyCommandsPopup()
-                    setTimeout(() => runHotkeyAction(command.actionId, command.event), 0)
+                    setTimeout(() => {
+                        void rememberRecentHotkeyAction(command.actionId)
+                        runHotkeyAction(command.actionId, command.event)
+                    }, 0)
                 })
                 list.append(button)
             })
@@ -26939,10 +26943,17 @@ async function showHotkeyCommandsPopup() {
                     label.classList.add("better-osm-hotkey-command-title")
                     label.textContent = command.title
 
-                    button.append(binding, label)
+                    if (isMobile) {
+                        button.append(label)
+                    } else {
+                        button.append(label, binding)
+                    }
                     button.addEventListener("click", () => {
                         closeHotkeyCommandsPopup()
-                        setTimeout(() => runHotkeyAction(command.actionId, command.event), 0)
+                        setTimeout(() => {
+                            void rememberRecentHotkeyAction(command.actionId)
+                            runHotkeyAction(command.actionId, command.event)
+                        }, 0)
                     })
                     list.append(button)
                 })
@@ -26987,10 +26998,11 @@ async function showHotkeyCommandsPopup() {
             closeHotkeyCommandsPopup()
         }
     })
-    renderCommandsList()
 
     overlay.append(panel)
     document.body.append(overlay)
+    renderCommandsList()
+    panel.style.width = `${Math.min(panel.scrollWidth, window.innerWidth - 16)}px`
     searchInput.focus()
 }
 
@@ -27626,7 +27638,7 @@ const hotkeyActions = {
         run: actionShowHotkeysHelp,
     },
     openOverpassSearch: {
-        title: "Open Overpass search",
+        title: "Make Overpass request",
         defaultBindings: ["Shift+Slash"],
         contexts: ["Main pages"],
         run: actionOpenOverpassSearch,
@@ -27668,7 +27680,7 @@ const hotkeyActions = {
         run: actionClearActiveObjectsAndContextMenus,
     },
     goToUserLocation: {
-        title: "Go to user location",
+        title: "Go to your location",
         defaultBindings: ["Shift+KeyL"],
         contexts: ["Main pages"],
         run: actionGoToUserLocation,
@@ -27710,16 +27722,16 @@ const hotkeyActions = {
         run: actionSetCustomVectorStyle,
     },
     openMessageComposer: {
-        title: "Open message composer",
+        title: "Open direct message composer",
         defaultBindings: ["KeyM"],
         contexts: ["User pages"],
         when: () => isUserPageWithoutHistory(),
         run: actionOpenMessageComposer,
     },
     openMessageComposerForCurrentUser: {
-        title: "Open message composer for current user",
+        title: "Open direct message composer",
         defaultBindings: ["Shift+KeyM"],
-        contexts: ["Main pages", "User pages"],
+        contexts: ["Main pages"],
         run: actionOpenMessageComposerForCurrentUser,
     },
     openCurrentPageUserProfile: {
@@ -27741,8 +27753,14 @@ const hotkeyActions = {
         run: actionOpenFiltersOrLayers,
     },
     openExternalService: {
-        title: "Open external service",
-        defaultBindings: ["KeyO", "Shift+KeyO"],
+        title: "Open OSMCha",
+        defaultBindings: ["KeyO"],
+        contexts: ["Main pages"],
+        run: actionOpenExternalService,
+    },
+    openSecondExternalService: {
+        title: "Open Achavi",
+        defaultBindings: ["Shift+KeyO"],
         contexts: ["Main pages"],
         run: actionOpenExternalService,
     },
@@ -27828,7 +27846,7 @@ const hotkeyActions = {
         run: actionOpenUserDiary,
     },
     appendDebugQueryFlag: {
-        title: "Append debug query flag",
+        title: "Disable script on tab",
         defaultBindings: ["Alt+Shift+KeyD"],
         contexts: ["Debug"],
         run: actionAppendDebugQueryFlag,
@@ -27858,9 +27876,9 @@ const hotkeyActions = {
         run: actionOpenDevScriptUpdateUrl,
     },
     showGpsTracksOverlay: {
-        title: "Show GPS tracks overlay",
+        title: "Show Strava GPS tracks overlay",
         defaultBindings: ["Shift+KeyG", "Alt+KeyG"],
-        contexts: ["Main pages"],
+        contexts: ["Debug"],
         run: actionShowGpsTracksOverlay,
     },
     setCustomTileUrl: {
@@ -27924,14 +27942,20 @@ const hotkeyActions = {
         run: actionToggleChangesetObjectSelection,
     },
     openInJosm: {
-        title: "Open object in JOSM or Level0",
+        title: "Open object in JOSM",
         defaultBindings: ["KeyJ"],
         contexts: ["Main pages"],
         run: actionOpenInJosmOrLevel0,
     },
-    openInJosmOrLevel0: {
+    openInLevel0: {
         title: "Open object in Level0",
         defaultBindings: ["Shift+KeyJ", "Alt+KeyJ", "Shift+Alt+KeyJ"],
+        contexts: ["Main pages"],
+        run: actionOpenInJosmOrLevel0,
+    },
+    openInLevel0WithFullGeometry: {
+        title: "Open object in Level0 with full geometry",
+        defaultBindings: ["Shift+Alt+KeyJ"],
         contexts: ["Main pages"],
         run: actionOpenInJosmOrLevel0,
     },
@@ -27996,13 +28020,13 @@ const hotkeyActions = {
         run: actionZoomToCurrentObjectHotkey,
     },
     mapPositionBack: {
-        title: "Previous map position",
+        title: "Go to Previous map position",
         defaultBindings: ["Digit8"],
         contexts: ["Main pages"],
         run: actionMapPositionBack,
     },
     mapPositionForward: {
-        title: "Next map position",
+        title: "Go to Next map position",
         defaultBindings: ["Digit9"],
         contexts: ["Main pages"],
         run: actionMapPositionForward,
@@ -28191,7 +28215,6 @@ function runHotkeyAction(actionId, e) {
         e.stopImmediatePropagation?.()
     }
     action.run(e)
-    void rememberRecentHotkeyAction(actionId)
     return true
 }
 

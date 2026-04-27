@@ -1381,11 +1381,7 @@ function getAvailableHotkeyCommandsForCurrentPage() {
         .sort((a, b) => {
             const aContextIndex = hotkeyHelpContextsOrder.findIndex(context => a.contexts.includes(context))
             const bContextIndex = hotkeyHelpContextsOrder.findIndex(context => b.contexts.includes(context))
-            return (
-                aContextIndex - bContextIndex ||
-                a.title.localeCompare(b.title) ||
-                (a.binding || "").localeCompare(b.binding || "")
-            )
+            return aContextIndex - bContextIndex || a.title.localeCompare(b.title) || (a.binding || "").localeCompare(b.binding || "")
         })
 }
 
@@ -1415,7 +1411,6 @@ function ensureHotkeyCommandsPopupStyles() {
             display: flex;
             justify-content: center;
             padding: 8px;
-            background: rgba(0, 0, 0, 0.08);
             box-sizing: border-box;
 
             .better-osm-hotkey-commands-panel {
@@ -1507,7 +1502,8 @@ function ensureHotkeyCommandsPopupStyles() {
 
             .better-osm-hotkey-command-btn {
                 display: grid;
-                grid-template-columns: minmax(90px, 120px) 1fr;
+                grid-template-columns: 1fr${isMobile ? "" : " minmax(90px, 120px)"};
+                align-items: baseline;
                 gap: 10px;
                 width: 100%;
                 border: 0;
@@ -1533,6 +1529,7 @@ function ensureHotkeyCommandsPopupStyles() {
                 font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
                 font-size: 0.875rem;
                 white-space: nowrap;
+                line-height: 1.3;
                 opacity: 0.65;
             }
 
@@ -1587,10 +1584,10 @@ async function showHotkeyCommandsPopup() {
     const headerText = document.createElement("div")
     const title = document.createElement("h3")
     title.classList.add("better-osm-hotkey-commands-title")
-    title.textContent = "Commands available on this page"
+    title.textContent = "Available commands"
     const subtitle = document.createElement("p")
     subtitle.classList.add("better-osm-hotkey-commands-subtitle")
-    subtitle.textContent = `Current contexts: ${currentContexts.join(", ")}`
+    // subtitle.textContent = `Current contexts: ${currentContexts.join(", ")}`
     headerText.append(title, subtitle)
 
     const closeBtn = document.createElement("button")
@@ -1685,10 +1682,17 @@ async function showHotkeyCommandsPopup() {
                 label.classList.add("better-osm-hotkey-command-title")
                 label.textContent = command.title
 
-                button.append(binding, label)
+                if (isMobile) {
+                    button.append(label)
+                } else {
+                    button.append(label, binding)
+                }
                 button.addEventListener("click", () => {
                     closeHotkeyCommandsPopup()
-                    setTimeout(() => runHotkeyAction(command.actionId, command.event), 0)
+                    setTimeout(() => {
+                        void rememberRecentHotkeyAction(command.actionId)
+                        runHotkeyAction(command.actionId, command.event)
+                    }, 0)
                 })
                 list.append(button)
             })
@@ -1737,10 +1741,17 @@ async function showHotkeyCommandsPopup() {
                     label.classList.add("better-osm-hotkey-command-title")
                     label.textContent = command.title
 
-                    button.append(binding, label)
+                    if (isMobile) {
+                        button.append(label)
+                    } else {
+                        button.append(label, binding)
+                    }
                     button.addEventListener("click", () => {
                         closeHotkeyCommandsPopup()
-                        setTimeout(() => runHotkeyAction(command.actionId, command.event), 0)
+                        setTimeout(() => {
+                            void rememberRecentHotkeyAction(command.actionId)
+                            runHotkeyAction(command.actionId, command.event)
+                        }, 0)
                     })
                     list.append(button)
                 })
@@ -1785,10 +1796,11 @@ async function showHotkeyCommandsPopup() {
             closeHotkeyCommandsPopup()
         }
     })
-    renderCommandsList()
 
     overlay.append(panel)
     document.body.append(overlay)
+    renderCommandsList()
+    panel.style.width = `${Math.min(panel.scrollWidth, window.innerWidth - 16)}px`
     searchInput.focus()
 }
 
