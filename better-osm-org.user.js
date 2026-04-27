@@ -26438,12 +26438,12 @@ function isMainHotkeyPage() {
 
 const hotkeyHelpContextsOrder = [
     "All pages",
-    "Main pages",
     "User pages",
     "Changeset pages",
     "Object pages",
     "History pages",
     "Search page",
+    "Main pages",
     "Debug",
 ]
 
