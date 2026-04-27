@@ -306,6 +306,8 @@ function renderPanoramaxPhotosPreview(withPhotos) {
             zIndex: "99999",
             background: "transparent",
             touchAction: "pan-x",
+            overscrollBehaviorX: "contain",
+            WebkitOverflowScrolling: "touch",
         })
         photosPreviewGallery.addEventListener(
             "wheel",
@@ -321,6 +323,12 @@ function renderPanoramaxPhotosPreview(withPhotos) {
         photosPreviewGallery.addEventListener("pointerdown", e => {
             e.stopPropagation()
         })
+        photosPreviewGallery.addEventListener("touchstart", e => {
+            e.stopPropagation()
+        }, { passive: true })
+        photosPreviewGallery.addEventListener("touchmove", e => {
+            e.stopPropagation()
+        }, { passive: true })
         photosPreviewGallery.addEventListener("mouseleave", () => {
             hidePanoramaxHoverZoomPopup()
         })
