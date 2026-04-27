@@ -26500,7 +26500,10 @@ function actionShowHotkeysHelp() {
     }, {})
     const hotkeysList = hotkeyHelpContextsOrder
         .filter(context => groupedActions[context]?.length)
-        .map(context => `${context}:\n${groupedActions[context].map(action => `${action.defaultBindings.join(", ")} - ${action.title}`).join("\n")}`)
+        .map(
+            context =>
+                `${context}:\n${groupedActions[context].map(action => `${action.defaultBindings.join(", ")} - ${action.title}`).join("\n")}`,
+        )
         .join("\n\n")
     alert(`Hotkeys\n\n${hotkeysList}\n\nThis list currently includes commands moved to the new hotkey catalog.`)
 }
@@ -27094,218 +27097,228 @@ function actionGoToNextChangesetListPage() {
     }
 }
 
+/**
+ * @typedef {"All pages" | "Main pages" | "User pages" | "Changeset pages" | "Object pages" | "History pages" | "Search page" | "Debug"} HotkeyContext
+ */
+
+/**
+ * @typedef {Object} HotkeyActionDefinition
+ * @property {string} title
+ * @property {string[]} defaultBindings
+ * @property {HotkeyContext[]} contexts
+ * @property {boolean=} preventDefault
+ * @property {(e: KeyboardEvent) => boolean=} when
+ * @property {(...args: any[]) => void} run
+ */
+
+/** @type {Record<string, HotkeyActionDefinition>} */
 const hotkeyActions = {
     showHotkeysHelp: {
         title: "Show hotkeys help",
         defaultBindings: ["F1"],
-        group: "Help",
+        contexts: ["All pages"],
         preventDefault: true,
         run: actionShowHotkeysHelp,
     },
     openYandexPanoramas: {
         title: "Open Yandex panoramas",
         defaultBindings: ["KeyY"],
-        group: "Main site",
+        contexts: ["Main pages"],
         run: actionOpenYandexPanoramas,
     },
     copyCurrentShortLink: {
         title: "Copy current short link",
         defaultBindings: ["KeyP"],
-        group: "Main site",
+        contexts: ["Main pages"],
         run: actionCopyCurrentShortLink,
     },
     closeUi: {
         title: "Close open UI panels",
         defaultBindings: ["KeyQ"],
-        group: "Main site",
         contexts: ["All pages"],
         run: actionCloseUi,
     },
     clearActiveObjectsAndContextMenus: {
         title: "Clear active objects and context menus",
         defaultBindings: ["Escape"],
-        group: "Main site",
         contexts: ["All pages"],
         run: actionClearActiveObjectsAndContextMenus,
     },
     goToUserLocation: {
         title: "Go to user location",
         defaultBindings: ["Shift+KeyL"],
-        group: "Main site",
+        contexts: ["Main pages"],
         run: actionGoToUserLocation,
     },
     toggleSwitchableTime: {
         title: "Toggle switchable time",
         defaultBindings: ["Shift+KeyT", "Alt+KeyT"],
-        group: "Main site",
+        contexts: ["Main pages"],
         run: actionToggleSwitchableTime,
     },
     toggleCompactTimeOrOpenTraces: {
         title: "Toggle compact time or open traces",
         defaultBindings: ["KeyT"],
-        group: "Main site",
+        contexts: ["Main pages"],
         run: actionHandleKeyT,
     },
     openOverpassSearch: {
         title: "Open Overpass search",
         defaultBindings: ["Shift+Slash"],
-        group: "Main site",
+        contexts: ["Main pages"],
         run: actionOpenOverpassSearch,
     },
     toggleMapLayersVisibility: {
         title: "Toggle map layers visibility",
         defaultBindings: ["Backquote"],
-        group: "Main site",
+        contexts: ["Main pages"],
         run: actionToggleMapLayersVisibility,
     },
     toggleDarkMapStyle: {
         title: "Toggle dark map style",
         defaultBindings: ["Alt+Backquote"],
-        group: "Main site",
+        contexts: ["Main pages"],
         run: actionToggleDarkMapStyle,
     },
     openUserBlocks: {
         title: "Open user blocks",
         defaultBindings: ["KeyB", "Shift+KeyB", "Alt+KeyB", "Alt+Shift+KeyB"],
-        group: "User pages",
+        contexts: ["User pages"],
         run: actionOpenUserBlocks,
     },
     toggleEditMenu: {
         title: "Toggle edit menu",
         defaultBindings: ["KeyX"],
-        group: "Main site",
+        contexts: ["Main pages"],
         run: actionToggleEditMenu,
     },
     nextVectorLayer: {
         title: "Switch to next vector layer",
         defaultBindings: ["KeyV"],
-        group: "Main site",
+        contexts: ["Main pages"],
         run: actionNextVectorLayer,
     },
     setCustomVectorStyle: {
         title: "Set custom vector style",
         defaultBindings: ["Shift+KeyV"],
-        group: "Main site",
+        contexts: ["Main pages"],
         run: actionSetCustomVectorStyle,
     },
     openMessageComposer: {
         title: "Open message composer",
         defaultBindings: ["KeyM"],
-        group: "User pages",
+        contexts: ["User pages"],
         when: () => isUserPageWithoutHistory(),
         run: actionOpenMessageComposer,
     },
     openMessageComposerForCurrentUser: {
         title: "Open message composer for current user",
         defaultBindings: ["Shift+KeyM"],
-        group: "User pages",
         contexts: ["Main pages", "User pages"],
         run: actionOpenMessageComposerForCurrentUser,
     },
     openCurrentPageUserProfile: {
         title: "Open current page user profile",
         defaultBindings: ["KeyU"],
-        group: "User pages",
         contexts: ["Main pages", "User pages"],
         run: actionOpenCurrentPageUserProfile,
     },
     openOwnUserProfile: {
         title: "Open own user profile",
         defaultBindings: ["Shift+KeyU"],
-        group: "User pages",
         contexts: ["Main pages", "User pages"],
         run: actionOpenOwnUserProfile,
     },
     openFiltersOrLayers: {
         title: "Open filters or layers",
         defaultBindings: ["KeyF"],
-        group: "Main site",
+        contexts: ["Main pages"],
         run: actionOpenFiltersOrLayers,
     },
     openExternalService: {
         title: "Open external service",
         defaultBindings: ["KeyO", "Shift+KeyO"],
-        group: "Main site",
+        contexts: ["Main pages"],
         run: actionOpenExternalService,
     },
     openUserComments: {
         title: "Open user comments",
         defaultBindings: ["KeyC", "Shift+KeyC", "Alt+KeyC"],
-        group: "User pages",
+        contexts: ["User pages"],
         when: () => isUserPageWithoutHistory(),
         run: actionOpenUserComments,
     },
     copyMapCenterCoordinates: {
         title: "Copy map center coordinates",
         defaultBindings: ["Alt+KeyC"],
-        group: "Main site",
+        contexts: ["Main pages"],
         when: () => !isUserPageWithoutHistory(),
         run: actionCopyMapCenterCoordinates,
     },
     openPrimaryChangeset: {
         title: "Open current changeset",
         defaultBindings: ["KeyC"],
-        group: "Main site",
+        contexts: ["Main pages"],
         when: () => !isUserPageWithoutHistory(),
         run: actionOpenPrimaryChangeset,
     },
     openPrimaryChangesetInNewTab: {
         title: "Open current changeset in new tab",
         defaultBindings: ["Shift+KeyC"],
-        group: "Main site",
+        contexts: ["Main pages"],
         when: () => !isUserPageWithoutHistory(),
         run: actionOpenPrimaryChangesetInNewTab,
     },
     toggleNotesLayer: {
         title: "Toggle notes layer",
         defaultBindings: ["KeyN"],
-        group: "Main site",
+        contexts: ["Main pages"],
         when: () => !isUserPageWithoutHistory(),
         run: actionToggleNotesLayer,
     },
     toggleMapDataLayer: {
         title: "Toggle Map Data layer",
         defaultBindings: ["KeyD"],
-        group: "Main site",
+        contexts: ["Main pages"],
         when: () => !isUserPageWithoutHistory(),
         run: actionToggleMapDataLayer,
     },
     toggleGpsTracksLayer: {
         title: "Toggle GPS tracks layer",
         defaultBindings: ["KeyG"],
-        group: "Main site",
+        contexts: ["Main pages"],
         run: actionToggleGpsTracksLayer,
     },
     switchToSatelliteImagery: {
         title: "Switch to satellite imagery",
         defaultBindings: ["KeyS"],
-        group: "Main site",
+        contexts: ["Main pages"],
         run: actionSwitchToSatelliteImagery,
     },
     openUserNotesPage: {
         title: "Open current user's notes",
         defaultBindings: ["KeyN", "Shift+KeyN", "Alt+KeyN", "Alt+Shift+KeyN"],
-        group: "User pages",
+        contexts: ["User pages"],
         when: () => isUserPageWithoutHistory(),
         run: actionOpenUserNotesPage,
     },
     openNoteAuthorNotesInNewTab: {
         title: "Open note author's notes in new tab",
         defaultBindings: ["Alt+KeyN"],
-        group: "Main pages",
+        contexts: ["Main pages"],
         when: () => /^\/note\/\d+/.test(location.pathname),
         run: actionOpenNoteAuthorNotesInNewTab,
     },
     createNote: {
         title: "Create note",
         defaultBindings: ["Shift+KeyN"],
-        group: "Main pages",
+        contexts: ["Main pages"],
         run: actionCreateNote,
     },
     openUserDiary: {
         title: "Open current user's diary",
         defaultBindings: ["KeyD"],
-        group: "User pages",
+        contexts: ["User pages"],
         when: () => isUserPageWithoutHistory(),
         run: actionOpenUserDiary,
     },
@@ -27324,80 +27337,79 @@ const hotkeyActions = {
     openSpyGlass: {
         title: "Open Spy Glass",
         defaultBindings: ["Shift+KeyD"],
-        group: "Debug",
         contexts: ["Debug"],
         run: actionOpenSpyGlass,
     },
     showGpsTracksOverlay: {
         title: "Show GPS tracks overlay",
         defaultBindings: ["Shift+KeyG", "Alt+KeyG"],
-        group: "Main pages",
+        contexts: ["Main pages"],
         run: actionShowGpsTracksOverlay,
     },
     setCustomTileUrl: {
         title: "Set custom tile URL",
         defaultBindings: ["Shift+KeyS"],
-        group: "Main pages",
+        contexts: ["Main pages"],
         run: actionSetCustomTileUrl,
     },
     bypassTileCaches: {
         title: "Bypass tile caches",
         defaultBindings: ["Alt+KeyS"],
-        group: "Main pages",
+        contexts: ["Main pages"],
         run: actionBypassTileCaches,
     },
     openSelectedObjectEditTarget: {
         title: "Open selected object or tags editor",
         defaultBindings: ["Alt+KeyE"],
-        group: "Main pages",
+        contexts: ["Main pages"],
         run: actionOpenSelectedObjectEditTarget,
     },
     openAlternateEditor: {
         title: "Open alternate editor",
         defaultBindings: ["Shift+KeyE"],
-        group: "Main pages",
+        contexts: ["Main pages"],
         when: () => !/^\/user\/([^/]+)\/?$/.test(location.pathname),
         run: actionOpenAlternateEditor,
     },
     openEditMenuPrimary: {
         title: "Open primary editor",
         defaultBindings: ["KeyE"],
-        group: "Main pages",
+        contexts: ["Main pages"],
         when: () => !/^\/user\/([^/]+)\/?$/.test(location.pathname),
         run: actionOpenEditMenuPrimary,
     },
     openUserHistoryFromProfile: {
         title: "Open current user's history",
         defaultBindings: ["KeyE", "Shift+KeyE"],
-        group: "User pages",
+        contexts: ["User pages"],
         when: () => /^\/user\/([^/]+)\/?$/.test(location.pathname),
         run: actionOpenUserHistoryFromProfile,
     },
     openUserReportForm: {
         title: "Open user report form",
         defaultBindings: ["KeyR", "Shift+KeyR", "Alt+KeyR", "Alt+Shift+KeyR"],
-        group: "User pages",
+        contexts: ["User pages"],
         when: () => isUserPageWithoutHistory(),
         run: actionOpenUserReportForm,
     },
     revertCurrentChangesetSelection: {
         title: "Revert current changeset selection",
         defaultBindings: ["KeyR", "Shift+KeyR", "Alt+KeyR", "Alt+Shift+KeyR"],
-        group: "Changeset pages",
+        contexts: ["Changeset pages"],
         when: e => !isUserPageWithoutHistory() && (changesetObjectsSelectionModeEnabled || e.altKey),
         run: actionRevertCurrentChangesetSelection,
     },
     toggleChangesetObjectSelection: {
         title: "Toggle changeset object selection",
         defaultBindings: ["KeyR", "Shift+KeyR"],
-        group: "Changeset pages",
+        contexts: ["Changeset pages"],
         when: e => !isUserPageWithoutHistory() && !changesetObjectsSelectionModeEnabled && !e.altKey,
         run: actionToggleChangesetObjectSelection,
     },
     openInJosmOrLevel0: {
         title: "Open object in JOSM or Level0",
         defaultBindings: ["KeyJ"],
-        group: "Main pages",
+        contexts: ["Main pages"],
         run: actionOpenInJosmOrLevel0,
     },
     openOwnHistoryPage: {
@@ -27451,38 +27463,38 @@ const hotkeyActions = {
     zoomOutToWorld: {
         title: "Zoom out to world",
         defaultBindings: ["Digit0"],
-        group: "Main pages",
+        contexts: ["Main pages"],
         run: actionZoomOutToWorld,
     },
     zoomToCurrentObjectHotkey: {
         title: "Zoom to current object",
         defaultBindings: ["KeyZ", "Shift+KeyZ"],
-        group: "Main pages",
+        contexts: ["Main pages"],
         run: actionZoomToCurrentObjectHotkey,
     },
     mapPositionBack: {
         title: "Previous map position",
         defaultBindings: ["Digit8"],
-        group: "Main pages",
+        contexts: ["Main pages"],
         run: actionMapPositionBack,
     },
     mapPositionForward: {
         title: "Next map position",
         defaultBindings: ["Digit9"],
-        group: "Main pages",
+        contexts: ["Main pages"],
         run: actionMapPositionForward,
     },
     zoomOutHotkey: {
         title: "Zoom out",
         defaultBindings: ["Minus", "Alt+Minus"],
-        group: "Main pages",
+        contexts: ["Main pages"],
         when: () => !defaultZoomKeysBehaviour,
         run: actionZoomOutHotkey,
     },
     zoomInHotkey: {
         title: "Zoom in",
         defaultBindings: ["Equal", "Alt+Equal"],
-        group: "Main pages",
+        contexts: ["Main pages"],
         when: () => !defaultZoomKeysBehaviour,
         run: actionZoomInHotkey,
     },
@@ -27649,9 +27661,8 @@ function getHotkeyCombo(e) {
 function getHotkeyActionIdForEvent(e) {
     const combo = getHotkeyCombo(e)
     return (
-        Object.entries(hotkeyActions).find(
-            ([, action]) => action.defaultBindings.includes(combo) && (!action.when || action.when(e)),
-        )?.[0] ?? null
+        Object.entries(hotkeyActions).find(([, action]) => action.defaultBindings.includes(combo) && (!action.when || action.when(e)))?.[0] ??
+        null
     )
 }
 
@@ -27659,15 +27670,7 @@ function getHotkeyActionsList() {
     return Object.entries(hotkeyActions).map(([id, action]) => ({
         id,
         title: action.title,
-        contexts:
-            action.contexts ??
-            action.group === "Help"
-                ? ["All pages"]
-                : action.group === "User pages"
-                  ? ["User pages"]
-                  : action.group === "Debug"
-                    ? ["Debug"]
-                    : ["Main pages"],
+        contexts: [...action.contexts],
         defaultBindings: [...action.defaultBindings],
     }))
 }
@@ -27690,107 +27693,15 @@ function hotkeyKeydownHandler(e) {
     if (shouldSkipHotkeyForActiveElement(e)) return
     if (handleRelationViewerHotkeys(e)) return
     if (handleMeasuringHotkeys(e)) return
-    // if (drawingBuildings) {
-    //     if (e.code === "Escape") {
-    //         firstBuilding = null
-    //     }
-    // }
     console.log("Key: ", e.key)
     console.log("Key code: ", e.code)
     if (e.code !== "KeyZ" && e.code !== "KeyD" && e.code !== "KeyS" && e.code !== "KeyS") {
         resetZoomClicks()
     }
-    if (runHotkeyActionForEvent(e)) return
     if (e.metaKey || e.ctrlKey) {
         return
     }
-    if (location.pathname.startsWith("/changeset") && !location.pathname.includes("/changeset_comments")) {
-        if (e.code === "Comma") {
-            const link = getPrevChangesetLink()
-            if (link) {
-                getAbortController().abort(ABORT_ERROR_PREV)
-                needPreloadChangesets = true
-                link.focus()
-                link.click()
-            }
-        } else if (e.code === "Period") {
-            const link = getNextChangesetLink()
-            if (link) {
-                getAbortController().abort(ABORT_ERROR_NEXT)
-                needPreloadChangesets = true
-                link.focus()
-                link.click()
-            }
-        } else if (e.code === "KeyH") {
-            const userChangesetsLink = document.querySelectorAll("div.secondary-actions")[1]?.querySelector('a[href^="/user/"]')
-            if (userChangesetsLink) {
-                getAbortController().abort(ABORT_ERROR_USER_CHANGESETS)
-                userChangesetsLink.focus()
-                userChangesetsLink.click()
-            }
-        } else if (e.code === "KeyK") {
-            goToPrevChangesetObject(e)
-        } else if (e.code === "KeyL" && !e.shiftKey) {
-            goToNextChangesetObject(e)
-        }
-    } else if (location.pathname.match(/^\/(node|way|relation)\/\d+/)) {
-        if (e.code === "Comma") {
-            const links = Array.from(document.querySelectorAll("#sidebar_content nav div ul a"))
-            for (let i = 0; i < links.length; i++) {
-                if (links[i].parentElement.classList.contains("active")) {
-                    links[i - 1]?.click()
-                    break
-                }
-            }
-        } else if (e.code === "Period") {
-            const links = Array.from(document.querySelectorAll("#sidebar_content nav div ul a"))
-            for (let i = 0; i < links.length; i++) {
-                if (links[i].parentElement.classList.contains("active")) {
-                    links[i + 1]?.click()
-                    break
-                }
-            }
-        }
-        if (location.pathname.match(/\/history$/)) {
-            if (e.code === "KeyK") {
-                goToPrevObjectVersion()
-            } else if (e.code === "KeyL" && !e.shiftKey) {
-                goToNextObjectVersion()
-            }
-        }
-    } else if (
-        // prettier-ignore
-        location.pathname.match(/user\/.+\/(traces|diary_comments|changeset_comments)/)
-        || location.pathname.match(/\/user_blocks($|\/)/)
-        || location.pathname.match(/\/blocks_by$/)
-    ) {
-        if (e.code === "Comma") {
-            document.querySelector('.pagination a[href*="after"]')?.click()
-        } else if (e.code === "Period") {
-            document.querySelector('.pagination a[href*="before"]')?.click()
-        }
-    } else if (location.pathname.match(/user\/.+\/(notes)/)) {
-        if (e.code === "Comma") {
-            document.querySelectorAll(".pagination li a")[0]?.click()
-        } else if (e.code === "Period") {
-            document.querySelectorAll(".pagination li a")[1]?.click()
-        }
-    } else if (
-        e.code === "KeyH" &&
-        location.pathname.includes("/history") &&
-        (location.search.includes("after") || location.search.includes("before"))
-    ) {
-        try {
-            getWindow().OSM.router.route(location.pathname)
-            setupCompactChangesetsHistory()
-        } catch {
-            if (isSafari) {
-                window.location.search = ""
-            } else {
-                window.location = location.pathname
-            }
-        }
-    }
+    runHotkeyActionForEvent(e)
 }
 
 function setupNavigationViaHotkeys() {
