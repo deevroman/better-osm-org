@@ -1,13 +1,5 @@
 //<editor-fold desc="script-menu" defaultstate="collapsed">
 
-function openScriptUpdateUrl() {
-    window.open(`${SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`, "_blank")
-}
-
-function openDevScriptUpdateUrl() {
-    window.open(`${DEV_SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`, "_blank")
-}
-
 function makeCommandsMenu() {
     try {
         GM_registerMenuCommand("Settings", function () {
@@ -16,10 +8,10 @@ function makeCommandsMenu() {
             }
         })
         if (isMobile || isDebug()) {
-            GM_registerMenuCommand("Check script updates", openScriptUpdateUrl)
+            GM_registerMenuCommand("Check script updates", actionOpenScriptUpdateUrl)
         }
         if (isDebug()) {
-            GM_registerMenuCommand("Check dev script updates", openDevScriptUpdateUrl)
+            GM_registerMenuCommand("Check dev script updates", actionOpenDevScriptUpdateUrl)
         }
 
         // New Year Easter egg
