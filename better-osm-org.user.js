@@ -9338,6 +9338,82 @@ function setupSatelliteLayers() {
 
 //</editor-fold>
 
+//<editor-fold desc="swipes" defaultstate="collapsed">
+
+let startTouch = null
+let touchMove = null
+let touchEnd = null
+
+function addSwipes() {
+    if (!GM_config.get("Swipes")) {
+        return
+    }
+    let startX = 0
+    let startY = 0
+    let direction = null
+    const sidebar = document.querySelector("#sidebar_content")
+    sidebar.style.transform = "translateX(var(--touch-diff, 0px))"
+
+    if (!location.pathname.startsWith("/changeset/")) {
+        sidebar.removeEventListener("touchstart", startTouch)
+        sidebar.removeEventListener("touchmove", touchMove)
+        sidebar.removeEventListener("touchend", touchEnd)
+        startTouch = null
+        touchMove = null
+        touchEnd = null
+    } else {
+        if (startTouch !== null) return
+        startTouch = e => {
+            startX = e.touches[0].clientX
+            startY = e.touches[0].clientY
+        }
+
+        touchMove = e => {
+            const diffY = e.changedTouches[0].clientY - startY
+            const diffX = e.changedTouches[0].clientX - startX
+            if (direction == null) {
+                if (diffY >= 10 || diffY <= -10) {
+                    direction = "v"
+                } else if (diffX >= 10 || diffX <= -10) {
+                    direction = "h"
+                    startX = e.touches[0].clientX
+                }
+            } else if (direction === "h") {
+                e.preventDefault()
+                sidebar.style.setProperty("--touch-diff", `${diffX}px`)
+            }
+        }
+
+        touchEnd = e => {
+            const diffX = startX - e.changedTouches[0].clientX
+
+            sidebar.style.removeProperty("--touch-diff")
+            if (direction === "h") {
+                if (diffX > sidebar.offsetWidth / 3) {
+                    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
+                    if (navigationLinks && Array.from(navigationLinks).at(-1).href.includes("/changeset/")) {
+                        getAbortController().abort(ABORT_ERROR_PREV)
+                        Array.from(navigationLinks).at(-1).click()
+                    }
+                } else if (diffX < -sidebar.offsetWidth / 3) {
+                    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
+                    if (navigationLinks && navigationLinks[0].href.includes("/changeset/")) {
+                        getAbortController().abort(ABORT_ERROR_NEXT)
+                        navigationLinks[0].click()
+                    }
+                }
+            }
+            direction = null
+        }
+
+        sidebar.addEventListener("touchstart", startTouch)
+        sidebar.addEventListener("touchmove", touchMove)
+        sidebar.addEventListener("touchend", touchEnd)
+    }
+}
+
+//</editor-fold>
+
 //<editor-fold desc="diff-algorithm" defaultstate="collapsed">
 
 /**
@@ -14235,76 +14311,169 @@ let allTagsOfObjectsVisible = true
  * @type {Object.<string, ChangesetMetadata>}|null
  **/
 const changesetMetadatas = {}
-let startTouch = null
-let touchMove = null
-let touchEnd = null
 
-function addSwipes() {
-    if (!GM_config.get("Swipes")) {
+/**
+ * @param {number|null=} changeset_id
+ * @return {Promise<ChangesetMetadata>}
+ */
+async function loadChangesetMetadata(changeset_id = null) {
+    console.debug(`Loading changeset metadata`)
+    if (!changeset_id) {
+        const match = location.pathname.match(/changeset\/(\d+)/)
+        if (!match) {
+            // console.trace("loadChangesetMetadata called without changeset_id and on not /changeset page")
+            return
+        }
+        changeset_id = parseInt(match[1])
+    }
+    console.debug(`Loading metadata of changeset #${changeset_id}`)
+    if (changesetMetadatas[changeset_id] && changesetMetadatas[changeset_id].id === changeset_id) {
+        return changesetMetadatas[changeset_id]
+    }
+    // prevChangesetMetadata = changesetMetadatas[changeset_id]
+    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json")
+    if (jsonRes.changeset) {
+        return (changesetMetadatas[changeset_id] = jsonRes.changeset)
+    }
+    changesetMetadatas[changeset_id] = jsonRes.elements[0]
+    changesetMetadatas[changeset_id].min_lat = changesetMetadatas[changeset_id].minlat
+    changesetMetadatas[changeset_id].min_lon = changesetMetadatas[changeset_id].minlon
+    changesetMetadatas[changeset_id].max_lat = changesetMetadatas[changeset_id].maxlat
+    changesetMetadatas[changeset_id].max_lon = changesetMetadatas[changeset_id].maxlon
+    return changesetMetadatas[changeset_id]
+}
+
+/**
+ * @param {number[]} changeset_ids
+ */
+async function loadChangesetMetadatas(changeset_ids) {
+    if (!changeset_ids.length) {
         return
     }
-    let startX = 0
-    let startY = 0
-    let direction = null
-    const sidebar = document.querySelector("#sidebar_content")
-    sidebar.style.transform = "translateX(var(--touch-diff, 0px))"
-
-    if (!location.pathname.startsWith("/changeset/")) {
-        sidebar.removeEventListener("touchstart", startTouch)
-        sidebar.removeEventListener("touchmove", touchMove)
-        sidebar.removeEventListener("touchend", touchEnd)
-        startTouch = null
-        touchMove = null
-        touchEnd = null
-    } else {
-        if (startTouch !== null) return
-        startTouch = e => {
-            startX = e.touches[0].clientX
-            startY = e.touches[0].clientY
-        }
-
-        touchMove = e => {
-            const diffY = e.changedTouches[0].clientY - startY
-            const diffX = e.changedTouches[0].clientX - startX
-            if (direction == null) {
-                if (diffY >= 10 || diffY <= -10) {
-                    direction = "v"
-                } else if (diffX >= 10 || diffX <= -10) {
-                    direction = "h"
-                    startX = e.touches[0].clientX
-                }
-            } else if (direction === "h") {
-                e.preventDefault()
-                sidebar.style.setProperty("--touch-diff", `${diffX}px`)
-            }
-        }
-
-        touchEnd = e => {
-            const diffX = startX - e.changedTouches[0].clientX
-
-            sidebar.style.removeProperty("--touch-diff")
-            if (direction === "h") {
-                if (diffX > sidebar.offsetWidth / 3) {
-                    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
-                    if (navigationLinks && Array.from(navigationLinks).at(-1).href.includes("/changeset/")) {
-                        getAbortController().abort(ABORT_ERROR_PREV)
-                        Array.from(navigationLinks).at(-1).click()
-                    }
-                } else if (diffX < -sidebar.offsetWidth / 3) {
-                    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
-                    if (navigationLinks && navigationLinks[0].href.includes("/changeset/")) {
-                        getAbortController().abort(ABORT_ERROR_NEXT)
-                        navigationLinks[0].click()
-                    }
-                }
-            }
-            direction = null
-        }
-
-        sidebar.addEventListener("touchstart", startTouch)
-        sidebar.addEventListener("touchmove", touchMove)
-        sidebar.addEventListener("touchend", touchEnd)
+    const batchSize = 100
+    for (let i = 0; i < changeset_ids.length; i += batchSize) {
+        const res = await fetchRetry(osm_server.apiBase + "changesets.json?changesets=" + changeset_ids.slice(i, i + batchSize).join(","))
+        const jsonRes = await res.json()
+        jsonRes["changesets"].forEach(i => {
+            changesetMetadatas[i.id] = i
+        })
     }
+}
+
+let noteMetadata = null
+
+async function loadNoteMetadata() {
+    const match = location.pathname.match(/note\/(\d+)/)
+    if (!match) {
+        return
+    }
+    const note_id = parseInt(match[1])
+    if (noteMetadata !== null && noteMetadata.id === note_id) {
+        return
+    }
+    const res = await fetchRetry(osm_server.apiBase + "notes" + "/" + note_id + ".json", { signal: getAbortController().signal })
+    noteMetadata = await res.json()
+}
+
+let nodeMetadata = null
+
+async function loadNodeMetadata() {
+    const match = location.pathname.match(/node\/(\d+)/)
+    if (!match) {
+        return
+    }
+    const node_id = parseInt(match[1])
+    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "node" + "/" + node_id + ".json", {}, res => {
+        if (res.status === 410) {
+            console.warn(`node ${node_id} was deleted`)
+        } else {
+            return true
+        }
+    })
+    if (!jsonRes) return
+    nodeMetadata = jsonRes.elements[0]
+    return jsonRes
+}
+
+let wayMetadata = null
+
+/**
+ * @param {number|null=} way_id
+ * @return {Promise<void|{elements: (NodeVersion|WayVersion)[]}>}
+ */
+async function loadWayMetadata(way_id = null) {
+    console.log(`Loading way metadata`)
+    if (!way_id) {
+        const match = location.pathname.match(/way\/(\d+)/)
+        if (!match) {
+            return
+        }
+        way_id = parseInt(match[1])
+    }
+    /*** @type {{elements: (NodeVersion|WayVersion)[]}|undefined}*/
+    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "way" + "/" + way_id + "/full.json", {}, res => {
+        if (res.status === 410) {
+            console.warn(`way ${way_id} was deleted`)
+        } else {
+            return true
+        }
+    })
+    if (!jsonRes) return
+    wayMetadata = jsonRes.elements.filter(i => i.type === "node")
+    wayMetadata.bbox = {
+        min_lat: Math.min(...wayMetadata.map(i => i.lat)),
+        min_lon: Math.min(...wayMetadata.map(i => i.lon)),
+        max_lat: Math.max(...wayMetadata.map(i => i.lat)),
+        max_lon: Math.max(...wayMetadata.map(i => i.lon)),
+    }
+    return jsonRes
+}
+
+/**
+ * @type {{
+ *     relation: RelationVersion,
+ *     bbox: {
+ *         min_lat: number,
+ *         min_lon: number,
+ *         max_lat: number,
+ *         max_lon: number,
+ *     }
+ * } | null}
+ */
+let relationMetadata = null
+
+/**
+ * @param {number|null=} relation_id
+ * @return {Promise<{elements: (NodeVersion|WayVersion|RelationVersion)[]}| undefined>}
+ */
+async function loadRelationMetadata(relation_id = null) {
+    console.log(`Loading relation metadata`)
+    if (!relation_id) {
+        const match = location.pathname.match(/relation\/(\d+)/)
+        if (!match) {
+            return
+        }
+        relation_id = parseInt(match[1])
+    }
+    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "relation" + "/" + relation_id + "/full.json", {}, res => {
+        if (res.status === 410) {
+            console.warn(`relation ${relation_id} was deleted`)
+        } else {
+            return true
+        }
+    })
+    if (!jsonRes) return
+    const nodes = /** @type {NodeVersion[]} */ jsonRes.elements.filter(i => i.type === "node")
+    relationMetadata = {
+        relation: jsonRes.elements.find(i => i.type === "relation" && i.id === relation_id),
+        bbox: {
+            min_lat: Math.min(...nodes.map(i => i.lat)),
+            min_lon: Math.min(...nodes.map(i => i.lon)),
+            max_lat: Math.max(...nodes.map(i => i.lat)),
+            max_lon: Math.max(...nodes.map(i => i.lon)),
+        },
+    }
+    return jsonRes
 }
 
 const cachedNominatimRequests = new Set()
@@ -25001,170 +25170,6 @@ async function setupDragAndDropViewers() {
 
 //<editor-fold desc="hotkeys">
 let hotkeysConfigured = false
-//TODO extract load functions
-/**
- * @param {number|null=} changeset_id
- * @return {Promise<ChangesetMetadata>}
- */
-async function loadChangesetMetadata(changeset_id = null) {
-    console.debug(`Loading changeset metadata`)
-    if (!changeset_id) {
-        const match = location.pathname.match(/changeset\/(\d+)/)
-        if (!match) {
-            // console.trace("loadChangesetMetadata called without changeset_id and on not /changeset page")
-            return
-        }
-        changeset_id = parseInt(match[1])
-    }
-    console.debug(`Loading metadata of changeset #${changeset_id}`)
-    if (changesetMetadatas[changeset_id] && changesetMetadatas[changeset_id].id === changeset_id) {
-        return changesetMetadatas[changeset_id]
-    }
-    // prevChangesetMetadata = changesetMetadatas[changeset_id]
-    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json")
-    if (jsonRes.changeset) {
-        return (changesetMetadatas[changeset_id] = jsonRes.changeset)
-    }
-    changesetMetadatas[changeset_id] = jsonRes.elements[0]
-    changesetMetadatas[changeset_id].min_lat = changesetMetadatas[changeset_id].minlat
-    changesetMetadatas[changeset_id].min_lon = changesetMetadatas[changeset_id].minlon
-    changesetMetadatas[changeset_id].max_lat = changesetMetadatas[changeset_id].maxlat
-    changesetMetadatas[changeset_id].max_lon = changesetMetadatas[changeset_id].maxlon
-    return changesetMetadatas[changeset_id]
-}
-
-/**
- * @param {number[]} changeset_ids
- */
-async function loadChangesetMetadatas(changeset_ids) {
-    if (!changeset_ids.length) {
-        return
-    }
-    const batchSize = 100
-    for (let i = 0; i < changeset_ids.length; i += batchSize) {
-        const res = await fetchRetry(osm_server.apiBase + "changesets.json?changesets=" + changeset_ids.slice(i, i + batchSize).join(","))
-        const jsonRes = await res.json()
-        jsonRes["changesets"].forEach(i => {
-            changesetMetadatas[i.id] = i
-        })
-    }
-}
-
-let noteMetadata = null
-
-async function loadNoteMetadata() {
-    const match = location.pathname.match(/note\/(\d+)/)
-    if (!match) {
-        return
-    }
-    const note_id = parseInt(match[1])
-    if (noteMetadata !== null && noteMetadata.id === note_id) {
-        return
-    }
-    const res = await fetchRetry(osm_server.apiBase + "notes" + "/" + note_id + ".json", { signal: getAbortController().signal })
-    noteMetadata = await res.json()
-}
-
-let nodeMetadata = null
-
-async function loadNodeMetadata() {
-    const match = location.pathname.match(/node\/(\d+)/)
-    if (!match) {
-        return
-    }
-    const node_id = parseInt(match[1])
-    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "node" + "/" + node_id + ".json", {}, res => {
-        if (res.status === 410) {
-            console.warn(`node ${node_id} was deleted`)
-        } else {
-            return true
-        }
-    })
-    if (!jsonRes) return
-    nodeMetadata = jsonRes.elements[0]
-    return jsonRes
-}
-
-let wayMetadata = null
-
-/**
- * @param {number|null=} way_id
- * @return {Promise<void|{elements: (NodeVersion|WayVersion)[]}>}
- */
-async function loadWayMetadata(way_id = null) {
-    console.log(`Loading way metadata`)
-    if (!way_id) {
-        const match = location.pathname.match(/way\/(\d+)/)
-        if (!match) {
-            return
-        }
-        way_id = parseInt(match[1])
-    }
-    /*** @type {{elements: (NodeVersion|WayVersion)[]}|undefined}*/
-    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "way" + "/" + way_id + "/full.json", {}, res => {
-        if (res.status === 410) {
-            console.warn(`way ${way_id} was deleted`)
-        } else {
-            return true
-        }
-    })
-    if (!jsonRes) return
-    wayMetadata = jsonRes.elements.filter(i => i.type === "node")
-    wayMetadata.bbox = {
-        min_lat: Math.min(...wayMetadata.map(i => i.lat)),
-        min_lon: Math.min(...wayMetadata.map(i => i.lon)),
-        max_lat: Math.max(...wayMetadata.map(i => i.lat)),
-        max_lon: Math.max(...wayMetadata.map(i => i.lon)),
-    }
-    return jsonRes
-}
-
-/**
- * @type {{
- *     relation: RelationVersion,
- *     bbox: {
- *         min_lat: number,
- *         min_lon: number,
- *         max_lat: number,
- *         max_lon: number,
- *     }
- * } | null}
- */
-let relationMetadata = null
-
-/**
- * @param {number|null=} relation_id
- * @return {Promise<{elements: (NodeVersion|WayVersion|RelationVersion)[]}| undefined>}
- */
-async function loadRelationMetadata(relation_id = null) {
-    console.log(`Loading relation metadata`)
-    if (!relation_id) {
-        const match = location.pathname.match(/relation\/(\d+)/)
-        if (!match) {
-            return
-        }
-        relation_id = parseInt(match[1])
-    }
-    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "relation" + "/" + relation_id + "/full.json", {}, res => {
-        if (res.status === 410) {
-            console.warn(`relation ${relation_id} was deleted`)
-        } else {
-            return true
-        }
-    })
-    if (!jsonRes) return
-    const nodes = /** @type {NodeVersion[]} */ jsonRes.elements.filter(i => i.type === "node")
-    relationMetadata = {
-        relation: jsonRes.elements.find(i => i.type === "relation" && i.id === relation_id),
-        bbox: {
-            min_lat: Math.min(...nodes.map(i => i.lat)),
-            min_lon: Math.min(...nodes.map(i => i.lon)),
-            max_lat: Math.max(...nodes.map(i => i.lat)),
-            max_lon: Math.max(...nodes.map(i => i.lon)),
-        },
-    }
-    return jsonRes
-}
 
 function updateCurrentObjectMetadata() {
     setTimeout(loadChangesetMetadata, 0)
