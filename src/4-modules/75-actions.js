@@ -2284,7 +2284,7 @@ function actionGoToNextSearchResultPage(e) {
     goToNextSearchResult(e)
 }
 
-function actionPreviewChangesetGeometryDebug() {
+function actionChangesetObjectsTimeTrack() {
     if (location.pathname.startsWith("/changeset")) {
         const params = new URLSearchParams(location.search)
         const changesetIDs = params.get("changesets")?.split(",") ?? [parseInt(location.pathname.match(/changeset\/(\d+)/)[1])]

@@ -27485,7 +27485,7 @@ function actionGoToNextSearchResultPage(e) {
     goToNextSearchResult(e)
 }
 
-function actionPreviewChangesetGeometryDebug() {
+function actionChangesetObjectsTimeTrack() {
     if (location.pathname.startsWith("/changeset")) {
         const params = new URLSearchParams(location.search)
         const changesetIDs = params.get("changesets")?.split(",") ?? [parseInt(location.pathname.match(/changeset\/(\d+)/)[1])]
@@ -28101,12 +28101,12 @@ const hotkeyActions = {
         when: () => isSearchPage(),
         run: actionGoToNextSearchResultPage,
     },
-    previewChangesetGeometryDebug: {
-        title: "Preview changeset geometry",
+    changesetObjectsTimeTrack: {
+        title: "Preview changeset objects time track",
         defaultBindings: ["Alt+KeyP"],
         contexts: ["Debug", "Changeset pages"],
         when: () => isDebug() && location.pathname.startsWith("/changeset"),
-        run: actionPreviewChangesetGeometryDebug,
+        run: actionChangesetObjectsTimeTrack,
     },
     goToPrevChangesetListPage: {
         title: "Previous changeset list page",
