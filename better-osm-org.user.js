@@ -27182,7 +27182,7 @@ const hotkeyActions = {
     },
     openUserBlocks: {
         title: "Open user blocks",
-        defaultBindings: ["KeyB", "Shift+KeyB", "Alt+KeyB", "Alt+Shift+KeyB"],
+        defaultBindings: ["KeyB"],
         contexts: ["User pages"],
         run: actionOpenUserBlocks,
     },
@@ -27243,7 +27243,7 @@ const hotkeyActions = {
     },
     openUserComments: {
         title: "Open user comments",
-        defaultBindings: ["KeyC", "Shift+KeyC", "Alt+KeyC"],
+        defaultBindings: ["KeyC"],
         contexts: ["User pages"],
         when: () => isUserPageWithoutHistory(),
         run: actionOpenUserComments,
@@ -27297,7 +27297,7 @@ const hotkeyActions = {
     },
     openUserNotesPage: {
         title: "Open current user's notes",
-        defaultBindings: ["KeyN", "Shift+KeyN", "Alt+KeyN", "Alt+Shift+KeyN"],
+        defaultBindings: ["KeyN", "Shift+KeyN", "Alt+KeyN"],
         contexts: ["User pages"],
         when: () => isUserPageWithoutHistory(),
         run: actionOpenUserNotesPage,
@@ -27387,7 +27387,7 @@ const hotkeyActions = {
     },
     openUserReportForm: {
         title: "Open user report form",
-        defaultBindings: ["KeyR", "Shift+KeyR", "Alt+KeyR", "Alt+Shift+KeyR"],
+        defaultBindings: ["KeyR"],
         contexts: ["User pages"],
         when: () => isUserPageWithoutHistory(),
         run: actionOpenUserReportForm,
@@ -27408,7 +27408,7 @@ const hotkeyActions = {
     },
     openInJosmOrLevel0: {
         title: "Open object in JOSM or Level0",
-        defaultBindings: ["KeyJ"],
+        defaultBindings: ["KeyJ", "Shift+KeyJ", "Alt+KeyJ", "Shift+Alt+KeyJ"],
         contexts: ["Main pages"],
         run: actionOpenInJosmOrLevel0,
     },
