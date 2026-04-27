@@ -19932,6 +19932,16 @@ function renderPanoramaxPhotosPreview(withPhotos) {
         photosPreviewGallery.addEventListener("touchmove", e => {
             e.stopPropagation()
         }, { passive: true })
+        photosPreviewGallery.addEventListener("touchend", e => {
+            e.stopPropagation()
+        }, { passive: true })
+        photosPreviewGallery.addEventListener("touchcancel", e => {
+            e.stopPropagation()
+        }, { passive: true })
+        photosPreviewGallery.addEventListener("contextmenu", e => {
+            e.stopPropagation()
+            e.preventDefault()
+        })
         photosPreviewGallery.addEventListener("mouseleave", () => {
             hidePanoramaxHoverZoomPopup()
         })
