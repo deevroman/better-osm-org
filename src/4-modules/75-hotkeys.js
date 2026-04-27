@@ -2095,7 +2095,7 @@ function actionGoToNextChangesetListPage() {
  * @property {HotkeyContext[]} contexts
  * @property {boolean=} preventDefault
  * @property {(e: KeyboardEvent) => boolean=} when
- * @property {(...args: any[]) => void} run
+ * @property {(e: KeyboardEvent) => void} run
  */
 
 /** @type {Record<string, HotkeyActionDefinition>} */
