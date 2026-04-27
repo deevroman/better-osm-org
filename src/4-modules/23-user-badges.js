@@ -16,6 +16,38 @@ const importerBadgeSvg =
     '<path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#38e13a" stroke="#38e13a" stroke-width="2" stroke-linejoin="round"></path>' +
     '</svg>'
 
+async function loadFriends() {
+    console.debug("Loading friends list")
+    const res = await (await fetch(osm_server.url + "/dashboard")).text()
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(res, "text/html")
+    const friends = []
+    doc.querySelectorAll('a[data-method="delete"][href*="/follow"]').forEach(a => {
+        const username = a.getAttribute("href").match(/\/user\/(.+)\/follow/)[1]
+        friends.push(decodeURI(username))
+    })
+    await GM.setValue("friends", JSON.stringify(friends))
+    console.debug("Friends list updated")
+    return friends
+}
+
+let friendsLoadingLock = false
+
+async function getFriends() {
+    const friendsStr = await GM.getValue("friends")
+    if (friendsStr) {
+        return JSON.parse(friendsStr)
+    } else {
+        while (friendsLoadingLock) {
+            await sleep(500)
+        }
+        friendsLoadingLock = true
+        const res = await loadFriends()
+        friendsLoadingLock = false
+        return res
+    }
+}
+
 function makeBadge(userInfo, changesetDate = new Date()) {
     // todo make changesetDate required
     const userBadge = document.createElement("span")

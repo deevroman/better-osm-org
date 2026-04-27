@@ -9,38 +9,6 @@ function updateCurrentObjectMetadata() {
     setTimeout(loadRelationMetadata, 0)
 }
 
-async function loadFriends() {
-    console.debug("Loading friends list")
-    const res = await (await fetch(osm_server.url + "/dashboard")).text()
-    const parser = new DOMParser()
-    const doc = parser.parseFromString(res, "text/html")
-    const friends = []
-    doc.querySelectorAll('a[data-method="delete"][href*="/follow"]').forEach(a => {
-        const username = a.getAttribute("href").match(/\/user\/(.+)\/follow/)[1]
-        friends.push(decodeURI(username))
-    })
-    await GM.setValue("friends", JSON.stringify(friends))
-    console.debug("Friends list updated")
-    return friends
-}
-
-let friendsLoadingLock = false
-
-async function getFriends() {
-    const friendsStr = await GM.getValue("friends")
-    if (friendsStr) {
-        return JSON.parse(friendsStr)
-    } else {
-        while (friendsLoadingLock) {
-            await sleep(500)
-        }
-        friendsLoadingLock = true
-        const res = await loadFriends()
-        friendsLoadingLock = false
-        return res
-    }
-}
-
 const mapPositionsHistory = []
 const mapPositionsNextHistory = []
 
