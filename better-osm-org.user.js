@@ -1500,6 +1500,11 @@ const relationIcon =
             '<circle cx="72" cy="72" r="32" fill="#bee6be" stroke="#000" stroke-width="8"/></svg>',
     )
 
+const toolsIconSvg =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-tools" viewBox="0 0 16 16">\n' +
+    '  <path d="M1 0 0 1l2.2 3.081a1 1 0 0 0 .815.419h.07a1 1 0 0 1 .708.293l2.675 2.675-2.617 2.654A3.003 3.003 0 0 0 0 13a3 3 0 1 0 5.878-.851l2.654-2.617.968.968-.305.914a1 1 0 0 0 .242 1.023l3.27 3.27a.997.997 0 0 0 1.414 0l1.586-1.586a.997.997 0 0 0 0-1.414l-3.27-3.27a1 1 0 0 0-1.023-.242L10.5 9.5l-.96-.96 2.68-2.643A3.005 3.005 0 0 0 16 3q0-.405-.102-.777l-2.14 2.141L12 4l-.364-1.757L13.777.102a3 3 0 0 0-3.675 3.68L7.462 6.46 4.793 3.793a1 1 0 0 1-.293-.707v-.071a1 1 0 0 0-.419-.814zm9.646 10.646a.5.5 0 0 1 .708 0l2.914 2.915a.5.5 0 0 1-.707.707l-2.915-2.914a.5.5 0 0 1 0-.708M3 11l.471.242.529.026.287.445.445.287.026.529L5 13l-.242.471-.026.529-.445.287-.287.445-.529.026L3 15l-.471-.242L2 14.732l-.287-.445L1.268 14l-.026-.529L1 13l.242-.471.026-.529.445-.287.287-.445.529-.026z"/>\n' +
+    "</svg>"
+
 //</editor-fold>
 
 //<editor-fold desc="colors" defaultstate="collapsed">
@@ -23400,23 +23405,6 @@ async function _setupNewEditorsLinks(mutationsList) {
             }
 
             linksBtn.addEventListener("click", linksMenuClickHandler)
-
-            if (isDebug() && !document.querySelector("#open-external-panel-btn")) {
-                setTimeout(async () => {
-                    for (let i = 0; i < 40; i++) {
-                        await sleep(30)
-                        if (document.querySelector("#open-external-panel-btn")) {
-                            break
-                        }
-                        const linksBtn2 = document.querySelector(".control-query").cloneNode(true)
-                        linksBtn2.id = "open-external-panel-btn"
-                        linksBtn2.querySelector("a").innerHTML = svg.outerHTML
-                        linksBtn2.querySelector("svg").setAttribute("stroke-width", "1.75")
-                        linksBtn2.addEventListener("click", linksMenuClickHandler)
-                        document.querySelector(".control-query").after(linksBtn2)
-                    }
-                })
-            }
         })
         document.querySelectorAll("#menu-icon:not(.listen-click)").forEach(i => {
             i.classList.add("listen-click")
@@ -26441,6 +26429,10 @@ function isHomeOrNotePage() {
     return location.pathname === "/" || location.pathname.includes("/note")
 }
 
+function isMainHotkeyPage() {
+    return isHomeOrNotePage() || isSearchPage() || isChangesetPage() || isObjectPage() || isHistoryPage()
+}
+
 const hotkeyHelpContextsOrder = [
     "All pages",
     "Main pages",
@@ -26452,60 +26444,360 @@ const hotkeyHelpContextsOrder = [
     "Debug",
 ]
 
-function ctxAllPages() {
-    return ["All pages"]
-}
+const hotkeyCommandsPopupId = "better-osm-hotkey-commands-popup"
+const hotkeyCommandsPopupStyleId = "better-osm-hotkey-commands-popup-styles"
 
-function ctxMainPages() {
-    return ["Main pages"]
-}
+function getCurrentHotkeyContexts() {
+    const contexts = new Set(["All pages"])
 
-function ctxUserPages() {
-    return ["User pages"]
-}
+    if (isMainHotkeyPage()) {
+        contexts.add("Main pages")
+    }
+    if (location.pathname.startsWith("/changeset")) {
+        contexts.add("Changeset pages")
+    }
+    if (isObjectPage()) {
+        contexts.add("Object pages")
+    }
+    if (isHistoryPage()) {
+        contexts.add("History pages")
+    }
+    if (isSearchPage()) {
+        contexts.add("Search page")
+    }
+    if (
+        location.pathname.includes("/user/") ||
+        /^\/user_blocks($|\/)/.test(location.pathname) ||
+        /^\/blocks_by\/?$/.test(location.pathname)
+    ) {
+        contexts.add("User pages")
+    }
+    if (isDebug()) {
+        contexts.add("Debug")
+    }
+    if (contexts.size === 1 || (contexts.size === 2 && contexts.has("Debug"))) {
+        contexts.add("Main pages")
+    }
 
-function ctxChangesetPages() {
-    return ["Changeset pages"]
-}
-
-function ctxObjectPages() {
-    return ["Object pages"]
-}
-
-function ctxHistoryPages() {
-    return ["History pages"]
-}
-
-function ctxSearchPage() {
-    return ["Search page"]
-}
-
-function ctxDebug() {
-    return ["Debug"]
-}
-
-function ctxMainAndUserPages() {
-    return ["Main pages", "User pages"]
+    return hotkeyHelpContextsOrder.filter(context => contexts.has(context))
 }
 
 function actionShowHotkeysHelp() {
-    const groupedActions = getHotkeyActionsList().reduce((groups, action) => {
-        action.contexts.forEach(context => {
-            if (!groups[context]) {
-                groups[context] = []
+    showHotkeyCommandsPopup()
+}
+
+function getHotkeyKeyByBaseCode(baseCode, shiftKey = false) {
+    if (/^Key[A-Z]$/.test(baseCode)) {
+        const letter = baseCode.slice(3)
+        return shiftKey ? letter : letter.toLowerCase()
+    }
+    if (/^Digit\d$/.test(baseCode)) {
+        return baseCode.slice(5)
+    }
+
+    return (
+        {
+            Escape: "Escape",
+            F1: "F1",
+            Slash: shiftKey ? "?" : "/",
+            Backquote: shiftKey ? "~" : "`",
+            Minus: shiftKey ? "_" : "-",
+            Equal: shiftKey ? "+" : "=",
+            Comma: shiftKey ? "<" : ",",
+            Period: shiftKey ? ">" : ".",
+        }[baseCode] ?? baseCode
+    )
+}
+
+function createSyntheticHotkeyEvent(binding) {
+    const parts = binding.split("+")
+    const baseCode = parts[parts.length - 1]
+    const modifiers = new Set(parts.slice(0, -1))
+    const shiftKey = modifiers.has("Shift")
+
+    return {
+        code: baseCode,
+        key: getHotkeyKeyByBaseCode(baseCode, shiftKey),
+        ctrlKey: modifiers.has("Ctrl"),
+        altKey: modifiers.has("Alt"),
+        shiftKey,
+        metaKey: modifiers.has("Meta"),
+        repeat: false,
+        preventDefault() {},
+        stopPropagation() {},
+        stopImmediatePropagation() {},
+    }
+}
+
+function getAvailableHotkeyCommandsForCurrentPage() {
+    const currentContexts = getCurrentHotkeyContexts()
+
+    return Object.entries(hotkeyActions)
+        .flatMap(([actionId, action]) => {
+            if (!action.contexts.some(context => currentContexts.includes(context))) {
+                return []
             }
-            groups[context].push(action)
+
+            return action.defaultBindings.flatMap(binding => {
+                const event = createSyntheticHotkeyEvent(binding)
+                if (action.when && !action.when(event)) {
+                    return []
+                }
+                return [
+                    {
+                        actionId,
+                        title: action.title,
+                        binding,
+                        event,
+                        contexts: action.contexts.filter(context => currentContexts.includes(context)),
+                    },
+                ]
+            })
         })
+        .sort((a, b) => {
+            const aContextIndex = hotkeyHelpContextsOrder.findIndex(context => a.contexts.includes(context))
+            const bContextIndex = hotkeyHelpContextsOrder.findIndex(context => b.contexts.includes(context))
+            return aContextIndex - bContextIndex || a.title.localeCompare(b.title) || a.binding.localeCompare(b.binding)
+        })
+}
+
+function ensureHotkeyCommandsPopupStyles() {
+    if (
+        document.querySelector(`#${hotkeyCommandsPopupStyleId}`) ||
+        document.documentElement.dataset.hotkeyCommandsPopupStylesInjected === "true"
+    ) {
+        return
+    }
+    const style = injectCSSIntoOSMPage(`
+        #${hotkeyCommandsPopupId} {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.08);
+            box-sizing: border-box;
+
+            .better-osm-hotkey-commands-panel {
+                width: max-content;
+                max-width: 100%;
+                height: 100%;
+                overflow-y: auto;
+                background: var(--bs-body-bg);
+                color: var(--bs-body-color);
+                border: 1px solid rgba(204, 204, 204, 0.5);
+                border-radius: 8px;
+                padding: 16px;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+                font-family: sans-serif;
+                box-sizing: border-box;
+            }
+
+            .better-osm-hotkey-commands-header {
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+                margin-bottom: 8px;
+            }
+
+            .better-osm-hotkey-commands-title {
+                margin: 0;
+                font-size: 1rem;
+            }
+
+            .better-osm-hotkey-commands-subtitle {
+                margin: 2px 0 0;
+                font-size: 0.875rem;
+                opacity: 0.75;
+            }
+
+            .better-osm-hotkey-commands-close {
+                all: unset;
+                cursor: pointer;
+                margin-left: auto;
+                line-height: 1;
+            }
+
+            .better-osm-hotkey-commands-group {
+                margin-top: 12px;
+            }
+
+            .better-osm-hotkey-commands-group-title {
+                margin: 0 0 6px;
+                font-size: 0.875rem;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                opacity: 0.7;
+            }
+
+            .better-osm-hotkey-commands-list {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .better-osm-hotkey-command-btn {
+                display: grid;
+                grid-template-columns: minmax(90px, 120px) 1fr;
+                gap: 10px;
+                width: 100%;
+                border: 0;
+                border-radius: 6px;
+                background: transparent;
+                color: inherit;
+                padding: 6px 8px;
+                text-align: left;
+                cursor: pointer;
+
+                &:hover,
+                &:focus-visible {
+                    background: rgba(127, 127, 127, 0.14);
+                    outline: none;
+                }
+            }
+
+            .better-osm-hotkey-command-binding {
+                font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+                font-size: 0.875rem;
+                white-space: nowrap;
+                opacity: 0.85;
+            }
+
+            .better-osm-hotkey-command-title {
+                font-size: 0.925rem;
+                line-height: 1.3;
+            }
+
+            .better-osm-hotkey-commands-empty {
+                margin: 8px 0 0;
+                opacity: 0.75;
+            }
+        }
+    `)
+    document.documentElement.dataset.hotkeyCommandsPopupStylesInjected = "true"
+    style?.setAttribute("id", hotkeyCommandsPopupStyleId)
+}
+
+function closeHotkeyCommandsPopup() {
+    document.querySelector(`#${hotkeyCommandsPopupId}`)?.remove()
+}
+
+function showHotkeyCommandsPopup() {
+    const existingPopup = document.querySelector(`#${hotkeyCommandsPopupId}`)
+    if (existingPopup) {
+        existingPopup.remove()
+        return
+    }
+
+    ensureHotkeyCommandsPopupStyles()
+
+    const currentContexts = getCurrentHotkeyContexts()
+    const availableCommands = getAvailableHotkeyCommandsForCurrentPage()
+    const groupedCommands = availableCommands.reduce((groups, command) => {
+        const primaryContext =
+            hotkeyHelpContextsOrder.find(context => command.contexts.includes(context) && currentContexts.includes(context)) ?? "All pages"
+        if (!groups[primaryContext]) {
+            groups[primaryContext] = []
+        }
+        groups[primaryContext].push(command)
         return groups
     }, {})
-    const hotkeysList = hotkeyHelpContextsOrder
-        .filter(context => groupedActions[context]?.length)
-        .map(
-            context =>
-                `${context}:\n${groupedActions[context].map(action => `${action.defaultBindings.join(", ")} - ${action.title}`).join("\n")}`,
-        )
-        .join("\n\n")
-    alert(`Hotkeys\n\n${hotkeysList}\n\nThis list currently includes commands moved to the new hotkey catalog.`)
+
+    const overlay = document.createElement("div")
+    overlay.id = hotkeyCommandsPopupId
+    overlay.addEventListener("click", e => {
+        if (e.target === overlay) {
+            closeHotkeyCommandsPopup()
+        }
+    })
+
+    const panel = document.createElement("div")
+    panel.classList.add("better-osm-hotkey-commands-panel")
+    panel.addEventListener("click", e => e.stopPropagation())
+
+    const header = document.createElement("div")
+    header.classList.add("better-osm-hotkey-commands-header")
+
+    const headerText = document.createElement("div")
+    const title = document.createElement("h3")
+    title.classList.add("better-osm-hotkey-commands-title")
+    title.textContent = "Commands available on this page"
+    const subtitle = document.createElement("p")
+    subtitle.classList.add("better-osm-hotkey-commands-subtitle")
+    subtitle.textContent = `Current contexts: ${currentContexts.join(", ")}`
+    headerText.append(title, subtitle)
+
+    const closeBtn = document.createElement("button")
+    closeBtn.classList.add("better-btn-close", "better-osm-hotkey-commands-close")
+    closeBtn.type = "button"
+    closeBtn.setAttribute("aria-label", "Close commands popup")
+    closeBtn.innerHTML =
+        '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">' +
+        '  <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>' +
+        "</svg>"
+    closeBtn.querySelector("svg").style.height = "1.25rem"
+    closeBtn.onclick = closeHotkeyCommandsPopup
+
+    header.append(headerText, closeBtn)
+    panel.append(header)
+
+    if (!availableCommands.length) {
+        const emptyState = document.createElement("p")
+        emptyState.classList.add("better-osm-hotkey-commands-empty")
+        emptyState.textContent = "No cataloged commands match this page."
+        panel.append(emptyState)
+    } else {
+        hotkeyHelpContextsOrder
+            .filter(context => groupedCommands[context]?.length)
+            .forEach(context => {
+                const group = document.createElement("section")
+                group.classList.add("better-osm-hotkey-commands-group")
+
+                const heading = document.createElement("h4")
+                heading.classList.add("better-osm-hotkey-commands-group-title")
+                heading.textContent = context
+                group.append(heading)
+
+                const list = document.createElement("div")
+                list.classList.add("better-osm-hotkey-commands-list")
+
+                groupedCommands[context].forEach(command => {
+                    const button = document.createElement("button")
+                    button.classList.add("better-osm-hotkey-command-btn")
+                    button.type = "button"
+                    button.dataset.actionId = command.actionId
+                    button.dataset.binding = command.binding
+
+                    const binding = document.createElement("span")
+                    binding.classList.add("better-osm-hotkey-command-binding")
+                    binding.textContent = command.binding
+
+                    const label = document.createElement("span")
+                    label.classList.add("better-osm-hotkey-command-title")
+                    label.textContent = command.title
+
+                    button.append(binding, label)
+                    button.addEventListener("click", () => {
+                        closeHotkeyCommandsPopup()
+                        setTimeout(() => runHotkeyAction(command.actionId, command.event), 0)
+                    })
+                    list.append(button)
+                })
+
+                group.append(list)
+                panel.append(group)
+            })
+    }
+
+    overlay.append(panel)
+    document.body.append(overlay)
+}
+
+function hotkeyCommandsPopupClickHandler(e) {
+    e.preventDefault()
+    e.stopPropagation()
+    showHotkeyCommandsPopup()
 }
 
 function actionToggleMapLayersVisibility(e) {
@@ -27135,13 +27427,13 @@ const hotkeyActions = {
     closeUi: {
         title: "Close open UI panels",
         defaultBindings: ["KeyQ"],
-        contexts: ["All pages"],
+        contexts: ["Main pages"],
         run: actionCloseUi,
     },
     clearActiveObjectsAndContextMenus: {
         title: "Clear active objects and context menus",
         defaultBindings: ["Escape"],
-        contexts: ["All pages"],
+        contexts: ["Main pages"],
         run: actionClearActiveObjectsAndContextMenus,
     },
     goToUserLocation: {
@@ -27656,13 +27948,19 @@ function getHotkeyActionIdForEvent(e) {
     )
 }
 
-function getHotkeyActionsList() {
-    return Object.entries(hotkeyActions).map(([id, action]) => ({
-        id,
-        title: action.title,
-        contexts: [...action.contexts],
-        defaultBindings: [...action.defaultBindings],
-    }))
+function runHotkeyAction(actionId, e) {
+    const action = hotkeyActions[actionId]
+    if (!action) {
+        console.warn(`Unknown hotkey action: ${actionId}`)
+        return false
+    }
+    if (action.preventDefault) {
+        e.preventDefault?.()
+        e.stopPropagation?.()
+        e.stopImmediatePropagation?.()
+    }
+    action.run(e)
+    return true
 }
 
 function runHotkeyActionForEvent(e) {
@@ -27670,17 +27968,7 @@ function runHotkeyActionForEvent(e) {
     if (!actionId) {
         return false
     }
-    if (hotkeyActions[actionId].preventDefault) {
-        e.preventDefault()
-        e.stopPropagation()
-        e.stopImmediatePropagation()
-    }
-    const action = hotkeyActions[actionId]
-    if (!action) {
-        console.warn(`Unknown hotkey action: ${actionId}`)
-        return
-    }
-    action.run(e)
+    return runHotkeyAction(actionId, e)
 }
 
 function hotkeyKeydownHandler(e) {
@@ -27699,6 +27987,25 @@ function hotkeyKeydownHandler(e) {
     runHotkeyActionForEvent(e)
 }
 
+function addButtonIntoRightButtonsList(linksMenuClickHandler) {
+    setTimeout(async () => {
+        for (let i = 0; i < 40; i++) {
+            await sleep(30)
+            if (document.querySelector("#open-external-panel-btn")) {
+                break
+            }
+            const linksBtn2 = document.querySelector(".control-query").cloneNode(true)
+            linksBtn2.id = "open-external-panel-btn"
+            linksBtn2.querySelector("a").innerHTML = toolsIconSvg
+            linksBtn2.querySelector("svg").setAttribute("stroke-width", "1.75")
+            linksBtn2.querySelector("svg").setAttribute("width", 20)
+            linksBtn2.querySelector("svg").setAttribute("height", 20)
+            linksBtn2.addEventListener("click", linksMenuClickHandler)
+            document.querySelector(".control-query").after(linksBtn2)
+        }
+    })
+}
+
 function setupNavigationViaHotkeys() {
     if ("/id" === location.pathname || document.querySelector("#id-embed")) return
     updateCurrentObjectMetadata()
@@ -27710,6 +28017,9 @@ function setupNavigationViaHotkeys() {
     defaultZoomKeysBehaviour = GM_config.get("DefaultZoomKeysBehaviour")
 
     document.addEventListener("keydown", hotkeyKeydownHandler, false)
+    if (isMobile) {
+        addButtonIntoRightButtonsList(hotkeyCommandsPopupClickHandler)
+    }
 }
 
 function setupOverzoomForDataLayer() {
