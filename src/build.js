@@ -1,6 +1,7 @@
 import fs from "fs"
 import path from "path"
 import http from "http"
+import vm from "vm"
 import { execSync } from "child_process"
 
 const outPath = path.resolve("../better-osm-org.user.js")
@@ -31,6 +32,11 @@ function buildOnce() {
     const oldFile = fs.existsSync(outPath) ? fs.readFileSync(outPath, "utf8") : ""
     const newFile = sources.join("\n")
     if (oldFile !== newFile) {
+        try {
+            new vm.Script(newFile, { filename: outPath })
+        } catch (error) {
+            console.error(`Syntax check failed, not writing: ${error.message}`)
+        }
         fs.writeFileSync(outPath, newFile)
         console.log(new Date())
     }
