@@ -1396,75 +1396,1229 @@ End with ! for global search
     }, 0)
 }
 
+function isUserPageWithoutHistory() {
+    return location.pathname.includes("/user/") && !location.pathname.includes("/history")
+}
+
+function isChangesetPage() {
+    return location.pathname.startsWith("/changeset") && !location.pathname.includes("/changeset_comments")
+}
+
+function isObjectPage() {
+    return /^\/(node|way|relation)\/\d+/.test(location.pathname)
+}
+
+function isObjectHistoryPage() {
+    return /^\/(node|way|relation)\/\d+\/history/.test(location.pathname)
+}
+
+function isSearchPage() {
+    return location.pathname === "/search"
+}
+
+function isHistoryPage() {
+    return location.pathname.includes("/history")
+}
+
+function isFilteredHistoryPage() {
+    return isHistoryPage() && (location.search.includes("after") || location.search.includes("before"))
+}
+
+function isHomeOrNotePage() {
+    return location.pathname === "/" || location.pathname.includes("/note")
+}
+
+const hotkeyHelpContextsOrder = [
+    "All pages",
+    "Main pages",
+    "User pages",
+    "Changeset pages",
+    "Object pages",
+    "History pages",
+    "Search page",
+    "Debug",
+]
+
+function ctxAllPages() {
+    return ["All pages"]
+}
+
+function ctxMainPages() {
+    return ["Main pages"]
+}
+
+function ctxUserPages() {
+    return ["User pages"]
+}
+
+function ctxChangesetPages() {
+    return ["Changeset pages"]
+}
+
+function ctxObjectPages() {
+    return ["Object pages"]
+}
+
+function ctxHistoryPages() {
+    return ["History pages"]
+}
+
+function ctxSearchPage() {
+    return ["Search page"]
+}
+
+function ctxDebug() {
+    return ["Debug"]
+}
+
+function ctxMainAndUserPages() {
+    return ["Main pages", "User pages"]
+}
+
 function actionShowHotkeysHelp() {
-    const hotkeysList = getHotkeyActionsList()
-        .map(action => `${action.defaultBindings.join(", ")} - ${action.title}`)
-        .join("\n")
+    const groupedActions = getHotkeyActionsList().reduce((groups, action) => {
+        action.contexts.forEach(context => {
+            if (!groups[context]) {
+                groups[context] = []
+            }
+            groups[context].push(action)
+        })
+        return groups
+    }, {})
+    const hotkeysList = hotkeyHelpContextsOrder
+        .filter(context => groupedActions[context]?.length)
+        .map(context => `${context}:\n${groupedActions[context].map(action => `${action.defaultBindings.join(", ")} - ${action.title}`).join("\n")}`)
+        .join("\n\n")
     alert(`Hotkeys\n\n${hotkeysList}\n\nThis list currently includes commands moved to the new hotkey catalog.`)
+}
+
+function actionToggleMapLayersVisibility(e) {
+    if (!getWindow().mapIntercepted) return
+    e.preventDefault()
+    for (let member in layers) {
+        layers[member].forEach(i => {
+            if (layersHidden) {
+                i.getElement().style.visibility = ""
+            } else {
+                i.getElement().style.visibility = "hidden"
+            }
+        })
+    }
+    if (getWindow()?.jsonLayer) {
+        if (layersHidden) {
+            injectJSIntoPage(`jsonLayer.eachLayer(i => i.getElement().style.visibility = "")`)
+        } else {
+            injectJSIntoPage(`jsonLayer.eachLayer(i => i.getElement().style.visibility = "hidden")`)
+        }
+    } else if (jsonLayer) {
+        if (layersHidden) {
+            jsonLayer.eachLayer(intoPageWithFun(i => (getMap()._layers[i._leaflet_id].getElement().style.visibility = "")))
+        } else {
+            jsonLayer.eachLayer(intoPageWithFun(i => (getMap()._layers[i._leaflet_id].getElement().style.visibility = "hidden")))
+        }
+    }
+    layersHidden = !layersHidden
+}
+
+function actionToggleDarkMapStyle() {
+    darkModeForMap = !darkModeForMap
+    if (darkModeForMap) {
+        injectDarkMapStyle()
+    } else {
+        darkMapStyleElement?.remove()
+    }
+}
+
+function actionOpenUserBlocks() {
+    if (isUserPageWithoutHistory()) {
+        document.querySelector('a[href^="/user/"][href$="/blocks"]')?.click()
+    }
+}
+
+function actionToggleEditMenu() {
+    document.querySelector("#edit_tab ul").tabIndex = -1
+    if (document.querySelector("header").classList.contains("closed")) {
+        document.querySelector("#menu-icon").click()
+        document.querySelector("#edit_tab > button").click()
+    } else if (document.querySelector("#edit_tab > .dropdown-menu").classList.contains("show")) {
+        document.querySelector("#change-list-btn.closed")?.click()
+    } else {
+        document.querySelector("#edit_tab button").click()
+    }
+}
+
+function actionNextVectorLayer() {
+    nextVectorLayer()
+}
+
+function actionSetCustomVectorStyle() {
+    if (!document.querySelector("#map canvas")) {
+        Array.from(document.querySelectorAll(".layers-ui .base-layers label")).at(-2)?.click()
+    }
+    void askCustomStyleUrl()
+}
+
+function actionOpenMessageComposer() {
+    if (isUserPageWithoutHistory()) {
+        document.querySelector('a[href^="/messages/new/"]')?.click()
+    }
+}
+
+function actionOpenMessageComposerForCurrentUser() {
+    if (location.pathname.includes("/user/")) {
+        const username = location.pathname.match(/^\/user\/([^/]+)/)[1]
+        window.open("/messages/new/" + decodeURI(username))
+    } else {
+        const username = document
+            .querySelector("#sidebar_content a[href^='/user/']")
+            .getAttribute("href")
+            .match(/^\/user\/([^/]+)/)[1]
+        window.open("/messages/new/" + decodeURI(username))
+    }
+}
+
+function actionOpenCurrentPageUserProfile() {
+    const user_link = document.querySelector('#sidebar_content a[href^="/user/"]')
+    if (user_link) {
+        if (user_link.checkVisibility()) {
+            user_link?.click()
+        } else {
+            document.querySelector('#sidebar_content li:not([hidden-data-changeset]) a[href^="/user/"]')?.click()
+        }
+        return
+    }
+    document.querySelector('#content a[href^="/user/"]:not([href$=rss]):not([href*="/diary"]):not([href*="/traces"])')?.click()
+}
+
+function actionOpenOwnUserProfile() {
+    window.location.pathname = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href")
+}
+
+function actionOpenFiltersOrLayers(e) {
+    if (location.pathname.match(/^\/note\//) || location.pathname === "/") {
+        document.querySelector(".control-layers a").click()
+        if (document.querySelector(".layers-ui").style.display !== "none") {
+            Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({ block: "center" })
+            e.preventDefault()
+            document.querySelector("#filter-notes-by-string").focus()
+        }
+    } else {
+        if (!document.querySelector("#changesets-filter-btn") && !document.querySelector("#mass-action-btn")) {
+            document.querySelector(".control-layers a").click()
+            Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({ block: "center" })
+        } else {
+            document.querySelector("#changesets-filter-btn")?.click()
+            document.querySelector("#mass-action-btn")?.click()
+        }
+    }
+}
+
+function actionOpenExternalService(e) {
+    if (e.shiftKey) {
+        window.open("https://overpass-api.de/achavi/?changeset=" + location.pathname.match(/\/changeset\/(\d+)/)[1])
+    } else if (!e.altKey) {
+        const usernameMatch = location.pathname.match(/^\/user\/([^/]+)\/?$/)
+        if (usernameMatch) {
+            window.open(makeOsmchaLinkForUsername(decodeURI(usernameMatch[1])))
+        } else {
+            const osmchaLink = document.querySelector("#osmcha_link")
+            if (osmchaLink) {
+                osmchaLink?.click()
+            } else {
+                document.querySelector(".relation-viewer-link")?.click()
+            }
+        }
+    }
+}
+
+function actionOpenUserComments() {
+    if (location.pathname.includes("/diary_comments")) {
+        document.querySelector('a[href^="/user/"][href$="changeset_comments"]')?.click()
+    } else {
+        document.querySelector('a[href^="/user/"][href$="_comments"]')?.click()
+    }
+}
+
+function actionCopyMapCenterCoordinates() {
+    setTimeout(async () => {
+        const center = getMapCenter()
+        const format = (await GM.getValue("CoordinatesFormat")) ?? "Lat Lon"
+        if (format === "Lon Lat") {
+            navigator.clipboard.writeText(`${center.lng} ${center.lat}`)
+        } else {
+            navigator.clipboard.writeText(`${center.lat} ${center.lng}`)
+        }
+    })
+}
+
+function getPrimaryChangesetLink() {
+    const activeObject = document.querySelector("#element_versions_list > div.active-object")
+    if (activeObject) {
+        return activeObject.querySelector('a[href^="/changeset/"]')
+    }
+    return document.querySelectorAll('a[href^="/changeset/"]:not([href*="?locale="])')?.[0] ?? null
+}
+
+function actionOpenPrimaryChangeset() {
+    getPrimaryChangesetLink()?.click()
+}
+
+function actionOpenPrimaryChangesetInNewTab() {
+    const changesetLink = getPrimaryChangesetLink()
+    if (changesetLink?.href) {
+        window.open(changesetLink.href, "_blank")
+    }
+}
+
+function actionToggleNotesLayer() {
+    Array.from(document.querySelectorAll(".overlay-layers label input"))[0].removeAttribute("disabled")
+    Array.from(document.querySelectorAll(".overlay-layers label"))[0].click()
+}
+
+function actionToggleMapDataLayer() {
+    Array.from(document.querySelectorAll(".overlay-layers label input"))[1].removeAttribute("disabled")
+    Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
+    if (!location.hash.includes("D")) {
+        disableOverzoom()
+    } else {
+        enableOverzoom()
+    }
+}
+
+function actionToggleGpsTracksLayer() {
+    Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
+}
+
+function actionSwitchToSatelliteImagery() {
+    enableOverzoom()
+    switchTilesAndButtons()
+}
+
+function actionOpenUserNotesPage() {
+    document.querySelector('a[href^="/user/"][href$="/notes"]')?.click()
+    addAltClickHandlerForNotes()
+}
+
+function actionOpenNoteAuthorNotesInNewTab() {
+    window.open(document.querySelector('#sidebar_content a[href^="/user/"]').getAttribute("href") + "/notes", "_blank")
+}
+
+function actionCreateNote() {
+    if (location.pathname.includes("/node") || location.pathname.includes("/way") || location.pathname.includes("/relation")) {
+        newNotePlaceholder = "\n \n" + location.href
+    }
+    document.querySelector(".control-note .control-button").click()
+}
+
+function actionOpenUserDiary() {
+    document.querySelector('a[href^="/user/"][href$="/diary"]')?.click()
+}
+
+function actionAppendDebugQueryFlag() {
+    location.search += "&kek"
+}
+
+function actionTriggerDebugger() {
+    // eslint-disable-next-line no-debugger
+    debugger
+    throw "debug"
+}
+
+function actionOpenSpyGlass() {
+    try {
+        document.getElementById("spy-glass").click()
+    } catch (e) {
+        debug_alert("script not injected :(")
+    }
+}
+
+function actionShowGpsTracksOverlay() {
+    enableOverzoom()
+    setZoom(Math.min(14, getZoom()))
+    if (!document.querySelectorAll(".overlay-layers label")[2].querySelector("input").checked) {
+        Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
+    }
+    switchOverlayTiles()
+}
+
+function actionSetCustomTileUrl() {
+    enableOverzoom()
+    askCustomTileUrl()
+}
+
+function actionBypassTileCaches() {
+    enableOverzoom()
+    bypassCaches()
+}
+
+function actionOpenSelectedObjectEditTarget() {
+    if (location.pathname.startsWith("/changeset/")) {
+        if (document.querySelector(".active-object")) {
+            const activeObjectUrl = document.querySelector(".active-object").querySelector("a").getAttribute("href")
+            window.open(activeObjectUrl, "_blank")
+        } else {
+            const firstObjectUrl = document
+                .querySelector("turbo-frame:is(#changeset_nodes, #changeset_ways, #changeset_relations)")
+                .querySelector("ul a")
+                .getAttribute("href")
+            window.open(firstObjectUrl, "_blank")
+        }
+    } else {
+        document.querySelector(".edit_tags_class").click()
+    }
+}
+
+function actionOpenAlternateEditor() {
+    if (document.querySelector("#editanchor").getAttribute("data-editor") === "id") {
+        document.querySelectorAll("#edit_tab .dropdown-menu .editlink")[1]?.click()
+    } else {
+        document.querySelectorAll("#edit_tab .dropdown-menu .editlink")[0]?.click()
+    }
+}
+
+function actionOpenEditMenuPrimary() {
+    document.querySelector("#editanchor")?.click()
+}
+
+function actionOpenUserHistoryFromProfile() {
+    document.querySelector('a[href^="/user/"][href$="/history"]')?.click()
+}
+
+function actionOpenUserReportForm() {
+    document.querySelector('a[href*="/reports/new"]')?.click()
+}
+
+function actionRevertCurrentChangesetSelection() {
+    document.querySelector("#revert_button_class").click()
+}
+
+function actionToggleChangesetObjectSelection() {
+    if (document.querySelector(".select-objects-btn")) {
+        document.querySelector(".select-objects-btn").click()
+    } else {
+        addCheckboxesForChangesetObjects()
+    }
+}
+
+function actionOpenInJosmOrLevel0(e) {
+    setTimeout(async () => {
+        if (location.pathname.includes("changeset")) {
+            await openSelectedObjectsOnChangesetPage(e)
+        } else {
+            await openObjectInJosmOrLevel0(e)
+        }
+    })
+}
+
+function actionOpenOwnHistoryPage() {
+    const targetURL = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href") + "/history"
+    if (targetURL !== location.pathname) {
+        try {
+            getWindow().OSM.router.route(targetURL)
+        } catch {
+            window.location.pathname = targetURL
+        }
+    }
+}
+
+function actionOpenRelevantHistoryPage() {
+    if (isObjectPage()) {
+        if (/^\/(node|way|relation)\/\d+\/?$/.test(location.pathname)) {
+            getWindow().OSM.router.route(window.location.pathname + "/history")
+        } else if (/^\/(node|way|relation)\/\d+\/history\/\d+\/?$/.test(location.pathname)) {
+            const historyPath = window.location.pathname.match(/(\/(node|way|relation)\/\d+\/history)\/\d+/)[1]
+            getWindow().OSM.router.route(historyPath)
+        }
+    } else if (isHomeOrNotePage()) {
+        addCompactSidebarStyle()
+        document.querySelector('.nav-link[href^="/history"]')?.click()
+    } else if (location.pathname.includes("/user/")) {
+        document.querySelector('a[href^="/user/"][href$="/history"]')?.click()
+    }
+}
+
+function actionOpenChangesetAuthorHistory() {
+    const userChangesetsLink = document.querySelectorAll("div.secondary-actions")[1]?.querySelector('a[href^="/user/"]')
+    if (userChangesetsLink) {
+        getAbortController().abort(ABORT_ERROR_USER_CHANGESETS)
+        userChangesetsLink.focus()
+        userChangesetsLink.click()
+    }
+}
+
+function actionResetFilteredHistoryPage() {
+    try {
+        getWindow().OSM.router.route(location.pathname)
+        setupCompactChangesetsHistory()
+    } catch {
+        if (isSafari) {
+            window.location.search = ""
+        } else {
+            window.location = location.pathname
+        }
+    }
+}
+
+function actionOpenFirstObjectVersion() {
+    getWindow().OSM.router.route(location.pathname.match(/\/(node|way|relation)\/\d+/)[0] + "/history/1")
+}
+
+function actionOpenFirstChangesetForCurrentPageUser() {
+    const user_link = document.querySelector('#sidebar_content a[href^="/user/"]')
+    if (user_link) {
+        const username = decodeURI(user_link.getAttribute("href").match(/\/user\/([^/]+)/)[1])
+        getCachedUserInfo(username).then(res => {
+            if (res["firstChangesetID"]) {
+                getWindow().OSM.router.route(`/changeset/${res["firstChangesetID"]}`)
+            } else {
+                console.warn("not found first changeset for " + username)
+            }
+        })
+    }
+}
+
+function actionOpenFirstChangesetPageForCurrentUserHistory() {
+    const user_link = document.querySelector('#sidebar_content a[href^="/user/"]')
+    if (user_link) {
+        const username = decodeURI(user_link.getAttribute("href").match(/\/user\/([^/]+)/)[1])
+        getCachedUserInfo(username).then(res => {
+            if (res["firstChangesetID"]) {
+                getWindow().OSM.router.route(`${location.pathname}?after=${res["firstChangesetID"] - 1}`)
+            } else {
+                console.warn("not found first changeset for " + username)
+            }
+        })
+    }
+}
+
+function actionZoomOutToWorld() {
+    const center = getMapCenter()
+    setZoom(2)
+    fetch(`https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2`).then(res => {
+        res.json().then(r => {
+            if (r?.address?.state) {
+                getMap().attributionControl?.setPrefix(`${r.address.state}`)
+            }
+        })
+    })
+}
+
+function actionZoomToCurrentObjectHotkey(e) {
+    if (e.shiftKey) {
+        shiftKeyZClicks += 1
+        document.addEventListener(
+            "mousemove",
+            () => {
+                shiftKeyZClicks = 0
+            },
+            { once: true },
+        )
+    } else {
+        shiftKeyZClicks = 0
+    }
+    zoomToCurrentObject(e)
+}
+
+function actionMapPositionBack() {
+    if (mapPositionsHistory.length > 1) {
+        mapPositionsNextHistory.push(mapPositionsHistory[mapPositionsHistory.length - 1])
+        mapPositionsHistory.pop()
+        fitBounds(mapPositionsHistory[mapPositionsHistory.length - 1])
+    }
+}
+
+function actionMapPositionForward() {
+    if (mapPositionsNextHistory.length) {
+        mapPositionsHistory.push(mapPositionsNextHistory.pop())
+        fitBounds(mapPositionsHistory[mapPositionsHistory.length - 1])
+    }
+}
+
+function actionZoomOutHotkey(e) {
+    if (document.activeElement?.id === "map") {
+        e.preventDefault()
+        e.stopImmediatePropagation()
+        e.stopPropagation()
+    }
+    if (!e.altKey) {
+        setZoom(getZoom() - 2)
+    } else {
+        setZoom(getZoom() - 1)
+    }
+    document.querySelector("#map").focus()
+}
+
+function actionZoomInHotkey(e) {
+    if (document.activeElement?.id === "map") {
+        e.preventDefault()
+        e.stopImmediatePropagation()
+        e.stopPropagation()
+    }
+    if (!e.altKey) {
+        setZoom(getZoom() + 2)
+    } else {
+        setZoom(getZoom() + 1)
+    }
+    document.querySelector("#map").focus()
+}
+
+function actionGoToPrevChangesetPage(e) {
+    goToPrevChangeset(e)
+}
+
+function actionGoToNextChangesetPage(e) {
+    goToNextChangeset(e)
+}
+
+function actionGoToPrevSearchResultPage(e) {
+    goToPrevSearchResult(e)
+}
+
+function actionGoToNextSearchResultPage(e) {
+    goToNextSearchResult(e)
+}
+
+function actionPreviewChangesetGeometryDebug() {
+    if (location.pathname.startsWith("/changeset")) {
+        const params = new URLSearchParams(location.search)
+        const changesetIDs = params.get("changesets")?.split(",") ?? [parseInt(location.pathname.match(/changeset\/(\d+)/)[1])]
+        const objects = []
+        if (changesetIDs) {
+            setTimeout(async () => {
+                for (const i of changesetIDs) {
+                    ;(await getChangeset(i)).data.querySelectorAll("node,way,relation").forEach(obj => {
+                        objects.push(obj)
+                    })
+                }
+                objects.sort((a, b) => {
+                    const A = new Date(a.getAttribute("timestamp"))
+                    const B = new Date(b.getAttribute("timestamp"))
+                    if (A < B) return -1
+                    if (A > B) return 1
+                    return 0
+                })
+                const nodesList = []
+                for (let object of objects) {
+                    if (object.nodeName === "node" && object.getAttribute("visible") === "true") {
+                        nodesList.push([object.getAttribute("lat"), object.getAttribute("lon")])
+                    } else if (object.nodeName === "way") {
+                        // TODO
+                    }
+                }
+                showNodeMarker(nodesList[0][0], nodesList[0][1], "#ff0000", null, "customObjects", 8)
+                showNodeMarker(nodesList.at(-1)[0], nodesList.at(-1)[1], "#00ff04", null, "customObjects", 8)
+                showActiveWay(nodesList, c("#0022ff"), false, null, true, 2)
+            })
+        }
+    }
+}
+
+function actionGoToPrevChangesetObjectHotkey(e) {
+    goToPrevChangesetObject(e)
+}
+
+function actionGoToNextChangesetObjectHotkey(e) {
+    goToNextChangesetObject(e)
+}
+
+function actionGoToPrevObjectVersionHotkey() {
+    goToPrevObjectVersion()
+}
+
+function actionGoToNextObjectVersionHotkey() {
+    goToNextObjectVersion()
+}
+
+function actionGoToPrevSidebarTab() {
+    const links = Array.from(document.querySelectorAll("#sidebar_content nav div ul a"))
+    for (let i = 0; i < links.length; i++) {
+        if (links[i].parentElement.classList.contains("active")) {
+            links[i - 1]?.click()
+            break
+        }
+    }
+}
+
+function actionGoToNextSidebarTab() {
+    const links = Array.from(document.querySelectorAll("#sidebar_content nav div ul a"))
+    for (let i = 0; i < links.length; i++) {
+        if (links[i].parentElement.classList.contains("active")) {
+            links[i + 1]?.click()
+            break
+        }
+    }
+}
+
+function actionGoToPrevPaginationPage(selector) {
+    document.querySelector(selector)?.click()
+}
+
+function actionGoToPrevUserNotesPage() {
+    document.querySelectorAll(".pagination li a")[0]?.click()
+}
+
+function actionGoToNextUserNotesPage() {
+    document.querySelectorAll(".pagination li a")[1]?.click()
+}
+
+function actionGoToPrevChangesetListPage() {
+    const link = getPrevChangesetLink()
+    if (link) {
+        getAbortController().abort(ABORT_ERROR_PREV)
+        needPreloadChangesets = true
+        link.focus()
+        link.click()
+    }
+}
+
+function actionGoToNextChangesetListPage() {
+    const link = getNextChangesetLink()
+    if (link) {
+        getAbortController().abort(ABORT_ERROR_NEXT)
+        needPreloadChangesets = true
+        link.focus()
+        link.click()
+    }
 }
 
 const hotkeyActions = {
     showHotkeysHelp: {
         title: "Show hotkeys help",
         defaultBindings: ["F1"],
+        group: "Help",
         preventDefault: true,
         run: actionShowHotkeysHelp,
     },
     openYandexPanoramas: {
         title: "Open Yandex panoramas",
         defaultBindings: ["KeyY"],
+        group: "Main site",
         run: actionOpenYandexPanoramas,
     },
     copyCurrentShortLink: {
         title: "Copy current short link",
         defaultBindings: ["KeyP"],
+        group: "Main site",
         run: actionCopyCurrentShortLink,
     },
     closeUi: {
         title: "Close open UI panels",
         defaultBindings: ["KeyQ"],
+        group: "Main site",
+        contexts: ["All pages"],
         run: actionCloseUi,
     },
     clearActiveObjectsAndContextMenus: {
         title: "Clear active objects and context menus",
         defaultBindings: ["Escape"],
+        group: "Main site",
+        contexts: ["All pages"],
         run: actionClearActiveObjectsAndContextMenus,
     },
     goToUserLocation: {
         title: "Go to user location",
         defaultBindings: ["Shift+KeyL"],
+        group: "Main site",
         run: actionGoToUserLocation,
     },
     toggleSwitchableTime: {
         title: "Toggle switchable time",
         defaultBindings: ["Shift+KeyT", "Alt+KeyT"],
+        group: "Main site",
         run: actionToggleSwitchableTime,
     },
     toggleCompactTimeOrOpenTraces: {
         title: "Toggle compact time or open traces",
         defaultBindings: ["KeyT"],
+        group: "Main site",
         run: actionHandleKeyT,
     },
     openOverpassSearch: {
         title: "Open Overpass search",
         defaultBindings: ["Shift+Slash"],
+        group: "Main site",
         run: actionOpenOverpassSearch,
+    },
+    toggleMapLayersVisibility: {
+        title: "Toggle map layers visibility",
+        defaultBindings: ["Backquote"],
+        group: "Main site",
+        run: actionToggleMapLayersVisibility,
+    },
+    toggleDarkMapStyle: {
+        title: "Toggle dark map style",
+        defaultBindings: ["Alt+Backquote"],
+        group: "Main site",
+        run: actionToggleDarkMapStyle,
+    },
+    openUserBlocks: {
+        title: "Open user blocks",
+        defaultBindings: ["KeyB", "Shift+KeyB", "Alt+KeyB", "Alt+Shift+KeyB"],
+        group: "User pages",
+        run: actionOpenUserBlocks,
+    },
+    toggleEditMenu: {
+        title: "Toggle edit menu",
+        defaultBindings: ["KeyX"],
+        group: "Main site",
+        run: actionToggleEditMenu,
+    },
+    nextVectorLayer: {
+        title: "Switch to next vector layer",
+        defaultBindings: ["KeyV"],
+        group: "Main site",
+        run: actionNextVectorLayer,
+    },
+    setCustomVectorStyle: {
+        title: "Set custom vector style",
+        defaultBindings: ["Shift+KeyV"],
+        group: "Main site",
+        run: actionSetCustomVectorStyle,
+    },
+    openMessageComposer: {
+        title: "Open message composer",
+        defaultBindings: ["KeyM"],
+        group: "User pages",
+        when: () => isUserPageWithoutHistory(),
+        run: actionOpenMessageComposer,
+    },
+    openMessageComposerForCurrentUser: {
+        title: "Open message composer for current user",
+        defaultBindings: ["Shift+KeyM"],
+        group: "User pages",
+        contexts: ["Main pages", "User pages"],
+        run: actionOpenMessageComposerForCurrentUser,
+    },
+    openCurrentPageUserProfile: {
+        title: "Open current page user profile",
+        defaultBindings: ["KeyU"],
+        group: "User pages",
+        contexts: ["Main pages", "User pages"],
+        run: actionOpenCurrentPageUserProfile,
+    },
+    openOwnUserProfile: {
+        title: "Open own user profile",
+        defaultBindings: ["Shift+KeyU"],
+        group: "User pages",
+        contexts: ["Main pages", "User pages"],
+        run: actionOpenOwnUserProfile,
+    },
+    openFiltersOrLayers: {
+        title: "Open filters or layers",
+        defaultBindings: ["KeyF"],
+        group: "Main site",
+        run: actionOpenFiltersOrLayers,
+    },
+    openExternalService: {
+        title: "Open external service",
+        defaultBindings: ["KeyO", "Shift+KeyO"],
+        group: "Main site",
+        run: actionOpenExternalService,
+    },
+    openUserComments: {
+        title: "Open user comments",
+        defaultBindings: ["KeyC", "Shift+KeyC", "Alt+KeyC"],
+        group: "User pages",
+        when: () => isUserPageWithoutHistory(),
+        run: actionOpenUserComments,
+    },
+    copyMapCenterCoordinates: {
+        title: "Copy map center coordinates",
+        defaultBindings: ["Alt+KeyC"],
+        group: "Main site",
+        when: () => !isUserPageWithoutHistory(),
+        run: actionCopyMapCenterCoordinates,
+    },
+    openPrimaryChangeset: {
+        title: "Open current changeset",
+        defaultBindings: ["KeyC"],
+        group: "Main site",
+        when: () => !isUserPageWithoutHistory(),
+        run: actionOpenPrimaryChangeset,
+    },
+    openPrimaryChangesetInNewTab: {
+        title: "Open current changeset in new tab",
+        defaultBindings: ["Shift+KeyC"],
+        group: "Main site",
+        when: () => !isUserPageWithoutHistory(),
+        run: actionOpenPrimaryChangesetInNewTab,
+    },
+    toggleNotesLayer: {
+        title: "Toggle notes layer",
+        defaultBindings: ["KeyN"],
+        group: "Main site",
+        when: () => !isUserPageWithoutHistory(),
+        run: actionToggleNotesLayer,
+    },
+    toggleMapDataLayer: {
+        title: "Toggle Map Data layer",
+        defaultBindings: ["KeyD"],
+        group: "Main site",
+        when: () => !isUserPageWithoutHistory(),
+        run: actionToggleMapDataLayer,
+    },
+    toggleGpsTracksLayer: {
+        title: "Toggle GPS tracks layer",
+        defaultBindings: ["KeyG"],
+        group: "Main site",
+        run: actionToggleGpsTracksLayer,
+    },
+    switchToSatelliteImagery: {
+        title: "Switch to satellite imagery",
+        defaultBindings: ["KeyS"],
+        group: "Main site",
+        run: actionSwitchToSatelliteImagery,
+    },
+    openUserNotesPage: {
+        title: "Open current user's notes",
+        defaultBindings: ["KeyN", "Shift+KeyN", "Alt+KeyN", "Alt+Shift+KeyN"],
+        group: "User pages",
+        when: () => isUserPageWithoutHistory(),
+        run: actionOpenUserNotesPage,
+    },
+    openNoteAuthorNotesInNewTab: {
+        title: "Open note author's notes in new tab",
+        defaultBindings: ["Alt+KeyN"],
+        group: "Main pages",
+        when: () => /^\/note\/\d+/.test(location.pathname),
+        run: actionOpenNoteAuthorNotesInNewTab,
+    },
+    createNote: {
+        title: "Create note",
+        defaultBindings: ["Shift+KeyN"],
+        group: "Main pages",
+        run: actionCreateNote,
+    },
+    openUserDiary: {
+        title: "Open current user's diary",
+        defaultBindings: ["KeyD"],
+        group: "User pages",
+        when: () => isUserPageWithoutHistory(),
+        run: actionOpenUserDiary,
+    },
+    appendDebugQueryFlag: {
+        title: "Append debug query flag",
+        defaultBindings: ["Alt+Shift+KeyD"],
+        contexts: ["Debug"],
+        run: actionAppendDebugQueryFlag,
+    },
+    triggerDebugger: {
+        title: "Trigger debugger",
+        defaultBindings: ["Alt+KeyD"],
+        contexts: ["Debug"],
+        run: actionTriggerDebugger,
+    },
+    openSpyGlass: {
+        title: "Open Spy Glass",
+        defaultBindings: ["Shift+KeyD"],
+        group: "Debug",
+        contexts: ["Debug"],
+        run: actionOpenSpyGlass,
+    },
+    showGpsTracksOverlay: {
+        title: "Show GPS tracks overlay",
+        defaultBindings: ["Shift+KeyG", "Alt+KeyG"],
+        group: "Main pages",
+        run: actionShowGpsTracksOverlay,
+    },
+    setCustomTileUrl: {
+        title: "Set custom tile URL",
+        defaultBindings: ["Shift+KeyS"],
+        group: "Main pages",
+        run: actionSetCustomTileUrl,
+    },
+    bypassTileCaches: {
+        title: "Bypass tile caches",
+        defaultBindings: ["Alt+KeyS"],
+        group: "Main pages",
+        run: actionBypassTileCaches,
+    },
+    openSelectedObjectEditTarget: {
+        title: "Open selected object or tags editor",
+        defaultBindings: ["Alt+KeyE"],
+        group: "Main pages",
+        run: actionOpenSelectedObjectEditTarget,
+    },
+    openAlternateEditor: {
+        title: "Open alternate editor",
+        defaultBindings: ["Shift+KeyE"],
+        group: "Main pages",
+        when: () => !/^\/user\/([^/]+)\/?$/.test(location.pathname),
+        run: actionOpenAlternateEditor,
+    },
+    openEditMenuPrimary: {
+        title: "Open primary editor",
+        defaultBindings: ["KeyE"],
+        group: "Main pages",
+        when: () => !/^\/user\/([^/]+)\/?$/.test(location.pathname),
+        run: actionOpenEditMenuPrimary,
+    },
+    openUserHistoryFromProfile: {
+        title: "Open current user's history",
+        defaultBindings: ["KeyE", "Shift+KeyE"],
+        group: "User pages",
+        when: () => /^\/user\/([^/]+)\/?$/.test(location.pathname),
+        run: actionOpenUserHistoryFromProfile,
+    },
+    openUserReportForm: {
+        title: "Open user report form",
+        defaultBindings: ["KeyR", "Shift+KeyR", "Alt+KeyR", "Alt+Shift+KeyR"],
+        group: "User pages",
+        when: () => isUserPageWithoutHistory(),
+        run: actionOpenUserReportForm,
+    },
+    revertCurrentChangesetSelection: {
+        title: "Revert current changeset selection",
+        defaultBindings: ["KeyR", "Shift+KeyR", "Alt+KeyR", "Alt+Shift+KeyR"],
+        group: "Changeset pages",
+        when: e => !isUserPageWithoutHistory() && (changesetObjectsSelectionModeEnabled || e.altKey),
+        run: actionRevertCurrentChangesetSelection,
+    },
+    toggleChangesetObjectSelection: {
+        title: "Toggle changeset object selection",
+        defaultBindings: ["KeyR", "Shift+KeyR"],
+        group: "Changeset pages",
+        when: e => !isUserPageWithoutHistory() && !changesetObjectsSelectionModeEnabled && !e.altKey,
+        run: actionToggleChangesetObjectSelection,
+    },
+    openInJosmOrLevel0: {
+        title: "Open object in JOSM or Level0",
+        defaultBindings: ["KeyJ"],
+        group: "Main pages",
+        run: actionOpenInJosmOrLevel0,
+    },
+    openOwnHistoryPage: {
+        title: "Open your history page",
+        defaultBindings: ["Shift+KeyH"],
+        contexts: ["Main pages", "User pages", "Changeset pages", "Object pages", "History pages"],
+        run: actionOpenOwnHistoryPage,
+    },
+    openRelevantHistoryPage: {
+        title: "Open relevant history page",
+        defaultBindings: ["KeyH"],
+        contexts: ["Main pages", "User pages", "Object pages"],
+        when: () => isObjectPage() || isHomeOrNotePage() || isUserPageWithoutHistory(),
+        run: actionOpenRelevantHistoryPage,
+    },
+    openChangesetAuthorHistory: {
+        title: "Open changeset author's history",
+        defaultBindings: ["KeyH"],
+        contexts: ["Changeset pages"],
+        when: () => isChangesetPage(),
+        run: actionOpenChangesetAuthorHistory,
+    },
+    resetFilteredHistoryPage: {
+        title: "Reset filtered history page",
+        defaultBindings: ["KeyH"],
+        contexts: ["History pages"],
+        when: () => isFilteredHistoryPage(),
+        run: actionResetFilteredHistoryPage,
+    },
+    openFirstObjectVersion: {
+        title: "Open first object version",
+        defaultBindings: ["Digit1"],
+        contexts: ["Object pages"],
+        when: () => isObjectPage(),
+        run: actionOpenFirstObjectVersion,
+    },
+    openFirstChangesetForCurrentPageUser: {
+        title: "Open first changeset for current page user",
+        defaultBindings: ["Digit1"],
+        contexts: ["Changeset pages"],
+        when: () => location.pathname.startsWith("/changeset"),
+        run: actionOpenFirstChangesetForCurrentPageUser,
+    },
+    openFirstChangesetPageForCurrentUserHistory: {
+        title: "Open first changeset page for current user history",
+        defaultBindings: ["Digit1"],
+        contexts: ["History pages"],
+        when: () => /\/user\/[^\\]+\/history\/?/.test(location.pathname),
+        run: actionOpenFirstChangesetPageForCurrentUserHistory,
+    },
+    zoomOutToWorld: {
+        title: "Zoom out to world",
+        defaultBindings: ["Digit0"],
+        group: "Main pages",
+        run: actionZoomOutToWorld,
+    },
+    zoomToCurrentObjectHotkey: {
+        title: "Zoom to current object",
+        defaultBindings: ["KeyZ", "Shift+KeyZ"],
+        group: "Main pages",
+        run: actionZoomToCurrentObjectHotkey,
+    },
+    mapPositionBack: {
+        title: "Previous map position",
+        defaultBindings: ["Digit8"],
+        group: "Main pages",
+        run: actionMapPositionBack,
+    },
+    mapPositionForward: {
+        title: "Next map position",
+        defaultBindings: ["Digit9"],
+        group: "Main pages",
+        run: actionMapPositionForward,
+    },
+    zoomOutHotkey: {
+        title: "Zoom out",
+        defaultBindings: ["Minus", "Alt+Minus"],
+        group: "Main pages",
+        when: () => !defaultZoomKeysBehaviour,
+        run: actionZoomOutHotkey,
+    },
+    zoomInHotkey: {
+        title: "Zoom in",
+        defaultBindings: ["Equal", "Alt+Equal"],
+        group: "Main pages",
+        when: () => !defaultZoomKeysBehaviour,
+        run: actionZoomInHotkey,
+    },
+    goToPrevChangesetPage: {
+        title: "Go to previous changeset page",
+        defaultBindings: ["KeyK"],
+        contexts: ["History pages"],
+        when: () => /^(\/user\/.+)?\/history\/?$/.test(location.pathname),
+        run: actionGoToPrevChangesetPage,
+    },
+    goToNextChangesetPage: {
+        title: "Go to next changeset page",
+        defaultBindings: ["KeyL"],
+        contexts: ["History pages"],
+        when: () => /^(\/user\/.+)?\/history\/?$/.test(location.pathname),
+        run: actionGoToNextChangesetPage,
+    },
+    goToPrevSearchResultPage: {
+        title: "Go to previous search result",
+        defaultBindings: ["KeyK"],
+        contexts: ["Search page"],
+        when: () => isSearchPage(),
+        run: actionGoToPrevSearchResultPage,
+    },
+    goToNextSearchResultPage: {
+        title: "Go to next search result",
+        defaultBindings: ["KeyL"],
+        contexts: ["Search page"],
+        when: () => isSearchPage(),
+        run: actionGoToNextSearchResultPage,
+    },
+    previewChangesetGeometryDebug: {
+        title: "Preview changeset geometry",
+        defaultBindings: ["Alt+KeyP"],
+        contexts: ["Debug", "Changeset pages"],
+        when: () => isDebug() && location.pathname.startsWith("/changeset"),
+        run: actionPreviewChangesetGeometryDebug,
+    },
+    goToPrevChangesetListPage: {
+        title: "Previous changeset list page",
+        defaultBindings: ["Comma"],
+        contexts: ["Changeset pages"],
+        when: () => isChangesetPage(),
+        run: actionGoToPrevChangesetListPage,
+    },
+    goToNextChangesetListPage: {
+        title: "Next changeset list page",
+        defaultBindings: ["Period"],
+        contexts: ["Changeset pages"],
+        when: () => isChangesetPage(),
+        run: actionGoToNextChangesetListPage,
+    },
+    goToPrevChangesetObjectHotkey: {
+        title: "Previous changeset object",
+        defaultBindings: ["KeyK"],
+        contexts: ["Changeset pages"],
+        when: () => isChangesetPage(),
+        run: actionGoToPrevChangesetObjectHotkey,
+    },
+    goToNextChangesetObjectHotkey: {
+        title: "Next changeset object",
+        defaultBindings: ["KeyL"],
+        contexts: ["Changeset pages"],
+        when: e => isChangesetPage() && !e.shiftKey,
+        run: actionGoToNextChangesetObjectHotkey,
+    },
+    goToPrevSidebarTab: {
+        title: "Previous sidebar tab",
+        defaultBindings: ["Comma"],
+        contexts: ["Object pages"],
+        when: () => isObjectPage(),
+        run: actionGoToPrevSidebarTab,
+    },
+    goToNextSidebarTab: {
+        title: "Next sidebar tab",
+        defaultBindings: ["Period"],
+        contexts: ["Object pages"],
+        when: () => isObjectPage(),
+        run: actionGoToNextSidebarTab,
+    },
+    goToPrevObjectVersionHotkey: {
+        title: "Previous object version",
+        defaultBindings: ["KeyK"],
+        contexts: ["Object pages", "History pages"],
+        when: () => isObjectHistoryPage(),
+        run: actionGoToPrevObjectVersionHotkey,
+    },
+    goToNextObjectVersionHotkey: {
+        title: "Next object version",
+        defaultBindings: ["KeyL"],
+        contexts: ["Object pages", "History pages"],
+        when: e => isObjectHistoryPage() && !e.shiftKey,
+        run: actionGoToNextObjectVersionHotkey,
+    },
+    goToPrevUserListPage: {
+        title: "Previous list page",
+        defaultBindings: ["Comma"],
+        contexts: ["User pages"],
+        when: () =>
+            /user\/.+\/(traces|diary_comments|changeset_comments)/.test(location.pathname) ||
+            /\/user_blocks($|\/)/.test(location.pathname) ||
+            /\/blocks_by$/.test(location.pathname),
+        run: () => actionGoToPrevPaginationPage('.pagination a[href*="after"]'),
+    },
+    goToNextUserListPage: {
+        title: "Next list page",
+        defaultBindings: ["Period"],
+        contexts: ["User pages"],
+        when: () =>
+            /user\/.+\/(traces|diary_comments|changeset_comments)/.test(location.pathname) ||
+            /\/user_blocks($|\/)/.test(location.pathname) ||
+            /\/blocks_by$/.test(location.pathname),
+        run: () => actionGoToPrevPaginationPage('.pagination a[href*="before"]'),
+    },
+    goToPrevUserNotesPage: {
+        title: "Previous user notes page",
+        defaultBindings: ["Comma"],
+        contexts: ["User pages"],
+        when: () => /user\/.+\/notes/.test(location.pathname),
+        run: actionGoToPrevUserNotesPage,
+    },
+    goToNextUserNotesPage: {
+        title: "Next user notes page",
+        defaultBindings: ["Period"],
+        contexts: ["User pages"],
+        when: () => /user\/.+\/notes/.test(location.pathname),
+        run: actionGoToNextUserNotesPage,
     },
 }
 
-function runHotkeyAction(actionId) {
+function runHotkeyAction(actionId, ...args) {
     const action = hotkeyActions[actionId]
     if (!action) {
         console.warn(`Unknown hotkey action: ${actionId}`)
         return false
     }
-    action.run()
+    action.run(...args)
     return true
 }
 
 function getHotkeyBaseCode(e) {
+    if (/^[0-9]$/.test(e.key)) {
+        return `Digit${e.key}`
+    }
     if (["Slash", "Backslash", "NumpadDivide"].includes(e.code) || e.key === "/") {
         return "Slash"
+    }
+    if (["Backquote", "Quote"].includes(e.code) || e.key === "`" || e.key === "~") {
+        return "Backquote"
     }
     return e.code || e.key
 }
@@ -1481,13 +2635,26 @@ function getHotkeyCombo(e) {
 
 function getHotkeyActionIdForEvent(e) {
     const combo = getHotkeyCombo(e)
-    return Object.entries(hotkeyActions).find(([, action]) => action.defaultBindings.includes(combo))?.[0] ?? null
+    return (
+        Object.entries(hotkeyActions).find(
+            ([, action]) => action.defaultBindings.includes(combo) && (!action.when || action.when(e)),
+        )?.[0] ?? null
+    )
 }
 
 function getHotkeyActionsList() {
     return Object.entries(hotkeyActions).map(([id, action]) => ({
         id,
         title: action.title,
+        contexts:
+            action.contexts ??
+            action.group === "Help"
+                ? ["All pages"]
+                : action.group === "User pages"
+                  ? ["User pages"]
+                  : action.group === "Debug"
+                    ? ["Debug"]
+                    : ["Main pages"],
         defaultBindings: [...action.defaultBindings],
     }))
 }
@@ -1502,7 +2669,7 @@ function runHotkeyActionForEvent(e) {
         e.stopPropagation()
         e.stopImmediatePropagation()
     }
-    return runHotkeyAction(actionId)
+    return runHotkeyAction(actionId, e)
 }
 
 function hotkeyKeydownHandler(e) {
@@ -1523,458 +2690,6 @@ function hotkeyKeydownHandler(e) {
     if (runHotkeyActionForEvent(e)) return
     if (e.metaKey || e.ctrlKey) {
         return
-    }
-    if (e.code === "KeyN") {
-        if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
-            document.querySelector('a[href^="/user/"][href$="/notes"]')?.click()
-            addAltClickHandlerForNotes()
-        } else if (e.altKey && location.pathname.match(/note\/[0-9]+/)) {
-            window.open(document.querySelector('#sidebar_content a[href^="/user/"]').getAttribute("href") + "/notes", "_blank")
-        } else {
-            // notes
-            if (e.shiftKey) {
-                if (location.pathname.includes("/node") || location.pathname.includes("/way") || location.pathname.includes("/relation")) {
-                    newNotePlaceholder = "\n \n" + location.href
-                }
-                document.querySelector(".control-note .control-button").click()
-            } else {
-                Array.from(document.querySelectorAll(".overlay-layers label input"))[0].removeAttribute("disabled")
-                Array.from(document.querySelectorAll(".overlay-layers label"))[0].click()
-            }
-        }
-    } else if (e.code === "KeyD") {
-        if (e.altKey && e.shiftKey) {
-            location.search += "&kek"
-            return
-        } else if (e.altKey) {
-            // eslint-disable-next-line no-debugger
-            debugger
-            throw "debug"
-        }
-        if (e.shiftKey) {
-            try {
-                document.getElementById("spy-glass").click()
-            } catch (e) {
-                debug_alert("script not injected :(")
-            }
-            return
-        }
-        if (e.altKey || e.shiftKey) {
-            return
-        }
-        if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
-            document.querySelector('a[href^="/user/"][href$="/diary"]')?.click()
-        } else {
-            // map data
-            Array.from(document.querySelectorAll(".overlay-layers label input"))[1].removeAttribute("disabled")
-            Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
-            if (!location.hash.includes("D")) {
-                disableOverzoom()
-            } else {
-                enableOverzoom()
-            }
-        }
-    } else if (e.code === "KeyG") {
-        // gps tracks
-        if (e.shiftKey || e.altKey) {
-            enableOverzoom()
-            setZoom(Math.min(14, getZoom()))
-            if (!document.querySelectorAll(".overlay-layers label")[2].querySelector("input").checked) {
-                Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
-            }
-            switchOverlayTiles()
-        } else {
-            Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
-        }
-    } else if (e.code === "KeyS") {
-        enableOverzoom()
-        if (e.shiftKey) {
-            askCustomTileUrl()
-            return
-        } else if (e.altKey) {
-            bypassCaches()
-        } else {
-            switchTilesAndButtons()
-        }
-    } else if (e.code === "KeyE") {
-        if (e.altKey) {
-            if (location.pathname.startsWith("/changeset/")) {
-                if (document.querySelector(".active-object")) {
-                    const activeObjectUrl = document.querySelector(".active-object").querySelector("a").getAttribute("href")
-                    window.open(activeObjectUrl, "_blank")
-                } else {
-                    const firstObjectUrl = document
-                        .querySelector("turbo-frame:is(#changeset_nodes, #changeset_ways, #changeset_relations)")
-                        .querySelector("ul a")
-                        .getAttribute("href")
-                    window.open(firstObjectUrl, "_blank")
-                }
-            } else {
-                document.querySelector(".edit_tags_class").click()
-            }
-        } else if (!location.pathname.match(/^\/user\/([^/]+)\/?$/)) {
-            if (e.shiftKey) {
-                if (document.querySelector("#editanchor").getAttribute("data-editor") === "id") {
-                    document.querySelectorAll("#edit_tab .dropdown-menu .editlink")[1]?.click()
-                } else {
-                    document.querySelectorAll("#edit_tab .dropdown-menu .editlink")[0]?.click()
-                }
-            } else if (e.altKey && isDebug()) {
-                document.querySelectorAll("table.quick-look, table.geojson-props-table:not(.metainfo-table)").forEach(i => {
-                    i.setAttribute("contenteditable", "true")
-                })
-            } else {
-                document.querySelector("#editanchor")?.click()
-            }
-        } else {
-            document.querySelector('a[href^="/user/"][href$="/history"]')?.click()
-        }
-    } else if (e.code === "KeyR") {
-        if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
-            document.querySelector('a[href*="/reports/new"]')?.click()
-            return
-        }
-        if (changesetObjectsSelectionModeEnabled || e.altKey) {
-            document.querySelector("#revert_button_class").click()
-            return
-        }
-        if (document.querySelector(".select-objects-btn")) {
-            document.querySelector(".select-objects-btn").click()
-        } else {
-            addCheckboxesForChangesetObjects()
-        }
-    } else if (e.code === "KeyJ") {
-        setTimeout(async () => {
-            if (location.pathname.includes("changeset")) {
-                await openSelectedObjectsOnChangesetPage(e)
-            } else {
-                await openObjectInJosmOrLevel0(e)
-            }
-        })
-    } else if (e.code === "KeyH") {
-        if (e.shiftKey) {
-            const targetURL = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href") + "/history"
-            if (targetURL !== location.pathname) {
-                try {
-                    getWindow().OSM.router.route(targetURL)
-                } catch {
-                    window.location.pathname = targetURL
-                }
-            }
-        } else {
-            if (location.pathname.match(/(node|way|relation)\/\d+/)) {
-                if (location.pathname.match(/(node|way|relation)\/\d+\/?$/)) {
-                    getWindow().OSM.router.route(window.location.pathname + "/history")
-                } else if (location.pathname.match(/(node|way|relation)\/\d+\/history\/\d+\/?$/)) {
-                    const historyPath = window.location.pathname.match(/(\/(node|way|relation)\/\d+\/history)\/\d+/)[1]
-                    getWindow().OSM.router.route(historyPath)
-                } else {
-                    console.debug("skip H")
-                }
-            } else if (location.pathname === "/" || location.pathname.includes("/note")) {
-                // document.querySelector("#history_tab")?.click()
-                addCompactSidebarStyle()
-                document.querySelector('.nav-link[href^="/history"]')?.click()
-            } else if (location.pathname.includes("/user/")) {
-                document.querySelector('a[href^="/user/"][href$="/history"]')?.click()
-            }
-        }
-    } else if (e.key === "1") {
-        if (location.pathname.match(/\/(node|way|relation)\/\d+/)) {
-            if (location.pathname.match(/\/(node|way|relation)\/\d+/)) {
-                getWindow().OSM.router.route(location.pathname.match(/\/(node|way|relation)\/\d+/)[0] + "/history/1")
-            } else {
-                console.debug("skip 1")
-            }
-        } else if (location.pathname.startsWith("/changeset")) {
-            const user_link = document.querySelector('#sidebar_content a[href^="/user/"]')
-            if (user_link) {
-                const username = decodeURI(user_link.getAttribute("href").match(/\/user\/([^/]+)/)[1])
-                getCachedUserInfo(username).then(res => {
-                    if (res["firstChangesetID"]) {
-                        getWindow().OSM.router.route(`/changeset/${res["firstChangesetID"]}`)
-                    } else {
-                        console.warn("not found first changeset for " + username)
-                    }
-                })
-            }
-        } else if (location.pathname.match(/\/user\/[^\\]+\/history\/?/)) {
-            const user_link = document.querySelector('#sidebar_content a[href^="/user/"]')
-            if (user_link) {
-                const username = decodeURI(user_link.getAttribute("href").match(/\/user\/([^/]+)/)[1])
-                getCachedUserInfo(username).then(res => {
-                    if (res["firstChangesetID"]) {
-                        getWindow().OSM.router.route(`${location.pathname}?after=${res["firstChangesetID"] - 1}`)
-                    } else {
-                        console.warn("not found first changeset for " + username)
-                    }
-                })
-            }
-        }
-    } else if (e.key === "0") {
-        const center = getMapCenter()
-        setZoom(2)
-        fetch(`https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2`).then(res => {
-            res.json().then(r => {
-                if (r?.address?.state) {
-                    getMap().attributionControl?.setPrefix(`${r.address.state}`)
-                }
-            })
-        })
-    } else if (e.code === "KeyZ") {
-        if (e.shiftKey) {
-            shiftKeyZClicks += 1
-            document.addEventListener(
-                "mousemove",
-                () => {
-                    shiftKeyZClicks = 0
-                },
-                { once: true },
-            )
-        } else {
-            shiftKeyZClicks = 0
-        }
-        zoomToCurrentObject(e)
-    } else if (e.key === "8") {
-        if (mapPositionsHistory.length > 1) {
-            mapPositionsNextHistory.push(mapPositionsHistory[mapPositionsHistory.length - 1])
-            mapPositionsHistory.pop()
-            fitBounds(mapPositionsHistory[mapPositionsHistory.length - 1])
-        }
-    } else if (e.key === "9") {
-        if (mapPositionsNextHistory.length) {
-            mapPositionsHistory.push(mapPositionsNextHistory.pop())
-            fitBounds(mapPositionsHistory[mapPositionsHistory.length - 1])
-        }
-    } else if (e.code === "Minus" && !defaultZoomKeysBehaviour) {
-        if (document.activeElement?.id === "map") {
-            e.preventDefault()
-            e.stopImmediatePropagation()
-            e.stopPropagation()
-        }
-        if (!e.altKey) {
-            setZoom(getZoom() - 2)
-        } else {
-            setZoom(getZoom() - 1)
-        }
-        document.querySelector("#map").focus()
-    } else if (e.code === "Equal" && !defaultZoomKeysBehaviour) {
-        if (document.activeElement?.id === "map") {
-            e.preventDefault()
-            e.stopImmediatePropagation()
-            e.stopPropagation()
-        }
-        if (!e.altKey) {
-            setZoom(getZoom() + 2)
-        } else {
-            setZoom(getZoom() + 1)
-        }
-        document.querySelector("#map").focus()
-    } else if (e.code === "KeyO") {
-        if (e.shiftKey) {
-            window.open("https://overpass-api.de/achavi/?changeset=" + location.pathname.match(/\/changeset\/(\d+)/)[1])
-        } else if (!e.altKey) {
-            const usernameMatch = location.pathname.match(/^\/user\/([^/]+)\/?$/)
-            if (usernameMatch) {
-                window.open(makeOsmchaLinkForUsername(decodeURI(usernameMatch[1])))
-            } else {
-                const osmchaLink = document.querySelector("#osmcha_link")
-                if (osmchaLink) {
-                    osmchaLink?.click()
-                } else {
-                    document.querySelector(".relation-viewer-link")?.click()
-                }
-            }
-        }
-    } else if (e.code === "KeyK" && location.pathname.match(/^(\/user\/.+)?\/history\/?$/)) {
-        goToPrevChangeset(e)
-    } else if (e.code === "KeyL" && location.pathname.match(/^(\/user\/.+)?\/history\/?$/)) {
-        goToNextChangeset(e)
-    } else if (e.code === "KeyK" && location.pathname === "/search") {
-        goToPrevSearchResult(e)
-    } else if (e.code === "KeyL" && location.pathname === "/search") {
-        goToNextSearchResult(e)
-    } else if (e.code === "KeyC") {
-        if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
-            if (location.pathname.includes("/diary_comments")) {
-                document.querySelector('a[href^="/user/"][href$="changeset_comments"]')?.click()
-            } else {
-                document.querySelector('a[href^="/user/"][href$="_comments"]')?.click()
-            }
-        } else {
-            if (e.altKey) {
-                setTimeout(async () => {
-                    const center = getMapCenter()
-                    const format = (await GM.getValue("CoordinatesFormat")) ?? "Lat Lon"
-                    if (format === "Lon Lat") {
-                        navigator.clipboard.writeText(`${center.lng} ${center.lat}`)
-                    } else {
-                        navigator.clipboard.writeText(`${center.lat} ${center.lng}`)
-                    }
-                })
-            } else {
-                const activeObject = document.querySelector("#element_versions_list > div.active-object")
-                if (activeObject) {
-                    if (e.shiftKey) {
-                        window.open(activeObject.querySelector('a[href^="/changeset/"]').href, "_blank")
-                    } else {
-                        activeObject.querySelector('a[href^="/changeset/"]')?.click()
-                    }
-                } else {
-                    const changesetsLinks = document.querySelectorAll('a[href^="/changeset/"]:not([href*="?locale="])')
-                    if (e.shiftKey) {
-                        if (changesetsLinks?.[0]?.href) {
-                            window.open(changesetsLinks?.[0]?.href, "_blank")
-                        }
-                    } else {
-                        changesetsLinks?.[0]?.click()
-                    }
-                }
-            }
-        }
-    } else if (e.code === "KeyM" && !e.altKey && !e.metaKey && !e.ctrlKey) {
-        if (e.shiftKey) {
-            if (location.pathname.includes("/user/")) {
-                const username = location.pathname.match(/^\/user\/([^/]+)/)[1]
-                window.open("/messages/new/" + decodeURI(username))
-            } else {
-                const username = document
-                    .querySelector("#sidebar_content a[href^='/user/']")
-                    .getAttribute("href")
-                    .match(/^\/user\/([^/]+)/)[1]
-                window.open("/messages/new/" + decodeURI(username))
-            }
-        } else if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
-            document.querySelector('a[href^="/messages/new/"]')?.click()
-        }
-    } else if (e.code === "KeyU" && !e.altKey && !e.metaKey && !e.ctrlKey) {
-        if (e.shiftKey) {
-            window.location.pathname = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href")
-        } else {
-            const user_link = document.querySelector('#sidebar_content a[href^="/user/"]')
-            if (user_link) {
-                if (user_link.checkVisibility()) {
-                    user_link?.click()
-                } else {
-                    document.querySelector('#sidebar_content li:not([hidden-data-changeset]) a[href^="/user/"]')?.click()
-                }
-                // todo fixme on changesets page with filter
-            } else {
-                document.querySelector('#content a[href^="/user/"]:not([href$=rss]):not([href*="/diary"]):not([href*="/traces"])')?.click()
-            }
-        }
-    } else if ((e.code === "Backquote" || e.code === "Quote" || e.key === "`" || e.key === "~") && !e.altKey && !e.metaKey && !e.ctrlKey) {
-        if (!getWindow().mapIntercepted) return
-        e.preventDefault()
-        for (let member in layers) {
-            layers[member].forEach(i => {
-                if (layersHidden) {
-                    i.getElement().style.visibility = ""
-                } else {
-                    i.getElement().style.visibility = "hidden"
-                }
-            })
-        }
-        if (getWindow()?.jsonLayer) {
-            if (layersHidden) {
-                injectJSIntoPage(`jsonLayer.eachLayer(i => i.getElement().style.visibility = "")`)
-            } else {
-                injectJSIntoPage(`jsonLayer.eachLayer(i => i.getElement().style.visibility = "hidden")`)
-            }
-        } else if (jsonLayer) {
-            if (layersHidden) {
-                jsonLayer.eachLayer(intoPageWithFun(i => (getMap()._layers[i._leaflet_id].getElement().style.visibility = "")))
-            } else {
-                jsonLayer.eachLayer(intoPageWithFun(i => (getMap()._layers[i._leaflet_id].getElement().style.visibility = "hidden")))
-            }
-        }
-        layersHidden = !layersHidden
-    } else if (e.code === "KeyF" && !e.altKey && !e.metaKey && !e.ctrlKey) {
-        if (location.pathname.match(/^\/note\//) || location.pathname === "/") {
-            document.querySelector(".control-layers a").click()
-            if (document.querySelector(".layers-ui").style.display !== "none") {
-                Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({ block: "center" })
-                e.preventDefault()
-                document.querySelector("#filter-notes-by-string").focus()
-            }
-        } else {
-            if (!document.querySelector("#changesets-filter-btn") && !document.querySelector("#mass-action-btn")) {
-                document.querySelector(".control-layers a").click()
-                Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({ block: "center" })
-            } else {
-                document.querySelector("#changesets-filter-btn")?.click()
-                document.querySelector("#mass-action-btn")?.click()
-            }
-        }
-    } else if (isDebug() && e.code === "KeyP" && e.altKey) {
-        if (location.pathname.startsWith("/changeset")) {
-            const params = new URLSearchParams(location.search)
-            const changesetIDs = params.get("changesets")?.split(",") ?? [parseInt(location.pathname.match(/changeset\/(\d+)/)[1])]
-            const objects = []
-            if (changesetIDs) {
-                setTimeout(async () => {
-                    for (const i of changesetIDs) {
-                        ;(await getChangeset(i)).data.querySelectorAll("node,way,relation").forEach(obj => {
-                            objects.push(obj)
-                        })
-                    }
-                    objects.sort((a, b) => {
-                        const A = new Date(a.getAttribute("timestamp"))
-                        const B = new Date(b.getAttribute("timestamp"))
-                        if (A < B) return -1
-                        if (A > B) return 1
-                        return 0
-                    })
-                    const nodesList = []
-                    for (let object of objects) {
-                        if (object.nodeName === "node" && object.getAttribute("visible") === "true") {
-                            // debugger
-                            // showNodeMarker(object.getAttribute("lat"), object.getAttribute("lon"), "rgb(0,34,255)", null, 'customObjects')
-                            // await sleep(300)
-                            nodesList.push([object.getAttribute("lat"), object.getAttribute("lon")])
-                        } else if (object.nodeName === "way") {
-                            // TODO
-                        }
-                    }
-                    showNodeMarker(nodesList[0][0], nodesList[0][1], "#ff0000", null, "customObjects", 8)
-                    showNodeMarker(nodesList.at(-1)[0], nodesList.at(-1)[1], "#00ff04", null, "customObjects", 8)
-                    showActiveWay(nodesList, c("#0022ff"), false, null, true, 2)
-                })
-            }
-        }
-    } else if (e.altKey && e.code === "Backquote") {
-        darkModeForMap = !darkModeForMap
-        if (darkModeForMap) {
-            injectDarkMapStyle()
-        } else {
-            darkMapStyleElement?.remove()
-        }
-    } else if (e.code === "KeyB") {
-        if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
-            document.querySelector('a[href^="/user/"][href$="/blocks"]')?.click()
-        }
-        //setupBuildingTools()
-    } else if (e.code === "KeyX") {
-        document.querySelector("#edit_tab ul").tabIndex = -1
-        if (document.querySelector("header").classList.contains("closed")) {
-            document.querySelector("#menu-icon").click()
-            document.querySelector("#edit_tab > button").click()
-        } else if (document.querySelector("#edit_tab > .dropdown-menu").classList.contains("show")) {
-            document.querySelector("#change-list-btn.closed")?.click()
-        } else {
-            document.querySelector("#edit_tab button").click()
-        }
-    } else if (e.code === "KeyV") {
-        if (e.shiftKey) {
-            if (!document.querySelector("#map canvas")) {
-                Array.from(document.querySelectorAll(".layers-ui .base-layers label")).at(-2)?.click()
-            }
-            void askCustomStyleUrl()
-        } else {
-            nextVectorLayer()
-        }
-    } else {
-        // console.log(e.key, e.code)
     }
     if (location.pathname.startsWith("/changeset") && !location.pathname.includes("/changeset_comments")) {
         if (e.code === "Comma") {
