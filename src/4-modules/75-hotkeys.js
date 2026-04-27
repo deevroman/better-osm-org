@@ -1611,6 +1611,29 @@ function ensureHotkeyCommandsPopupStyles() {
                 opacity: 0.75;
             }
 
+            .better-osm-hotkey-commands-search {
+                display: block;
+                width: min(420px, 100%);
+                min-width: 320px;
+                max-width: 100%;
+                margin-bottom: 12px;
+                border: 1px solid rgba(127, 127, 127, 0.35);
+                border-radius: 6px;
+                background: var(--bs-body-bg);
+                color: inherit;
+                padding: 8px 10px;
+                box-sizing: border-box;
+            }
+
+            .better-osm-hotkey-commands-search::placeholder {
+                opacity: 0.7;
+            }
+
+            .better-osm-hotkey-commands-search:focus {
+                outline: 2px solid rgba(13, 110, 253, 0.35);
+                outline-offset: 1px;
+            }
+
             .better-osm-hotkey-commands-close {
                 all: unset;
                 cursor: pointer;
@@ -1693,15 +1716,6 @@ function showHotkeyCommandsPopup() {
 
     const currentContexts = getCurrentHotkeyContexts()
     const availableCommands = getAvailableHotkeyCommandsForCurrentPage()
-    const groupedCommands = availableCommands.reduce((groups, command) => {
-        const primaryContext =
-            hotkeyHelpContextsOrder.find(context => command.contexts.includes(context) && currentContexts.includes(context)) ?? "All pages"
-        if (!groups[primaryContext]) {
-            groups[primaryContext] = []
-        }
-        groups[primaryContext].push(command)
-        return groups
-    }, {})
 
     const overlay = document.createElement("div")
     overlay.id = hotkeyCommandsPopupId
@@ -1741,14 +1755,44 @@ function showHotkeyCommandsPopup() {
     header.append(headerText, closeBtn)
     panel.append(header)
 
-    if (!availableCommands.length) {
-        const emptyState = document.createElement("p")
-        emptyState.classList.add("better-osm-hotkey-commands-empty")
-        emptyState.textContent = "No cataloged commands match this page."
-        panel.append(emptyState)
-    } else {
+    const searchInput = document.createElement("input")
+    searchInput.classList.add("better-osm-hotkey-commands-search")
+    searchInput.type = "search"
+    searchInput.placeholder = "Search by hotkey name"
+    searchInput.setAttribute("aria-label", "Search hotkeys by name")
+    panel.append(searchInput)
+
+    const content = document.createElement("div")
+    panel.append(content)
+
+    function renderCommandsList(query = "") {
+        content.replaceChildren()
+
+        const normalizedQuery = query.trim().toLowerCase()
+        const filteredCommands = normalizedQuery
+            ? availableCommands.filter(command => command.title.toLowerCase().includes(normalizedQuery))
+            : availableCommands
+
+        if (!filteredCommands.length) {
+            const emptyState = document.createElement("p")
+            emptyState.classList.add("better-osm-hotkey-commands-empty")
+            emptyState.textContent = normalizedQuery ? "No hotkeys match this search." : "No cataloged commands match this page."
+            content.append(emptyState)
+            return
+        }
+
+        const filteredGroupedCommands = filteredCommands.reduce((groups, command) => {
+            const primaryContext =
+                hotkeyHelpContextsOrder.find(context => command.contexts.includes(context) && currentContexts.includes(context)) ?? "All pages"
+            if (!groups[primaryContext]) {
+                groups[primaryContext] = []
+            }
+            groups[primaryContext].push(command)
+            return groups
+        }, {})
+
         hotkeyHelpContextsOrder
-            .filter(context => groupedCommands[context]?.length)
+            .filter(context => filteredGroupedCommands[context]?.length)
             .forEach(context => {
                 const group = document.createElement("section")
                 group.classList.add("better-osm-hotkey-commands-group")
@@ -1761,7 +1805,7 @@ function showHotkeyCommandsPopup() {
                 const list = document.createElement("div")
                 list.classList.add("better-osm-hotkey-commands-list")
 
-                groupedCommands[context].forEach(command => {
+                filteredGroupedCommands[context].forEach(command => {
                     const button = document.createElement("button")
                     button.classList.add("better-osm-hotkey-command-btn")
                     button.type = "button"
@@ -1785,12 +1829,16 @@ function showHotkeyCommandsPopup() {
                 })
 
                 group.append(list)
-                panel.append(group)
+                content.append(group)
             })
     }
 
+    searchInput.addEventListener("input", () => renderCommandsList(searchInput.value))
+    renderCommandsList()
+
     overlay.append(panel)
     document.body.append(overlay)
+    searchInput.focus()
 }
 
 function hotkeyCommandsPopupClickHandler(e) {
