@@ -134,7 +134,7 @@ const hotkeyActions = {
         run: actionOpenCurrentPageUserProfile,
     },
     openOwnUserProfile: {
-        title: "Open own user profile",
+        title: "Open your profile",
         defaultBindings: ["Shift+KeyU"],
         contexts: ["Main pages", "User pages"],
         run: actionOpenOwnUserProfile,
@@ -175,14 +175,14 @@ const hotkeyActions = {
     openPrimaryChangeset: {
         title: "Open current changeset",
         defaultBindings: ["KeyC"],
-        contexts: ["Main pages"],
+        contexts: ["Object pages"],
         when: () => !isUserPageWithoutHistory() && !isChangesetPage(),
         run: actionOpenPrimaryChangeset,
     },
     openPrimaryChangesetInNewTab: {
         title: "Open current changeset in new tab",
         defaultBindings: ["Shift+KeyC"],
-        contexts: ["Main pages"],
+        contexts: ["Object pages"],
         when: () => !isUserPageWithoutHistory() && !isChangesetPage(),
         run: actionOpenPrimaryChangesetInNewTab,
     },
