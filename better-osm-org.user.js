@@ -27625,16 +27625,6 @@ const hotkeyActions = {
     },
 }
 
-function runHotkeyAction(actionId, ...args) {
-    const action = hotkeyActions[actionId]
-    if (!action) {
-        console.warn(`Unknown hotkey action: ${actionId}`)
-        return false
-    }
-    action.run(...args)
-    return true
-}
-
 function getHotkeyBaseCode(e) {
     if (/^[0-9]$/.test(e.key)) {
         return `Digit${e.key}`
@@ -27685,7 +27675,12 @@ function runHotkeyActionForEvent(e) {
         e.stopPropagation()
         e.stopImmediatePropagation()
     }
-    return runHotkeyAction(actionId, e)
+    const action = hotkeyActions[actionId]
+    if (!action) {
+        console.warn(`Unknown hotkey action: ${actionId}`)
+        return
+    }
+    action.run(e)
 }
 
 function hotkeyKeydownHandler(e) {
