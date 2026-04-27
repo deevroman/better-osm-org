@@ -26590,7 +26590,7 @@ function getAvailableHotkeyCommandsForCurrentPage() {
 }
 
 async function getRecentHotkeyActionIds() {
-    const stored = await GM.getValue(recentHotkeyActionsStorageKey, ["openOverpassSearch"])
+    const stored = await GM.getValue(recentHotkeyActionsStorageKey, ["openOverpassSearch", "openLocalFilePicker"])
     return stored.filter(actionId => typeof actionId === "string")
 }
 
