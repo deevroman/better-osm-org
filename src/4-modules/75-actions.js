@@ -1389,7 +1389,7 @@ function getAvailableHotkeyCommandsForCurrentPage() {
 }
 
 async function getRecentHotkeyActionIds() {
-    const stored = await GM.getValue(recentHotkeyActionsStorageKey, ["openOverpassSearch", "openLocalFilePicker"])
+    const stored = await GM.getValue(recentHotkeyActionsStorageKey, ["openOverpassSearch", "openLocalFilePicker", "openSettings"])
     return stored.filter(actionId => typeof actionId === "string")
 }
 
@@ -2403,6 +2403,10 @@ function actionOpenLocalFilePicker() {
         void handleDroppedFiles(Array.from(input.files ?? []))
     })
     input.click()
+}
+
+function actionOpenSettings() {
+    GM_config.open()
 }
 
 //</editor-fold>

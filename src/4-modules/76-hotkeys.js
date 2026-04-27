@@ -288,6 +288,12 @@ const hotkeyActions = {
         contexts: ["Debug"],
         run: actionShowGpsTracksOverlay,
     },
+    openSettings: {
+        title: "Settings",
+        defaultBindings: [],
+        contexts: ["Debug"],
+        run: actionOpenSettings,
+    },
     setCustomTileUrl: {
         title: "Set custom tile URL",
         defaultBindings: ["Shift+KeyS"],

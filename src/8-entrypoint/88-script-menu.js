@@ -4,7 +4,7 @@ function makeCommandsMenu() {
     try {
         GM_registerMenuCommand("Settings", function () {
             if (!inFrame()) {
-                GM_config.open()
+                actionOpenSettings()
             }
         })
         if (isMobile || isDebug()) {

@@ -26608,7 +26608,7 @@ function getAvailableHotkeyCommandsForCurrentPage() {
 }
 
 async function getRecentHotkeyActionIds() {
-    const stored = await GM.getValue(recentHotkeyActionsStorageKey, ["openOverpassSearch", "openLocalFilePicker"])
+    const stored = await GM.getValue(recentHotkeyActionsStorageKey, ["openOverpassSearch", "openLocalFilePicker", "openSettings"])
     return stored.filter(actionId => typeof actionId === "string")
 }
 
@@ -27624,6 +27624,10 @@ function actionOpenLocalFilePicker() {
     input.click()
 }
 
+function actionOpenSettings() {
+    GM_config.open()
+}
+
 //</editor-fold>
 
 //<editor-fold desc="hotkeys">
@@ -27915,6 +27919,12 @@ const hotkeyActions = {
         defaultBindings: ["Shift+KeyG", "Alt+KeyG"],
         contexts: ["Debug"],
         run: actionShowGpsTracksOverlay,
+    },
+    openSettings: {
+        title: "Settings",
+        defaultBindings: [],
+        contexts: ["Debug"],
+        run: actionOpenSettings,
     },
     setCustomTileUrl: {
         title: "Set custom tile URL",
@@ -28953,7 +28963,7 @@ function makeCommandsMenu() {
     try {
         GM_registerMenuCommand("Settings", function () {
             if (!inFrame()) {
-                GM_config.open()
+                actionOpenSettings()
             }
         })
         if (isMobile || isDebug()) {
