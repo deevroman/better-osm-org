@@ -26747,6 +26747,7 @@ function ensureHotkeyCommandsPopupStyles() {
             .better-osm-hotkey-command-title {
                 font-size: 0.925rem;
                 line-height: 1.3;
+                white-space: nowrap;
             }
 
             .better-osm-hotkey-commands-empty {
@@ -26850,6 +26851,36 @@ async function showHotkeyCommandsPopup() {
         content.replaceChildren()
         activeCommandIndex = -1
 
+        function appendCommandButton(list, command) {
+            const button = document.createElement("button")
+            button.classList.add("better-osm-hotkey-command-btn")
+            button.type = "button"
+            button.dataset.actionId = command.actionId
+            button.dataset.binding = command.binding
+
+            const binding = document.createElement("span")
+            binding.classList.add("better-osm-hotkey-command-binding")
+            binding.textContent = formatHotkeyBinding(command.binding)
+
+            const label = document.createElement("span")
+            label.classList.add("better-osm-hotkey-command-title")
+            label.textContent = command.title
+
+            if (isMobile) {
+                button.append(label)
+            } else {
+                button.append(label, binding)
+            }
+            button.addEventListener("click", () => {
+                closeHotkeyCommandsPopup()
+                setTimeout(() => {
+                    void rememberRecentHotkeyAction(command.actionId)
+                    runHotkeyAction(command.actionId, command.event)
+                }, 0)
+            })
+            list.append(button)
+        }
+
         const normalizedQuery = query.trim().toLowerCase()
         const filteredCommands = normalizedQuery
             ? availableCommands.filter(command => command.title.toLowerCase().includes(normalizedQuery))
@@ -26879,33 +26910,7 @@ async function showHotkeyCommandsPopup() {
             list.classList.add("better-osm-hotkey-commands-list")
 
             filteredRecentCommands.forEach(command => {
-                const button = document.createElement("button")
-                button.classList.add("better-osm-hotkey-command-btn")
-                button.type = "button"
-                button.dataset.actionId = command.actionId
-                button.dataset.binding = command.binding
-
-                const binding = document.createElement("span")
-                binding.classList.add("better-osm-hotkey-command-binding")
-                binding.textContent = formatHotkeyBinding(command.binding)
-
-                const label = document.createElement("span")
-                label.classList.add("better-osm-hotkey-command-title")
-                label.textContent = command.title
-
-                if (isMobile) {
-                    button.append(label)
-                } else {
-                    button.append(label, binding)
-                }
-                button.addEventListener("click", () => {
-                    closeHotkeyCommandsPopup()
-                    setTimeout(() => {
-                        void rememberRecentHotkeyAction(command.actionId)
-                        runHotkeyAction(command.actionId, command.event)
-                    }, 0)
-                })
-                list.append(button)
+                appendCommandButton(list, command)
             })
 
             group.append(list)
@@ -26938,33 +26943,7 @@ async function showHotkeyCommandsPopup() {
                 list.classList.add("better-osm-hotkey-commands-list")
 
                 filteredGroupedCommands[context].forEach(command => {
-                    const button = document.createElement("button")
-                    button.classList.add("better-osm-hotkey-command-btn")
-                    button.type = "button"
-                    button.dataset.actionId = command.actionId
-                    button.dataset.binding = command.binding
-
-                    const binding = document.createElement("span")
-                    binding.classList.add("better-osm-hotkey-command-binding")
-                    binding.textContent = formatHotkeyBinding(command.binding)
-
-                    const label = document.createElement("span")
-                    label.classList.add("better-osm-hotkey-command-title")
-                    label.textContent = command.title
-
-                    if (isMobile) {
-                        button.append(label)
-                    } else {
-                        button.append(label, binding)
-                    }
-                    button.addEventListener("click", () => {
-                        closeHotkeyCommandsPopup()
-                        setTimeout(() => {
-                            void rememberRecentHotkeyAction(command.actionId)
-                            runHotkeyAction(command.actionId, command.event)
-                        }, 0)
-                    })
-                    list.append(button)
+                    appendCommandButton(list, command)
                 })
 
                 group.append(list)
@@ -27746,7 +27725,7 @@ const hotkeyActions = {
     openMessageComposerForCurrentUser: {
         title: "Open direct message composer",
         defaultBindings: ["Shift+KeyM"],
-        contexts: ["Main pages"],
+        contexts: ["Changeset pages"],
         run: actionOpenMessageComposerForCurrentUser,
     },
     openCurrentPageUserProfile: {
@@ -27937,6 +27916,7 @@ const hotkeyActions = {
         contexts: ["Main pages"],
         when: () => !/^\/user\/([^/]+)\/?$/.test(location.pathname),
         run: actionOpenEditMenuPrimary,
+        hideOnMobile: true,
     },
     openUserHistoryFromProfile: {
         title: "Open current user's history",
