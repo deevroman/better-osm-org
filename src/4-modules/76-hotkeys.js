@@ -613,14 +613,14 @@ function addButtonIntoRightButtonsList(linksMenuClickHandler) {
             if (document.querySelector("#open-external-panel-btn")) {
                 break
             }
-            const linksBtn2 = document.querySelector(".control-query").cloneNode(true)
-            linksBtn2.id = "open-external-panel-btn"
-            linksBtn2.querySelector("a").innerHTML = toolsIconSvg
-            linksBtn2.querySelector("svg").setAttribute("stroke-width", "1.75")
-            linksBtn2.querySelector("svg").setAttribute("width", 20)
-            linksBtn2.querySelector("svg").setAttribute("height", 20)
-            linksBtn2.addEventListener("click", linksMenuClickHandler)
-            document.querySelector(".control-query").after(linksBtn2)
+            const actionsBtn = document.querySelector(".control-query").cloneNode(true)
+            actionsBtn.id = "open-external-panel-btn"
+            actionsBtn.querySelector("a").innerHTML = toolsIconSvg
+            actionsBtn.querySelector("svg").setAttribute("stroke-width", "1.75")
+            actionsBtn.querySelector("svg").setAttribute("width", 20)
+            actionsBtn.querySelector("svg").setAttribute("height", 20)
+            actionsBtn.addEventListener("click", linksMenuClickHandler)
+            document.querySelector(".control-query").after(actionsBtn)
         }
     })
 }
