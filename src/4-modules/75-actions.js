@@ -1314,6 +1314,10 @@ function getHotkeyKeyByBaseCode(baseCode, shiftKey = false) {
 }
 
 function formatHotkeyBinding(binding) {
+    if (!binding) {
+        return ""
+    }
+
     const parts = binding.split("+")
     const baseCode = parts[parts.length - 1]
     const modifiers = parts.slice(0, -1)
@@ -1356,8 +1360,10 @@ function getAvailableHotkeyCommandsForCurrentPage() {
                 return []
             }
 
-            return action.defaultBindings.flatMap(binding => {
-                const event = createSyntheticHotkeyEvent(binding)
+            const bindings = action.defaultBindings.length ? action.defaultBindings : [""]
+
+            return bindings.flatMap(binding => {
+                const event = binding ? createSyntheticHotkeyEvent(binding) : undefined
                 if (action.when && !action.when(event)) {
                     return []
                 }
@@ -1375,7 +1381,11 @@ function getAvailableHotkeyCommandsForCurrentPage() {
         .sort((a, b) => {
             const aContextIndex = hotkeyHelpContextsOrder.findIndex(context => a.contexts.includes(context))
             const bContextIndex = hotkeyHelpContextsOrder.findIndex(context => b.contexts.includes(context))
-            return aContextIndex - bContextIndex || a.title.localeCompare(b.title) || a.binding.localeCompare(b.binding)
+            return (
+                aContextIndex - bContextIndex ||
+                a.title.localeCompare(b.title) ||
+                (a.binding || "").localeCompare(b.binding || "")
+            )
         })
 }
 

@@ -244,6 +244,18 @@ const hotkeyActions = {
         contexts: ["Debug"],
         run: actionOpenSpyGlass,
     },
+    openScriptUpdateUrl: {
+        title: "Check script updates",
+        defaultBindings: [],
+        contexts: ["Debug"],
+        run: actionOpenScriptUpdateUrl,
+    },
+    openDevScriptUpdateUrl: {
+        title: "Check dev script updates",
+        defaultBindings: [],
+        contexts: ["Debug"],
+        run: actionOpenDevScriptUpdateUrl,
+    },
     showGpsTracksOverlay: {
         title: "Show GPS tracks overlay",
         defaultBindings: ["Shift+KeyG", "Alt+KeyG"],
