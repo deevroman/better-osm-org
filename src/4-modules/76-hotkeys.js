@@ -124,7 +124,7 @@ const hotkeyActions = {
     openMessageComposerForCurrentUser: {
         title: "Open direct message composer",
         defaultBindings: ["Shift+KeyM"],
-        contexts: ["Main pages"],
+        contexts: ["Changeset pages"],
         run: actionOpenMessageComposerForCurrentUser,
     },
     openCurrentPageUserProfile: {
@@ -315,6 +315,7 @@ const hotkeyActions = {
         contexts: ["Main pages"],
         when: () => !/^\/user\/([^/]+)\/?$/.test(location.pathname),
         run: actionOpenEditMenuPrimary,
+        hideOnMobile: true,
     },
     openUserHistoryFromProfile: {
         title: "Open current user's history",
