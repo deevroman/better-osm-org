@@ -730,23 +730,6 @@ async function _setupNewEditorsLinks(mutationsList) {
             }
 
             linksBtn.addEventListener("click", linksMenuClickHandler)
-
-            if (isDebug() && !document.querySelector("#open-external-panel-btn")) {
-                setTimeout(async () => {
-                    for (let i = 0; i < 40; i++) {
-                        await sleep(30)
-                        if (document.querySelector("#open-external-panel-btn")) {
-                            break
-                        }
-                        const linksBtn2 = document.querySelector(".control-query").cloneNode(true)
-                        linksBtn2.id = "open-external-panel-btn"
-                        linksBtn2.querySelector("a").innerHTML = svg.outerHTML
-                        linksBtn2.querySelector("svg").setAttribute("stroke-width", "1.75")
-                        linksBtn2.addEventListener("click", linksMenuClickHandler)
-                        document.querySelector(".control-query").after(linksBtn2)
-                    }
-                })
-            }
         })
         document.querySelectorAll("#menu-icon:not(.listen-click)").forEach(i => {
             i.classList.add("listen-click")
