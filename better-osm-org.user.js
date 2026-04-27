@@ -26446,6 +26446,8 @@ const hotkeyHelpContextsOrder = [
 
 const hotkeyCommandsPopupId = "better-osm-hotkey-commands-popup"
 const hotkeyCommandsPopupStyleId = "better-osm-hotkey-commands-popup-styles"
+const recentHotkeyActionsStorageKey = "recentHotkeyActions"
+const recentHotkeyActionsLimit = 3
 
 function getCurrentHotkeyContexts() {
     const contexts = new Set(["All pages"])
@@ -26483,7 +26485,7 @@ function getCurrentHotkeyContexts() {
 }
 
 function actionShowHotkeysHelp() {
-    showHotkeyCommandsPopup()
+    void showHotkeyCommandsPopup()
 }
 
 function getHotkeyKeyByBaseCode(baseCode, shiftKey = false) {
@@ -26507,6 +26509,20 @@ function getHotkeyKeyByBaseCode(baseCode, shiftKey = false) {
             Period: shiftKey ? ">" : ".",
         }[baseCode] ?? baseCode
     )
+}
+
+function formatHotkeyBinding(binding) {
+    const parts = binding.split("+")
+    const baseCode = parts[parts.length - 1]
+    const modifiers = parts.slice(0, -1)
+
+    const displayBaseCode = /^Key[A-Z]$/.test(baseCode)
+        ? baseCode.slice(3)
+        : /^Digit\d$/.test(baseCode)
+          ? baseCode.slice(5)
+          : getHotkeyKeyByBaseCode(baseCode)
+
+    return [...modifiers, displayBaseCode].join(" + ")
 }
 
 function createSyntheticHotkeyEvent(binding) {
@@ -26561,6 +26577,17 @@ function getAvailableHotkeyCommandsForCurrentPage() {
         })
 }
 
+async function getRecentHotkeyActionIds() {
+    const stored = await GM.getValue(recentHotkeyActionsStorageKey, ["openOverpassSearch"])
+    return stored.filter(actionId => typeof actionId === "string")
+}
+
+async function rememberRecentHotkeyAction(actionId) {
+    const current = await getRecentHotkeyActionIds()
+    const next = [actionId, ...current.filter(currentActionId => currentActionId !== actionId)].slice(0, recentHotkeyActionsLimit)
+    await GM.setValue(recentHotkeyActionsStorageKey, next)
+}
+
 function ensureHotkeyCommandsPopupStyles() {
     if (
         document.querySelector(`#${hotkeyCommandsPopupStyleId}`) ||
@@ -26583,7 +26610,9 @@ function ensureHotkeyCommandsPopupStyles() {
                 width: max-content;
                 max-width: 100%;
                 height: 100%;
-                overflow-y: auto;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
                 background: var(--bs-body-bg);
                 color: var(--bs-body-color);
                 border: 1px solid rgba(204, 204, 204, 0.5);
@@ -26614,9 +26643,7 @@ function ensureHotkeyCommandsPopupStyles() {
 
             .better-osm-hotkey-commands-search {
                 display: block;
-                width: min(420px, 100%);
-                min-width: 320px;
-                max-width: 100%;
+                width: 100%;
                 margin-bottom: 12px;
                 border: 1px solid rgba(127, 127, 127, 0.35);
                 border-radius: 6px;
@@ -26644,6 +26671,12 @@ function ensureHotkeyCommandsPopupStyles() {
 
             .better-osm-hotkey-commands-group {
                 margin-top: 12px;
+            }
+
+            .better-osm-hotkey-commands-content {
+                flex: 1 1 auto;
+                overflow-y: auto;
+                min-height: 0;
             }
 
             .better-osm-hotkey-commands-group-title {
@@ -26678,13 +26711,17 @@ function ensureHotkeyCommandsPopupStyles() {
                     background: rgba(127, 127, 127, 0.14);
                     outline: none;
                 }
+
+                &.is-active {
+                    background: rgba(13, 110, 253, 0.16);
+                }
             }
 
             .better-osm-hotkey-command-binding {
                 font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
                 font-size: 0.875rem;
                 white-space: nowrap;
-                opacity: 0.85;
+                opacity: 0.65;
             }
 
             .better-osm-hotkey-command-title {
@@ -26706,7 +26743,7 @@ function closeHotkeyCommandsPopup() {
     document.querySelector(`#${hotkeyCommandsPopupId}`)?.remove()
 }
 
-function showHotkeyCommandsPopup() {
+async function showHotkeyCommandsPopup() {
     const existingPopup = document.querySelector(`#${hotkeyCommandsPopupId}`)
     if (existingPopup) {
         existingPopup.remove()
@@ -26717,6 +26754,8 @@ function showHotkeyCommandsPopup() {
 
     const currentContexts = getCurrentHotkeyContexts()
     const availableCommands = getAvailableHotkeyCommandsForCurrentPage()
+    const recentActionIds = await getRecentHotkeyActionIds()
+    const recentCommands = recentActionIds.map(actionId => availableCommands.find(command => command.actionId === actionId)).filter(Boolean)
 
     const overlay = document.createElement("div")
     overlay.id = hotkeyCommandsPopupId
@@ -26764,15 +26803,40 @@ function showHotkeyCommandsPopup() {
     panel.append(searchInput)
 
     const content = document.createElement("div")
+    content.classList.add("better-osm-hotkey-commands-content")
     panel.append(content)
+    let activeCommandIndex = -1
+
+    function getCommandButtons() {
+        return Array.from(content.querySelectorAll(".better-osm-hotkey-command-btn"))
+    }
+
+    function setActiveCommandButton(nextIndex) {
+        const buttons = getCommandButtons()
+        buttons.forEach(button => button.classList.remove("is-active"))
+
+        if (!buttons.length) {
+            activeCommandIndex = -1
+            return
+        }
+
+        activeCommandIndex = ((nextIndex % buttons.length) + buttons.length) % buttons.length
+        const activeButton = buttons[activeCommandIndex]
+        activeButton.classList.add("is-active")
+        activeButton.scrollIntoView({ block: "nearest" })
+    }
 
     function renderCommandsList(query = "") {
         content.replaceChildren()
+        activeCommandIndex = -1
 
         const normalizedQuery = query.trim().toLowerCase()
         const filteredCommands = normalizedQuery
             ? availableCommands.filter(command => command.title.toLowerCase().includes(normalizedQuery))
             : availableCommands
+        const filteredRecentCommands = recentCommands.filter(command => filteredCommands.includes(command))
+        const recentCommandKeys = new Set(filteredRecentCommands.map(command => `${command.actionId}::${command.binding}`))
+        const remainingCommands = filteredCommands.filter(command => !recentCommandKeys.has(`${command.actionId}::${command.binding}`))
 
         if (!filteredCommands.length) {
             const emptyState = document.createElement("p")
@@ -26782,9 +26846,49 @@ function showHotkeyCommandsPopup() {
             return
         }
 
-        const filteredGroupedCommands = filteredCommands.reduce((groups, command) => {
+        if (filteredRecentCommands.length) {
+            const group = document.createElement("section")
+            group.classList.add("better-osm-hotkey-commands-group")
+
+            const heading = document.createElement("h4")
+            heading.classList.add("better-osm-hotkey-commands-group-title")
+            heading.textContent = "Recent"
+            group.append(heading)
+
+            const list = document.createElement("div")
+            list.classList.add("better-osm-hotkey-commands-list")
+
+            filteredRecentCommands.forEach(command => {
+                const button = document.createElement("button")
+                button.classList.add("better-osm-hotkey-command-btn")
+                button.type = "button"
+                button.dataset.actionId = command.actionId
+                button.dataset.binding = command.binding
+
+                const binding = document.createElement("span")
+                binding.classList.add("better-osm-hotkey-command-binding")
+                binding.textContent = formatHotkeyBinding(command.binding)
+
+                const label = document.createElement("span")
+                label.classList.add("better-osm-hotkey-command-title")
+                label.textContent = command.title
+
+                button.append(binding, label)
+                button.addEventListener("click", () => {
+                    closeHotkeyCommandsPopup()
+                    setTimeout(() => runHotkeyAction(command.actionId, command.event), 0)
+                })
+                list.append(button)
+            })
+
+            group.append(list)
+            content.append(group)
+        }
+
+        const filteredGroupedCommands = remainingCommands.reduce((groups, command) => {
             const primaryContext =
-                hotkeyHelpContextsOrder.find(context => command.contexts.includes(context) && currentContexts.includes(context)) ?? "All pages"
+                hotkeyHelpContextsOrder.find(context => command.contexts.includes(context) && currentContexts.includes(context)) ??
+                "All pages"
             if (!groups[primaryContext]) {
                 groups[primaryContext] = []
             }
@@ -26815,7 +26919,7 @@ function showHotkeyCommandsPopup() {
 
                     const binding = document.createElement("span")
                     binding.classList.add("better-osm-hotkey-command-binding")
-                    binding.textContent = command.binding
+                    binding.textContent = formatHotkeyBinding(command.binding)
 
                     const label = document.createElement("span")
                     label.classList.add("better-osm-hotkey-command-title")
@@ -26832,9 +26936,43 @@ function showHotkeyCommandsPopup() {
                 group.append(list)
                 content.append(group)
             })
+
+        setActiveCommandButton(0)
     }
 
     searchInput.addEventListener("input", () => renderCommandsList(searchInput.value))
+    searchInput.addEventListener("keydown", e => {
+        if (e.key === "Escape") {
+            e.preventDefault()
+            e.stopPropagation()
+            closeHotkeyCommandsPopup()
+            return
+        }
+        if (e.key === "ArrowDown") {
+            e.preventDefault()
+            setActiveCommandButton(activeCommandIndex + 1)
+            return
+        }
+        if (e.key === "ArrowUp") {
+            e.preventDefault()
+            setActiveCommandButton(activeCommandIndex - 1)
+            return
+        }
+        if (e.key === "Enter") {
+            const activeButton = getCommandButtons()[activeCommandIndex]
+            if (activeButton) {
+                e.preventDefault()
+                activeButton.click()
+            }
+        }
+    })
+    panel.addEventListener("keydown", e => {
+        if (e.key === "Escape") {
+            e.preventDefault()
+            e.stopPropagation()
+            closeHotkeyCommandsPopup()
+        }
+    })
     renderCommandsList()
 
     overlay.append(panel)
@@ -26845,7 +26983,7 @@ function showHotkeyCommandsPopup() {
 function hotkeyCommandsPopupClickHandler(e) {
     e.preventDefault()
     e.stopPropagation()
-    showHotkeyCommandsPopup()
+    void showHotkeyCommandsPopup()
 }
 
 function actionToggleMapLayersVisibility(e) {
@@ -27460,6 +27598,24 @@ const hotkeyActions = {
         preventDefault: true,
         run: actionShowHotkeysHelp,
     },
+    openOverpassSearch: {
+        title: "Open Overpass search",
+        defaultBindings: ["Shift+Slash"],
+        contexts: ["Main pages"],
+        run: actionOpenOverpassSearch,
+    },
+    toggleMapLayersVisibility: {
+        title: "Toggle map layers visibility",
+        defaultBindings: ["Backquote"],
+        contexts: ["Main pages"],
+        run: actionToggleMapLayersVisibility,
+    },
+    toggleDarkMapStyle: {
+        title: "Toggle dark map style",
+        defaultBindings: ["Alt+Backquote"],
+        contexts: ["Main pages"],
+        run: actionToggleDarkMapStyle,
+    },
     openYandexPanoramas: {
         title: "Open Yandex panoramas",
         defaultBindings: ["KeyY"],
@@ -27501,24 +27657,6 @@ const hotkeyActions = {
         defaultBindings: ["KeyT"],
         contexts: ["Main pages"],
         run: actionHandleKeyT,
-    },
-    openOverpassSearch: {
-        title: "Open Overpass search",
-        defaultBindings: ["Shift+Slash"],
-        contexts: ["Main pages"],
-        run: actionOpenOverpassSearch,
-    },
-    toggleMapLayersVisibility: {
-        title: "Toggle map layers visibility",
-        defaultBindings: ["Backquote"],
-        contexts: ["Main pages"],
-        run: actionToggleMapLayersVisibility,
-    },
-    toggleDarkMapStyle: {
-        title: "Toggle dark map style",
-        defaultBindings: ["Alt+Backquote"],
-        contexts: ["Main pages"],
-        run: actionToggleDarkMapStyle,
     },
     openUserBlocks: {
         title: "Open user blocks",
@@ -27746,9 +27884,15 @@ const hotkeyActions = {
         when: e => !isUserPageWithoutHistory() && !changesetObjectsSelectionModeEnabled && !e.altKey,
         run: actionToggleChangesetObjectSelection,
     },
-    openInJosmOrLevel0: {
+    openInJosm: {
         title: "Open object in JOSM or Level0",
-        defaultBindings: ["KeyJ", "Shift+KeyJ", "Alt+KeyJ", "Shift+Alt+KeyJ"],
+        defaultBindings: ["KeyJ"],
+        contexts: ["Main pages"],
+        run: actionOpenInJosmOrLevel0,
+    },
+    openInJosmOrLevel0: {
+        title: "Open object in Level0",
+        defaultBindings: ["Shift+KeyJ", "Alt+KeyJ", "Shift+Alt+KeyJ"],
         contexts: ["Main pages"],
         run: actionOpenInJosmOrLevel0,
     },
@@ -28008,6 +28152,7 @@ function runHotkeyAction(actionId, e) {
         e.stopImmediatePropagation?.()
     }
     action.run(e)
+    void rememberRecentHotkeyAction(actionId)
     return true
 }
 
