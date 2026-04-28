@@ -19742,11 +19742,36 @@ function getOrCreatePanoramaxHoverZoomPopup() {
             position: "fixed",
             display: "none",
             zIndex: "100000",
-            pointerEvents: "none",
+            pointerEvents: "auto",
             padding: "6px",
             background: "var(--bs-body-bg)",
             borderRadius: "10px",
             boxShadow: "0 8px 24px rgba(0, 0, 0, 0.25)",
+            maxWidth: "calc(100vw - 16px)",
+            overflowX: "auto",
+            overflowY: "hidden",
+            touchAction: "pan-x",
+            overscrollBehaviorX: "contain",
+            WebkitOverflowScrolling: "touch",
+        })
+        hoverZoomPopup.addEventListener("pointerdown", e => {
+            e.stopPropagation()
+        })
+        hoverZoomPopup.addEventListener("touchstart", e => {
+            e.stopPropagation()
+        }, { passive: true })
+        hoverZoomPopup.addEventListener("touchmove", e => {
+            e.stopPropagation()
+        }, { passive: true })
+        hoverZoomPopup.addEventListener("touchend", e => {
+            e.stopPropagation()
+        }, { passive: true })
+        hoverZoomPopup.addEventListener("touchcancel", e => {
+            e.stopPropagation()
+        }, { passive: true })
+        hoverZoomPopup.addEventListener("contextmenu", e => {
+            e.stopPropagation()
+            e.preventDefault()
         })
         document.body.append(hoverZoomPopup)
     }
