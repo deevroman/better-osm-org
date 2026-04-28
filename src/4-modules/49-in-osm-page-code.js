@@ -154,18 +154,34 @@ function getOrCreatePanoramaxHoverZoomPopup() {
         hoverZoomPopup.addEventListener("pointerdown", e => {
             e.stopPropagation()
         })
-        hoverZoomPopup.addEventListener("touchstart", e => {
-            e.stopPropagation()
-        }, { passive: true })
-        hoverZoomPopup.addEventListener("touchmove", e => {
-            e.stopPropagation()
-        }, { passive: true })
-        hoverZoomPopup.addEventListener("touchend", e => {
-            e.stopPropagation()
-        }, { passive: true })
-        hoverZoomPopup.addEventListener("touchcancel", e => {
-            e.stopPropagation()
-        }, { passive: true })
+        hoverZoomPopup.addEventListener(
+            "touchstart",
+            e => {
+                e.stopPropagation()
+            },
+            { passive: true },
+        )
+        hoverZoomPopup.addEventListener(
+            "touchmove",
+            e => {
+                e.stopPropagation()
+            },
+            { passive: true },
+        )
+        hoverZoomPopup.addEventListener(
+            "touchend",
+            e => {
+                e.stopPropagation()
+            },
+            { passive: true },
+        )
+        hoverZoomPopup.addEventListener(
+            "touchcancel",
+            e => {
+                e.stopPropagation()
+            },
+            { passive: true },
+        )
         hoverZoomPopup.addEventListener("contextmenu", e => {
             e.stopPropagation()
             e.preventDefault()
@@ -348,18 +364,34 @@ function renderPanoramaxPhotosPreview(withPhotos) {
         photosPreviewGallery.addEventListener("pointerdown", e => {
             e.stopPropagation()
         })
-        photosPreviewGallery.addEventListener("touchstart", e => {
-            e.stopPropagation()
-        }, { passive: true })
-        photosPreviewGallery.addEventListener("touchmove", e => {
-            e.stopPropagation()
-        }, { passive: true })
-        photosPreviewGallery.addEventListener("touchend", e => {
-            e.stopPropagation()
-        }, { passive: true })
-        photosPreviewGallery.addEventListener("touchcancel", e => {
-            e.stopPropagation()
-        }, { passive: true })
+        photosPreviewGallery.addEventListener(
+            "touchstart",
+            e => {
+                e.stopPropagation()
+            },
+            { passive: true },
+        )
+        photosPreviewGallery.addEventListener(
+            "touchmove",
+            e => {
+                e.stopPropagation()
+            },
+            { passive: true },
+        )
+        photosPreviewGallery.addEventListener(
+            "touchend",
+            e => {
+                e.stopPropagation()
+            },
+            { passive: true },
+        )
+        photosPreviewGallery.addEventListener(
+            "touchcancel",
+            e => {
+                e.stopPropagation()
+            },
+            { passive: true },
+        )
         photosPreviewGallery.addEventListener("contextmenu", e => {
             e.stopPropagation()
             e.preventDefault()
