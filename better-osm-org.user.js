@@ -3335,7 +3335,6 @@ out meta;
  * @returns {string}
  */
 function shortOsmOrgLinksInText(text) {
-    // prettier-ignore
     return text
         .replaceAll("https://www.openstreetmap.org", "osm.org")
         .replaceAll("https://wiki.openstreetmap.org/wiki/", "osm.wiki/")
@@ -4574,10 +4573,9 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
                         return
                     }
                     if (
-                        // prettier-ignore
-                        e.target.classList.contains("review-label")
-                        || e.target.classList.contains("review-checkbox")
-                        || e.target.classList.contains("betterOsmContextMenu")
+                        e.target.classList.contains("review-label") ||
+                        e.target.classList.contains("review-checkbox") ||
+                        e.target.classList.contains("betterOsmContextMenu")
                     ) {
                         document.addEventListener("click", fn, { once: true })
                         return
@@ -5388,7 +5386,6 @@ function setupCompactChangesetsHistory() {
         for (const elem of document.querySelectorAll("ol li:not(:has(.comment)):not(.comments-loaded)")) {
             elem.classList.add("comments-loaded")
             const commentsBadge = elem.querySelector(".changeset_num_comments")
-            // prettier-ignore
             commentsBadge.querySelector("i").outerHTML = commentSvg
             const commentsCount = parseInt(commentsBadge.firstChild.textContent.trim())
             if (commentsCount) {
@@ -5604,7 +5601,6 @@ function makeHashtagsInNotesClickable() {
                     function fixLink() {
                         const center = getMapCenter()
                         const zoom = getZoom()
-                        // prettier-ignore
                         const notesReviewLink =
                             "https://antonkhorev.github.io/osm-note-viewer/#" +
                             new URLSearchParams({
@@ -5614,7 +5610,7 @@ function makeHashtagsInNotesClickable() {
                                     Math.round(getMap().getBounds().getWest() * 10000) / 10000,
                                     Math.round(getMap().getBounds().getSouth() * 10000) / 10000,
                                     Math.round(getMap().getBounds().getEast() * 10000) / 10000,
-                                    Math.round(getMap().getBounds().getNorth() * 10000) / 10000
+                                    Math.round(getMap().getBounds().getNorth() * 10000) / 10000,
                                 ].join(","),
                                 sort: "created_at",
                                 order: "newest",
@@ -5683,16 +5679,16 @@ const BAN_EMOJI = "⛔️"
 const REVIEW_REQUESTED_EMOJI = "🙏"
 const NEWBIE_EMOJI = "🍼"
 
-// prettier-ignore
 const moderatorBadgeSvg =
     '<svg width="20" height="20">' +
-    '<path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#447eff" stroke="#447eff" stroke-width="2" stroke-linejoin="round"></path>' +
-    '</svg>'
-// prettier-ignore
+    '<path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#447eff"' +
+    ' stroke="#447eff" stroke-width="2" stroke-linejoin="round"></path>' +
+    "</svg>"
 const importerBadgeSvg =
     '<svg width="20" height="20">' +
-    '<path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#38e13a" stroke="#38e13a" stroke-width="2" stroke-linejoin="round"></path>' +
-    '</svg>'
+    '<path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#38e13a"' +
+    ' stroke="#38e13a" stroke-width="2" stroke-linejoin="round"></path>' +
+    "</svg>"
 
 async function loadFriends() {
     console.debug("Loading friends list")
@@ -10183,11 +10179,12 @@ function makeLinksInVersionTagClickable(row, objType) {
         }
         if (type === "way" && ["building", "building:part"].includes(key)) {
             const has3DTags = !Array.from(document.querySelectorAll(".browse-tag-list tr th")).some(i => {
-                // prettier-ignore
-                return i.textContent.includes("level")
-                    || i.textContent.includes("height")
-                    || i.textContent.includes("roof")
-                    || i.textContent.includes("wikidata")
+                return (
+                    i.textContent.includes("level") ||
+                    i.textContent.includes("height") ||
+                    i.textContent.includes("roof") ||
+                    i.textContent.includes("wikidata")
+                )
             })
             if (has3DTags) {
                 if (document.querySelectorAll('a[href^="/node/"]').length <= 5) {
@@ -11201,7 +11198,6 @@ async function replaceDownloadWayButton(btn, wayID) {
         const interVersionDivHeader = document.createElement("h4")
         const interVersionDivAbbr = document.createElement("abbr")
         interVersionDivAbbr.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Промежуточная версия" : "Intermediate version"
-        // prettier-ignore
         interVersionDivAbbr.title = ["ru-RU", "ru"].includes(navigator.language)
             ? "Произошли изменения тегов или координат точек в линии,\nкоторые не увеличили версию линии"
             : "There have been changes to the tags or coordinates of nodes in the way that have not increased the way version"
@@ -21554,12 +21550,11 @@ async function loadChangesets(user) {
     const startTime4 = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 365) / 4)
     const endTime = new Date(new Date().getTime() + 1000 * 60 * 60 * 24)
 
-    // prettier-ignore
     const parts = await Promise.all([
         loadChangesetsBetween(user, startTime, startTime2),
         loadChangesetsBetween(user, startTime2, startTime3),
         loadChangesetsBetween(user, startTime3, startTime4),
-        loadChangesetsBetween(user, startTime4, endTime)
+        loadChangesetsBetween(user, startTime4, endTime),
     ])
 
     const uniqChangesets = new Set()
@@ -26321,14 +26316,16 @@ function shouldSkipHotkeyForActiveElement(e) {
     if (document.activeElement?.getAttribute("contenteditable")) {
         return true
     }
-    // prettier-ignore
-    if (["TH", "TD"].includes(document.activeElement?.nodeName)
-        && document.activeElement?.parentElement?.parentElement?.parentElement?.hasAttribute("contenteditable")) {
+    if (
+        ["TH", "TD"].includes(document.activeElement?.nodeName) &&
+        document.activeElement?.parentElement?.parentElement?.parentElement?.hasAttribute("contenteditable")
+    ) {
         return true
     }
-    // prettier-ignore
-    if (["TR"].includes(document.activeElement?.nodeName)
-        && document.activeElement?.parentElement?.parentElement?.hasAttribute("contenteditable")) {
+    if (
+        ["TR"].includes(document.activeElement?.nodeName) &&
+        document.activeElement?.parentElement?.parentElement?.hasAttribute("contenteditable")
+    ) {
         return true
     }
     return false

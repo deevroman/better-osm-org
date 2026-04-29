@@ -5,16 +5,16 @@ const BAN_EMOJI = "⛔️"
 const REVIEW_REQUESTED_EMOJI = "🙏"
 const NEWBIE_EMOJI = "🍼"
 
-// prettier-ignore
 const moderatorBadgeSvg =
     '<svg width="20" height="20">' +
-    '<path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#447eff" stroke="#447eff" stroke-width="2" stroke-linejoin="round"></path>' +
-    '</svg>'
-// prettier-ignore
+    '<path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#447eff"' +
+    ' stroke="#447eff" stroke-width="2" stroke-linejoin="round"></path>' +
+    "</svg>"
 const importerBadgeSvg =
     '<svg width="20" height="20">' +
-    '<path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#38e13a" stroke="#38e13a" stroke-width="2" stroke-linejoin="round"></path>' +
-    '</svg>'
+    '<path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#38e13a"' +
+    ' stroke="#38e13a" stroke-width="2" stroke-linejoin="round"></path>' +
+    "</svg>"
 
 async function loadFriends() {
     console.debug("Loading friends list")

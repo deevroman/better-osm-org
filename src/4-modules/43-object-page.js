@@ -551,11 +551,12 @@ function makeLinksInVersionTagClickable(row, objType) {
         }
         if (type === "way" && ["building", "building:part"].includes(key)) {
             const has3DTags = !Array.from(document.querySelectorAll(".browse-tag-list tr th")).some(i => {
-                // prettier-ignore
-                return i.textContent.includes("level")
-                    || i.textContent.includes("height")
-                    || i.textContent.includes("roof")
-                    || i.textContent.includes("wikidata")
+                return (
+                    i.textContent.includes("level") ||
+                    i.textContent.includes("height") ||
+                    i.textContent.includes("roof") ||
+                    i.textContent.includes("wikidata")
+                )
             })
             if (has3DTags) {
                 if (document.querySelectorAll('a[href^="/node/"]').length <= 5) {
