@@ -219,7 +219,6 @@ out geom;
                 [bbox.max_lat, bbox.max_lon],
             ])
             loadBannedVersions()
-            preloadEditIcons()
             cleanAllObjects()
             getWindow().jsonLayer?.remove()
             jsonLayer?.remove()
