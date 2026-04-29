@@ -731,7 +731,6 @@ async function replaceDownloadWayButton(btn, wayID) {
         const interVersionDivHeader = document.createElement("h4")
         const interVersionDivAbbr = document.createElement("abbr")
         interVersionDivAbbr.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Промежуточная версия" : "Intermediate version"
-        // prettier-ignore
         interVersionDivAbbr.title = ["ru-RU", "ru"].includes(navigator.language)
             ? "Произошли изменения тегов или координат точек в линии,\nкоторые не увеличили версию линии"
             : "There have been changes to the tags or coordinates of nodes in the way that have not increased the way version"

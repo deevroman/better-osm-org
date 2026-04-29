@@ -1062,14 +1062,16 @@ function shouldSkipHotkeyForActiveElement(e) {
     if (document.activeElement?.getAttribute("contenteditable")) {
         return true
     }
-    // prettier-ignore
-    if (["TH", "TD"].includes(document.activeElement?.nodeName)
-        && document.activeElement?.parentElement?.parentElement?.parentElement?.hasAttribute("contenteditable")) {
+    if (
+        ["TH", "TD"].includes(document.activeElement?.nodeName) &&
+        document.activeElement?.parentElement?.parentElement?.parentElement?.hasAttribute("contenteditable")
+    ) {
         return true
     }
-    // prettier-ignore
-    if (["TR"].includes(document.activeElement?.nodeName)
-        && document.activeElement?.parentElement?.parentElement?.hasAttribute("contenteditable")) {
+    if (
+        ["TR"].includes(document.activeElement?.nodeName) &&
+        document.activeElement?.parentElement?.parentElement?.hasAttribute("contenteditable")
+    ) {
         return true
     }
     return false

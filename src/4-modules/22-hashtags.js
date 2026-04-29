@@ -58,7 +58,6 @@ function makeHashtagsInNotesClickable() {
                     function fixLink() {
                         const center = getMapCenter()
                         const zoom = getZoom()
-                        // prettier-ignore
                         const notesReviewLink =
                             "https://antonkhorev.github.io/osm-note-viewer/#" +
                             new URLSearchParams({
@@ -68,7 +67,7 @@ function makeHashtagsInNotesClickable() {
                                     Math.round(getMap().getBounds().getWest() * 10000) / 10000,
                                     Math.round(getMap().getBounds().getSouth() * 10000) / 10000,
                                     Math.round(getMap().getBounds().getEast() * 10000) / 10000,
-                                    Math.round(getMap().getBounds().getNorth() * 10000) / 10000
+                                    Math.round(getMap().getBounds().getNorth() * 10000) / 10000,
                                 ].join(","),
                                 sort: "created_at",
                                 order: "newest",

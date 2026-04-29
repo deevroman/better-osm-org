@@ -72,12 +72,11 @@ async function loadChangesets(user) {
     const startTime4 = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 365) / 4)
     const endTime = new Date(new Date().getTime() + 1000 * 60 * 60 * 24)
 
-    // prettier-ignore
     const parts = await Promise.all([
         loadChangesetsBetween(user, startTime, startTime2),
         loadChangesetsBetween(user, startTime2, startTime3),
         loadChangesetsBetween(user, startTime3, startTime4),
-        loadChangesetsBetween(user, startTime4, endTime)
+        loadChangesetsBetween(user, startTime4, endTime),
     ])
 
     const uniqChangesets = new Set()
