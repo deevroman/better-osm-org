@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.6.2
+// @version         1.6.3
 // @changelog       v1.6.0: OpenGeoFiction support under debug flag in settings, add OSM2World 3D viewer, type=* validator
 // @changelog       v1.6.0: Note marker in Overpass Turbo, more stable Overpass search
 // @changelog       v1.5.9: memorizing the last satellite layer, simple vector style editor

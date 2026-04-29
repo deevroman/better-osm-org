@@ -119,6 +119,18 @@ if ([prod_server.origin, dev_server.origin, local_server.origin, ohm_prod_server
     initMaplibreWorkerOverrider()
 }
 
+function initPanoramaxPhotosPreviewMessageHandler() {
+    window.addEventListener("message", e => {
+        if (e.origin !== location.origin) {
+            return
+        }
+        if (e.data?.type !== "panoramax_filtered_objects") {
+            return
+        }
+        renderPanoramaxPhotosPreview(e.data?.withPhotos || [])
+    })
+}
+
 function runInOsmPageCode() {
     injectJSIntoPage(`
     const OriginalBlob = window.Blob;
@@ -174,6 +186,7 @@ function runInOsmPageCode() {
     window.needPatchLoadMoreRequest = null;
     window.hiddenChangesetsCount = null;
     window.spyGlassMode = false;
+    window.photosMode = false;
 
     window.notesDisplayName = "";
     window.notesQFilter = "";
@@ -434,6 +447,19 @@ function runInOsmPageCode() {
                 //     statusText: response.statusText,
                 //     headers: response.headers
                 // });
+            } else if ((false || photosMode) && args[0]?.includes?.("/map.json")) {
+                console.debug("replacing Map Data overlay")
+                const response = await originalFetch(...args);
+                const originalJSON = await response.json();
+                const withPhotos = originalJSON.elements.filter(i => {
+                    return Object.keys(i.tags || {}).some(k => k.startsWith("panoramax"))
+                })
+                window.postMessage({ type: "panoramax_filtered_objects", withPhotos: withPhotos }, location.origin)
+                return new Response(JSON.stringify(originalJSON), {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: response.headers
+                });
             } else if (spyGlassMode && args[0]?.includes?.("/map.json")) {
                 console.debug("replacing Map Data overlay")
                 const response = await originalFetch(...args);
@@ -723,6 +749,7 @@ function runInOsmPageCode() {
 }
 
 if (isOsmServer()) {
+    initPanoramaxPhotosPreviewMessageHandler()
     runInOsmPageCode()
 }
 

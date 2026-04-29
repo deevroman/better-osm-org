@@ -7,7 +7,6 @@
 // - возможность сохранить результат внедрения
 
 /***@type {((function(): Promise<void>|void))[]}*/
-// prettier-ignore
 const modules = [
     setupDarkModeForMap,
     setupHDYCInProfile,
@@ -26,9 +25,9 @@ const modules = [
     setupClickableAvatar,
     setupOverzoomForDataLayer,
     setupDragAndDropViewers,
-    setupBetterTagsPaste
-];
-// prettier-ignore
+    setupBetterTagsPaste,
+]
+/***@type {((function(): Promise<void>|void))[]}*/
 const alwaysEnabledModules = [
     setupRelationVersionViewer,
     setupMakeVersionPageBetter,
@@ -36,7 +35,7 @@ const alwaysEnabledModules = [
     setupGPXFiltersButtons,
     setupSpyGlassButtons,
     setupNewContextMenuItems,
-    setupPrometheusLink
+    setupPrometheusLink,
 ]
 
 function selectOverpassServer() {
@@ -153,6 +152,18 @@ function setupOSMWebsite() {
                 { once: true },
             )
         }
+        document.querySelectorAll('nav a[href="/export"]').forEach(i =>
+            i.addEventListener("contextmenu", async e => {
+                e.preventDefault()
+                const bounds = await getMapBounds()
+                showBboxMenu(e, {
+                    max_lat: bounds.getNorthWest().lat,
+                    min_lon: bounds.getNorthWest().lng,
+                    min_lat: bounds.getSouthEast().lat,
+                    max_lon: bounds.getSouthEast().lng,
+                })
+            }),
+        )
     })
 }
 

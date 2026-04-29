@@ -5,7 +5,6 @@
  * @returns {string}
  */
 function shortOsmOrgLinksInText(text) {
-    // prettier-ignore
     return text
         .replaceAll("https://www.openstreetmap.org", "osm.org")
         .replaceAll("https://wiki.openstreetmap.org/wiki/", "osm.wiki/")

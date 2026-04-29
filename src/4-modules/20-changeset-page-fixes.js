@@ -470,10 +470,9 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
                         return
                     }
                     if (
-                        // prettier-ignore
-                        e.target.classList.contains("review-label")
-                        || e.target.classList.contains("review-checkbox")
-                        || e.target.classList.contains("betterOsmContextMenu")
+                        e.target.classList.contains("review-label") ||
+                        e.target.classList.contains("review-checkbox") ||
+                        e.target.classList.contains("betterOsmContextMenu")
                     ) {
                         document.addEventListener("click", fn, { once: true })
                         return
@@ -939,7 +938,7 @@ Press R for partial revert`
                     const b = document.createElement("span")
                     b.classList.add("comment-template", "btn", "btn-primary")
                     b.textContent = label
-                    b.title = `Add into the comment "${text}".\nYou can change text in userscript settings`
+                    b.title = `"${text}" will be added to the comment text.\nYou can change text in userscript settings`
                     buttonsWrapper.appendChild(b)
                     b.onmousedown = e => {
                         e.preventDefault()
@@ -1284,7 +1283,6 @@ function setupCompactChangesetsHistory() {
         for (const elem of document.querySelectorAll("ol li:not(:has(.comment)):not(.comments-loaded)")) {
             elem.classList.add("comments-loaded")
             const commentsBadge = elem.querySelector(".changeset_num_comments")
-            // prettier-ignore
             commentsBadge.querySelector("i").outerHTML = commentSvg
             const commentsCount = parseInt(commentsBadge.firstChild.textContent.trim())
             if (commentsCount) {

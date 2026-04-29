@@ -21,6 +21,55 @@ function makeElementHistoryCompact(forceState = null) {
     document.querySelector(".compact-toggle-btn").innerHTML = shouldBeCompact ? expandModeSvg : compactModeSvg
 }
 
+function drawPanoramaxCapturePlace(feature) {
+    const lat = feature.geometry?.coordinates?.[1]
+    const lon = feature.geometry?.coordinates?.[0]
+    if (lat === undefined || lon === undefined) {
+        return
+    }
+    const rawAngle = feature.properties?.exif?.["Exif.GPSInfo.GPSImgDirection"]
+    if (rawAngle === undefined) {
+        console.warn("no angle in feature", feature)
+        return
+    }
+    const angle = rawAngle?.includes("/") ? rawAngle.split("/")[0] / rawAngle.split("/")[1] : parseFloat(rawAngle)
+
+    showActiveNodeMarker(lat, lon, "#0022ff", true)
+    if (angle) {
+        drawRay(lat, lon, angle - 30, "#0022ff")
+        drawRay(lat, lon, angle + 30, "#0022ff")
+    }
+}
+
+async function attachPanoramaxHoverCaptureHandler(a, uuid, panoramaxServer) {
+    const res = (
+        await externalFetchRetry({
+            url: `${panoramaxServer}/api/search?limit=1&ids=${uuid}`,
+            responseType: "json",
+        })
+    ).response
+    if (res["error"] || res["features"].length === 0) {
+        console.error(res)
+        return
+    }
+    a.onmouseenter = () => drawPanoramaxCapturePlace(res["features"][0])
+    const author = res["features"][0]?.properties?.["geovisio:producer"]
+    const artist = res["features"][0]?.properties?.exif?.["Exif.Image.Artist"]
+    if (author) {
+        if (a.title && a.title?.length !== 0) {
+            a.title += "\n"
+        }
+        a.title += "Photo by " + author
+        if (artist && artist !== author) {
+            a.title += " / " + artist
+        }
+    }
+    const date = res["features"][0]?.properties?.exif?.["Exif.Image.DateTime"]
+    if (date) {
+        a.title += "\n" + date
+    }
+}
+
 function addPanoramaxPicIntoA(uuid, a, panoramaxServer) {
     const imgSrc = `${panoramaxServer}/api/pictures/${uuid}/sd.jpg`
     if (isSafari) {
@@ -44,31 +93,7 @@ function addPanoramaxPicIntoA(uuid, a, panoramaxServer) {
         }
         a.appendChild(img)
     }
-    setTimeout(async () => {
-        const res = (
-            await externalFetchRetry({
-                url: `${panoramaxServer}/api/search?limit=1&ids=${uuid}`,
-                responseType: "json",
-            })
-        ).response
-        if (!res["error"] && res["features"].length > 0) {
-            a.onmouseenter = () => {
-                const lat = res["features"][0]["geometry"]["coordinates"][1]
-                const lon = res["features"][0]["geometry"]["coordinates"][0]
-                const raw_angle = res["features"][0]["properties"]["exif"]["Exif.GPSInfo.GPSImgDirection"]
-                const angle = raw_angle?.includes("/") ? raw_angle.split("/")[0] / raw_angle.split("/")[1] : parseFloat(raw_angle)
-
-                showActiveNodeMarker(lat, lon, "#0022ff", true)
-
-                if (angle) {
-                    drawRay(lat, lon, angle - 30, "#0022ff")
-                    drawRay(lat, lon, angle + 30, "#0022ff")
-                }
-            }
-        } else {
-            console.error(res)
-        }
-    })
+    setTimeout(() => attachPanoramaxHoverCaptureHandler(a, uuid, panoramaxServer))
 }
 
 // https://osm.org/node/12559772251
@@ -526,11 +551,12 @@ function makeLinksInVersionTagClickable(row, objType) {
         }
         if (type === "way" && ["building", "building:part"].includes(key)) {
             const has3DTags = !Array.from(document.querySelectorAll(".browse-tag-list tr th")).some(i => {
-                // prettier-ignore
-                return i.textContent.includes("level")
-                    || i.textContent.includes("height")
-                    || i.textContent.includes("roof")
-                    || i.textContent.includes("wikidata")
+                return (
+                    i.textContent.includes("level") ||
+                    i.textContent.includes("height") ||
+                    i.textContent.includes("roof") ||
+                    i.textContent.includes("wikidata")
+                )
             })
             if (has3DTags) {
                 if (document.querySelectorAll('a[href^="/node/"]').length <= 5) {
@@ -758,7 +784,7 @@ function makeLinksInVersionTagClickable(row, objType) {
         if (!valueCell.querySelector("a")) {
             makeRefBelpostValue(valueCell)
         }
-    } else if (key.length <= 2 && (key !== "to" || key !== "tv")) {
+    } else if (key.length <= 2 && key !== "to" && key !== "tv" && key !== "it") {
         keyCell.classList.add("fixme-tag")
         keyCell.title = "The key is too short"
     }

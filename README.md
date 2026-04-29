@@ -217,8 +217,10 @@ Maybe
 ### Projects that are used directly or indirectly in the script
 
 - [Bookmarklet helpers for resolving OSM Notes](https://community.openstreetmap.org/t/bookmarklet-helpers-for-resolving-osm-notes/105805/1)
+- [Bootstrap Icons](https://icons.getbootstrap.com) — for osm.org icons reused in script features
 - [exif-js](https://github.com/exif-js/exif-js) — to read the coordinates of the photos that you drag using Drag&Drop
 - [ESRI](https://wiki.openstreetmap.org/wiki/Esri) — Satellite images
+- [FontAwesome](https://fontawesome.com) — table and cursor icons 
 - [GM_config](https://github.com/sizzlemctwizzle/GM_config) — settings framework for UserScripts
 - [LetItSnow](https://github.com/DevBubba/Bookmarklets/blob/main/Screen/LetItSnow.js) — Easter New Year's Egg
 - [Lucide](https://lucide.dev/icons/diff) — for changes count icon on /history page, copy button icon, filter icon and other

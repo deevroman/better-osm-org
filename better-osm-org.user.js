@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.6.2
+// @version         1.6.3
 // @changelog       v1.6.0: OpenGeoFiction support under debug flag in settings, add OSM2World 3D viewer, type=* validator
 // @changelog       v1.6.0: Note marker in Overpass Turbo, more stable Overpass search
 // @changelog       v1.5.9: memorizing the last satellite layer, simple vector style editor
@@ -181,22 +181,10 @@ function tryAddWarnAboutScriptIntoOsmOrgRepo() {
     if (document.querySelector(".better-osm-org-warn")) {
         return
     }
-    let result = document.evaluate(
-        "//h1[normalize-space(text())='Create new issue']",
-        document,
-        null,
-        XPathResult.FIRST_ORDERED_NODE_TYPE,
-        null,
-    ).singleNodeValue
-    if (!result) {
-        result = document.evaluate(
-            "//h2[normalize-space(text())='Create new issue']",
-            document,
-            null,
-            XPathResult.FIRST_ORDERED_NODE_TYPE,
-            null,
-        ).singleNodeValue
+    function xpath(selector) {
+        return document.evaluate(selector, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue
     }
+    const result = xpath("//h1[normalize-space(text())='Create new issue']") ?? xpath("//h2[normalize-space(text())='Create new issue']")
     if (result) {
         const warn = document.createElement("div")
         warn.textContent = "⚠️⚠️⚠️️ "
@@ -1359,20 +1347,20 @@ GM_config.init(configOptions)
 
 //<editor-fold desc="svg" defaultstate="collapsed">
 
-// prettier-ignore
 const filterIconSvg =
-    '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" ' +
-    'stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-funnel-icon lucide-funnel">' +
-    '<path d="M 10 20 a 1 1 0 0 0 0.553 0.895 l 2 1 A 1 1 0 0 0 14 21 v -8 a 2 3 0 0 1 1 -2 L 21.74 4.67 A 1 1 0 0 0 21 3 H 3 a 1 1 0 0 0 -0.742 1.67 l 6.742 6.33 A 2 3 0 0 1 10 13 z"/>' +
-    '</svg>'
+    '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    'stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-funnel-icon lucide-funnel">' +
+    '<path d="M 10 20 a 1 1 0 0 0 0.553 0.895 l 2 1 A 1 1 0 0 0 14 21 v -8 a 2 3 0 0 1 1 -2 L 21.74 4.67 A 1 1 0 0 0 ' +
+    '21 3 H 3 a 1 1 0 0 0 -0.742 1.67 l 6.742 6.33 A 2 3 0 0 1 10 13 z"/>' +
+    "</svg>"
 
-// prettier-ignore
 const tagSvg =
-    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" ' +
-    'stroke="currentColor" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tag-icon lucide-tag">' +
-    '<path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/>' +
+    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    'stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tag-icon lucide-tag">' +
+    '<path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 ' +
+    '0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/>' +
     '<circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/>' +
-    '</svg>'
+    "</svg>"
 
 const osmchaLikeSvg =
     "data:image/svg+xml;base64," +
@@ -1399,71 +1387,71 @@ const osmchaDislikeSvg =
 
 const osmchaSvgLogo =
     '<svg viewBox="2.5 2.5 13 13" xmlns="http://www.w3.org/2000/svg">' +
-    '<path d="M2.5 2.5l1 4-1 2 1 3-1 3h1l4-4c-.6-.8-1-1.9-1-3 0-1.9 1.1-3.5 2.6-4.4l-.6-.6-3 1-3-1zM15 11c-.9.9-2.2 1.5-3.5 1.5-1.1 0-2.2-.4-3-1l-4 4h2l2-1 2 1 4-1 1-3-.5-.5z"></path>' +
+    '<path d="M2.5 2.5l1 4-1 2 1 3-1 3h1l4-4c-.6-.8-1-1.9-1-3 0-1.9 1.1-3.5 2.6-4.4l-.6-.6-3 1-3-1zM15 ' +
+    '11c-.9.9-2.2 1.5-3.5 1.5-1.1 0-2.2-.4-3-1l-4 4h2l2-1 2 1 4-1 1-3-.5-.5z"></path>' +
     '<path d="M15 7.5c0 1.9-1.6 3.5-3.5 3.5S8 9.4 8 7.5 9.6 4 11.5 4 15 5.6 15 7.5"></path></svg>'
 
-// prettier-ignore
 const commentSvg =
     '<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">' +
     '<path d="M2.678 11.894a1 1 0 0 1 .287.801 11 11 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 ' +
-    '.71-.074A8 8 0 0 0 8 14c3.996 0 7-2.807 7-6s-3.004-6-7-6-7 2.808-7 6c0 1.468.617 2.83 1.678 3.894m-.493 ' +
-    '3.905a22 22 0 0 1-.713.129c-.2.032-.352-.176-.273-.362a10 10 0 0 0 .244-.637l.003-.01c.248-.72.45-1.548.524-2.319C.743 ' +
+    ".71-.074A8 8 0 0 0 8 14c3.996 0 7-2.807 7-6s-3.004-6-7-6-7 2.808-7 6c0 1.468.617 2.83 1.678 3.894m-.493 " +
+    "3.905a22 22 0 0 1-.713.129c-.2.032-.352-.176-.273-.362a10 10 0 0 0 .244-.637l.003-.01c.248-.72.45-1.548.524-2.319C.743 " +
     '11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.52.263-1.639.742-3.468 1.105">' +
-    '</path>' +
+    "</path>" +
     "</svg>"
 
-// prettier-ignore
 const diffSvg =
     '<svg class="lucide lucide-diff better-diff-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" ' +
     'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">' +
     '<path d="M12 3v14"/><path d="M5 10h14"/>' +
     '<path d="M5 21h14"/>' +
-    '</svg>'
+    "</svg>"
 
-// prettier-ignore
-const fitToObjectSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">\n' +
+const fitToObjectSvg =
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">\n' +
     '  <path d="M3 7V3H7" stroke-width="2" stroke-linecap="round"/>\n' +
     '  <path d="M17 3H21V7" stroke-width="2" stroke-linecap="round"/>\n' +
     '  <path d="M21 17V21H17" stroke-width="2" stroke-linecap="round"/>\n' +
-    '  <path d="M7 21H3V17" stroke-width="2" stroke-linecap="round"/>\n' + "</svg>\n"
+    '  <path d="M7 21H3V17" stroke-width="2" stroke-linecap="round"/>\n' +
+    "</svg>\n"
 
-// prettier-ignore
 const externalLinkSvg =
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" ' +
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" ' +
+    'stroke-linecap="round" stroke-linejoin="round" ' +
     'class="lucide lucide-external-link-icon lucide-external-link" width="16" height="16">' +
     '<path d="M15 3h6v6"></path><path d="M10 14 21 3"></path>' +
     '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>' +
-    '</svg>'
+    "</svg>"
 
-// prettier-ignore
 const pencilLinkSvg =
-    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" ' +
+    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    'stroke-width="1.25" stroke-linecap="round" ' +
     'stroke-linejoin="round" class="lucide lucide-pencil-icon lucide-pencil">' +
-    '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>' +
+    '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 ' +
+    '.623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>' +
     '<path d="m15 5 4 4"/>' +
-    '</svg>'
+    "</svg>"
 
-// prettier-ignore
 const compactModeSvg =
-    '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" height="17" width="17" viewBox="0 0 17 17">' +
+    '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" ' +
+    'stroke-linejoin="round" height="17" width="17" viewBox="0 0 17 17">' +
     '<path d="M15 12 l-5-4  5-4"></path><path d="M2 12 l 5-4 -5-4"></path>' +
-    '</svg>'
+    "</svg>"
 
-// prettier-ignore
 const expandModeSvg =
-    '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" height="17" width="17" viewBox="0 0 17 17">' +
+    '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" ' +
+    'stroke-linejoin="round" height="17" width="17" viewBox="0 0 17 17">' +
     '<path d="M7 12 l-5-4  5-4"></path>' +
     '<path d="M10 12 l 5-4 -5-4"></path>' +
-    '</svg>'
+    "</svg>"
 
-// prettier-ignore
 const copyBtnSvg =
     '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" ' +
     'stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" ' +
     'class="lucide lucide-file-icon lucide-file">' +
     '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>' +
     '<path d="M14 2v4a2 2 0 0 0 2 2h4"/>' +
-    '</svg>'
+    "</svg>"
 
 // TODO without encode
 const nodeIcon =
@@ -1499,6 +1487,33 @@ const relationIcon =
             '<circle cx="142" cy="196" r="24"/>' +
             '<circle cx="72" cy="72" r="32" fill="#bee6be" stroke="#000" stroke-width="8"/></svg>',
     )
+
+const toolsIconSvg =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-tools" viewBox="0 0 16 16">' +
+    '<path d="M1 0 0 1l2.2 3.081a1 1 0 0 0 .815.419h.07a1 1 0 0 1 .708.293l2.675 2.675-2.617 2.654A3.003 3.003 0 0 0' +
+    " 0 13a3 3 0 1 0 5.878-.851l2.654-2.617.968.968-.305.914a1 1 0 0 0 .242 1.023l3.27 3.27a.997.997 0 0 0 1.414" +
+    " 0l1.586-1.586a.997.997 0 0 0 0-1.414l-3.27-3.27a1 1 0 0 0-1.023-.242L10.5 9.5l-.96-.96 2.68-2.643A3.005 3.005" +
+    " 0 0 0 16 3q0-.405-.102-.777l-2.14 2.141L12 4l-.364-1.757L13.777.102a3 3 0 0 0-3.675 3.68L7.462 6.46 4.793 3.793a1" +
+    " 1 0 0 1-.293-.707v-.071a1 1 0 0 0-.419-.814zm9.646 10.646a.5.5 0 0 1 .708 0l2.914 2.915a.5.5 0 0 " +
+    "1-.707.707l-2.915-2.914a.5.5 0 0 1 0-.708M3 11l.471.242.529.026.287.445.445.287.026.529L5 " +
+    "13l-.242.471-.026.529-.445.287-.287.445-.529.026L3 15l-.471-.242L2 14.732l-.287-.445L1.268 14l-.026-.529L1 " +
+    '13l.242-.471.026-.529.445-.287.287-.445.529-.026z"/>' +
+    "</svg>"
+
+const rawEditSvg =
+    '<svg class="fa-i-cursor" height="14px" width="14px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512">' +
+    '<path fill="currentColor" d="M.1 29.3C-1.4 47 11.7 62.4 29.3 63.9l8 .7C70.5 67.3 96 95 96 128.3L96 224l-32 ' +
+    "0c-17.7 0-32 14.3-32 32s14.3 32 32 32l32 0 0 95.7c0 33.3-25.5 61-58.7 63.8l-8 .7C11.7 449.6-1.4 465 .1 " +
+    "482.7s16.9 30.7 34.5 29.2l8-.7c34.1-2.8 64.2-18.9 85.4-42.9c21.2 24 51.2 40 85.4 42.9l8 .7c17.6 1.5 33.1-11.6 " +
+    "34.5-29.2s-11.6-33.1-29.2-34.5l-8-.7C185.5 444.7 160 417 160 383.7l0-95.7 32 0c17.7 0 32-14.3 " +
+    "32-32s-14.3-32-32-32l-32 0 0-95.7c0-33.3 25.5-61 58.7-63.8l8-.7c17.6-1.5 30.7-16.9 29.2-34.5S239-1.4 221.3 " +
+    '.1l-8 .7C179.2 3.6 149.2 19.7 128 43.7c-21.2-24-51.2-40-85.4-42.9l-8-.7C17-1.4 1.6 11.7 .1 29.3z"></path></svg>'
+
+const tableEditSvg =
+    '<svg class="fa-table-list" height="14px" width="14px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">' +
+    '<path fill="currentColor" d="M0 96C0 60.7 28.7 32 64 32l384 0c35.3 0 64 28.7 64 64l0 320c0 35.3-28.7 64-64 ' +
+    "64L64 480c-35.3 0-64-28.7-64-64L0 96zm64 0l0 64 64 0 0-64L64 96zm384 0L192 96l0 64 256 0 0-64zM64 224l0 64 64 0 " +
+    '0-64-64 0zm384 0l-256 0 0 64 256 0 0-64zM64 352l0 64 64 0 0-64-64 0zm384 0l-256 0 0 64 256 0 0-64z"></path></svg>'
 
 //</editor-fold>
 
@@ -3320,7 +3335,6 @@ out meta;
  * @returns {string}
  */
 function shortOsmOrgLinksInText(text) {
-    // prettier-ignore
     return text
         .replaceAll("https://www.openstreetmap.org", "osm.org")
         .replaceAll("https://wiki.openstreetmap.org/wiki/", "osm.wiki/")
@@ -4559,10 +4573,9 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
                         return
                     }
                     if (
-                        // prettier-ignore
-                        e.target.classList.contains("review-label")
-                        || e.target.classList.contains("review-checkbox")
-                        || e.target.classList.contains("betterOsmContextMenu")
+                        e.target.classList.contains("review-label") ||
+                        e.target.classList.contains("review-checkbox") ||
+                        e.target.classList.contains("betterOsmContextMenu")
                     ) {
                         document.addEventListener("click", fn, { once: true })
                         return
@@ -5028,7 +5041,7 @@ Press R for partial revert`
                     const b = document.createElement("span")
                     b.classList.add("comment-template", "btn", "btn-primary")
                     b.textContent = label
-                    b.title = `Add into the comment "${text}".\nYou can change text in userscript settings`
+                    b.title = `"${text}" will be added to the comment text.\nYou can change text in userscript settings`
                     buttonsWrapper.appendChild(b)
                     b.onmousedown = e => {
                         e.preventDefault()
@@ -5373,7 +5386,6 @@ function setupCompactChangesetsHistory() {
         for (const elem of document.querySelectorAll("ol li:not(:has(.comment)):not(.comments-loaded)")) {
             elem.classList.add("comments-loaded")
             const commentsBadge = elem.querySelector(".changeset_num_comments")
-            // prettier-ignore
             commentsBadge.querySelector("i").outerHTML = commentSvg
             const commentsCount = parseInt(commentsBadge.firstChild.textContent.trim())
             if (commentsCount) {
@@ -5589,7 +5601,6 @@ function makeHashtagsInNotesClickable() {
                     function fixLink() {
                         const center = getMapCenter()
                         const zoom = getZoom()
-                        // prettier-ignore
                         const notesReviewLink =
                             "https://antonkhorev.github.io/osm-note-viewer/#" +
                             new URLSearchParams({
@@ -5599,7 +5610,7 @@ function makeHashtagsInNotesClickable() {
                                     Math.round(getMap().getBounds().getWest() * 10000) / 10000,
                                     Math.round(getMap().getBounds().getSouth() * 10000) / 10000,
                                     Math.round(getMap().getBounds().getEast() * 10000) / 10000,
-                                    Math.round(getMap().getBounds().getNorth() * 10000) / 10000
+                                    Math.round(getMap().getBounds().getNorth() * 10000) / 10000,
                                 ].join(","),
                                 sort: "created_at",
                                 order: "newest",
@@ -5668,16 +5679,48 @@ const BAN_EMOJI = "⛔️"
 const REVIEW_REQUESTED_EMOJI = "🙏"
 const NEWBIE_EMOJI = "🍼"
 
-// prettier-ignore
 const moderatorBadgeSvg =
     '<svg width="20" height="20">' +
-    '<path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#447eff" stroke="#447eff" stroke-width="2" stroke-linejoin="round"></path>' +
-    '</svg>'
-// prettier-ignore
+    '<path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#447eff"' +
+    ' stroke="#447eff" stroke-width="2" stroke-linejoin="round"></path>' +
+    "</svg>"
 const importerBadgeSvg =
     '<svg width="20" height="20">' +
-    '<path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#38e13a" stroke="#38e13a" stroke-width="2" stroke-linejoin="round"></path>' +
-    '</svg>'
+    '<path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#38e13a"' +
+    ' stroke="#38e13a" stroke-width="2" stroke-linejoin="round"></path>' +
+    "</svg>"
+
+async function loadFriends() {
+    console.debug("Loading friends list")
+    const res = await (await fetch(osm_server.url + "/dashboard")).text()
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(res, "text/html")
+    const friends = []
+    doc.querySelectorAll('a[data-method="delete"][href*="/follow"]').forEach(a => {
+        const username = a.getAttribute("href").match(/\/user\/(.+)\/follow/)[1]
+        friends.push(decodeURI(username))
+    })
+    await GM.setValue("friends", JSON.stringify(friends))
+    console.debug("Friends list updated")
+    return friends
+}
+
+let friendsLoadingLock = false
+
+async function getFriends() {
+    const friendsStr = await GM.getValue("friends")
+    if (friendsStr) {
+        return JSON.parse(friendsStr)
+    } else {
+        while (friendsLoadingLock) {
+            await sleep(500)
+        }
+        friendsLoadingLock = true
+        const res = await loadFriends()
+        friendsLoadingLock = false
+        return res
+    }
+}
 
 function makeBadge(userInfo, changesetDate = new Date()) {
     // todo make changesetDate required
@@ -6960,6 +7003,7 @@ function addSpyGlassButtons() {
 
     spyGlassBtn.onclick = async () => {
         getWindow().spyGlassMode = !getWindow().spyGlassMode
+        getWindow().photosMode = !getWindow().photosMode
         if (getWindow().spyGlassMode) {
             spyGlassBtn.classList.remove("bi-eye-slash-fill")
             spyGlassBtn.classList.add("bi-eye-fill")
@@ -9332,6 +9376,82 @@ function setupSatelliteLayers() {
 
 //</editor-fold>
 
+//<editor-fold desc="swipes" defaultstate="collapsed">
+
+let startTouch = null
+let touchMove = null
+let touchEnd = null
+
+function addSwipes() {
+    if (!GM_config.get("Swipes")) {
+        return
+    }
+    let startX = 0
+    let startY = 0
+    let direction = null
+    const sidebar = document.querySelector("#sidebar_content")
+    sidebar.style.transform = "translateX(var(--touch-diff, 0px))"
+
+    if (!location.pathname.startsWith("/changeset/")) {
+        sidebar.removeEventListener("touchstart", startTouch)
+        sidebar.removeEventListener("touchmove", touchMove)
+        sidebar.removeEventListener("touchend", touchEnd)
+        startTouch = null
+        touchMove = null
+        touchEnd = null
+    } else {
+        if (startTouch !== null) return
+        startTouch = e => {
+            startX = e.touches[0].clientX
+            startY = e.touches[0].clientY
+        }
+
+        touchMove = e => {
+            const diffY = e.changedTouches[0].clientY - startY
+            const diffX = e.changedTouches[0].clientX - startX
+            if (direction == null) {
+                if (diffY >= 10 || diffY <= -10) {
+                    direction = "v"
+                } else if (diffX >= 10 || diffX <= -10) {
+                    direction = "h"
+                    startX = e.touches[0].clientX
+                }
+            } else if (direction === "h") {
+                e.preventDefault()
+                sidebar.style.setProperty("--touch-diff", `${diffX}px`)
+            }
+        }
+
+        touchEnd = e => {
+            const diffX = startX - e.changedTouches[0].clientX
+
+            sidebar.style.removeProperty("--touch-diff")
+            if (direction === "h") {
+                if (diffX > sidebar.offsetWidth / 3) {
+                    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
+                    if (navigationLinks && Array.from(navigationLinks).at(-1).href.includes("/changeset/")) {
+                        getAbortController().abort(ABORT_ERROR_PREV)
+                        Array.from(navigationLinks).at(-1).click()
+                    }
+                } else if (diffX < -sidebar.offsetWidth / 3) {
+                    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
+                    if (navigationLinks && navigationLinks[0].href.includes("/changeset/")) {
+                        getAbortController().abort(ABORT_ERROR_NEXT)
+                        navigationLinks[0].click()
+                    }
+                }
+            }
+            direction = null
+        }
+
+        sidebar.addEventListener("touchstart", startTouch)
+        sidebar.addEventListener("touchmove", touchMove)
+        sidebar.addEventListener("touchend", touchEnd)
+    }
+}
+
+//</editor-fold>
+
 //<editor-fold desc="diff-algorithm" defaultstate="collapsed">
 
 /**
@@ -9529,6 +9649,55 @@ function makeElementHistoryCompact(forceState = null) {
     document.querySelector(".compact-toggle-btn").innerHTML = shouldBeCompact ? expandModeSvg : compactModeSvg
 }
 
+function drawPanoramaxCapturePlace(feature) {
+    const lat = feature.geometry?.coordinates?.[1]
+    const lon = feature.geometry?.coordinates?.[0]
+    if (lat === undefined || lon === undefined) {
+        return
+    }
+    const rawAngle = feature.properties?.exif?.["Exif.GPSInfo.GPSImgDirection"]
+    if (rawAngle === undefined) {
+        console.warn("no angle in feature", feature)
+        return
+    }
+    const angle = rawAngle?.includes("/") ? rawAngle.split("/")[0] / rawAngle.split("/")[1] : parseFloat(rawAngle)
+
+    showActiveNodeMarker(lat, lon, "#0022ff", true)
+    if (angle) {
+        drawRay(lat, lon, angle - 30, "#0022ff")
+        drawRay(lat, lon, angle + 30, "#0022ff")
+    }
+}
+
+async function attachPanoramaxHoverCaptureHandler(a, uuid, panoramaxServer) {
+    const res = (
+        await externalFetchRetry({
+            url: `${panoramaxServer}/api/search?limit=1&ids=${uuid}`,
+            responseType: "json",
+        })
+    ).response
+    if (res["error"] || res["features"].length === 0) {
+        console.error(res)
+        return
+    }
+    a.onmouseenter = () => drawPanoramaxCapturePlace(res["features"][0])
+    const author = res["features"][0]?.properties?.["geovisio:producer"]
+    const artist = res["features"][0]?.properties?.exif?.["Exif.Image.Artist"]
+    if (author) {
+        if (a.title && a.title?.length !== 0) {
+            a.title += "\n"
+        }
+        a.title += "Photo by " + author
+        if (artist && artist !== author) {
+            a.title += " / " + artist
+        }
+    }
+    const date = res["features"][0]?.properties?.exif?.["Exif.Image.DateTime"]
+    if (date) {
+        a.title += "\n" + date
+    }
+}
+
 function addPanoramaxPicIntoA(uuid, a, panoramaxServer) {
     const imgSrc = `${panoramaxServer}/api/pictures/${uuid}/sd.jpg`
     if (isSafari) {
@@ -9552,31 +9721,7 @@ function addPanoramaxPicIntoA(uuid, a, panoramaxServer) {
         }
         a.appendChild(img)
     }
-    setTimeout(async () => {
-        const res = (
-            await externalFetchRetry({
-                url: `${panoramaxServer}/api/search?limit=1&ids=${uuid}`,
-                responseType: "json",
-            })
-        ).response
-        if (!res["error"] && res["features"].length > 0) {
-            a.onmouseenter = () => {
-                const lat = res["features"][0]["geometry"]["coordinates"][1]
-                const lon = res["features"][0]["geometry"]["coordinates"][0]
-                const raw_angle = res["features"][0]["properties"]["exif"]["Exif.GPSInfo.GPSImgDirection"]
-                const angle = raw_angle?.includes("/") ? raw_angle.split("/")[0] / raw_angle.split("/")[1] : parseFloat(raw_angle)
-
-                showActiveNodeMarker(lat, lon, "#0022ff", true)
-
-                if (angle) {
-                    drawRay(lat, lon, angle - 30, "#0022ff")
-                    drawRay(lat, lon, angle + 30, "#0022ff")
-                }
-            }
-        } else {
-            console.error(res)
-        }
-    })
+    setTimeout(() => attachPanoramaxHoverCaptureHandler(a, uuid, panoramaxServer))
 }
 
 // https://osm.org/node/12559772251
@@ -10034,11 +10179,12 @@ function makeLinksInVersionTagClickable(row, objType) {
         }
         if (type === "way" && ["building", "building:part"].includes(key)) {
             const has3DTags = !Array.from(document.querySelectorAll(".browse-tag-list tr th")).some(i => {
-                // prettier-ignore
-                return i.textContent.includes("level")
-                    || i.textContent.includes("height")
-                    || i.textContent.includes("roof")
-                    || i.textContent.includes("wikidata")
+                return (
+                    i.textContent.includes("level") ||
+                    i.textContent.includes("height") ||
+                    i.textContent.includes("roof") ||
+                    i.textContent.includes("wikidata")
+                )
             })
             if (has3DTags) {
                 if (document.querySelectorAll('a[href^="/node/"]').length <= 5) {
@@ -10266,7 +10412,7 @@ function makeLinksInVersionTagClickable(row, objType) {
         if (!valueCell.querySelector("a")) {
             makeRefBelpostValue(valueCell)
         }
-    } else if (key.length <= 2 && (key !== "to" || key !== "tv")) {
+    } else if (key.length <= 2 && key !== "to" && key !== "tv" && key !== "it") {
         keyCell.classList.add("fixme-tag")
         keyCell.title = "The key is too short"
     }
@@ -11052,7 +11198,6 @@ async function replaceDownloadWayButton(btn, wayID) {
         const interVersionDivHeader = document.createElement("h4")
         const interVersionDivAbbr = document.createElement("abbr")
         interVersionDivAbbr.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Промежуточная версия" : "Intermediate version"
-        // prettier-ignore
         interVersionDivAbbr.title = ["ru-RU", "ru"].includes(navigator.language)
             ? "Произошли изменения тегов или координат точек в линии,\nкоторые не увеличили версию линии"
             : "There have been changes to the tags or coordinates of nodes in the way that have not increased the way version"
@@ -14204,76 +14349,169 @@ let allTagsOfObjectsVisible = true
  * @type {Object.<string, ChangesetMetadata>}|null
  **/
 const changesetMetadatas = {}
-let startTouch = null
-let touchMove = null
-let touchEnd = null
 
-function addSwipes() {
-    if (!GM_config.get("Swipes")) {
+/**
+ * @param {number|null=} changeset_id
+ * @return {Promise<ChangesetMetadata>}
+ */
+async function loadChangesetMetadata(changeset_id = null) {
+    console.debug(`Loading changeset metadata`)
+    if (!changeset_id) {
+        const match = location.pathname.match(/changeset\/(\d+)/)
+        if (!match) {
+            // console.trace("loadChangesetMetadata called without changeset_id and on not /changeset page")
+            return
+        }
+        changeset_id = parseInt(match[1])
+    }
+    console.debug(`Loading metadata of changeset #${changeset_id}`)
+    if (changesetMetadatas[changeset_id] && changesetMetadatas[changeset_id].id === changeset_id) {
+        return changesetMetadatas[changeset_id]
+    }
+    // prevChangesetMetadata = changesetMetadatas[changeset_id]
+    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json")
+    if (jsonRes.changeset) {
+        return (changesetMetadatas[changeset_id] = jsonRes.changeset)
+    }
+    changesetMetadatas[changeset_id] = jsonRes.elements[0]
+    changesetMetadatas[changeset_id].min_lat = changesetMetadatas[changeset_id].minlat
+    changesetMetadatas[changeset_id].min_lon = changesetMetadatas[changeset_id].minlon
+    changesetMetadatas[changeset_id].max_lat = changesetMetadatas[changeset_id].maxlat
+    changesetMetadatas[changeset_id].max_lon = changesetMetadatas[changeset_id].maxlon
+    return changesetMetadatas[changeset_id]
+}
+
+/**
+ * @param {number[]} changeset_ids
+ */
+async function loadChangesetMetadatas(changeset_ids) {
+    if (!changeset_ids.length) {
         return
     }
-    let startX = 0
-    let startY = 0
-    let direction = null
-    const sidebar = document.querySelector("#sidebar_content")
-    sidebar.style.transform = "translateX(var(--touch-diff, 0px))"
-
-    if (!location.pathname.startsWith("/changeset/")) {
-        sidebar.removeEventListener("touchstart", startTouch)
-        sidebar.removeEventListener("touchmove", touchMove)
-        sidebar.removeEventListener("touchend", touchEnd)
-        startTouch = null
-        touchMove = null
-        touchEnd = null
-    } else {
-        if (startTouch !== null) return
-        startTouch = e => {
-            startX = e.touches[0].clientX
-            startY = e.touches[0].clientY
-        }
-
-        touchMove = e => {
-            const diffY = e.changedTouches[0].clientY - startY
-            const diffX = e.changedTouches[0].clientX - startX
-            if (direction == null) {
-                if (diffY >= 10 || diffY <= -10) {
-                    direction = "v"
-                } else if (diffX >= 10 || diffX <= -10) {
-                    direction = "h"
-                    startX = e.touches[0].clientX
-                }
-            } else if (direction === "h") {
-                e.preventDefault()
-                sidebar.style.setProperty("--touch-diff", `${diffX}px`)
-            }
-        }
-
-        touchEnd = e => {
-            const diffX = startX - e.changedTouches[0].clientX
-
-            sidebar.style.removeProperty("--touch-diff")
-            if (direction === "h") {
-                if (diffX > sidebar.offsetWidth / 3) {
-                    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
-                    if (navigationLinks && Array.from(navigationLinks).at(-1).href.includes("/changeset/")) {
-                        getAbortController().abort(ABORT_ERROR_PREV)
-                        Array.from(navigationLinks).at(-1).click()
-                    }
-                } else if (diffX < -sidebar.offsetWidth / 3) {
-                    const navigationLinks = document.querySelectorAll("div.secondary-actions")[1]?.querySelectorAll("a")
-                    if (navigationLinks && navigationLinks[0].href.includes("/changeset/")) {
-                        getAbortController().abort(ABORT_ERROR_NEXT)
-                        navigationLinks[0].click()
-                    }
-                }
-            }
-            direction = null
-        }
-
-        sidebar.addEventListener("touchstart", startTouch)
-        sidebar.addEventListener("touchmove", touchMove)
-        sidebar.addEventListener("touchend", touchEnd)
+    const batchSize = 100
+    for (let i = 0; i < changeset_ids.length; i += batchSize) {
+        const res = await fetchRetry(osm_server.apiBase + "changesets.json?changesets=" + changeset_ids.slice(i, i + batchSize).join(","))
+        const jsonRes = await res.json()
+        jsonRes["changesets"].forEach(i => {
+            changesetMetadatas[i.id] = i
+        })
     }
+}
+
+let noteMetadata = null
+
+async function loadNoteMetadata() {
+    const match = location.pathname.match(/note\/(\d+)/)
+    if (!match) {
+        return
+    }
+    const note_id = parseInt(match[1])
+    if (noteMetadata !== null && noteMetadata.id === note_id) {
+        return
+    }
+    const res = await fetchRetry(osm_server.apiBase + "notes" + "/" + note_id + ".json", { signal: getAbortController().signal })
+    noteMetadata = await res.json()
+}
+
+let nodeMetadata = null
+
+async function loadNodeMetadata() {
+    const match = location.pathname.match(/node\/(\d+)/)
+    if (!match) {
+        return
+    }
+    const node_id = parseInt(match[1])
+    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "node" + "/" + node_id + ".json", {}, res => {
+        if (res.status === 410) {
+            console.warn(`node ${node_id} was deleted`)
+        } else {
+            return true
+        }
+    })
+    if (!jsonRes) return
+    nodeMetadata = jsonRes.elements[0]
+    return jsonRes
+}
+
+let wayMetadata = null
+
+/**
+ * @param {number|null=} way_id
+ * @return {Promise<void|{elements: (NodeVersion|WayVersion)[]}>}
+ */
+async function loadWayMetadata(way_id = null) {
+    console.log(`Loading way metadata`)
+    if (!way_id) {
+        const match = location.pathname.match(/way\/(\d+)/)
+        if (!match) {
+            return
+        }
+        way_id = parseInt(match[1])
+    }
+    /*** @type {{elements: (NodeVersion|WayVersion)[]}|undefined}*/
+    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "way" + "/" + way_id + "/full.json", {}, res => {
+        if (res.status === 410) {
+            console.warn(`way ${way_id} was deleted`)
+        } else {
+            return true
+        }
+    })
+    if (!jsonRes) return
+    wayMetadata = jsonRes.elements.filter(i => i.type === "node")
+    wayMetadata.bbox = {
+        min_lat: Math.min(...wayMetadata.map(i => i.lat)),
+        min_lon: Math.min(...wayMetadata.map(i => i.lon)),
+        max_lat: Math.max(...wayMetadata.map(i => i.lat)),
+        max_lon: Math.max(...wayMetadata.map(i => i.lon)),
+    }
+    return jsonRes
+}
+
+/**
+ * @type {{
+ *     relation: RelationVersion,
+ *     bbox: {
+ *         min_lat: number,
+ *         min_lon: number,
+ *         max_lat: number,
+ *         max_lon: number,
+ *     }
+ * } | null}
+ */
+let relationMetadata = null
+
+/**
+ * @param {number|null=} relation_id
+ * @return {Promise<{elements: (NodeVersion|WayVersion|RelationVersion)[]}| undefined>}
+ */
+async function loadRelationMetadata(relation_id = null) {
+    console.log(`Loading relation metadata`)
+    if (!relation_id) {
+        const match = location.pathname.match(/relation\/(\d+)/)
+        if (!match) {
+            return
+        }
+        relation_id = parseInt(match[1])
+    }
+    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "relation" + "/" + relation_id + "/full.json", {}, res => {
+        if (res.status === 410) {
+            console.warn(`relation ${relation_id} was deleted`)
+        } else {
+            return true
+        }
+    })
+    if (!jsonRes) return
+    const nodes = /** @type {NodeVersion[]} */ jsonRes.elements.filter(i => i.type === "node")
+    relationMetadata = {
+        relation: jsonRes.elements.find(i => i.type === "relation" && i.id === relation_id),
+        bbox: {
+            min_lat: Math.min(...nodes.map(i => i.lat)),
+            min_lon: Math.min(...nodes.map(i => i.lon)),
+            max_lat: Math.max(...nodes.map(i => i.lat)),
+            max_lon: Math.max(...nodes.map(i => i.lon)),
+        },
+    }
+    return jsonRes
 }
 
 const cachedNominatimRequests = new Set()
@@ -14525,7 +14763,7 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
             makeConditionalValue(valueCell)
         } else if (key === "type") {
             makeTypeValue(valueCell, objType)
-        } else if (key.length <= 2 && (key !== "to" || key !== "tv")) {
+        } else if (key.length <= 2 && key !== "to" && key !== "tv" && key !== "it") {
             keyCell.classList.add("fixme-tag")
             keyCell.title = "The key is too short"
         }
@@ -17882,6 +18120,354 @@ function setupChangesetQuickLook() {
 
 //</editor-fold>
 
+//<editor-fold desc="photos-gallery" defaultstate="collapsed">
+
+let panoramaxHoverZoomToken = 0
+
+function hidePanoramaxHoverZoomPopup() {
+    const hoverZoomPopup = document.getElementById("panoramax-hover-zoom-popup")
+    if (!hoverZoomPopup) {
+        return
+    }
+    hoverZoomPopup.style.display = "none"
+    hoverZoomPopup.style.visibility = "visible"
+}
+
+function getOrCreatePanoramaxHoverZoomPopup() {
+    let hoverZoomPopup = document.getElementById("panoramax-hover-zoom-popup")
+    if (!hoverZoomPopup) {
+        hoverZoomPopup = document.createElement("div")
+        hoverZoomPopup.id = "panoramax-hover-zoom-popup"
+        Object.assign(hoverZoomPopup.style, {
+            position: "fixed",
+            display: "none",
+            zIndex: "100000",
+            pointerEvents: "auto",
+            padding: "6px",
+            background: "var(--bs-body-bg)",
+            borderRadius: "10px",
+            boxShadow: "0 8px 24px rgba(0, 0, 0, 0.25)",
+            maxWidth: "calc(100vw - 16px)",
+            overflowX: "auto",
+            overflowY: "hidden",
+            touchAction: "pan-x",
+            overscrollBehaviorX: "contain",
+            WebkitOverflowScrolling: "touch",
+        })
+        hoverZoomPopup.addEventListener("pointerdown", e => {
+            e.stopPropagation()
+        })
+        hoverZoomPopup.addEventListener(
+            "touchstart",
+            e => {
+                e.stopPropagation()
+            },
+            { passive: true },
+        )
+        hoverZoomPopup.addEventListener(
+            "touchmove",
+            e => {
+                e.stopPropagation()
+            },
+            { passive: true },
+        )
+        hoverZoomPopup.addEventListener(
+            "touchend",
+            e => {
+                e.stopPropagation()
+            },
+            { passive: true },
+        )
+        hoverZoomPopup.addEventListener(
+            "touchcancel",
+            e => {
+                e.stopPropagation()
+            },
+            { passive: true },
+        )
+        hoverZoomPopup.addEventListener("contextmenu", e => {
+            e.stopPropagation()
+            e.preventDefault()
+        })
+        document.body.append(hoverZoomPopup)
+    }
+    return hoverZoomPopup
+}
+
+function placePanoramaxHoverZoomPopup(previewEl, hoverZoomPopup) {
+    const previewRect = previewEl.getBoundingClientRect()
+    const popupRect = hoverZoomPopup.getBoundingClientRect()
+    const popupWidth = popupRect.width || 494
+    const popupHeight = popupRect.height || 374
+    const viewportWidth = window.innerWidth
+    const viewportHeight = window.innerHeight
+    const edgePadding = 8
+    const gap = 10
+
+    let left = previewRect.left + previewRect.width / 2 - popupWidth / 2
+    left = Math.max(edgePadding, Math.min(left, viewportWidth - popupWidth - edgePadding))
+
+    let top = previewRect.top - gap - popupHeight
+    if (top < edgePadding) {
+        top = previewRect.bottom + gap
+    }
+    if (top + popupHeight > viewportHeight - edgePadding) {
+        top = Math.max(edgePadding, viewportHeight - popupHeight - edgePadding)
+    }
+
+    hoverZoomPopup.style.left = `${left}px`
+    hoverZoomPopup.style.top = `${top}px`
+    hoverZoomPopup.style.transform = "none"
+}
+
+function attachPanoramaxCarouselHoverZoom(previewEl) {
+    if (previewEl.getAttribute("data-hover-zoom-bound")) {
+        return
+    }
+    previewEl.setAttribute("data-hover-zoom-bound", "1")
+
+    const hoverZoomPopup = getOrCreatePanoramaxHoverZoomPopup()
+    const hideHoverZoom = () => {
+        hidePanoramaxHoverZoomPopup()
+    }
+
+    previewEl.addEventListener("mouseenter", () => {
+        const hoverToken = ++panoramaxHoverZoomToken
+        hoverZoomPopup.style.display = "none"
+        hoverZoomPopup.replaceChildren()
+        if (hoverToken !== panoramaxHoverZoomToken) {
+            return
+        }
+        if (!document.body.contains(previewEl)) {
+            return
+        }
+        const zoomImgSrc = previewEl.getAttribute("data-panoramax-zoom-src")
+        if (!zoomImgSrc) {
+            return
+        }
+        const thumbImgSrc = previewEl.getAttribute("data-panoramax-thumb-src")
+        if (!thumbImgSrc) {
+            return
+        }
+        hoverZoomPopup.replaceChildren()
+        const zoomWrapper = document.createElement("div")
+        Object.assign(zoomWrapper.style, {
+            position: "relative",
+            width: "480px",
+            height: "360px",
+            borderRadius: "6px",
+            overflow: "hidden",
+            background: "var(--bs-body-bg)",
+        })
+        const thumbImg = GM_addElement("img", {
+            src: thumbImgSrc,
+            width: "480",
+        })
+        Object.assign(thumbImg.style, {
+            display: "block",
+            width: "480px",
+            height: "360px",
+            objectFit: "cover",
+            borderRadius: "6px",
+        })
+        const zoomImg = GM_addElement("img", {
+            src: zoomImgSrc,
+            width: "480",
+        })
+        Object.assign(zoomImg.style, {
+            display: "block",
+            position: "absolute",
+            inset: "0",
+            opacity: "0",
+            width: "480px",
+            height: "360px",
+            objectFit: "cover",
+            borderRadius: "6px",
+        })
+        zoomImg.onerror = () => {
+            zoomImg.style.display = "none"
+        }
+        zoomImg.onload = () => {
+            if (hoverToken !== panoramaxHoverZoomToken) {
+                return
+            }
+            zoomImg.style.opacity = "1"
+        }
+        zoomWrapper.append(thumbImg)
+        zoomWrapper.append(zoomImg)
+        hoverZoomPopup.append(zoomWrapper)
+        hoverZoomPopup.style.visibility = "hidden"
+        hoverZoomPopup.style.display = "block"
+        placePanoramaxHoverZoomPopup(previewEl, hoverZoomPopup)
+        hoverZoomPopup.style.visibility = "visible"
+    })
+    previewEl.addEventListener("mousemove", () => {
+        if (hoverZoomPopup.style.display !== "none") {
+            placePanoramaxHoverZoomPopup(previewEl, hoverZoomPopup)
+        }
+    })
+    previewEl.addEventListener("mouseleave", e => {
+        const nextEl = e.relatedTarget
+        if (nextEl && nextEl.closest?.("#photos-preview-gallery")) {
+            return
+        }
+        panoramaxHoverZoomToken += 1
+        hideHoverZoom()
+    })
+    previewEl.addEventListener("click", hideHoverZoom)
+}
+
+/**
+ * @param {{tags, type, id}[]} withPhotos
+ */
+function renderPanoramaxPhotosPreview(withPhotos) {
+    const mapEl = document.getElementById("map")
+    if (!mapEl) {
+        return
+    }
+    Object.assign(mapEl.style, {
+        position: "relative",
+    })
+
+    let photosPreviewGallery = document.getElementById("photos-preview-gallery")
+    if (!photosPreviewGallery) {
+        photosPreviewGallery = document.createElement("div")
+        photosPreviewGallery.id = "photos-preview-gallery"
+        Object.assign(photosPreviewGallery.style, {
+            position: "absolute",
+            left: "0",
+            transform: "none",
+            bottom: "0",
+            width: "100%",
+            maxWidth: "100%",
+            height: "96px",
+            padding: "10px 12px",
+            boxSizing: "border-box",
+            display: "flex",
+            gap: "8px",
+            overflowX: "auto",
+            overflowY: "hidden",
+            zIndex: "99999",
+            background: "transparent",
+            touchAction: "pan-x",
+            overscrollBehaviorX: "contain",
+            WebkitOverflowScrolling: "touch",
+        })
+        photosPreviewGallery.addEventListener(
+            "wheel",
+            e => {
+                e.stopPropagation()
+                if (e.deltaX !== 0 || e.deltaY !== 0) {
+                    photosPreviewGallery.scrollLeft += e.deltaX + e.deltaY
+                    e.preventDefault()
+                }
+            },
+            { passive: false },
+        )
+        photosPreviewGallery.addEventListener("pointerdown", e => {
+            e.stopPropagation()
+        })
+        photosPreviewGallery.addEventListener(
+            "touchstart",
+            e => {
+                e.stopPropagation()
+            },
+            { passive: true },
+        )
+        photosPreviewGallery.addEventListener(
+            "touchmove",
+            e => {
+                e.stopPropagation()
+            },
+            { passive: true },
+        )
+        photosPreviewGallery.addEventListener(
+            "touchend",
+            e => {
+                e.stopPropagation()
+            },
+            { passive: true },
+        )
+        photosPreviewGallery.addEventListener(
+            "touchcancel",
+            e => {
+                e.stopPropagation()
+            },
+            { passive: true },
+        )
+        photosPreviewGallery.addEventListener("contextmenu", e => {
+            e.stopPropagation()
+            e.preventDefault()
+        })
+        photosPreviewGallery.addEventListener("mouseleave", () => {
+            hidePanoramaxHoverZoomPopup()
+        })
+        mapEl.append(photosPreviewGallery)
+    }
+
+    photosPreviewGallery.replaceChildren()
+    withPhotos.forEach(photoObj => {
+        const placeholder = document.createElement("div")
+        placeholder.classList.add("panoramax-preview")
+        Object.assign(placeholder.style, {
+            flex: "0 0 72px",
+            height: "72px",
+            border: "1px solid #c7c7c7",
+            borderRadius: "8px",
+            background: "#f3f3f3",
+            overflow: "hidden",
+            pointerEvents: "auto",
+            cursor: "pointer",
+        })
+        const panoramaxTagValue = Object.entries(photoObj.tags || {}).find(([k, _]) => k.startsWith("panoramax"))?.[1]
+        const panoramaxUuid = panoramaxTagValue?.match?.(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0]
+        if (panoramaxUuid) {
+            placeholder.setAttribute("data-panoramax-uuid", panoramaxUuid.toLowerCase())
+        }
+        if (photoObj.type && photoObj.id) {
+            placeholder.setAttribute("data-osm-path", "/" + photoObj.type + "/" + photoObj.id)
+        }
+        photosPreviewGallery.append(placeholder)
+    })
+
+    document.querySelectorAll("#photos-preview-gallery .panoramax-preview[data-panoramax-uuid]").forEach(previewEl => {
+        const uuid = previewEl.getAttribute("data-panoramax-uuid")
+        if (!uuid) {
+            return
+        }
+        previewEl.setAttribute("data-panoramax-zoom-src", `${panoramaxDiscoveryServer}/api/pictures/${uuid}/sd.jpg`)
+        previewEl.setAttribute("data-panoramax-thumb-src", `${panoramaxDiscoveryServer}/api/pictures/${uuid}/thumb.jpg`)
+        const osmPath = previewEl.getAttribute("data-osm-path")
+        if (osmPath && !previewEl.getAttribute("data-route-bound")) {
+            previewEl.setAttribute("data-route-bound", "1")
+            previewEl.onclick = e => {
+                e.stopPropagation()
+                getWindow().OSM.router.route(osmPath)
+            }
+        }
+        attachPanoramaxCarouselHoverZoom(previewEl)
+        if (previewEl.querySelector("img")) {
+            return
+        }
+        const imgSrc = `${panoramaxDiscoveryServer}/api/pictures/${uuid}/thumb.jpg`
+        const img = GM_addElement("img", {
+            src: imgSrc,
+            width: "100%",
+        })
+        Object.assign(img.style, {
+            height: "100%",
+            objectFit: "cover",
+        })
+        img.onerror = () => {
+            img.style.display = "none"
+        }
+        previewEl.append(img)
+        void attachPanoramaxHoverCaptureHandler(previewEl, uuid, panoramaxDiscoveryServer)
+    })
+}
+
+//</editor-fold>
+
 //<editor-fold desc="panoramax-upload" defaultstate="collapsed">
 
 async function getPanoramaxToken() {
@@ -18307,6 +18893,41 @@ async function addHoverForNodesParents() {
     }
 }
 
+function showBboxMenu(e, bbox) {
+    injectContextMenuCSS()
+    document.querySelectorAll(".betterOsmContextMenu").forEach(i => i.remove())
+    const menu = makeContextMenuElem(e)
+    ;[
+        `${bbox.min_lat.toFixed(6)} ${bbox.min_lon.toFixed(6)} ${bbox.max_lat.toFixed(6)} ${bbox.max_lon.toFixed(6)}`,
+        `${bbox.min_lon.toFixed(6)} ${bbox.min_lat.toFixed(6)} ${bbox.max_lon.toFixed(6)} ${bbox.max_lat.toFixed(6)}`,
+        `${bbox.min_lat.toFixed(6)},${bbox.min_lon.toFixed(6)},${bbox.max_lat.toFixed(6)},${bbox.max_lon.toFixed(6)}`,
+        `${bbox.min_lon.toFixed(6)},${bbox.min_lat.toFixed(6)},${bbox.max_lon.toFixed(6)},${bbox.max_lat.toFixed(6)}`,
+    ].forEach(text => {
+        const listItem = document.createElement("div")
+        const a = document.createElement("a")
+        a.textContent = text
+        a.title = "Click to copy " + text
+        a.style.width = "100%"
+        a.style.fontVariantNumeric = "tabular-nums"
+        a.onclick = e => {
+            e.preventDefault()
+            e.stopPropagation()
+            navigator.clipboard.writeText(text)
+            document.querySelectorAll(".betterOsmContextMenu").forEach(i => i.remove())
+        }
+        listItem.appendChild(a)
+        document.addEventListener(
+            "click",
+            function fn(e) {
+                menu.remove()
+            },
+            { once: true },
+        )
+        menu.appendChild(listItem)
+    })
+    document.body.appendChild(menu)
+}
+
 /**
  * @param {number[]} nodesIds
  * @param {Map} nodesMap
@@ -18437,8 +19058,7 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type) {
     const icon4 = document.createElement("span")
     icon4.innerHTML = svg4
     icon4.style.cursor = "pointer"
-    const text4 = `${bbox.min_lat.toString()} ${bbox.min_lon.toString()} ${bbox.max_lat.toString()} ${bbox.max_lon.toString()}`
-    icon4.title = "Click to copy bbox: " + text4
+    icon4.title = "Click to copy bbox"
     icon4.onmouseenter = () => {
         cleanObjectsByKey("activeObjects")
         const rect = getWindow()
@@ -18452,9 +19072,7 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type) {
             .addTo(getMap())
         layers["activeObjects"].push(rect)
     }
-    icon4.onclick = e => {
-        navigator.clipboard.writeText(text4).then(() => copyAnimation(e, text4))
-    }
+    icon4.onclick = e => showBboxMenu(e, bbox)
     // todo нужно больше форматов bbox
     const icons = document.createElement("div")
     icons.style.paddingTop = "5px"
@@ -18625,7 +19243,7 @@ async function addHoverForRelationMembers() {
             infoBtn.classList.add("relation-info-btn")
             infoBtn.classList.add("completed")
             infoBtn.style.fontSize = "large"
-            infoBtn.style.cursor = "pointer"
+            infoBtn.style.cursor = "progress"
 
             document.querySelector("#sidebar_content h4:last-of-type").appendChild(document.createTextNode("\xA0"))
             document.querySelector("#sidebar_content h4:last-of-type").appendChild(infoBtn)
@@ -18957,6 +19575,7 @@ async function addHoverForRelationMembers() {
         console.log("addHoverForRelationMembers finished")
     } finally {
         addHoverForRelationMembersLock = false
+        document.querySelector(".relation-info-btn").style.cursor = "pointer"
     }
 }
 
@@ -19457,6 +20076,18 @@ if ([prod_server.origin, dev_server.origin, local_server.origin, ohm_prod_server
     initMaplibreWorkerOverrider()
 }
 
+function initPanoramaxPhotosPreviewMessageHandler() {
+    window.addEventListener("message", e => {
+        if (e.origin !== location.origin) {
+            return
+        }
+        if (e.data?.type !== "panoramax_filtered_objects") {
+            return
+        }
+        renderPanoramaxPhotosPreview(e.data?.withPhotos || [])
+    })
+}
+
 function runInOsmPageCode() {
     injectJSIntoPage(`
     const OriginalBlob = window.Blob;
@@ -19512,6 +20143,7 @@ function runInOsmPageCode() {
     window.needPatchLoadMoreRequest = null;
     window.hiddenChangesetsCount = null;
     window.spyGlassMode = false;
+    window.photosMode = false;
 
     window.notesDisplayName = "";
     window.notesQFilter = "";
@@ -19772,6 +20404,19 @@ function runInOsmPageCode() {
                 //     statusText: response.statusText,
                 //     headers: response.headers
                 // });
+            } else if ((false || photosMode) && args[0]?.includes?.("/map.json")) {
+                console.debug("replacing Map Data overlay")
+                const response = await originalFetch(...args);
+                const originalJSON = await response.json();
+                const withPhotos = originalJSON.elements.filter(i => {
+                    return Object.keys(i.tags || {}).some(k => k.startsWith("panoramax"))
+                })
+                window.postMessage({ type: "panoramax_filtered_objects", withPhotos: withPhotos }, location.origin)
+                return new Response(JSON.stringify(originalJSON), {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: response.headers
+                });
             } else if (spyGlassMode && args[0]?.includes?.("/map.json")) {
                 console.debug("replacing Map Data overlay")
                 const response = await originalFetch(...args);
@@ -20061,6 +20706,7 @@ function runInOsmPageCode() {
 }
 
 if (isOsmServer()) {
+    initPanoramaxPhotosPreviewMessageHandler()
     runInOsmPageCode()
 }
 
@@ -20904,12 +21550,11 @@ async function loadChangesets(user) {
     const startTime4 = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 365) / 4)
     const endTime = new Date(new Date().getTime() + 1000 * 60 * 60 * 24)
 
-    // prettier-ignore
     const parts = await Promise.all([
         loadChangesetsBetween(user, startTime, startTime2),
         loadChangesetsBetween(user, startTime2, startTime3),
         loadChangesetsBetween(user, startTime3, startTime4),
-        loadChangesetsBetween(user, startTime4, endTime)
+        loadChangesetsBetween(user, startTime4, endTime),
     ])
 
     const uniqChangesets = new Set()
@@ -22297,7 +22942,7 @@ window.addEventListener("message", async e => {
             const p = document.createElement("p")
             p.classList.add("osrm-debug-link", "text-center", "routing-timestamp")
             const a = document.createElement("a")
-            a.href = `https://map.project-osrm.org/debug/#${z}/${x}/${y}`
+            a.href = `https://map.project-osrm.org/debug/#${max(12, parseInt(z))}/${x}/${y}`
             a.target = "_blank"
             a.textContent = "Open Debug Map"
             p.appendChild(a)
@@ -23045,23 +23690,6 @@ async function _setupNewEditorsLinks(mutationsList) {
             }
 
             linksBtn.addEventListener("click", linksMenuClickHandler)
-
-            if (isDebug() && !document.querySelector("#open-external-panel-btn")) {
-                setTimeout(async () => {
-                    for (let i = 0; i < 40; i++) {
-                        await sleep(30)
-                        if (document.querySelector("#open-external-panel-btn")) {
-                            break
-                        }
-                        const linksBtn2 = document.querySelector(".control-query").cloneNode(true)
-                        linksBtn2.id = "open-external-panel-btn"
-                        linksBtn2.querySelector("a").innerHTML = svg.outerHTML
-                        linksBtn2.querySelector("svg").setAttribute("stroke-width", "1.75")
-                        linksBtn2.addEventListener("click", linksMenuClickHandler)
-                        document.querySelector(".control-query").after(linksBtn2)
-                    }
-                })
-            }
         })
         document.querySelectorAll("#menu-icon:not(.listen-click)").forEach(i => {
             i.classList.add("listen-click")
@@ -23419,6 +24047,9 @@ function displayKMLTrack(xml) {
     console.timeEnd("start kml track render")
 }
 
+/**
+ * @param {import('geojson').GeoJSON} geojson
+ */
 function renderGeoJSONwrapper(geojson) {
     injectJSIntoPage(`
     var jsonLayer = null;
@@ -23568,6 +24199,10 @@ function insertOverlaysStyles() {
             .mode-btn:not(.visible) {
                 display: none;
             }
+            
+            .mode-btn > svg {
+                margin-top: -3px;
+            }
 
             .map-img-preview-popup {
                 width: initial;
@@ -23601,12 +24236,6 @@ function insertOverlaysStyles() {
         `)
 }
 
-// todo inline
-const rawEditIcon =
-    "https://raw.githubusercontent.com/openstreetmap/iD/671e9f00699c3b2602b82b291c5cd776445032aa/svg/fontawesome/fas-i-cursor.svg"
-const tableEditIcon =
-    "https://raw.githubusercontent.com/openstreetmap/iD/671e9f00699c3b2602b82b291c5cd776445032aa/svg/fontawesome/fas-th-list.svg"
-
 // const lastVersionsCache = {}
 
 function loadBannedVersions() {
@@ -23615,19 +24244,6 @@ function loadBannedVersions() {
         responseType: "json",
     }).then(async res => {
         bannedVersions = await res.response
-    })
-}
-
-function preloadEditIcons() {
-    GM_addElement("img", {
-        src: rawEditIcon,
-        height: "14px",
-        width: "14px",
-    })
-    GM_addElement("img", {
-        src: tableEditIcon,
-        height: "14px",
-        width: "14px",
     })
 }
 
@@ -23807,23 +24423,10 @@ function renderOSMGeoJSON(xml, options = {}) {
             const modeBtn = startEditEvent.target.parentElement.querySelector(".mode-btn")
             modeBtn.classList.add("visible")
 
-            const tableModeBtnImg = GM_addElement("img", {
-                src: tableEditIcon,
-                height: "14px",
-                width: "14px",
-            })
-            tableModeBtnImg.style.marginTop = "-3px"
-            const rawModeBtnImg = GM_addElement("img", {
-                src: rawEditIcon,
-                height: "14px",
-                width: "14px",
-            })
-            rawModeBtnImg.style.marginTop = "-3px"
-
             if (lastEditMode === "table") {
-                modeBtn.appendChild(rawModeBtnImg)
+                modeBtn.innerHTML = rawEditSvg
             } else {
-                modeBtn.appendChild(tableModeBtnImg)
+                modeBtn.innerHTML = tableEditSvg
                 const textarea = table.querySelector("textarea")
                 textarea.setAttribute("disabled", "true")
                 textarea.value = ""
@@ -23837,16 +24440,15 @@ function renderOSMGeoJSON(xml, options = {}) {
 
             modeBtn.onclick = async e => {
                 e.stopPropagation()
-                modeBtn.querySelector("img").remove()
                 if (lastEditMode === "table") {
-                    modeBtn.appendChild(tableModeBtnImg)
+                    modeBtn.innerHTML = tableEditSvg
                     lastEditMode = "raw"
                     await GM.setValue("lastEditMode", lastEditMode)
 
                     table.appendChild(makeTextareaFromTagsTable(table))
                     table.querySelector("tbody")?.remove()
                 } else {
-                    modeBtn.appendChild(rawModeBtnImg)
+                    modeBtn.innerHTML = rawEditSvg
                     lastEditMode = "table"
                     await GM.setValue("lastEditMode", lastEditMode)
 
@@ -24215,6 +24817,106 @@ function yetAnotherWizard(s) {
 }
 
 let searchResultBBOX = null
+const panoramaxVectorMapSourceId = "panoramax-photos-source"
+const panoramaxVectorMapLayerId = "panoramax-photos-layer"
+let panoramaxVectorMapImageIds = []
+
+function extractPanoramaxUuidFromTags(tags) {
+    const panoramaxTagValue = Object.entries(tags || {}).find(([k, _]) => k.startsWith("panoramax"))?.[1]
+    return panoramaxTagValue?.match?.(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0]?.toLowerCase() ?? null
+}
+
+async function addBase64ImageToVectorMap(map, imageId, base64DataUrl) {
+    const image = document.createElement("img")
+    await new Promise((resolve, reject) => {
+        image.onload = resolve
+        image.onerror = reject
+        image.src = base64DataUrl
+    })
+    if (map.hasImage(imageId)) {
+        map.removeImage(imageId)
+    }
+    map.addImage(imageId, image)
+}
+
+async function renderPanoramaxPhotoPointOnVectorMap(withPhotos) {
+    const map = findVectorMap()
+    if (!map) {
+        return
+    }
+    if (!map.isStyleLoaded?.()) {
+        return
+    }
+
+    if (map.getLayer(panoramaxVectorMapLayerId)) {
+        map.removeLayer(panoramaxVectorMapLayerId)
+    }
+    if (map.getSource(panoramaxVectorMapSourceId)) {
+        map.removeSource(panoramaxVectorMapSourceId)
+    }
+    panoramaxVectorMapImageIds.forEach(imageId => {
+        if (map.hasImage(imageId)) {
+            map.removeImage(imageId)
+        }
+    })
+    panoramaxVectorMapImageIds = []
+
+    /** @type {import("geojson").Feature[]} */
+    const features = []
+    const loadedImageIds = new Set()
+
+    for (const photoObj of withPhotos) {
+        const uuid = extractPanoramaxUuidFromTags(photoObj.tags)
+        if (!uuid || !Number.isFinite(photoObj.lat) || !Number.isFinite(photoObj.lon)) {
+            continue
+        }
+        const imageId = `panoramax-thumb-${uuid}`
+        if (!loadedImageIds.has(imageId)) {
+            const imgSrc = `${panoramaxDiscoveryServer}/api/pictures/${uuid}/thumb.jpg`
+            try {
+                const base64DataUrl = await fetchImageWithCache(imgSrc)
+                await addBase64ImageToVectorMap(map, imageId, base64DataUrl)
+                panoramaxVectorMapImageIds.push(imageId)
+                loadedImageIds.add(imageId)
+            } catch (e) {
+                console.error("failed to load panoramax image", uuid, e)
+                continue
+            }
+        }
+        features.push({
+            type: "Feature",
+            geometry: {
+                type: "Point",
+                coordinates: [photoObj.lon, photoObj.lat],
+            },
+            properties: {
+                iconId: imageId,
+            },
+        })
+    }
+    if (!features.length) {
+        return
+    }
+
+    map.addSource(panoramaxVectorMapSourceId, {
+        type: "geojson",
+        data: {
+            type: "FeatureCollection",
+            features: features,
+        },
+    })
+    map.addLayer({
+        id: panoramaxVectorMapLayerId,
+        type: "symbol",
+        source: panoramaxVectorMapSourceId,
+        layout: {
+            "icon-image": ["get", "iconId"],
+            "icon-size": 0.25,
+            "icon-allow-overlap": true,
+            "icon-ignore-placement": true,
+        },
+    })
+}
 
 async function processOverpassQuery(query) {
     if (!query.length) return
@@ -24309,11 +25011,26 @@ out geom;
                 [bbox.max_lat, bbox.max_lon],
             ])
             loadBannedVersions()
-            preloadEditIcons()
             cleanAllObjects()
             getWindow().jsonLayer?.remove()
             jsonLayer?.remove()
             jsonLayer = renderOSMGeoJSON(xml, true)
+            setTimeout(async () => {
+                const withPhotos = Array.from(xml.querySelectorAll(":has(>[k^=panoramax])")).map(i => {
+                    const res = {
+                        id: parseInt(i.getAttribute("id")),
+                        type: i.nodeName,
+                        tags: Object.fromEntries(Array.from(i.querySelectorAll("tag")).map(j => [j.getAttribute("k"), j.getAttribute("v")])),
+                    }
+                    if (res.type === "node") {
+                        res.lat = parseFloat(i.getAttribute("lat"))
+                        res.lon = parseFloat(i.getAttribute("lon"))
+                    }
+                    return res
+                })
+                renderPanoramaxPhotosPreview(withPhotos)
+                // await renderPanoramaxPhotoPointOnVectorMap(withPhotos)
+            })
             console.timeEnd("render overpass response")
 
             let statusPrefix = ""
@@ -24342,6 +25059,134 @@ out geom;
 
 //<editor-fold desc="drag-and-drop" defaultstate="collapsed">
 
+function displayCsv(text) {
+    const [header, ...lines] = text.split("\n")
+    let sep = header.includes(";") ? ";" : ","
+    const columns = header
+        .trim()
+        .split(sep)
+        .map(i => i.replace(/^"/g, "").replace(/"$/, ""))
+    let latColumIndex = -1
+    let lonColumIndex = -1
+    columns.forEach((col, i) => {
+        if (col.match(/(lat|широта)/i)) {
+            latColumIndex = i
+        } else if (col.match(/(lon|догота)/i)) {
+            lonColumIndex = i
+        }
+    })
+    if (latColumIndex === -1 || lonColumIndex === -1) {
+        throw "Can't find lat/lon columns in CSV file"
+    }
+
+    /** @type {import("geojson").GeoJSON} */
+    const geojson = {
+        type: "FeatureCollection",
+        features: [],
+    }
+    lines
+        .map(line =>
+            line
+                .trim()
+                .split(sep)
+                .map(i => {
+                    if (i[0] === '"') {
+                        if (i.at(-1) === '"') {
+                            return i.slice(1, -1)
+                        }
+                        return i.slice(1)
+                    }
+                    if (i.at(-1) === '"') {
+                        return i.slice(0, -1)
+                    }
+                    return i
+                }),
+        )
+        .forEach(values => {
+            const lat = parseFloat(values[latColumIndex])
+            const lon = parseFloat(values[lonColumIndex])
+            if (isNaN(lat) || isNaN(lon)) {
+                console.warn("Invalid lat/lon in CSV file:", values)
+            }
+            geojson.features.push({
+                type: "Feature",
+                geometry: {
+                    type: "Point",
+                    coordinates: [lon, lat],
+                },
+                properties: Object.fromEntries(columns.map((col, i) => [col, values[i]])),
+            })
+        })
+    renderGeoJSONwrapper(geojson)
+}
+
+function handleDroppedFiles(files) {
+    const mapWidth = getComputedStyle(document.querySelector("#map")).width
+    const mapHeight = getComputedStyle(document.querySelector("#map")).height
+    insertOverlaysStyles()
+
+    files.forEach(async file => {
+        if (file.type.startsWith("image/jpeg")) {
+            const metadata = EXIF.readFromBinaryFile(await file.arrayBuffer())
+            console.log(metadata)
+            console.log(metadata.GPSLatitude, metadata.GPSLongitude)
+            let lat =
+                parseFloat(metadata.GPSLatitude[0]) + parseFloat(metadata.GPSLatitude[1]) / 60 + parseFloat(metadata.GPSLatitude[2]) / 3600
+            let lon =
+                parseFloat(metadata.GPSLongitude[0]) + parseFloat(metadata.GPSLongitude[1]) / 60 + parseFloat(metadata.GPSLongitude[2]) / 3600
+
+            if (metadata.GPSLatitudeRef === "S") {
+                lat = parseFloat(lat) * -1
+            }
+
+            if (metadata.GPSLongitudeRef === "W") {
+                lon = parseFloat(lon) * -1
+            }
+
+            const marker = getWindow().L.circleMarker(
+                getWindow().L.latLng(lat, lon),
+                // intoPage({
+                //     maxWidth: mapWidth,
+                //     maxHeight: mapHeight,
+                //     className: "map-img-preview-popup",
+                // }),
+            )
+            const img = document.createElement("img")
+            img.classList.add("geotagged-img")
+            img.setAttribute("width", "100%")
+            const fr = new FileReader()
+            fr.onload = function () {
+                img.src = fr.result
+                marker.bindPopup(img.outerHTML)
+            }
+            fr.readAsDataURL(file)
+            marker.addTo(getMap())
+        } else if (file.type === "application/json" || file.type === "application/geo+json") {
+            const geojson = JSON.parse(await file.text())
+            renderGeoJSONwrapper(geojson)
+        } else if (file.type === "application/gpx+xml") {
+            displayGPXTrack(await file.text())
+        } else if (file.type === "application/vnd.openstreetmap.data+xml") {
+            const doc = new DOMParser().parseFromString(await file.text(), "application/xml")
+            loadBannedVersions()
+            jsonLayer = renderOSMGeoJSON(doc, true)
+        } else if (file.type === "application/vnd.google-earth.kml+xml") {
+            displayKMLTrack(await file.text())
+        } else if (file.type === "application/vnd.google-earth.kmz+xml") {
+            const { entries } = await unzipit.unzip(await file.arrayBuffer())
+            displayKMLTrack(
+                await Object.entries(entries)
+                    .find(i => i[0].endsWith(".kml"))[1]
+                    .text(),
+            )
+        } else if (file.type === "text/csv") {
+            displayCsv(await file.text())
+        } else {
+            console.log(file.type)
+        }
+    })
+}
+
 async function setupDragAndDropViewers() {
     document.querySelector("#map")?.addEventListener("drop", e => {
         if (location.pathname.includes("/directions") || location.pathname.includes("/note/new")) {
@@ -24350,77 +25195,10 @@ async function setupDragAndDropViewers() {
         e.preventDefault()
         e.stopPropagation()
         e.stopImmediatePropagation()
+
         e.target.style.cursor = "progress"
         try {
-            const mapWidth = getComputedStyle(document.querySelector("#map")).width
-            const mapHeight = getComputedStyle(document.querySelector("#map")).height
-            insertOverlaysStyles()
-            ;[...e.dataTransfer.items].forEach(async (item, _) => {
-                if (item.kind === "file") {
-                    const file = item.getAsFile()
-                    if (file.type.startsWith("image/jpeg")) {
-                        const metadata = EXIF.readFromBinaryFile(await file.arrayBuffer())
-                        console.log(metadata)
-                        console.log(metadata.GPSLatitude, metadata.GPSLongitude)
-                        let lat =
-                            parseFloat(metadata.GPSLatitude[0]) +
-                            parseFloat(metadata.GPSLatitude[1]) / 60 +
-                            parseFloat(metadata.GPSLatitude[2]) / 3600
-                        let lon =
-                            parseFloat(metadata.GPSLongitude[0]) +
-                            parseFloat(metadata.GPSLongitude[1]) / 60 +
-                            parseFloat(metadata.GPSLongitude[2]) / 3600
-
-                        if (metadata.GPSLatitudeRef === "S") {
-                            lat = parseFloat(lat) * -1
-                        }
-
-                        if (metadata.GPSLongitudeRef === "W") {
-                            lon = parseFloat(lon) * -1
-                        }
-
-                        const marker = getWindow().L.circleMarker(
-                            getWindow().L.latLng(lat, lon),
-                            // intoPage({
-                            //     maxWidth: mapWidth,
-                            //     maxHeight: mapHeight,
-                            //     className: "map-img-preview-popup",
-                            // }),
-                        )
-                        const img = document.createElement("img")
-                        img.classList.add("geotagged-img")
-                        img.setAttribute("width", "100%")
-                        const fr = new FileReader()
-                        fr.onload = function () {
-                            img.src = fr.result
-                            marker.bindPopup(img.outerHTML)
-                        }
-                        fr.readAsDataURL(file)
-                        marker.addTo(getMap())
-                    } else if (file.type === "application/json" || file.type === "application/geo+json") {
-                        const geojson = JSON.parse(await file.text())
-                        renderGeoJSONwrapper(geojson)
-                    } else if (file.type === "application/gpx+xml") {
-                        displayGPXTrack(await file.text())
-                    } else if (file.type === "application/vnd.openstreetmap.data+xml") {
-                        const doc = new DOMParser().parseFromString(await file.text(), "application/xml")
-                        loadBannedVersions()
-                        preloadEditIcons()
-                        jsonLayer = renderOSMGeoJSON(doc, true)
-                    } else if (file.type === "application/vnd.google-earth.kml+xml") {
-                        displayKMLTrack(await file.text())
-                    } else if (file.type === "application/vnd.google-earth.kmz+xml") {
-                        const { entries } = await unzipit.unzip(await file.arrayBuffer())
-                        displayKMLTrack(
-                            await Object.entries(entries)
-                                .find(i => i[0].endsWith(".kml"))[1]
-                                .text(),
-                        )
-                    } else {
-                        console.log(file.type)
-                    }
-                }
-            })
+            handleDroppedFiles([...e.dataTransfer.items].filter(i => i.kind === "file").map(i => i.getAsFile()))
         } finally {
             e.target.style.cursor = "grab"
         }
@@ -24478,172 +25256,7 @@ async function setupDragAndDropViewers() {
 
 //</editor-fold>
 
-//<editor-fold desc="hotkeys">
-let hotkeysConfigured = false
-//TODO extract load functions
-/**
- * @param {number|null=} changeset_id
- * @return {Promise<ChangesetMetadata>}
- */
-async function loadChangesetMetadata(changeset_id = null) {
-    console.debug(`Loading changeset metadata`)
-    if (!changeset_id) {
-        const match = location.pathname.match(/changeset\/(\d+)/)
-        if (!match) {
-            // console.trace("loadChangesetMetadata called without changeset_id and on not /changeset page")
-            return
-        }
-        changeset_id = parseInt(match[1])
-    }
-    console.debug(`Loading metadata of changeset #${changeset_id}`)
-    if (changesetMetadatas[changeset_id] && changesetMetadatas[changeset_id].id === changeset_id) {
-        return changesetMetadatas[changeset_id]
-    }
-    // prevChangesetMetadata = changesetMetadatas[changeset_id]
-    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "changeset" + "/" + changeset_id + ".json")
-    if (jsonRes.changeset) {
-        return (changesetMetadatas[changeset_id] = jsonRes.changeset)
-    }
-    changesetMetadatas[changeset_id] = jsonRes.elements[0]
-    changesetMetadatas[changeset_id].min_lat = changesetMetadatas[changeset_id].minlat
-    changesetMetadatas[changeset_id].min_lon = changesetMetadatas[changeset_id].minlon
-    changesetMetadatas[changeset_id].max_lat = changesetMetadatas[changeset_id].maxlat
-    changesetMetadatas[changeset_id].max_lon = changesetMetadatas[changeset_id].maxlon
-    return changesetMetadatas[changeset_id]
-}
-
-/**
- * @param {number[]} changeset_ids
- */
-async function loadChangesetMetadatas(changeset_ids) {
-    if (!changeset_ids.length) {
-        return
-    }
-    const batchSize = 100
-    for (let i = 0; i < changeset_ids.length; i += batchSize) {
-        const res = await fetchRetry(osm_server.apiBase + "changesets.json?changesets=" + changeset_ids.slice(i, i + batchSize).join(","))
-        const jsonRes = await res.json()
-        jsonRes["changesets"].forEach(i => {
-            changesetMetadatas[i.id] = i
-        })
-    }
-}
-
-let noteMetadata = null
-
-async function loadNoteMetadata() {
-    const match = location.pathname.match(/note\/(\d+)/)
-    if (!match) {
-        return
-    }
-    const note_id = parseInt(match[1])
-    if (noteMetadata !== null && noteMetadata.id === note_id) {
-        return
-    }
-    const res = await fetchRetry(osm_server.apiBase + "notes" + "/" + note_id + ".json", { signal: getAbortController().signal })
-    noteMetadata = await res.json()
-}
-
-let nodeMetadata = null
-
-async function loadNodeMetadata() {
-    const match = location.pathname.match(/node\/(\d+)/)
-    if (!match) {
-        return
-    }
-    const node_id = parseInt(match[1])
-    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "node" + "/" + node_id + ".json", {}, res => {
-        if (res.status === 410) {
-            console.warn(`node ${node_id} was deleted`)
-        } else {
-            return true
-        }
-    })
-    if (!jsonRes) return
-    nodeMetadata = jsonRes.elements[0]
-    return jsonRes
-}
-
-let wayMetadata = null
-
-/**
- * @param {number|null=} way_id
- * @return {Promise<void|{elements: (NodeVersion|WayVersion)[]}>}
- */
-async function loadWayMetadata(way_id = null) {
-    console.log(`Loading way metadata`)
-    if (!way_id) {
-        const match = location.pathname.match(/way\/(\d+)/)
-        if (!match) {
-            return
-        }
-        way_id = parseInt(match[1])
-    }
-    /*** @type {{elements: (NodeVersion|WayVersion)[]}|undefined}*/
-    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "way" + "/" + way_id + "/full.json", {}, res => {
-        if (res.status === 410) {
-            console.warn(`way ${way_id} was deleted`)
-        } else {
-            return true
-        }
-    })
-    if (!jsonRes) return
-    wayMetadata = jsonRes.elements.filter(i => i.type === "node")
-    wayMetadata.bbox = {
-        min_lat: Math.min(...wayMetadata.map(i => i.lat)),
-        min_lon: Math.min(...wayMetadata.map(i => i.lon)),
-        max_lat: Math.max(...wayMetadata.map(i => i.lat)),
-        max_lon: Math.max(...wayMetadata.map(i => i.lon)),
-    }
-    return jsonRes
-}
-
-/**
- * @type {{
- *     relation: RelationVersion,
- *     bbox: {
- *         min_lat: number,
- *         min_lon: number,
- *         max_lat: number,
- *         max_lon: number,
- *     }
- * } | null}
- */
-let relationMetadata = null
-
-/**
- * @param {number|null=} relation_id
- * @return {Promise<{elements: (NodeVersion|WayVersion|RelationVersion)[]}| undefined>}
- */
-async function loadRelationMetadata(relation_id = null) {
-    console.log(`Loading relation metadata`)
-    if (!relation_id) {
-        const match = location.pathname.match(/relation\/(\d+)/)
-        if (!match) {
-            return
-        }
-        relation_id = parseInt(match[1])
-    }
-    const jsonRes = await fetchJSONWithCache(osm_server.apiBase + "relation" + "/" + relation_id + "/full.json", {}, res => {
-        if (res.status === 410) {
-            console.warn(`relation ${relation_id} was deleted`)
-        } else {
-            return true
-        }
-    })
-    if (!jsonRes) return
-    const nodes = /** @type {NodeVersion[]} */ jsonRes.elements.filter(i => i.type === "node")
-    relationMetadata = {
-        relation: jsonRes.elements.find(i => i.type === "relation" && i.id === relation_id),
-        bbox: {
-            min_lat: Math.min(...nodes.map(i => i.lat)),
-            min_lon: Math.min(...nodes.map(i => i.lon)),
-            max_lat: Math.max(...nodes.map(i => i.lat)),
-            max_lon: Math.max(...nodes.map(i => i.lon)),
-        },
-    }
-    return jsonRes
-}
+//<editor-fold desc="actions">
 
 function updateCurrentObjectMetadata() {
     setTimeout(loadChangesetMetadata, 0)
@@ -24651,38 +25264,6 @@ function updateCurrentObjectMetadata() {
     setTimeout(loadNodeMetadata, 0)
     setTimeout(loadWayMetadata, 0)
     setTimeout(loadRelationMetadata, 0)
-}
-
-async function loadFriends() {
-    console.debug("Loading friends list")
-    const res = await (await fetch(osm_server.url + "/dashboard")).text()
-    const parser = new DOMParser()
-    const doc = parser.parseFromString(res, "text/html")
-    const friends = []
-    doc.querySelectorAll('a[data-method="delete"][href*="/follow"]').forEach(a => {
-        const username = a.getAttribute("href").match(/\/user\/(.+)\/follow/)[1]
-        friends.push(decodeURI(username))
-    })
-    await GM.setValue("friends", JSON.stringify(friends))
-    console.debug("Friends list updated")
-    return friends
-}
-
-let friendsLoadingLock = false
-
-async function getFriends() {
-    const friendsStr = await GM.getValue("friends")
-    if (friendsStr) {
-        return JSON.parse(friendsStr)
-    } else {
-        while (friendsLoadingLock) {
-            await sleep(500)
-        }
-        friendsLoadingLock = true
-        const res = await loadFriends()
-        friendsLoadingLock = false
-        return res
-    }
 }
 
 const mapPositionsHistory = []
@@ -25711,717 +26292,2086 @@ async function openSelectedObjectsOnChangesetPage(e) {
     }
 }
 
+let defaultZoomKeysBehaviour = false
+
+function shouldSkipHotkeyForActiveElement(e) {
+    if (document.activeElement?.name === "text") return true
+    if (document.activeElement?.nodeName === "INPUT" && ["input", "text"].includes(document.activeElement.getAttribute("type"))) {
+        if (e.code === "Escape") {
+            document.activeElement.blur()
+        }
+        return true
+    }
+    if (document.activeElement?.nodeName === "TEXTAREA" && e.code === "Enter") {
+        if (document.activeElement.parentElement?.parentElement?.querySelector(".btn-wrapper")) {
+            if (e.metaKey || e.ctrlKey) {
+                document.activeElement.parentElement.parentElement.querySelector(".btn-wrapper .btn-primary").click()
+                return true
+            }
+        }
+    }
+    if (
+        ["TEXTAREA", "INPUT", "SELECT"].includes(document.activeElement?.nodeName) &&
+        document.activeElement?.getAttribute("type") !== "checkbox" &&
+        document.activeElement?.getAttribute("type") !== "radio"
+    ) {
+        return true
+    }
+    if (document.activeElement?.getAttribute("contenteditable")) {
+        return true
+    }
+    if (
+        ["TH", "TD"].includes(document.activeElement?.nodeName) &&
+        document.activeElement?.parentElement?.parentElement?.parentElement?.hasAttribute("contenteditable")
+    ) {
+        return true
+    }
+    if (
+        ["TR"].includes(document.activeElement?.nodeName) &&
+        document.activeElement?.parentElement?.parentElement?.hasAttribute("contenteditable")
+    ) {
+        return true
+    }
+    return false
+}
+
+function handleMeasuringHotkeys(e) {
+    if (measuring) {
+        if (((e.ctrlKey || e.metaKey) && e.code === "KeyZ") || e.code === "Backspace" || e.code === "Delete") {
+            if (currentMeasuring.way.length) {
+                currentMeasuring.way.pop()
+                currentMeasuring.nodes.pop()?.remove()
+                currentMeasuring.tempLine?.remove()
+                currentMeasuring.wayLine?.remove()
+                if (currentMeasuring.way.length) {
+                    currentMeasuring.wayLine = displayWay(currentMeasuring.way, false, "#000000", 1)
+                    currentMeasuring.tempLine = displayWay(
+                        [currentMeasuring.way[currentMeasuring.way.length - 1], lastLatLng],
+                        false,
+                        "#000000",
+                        1,
+                    )
+                }
+            }
+            return true
+        } else if (e.code === "Escape") {
+            endMeasuring()
+            return true
+        }
+        return false
+    } else if (prevMeasurements.length && e.code === "Escape") {
+        if (confirm("Clean measurements?")) {
+            cleanMeasurements(e)
+        }
+        return true
+    }
+    return false
+}
+
+function handleRelationViewerHotkeys(e) {
+    if (!document.activeElement?.classList?.contains("relation-viewer-a")) {
+        return false
+    }
+    if (e.code !== "ArrowDown" && e.code !== "ArrowUp") {
+        return false
+    }
+    e.preventDefault()
+    e.stopPropagation()
+    e.stopImmediatePropagation()
+    if (e.code === "ArrowDown") {
+        e.target.parentElement.nextElementSibling?.querySelector("a")?.focus()
+    } else if (e.code === "ArrowUp") {
+        e.target.parentElement.previousElementSibling?.querySelector("a")?.focus()
+    }
+    return true
+}
+
+function actionOpenYandexPanoramas() {
+    const [x, y, z] = getCurrentXYZ()
+    window.open(`https://yandex.ru/maps/?l=stv,sta&ll=${y},${x}&z=${z}`, "_blank", "noreferrer")
+}
+
+function actionCopyCurrentShortLink() {
+    navigator.clipboard.writeText(shortOsmOrgLinksInText(location.origin + location.pathname))
+}
+
+function actionCloseUi() {
+    buildingViewerIframe?.remove()
+    buildingViewerIframe = null
+    if (document.querySelector("#osm_alert_modal")?.checkVisibility()) {
+        document.querySelector("#osm_alert_modal .btn-close").click()
+    } else {
+        document.querySelectorAll(".sidebar-close-controls .btn-close").forEach(i => i?.click())
+        document.querySelector(".welcome .btn-close")?.click()
+        document.querySelector("#banner .btn-close")?.click()
+        document.querySelector(".better-btn-close")?.click()
+    }
+}
+
+function actionClearActiveObjectsAndContextMenus() {
+    cleanObjectsByKey("activeObjects")
+    document.querySelectorAll(".betterOsmContextMenu").forEach(i => i.remove())
+}
+
+function actionGoToUserLocation() {
+    document.querySelector(".control-locate .control-button").click()
+}
+
+function actionToggleSwitchableTime() {
+    document.querySelector("time[switchable]")?.click()
+}
+
+function actionHandleKeyT() {
+    if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
+        document.querySelector('a[href="/traces/mine"], a[href$="/traces"]:not(.nav-link):not(.dropdown-item)')?.click()
+    } else {
+        document.querySelector(".quick-look-compact-toggle-btn")?.click()
+        document.querySelector(".compact-toggle-btn")?.click()
+        actionToggleSwitchableTime()
+    }
+}
+
+function actionOpenOverpassSearch() {
+    setTimeout(async () => {
+        getMap().getBounds()
+        let message = `Type overpass selector:
+\tkey
+\tkey=value
+\tkey~val,i`
+        const currentUser = decodeURI(
+            document
+                .querySelector('.user-menu [href^="/user/"]')
+                ?.getAttribute("href")
+                ?.match(/\/user\/(.*)$/)?.[1] ?? "",
+        )
+        if (currentUser) {
+            message += currentUser.match(/^[a-zA-Z0-9_]+$/) ? `\n\tnode(user:${currentUser})` : `\n\tnode(user:"${currentUser}")`
+        }
+        message += `
+\tway[footway=crossing](if: length() > 150)
+End with ! for global search
+⚠this is a simple prototype of search`
+        const query = prompt(message, await GM.getValue("lastOverpassQuery", ""))
+        if (query) {
+            insertOverlaysStyles()
+            processOverpassQuery(query)
+        }
+    }, 0)
+}
+
+function isUserPageWithoutHistory() {
+    return location.pathname.includes("/user/") && !location.pathname.includes("/history")
+}
+
+function isChangesetPage() {
+    return location.pathname.startsWith("/changeset") && !location.pathname.includes("/changeset_comments")
+}
+
+function isObjectPage() {
+    return /^\/(node|way|relation)\/\d+/.test(location.pathname)
+}
+
+function isObjectHistoryPage() {
+    return /^\/(node|way|relation)\/\d+\/history/.test(location.pathname)
+}
+
+function isSearchPage() {
+    return location.pathname === "/search"
+}
+
+function isHistoryPage() {
+    return location.pathname.includes("/history")
+}
+
+function isFilteredHistoryPage() {
+    return isHistoryPage() && (location.search.includes("after") || location.search.includes("before"))
+}
+
+function isHomeOrNotePage() {
+    return location.pathname === "/" || location.pathname.includes("/note")
+}
+
+function isMainHotkeyPage() {
+    return isHomeOrNotePage() || isSearchPage() || isChangesetPage() || isObjectPage() || isHistoryPage()
+}
+
+const hotkeyHelpContextsOrder = [
+    "All pages",
+    "User pages",
+    "Changeset pages",
+    "Object pages",
+    "History pages",
+    "Search page",
+    "Main pages",
+    "Debug",
+]
+
+const hotkeyCommandsPopupId = "better-osm-hotkey-commands-popup"
+const hotkeyCommandsPopupStyleId = "better-osm-hotkey-commands-popup-styles"
+const recentHotkeyActionsStorageKey = "recentHotkeyActions"
+const recentHotkeyActionsLimit = 3
+
+function getCurrentHotkeyContexts() {
+    const contexts = new Set(["All pages"])
+
+    if (isMainHotkeyPage()) {
+        contexts.add("Main pages")
+    }
+    if (location.pathname.startsWith("/changeset")) {
+        contexts.add("Changeset pages")
+    }
+    if (isObjectPage()) {
+        contexts.add("Object pages")
+    }
+    if (isHistoryPage()) {
+        contexts.add("History pages")
+    }
+    if (isSearchPage()) {
+        contexts.add("Search page")
+    }
+    if (
+        location.pathname.includes("/user/") ||
+        /^\/user_blocks($|\/)/.test(location.pathname) ||
+        /^\/blocks_by\/?$/.test(location.pathname)
+    ) {
+        contexts.add("User pages")
+    }
+    if (isDebug()) {
+        contexts.add("Debug")
+    }
+    if (contexts.size === 1 || (contexts.size === 2 && contexts.has("Debug"))) {
+        contexts.add("Main pages")
+    }
+
+    return hotkeyHelpContextsOrder.filter(context => contexts.has(context))
+}
+
+function actionShowHotkeysHelp() {
+    void showHotkeyCommandsPopup()
+}
+
+function getHotkeyKeyByBaseCode(baseCode, shiftKey = false) {
+    if (/^Key[A-Z]$/.test(baseCode)) {
+        const letter = baseCode.slice(3)
+        return shiftKey ? letter : letter.toLowerCase()
+    }
+    if (/^Digit\d$/.test(baseCode)) {
+        return baseCode.slice(5)
+    }
+
+    return (
+        {
+            Escape: "Escape",
+            F1: "F1",
+            Slash: shiftKey ? "?" : "/",
+            Backquote: shiftKey ? "~" : "`",
+            Minus: shiftKey ? "_" : "-",
+            Equal: shiftKey ? "+" : "=",
+            Comma: shiftKey ? "<" : ",",
+            Period: shiftKey ? ">" : ".",
+        }[baseCode] ?? baseCode
+    )
+}
+
+function formatHotkeyBinding(binding) {
+    if (!binding) {
+        return ""
+    }
+
+    const parts = binding.split("+")
+    const baseCode = parts[parts.length - 1]
+    const modifiers = parts.slice(0, -1)
+
+    const displayBaseCode = /^Key[A-Z]$/.test(baseCode)
+        ? baseCode.slice(3)
+        : /^Digit\d$/.test(baseCode)
+          ? baseCode.slice(5)
+          : getHotkeyKeyByBaseCode(baseCode)
+
+    return [...modifiers, displayBaseCode].join(" + ")
+}
+
+function createSyntheticHotkeyEvent(binding) {
+    const parts = binding.split("+")
+    const baseCode = parts[parts.length - 1]
+    const modifiers = new Set(parts.slice(0, -1))
+    const shiftKey = modifiers.has("Shift")
+
+    return {
+        code: baseCode,
+        key: getHotkeyKeyByBaseCode(baseCode, shiftKey),
+        ctrlKey: modifiers.has("Ctrl"),
+        altKey: modifiers.has("Alt"),
+        shiftKey,
+        metaKey: modifiers.has("Meta"),
+        repeat: false,
+        preventDefault() {},
+        stopPropagation() {},
+        stopImmediatePropagation() {},
+    }
+}
+
+function getAvailableHotkeyCommandsForCurrentPage() {
+    const currentContexts = getCurrentHotkeyContexts()
+
+    return Object.entries(hotkeyActions)
+        .flatMap(([actionId, action]) => {
+            if (isMobile && action.hideOnMobile) {
+                return []
+            }
+            if (!action.contexts.some(context => currentContexts.includes(context))) {
+                return []
+            }
+
+            const bindings = action.defaultBindings.length ? action.defaultBindings : [""]
+
+            return bindings.flatMap(binding => {
+                const event = binding ? createSyntheticHotkeyEvent(binding) : undefined
+                if (action.when && !action.when(event)) {
+                    return []
+                }
+                return [
+                    {
+                        actionId,
+                        title: action.title,
+                        binding,
+                        event,
+                        contexts: action.contexts.filter(context => currentContexts.includes(context)),
+                    },
+                ]
+            })
+        })
+        .sort((a, b) => {
+            const aContextIndex = hotkeyHelpContextsOrder.findIndex(context => a.contexts.includes(context))
+            const bContextIndex = hotkeyHelpContextsOrder.findIndex(context => b.contexts.includes(context))
+            return aContextIndex - bContextIndex || a.title.localeCompare(b.title) || (a.binding || "").localeCompare(b.binding || "")
+        })
+}
+
+async function getRecentHotkeyActionIds() {
+    const stored = await GM.getValue(recentHotkeyActionsStorageKey, ["openOverpassSearch", "openLocalFilePicker", "openSettings"])
+    return stored.filter(actionId => typeof actionId === "string")
+}
+
+async function rememberRecentHotkeyAction(actionId) {
+    const current = await getRecentHotkeyActionIds()
+    const next = [actionId, ...current.filter(currentActionId => currentActionId !== actionId)].slice(0, recentHotkeyActionsLimit)
+    await GM.setValue(recentHotkeyActionsStorageKey, next)
+}
+
+function actionClearRecentHotkeyActions() {
+    setTimeout(() => {
+        void GM.setValue(recentHotkeyActionsStorageKey, [])
+    })
+}
+
+function ensureHotkeyCommandsPopupStyles() {
+    if (
+        document.querySelector(`#${hotkeyCommandsPopupStyleId}`) ||
+        document.documentElement.dataset.hotkeyCommandsPopupStylesInjected === "true"
+    ) {
+        return
+    }
+    const style = injectCSSIntoOSMPage(`
+        #${hotkeyCommandsPopupId} {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            padding: 8px;
+            box-sizing: border-box;
+
+            .better-osm-hotkey-commands-panel {
+                width: max-content;
+                max-width: 100%;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+                background: var(--bs-body-bg);
+                color: var(--bs-body-color);
+                border: 1px solid rgba(204, 204, 204, 0.5);
+                border-radius: 8px;
+                padding: 16px;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+                font-family: sans-serif;
+                box-sizing: border-box;
+            }
+
+            .better-osm-hotkey-commands-header {
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+                margin-bottom: 8px;
+            }
+
+            .better-osm-hotkey-commands-title {
+                margin: 0;
+                font-size: 1rem;
+            }
+
+            .better-osm-hotkey-commands-subtitle {
+                margin: 2px 0 0;
+                font-size: 0.875rem;
+                opacity: 0.75;
+            }
+
+            .better-osm-hotkey-commands-search {
+                display: block;
+                width: 100%;
+                margin-bottom: 12px;
+                border: 1px solid rgba(127, 127, 127, 0.35);
+                border-radius: 6px;
+                background: var(--bs-body-bg);
+                color: inherit;
+                padding: 8px 10px;
+                box-sizing: border-box;
+            }
+
+            .better-osm-hotkey-commands-search::placeholder {
+                opacity: 0.7;
+            }
+
+            .better-osm-hotkey-commands-search:focus {
+                outline: 2px solid rgba(13, 110, 253, 0.35);
+                outline-offset: 1px;
+            }
+
+            .better-osm-hotkey-commands-close {
+                all: unset;
+                cursor: pointer;
+                margin-left: auto;
+                line-height: 1;
+            }
+
+            .better-osm-hotkey-commands-group {
+                margin-top: 12px;
+            }
+
+            .better-osm-hotkey-commands-content {
+                flex: 1 1 auto;
+                overflow-y: auto;
+                min-height: 0;
+            }
+
+            .better-osm-hotkey-commands-group-title {
+                margin: 0 0 6px;
+                font-size: 0.875rem;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                opacity: 0.7;
+            }
+
+            .better-osm-hotkey-commands-list {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .better-osm-hotkey-command-btn {
+                display: grid;
+                grid-template-columns: 1fr${isMobile ? "" : " minmax(90px, 120px)"};
+                align-items: baseline;
+                gap: 10px;
+                width: 100%;
+                border: 0;
+                border-radius: 6px;
+                background: transparent;
+                color: inherit;
+                padding: 6px 8px;
+                text-align: left;
+                cursor: pointer;
+
+                &:hover,
+                &:focus-visible {
+                    background: rgba(127, 127, 127, 0.14);
+                    outline: none;
+                }
+
+                &.is-active {
+                    background: rgba(13, 110, 253, 0.16);
+                }
+            }
+
+            .better-osm-hotkey-command-binding {
+                font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+                font-size: 0.875rem;
+                white-space: nowrap;
+                line-height: 1.3;
+                opacity: 0.65;
+            }
+
+            .better-osm-hotkey-command-title {
+                font-size: 0.925rem;
+                line-height: 1.3;
+                white-space: nowrap;
+            }
+
+            .better-osm-hotkey-commands-empty {
+                margin: 8px 0 0;
+                opacity: 0.75;
+            }
+        }
+    `)
+    document.documentElement.dataset.hotkeyCommandsPopupStylesInjected = "true"
+    style?.setAttribute("id", hotkeyCommandsPopupStyleId)
+}
+
+function closeHotkeyCommandsPopup() {
+    document.querySelector(`#${hotkeyCommandsPopupId}`)?.remove()
+}
+
+async function showHotkeyCommandsPopup() {
+    const existingPopup = document.querySelector(`#${hotkeyCommandsPopupId}`)
+    if (existingPopup) {
+        existingPopup.remove()
+        return
+    }
+
+    ensureHotkeyCommandsPopupStyles()
+
+    const currentContexts = getCurrentHotkeyContexts()
+    const availableCommands = getAvailableHotkeyCommandsForCurrentPage()
+    const recentActionIds = await getRecentHotkeyActionIds()
+    const recentCommands = recentActionIds.map(actionId => availableCommands.find(command => command.actionId === actionId)).filter(Boolean)
+
+    const overlay = document.createElement("div")
+    overlay.id = hotkeyCommandsPopupId
+    overlay.addEventListener("click", e => {
+        if (e.target === overlay) {
+            closeHotkeyCommandsPopup()
+        }
+    })
+
+    const panel = document.createElement("div")
+    panel.classList.add("better-osm-hotkey-commands-panel")
+    panel.addEventListener("click", e => e.stopPropagation())
+
+    const header = document.createElement("div")
+    header.classList.add("better-osm-hotkey-commands-header")
+
+    const headerText = document.createElement("div")
+    const title = document.createElement("h3")
+    title.classList.add("better-osm-hotkey-commands-title")
+    title.textContent = "Available commands"
+    const subtitle = document.createElement("p")
+    subtitle.classList.add("better-osm-hotkey-commands-subtitle")
+    // subtitle.textContent = `Current contexts: ${currentContexts.join(", ")}`
+    headerText.append(title, subtitle)
+
+    const closeBtn = document.createElement("button")
+    closeBtn.classList.add("better-btn-close", "better-osm-hotkey-commands-close")
+    closeBtn.type = "button"
+    closeBtn.setAttribute("aria-label", "Close commands popup")
+    closeBtn.innerHTML =
+        '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">' +
+        '  <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>' +
+        "</svg>"
+    closeBtn.querySelector("svg").style.height = "1.25rem"
+    closeBtn.onclick = closeHotkeyCommandsPopup
+
+    header.append(headerText, closeBtn)
+    panel.append(header)
+
+    const searchInput = document.createElement("input")
+    searchInput.classList.add("better-osm-hotkey-commands-search")
+    searchInput.type = "search"
+    searchInput.placeholder = "Search by hotkey name"
+    searchInput.setAttribute("aria-label", "Search hotkeys by name")
+    panel.append(searchInput)
+
+    const content = document.createElement("div")
+    content.classList.add("better-osm-hotkey-commands-content")
+    panel.append(content)
+    let activeCommandIndex = -1
+
+    function getCommandButtons() {
+        return Array.from(content.querySelectorAll(".better-osm-hotkey-command-btn"))
+    }
+
+    function setActiveCommandButton(nextIndex) {
+        const buttons = getCommandButtons()
+        buttons.forEach(button => button.classList.remove("is-active"))
+
+        if (!buttons.length) {
+            activeCommandIndex = -1
+            return
+        }
+
+        activeCommandIndex = ((nextIndex % buttons.length) + buttons.length) % buttons.length
+        const activeButton = buttons[activeCommandIndex]
+        activeButton.classList.add("is-active")
+        activeButton.scrollIntoView({ block: "nearest" })
+    }
+
+    function renderCommandsList(query = "") {
+        content.replaceChildren()
+        activeCommandIndex = -1
+
+        function appendCommandButton(list, command) {
+            const button = document.createElement("button")
+            button.classList.add("better-osm-hotkey-command-btn")
+            button.type = "button"
+            button.dataset.actionId = command.actionId
+            button.dataset.binding = command.binding
+
+            const binding = document.createElement("span")
+            binding.classList.add("better-osm-hotkey-command-binding")
+            binding.textContent = formatHotkeyBinding(command.binding)
+
+            const label = document.createElement("span")
+            label.classList.add("better-osm-hotkey-command-title")
+            label.textContent = command.title
+
+            if (isMobile) {
+                button.append(label)
+            } else {
+                button.append(label, binding)
+            }
+            button.addEventListener("click", () => {
+                closeHotkeyCommandsPopup()
+                setTimeout(() => {
+                    void rememberRecentHotkeyAction(command.actionId)
+                    runHotkeyAction(command.actionId, command.event)
+                }, 0)
+            })
+            list.append(button)
+        }
+
+        const normalizedQuery = query.trim().toLowerCase()
+        const filteredCommands = normalizedQuery
+            ? availableCommands.filter(command => command.title.toLowerCase().includes(normalizedQuery))
+            : availableCommands
+        const filteredRecentCommands = recentCommands.filter(command => filteredCommands.includes(command))
+        const recentCommandKeys = new Set(filteredRecentCommands.map(command => `${command.actionId}::${command.binding}`))
+        const remainingCommands = filteredCommands.filter(command => !recentCommandKeys.has(`${command.actionId}::${command.binding}`))
+
+        if (!filteredCommands.length) {
+            const emptyState = document.createElement("p")
+            emptyState.classList.add("better-osm-hotkey-commands-empty")
+            emptyState.textContent = normalizedQuery ? "No hotkeys match this search." : "No cataloged commands match this page."
+            content.append(emptyState)
+            return
+        }
+
+        if (filteredRecentCommands.length) {
+            const group = document.createElement("section")
+            group.classList.add("better-osm-hotkey-commands-group")
+
+            const heading = document.createElement("h4")
+            heading.classList.add("better-osm-hotkey-commands-group-title")
+            heading.textContent = "Recent"
+            group.append(heading)
+
+            const list = document.createElement("div")
+            list.classList.add("better-osm-hotkey-commands-list")
+
+            filteredRecentCommands.forEach(command => {
+                appendCommandButton(list, command)
+            })
+
+            group.append(list)
+            content.append(group)
+        }
+
+        const filteredGroupedCommands = remainingCommands.reduce((groups, command) => {
+            const primaryContext =
+                hotkeyHelpContextsOrder.find(context => command.contexts.includes(context) && currentContexts.includes(context)) ??
+                "All pages"
+            if (!groups[primaryContext]) {
+                groups[primaryContext] = []
+            }
+            groups[primaryContext].push(command)
+            return groups
+        }, {})
+
+        hotkeyHelpContextsOrder
+            .filter(context => filteredGroupedCommands[context]?.length)
+            .forEach(context => {
+                const group = document.createElement("section")
+                group.classList.add("better-osm-hotkey-commands-group")
+
+                const heading = document.createElement("h4")
+                heading.classList.add("better-osm-hotkey-commands-group-title")
+                heading.textContent = context
+                group.append(heading)
+
+                const list = document.createElement("div")
+                list.classList.add("better-osm-hotkey-commands-list")
+
+                filteredGroupedCommands[context].forEach(command => {
+                    appendCommandButton(list, command)
+                })
+
+                group.append(list)
+                content.append(group)
+            })
+
+        setActiveCommandButton(0)
+    }
+
+    searchInput.addEventListener("input", () => renderCommandsList(searchInput.value))
+    searchInput.addEventListener("keydown", e => {
+        if (e.key === "Escape") {
+            e.preventDefault()
+            e.stopPropagation()
+            closeHotkeyCommandsPopup()
+            return
+        }
+        if (e.key === "ArrowDown") {
+            e.preventDefault()
+            setActiveCommandButton(activeCommandIndex + 1)
+            return
+        }
+        if (e.key === "ArrowUp") {
+            e.preventDefault()
+            setActiveCommandButton(activeCommandIndex - 1)
+            return
+        }
+        if (e.key === "Enter") {
+            const activeButton = getCommandButtons()[activeCommandIndex]
+            if (activeButton) {
+                e.preventDefault()
+                activeButton.click()
+            }
+        }
+    })
+    panel.addEventListener("keydown", e => {
+        if (e.key === "Escape") {
+            e.preventDefault()
+            e.stopPropagation()
+            closeHotkeyCommandsPopup()
+        }
+    })
+
+    overlay.append(panel)
+    document.body.append(overlay)
+    renderCommandsList()
+    panel.style.width = `${Math.min(panel.scrollWidth, window.innerWidth - 16)}px`
+    searchInput.focus()
+}
+
+function hotkeyCommandsPopupClickHandler(e) {
+    e.preventDefault()
+    e.stopPropagation()
+    void showHotkeyCommandsPopup()
+}
+
+function actionToggleMapLayersVisibility(e) {
+    if (!getWindow().mapIntercepted) return
+    e.preventDefault()
+    for (let member in layers) {
+        layers[member].forEach(i => {
+            if (layersHidden) {
+                i.getElement().style.visibility = ""
+            } else {
+                i.getElement().style.visibility = "hidden"
+            }
+        })
+    }
+    if (getWindow()?.jsonLayer) {
+        if (layersHidden) {
+            injectJSIntoPage(`jsonLayer.eachLayer(i => i.getElement().style.visibility = "")`)
+        } else {
+            injectJSIntoPage(`jsonLayer.eachLayer(i => i.getElement().style.visibility = "hidden")`)
+        }
+    } else if (jsonLayer) {
+        if (layersHidden) {
+            jsonLayer.eachLayer(intoPageWithFun(i => (getMap()._layers[i._leaflet_id].getElement().style.visibility = "")))
+        } else {
+            jsonLayer.eachLayer(intoPageWithFun(i => (getMap()._layers[i._leaflet_id].getElement().style.visibility = "hidden")))
+        }
+    }
+    layersHidden = !layersHidden
+}
+
+function actionToggleDarkMapStyle() {
+    darkModeForMap = !darkModeForMap
+    if (darkModeForMap) {
+        injectDarkMapStyle()
+    } else {
+        darkMapStyleElement?.remove()
+    }
+}
+
+function actionOpenUserBlocks() {
+    if (isUserPageWithoutHistory()) {
+        document.querySelector('a[href^="/user/"][href$="/blocks"]')?.click()
+    }
+}
+
+function actionToggleEditMenu() {
+    document.querySelector("#edit_tab ul").tabIndex = -1
+    if (document.querySelector("header").classList.contains("closed")) {
+        document.querySelector("#menu-icon").click()
+        document.querySelector("#edit_tab > button").click()
+    } else if (document.querySelector("#edit_tab > .dropdown-menu").classList.contains("show")) {
+        document.querySelector("#change-list-btn.closed")?.click()
+    } else {
+        document.querySelector("#edit_tab button").click()
+    }
+}
+
+function actionNextVectorLayer() {
+    nextVectorLayer()
+}
+
+function actionSetCustomVectorStyle() {
+    if (!document.querySelector("#map canvas")) {
+        Array.from(document.querySelectorAll(".layers-ui .base-layers label")).at(-2)?.click()
+    }
+    void askCustomStyleUrl()
+}
+
+function actionOpenMessageComposer() {
+    if (isUserPageWithoutHistory()) {
+        document.querySelector('a[href^="/messages/new/"]')?.click()
+    }
+}
+
+function actionOpenMessageComposerForCurrentUser() {
+    if (location.pathname.includes("/user/")) {
+        const username = location.pathname.match(/^\/user\/([^/]+)/)[1]
+        window.open("/messages/new/" + decodeURI(username))
+    } else {
+        const username = document
+            .querySelector("#sidebar_content a[href^='/user/']")
+            .getAttribute("href")
+            .match(/^\/user\/([^/]+)/)[1]
+        window.open("/messages/new/" + decodeURI(username))
+    }
+}
+
+function actionOpenCurrentPageUserProfile() {
+    const user_link = document.querySelector('#sidebar_content a[href^="/user/"]')
+    if (user_link) {
+        if (user_link.checkVisibility()) {
+            user_link?.click()
+        } else {
+            document.querySelector('#sidebar_content li:not([hidden-data-changeset]) a[href^="/user/"]')?.click()
+        }
+        return
+    }
+    document.querySelector('#content a[href^="/user/"]:not([href$=rss]):not([href*="/diary"]):not([href*="/traces"])')?.click()
+}
+
+function actionOpenOwnUserProfile() {
+    window.location.pathname = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href")
+}
+
+function actionOpenFiltersOrLayers(e) {
+    if (location.pathname.match(/^\/note\//) || location.pathname === "/") {
+        document.querySelector(".control-layers a").click()
+        if (document.querySelector(".layers-ui").style.display !== "none") {
+            Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({ block: "center" })
+            e.preventDefault()
+            document.querySelector("#filter-notes-by-string").focus()
+        }
+    } else {
+        if (!document.querySelector("#changesets-filter-btn") && !document.querySelector("#mass-action-btn")) {
+            document.querySelector(".control-layers a").click()
+            Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({ block: "center" })
+        } else {
+            document.querySelector("#changesets-filter-btn")?.click()
+            document.querySelector("#mass-action-btn")?.click()
+        }
+    }
+}
+
+function actionOpenExternalService(e) {
+    if (e.shiftKey) {
+        window.open("https://overpass-api.de/achavi/?changeset=" + location.pathname.match(/\/changeset\/(\d+)/)[1])
+    } else if (!e.altKey) {
+        const usernameMatch = location.pathname.match(/^\/user\/([^/]+)\/?$/)
+        if (usernameMatch) {
+            window.open(makeOsmchaLinkForUsername(decodeURI(usernameMatch[1])))
+        } else {
+            const osmchaLink = document.querySelector("#osmcha_link")
+            if (osmchaLink) {
+                osmchaLink?.click()
+            } else {
+                document.querySelector(".relation-viewer-link")?.click()
+            }
+        }
+    }
+}
+
+function actionOpenUserComments() {
+    if (location.pathname.includes("/diary_comments")) {
+        document.querySelector('a[href^="/user/"][href$="changeset_comments"]')?.click()
+    } else {
+        document.querySelector('a[href^="/user/"][href$="_comments"]')?.click()
+    }
+}
+
+function actionCopyMapCenterCoordinates() {
+    setTimeout(async () => {
+        const center = getMapCenter()
+        const format = (await GM.getValue("CoordinatesFormat")) ?? "Lat Lon"
+        if (format === "Lon Lat") {
+            navigator.clipboard.writeText(`${center.lng} ${center.lat}`)
+        } else {
+            navigator.clipboard.writeText(`${center.lat} ${center.lng}`)
+        }
+    })
+}
+
+function getPrimaryChangesetLink() {
+    const activeObject = document.querySelector("#element_versions_list > div.active-object")
+    if (activeObject) {
+        return activeObject.querySelector('a[href^="/changeset/"]')
+    }
+    return document.querySelectorAll('a[href^="/changeset/"]:not([href*="?locale="])')?.[0] ?? null
+}
+
+function actionOpenPrimaryChangeset() {
+    getPrimaryChangesetLink()?.click()
+}
+
+function actionOpenPrimaryChangesetInNewTab() {
+    const changesetLink = getPrimaryChangesetLink()
+    if (changesetLink?.href) {
+        window.open(changesetLink.href, "_blank")
+    }
+}
+
+function actionToggleNotesLayer() {
+    Array.from(document.querySelectorAll(".overlay-layers label input"))[0].removeAttribute("disabled")
+    Array.from(document.querySelectorAll(".overlay-layers label"))[0].click()
+}
+
+function actionToggleMapDataLayer() {
+    Array.from(document.querySelectorAll(".overlay-layers label input"))[1].removeAttribute("disabled")
+    Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
+    if (!location.hash.includes("D")) {
+        disableOverzoom()
+    } else {
+        enableOverzoom()
+    }
+}
+
+function actionToggleGpsTracksLayer() {
+    Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
+}
+
+function actionSwitchToSatelliteImagery() {
+    enableOverzoom()
+    switchTilesAndButtons()
+}
+
+function actionOpenUserNotesPage() {
+    document.querySelector('a[href^="/user/"][href$="/notes"]')?.click()
+    addAltClickHandlerForNotes()
+}
+
+function actionOpenNoteAuthorNotesInNewTab() {
+    window.open(document.querySelector('#sidebar_content a[href^="/user/"]').getAttribute("href") + "/notes", "_blank")
+}
+
+function actionCreateNote() {
+    if (location.pathname.includes("/node") || location.pathname.includes("/way") || location.pathname.includes("/relation")) {
+        newNotePlaceholder = "\n \n" + location.href
+    }
+    document.querySelector(".control-note .control-button").click()
+}
+
+function actionOpenUserDiary() {
+    document.querySelector('a[href^="/user/"][href$="/diary"]')?.click()
+}
+
+function actionAppendDebugQueryFlag() {
+    location.search += "&kek"
+}
+
+function actionTriggerDebugger() {
+    // eslint-disable-next-line no-debugger
+    debugger
+    throw "debug"
+}
+
+function actionOpenSpyGlass() {
+    try {
+        document.getElementById("spy-glass").click()
+    } catch (e) {
+        debug_alert("script not injected :(")
+    }
+}
+
+function actionShowGpsTracksOverlay() {
+    enableOverzoom()
+    setZoom(Math.min(14, getZoom()))
+    if (!document.querySelectorAll(".overlay-layers label")[2].querySelector("input").checked) {
+        Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
+    }
+    switchOverlayTiles()
+}
+
+function actionSetCustomTileUrl() {
+    enableOverzoom()
+    askCustomTileUrl()
+}
+
+function actionBypassTileCaches() {
+    enableOverzoom()
+    bypassCaches()
+}
+
+function actionOpenSelectedObjectEditTarget() {
+    if (location.pathname.startsWith("/changeset/")) {
+        if (document.querySelector(".active-object")) {
+            const activeObjectUrl = document.querySelector(".active-object").querySelector("a").getAttribute("href")
+            window.open(activeObjectUrl, "_blank")
+        } else {
+            const firstObjectUrl = document
+                .querySelector("turbo-frame:is(#changeset_nodes, #changeset_ways, #changeset_relations)")
+                .querySelector("ul a")
+                .getAttribute("href")
+            window.open(firstObjectUrl, "_blank")
+        }
+    } else {
+        document.querySelector(".edit_tags_class").click()
+    }
+}
+
+function actionOpenAlternateEditor() {
+    if (document.querySelector("#editanchor").getAttribute("data-editor") === "id") {
+        document.querySelectorAll("#edit_tab .dropdown-menu .editlink")[1]?.click()
+    } else {
+        document.querySelectorAll("#edit_tab .dropdown-menu .editlink")[0]?.click()
+    }
+}
+
+function actionOpenEditMenuPrimary() {
+    document.querySelector("#editanchor")?.click()
+}
+
+function actionOpenUserHistoryFromProfile() {
+    document.querySelector('a[href^="/user/"][href$="/history"]')?.click()
+}
+
+function actionOpenUserReportForm() {
+    document.querySelector('a[href*="/reports/new"]')?.click()
+}
+
+function actionRevertCurrentChangesetSelection() {
+    document.querySelector("#revert_button_class").click()
+}
+
+function actionToggleChangesetObjectSelection() {
+    if (document.querySelector(".select-objects-btn")) {
+        document.querySelector(".select-objects-btn").click()
+    } else {
+        addCheckboxesForChangesetObjects()
+    }
+}
+
+function actionOpenInJosmOrLevel0(e) {
+    setTimeout(async () => {
+        if (location.pathname.includes("changeset")) {
+            await openSelectedObjectsOnChangesetPage(e)
+        } else {
+            await openObjectInJosmOrLevel0(e)
+        }
+    })
+}
+
+function actionOpenOwnHistoryPage() {
+    const targetURL = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href") + "/history"
+    if (targetURL !== location.pathname) {
+        try {
+            getWindow().OSM.router.route(targetURL)
+        } catch {
+            window.location.pathname = targetURL
+        }
+    }
+}
+
+function actionOpenRelevantHistoryPage() {
+    if (isObjectPage()) {
+        if (/^\/(node|way|relation)\/\d+\/?$/.test(location.pathname)) {
+            getWindow().OSM.router.route(window.location.pathname + "/history")
+        } else if (/^\/(node|way|relation)\/\d+\/history\/\d+\/?$/.test(location.pathname)) {
+            const historyPath = window.location.pathname.match(/(\/(node|way|relation)\/\d+\/history)\/\d+/)[1]
+            getWindow().OSM.router.route(historyPath)
+        }
+    } else if (isHomeOrNotePage()) {
+        addCompactSidebarStyle()
+        document.querySelector('.nav-link[href^="/history"]')?.click()
+    } else if (location.pathname.includes("/user/")) {
+        document.querySelector('a[href^="/user/"][href$="/history"]')?.click()
+    }
+}
+
+function actionOpenChangesetAuthorHistory() {
+    const userChangesetsLink = document.querySelectorAll("div.secondary-actions")[1]?.querySelector('a[href^="/user/"]')
+    if (userChangesetsLink) {
+        getAbortController().abort(ABORT_ERROR_USER_CHANGESETS)
+        userChangesetsLink.focus()
+        userChangesetsLink.click()
+    }
+}
+
+function actionResetFilteredHistoryPage() {
+    try {
+        getWindow().OSM.router.route(location.pathname)
+        setupCompactChangesetsHistory()
+    } catch {
+        if (isSafari) {
+            window.location.search = ""
+        } else {
+            window.location = location.pathname
+        }
+    }
+}
+
+function actionOpenFirstObjectVersion() {
+    getWindow().OSM.router.route(location.pathname.match(/\/(node|way|relation)\/\d+/)[0] + "/history/1")
+}
+
+function actionOpenFirstChangesetForCurrentPageUser() {
+    const user_link = document.querySelector('#sidebar_content a[href^="/user/"]')
+    if (user_link) {
+        const username = decodeURI(user_link.getAttribute("href").match(/\/user\/([^/]+)/)[1])
+        getCachedUserInfo(username).then(res => {
+            if (res["firstChangesetID"]) {
+                getWindow().OSM.router.route(`/changeset/${res["firstChangesetID"]}`)
+            } else {
+                console.warn("not found first changeset for " + username)
+            }
+        })
+    }
+}
+
+function actionOpenFirstChangesetPageForCurrentUserHistory() {
+    const user_link = document.querySelector('#sidebar_content a[href^="/user/"]')
+    if (user_link) {
+        const username = decodeURI(user_link.getAttribute("href").match(/\/user\/([^/]+)/)[1])
+        getCachedUserInfo(username).then(res => {
+            if (res["firstChangesetID"]) {
+                getWindow().OSM.router.route(`${location.pathname}?after=${res["firstChangesetID"] - 1}`)
+            } else {
+                console.warn("not found first changeset for " + username)
+            }
+        })
+    }
+}
+
+function actionZoomOutToWorld() {
+    const center = getMapCenter()
+    setZoom(2)
+    fetch(`https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2`).then(res => {
+        res.json().then(r => {
+            if (r?.address?.state) {
+                getMap().attributionControl?.setPrefix(`${r.address.state}`)
+            }
+        })
+    })
+}
+
+function actionZoomToCurrentObjectHotkey(e) {
+    if (e.shiftKey) {
+        shiftKeyZClicks += 1
+        document.addEventListener(
+            "mousemove",
+            () => {
+                shiftKeyZClicks = 0
+            },
+            { once: true },
+        )
+    } else {
+        shiftKeyZClicks = 0
+    }
+    zoomToCurrentObject(e)
+}
+
+function actionMapPositionBack() {
+    if (mapPositionsHistory.length > 1) {
+        mapPositionsNextHistory.push(mapPositionsHistory[mapPositionsHistory.length - 1])
+        mapPositionsHistory.pop()
+        fitBounds(mapPositionsHistory[mapPositionsHistory.length - 1])
+    }
+}
+
+function actionMapPositionForward() {
+    if (mapPositionsNextHistory.length) {
+        mapPositionsHistory.push(mapPositionsNextHistory.pop())
+        fitBounds(mapPositionsHistory[mapPositionsHistory.length - 1])
+    }
+}
+
+function actionZoomOutHotkey(e) {
+    if (document.activeElement?.id === "map") {
+        e.preventDefault()
+        e.stopImmediatePropagation()
+        e.stopPropagation()
+    }
+    if (!e.altKey) {
+        setZoom(getZoom() - 2)
+    } else {
+        setZoom(getZoom() - 1)
+    }
+    document.querySelector("#map").focus()
+}
+
+function actionZoomInHotkey(e) {
+    if (document.activeElement?.id === "map") {
+        e.preventDefault()
+        e.stopImmediatePropagation()
+        e.stopPropagation()
+    }
+    if (!e.altKey) {
+        setZoom(getZoom() + 2)
+    } else {
+        setZoom(getZoom() + 1)
+    }
+    document.querySelector("#map").focus()
+}
+
+function actionGoToPrevChangesetPage(e) {
+    goToPrevChangeset(e)
+}
+
+function actionGoToNextChangesetPage(e) {
+    goToNextChangeset(e)
+}
+
+function actionGoToPrevSearchResultPage(e) {
+    goToPrevSearchResult(e)
+}
+
+function actionGoToNextSearchResultPage(e) {
+    goToNextSearchResult(e)
+}
+
+function actionChangesetObjectsTimeTrack() {
+    if (location.pathname.startsWith("/changeset")) {
+        const params = new URLSearchParams(location.search)
+        const changesetIDs = params.get("changesets")?.split(",") ?? [parseInt(location.pathname.match(/changeset\/(\d+)/)[1])]
+        const objects = []
+        if (changesetIDs) {
+            setTimeout(async () => {
+                for (const i of changesetIDs) {
+                    ;(await getChangeset(i)).data.querySelectorAll("node,way,relation").forEach(obj => {
+                        objects.push(obj)
+                    })
+                }
+                objects.sort((a, b) => {
+                    const A = new Date(a.getAttribute("timestamp"))
+                    const B = new Date(b.getAttribute("timestamp"))
+                    if (A < B) return -1
+                    if (A > B) return 1
+                    return 0
+                })
+                const nodesList = []
+                for (let object of objects) {
+                    if (object.nodeName === "node" && object.getAttribute("visible") === "true") {
+                        nodesList.push([object.getAttribute("lat"), object.getAttribute("lon")])
+                    } else if (object.nodeName === "way") {
+                        // TODO
+                    }
+                }
+                showNodeMarker(nodesList[0][0], nodesList[0][1], "#ff0000", null, "customObjects", 8)
+                showNodeMarker(nodesList.at(-1)[0], nodesList.at(-1)[1], "#00ff04", null, "customObjects", 8)
+                showActiveWay(nodesList, c("#0022ff"), false, null, true, 2)
+            })
+        }
+    }
+}
+
+function actionGoToPrevChangesetObjectHotkey(e) {
+    goToPrevChangesetObject(e)
+}
+
+function actionGoToNextChangesetObjectHotkey(e) {
+    goToNextChangesetObject(e)
+}
+
+function actionGoToPrevObjectVersionHotkey() {
+    goToPrevObjectVersion()
+}
+
+function actionGoToNextObjectVersionHotkey() {
+    goToNextObjectVersion()
+}
+
+function actionGoToPrevSidebarTab() {
+    const links = Array.from(document.querySelectorAll("#sidebar_content nav div ul a"))
+    for (let i = 0; i < links.length; i++) {
+        if (links[i].parentElement.classList.contains("active")) {
+            links[i - 1]?.click()
+            break
+        }
+    }
+}
+
+function actionGoToNextSidebarTab() {
+    const links = Array.from(document.querySelectorAll("#sidebar_content nav div ul a"))
+    for (let i = 0; i < links.length; i++) {
+        if (links[i].parentElement.classList.contains("active")) {
+            links[i + 1]?.click()
+            break
+        }
+    }
+}
+
+function actionGoToPrevPaginationPage(selector) {
+    document.querySelector(selector)?.click()
+}
+
+function actionGoToPrevUserNotesPage() {
+    document.querySelectorAll(".pagination li a")[0]?.click()
+}
+
+function actionGoToNextUserNotesPage() {
+    document.querySelectorAll(".pagination li a")[1]?.click()
+}
+
+function actionGoToPrevChangesetListPage() {
+    const link = getPrevChangesetLink()
+    if (link) {
+        getAbortController().abort(ABORT_ERROR_PREV)
+        needPreloadChangesets = true
+        link.focus()
+        link.click()
+    }
+}
+
+function actionGoToNextChangesetListPage() {
+    const link = getNextChangesetLink()
+    if (link) {
+        getAbortController().abort(ABORT_ERROR_NEXT)
+        needPreloadChangesets = true
+        link.focus()
+        link.click()
+    }
+}
+
+function actionOpenScriptUpdateUrl() {
+    window.open(`${SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`, "_blank")
+}
+
+function actionOpenDevScriptUpdateUrl() {
+    window.open(`${DEV_SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`, "_blank")
+}
+
+function actionOpenLocalFilePicker() {
+    const input = document.createElement("input")
+    input.type = "file"
+    input.multiple = true
+    input.addEventListener("change", () => {
+        void handleDroppedFiles(Array.from(input.files ?? []))
+    })
+    input.click()
+}
+
+function actionOpenSettings() {
+    GM_config.open()
+}
+
+//</editor-fold>
+
+//<editor-fold desc="hotkeys">
+let hotkeysConfigured = false
+
+/**
+ * @typedef {"All pages" | "Main pages" | "User pages" | "Changeset pages" | "Object pages" | "History pages" | "Search page" | "Debug"} HotkeyContext
+ */
+
+/**
+ * @typedef {Object} HotkeyActionDefinition
+ * @property {string} title
+ * @property {string[]} defaultBindings
+ * @property {HotkeyContext[]} contexts
+ * @property {boolean=} preventDefault
+ * @property {boolean=} hideOnMobile
+ * @property {(e: KeyboardEvent) => boolean=} when
+ * @property {(e: KeyboardEvent) => void} run
+ */
+
+/** @type {Record<string, HotkeyActionDefinition>} */
+const hotkeyActions = {
+    showHotkeysHelp: {
+        title: "Show hotkeys help",
+        defaultBindings: ["F1"],
+        contexts: ["All pages"],
+        preventDefault: true,
+        hideOnMobile: true,
+        run: actionShowHotkeysHelp,
+    },
+    openOverpassSearch: {
+        title: "Make Overpass request",
+        defaultBindings: ["Shift+Slash"],
+        contexts: ["Main pages"],
+        run: actionOpenOverpassSearch,
+    },
+    openLocalFilePicker: {
+        title: "Open local file",
+        defaultBindings: [],
+        contexts: ["Main pages"],
+        run: actionOpenLocalFilePicker,
+    },
+    toggleMapLayersVisibility: {
+        title: "Toggle objects layers visibility",
+        defaultBindings: ["Backquote"],
+        contexts: ["Changeset pages", "Object pages"],
+        run: actionToggleMapLayersVisibility,
+    },
+    toggleDarkMapStyle: {
+        title: "Toggle dark map style",
+        defaultBindings: ["Alt+Backquote"],
+        contexts: ["Main pages"],
+        run: actionToggleDarkMapStyle,
+    },
+    openYandexPanoramas: {
+        title: "Open Yandex panoramas",
+        defaultBindings: ["KeyY"],
+        contexts: ["Main pages"],
+        run: actionOpenYandexPanoramas,
+    },
+    copyCurrentShortLink: {
+        title: "Copy current short URL",
+        defaultBindings: ["KeyP"],
+        contexts: ["Main pages"],
+        run: actionCopyCurrentShortLink,
+    },
+    closeUi: {
+        title: "Close open UI panels",
+        defaultBindings: ["KeyQ"],
+        contexts: ["Main pages"],
+        run: actionCloseUi,
+        hideOnMobile: true,
+    },
+    clearActiveObjectsAndContextMenus: {
+        title: "Clear active objects and context menus",
+        defaultBindings: ["Escape"],
+        contexts: ["Main pages"],
+        run: actionClearActiveObjectsAndContextMenus,
+        hideOnMobile: true,
+    },
+    goToUserLocation: {
+        title: "Go to your location",
+        defaultBindings: ["Shift+KeyL"],
+        contexts: ["Main pages"],
+        run: actionGoToUserLocation,
+        hideOnMobile: true,
+    },
+    toggleSwitchableTime: {
+        title: "Toggle switchable time",
+        defaultBindings: ["Shift+KeyT", "Alt+KeyT"],
+        contexts: ["Changeset pages", "Object pages", "History pages"],
+        run: actionToggleSwitchableTime,
+    },
+    toggleCompactTimeOrOpenTraces: {
+        title: "Toggle compact time or open traces",
+        defaultBindings: ["KeyT"],
+        contexts: ["Changeset pages", "Object pages", "History pages"],
+        run: actionHandleKeyT,
+    },
+    openUserBlocks: {
+        title: "Open user blocks",
+        defaultBindings: ["KeyB"],
+        contexts: ["User pages"],
+        run: actionOpenUserBlocks,
+    },
+    toggleEditMenu: {
+        title: "Toggle edit menu",
+        defaultBindings: ["KeyX"],
+        contexts: ["Main pages"],
+        run: actionToggleEditMenu,
+        hideOnMobile: true,
+    },
+    nextVectorLayer: {
+        title: "Switch to next vector layer",
+        defaultBindings: ["KeyV"],
+        contexts: ["Main pages"],
+        run: actionNextVectorLayer,
+    },
+    setCustomVectorStyle: {
+        title: "Set custom vector style",
+        defaultBindings: ["Shift+KeyV"],
+        contexts: ["Main pages"],
+        run: actionSetCustomVectorStyle,
+    },
+    openMessageComposer: {
+        title: "Open direct message composer",
+        defaultBindings: ["KeyM"],
+        contexts: ["User pages"],
+        when: () => isUserPageWithoutHistory(),
+        run: actionOpenMessageComposer,
+    },
+    openMessageComposerForCurrentUser: {
+        title: "Open direct message composer",
+        defaultBindings: ["Shift+KeyM"],
+        contexts: ["Changeset pages"],
+        run: actionOpenMessageComposerForCurrentUser,
+    },
+    openCurrentPageUserProfile: {
+        title: "Open current page user profile",
+        defaultBindings: ["KeyU"],
+        contexts: ["Main pages", "User pages"],
+        run: actionOpenCurrentPageUserProfile,
+    },
+    openOwnUserProfile: {
+        title: "Open your profile",
+        defaultBindings: ["Shift+KeyU"],
+        contexts: ["Main pages", "User pages"],
+        run: actionOpenOwnUserProfile,
+    },
+    openFiltersOrLayers: {
+        title: "Open filters or layers",
+        defaultBindings: ["KeyF"],
+        contexts: ["Main pages"],
+        run: actionOpenFiltersOrLayers,
+        hideOnMobile: true,
+    },
+    openExternalService: {
+        title: "Open OSMCha",
+        defaultBindings: ["KeyO"],
+        contexts: ["Changeset Page"],
+        run: actionOpenExternalService,
+    },
+    openSecondExternalService: {
+        title: "Open Achavi",
+        defaultBindings: ["Shift+KeyO"],
+        contexts: ["Changeset pages"],
+        run: actionOpenExternalService,
+    },
+    openUserComments: {
+        title: "Open user comments",
+        defaultBindings: ["KeyC"],
+        contexts: ["User pages"],
+        when: () => isUserPageWithoutHistory(),
+        run: actionOpenUserComments,
+    },
+    copyMapCenterCoordinates: {
+        title: "Copy map center coordinates",
+        defaultBindings: ["Alt+KeyC"],
+        contexts: ["Main pages"],
+        when: () => !isUserPageWithoutHistory(),
+        run: actionCopyMapCenterCoordinates,
+    },
+    openPrimaryChangeset: {
+        title: "Open current changeset",
+        defaultBindings: ["KeyC"],
+        contexts: ["Object pages"],
+        when: () => !isUserPageWithoutHistory() && !isChangesetPage(),
+        run: actionOpenPrimaryChangeset,
+    },
+    openPrimaryChangesetInNewTab: {
+        title: "Open current changeset in new tab",
+        defaultBindings: ["Shift+KeyC"],
+        contexts: ["Object pages"],
+        when: () => !isUserPageWithoutHistory() && !isChangesetPage(),
+        run: actionOpenPrimaryChangesetInNewTab,
+    },
+    toggleNotesLayer: {
+        title: "Toggle notes layer",
+        defaultBindings: ["KeyN"],
+        contexts: ["Main pages"],
+        when: () => !isUserPageWithoutHistory(),
+        run: actionToggleNotesLayer,
+    },
+    toggleMapDataLayer: {
+        title: "Toggle Map Data layer",
+        defaultBindings: ["KeyD"],
+        contexts: ["Main pages"],
+        when: () => !isUserPageWithoutHistory(),
+        run: actionToggleMapDataLayer,
+    },
+    toggleGpsTracksLayer: {
+        title: "Toggle GPS tracks layer",
+        defaultBindings: ["KeyG"],
+        contexts: ["Main pages"],
+        run: actionToggleGpsTracksLayer,
+    },
+    switchToSatelliteImagery: {
+        title: "Switch to satellite imagery",
+        defaultBindings: ["KeyS"],
+        contexts: ["Main pages"],
+        run: actionSwitchToSatelliteImagery,
+    },
+    openUserNotesPage: {
+        title: "Open current user's notes",
+        defaultBindings: ["KeyN", "Shift+KeyN", "Alt+KeyN"],
+        contexts: ["User pages"],
+        when: () => isUserPageWithoutHistory(),
+        run: actionOpenUserNotesPage,
+    },
+    openNoteAuthorNotesInNewTab: {
+        title: "Open note author's notes in new tab",
+        defaultBindings: ["Alt+KeyN"],
+        contexts: ["Main pages"],
+        when: () => /^\/note\/\d+/.test(location.pathname),
+        run: actionOpenNoteAuthorNotesInNewTab,
+    },
+    createNote: {
+        title: "Create note",
+        defaultBindings: ["Shift+KeyN"],
+        contexts: ["Main pages"],
+        run: actionCreateNote,
+        hideOnMobile: true,
+    },
+    openUserDiary: {
+        title: "Open current user's diary",
+        defaultBindings: ["KeyD"],
+        contexts: ["User pages"],
+        when: () => isUserPageWithoutHistory(),
+        run: actionOpenUserDiary,
+    },
+    appendDebugQueryFlag: {
+        title: "Disable script on tab",
+        defaultBindings: ["Alt+Shift+KeyD"],
+        contexts: ["Debug"],
+        run: actionAppendDebugQueryFlag,
+    },
+    triggerDebugger: {
+        title: "Trigger debugger",
+        defaultBindings: ["Alt+KeyD"],
+        contexts: ["Debug"],
+        run: actionTriggerDebugger,
+    },
+    openSpyGlass: {
+        title: "Open Spy Glass",
+        defaultBindings: ["Shift+KeyD"],
+        contexts: ["Debug"],
+        run: actionOpenSpyGlass,
+    },
+    openScriptUpdateUrl: {
+        title: "Check script updates",
+        defaultBindings: [],
+        contexts: ["Debug"],
+        run: actionOpenScriptUpdateUrl,
+    },
+    openDevScriptUpdateUrl: {
+        title: "Check dev script updates",
+        defaultBindings: [],
+        contexts: ["Debug"],
+        run: actionOpenDevScriptUpdateUrl,
+    },
+    clearRecentHotkeyActions: {
+        title: "Clear recent actions",
+        defaultBindings: [],
+        contexts: ["Debug"],
+        run: actionClearRecentHotkeyActions,
+    },
+    showGpsTracksOverlay: {
+        title: "Show Strava GPS tracks overlay",
+        defaultBindings: ["Shift+KeyG", "Alt+KeyG"],
+        contexts: ["Debug"],
+        run: actionShowGpsTracksOverlay,
+    },
+    openSettings: {
+        title: "Settings",
+        defaultBindings: [],
+        contexts: ["Debug"],
+        run: actionOpenSettings,
+    },
+    setCustomTileUrl: {
+        title: "Set custom tile URL",
+        defaultBindings: ["Shift+KeyS"],
+        contexts: ["Main pages"],
+        run: actionSetCustomTileUrl,
+    },
+    bypassTileCaches: {
+        title: "Bypass tile caches",
+        defaultBindings: ["Alt+KeyS"],
+        contexts: ["Main pages"],
+        run: actionBypassTileCaches,
+    },
+    openSelectedObjectEditTarget: {
+        title: "Open selected object or tags editor",
+        defaultBindings: ["Alt+KeyE"],
+        contexts: ["Main pages"],
+        run: actionOpenSelectedObjectEditTarget,
+        hideOnMobile: true,
+    },
+    openAlternateEditor: {
+        title: "Open alternate editor",
+        defaultBindings: ["Shift+KeyE"],
+        contexts: ["Main pages"],
+        when: () => !/^\/user\/([^/]+)\/?$/.test(location.pathname),
+        run: actionOpenAlternateEditor,
+        hideOnMobile: true,
+    },
+    openEditMenuPrimary: {
+        title: "Open primary editor",
+        defaultBindings: ["KeyE"],
+        contexts: ["Main pages"],
+        when: () => !/^\/user\/([^/]+)\/?$/.test(location.pathname),
+        run: actionOpenEditMenuPrimary,
+        hideOnMobile: true,
+    },
+    openUserHistoryFromProfile: {
+        title: "Open current user's history",
+        defaultBindings: ["KeyE", "Shift+KeyE"],
+        contexts: ["User pages"],
+        when: () => /^\/user\/([^/]+)\/?$/.test(location.pathname),
+        run: actionOpenUserHistoryFromProfile,
+    },
+    openUserReportForm: {
+        title: "Open user report form",
+        defaultBindings: ["KeyR"],
+        contexts: ["User pages"],
+        when: () => isUserPageWithoutHistory(),
+        run: actionOpenUserReportForm,
+    },
+    revertCurrentChangesetSelection: {
+        title: "Revert current changeset selection",
+        defaultBindings: ["KeyR", "Shift+KeyR", "Alt+KeyR", "Alt+Shift+KeyR"],
+        contexts: ["Changeset pages"],
+        when: e => !isUserPageWithoutHistory() && (changesetObjectsSelectionModeEnabled || e.altKey),
+        run: actionRevertCurrentChangesetSelection,
+    },
+    toggleChangesetObjectSelection: {
+        title: "Toggle changeset object selection",
+        defaultBindings: ["KeyR", "Shift+KeyR"],
+        contexts: ["Changeset pages"],
+        when: e => !isUserPageWithoutHistory() && !changesetObjectsSelectionModeEnabled && !e.altKey,
+        run: actionToggleChangesetObjectSelection,
+    },
+    openInJosm: {
+        title: "Open object in JOSM",
+        defaultBindings: ["KeyJ"],
+        contexts: ["Changeset pages", "Object pages"],
+        run: actionOpenInJosmOrLevel0,
+    },
+    openInLevel0: {
+        title: "Open object in Level0",
+        defaultBindings: ["Shift+KeyJ", "Alt+KeyJ", "Shift+Alt+KeyJ"],
+        contexts: ["Changeset pages", "Object pages"],
+        run: actionOpenInJosmOrLevel0,
+    },
+    openInLevel0WithFullGeometry: {
+        title: "Open object in Level0 with full geometry",
+        defaultBindings: ["Shift+Alt+KeyJ"],
+        contexts: ["Changeset pages", "Object pages"],
+        run: actionOpenInJosmOrLevel0,
+    },
+    openOwnHistoryPage: {
+        title: "Open your history page",
+        defaultBindings: ["Shift+KeyH"],
+        contexts: ["Main pages", "User pages", "Changeset pages", "Object pages", "History pages"],
+        run: actionOpenOwnHistoryPage,
+    },
+    openRelevantHistoryPage: {
+        title: "Open relevant history page",
+        defaultBindings: ["KeyH"],
+        contexts: ["Main pages", "User pages", "Object pages"],
+        when: () => isObjectPage() || isHomeOrNotePage() || isUserPageWithoutHistory(),
+        run: actionOpenRelevantHistoryPage,
+    },
+    openChangesetAuthorHistory: {
+        title: "Open changeset author's history",
+        defaultBindings: ["KeyH"],
+        contexts: ["Changeset pages"],
+        when: () => isChangesetPage(),
+        run: actionOpenChangesetAuthorHistory,
+    },
+    resetFilteredHistoryPage: {
+        title: "Reset filtered history page",
+        defaultBindings: ["KeyH"],
+        contexts: ["History pages"],
+        when: () => isFilteredHistoryPage(),
+        run: actionResetFilteredHistoryPage,
+    },
+    openFirstObjectVersion: {
+        title: "Open first object version",
+        defaultBindings: ["Digit1"],
+        contexts: ["Object pages"],
+        when: () => isObjectPage(),
+        run: actionOpenFirstObjectVersion,
+    },
+    openFirstChangesetForCurrentPageUser: {
+        title: "Open first changeset for current page user",
+        defaultBindings: ["Digit1"],
+        contexts: ["Changeset pages"],
+        when: () => location.pathname.startsWith("/changeset"),
+        run: actionOpenFirstChangesetForCurrentPageUser,
+    },
+    openFirstChangesetPageForCurrentUserHistory: {
+        title: "Open first changeset page for current user history",
+        defaultBindings: ["Digit1"],
+        contexts: ["History pages"],
+        when: () => /\/user\/[^\\]+\/history\/?/.test(location.pathname),
+        run: actionOpenFirstChangesetPageForCurrentUserHistory,
+    },
+    zoomOutToWorld: {
+        title: "Zoom out to world",
+        defaultBindings: ["Digit0"],
+        contexts: ["Main pages"],
+        run: actionZoomOutToWorld,
+    },
+    zoomToCurrentObjectHotkey: {
+        title: "Zoom to current object",
+        defaultBindings: ["KeyZ"],
+        contexts: ["Changeset pages", "Object pages"],
+        run: actionZoomToCurrentObjectHotkey,
+    },
+    smartZoomToCurrentObjectHotkey: {
+        title: "Zoom to current object nodes",
+        defaultBindings: ["Shift+KeyZ"],
+        contexts: ["Changeset pages", "Object pages"],
+        run: actionZoomToCurrentObjectHotkey,
+    },
+    mapPositionBack: {
+        title: "Go to Previous map position",
+        defaultBindings: ["Digit8"],
+        contexts: ["Main pages"],
+        run: actionMapPositionBack,
+    },
+    mapPositionForward: {
+        title: "Go to Next map position",
+        defaultBindings: ["Digit9"],
+        contexts: ["Main pages"],
+        run: actionMapPositionForward,
+    },
+    zoomOutHotkey: {
+        title: "Zoom out",
+        defaultBindings: ["Minus", "Alt+Minus"],
+        contexts: ["Main pages"],
+        when: () => !defaultZoomKeysBehaviour,
+        run: actionZoomOutHotkey,
+        hideOnMobile: true,
+    },
+    zoomInHotkey: {
+        title: "Zoom in",
+        defaultBindings: ["Equal", "Alt+Equal"],
+        contexts: ["Main pages"],
+        when: () => !defaultZoomKeysBehaviour,
+        run: actionZoomInHotkey,
+        hideOnMobile: true,
+    },
+    goToPrevChangesetPage: {
+        title: "Go to previous changeset page",
+        defaultBindings: ["KeyK"],
+        contexts: ["History pages"],
+        when: () => /^(\/user\/.+)?\/history\/?$/.test(location.pathname),
+        run: actionGoToPrevChangesetPage,
+    },
+    goToNextChangesetPage: {
+        title: "Go to next changeset page",
+        defaultBindings: ["KeyL"],
+        contexts: ["History pages"],
+        when: () => /^(\/user\/.+)?\/history\/?$/.test(location.pathname),
+        run: actionGoToNextChangesetPage,
+    },
+    goToPrevSearchResultPage: {
+        title: "Go to previous search result",
+        defaultBindings: ["KeyK"],
+        contexts: ["Search page"],
+        when: () => isSearchPage(),
+        run: actionGoToPrevSearchResultPage,
+    },
+    goToNextSearchResultPage: {
+        title: "Go to next search result",
+        defaultBindings: ["KeyL"],
+        contexts: ["Search page"],
+        when: () => isSearchPage(),
+        run: actionGoToNextSearchResultPage,
+    },
+    changesetObjectsTimeTrack: {
+        title: "Preview changeset objects time track",
+        defaultBindings: ["Alt+KeyP"],
+        contexts: ["Debug", "Changeset pages"],
+        when: () => isDebug() && location.pathname.startsWith("/changeset"),
+        run: actionChangesetObjectsTimeTrack,
+    },
+    goToPrevChangesetListPage: {
+        title: "Previous changeset list page",
+        defaultBindings: ["Comma"],
+        contexts: ["Changeset pages"],
+        when: () => isChangesetPage(),
+        run: actionGoToPrevChangesetListPage,
+    },
+    goToNextChangesetListPage: {
+        title: "Next changeset list page",
+        defaultBindings: ["Period"],
+        contexts: ["Changeset pages"],
+        when: () => isChangesetPage(),
+        run: actionGoToNextChangesetListPage,
+    },
+    goToPrevChangesetObjectHotkey: {
+        title: "Previous changeset object",
+        defaultBindings: ["KeyK"],
+        contexts: ["Changeset pages"],
+        when: () => isChangesetPage(),
+        run: actionGoToPrevChangesetObjectHotkey,
+    },
+    goToNextChangesetObjectHotkey: {
+        title: "Next changeset object",
+        defaultBindings: ["KeyL"],
+        contexts: ["Changeset pages"],
+        when: e => isChangesetPage() && !e.shiftKey,
+        run: actionGoToNextChangesetObjectHotkey,
+    },
+    goToPrevSidebarTab: {
+        title: "Previous sidebar tab",
+        defaultBindings: ["Comma"],
+        contexts: ["Object pages"],
+        when: () => isObjectPage(),
+        run: actionGoToPrevSidebarTab,
+    },
+    goToNextSidebarTab: {
+        title: "Next sidebar tab",
+        defaultBindings: ["Period"],
+        contexts: ["Object pages"],
+        when: () => isObjectPage(),
+        run: actionGoToNextSidebarTab,
+    },
+    goToPrevObjectVersionHotkey: {
+        title: "Previous object version",
+        defaultBindings: ["KeyK"],
+        contexts: ["Object pages", "History pages"],
+        when: () => isObjectHistoryPage(),
+        run: actionGoToPrevObjectVersionHotkey,
+    },
+    goToNextObjectVersionHotkey: {
+        title: "Next object version",
+        defaultBindings: ["KeyL"],
+        contexts: ["Object pages", "History pages"],
+        when: e => isObjectHistoryPage() && !e.shiftKey,
+        run: actionGoToNextObjectVersionHotkey,
+    },
+    goToPrevUserListPage: {
+        title: "Previous list page",
+        defaultBindings: ["Comma"],
+        contexts: ["User pages"],
+        when: () =>
+            /user\/.+\/(traces|diary_comments|changeset_comments)/.test(location.pathname) ||
+            /\/user_blocks($|\/)/.test(location.pathname) ||
+            /\/blocks_by$/.test(location.pathname),
+        run: () => actionGoToPrevPaginationPage('.pagination a[href*="after"]'),
+    },
+    goToNextUserListPage: {
+        title: "Next list page",
+        defaultBindings: ["Period"],
+        contexts: ["User pages"],
+        when: () =>
+            /user\/.+\/(traces|diary_comments|changeset_comments)/.test(location.pathname) ||
+            /\/user_blocks($|\/)/.test(location.pathname) ||
+            /\/blocks_by$/.test(location.pathname),
+        run: () => actionGoToPrevPaginationPage('.pagination a[href*="before"]'),
+    },
+    goToPrevUserNotesPage: {
+        title: "Previous user notes page",
+        defaultBindings: ["Comma"],
+        contexts: ["User pages"],
+        when: () => /user\/.+\/notes/.test(location.pathname),
+        run: actionGoToPrevUserNotesPage,
+    },
+    goToNextUserNotesPage: {
+        title: "Next user notes page",
+        defaultBindings: ["Period"],
+        contexts: ["User pages"],
+        when: () => /user\/.+\/notes/.test(location.pathname),
+        run: actionGoToNextUserNotesPage,
+    },
+}
+
+function getHotkeyBaseCode(e) {
+    if (/^[0-9]$/.test(e.key)) {
+        return `Digit${e.key}`
+    }
+    if (["Slash", "Backslash", "NumpadDivide"].includes(e.code) || e.key === "/") {
+        return "Slash"
+    }
+    if (["Backquote", "Quote"].includes(e.code) || e.key === "`" || e.key === "~") {
+        return "Backquote"
+    }
+    return e.code || e.key
+}
+
+function getHotkeyCombo(e) {
+    const parts = []
+    if (e.ctrlKey) parts.push("Ctrl")
+    if (e.altKey) parts.push("Alt")
+    if (e.shiftKey) parts.push("Shift")
+    if (e.metaKey) parts.push("Meta")
+    parts.push(getHotkeyBaseCode(e))
+    return parts.join("+")
+}
+
+function getHotkeyActionIdForEvent(e) {
+    const combo = getHotkeyCombo(e)
+    return (
+        Object.entries(hotkeyActions).find(([, action]) => action.defaultBindings.includes(combo) && (!action.when || action.when(e)))?.[0] ??
+        null
+    )
+}
+
+function runHotkeyAction(actionId, e) {
+    const action = hotkeyActions[actionId]
+    if (!action) {
+        console.warn(`Unknown hotkey action: ${actionId}`)
+        return false
+    }
+    if (action.preventDefault) {
+        e.preventDefault?.()
+        e.stopPropagation?.()
+        e.stopImmediatePropagation?.()
+    }
+    action.run(e)
+    return true
+}
+
+function runHotkeyActionForEvent(e) {
+    const actionId = getHotkeyActionIdForEvent(e)
+    if (!actionId) {
+        return false
+    }
+    return runHotkeyAction(actionId, e)
+}
+
+function hotkeyKeydownHandler(e) {
+    if (e.repeat && !["KeyK", "KeyL"].includes(e.code)) return
+    if (shouldSkipHotkeyForActiveElement(e)) return
+    if (handleRelationViewerHotkeys(e)) return
+    if (handleMeasuringHotkeys(e)) return
+    console.log("Key: ", e.key)
+    console.log("Key code: ", e.code)
+    if (e.code !== "KeyZ" && e.code !== "KeyD" && e.code !== "KeyS" && e.code !== "KeyS") {
+        resetZoomClicks()
+    }
+    if (e.metaKey || e.ctrlKey) {
+        return
+    }
+    runHotkeyActionForEvent(e)
+}
+
+function addButtonIntoRightButtonsList(linksMenuClickHandler) {
+    setTimeout(async () => {
+        for (let i = 0; i < 40; i++) {
+            await sleep(30)
+            if (document.querySelector("#open-external-panel-btn")) {
+                break
+            }
+            const actionsBtn = document.querySelector(".control-query").cloneNode(true)
+            actionsBtn.id = "open-external-panel-btn"
+            actionsBtn.querySelector("a").innerHTML = toolsIconSvg
+            actionsBtn.querySelector("svg").setAttribute("stroke-width", "1.75")
+            actionsBtn.querySelector("svg").setAttribute("width", 20)
+            actionsBtn.querySelector("svg").setAttribute("height", 20)
+            actionsBtn.addEventListener("click", linksMenuClickHandler)
+            document.querySelector(".control-query").after(actionsBtn)
+        }
+    })
+}
+
 function setupNavigationViaHotkeys() {
     if ("/id" === location.pathname || document.querySelector("#id-embed")) return
     updateCurrentObjectMetadata()
-    // if (!location.pathname.startsWith("/changeset")) return;
     if (hotkeysConfigured) return
     hotkeysConfigured = true
 
     runPositionTracker()
 
-    const defaultZoomKeysBehaviour = GM_config.get("DefaultZoomKeysBehaviour")
+    defaultZoomKeysBehaviour = GM_config.get("DefaultZoomKeysBehaviour")
 
-    function keydownHandler(e) {
-        if (e.repeat && !["KeyK", "KeyL"].includes(e.code)) return
-        if (document.activeElement?.name === "text") return
-        if (document.activeElement?.nodeName === "INPUT" && ["input", "text"].includes(document.activeElement.getAttribute("type"))) {
-            if (e.code === "Escape") {
-                document.activeElement.blur()
-            }
-            return
-        }
-        if (document.activeElement?.nodeName === "TEXTAREA" && e.code === "Enter") {
-            if (document.activeElement.parentElement?.parentElement?.querySelector(".btn-wrapper")) {
-                if (e.metaKey || e.ctrlKey) {
-                    document.activeElement.parentElement.parentElement.querySelector(".btn-wrapper .btn-primary").click()
-                    return
-                }
-            }
-        }
-        if (
-            ["TEXTAREA", "INPUT", "SELECT"].includes(document.activeElement?.nodeName) &&
-            document.activeElement?.getAttribute("type") !== "checkbox" &&
-            document.activeElement?.getAttribute("type") !== "radio"
-        ) {
-            return
-        }
-        if (document.activeElement?.getAttribute("contenteditable")) {
-            return
-        }
-        // prettier-ignore
-        if (["TH", "TD"].includes(document.activeElement?.nodeName)
-            && document.activeElement?.parentElement?.parentElement?.parentElement?.hasAttribute("contenteditable")) {
-            return
-        }
-        // prettier-ignore
-        if (["TR"].includes(document.activeElement?.nodeName)
-            && document.activeElement?.parentElement?.parentElement?.hasAttribute("contenteditable")) {
-            return
-        }
-        if (document.activeElement?.classList?.contains("relation-viewer-a")) {
-            if (e.code === "ArrowDown" || e.code === "ArrowUp") {
-                e.preventDefault()
-                e.stopPropagation()
-                e.stopImmediatePropagation()
-                if (e.code === "ArrowDown") {
-                    e.target.parentElement.nextElementSibling?.querySelector("a")?.focus()
-                } else if (e.code === "ArrowUp") {
-                    e.target.parentElement.previousElementSibling?.querySelector("a")?.focus()
-                }
-                return
-            }
-        }
-        if (measuring) {
-            if (((e.ctrlKey || e.metaKey) && e.code === "KeyZ") || e.code === "Backspace" || e.code === "Delete") {
-                if (currentMeasuring.way.length) {
-                    currentMeasuring.way.pop()
-                    currentMeasuring.nodes.pop()?.remove()
-                    currentMeasuring.tempLine?.remove()
-                    currentMeasuring.wayLine?.remove()
-                    if (currentMeasuring.way.length) {
-                        currentMeasuring.wayLine = displayWay(currentMeasuring.way, false, "#000000", 1)
-                        currentMeasuring.tempLine = displayWay(
-                            [currentMeasuring.way[currentMeasuring.way.length - 1], lastLatLng],
-                            false,
-                            "#000000",
-                            1,
-                        )
-                    }
-                }
-            } else if (e.code === "Escape") {
-                endMeasuring()
-            }
-        } else if (prevMeasurements.length) {
-            if (e.code === "Escape") {
-                if (confirm("Clean measurements?")) {
-                    cleanMeasurements(e)
-                }
-            }
-        }
-        // if (drawingBuildings) {
-        //     if (e.code === "Escape") {
-        //         firstBuilding = null
-        //     }
-        // }
-        if (e.metaKey || e.ctrlKey) {
-            return
-        }
-        console.log("Key: ", e.key)
-        console.log("Key code: ", e.code)
-        if (e.code !== "KeyZ" && e.code !== "KeyD" && e.code !== "KeyS" && e.code !== "KeyS") {
-            resetZoomClicks()
-        }
-        if (e.code === "KeyN") {
-            if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
-                document.querySelector('a[href^="/user/"][href$="/notes"]')?.click()
-                addAltClickHandlerForNotes()
-            } else if (e.altKey && location.pathname.match(/note\/[0-9]+/)) {
-                window.open(document.querySelector('#sidebar_content a[href^="/user/"]').getAttribute("href") + "/notes", "_blank")
-            } else {
-                // notes
-                if (e.shiftKey) {
-                    if (
-                        location.pathname.includes("/node") ||
-                        location.pathname.includes("/way") ||
-                        location.pathname.includes("/relation")
-                    ) {
-                        newNotePlaceholder = "\n \n" + location.href
-                    }
-                    document.querySelector(".control-note .control-button").click()
-                } else {
-                    Array.from(document.querySelectorAll(".overlay-layers label input"))[0].removeAttribute("disabled")
-                    Array.from(document.querySelectorAll(".overlay-layers label"))[0].click()
-                }
-            }
-        } else if (e.code === "KeyD") {
-            if (e.altKey && e.shiftKey) {
-                location.search += "&kek"
-                return
-            } else if (e.altKey) {
-                // eslint-disable-next-line no-debugger
-                debugger
-                throw "debug"
-            }
-            if (e.shiftKey) {
-                try {
-                    document.getElementById("spy-glass").click()
-                } catch (e) {
-                    debug_alert("script not injected :(")
-                }
-                return
-            }
-            if (e.altKey || e.shiftKey) {
-                return
-            }
-            if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
-                document.querySelector('a[href^="/user/"][href$="/diary"]')?.click()
-            } else {
-                // map data
-                Array.from(document.querySelectorAll(".overlay-layers label input"))[1].removeAttribute("disabled")
-                Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
-                if (!location.hash.includes("D")) {
-                    disableOverzoom()
-                } else {
-                    enableOverzoom()
-                }
-            }
-        } else if (e.code === "KeyG") {
-            // gps tracks
-            if (e.shiftKey || e.altKey) {
-                enableOverzoom()
-                setZoom(Math.min(14, getZoom()))
-                if (!document.querySelectorAll(".overlay-layers label")[2].querySelector("input").checked) {
-                    Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
-                }
-                switchOverlayTiles()
-            } else {
-                Array.from(document.querySelectorAll(".overlay-layers label"))[2].click()
-            }
-        } else if (e.code === "KeyS") {
-            enableOverzoom()
-            if (e.shiftKey) {
-                askCustomTileUrl()
-                return
-            } else if (e.altKey) {
-                bypassCaches()
-            } else {
-                switchTilesAndButtons()
-            }
-        } else if (e.code === "KeyE") {
-            if (e.altKey) {
-                if (location.pathname.startsWith("/changeset/")) {
-                    if (document.querySelector(".active-object")) {
-                        const activeObjectUrl = document.querySelector(".active-object").querySelector("a").getAttribute("href")
-                        window.open(activeObjectUrl, "_blank")
-                    } else {
-                        const firstObjectUrl = document
-                            .querySelector("turbo-frame:is(#changeset_nodes, #changeset_ways, #changeset_relations)")
-                            .querySelector("ul a")
-                            .getAttribute("href")
-                        window.open(firstObjectUrl, "_blank")
-                    }
-                } else {
-                    document.querySelector(".edit_tags_class").click()
-                }
-            } else if (!location.pathname.match(/^\/user\/([^/]+)\/?$/)) {
-                if (e.shiftKey) {
-                    if (document.querySelector("#editanchor").getAttribute("data-editor") === "id") {
-                        document.querySelectorAll("#edit_tab .dropdown-menu .editlink")[1]?.click()
-                    } else {
-                        document.querySelectorAll("#edit_tab .dropdown-menu .editlink")[0]?.click()
-                    }
-                } else if (e.altKey && isDebug()) {
-                    document.querySelectorAll("table.quick-look, table.geojson-props-table:not(.metainfo-table)").forEach(i => {
-                        i.setAttribute("contenteditable", "true")
-                    })
-                } else {
-                    document.querySelector("#editanchor")?.click()
-                }
-            } else {
-                document.querySelector('a[href^="/user/"][href$="/history"]')?.click()
-            }
-        } else if (e.code === "KeyR") {
-            if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
-                document.querySelector('a[href*="/reports/new"]')?.click()
-                return
-            }
-            if (changesetObjectsSelectionModeEnabled || e.altKey) {
-                document.querySelector("#revert_button_class").click()
-                return
-            }
-            if (document.querySelector(".select-objects-btn")) {
-                document.querySelector(".select-objects-btn").click()
-            } else {
-                addCheckboxesForChangesetObjects()
-            }
-        } else if (e.code === "KeyJ") {
-            setTimeout(async () => {
-                if (location.pathname.includes("changeset")) {
-                    await openSelectedObjectsOnChangesetPage(e)
-                } else {
-                    await openObjectInJosmOrLevel0(e)
-                }
-            })
-        } else if (e.code === "KeyH") {
-            if (e.shiftKey) {
-                const targetURL = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href") + "/history"
-                if (targetURL !== location.pathname) {
-                    try {
-                        getWindow().OSM.router.route(targetURL)
-                    } catch {
-                        window.location.pathname = targetURL
-                    }
-                }
-            } else {
-                if (location.pathname.match(/(node|way|relation)\/\d+/)) {
-                    if (location.pathname.match(/(node|way|relation)\/\d+\/?$/)) {
-                        getWindow().OSM.router.route(window.location.pathname + "/history")
-                    } else if (location.pathname.match(/(node|way|relation)\/\d+\/history\/\d+\/?$/)) {
-                        const historyPath = window.location.pathname.match(/(\/(node|way|relation)\/\d+\/history)\/\d+/)[1]
-                        getWindow().OSM.router.route(historyPath)
-                    } else {
-                        console.debug("skip H")
-                    }
-                } else if (location.pathname === "/" || location.pathname.includes("/note")) {
-                    // document.querySelector("#history_tab")?.click()
-                    addCompactSidebarStyle()
-                    document.querySelector('.nav-link[href^="/history"]')?.click()
-                } else if (location.pathname.includes("/user/")) {
-                    document.querySelector('a[href^="/user/"][href$="/history"]')?.click()
-                }
-            }
-        } else if (e.code === "KeyY") {
-            const [x, y, z] = getCurrentXYZ()
-            window.open(`https://yandex.ru/maps/?l=stv,sta&ll=${y},${x}&z=${z}`, "_blank", "noreferrer")
-        } else if (e.key === "1") {
-            if (location.pathname.match(/\/(node|way|relation)\/\d+/)) {
-                if (location.pathname.match(/\/(node|way|relation)\/\d+/)) {
-                    getWindow().OSM.router.route(location.pathname.match(/\/(node|way|relation)\/\d+/)[0] + "/history/1")
-                } else {
-                    console.debug("skip 1")
-                }
-            } else if (location.pathname.startsWith("/changeset")) {
-                const user_link = document.querySelector('#sidebar_content a[href^="/user/"]')
-                if (user_link) {
-                    const username = decodeURI(user_link.getAttribute("href").match(/\/user\/([^/]+)/)[1])
-                    getCachedUserInfo(username).then(res => {
-                        if (res["firstChangesetID"]) {
-                            getWindow().OSM.router.route(`/changeset/${res["firstChangesetID"]}`)
-                        } else {
-                            console.warn("not found first changeset for " + username)
-                        }
-                    })
-                }
-            } else if (location.pathname.match(/\/user\/[^\\]+\/history\/?/)) {
-                const user_link = document.querySelector('#sidebar_content a[href^="/user/"]')
-                if (user_link) {
-                    const username = decodeURI(user_link.getAttribute("href").match(/\/user\/([^/]+)/)[1])
-                    getCachedUserInfo(username).then(res => {
-                        if (res["firstChangesetID"]) {
-                            getWindow().OSM.router.route(`${location.pathname}?after=${res["firstChangesetID"] - 1}`)
-                        } else {
-                            console.warn("not found first changeset for " + username)
-                        }
-                    })
-                }
-            }
-        } else if (e.key === "0") {
-            const center = getMapCenter()
-            setZoom(2)
-            fetch(`https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2`).then(res => {
-                res.json().then(r => {
-                    if (r?.address?.state) {
-                        getMap().attributionControl?.setPrefix(`${r.address.state}`)
-                    }
-                })
-            })
-        } else if (e.code === "KeyZ") {
-            if (e.shiftKey) {
-                shiftKeyZClicks += 1
-                document.addEventListener(
-                    "mousemove",
-                    () => {
-                        shiftKeyZClicks = 0
-                    },
-                    { once: true },
-                )
-            } else {
-                shiftKeyZClicks = 0
-            }
-            zoomToCurrentObject(e)
-        } else if (e.key === "8") {
-            if (mapPositionsHistory.length > 1) {
-                mapPositionsNextHistory.push(mapPositionsHistory[mapPositionsHistory.length - 1])
-                mapPositionsHistory.pop()
-                fitBounds(mapPositionsHistory[mapPositionsHistory.length - 1])
-            }
-        } else if (e.key === "9") {
-            if (mapPositionsNextHistory.length) {
-                mapPositionsHistory.push(mapPositionsNextHistory.pop())
-                fitBounds(mapPositionsHistory[mapPositionsHistory.length - 1])
-            }
-        } else if (e.code === "Minus" && !defaultZoomKeysBehaviour) {
-            if (document.activeElement?.id === "map") {
-                e.preventDefault()
-                e.stopImmediatePropagation()
-                e.stopPropagation()
-            }
-            if (!e.altKey) {
-                setZoom(getZoom() - 2)
-            } else {
-                setZoom(getZoom() - 1)
-            }
-            document.querySelector("#map").focus()
-        } else if (e.code === "Equal" && !defaultZoomKeysBehaviour) {
-            if (document.activeElement?.id === "map") {
-                e.preventDefault()
-                e.stopImmediatePropagation()
-                e.stopPropagation()
-            }
-            if (!e.altKey) {
-                setZoom(getZoom() + 2)
-            } else {
-                setZoom(getZoom() + 1)
-            }
-            document.querySelector("#map").focus()
-        } else if (e.code === "KeyO") {
-            if (e.shiftKey) {
-                window.open("https://overpass-api.de/achavi/?changeset=" + location.pathname.match(/\/changeset\/(\d+)/)[1])
-            } else if (!e.altKey) {
-                const usernameMatch = location.pathname.match(/^\/user\/([^/]+)\/?$/)
-                if (usernameMatch) {
-                    window.open(makeOsmchaLinkForUsername(decodeURI(usernameMatch[1])))
-                } else {
-                    const osmchaLink = document.querySelector("#osmcha_link")
-                    if (osmchaLink) {
-                        osmchaLink?.click()
-                    } else {
-                        document.querySelector(".relation-viewer-link")?.click()
-                    }
-                }
-            }
-        } else if (e.code === "Escape") {
-            cleanObjectsByKey("activeObjects")
-            document.querySelectorAll(".betterOsmContextMenu").forEach(i => i.remove())
-        } else if (e.code === "KeyL" && e.shiftKey) {
-            document.querySelector(".control-locate .control-button").click()
-        } else if (e.code === "KeyK" && location.pathname.match(/^(\/user\/.+)?\/history\/?$/)) {
-            goToPrevChangeset(e)
-        } else if (e.code === "KeyL" && location.pathname.match(/^(\/user\/.+)?\/history\/?$/)) {
-            goToNextChangeset(e)
-        } else if (e.code === "KeyK" && location.pathname === "/search") {
-            goToPrevSearchResult(e)
-        } else if (e.code === "KeyL" && location.pathname === "/search") {
-            goToNextSearchResult(e)
-        } else if (e.code === "KeyC") {
-            if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
-                if (location.pathname.includes("/diary_comments")) {
-                    document.querySelector('a[href^="/user/"][href$="changeset_comments"]')?.click()
-                } else {
-                    document.querySelector('a[href^="/user/"][href$="_comments"]')?.click()
-                }
-            } else {
-                if (e.altKey) {
-                    setTimeout(async () => {
-                        const center = getMapCenter()
-                        const format = (await GM.getValue("CoordinatesFormat")) ?? "Lat Lon"
-                        if (format === "Lon Lat") {
-                            navigator.clipboard.writeText(`${center.lng} ${center.lat}`)
-                        } else {
-                            navigator.clipboard.writeText(`${center.lat} ${center.lng}`)
-                        }
-                    })
-                } else {
-                    const activeObject = document.querySelector("#element_versions_list > div.active-object")
-                    if (activeObject) {
-                        if (e.shiftKey) {
-                            window.open(activeObject.querySelector('a[href^="/changeset/"]').href, "_blank")
-                        } else {
-                            activeObject.querySelector('a[href^="/changeset/"]')?.click()
-                        }
-                    } else {
-                        const changesetsLinks = document.querySelectorAll('a[href^="/changeset/"]:not([href*="?locale="])')
-                        if (e.shiftKey) {
-                            if (changesetsLinks?.[0]?.href) {
-                                window.open(changesetsLinks?.[0]?.href, "_blank")
-                            }
-                        } else {
-                            changesetsLinks?.[0]?.click()
-                        }
-                    }
-                }
-            }
-        } else if (e.code === "KeyQ" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
-            buildingViewerIframe?.remove()
-            buildingViewerIframe = null
-            if (document.querySelector("#osm_alert_modal")?.checkVisibility()) {
-                document.querySelector("#osm_alert_modal .btn-close").click()
-            } else {
-                document.querySelectorAll(".sidebar-close-controls .btn-close").forEach(i => i?.click())
-                document.querySelector(".welcome .btn-close")?.click()
-                document.querySelector("#banner .btn-close")?.click()
-                document.querySelector(".better-btn-close")?.click()
-            }
-        } else if (e.code === "KeyT" && !e.altKey && !e.metaKey && !e.shiftKey && !e.ctrlKey) {
-            if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
-                document.querySelector('a[href="/traces/mine"], a[href$="/traces"]:not(.nav-link):not(.dropdown-item)')?.click()
-            } else {
-                document.querySelector(".quick-look-compact-toggle-btn")?.click()
-                document.querySelector(".compact-toggle-btn")?.click()
-                document.querySelector("time[switchable]").click()
-            }
-        } else if (e.code === "KeyT" && (e.altKey || e.shiftKey)) {
-            document.querySelector("time[switchable]").click()
-        } else if (e.code === "KeyM" && !e.altKey && !e.metaKey && !e.ctrlKey) {
-            if (e.shiftKey) {
-                if (location.pathname.includes("/user/")) {
-                    const username = location.pathname.match(/^\/user\/([^/]+)/)[1]
-                    window.open("/messages/new/" + decodeURI(username))
-                } else {
-                    const username = document
-                        .querySelector("#sidebar_content a[href^='/user/']")
-                        .getAttribute("href")
-                        .match(/^\/user\/([^/]+)/)[1]
-                    window.open("/messages/new/" + decodeURI(username))
-                }
-            } else if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
-                document.querySelector('a[href^="/messages/new/"]')?.click()
-            }
-        } else if (e.code === "KeyU" && !e.altKey && !e.metaKey && !e.ctrlKey) {
-            if (e.shiftKey) {
-                window.location.pathname = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href")
-            } else {
-                const user_link = document.querySelector('#sidebar_content a[href^="/user/"]')
-                if (user_link) {
-                    if (user_link.checkVisibility()) {
-                        user_link?.click()
-                    } else {
-                        document.querySelector('#sidebar_content li:not([hidden-data-changeset]) a[href^="/user/"]')?.click()
-                    }
-                    // todo fixme on changesets page with filter
-                } else {
-                    document
-                        .querySelector('#content a[href^="/user/"]:not([href$=rss]):not([href*="/diary"]):not([href*="/traces"])')
-                        ?.click()
-                }
-            }
-        } else if (
-            (e.code === "Backquote" || e.code === "Quote" || e.key === "`" || e.key === "~") &&
-            !e.altKey &&
-            !e.metaKey &&
-            !e.ctrlKey
-        ) {
-            if (!getWindow().mapIntercepted) return
-            e.preventDefault()
-            for (let member in layers) {
-                layers[member].forEach(i => {
-                    if (layersHidden) {
-                        i.getElement().style.visibility = ""
-                    } else {
-                        i.getElement().style.visibility = "hidden"
-                    }
-                })
-            }
-            if (getWindow()?.jsonLayer) {
-                if (layersHidden) {
-                    injectJSIntoPage(`jsonLayer.eachLayer(i => i.getElement().style.visibility = "")`)
-                } else {
-                    injectJSIntoPage(`jsonLayer.eachLayer(i => i.getElement().style.visibility = "hidden")`)
-                }
-            } else if (jsonLayer) {
-                if (layersHidden) {
-                    jsonLayer.eachLayer(intoPageWithFun(i => (getMap()._layers[i._leaflet_id].getElement().style.visibility = "")))
-                } else {
-                    jsonLayer.eachLayer(intoPageWithFun(i => (getMap()._layers[i._leaflet_id].getElement().style.visibility = "hidden")))
-                }
-            }
-            layersHidden = !layersHidden
-        } else if (e.code === "KeyF" && !e.altKey && !e.metaKey && !e.ctrlKey) {
-            if (location.pathname.match(/^\/note\//) || location.pathname === "/") {
-                document.querySelector(".control-layers a").click()
-                if (document.querySelector(".layers-ui").style.display !== "none") {
-                    Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({ block: "center" })
-                    e.preventDefault()
-                    document.querySelector("#filter-notes-by-string").focus()
-                }
-            } else {
-                if (!document.querySelector("#changesets-filter-btn") && !document.querySelector("#mass-action-btn")) {
-                    document.querySelector(".control-layers a").click()
-                    Array.from(document.querySelectorAll(".overlay-layers label"))[0].scrollIntoView({ block: "center" })
-                } else {
-                    document.querySelector("#changesets-filter-btn")?.click()
-                    document.querySelector("#mass-action-btn")?.click()
-                }
-            }
-        } else if (isDebug() && e.code === "KeyP" && e.altKey) {
-            if (location.pathname.startsWith("/changeset")) {
-                const params = new URLSearchParams(location.search)
-                const changesetIDs = params.get("changesets")?.split(",") ?? [parseInt(location.pathname.match(/changeset\/(\d+)/)[1])]
-                const objects = []
-                if (changesetIDs) {
-                    setTimeout(async () => {
-                        for (const i of changesetIDs) {
-                            ;(await getChangeset(i)).data.querySelectorAll("node,way,relation").forEach(obj => {
-                                objects.push(obj)
-                            })
-                        }
-                        objects.sort((a, b) => {
-                            const A = new Date(a.getAttribute("timestamp"))
-                            const B = new Date(b.getAttribute("timestamp"))
-                            if (A < B) return -1
-                            if (A > B) return 1
-                            return 0
-                        })
-                        const nodesList = []
-                        for (let object of objects) {
-                            if (object.nodeName === "node" && object.getAttribute("visible") === "true") {
-                                // debugger
-                                // showNodeMarker(object.getAttribute("lat"), object.getAttribute("lon"), "rgb(0,34,255)", null, 'customObjects')
-                                // await sleep(300)
-                                nodesList.push([object.getAttribute("lat"), object.getAttribute("lon")])
-                            } else if (object.nodeName === "way") {
-                                // TODO
-                            }
-                        }
-                        showNodeMarker(nodesList[0][0], nodesList[0][1], "#ff0000", null, "customObjects", 8)
-                        showNodeMarker(nodesList.at(-1)[0], nodesList.at(-1)[1], "#00ff04", null, "customObjects", 8)
-                        showActiveWay(nodesList, c("#0022ff"), false, null, true, 2)
-                    })
-                }
-            }
-        } else if ((e.code === "Slash" || e.code === "Backslash" || e.code === "NumpadDivide" || e.key === "/") && e.shiftKey) {
-            setTimeout(async () => {
-                getMap().getBounds()
-                let message = `Type overpass selector:
-\tkey
-\tkey=value
-\tkey~val,i`
-                const currentUser = decodeURI(
-                    document
-                        .querySelector('.user-menu [href^="/user/"]')
-                        ?.getAttribute("href")
-                        ?.match(/\/user\/(.*)$/)?.[1] ?? "",
-                )
-                if (currentUser) {
-                    message += currentUser.match(/^[a-zA-Z0-9_]+$/) ? `\n\tnode(user:${currentUser})` : `\n\tnode(user:"${currentUser}")`
-                }
-                message += `
-\tway[footway=crossing](if: length() > 150)
-End with ! for global search
-⚠this is a simple prototype of search`
-                const query = prompt(message, await GM.getValue("lastOverpassQuery", ""))
-                if (query) {
-                    insertOverlaysStyles()
-                    processOverpassQuery(query)
-                }
-            }, 0)
-        } else if (e.altKey && e.code === "Backquote") {
-            darkModeForMap = !darkModeForMap
-            if (darkModeForMap) {
-                injectDarkMapStyle()
-            } else {
-                darkMapStyleElement?.remove()
-            }
-        } else if (e.code === "KeyP") {
-            navigator.clipboard.writeText(shortOsmOrgLinksInText(location.origin + location.pathname))
-        } else if (e.code === "KeyB") {
-            if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
-                document.querySelector('a[href^="/user/"][href$="/blocks"]')?.click()
-            }
-            //setupBuildingTools()
-        } else if (e.code === "KeyX") {
-            document.querySelector("#edit_tab ul").tabIndex = -1
-            if (document.querySelector("header").classList.contains("closed")) {
-                document.querySelector("#menu-icon").click()
-                document.querySelector("#edit_tab > button").click()
-            } else if (document.querySelector("#edit_tab > .dropdown-menu").classList.contains("show")) {
-                document.querySelector("#change-list-btn.closed")?.click()
-            } else {
-                document.querySelector("#edit_tab button").click()
-            }
-        } else if (e.code === "KeyV") {
-            if (e.shiftKey) {
-                if (!document.querySelector("#map canvas")) {
-                    Array.from(document.querySelectorAll(".layers-ui .base-layers label")).at(-2)?.click()
-                }
-                void askCustomStyleUrl()
-            } else {
-                nextVectorLayer()
-            }
-        } else {
-            // console.log(e.key, e.code)
-        }
-        if (location.pathname.startsWith("/changeset") && !location.pathname.includes("/changeset_comments")) {
-            if (e.code === "Comma") {
-                const link = getPrevChangesetLink()
-                if (link) {
-                    getAbortController().abort(ABORT_ERROR_PREV)
-                    needPreloadChangesets = true
-                    link.focus()
-                    link.click()
-                }
-            } else if (e.code === "Period") {
-                const link = getNextChangesetLink()
-                if (link) {
-                    getAbortController().abort(ABORT_ERROR_NEXT)
-                    needPreloadChangesets = true
-                    link.focus()
-                    link.click()
-                }
-            } else if (e.code === "KeyH") {
-                const userChangesetsLink = document.querySelectorAll("div.secondary-actions")[1]?.querySelector('a[href^="/user/"]')
-                if (userChangesetsLink) {
-                    getAbortController().abort(ABORT_ERROR_USER_CHANGESETS)
-                    userChangesetsLink.focus()
-                    userChangesetsLink.click()
-                }
-            } else if (e.code === "KeyK") {
-                goToPrevChangesetObject(e)
-            } else if (e.code === "KeyL" && !e.shiftKey) {
-                goToNextChangesetObject(e)
-            }
-        } else if (location.pathname.match(/^\/(node|way|relation)\/\d+/)) {
-            if (e.code === "Comma") {
-                const links = Array.from(document.querySelectorAll("#sidebar_content nav div ul a"))
-                for (let i = 0; i < links.length; i++) {
-                    if (links[i].parentElement.classList.contains("active")) {
-                        links[i - 1]?.click()
-                        break
-                    }
-                }
-            } else if (e.code === "Period") {
-                const links = Array.from(document.querySelectorAll("#sidebar_content nav div ul a"))
-                for (let i = 0; i < links.length; i++) {
-                    if (links[i].parentElement.classList.contains("active")) {
-                        links[i + 1]?.click()
-                        break
-                    }
-                }
-            }
-            if (location.pathname.match(/\/history$/)) {
-                if (e.code === "KeyK") {
-                    goToPrevObjectVersion()
-                } else if (e.code === "KeyL" && !e.shiftKey) {
-                    goToNextObjectVersion()
-                }
-            }
-        } else if (
-            // prettier-ignore
-            location.pathname.match(/user\/.+\/(traces|diary_comments|changeset_comments)/)
-            || location.pathname.match(/\/user_blocks($|\/)/)
-            || location.pathname.match(/\/blocks_by$/)
-        ) {
-            if (e.code === "Comma") {
-                document.querySelector('.pagination a[href*="after"]')?.click()
-            } else if (e.code === "Period") {
-                document.querySelector('.pagination a[href*="before"]')?.click()
-            }
-        } else if (location.pathname.match(/user\/.+\/(notes)/)) {
-            if (e.code === "Comma") {
-                document.querySelectorAll(".pagination li a")[0]?.click()
-            } else if (e.code === "Period") {
-                document.querySelectorAll(".pagination li a")[1]?.click()
-            }
-        } else if (
-            e.code === "KeyH" &&
-            location.pathname.includes("/history") &&
-            (location.search.includes("after") || location.search.includes("before"))
-        ) {
-            try {
-                getWindow().OSM.router.route(location.pathname)
-                setupCompactChangesetsHistory()
-            } catch {
-                if (isSafari) {
-                    window.location.search = ""
-                } else {
-                    window.location = location.pathname
-                }
-            }
-        }
+    document.addEventListener("keydown", hotkeyKeydownHandler, false)
+    if (isMobile) {
+        addButtonIntoRightButtonsList(hotkeyCommandsPopupClickHandler)
     }
-
-    document.addEventListener("keydown", keydownHandler, false)
 }
 
 function setupOverzoomForDataLayer() {
@@ -26652,7 +28602,6 @@ function setupIDframe() {
 // - возможность сохранить результат внедрения
 
 /***@type {((function(): Promise<void>|void))[]}*/
-// prettier-ignore
 const modules = [
     setupDarkModeForMap,
     setupHDYCInProfile,
@@ -26671,9 +28620,9 @@ const modules = [
     setupClickableAvatar,
     setupOverzoomForDataLayer,
     setupDragAndDropViewers,
-    setupBetterTagsPaste
-];
-// prettier-ignore
+    setupBetterTagsPaste,
+]
+/***@type {((function(): Promise<void>|void))[]}*/
 const alwaysEnabledModules = [
     setupRelationVersionViewer,
     setupMakeVersionPageBetter,
@@ -26681,7 +28630,7 @@ const alwaysEnabledModules = [
     setupGPXFiltersButtons,
     setupSpyGlassButtons,
     setupNewContextMenuItems,
-    setupPrometheusLink
+    setupPrometheusLink,
 ]
 
 function selectOverpassServer() {
@@ -26798,6 +28747,18 @@ function setupOSMWebsite() {
                 { once: true },
             )
         }
+        document.querySelectorAll('nav a[href="/export"]').forEach(i =>
+            i.addEventListener("contextmenu", async e => {
+                e.preventDefault()
+                const bounds = await getMapBounds()
+                showBboxMenu(e, {
+                    max_lat: bounds.getNorthWest().lat,
+                    min_lon: bounds.getNorthWest().lng,
+                    min_lat: bounds.getSouthEast().lat,
+                    max_lon: bounds.getSouthEast().lng,
+                })
+            }),
+        )
     })
 }
 
@@ -27043,18 +29004,14 @@ function makeCommandsMenu() {
     try {
         GM_registerMenuCommand("Settings", function () {
             if (!inFrame()) {
-                GM_config.open()
+                actionOpenSettings()
             }
         })
         if (isMobile || isDebug()) {
-            GM_registerMenuCommand("Check script updates", function () {
-                window.open(`${SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`, "_blank")
-            })
+            GM_registerMenuCommand("Check script updates", actionOpenScriptUpdateUrl)
         }
         if (isDebug()) {
-            GM_registerMenuCommand("Check dev script updates", function () {
-                window.open(`${DEV_SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`, "_blank")
-            })
+            GM_registerMenuCommand("Check dev script updates", actionOpenDevScriptUpdateUrl)
         }
 
         // New Year Easter egg
@@ -27062,10 +29019,8 @@ function makeCommandsMenu() {
         if ((curDate.getMonth() === 11 && curDate.getDate() >= 18) || (curDate.getMonth() === 0 && curDate.getDate() < 10)) {
             GM_registerMenuCommand("☃️", runSnowAnimation)
         }
-        // todo hotkeys
-        GM_registerMenuCommand("List of hotkeys", function () {
-            window.open("https://github.com/deevroman/better-osm-org/#hotkeys", "_blank")
-        })
+
+        GM_registerMenuCommand("List of hotkeys", actionShowHotkeysHelp)
         // GM_registerMenuCommand("Ask question on forum", function () {
         //     window.open("https://community.openstreetmap.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670")
         // });
