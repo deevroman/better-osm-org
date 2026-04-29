@@ -1347,20 +1347,20 @@ GM_config.init(configOptions)
 
 //<editor-fold desc="svg" defaultstate="collapsed">
 
-// prettier-ignore
 const filterIconSvg =
-    '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" ' +
-    'stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-funnel-icon lucide-funnel">' +
-    '<path d="M 10 20 a 1 1 0 0 0 0.553 0.895 l 2 1 A 1 1 0 0 0 14 21 v -8 a 2 3 0 0 1 1 -2 L 21.74 4.67 A 1 1 0 0 0 21 3 H 3 a 1 1 0 0 0 -0.742 1.67 l 6.742 6.33 A 2 3 0 0 1 10 13 z"/>' +
-    '</svg>'
+    '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    'stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-funnel-icon lucide-funnel">' +
+    '<path d="M 10 20 a 1 1 0 0 0 0.553 0.895 l 2 1 A 1 1 0 0 0 14 21 v -8 a 2 3 0 0 1 1 -2 L 21.74 4.67 A 1 1 0 0 0 ' +
+    '21 3 H 3 a 1 1 0 0 0 -0.742 1.67 l 6.742 6.33 A 2 3 0 0 1 10 13 z"/>' +
+    "</svg>"
 
-// prettier-ignore
 const tagSvg =
-    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" ' +
-    'stroke="currentColor" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tag-icon lucide-tag">' +
-    '<path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/>' +
+    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    'stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tag-icon lucide-tag">' +
+    '<path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 ' +
+    '0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/>' +
     '<circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/>' +
-    '</svg>'
+    "</svg>"
 
 const osmchaLikeSvg =
     "data:image/svg+xml;base64," +
@@ -1387,71 +1387,71 @@ const osmchaDislikeSvg =
 
 const osmchaSvgLogo =
     '<svg viewBox="2.5 2.5 13 13" xmlns="http://www.w3.org/2000/svg">' +
-    '<path d="M2.5 2.5l1 4-1 2 1 3-1 3h1l4-4c-.6-.8-1-1.9-1-3 0-1.9 1.1-3.5 2.6-4.4l-.6-.6-3 1-3-1zM15 11c-.9.9-2.2 1.5-3.5 1.5-1.1 0-2.2-.4-3-1l-4 4h2l2-1 2 1 4-1 1-3-.5-.5z"></path>' +
+    '<path d="M2.5 2.5l1 4-1 2 1 3-1 3h1l4-4c-.6-.8-1-1.9-1-3 0-1.9 1.1-3.5 2.6-4.4l-.6-.6-3 1-3-1zM15 ' +
+    '11c-.9.9-2.2 1.5-3.5 1.5-1.1 0-2.2-.4-3-1l-4 4h2l2-1 2 1 4-1 1-3-.5-.5z"></path>' +
     '<path d="M15 7.5c0 1.9-1.6 3.5-3.5 3.5S8 9.4 8 7.5 9.6 4 11.5 4 15 5.6 15 7.5"></path></svg>'
 
-// prettier-ignore
 const commentSvg =
     '<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">' +
     '<path d="M2.678 11.894a1 1 0 0 1 .287.801 11 11 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 ' +
-    '.71-.074A8 8 0 0 0 8 14c3.996 0 7-2.807 7-6s-3.004-6-7-6-7 2.808-7 6c0 1.468.617 2.83 1.678 3.894m-.493 ' +
-    '3.905a22 22 0 0 1-.713.129c-.2.032-.352-.176-.273-.362a10 10 0 0 0 .244-.637l.003-.01c.248-.72.45-1.548.524-2.319C.743 ' +
+    ".71-.074A8 8 0 0 0 8 14c3.996 0 7-2.807 7-6s-3.004-6-7-6-7 2.808-7 6c0 1.468.617 2.83 1.678 3.894m-.493 " +
+    "3.905a22 22 0 0 1-.713.129c-.2.032-.352-.176-.273-.362a10 10 0 0 0 .244-.637l.003-.01c.248-.72.45-1.548.524-2.319C.743 " +
     '11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.52.263-1.639.742-3.468 1.105">' +
-    '</path>' +
+    "</path>" +
     "</svg>"
 
-// prettier-ignore
 const diffSvg =
     '<svg class="lucide lucide-diff better-diff-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" ' +
     'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">' +
     '<path d="M12 3v14"/><path d="M5 10h14"/>' +
     '<path d="M5 21h14"/>' +
-    '</svg>'
+    "</svg>"
 
-// prettier-ignore
-const fitToObjectSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">\n' +
+const fitToObjectSvg =
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">\n' +
     '  <path d="M3 7V3H7" stroke-width="2" stroke-linecap="round"/>\n' +
     '  <path d="M17 3H21V7" stroke-width="2" stroke-linecap="round"/>\n' +
     '  <path d="M21 17V21H17" stroke-width="2" stroke-linecap="round"/>\n' +
-    '  <path d="M7 21H3V17" stroke-width="2" stroke-linecap="round"/>\n' + "</svg>\n"
+    '  <path d="M7 21H3V17" stroke-width="2" stroke-linecap="round"/>\n' +
+    "</svg>\n"
 
-// prettier-ignore
 const externalLinkSvg =
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" ' +
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" ' +
+    'stroke-linecap="round" stroke-linejoin="round" ' +
     'class="lucide lucide-external-link-icon lucide-external-link" width="16" height="16">' +
     '<path d="M15 3h6v6"></path><path d="M10 14 21 3"></path>' +
     '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>' +
-    '</svg>'
+    "</svg>"
 
-// prettier-ignore
 const pencilLinkSvg =
-    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" ' +
+    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    'stroke-width="1.25" stroke-linecap="round" ' +
     'stroke-linejoin="round" class="lucide lucide-pencil-icon lucide-pencil">' +
-    '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>' +
+    '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 ' +
+    '.623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>' +
     '<path d="m15 5 4 4"/>' +
-    '</svg>'
+    "</svg>"
 
-// prettier-ignore
 const compactModeSvg =
-    '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" height="17" width="17" viewBox="0 0 17 17">' +
+    '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" ' +
+    'stroke-linejoin="round" height="17" width="17" viewBox="0 0 17 17">' +
     '<path d="M15 12 l-5-4  5-4"></path><path d="M2 12 l 5-4 -5-4"></path>' +
-    '</svg>'
+    "</svg>"
 
-// prettier-ignore
 const expandModeSvg =
-    '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" height="17" width="17" viewBox="0 0 17 17">' +
+    '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" ' +
+    'stroke-linejoin="round" height="17" width="17" viewBox="0 0 17 17">' +
     '<path d="M7 12 l-5-4  5-4"></path>' +
     '<path d="M10 12 l 5-4 -5-4"></path>' +
-    '</svg>'
+    "</svg>"
 
-// prettier-ignore
 const copyBtnSvg =
     '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" ' +
     'stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" ' +
     'class="lucide lucide-file-icon lucide-file">' +
     '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>' +
     '<path d="M14 2v4a2 2 0 0 0 2 2h4"/>' +
-    '</svg>'
+    "</svg>"
 
 // TODO without encode
 const nodeIcon =
@@ -1491,12 +1491,12 @@ const relationIcon =
 const toolsIconSvg =
     '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-tools" viewBox="0 0 16 16">' +
     '<path d="M1 0 0 1l2.2 3.081a1 1 0 0 0 .815.419h.07a1 1 0 0 1 .708.293l2.675 2.675-2.617 2.654A3.003 3.003 0 0 0' +
-    ' 0 13a3 3 0 1 0 5.878-.851l2.654-2.617.968.968-.305.914a1 1 0 0 0 .242 1.023l3.27 3.27a.997.997 0 0 0 1.414' +
-    ' 0l1.586-1.586a.997.997 0 0 0 0-1.414l-3.27-3.27a1 1 0 0 0-1.023-.242L10.5 9.5l-.96-.96 2.68-2.643A3.005 3.005' +
-    ' 0 0 0 16 3q0-.405-.102-.777l-2.14 2.141L12 4l-.364-1.757L13.777.102a3 3 0 0 0-3.675 3.68L7.462 6.46 4.793 3.793a1' +
-    ' 1 0 0 1-.293-.707v-.071a1 1 0 0 0-.419-.814zm9.646 10.646a.5.5 0 0 1 .708 0l2.914 2.915a.5.5 0 0 ' +
-    '1-.707.707l-2.915-2.914a.5.5 0 0 1 0-.708M3 11l.471.242.529.026.287.445.445.287.026.529L5 ' +
-    '13l-.242.471-.026.529-.445.287-.287.445-.529.026L3 15l-.471-.242L2 14.732l-.287-.445L1.268 14l-.026-.529L1 ' +
+    " 0 13a3 3 0 1 0 5.878-.851l2.654-2.617.968.968-.305.914a1 1 0 0 0 .242 1.023l3.27 3.27a.997.997 0 0 0 1.414" +
+    " 0l1.586-1.586a.997.997 0 0 0 0-1.414l-3.27-3.27a1 1 0 0 0-1.023-.242L10.5 9.5l-.96-.96 2.68-2.643A3.005 3.005" +
+    " 0 0 0 16 3q0-.405-.102-.777l-2.14 2.141L12 4l-.364-1.757L13.777.102a3 3 0 0 0-3.675 3.68L7.462 6.46 4.793 3.793a1" +
+    " 1 0 0 1-.293-.707v-.071a1 1 0 0 0-.419-.814zm9.646 10.646a.5.5 0 0 1 .708 0l2.914 2.915a.5.5 0 0 " +
+    "1-.707.707l-2.915-2.914a.5.5 0 0 1 0-.708M3 11l.471.242.529.026.287.445.445.287.026.529L5 " +
+    "13l-.242.471-.026.529-.445.287-.287.445-.529.026L3 15l-.471-.242L2 14.732l-.287-.445L1.268 14l-.026-.529L1 " +
     '13l.242-.471.026-.529.445-.287.287-.445.529-.026z"/>' +
     "</svg>"
 
