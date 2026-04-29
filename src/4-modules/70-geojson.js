@@ -341,6 +341,10 @@ function insertOverlaysStyles() {
             .mode-btn:not(.visible) {
                 display: none;
             }
+            
+            .mode-btn > svg {
+                margin-top: -3px;
+            }
 
             .map-img-preview-popup {
                 width: initial;
@@ -374,12 +378,6 @@ function insertOverlaysStyles() {
         `)
 }
 
-// todo inline
-const rawEditIcon =
-    "https://raw.githubusercontent.com/openstreetmap/iD/671e9f00699c3b2602b82b291c5cd776445032aa/svg/fontawesome/fas-i-cursor.svg"
-const tableEditIcon =
-    "https://raw.githubusercontent.com/openstreetmap/iD/671e9f00699c3b2602b82b291c5cd776445032aa/svg/fontawesome/fas-th-list.svg"
-
 // const lastVersionsCache = {}
 
 function loadBannedVersions() {
@@ -388,19 +386,6 @@ function loadBannedVersions() {
         responseType: "json",
     }).then(async res => {
         bannedVersions = await res.response
-    })
-}
-
-function preloadEditIcons() {
-    GM_addElement("img", {
-        src: rawEditIcon,
-        height: "14px",
-        width: "14px",
-    })
-    GM_addElement("img", {
-        src: tableEditIcon,
-        height: "14px",
-        width: "14px",
     })
 }
 
@@ -580,23 +565,10 @@ function renderOSMGeoJSON(xml, options = {}) {
             const modeBtn = startEditEvent.target.parentElement.querySelector(".mode-btn")
             modeBtn.classList.add("visible")
 
-            const tableModeBtnImg = GM_addElement("img", {
-                src: tableEditIcon,
-                height: "14px",
-                width: "14px",
-            })
-            tableModeBtnImg.style.marginTop = "-3px"
-            const rawModeBtnImg = GM_addElement("img", {
-                src: rawEditIcon,
-                height: "14px",
-                width: "14px",
-            })
-            rawModeBtnImg.style.marginTop = "-3px"
-
             if (lastEditMode === "table") {
-                modeBtn.appendChild(rawModeBtnImg)
+                modeBtn.innerHTML = rawEditSvg
             } else {
-                modeBtn.appendChild(tableModeBtnImg)
+                modeBtn.innerHTML = tableEditSvg
                 const textarea = table.querySelector("textarea")
                 textarea.setAttribute("disabled", "true")
                 textarea.value = ""
@@ -610,16 +582,15 @@ function renderOSMGeoJSON(xml, options = {}) {
 
             modeBtn.onclick = async e => {
                 e.stopPropagation()
-                modeBtn.querySelector("img").remove()
                 if (lastEditMode === "table") {
-                    modeBtn.appendChild(tableModeBtnImg)
+                    modeBtn.innerHTML = tableEditSvg
                     lastEditMode = "raw"
                     await GM.setValue("lastEditMode", lastEditMode)
 
                     table.appendChild(makeTextareaFromTagsTable(table))
                     table.querySelector("tbody")?.remove()
                 } else {
-                    modeBtn.appendChild(rawModeBtnImg)
+                    modeBtn.innerHTML = rawEditSvg
                     lastEditMode = "table"
                     await GM.setValue("lastEditMode", lastEditMode)
 

@@ -49,7 +49,6 @@ function handleDroppedFiles(files) {
         } else if (file.type === "application/vnd.openstreetmap.data+xml") {
             const doc = new DOMParser().parseFromString(await file.text(), "application/xml")
             loadBannedVersions()
-            preloadEditIcons()
             jsonLayer = renderOSMGeoJSON(doc, true)
         } else if (file.type === "application/vnd.google-earth.kml+xml") {
             displayKMLTrack(await file.text())
