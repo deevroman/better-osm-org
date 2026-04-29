@@ -181,22 +181,10 @@ function tryAddWarnAboutScriptIntoOsmOrgRepo() {
     if (document.querySelector(".better-osm-org-warn")) {
         return
     }
-    let result = document.evaluate(
-        "//h1[normalize-space(text())='Create new issue']",
-        document,
-        null,
-        XPathResult.FIRST_ORDERED_NODE_TYPE,
-        null,
-    ).singleNodeValue
-    if (!result) {
-        result = document.evaluate(
-            "//h2[normalize-space(text())='Create new issue']",
-            document,
-            null,
-            XPathResult.FIRST_ORDERED_NODE_TYPE,
-            null,
-        ).singleNodeValue
+    function xpath(selector) {
+        return document.evaluate(selector, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue
     }
+    const result = xpath("//h1[normalize-space(text())='Create new issue']") ?? xpath("//h2[normalize-space(text())='Create new issue']")
     if (result) {
         const warn = document.createElement("div")
         warn.textContent = "⚠️⚠️⚠️️ "
