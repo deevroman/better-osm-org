@@ -32,9 +32,7 @@ function addPOIMoverItem(measuringMenuItem) {
         if (!match) return
         const object_type = match[1]
         const object_id = match[2]
-        if (osmEditAuth === null) {
-            osmEditAuth = makeAuth()
-        }
+        initOsmAuth()
         if (!confirm("⚠️ move node?")) {
             return
         }

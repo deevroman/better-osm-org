@@ -61,9 +61,7 @@ function addDeleteButton() {
     const object_type = match[1]
     const object_id = match[2]
 
-    if (osmEditAuth === null) {
-        osmEditAuth = makeAuth()
-    }
+    initOsmAuth()
     const link = document.createElement("a")
     link.text = ["ru-RU", "ru"].includes(navigator.language) ? "Выпилить!" : "Delete"
     link.href = ""

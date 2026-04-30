@@ -390,9 +390,7 @@ function loadBannedVersions() {
 }
 
 function renderOSMGeoJSON(xml, options = {}) {
-    if (osmEditAuth === null) {
-        osmEditAuth = makeAuth()
-    }
+    initOsmAuth()
     /**
      * @param {Object.<string, string>} tags
      * @return {HTMLTableSectionElement}
