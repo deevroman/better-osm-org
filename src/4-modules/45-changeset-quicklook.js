@@ -441,7 +441,8 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
         row.querySelector("td").appendChild(a)
     } else {
         const keyCell = row.querySelector("th")
-        const key = keyCell.textContent
+        const rawKey = keyCell.textContent
+        const key = rawKey
         const valueCell = row.querySelector("td")
         if (key.startsWith("panoramax")) {
             makePanoramaxValue(valueCell)
@@ -464,6 +465,9 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
         } else if (key.length <= 2 && key !== "to" && key !== "tv" && key !== "it") {
             keyCell.classList.add("fixme-tag")
             keyCell.title = "The key is too short"
+        } else if (key.length >= 2 && rawKey[0] >= "A" && rawKey[0] <= "Z" && rawKey[1] >= "a" && rawKey[1] <= "z") {
+            keyCell.classList.add("fixme-tag")
+            keyCell.title = "Suspicious key starting with a capital letter"
         }
     }
 }
