@@ -25224,10 +25224,6 @@ const mapPositionsHistory = []
 const mapPositionsNextHistory = []
 
 function runPositionTracker() {
-    if (isMobile) {
-        console.log("skip position tracker on mobile device")
-        return
-    }
     if (!getMap || !getMap()?.getBounds) {
         console.error("Please, reload page, if something doesn't work")
     }
@@ -25248,7 +25244,7 @@ function runPositionTracker() {
             mapPositionsHistory.shift()
             mapPositionsHistory.shift()
         }
-    }, 1000)
+    }, isMobile ? 4000 : 1000 )
 }
 
 let newNotePlaceholder = null
@@ -26543,10 +26539,6 @@ function formatHotkeyBinding(binding) {
     return [...modifiers, displayBaseCode].join(" + ")
 }
 
-function formatHotkeyBindings(bindings) {
-    return bindings.map(formatHotkeyBinding).filter(Boolean).join("\n")
-}
-
 function createSyntheticHotkeyEvent(binding) {
     const parts = binding.split("+")
     const baseCode = parts[parts.length - 1]
@@ -26748,9 +26740,9 @@ function ensureHotkeyCommandsPopupStyles() {
 
             .better-osm-hotkey-command-btn {
                 display: grid;
-                grid-template-columns: 1fr${isMobile ? "" : " minmax(90px, 120px)"};
+                grid-template-columns: 1fr${isMobile ? "" : " minmax(90px, 130px)"};
                 align-items: start;
-                gap: 10px;
+                gap: 15px;
                 width: 100%;
                 border: 0;
                 border-radius: 6px;
@@ -26772,14 +26764,17 @@ function ensureHotkeyCommandsPopupStyles() {
             }
 
             .better-osm-hotkey-command-binding {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
                 font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
                 font-size: 0.875rem;
-                white-space: pre-line;
                 line-height: 1.3;
                 opacity: 0.65;
             }
 
             .better-osm-hotkey-command-title {
+                align-self: center;
                 font-size: 0.925rem;
                 line-height: 1.3;
                 white-space: nowrap;
@@ -26894,7 +26889,14 @@ async function showHotkeyCommandsPopup() {
 
             const binding = document.createElement("span")
             binding.classList.add("better-osm-hotkey-command-binding")
-            binding.textContent = formatHotkeyBindings(command.bindings)
+            command.bindings
+                .map(formatHotkeyBinding)
+                .filter(Boolean)
+                .forEach(formattedBinding => {
+                    const bindingLine = document.createElement("span")
+                    bindingLine.textContent = formattedBinding
+                    binding.append(bindingLine)
+                })
 
             const label = document.createElement("span")
             label.classList.add("better-osm-hotkey-command-title")
