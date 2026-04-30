@@ -812,10 +812,7 @@ function renderOSMGeoJSON(xml, options = {}) {
                             })
                     } finally {
                         startEditEvent.target.style.cursor = ""
-                        await osmEditAuth.fetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
-                            method: "PUT",
-                            prefix: false,
-                        })
+                        await closeOsmChangeset(changesetId)
                     }
 
                     startEditEvent.target.textContent = "#" + changesetId

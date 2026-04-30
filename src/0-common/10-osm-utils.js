@@ -48,13 +48,17 @@ async function openOsmChangeset(comment) {
 }
 
 async function closeOsmChangeset(changesetId) {
-    await osmEditAuth.fetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
+    const res = await osmEditAuth.fetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
         method: "PUT",
         prefix: false,
     })
+    if (!res.ok) {
+        console.warn(await res.text())
+    }
 }
 
 async function getOsmObjectInfo(object_type, object_id) {
+    // todo drop osmEditAuth
     const rawObjectInfo = await (
         await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
             method: "GET",
