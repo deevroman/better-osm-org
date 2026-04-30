@@ -93,4 +93,22 @@ async function deleteOsmObjectByInfo(object_type, object_id, objectInfo) {
     }
 }
 
+async function closeNote(note_id, text) {
+    const path =
+        osm_server.apiBase +
+        "notes/" +
+        note_id +
+        "/close.json?" +
+        new URLSearchParams({
+            text: text,
+        }).toString()
+    const res = await osmEditAuth.fetch(path, {
+        method: "POST",
+        prefix: false,
+    })
+    if (!res.ok) {
+        throw new Error(await res.text())
+    }
+}
+
 //</editor-fold>

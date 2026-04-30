@@ -467,33 +467,15 @@ ${styleSuffix}`
             b.title = `Add to the comment "${text}" and close the note.\nYou can change emoji in userscript settings`
             document.querySelectorAll("form.mb-3")[0].before(b)
             b.after(document.createTextNode("\xA0"))
-            b.onclick = () => {
+            b.onclick = async () => {
                 try {
-                    getWindow().OSM.router.stateChange(getWindow().OSM.parseHash(getWindow().OSM.formatHash(getMap())))
-                } catch (e) {
-                    console.error(e)
+                    await closeNote(note_id, text)
+                } catch (err) {
+                    alert(err)
+                } finally {
+                    tryReloadSidebar()
+                    getMap().fire("moveend")
                 }
-                osmEditAuth.xhr(
-                    {
-                        method: "POST",
-                        path:
-                            osm_server.apiBase +
-                            "notes/" +
-                            note_id +
-                            "/close.json?" +
-                            new URLSearchParams({
-                                text: text,
-                            }).toString(),
-                        prefix: false,
-                    },
-                    err => {
-                        if (err) {
-                            alert(err)
-                        }
-                        tryReloadSidebar()
-                        getMap().fire("moveend")
-                    },
-                )
             }
         })
         document.querySelectorAll("form.mb-3")[0].before(document.createElement("p"))
