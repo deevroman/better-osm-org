@@ -2,6 +2,7 @@
 // @name            Better osm.org
 // @name:ru         Better osm.org
 // @version         1.6.3
+// @changelog       v1.6.3: F1 hotkey for hotkeys list, preview Panoramax photos in Overpass search results, CSV reader
 // @changelog       v1.6.3: Warn about missing + in phone=*, short keys and keys with the first capital letter
 // @changelog       v1.6.0: OpenGeoFiction support under debug flag in settings, add OSM2World 3D viewer, type=* validator
 // @changelog       v1.6.0: Note marker in Overpass Turbo, more stable Overpass search
@@ -26540,6 +26541,10 @@ function formatHotkeyBinding(binding) {
     return [...modifiers, displayBaseCode].join(" + ")
 }
 
+function formatHotkeyBindings(bindings) {
+    return bindings.map(formatHotkeyBinding).filter(Boolean).join("\n")
+}
+
 function createSyntheticHotkeyEvent(binding) {
     const parts = binding.split("+")
     const baseCode = parts[parts.length - 1]
@@ -26560,10 +26565,36 @@ function createSyntheticHotkeyEvent(binding) {
     }
 }
 
+function mergeAvailableHotkeyCommands(commands) {
+    /** @type {Map<string, typeof commands[number] & { bindings: string[] }>} */
+    const mergedCommands = new Map()
+
+    commands.forEach(command => {
+        const existingCommand = mergedCommands.get(command.actionId)
+        if (existingCommand) {
+            if (command.binding) {
+                existingCommand.bindings.push(command.binding)
+            }
+            return
+        }
+
+        mergedCommands.set(command.actionId, {
+            ...command,
+            bindings: command.binding ? [command.binding] : [],
+        })
+    })
+
+    return Array.from(mergedCommands.values()).sort((a, b) => {
+        const aContextIndex = hotkeyHelpContextsOrder.findIndex(context => a.contexts.includes(context))
+        const bContextIndex = hotkeyHelpContextsOrder.findIndex(context => b.contexts.includes(context))
+        return aContextIndex - bContextIndex || a.title.localeCompare(b.title) || (a.bindings[0] || "").localeCompare(b.bindings[0] || "")
+    })
+}
+
 function getAvailableHotkeyCommandsForCurrentPage() {
     const currentContexts = getCurrentHotkeyContexts()
 
-    return Object.entries(hotkeyActions)
+    const commands = Object.entries(hotkeyActions)
         .flatMap(([actionId, action]) => {
             if (isMobile && action.hideOnMobile) {
                 return []
@@ -26590,11 +26621,8 @@ function getAvailableHotkeyCommandsForCurrentPage() {
                 ]
             })
         })
-        .sort((a, b) => {
-            const aContextIndex = hotkeyHelpContextsOrder.findIndex(context => a.contexts.includes(context))
-            const bContextIndex = hotkeyHelpContextsOrder.findIndex(context => b.contexts.includes(context))
-            return aContextIndex - bContextIndex || a.title.localeCompare(b.title) || (a.binding || "").localeCompare(b.binding || "")
-        })
+
+    return mergeAvailableHotkeyCommands(commands)
 }
 
 async function getRecentHotkeyActionIds() {
@@ -26720,7 +26748,7 @@ function ensureHotkeyCommandsPopupStyles() {
             .better-osm-hotkey-command-btn {
                 display: grid;
                 grid-template-columns: 1fr${isMobile ? "" : " minmax(90px, 120px)"};
-                align-items: baseline;
+                align-items: start;
                 gap: 10px;
                 width: 100%;
                 border: 0;
@@ -26745,7 +26773,7 @@ function ensureHotkeyCommandsPopupStyles() {
             .better-osm-hotkey-command-binding {
                 font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
                 font-size: 0.875rem;
-                white-space: nowrap;
+                white-space: pre-line;
                 line-height: 1.3;
                 opacity: 0.65;
             }
@@ -26861,11 +26889,11 @@ async function showHotkeyCommandsPopup() {
             button.classList.add("better-osm-hotkey-command-btn")
             button.type = "button"
             button.dataset.actionId = command.actionId
-            button.dataset.binding = command.binding
+            button.dataset.binding = command.bindings.join("\n")
 
             const binding = document.createElement("span")
             binding.classList.add("better-osm-hotkey-command-binding")
-            binding.textContent = formatHotkeyBinding(command.binding)
+            binding.textContent = formatHotkeyBindings(command.bindings)
 
             const label = document.createElement("span")
             label.classList.add("better-osm-hotkey-command-title")
@@ -26891,8 +26919,8 @@ async function showHotkeyCommandsPopup() {
             ? availableCommands.filter(command => command.title.toLowerCase().includes(normalizedQuery))
             : availableCommands
         const filteredRecentCommands = recentCommands.filter(command => filteredCommands.includes(command))
-        const recentCommandKeys = new Set(filteredRecentCommands.map(command => `${command.actionId}::${command.binding}`))
-        const remainingCommands = filteredCommands.filter(command => !recentCommandKeys.has(`${command.actionId}::${command.binding}`))
+        const recentCommandKeys = new Set(filteredRecentCommands.map(command => command.actionId))
+        const remainingCommands = filteredCommands.filter(command => !recentCommandKeys.has(command.actionId))
 
         if (!filteredCommands.length) {
             const emptyState = document.createElement("p")
