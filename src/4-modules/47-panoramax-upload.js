@@ -151,13 +151,7 @@ async function uploadImage(token, file, title, needBlur) {
 }
 
 async function addPanoramaxTag(pictureId, object_type, object_id) {
-    const rawObjectInfo = await (
-        await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
-            method: "GET",
-            prefix: false,
-        })
-    ).text()
-    const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
+    const objectInfo = await getOsmObjectInfo(object_type, object_id)
     const newTag = objectInfo.createElement("tag")
     newTag.setAttribute("k", "panoramax")
     newTag.setAttribute("v", pictureId)
@@ -182,10 +176,7 @@ async function addPanoramaxTag(pictureId, object_type, object_id) {
                 throw new Error(text)
             })
     } finally {
-        await osmEditAuth.fetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
-            method: "PUT",
-            prefix: false,
-        })
+        await closeOsmChangeset(changesetId)
     }
 }
 

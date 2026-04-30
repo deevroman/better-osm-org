@@ -2958,13 +2958,17 @@ async function openOsmChangeset(comment) {
 }
 
 async function closeOsmChangeset(changesetId) {
-    await osmEditAuth.fetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
+    const res = await osmEditAuth.fetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
         method: "PUT",
         prefix: false,
     })
+    if (!res.ok) {
+        console.warn(await res.text())
+    }
 }
 
 async function getOsmObjectInfo(object_type, object_id) {
+    // todo drop osmEditAuth
     const rawObjectInfo = await (
         await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
             method: "GET",
@@ -7573,13 +7577,7 @@ function addPOIMoverItem(measuringMenuItem) {
         const newLat = getMap().osm_contextmenu._$element.data("lat")
         const newLon = getMap().osm_contextmenu._$element.data("lng")
         console.log("Opening changeset")
-        const rawObjectInfo = await (
-            await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
-                method: "GET",
-                prefix: false,
-            })
-        ).text()
-        const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
+        const objectInfo = await getOsmObjectInfo(object_type, object_id)
         // prettier-ignore
         const dist = Math.round(getDistanceFromLatLonInKm(
             parseFloat(objectInfo.querySelector("node").getAttribute("lat")),
@@ -7617,10 +7615,7 @@ function addPOIMoverItem(measuringMenuItem) {
                     throw new Error(text)
                 })
         } finally {
-            await osmEditAuth.fetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
-                method: "PUT",
-                prefix: false,
-            })
+            await closeOsmChangeset(changesetId)
             window.location.reload()
         }
     }
@@ -18625,13 +18620,7 @@ async function uploadImage(token, file, title, needBlur) {
 }
 
 async function addPanoramaxTag(pictureId, object_type, object_id) {
-    const rawObjectInfo = await (
-        await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
-            method: "GET",
-            prefix: false,
-        })
-    ).text()
-    const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
+    const objectInfo = await getOsmObjectInfo(object_type, object_id)
     const newTag = objectInfo.createElement("tag")
     newTag.setAttribute("k", "panoramax")
     newTag.setAttribute("v", pictureId)
@@ -18656,10 +18645,7 @@ async function addPanoramaxTag(pictureId, object_type, object_id) {
                 throw new Error(text)
             })
     } finally {
-        await osmEditAuth.fetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
-            method: "PUT",
-            prefix: false,
-        })
+        await closeOsmChangeset(changesetId)
     }
 }
 
@@ -24646,10 +24632,7 @@ function renderOSMGeoJSON(xml, options = {}) {
                             })
                     } finally {
                         startEditEvent.target.style.cursor = ""
-                        await osmEditAuth.fetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
-                            method: "PUT",
-                            prefix: false,
-                        })
+                        await closeOsmChangeset(changesetId)
                     }
 
                     startEditEvent.target.textContent = "#" + changesetId

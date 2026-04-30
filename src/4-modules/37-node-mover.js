@@ -39,13 +39,7 @@ function addPOIMoverItem(measuringMenuItem) {
         const newLat = getMap().osm_contextmenu._$element.data("lat")
         const newLon = getMap().osm_contextmenu._$element.data("lng")
         console.log("Opening changeset")
-        const rawObjectInfo = await (
-            await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
-                method: "GET",
-                prefix: false,
-            })
-        ).text()
-        const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
+        const objectInfo = await getOsmObjectInfo(object_type, object_id)
         // prettier-ignore
         const dist = Math.round(getDistanceFromLatLonInKm(
             parseFloat(objectInfo.querySelector("node").getAttribute("lat")),
@@ -83,10 +77,7 @@ function addPOIMoverItem(measuringMenuItem) {
                     throw new Error(text)
                 })
         } finally {
-            await osmEditAuth.fetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
-                method: "PUT",
-                prefix: false,
-            })
+            await closeOsmChangeset(changesetId)
             window.location.reload()
         }
     }
