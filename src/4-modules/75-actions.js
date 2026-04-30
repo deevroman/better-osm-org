@@ -2056,7 +2056,7 @@ function actionSetCustomTileUrl() {
 
 function actionBypassTileCaches() {
     enableOverzoom()
-    bypassCaches()
+    switchBypassCaches()
 }
 
 function actionOpenSelectedObjectEditTarget() {

@@ -1066,10 +1066,36 @@ function switchTilesAndButtons() {
 
 let osmTilesObserver = undefined
 
-function bypassCaches() {
+function switchBypassCaches() {
     if (osmTilesObserver) {
+        console.log("stop bypassing")
         osmTilesObserver.disconnect()
+        osmTilesObserver = undefined
+        return
     }
+    async function readImgFromBlob(blob) {
+        return await new Promise(resolve => {
+            const reader = new FileReader()
+            reader.onload = () => resolve(reader.result)
+            reader.readAsDataURL(blob)
+        })
+    }
+    async function makeRequest(url) {
+        return (await externalFetchRetry({
+            method: "GET",
+            url: url,
+            headers: {
+                Accept: "image/*",
+                "Cache-Control": "no-cache",
+                Pragma: "no-cache",
+                Referer: "https://www.openstreetmap.org/"
+            },
+            responseType: "blob",
+            nocache: true,
+            revalidate: true
+        })).response
+    }
+    console.log("start bypassing")
     document.querySelectorAll(".leaflet-tile").forEach(i => {
         if (i.nodeName !== "IMG") {
             return
@@ -1078,24 +1104,8 @@ function bypassCaches() {
         const xyz = parseOSMTileURL(i.src)
         if (!xyz) return
         const newUrl = makeOSMURL(xyz.x, xyz.y, xyz.z) // + "?bypassCache=" + new Date().getUTCSeconds();
-        externalFetchRetry({
-            method: "GET",
-            url: newUrl,
-            headers: {
-                Accept: "image/*",
-                "Cache-Control": "no-cache",
-                Pragma: "no-cache",
-                Referer: "https://www.openstreetmap.org/",
-            },
-            responseType: "blob",
-            nocache: true,
-            revalidate: true,
-        }).then(async response => {
-            i.src = await new Promise(resolve => {
-                const reader = new FileReader()
-                reader.onload = () => resolve(reader.result)
-                reader.readAsDataURL(response.response)
-            })
+        makeRequest(newUrl).then(async blob => {
+            i.src = await readImgFromBlob(blob)
         })
     })
     const observer = new MutationObserver(mutations => {
@@ -1107,24 +1117,8 @@ function bypassCaches() {
                 const xyz = parseOSMTileURL(node.src)
                 if (!xyz) return
                 const newUrl = makeOSMURL(xyz.x, xyz.y, xyz.z) // + "?bypassCache=" + new Date().getUTCSeconds();
-                externalFetchRetry({
-                    method: "GET",
-                    url: newUrl,
-                    headers: {
-                        Accept: "image/*",
-                        "Cache-Control": "no-cache",
-                        Pragma: "no-cache",
-                        Referer: "https://www.openstreetmap.org/",
-                    },
-                    responseType: "blob",
-                    nocache: true,
-                    revalidate: true,
-                }).then(async response => {
-                    node.src = await new Promise(resolve => {
-                        const reader = new FileReader()
-                        reader.onload = () => resolve(reader.result)
-                        reader.readAsDataURL(response.response)
-                    })
+                makeRequest(newUrl).then(async blob => {
+                    node.src = await readImgFromBlob(blob)
                 })
             })
         })
