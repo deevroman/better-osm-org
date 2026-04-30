@@ -251,9 +251,7 @@ function addUploadPanoramaxBtn() {
     uploadImgBtn.style.display = "none"
     uploadImgBtn.style.paddingLeft = "10px"
     uploadImgBtn.onclick = async () => {
-        if (osmEditAuth === null) {
-            osmEditAuth = makeAuth()
-        }
+        initOsmAuth()
         new URL(instanceInput.value)
         void GM.setValue("panoramaxInstance", (panoramaxInstance = instanceInput.value))
         if (!fileInput.files.length) {

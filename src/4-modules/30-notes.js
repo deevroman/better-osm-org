@@ -35,11 +35,10 @@ function addCreateNewPOIButton() {
     document.querySelector("#sidebar_content form div:has(input)").appendChild(b)
     b.parentElement.style.display = "flex"
     b.before(document.createTextNode("\xA0"))
-    b.onclick = e => {
+    b.onclick = async e => {
         e.stopImmediatePropagation()
-        const auth = makeAuth()
-
-        console.log("Opening changeset")
+        initOsmAuth()
+        console.log("Begin creating node")
 
         let tagsHint = ""
         let tags
@@ -66,74 +65,30 @@ function addCreateNewPOIButton() {
                 break
             }
         }
-        const changesetTags = {
-            created_by: `better osm.org v${GM_info.script.version}`,
-            comment: tagsHint !== "" ? `Create${tagsHint}` : `Create node`,
+        const comment = tagsHint !== "" ? `Create${tagsHint}` : `Create node`
+        const changesetId = await openOsmChangeset(comment)
+
+        const nodePayload = document.createElement("osm")
+        const node = document.createElement("node")
+        nodePayload.appendChild(node)
+        node.setAttribute("changeset", changesetId)
+
+        const l = []
+        getMap().eachLayer(intoPageWithFun(i => l.push(i)))
+        const { lat: lat, lng: lng } = l.find(i => !!i._icon && i._icon.classList.contains("leaflet-marker-draggable"))._latlng
+        node.setAttribute("lat", lat)
+        node.setAttribute("lon", lng)
+
+        for (const tag of Object.entries(tags)) {
+            const tagElem = document.createElement("tag")
+            tagElem.setAttribute("k", tag[0])
+            tagElem.setAttribute("v", tag[1])
+            node.appendChild(tagElem)
         }
-
-        const changesetPayload = document.implementation.createDocument(null, "osm")
-        const cs = changesetPayload.createElement("changeset")
-        changesetPayload.documentElement.appendChild(cs)
-        tagsToXml(changesetPayload, cs, changesetTags)
-        const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
-
-        auth.xhr(
-            {
-                method: "PUT",
-                path: osm_server.apiBase + "changeset/create",
-                prefix: false,
-                content: chPayloadStr,
-            },
-            function (err1, result) {
-                const changesetId = result
-                console.log(changesetId)
-
-                const nodePayload = document.createElement("osm")
-                const node = document.createElement("node")
-                nodePayload.appendChild(node)
-                node.setAttribute("changeset", changesetId)
-
-                const l = []
-                getMap().eachLayer(intoPageWithFun(i => l.push(i)))
-                const { lat: lat, lng: lng } = l.find(i => !!i._icon && i._icon.classList.contains("leaflet-marker-draggable"))._latlng
-                node.setAttribute("lat", lat)
-                node.setAttribute("lon", lng)
-
-                for (const tag of Object.entries(tags)) {
-                    const tagElem = document.createElement("tag")
-                    tagElem.setAttribute("k", tag[0])
-                    tagElem.setAttribute("v", tag[1])
-                    node.appendChild(tagElem)
-                }
-                const nodeStr = new XMLSerializer().serializeToString(nodePayload).replace(/xmlns="[^"]+"/, "")
-                auth.xhr(
-                    {
-                        method: "POST",
-                        path: osm_server.apiBase + "nodes",
-                        prefix: false,
-                        content: nodeStr,
-                        headers: { "Content-Type": "application/xml; charset=utf-8" },
-                    },
-                    function (err2) {
-                        if (err2) {
-                            console.log({ changesetError: err2 })
-                        }
-                        auth.xhr(
-                            {
-                                method: "PUT",
-                                path: osm_server.apiBase + "changeset/" + changesetId + "/close",
-                                prefix: false,
-                            },
-                            function (err3) {
-                                if (!err3) {
-                                    window.location = osm_server.url + "/changeset/" + changesetId
-                                }
-                            },
-                        )
-                    },
-                )
-            },
-        )
+        const nodeStr = new XMLSerializer().serializeToString(nodePayload).replace(/xmlns="[^"]+"/, "")
+        await createOsmNodes(nodeStr)
+        await closeOsmChangeset(changesetId)
+        window.location = osm_server.url + "/changeset/" + changesetId
     }
 }
 
@@ -495,7 +450,7 @@ ${styleSuffix}`
         }
         return
     }
-    const auth = makeAuth()
+    initOsmAuth()
     const note_id = location.pathname.match(/note\/(\d+)/)[1]
     /** @type {string} */
     const resolveButtonsText = GM_config.get("ResolveNotesButton")
@@ -518,7 +473,7 @@ ${styleSuffix}`
                 } catch (e) {
                     console.error(e)
                 }
-                auth.xhr(
+                osmEditAuth.xhr(
                     {
                         method: "POST",
                         path:

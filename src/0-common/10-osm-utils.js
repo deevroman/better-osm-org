@@ -3,6 +3,10 @@
 /** @type {import("osm-auth").OSMAuth|null}*/
 let osmEditAuth = null
 
+/**
+ * @param {string} comment
+ * @returns {Promise<string>} changesetId
+ */
 async function openOsmChangeset(comment) {
     const changesetTags = {
         created_by: `better osm.org v${GM_info.script.version}`,
@@ -49,6 +53,18 @@ async function getOsmObjectInfo(object_type, object_id) {
         throw new Error("getOsmObjectInfo: Parsing failed: " + error.textContent)
     }
     return res
+}
+
+async function createOsmNodes(body) {
+    const res = await osmEditAuth.fetch(osm_server.apiBase + "nodes", {
+        method: "POST",
+        prefix: false,
+        body: body,
+        headers: { "Content-Type": "application/xml; charset=utf-8" },
+    })
+    if (!res.ok) {
+        throw new Error(await res.text())
+    }
 }
 
 async function deleteOsmObjectByInfo(object_type, object_id, objectInfo) {

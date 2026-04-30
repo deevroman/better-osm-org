@@ -2,6 +2,7 @@
 // @name            Better osm.org
 // @name:ru         Better osm.org
 // @version         1.6.3
+// @changelog       v1.6.3: Warn about missing + in phone=*, short keys and keys with the first capital letter
 // @changelog       v1.6.0: OpenGeoFiction support under debug flag in settings, add OSM2World 3D viewer, type=* validator
 // @changelog       v1.6.0: Note marker in Overpass Turbo, more stable Overpass search
 // @changelog       v1.5.9: memorizing the last satellite layer, simple vector style editor
@@ -2907,6 +2908,89 @@ function drawRay(lat, lon, angle, color) {
 
 //</editor-fold>
 
+//<editor-fold desc="osm-utils" defaultstate="collapsed">
+
+/** @type {import("osm-auth").OSMAuth|null}*/
+let osmEditAuth = null
+
+/**
+ * @param {string} comment
+ * @returns {Promise<string>} changesetId
+ */
+async function openOsmChangeset(comment) {
+    const changesetTags = {
+        created_by: `better osm.org v${GM_info.script.version}`,
+        comment: comment,
+    }
+
+    const changesetPayload = document.implementation.createDocument(null, "osm")
+    const cs = changesetPayload.createElement("changeset")
+    changesetPayload.documentElement.appendChild(cs)
+    tagsToXml(changesetPayload, cs, changesetTags)
+    const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
+
+    const changesetId = await osmEditAuth
+        .fetch(osm_server.apiBase + "changeset/create", {
+            method: "PUT",
+            prefix: false,
+            body: chPayloadStr,
+        })
+        .then(res => {
+            if (res.ok) return res.text()
+            throw new Error(res)
+        })
+    console.log("Open changeset", changesetId)
+    return changesetId
+}
+
+async function closeOsmChangeset(changesetId) {
+    await osmEditAuth.fetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
+        method: "PUT",
+        prefix: false,
+    })
+}
+
+async function getOsmObjectInfo(object_type, object_id) {
+    const rawObjectInfo = await (
+        await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
+            method: "GET",
+            prefix: false,
+        })
+    ).text()
+    const res = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
+    const error = res.querySelector("parsererror")
+    if (error) {
+        throw new Error("getOsmObjectInfo: Parsing failed: " + error.textContent)
+    }
+    return res
+}
+
+async function createOsmNodes(body) {
+    const res = await osmEditAuth.fetch(osm_server.apiBase + "nodes", {
+        method: "POST",
+        prefix: false,
+        body: body,
+        headers: { "Content-Type": "application/xml; charset=utf-8" },
+    })
+    if (!res.ok) {
+        throw new Error(await res.text())
+    }
+}
+
+async function deleteOsmObjectByInfo(object_type, object_id, objectInfo) {
+    const res = await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
+        method: "DELETE",
+        prefix: false,
+        body: new XMLSerializer().serializeToString(objectInfo),
+        headers: { "Content-Type": "application/xml; charset=utf-8" },
+    })
+    if (!res.ok) {
+        throw new Error(await res.text())
+    }
+}
+
+//</editor-fold>
+
 //<editor-fold desc="way-geometry-validator" defaultstate="collapsed">
 
 /**
@@ -3995,19 +4079,18 @@ function tagsToXml(doc, node, tags) {
     }
 }
 
-/**
- * @return {import("osm-auth").OSMAuth}
- */
-function makeAuth() {
-    return osmAuth.osmAuth({
-        apiUrl: osm_server.apiUrl,
-        url: osm_server.url,
-        client_id: "FwA",
-        client_secret: "ZUq",
-        redirect_uri: GM_getResourceURL("OAUTH_HTML"),
-        scope: "write_api",
-        auto: true,
-    })
+function initOsmAuth() {
+    if (osmEditAuth === null) {
+        osmEditAuth = osmAuth.osmAuth({
+            apiUrl: osm_server.apiUrl,
+            url: osm_server.url,
+            client_id: "FwA",
+            client_secret: "ZUq",
+            redirect_uri: GM_getResourceURL("OAUTH_HTML"),
+            scope: "write_api",
+            auto: true,
+        })
+    }
 }
 
 /**
@@ -6073,11 +6156,10 @@ function addCreateNewPOIButton() {
     document.querySelector("#sidebar_content form div:has(input)").appendChild(b)
     b.parentElement.style.display = "flex"
     b.before(document.createTextNode("\xA0"))
-    b.onclick = e => {
+    b.onclick = async e => {
         e.stopImmediatePropagation()
-        const auth = makeAuth()
-
-        console.log("Opening changeset")
+        initOsmAuth()
+        console.log("Begin creating node")
 
         let tagsHint = ""
         let tags
@@ -6104,74 +6186,30 @@ function addCreateNewPOIButton() {
                 break
             }
         }
-        const changesetTags = {
-            created_by: `better osm.org v${GM_info.script.version}`,
-            comment: tagsHint !== "" ? `Create${tagsHint}` : `Create node`,
+        const comment = tagsHint !== "" ? `Create${tagsHint}` : `Create node`
+        const changesetId = await openOsmChangeset(comment)
+
+        const nodePayload = document.createElement("osm")
+        const node = document.createElement("node")
+        nodePayload.appendChild(node)
+        node.setAttribute("changeset", changesetId)
+
+        const l = []
+        getMap().eachLayer(intoPageWithFun(i => l.push(i)))
+        const { lat: lat, lng: lng } = l.find(i => !!i._icon && i._icon.classList.contains("leaflet-marker-draggable"))._latlng
+        node.setAttribute("lat", lat)
+        node.setAttribute("lon", lng)
+
+        for (const tag of Object.entries(tags)) {
+            const tagElem = document.createElement("tag")
+            tagElem.setAttribute("k", tag[0])
+            tagElem.setAttribute("v", tag[1])
+            node.appendChild(tagElem)
         }
-
-        const changesetPayload = document.implementation.createDocument(null, "osm")
-        const cs = changesetPayload.createElement("changeset")
-        changesetPayload.documentElement.appendChild(cs)
-        tagsToXml(changesetPayload, cs, changesetTags)
-        const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
-
-        auth.xhr(
-            {
-                method: "PUT",
-                path: osm_server.apiBase + "changeset/create",
-                prefix: false,
-                content: chPayloadStr,
-            },
-            function (err1, result) {
-                const changesetId = result
-                console.log(changesetId)
-
-                const nodePayload = document.createElement("osm")
-                const node = document.createElement("node")
-                nodePayload.appendChild(node)
-                node.setAttribute("changeset", changesetId)
-
-                const l = []
-                getMap().eachLayer(intoPageWithFun(i => l.push(i)))
-                const { lat: lat, lng: lng } = l.find(i => !!i._icon && i._icon.classList.contains("leaflet-marker-draggable"))._latlng
-                node.setAttribute("lat", lat)
-                node.setAttribute("lon", lng)
-
-                for (const tag of Object.entries(tags)) {
-                    const tagElem = document.createElement("tag")
-                    tagElem.setAttribute("k", tag[0])
-                    tagElem.setAttribute("v", tag[1])
-                    node.appendChild(tagElem)
-                }
-                const nodeStr = new XMLSerializer().serializeToString(nodePayload).replace(/xmlns="[^"]+"/, "")
-                auth.xhr(
-                    {
-                        method: "POST",
-                        path: osm_server.apiBase + "nodes",
-                        prefix: false,
-                        content: nodeStr,
-                        headers: { "Content-Type": "application/xml; charset=utf-8" },
-                    },
-                    function (err2) {
-                        if (err2) {
-                            console.log({ changesetError: err2 })
-                        }
-                        auth.xhr(
-                            {
-                                method: "PUT",
-                                path: osm_server.apiBase + "changeset/" + changesetId + "/close",
-                                prefix: false,
-                            },
-                            function (err3) {
-                                if (!err3) {
-                                    window.location = osm_server.url + "/changeset/" + changesetId
-                                }
-                            },
-                        )
-                    },
-                )
-            },
-        )
+        const nodeStr = new XMLSerializer().serializeToString(nodePayload).replace(/xmlns="[^"]+"/, "")
+        await createOsmNodes(nodeStr)
+        await closeOsmChangeset(changesetId)
+        window.location = osm_server.url + "/changeset/" + changesetId
     }
 }
 
@@ -6533,7 +6571,7 @@ ${styleSuffix}`
         }
         return
     }
-    const auth = makeAuth()
+    initOsmAuth()
     const note_id = location.pathname.match(/note\/(\d+)/)[1]
     /** @type {string} */
     const resolveButtonsText = GM_config.get("ResolveNotesButton")
@@ -6556,7 +6594,7 @@ ${styleSuffix}`
                 } catch (e) {
                     console.error(e)
                 }
-                auth.xhr(
+                osmEditAuth.xhr(
                     {
                         method: "POST",
                         path:
@@ -7253,6 +7291,56 @@ function setupGPXFiltersButtons() {
 
 //<editor-fold desc="object-editor" defaultstate="collapsed">
 
+async function deleteObject(object_type, object_id) {
+    const objectInfo = await getOsmObjectInfo(object_type, object_id)
+
+    let tagsHint = ""
+    const tags = Array.from(objectInfo.children[0].children[0]?.children)
+    for (const i of tags) {
+        if (mainTags.includes(i.getAttribute("k"))) {
+            tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
+            break
+        }
+    }
+    for (const i of tags) {
+        if (i.getAttribute("k") === "type") {
+            tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
+        }
+    }
+    for (const i of tags) {
+        if (i.getAttribute("k") === "restriction") {
+            tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
+        }
+    }
+    for (const i of tags) {
+        if (i.getAttribute("k") === "name") {
+            tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
+            break
+        }
+    }
+    const comment = tagsHint !== "" ? `Delete${tagsHint}` : `Delete ${object_type} ${object_id}`
+
+    if (object_type === "relation" && !prompt("⚠️ Delete relation?\n\nChangeset comment:", comment)) {
+        return
+    }
+
+    const changesetId = await openOsmChangeset(comment)
+    objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
+    try {
+        await deleteOsmObjectByInfo(object_type, object_id, objectInfo)
+    } finally {
+        try {
+            await closeOsmChangeset(changesetId)
+        } finally {
+            if (location.hash.includes("D") || Object.keys(getMap?.()?.dataLayer?._layers ?? {}).length) {
+                window.location.reload()
+            } else {
+                tryReloadSidebar()
+            }
+        }
+    }
+}
+
 function addDeleteButton() {
     if (!location.pathname.startsWith("/node/") && !location.pathname.startsWith("/relation/")) return
     if (location.pathname.includes("/history")) return
@@ -7264,7 +7352,7 @@ function addDeleteButton() {
     const object_type = match[1]
     const object_id = match[2]
 
-    const auth = makeAuth()
+    initOsmAuth()
     const link = document.createElement("a")
     link.text = ["ru-RU", "ru"].includes(navigator.language) ? "Выпилить!" : "Delete"
     link.href = ""
@@ -7335,118 +7423,16 @@ function addDeleteButton() {
         setTimeout(() => tagsEditorExtensionWaiter.disconnect(), 3000)
     }
 
-    function deleteObject(e) {
+    async function deleteObjectHandler(e) {
         e.preventDefault()
         link.classList.add("dbclicked")
 
         console.log("Delete clicked. Getting info")
 
-        auth.xhr(
-            {
-                method: "GET",
-                path: osm_server.apiBase + object_type + "/" + object_id,
-                prefix: false,
-            },
-            function (err, objectInfo) {
-                if (err) {
-                    console.log(err)
-                    return
-                }
-
-                let tagsHint = ""
-                const tags = Array.from(objectInfo.children[0].children[0]?.children)
-                for (const i of tags) {
-                    if (mainTags.includes(i.getAttribute("k"))) {
-                        tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
-                        break
-                    }
-                }
-                for (const i of tags) {
-                    if (i.getAttribute("k") === "type") {
-                        tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
-                    }
-                }
-                for (const i of tags) {
-                    if (i.getAttribute("k") === "restriction") {
-                        tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
-                    }
-                }
-                for (const i of tags) {
-                    if (i.getAttribute("k") === "name") {
-                        tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
-                        break
-                    }
-                }
-                const changesetTags = {
-                    created_by: `better osm.org v${GM_info.script.version}`,
-                    comment: tagsHint !== "" ? `Delete${tagsHint}` : `Delete ${object_type} ${object_id}`,
-                }
-
-                if (object_type === "relation" && !prompt("⚠️ Delete relation?\n\nChangeset comment:", changesetTags["comment"])) {
-                    return
-                }
-
-                const changesetPayload = document.implementation.createDocument(null, "osm")
-                const cs = changesetPayload.createElement("changeset")
-                changesetPayload.documentElement.appendChild(cs)
-                tagsToXml(changesetPayload, cs, changesetTags)
-                const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
-
-                console.log("Opening changeset")
-
-                auth.xhr(
-                    {
-                        method: "PUT",
-                        path: osm_server.apiBase + "changeset/create",
-                        prefix: false,
-                        content: chPayloadStr,
-                        headers: { "Content-Type": "application/xml; charset=utf-8" },
-                    },
-                    function (err1, result) {
-                        if (err1) {
-                            console.log({ changesetError: err1 })
-                            return
-                        }
-                        const changesetId = result
-                        console.log(changesetId)
-                        objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
-                        auth.xhr(
-                            {
-                                method: "DELETE",
-                                path: osm_server.apiBase + object_type + "/" + object_id,
-                                prefix: false,
-                                content: objectInfo,
-                                headers: { "Content-Type": "application/xml; charset=utf-8" },
-                            },
-                            function (err2) {
-                                if (err2) {
-                                    console.log({ changesetError: err2 })
-                                }
-                                auth.xhr(
-                                    {
-                                        method: "PUT",
-                                        path: osm_server.apiBase + "changeset/" + changesetId + "/close",
-                                        prefix: false,
-                                    },
-                                    function (err3) {
-                                        if (!err3) {
-                                            if (location.hash.includes("D") || Object.keys(getMap?.()?.dataLayer?._layers ?? {}).length) {
-                                                window.location.reload()
-                                            } else {
-                                                tryReloadSidebar()
-                                            }
-                                        }
-                                    },
-                                )
-                            },
-                        )
-                    },
-                )
-            },
-        )
+        await deleteObject(object_type, object_id)
     }
     if (GM_config.get("OneClickDeletor") || object_type === "relation") {
-        link.onclick = deleteObject
+        link.onclick = deleteObjectHandler
     } else {
         link.onclick = e => {
             e.preventDefault()
@@ -7456,7 +7442,7 @@ function addDeleteButton() {
                 }
             }, 200)
         }
-        link.ondblclick = deleteObject
+        link.ondblclick = deleteObjectHandler
     }
 }
 
@@ -7580,9 +7566,7 @@ function addPOIMoverItem(measuringMenuItem) {
         if (!match) return
         const object_type = match[1]
         const object_id = match[2]
-        if (osmEditAuth === null) {
-            osmEditAuth = makeAuth()
-        }
+        initOsmAuth()
         if (!confirm("⚠️ move node?")) {
             return
         }
@@ -18640,32 +18624,6 @@ async function uploadImage(token, file, title, needBlur) {
     return picture_id
 }
 
-async function openOsmChangeset(comment) {
-    const changesetTags = {
-        created_by: `better osm.org v${GM_info.script.version}`,
-        comment: comment,
-    }
-
-    const changesetPayload = document.implementation.createDocument(null, "osm")
-    const cs = changesetPayload.createElement("changeset")
-    changesetPayload.documentElement.appendChild(cs)
-    tagsToXml(changesetPayload, cs, changesetTags)
-    const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
-
-    const changesetId = await osmEditAuth
-        .fetch(osm_server.apiBase + "changeset/create", {
-            method: "PUT",
-            prefix: false,
-            body: chPayloadStr,
-        })
-        .then(res => {
-            if (res.ok) return res.text()
-            throw new Error(res)
-        })
-    console.log("Open changeset", changesetId)
-    return changesetId
-}
-
 async function addPanoramaxTag(pictureId, object_type, object_id) {
     const rawObjectInfo = await (
         await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
@@ -18767,9 +18725,7 @@ function addUploadPanoramaxBtn() {
     uploadImgBtn.style.display = "none"
     uploadImgBtn.style.paddingLeft = "10px"
     uploadImgBtn.onclick = async () => {
-        if (osmEditAuth === null) {
-            osmEditAuth = makeAuth()
-        }
+        initOsmAuth()
         new URL(instanceInput.value)
         void GM.setValue("panoramaxInstance", (panoramaxInstance = instanceInput.value))
         if (!fileInput.files.length) {
@@ -24267,12 +24223,8 @@ function loadBannedVersions() {
     })
 }
 
-let osmEditAuth = null
-
 function renderOSMGeoJSON(xml, options = {}) {
-    if (osmEditAuth === null) {
-        osmEditAuth = makeAuth()
-    }
+    initOsmAuth()
     /**
      * @param {Object.<string, string>} tags
      * @return {HTMLTableSectionElement}
