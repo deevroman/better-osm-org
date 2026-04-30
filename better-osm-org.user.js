@@ -25227,24 +25227,27 @@ function runPositionTracker() {
     if (!getMap || !getMap()?.getBounds) {
         console.error("Please, reload page, if something doesn't work")
     }
-    setInterval(() => {
-        if (!getMap || !getMap()?.getBounds) return
-        const bound = get4Bounds(getMap())
-        if (JSON.stringify(mapPositionsHistory[mapPositionsHistory.length - 1]) === JSON.stringify(bound)) {
-            return
-        }
-        // in case of a transition between positions
-        // via timeout?
-        if (JSON.stringify(mapPositionsNextHistory[mapPositionsNextHistory.length - 1]) === JSON.stringify(bound)) {
-            return
-        }
-        mapPositionsNextHistory.length = 0
-        mapPositionsHistory.push(bound)
-        if (mapPositionsHistory.length > 100) {
-            mapPositionsHistory.shift()
-            mapPositionsHistory.shift()
-        }
-    }, isMobile ? 4000 : 1000 )
+    setInterval(
+        () => {
+            if (!getMap || !getMap()?.getBounds) return
+            const bound = get4Bounds(getMap())
+            if (JSON.stringify(mapPositionsHistory[mapPositionsHistory.length - 1]) === JSON.stringify(bound)) {
+                return
+            }
+            // in case of a transition between positions
+            // via timeout?
+            if (JSON.stringify(mapPositionsNextHistory[mapPositionsNextHistory.length - 1]) === JSON.stringify(bound)) {
+                return
+            }
+            mapPositionsNextHistory.length = 0
+            mapPositionsHistory.push(bound)
+            if (mapPositionsHistory.length > 100) {
+                mapPositionsHistory.shift()
+                mapPositionsHistory.shift()
+            }
+        },
+        isMobile ? 4000 : 1000,
+    )
 }
 
 let newNotePlaceholder = null
