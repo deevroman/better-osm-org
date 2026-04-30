@@ -1,7 +1,8 @@
 # Changelog archive
 
 [Changelog with illustrations on OSM Community Forum](https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670)
-
+- v1.6.0: OpenGeoFiction support under debug flag in settings, add OSM2World 3D viewer, type=* validator
+- v1.6.0: Note marker in Overpass Turbo, more stable Overpass search
 - v1.5.9: memorizing the last satellite layer, simple vector style editor
 - v1.5.7: filter notes by creation date, Panoramax uploader (you need to enable it in the settings)
 - v1.5.5: render child relations on relation page by hover
