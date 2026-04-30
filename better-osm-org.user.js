@@ -10136,7 +10136,8 @@ function makeRoofDirectionValue(valueCell, row, isVersionPage) {
 function makeLinksInVersionTagClickable(row, objType) {
     const keyCell = row.querySelector("th")
     if (!keyCell) return
-    const key = keyCell.textContent.toLowerCase()
+    const rawKey = keyCell.textContent
+    const key = rawKey.toLowerCase()
     const valueCell = row.querySelector("td .current-value-span") ? row.querySelector("td .current-value-span") : row.querySelector("td")
     if (key === "fixme") {
         valueCell.classList.add("fixme-tag")
@@ -10425,6 +10426,9 @@ function makeLinksInVersionTagClickable(row, objType) {
     } else if (key.length <= 2 && key !== "to" && key !== "tv" && key !== "it") {
         keyCell.classList.add("fixme-tag")
         keyCell.title = "The key is too short"
+    } else if (key.length >= 2 && rawKey[0] >= "A" && rawKey[0] <= "Z" && rawKey[1] >= "a" && rawKey[1] <= "z") {
+        keyCell.classList.add("fixme-tag")
+        keyCell.title = "Suspicious key starting with a capital letter"
     }
 }
 
@@ -14755,7 +14759,8 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
         row.querySelector("td").appendChild(a)
     } else {
         const keyCell = row.querySelector("th")
-        const key = keyCell.textContent
+        const rawKey = keyCell.textContent
+        const key = rawKey
         const valueCell = row.querySelector("td")
         if (key.startsWith("panoramax")) {
             makePanoramaxValue(valueCell)
@@ -14778,6 +14783,9 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
         } else if (key.length <= 2 && key !== "to" && key !== "tv" && key !== "it") {
             keyCell.classList.add("fixme-tag")
             keyCell.title = "The key is too short"
+        } else if (key.length >= 2 && rawKey[0] >= "A" && rawKey[0] <= "Z" && rawKey[1] >= "a" && rawKey[1] <= "z") {
+            keyCell.classList.add("fixme-tag")
+            keyCell.title = "Suspicious key starting with a capital letter"
         }
     }
 }
