@@ -301,7 +301,7 @@ const hotkeyActions = {
         run: actionSetCustomTileUrl,
     },
     bypassTileCaches: {
-        title: "Bypass tile caches",
+        title: "Toggle bypass tile caches mode",
         defaultBindings: ["Alt+KeyS"],
         contexts: ["Main pages"],
         run: actionBypassTileCaches,
