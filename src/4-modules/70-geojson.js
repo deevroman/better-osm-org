@@ -389,8 +389,6 @@ function loadBannedVersions() {
     })
 }
 
-let osmEditAuth = null
-
 function renderOSMGeoJSON(xml, options = {}) {
     if (osmEditAuth === null) {
         osmEditAuth = makeAuth()

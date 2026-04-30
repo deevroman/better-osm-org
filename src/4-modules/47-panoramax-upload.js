@@ -150,32 +150,6 @@ async function uploadImage(token, file, title, needBlur) {
     return picture_id
 }
 
-async function openOsmChangeset(comment) {
-    const changesetTags = {
-        created_by: `better osm.org v${GM_info.script.version}`,
-        comment: comment,
-    }
-
-    const changesetPayload = document.implementation.createDocument(null, "osm")
-    const cs = changesetPayload.createElement("changeset")
-    changesetPayload.documentElement.appendChild(cs)
-    tagsToXml(changesetPayload, cs, changesetTags)
-    const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
-
-    const changesetId = await osmEditAuth
-        .fetch(osm_server.apiBase + "changeset/create", {
-            method: "PUT",
-            prefix: false,
-            body: chPayloadStr,
-        })
-        .then(res => {
-            if (res.ok) return res.text()
-            throw new Error(res)
-        })
-    console.log("Open changeset", changesetId)
-    return changesetId
-}
-
 async function addPanoramaxTag(pictureId, object_type, object_id) {
     const rawObjectInfo = await (
         await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
