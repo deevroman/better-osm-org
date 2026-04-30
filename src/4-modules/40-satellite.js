@@ -1105,6 +1105,7 @@ function switchBypassCaches() {
         if (!xyz) return
         const newUrl = makeOSMURL(xyz.x, xyz.y, xyz.z) // + "?bypassCache=" + new Date().getUTCSeconds();
         makeRequest(newUrl).then(async blob => {
+            console.debug("bypassing", newUrl)
             i.src = await readImgFromBlob(blob)
         })
     })
@@ -1118,6 +1119,7 @@ function switchBypassCaches() {
                 if (!xyz) return
                 const newUrl = makeOSMURL(xyz.x, xyz.y, xyz.z) // + "?bypassCache=" + new Date().getUTCSeconds();
                 makeRequest(newUrl).then(async blob => {
+                    console.debug("bypassing", newUrl)
                     node.src = await readImgFromBlob(blob)
                 })
             })
