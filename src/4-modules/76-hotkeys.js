@@ -619,14 +619,6 @@ function getHotkeyCombo(e) {
     return parts.join("+")
 }
 
-function getHotkeyActionIdForEvent(e) {
-    const combo = getHotkeyCombo(e)
-    return (
-        Object.entries(hotkeyActions).find(([, action]) => action.defaultBindings.includes(combo) && (!action.when || action.when(e)))?.[0] ??
-        null
-    )
-}
-
 function runHotkeyAction(actionId, e) {
     const action = hotkeyActions[actionId]
     if (!action) {
@@ -643,7 +635,10 @@ function runHotkeyAction(actionId, e) {
 }
 
 function runHotkeyActionForEvent(e) {
-    const actionId = getHotkeyActionIdForEvent(e)
+    const combo = getHotkeyCombo(e)
+    const actionId = Object.entries(hotkeyActions).find(
+        ([, action]) => action.defaultBindings.includes(combo) && (!action.when || action.when(e)),
+    )?.[0]
     if (!actionId) {
         return false
     }
