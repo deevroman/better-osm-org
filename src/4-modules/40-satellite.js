@@ -1081,19 +1081,21 @@ function switchBypassCaches() {
         })
     }
     async function makeRequest(url) {
-        return (await externalFetchRetry({
-            method: "GET",
-            url: url,
-            headers: {
-                Accept: "image/*",
-                "Cache-Control": "no-cache",
-                Pragma: "no-cache",
-                Referer: "https://www.openstreetmap.org/"
-            },
-            responseType: "blob",
-            nocache: true,
-            revalidate: true
-        })).response
+        return (
+            await externalFetchRetry({
+                method: "GET",
+                url: url,
+                headers: {
+                    Accept: "image/*",
+                    "Cache-Control": "no-cache",
+                    Pragma: "no-cache",
+                    Referer: "https://www.openstreetmap.org/",
+                },
+                responseType: "blob",
+                nocache: true,
+                revalidate: true,
+            })
+        ).response
     }
     console.log("start bypassing")
     document.querySelectorAll(".leaflet-tile").forEach(i => {
