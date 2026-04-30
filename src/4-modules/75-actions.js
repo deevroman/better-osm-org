@@ -1384,33 +1384,32 @@ function mergeAvailableHotkeyCommands(commands) {
 function getAvailableHotkeyCommandsForCurrentPage() {
     const currentContexts = getCurrentHotkeyContexts()
 
-    const commands = Object.entries(hotkeyActions)
-        .flatMap(([actionId, action]) => {
-            if (isMobile && action.hideOnMobile) {
+    const commands = Object.entries(hotkeyActions).flatMap(([actionId, action]) => {
+        if (isMobile && action.hideOnMobile) {
+            return []
+        }
+        if (!action.contexts.some(context => currentContexts.includes(context))) {
+            return []
+        }
+
+        const bindings = action.defaultBindings.length ? action.defaultBindings : [""]
+
+        return bindings.flatMap(binding => {
+            const event = binding ? createSyntheticHotkeyEvent(binding) : undefined
+            if (action.when && !action.when(event)) {
                 return []
             }
-            if (!action.contexts.some(context => currentContexts.includes(context))) {
-                return []
-            }
-
-            const bindings = action.defaultBindings.length ? action.defaultBindings : [""]
-
-            return bindings.flatMap(binding => {
-                const event = binding ? createSyntheticHotkeyEvent(binding) : undefined
-                if (action.when && !action.when(event)) {
-                    return []
-                }
-                return [
-                    {
-                        actionId,
-                        title: action.title,
-                        binding,
-                        event,
-                        contexts: action.contexts.filter(context => currentContexts.includes(context)),
-                    },
-                ]
-            })
+            return [
+                {
+                    actionId,
+                    title: action.title,
+                    binding,
+                    event,
+                    contexts: action.contexts.filter(context => currentContexts.includes(context)),
+                },
+            ]
         })
+    })
 
     return mergeAvailableHotkeyCommands(commands)
 }
