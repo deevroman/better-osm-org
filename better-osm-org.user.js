@@ -2913,6 +2913,20 @@ function drawRay(lat, lon, angle, color) {
 /** @type {import("osm-auth").OSMAuth|null}*/
 let osmEditAuth = null
 
+function initOsmAuth() {
+    if (osmEditAuth === null) {
+        osmEditAuth = osmAuth.osmAuth({
+            apiUrl: osm_server.apiUrl,
+            url: osm_server.url,
+            client_id: "FwA",
+            client_secret: "ZUq",
+            redirect_uri: GM_getResourceURL("OAUTH_HTML"),
+            scope: "write_api",
+            auto: true,
+        })
+    }
+}
+
 /**
  * @param {string} comment
  * @returns {Promise<string>} changesetId
@@ -4076,20 +4090,6 @@ function tagsToXml(doc, node, tags) {
         tag.setAttribute("k", k)
         tag.setAttribute("v", v)
         node.appendChild(tag)
-    }
-}
-
-function initOsmAuth() {
-    if (osmEditAuth === null) {
-        osmEditAuth = osmAuth.osmAuth({
-            apiUrl: osm_server.apiUrl,
-            url: osm_server.url,
-            client_id: "FwA",
-            client_secret: "ZUq",
-            redirect_uri: GM_getResourceURL("OAUTH_HTML"),
-            scope: "write_api",
-            auto: true,
-        })
     }
 }
 
