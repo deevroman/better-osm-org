@@ -26457,8 +26457,6 @@ const hotkeyHelpContextsOrder = [
     "Debug",
 ]
 
-const hotkeyCommandsPopupId = "better-osm-hotkey-commands-popup"
-const hotkeyCommandsPopupStyleId = "better-osm-hotkey-commands-popup-styles"
 const recentHotkeyActionsStorageKey = "recentHotkeyActions"
 const recentHotkeyActionsLimit = 3
 
@@ -26616,15 +26614,14 @@ function actionClearRecentHotkeyActions() {
     })
 }
 
+let hotkeyCommandsPopupStylesInjected = false
+
 function ensureHotkeyCommandsPopupStyles() {
-    if (
-        document.querySelector(`#${hotkeyCommandsPopupStyleId}`) ||
-        document.documentElement.dataset.hotkeyCommandsPopupStylesInjected === "true"
-    ) {
+    if (hotkeyCommandsPopupStylesInjected) {
         return
     }
-    const style = injectCSSIntoOSMPage(`
-        #${hotkeyCommandsPopupId} {
+    injectCSSIntoOSMPage(`
+        #better-osm-hotkey-commands-popup {
             position: fixed;
             inset: 0;
             z-index: 9999;
@@ -26765,16 +26762,15 @@ function ensureHotkeyCommandsPopupStyles() {
             }
         }
     `)
-    document.documentElement.dataset.hotkeyCommandsPopupStylesInjected = "true"
-    style?.setAttribute("id", hotkeyCommandsPopupStyleId)
+    hotkeyCommandsPopupStylesInjected = true
 }
 
 function closeHotkeyCommandsPopup() {
-    document.querySelector(`#${hotkeyCommandsPopupId}`)?.remove()
+    document.querySelector(`#better-osm-hotkey-commands-popup`)?.remove()
 }
 
 async function showHotkeyCommandsPopup() {
-    const existingPopup = document.querySelector(`#${hotkeyCommandsPopupId}`)
+    const existingPopup = document.querySelector(`#better-osm-hotkey-commands-popup`)
     if (existingPopup) {
         existingPopup.remove()
         return
@@ -26788,7 +26784,7 @@ async function showHotkeyCommandsPopup() {
     const recentCommands = recentActionIds.map(actionId => availableCommands.find(command => command.actionId === actionId)).filter(Boolean)
 
     const overlay = document.createElement("div")
-    overlay.id = hotkeyCommandsPopupId
+    overlay.id = "better-osm-hotkey-commands-popup"
     overlay.addEventListener("click", e => {
         if (e.target === overlay) {
             closeHotkeyCommandsPopup()
