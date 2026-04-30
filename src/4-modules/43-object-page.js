@@ -315,6 +315,14 @@ function makeOpeningHoursValue(valueCell, key, isVersionPage) {
     }
 }
 
+function makePhoneValue(valueCell, key) {
+    if (valueCell.textContent[0] !== "+") {
+        valueCell.title = "phone number must start with +"
+        valueCell.classList.add("fixme-tag")
+        valueCell.querySelectorAll("a").forEach(i => i.classList.add("fixme-tag"))
+    }
+}
+
 function makeXmasFeatureEasterEgg() {
     const curDate = new Date()
     if ((curDate.getMonth() === 11 && curDate.getDate() >= 18) || (curDate.getMonth() === 0 && curDate.getDate() < 10)) {
@@ -533,6 +541,8 @@ function makeLinksInVersionTagClickable(row, objType) {
         makeRoofDirectionValue(valueCell, row, true)
     } else if (key === "roof:orientation") {
         makeRoofOrientationValue(valueCell)
+    } else if (key === "contact:phone" || key === "phone") {
+        makePhoneValue(valueCell)
     } else if (needValidateConditionalAccessKey(key)) {
         makeConditionalValue(valueCell)
     } else if (needValidateOpeningHoursKey(key)) {
