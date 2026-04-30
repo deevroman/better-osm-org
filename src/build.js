@@ -6,6 +6,43 @@ import { execSync } from "child_process"
 
 const outPath = path.resolve("../better-osm-org.user.js")
 const args = new Set(process.argv.slice(2))
+let lastSkippedWriteReason = ""
+
+function resolveGitPath(gitPath) {
+    try {
+        return path.resolve(execSync(`git rev-parse --git-path ${gitPath}`, { encoding: "utf8" }).trim())
+    } catch {
+        return null
+    }
+}
+
+const gitBusyMarkers = [
+    ["index.lock", "git index is locked"],
+    ["HEAD.lock", "git HEAD is locked"],
+    ["packed-refs.lock", "git refs are locked"],
+    ["MERGE_HEAD", "git merge is in progress"],
+    ["CHERRY_PICK_HEAD", "git cherry-pick is in progress"],
+    ["REVERT_HEAD", "git revert is in progress"],
+    ["BISECT_LOG", "git bisect is in progress"],
+    ["rebase-merge", "git rebase is in progress"],
+    ["rebase-apply", "git am/rebase is in progress"],
+]
+
+const resolvedGitBusyMarkers = gitBusyMarkers
+    .map(([gitPath, reason]) => {
+        const resolvedPath = resolveGitPath(gitPath)
+        return resolvedPath ? { path: resolvedPath, reason } : null
+    })
+    .filter(Boolean)
+
+function getGitBusyReason() {
+    for (const marker of resolvedGitBusyMarkers) {
+        if (fs.existsSync(marker.path)) {
+            return marker.reason
+        }
+    }
+    return ""
+}
 
 function readJsFilesRecursively(dir) {
     const entries = fs.readdirSync(dir, { withFileTypes: true })
@@ -37,6 +74,17 @@ function buildOnce() {
         } catch (error) {
             console.error(`Syntax check failed, not writing: ${error.message}`)
         }
+
+        const gitBusyReason = getGitBusyReason()
+        if (gitBusyReason) {
+            if (lastSkippedWriteReason !== gitBusyReason) {
+                console.log(`Skip writing ${path.basename(outPath)}: ${gitBusyReason}`)
+            }
+            lastSkippedWriteReason = gitBusyReason
+            return
+        }
+
+        lastSkippedWriteReason = ""
         fs.writeFileSync(outPath, newFile)
         console.log(new Date())
     }
