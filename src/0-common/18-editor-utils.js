@@ -14,20 +14,6 @@ function tagsToXml(doc, node, tags) {
     }
 }
 
-function initOsmAuth() {
-    if (osmEditAuth === null) {
-        osmEditAuth = osmAuth.osmAuth({
-            apiUrl: osm_server.apiUrl,
-            url: osm_server.url,
-            client_id: "FwA",
-            client_secret: "ZUq",
-            redirect_uri: GM_getResourceURL("OAUTH_HTML"),
-            scope: "write_api",
-            auto: true,
-        })
-    }
-}
-
 /**
  *
  * @param {string} text
