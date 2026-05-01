@@ -13,6 +13,7 @@
 /*global EXIF*/
 /*global osmtogeojson*/
 /*global opening_hours*/
+/*global libphonenumber*/
 /*global runSnowAnimation*/
 /*global unzipit*/
 /*global bz2*/

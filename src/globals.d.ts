@@ -35,4 +35,6 @@ declare const EXIF: typeof import("exif-js")
 // @ts-ignore
 declare const osmtogeojson: typeof import("osmtogeojson")
 declare const opening_hours: typeof import("opening_hours").opening_hours
+// @ts-ignore
+declare const libphonenumber //: typeof import("libphonenumber-js/min").libphonenumber
 declare const runSnowAnimation: () => void
