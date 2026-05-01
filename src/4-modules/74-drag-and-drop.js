@@ -67,7 +67,7 @@ function handleDroppedFiles(files) {
     insertOverlaysStyles()
 
     files.forEach(async file => {
-        if (file.type.startsWith("image/jpeg")) {
+        if (file.type.startsWith("image/jpeg") || file.name.endsWith(".jpg") || file.name.endsWith(".jpeg")) {
             const metadata = EXIF.readFromBinaryFile(await file.arrayBuffer())
             console.log(metadata)
             console.log(metadata.GPSLatitude, metadata.GPSLongitude)
@@ -102,25 +102,25 @@ function handleDroppedFiles(files) {
             }
             fr.readAsDataURL(file)
             marker.addTo(getMap())
-        } else if (file.type === "application/json" || file.type === "application/geo+json") {
+        } else if (file.type === "application/json" || file.type === "application/geo+json" || file.name.endsWith(".geojson") || file.name.endsWith(".json")) {
             const geojson = JSON.parse(await file.text())
             renderGeoJSONwrapper(geojson)
-        } else if (file.type === "application/gpx+xml") {
+        } else if (file.type === "application/gpx+xml" || file.name.endsWith(".gpx")) {
             displayGPXTrack(await file.text())
-        } else if (file.type === "application/vnd.openstreetmap.data+xml") {
+        } else if (file.type === "application/vnd.openstreetmap.data+xml" || file.name.endsWith(".osm")) {
             const doc = new DOMParser().parseFromString(await file.text(), "application/xml")
             loadBannedVersions()
             jsonLayer = renderOSMGeoJSON(doc, true)
-        } else if (file.type === "application/vnd.google-earth.kml+xml") {
+        } else if (file.type === "application/vnd.google-earth.kml+xml" || file.name.endsWith(".kml")) {
             displayKMLTrack(await file.text())
-        } else if (file.type === "application/vnd.google-earth.kmz+xml") {
+        } else if (file.type === "application/vnd.google-earth.kmz+xml" || file.name.endsWith(".kmz")) {
             const { entries } = await unzipit.unzip(await file.arrayBuffer())
             displayKMLTrack(
                 await Object.entries(entries)
                     .find(i => i[0].endsWith(".kml"))[1]
                     .text(),
             )
-        } else if (file.type === "text/csv") {
+        } else if (file.type === "text/csv" || file.name.endsWith(".csv")) {
             displayCsv(await file.text())
         } else {
             console.log(file.type)
