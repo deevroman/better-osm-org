@@ -223,6 +223,7 @@ Maybe
 - [FontAwesome](https://fontawesome.com) — table and cursor icons 
 - [GM_config](https://github.com/sizzlemctwizzle/GM_config) — settings framework for UserScripts
 - [LetItSnow](https://github.com/DevBubba/Bookmarklets/blob/main/Screen/LetItSnow.js) — Easter New Year's Egg
+- [libphonenumber-js](https://gitlab.com/catamphetamine/libphonenumber-js) — phone numbers validation
 - [Lucide](https://lucide.dev/icons/diff) — for changes count icon on /history page, copy button icon, filter icon and other
 - [Moresby/Element graphics](https://wiki.openstreetmap.org/wiki/User:Moresby/Element_graphics) - OSM object types SVGs  
 - [opening_hours.js](https://github.com/opening-hours/opening_hours.js) — for opening_hours tags validation
