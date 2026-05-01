@@ -2427,6 +2427,7 @@ function actionOpenDevScriptUpdateUrl() {
 function actionOpenLocalFilePicker() {
     const input = document.createElement("input")
     input.type = "file"
+    input.accept = ".jpg,.jpeg,.csv,.kml,.kmz,.gpx,.json,.geojson"
     input.multiple = true
     input.addEventListener("change", () => {
         void handleDroppedFiles(Array.from(input.files ?? []))
