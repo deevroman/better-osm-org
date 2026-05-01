@@ -9924,14 +9924,18 @@ function makeOpeningHoursValue(valueCell, key, isVersionPage) {
 }
 
 function makePhoneValue(valueCell, key) {
-    if (valueCell.textContent[0] !== "+") {
-        valueCell.title = "phone number must start with +"
-        valueCell.classList.add("fixme-tag")
-        valueCell.querySelectorAll("a").forEach(i => i.classList.add("fixme-tag"))
-    } else if (!valueCell.textContent.split(";").every(i => libphonenumber.isPossiblePhoneNumber(i))) {
-        valueCell.title = `${valueCell.textContent} invalid phone by meaningful libphonenumber.js`
-        valueCell.classList.add("warn-tag")
-        valueCell.querySelectorAll("a").forEach(i => i.classList.add("warn-tag"))
+    try {
+        if (valueCell.textContent[0] !== "+") {
+            valueCell.title = "phone number must start with +"
+            valueCell.classList.add("fixme-tag")
+            valueCell.querySelectorAll("a").forEach(i => i.classList.add("fixme-tag"))
+        } else if (!valueCell.textContent.split(";").every(i => libphonenumber.isPossiblePhoneNumber(i))) {
+            valueCell.title = `${valueCell.textContent} invalid phone by meaningful libphonenumber.js`
+            valueCell.classList.add("warn-tag")
+            valueCell.querySelectorAll("a").forEach(i => i.classList.add("warn-tag"))
+        }
+    } catch (e) {
+        console.error(e)
     }
 }
 
