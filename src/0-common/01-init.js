@@ -575,9 +575,9 @@ function injectMapHooks() {
                         if (!boGlobalThis.scriptInstance) {
                             boGlobalThis.scriptInstance = GM_info.scriptHandler
                         } else if (boGlobalThis.scriptInstance !== GM_info.scriptHandler) {
-                            console.error(
-                                `Two copies of the script were running simultaneously via ${boGlobalThis.scriptInstance} and ${GM_info.scriptHandler}. Turn off one of them`,
-                            )
+                            const err = `Two copies of the script were running simultaneously via ${boGlobalThis.scriptInstance} and ${GM_info.scriptHandler}. Turn off one of them`
+                            console.error(err)
+                            alert(err)
                         }
                     }
                 }, boWindowObject),
