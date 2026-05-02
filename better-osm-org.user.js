@@ -1954,7 +1954,7 @@ async function fetchRetry(input, init) {
 }
 
 async function _fetchRetry(fetchImpl, ...args) {
-    const RETRY_COUNT = 10
+    const RETRY_COUNT = args?.[1]?.retryCount ?? 10 // FIXME навести порядок в способе задания аргументов
     let count = RETRY_COUNT
     while (count > 0) {
         try {
@@ -14550,6 +14550,7 @@ async function geocodeCurrentView(attempts = 5) {
 
     fetchJSONWithCache(url, {
         signal: getAbortController().signal,
+        retryCount: 5
     })
         .then(r => {
             cachedNominatimRequests.add(url)
