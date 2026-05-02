@@ -373,7 +373,7 @@ const hotkeyActions = {
     },
     openInLevel0: {
         title: "Open object in Level0",
-        defaultBindings: ["Shift+KeyJ", "Alt+KeyJ", "Shift+Alt+KeyJ"],
+        defaultBindings: ["Shift+KeyJ", "Alt+KeyJ"],
         contexts: ["Changeset pages", "Object pages"],
         run: actionOpenInJosmOrLevel0,
     },
@@ -529,14 +529,14 @@ const hotkeyActions = {
         run: actionChangesetObjectsTimeTrack,
     },
     goToPrevChangesetListPage: {
-        title: "Previous changeset list page",
+        title: "Previous changeset",
         defaultBindings: ["Comma"],
         contexts: ["Changeset pages"],
         when: () => isChangesetPage(),
         run: actionGoToPrevChangesetListPage,
     },
     goToNextChangesetListPage: {
-        title: "Next changeset list page",
+        title: "Next changeset",
         defaultBindings: ["Period"],
         contexts: ["Changeset pages"],
         when: () => isChangesetPage(),
