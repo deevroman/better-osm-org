@@ -331,6 +331,16 @@ function makePhoneValue(valueCell, key) {
     }
 }
 
+function makeEmailValue(valueCell, key) {
+    const email_regex = /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i
+
+    if (!valueCell.textContent.split(";").every(i => i.match(email_regex))) {
+        valueCell.title = `${valueCell.textContent} invalid email`
+        valueCell.classList.add("warn-tag")
+        valueCell.querySelectorAll("a").forEach(i => i.classList.add("warn-tag"))
+    }
+}
+
 function makeXmasFeatureEasterEgg() {
     const curDate = new Date()
     if ((curDate.getMonth() === 11 && curDate.getDate() >= 18) || (curDate.getMonth() === 0 && curDate.getDate() < 10)) {
@@ -486,6 +496,10 @@ function needValidatePhoneKey(key) {
     )
 }
 
+function needValidateEmailKey(key) {
+    return key === "contact:email" || key === "email" || key === "brand:email"
+}
+
 function makeRoofDirectionValue(valueCell, row, isVersionPage) {
     if (valueCell.textContent === "across" || valueCell.textContent === "along") {
         // todo more
@@ -558,6 +572,8 @@ function makeLinksInVersionTagClickable(row, objType) {
         makeRoofOrientationValue(valueCell)
     } else if (needValidatePhoneKey(key)) {
         makePhoneValue(valueCell)
+    } else if (needValidateEmailKey(key)) {
+        makeEmailValue(valueCell)
     } else if (needValidateConditionalAccessKey(key)) {
         makeConditionalValue(valueCell)
     } else if (needValidateOpeningHoursKey(key)) {
