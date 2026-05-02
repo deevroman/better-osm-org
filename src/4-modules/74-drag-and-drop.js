@@ -102,7 +102,12 @@ function handleDroppedFiles(files) {
             }
             fr.readAsDataURL(file)
             marker.addTo(getMap())
-        } else if (file.type === "application/json" || file.type === "application/geo+json" || file.name.endsWith(".geojson") || file.name.endsWith(".json")) {
+        } else if (
+            file.type === "application/json" ||
+            file.type === "application/geo+json" ||
+            file.name.endsWith(".geojson") ||
+            file.name.endsWith(".json")
+        ) {
             const geojson = JSON.parse(await file.text())
             renderGeoJSONwrapper(geojson)
         } else if (file.type === "application/gpx+xml" || file.name.endsWith(".gpx")) {
