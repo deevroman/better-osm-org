@@ -183,6 +183,22 @@
     {
       "key": "type",
       "description": "tag value validation"
+    },
+    {
+      "key": "contact:phone",
+      "description": "tag value validation via libphonenumber.js"
+    },
+    {
+      "key": "contact:mobile",
+      "description": "tag value validation via libphonenumber.js"
+    },
+    {
+      "key": "phone",
+      "description": "tag value validation via libphonenumber.js"
+    },
+    {
+      "key": "mobile",
+      "description": "tag value validation via libphonenumber.js"
     }
   ]
 }
