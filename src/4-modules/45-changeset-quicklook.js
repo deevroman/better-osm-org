@@ -457,7 +457,7 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
             makeRoofDirectionValue(valueCell, row, false)
         } else if (key === "roof:orientation") {
             makeRoofOrientationValue(valueCell)
-        } else if (key === "contact:phone" || key === "phone") {
+        } else if (key === "contact:phone" || key === "contact:mobile" || key === "phone" || key === "mobile") {
             makePhoneValue(valueCell)
         } else if (needValidateConditionalAccessKey(key)) {
             makeConditionalValue(valueCell)
