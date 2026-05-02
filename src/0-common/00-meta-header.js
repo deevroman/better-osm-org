@@ -74,7 +74,7 @@
 // @require      https://raw.githubusercontent.com/deevroman/opening_hours.js/03d9af5c0b3c8dcec6b6ecadc3ef419bee4b52c1/opening_hours+deps.min.js#sha256=b0a9be43fe081d13db2aff69b36417ef18a9e0707629741e627a9b30f948cab9
 // @require      https://raw.githubusercontent.com/deevroman/unzipit/refs/heads/master/dist/unzipit.min.js#sha256=13a41f257bc1fd90adeaf6731e02838cf740299235ece90634f12e117e22e2ff
 // @require      https://raw.githubusercontent.com/deevroman/bz2/342be4403bf5ba835bb2c9ba54ad008bba428d60/index.js#sha256=8c19861a31e7fb403824e513e1afd23f75c5024f610671490ebc86f2eca61845
-// @require      https://unpkg.com/libphonenumber-js@1.12.15/bundle/libphonenumber-min.js#sha256=4fa4cc15faf634acd0f4f858842f6866405dd65e4be41f1aa286967e85b8956e
+// @require      https://raw.githubusercontent.com/deevroman/better-osm-org/9a020e54eef1aefef15f4fa97c31296b57cad1b1/misc/assets/libphonenumber-min.js#sha256=4fa4cc15faf634acd0f4f858842f6866405dd65e4be41f1aa286967e85b8956e
 // @incompatible safari https://github.com/deevroman/better-osm-org/issues/13
 // @grant        GM.getValue
 // @grant        GM.setValue
