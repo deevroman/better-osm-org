@@ -244,7 +244,7 @@ async function geocodeCurrentView(attempts = 5) {
 
     fetchJSONWithCache(url, {
         signal: getAbortController().signal,
-        retryCount: 5
+        retryCount: 5,
     })
         .then(r => {
             cachedNominatimRequests.add(url)
@@ -459,6 +459,8 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
             makeRoofOrientationValue(valueCell)
         } else if (needValidatePhoneKey(key)) {
             makePhoneValue(valueCell)
+        } else if (needValidateEmailKey(key)) {
+            makeEmailValue(valueCell)
         } else if (needValidateConditionalAccessKey(key)) {
             makeConditionalValue(valueCell)
         } else if (key === "type") {

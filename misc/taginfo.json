@@ -197,6 +197,10 @@
       "description": "tag value validation via libphonenumber.js"
     },
     {
+      "key": "contact:email",
+      "description": "tag value validation"
+    },
+    {
       "key": "phone",
       "description": "tag value validation via libphonenumber.js"
     },
@@ -207,6 +211,10 @@
     {
       "key": "fax",
       "description": "tag value validation via libphonenumber.js"
+    },
+    {
+      "key": "email",
+      "description": "tag value validation"
     }
   ]
 }
