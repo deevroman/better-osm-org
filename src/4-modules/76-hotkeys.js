@@ -485,19 +485,19 @@ const hotkeyActions = {
         run: actionZoomInHotkey,
         hideOnMobile: true,
     },
-    goToPrevChangesetPage: {
-        title: "Go to previous changeset page",
+    goToPrevChangeset: {
+        title: "Go to previous changeset in list",
         defaultBindings: ["KeyK"],
         contexts: ["History pages"],
         when: () => /^(\/user\/.+)?\/history\/?$/.test(location.pathname),
-        run: actionGoToPrevChangesetPage,
+        run: actionGoToPrevChangeset,
     },
-    goToNextChangesetPage: {
-        title: "Go to next changeset page",
+    goToNextChangeset: {
+        title: "Go to next changeset in list",
         defaultBindings: ["KeyL"],
         contexts: ["History pages"],
         when: () => /^(\/user\/.+)?\/history\/?$/.test(location.pathname),
-        run: actionGoToNextChangesetPage,
+        run: actionGoToNextChangeset,
     },
     goToPrevSearchResultPage: {
         title: "Go to previous search result",

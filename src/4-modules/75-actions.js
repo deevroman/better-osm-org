@@ -2297,11 +2297,11 @@ function actionZoomInHotkey(e) {
     document.querySelector("#map").focus()
 }
 
-function actionGoToPrevChangesetPage(e) {
+function actionGoToPrevChangeset(e) {
     goToPrevChangeset(e)
 }
 
-function actionGoToNextChangesetPage(e) {
+function actionGoToNextChangeset(e) {
     goToNextChangeset(e)
 }
 
