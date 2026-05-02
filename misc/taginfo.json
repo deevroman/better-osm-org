@@ -193,11 +193,19 @@
       "description": "tag value validation via libphonenumber.js"
     },
     {
+      "key": "contact:fax",
+      "description": "tag value validation via libphonenumber.js"
+    },
+    {
       "key": "phone",
       "description": "tag value validation via libphonenumber.js"
     },
     {
       "key": "mobile",
+      "description": "tag value validation via libphonenumber.js"
+    },
+    {
+      "key": "fax",
       "description": "tag value validation via libphonenumber.js"
     }
   ]
