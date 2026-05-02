@@ -23653,6 +23653,10 @@ async function _setupNewEditorsLinks(mutationsList) {
         if (mutationsList.length === 1 && mutationsList[0].type === "attributes" && mutationsList[0].attributeName === "aria-describedby") {
             document.querySelector("#" + mutationsList[0].target.getAttribute("aria-describedby"))?.remove()
         }
+        if (mutationsList.every(i => i.attributeName === "class")) {
+            // prevent infinite loop when two script instances on one page
+            return
+        }
     }
     addDropdownStyle()
     if (isMobile && document.querySelector("#map")) {
