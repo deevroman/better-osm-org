@@ -83,17 +83,25 @@ const hotkeyActions = {
         run: actionGoToUserLocation,
         hideOnMobile: true,
     },
+    openUserTraces: {
+        title: "Open your traces",
+        defaultBindings: ["KeyT"],
+        contexts: ["User pages"],
+        when: () => isUserPageWithoutHistory(),
+        run: actionOpenUserTraces,
+    },
+    toggleCompactMode: {
+        title: "Toggle compact mode and datetime format",
+        defaultBindings: ["KeyT"],
+        contexts: ["Changeset pages", "Object pages", "History pages"],
+        when: () => !isUserPageWithoutHistory(),
+        run: actionToggleCompactMode,
+    },
     toggleSwitchableTime: {
         title: "Toggle switchable time",
         defaultBindings: ["Shift+KeyT", "Alt+KeyT"],
         contexts: ["Changeset pages", "Object pages", "History pages"],
         run: actionToggleSwitchableTime,
-    },
-    toggleCompactTimeOrOpenTraces: {
-        title: "Toggle compact time or open traces",
-        defaultBindings: ["KeyT"],
-        contexts: ["Changeset pages", "Object pages", "History pages"],
-        run: actionHandleKeyT,
     },
     openUserBlocks: {
         title: "Open user blocks",
