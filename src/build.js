@@ -7,6 +7,7 @@ import { execSync } from "child_process"
 const outPath = path.resolve("../better-osm-org.user.js")
 const args = new Set(process.argv.slice(2))
 let lastSkippedWriteReason = ""
+const localMatchLine = "// @match        http://localhost:3000/*"
 
 function resolveGitPath(gitPath) {
     try {
@@ -63,11 +64,26 @@ function readJsFilesRecursively(dir) {
     return result
 }
 
+function stripLocalhostMatch(script) {
+    return script
+        .split("\n")
+        .filter(line => line !== localMatchLine)
+        .join("\n")
+}
+
+function injectLocalhostMatch(script) {
+    if (script.includes(localMatchLine)) {
+        return script
+    }
+
+    return script.replace("// @match        https://taginfo.openstreetmap.org/*", `${localMatchLine}\n// @match        https://taginfo.openstreetmap.org/*`)
+}
+
 function buildOnce() {
     const sources = readJsFilesRecursively(".").map(file => fs.readFileSync(file, "utf8"))
 
     const oldFile = fs.existsSync(outPath) ? fs.readFileSync(outPath, "utf8") : ""
-    const newFile = sources.join("\n")
+    const newFile = stripLocalhostMatch(sources.join("\n"))
     if (oldFile !== newFile) {
         try {
             new vm.Script(newFile, { filename: outPath })
@@ -114,7 +130,7 @@ if (shouldServe) {
             }
 
             res.writeHead(200, { "content-type": "text/javascript; charset=utf-8" })
-            res.end(out)
+            res.end(injectLocalhostMatch(out))
         } catch (error) {
             res.writeHead(500, { "content-type": "text/plain; charset=utf-8" })
             res.end(`Server error: ${error.message}`)
