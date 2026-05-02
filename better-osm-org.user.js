@@ -10088,6 +10088,12 @@ function needValidateConditionalAccessKey(key) {
     )
 }
 
+function needValidatePhoneKey(key) {
+    return (
+        key === "contact:phone" || key === "contact:mobile" || key === "contact:fax" || key === "phone" || key === "mobile" || key === "fax"
+    )
+}
+
 function makeRoofDirectionValue(valueCell, row, isVersionPage) {
     if (valueCell.textContent === "across" || valueCell.textContent === "along") {
         // todo more
@@ -10158,7 +10164,7 @@ function makeLinksInVersionTagClickable(row, objType) {
         makeRoofDirectionValue(valueCell, row, true)
     } else if (key === "roof:orientation") {
         makeRoofOrientationValue(valueCell)
-    } else if (key === "contact:phone" || key === "contact:mobile" || key === "phone" || key === "mobile") {
+    } else if (needValidatePhoneKey(key)) {
         makePhoneValue(valueCell)
     } else if (needValidateConditionalAccessKey(key)) {
         makeConditionalValue(valueCell)
@@ -14763,7 +14769,7 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
             makeRoofDirectionValue(valueCell, row, false)
         } else if (key === "roof:orientation") {
             makeRoofOrientationValue(valueCell)
-        } else if (key === "contact:phone" || key === "contact:mobile" || key === "phone" || key === "mobile") {
+        } else if (needValidatePhoneKey(key)) {
             makePhoneValue(valueCell)
         } else if (needValidateConditionalAccessKey(key)) {
             makeConditionalValue(valueCell)
