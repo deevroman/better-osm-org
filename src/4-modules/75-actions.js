@@ -1162,14 +1162,14 @@ function actionToggleSwitchableTime() {
     document.querySelector("time[switchable]")?.click()
 }
 
-function actionHandleKeyT() {
-    if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) {
-        document.querySelector('a[href="/traces/mine"], a[href$="/traces"]:not(.nav-link):not(.dropdown-item)')?.click()
-    } else {
-        document.querySelector(".quick-look-compact-toggle-btn")?.click()
-        document.querySelector(".compact-toggle-btn")?.click()
-        actionToggleSwitchableTime()
-    }
+function actionOpenUserTraces() {
+    document.querySelector('a[href="/traces/mine"], a[href$="/traces"]:not(.nav-link):not(.dropdown-item)')?.click()
+}
+
+function actionToggleCompactMode() {
+    document.querySelector(".quick-look-compact-toggle-btn")?.click()
+    document.querySelector(".compact-toggle-btn")?.click()
+    actionToggleSwitchableTime()
 }
 
 function actionOpenOverpassSearch() {
