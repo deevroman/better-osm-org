@@ -550,7 +550,7 @@ function makeLinksInVersionTagClickable(row, objType) {
         makeRoofDirectionValue(valueCell, row, true)
     } else if (key === "roof:orientation") {
         makeRoofOrientationValue(valueCell)
-    } else if (key === "contact:phone" || key === "phone") {
+    } else if (key === "contact:phone" || key === "contact:mobile" || key === "phone" || key === "mobile") {
         makePhoneValue(valueCell)
     } else if (needValidateConditionalAccessKey(key)) {
         makeConditionalValue(valueCell)
