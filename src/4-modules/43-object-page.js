@@ -322,7 +322,7 @@ function makePhoneValue(valueCell, key) {
             valueCell.classList.add("fixme-tag")
             valueCell.querySelectorAll("a").forEach(i => i.classList.add("fixme-tag"))
         } else if (!valueCell.textContent.split(";").every(i => libphonenumber.isPossiblePhoneNumber(i))) {
-            valueCell.title = `${valueCell.textContent} invalid phone by meaningful libphonenumber.js`
+            valueCell.title = `${valueCell.textContent} invalid phone according to libphonenumber.js`
             valueCell.classList.add("warn-tag")
             valueCell.querySelectorAll("a").forEach(i => i.classList.add("warn-tag"))
         }
