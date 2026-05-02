@@ -244,6 +244,7 @@ async function geocodeCurrentView(attempts = 5) {
 
     fetchJSONWithCache(url, {
         signal: getAbortController().signal,
+        retryCount: 5
     })
         .then(r => {
             cachedNominatimRequests.add(url)
