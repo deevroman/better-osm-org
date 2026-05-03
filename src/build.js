@@ -76,7 +76,10 @@ function injectLocalhostMatch(script) {
         return script
     }
 
-    return script.replace("// @match        https://taginfo.openstreetmap.org/*", `${localMatchLine}\n// @match        https://taginfo.openstreetmap.org/*`)
+    return script.replace(
+        "// @match        https://taginfo.openstreetmap.org/*",
+        `${localMatchLine}\n// @match        https://taginfo.openstreetmap.org/*`,
+    )
 }
 
 function buildOnce() {
