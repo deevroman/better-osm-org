@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.6.3
+// @version         1.6.3.1
 // @changelog       v1.6.3: F1 hotkey for hotkeys list, preview Panoramax photos in Overpass search results, CSV reader
 // @changelog       v1.6.3: Validate phone=*, email=*, short keys and keys with the first capital letter
 // @changelog       v1.6.0: OpenGeoFiction support under debug flag in settings, add OSM2World 3D viewer, type=* validator
@@ -9929,7 +9929,7 @@ function makePhoneValue(valueCell, key) {
             valueCell.title = "phone number must start with +"
             valueCell.classList.add("fixme-tag")
             valueCell.querySelectorAll("a").forEach(i => i.classList.add("fixme-tag"))
-        } else if (!valueCell.textContent.split(";").every(i => libphonenumber.isPossiblePhoneNumber(i))) {
+        } else if (!valueCell.textContent.split(";").every(i => libphonenumber.isPossiblePhoneNumber(i.trim()))) {
             valueCell.title = `${valueCell.textContent} invalid phone according to libphonenumber.js`
             valueCell.classList.add("warn-tag")
             valueCell.querySelectorAll("a").forEach(i => i.classList.add("warn-tag"))

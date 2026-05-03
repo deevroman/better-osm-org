@@ -321,7 +321,7 @@ function makePhoneValue(valueCell, key) {
             valueCell.title = "phone number must start with +"
             valueCell.classList.add("fixme-tag")
             valueCell.querySelectorAll("a").forEach(i => i.classList.add("fixme-tag"))
-        } else if (!valueCell.textContent.split(";").every(i => libphonenumber.isPossiblePhoneNumber(i))) {
+        } else if (!valueCell.textContent.split(";").every(i => libphonenumber.isPossiblePhoneNumber(i.trim()))) {
             valueCell.title = `${valueCell.textContent} invalid phone according to libphonenumber.js`
             valueCell.classList.add("warn-tag")
             valueCell.querySelectorAll("a").forEach(i => i.classList.add("warn-tag"))
