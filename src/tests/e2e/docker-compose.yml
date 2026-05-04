@@ -1,5 +1,6 @@
 services:
   e2e-firefox:
+    image: "${BETTER_OSM_E2E_IMAGE:-better-osm-e2e:local}"
     build:
       context: ../../..
       dockerfile: src/tests/e2e/Dockerfile
