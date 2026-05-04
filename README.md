@@ -71,6 +71,7 @@ Photos are also displayed in the tags `panoramax=*` and `wikimedia_commons=*`
 - `Q` — Close sidebar or alert
 
 Experimental hotkeys:
+- `F1` — list of hotkeys
 - `K` `L` — navigation between changeset elements
 - `J` — open objects from changesets in JOSM
 - `shift` + `J` — open objects from changesets in Level0
@@ -146,15 +147,19 @@ Experimental hotkeys:
 - + [x] .kmz
 - + [x] .geojson
 - + [x] .osm
+- + [x] .csv
 - Notes filters:
 - + [x] by user
 - + [x] by word
 - + [x] by status
 - Geometry
 - + [x] Ruler
-- + [ ] Calc area size
-- + [ ] Copy coordinates in multiple formats
+- + [x] Copy coordinates in multiple formats
+- + [x] Calc polygon area
+- + [ ] Calc multipolygon area
 - [x] Custom layers and overlays
+- [x] Support OpenHistoricalMap β
+- [x] Support OpenGeoFiction β
 
 ### Ideas
 
@@ -174,7 +179,6 @@ Experimental hotkeys:
 - + [ ] autocompletion from taginfo 
 - + [ ] split window
 - + [ ] Javascript postfilters
-- [ ] Tutorial
 - [ ] Improve data view
 - + [ ] Hide ways
 - + [ ] Filters
@@ -193,8 +197,6 @@ Experimental hotkeys:
 - [ ] website & iD helper for translator (open search query into translation platform)
 - [ ] show in quick look the base way tag
 - [ ] Fast tags copy from wiki
-- [ ] Support OpenHistoricalMap
-- [ ] Support OpenGeoFiction
 
 Maybe
 
