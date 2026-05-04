@@ -3,6 +3,7 @@ set -euo pipefail
 
 WORKDIR_TMP="/tmp/workspace"
 NPM_CACHE_DIR="/tmp/npm-cache"
+E2E_NPM_ROOT="${E2E_NPM_ROOT:-/opt/better-osm-e2e}"
 ARTIFACTS_REL="src/tests/e2e/artifacts"
 ARTIFACTS_TMP="${WORKDIR_TMP}/${ARTIFACTS_REL}"
 ARTIFACTS_HOST="/workspace/${ARTIFACTS_REL}"
@@ -46,6 +47,19 @@ cleanup() {
 }
 trap cleanup EXIT
 
+prepare_e2e_dependencies() {
+  local e2e_dir="${WORKDIR_TMP}/src/tests/e2e"
+
+  if [ -d "${E2E_NPM_ROOT}/node_modules" ]; then
+    rm -rf "${e2e_dir}/node_modules"
+    ln -s "${E2E_NPM_ROOT}/node_modules" "${e2e_dir}/node_modules"
+    echo "Using preinstalled E2E dependencies from ${E2E_NPM_ROOT}"
+  else
+    echo "Preinstalled E2E dependencies not found, running npm ci"
+    npm --prefix "${e2e_dir}" ci
+  fi
+}
+
 /opt/bin/entry_point.sh &
 SELENIUM_PID=$!
 
@@ -76,7 +90,7 @@ node src/build.js
 BUILD_EXIT_CODE=$?
 
 if [ "${BUILD_EXIT_CODE}" -eq 0 ]; then
-  npm --prefix src/tests/e2e ci
+  prepare_e2e_dependencies
   INSTALL_EXIT_CODE=$?
 else
   INSTALL_EXIT_CODE="${BUILD_EXIT_CODE}"

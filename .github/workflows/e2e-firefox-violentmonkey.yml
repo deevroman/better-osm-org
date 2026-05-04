@@ -75,6 +75,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Download userscript manager add-on
         run: |
           mkdir -p src/tests/e2e/artifacts
@@ -82,8 +85,19 @@ jobs:
           curl -fL "${{ matrix.manager_xpi_url }}" -o src/tests/e2e/artifacts/manager.xpi
           ls -lh src/tests/e2e/artifacts/manager.xpi
 
+      - name: Build E2E image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: src/tests/e2e/Dockerfile
+          tags: better-osm-e2e:ci
+          load: true
+          cache-from: type=gha,scope=e2e-firefox
+          cache-to: type=gha,scope=e2e-firefox,mode=max
+
       - name: Run E2E in Docker
         env:
+          BETTER_OSM_E2E_IMAGE: better-osm-e2e:ci
           E2E_LOCALE: ${{ matrix.locale }}
           E2E_SCRIPT_MANAGER_NAME: ${{ matrix.manager_name }}
           E2E_SCRIPT_MANAGER_XPI: /workspace/src/tests/e2e/artifacts/manager.xpi
@@ -92,37 +106,17 @@ jobs:
           E2E_USER_AGENT: ${{ matrix.e2e_user_agent }}
         run: |
           mkdir -p src/tests/e2e/artifacts
-          COMPOSE_BUILD_LOG="src/tests/e2e/artifacts/compose-build.log"
           COMPOSE_UP_LOG="src/tests/e2e/artifacts/compose-up.log"
-
-          echo "::group::Docker Compose build (compact mode)"
-          BUILD_STARTED_AT="$(date +%s)"
+          echo "::group::Docker Compose up (compact mode)"
           set +e
-          docker compose -f src/tests/e2e/docker-compose.yml build > "${COMPOSE_BUILD_LOG}" 2>&1
-          BUILD_EXIT_CODE=$?
+          docker compose -f src/tests/e2e/docker-compose.yml up \
+            --no-build \
+            --abort-on-container-exit \
+            --exit-code-from e2e-firefox \
+            > "${COMPOSE_UP_LOG}" 2>&1
+          E2E_EXIT_CODE=$?
           set -e
-          BUILD_FINISHED_AT="$(date +%s)"
-          BUILD_DURATION_SEC="$((BUILD_FINISHED_AT - BUILD_STARTED_AT))"
           echo "::endgroup::"
-          echo "Docker compose build duration: ${BUILD_DURATION_SEC}s (exit=${BUILD_EXIT_CODE})"
-
-          if [ "${BUILD_EXIT_CODE}" -ne 0 ]; then
-            E2E_EXIT_CODE="${BUILD_EXIT_CODE}"
-            echo "Docker compose build failed, showing last 200 lines from ${COMPOSE_BUILD_LOG}:"
-            tail -n 200 "${COMPOSE_BUILD_LOG}" || true
-          else
-            echo "Docker compose build log saved to ${COMPOSE_BUILD_LOG}"
-            echo "::group::Docker Compose up (compact mode)"
-            set +e
-            docker compose -f src/tests/e2e/docker-compose.yml up \
-              --no-build \
-              --abort-on-container-exit \
-              --exit-code-from e2e-firefox \
-              > "${COMPOSE_UP_LOG}" 2>&1
-            E2E_EXIT_CODE=$?
-            set -e
-            echo "::endgroup::"
-          fi
 
           if [ -f "${COMPOSE_UP_LOG}" ]; then
             echo "Compose output saved to ${COMPOSE_UP_LOG}"
