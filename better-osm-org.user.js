@@ -24930,6 +24930,7 @@ async function processOverpassQuery(query) {
     if (query[query.length - 1] === "!") {
         query = query.slice(0, -1)
     }
+    query = query.replace("{{bbox}}", bboxString.join(","))
     const prevTitle = document.title
     const newTitle = "◴" + prevTitle
     document.title = newTitle
