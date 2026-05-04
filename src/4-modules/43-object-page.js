@@ -334,7 +334,7 @@ function makePhoneValue(valueCell, key) {
 function makeEmailValue(valueCell, key) {
     const email_regex = /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i
 
-    if (!valueCell.textContent.split(";").every(i => i.match(email_regex))) {
+    if (!valueCell.textContent.split(";").every(i => i.trim().match(email_regex))) {
         valueCell.title = `${valueCell.textContent} invalid email`
         valueCell.classList.add("warn-tag")
         valueCell.querySelectorAll("a").forEach(i => i.classList.add("warn-tag"))
