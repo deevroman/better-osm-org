@@ -145,6 +145,15 @@ const MAPILLARY_URL_PARAMS = new URLSearchParams({
     fields: "id,geometry,computed_geometry,compass_angle,computed_compass_angle,thumb_1024_url",
 })
 
+async function downloadMapillaryPhotoInfo(id) {
+    return (
+        await externalFetchRetry({
+            url: `https://graph.mapillary.com/${id}?${MAPILLARY_URL_PARAMS.toString()}`,
+            responseType: "json",
+        })
+    ).response
+}
+
 // https://osm.org/node/7417065297
 // https://osm.org/node/6257534611
 // https://osm.org/way/682528624/history/3
@@ -173,59 +182,54 @@ function makeMapillaryValue(elem) {
     setTimeout(async () => {
         for (const a of elem.querySelectorAll('a:not(.added-preview-mapillary-img-link)[href^="https://www.mapillary.com/app/"]')) {
             a.classList.add("added-preview-mapillary-img-link")
-            const res = (
-                await externalFetchRetry({
-                    url: `https://graph.mapillary.com/${a.textContent.match(/[0-9]+/)}?${MAPILLARY_URL_PARAMS.toString()}`,
-                    responseType: "json",
-                })
-            ).response
-            if (!res["error"]) {
-                const imgSrc = res["thumb_1024_url"]
-                if (isSafari) {
-                    fetchImageWithCache(imgSrc).then(async imgData => {
-                        const img = document.createElement("img")
-                        img.src = imgData
-                        img.alt = "image from Mapillary"
-                        img.title = "Blue — position from GPS tracker\nOrange — estimated real position"
-                        img.style.width = "100%"
-                        a.appendChild(img)
-                    })
-                } else {
-                    const img = GM_addElement("img", {
-                        src: imgSrc,
-                        alt: "image from Mapillary",
-                        title: "Blue — position from GPS tracker\nOrange — estimated real position",
-                        width: "100%",
-                        // crossorigin: "anonymous"
-                    })
-                    img.onerror = () => {
-                        img.style.display = "none"
-                    }
-                    img.onload = () => {
-                        img.style.width = "100%"
-                    }
-                    a.appendChild(img)
-                }
-                a.onmouseenter = () => {
-                    const lat = res["geometry"]["coordinates"][1]
-                    const lon = res["geometry"]["coordinates"][0]
-                    const angle = res["compass_angle"]
-
-                    const computed_lat = res["computed_geometry"]["coordinates"][1]
-                    const computed_lon = res["computed_geometry"]["coordinates"][0]
-                    const computed_angle = res["computed_compass_angle"]
-
-                    showActiveNodeMarker(lat, lon, "#0022ff", true)
-                    showActiveNodeMarker(computed_lat, computed_lon, "#ee9209", false)
-
-                    drawRay(lat, lon, angle - 30, "#0022ff")
-                    drawRay(computed_lat, computed_lon, computed_angle - 25, "#ee9209")
-
-                    drawRay(lat, lon, angle + 30, "#0022ff")
-                    drawRay(computed_lat, computed_lon, computed_angle + 25, "#ee9209")
-                }
-            } else {
+            const res = await downloadMapillaryPhotoInfo(a.textContent.match(/[0-9]+/))
+            if (res["error"]) {
                 a.classList.add("broken-mapillary-link")
+                continue
+            }
+            const imgSrc = res["thumb_1024_url"]
+            if (isSafari) {
+                fetchImageWithCache(imgSrc).then(async imgData => {
+                    const img = document.createElement("img")
+                    img.src = imgData
+                    img.alt = "image from Mapillary"
+                    img.title = "Blue — position from GPS tracker\nOrange — estimated real position"
+                    img.style.width = "100%"
+                    a.appendChild(img)
+                })
+            } else {
+                const img = GM_addElement("img", {
+                    src: imgSrc,
+                    alt: "image from Mapillary",
+                    title: "Blue — position from GPS tracker\nOrange — estimated real position",
+                    width: "100%",
+                    // crossorigin: "anonymous"
+                })
+                img.onerror = () => {
+                    img.style.display = "none"
+                }
+                img.onload = () => {
+                    img.style.width = "100%"
+                }
+                a.appendChild(img)
+            }
+            a.onmouseenter = () => {
+                const lat = res["geometry"]["coordinates"][1]
+                const lon = res["geometry"]["coordinates"][0]
+                const angle = res["compass_angle"]
+
+                const computed_lat = res["computed_geometry"]["coordinates"][1]
+                const computed_lon = res["computed_geometry"]["coordinates"][0]
+                const computed_angle = res["computed_compass_angle"]
+
+                showActiveNodeMarker(lat, lon, "#0022ff", true)
+                showActiveNodeMarker(computed_lat, computed_lon, "#ee9209", false)
+
+                drawRay(lat, lon, angle - 30, "#0022ff")
+                drawRay(computed_lat, computed_lon, computed_angle - 25, "#ee9209")
+
+                drawRay(lat, lon, angle + 30, "#0022ff")
+                drawRay(computed_lat, computed_lon, computed_angle + 25, "#ee9209")
             }
         }
     })
