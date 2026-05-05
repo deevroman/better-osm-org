@@ -2,7 +2,12 @@
 
 function yetAnotherWizard(s) {
     // const [k, v] = s.split("=")
-    if (s[0] === "[") {
+    if (s[0] === "~" && !s.slice(1).includes("~")) {
+        if (!s.includes('"') && s.includes("|")) {
+            return `nwr[~"${s.slice(1)}"~".*"];`
+        }
+        return `nwr[${s}~".*"];`
+    } else if (s[0] === "[") {
         return `nwr${s};`
     } else if (s.match(/^(node|way|rel|nwr|nw|nr|wr)/)) {
         return `${s}` + (s.slice(-1) === ";" ? "" : ";")
@@ -18,6 +23,16 @@ function yetAnotherWizard(s) {
             if (s.match(/^[a-zA-Z0-9_:]+$/)) {
                 return `nwr["${s}"];`
             } else {
+                if (s.match(/^[a-zA-Z0-9_:|]+$/)) {
+                    return (
+                        "(\n" +
+                        s
+                            .split("|")
+                            .map(k => `nwr[${k}];`)
+                            .join("\n") +
+                        ");"
+                    )
+                }
                 return `nwr[${s}];`
             }
         }
