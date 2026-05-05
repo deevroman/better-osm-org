@@ -87,6 +87,27 @@ function attachMapillaryHoverCaptureHandler(a, res) {
     }
 }
 
+function attachWikimediaHoverCaptureHandler(a, res) {
+    a.onmouseenter = () => wikimediaMouseEnter(res)
+    const author = res["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["Artist"]["value"]
+    if (author) {
+        if (a.title && a.title?.length !== 0) {
+            a.title += "\n"
+        }
+        // отдавать HTML придумал гений, блять
+        const fixedAuthor = author.includes("</a>") ? (author.match(/">(.*)<\/a>$/)[1] ?? author) : author
+        a.title += "Photo by " + fixedAuthor
+    }
+    const date = res["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["DateTimeOriginal"]["value"]
+    if (date) {
+        a.title += "\n" + date
+    }
+    const license = res["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["LicenseShortName"]["value"]
+    if (license) {
+        a.title += "\n" + license
+    }
+}
+
 function addPanoramaxPicIntoA(uuid, a, panoramaxServer) {
     const imgSrc = `${panoramaxServer}/api/pictures/${uuid}/sd.jpg`
     if (isSafari) {
@@ -190,6 +211,13 @@ function mapillaryMouseEnter(info) {
     drawRay(computed_lat, computed_lon, computed_angle + 25, "#ee9209")
 }
 
+function wikimediaMouseEnter(info) {
+    const lat = info["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["GPSLatitude"]["value"]
+    const lon = info["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["GPSLongitude"]["value"]
+
+    showActiveNodeMarker(lat, lon, "#0022ff", true)
+}
+
 // https://osm.org/node/7417065297
 // https://osm.org/node/6257534611
 // https://osm.org/way/682528624/history/3
@@ -257,31 +285,37 @@ function makeMapillaryValue(elem) {
     }
 }
 
+async function downloadWikimediaInfo(filename) {
+    return (
+        await externalFetchRetry({
+            url:
+                `https://en.wikipedia.org/w/api.php?` +
+                new URLSearchParams({
+                    action: "query",
+                    iiprop: "url|extmetadata",
+                    iiurlwidth: "300",
+                    prop: "imageinfo",
+                    titles: filename,
+                    format: "json",
+                }).toString(),
+            responseType: "json",
+        })
+    ).response
+}
+
 function makeWikimediaCommonsValue(elem) {
     if (!GM_config.get("ImagesAndLinksInTags")) return
     elem.querySelectorAll('a[href^="//commons.wikimedia.org/wiki/"]:not(.preview-img-link)').forEach(a => {
         a.classList.add("preview-img-link")
         setTimeout(async () => {
-            const wikimediaResponse = (
-                await externalFetchRetry({
-                    url:
-                        `https://en.wikipedia.org/w/api.php?` +
-                        new URLSearchParams({
-                            action: "query",
-                            iiprop: "url",
-                            prop: "imageinfo",
-                            titles: a.textContent,
-                            format: "json",
-                        }).toString(),
-                    responseType: "json",
-                })
-            ).response
+            const wikimediaResponse = await downloadWikimediaInfo(a.textContent)
             const img = GM_addElement("img", {
                 src: wikimediaResponse["query"]["pages"]["-1"]["imageinfo"][0]["url"],
                 // crossorigin: "anonymous"
             })
             img.style.width = "100%"
             a.appendChild(img)
+            attachWikimediaHoverCaptureHandler(a, wikimediaResponse)
         })
     })
 }

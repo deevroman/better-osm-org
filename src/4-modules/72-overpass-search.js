@@ -213,50 +213,50 @@ out geom;
         console.log(bbox)
         if (bbox.min_lon === 10000000) {
             alert("invalid query")
-        } else {
-            console.time("render overpass response")
-            fitBounds([
-                [bbox.min_lat, bbox.min_lon],
-                [bbox.max_lat, bbox.max_lon],
-            ])
-            loadBannedVersions()
-            cleanAllObjects()
-            getWindow().jsonLayer?.remove()
-            jsonLayer?.remove()
-            jsonLayer = renderOSMGeoJSON(xml, true)
-            setTimeout(async () => {
-                const withPhotos = Array.from(xml.querySelectorAll(":has(>:is([k^=panoramax],[k^=mapillary]))")).map(i => {
-                    const res = {
-                        id: parseInt(i.getAttribute("id")),
-                        type: i.nodeName,
-                        tags: Object.fromEntries(Array.from(i.querySelectorAll("tag")).map(j => [j.getAttribute("k"), j.getAttribute("v")])),
-                    }
-                    if (res.type === "node") {
-                        res.lat = parseFloat(i.getAttribute("lat"))
-                        res.lon = parseFloat(i.getAttribute("lon"))
-                    }
-                    return res
-                })
-                renderPhotosPreview(withPhotos)
-                // await renderPanoramaxPhotoPointOnVectorMap(withPhotos)
-            })
-            console.timeEnd("render overpass response")
-
-            let statusPrefix = ""
-            if (!xml.querySelector("node,way,relation")) {
-                statusPrefix += "Empty result"
-            }
-
-            if ((new Date().getTime() - data_age.getTime()) / 1000 / 60 > 5) {
-                if (statusPrefix === "") {
-                    statusPrefix += "Currentless of the data: " + data_age.toLocaleDateString() + " " + data_age.toLocaleTimeString()
-                } else {
-                    statusPrefix += " | " + "Currentless of the data: " + data_age.toLocaleDateString() + " " + data_age.toLocaleTimeString()
-                }
-            }
-
-            getMap()?.attributionControl?.setPrefix(statusPrefix)
+            return
         }
+        console.time("render overpass response")
+        fitBounds([
+            [bbox.min_lat, bbox.min_lon],
+            [bbox.max_lat, bbox.max_lon],
+        ])
+        loadBannedVersions()
+        cleanAllObjects()
+        getWindow().jsonLayer?.remove()
+        jsonLayer?.remove()
+        jsonLayer = renderOSMGeoJSON(xml, true)
+        setTimeout(async () => {
+            const withPhotos = Array.from(xml.querySelectorAll(":has(>:is([k^=panoramax],[k^=mapillary],[k^=wikimedia_commons]))")).map(i => {
+                const res = {
+                    id: parseInt(i.getAttribute("id")),
+                    type: i.nodeName,
+                    tags: Object.fromEntries(Array.from(i.querySelectorAll("tag")).map(j => [j.getAttribute("k"), j.getAttribute("v")])),
+                }
+                if (res.type === "node") {
+                    res.lat = parseFloat(i.getAttribute("lat"))
+                    res.lon = parseFloat(i.getAttribute("lon"))
+                }
+                return res
+            })
+            renderPhotosPreview(withPhotos)
+            // await renderPanoramaxPhotoPointOnVectorMap(withPhotos)
+        })
+        console.timeEnd("render overpass response")
+
+        let statusPrefix = ""
+        if (!xml.querySelector("node,way,relation")) {
+            statusPrefix += "Empty result"
+        }
+
+        if ((new Date().getTime() - data_age.getTime()) / 1000 / 60 > 5) {
+            if (statusPrefix === "") {
+                statusPrefix += "Currentless of the data: " + data_age.toLocaleDateString() + " " + data_age.toLocaleTimeString()
+            } else {
+                statusPrefix += " | " + "Currentless of the data: " + data_age.toLocaleDateString() + " " + data_age.toLocaleTimeString()
+            }
+        }
+
+        getMap()?.attributionControl?.setPrefix(statusPrefix)
     } finally {
         if (document.title === newTitle) {
             document.title = prevTitle
