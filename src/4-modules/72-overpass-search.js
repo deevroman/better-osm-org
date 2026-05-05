@@ -237,7 +237,7 @@ out geom;
                     }
                     return res
                 })
-                renderPanoramaxPhotosPreview(withPhotos)
+                renderPhotosPreview(withPhotos)
                 // await renderPanoramaxPhotoPointOnVectorMap(withPhotos)
             })
             console.timeEnd("render overpass response")
