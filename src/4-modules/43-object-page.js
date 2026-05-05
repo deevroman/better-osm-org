@@ -70,6 +70,23 @@ async function attachPanoramaxHoverCaptureHandler(a, uuid, panoramaxServer) {
     }
 }
 
+function attachMapillaryHoverCaptureHandler(a, res) {
+    a.onmouseenter = () => mapillaryMouseEnter(res)
+    const author = res["creator"]["username"]
+    if (author) {
+        if (a.title && a.title?.length !== 0) {
+            a.title += "\n"
+        }
+        a.title += "Photo by " + author
+    }
+    const date = res["captured_at"]
+    if (date) {
+        const d = new Date()
+        d.setTime(date)
+        a.title += "\n" + d.toISOString()
+    }
+}
+
 function addPanoramaxPicIntoA(uuid, a, panoramaxServer) {
     const imgSrc = `${panoramaxServer}/api/pictures/${uuid}/sd.jpg`
     if (isSafari) {
@@ -142,7 +159,7 @@ function makePanoramaxValue(elem) {
 const MAPILLARY_CLIENT_KEY = "MLY|23980706878196295|56711819158553348b8159429530d931"
 const MAPILLARY_URL_PARAMS = new URLSearchParams({
     access_token: MAPILLARY_CLIENT_KEY,
-    fields: "id,geometry,computed_geometry,compass_angle,computed_compass_angle,thumb_1024_url",
+    fields: "id,geometry,computed_geometry,compass_angle,computed_compass_angle,thumb_256_url,thumb_1024_url,creator,captured_at",
 })
 
 async function downloadMapillaryPhotoInfo(id) {
@@ -152,6 +169,25 @@ async function downloadMapillaryPhotoInfo(id) {
             responseType: "json",
         })
     ).response
+}
+
+function mapillaryMouseEnter(info) {
+    const lat = info["geometry"]["coordinates"][1]
+    const lon = info["geometry"]["coordinates"][0]
+    const angle = info["compass_angle"]
+
+    const computed_lat = info["computed_geometry"]["coordinates"][1]
+    const computed_lon = info["computed_geometry"]["coordinates"][0]
+    const computed_angle = info["computed_compass_angle"]
+
+    showActiveNodeMarker(lat, lon, "#0022ff", true)
+    showActiveNodeMarker(computed_lat, computed_lon, "#ee9209", false)
+
+    drawRay(lat, lon, angle - 30, "#0022ff")
+    drawRay(computed_lat, computed_lon, computed_angle - 25, "#ee9209")
+
+    drawRay(lat, lon, angle + 30, "#0022ff")
+    drawRay(computed_lat, computed_lon, computed_angle + 25, "#ee9209")
 }
 
 // https://osm.org/node/7417065297
@@ -213,24 +249,7 @@ function makeMapillaryValue(elem) {
                 }
                 a.appendChild(img)
             }
-            a.onmouseenter = () => {
-                const lat = res["geometry"]["coordinates"][1]
-                const lon = res["geometry"]["coordinates"][0]
-                const angle = res["compass_angle"]
-
-                const computed_lat = res["computed_geometry"]["coordinates"][1]
-                const computed_lon = res["computed_geometry"]["coordinates"][0]
-                const computed_angle = res["computed_compass_angle"]
-
-                showActiveNodeMarker(lat, lon, "#0022ff", true)
-                showActiveNodeMarker(computed_lat, computed_lon, "#ee9209", false)
-
-                drawRay(lat, lon, angle - 30, "#0022ff")
-                drawRay(computed_lat, computed_lon, computed_angle - 25, "#ee9209")
-
-                drawRay(lat, lon, angle + 30, "#0022ff")
-                drawRay(computed_lat, computed_lon, computed_angle + 25, "#ee9209")
-            }
+            a.onmouseenter = () => mapillaryMouseEnter(res)
         }
     })
     elem.onclick = e => {
