@@ -1175,10 +1175,15 @@ function actionToggleCompactMode() {
 function actionOpenOverpassSearch() {
     setTimeout(async () => {
         getMap().getBounds()
-        let message = `Type overpass selector:
+        let message = `Type overpass selector. Examples:
 \tkey
+\tkey1|key2|...
+
 \tkey=value
-\tkey~val,i`
+\tkey~val,i
+\t~key2|key2|...
+
+`
         const currentUser = decodeURI(
             document
                 .querySelector('.user-menu [href^="/user/"]')
@@ -1190,12 +1195,16 @@ function actionOpenOverpassSearch() {
         }
         message += `
 \tway[footway=crossing](if: length() > 150)
+
 End with ! for global search
+
+Objects can be hidden from map by pressing Alt key.
+
 ⚠this is a simple prototype of search`
         const query = prompt(message, await GM.getValue("lastOverpassQuery", ""))
         if (query) {
             insertOverlaysStyles()
-            processOverpassQuery(query)
+            await processOverpassQuery(query)
         }
     }, 0)
 }
