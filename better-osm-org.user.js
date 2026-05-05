@@ -9908,6 +9908,23 @@ function makeRefBelpostValue(elem) {
     }
 }
 
+function makeRefInaturalistValue(elem) {
+    if (!GM_config.get("ImagesAndLinksInTags")) return
+    if (elem.innerHTML.match(/^[0-9;]+$/)) {
+        const a = document.createElement("a")
+        a.href =
+            "https://inaturalist.org/observations?" +
+            new URLSearchParams({
+                verifiable: "any",
+                subview: "grid",
+                id: elem.textContent.replaceAll(";", ","),
+            })
+        a.rel = "noreferrer"
+        a.textContent = elem.textContent
+        elem.innerHTML = a.outerHTML
+    }
+}
+
 function makeOpeningHoursValue(valueCell, key, isVersionPage) {
     try {
         new opening_hours(valueCell.textContent, null, { tag_key: key })
@@ -10432,6 +10449,10 @@ function makeLinksInVersionTagClickable(row, objType) {
     } else if (key === "ref:belpost") {
         if (!valueCell.querySelector("a")) {
             makeRefBelpostValue(valueCell)
+        }
+    } else if (key === "ref:inaturalist.org") {
+        if (!valueCell.querySelector("a")) {
+            makeRefInaturalistValue(valueCell)
         }
     } else if (key.length <= 2 && key !== "to" && key !== "tv" && key !== "it") {
         keyCell.classList.add("fixme-tag")
