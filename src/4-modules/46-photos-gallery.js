@@ -198,7 +198,7 @@ function attachPanoramaxCarouselHoverZoom(previewEl) {
 /**
  * @param {{tags, type, id}[]} withPhotos
  */
-function renderPanoramaxPhotosPreview(withPhotos) {
+function renderPhotosPreview(withPhotos) {
     const mapEl = document.getElementById("map")
     if (!mapEl) {
         return
