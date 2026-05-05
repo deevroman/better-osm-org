@@ -79,6 +79,10 @@
       "description": "linkify tag value"
     },
     {
+      "key": "ref:inaturalist.org",
+      "description": "linkify tag value"
+    },
+    {
       "key": "restriction",
       "value": "no_left_turn",
       "description": "displaying traffic restriction signs on the map",
