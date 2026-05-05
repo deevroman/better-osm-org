@@ -285,27 +285,31 @@ function renderPanoramaxPhotosPreview(withPhotos) {
 
     photosPreviewGallery.replaceChildren()
     withPhotos.forEach(photoObj => {
-        const placeholder = document.createElement("div")
-        placeholder.classList.add("panoramax-preview")
-        Object.assign(placeholder.style, {
-            flex: "0 0 72px",
-            height: "72px",
-            border: "1px solid #c7c7c7",
-            borderRadius: "8px",
-            background: "#f3f3f3",
-            overflow: "hidden",
-            pointerEvents: "auto",
-            cursor: "pointer",
+        const panoramaxTagValues = Object.entries(photoObj.tags || {})
+            .filter(([k, _]) => k.startsWith("panoramax"))
+            .flatMap(v => v[1].split(";"))
+        panoramaxTagValues.forEach(panoramaxTagValue => {
+            const placeholder = document.createElement("div")
+            placeholder.classList.add("panoramax-preview")
+            Object.assign(placeholder.style, {
+                flex: "0 0 72px",
+                height: "72px",
+                border: "1px solid #c7c7c7",
+                borderRadius: "8px",
+                background: "#f3f3f3",
+                overflow: "hidden",
+                pointerEvents: "auto",
+                cursor: "pointer",
+            })
+            const panoramaxUuid = panoramaxTagValue?.match?.(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0]
+            if (panoramaxUuid) {
+                placeholder.setAttribute("data-panoramax-uuid", panoramaxUuid.toLowerCase())
+            }
+            if (photoObj.type && photoObj.id) {
+                placeholder.setAttribute("data-osm-path", "/" + photoObj.type + "/" + photoObj.id)
+            }
+            photosPreviewGallery.append(placeholder)
         })
-        const panoramaxTagValue = Object.entries(photoObj.tags || {}).find(([k, _]) => k.startsWith("panoramax"))?.[1]
-        const panoramaxUuid = panoramaxTagValue?.match?.(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0]
-        if (panoramaxUuid) {
-            placeholder.setAttribute("data-panoramax-uuid", panoramaxUuid.toLowerCase())
-        }
-        if (photoObj.type && photoObj.id) {
-            placeholder.setAttribute("data-osm-path", "/" + photoObj.type + "/" + photoObj.id)
-        }
-        photosPreviewGallery.append(placeholder)
     })
 
     document.querySelectorAll("#photos-preview-gallery .panoramax-preview[data-panoramax-uuid]").forEach(previewEl => {
