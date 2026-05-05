@@ -300,32 +300,35 @@ function renderPhotosPreview(withPhotos) {
         return placeholder
     }
     withPhotos.forEach(photoObj => {
-        const panoramaxTagValues = Object.entries(photoObj.tags || {})
-            .filter(([k, _]) => k.startsWith("panoramax"))
-            .flatMap(v => v[1].split(";"))
-        panoramaxTagValues.forEach(panoramaxTagValue => {
-            const uuid = panoramaxTagValue?.match?.(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0]
-            const placeholder = makePlaceholder()
-            if (uuid) {
-                placeholder.setAttribute("data-panoramax-uuid", uuid.toLowerCase())
+        Object.entries(photoObj.tags ?? {}).forEach(([k, v]) => {
+            if (k.startsWith("panoramax")) {
+                v.split(";").forEach(i => {
+                    const uuid = i?.match?.(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0]
+                    const placeholder = makePlaceholder()
+                    if (uuid) {
+                        placeholder.setAttribute("data-panoramax-uuid", uuid.toLowerCase())
+                    }
+                    placeholder.setAttribute("data-osm-path", "/" + photoObj.type + "/" + photoObj.id)
+                    photosPreviewGallery.append(placeholder)
+                })
+            } else if (k.startsWith("mapillary")) {
+                v.split(";").forEach(i => {
+                    const id = i?.match?.(/[0-9]+/)?.[0]
+                    const placeholder = makePlaceholder()
+                    if (id) {
+                        placeholder.setAttribute("data-mapillary-id", id)
+                    }
+                    placeholder.setAttribute("data-osm-path", "/" + photoObj.type + "/" + photoObj.id)
+                    photosPreviewGallery.append(placeholder)
+                })
+            } else if (k.startsWith("wikimedia_commons")) {
+                v.split(";").forEach(i => {
+                    const placeholder = makePlaceholder()
+                    placeholder.setAttribute("data-wikimedia-id", i)
+                    placeholder.setAttribute("data-osm-path", "/" + photoObj.type + "/" + photoObj.id)
+                    photosPreviewGallery.append(placeholder)
+                })
             }
-            placeholder.setAttribute("data-osm-path", "/" + photoObj.type + "/" + photoObj.id)
-            photosPreviewGallery.append(placeholder)
-        })
-    })
-
-    withPhotos.forEach(photoObj => {
-        const mapillaryTagValues = Object.entries(photoObj.tags || {})
-            .filter(([k, _]) => k.startsWith("mapillary"))
-            .flatMap(v => v[1].split(";"))
-        mapillaryTagValues.forEach(mapillaryTagValue => {
-            const id = mapillaryTagValue?.match?.(/[0-9]+/)?.[0]
-            const placeholder = makePlaceholder()
-            if (id) {
-                placeholder.setAttribute("data-mapillary-id", id)
-            }
-            placeholder.setAttribute("data-osm-path", "/" + photoObj.type + "/" + photoObj.id)
-            photosPreviewGallery.append(placeholder)
         })
     })
 
@@ -389,6 +392,23 @@ function renderPhotosPreview(withPhotos) {
             }
             addImg(thumbSrc, previewEl)
             attachMapillaryHoverCaptureHandler(previewEl, res)
+        })
+    })
+    document.querySelectorAll("#photos-preview-gallery .photo-preview[data-wikimedia-id]").forEach(previewEl => {
+        addClick(previewEl)
+        setTimeout(async () => {
+            const id = previewEl.getAttribute("data-wikimedia-id")
+            const res = await downloadWikimediaInfo(id)
+            const thumbSrc = res["query"]["pages"]["-1"]["imageinfo"][0]["thumburl"]
+
+            previewEl.setAttribute("data-photo-thumb-src", thumbSrc)
+            previewEl.setAttribute("data-photo-zoom-src", res["query"]["pages"]["-1"]["imageinfo"][0]["url"])
+            attachPhotosCarouselHoverZoom(previewEl)
+            if (previewEl.querySelector("img")) {
+                return
+            }
+            addImg(thumbSrc, previewEl)
+            attachWikimediaHoverCaptureHandler(previewEl, res)
         })
     })
 }
