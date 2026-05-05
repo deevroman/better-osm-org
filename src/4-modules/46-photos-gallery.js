@@ -1,9 +1,9 @@
 //<editor-fold desc="photos-gallery" defaultstate="collapsed">
 
-let panoramaxHoverZoomToken = 0
+let photosHoverZoomToken = 0
 
-function hidePanoramaxHoverZoomPopup() {
-    const hoverZoomPopup = document.getElementById("panoramax-hover-zoom-popup")
+function hidePhotosHoverZoomPopup() {
+    const hoverZoomPopup = document.getElementById("photos-hover-zoom-popup")
     if (!hoverZoomPopup) {
         return
     }
@@ -11,11 +11,11 @@ function hidePanoramaxHoverZoomPopup() {
     hoverZoomPopup.style.visibility = "visible"
 }
 
-function getOrCreatePanoramaxHoverZoomPopup() {
-    let hoverZoomPopup = document.getElementById("panoramax-hover-zoom-popup")
+function getOrCreatePhotosHoverZoomPopup() {
+    let hoverZoomPopup = document.getElementById("photos-hover-zoom-popup")
     if (!hoverZoomPopup) {
         hoverZoomPopup = document.createElement("div")
-        hoverZoomPopup.id = "panoramax-hover-zoom-popup"
+        hoverZoomPopup.id = "photos-hover-zoom-popup"
         Object.assign(hoverZoomPopup.style, {
             position: "fixed",
             display: "none",
@@ -72,7 +72,7 @@ function getOrCreatePanoramaxHoverZoomPopup() {
     return hoverZoomPopup
 }
 
-function placePanoramaxHoverZoomPopup(previewEl, hoverZoomPopup) {
+function placePhotosHoverZoomPopup(previewEl, hoverZoomPopup) {
     const previewRect = previewEl.getBoundingClientRect()
     const popupRect = hoverZoomPopup.getBoundingClientRect()
     const popupWidth = popupRect.width || 494
@@ -98,32 +98,32 @@ function placePanoramaxHoverZoomPopup(previewEl, hoverZoomPopup) {
     hoverZoomPopup.style.transform = "none"
 }
 
-function attachPanoramaxCarouselHoverZoom(previewEl) {
+function attachPhotosCarouselHoverZoom(previewEl) {
     if (previewEl.getAttribute("data-hover-zoom-bound")) {
         return
     }
     previewEl.setAttribute("data-hover-zoom-bound", "1")
 
-    const hoverZoomPopup = getOrCreatePanoramaxHoverZoomPopup()
+    const hoverZoomPopup = getOrCreatePhotosHoverZoomPopup()
     const hideHoverZoom = () => {
-        hidePanoramaxHoverZoomPopup()
+        hidePhotosHoverZoomPopup()
     }
 
     previewEl.addEventListener("mouseenter", () => {
-        const hoverToken = ++panoramaxHoverZoomToken
+        const hoverToken = ++photosHoverZoomToken
         hoverZoomPopup.style.display = "none"
         hoverZoomPopup.replaceChildren()
-        if (hoverToken !== panoramaxHoverZoomToken) {
+        if (hoverToken !== photosHoverZoomToken) {
             return
         }
         if (!document.body.contains(previewEl)) {
             return
         }
-        const zoomImgSrc = previewEl.getAttribute("data-panoramax-zoom-src")
+        const zoomImgSrc = previewEl.getAttribute("data-photo-zoom-src")
         if (!zoomImgSrc) {
             return
         }
-        const thumbImgSrc = previewEl.getAttribute("data-panoramax-thumb-src")
+        const thumbImgSrc = previewEl.getAttribute("data-photo-thumb-src")
         if (!thumbImgSrc) {
             return
         }
@@ -166,7 +166,7 @@ function attachPanoramaxCarouselHoverZoom(previewEl) {
             zoomImg.style.display = "none"
         }
         zoomImg.onload = () => {
-            if (hoverToken !== panoramaxHoverZoomToken) {
+            if (hoverToken !== photosHoverZoomToken) {
                 return
             }
             zoomImg.style.opacity = "1"
@@ -176,12 +176,12 @@ function attachPanoramaxCarouselHoverZoom(previewEl) {
         hoverZoomPopup.append(zoomWrapper)
         hoverZoomPopup.style.visibility = "hidden"
         hoverZoomPopup.style.display = "block"
-        placePanoramaxHoverZoomPopup(previewEl, hoverZoomPopup)
+        placePhotosHoverZoomPopup(previewEl, hoverZoomPopup)
         hoverZoomPopup.style.visibility = "visible"
     })
     previewEl.addEventListener("mousemove", () => {
         if (hoverZoomPopup.style.display !== "none") {
-            placePanoramaxHoverZoomPopup(previewEl, hoverZoomPopup)
+            placePhotosHoverZoomPopup(previewEl, hoverZoomPopup)
         }
     })
     previewEl.addEventListener("mouseleave", e => {
@@ -189,7 +189,7 @@ function attachPanoramaxCarouselHoverZoom(previewEl) {
         if (nextEl && nextEl.closest?.("#photos-preview-gallery")) {
             return
         }
-        panoramaxHoverZoomToken += 1
+        photosHoverZoomToken += 1
         hideHoverZoom()
     })
     previewEl.addEventListener("click", hideHoverZoom)
@@ -278,62 +278,71 @@ function renderPhotosPreview(withPhotos) {
             e.preventDefault()
         })
         photosPreviewGallery.addEventListener("mouseleave", () => {
-            hidePanoramaxHoverZoomPopup()
+            hidePhotosHoverZoomPopup()
         })
         mapEl.append(photosPreviewGallery)
     }
 
     photosPreviewGallery.replaceChildren()
+    function makePlaceholder() {
+        const placeholder = document.createElement("div")
+        placeholder.classList.add("photo-preview")
+        Object.assign(placeholder.style, {
+            flex: "0 0 72px",
+            height: "72px",
+            border: "1px solid #c7c7c7",
+            borderRadius: "8px",
+            background: "#f3f3f3",
+            overflow: "hidden",
+            pointerEvents: "auto",
+            cursor: "pointer",
+        })
+        return placeholder
+    }
     withPhotos.forEach(photoObj => {
         const panoramaxTagValues = Object.entries(photoObj.tags || {})
             .filter(([k, _]) => k.startsWith("panoramax"))
             .flatMap(v => v[1].split(";"))
         panoramaxTagValues.forEach(panoramaxTagValue => {
-            const placeholder = document.createElement("div")
-            placeholder.classList.add("panoramax-preview")
-            Object.assign(placeholder.style, {
-                flex: "0 0 72px",
-                height: "72px",
-                border: "1px solid #c7c7c7",
-                borderRadius: "8px",
-                background: "#f3f3f3",
-                overflow: "hidden",
-                pointerEvents: "auto",
-                cursor: "pointer",
-            })
-            const panoramaxUuid = panoramaxTagValue?.match?.(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0]
-            if (panoramaxUuid) {
-                placeholder.setAttribute("data-panoramax-uuid", panoramaxUuid.toLowerCase())
+            const uuid = panoramaxTagValue?.match?.(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0]
+            const placeholder = makePlaceholder()
+            if (uuid) {
+                placeholder.setAttribute("data-panoramax-uuid", uuid.toLowerCase())
             }
-            if (photoObj.type && photoObj.id) {
-                placeholder.setAttribute("data-osm-path", "/" + photoObj.type + "/" + photoObj.id)
-            }
+            placeholder.setAttribute("data-osm-path", "/" + photoObj.type + "/" + photoObj.id)
             photosPreviewGallery.append(placeholder)
         })
     })
 
-    document.querySelectorAll("#photos-preview-gallery .panoramax-preview[data-panoramax-uuid]").forEach(previewEl => {
-        const uuid = previewEl.getAttribute("data-panoramax-uuid")
-        if (!uuid) {
-            return
-        }
-        previewEl.setAttribute("data-panoramax-zoom-src", `${panoramaxDiscoveryServer}/api/pictures/${uuid}/sd.jpg`)
-        previewEl.setAttribute("data-panoramax-thumb-src", `${panoramaxDiscoveryServer}/api/pictures/${uuid}/thumb.jpg`)
-        const osmPath = previewEl.getAttribute("data-osm-path")
-        if (osmPath && !previewEl.getAttribute("data-route-bound")) {
-            previewEl.setAttribute("data-route-bound", "1")
-            previewEl.onclick = e => {
+    withPhotos.forEach(photoObj => {
+        const mapillaryTagValues = Object.entries(photoObj.tags || {})
+            .filter(([k, _]) => k.startsWith("mapillary"))
+            .flatMap(v => v[1].split(";"))
+        mapillaryTagValues.forEach(mapillaryTagValue => {
+            const id = mapillaryTagValue?.match?.(/[0-9]+/)?.[0]
+            const placeholder = makePlaceholder()
+            if (id) {
+                placeholder.setAttribute("data-mapillary-id", id)
+            }
+            placeholder.setAttribute("data-osm-path", "/" + photoObj.type + "/" + photoObj.id)
+            photosPreviewGallery.append(placeholder)
+        })
+    })
+
+    function addClick(elem) {
+        const osmPath = elem.getAttribute("data-osm-path")
+        if (osmPath && !elem.getAttribute("data-route-bound")) {
+            elem.setAttribute("data-route-bound", "1")
+            elem.onclick = e => {
                 e.stopPropagation()
                 getWindow().OSM.router.route(osmPath)
             }
         }
-        attachPanoramaxCarouselHoverZoom(previewEl)
-        if (previewEl.querySelector("img")) {
-            return
-        }
-        const imgSrc = `${panoramaxDiscoveryServer}/api/pictures/${uuid}/thumb.jpg`
+    }
+
+    function addImg(thumbSrc, previewEl) {
         const img = GM_addElement("img", {
-            src: imgSrc,
+            src: thumbSrc,
             width: "100%",
         })
         Object.assign(img.style, {
@@ -344,7 +353,43 @@ function renderPhotosPreview(withPhotos) {
             img.style.display = "none"
         }
         previewEl.append(img)
+    }
+
+    document.querySelectorAll("#photos-preview-gallery .photo-preview[data-panoramax-uuid]").forEach(previewEl => {
+        addClick(previewEl)
+        const uuid = previewEl.getAttribute("data-panoramax-uuid")
+        if (!uuid) {
+            return
+        }
+        const thumbSrc = `${panoramaxDiscoveryServer}/api/pictures/${uuid}/thumb.jpg`
+        previewEl.setAttribute("data-photo-thumb-src", thumbSrc)
+        previewEl.setAttribute("data-photo-zoom-src", `${panoramaxDiscoveryServer}/api/pictures/${uuid}/sd.jpg`)
+        attachPhotosCarouselHoverZoom(previewEl)
+        if (previewEl.querySelector("img")) {
+            return
+        }
+        addImg(thumbSrc, previewEl)
         void attachPanoramaxHoverCaptureHandler(previewEl, uuid, panoramaxDiscoveryServer)
+    })
+
+    document.querySelectorAll("#photos-preview-gallery .photo-preview[data-mapillary-id]").forEach(previewEl => {
+        addClick(previewEl)
+        setTimeout(async () => {
+            const id = previewEl.getAttribute("data-mapillary-id")
+            const res = await downloadMapillaryPhotoInfo(id)
+            if (res["error"]) {
+                return
+            }
+            const thumbSrc = res["thumb_256_url"]
+            previewEl.setAttribute("data-photo-thumb-src", thumbSrc)
+            previewEl.setAttribute("data-photo-zoom-src", res["thumb_1024_url"])
+            attachPhotosCarouselHoverZoom(previewEl)
+            if (previewEl.querySelector("img")) {
+                return
+            }
+            addImg(thumbSrc, previewEl)
+            attachMapillaryHoverCaptureHandler(previewEl, res)
+        })
     })
 }
 
