@@ -406,7 +406,15 @@ function renderPhotosPreview(withPhotos) {
         addClick(previewEl)
         setTimeout(async () => {
             const id = previewEl.getAttribute("data-wikimedia-id")
-            const res = await downloadWikimediaInfo(id)
+            let resolvedId = id
+            if (id?.startsWith("Category:")) {
+                const categoryResponse = await downloadWikimediaCategoryInfo(id, 1)
+                resolvedId = categoryResponse?.query?.categorymembers?.[0]?.title
+            }
+            if (!resolvedId) {
+                return
+            }
+            const res = await downloadWikimediaInfo(resolvedId)
             const thumbSrc = res["query"]["pages"]["-1"]["imageinfo"][0]["thumburl"]
 
             previewEl.setAttribute("data-photo-thumb-src", thumbSrc)

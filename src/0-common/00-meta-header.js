@@ -105,6 +105,7 @@
 // @connect      raw.githubusercontent.com
 // @comment      for images preview from Wikimedia Commons, Panoramax, Mapillary, StreetComplete
 // @connect      en.wikipedia.org
+// @connect      commons.wikimedia.org
 // @connect      graph.mapillary.com
 // @connect      fbcdn.net
 // @connect      api.panoramax.xyz

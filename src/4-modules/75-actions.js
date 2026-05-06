@@ -1177,11 +1177,11 @@ function actionOpenOverpassSearch() {
         getMap().getBounds()
         let message = `Type overpass selector. Examples:
 \tkey
-\tkey1|key2|...
+\tpanoramax|mapillary|wikimedia_commons|...
 
 \tkey=value
 \tkey~val,i
-\t~key2|key2|...
+\t~key1|key2|...
 
 `
         const currentUser = decodeURI(
