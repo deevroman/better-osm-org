@@ -104,6 +104,7 @@
 // @connect      raw.githubusercontent.com
 // @comment      for images preview from Wikimedia Commons, Panoramax, Mapillary, StreetComplete
 // @connect      en.wikipedia.org
+// @connect      commons.wikimedia.org
 // @connect      graph.mapillary.com
 // @connect      fbcdn.net
 // @connect      api.panoramax.xyz
@@ -9927,16 +9928,39 @@ function makeMapillaryValue(elem) {
 }
 
 async function downloadWikimediaInfo(filename) {
-    return (
+    const response = (
         await externalFetchRetry({
             url:
-                `https://en.wikipedia.org/w/api.php?` +
+                `https://commons.wikimedia.org/w/api.php?` +
                 new URLSearchParams({
                     action: "query",
                     iiprop: "url|extmetadata",
                     iiurlwidth: "300",
                     prop: "imageinfo",
                     titles: filename,
+                    format: "json",
+                }).toString(),
+            responseType: "json",
+        })
+    ).response
+    const firstPage = Object.values(response?.query?.pages ?? {})?.[0]
+    if (!firstPage) {
+        return response
+    }
+    return { query: { pages: { "-1": firstPage } } }
+}
+
+async function downloadWikimediaCategoryInfo(categoryName, limit = 10) {
+    return (
+        await externalFetchRetry({
+            url:
+                `https://commons.wikimedia.org/w/api.php?` +
+                new URLSearchParams({
+                    action: "query",
+                    list: "categorymembers",
+                    cmtitle: categoryName,
+                    cmtype: "file",
+                    cmlimit: limit,
                     format: "json",
                 }).toString(),
             responseType: "json",
@@ -9949,9 +9973,49 @@ function makeWikimediaCommonsValue(elem) {
     elem.querySelectorAll('a[href^="//commons.wikimedia.org/wiki/"]:not(.preview-img-link)').forEach(a => {
         a.classList.add("preview-img-link")
         setTimeout(async () => {
+            if (a.textContent.startsWith("Category:")) {
+                const categoryResponse = await downloadWikimediaCategoryInfo(a.textContent)
+                const fileTitles = categoryResponse?.query?.categorymembers?.map(file => file.title) ?? []
+                if (fileTitles.length === 0) {
+                    return
+                }
+                const previewsWrap = document.createElement("div")
+                Object.assign(previewsWrap.style, {
+                    display: "grid",
+                    gridTemplateColumns: "repeat(1, 1fr)",
+                    gap: "2px",
+                })
+                a.after(previewsWrap)
+                for (const fileTitle of fileTitles) {
+                    const wikimediaResponse = await downloadWikimediaInfo(fileTitle)
+                    const imageInfo = wikimediaResponse?.query?.pages?.["-1"]?.imageinfo?.[0]
+                    if (!imageInfo?.thumburl) {
+                        continue
+                    }
+                    const previewLink = document.createElement("a")
+                    previewLink.href = `https://commons.wikimedia.org/wiki/${fileTitle.replaceAll(" ", "_")}`
+                    previewLink.target = "_blank"
+                    previewLink.rel = "noreferrer"
+                    previewLink.classList.add("preview-img-link")
+                    previewLink.style.display = "block"
+                    const img = GM_addElement("img", {
+                        src: imageInfo["thumburl"],
+                        // crossorigin: "anonymous"
+                    })
+                    Object.assign(img.style, {
+                        width: "100%",
+                        aspectRatio: "1 / 1",
+                        objectFit: "cover",
+                    })
+                    previewLink.appendChild(img)
+                    previewsWrap.appendChild(previewLink)
+                    attachWikimediaHoverCaptureHandler(previewLink, wikimediaResponse)
+                }
+                return
+            }
             const wikimediaResponse = await downloadWikimediaInfo(a.textContent)
             const img = GM_addElement("img", {
-                src: wikimediaResponse["query"]["pages"]["-1"]["imageinfo"][0]["url"],
+                src: wikimediaResponse["query"]["pages"]["-1"]["imageinfo"][0]["thumburl"],
                 // crossorigin: "anonymous"
             })
             img.style.width = "100%"
@@ -18761,7 +18825,15 @@ function renderPhotosPreview(withPhotos) {
         addClick(previewEl)
         setTimeout(async () => {
             const id = previewEl.getAttribute("data-wikimedia-id")
-            const res = await downloadWikimediaInfo(id)
+            let resolvedId = id
+            if (id?.startsWith("Category:")) {
+                const categoryResponse = await downloadWikimediaCategoryInfo(id, 1)
+                resolvedId = categoryResponse?.query?.categorymembers?.[0]?.title
+            }
+            if (!resolvedId) {
+                return
+            }
+            const res = await downloadWikimediaInfo(resolvedId)
             const thumbSrc = res["query"]["pages"]["-1"]["imageinfo"][0]["thumburl"]
 
             previewEl.setAttribute("data-photo-thumb-src", thumbSrc)
@@ -26760,11 +26832,11 @@ function actionOpenOverpassSearch() {
         getMap().getBounds()
         let message = `Type overpass selector. Examples:
 \tkey
-\tkey1|key2|...
+\tpanoramax|mapillary|wikimedia_commons|...
 
 \tkey=value
 \tkey~val,i
-\t~key2|key2|...
+\t~key1|key2|...
 
 `
         const currentUser = decodeURI(
