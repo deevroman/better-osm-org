@@ -89,18 +89,26 @@ function attachMapillaryHoverCaptureHandler(a, res) {
 
 function attachWikimediaHoverCaptureHandler(a, res) {
     a.onmouseenter = () => wikimediaMouseEnter(res)
-    const author = res["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["Artist"]["value"]
-    if (author) {
-        if (a.title && a.title?.length !== 0) {
-            a.title += "\n"
+    try {
+        const author = res["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["Artist"]["value"]
+        if (author) {
+            if (a.title && a.title?.length !== 0) {
+                a.title += "\n"
+            }
+            // отдавать HTML придумал гений, блять
+            const fixedAuthor = author.endsWith("</a>") ? (author.match(/">(.*)<\/a>$/)[1] ?? author) : author
+            a.title += "Photo by " + fixedAuthor
         }
-        // отдавать HTML придумал гений, блять
-        const fixedAuthor = author.includes("</a>") ? (author.match(/">(.*)<\/a>$/)[1] ?? author) : author
-        a.title += "Photo by " + fixedAuthor
+    } catch (err) {
+        console.error(err)
     }
-    const date = res["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["DateTimeOriginal"]["value"]
-    if (date) {
-        a.title += "\n" + date
+    try {
+        const date = res["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["DateTimeOriginal"]["value"]
+        if (date) {
+            a.title += "\n" + date
+        }
+    } catch (err) {
+        console.error(err)
     }
     const license = res["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["LicenseShortName"]["value"]
     if (license) {
@@ -245,10 +253,14 @@ function mapillaryMouseEnter(info) {
 }
 
 function wikimediaMouseEnter(info) {
-    const lat = info["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["GPSLatitude"]["value"]
-    const lon = info["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["GPSLongitude"]["value"]
+    try {
+        const lat = info["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["GPSLatitude"]["value"]
+        const lon = info["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["GPSLongitude"]["value"]
 
-    showActiveNodeMarker(lat, lon, "#0022ff", true)
+        showActiveNodeMarker(lat, lon, "#0022ff", true)
+    } catch (err) {
+        console.log(err)
+    }
 }
 
 // https://osm.org/node/7417065297
@@ -341,7 +353,7 @@ async function downloadWikimediaInfo(filename) {
     return { query: { pages: { "-1": firstPage } } }
 }
 
-async function downloadWikimediaCategoryInfo(categoryName, limit = 10) {
+async function downloadWikimediaCategoryInfo(categoryName, limit = 8) {
     return (
         await externalFetchRetry({
             url:
