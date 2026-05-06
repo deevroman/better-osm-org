@@ -328,6 +328,13 @@ function renderPhotosPreview(withPhotos) {
                     placeholder.setAttribute("data-osm-path", "/" + photoObj.type + "/" + photoObj.id)
                     photosPreviewGallery.append(placeholder)
                 })
+            } else if (k.startsWith("ref:inaturalist.org")) {
+                v.split(";").forEach(i => {
+                    const placeholder = makePlaceholder()
+                    placeholder.setAttribute("data-inaturalist-id", i)
+                    placeholder.setAttribute("data-osm-path", "/" + photoObj.type + "/" + photoObj.id)
+                    photosPreviewGallery.append(placeholder)
+                })
             }
         })
     })
@@ -394,6 +401,7 @@ function renderPhotosPreview(withPhotos) {
             attachMapillaryHoverCaptureHandler(previewEl, res)
         })
     })
+
     document.querySelectorAll("#photos-preview-gallery .photo-preview[data-wikimedia-id]").forEach(previewEl => {
         addClick(previewEl)
         setTimeout(async () => {
@@ -409,6 +417,34 @@ function renderPhotosPreview(withPhotos) {
             }
             addImg(thumbSrc, previewEl)
             attachWikimediaHoverCaptureHandler(previewEl, res)
+        })
+    })
+
+    document.querySelectorAll("#photos-preview-gallery .photo-preview[data-inaturalist-id]").forEach(previewEl => {
+        addClick(previewEl)
+        setTimeout(async () => {
+            const id = previewEl.getAttribute("data-inaturalist-id")
+            const response = await downloadInaturalistInfo(id)
+            if (response["error"]) {
+                return
+            }
+            const observation = response?.results?.[0]
+            if (!observation) {
+                return
+            }
+            const { thumbSrc, zoomSrc } = getInaturalistPhotoUrls(observation)
+            if (!thumbSrc || !zoomSrc) {
+                return
+            }
+
+            previewEl.setAttribute("data-photo-thumb-src", thumbSrc)
+            previewEl.setAttribute("data-photo-zoom-src", zoomSrc)
+            attachPhotosCarouselHoverZoom(previewEl)
+            if (previewEl.querySelector("img")) {
+                return
+            }
+            addImg(thumbSrc, previewEl)
+            attachInaturalistHoverCaptureHandler(previewEl, observation)
         })
     })
 }
