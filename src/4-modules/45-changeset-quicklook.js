@@ -451,6 +451,8 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
             makeMapillaryValue(valueCell)
         } else if (key.startsWith("wikimedia_commons")) {
             makeWikimediaCommonsValue(valueCell)
+        } else if (key.startsWith("ref:inaturalist.org")) {
+            makeRefInaturalistValue(valueCell)
         } else if (needValidateOpeningHoursKey(key)) {
             makeOpeningHoursValue(valueCell, key, false)
         } else if (key === "roof:direction") {

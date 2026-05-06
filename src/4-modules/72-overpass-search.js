@@ -241,7 +241,9 @@ out geom;
         jsonLayer?.remove()
         jsonLayer = renderOSMGeoJSON(xml, true)
         setTimeout(async () => {
-            const withPhotos = Array.from(xml.querySelectorAll(":has(>:is([k^=panoramax],[k^=mapillary],[k^=wikimedia_commons]))")).map(i => {
+            const withPhotos = Array.from(
+                xml.querySelectorAll(':has(>:is([k^=panoramax],[k^=mapillary],[k^=wikimedia_commons],[k^="ref:inaturalist.org"]))'),
+            ).map(i => {
                 const res = {
                     id: parseInt(i.getAttribute("id")),
                     type: i.nodeName,
