@@ -9746,9 +9746,7 @@ function attachInaturalistHoverCaptureHandler(a, observation) {
     if (photo?.attribution) {
         titleLines.push(photo.attribution)
     }
-    if (titleLines.length !== 0) {
-        a.title = titleLines.join("\n")
-    }
+    a.title += titleLines.join("\n")
 }
 
 function addPanoramaxPicIntoA(uuid, a, panoramaxServer) {
