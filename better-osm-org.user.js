@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.6.4
+// @version         1.6.4.1
 // @changelog       v1.6.3: F1 hotkey for hotkeys list, preview Panoramax photos in Overpass search results, CSV reader
 // @changelog       v1.6.3: Validate phone=*, email=*, short keys and keys with the first capital letter
 // @changelog       v1.6.0: OpenGeoFiction support under debug flag in settings, add OSM2World 3D viewer, type=* validator
@@ -25198,15 +25198,15 @@ function yetAnotherWizard(s) {
         if (kv_match) {
             return `nwr[${kv_match["prefix"] ?? ""}"${kv_match["key"]}"${kv_match["op"]}"${kv_match["value"]}"${kv_match["suffix"] ?? ""}];`
         } else {
-            if (s.match(/^[a-zA-Z0-9_:]+$/)) {
+            if (s.match(/^[a-zA-Z0-9_:.]+$/)) {
                 return `nwr["${s}"];`
             } else {
-                if (s.match(/^[a-zA-Z0-9_:|]+$/)) {
+                if (s.match(/^[a-zA-Z0-9_:.|]+$/)) {
                     return (
                         "(\n" +
                         s
                             .split("|")
-                            .map(k => `nwr[${k}];`)
+                            .map(k => `nwr["${k}"];`)
                             .join("\n") +
                         ");"
                     )
