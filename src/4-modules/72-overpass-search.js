@@ -20,15 +20,15 @@ function yetAnotherWizard(s) {
         if (kv_match) {
             return `nwr[${kv_match["prefix"] ?? ""}"${kv_match["key"]}"${kv_match["op"]}"${kv_match["value"]}"${kv_match["suffix"] ?? ""}];`
         } else {
-            if (s.match(/^[a-zA-Z0-9_:]+$/)) {
+            if (s.match(/^[a-zA-Z0-9_:.]+$/)) {
                 return `nwr["${s}"];`
             } else {
-                if (s.match(/^[a-zA-Z0-9_:|]+$/)) {
+                if (s.match(/^[a-zA-Z0-9_:.|]+$/)) {
                     return (
                         "(\n" +
                         s
                             .split("|")
-                            .map(k => `nwr[${k}];`)
+                            .map(k => `nwr["${k}"];`)
                             .join("\n") +
                         ");"
                     )
