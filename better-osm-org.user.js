@@ -8505,6 +8505,7 @@ async function askCustomStyleUrl() {
         externalLink.style.marginRight = "2px"
         externalLink.style.color = "gray"
         externalLink.tabIndex = -1
+        externalLink.target = "_blank"
 
         const labelSpan = document.createElement("span")
         labelSpan.textContent = label
@@ -8677,15 +8678,34 @@ async function askCustomTileUrl() {
         },
         {
             label: "Strava Heatmap β",
-            value: "https://content-a.strava.com/identified/globalheat/all/blue/{z}/{x}/{y}@2x.png",
+            value: "https://content-a.strava.com/identified/globalheat/{sport}/blue/{z}/{x}/{y}@2x.png",
             about: "https://www.strava.com/maps/global-heatmap",
             forceVector: true,
+            fields: {
+                sport: [
+                    { name: "all", value: "all" },
+                    { name: "run", value: "run" },
+                    { name: "ride", value: "ride" },
+                    { name: "water", value: "water" },
+                    { name: "winter", value: "winter" },
+                ],
+            },
         },
         {
-            label: "Strava Heatmap (only run)",
-            value: "https://content-a.strava.com/identified/globalheat/run/blue/{z}/{x}/{y}@2x.png",
-            about: "https://www.strava.com/maps/global-heatmap",
+            label: "Waymarked Trails",
+            value: "https://tile.waymarkedtrails.org/{type}/{z}/{x}/{y}.png",
+            about: "https://waymarkedtrails.org",
             forceVector: true,
+            fields: {
+                type: [
+                    { name: "hiking", value: "hiking" },
+                    { name: "cycling", value: "cycling" },
+                    { name: "mtb", value: "mtb" },
+                    { name: "skating", value: "skating" },
+                    { name: "riding", value: "riding" },
+                    { name: "slopes", value: "slopes" },
+                ],
+            },
         },
         // {
         //     label: "OsmAnd HD tiles",
@@ -8750,7 +8770,7 @@ async function askCustomTileUrl() {
         return wrapper
     }
 
-    function addRadio({ label, value, about, forceVector }) {
+    function addRadio({ label, value, about, forceVector, fields }) {
         const wrapper = makeWrapper()
 
         const input = document.createElement("input")
@@ -8762,13 +8782,23 @@ async function askCustomTileUrl() {
         wrapper.title = input.value = value
 
         async function onChange() {
+            function applyFields(url) {
+                if (!fields) {
+                    return url
+                }
+                Object.entries(fields).forEach(([field_name, values]) => {
+                    const select = wrapper.querySelector(`select[name="${field_name}"]`)
+                    url = url.replaceAll(`{${field_name}}`, select.value)
+                })
+                return url
+            }
             if (input.checked) {
                 if (forceVector && !vectorLayerEnabled()) {
                     nextVectorLayer()
                     await sleep(100)
                 }
                 abortTilesAbortController(customLayerUrlOrigin)
-                applyCustomLayer({ url: input.value, label: label })
+                applyCustomLayer({ url: applyFields(input.value), label: label })
                 switchTiles(currentTilesMode === MAPNIK_MODE)
                 getMap()?.attributionControl?.setPrefix(label)
             }
@@ -8784,10 +8814,33 @@ async function askCustomTileUrl() {
         externalLink.style.marginRight = "2px"
         externalLink.style.color = "gray"
         externalLink.tabIndex = -1
+        externalLink.target = "_blank"
 
         const labelSpan = document.createElement("span")
         labelSpan.textContent = label
         wrapper.append(input, labelSpan, externalLink)
+
+        if (fields) {
+            Object.entries(fields).forEach(([field_name, values]) => {
+                const select = document.createElement("select")
+                select.name = field_name
+                values.forEach(o => {
+                    const opt = document.createElement("option")
+                    opt.textContent = o.name
+                    opt.value = o.value
+                    select.appendChild(opt)
+                })
+                select.onchange = async () => {
+                    if (!input.checked) {
+                        input.click()
+                    } else {
+                        await onChange()
+                    }
+                }
+                labelSpan.after(select)
+            })
+        }
+
         radioContainer.appendChild(wrapper)
     }
 
@@ -25465,6 +25518,7 @@ out geom;
 
 function displayCsv(text) {
     const [header, ...lines] = text.split("\n")
+    console.log("lines count", lines.length)
     let sep = header.includes(";") ? ";" : ","
     const columns = header
         .trim()
@@ -25488,9 +25542,15 @@ function displayCsv(text) {
         type: "FeatureCollection",
         features: [],
     }
-    lines
-        .map(line =>
-            line
+    console.time("csv filtering")
+    const prevTitle = document.title
+    const newTitle = "◴" + prevTitle
+    document.title = newTitle
+
+    try {
+        const bounds = getMap().getBounds()
+        for (const line of lines) {
+            const values = line
                 .trim()
                 .split(sep)
                 .map(i => {
@@ -25504,13 +25564,16 @@ function displayCsv(text) {
                         return i.slice(0, -1)
                     }
                     return i
-                }),
-        )
-        .forEach(values => {
+                })
+
             const lat = parseFloat(values[latColumIndex])
             const lon = parseFloat(values[lonColumIndex])
             if (isNaN(lat) || isNaN(lon)) {
                 console.warn("Invalid lat/lon in CSV file:", values)
+                continue
+            }
+            if (lines.length > 20000 && !bounds.contains(getWindow().L.latLng(lat, lon))) {
+                continue
             }
             geojson.features.push({
                 type: "Feature",
@@ -25520,8 +25583,14 @@ function displayCsv(text) {
                 },
                 properties: Object.fromEntries(columns.map((col, i) => [col, values[i]])),
             })
-        })
-    renderGeoJSONwrapper(geojson)
+        }
+        console.timeEnd("csv filtering")
+        renderGeoJSONwrapper(geojson)
+    } finally {
+        if (document.title === newTitle) {
+            document.title = prevTitle
+        }
+    }
 }
 
 function handleDroppedFiles(files) {

@@ -2,6 +2,7 @@
 
 function displayCsv(text) {
     const [header, ...lines] = text.split("\n")
+    console.log("lines count", lines.length)
     let sep = header.includes(";") ? ";" : ","
     const columns = header
         .trim()
@@ -25,9 +26,15 @@ function displayCsv(text) {
         type: "FeatureCollection",
         features: [],
     }
-    lines
-        .map(line =>
-            line
+    console.time("csv filtering")
+    const prevTitle = document.title
+    const newTitle = "◴" + prevTitle
+    document.title = newTitle
+
+    try {
+        const bounds = getMap().getBounds()
+        for (const line of lines) {
+            const values = line
                 .trim()
                 .split(sep)
                 .map(i => {
@@ -41,13 +48,16 @@ function displayCsv(text) {
                         return i.slice(0, -1)
                     }
                     return i
-                }),
-        )
-        .forEach(values => {
+                })
+
             const lat = parseFloat(values[latColumIndex])
             const lon = parseFloat(values[lonColumIndex])
             if (isNaN(lat) || isNaN(lon)) {
                 console.warn("Invalid lat/lon in CSV file:", values)
+                continue
+            }
+            if (lines.length > 20000 && !bounds.contains(getWindow().L.latLng(lat, lon))) {
+                continue
             }
             geojson.features.push({
                 type: "Feature",
@@ -57,8 +67,14 @@ function displayCsv(text) {
                 },
                 properties: Object.fromEntries(columns.map((col, i) => [col, values[i]])),
             })
-        })
-    renderGeoJSONwrapper(geojson)
+        }
+        console.timeEnd("csv filtering")
+        renderGeoJSONwrapper(geojson)
+    } finally {
+        if (document.title === newTitle) {
+            document.title = prevTitle
+        }
+    }
 }
 
 function handleDroppedFiles(files) {
