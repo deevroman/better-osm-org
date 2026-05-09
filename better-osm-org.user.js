@@ -8689,6 +8689,10 @@ async function askCustomTileUrl() {
                     { name: "water", value: "water" },
                     { name: "winter", value: "winter" },
                 ],
+                // color: [
+                //     { name: "blue", value: "blue" },
+                //     { name: "hot", value: "hot" },
+                // ],
             },
         },
         {
