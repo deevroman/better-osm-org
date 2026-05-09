@@ -33,6 +33,7 @@ jobs:
           - violentmonkey
           - tampermonkey
           - firemonkey
+          - scriptcat
         screen_profile:
           - desktop
           - mobile
@@ -52,6 +53,10 @@ jobs:
             manager_name: Firemonkey
             manager_xpi_url: https://addons.mozilla.org/firefox/downloads/latest/firemonkey/latest.xpi
             allow_failure: true
+          - manager: scriptcat
+            manager_name: Scriptcat
+            manager_xpi_url: https://addons.mozilla.org/firefox/downloads/latest/scriptcat/latest.xpi
+            allow_failure: false
 
           - screen_profile: desktop
             screen_profile_name: Desktop
@@ -67,6 +72,8 @@ jobs:
           - manager: tampermonkey
             screen_profile: mobile
           - manager: firemonkey
+            screen_profile: mobile
+          - manager: scriptcat
             screen_profile: mobile
 
     name: Firefox + ${{ matrix.manager_name }} + ${{ matrix.locale_name }} + ${{ matrix.screen_profile_name }}

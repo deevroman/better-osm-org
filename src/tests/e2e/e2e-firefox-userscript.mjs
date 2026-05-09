@@ -63,7 +63,7 @@ Required env:
   (legacy alias: VIOLENTMONKEY_XPI=...)
 
 Optional env:
-  E2E_SCRIPT_MANAGER_NAME=Violentmonkey|Tampermonkey|Firemonkey
+  E2E_SCRIPT_MANAGER_NAME=Violentmonkey|Tampermonkey|Firemonkey|Scriptcat
   E2E_TARGET_URL=https://master.apis.dev.openstreetmap.org
   E2E_USER_SCRIPT_PATH=/absolute/path/to/better-osm-org.user.js
   E2E_USER_SCRIPT_URL=http://127.0.0.1:17321/better-osm-org.user.js
