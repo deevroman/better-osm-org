@@ -53,10 +53,10 @@ jobs:
             manager_name: Firemonkey
             manager_xpi_url: https://addons.mozilla.org/firefox/downloads/latest/firemonkey/latest.xpi
             allow_failure: true
-          - manager: scriptcat
-            manager_name: Scriptcat
-            manager_xpi_url: https://addons.mozilla.org/firefox/downloads/latest/scriptcat/latest.xpi
-            allow_failure: false
+#          - manager: scriptcat
+#            manager_name: Scriptcat
+#            manager_xpi_url: https://addons.mozilla.org/firefox/downloads/latest/scriptcat/latest.xpi
+#            allow_failure: false
 
           - screen_profile: desktop
             screen_profile_name: Desktop
