@@ -23795,7 +23795,17 @@ async function loadCurrentLinksList() {
         })
         await GM.setValue("user-external-links", JSON.stringify(externalLinks))
     } else {
-        externalLinks = JSON.parse(raw_data)
+        let migrated = false
+        externalLinks = JSON.parse(raw_data).map(link => {
+            if (link.template === "http://test.osm2pgsql.org/?#p={zoom}/{latitude}/{longitude}") {
+                link.template = "https://spyglass.jochentopf.com/?#p={zoom}/{latitude}/{longitude}"
+                migrated = true
+            }
+            return link
+        })
+        if (migrated) {
+            await GM.setValue("user-external-links", JSON.stringify(externalLinks))
+        }
     }
     addSafeNameForExternalLinks(externalLinks)
     externalLinks.forEach(link => {
