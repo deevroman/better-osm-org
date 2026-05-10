@@ -935,9 +935,9 @@ async function askCustomTileUrl() {
     const note = document.createElement("span")
     note.style.color = "gray"
     note.innerHTML =
+        "For transparent tiles, switch to ShortBread or MapTiler layer<br/>" +
         "You can <a target='_blank' href='https://github.com/deevroman/better-osm-org/issues/new'>suggest</a> other layer. " +
-        "One of <a href='https://github.com/osmlab/editor-layer-index'>layers collection</a><br/>" +
-        "For tiles with transparency, switch to ShortBread or MapTiler layer."
+        "One of <a href='https://github.com/osmlab/editor-layer-index'>layers collection</a>"
     popup.appendChild(note)
     document.body.appendChild(popup)
     popup.querySelector('label:has([type="radio"]:checked)')?.querySelector("input")?.focus()
