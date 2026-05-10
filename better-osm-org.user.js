@@ -156,6 +156,7 @@
 // @connect      photon.komoot.io
 // @connect      whosthat.osmz.ru
 // @connect      content-a.strava.com
+// @connect      strava-heatmap.tiles.freemap.sk
 // @sandbox      JavaScript
 // @resource     OAUTH_HTML https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/assets/finish-oauth.html?bypass_cache
 // @resource     DARK_THEME_FOR_ID_CSS https://gist.githubusercontent.com/deevroman/55f35da68ab1efb57b7ba4636bdf013d/raw/1e91d589ca8cb51c693a119424a45d9f773c265e/dark.css
@@ -8694,6 +8695,12 @@ async function askCustomTileUrl() {
             label: "Hrvatska GeoPortal",
             value: "https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.3.0&SERVICE=WMS&REQUEST=GetMap&LAYERS=OI.OrthoimageCoverage&STYLES=&CRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}",
             about: "https://osm.wiki/GeoScribble",
+        },
+        {
+            label: "Strava Heatmap via freemap.sk",
+            value: "https://strava-heatmap.tiles.freemap.sk/all/hot/{z}/{x}/{y}.png?px=512",
+            about: "https://www.freemap.sk",
+            forceVector: true,
         },
         {
             label: "Strava Heatmap β",
