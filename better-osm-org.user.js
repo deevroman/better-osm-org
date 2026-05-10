@@ -29147,8 +29147,12 @@ function addImageryOffsetsDB() {
     if (!offsetSelectionSection) {
         return false
     }
+    if (document.querySelector(".find-offsets-btn")) {
+        return true
+    }
     const loadBtn = document.createElement("button")
     loadBtn.textContent = "Find offsets"
+    loadBtn.classList.add("find-offsets-btn")
     loadBtn.title = "better-osm-org experimental feature"
     loadBtn.onclick = async () => {
         loadBtn.style.cursor = "progress"
