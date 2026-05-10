@@ -18,11 +18,11 @@ function tagsToXml(doc, node, tags) {
  *
  * @param {string} text
  * @param {boolean} strict
- * @return {Object.<string, string>}
+ * @return {Map<string, string>}
  */
 function buildTags(text, strict = false) {
     const lines = text.split("\n")
-    const json = {}
+    const tags = new Map()
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i]
         let eqPos = line.indexOf("=")
@@ -43,9 +43,18 @@ function buildTags(text, strict = false) {
             }
             continue
         }
-        json[k] = v.replaceAll("\\\\", "\n")
+        tags.set(k, v.replaceAll("\\\\", "\n"))
     }
-    return json
+    return tags
+}
+
+/**
+ * @param {Map<string, string>} a
+ * @param {Map<string, string>} b
+ * @return {boolean}
+ */
+function isDifferentTagsMap(a, b) {
+    return JSON.stringify(Object.fromEntries(a)) !== JSON.stringify(Object.fromEntries(b))
 }
 
 //</editor-fold>
