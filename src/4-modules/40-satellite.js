@@ -251,8 +251,10 @@ function makeOSMGPSURL(x, y, z) {
     return OSMGPSPrefix + z + "/" + x + "/" + y + ".png"
 }
 
-/** @type {{url : string, label: string, isWms: boolean|undefined}} */
-let customLayerInfo = { url: "", label: "", isWms: false }
+/** @typedef {{url : string, url_template: string, label: string, isWms: boolean|undefined, fieldsValues: Object|undefined}} layerInfo */
+
+/** @type {layerInfo} */
+let customLayerInfo = { url: "", url_template: "", label: "", isWms: false, fieldsValues: {} }
 
 GM.getValue("customLayerUrlInfo").then(res => {
     if (!res) return
@@ -318,7 +320,7 @@ async function applyCustomVectorMapStyle(styleUrl, updateUrlInStorage = false) {
 }
 
 /**
- * @param {{url : string, label: string, isWms: boolean|undefined}} layerInfo
+ * @param {layerInfo} layerInfo
  */
 function applyCustomLayer(layerInfo) {
     layerInfo.isWms = layerInfo.url.includes("{bbox-epsg-3857}")
@@ -787,21 +789,22 @@ async function askCustomTileUrl() {
         const input = document.createElement("input")
         input.type = "radio"
         input.name = radiosName
-        if (customLayerInfo.url === value) {
+        if ((customLayerInfo.url_template ?? customLayerInfo.url) === value) {
             input.checked = true
         }
         wrapper.title = input.value = value
 
         async function onChange() {
             function applyFields(url) {
+                const fieldsValues = {}
                 if (!fields) {
-                    return url
+                    return { url, fieldsValues }
                 }
                 Object.entries(fields).forEach(([field_name, values]) => {
                     const select = wrapper.querySelector(`select[name="${field_name}"]`)
-                    url = url.replaceAll(`{${field_name}}`, select.value)
+                    url = url.replaceAll(`{${field_name}}`, (fieldsValues[field_name] = select.value))
                 })
-                return url
+                return { url, fieldsValues }
             }
             if (input.checked) {
                 if (forceVector && !vectorLayerEnabled()) {
@@ -809,7 +812,8 @@ async function askCustomTileUrl() {
                     await sleep(100)
                 }
                 abortTilesAbortController(customLayerUrlOrigin)
-                applyCustomLayer({ url: applyFields(input.value), label: label })
+                const { url, fieldsValues } = applyFields(input.value)
+                applyCustomLayer({ url: url, url_template: input.value, label: label, fieldsValues: fieldsValues })
                 switchTiles(currentTilesMode === MAPNIK_MODE)
                 getMap()?.attributionControl?.setPrefix(label)
             }
@@ -848,6 +852,9 @@ async function askCustomTileUrl() {
                         await onChange()
                     }
                 }
+                if (customLayerInfo.url_template === value && customLayerInfo.fieldsValues?.[field_name]) {
+                    select.value = customLayerInfo.fieldsValues[field_name]
+                }
                 labelSpan.after(select)
             })
         }
@@ -877,13 +884,21 @@ async function askCustomTileUrl() {
         }
         wrapper.append(urlInput)
 
+        function switchCustomLayerUrl() {
+            abortTilesAbortController(customLayerUrlOrigin)
+            applyCustomLayer({
+                url: urlInput.value,
+                url_template: urlInput.value,
+                label: "Custom map style from " + escapeHtml(new URL(urlInput.value).host),
+            })
+            void GM.setValue("lastCustomLayerUrl", (lastCustomLayerUrl = urlInput.value))
+            switchTiles(currentTilesMode === MAPNIK_MODE)
+        }
+
         input.onchange = async e => {
             if (!e.isTrusted) return
             if (input.checked && urlInput.value.trim() !== "") {
-                abortTilesAbortController(customLayerUrlOrigin)
-                applyCustomLayer({ url: urlInput.value, label: "Custom map style from " + escapeHtml(new URL(urlInput.value).host) })
-                void GM.setValue("lastCustomLayerUrl", (lastCustomLayerUrl = urlInput.value))
-                switchTiles(currentTilesMode === MAPNIK_MODE)
+                switchCustomLayerUrl()
             }
         }
 
@@ -891,10 +906,7 @@ async function askCustomTileUrl() {
             if (!e.isTrusted) return
             if (e.key === "Enter" && urlInput.value.trim() !== "") {
                 input.click()
-                abortTilesAbortController(customLayerUrlOrigin)
-                applyCustomLayer({ url: urlInput.value, label: "Custom map style from " + escapeHtml(new URL(urlInput.value).host) })
-                void GM.setValue("lastCustomLayerUrl", (lastCustomLayerUrl = urlInput.value))
-                switchTiles(currentTilesMode === MAPNIK_MODE)
+                switchCustomLayerUrl()
             }
             if (urlInput.value.trim() === "") {
                 void GM.setValue("lastCustomLayerUrl", "")
@@ -911,9 +923,9 @@ async function askCustomTileUrl() {
         "One of <a href='https://github.com/osmlab/editor-layer-index'>layers collection</a>"
     popup.appendChild(note)
     document.body.appendChild(popup)
-    popup.querySelector("label:has(:checked)")?.querySelector("input")?.focus()
-    if (currentTilesMode !== SAT_MODE && popup.querySelector("label :checked")) {
-        popup.querySelector("label :checked").checked = false
+    popup.querySelector('label:has([type="radio"]:checked)')?.querySelector("input")?.focus()
+    if (currentTilesMode !== SAT_MODE && popup.querySelector('label [type="radio"]:checked')) {
+        popup.querySelector('label [type="radio"]:checked').checked = false
     }
 }
 
@@ -1069,7 +1081,7 @@ function replaceTileSrc(imgElem) {
 function rasterSwitch() {
     if (currentTilesMode === SAT_MODE) {
         if (!customLayerInfo.url) {
-            applyCustomLayer({ url: ESRITemplate, label: "ESRI" })
+            applyCustomLayer({ url: ESRITemplate, url_template: ESRITemplate, label: "ESRI" })
         }
         addLayerPrefix()
     } else {
