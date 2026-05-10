@@ -15199,7 +15199,7 @@ function detectEditsWars(prevVersion, targetVersion, objHistory, row, key) {
             user_link.style.color = "unset"
             td_user.appendChild(user_link)
             const td_tag = document.createElement("td")
-            td_tag.textContent = it.tags[key]
+            td_tag.textContent = getValue(it.tags, key)
             tr.appendChild(th_ver)
             tr.appendChild(td_user)
             tr.appendChild(td_tag)
@@ -15276,6 +15276,24 @@ async function getWayNodesByTimestamp(targetTimestamp, wayID) {
 let pinnedRelations = new Set()
 
 /**
+ * @param {Object<string, string>} tags
+ * @param {string} key
+ * @return {string|undefined}
+ */
+function getValue(tags, key) {
+    return Object.getOwnPropertyDescriptor(tags, key)?.value
+}
+
+/**
+ * @param {Object<string, string>} tags
+ * @param {string} key
+ * @return {boolean}
+ */
+function hasKey(tags, key) {
+    return tags.hasOwnProperty(key)
+}
+
+/**
  * @param {Element} i
  * @param {string} objType
  * @param {NodeVersion|WayVersion|RelationVersion} prevVersion
@@ -15299,13 +15317,13 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
     // tags deletion
     if (prevVersion.version !== 0) {
         for (const [key, value] of Object.entries(prevVersion?.tags ?? {})) {
-            if (targetVersion.tags === undefined || targetVersion.tags[key] === undefined) {
+            if (targetVersion.tags === undefined || !hasKey(targetVersion.tags, key)) {
                 const row = makeTagRow(key, value, true)
                 row.classList.add("quick-look-deleted-tag")
                 tbody.appendChild(row)
                 tagsWasChanged = true
                 changedOnlyUninterestedTags = false
-                if (lastVersion.tags && lastVersion.tags[key] === prevVersion.tags[key]) {
+                if (lastVersion.tags && getValue(lastVersion.tags, key) === getValue(prevVersion.tags, key)) {
                     row.classList.add("restored-tag")
                     row.title = row.title + "The tag is now restored"
                 }
@@ -15317,16 +15335,16 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
     // tags add/modification
     for (const [key, value] of Object.entries(targetVersion.tags ?? {})) {
         const row = makeTagRow(key, value, true)
-        if (prevVersion.tags === undefined || prevVersion.tags[key] === undefined) {
+        if (prevVersion.tags === undefined || !hasKey(prevVersion.tags, key)) {
             tagsWasChanged = true
             if (!uninterestedTags.has(key)) {
                 changedOnlyUninterestedTags = false
             }
             row.classList.add("quick-look-new-tag")
-            if (!lastVersion.tags || lastVersion.tags[key] !== targetVersion.tags[key]) {
-                if (lastVersion.tags && lastVersion.tags[key]) {
+            if (!lastVersion.tags || getValue(lastVersion.tags, key) !== getValue(targetVersion.tags, key)) {
+                if (lastVersion.tags && hasKey(lastVersion.tags, key)) {
                     row.classList.add("replaced-tag")
-                    row.title = `Now is ${key}=${lastVersion.tags[key]}`
+                    row.title = `Now is ${key}=${getValue(lastVersion.tags, key)}`
                 } else if (lastVersion.visible !== false) {
                     row.classList.add("removed-tag")
                     row.title = `The tag is now deleted`
@@ -15335,7 +15353,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             makeLinksInChangesetObjectRowClickable(row, objType)
             tbody.appendChild(row)
             detectEditsWars(prevVersion, targetVersion, objHistory, row, key)
-        } else if (prevVersion.tags[key] !== value) {
+        } else if (getValue(prevVersion.tags, key) !== value) {
             // todo reverted changes
             const valCell = row.querySelector("td")
             if (!uninterestedTags.has(key)) {
@@ -15343,13 +15361,13 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             }
             row.classList.add("quick-look-modified-tag")
             // toReversed is dirty hack for group inserted/deleted symbols https://osm.org/changeset/157338007
-            const diff = stringsDiff(prevVersion.tags[key], valCell.textContent, 1)
+            const diff = stringsDiff(getValue(prevVersion.tags, key), valCell.textContent, 1)
             // for one character diff
             // example: https://osm.org/changeset/157002657
             // prettier-ignore
-            if (valCell.textContent.length > 1 && prevVersion.tags[key].length > 1
+            if (valCell.textContent.length > 1 && getValue(prevVersion.tags, key).length > 1
                 && (
-                    diff.length === valCell.textContent.length && prevVersion.tags[key].length === valCell.textContent.length
+                    diff.length === valCell.textContent.length && getValue(prevVersion.tags, key).length === valCell.textContent.length
                     && diff.reduce((cnt, b) => cnt + (b[0] !== b[1]), 0) === 1
                     || diff.reduce((cnt, b) => cnt + (b[0] !== b[1] && b[0] !== null), 0) === 0
                     || diff.reduce((cnt, b) => cnt + (b[0] !== b[1] && b[1] !== null), 0) === 0
@@ -15386,7 +15404,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             } else {
                 const prevSpan = document.createElement("span")
                 prevSpan.dir = "auto"
-                prevSpan.textContent = prevVersion.tags[key]
+                prevSpan.textContent = getValue(prevVersion.tags, key)
                 const newSpan = document.createElement("span")
                 newSpan.dir = "auto"
                 newSpan.textContent = valCell.textContent
@@ -15395,15 +15413,15 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 valCell.appendChild(document.createTextNode(` ${arrowSymbolForChanges} `))
                 valCell.appendChild(newSpan)
             }
-            valCell.title = "was: " + prevVersion.tags[key]
+            valCell.title = "was: " + getValue(prevVersion.tags, key)
             tagsWasChanged = true
-            if (!lastVersion.tags || lastVersion.tags[key] !== targetVersion.tags[key]) {
-                if (lastVersion.tags && prevVersion.tags && lastVersion.tags[key] === prevVersion.tags[key]) {
+            if (!lastVersion.tags || getValue(lastVersion.tags, key) !== getValue(targetVersion.tags, key)) {
+                if (lastVersion.tags && prevVersion.tags && getValue(lastVersion.tags, key) === getValue(prevVersion.tags, key)) {
                     row.classList.add("reverted-tag")
                     row.title = `The tag is now reverted`
-                } else if (lastVersion.tags && lastVersion.tags[key]) {
+                } else if (lastVersion.tags && getValue(lastVersion.tags, key)) {
                     row.classList.add("replaced-tag")
-                    row.title = `Now is ${key}=${lastVersion.tags[key]}`
+                    row.title = `Now is ${key}=${getValue(lastVersion.tags, key)}`
                 } else if (lastVersion.visible !== false) {
                     row.classList.add("removed-tag")
                     row.title = `The tag is now deleted`
@@ -15718,7 +15736,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                         showActiveNodeMarker(version.lat.toString(), version.lon.toString(), c("#ff00e3"))
                         tagTd.title = ""
                         for (let tagsKey in version.tags ?? {}) {
-                            tagTd.title += `${tagsKey}=${version.tags[tagsKey]}\n`
+                            tagTd.title += `${tagsKey}=${getValue(version.tags, tagsKey)}\n`
                         }
                     } else if (left.type === "way") {
                         const [, currentNodesList] = await getWayNodesByTimestamp(targetTimestamp, left.ref)
@@ -15726,7 +15744,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                         const version = searchVersionByTimestamp(await getWayHistory(left.ref), targetTimestamp)
                         tagTd.title = ""
                         for (let tagsKey in version.tags ?? {}) {
-                            tagTd.title += `${tagsKey}=${version.tags[tagsKey]}\n`
+                            tagTd.title += `${tagsKey}=${getValue(version.tags, tagsKey)}\n`
                         }
                     } else if (left.type === "relation") {
                         // todo
@@ -15761,7 +15779,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                         showActiveNodeMarker(version.lat.toString(), version.lon.toString(), c("#ff00e3"))
                         tagTd2.title = ""
                         for (let tagsKey in version.tags ?? {}) {
-                            tagTd2.title += `${tagsKey}=${version.tags[tagsKey]}\n`
+                            tagTd2.title += `${tagsKey}=${getValue(version.tags, tagsKey)}\n`
                         }
                     } else if (right.type === "way") {
                         const [, currentNodesList] = await getWayNodesByTimestamp(targetTimestamp, right.ref)
@@ -15769,7 +15787,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                         const version = searchVersionByTimestamp(await getWayHistory(right.ref), targetTimestamp)
                         tagTd2.title = ""
                         for (let tagsKey in version.tags ?? {}) {
-                            tagTd2.title += `${tagsKey}=${version.tags[tagsKey]}\n`
+                            tagTd2.title += `${tagsKey}=${getValue(version.tags, tagsKey)}\n`
                         }
                     } else if (right.type === "relation") {
                         // todo
