@@ -693,6 +693,12 @@ async function askCustomTileUrl() {
             about: "https://osm.wiki/GeoScribble",
         },
         {
+            label: "Strava Heatmap via freemap.sk",
+            value: "https://strava-heatmap.tiles.freemap.sk/all/hot/{z}/{x}/{y}.png?px=512",
+            about: "https://www.freemap.sk",
+            forceVector: true,
+        },
+        {
             label: "Strava Heatmap β",
             value: "https://content-a.strava.com/identified/globalheat/{sport}/blue/{z}/{x}/{y}@2x.png",
             about: "https://www.strava.com/maps/global-heatmap",
