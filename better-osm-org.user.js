@@ -8254,10 +8254,17 @@ function makeOSMGPSURL(x, y, z) {
     return OSMGPSPrefix + z + "/" + x + "/" + y + ".png"
 }
 
-/** @typedef {{url : string, url_template: string, label: string, isWms: boolean|undefined, fieldsValues: Object|undefined}} layerInfo */
+/** @typedef {{
+ * url : string,
+ * url_template: string,
+ * label: string,
+ * isWms: boolean|undefined,
+ * fieldsValues: Object|undefined
+ * forceVector: boolean|undefined,
+ * }} layerInfo */
 
 /** @type {layerInfo} */
-let customLayerInfo = { url: "", url_template: "", label: "", isWms: false, fieldsValues: {} }
+let customLayerInfo = { url: "", url_template: "", forceVector: false, label: "", isWms: false, fieldsValues: {} }
 
 GM.getValue("customLayerUrlInfo").then(res => {
     if (!res) return
@@ -8816,7 +8823,7 @@ async function askCustomTileUrl() {
                 }
                 abortTilesAbortController(customLayerUrlOrigin)
                 const { url, fieldsValues } = applyFields(input.value)
-                applyCustomLayer({ url: url, url_template: input.value, label: label, fieldsValues: fieldsValues })
+                applyCustomLayer({ url: url, url_template: input.value, label: label, fieldsValues: fieldsValues, forceVector: forceVector })
                 switchTiles(currentTilesMode === MAPNIK_MODE)
                 getMap()?.attributionControl?.setPrefix(label)
             }
@@ -8932,7 +8939,11 @@ async function askCustomTileUrl() {
     }
 }
 
-function vectorSwitch() {
+async function vectorSwitch() {
+    if (customLayerInfo.forceVector && !vectorLayerEnabled()) {
+        nextVectorLayer()
+        await sleep(100)
+    }
     if (!vectorLayerEnabled()) {
         return
     }
@@ -9127,7 +9138,7 @@ function switchTiles(invertMode = true) {
         console.log("Current tiles mode", currentTilesMode)
     }
     rasterSwitch()
-    vectorSwitch()
+    void vectorSwitch()
 }
 
 function switchTilesAndButtons() {
