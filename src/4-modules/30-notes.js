@@ -41,6 +41,7 @@ function addCreateNewPOIButton() {
         console.log("Begin creating node")
 
         let tagsHint = ""
+        /** @type {Map<string, string>} */
         let tags
         try {
             tags = buildTags(document.querySelector("#sidebar_content form textarea").value, true)
@@ -48,18 +49,18 @@ function addCreateNewPOIButton() {
             alert(e)
             return
         }
-        if (Object.entries(tags).length === 0) {
+        if (tags.size === 0) {
             alert("Textarea not contains any tag")
             return
         }
 
-        for (const i of Object.entries(tags)) {
+        for (const i of tags.entries()) {
             if (mainTags.includes(i[0])) {
                 tagsHint = tagsHint + ` ${i[0]}=${i[1]}`
                 break
             }
         }
-        for (const i of Object.entries(tags)) {
+        for (const i of tags.entries()) {
             if (i[0] === "name") {
                 tagsHint = tagsHint + ` ${i[0]}=${i[1]}`
                 break
@@ -79,7 +80,7 @@ function addCreateNewPOIButton() {
         node.setAttribute("lat", lat)
         node.setAttribute("lon", lng)
 
-        for (const tag of Object.entries(tags)) {
+        for (const tag of tags.entries()) {
             const tagElem = document.createElement("tag")
             tagElem.setAttribute("k", tag[0])
             tagElem.setAttribute("v", tag[1])

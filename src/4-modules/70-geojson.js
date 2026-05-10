@@ -548,11 +548,11 @@ function renderOSMGeoJSON(xml, options = {}) {
 
             const table = startEditEvent.target.parentElement.querySelector("table.tags-table")
             const metaTable = startEditEvent.target.parentElement.querySelector("table.metainfo-table")
-            /** @type {Object.<string, string>}*/
-            let oldTags = {}
+            /** @type {Map<string, string>}*/
+            let oldTags = new Map()
             if (lastEditMode === "table") {
                 table.querySelectorAll("tr:not(.add-tag-row)").forEach(i => {
-                    oldTags[i.querySelector("th").textContent] = i.querySelector("td").textContent
+                    oldTags.set(i.querySelector("th").textContent, i.querySelector("td").textContent)
                 })
             } else {
                 oldTags = buildTags(table.querySelector("textarea").value)
@@ -612,22 +612,23 @@ function renderOSMGeoJSON(xml, options = {}) {
                 ).text()
                 const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
                 // lastVersionsCache[`${object_type}_${object_id}`] = objectInfo
-                const lastTags = {}
+                /** @type {Map<string, string>} */
+                const lastTags = new Map()
                 objectInfo.querySelectorAll("tag").forEach(i => {
-                    lastTags[i.getAttribute("k")] = i.getAttribute("v")
+                    lastTags.set(i.getAttribute("k"), i.getAttribute("v"))
                 })
                 const new_object_version = parseInt(objectInfo.querySelector("[version]:not(osm)").getAttribute("version"))
-                if (JSON.stringify(lastTags) !== JSON.stringify(oldTags) || (object_version && object_version + 1 !== new_object_version)) {
+                if (isDifferentTagsMap(lastTags, oldTags) || (object_version && object_version + 1 !== new_object_version)) {
                     console.log("applying new tags")
                     if (lastEditMode === "table") {
                         table.querySelector("tbody").remove()
-                        table.appendChild(makeTBody(lastTags))
+                        table.appendChild(makeTBody(Object.fromEntries(lastTags)))
                     } else {
                         table.querySelector("textarea")?.remove()
                         const textarea = document.createElement("textarea")
                         textarea.value = ""
                         textarea.rows = 5
-                        Object.entries(lastTags).forEach(([k, v]) => {
+                        lastTags.entries().forEach(([k, v]) => {
                             textarea.value += `${k}=${v.replaceAll("\\\\", "\n")}\n`
                         })
                         textarea.value = textarea.value.trim()
@@ -676,8 +677,8 @@ function renderOSMGeoJSON(xml, options = {}) {
                 "click",
                 async function upload() {
                     startEditEvent.target.style.cursor = "progress"
-                    /** @type {Object.<string, string>}*/
-                    let newTags = {}
+                    /** @type {Map<string, string>}*/
+                    let newTags = new Map()
                     const lastEditMode = await GM.getValue("lastEditMode", "table")
                     if (lastEditMode === "table") {
                         table.querySelectorAll("tr:not(.add-tag-row)").forEach(i => {
@@ -687,7 +688,7 @@ function renderOSMGeoJSON(xml, options = {}) {
                                 // todo notify about error
                                 return
                             }
-                            newTags[key] = value
+                            newTags.set(key, value)
                         })
                     } else {
                         newTags = buildTags(table.querySelector("textarea").value)
@@ -709,40 +710,55 @@ function renderOSMGeoJSON(xml, options = {}) {
                     }
 
                     const objectXML = objectInfo.querySelector("node,way,relation")
-                    const prevTags = {}
+                    /** @type {Map<string, string>} */
+                    const prevTags = new Map()
                     objectXML.querySelectorAll("tag").forEach(i => {
-                        prevTags[i.getAttribute("k")] = i.getAttribute("v")
+                        prevTags.set(i.getAttribute("k"), i.getAttribute("v"))
                         i.remove()
                     })
-                    Object.entries(newTags).forEach(([k, v]) => {
+                    newTags.entries().forEach(([k, v]) => {
                         const tag = objectInfo.createElement("tag")
                         tag.setAttribute("k", k)
                         tag.setAttribute("v", v)
                         objectXML.appendChild(tag)
                     })
 
+                    /**
+                     * @param {"node"|"way"|"relation"} object_type
+                     * @param {number} object_id
+                     * @param {Map<string, string>} prevTags
+                     * @param {Map<string, string>} newTags
+                     * @return {string|string}
+                     */
                     function makeComment(object_type, object_id, prevTags, newTags) {
-                        const removedKeys = Object.entries(prevTags)
+                        const removedKeys = prevTags
+                            .entries()
                             .map(([k]) => k)
-                            .filter(k => newTags[k] === undefined)
-                        const addedKeys = Object.entries(newTags)
+                            .filter(k => newTags.get(k) === undefined)
+                            .toArray()
+                        const addedKeys = newTags
+                            .entries()
                             .map(([k]) => k)
-                            .filter(k => prevTags[k] === undefined)
-                        const modifiedKeys = Object.entries(prevTags)
-                            .filter(([k, v]) => newTags[k] !== undefined && newTags[k] !== v)
+                            .filter(k => prevTags.get(k) === undefined)
+                            .toArray()
+                        const modifiedKeys = prevTags
+                            .entries()
+                            .filter(([k, v]) => newTags.get(k) !== undefined && newTags.get(k) !== v)
                             .map(([k]) => k)
+                            .toArray()
 
                         let tagsHint = ""
                         if (addedKeys.length) {
-                            tagsHint += "Add " + addedKeys.map(k => `${k}=${newTags[k]}`).join(", ") + "; "
+                            tagsHint += "Add " + addedKeys.map(k => `${k}=${newTags.get(k)}`).join(", ") + "; "
                         }
 
                         if (modifiedKeys.length) {
-                            tagsHint += "Changed " + modifiedKeys.map(k => `${k}=${prevTags[k]}\u200b→\u200b${newTags[k]}`).join(", ") + "; "
+                            tagsHint +=
+                                "Changed " + modifiedKeys.map(k => `${k}=${prevTags.get(k)}\u200b→\u200b${newTags.get(k)}`).join(", ") + "; "
                         }
 
                         if (removedKeys.length) {
-                            tagsHint += "Removed " + removedKeys.map(k => `${k}=${prevTags[k]}`).join(", ") + "; "
+                            tagsHint += "Removed " + removedKeys.map(k => `${k}=${prevTags.get(k)}`).join(", ") + "; "
                         }
 
                         if (tagsHint.length > 200 || modifiedKeys.length > 1) {
@@ -764,13 +780,13 @@ function renderOSMGeoJSON(xml, options = {}) {
 
                         let mainTagsHint = ""
 
-                        for (const i of Object.entries(prevTags)) {
+                        for (const i of prevTags.entries()) {
                             if (mainTags.includes(i[0]) && !removedKeys.includes(i[0]) && !modifiedKeys.includes(i[0])) {
                                 mainTagsHint += ` ${i[0]}=${i[1]}`
                                 break
                             }
                         }
-                        for (const i of Object.entries(prevTags)) {
+                        for (const i of prevTags.entries()) {
                             if (i[0] === "name" && !removedKeys.includes("name") && !modifiedKeys.includes("name")) {
                                 mainTagsHint += ` ${i[0]}=${i[1]}`
                                 break
@@ -832,9 +848,9 @@ function renderOSMGeoJSON(xml, options = {}) {
                         { once: true },
                     )
 
-                    oldTags = {}
+                    oldTags = new Map()
                     objectInfo.querySelectorAll("tag").forEach(i => {
-                        oldTags[i.getAttribute("k")] = i.getAttribute("v")
+                        oldTags.set(i.getAttribute("k"), i.getAttribute("v"))
                     })
                     await syncTags()
 
