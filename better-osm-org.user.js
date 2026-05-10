@@ -25614,6 +25614,9 @@ out geom;
 function displayCsv(text) {
     const [header, ...lines] = text.split("\n")
     console.log("lines count", lines.length)
+    if (lines.length > 20000) {
+        alert("Too many lines in CSV file. Only object in bbox will be displayed")
+    }
     let sep = header.includes(";") ? ";" : ","
     const columns = header
         .trim()
