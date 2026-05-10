@@ -28,6 +28,9 @@ function initCspBridge() {
         if (e.data.url.startsWith("https://tiles.indoorequal.org")) {
             opt.headers = { Referer: "https://www.openstreetmap.org/" }
         }
+        if (e.data.url.startsWith("https://tile.tracestrack.com")) {
+            opt.headers = { Referer: "https://www.openstreetmap.org/" }
+        }
         // fuck TM, need imitate Response
         try {
             const res = await fetchBlobWithCache(e.data.url, opt)
