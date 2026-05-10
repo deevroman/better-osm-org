@@ -940,9 +940,9 @@ async function askCustomTileUrl() {
         "One of <a href='https://github.com/osmlab/editor-layer-index'>layers collection</a>"
     popup.appendChild(note)
     document.body.appendChild(popup)
-    popup.querySelector('label:has([type="radio"]:checked)')?.querySelector("input")?.focus()
-    if (currentTilesMode !== SAT_MODE && popup.querySelector('label [type="radio"]:checked')) {
-        popup.querySelector('label [type="radio"]:checked').checked = false
+    popup.querySelector("label:has([type=radio]:checked)")?.querySelector("input")?.focus()
+    if (currentTilesMode !== SAT_MODE && popup.querySelector("label [type=radio]:checked")) {
+        popup.querySelector("label [type=radio]:checked").checked = false
     }
 }
 
