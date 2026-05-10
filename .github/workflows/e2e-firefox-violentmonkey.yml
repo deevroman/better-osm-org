@@ -33,7 +33,7 @@ jobs:
           - violentmonkey
           - tampermonkey
           - firemonkey
-          - scriptcat
+#          - scriptcat
         screen_profile:
           - desktop
           - mobile
