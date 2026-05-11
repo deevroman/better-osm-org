@@ -10419,7 +10419,7 @@ const allowedRelationTypes = new Set([
     "super-relation", "carriageway", "restriction:on_red", "area", "relation", "gallery", "through_route", "right_of_way",
     "linestring", "unposted_route", "water", "operator", "land_area", "navigation", "golf_course", "traffic_signals_group",
     "proposed", "segmented_tag", "road", "man_made", "transit", "construction", "access", "guidepost_destination", "fixme",
-    "label", "defaults", "lanelet", "traffic separation scheme", "station",
+    "label", "defaults", "lanelet", "traffic separation scheme", "station", "kit",
 ])
 
 function makeTypeValue(elem, objType) {
