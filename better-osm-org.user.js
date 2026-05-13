@@ -10209,7 +10209,7 @@ function makeRefInaturalistValue(elem) {
         return
     }
     elem.classList.add("inaturalisted")
-    if (elem.textContent.trim().match(/^[0-9;\s]+$/)) {
+    if (!elem.querySelector("a") && elem.textContent.trim().match(/^[0-9;\s]+$/)) {
         const ids = elem.textContent.split(";")
         if (ids.length !== 0 && ids.every(i => i.match(/^[0-9]+$/))) {
             elem.replaceChildren()
@@ -10805,9 +10805,7 @@ function makeLinksInVersionTagClickable(row, objType) {
             makeRefBelpostValue(valueCell)
         }
     } else if (key === "ref:inaturalist.org") {
-        if (!valueCell.querySelector("a")) {
-            makeRefInaturalistValue(valueCell)
-        }
+        makeRefInaturalistValue(valueCell)
     } else if (key.length <= 2 && key !== "to" && key !== "tv" && key !== "it") {
         keyCell.classList.add("fixme-tag")
         keyCell.title = "The key is too short"
