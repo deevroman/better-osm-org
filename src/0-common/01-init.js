@@ -540,10 +540,6 @@ function debug_alert() {
     debugger
 }
 
-//<editor-fold desc="i18n. Work In Progress!" defaultstate="collapsed">
-
-//</editor-fold>
-
 function printScriptDebugInfo() {
     console.log(`Script version: ${GM_info.script.version}`)
     console.log(`Script manager: ${GM_info.scriptHandler}`)

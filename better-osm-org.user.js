@@ -705,10 +705,6 @@ function debug_alert() {
     debugger
 }
 
-//<editor-fold desc="i18n. Work In Progress!" defaultstate="collapsed">
-
-//</editor-fold>
-
 function printScriptDebugInfo() {
     console.log(`Script version: ${GM_info.script.version}`)
     console.log(`Script manager: ${GM_info.scriptHandler}`)
@@ -845,6 +841,10 @@ if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id
         document.querySelector("#id-embed").replaceWith(iframe)
     })
 }
+
+//</editor-fold>
+
+//<editor-fold desc="i18n" defaultstate="collapsed">
 
 //</editor-fold>
 
