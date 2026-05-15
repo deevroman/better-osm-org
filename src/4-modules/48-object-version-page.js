@@ -239,7 +239,11 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type) {
             .addTo(getMap())
         layers["activeObjects"].push(rect)
     }
-    icon4.onclick = e => showBboxMenu(e, bbox)
+    icon4.onclick = e => {
+        e.preventDefault()
+        e.stopPropagation()
+        showBboxMenu(e, bbox)
+    }
     // todo нужно больше форматов bbox
     const icons = document.createElement("div")
     icons.style.paddingTop = "5px"
