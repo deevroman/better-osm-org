@@ -63,7 +63,7 @@ function addDeleteButton() {
 
     initOsmAuth()
     const link = document.createElement("a")
-    link.text = ["ru-RU", "ru"].includes(navigator.language) ? "Выпилить!" : "Delete"
+    link.text = t("objectEditor.delete")
     link.href = ""
     link.classList.add("delete_object_button_class")
     // skip deleted

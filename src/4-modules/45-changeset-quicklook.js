@@ -949,11 +949,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         geomChangedFlag.after(nodesTable)
         geomChangedFlag.after(tagsTable)
         if (lineWasReversed) {
-            geomChangedFlag.after(
-                document.createTextNode(
-                    ["ru-RU", "ru"].includes(navigator.language) ? " ⓘ Линию перевернули" : "ⓘ The line has been reversed",
-                ),
-            )
+            geomChangedFlag.after(document.createTextNode(t("changesetQuicklook.lineWasReversed")))
         }
     }
     if (objType === "way" && targetVersion.visible !== false) {
@@ -1351,24 +1347,16 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
     if (targetVersion.version !== lastVersion.version && lastVersion.visible === false) {
         const objDeletedBadge = document.createElement("span")
         if (targetVersion.user === lastVersion.user) {
-            objDeletedBadge.textContent = ["ru-RU", "ru"].includes(navigator.language)
-                ? " ⓘ Автор уже удалил объект"
-                : " ⓘ The object is now deleted by author"
+            objDeletedBadge.textContent = t("changesetQuicklook.objectDeletedByAuthor")
         } else {
-            objDeletedBadge.textContent = ["ru-RU", "ru"].includes(navigator.language)
-                ? " ⓘ Объект уже удалён"
-                : " ⓘ The object is now deleted"
+            objDeletedBadge.textContent = t("changesetQuicklook.objectDeleted")
         }
-        objDeletedBadge.title = ["ru-RU", "ru"].includes(navigator.language)
-            ? `${lastVersion.user} удалил этот объект`
-            : `${lastVersion.user} deleted this object`
+        objDeletedBadge.title = t("changesetQuicklook.objectDeletedTitle", { user: lastVersion.user })
         i.appendChild(objDeletedBadge)
     }
     if (targetVersion.visible === false && lastVersion.visible !== false) {
         const objRestoredBadge = document.createElement("span")
-        objRestoredBadge.textContent = ["ru-RU", "ru"].includes(navigator.language)
-            ? " ⓘ Объект сейчас восстановлен"
-            : " ⓘ The object is now restored"
+        objRestoredBadge.textContent = t("changesetQuicklook.objectRestored")
         let lastRestoredVersion
         for (let versionInd = 1; versionInd < objHistory.length; versionInd++) {
             if (objHistory[versionInd].version <= targetVersion.version) {
@@ -1380,13 +1368,9 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         }
         if (lastRestoredVersion) {
             if (lastRestoredVersion.user === targetVersion.user) {
-                objRestoredBadge.textContent = ["ru-RU", "ru"].includes(navigator.language)
-                    ? " ⓘ Автор уже восстановил объект"
-                    : " ⓘ The object is now restored by author"
+                objRestoredBadge.textContent = t("changesetQuicklook.objectRestoredByAuthor")
             } else {
-                objRestoredBadge.title = ["ru-RU", "ru"].includes(navigator.language)
-                    ? `${lastVersion.user} восстановил этот объект`
-                    : `${lastVersion.user} restored this object`
+                objRestoredBadge.title = t("changesetQuicklook.objectRestoredTitle", { user: lastVersion.user })
             }
         }
         i.appendChild(objRestoredBadge)
