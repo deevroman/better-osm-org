@@ -6,8 +6,9 @@
 /** @type {Langs} */
 const currentLocale = ["ru-RU", "ru"].includes(navigator.language) ? "ru" : "en"
 
-/** @typedef {Record<string, Record<string, string | ((params: Object) => string)>>} Translation */
-/** @type {Record<Langs, Translation>} */
+/** @typedef {string | ((params: Object) => string)} Translation */
+/** @typedef {Record<string, Record<string, Translation>>} Translations */
+/** @type {Record<Langs, Translations>} */
 const translations = {
     en: {
         objectEditor: {
@@ -81,16 +82,16 @@ const translations = {
 }
 
 /**
- * @param {Translation} localeTranslations
+ * @param {Translations} localeTranslations
  * @param {string} key
- * @return {string|((params: Object) => string)}
+ * @return {Translation}
  */
 function getTranslationValue(localeTranslations, key) {
     return key.split(".").reduce((value, part) => value?.[part], localeTranslations)
 }
 
 /**
- * @param {string | (function(Object): string)} translation
+ * @param {Translation} translation
  * @param {Object|null} params
  * @return {string}
  */
