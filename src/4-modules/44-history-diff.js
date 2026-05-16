@@ -730,10 +730,8 @@ async function replaceDownloadWayButton(btn, wayID) {
     function makeInterWayVersionHeader() {
         const interVersionDivHeader = document.createElement("h4")
         const interVersionDivAbbr = document.createElement("abbr")
-        interVersionDivAbbr.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Промежуточная версия" : "Intermediate version"
-        interVersionDivAbbr.title = ["ru-RU", "ru"].includes(navigator.language)
-            ? "Произошли изменения тегов или координат точек в линии,\nкоторые не увеличили версию линии"
-            : "There have been changes to the tags or coordinates of nodes in the way that have not increased the way version"
+        interVersionDivAbbr.textContent = t("historyDiff.intermediateWayVersion")
+        interVersionDivAbbr.title = t("historyDiff.intermediateWayVersionTitle")
         interVersionDivHeader.appendChild(interVersionDivAbbr)
         return interVersionDivHeader
     }
@@ -1103,18 +1101,18 @@ async function replaceDownloadWayButton(btn, wayID) {
 
         const allVersions = document.createElement("option")
         allVersions.value = "all-versions"
-        allVersions.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Все версии" : "All versions"
+        allVersions.textContent = t("historyDiff.allVersions")
         select.appendChild(allVersions)
 
         const withGeom = document.createElement("option")
         withGeom.value = "with-geom"
-        withGeom.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Все изменения геометрии" : "With geometry changes"
+        withGeom.textContent = t("historyDiff.withGeometryChanges")
         withGeom.setAttribute("selected", "selected")
         select.appendChild(withGeom)
 
         const withoutInter = document.createElement("option")
         withoutInter.value = "without-inter"
-        withoutInter.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Без промежуточных" : "Without intermediate"
+        withoutInter.textContent = t("historyDiff.withoutIntermediate")
         select.appendChild(withoutInter)
 
         select.onchange = e => {
@@ -1767,10 +1765,8 @@ async function replaceDownloadRelationButton(btn, relationID) {
     function makeInterRelationVersionHeader() {
         const interVersionDivHeader = document.createElement("h4")
         const interVersionDivAbbr = document.createElement("abbr")
-        interVersionDivAbbr.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Промежуточная версия" : "Intermediate version"
-        interVersionDivAbbr.title = ["ru-RU", "ru"].includes(navigator.language)
-            ? "Произошли изменения тегов или координат точек в отношении,\nкоторые не увеличили версию отношении"
-            : "There have been changes to the tags or coordinates of nodes in the relation that have not increased the relation version"
+        interVersionDivAbbr.textContent = t("historyDiff.intermediateRelationVersion")
+        interVersionDivAbbr.title = t("historyDiff.intermediateRelationVersionTitle")
         interVersionDivHeader.appendChild(interVersionDivAbbr)
         return interVersionDivHeader
     }
@@ -2201,18 +2197,18 @@ async function replaceDownloadRelationButton(btn, relationID) {
 
         const allVersions = document.createElement("option")
         allVersions.value = "all-versions"
-        allVersions.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Все версии" : "All versions"
+        allVersions.textContent = t("historyDiff.allVersions")
         select.appendChild(allVersions)
 
         const withGeom = document.createElement("option")
         withGeom.value = "with-geom"
-        withGeom.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Все изменения геометрии" : "With geometry changes"
+        withGeom.textContent = t("historyDiff.withGeometryChanges")
         withGeom.setAttribute("selected", "selected")
         select.appendChild(withGeom)
 
         const withoutInter = document.createElement("option")
         withoutInter.value = "without-inter"
-        withoutInter.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Без промежуточных" : "Without intermediate"
+        withoutInter.textContent = t("historyDiff.withoutIntermediate")
         select.appendChild(withoutInter)
 
         select.onchange = e => {
@@ -2775,9 +2771,7 @@ function setupViewRedactions() {
     }
     const showUnredactedBtn = document.createElement("a")
     showUnredactedBtn.id = "show-unredacted-btn"
-    showUnredactedBtn.textContent = ["ru-RU", "ru"].includes(navigator.language)
-        ? "Просмотр неотредактированной истории β"
-        : "View Unredacted History β"
+    showUnredactedBtn.textContent = t("historyDiff.viewUnredactedHistory")
     showUnredactedBtn.style.cursor = "pointer"
     showUnredactedBtn.href = ""
     showUnredactedBtn.onmouseenter = () => {
@@ -2961,12 +2955,11 @@ async function unrollPaginationInHistory() {
 
 function makeTitleForTagsCount(tagsCount) {
     if (tagsCount === 1) {
-        // fixme after adding localization
-        return tagsCount + (["ru-RU", "ru"].includes(navigator.language) ? " тег" : " tag")
+        return t("historyDiff.tagsCount", { count: tagsCount })
     } else if ((tagsCount < 10 || tagsCount > 20) && [2, 3, 4].includes(tagsCount % 10)) {
-        return tagsCount + (["ru-RU", "ru"].includes(navigator.language) ? " тега" : " tags")
+        return t("historyDiff.tagsCount", { count: tagsCount })
     } else {
-        return tagsCount + (["ru-RU", "ru"].includes(navigator.language) ? " тегов" : " tags")
+        return t("historyDiff.tagsCount", { count: tagsCount })
     }
 }
 

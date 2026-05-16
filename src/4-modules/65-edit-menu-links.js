@@ -822,7 +822,7 @@ async function _setupNewEditorsLinks(mutationsList) {
 
             const editListLi = editorsListUl.querySelector("li").cloneNode()
             const span = document.createElement("span")
-            span.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "больше ссылок" : "more links"
+            span.textContent = t("editMenuLinks.moreLinks")
             span.id = "change-list-btn"
             span.classList.add("closed", "dropdown-item")
             if (isMobile) {
@@ -845,7 +845,7 @@ async function _setupNewEditorsLinks(mutationsList) {
                     span.classList.remove("closed")
                     addOtherExternalLinks(editorsListUl)
 
-                    span.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "редактировать список" : "edit links list"
+                    span.textContent = t("editMenuLinks.editLinksList")
                     editorsListUl.scrollIntoView()
                     editListLi.onclick = e => {
                         e.preventDefault()

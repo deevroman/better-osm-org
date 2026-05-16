@@ -846,6 +846,124 @@ if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id
 
 //<editor-fold desc="i18n" defaultstate="collapsed">
 
+// WARN: work on i18n in progress. Notify me before start translation on your language
+
+/** @typedef {"ru"|"en"} Langs */
+/** @type {Langs} */
+const currentLocale = ["ru-RU", "ru"].includes(navigator.language) ? "ru" : "en"
+
+/** @typedef {Record<string, Record<string, string | ((params: Object) => string)>>} Translation */
+/** @type {Record<Langs, Translation>} */
+const translations = {
+    en: {
+        objectEditor: {
+            delete: "Delete",
+        },
+        historyDiff: {
+            intermediateWayVersion: "Intermediate version",
+            intermediateWayVersionTitle:
+                "There have been changes to the tags or coordinates of nodes in the way that have not increased the way version",
+            intermediateRelationVersion: "Intermediate version",
+            intermediateRelationVersionTitle:
+                "There have been changes to the tags or coordinates of nodes in the relation that have not increased the relation version",
+            allVersions: "All versions",
+            withGeometryChanges: "With geometry changes",
+            withoutIntermediate: "Without intermediate",
+            viewUnredactedHistory: "View Unredacted History β",
+            tagsCount: ({ count }) => `${count} tag${count === 1 ? "" : "s"}`,
+        },
+        changesetQuicklook: {
+            lineWasReversed: "ⓘ The line has been reversed",
+            objectDeletedByAuthor: " ⓘ The object is now deleted by author",
+            objectDeleted: " ⓘ The object is now deleted",
+            objectDeletedTitle: "{user} deleted this object",
+            objectRestored: " ⓘ The object is now restored",
+            objectRestoredByAuthor: " ⓘ The object is now restored by author",
+            objectRestoredTitle: "{user} restored this object",
+        },
+        editMenuLinks: {
+            moreLinks: "more links",
+            editLinksList: "edit links list",
+        },
+    },
+    ru: {
+        objectEditor: {
+            delete: "Выпилить!",
+        },
+        historyDiff: {
+            intermediateWayVersion: "Промежуточная версия",
+            intermediateWayVersionTitle: "Произошли изменения тегов или координат точек в линии,\nкоторые не увеличили версию линии",
+            intermediateRelationVersion: "Промежуточная версия",
+            intermediateRelationVersionTitle:
+                "Произошли изменения тегов или координат точек в отношении,\nкоторые не увеличили версию отношении",
+            allVersions: "Все версии",
+            withGeometryChanges: "Все изменения геометрии",
+            withoutIntermediate: "Без промежуточных",
+            viewUnredactedHistory: "Просмотр неотредактированной истории β",
+            tagsCount: ({ count }) => {
+                if (count === 1) {
+                    return `${count} тег`
+                }
+                if ((count < 10 || count > 20) && [2, 3, 4].includes(count % 10)) {
+                    return `${count} тега`
+                }
+                return `${count} тегов`
+            },
+        },
+        changesetQuicklook: {
+            lineWasReversed: " ⓘ Линию перевернули",
+            objectDeletedByAuthor: " ⓘ Автор уже удалил объект",
+            objectDeleted: " ⓘ Объект уже удалён",
+            objectDeletedTitle: "{user} удалил этот объект",
+            objectRestored: " ⓘ Объект сейчас восстановлен",
+            objectRestoredByAuthor: " ⓘ Автор уже восстановил объект",
+            objectRestoredTitle: "{user} восстановил этот объект",
+        },
+        editMenuLinks: {
+            moreLinks: "больше ссылок",
+            editLinksList: "редактировать список",
+        },
+    },
+}
+
+/**
+ * @param {Translation} localeTranslations
+ * @param {string} key
+ * @return {string|((params: Object) => string)}
+ */
+function getTranslationValue(localeTranslations, key) {
+    return key.split(".").reduce((value, part) => value?.[part], localeTranslations)
+}
+
+/**
+ * @param {string | (function(Object): string)} translation
+ * @param {Object|null} params
+ * @return {string}
+ */
+function formatTranslation(translation, params = null) {
+    if (typeof translation === "string") {
+        if (params === null) {
+            return translation
+        }
+        return translation.replaceAll(/\{(\w+)}/g, (match, key) => String(params[key] ?? match))
+    }
+    if (typeof translation === "function") {
+        return translation(params)
+    }
+    console.error(`Invalid translation value: ${translation}`)
+    return translation
+}
+
+/**
+ * @param {string} key
+ * @param {Object|null} params
+ * @return {string}
+ */
+function t(key, params = null) {
+    const translation = getTranslationValue(translations[currentLocale], key) ?? getTranslationValue(translations.en, key) ?? key
+    return formatTranslation(translation, params)
+}
+
 //</editor-fold>
 
 //<editor-fold desc="init-config" defaultstate="collapsed">
@@ -7373,7 +7491,7 @@ function addDeleteButton() {
 
     initOsmAuth()
     const link = document.createElement("a")
-    link.text = ["ru-RU", "ru"].includes(navigator.language) ? "Выпилить!" : "Delete"
+    link.text = t("objectEditor.delete")
     link.href = ""
     link.classList.add("delete_object_button_class")
     // skip deleted
@@ -11594,10 +11712,8 @@ async function replaceDownloadWayButton(btn, wayID) {
     function makeInterWayVersionHeader() {
         const interVersionDivHeader = document.createElement("h4")
         const interVersionDivAbbr = document.createElement("abbr")
-        interVersionDivAbbr.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Промежуточная версия" : "Intermediate version"
-        interVersionDivAbbr.title = ["ru-RU", "ru"].includes(navigator.language)
-            ? "Произошли изменения тегов или координат точек в линии,\nкоторые не увеличили версию линии"
-            : "There have been changes to the tags or coordinates of nodes in the way that have not increased the way version"
+        interVersionDivAbbr.textContent = t("historyDiff.intermediateWayVersion")
+        interVersionDivAbbr.title = t("historyDiff.intermediateWayVersionTitle")
         interVersionDivHeader.appendChild(interVersionDivAbbr)
         return interVersionDivHeader
     }
@@ -11967,18 +12083,18 @@ async function replaceDownloadWayButton(btn, wayID) {
 
         const allVersions = document.createElement("option")
         allVersions.value = "all-versions"
-        allVersions.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Все версии" : "All versions"
+        allVersions.textContent = t("historyDiff.allVersions")
         select.appendChild(allVersions)
 
         const withGeom = document.createElement("option")
         withGeom.value = "with-geom"
-        withGeom.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Все изменения геометрии" : "With geometry changes"
+        withGeom.textContent = t("historyDiff.withGeometryChanges")
         withGeom.setAttribute("selected", "selected")
         select.appendChild(withGeom)
 
         const withoutInter = document.createElement("option")
         withoutInter.value = "without-inter"
-        withoutInter.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Без промежуточных" : "Without intermediate"
+        withoutInter.textContent = t("historyDiff.withoutIntermediate")
         select.appendChild(withoutInter)
 
         select.onchange = e => {
@@ -12631,10 +12747,8 @@ async function replaceDownloadRelationButton(btn, relationID) {
     function makeInterRelationVersionHeader() {
         const interVersionDivHeader = document.createElement("h4")
         const interVersionDivAbbr = document.createElement("abbr")
-        interVersionDivAbbr.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Промежуточная версия" : "Intermediate version"
-        interVersionDivAbbr.title = ["ru-RU", "ru"].includes(navigator.language)
-            ? "Произошли изменения тегов или координат точек в отношении,\nкоторые не увеличили версию отношении"
-            : "There have been changes to the tags or coordinates of nodes in the relation that have not increased the relation version"
+        interVersionDivAbbr.textContent = t("historyDiff.intermediateRelationVersion")
+        interVersionDivAbbr.title = t("historyDiff.intermediateRelationVersionTitle")
         interVersionDivHeader.appendChild(interVersionDivAbbr)
         return interVersionDivHeader
     }
@@ -13065,18 +13179,18 @@ async function replaceDownloadRelationButton(btn, relationID) {
 
         const allVersions = document.createElement("option")
         allVersions.value = "all-versions"
-        allVersions.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Все версии" : "All versions"
+        allVersions.textContent = t("historyDiff.allVersions")
         select.appendChild(allVersions)
 
         const withGeom = document.createElement("option")
         withGeom.value = "with-geom"
-        withGeom.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Все изменения геометрии" : "With geometry changes"
+        withGeom.textContent = t("historyDiff.withGeometryChanges")
         withGeom.setAttribute("selected", "selected")
         select.appendChild(withGeom)
 
         const withoutInter = document.createElement("option")
         withoutInter.value = "without-inter"
-        withoutInter.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "Без промежуточных" : "Without intermediate"
+        withoutInter.textContent = t("historyDiff.withoutIntermediate")
         select.appendChild(withoutInter)
 
         select.onchange = e => {
@@ -13639,9 +13753,7 @@ function setupViewRedactions() {
     }
     const showUnredactedBtn = document.createElement("a")
     showUnredactedBtn.id = "show-unredacted-btn"
-    showUnredactedBtn.textContent = ["ru-RU", "ru"].includes(navigator.language)
-        ? "Просмотр неотредактированной истории β"
-        : "View Unredacted History β"
+    showUnredactedBtn.textContent = t("historyDiff.viewUnredactedHistory")
     showUnredactedBtn.style.cursor = "pointer"
     showUnredactedBtn.href = ""
     showUnredactedBtn.onmouseenter = () => {
@@ -13825,12 +13937,11 @@ async function unrollPaginationInHistory() {
 
 function makeTitleForTagsCount(tagsCount) {
     if (tagsCount === 1) {
-        // fixme after adding localization
-        return tagsCount + (["ru-RU", "ru"].includes(navigator.language) ? " тег" : " tag")
+        return t("historyDiff.tagsCount", { count: tagsCount })
     } else if ((tagsCount < 10 || tagsCount > 20) && [2, 3, 4].includes(tagsCount % 10)) {
-        return tagsCount + (["ru-RU", "ru"].includes(navigator.language) ? " тега" : " tags")
+        return t("historyDiff.tagsCount", { count: tagsCount })
     } else {
-        return tagsCount + (["ru-RU", "ru"].includes(navigator.language) ? " тегов" : " tags")
+        return t("historyDiff.tagsCount", { count: tagsCount })
     }
 }
 
@@ -15650,11 +15761,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         geomChangedFlag.after(nodesTable)
         geomChangedFlag.after(tagsTable)
         if (lineWasReversed) {
-            geomChangedFlag.after(
-                document.createTextNode(
-                    ["ru-RU", "ru"].includes(navigator.language) ? " ⓘ Линию перевернули" : "ⓘ The line has been reversed",
-                ),
-            )
+            geomChangedFlag.after(document.createTextNode(t("changesetQuicklook.lineWasReversed")))
         }
     }
     if (objType === "way" && targetVersion.visible !== false) {
@@ -16052,24 +16159,16 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
     if (targetVersion.version !== lastVersion.version && lastVersion.visible === false) {
         const objDeletedBadge = document.createElement("span")
         if (targetVersion.user === lastVersion.user) {
-            objDeletedBadge.textContent = ["ru-RU", "ru"].includes(navigator.language)
-                ? " ⓘ Автор уже удалил объект"
-                : " ⓘ The object is now deleted by author"
+            objDeletedBadge.textContent = t("changesetQuicklook.objectDeletedByAuthor")
         } else {
-            objDeletedBadge.textContent = ["ru-RU", "ru"].includes(navigator.language)
-                ? " ⓘ Объект уже удалён"
-                : " ⓘ The object is now deleted"
+            objDeletedBadge.textContent = t("changesetQuicklook.objectDeleted")
         }
-        objDeletedBadge.title = ["ru-RU", "ru"].includes(navigator.language)
-            ? `${lastVersion.user} удалил этот объект`
-            : `${lastVersion.user} deleted this object`
+        objDeletedBadge.title = t("changesetQuicklook.objectDeletedTitle", { user: lastVersion.user })
         i.appendChild(objDeletedBadge)
     }
     if (targetVersion.visible === false && lastVersion.visible !== false) {
         const objRestoredBadge = document.createElement("span")
-        objRestoredBadge.textContent = ["ru-RU", "ru"].includes(navigator.language)
-            ? " ⓘ Объект сейчас восстановлен"
-            : " ⓘ The object is now restored"
+        objRestoredBadge.textContent = t("changesetQuicklook.objectRestored")
         let lastRestoredVersion
         for (let versionInd = 1; versionInd < objHistory.length; versionInd++) {
             if (objHistory[versionInd].version <= targetVersion.version) {
@@ -16081,13 +16180,9 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         }
         if (lastRestoredVersion) {
             if (lastRestoredVersion.user === targetVersion.user) {
-                objRestoredBadge.textContent = ["ru-RU", "ru"].includes(navigator.language)
-                    ? " ⓘ Автор уже восстановил объект"
-                    : " ⓘ The object is now restored by author"
+                objRestoredBadge.textContent = t("changesetQuicklook.objectRestoredByAuthor")
             } else {
-                objRestoredBadge.title = ["ru-RU", "ru"].includes(navigator.language)
-                    ? `${lastVersion.user} восстановил этот объект`
-                    : `${lastVersion.user} restored this object`
+                objRestoredBadge.title = t("changesetQuicklook.objectRestoredTitle", { user: lastVersion.user })
             }
         }
         i.appendChild(objRestoredBadge)
@@ -24295,7 +24390,7 @@ async function _setupNewEditorsLinks(mutationsList) {
 
             const editListLi = editorsListUl.querySelector("li").cloneNode()
             const span = document.createElement("span")
-            span.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "больше ссылок" : "more links"
+            span.textContent = t("editMenuLinks.moreLinks")
             span.id = "change-list-btn"
             span.classList.add("closed", "dropdown-item")
             if (isMobile) {
@@ -24318,7 +24413,7 @@ async function _setupNewEditorsLinks(mutationsList) {
                     span.classList.remove("closed")
                     addOtherExternalLinks(editorsListUl)
 
-                    span.textContent = ["ru-RU", "ru"].includes(navigator.language) ? "редактировать список" : "edit links list"
+                    span.textContent = t("editMenuLinks.editLinksList")
                     editorsListUl.scrollIntoView()
                     editListLi.onclick = e => {
                         e.preventDefault()
