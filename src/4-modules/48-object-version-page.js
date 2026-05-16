@@ -1075,7 +1075,7 @@ function makeVersionPageBetter() {
             const ver = document.querySelector(browseSectionSelector)
             const tagsCount = ver.querySelectorAll("#sidebar_content tr:has(th):has(td)").length
             if (tagsCount > 5) {
-                ver.title = makeTitleForTagsCount(tagsCount)
+                ver.title = t("historyDiff.tagsCount", { count: tagsCount })
             }
 
             const metainfoHTML = ver?.querySelector(":scope > div > div:has(time)")

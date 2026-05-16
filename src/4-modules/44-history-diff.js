@@ -2953,16 +2953,6 @@ async function unrollPaginationInHistory() {
     })
 }
 
-function makeTitleForTagsCount(tagsCount) {
-    if (tagsCount === 1) {
-        return t("historyDiff.tagsCount", { count: tagsCount })
-    } else if ((tagsCount < 10 || tagsCount > 20) && [2, 3, 4].includes(tagsCount % 10)) {
-        return t("historyDiff.tagsCount", { count: tagsCount })
-    } else {
-        return t("historyDiff.tagsCount", { count: tagsCount })
-    }
-}
-
 function addDiffInHistoryStyle() {
     const styleText =
         `
@@ -3707,7 +3697,7 @@ function transformDiffWithColors() {
             visible: visible,
         })
         ver.querySelectorAll("h4").forEach((el, index) => (index !== 0 ? el.classList.add("hidden-h4") : null))
-        ver.title = makeTitleForTagsCount(tags.length)
+        ver.title = t("historyDiff.tagsCount", { count: tags.length })
     }
     if (document.querySelector("#older_element_versions_navigation a")) {
         oldToNewHtmlVersions[0]?.classList?.remove("processed")
