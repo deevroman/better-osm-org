@@ -2175,7 +2175,7 @@ function actionOpenRelevantHistoryPage() {
         }
     } else if (isHomeOrNotePage()) {
         addCompactSidebarStyle()
-        document.querySelector('.nav-link[href^="/history"]')?.click()
+        document.querySelector('.nav-link[href*="/history"]')?.click()
     } else if (location.pathname.includes("/user/")) {
         document.querySelector('a[href^="/user/"][href$="/history"]')?.click()
     }
