@@ -855,7 +855,7 @@ const currentLocale = ["ru-RU", "ru"].includes(navigator.language) ? "ru" : "en"
 /** @typedef {string | ((params: Object) => string)} Translation */
 /** @typedef {Record<string, Record<string, Translation>>} Translations */
 /** @type {Record<Langs, Translations>} */
-const translations = {
+const _translations = {
     en: {
         objectEditor: {
             delete: "Delete",
@@ -928,12 +928,22 @@ const translations = {
 }
 
 /**
- * @param {Translations} localeTranslations
- * @param {string} key
- * @return {Translation}
+ * @param {Translations} translations
+ * @return {{[p: string]: unknown}}
  */
-function getTranslationValue(localeTranslations, key) {
-    return key.split(".").reduce((value, part) => value?.[part], localeTranslations)
+function flatTranslations(translations) {
+    return Object.fromEntries(
+        Object.entries(translations).flatMap(([k1, value]) => {
+            return Object.entries(value).map(([k2, v]) => [`${k1}.${k2}`, v])
+        }),
+    )
+}
+
+const flattenTranslations = flatTranslations(_translations[currentLocale])
+const flattenTranslationsEn = currentLocale === "en" ? flattenTranslations : flatTranslations(_translations["en"])
+
+if (Object.keys(flattenTranslations).length !== Object.keys(flattenTranslationsEn).length) {
+    console.error(`missing translations in ${currentLocale} locale`)
 }
 
 /**
@@ -961,8 +971,7 @@ function formatTranslation(translation, params = null) {
  * @return {string}
  */
 function t(key, params = null) {
-    const translation = getTranslationValue(translations[currentLocale], key) ?? getTranslationValue(translations.en, key) ?? key
-    return formatTranslation(translation, params)
+    return formatTranslation(flattenTranslations[key] ?? flattenTranslationsEn[key] ?? key, params)
 }
 
 //</editor-fold>
