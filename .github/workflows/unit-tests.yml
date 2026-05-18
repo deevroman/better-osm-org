@@ -24,6 +24,9 @@ jobs:
       - name: Run arraysDiff test
         run: node --test src/tests/42-diff-algorithm.test.js
 
+      - name: Validate translations
+        run: node --test src/tests/02-i18n.test.js
+
 #      - name: Run way geometry validator test
 #        run: node --test src/tests/11-geometry-validator.test.js
 

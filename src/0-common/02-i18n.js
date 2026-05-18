@@ -2,9 +2,17 @@
 
 // WARN: work on i18n in progress. Notify me before start translation on your language
 
-/** @typedef {"ru"|"en"} Langs */
+const localeMap = {
+    ru: ["ru-RU", "ru"],
+    uk: ["uk-UA", "uk"],
+    fr: ["fr-FR", "fr"],
+    de: ["de-DE", "de"],
+    hr: ["hr-HR", "hr"],
+}
+
+/** @typedef {"ru"|"en"|"uk"|"fr"|"de"|"hr"} Langs */
 /** @type {Langs} */
-const currentLocale = ["ru-RU", "ru"].includes(navigator.language) ? "ru" : "en"
+const currentLocale = Object.entries(localeMap).find(([, locales]) => locales.includes(navigator.language))?.[0] ?? "en"
 
 /** @typedef {string | ((params: Object) => string)} Translation */
 /** @typedef {Record<string, Record<string, Translation>>} Translations */
@@ -77,6 +85,135 @@ const _translations = {
         editMenuLinks: {
             moreLinks: "больше ссылок",
             editLinksList: "редактировать список",
+        },
+    },
+    uk: {
+        objectEditor: {
+            delete: "Видалити",
+        },
+        historyDiff: {
+            intermediateWayVersion: "Проміжна версія",
+            intermediateWayVersionTitle: "Відбулися зміни тегів або координат точок у лінії,\nякі не збільшили версію лінії",
+            intermediateRelationVersion: "Проміжна версія",
+            intermediateRelationVersionTitle: "Відбулися зміни тегів або координат точок у відношенні,\nякі не збільшили версію відношення",
+            allVersions: "Усі версії",
+            withGeometryChanges: "Усі зміни геометрії",
+            withoutIntermediate: "Без проміжних",
+            viewUnredactedHistory: "Перегляд неретушованої історії β",
+            tagsCount: ({ count }) => {
+                if (count === 1) {
+                    return `${count} тег`
+                }
+                if ((count < 10 || count > 20) && [2, 3, 4].includes(count % 10)) {
+                    return `${count} теги`
+                }
+                return `${count} тегів`
+            },
+        },
+        changesetQuicklook: {
+            lineWasReversed: " ⓘ Лінію перевернули",
+            objectDeletedByAuthor: " ⓘ Автор уже видалив об’єкт",
+            objectDeleted: " ⓘ Об’єкт уже видалено",
+            objectDeletedTitle: "{user} видалив цей об’єкт",
+            objectRestored: " ⓘ Об’єкт зараз відновлено",
+            objectRestoredByAuthor: " ⓘ Автор уже відновив об’єкт",
+            objectRestoredTitle: "{user} відновив цей об’єкт",
+        },
+        editMenuLinks: {
+            moreLinks: "більше посилань",
+            editLinksList: "редагувати список",
+        },
+    },
+    fr: {
+        objectEditor: {
+            delete: "Supprimer",
+        },
+        historyDiff: {
+            intermediateWayVersion: "Version intermédiaire",
+            intermediateWayVersionTitle:
+                "Des modifications des tags ou des coordonnées des nœuds de la ligne\nn'ont pas augmenté la version de la ligne",
+            intermediateRelationVersion: "Version intermédiaire",
+            intermediateRelationVersionTitle:
+                "Des modifications des tags ou des coordonnées des nœuds de la relation\nn'ont pas augmenté la version de la relation",
+            allVersions: "Toutes les versions",
+            withGeometryChanges: "Avec modifications géométriques",
+            withoutIntermediate: "Sans intermédiaires",
+            viewUnredactedHistory: "Voir l’historique non censuré β",
+            tagsCount: ({ count }) => `${count} tag${count > 1 ? "s" : ""}`,
+        },
+        changesetQuicklook: {
+            lineWasReversed: " ⓘ La ligne a été inversée",
+            objectDeletedByAuthor: " ⓘ L’objet est maintenant supprimé par l’auteur",
+            objectDeleted: " ⓘ L’objet est maintenant supprimé",
+            objectDeletedTitle: "{user} a supprimé cet objet",
+            objectRestored: " ⓘ L’objet est maintenant restauré",
+            objectRestoredByAuthor: " ⓘ L’auteur a restauré l’objet",
+            objectRestoredTitle: "{user} a restauré cet objet",
+        },
+        editMenuLinks: {
+            moreLinks: "plus de liens",
+            editLinksList: "modifier la liste",
+        },
+    },
+    de: {
+        objectEditor: {
+            delete: "Löschen",
+        },
+        historyDiff: {
+            intermediateWayVersion: "Zwischenversion",
+            intermediateWayVersionTitle:
+                "Es gab Änderungen an Tags oder Knotenkoordinaten der Linie,\ndie die Versionsnummer der Linie nicht erhöht haben",
+            intermediateRelationVersion: "Zwischenversion",
+            intermediateRelationVersionTitle:
+                "Es gab Änderungen an Tags oder Knotenkoordinaten der Relation,\ndie die Versionsnummer der Relation nicht erhöht haben",
+            allVersions: "Alle Versionen",
+            withGeometryChanges: "Mit Geometrieänderungen",
+            withoutIntermediate: "Ohne Zwischenversionen",
+            viewUnredactedHistory: "Unzensierte Versionsgeschichte anzeigen β",
+            tagsCount: ({ count }) => `${count} Tag${count === 1 ? "" : "s"}`,
+        },
+        changesetQuicklook: {
+            lineWasReversed: " ⓘ Die Linie wurde umgedreht",
+            objectDeletedByAuthor: " ⓘ Das Objekt wurde bereits vom Autor gelöscht",
+            objectDeleted: " ⓘ Das Objekt wurde bereits gelöscht",
+            objectDeletedTitle: "{user} hat dieses Objekt gelöscht",
+            objectRestored: " ⓘ Das Objekt wurde wiederhergestellt",
+            objectRestoredByAuthor: " ⓘ Der Autor hat das Objekt bereits wiederhergestellt",
+            objectRestoredTitle: "{user} hat dieses Objekt wiederhergestellt",
+        },
+        editMenuLinks: {
+            moreLinks: "mehr Links",
+            editLinksList: "Linkliste bearbeiten",
+        },
+    },
+    hr: {
+        objectEditor: {
+            delete: "Izbriši",
+        },
+        historyDiff: {
+            intermediateWayVersion: "Međuverzija",
+            intermediateWayVersionTitle: "Došlo je do promjena oznaka ili koordinata čvorova na liniji,\nkoje nisu povećale verziju linije",
+            intermediateRelationVersion: "Međuverzija",
+            intermediateRelationVersionTitle:
+                "Došlo je do promjena oznaka ili koordinata čvorova u relaciji,\nkoje nisu povećale verziju relacije",
+            allVersions: "Sve verzije",
+            withGeometryChanges: "Sa promjenama geometrije",
+            withoutIntermediate: "Bez međuverzija",
+            viewUnredactedHistory: "Prikaži necenzuriranu povijest β",
+            tagsCount: ({ count }) => `${count} oznaka${count % 10 >= 2 && count % 10 <= 4 && (count < 10 || count > 20) ? "e" : ""}`,
+        },
+        changesetQuicklook: {
+            lineWasReversed: " ⓘ Linija je obrnuta",
+            objectDeletedByAuthor: " ⓘ Autor je već izbrisao objekt",
+            objectDeleted: " ⓘ Objekt je već izbrisan",
+            objectDeletedTitle: "{user} je izbrisao ovaj objekt",
+            objectRestored: " ⓘ Objekt je sada vraćen",
+            objectRestoredByAuthor: " ⓘ Autor je već vratio objekt",
+            objectRestoredTitle: "{user} je vratio ovaj objekt",
+        },
+        editMenuLinks: {
+            moreLinks: "više poveznica",
+            editLinksList: "uredi popis poveznica",
         },
     },
 }
