@@ -6674,33 +6674,8 @@ function tryReloadSidebar() {
     }
 }
 
-function addResolveNotesButton() {
-    if (!location.pathname.includes("/note")) return
-    if (location.pathname.includes("/note/new")) {
-        addCreateNewPOIButton()
-        return
-    }
-    if (document.querySelector(".resolve-note-done")) return true
-    if (document.querySelector("#timeback-btn")) return true
-    resetSearchFormFocus()
-    void geocodeCurrentView()
-
-    document.querySelectorAll('#sidebar_content a[href^="/user/"]').forEach(elem => {
-        getCachedUserInfo(elem.textContent).then(info => {
-            elem.before(makeBadge(info, new Date(elem.parentElement.querySelector("time")?.getAttribute("datetime") ?? new Date())))
-            elem.title = makeUsernameTitle(info)
-        })
-    })
-    externalizeLinks(document.querySelectorAll(".overflow-hidden a"))
-
-    makeTimesSwitchable()
-
+function addTimebackButton(timestamp) {
     try {
-        // timeback button
-        let timestamp = document.querySelector("#sidebar_content time")?.dateTime
-        if (!timestamp) {
-            return
-        }
         let timeSource = "note creation date"
         const noteText = document.querySelector(".overflow-hidden")?.textContent
         const mapsmeDate = noteText?.match(/OSM data version: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/)
@@ -6770,14 +6745,9 @@ ${styleSuffix}`
     } catch (e) {
         console.error("setup timeback button fail", e)
     }
+}
 
-    try {
-        makeHashtagsInNotesClickable()
-        makeUsernameInNotesFilterable()
-    } catch {
-        console.error("fail when setuping filterable links in note")
-    }
-
+function processAttachedGpsTracks() {
     document.querySelectorAll("#sidebar_content div:has(h4) a:not(.gpx-displayed)").forEach(i => {
         i.classList.add("gpx-displayed")
         const m = i.href.match(new RegExp(`${osm_server.url}/user/.+/traces/(\\d+)`))
@@ -6787,6 +6757,43 @@ ${styleSuffix}`
             }).then(res => displayGPXTrack(res.response))
         }
     })
+}
+
+function addResolveNotesButton() {
+    if (!location.pathname.includes("/note")) return
+    if (location.pathname.includes("/note/new")) {
+        addCreateNewPOIButton()
+        return
+    }
+    if (document.querySelector(".resolve-note-done")) return true
+    if (document.querySelector("#timeback-btn")) return true
+    resetSearchFormFocus()
+    void geocodeCurrentView()
+
+    document.querySelectorAll('#sidebar_content a[href^="/user/"]').forEach(elem => {
+        getCachedUserInfo(elem.textContent).then(info => {
+            elem.before(makeBadge(info, new Date(elem.parentElement.querySelector("time")?.getAttribute("datetime") ?? new Date())))
+            elem.title = makeUsernameTitle(info)
+        })
+    })
+    externalizeLinks(document.querySelectorAll(".overflow-hidden a"))
+
+    makeTimesSwitchable()
+
+    const timestamp = document.querySelector("#sidebar_content time")?.dateTime
+    if (!timestamp) {
+        return
+    }
+    addTimebackButton(timestamp)
+
+    try {
+        makeHashtagsInNotesClickable()
+        makeUsernameInNotesFilterable()
+    } catch {
+        console.error("fail when setuping filterable links in note")
+    }
+
+    processAttachedGpsTracks()
     try {
         addAltClickHandlerForNotes()
     } catch (err) {
