@@ -337,6 +337,48 @@ function processAttachedGpsTracks() {
     })
 }
 
+function addStreetCompletePhotos(isClosedNote) {
+    document.querySelectorAll("#sidebar_content div:has(h4) a").forEach(i => {
+        if (i.href?.match(/^(https:\/\/streetcomplete\.app\/|https:\/\/westnordost\.de\/).+\.jpg$/)) {
+            const imgSrc = i.href
+            if (isSafari) {
+                fetchImageWithCache(imgSrc).then(async imgData => {
+                    const img = document.createElement("img")
+                    img.src = imgData
+                    if (!isClosedNote) {
+                        img.style.width = "100%"
+                    }
+                    img.onerror = () => {
+                        img.style.display = "none"
+                    }
+                    img.onload = () => {
+                        img.style.width = "100%"
+                    }
+                    i.after(img)
+                })
+            } else {
+                const img = GM_addElement("img", {
+                    src: imgSrc,
+                    // crossorigin: "anonymous"
+                })
+                if (!isClosedNote) {
+                    img.style.width = "100%"
+                }
+                img.onerror = () => {
+                    img.style.display = "none"
+                }
+                img.onload = () => {
+                    img.style.width = "100%"
+                }
+                i.after(img)
+            }
+            document.querySelector("#sidebar").style.resize = "horizontal"
+            document.querySelector("#sidebar").style.width = "450px"
+            // hideSearchForm()
+        }
+    })
+}
+
 function addResolveNotesButton() {
     if (!location.pathname.includes("/note")) return
     if (location.pathname.includes("/note/new")) {
@@ -382,45 +424,7 @@ function addResolveNotesButton() {
         return !document.querySelector("#sidebar_content textarea.form-control")
     }
 
-    document.querySelectorAll("#sidebar_content div:has(h4) a").forEach(i => {
-        if (i.href?.match(/^(https:\/\/streetcomplete\.app\/|https:\/\/westnordost\.de\/).+\.jpg$/)) {
-            const imgSrc = i.href
-            if (isSafari) {
-                fetchImageWithCache(imgSrc).then(async imgData => {
-                    const img = document.createElement("img")
-                    img.src = imgData
-                    if (!isClosedNote()) {
-                        img.style.width = "100%"
-                    }
-                    img.onerror = () => {
-                        img.style.display = "none"
-                    }
-                    img.onload = () => {
-                        img.style.width = "100%"
-                    }
-                    i.after(img)
-                })
-            } else {
-                const img = GM_addElement("img", {
-                    src: imgSrc,
-                    // crossorigin: "anonymous"
-                })
-                if (!isClosedNote()) {
-                    img.style.width = "100%"
-                }
-                img.onerror = () => {
-                    img.style.display = "none"
-                }
-                img.onload = () => {
-                    img.style.width = "100%"
-                }
-                i.after(img)
-            }
-            document.querySelector("#sidebar").style.resize = "horizontal"
-            document.querySelector("#sidebar").style.width = "450px"
-            // hideSearchForm()
-        }
-    })
+    addStreetCompletePhotos(isClosedNote())
 
     if (isClosedNote()) {
         if (false && isDebug()) {
