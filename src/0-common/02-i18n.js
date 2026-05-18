@@ -220,7 +220,7 @@ const _translations = {
 
 /**
  * @param {Translations} translations
- * @return {{[p: string]: unknown}}
+ * @return {Object.<string, Translation>}
  */
 function flatTranslations(translations) {
     return Object.fromEntries(
