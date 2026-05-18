@@ -414,6 +414,41 @@ function addRelatedChangesetsSearch() {
     lastCommentTime.after(findChangesetsBtn)
 }
 
+function insertNoteResolveButtons() {
+    /** @type {string} */
+    const resolveButtonsText = GM_config.get("ResolveNotesButton")
+    if (!resolveButtonsText) {
+        return
+    }
+    initOsmAuth()
+    const note_id = location.pathname.match(/note\/(\d+)/)[1]
+    JSON.parse(resolveButtonsText).forEach(row => {
+        const label = row["label"]
+        let text = label
+        if (row["text"] !== "") {
+            text = row["text"]
+        }
+        const b = document.createElement("button")
+        b.classList.add("resolve-note-done", "btn", "btn-primary")
+        b.textContent = label
+        b.title = `Add to the comment "${text}" and close the note.\nYou can change emoji in userscript settings`
+        document.querySelectorAll("form.mb-3")[0].before(b)
+        b.after(document.createTextNode("\xA0"))
+        b.onclick = async () => {
+            try {
+                await closeNote(note_id, text)
+            } catch (err) {
+                alert(err)
+            } finally {
+                tryReloadSidebar()
+                getMap().fire("moveend")
+            }
+        }
+    })
+    document.querySelectorAll("form.mb-3")[0].before(document.createElement("p"))
+    document.querySelector("form.mb-3 .form-control").rows = 3
+}
+
 function addResolveNotesButton() {
     if (!location.pathname.includes("/note")) return
     if (location.pathname.includes("/note/new")) {
@@ -463,39 +498,9 @@ function addResolveNotesButton() {
         addRelatedChangesetsSearch()
         return
     }
-    initOsmAuth()
-    const note_id = location.pathname.match(/note\/(\d+)/)[1]
-    /** @type {string} */
-    const resolveButtonsText = GM_config.get("ResolveNotesButton")
-    if (resolveButtonsText) {
-        JSON.parse(resolveButtonsText).forEach(row => {
-            const label = row["label"]
-            let text = label
-            if (row["text"] !== "") {
-                text = row["text"]
-            }
-            const b = document.createElement("button")
-            b.classList.add("resolve-note-done", "btn", "btn-primary")
-            b.textContent = label
-            b.title = `Add to the comment "${text}" and close the note.\nYou can change emoji in userscript settings`
-            document.querySelectorAll("form.mb-3")[0].before(b)
-            b.after(document.createTextNode("\xA0"))
-            b.onclick = async () => {
-                try {
-                    await closeNote(note_id, text)
-                } catch (err) {
-                    alert(err)
-                } finally {
-                    tryReloadSidebar()
-                    getMap().fire("moveend")
-                }
-            }
-        })
-        document.querySelectorAll("form.mb-3")[0].before(document.createElement("p"))
-        document.querySelector("form.mb-3 .form-control").rows = 3
-        if (isDebug()) {
-            addAutoComplete()
-        }
+    insertNoteResolveButtons()
+    if (isDebug()) {
+        addAutoComplete()
     }
 }
 
