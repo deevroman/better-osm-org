@@ -379,6 +379,41 @@ function addStreetCompletePhotos(isClosedNote) {
     })
 }
 
+function addRelatedChangesetsSearch() {
+    if (true || !isDebug()) {
+        return
+    }
+    const lastCommentTime = Array.from(document.querySelectorAll("#sidebar_content article time")).at(-1)
+    const findChangesetsBtn = document.createElement("span")
+    findChangesetsBtn.textContent = " 🔍"
+    findChangesetsBtn.style.cursor = "pointer"
+    findChangesetsBtn.onclick = async e => {
+        e.preventDefault()
+        e.stopPropagation()
+        e.stopImmediatePropagation()
+        findChangesetsBtn.style.cursor = "progress"
+        const closeTime = new Date(lastCommentTime.getAttribute("datetime"))
+        const prevDay = new Date(closeTime.getTime() - 24 * 60 * 60 * 1000)
+        const nextDay = new Date(closeTime.getTime() + 24 * 60 * 60 * 1000)
+        const username = lastCommentTime.previousElementSibling.getAttribute("href").match(/user\/(.+)$/)[1]
+        const changesetsPrev = await loadChangesetsBetween(username, prevDay, closeTime)
+        const changesetsNext = await loadChangesetsBetween(username, closeTime, nextDay)
+
+        const menu = makeContextMenuElem(e)
+        const ul = document.createElement("ul")
+        const li = document.createElement("li")
+        li.textContent = "test"
+        ul.appendChild(li)
+        menu.appendChild(ul)
+        document.body.appendChild(menu)
+        console.log(changesetsPrev)
+        console.log(changesetsNext)
+
+        findChangesetsBtn.style.cursor = "pointer"
+    }
+    lastCommentTime.after(findChangesetsBtn)
+}
+
 function addResolveNotesButton() {
     if (!location.pathname.includes("/note")) return
     if (location.pathname.includes("/note/new")) {
@@ -420,46 +455,12 @@ function addResolveNotesButton() {
         console.error(err, "fail add alt clicks handlers for note layer")
     }
 
-    function isClosedNote() {
-        return !document.querySelector("#sidebar_content textarea.form-control")
-    }
+    const isClosedNote = !document.querySelector("#sidebar_content textarea.form-control")
 
-    addStreetCompletePhotos(isClosedNote())
+    addStreetCompletePhotos(isClosedNote)
 
-    if (isClosedNote()) {
-        if (false && isDebug()) {
-            const lastCommentTime = Array.from(document.querySelectorAll("#sidebar_content article time")).at(-1)
-
-            const findChangesetsBtn = document.createElement("span")
-            findChangesetsBtn.textContent = " 🔍"
-            findChangesetsBtn.style.cursor = "pointer"
-            findChangesetsBtn.onclick = async e => {
-                e.preventDefault()
-                e.stopPropagation()
-                e.stopImmediatePropagation()
-                findChangesetsBtn.style.cursor = "progress"
-                const closeTime = new Date(lastCommentTime.getAttribute("datetime"))
-                const prevDay = new Date(closeTime.getTime() - 24 * 60 * 60 * 1000)
-                const nextDay = new Date(closeTime.getTime() + 24 * 60 * 60 * 1000)
-                const username = lastCommentTime.previousElementSibling.getAttribute("href").match(/user\/(.+)$/)[1]
-                const changesetsPrev = await loadChangesetsBetween(username, prevDay, closeTime)
-                const changesetsNext = await loadChangesetsBetween(username, closeTime, nextDay)
-
-                const menu = makeContextMenuElem(e)
-                const ul = document.createElement("ul")
-                const li = document.createElement("li")
-                li.textContent = "test"
-                ul.appendChild(li)
-                menu.appendChild(ul)
-                document.body.appendChild(menu)
-                console.log(changesetsPrev)
-                console.log(changesetsNext)
-
-                findChangesetsBtn.style.cursor = "pointer"
-            }
-
-            lastCommentTime.after(findChangesetsBtn)
-        }
+    if (isClosedNote) {
+        addRelatedChangesetsSearch()
         return
     }
     initOsmAuth()
