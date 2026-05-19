@@ -92,6 +92,7 @@ function buildOnce() {
             new vm.Script(newFile, { filename: outPath })
         } catch (error) {
             console.error(`Syntax check failed, not writing: ${error.message}`)
+            return
         }
 
         const gitBusyReason = getGitBusyReason()
