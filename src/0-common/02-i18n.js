@@ -333,6 +333,10 @@ const _translations = {
         },
     },
     uk: {
+        init: {
+            disableBetterOsmOrg: "Вимкніть better-osm-org",
+            scriptVersion: "Версія скрипта: ",
+        },
         config: {
             sectionID: "iD",
             sectionViewingEdits: "Перегляд редагувань",
@@ -392,6 +396,7 @@ const _translations = {
             withGeometryChanges: "Усі зміни геометрії",
             withoutIntermediate: "Без проміжних",
             viewUnredactedHistory: "Перегляд неретушованої історії β",
+            errorPleaseReport: "Помилка :( Будь ласка, повідомте про це в GitHub-репозиторії better-osm-org",
             tagsCount: ({ count }) => {
                 if (count === 1) {
                     return `${count} тег`
@@ -415,8 +420,83 @@ const _translations = {
             moreLinks: "більше посилань",
             editLinksList: "редагувати список",
         },
+        routers: {
+            routingDataTimeFor: "Час даних роутингу для {name}: {time}",
+            openDebugMap: "Відкрити Debug Map",
+        },
+        satellite: {
+            setupCustomStyleJson: "Налаштування власного стилю векторної карти",
+            setupCustomMapLayers: "Налаштування підкладки карти",
+        },
+        geojson: {
+            metainfo: "метаінформація",
+            needUpdateBetterOsmOrg: "Потрібно оновити better-osm-org",
+        },
+        links: {
+            webArchive: "WebArchive",
+        },
+        hotkeys: {
+            availableCommands: "Доступні команди",
+            recent: "Нещодавні",
+            noHotkeysMatchSearch: "Немає відповідних гарячих клавіш.",
+            noCatalogedCommandsMatchPage: "Для цієї сторінки немає відповідних команд.",
+        },
+        objectVersionPage: {
+            length: "Довжина: {value}",
+            area: "Площа: {value}",
+        },
+        userProfile: {
+            allEditors: "Усі редактори",
+            editorContributions: ({ editor, count }) => ` ${editor} (${count} внес${count === 1 ? "ок" : count < 5 ? "ки" : "ків"})`,
+            osmcha: " [OSMCha] ",
+            usernames: "Імена користувачів: ",
+            findingBlocks: " Шукаємо блокування... ",
+            copyIds: "Скопіювати ID",
+            copyIdsCount: "Скопіювати {count} ID",
+            noComment: "Без коментаря",
+            pastUsernames: "Колишні імена: ",
+            userIdLabel: "ID: ",
+            disableTrackingProtection: "Вимкніть захист від стеження, щоб запрацював показ інформації з сайту HDYC",
+            goToHdyc: "Відкрити https://www.hdyc.neis-one.org/",
+        },
+        changesetsHistory: {
+            copyIds: "Скопіювати ID",
+            copyIdsCount: "Скопіювати {count} ID",
+            displayedCount: " Показано {displayed}/{total}",
+            hideBigChangesets: "Приховувати великі пакети редагувань",
+            hideChangesetsFrom: "🔄Приховувати редагування від ",
+            showChangesetsFrom: "🔄Показувати редагування від ",
+            hideChangesetsWith: "🔄Приховувати редагування з ",
+            showChangesetsWith: "🔄Лише редагування з ",
+            loadMore: "Завантажити {count}",
+        },
+        measurer: {
+            measureFromHere: "Виміряти звідси",
+            endMeasure: "Завершити вимірювання",
+            cleanMeasurements: "Очистити вимірювання",
+        },
+        panoramax: {
+            blurFaces: "Розмити обличчя",
+        },
+        idEditor: {
+            findOffsets: "Знайти зміщення",
+        },
+        changesetPage: {
+            selectObjects: "Вибрати об’єкти",
+            revertViaOsmRevert: "Відкотити через osm-revert",
+            openInEditor: "Відкрити в {editor}",
+            openInLevel0: "Відкрити в Level0",
+            openInLevel0WithWaysGeometry: "Відкрити в Level0 з геометрією ліній",
+        },
+        nodeMover: {
+            moveNodeToHere: "Перемістити точку сюди",
+        },
     },
     fr: {
+        init: {
+            disableBetterOsmOrg: "Désactivez better-osm-org",
+            scriptVersion: "Version du script : ",
+        },
         config: {
             sectionID: "iD",
             sectionViewingEdits: "Consultation des modifications",
@@ -479,6 +559,7 @@ const _translations = {
             withGeometryChanges: "Avec modifications géométriques",
             withoutIntermediate: "Sans intermédiaires",
             viewUnredactedHistory: "Voir l’historique non censuré β",
+            errorPleaseReport: "Erreur :( Merci de signaler cela dans le dépôt GitHub de better-osm-org",
             tagsCount: ({ count }) => `${count} tag${count > 1 ? "s" : ""}`,
         },
         changesetQuicklook: {
@@ -494,8 +575,83 @@ const _translations = {
             moreLinks: "plus de liens",
             editLinksList: "modifier la liste",
         },
+        routers: {
+            routingDataTimeFor: "Date des données de routage pour {name} : {time}",
+            openDebugMap: "Ouvrir Debug Map",
+        },
+        satellite: {
+            setupCustomStyleJson: "Configurer votre propre style de carte vectorielle",
+            setupCustomMapLayers: "Configurer le fond de carte",
+        },
+        geojson: {
+            metainfo: "métainformations",
+            needUpdateBetterOsmOrg: "Il faut mettre à jour better-osm-org",
+        },
+        links: {
+            webArchive: "WebArchive",
+        },
+        hotkeys: {
+            availableCommands: "Commandes disponibles",
+            recent: "Récentes",
+            noHotkeysMatchSearch: "Aucun raccourci correspondant.",
+            noCatalogedCommandsMatchPage: "Aucune commande adaptée à cette page.",
+        },
+        objectVersionPage: {
+            length: "Longueur : {value}",
+            area: "Surface : {value}",
+        },
+        userProfile: {
+            allEditors: "Tous les éditeurs",
+            editorContributions: ({ editor, count }) => ` ${editor} (${count} contribution${count > 1 ? "s" : ""})`,
+            osmcha: " [OSMCha] ",
+            usernames: "Noms d’utilisateur : ",
+            findingBlocks: " Recherche des blocages... ",
+            copyIds: "Copier les ID",
+            copyIdsCount: "Copier {count} ID",
+            noComment: "Sans commentaire",
+            pastUsernames: "Anciens noms : ",
+            userIdLabel: "ID : ",
+            disableTrackingProtection: "Désactivez la protection contre le pistage pour que l’affichage des informations du site HDYC fonctionne",
+            goToHdyc: "Ouvrir https://www.hdyc.neis-one.org/",
+        },
+        changesetsHistory: {
+            copyIds: "Copier les ID",
+            copyIdsCount: "Copier {count} ID",
+            displayedCount: " Affichés {displayed}/{total}",
+            hideBigChangesets: "Masquer les gros lots de modifications",
+            hideChangesetsFrom: "🔄Masquer les modifications de ",
+            showChangesetsFrom: "🔄Afficher les modifications de ",
+            hideChangesetsWith: "🔄Masquer les modifications avec ",
+            showChangesetsWith: "🔄Uniquement les modifications avec ",
+            loadMore: "Charger {count}",
+        },
+        measurer: {
+            measureFromHere: "Mesurer à partir d’ici",
+            endMeasure: "Terminer la mesure",
+            cleanMeasurements: "Effacer les mesures",
+        },
+        panoramax: {
+            blurFaces: "Flouter les visages",
+        },
+        idEditor: {
+            findOffsets: "Trouver les décalages",
+        },
+        changesetPage: {
+            selectObjects: "Sélectionner les objets",
+            revertViaOsmRevert: "Annuler via osm-revert",
+            openInEditor: "Ouvrir dans {editor}",
+            openInLevel0: "Ouvrir dans Level0",
+            openInLevel0WithWaysGeometry: "Ouvrir dans Level0 avec la géométrie des lignes",
+        },
+        nodeMover: {
+            moveNodeToHere: "Déplacer le point ici",
+        },
     },
     de: {
+        init: {
+            disableBetterOsmOrg: "Deaktivieren Sie better-osm-org",
+            scriptVersion: "Skriptversion: ",
+        },
         config: {
             sectionID: "iD",
             sectionViewingEdits: "Bearbeitungen anzeigen",
@@ -558,6 +714,7 @@ const _translations = {
             withGeometryChanges: "Mit Geometrieänderungen",
             withoutIntermediate: "Ohne Zwischenversionen",
             viewUnredactedHistory: "Unzensierte Versionsgeschichte anzeigen β",
+            errorPleaseReport: "Fehler :( Bitte melden Sie das im GitHub-Repository von better-osm-org",
             tagsCount: ({ count }) => `${count} Tag${count === 1 ? "" : "s"}`,
         },
         changesetQuicklook: {
@@ -573,8 +730,83 @@ const _translations = {
             moreLinks: "mehr Links",
             editLinksList: "Linkliste bearbeiten",
         },
+        routers: {
+            routingDataTimeFor: "Routing-Datenzeit für {name}: {time}",
+            openDebugMap: "Debug Map öffnen",
+        },
+        satellite: {
+            setupCustomStyleJson: "Eigenen Stil der Vektorkarte einrichten",
+            setupCustomMapLayers: "Kartenhintergrund einrichten",
+        },
+        geojson: {
+            metainfo: "Metainformationen",
+            needUpdateBetterOsmOrg: "better-osm-org muss aktualisiert werden",
+        },
+        links: {
+            webArchive: "WebArchive",
+        },
+        hotkeys: {
+            availableCommands: "Verfügbare Befehle",
+            recent: "Zuletzt verwendet",
+            noHotkeysMatchSearch: "Keine passenden Tastenkürzel gefunden.",
+            noCatalogedCommandsMatchPage: "Für diese Seite gibt es keine passenden Befehle.",
+        },
+        objectVersionPage: {
+            length: "Länge: {value}",
+            area: "Fläche: {value}",
+        },
+        userProfile: {
+            allEditors: "Alle Editoren",
+            editorContributions: ({ editor, count }) => ` ${editor} (${count} Beitrag${count === 1 ? "" : "e"})`,
+            osmcha: " [OSMCha] ",
+            usernames: "Benutzernamen: ",
+            findingBlocks: " Sperren werden gesucht... ",
+            copyIds: "IDs kopieren",
+            copyIdsCount: "{count} IDs kopieren",
+            noComment: "Kein Kommentar",
+            pastUsernames: "Frühere Namen: ",
+            userIdLabel: "ID: ",
+            disableTrackingProtection: "Deaktivieren Sie den Tracking-Schutz, damit die Anzeige der Informationen von der HDYC-Website funktioniert",
+            goToHdyc: "https://www.hdyc.neis-one.org/ öffnen",
+        },
+        changesetsHistory: {
+            copyIds: "IDs kopieren",
+            copyIdsCount: "{count} IDs kopieren",
+            displayedCount: " Angezeigt {displayed}/{total}",
+            hideBigChangesets: "Große Änderungspakete ausblenden",
+            hideChangesetsFrom: "🔄Änderungen ausblenden von ",
+            showChangesetsFrom: "🔄Änderungen anzeigen von ",
+            hideChangesetsWith: "🔄Änderungen ausblenden mit ",
+            showChangesetsWith: "🔄Nur Änderungen mit ",
+            loadMore: "{count} laden",
+        },
+        measurer: {
+            measureFromHere: "Von hier messen",
+            endMeasure: "Messung beenden",
+            cleanMeasurements: "Messungen löschen",
+        },
+        panoramax: {
+            blurFaces: "Gesichter verwischen",
+        },
+        idEditor: {
+            findOffsets: "Verschiebungen finden",
+        },
+        changesetPage: {
+            selectObjects: "Objekte auswählen",
+            revertViaOsmRevert: "Über osm-revert zurücksetzen",
+            openInEditor: "In {editor} öffnen",
+            openInLevel0: "In Level0 öffnen",
+            openInLevel0WithWaysGeometry: "In Level0 mit Liniengeometrie öffnen",
+        },
+        nodeMover: {
+            moveNodeToHere: "Punkt hierhin verschieben",
+        },
     },
     hr: {
+        init: {
+            disableBetterOsmOrg: "Onemogućite better-osm-org",
+            scriptVersion: "Verzija skripte: ",
+        },
         config: {
             sectionID: "iD",
             sectionViewingEdits: "Pregled uređivanja",
@@ -635,6 +867,7 @@ const _translations = {
             withGeometryChanges: "Sa promjenama geometrije",
             withoutIntermediate: "Bez međuverzija",
             viewUnredactedHistory: "Prikaži necenzuriranu povijest β",
+            errorPleaseReport: "Greška :( Molimo prijavite ovo u GitHub repozitoriju better-osm-org",
             tagsCount: ({ count }) => `${count} oznaka${count % 10 >= 2 && count % 10 <= 4 && (count < 10 || count > 20) ? "e" : ""}`,
         },
         changesetQuicklook: {
@@ -649,6 +882,77 @@ const _translations = {
         editMenuLinks: {
             moreLinks: "više poveznica",
             editLinksList: "uredi popis poveznica",
+        },
+        routers: {
+            routingDataTimeFor: "Vrijeme podataka rutiranja za {name}: {time}",
+            openDebugMap: "Otvori Debug Map",
+        },
+        satellite: {
+            setupCustomStyleJson: "Postavljanje vlastitog stila vektorske karte",
+            setupCustomMapLayers: "Postavljanje pozadinske karte",
+        },
+        geojson: {
+            metainfo: "metapodaci",
+            needUpdateBetterOsmOrg: "Treba ažurirati better-osm-org",
+        },
+        links: {
+            webArchive: "WebArchive",
+        },
+        hotkeys: {
+            availableCommands: "Dostupne naredbe",
+            recent: "Nedavno",
+            noHotkeysMatchSearch: "Nema odgovarajućih prečaca.",
+            noCatalogedCommandsMatchPage: "Za ovu stranicu nema odgovarajućih naredbi.",
+        },
+        objectVersionPage: {
+            length: "Duljina: {value}",
+            area: "Površina: {value}",
+        },
+        userProfile: {
+            allEditors: "Svi uređivači",
+            editorContributions: ({ editor, count }) => ` ${editor} (${count} doprinos${count === 1 ? "" : count < 5 ? "a" : "a"})`,
+            osmcha: " [OSMCha] ",
+            usernames: "Korisnička imena: ",
+            findingBlocks: " Traženje blokada... ",
+            copyIds: "Kopiraj ID",
+            copyIdsCount: "Kopiraj {count} ID",
+            noComment: "Bez komentara",
+            pastUsernames: "Prijašnja imena: ",
+            userIdLabel: "ID: ",
+            disableTrackingProtection: "Onemogućite zaštitu od praćenja kako bi radio prikaz informacija sa stranice HDYC",
+            goToHdyc: "Otvori https://www.hdyc.neis-one.org/",
+        },
+        changesetsHistory: {
+            copyIds: "Kopiraj ID",
+            copyIdsCount: "Kopiraj {count} ID",
+            displayedCount: " Prikazano {displayed}/{total}",
+            hideBigChangesets: "Sakrij velike pakete izmjena",
+            hideChangesetsFrom: "🔄Sakrij izmjene od ",
+            showChangesetsFrom: "🔄Prikaži izmjene od ",
+            hideChangesetsWith: "🔄Sakrij izmjene s ",
+            showChangesetsWith: "🔄Samo izmjene s ",
+            loadMore: "Učitaj {count}",
+        },
+        measurer: {
+            measureFromHere: "Mjeri odavde",
+            endMeasure: "Završi mjerenje",
+            cleanMeasurements: "Očisti mjerenja",
+        },
+        panoramax: {
+            blurFaces: "Zamuti lica",
+        },
+        idEditor: {
+            findOffsets: "Pronađi pomake",
+        },
+        changesetPage: {
+            selectObjects: "Odaberi objekte",
+            revertViaOsmRevert: "Vrati putem osm-revert",
+            openInEditor: "Otvori u {editor}",
+            openInLevel0: "Otvori u Level0",
+            openInLevel0WithWaysGeometry: "Otvori u Level0 s geometrijom linija",
+        },
+        nodeMover: {
+            moveNodeToHere: "Premjesti točku ovdje",
         },
     },
 }
