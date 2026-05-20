@@ -11,7 +11,7 @@ function makeHashtagsClickable() {
         if (node.nodeType !== Node.TEXT_NODE) return
         const span = document.createElement("span")
         span.textContent = node.textContent
-        span.innerHTML = span.innerHTML.replaceAll(/\B(#[\p{L}\d_-]+)\b/gu, function (match) {
+        span.innerHTML = span.innerHTML.replaceAll(/\B(#[\p{L}_-][\p{L}\d_-]*)\b/gu, function (match) {
             const osmchaFilter = { comment: [{ label: match, value: match }] }
             const osmchaLink = `${osmcha_server_origin}?` + new URLSearchParams({ filters: JSON.stringify(osmchaFilter) }).toString()
             const a = document.createElement("a")
