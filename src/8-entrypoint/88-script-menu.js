@@ -2,16 +2,16 @@
 
 function makeCommandsMenu() {
     try {
-        GM_registerMenuCommand("Settings", function () {
+        GM_registerMenuCommand(t("scriptMenu.settings"), function () {
             if (!inFrame()) {
                 actionOpenSettings()
             }
         })
         if (isMobile || isDebug()) {
-            GM_registerMenuCommand("Check script updates", actionOpenScriptUpdateUrl)
+            GM_registerMenuCommand(t("scriptMenu.checkScriptUpdates"), actionOpenScriptUpdateUrl)
         }
         if (isDebug()) {
-            GM_registerMenuCommand("Check dev script updates", actionOpenDevScriptUpdateUrl)
+            GM_registerMenuCommand(t("scriptMenu.checkDevScriptUpdates"), actionOpenDevScriptUpdateUrl)
         }
 
         // New Year Easter egg
@@ -20,7 +20,7 @@ function makeCommandsMenu() {
             GM_registerMenuCommand("☃️", runSnowAnimation)
         }
 
-        GM_registerMenuCommand("List of hotkeys", actionShowHotkeysHelp)
+        GM_registerMenuCommand(t("scriptMenu.listOfHotkeys"), actionShowHotkeysHelp)
         // GM_registerMenuCommand("Ask question on forum", function () {
         //     window.open("https://community.openstreetmap.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670")
         // });
