@@ -23280,7 +23280,7 @@ async function setupHDYCInProfile() {
     if (osm_server === prod_server) {
         if (isDarkMode()) {
             GM_addElement(document.querySelector("#content"), "iframe", {
-                src: "https://www.hdyc.neis-one.org/?" + user + "#forcedarktheme",
+                src: "https://www.hdyc.neis-one.org/user/" + user + "#forcedarktheme",
                 width: "100%",
                 id: "hdyc-iframe",
                 scrolling: "no",
@@ -23292,7 +23292,7 @@ async function setupHDYCInProfile() {
             }, 1500)
         } else {
             GM_addElement(document.querySelector("#content"), "iframe", {
-                src: "https://www.hdyc.neis-one.org/?" + user + "#forcelighttheme",
+                src: "https://www.hdyc.neis-one.org/user/" + user + "#forcelighttheme",
                 width: "100%",
                 id: "hdyc-iframe",
                 scrolling: "no",
@@ -23565,7 +23565,7 @@ function simplifyHDCYIframe() {
             document.getElementById("authenticate").before(warn)
             const hdycLink = document.createElement("a")
             const match = location.pathname.match(/^\/user\/([^/]+)$/)
-            hdycLink.href = "https://www.hdyc.neis-one.org/" + (match ? match[1] : "")
+            hdycLink.href = "https://www.hdyc.neis-one.org/user/" + (match ? match[1] : "")
             hdycLink.textContent = "Go to https://www.hdyc.neis-one.org/"
             hdycLink.target = "_blank"
             hdycLink.id = "hdycLink"
