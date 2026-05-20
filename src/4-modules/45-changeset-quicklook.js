@@ -469,10 +469,10 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
             makeTypeValue(valueCell, objType)
         } else if (key.length <= 2 && key !== "to" && key !== "tv" && key !== "it") {
             keyCell.classList.add("fixme-tag")
-            keyCell.title = "The key is too short"
+            keyCell.title = t("objectPage.keyTooShort")
         } else if (key.length >= 2 && rawKey[0] >= "A" && rawKey[0] <= "Z" && rawKey[1] >= "a" && rawKey[1] <= "z") {
             keyCell.classList.add("fixme-tag")
-            keyCell.title = "Suspicious key starting with a capital letter"
+            keyCell.title = t("objectPage.suspiciousCapitalKey")
         }
     }
 }
@@ -781,7 +781,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         geomChangedFlag.textContent = " 📐"
         geomChangedFlag.tabIndex = 0
         geomChangedFlag.classList.add("nodes-changed")
-        geomChangedFlag.title = "List of way nodes has been changed"
+        geomChangedFlag.title = t("changesetQuicklook.listWayNodesChanged")
         geomChangedFlag.style.userSelect = "none"
         geomChangedFlag.style.background = "rgba(223, 238, 9, 0.6)"
         geomChangedFlag.style.cursor = "pointer"
@@ -874,7 +874,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         if (lineWasReversed) {
             const row = makeWayDiffRow("", "🔃")
             row.querySelectorAll("td").forEach(i => (i.style.textAlign = "center"))
-            row.querySelector("td:nth-of-type(2)").title = "Nodes of the way were reversed"
+            row.querySelector("td:nth-of-type(2)").title = t("changesetQuicklook.nodesReversed")
             tbody.appendChild(row)
 
             prevVersion.nodes.forEach((i, index) => {
@@ -962,7 +962,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
     if (prevVersion.visible === false && targetVersion?.visible !== false && targetVersion.version !== 1) {
         const restoredElemFlag = document.createElement("span")
         restoredElemFlag.textContent = " ♻️"
-        restoredElemFlag.title = "Object was restored"
+        restoredElemFlag.title = t("changesetQuicklook.objectRestored")
         restoredElemFlag.style.userSelect = "none"
         i.appendChild(restoredElemFlag)
     }
@@ -975,10 +975,10 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         let membersChanged = false
         if (JSON.stringify(prevVersion?.members ?? []) !== JSON.stringify(targetVersion.members) && targetVersion.version !== 1) {
             memChangedFlag.style.background = "rgba(223, 238, 9, 0.6)"
-            memChangedFlag.title = "List of relation members has been changed.\nClick to see more details"
+            memChangedFlag.title = t("changesetQuicklook.relationMembersChanged")
             membersChanged = true
         } else {
-            memChangedFlag.title = "Show list of relation members"
+            memChangedFlag.title = t("changesetQuicklook.showRelationMembers")
         }
         memChangedFlag.style.cursor = "pointer"
 
@@ -1172,7 +1172,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             // members reversed
             const row = makeRelationDiffRow("", "🔃")
             row.querySelectorAll("td").forEach(i => (i.style.textAlign = "center"))
-            row.querySelector("td:nth-of-type(2)").title = "Members of the relation were reversed"
+            row.querySelector("td:nth-of-type(2)").title = t("changesetQuicklook.relationMembersReversed")
             tbody.appendChild(row)
 
             prevVersion?.members?.forEach((i, index) => {
@@ -1255,7 +1255,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         pinRelation.classList.add("pin-relation")
         pinRelation.style.cursor = "pointer"
         pinRelation.style.display = "none"
-        pinRelation.title = "Pin relation on map"
+        pinRelation.title = t("changesetQuicklook.pinRelationOnMap")
         pinRelation.onkeypress = pinRelation.onclick = async e => {
             if (e.type === "keypress" && (e.code === "Space" || e.code === "Enter")) {
                 e.preventDefault()
@@ -1278,9 +1278,9 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 pinRelation.style.cursor = "pointer"
                 pinRelation.classList.add("pinned")
                 pinRelation.textContent = "📍"
-                pinRelation.title = "Unpin relation from map"
+                pinRelation.title = t("changesetQuicklook.unpinRelationFromMap")
             } else {
-                pinRelation.title = "Pin relation on map"
+                pinRelation.title = t("changesetQuicklook.pinRelationOnMap")
                 pinRelation.classList.remove("pinned")
                 pinRelation.textContent = "📌"
                 cleanObjectsByKey(`customObjects/${targetVersion.id}`)
@@ -1305,7 +1305,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             targetVersion.lon,
         ) * 1000;
         locationChangedFlag.textContent = ` 📍${distInMeters.toFixed(1)}m`
-        locationChangedFlag.title = "Coordinates of node has been changed"
+        locationChangedFlag.title = t("changesetQuicklook.nodeCoordinatesChanged")
         locationChangedFlag.classList.add("location-modified-marker")
         // if (distInMeters > 100) {
         //     locationChangedFlag.classList.add("location-modified-marker-warn")
@@ -1965,7 +1965,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
         const btn = document.createElement("a")
         btn.textContent = "📥"
         btn.classList.add("load-relation-version")
-        btn.title = "Download this relation"
+        btn.title = t("changesetQuicklook.downloadThisRelation")
         btn.tabIndex = 0
         btn.style.cursor = "pointer"
 
@@ -1994,7 +1994,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                     showValidationStatus(relationMetadata.restrictionRelationErrors, i.parentElement)
                 } else {
                     if (relationMetadata.isRestriction) {
-                        i.parentElement.parentElement.title = 'Click with Shift for zoom to "via" members'
+                        i.parentElement.parentElement.title = t("changesetQuicklook.shiftClickZoomVia")
                     }
                 }
                 i.parentElement.parentElement.onclick = e => {
@@ -2631,7 +2631,7 @@ async function processQuickLookInSidebar(changesetID) {
 
     function addCompactModeToggles(objType, uniqTypes) {
         const compactToggle = document.createElement("button")
-        compactToggle.title = "Toggle between full and compact tags diff.\nYou can also use the T key."
+        compactToggle.title = t("historyDiff.toggleCompactTagsDiff")
         compactToggle.textContent = allTagsOfObjectsVisible ? "><" : "<>"
         compactToggle.classList.add("quick-look-compact-toggle-btn")
         compactToggle.classList.add("btn", "btn-sm", "btn-primary")
@@ -3416,7 +3416,7 @@ async function processQuickLookInSidebar(changesetID) {
                     }).toString()
                 a.target = "_blank"
                 a.appendChild(document.createTextNode("⚠️ Send Bug Report"))
-                a.title = "better-osm-org was unable to display some data"
+                a.title = t("changesetQuicklook.unableDisplaySomeData")
                 return a
             }
 

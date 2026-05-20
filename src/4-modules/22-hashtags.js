@@ -17,7 +17,7 @@ function makeHashtagsClickable() {
             const a = document.createElement("a")
             a.href = osmchaLink
             a.target = "_blank"
-            a.title = "Search this hashtags in OSMCha"
+            a.title = t("hashtags.searchInOsmcha")
             a.textContent = match
             return a.outerHTML
         })
@@ -52,7 +52,7 @@ function makeHashtagsInNotesClickable() {
                     a.id = "note-link-" + Math.random()
                     a.href = ""
                     a.target = "_blank"
-                    a.title = "Click for filter notes by this hashtag.\nClick with CTLR or Shift for search this hashtags in osm-note-viewer"
+                    a.title = t("hashtags.filterNotesByHashtag")
                     a.textContent = match
 
                     function fixLink() {
@@ -101,7 +101,7 @@ function makeHashtagsInNotesClickable() {
                 .replaceAll(/(?<=(POI name: ))(.+)/gu, function (match) {
                     const span = document.createElement("span")
                     span.classList.add("poi-name-in-note")
-                    span.title = "Click to copy name"
+                    span.title = t("hashtags.clickToCopyName")
                     span.setAttribute("data-name", match)
                     span.textContent = match
                     return span.outerHTML
@@ -110,7 +110,7 @@ function makeHashtagsInNotesClickable() {
                     injectCSSIntoOSMPage(copyAnimationStyles)
                     const span = document.createElement("span")
                     span.classList.add("poi-name-in-note")
-                    span.title = "Click to copy type"
+                    span.title = t("hashtags.clickToCopyType")
                     span.setAttribute("data-name", match)
                     span.textContent = match
                     return span.outerHTML

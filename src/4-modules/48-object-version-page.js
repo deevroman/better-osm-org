@@ -709,7 +709,7 @@ async function addHoverForRelationMembers() {
                 pinSign.classList.add("pinned")
                 pinSign.textContent = "📌"
                 pinSign.tabIndex = 0
-                pinSign.title = "Pin restriction sign on map.\nYou can hide all the objects that better-osm-org adds by pressing ` or ~"
+                pinSign.title = t("objectVersionPage.pinRestrictionSign")
                 pinSign.style.cursor = "pointer"
                 pinSign.onkeypress = pinSign.onclick = async e => {
                     e.preventDefault()
@@ -718,10 +718,10 @@ async function addHoverForRelationMembers() {
                         pinSign.style.cursor = "pointer"
                         pinSign.classList.remove("pinned")
                         pinSign.style.filter = "grayscale(1)"
-                        pinSign.title = "Hide restriction sign"
+                        pinSign.title = t("objectVersionPage.hideRestrictionSign")
                         restrictionArrows.forEach(i => (i.getElement().style.display = "none"))
                     } else {
-                        pinSign.title = "Hide restriction sign"
+                        pinSign.title = t("objectVersionPage.hideRestrictionSign")
                         pinSign.classList.add("pinned")
                         pinSign.style.filter = ""
                         restrictionArrows.forEach(i => (i.getElement().style.display = ""))
@@ -755,7 +755,7 @@ function makeHeaderPartsClickable() {
         if (/^\d+$/.test(elem.textContent)) {
             elem.title = `Click to copy ID\n${CtrlKeyName} + click to copy URL`
         } else {
-            elem.title = "Click to copy"
+            elem.title = t("copying.clickForCopy")
         }
         elem.style.cursor = "pointer"
         elem.classList.add("copyable")
@@ -870,7 +870,7 @@ function addCopyCoordinatesButtons() {
         const copyButton = document.createElement("span")
         copyButton.classList.add("copy-coords-btn")
         copyButton.textContent = "📄"
-        copyButton.title = "Select coordinates format for copy.\nTo copy just click by coordinates"
+        copyButton.title = t("objectVersionPage.selectCoordinatesFormat")
         copyButton.innerHTML = copyBtnSvg
         copyButton.style.height = "0.9rem"
         copyButton.style.position = "relative"
@@ -913,10 +913,10 @@ function addCopyCoordinatesButtons() {
                 pinLabel.setAttribute("for", "CoordFormat_" + ind)
                 pinLabel.classList.add("pin-label")
                 pinLabel.textContent = "📌"
-                pinLabel.title = "Set as default for copy, when you click by coordinates"
+                pinLabel.title = t("objectVersionPage.setDefaultCopyFormat")
                 if (format === coordinatesFormat) {
                     pin.checked = true
-                    pinLabel.title = "It's default format, when your click by coordinates"
+                    pinLabel.title = t("objectVersionPage.defaultCopyFormat")
                 }
                 pin.onchange = async () => {
                     if (pin.checked) {
@@ -989,7 +989,7 @@ function addRelationHistoryViewerLinks() {
     viewInExternal.style.position = "relative"
     viewInExternal.style.top = "-2px"
     viewInExternal.style.paddingLeft = "5px"
-    viewInExternal.title = "Click for open external relation viewer.\nOr use key O"
+    viewInExternal.title = t("objectVersionPage.openExternalRelationViewer")
     viewInExternal.querySelector("svg").tabIndex = 0
 
     async function contextMenuHandler(e) {
@@ -1017,10 +1017,10 @@ function addRelationHistoryViewerLinks() {
             pinLabel.setAttribute("for", i.name)
             pinLabel.classList.add("pin-label")
             pinLabel.textContent = "📌"
-            pinLabel.title = "Set as default for click"
+            pinLabel.title = t("objectPage.setAsDefaultForClick")
             if (i.name === relationViewer) {
                 pin.checked = true
-                pinLabel.title = "It's default viewer"
+                pinLabel.title = t("objectPage.defaultViewer")
             }
             pin.onchange = async () => {
                 if (pin.checked) {
@@ -1086,7 +1086,7 @@ function makeVersionPageBetter() {
                 metainfoHTML.lastChild.remove()
                 const findBtn = document.createElement("span")
                 findBtn.classList.add("find-user-btn")
-                findBtn.title = "Try find deleted user"
+                findBtn.title = t("deletedUsers.tryFindDeletedUser")
                 findBtn.textContent = " 🔍 "
                 findBtn.value = changesetID
                 findBtn.datetime = time.dateTime

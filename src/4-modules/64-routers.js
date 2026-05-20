@@ -10,7 +10,7 @@ window.addEventListener("message", async e => {
         const elem = document.createElement("p")
         elem.classList.add("text-center", "routing-timestamp")
         elem.textContent = text
-        elem.title = "added by better-osm-org"
+        elem.title = t("betterOsmOrg.addedByBetterOsmOrg")
         document.querySelector("#sidebar_content").appendChild(elem)
     }
 
@@ -59,7 +59,7 @@ window.addEventListener("message", async e => {
                 const elem = document.createElement("p")
                 elem.classList.add("text-center", "routing-timestamp")
                 elem.textContent = t("routers.routingDataTimeFor", { name: name, time: time })
-                elem.title = "added by better-osm-org"
+                elem.title = t("betterOsmOrg.addedByBetterOsmOrg")
                 document.querySelector("#sidebar_content").appendChild(elem)
             })
 

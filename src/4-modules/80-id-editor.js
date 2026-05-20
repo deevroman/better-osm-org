@@ -12,7 +12,7 @@ function addImageryOffsetsDB() {
     const loadBtn = document.createElement("button")
     loadBtn.textContent = t("idEditor.findOffsets")
     loadBtn.classList.add("find-offsets-btn")
-    loadBtn.title = "better-osm-org experimental feature"
+    loadBtn.title = t("betterOsmOrg.experimentalFeature")
     loadBtn.onclick = async () => {
         loadBtn.style.cursor = "progress"
         try {

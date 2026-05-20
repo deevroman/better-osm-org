@@ -129,7 +129,7 @@ out geom;
             const overpassLink = document.createElement("a")
             overpassLink.classList.add("overpass-link")
             overpassLink.textContent = i.lastChild.textContent.trim()
-            overpassLink.title = "search with Overpass"
+            overpassLink.title = t("taginfo.searchWithOverpass")
             overpassLink.target = "_blank"
             const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ""))
             overpassLink.href =

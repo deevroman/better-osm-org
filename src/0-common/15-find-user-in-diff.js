@@ -258,7 +258,7 @@ async function findChangesetInDiff(e) {
 
     const uid = document.createElement("span")
     uid.style.cursor = "pointer"
-    uid.title = "Click for copy user ID"
+    uid.title = t("findUserInDiff.clickForCopyUserId")
     uid.onclick = e => {
         const text = foundedUserUid
         navigator.clipboard.writeText(text).then(() => copyAnimation(e, text))

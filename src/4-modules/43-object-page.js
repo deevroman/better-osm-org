@@ -302,7 +302,7 @@ function makeMapillaryValue(elem) {
                     const img = document.createElement("img")
                     img.src = imgData
                     img.alt = "image from Mapillary"
-                    img.title = "Blue — position from GPS tracker\nOrange — estimated real position"
+                    img.title = t("objectPage.gpsTrackerPosition")
                     img.style.width = "100%"
                     a.appendChild(img)
                 })
@@ -431,26 +431,26 @@ function makeWikimediaCommonsValue(elem) {
 function makeRoofOrientationValue(elem) {
     if (elem.textContent !== "across" && elem.textContent !== "along") {
         elem.classList.add("fixme-tag")
-        elem.title = 'roof:orientation must be either "across" or "along"'
+        elem.title = t("objectPage.roofOrientationAcrossAlong")
     }
 }
 
 function makeConditionalValue(elem) {
     if (!elem.textContent.includes("@")) {
         elem.classList.add("fixme-tag")
-        elem.title = ":conditional tag value must be contain @"
+        elem.title = t("objectPage.conditionalMustContainAt")
     }
     if (elem.textContent.match(/@\s*$/)) {
         elem.classList.add("fixme-tag")
-        elem.title = "empty part after @"
+        elem.title = t("objectPage.emptyPartAfterAt")
     }
     if (elem.textContent.match(/^\s*@/)) {
         elem.classList.add("fixme-tag")
-        elem.title = "empty part before @"
+        elem.title = t("objectPage.emptyPartBeforeAt")
     }
     if (elem.textContent.match(/@\s*@/)) {
         elem.classList.add("fixme-tag")
-        elem.title = "empty part between @"
+        elem.title = t("objectPage.emptyPartBetweenAt")
     }
 }
 
@@ -532,7 +532,7 @@ function makeRefInaturalistValue(elem) {
             const observation = observationsById.get(a.textContent)
             if (!observation) {
                 a.classList.add("warn-tag")
-                a.title = "Observation not found in iNaturalist API"
+                a.title = t("objectPage.observationNotFound")
                 continue
             }
             const { zoomSrc: imgSrc } = getInaturalistPhotoUrls(observation)
@@ -573,7 +573,7 @@ function makeOpeningHoursValue(valueCell, key, isVersionPage) {
     try {
         new opening_hours(valueCell.textContent, null, { tag_key: key })
         if (isVersionPage) {
-            valueCell.title = "no errors were found by opening_hours.js 👍"
+            valueCell.title = t("objectPage.noErrorsOpeningHours")
         }
     } catch (e) {
         valueCell.title = e
@@ -587,7 +587,7 @@ function makeOpeningHoursValue(valueCell, key, isVersionPage) {
 function makePhoneValue(valueCell, key) {
     try {
         if (valueCell.textContent[0] !== "+") {
-            valueCell.title = "phone number must start with +"
+            valueCell.title = t("objectPage.phoneMustStartPlus")
             valueCell.classList.add("fixme-tag")
             valueCell.querySelectorAll("a").forEach(i => i.classList.add("fixme-tag"))
         } else if (!valueCell.textContent.split(";").every(i => libphonenumber.isPossiblePhoneNumber(i.trim()))) {
@@ -618,7 +618,7 @@ function makeXmasFeatureEasterEgg() {
             snowBtn.classList.add("egg-snow-tag")
             snowBtn.textContent = " ❄️"
             snowBtn.style.cursor = "pointer"
-            snowBtn.title = "better-osm-org easter egg"
+            snowBtn.title = t("objectPage.easterEgg")
             snowBtn.addEventListener(
                 "click",
                 e => {
@@ -773,7 +773,7 @@ function makeRoofDirectionValue(valueCell, row, isVersionPage) {
     if (valueCell.textContent === "across" || valueCell.textContent === "along") {
         // todo more
         valueCell.classList.add("fixme-tag")
-        valueCell.title = "it seems to need to be changed to roof:orientation"
+        valueCell.title = t("objectPage.needRoofOrientation")
         return
     }
     if (!isVersionPage) {
@@ -897,7 +897,7 @@ function makeLinksInVersionTagClickable(row, objType) {
         viewIn3D.style.cursor = "pointer"
         viewIn3D.style.paddingTop = "3px"
         viewIn3D.style.paddingBottom = "3px"
-        viewIn3D.title = "Click for show embedded 3D Viewer.\nIn userscript setting you can set open in OSM page by default"
+        viewIn3D.title = t("objectPage.clickShowEmbedded3d")
 
         async function contextMenuHandler(e) {
             const buildingViewer = (await GM.getValue("3DViewer")) ?? "OSM Building Viewer"
@@ -927,10 +927,10 @@ function makeLinksInVersionTagClickable(row, objType) {
                 pinLabel.setAttribute("for", i.name)
                 pinLabel.classList.add("pin-label")
                 pinLabel.textContent = "📌"
-                pinLabel.title = "Set as default for click"
+                pinLabel.title = t("objectPage.setAsDefaultForClick")
                 if (i.name === buildingViewer) {
                     pin.checked = true
-                    pinLabel.title = "It's default viewer"
+                    pinLabel.title = t("objectPage.defaultViewer")
                 }
                 pin.onchange = async () => {
                     if (pin.checked) {
@@ -1098,10 +1098,10 @@ function makeLinksInVersionTagClickable(row, objType) {
         makeRefInaturalistValue(valueCell)
     } else if (key.length <= 2 && key !== "to" && key !== "tv" && key !== "it") {
         keyCell.classList.add("fixme-tag")
-        keyCell.title = "The key is too short"
+        keyCell.title = t("objectPage.keyTooShort")
     } else if (key.length >= 2 && rawKey[0] >= "A" && rawKey[0] <= "Z" && rawKey[1] >= "a" && rawKey[1] <= "z") {
         keyCell.classList.add("fixme-tag")
-        keyCell.title = "Suspicious key starting with a capital letter"
+        keyCell.title = t("objectPage.suspiciousCapitalKey")
     }
 }
 
@@ -1130,7 +1130,7 @@ function addHistoryLink() {
     const curHref = document.querySelector("#sidebar_content h4 a").href.match(/(.*)\/(\d+)$/)
     a.href = curHref[1]
     a.textContent = "🕒"
-    a.title = "Click for open object history page\nOr press key H"
+    a.title = t("objectPage.openObjectHistory")
     a.classList.add("history_button_class")
     if (curHref[2] !== "1") {
         versionInSidebar.after(a)

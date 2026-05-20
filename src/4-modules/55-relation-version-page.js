@@ -9,7 +9,7 @@ function addRelationVersionView() {
     const btn = document.createElement("a")
     btn.textContent = "📥"
     btn.id = "load-relation-version"
-    btn.title = "Load relation version via Overpass API"
+    btn.title = t("relationVersionPage.loadViaOverpass")
     btn.tabIndex = 0
     btn.style.cursor = "pointer"
 

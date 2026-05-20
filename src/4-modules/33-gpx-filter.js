@@ -168,7 +168,7 @@ function addGPXFiltersButtons() {
                             downloadBtn.textContent = "⧈"
                             downloadBtn.innerHTML = fitToObjectSvg
                             downloadBtn.style.cursor = "pointer"
-                            downloadBtn.title = "click to zoom\nTip: press 8-9 to navigate between previous/next map position"
+                            downloadBtn.title = t("gpxFilter.clickToZoomTrack")
                             downloadBtn.onclick = () => {
                                 fitBounds([
                                     [trackMetadata.min_lat, trackMetadata.min_lon],
@@ -205,7 +205,7 @@ function addGPXFiltersButtons() {
     }
 
     filters.textContent = " 🔍"
-    filters.title = "Show GPX tracks in current map view"
+    filters.title = t("gpxFilter.showGpxTracks")
     gpxLabel.after(filters)
 }
 
