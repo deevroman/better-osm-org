@@ -170,6 +170,12 @@ const _translations = {
         nodeMover: {
             moveNodeToHere: "Move node to here",
         },
+        scriptMenu: {
+            settings: "Settings",
+            checkScriptUpdates: "Check script updates",
+            checkDevScriptUpdates: "Check dev script updates",
+            listOfHotkeys: "List of hotkeys",
+        },
     },
     ru: {
         init: {
@@ -331,6 +337,12 @@ const _translations = {
         nodeMover: {
             moveNodeToHere: "Переместить точку сюда",
         },
+        scriptMenu: {
+            settings: "Настройки",
+            checkScriptUpdates: "Проверить обновления скрипта",
+            checkDevScriptUpdates: "Проверить обновления dev-версии скрипта",
+            listOfHotkeys: "Список горячих клавиш",
+        },
     },
     uk: {
         init: {
@@ -491,6 +503,12 @@ const _translations = {
         nodeMover: {
             moveNodeToHere: "Перемістити точку сюди",
         },
+        scriptMenu: {
+            settings: "Налаштування",
+            checkScriptUpdates: "Перевірити оновлення скрипта",
+            checkDevScriptUpdates: "Перевірити оновлення dev-версії скрипта",
+            listOfHotkeys: "Список гарячих клавіш",
+        },
     },
     fr: {
         init: {
@@ -645,6 +663,12 @@ const _translations = {
         },
         nodeMover: {
             moveNodeToHere: "Déplacer le point ici",
+        },
+        scriptMenu: {
+            settings: "Paramètres",
+            checkScriptUpdates: "Vérifier les mises à jour du script",
+            checkDevScriptUpdates: "Vérifier les mises à jour de la version dev du script",
+            listOfHotkeys: "Liste des raccourcis clavier",
         },
     },
     de: {
@@ -801,6 +825,12 @@ const _translations = {
         nodeMover: {
             moveNodeToHere: "Punkt hierhin verschieben",
         },
+        scriptMenu: {
+            settings: "Einstellungen",
+            checkScriptUpdates: "Nach Script-Updates suchen",
+            checkDevScriptUpdates: "Nach Updates der Dev-Version des Scripts suchen",
+            listOfHotkeys: "Liste der Tastenkürzel",
+        },
     },
     hr: {
         init: {
@@ -953,6 +983,12 @@ const _translations = {
         },
         nodeMover: {
             moveNodeToHere: "Premjesti točku ovdje",
+        },
+        scriptMenu: {
+            settings: "Postavke",
+            checkScriptUpdates: "Provjeri ažuriranja skripte",
+            checkDevScriptUpdates: "Provjeri ažuriranja dev-verzije skripte",
+            listOfHotkeys: "Popis tipkovnih prečaca",
         },
     },
 }
