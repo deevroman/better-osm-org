@@ -517,7 +517,7 @@ const flattenTranslations = flatTranslations(_translations[currentLocale])
 const flattenTranslationsEn = currentLocale === "en" ? flattenTranslations : flatTranslations(_translations["en"])
 
 if (Object.keys(flattenTranslations).length !== Object.keys(flattenTranslationsEn).length) {
-    console.error(`missing translations in ${currentLocale} locale`)
+    console.error(`⚠️missing translations in ${currentLocale} locale`)
 }
 
 /**
