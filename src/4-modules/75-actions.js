@@ -1625,7 +1625,7 @@ async function showHotkeyCommandsPopup() {
     const headerText = document.createElement("div")
     const title = document.createElement("h3")
     title.classList.add("better-osm-hotkey-commands-title")
-    title.textContent = "Available commands"
+    title.textContent = t("hotkeys.availableCommands")
     const subtitle = document.createElement("p")
     subtitle.classList.add("better-osm-hotkey-commands-subtitle")
     // subtitle.textContent = `Current contexts: ${currentContexts.join(", ")}`
@@ -1728,7 +1728,7 @@ async function showHotkeyCommandsPopup() {
         if (!filteredCommands.length) {
             const emptyState = document.createElement("p")
             emptyState.classList.add("better-osm-hotkey-commands-empty")
-            emptyState.textContent = normalizedQuery ? "No hotkeys match this search." : "No cataloged commands match this page."
+            emptyState.textContent = normalizedQuery ? t("hotkeys.noHotkeysMatchSearch") : t("hotkeys.noCatalogedCommandsMatchPage")
             content.append(emptyState)
             return
         }
@@ -1739,7 +1739,7 @@ async function showHotkeyCommandsPopup() {
 
             const heading = document.createElement("h4")
             heading.classList.add("better-osm-hotkey-commands-group-title")
-            heading.textContent = "Recent"
+            heading.textContent = t("hotkeys.recent")
             group.append(heading)
 
             const list = document.createElement("div")

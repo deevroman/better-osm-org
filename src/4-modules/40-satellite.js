@@ -431,7 +431,7 @@ async function askCustomStyleUrl() {
     h.style.display = "flex"
     h.style.gap = "25px"
     h.style.marginLeft = "auto"
-    h.textContent = "Setup custom style.json for MapLibre.js"
+    h.textContent = t("satellite.setupCustomStyleJson")
     popup.appendChild(h)
 
     const closeBtn = document.createElement("button")
@@ -769,7 +769,7 @@ async function askCustomTileUrl() {
     h.style.display = "flex"
     h.style.gap = "25px"
     h.style.marginLeft = "auto"
-    h.textContent = "Setup custom map layers"
+    h.textContent = t("satellite.setupCustomMapLayers")
     popup.appendChild(h)
 
     const closeBtn = document.createElement("button")

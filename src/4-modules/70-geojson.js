@@ -482,7 +482,7 @@ function renderOSMGeoJSON(xml, options = {}) {
         details.style.color = "gray"
 
         const summary = document.createElement("summary")
-        summary.textContent = "metainfo"
+        summary.textContent = t("geojson.metainfo")
         details.appendChild(summary)
         popupBody.appendChild(details)
 
@@ -886,7 +886,7 @@ function renderOSMGeoJSON(xml, options = {}) {
                     const editButton = layer.getPopup().getElement().querySelector(".edit-tags-btn")
                     if (currentVersionBanned("overpass_tags_editor")) {
                         editButton.classList.add("banned-feature")
-                        editButton.textContent = "Need update better-osm-org"
+                        editButton.textContent = t("geojson.needUpdateBetterOsmOrg")
                         editButton.title =
                             "Please click for update better-osm-org script.\nThe current version contains a bug that may corrupt OSM data."
                         editButton.addEventListener(

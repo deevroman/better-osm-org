@@ -265,7 +265,7 @@ async function betterUserStat() {
     const item = document.createElement("option")
     item.value = ""
     item.setAttribute("all-editors", "yes")
-    item.textContent = "All editors"
+    item.textContent = t("userProfile.allEditors")
     filterInputByEditor.appendChild(item)
 
     const calHeatmap = document.querySelector(".heatmap")
@@ -542,11 +542,7 @@ async function betterUserStat() {
             const item = document.createElement("option")
             item.value = i
             item.setAttribute("is-editor-name", "yes")
-            if (i === 1) {
-                item.textContent = ` ${i} (${counts[i]} contribution)`
-            } else {
-                item.textContent = ` ${i} (${counts[i]} contributions)`
-            }
+            item.textContent = t("userProfile.editorContributions", { editor: i, count: counts[i] })
             filterInputByEditor.appendChild(item)
         })
     filterInputByEditor.appendChild(document.createElement("hr"))
@@ -591,7 +587,7 @@ async function makeProfileForDeletedUser(user) {
     div.classList.add("content-inner", "position-relative", "m-auto")
 
     const webArchiveLink = document.createElement("a")
-    webArchiveLink.textContent = "WebArchive"
+    webArchiveLink.textContent = t("links.webArchive")
     webArchiveLink.target = "_blank"
     webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + decodeURI(user)
     div.appendChild(webArchiveLink)
@@ -599,7 +595,7 @@ async function makeProfileForDeletedUser(user) {
 
     function makeOSMChaLink(username) {
         const osmchaLink = document.createElement("a")
-        osmchaLink.textContent = " [OSMCha] "
+        osmchaLink.textContent = t("userProfile.osmcha")
         osmchaLink.id = "osmcha_link"
         osmchaLink.title = "Open profile in OSMCha"
         osmchaLink.href = makeOsmchaLinkForUsername(username)
@@ -635,7 +631,7 @@ async function makeProfileForDeletedUser(user) {
             elemForResult.appendChild(document.createElement("br"))
             if (data[i].names?.length > 1) {
                 const p = document.createElement("p")
-                p.textContent = "Usernames: "
+                p.textContent = t("userProfile.usernames")
                 injectCSSIntoOSMPage(copyAnimationStyles)
                 data[i].names
                     .map(i => i.name)
@@ -664,7 +660,7 @@ async function makeProfileForDeletedUser(user) {
                 const blocksSpan = document.createElement("span")
 
                 const loadingStatus = document.createElement("span")
-                loadingStatus.textContent = " Finding blocks... "
+                loadingStatus.textContent = t("userProfile.findingBlocks")
                 loadingStatus.style.color = "gray"
                 blocksSpan.appendChild(document.createTextNode(" "))
                 blocksSpan.appendChild(loadingStatus)
@@ -832,9 +828,9 @@ async function makeProfileForDeletedUser(user) {
                     const selectedIDsCount = elemForResult.querySelectorAll(`input:checked[user-id="${id}"]`).length
                     elemForResult.querySelectorAll(`.copy-changesets-ids-btn[user-id="${id}"]`).forEach(i => {
                         if (selectedIDsCount) {
-                            i.textContent = `Copy ${selectedIDsCount} IDs`
+                            i.textContent = t("userProfile.copyIdsCount", { count: selectedIDsCount })
                         } else {
-                            i.textContent = `Copy IDs`
+                            i.textContent = t("userProfile.copyIds")
                         }
                     })
                 }
@@ -861,7 +857,7 @@ async function makeProfileForDeletedUser(user) {
                 changesetLine.appendChild(changesetDate)
 
                 const comment = document.createElement("span")
-                comment.textContent = " " + (ch.tags?.["comment"] ?? "No comment")
+                comment.textContent = " " + (ch.tags?.["comment"] ?? t("userProfile.noComment"))
                 changesetLine.appendChild(comment)
 
                 if (ch.comments_count) {
@@ -885,7 +881,7 @@ async function makeProfileForDeletedUser(user) {
             })
 
             const copyIds = document.createElement("button")
-            copyIds.textContent = "Copy IDs"
+            copyIds.textContent = t("userProfile.copyIds")
             copyIds.title = ""
             copyIds.classList.add("copy-changesets-ids-btn")
             copyIds.setAttribute("user-id", id)
@@ -978,7 +974,7 @@ out meta;
                 div.title = "via whosthat.osmz.ru"
             }
             if (names.length) {
-                userNamesP.textContent = "Usernames: "
+                userNamesP.textContent = t("userProfile.usernames")
                 injectCSSIntoOSMPage(copyAnimationStyles)
                 names.forEach(name => {
                     const usernameSpan = document.createElement("span")
@@ -1162,7 +1158,7 @@ async function setupHDYCInProfile() {
             }
             const usernames = userIDInfo.data[0]["names"].filter(i => i !== decodeURI(user)).join(", ")
             const dt = document.createElement("dt")
-            dt.textContent = "Past usernames: "
+            dt.textContent = t("userProfile.pastUsernames")
             dt.title = "Added by better-osm-org"
             dt.classList.add("list-inline-item", "m-0", "prev-usernames-label")
             const dd = document.createElement("dd")
@@ -1179,7 +1175,7 @@ async function setupHDYCInProfile() {
         function addUserID() {
             if (!document.querySelector('[href^="/api/0.6/user"]')) {
                 const dt = document.createElement("dt")
-                dt.textContent = "ID: "
+                dt.textContent = t("userProfile.userIdLabel")
                 dt.classList.add("list-inline-item", "m-0")
                 const dd = document.createElement("dd")
                 dd.classList.add("list-inline-item", "user-id")
@@ -1329,13 +1325,13 @@ function simplifyHDCYIframe() {
                 }
             `)
         if (isFirefox) {
-            warn.textContent = "Please disable tracking protection so that the HDYC account login works"
+            warn.textContent = t("userProfile.disableTrackingProtection")
 
             document.getElementById("authenticate").before(warn)
             const hdycLink = document.createElement("a")
             const match = location.pathname.match(/^\/user\/([^/]+)$/)
             hdycLink.href = "https://www.hdyc.neis-one.org/user/" + (match ? match[1] : "")
-            hdycLink.textContent = "Go to https://www.hdyc.neis-one.org/"
+            hdycLink.textContent = t("userProfile.goToHdyc")
             hdycLink.target = "_blank"
             hdycLink.id = "hdycLink"
             document.getElementById("authenticate").before(document.createElement("br"))

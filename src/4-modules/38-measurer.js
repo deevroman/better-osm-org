@@ -68,7 +68,7 @@ let measuringCleanMenuItem = null
 function endMeasuring() {
     document.querySelector("#map").style.cursor = "drag"
     const a = measuringMenuItem.querySelector("a")
-    a.textContent = "Measure from here"
+    a.textContent = t("measurer.measureFromHere")
 
     const i = document.createElement("i")
     i.classList.add("bi", "bi-rulers")
@@ -138,7 +138,7 @@ function addMeasureMenuItem(customSeparator) {
     measuringMenuItem.style.cursor = "pointer"
     const a = document.createElement("a")
     a.classList.add("dropdown-item", "d-flex", "align-items-center", "gap-3")
-    a.textContent = measuring ? "End measure" : "Measure from here"
+    a.textContent = measuring ? t("measurer.endMeasure") : t("measurer.measureFromHere")
     a.title = `Alt + Click: start new line
 Esc: stop measuring
 ${CtrlKeyName} + Z: remove last node`
@@ -171,7 +171,7 @@ ${CtrlKeyName} + Z: remove last node`
 
         const cleanA = document.createElement("a")
         cleanA.classList.add("dropdown-item", "d-flex", "align-items-center", "gap-3")
-        cleanA.textContent = "Clean measurements"
+        cleanA.textContent = t("measurer.cleanMeasurements")
         cleanA.title = "Or press Escape twice"
 
         const cleanI = document.createElement("i")
@@ -207,7 +207,7 @@ ${CtrlKeyName} + Z: remove last node`
         } else {
             document.querySelector("#map").style.cursor = "pointer"
             measuring = true
-            a.textContent = "End measure"
+            a.textContent = t("measurer.endMeasure")
 
             getMap().on("mousedown", measuringMouseDownHandler)
             getMap().on("mouseup", measuringMouseUpHandler)

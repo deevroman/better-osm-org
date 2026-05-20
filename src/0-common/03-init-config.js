@@ -484,7 +484,7 @@ const configOptions = {
         open: function (doc) {
             const versionSection = document.createElement("span")
             versionSection.id = "version"
-            versionSection.textContent = `Script version: `
+            versionSection.textContent = t("init.scriptVersion")
             const version = document.createElement("span")
             version.textContent = GM_info.script.version
             version.title = "Click for copy"

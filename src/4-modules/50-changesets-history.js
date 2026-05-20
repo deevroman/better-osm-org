@@ -55,7 +55,7 @@ function makeTopActionBar() {
     const actionsBar = document.createElement("div")
     actionsBar.classList.add("actions-bar")
     const copyIds = document.createElement("button")
-    copyIds.textContent = "Copy IDs"
+    copyIds.textContent = t("changesetsHistory.copyIds")
     copyIds.classList.add("copy-changesets-ids-btn")
     copyIds.onclick = onClickByCopyIds
     const revertButton = document.createElement("button")
@@ -95,9 +95,9 @@ function makeBottomActionBar() {
     const copyIds = document.createElement("button")
     const selectedIDsCount = document.querySelectorAll(".mass-action-checkbox:checked").length
     if (selectedIDsCount) {
-        copyIds.textContent = `Copy ${selectedIDsCount} IDs`
+        copyIds.textContent = t("changesetsHistory.copyIdsCount", { count: selectedIDsCount })
     } else {
-        copyIds.textContent = "Copy IDs"
+        copyIds.textContent = t("changesetsHistory.copyIds")
     }
     copyIds.classList.add("copy-changesets-ids-btn")
     copyIds.classList.add("buttom-btn")
@@ -245,9 +245,9 @@ function addChangesetCheckbox(changesetElem) {
         const selectedIDsCount = document.querySelectorAll(".mass-action-checkbox:checked").length
         document.querySelectorAll(".copy-changesets-ids-btn").forEach(i => {
             if (selectedIDsCount) {
-                i.textContent = `Copy ${selectedIDsCount} IDs`
+                i.textContent = t("changesetsHistory.copyIdsCount", { count: selectedIDsCount })
             } else {
-                i.textContent = `Copy IDs`
+                i.textContent = t("changesetsHistory.copyIds")
             }
         })
     }
@@ -378,7 +378,10 @@ function filterChangesets(htmlDocument = document) {
     if (needUpdateCounter) {
         getWindow().hiddenChangesetsCount = newHiddenChangesetsCount
         const changesetsCount = document.querySelectorAll("ol > li").length
-        counter.textContent = ` Displayed ${changesetsCount - newHiddenChangesetsCount}/${changesetsCount}`
+        counter.textContent = t("changesetsHistory.displayedCount", {
+            displayed: changesetsCount - newHiddenChangesetsCount,
+            total: changesetsCount,
+        })
         counter.setAttribute("changesets-count", changesetsCount)
         console.log(changesetsCount)
     }
@@ -476,7 +479,7 @@ function addMassActionForGlobalChangesets() {
                 hideBigChangesetsCheckbox.style.cursor = "pointer"
                 hideBigChangesetsCheckbox.id = "hide-big-changesets-checkbox"
                 const hideBigChangesetLabel = document.createElement("label")
-                hideBigChangesetLabel.textContent = "Hide big changesets"
+                hideBigChangesetLabel.textContent = t("changesetsHistory.hideBigChangesets")
                 hideBigChangesetLabel.htmlFor = "hide-big-changesets-checkbox"
                 hideBigChangesetLabel.style.marginLeft = "1px"
                 hideBigChangesetLabel.style.marginBottom = "4px"
@@ -492,7 +495,7 @@ function addMassActionForGlobalChangesets() {
                 filterBar.appendChild(document.createElement("br"))
 
                 const label = document.createElement("span")
-                label.textContent = "🔄Hide changesets from "
+                label.textContent = t("changesetsHistory.hideChangesetsFrom")
                 label.title = "Click for invert"
                 label.style.minWidth = "165px"
                 label.style.display = "inline-block"
@@ -500,10 +503,10 @@ function addMassActionForGlobalChangesets() {
                 label.setAttribute("checked", false)
                 label.id = "invert-user-filter-checkbox"
                 label.onclick = e => {
-                    if (e.target.textContent === "🔄Hide changesets from ") {
-                        e.target.textContent = "🔄Show changesets from "
+                    if (e.target.textContent === t("changesetsHistory.hideChangesetsFrom")) {
+                        e.target.textContent = t("changesetsHistory.showChangesetsFrom")
                     } else {
-                        e.target.textContent = "🔄Hide changesets from "
+                        e.target.textContent = t("changesetsHistory.hideChangesetsFrom")
                     }
                     if (e.target.getAttribute("checked") === "false") {
                         e.target.setAttribute("checked", true)
@@ -534,7 +537,7 @@ function addMassActionForGlobalChangesets() {
                 filterBar.appendChild(filterByUsersInput)
 
                 const label2 = document.createElement("span")
-                label2.textContent = "🔄Hide changesets with "
+                label2.textContent = t("changesetsHistory.hideChangesetsWith")
                 label2.title = "Click for invert"
                 label2.style.minWidth = "165px"
                 label2.style.display = "inline-block"
@@ -542,10 +545,10 @@ function addMassActionForGlobalChangesets() {
                 label2.id = "invert-comment-filter-checkbox"
                 label2.setAttribute("checked", false)
                 label2.onclick = e => {
-                    if (e.target.textContent === "🔄Hide changesets with ") {
-                        e.target.textContent = "🔄Show changesets with "
+                    if (e.target.textContent === t("changesetsHistory.hideChangesetsWith")) {
+                        e.target.textContent = t("changesetsHistory.showChangesetsWith")
                     } else {
-                        e.target.textContent = "🔄Hide changesets with "
+                        e.target.textContent = t("changesetsHistory.hideChangesetsWith")
                     }
                     if (e.target.getAttribute("checked") === "false") {
                         e.target.setAttribute("checked", true)
@@ -681,7 +684,7 @@ function addMassChangesetsActions() {
                 moreButton.parentElement.style.display = "inline-flex"
                 const infinityList = document.createElement("button")
                 infinityList.classList.add("page-link")
-                infinityList.textContent = `Load ${20 * MAX_PAGE_FOR_LOAD}`
+                infinityList.textContent = t("changesetsHistory.loadMore", { count: 20 * MAX_PAGE_FOR_LOAD })
                 infinityList.id = "infinity-list-btn"
                 infinityList.onclick = () => {
                     currentMassDownloadedPages = 1

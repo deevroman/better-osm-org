@@ -196,7 +196,7 @@ function tryAddWarnAboutScriptIntoOsmOrgRepo() {
         warn.textContent = "⚠️⚠️⚠️️ "
         warn.classList.add("better-osm-org-warn")
         const subWarn = document.createElement("span")
-        subWarn.textContent = "Disable better-osm-org"
+        subWarn.textContent = t("init.disableBetterOsmOrg")
         subWarn.style.color = "red"
         warn.appendChild(subWarn)
         warn.appendChild(document.createTextNode(" before reporting bugs or asking questions about features ⚠️⚠️⚠️"))
@@ -865,6 +865,10 @@ const currentLocale = Object.entries(localeMap).find(([, locales]) => locales.in
 /** @type {Record<Langs, Translations>} */
 const _translations = {
     en: {
+        init: {
+            disableBetterOsmOrg: "Disable better-osm-org",
+            scriptVersion: "Script version: ",
+        },
         config: {
             sectionID: "iD",
             sectionViewingEdits: "Viewing edits",
@@ -925,6 +929,7 @@ const _translations = {
             withGeometryChanges: "With geometry changes",
             withoutIntermediate: "Without intermediate",
             viewUnredactedHistory: "View Unredacted History β",
+            errorPleaseReport: "Error :( Please report this page in better-osm-org GitHub repo",
             tagsCount: ({ count }) => `${count} tag${count === 1 ? "" : "s"}`,
         },
         changesetQuicklook: {
@@ -940,8 +945,83 @@ const _translations = {
             moreLinks: "more links",
             editLinksList: "edit links list",
         },
+        routers: {
+            routingDataTimeFor: "Routing data time for {name}: {time}",
+            openDebugMap: "Open Debug Map",
+        },
+        satellite: {
+            setupCustomStyleJson: "Setup custom style.json for MapLibre.js",
+            setupCustomMapLayers: "Setup custom map layers",
+        },
+        geojson: {
+            metainfo: "metainfo",
+            needUpdateBetterOsmOrg: "Need update better-osm-org",
+        },
+        links: {
+            webArchive: "WebArchive",
+        },
+        hotkeys: {
+            availableCommands: "Available commands",
+            recent: "Recent",
+            noHotkeysMatchSearch: "No hotkeys match this search.",
+            noCatalogedCommandsMatchPage: "No cataloged commands match this page.",
+        },
+        objectVersionPage: {
+            length: "Length: {value}",
+            area: "Area: {value}",
+        },
+        userProfile: {
+            allEditors: "All editors",
+            editorContributions: ({ editor, count }) => ` ${editor} (${count} contribution${count === 1 ? "" : "s"})`,
+            osmcha: " [OSMCha] ",
+            usernames: "Usernames: ",
+            findingBlocks: " Finding blocks... ",
+            copyIds: "Copy IDs",
+            copyIdsCount: "Copy {count} IDs",
+            noComment: "No comment",
+            pastUsernames: "Past usernames: ",
+            userIdLabel: "ID: ",
+            disableTrackingProtection: "Please disable tracking protection so that the HDYC account login works",
+            goToHdyc: "Go to https://www.hdyc.neis-one.org/",
+        },
+        changesetsHistory: {
+            copyIds: "Copy IDs",
+            copyIdsCount: "Copy {count} IDs",
+            displayedCount: " Displayed {displayed}/{total}",
+            hideBigChangesets: "Hide big changesets",
+            hideChangesetsFrom: "🔄Hide changesets from ",
+            showChangesetsFrom: "🔄Show changesets from ",
+            hideChangesetsWith: "🔄Hide changesets with ",
+            showChangesetsWith: "🔄Show changesets with ",
+            loadMore: "Load {count}",
+        },
+        measurer: {
+            measureFromHere: "Measure from here",
+            endMeasure: "End measure",
+            cleanMeasurements: "Clean measurements",
+        },
+        panoramax: {
+            blurFaces: "Blur faces",
+        },
+        idEditor: {
+            findOffsets: "Find offsets",
+        },
+        changesetPage: {
+            selectObjects: "Select objects",
+            revertViaOsmRevert: "Revert via osm-revert",
+            openInEditor: "Open in {editor}",
+            openInLevel0: "Open in Level0",
+            openInLevel0WithWaysGeometry: "Open in Level0 with ways geometry",
+        },
+        nodeMover: {
+            moveNodeToHere: "Move node to here",
+        },
     },
     ru: {
+        init: {
+            disableBetterOsmOrg: "Отключите better-osm-org",
+            scriptVersion: "Версия скрипта: ",
+        },
         config: {
             sectionID: "iD",
             sectionViewingEdits: "Просмотр правок",
@@ -970,24 +1050,24 @@ const _translations = {
             hdycInProfile: "Добавить HDYC в профиль пользователя",
             betterProfileStat: "Добавить фильтры в статистику профиля",
             navigationViaHotkeys:
-                'Добавить горячие клавиши <a href="https://github.com/deevroman/better-osm-org#Hotkeys" target="_blank">(список)</a>',
-            newEditorsLinks: "Добавить новые редакторы в меню редактирования",
+                'Включить горячие клавиши <a href="https://github.com/deevroman/better-osm-org#Hotkeys" target="_blank">(список)</a>',
+            newEditorsLinks: "Больше ссылок в меню Правка",
             resetSearchFormFocus: "Сбрасывать фокус с формы поиска",
-            satelliteLayers: "Добавить переключатели спутниковых слоёв",
+            satelliteLayers: "Добавить переключатели спутникового слоя",
             swipes: "Добавить свайпы между страницами правок пользователя",
-            resizableSidebar: "Ползунок ширины боковой панели",
+            resizableSidebar: "Разрешить изменять ширину боковой панели",
             clickableAvatar: "Открывать пакеты правок по клику на аватар",
-            overzoomForDataLayer: "Разрешить overzoom при включённом слое данные или подложке β",
+            overzoomForDataLayer: "Разрешить оверзум при включённом слое данные или подложке β",
             dragAndDropViewers: "Drag&Drop для .geojson, .jpg, .gpx, .osm",
-            viewer3DInNewTab: "Всегда открывать 3D-просмотрщики зданий в новой вкладке",
+            viewer3DInNewTab: "Открывать 3D-просмотрщики зданий в новой вкладке",
             betterTaginfo: "Добавить новые кнопки в Taginfo",
-            defaultZoomKeysBehaviour: "Не удваивать шаг зума у кнопок +/-",
-            addLocationFromNominatim: "Добавить местоположение из Nominatim для пакетов правок и заметок",
+            defaultZoomKeysBehaviour: "Не удваивать шаг зума для кнопок +/-",
+            addLocationFromNominatim: "Отображать адрес из Nominatim для правок и заметок",
             overpassInstance:
                 '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Сервер Overpass API</a>',
             panoramaxUploader: "Добавить форму загрузки фотографий в Panoramax",
-            routersTimestamps: "Добавить дату данных для GraphHopper, OSRM, Valhalla",
-            debugMode: "Включить отладочные и экспериментальные функции",
+            routersTimestamps: "Показывать дату данных для GraphHopper, OSRM, Valhalla",
+            debugMode: "Включить отладочные и экспериментальные фичи",
         },
         objectEditor: {
             delete: "Выпилить!",
@@ -1002,6 +1082,7 @@ const _translations = {
             withGeometryChanges: "Все изменения геометрии",
             withoutIntermediate: "Без промежуточных",
             viewUnredactedHistory: "Просмотр неотредактированной истории β",
+            errorPleaseReport: "Ошибка :( Пожалуйста, сообщите об этом в GitHub-репозитории better-osm-org",
             tagsCount: ({ count }) => {
                 if (count === 1) {
                     return `${count} тег`
@@ -1024,6 +1105,77 @@ const _translations = {
         editMenuLinks: {
             moreLinks: "больше ссылок",
             editLinksList: "редактировать список",
+        },
+        routers: {
+            routingDataTimeFor: "Время данных роутинга для {name}: {time}",
+            openDebugMap: "Открыть Debug Map",
+        },
+        satellite: {
+            setupCustomStyleJson: "Настройка своего стиля векторной карты",
+            setupCustomMapLayers: "Настройка подложки карты",
+        },
+        geojson: {
+            metainfo: "метаинформация",
+            needUpdateBetterOsmOrg: "Нужно обновить better-osm-org",
+        },
+        links: {
+            webArchive: "WebArchive",
+        },
+        hotkeys: {
+            availableCommands: "Доступные команды",
+            recent: "Недавние",
+            noHotkeysMatchSearch: "Нет подходящих горячих клавиш.",
+            noCatalogedCommandsMatchPage: "Для этой страницы нет подходящих команд.",
+        },
+        objectVersionPage: {
+            length: "Длина: {value}",
+            area: "Площадь: {value}",
+        },
+        userProfile: {
+            allEditors: "Все редакторы",
+            editorContributions: ({ editor, count }) => ` ${editor} (${count} вклад${count === 1 ? "" : count < 5 ? "а" : "ов"})`,
+            osmcha: " [OSMCha] ",
+            usernames: "Имена пользователей: ",
+            findingBlocks: " Ищем блокировки... ",
+            copyIds: "Скопировать ID",
+            copyIdsCount: "Скопировать {count} ID",
+            noComment: "Без комментария",
+            pastUsernames: "Прошлые имена: ",
+            userIdLabel: "ID: ",
+            disableTrackingProtection: "Отключите защиту от отслеживания, чтобы заработал показ информации с сайта HDYC",
+            goToHdyc: "Открыть https://www.hdyc.neis-one.org/",
+        },
+        changesetsHistory: {
+            copyIds: "Скопировать ID",
+            copyIdsCount: "Скопировать {count} ID",
+            displayedCount: " Показано {displayed}/{total}",
+            hideBigChangesets: "Скрывать большие пакеты правок",
+            hideChangesetsFrom: "🔄Скрывать правки от ",
+            showChangesetsFrom: "🔄Показывать правки от ",
+            hideChangesetsWith: "🔄Скрывать правки с ",
+            showChangesetsWith: "🔄Только правки с ",
+            loadMore: "Загрузить {count}",
+        },
+        measurer: {
+            measureFromHere: "Измерить отсюда",
+            endMeasure: "Закончить измерение",
+            cleanMeasurements: "Очистить измерения",
+        },
+        panoramax: {
+            blurFaces: "Размыть лица",
+        },
+        idEditor: {
+            findOffsets: "Найти смещения",
+        },
+        changesetPage: {
+            selectObjects: "Выбрать объекты",
+            revertViaOsmRevert: "Откатить через osm-revert",
+            openInEditor: "Открыть в {editor}",
+            openInLevel0: "Открыть в Level0",
+            openInLevel0WithWaysGeometry: "Открыть в Level0 с геометрией линий",
+        },
+        nodeMover: {
+            moveNodeToHere: "Переместить точку сюда",
         },
     },
     uk: {
@@ -1882,7 +2034,7 @@ const configOptions = {
         open: function (doc) {
             const versionSection = document.createElement("span")
             versionSection.id = "version"
-            versionSection.textContent = `Script version: `
+            versionSection.textContent = t("init.scriptVersion")
             const version = document.createElement("span")
             version.textContent = GM_info.script.version
             version.title = "Click for copy"
@@ -4293,7 +4445,7 @@ async function findChangesetInDiff(e) {
     e.target.before(document.createTextNode("\xA0"))
 
     const webArchiveLink = document.createElement("a")
-    webArchiveLink.textContent = "WebArchive"
+    webArchiveLink.textContent = t("links.webArchive")
     webArchiveLink.target = "_blank"
     webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + foundedUser
     e.target.before(webArchiveLink)
@@ -5524,7 +5676,7 @@ Press R for partial revert`
         if (secondaryActionsWithXml && !document.querySelector(".objects-selector")) {
             const selectObjects = document.createElement("a")
             selectObjects.classList.add("select-objects-btn")
-            selectObjects.textContent = "Select\xA0objects"
+            selectObjects.textContent = t("changesetPage.selectObjects").replace(" ", "\xA0")
             selectObjects.href = ""
             selectObjects.title = "to partial revert or edit in JOSM/Level0"
             selectObjects.onclick = e => {
@@ -5538,7 +5690,7 @@ Press R for partial revert`
                 const wrapper = document.createElement("div")
 
                 const revertBtn = document.createElement("button")
-                revertBtn.textContent = "Revert via osm-revert"
+                revertBtn.textContent = t("changesetPage.revertViaOsmRevert")
                 revertBtn.title = "Hotkey: R"
                 revertBtn.style.marginBottom = "4px"
                 revertBtn.onclick = () => document.querySelector("#revert_button_class").click()
@@ -5546,7 +5698,7 @@ Press R for partial revert`
                 wrapper.appendChild(document.createTextNode("\xA0"))
 
                 const josmBtn = document.createElement("button")
-                josmBtn.textContent = "Open in " + (isMobile ? "Vespucci" : "JOSM")
+                josmBtn.textContent = t("changesetPage.openInEditor", { editor: isMobile ? "Vespucci" : "JOSM" })
                 josmBtn.title = "Hotkey: J"
                 josmBtn.style.marginBottom = "4px"
                 josmBtn.onclick = openSelectedObjectsOnChangesetPage
@@ -5554,7 +5706,7 @@ Press R for partial revert`
                 wrapper.appendChild(document.createElement("br"))
 
                 const level0Btn = document.createElement("button")
-                level0Btn.textContent = "Open in Level0"
+                level0Btn.textContent = t("changesetPage.openInLevel0")
                 level0Btn.title = "Hotkey: Alt + J"
                 level0Btn.style.marginBottom = "4px"
                 level0Btn.onclick = () => openSelectedObjectsOnChangesetPage({ altKey: true })
@@ -5562,7 +5714,7 @@ Press R for partial revert`
                 wrapper.appendChild(document.createTextNode("\xA0"))
 
                 const level0BtnWithGeometry = document.createElement("button")
-                level0BtnWithGeometry.textContent = "Open in Level0 with ways geometry"
+                level0BtnWithGeometry.textContent = t("changesetPage.openInLevel0WithWaysGeometry")
                 level0BtnWithGeometry.title = "Hotkey: Shift + Alt + J"
                 level0BtnWithGeometry.style.marginBottom = "4px"
                 level0BtnWithGeometry.onclick = () => openSelectedObjectsOnChangesetPage({ altKey: true, shiftKey: true })
@@ -8129,7 +8281,7 @@ function addPOIMoverItem(measuringMenuItem) {
     nodeMoverMenuItem.style.cursor = "pointer"
     const a = document.createElement("a")
     a.classList.add("dropdown-item", "d-flex", "align-items-center", "gap-3")
-    a.textContent = "Move node to here"
+    a.textContent = t("nodeMover.moveNodeToHere")
 
     const i = document.createElement("i")
     i.classList.add("bi", "bi-arrow-down")
@@ -8268,7 +8420,7 @@ let measuringCleanMenuItem = null
 function endMeasuring() {
     document.querySelector("#map").style.cursor = "drag"
     const a = measuringMenuItem.querySelector("a")
-    a.textContent = "Measure from here"
+    a.textContent = t("measurer.measureFromHere")
 
     const i = document.createElement("i")
     i.classList.add("bi", "bi-rulers")
@@ -8338,7 +8490,7 @@ function addMeasureMenuItem(customSeparator) {
     measuringMenuItem.style.cursor = "pointer"
     const a = document.createElement("a")
     a.classList.add("dropdown-item", "d-flex", "align-items-center", "gap-3")
-    a.textContent = measuring ? "End measure" : "Measure from here"
+    a.textContent = measuring ? t("measurer.endMeasure") : t("measurer.measureFromHere")
     a.title = `Alt + Click: start new line
 Esc: stop measuring
 ${CtrlKeyName} + Z: remove last node`
@@ -8371,7 +8523,7 @@ ${CtrlKeyName} + Z: remove last node`
 
         const cleanA = document.createElement("a")
         cleanA.classList.add("dropdown-item", "d-flex", "align-items-center", "gap-3")
-        cleanA.textContent = "Clean measurements"
+        cleanA.textContent = t("measurer.cleanMeasurements")
         cleanA.title = "Or press Escape twice"
 
         const cleanI = document.createElement("i")
@@ -8407,7 +8559,7 @@ ${CtrlKeyName} + Z: remove last node`
         } else {
             document.querySelector("#map").style.cursor = "pointer"
             measuring = true
-            a.textContent = "End measure"
+            a.textContent = t("measurer.endMeasure")
 
             getMap().on("mousedown", measuringMouseDownHandler)
             getMap().on("mouseup", measuringMouseUpHandler)
@@ -8995,7 +9147,7 @@ async function askCustomStyleUrl() {
     h.style.display = "flex"
     h.style.gap = "25px"
     h.style.marginLeft = "auto"
-    h.textContent = "Setup custom style.json for MapLibre.js"
+    h.textContent = t("satellite.setupCustomStyleJson")
     popup.appendChild(h)
 
     const closeBtn = document.createElement("button")
@@ -9333,7 +9485,7 @@ async function askCustomTileUrl() {
     h.style.display = "flex"
     h.style.gap = "25px"
     h.style.marginLeft = "auto"
-    h.textContent = "Setup custom map layers"
+    h.textContent = t("satellite.setupCustomMapLayers")
     popup.appendChild(h)
 
     const closeBtn = document.createElement("button")
@@ -14212,7 +14364,7 @@ function setupViewRedactions() {
             await restoreObjectHistory(showUnredactedBtn)
         } catch (e) {
             showUnredactedBtn.style.cursor = "not-allowed"
-            showUnredactedBtn.textContent = "Error :( Please report this page in better-osm-org GitHub repo"
+            showUnredactedBtn.textContent = t("historyDiff.errorPleaseReport")
             throw e
         }
 
@@ -19849,7 +20001,7 @@ function addUploadPanoramaxBtn() {
     needBlur.style.marginRight = "5px"
 
     const needBlueLabel = document.createElement("label")
-    needBlueLabel.textContent = "Blur faces"
+    needBlueLabel.textContent = t("panoramax.blurFaces")
     needBlueLabel.style.display = "none"
     needBlueLabel.prepend(needBlur)
 
@@ -19994,14 +20146,14 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type) {
     if (osm_type === "way") {
         const lengthElem = document.createElement("span")
         const lengthText = wayLength < 1000 ? wayLength.toFixed(2) + " m" : wayLength.toFixed(0) + " m"
-        lengthElem.textContent = "Length: " + lengthText
+        lengthElem.textContent = t("objectVersionPage.length", { value: lengthText })
         infos.appendChild(lengthElem)
 
         if (wayArea !== null) {
             infos.appendChild(document.createTextNode(",\xA0"))
             const areaElem = document.createElement("span")
             const areaText = wayLength < 1000 ? wayArea.toFixed(2) + " m²" : wayArea.toFixed(0) + " m²"
-            areaElem.textContent = "Area: " + areaText
+            areaElem.textContent = t("objectVersionPage.area", { value: areaText })
             infos.appendChild(areaElem)
         }
     }
@@ -21364,7 +21516,10 @@ function runInOsmPageCode() {
                     filterChangesets(doc)
                     setTimeout(() => {
                         const changesetsCount = document.querySelectorAll("ol > li").length
-                        document.querySelector("#hidden-changeset-counter").textContent = " Displayed " + (changesetsCount - getWindow().hiddenChangesetsCount) + "/" + changesetsCount
+                        document.querySelector("#hidden-changeset-counter").textContent = t("changesetsHistory.displayedCount", {
+                            displayed: changesetsCount - getWindow().hiddenChangesetsCount,
+                            total: changesetsCount,
+                        })
                     }, 100)
                     return new Response(doc.documentElement.outerHTML, {
                         status: response.status,
@@ -21805,7 +21960,7 @@ function makeTopActionBar() {
     const actionsBar = document.createElement("div")
     actionsBar.classList.add("actions-bar")
     const copyIds = document.createElement("button")
-    copyIds.textContent = "Copy IDs"
+    copyIds.textContent = t("changesetsHistory.copyIds")
     copyIds.classList.add("copy-changesets-ids-btn")
     copyIds.onclick = onClickByCopyIds
     const revertButton = document.createElement("button")
@@ -21845,9 +22000,9 @@ function makeBottomActionBar() {
     const copyIds = document.createElement("button")
     const selectedIDsCount = document.querySelectorAll(".mass-action-checkbox:checked").length
     if (selectedIDsCount) {
-        copyIds.textContent = `Copy ${selectedIDsCount} IDs`
+        copyIds.textContent = t("changesetsHistory.copyIdsCount", { count: selectedIDsCount })
     } else {
-        copyIds.textContent = "Copy IDs"
+        copyIds.textContent = t("changesetsHistory.copyIds")
     }
     copyIds.classList.add("copy-changesets-ids-btn")
     copyIds.classList.add("buttom-btn")
@@ -21995,9 +22150,9 @@ function addChangesetCheckbox(changesetElem) {
         const selectedIDsCount = document.querySelectorAll(".mass-action-checkbox:checked").length
         document.querySelectorAll(".copy-changesets-ids-btn").forEach(i => {
             if (selectedIDsCount) {
-                i.textContent = `Copy ${selectedIDsCount} IDs`
+                i.textContent = t("changesetsHistory.copyIdsCount", { count: selectedIDsCount })
             } else {
-                i.textContent = `Copy IDs`
+                i.textContent = t("changesetsHistory.copyIds")
             }
         })
     }
@@ -22128,7 +22283,10 @@ function filterChangesets(htmlDocument = document) {
     if (needUpdateCounter) {
         getWindow().hiddenChangesetsCount = newHiddenChangesetsCount
         const changesetsCount = document.querySelectorAll("ol > li").length
-        counter.textContent = ` Displayed ${changesetsCount - newHiddenChangesetsCount}/${changesetsCount}`
+        counter.textContent = t("changesetsHistory.displayedCount", {
+            displayed: changesetsCount - newHiddenChangesetsCount,
+            total: changesetsCount,
+        })
         counter.setAttribute("changesets-count", changesetsCount)
         console.log(changesetsCount)
     }
@@ -22226,7 +22384,7 @@ function addMassActionForGlobalChangesets() {
                 hideBigChangesetsCheckbox.style.cursor = "pointer"
                 hideBigChangesetsCheckbox.id = "hide-big-changesets-checkbox"
                 const hideBigChangesetLabel = document.createElement("label")
-                hideBigChangesetLabel.textContent = "Hide big changesets"
+                hideBigChangesetLabel.textContent = t("changesetsHistory.hideBigChangesets")
                 hideBigChangesetLabel.htmlFor = "hide-big-changesets-checkbox"
                 hideBigChangesetLabel.style.marginLeft = "1px"
                 hideBigChangesetLabel.style.marginBottom = "4px"
@@ -22242,7 +22400,7 @@ function addMassActionForGlobalChangesets() {
                 filterBar.appendChild(document.createElement("br"))
 
                 const label = document.createElement("span")
-                label.textContent = "🔄Hide changesets from "
+                label.textContent = t("changesetsHistory.hideChangesetsFrom")
                 label.title = "Click for invert"
                 label.style.minWidth = "165px"
                 label.style.display = "inline-block"
@@ -22250,10 +22408,10 @@ function addMassActionForGlobalChangesets() {
                 label.setAttribute("checked", false)
                 label.id = "invert-user-filter-checkbox"
                 label.onclick = e => {
-                    if (e.target.textContent === "🔄Hide changesets from ") {
-                        e.target.textContent = "🔄Show changesets from "
+                    if (e.target.textContent === t("changesetsHistory.hideChangesetsFrom")) {
+                        e.target.textContent = t("changesetsHistory.showChangesetsFrom")
                     } else {
-                        e.target.textContent = "🔄Hide changesets from "
+                        e.target.textContent = t("changesetsHistory.hideChangesetsFrom")
                     }
                     if (e.target.getAttribute("checked") === "false") {
                         e.target.setAttribute("checked", true)
@@ -22284,7 +22442,7 @@ function addMassActionForGlobalChangesets() {
                 filterBar.appendChild(filterByUsersInput)
 
                 const label2 = document.createElement("span")
-                label2.textContent = "🔄Hide changesets with "
+                label2.textContent = t("changesetsHistory.hideChangesetsWith")
                 label2.title = "Click for invert"
                 label2.style.minWidth = "165px"
                 label2.style.display = "inline-block"
@@ -22292,10 +22450,10 @@ function addMassActionForGlobalChangesets() {
                 label2.id = "invert-comment-filter-checkbox"
                 label2.setAttribute("checked", false)
                 label2.onclick = e => {
-                    if (e.target.textContent === "🔄Hide changesets with ") {
-                        e.target.textContent = "🔄Show changesets with "
+                    if (e.target.textContent === t("changesetsHistory.hideChangesetsWith")) {
+                        e.target.textContent = t("changesetsHistory.showChangesetsWith")
                     } else {
-                        e.target.textContent = "🔄Hide changesets with "
+                        e.target.textContent = t("changesetsHistory.hideChangesetsWith")
                     }
                     if (e.target.getAttribute("checked") === "false") {
                         e.target.setAttribute("checked", true)
@@ -22431,7 +22589,7 @@ function addMassChangesetsActions() {
                 moreButton.parentElement.style.display = "inline-flex"
                 const infinityList = document.createElement("button")
                 infinityList.classList.add("page-link")
-                infinityList.textContent = `Load ${20 * MAX_PAGE_FOR_LOAD}`
+                infinityList.textContent = t("changesetsHistory.loadMore", { count: 20 * MAX_PAGE_FOR_LOAD })
                 infinityList.id = "infinity-list-btn"
                 infinityList.onclick = () => {
                     currentMassDownloadedPages = 1
@@ -22779,7 +22937,7 @@ async function betterUserStat() {
     const item = document.createElement("option")
     item.value = ""
     item.setAttribute("all-editors", "yes")
-    item.textContent = "All editors"
+    item.textContent = t("userProfile.allEditors")
     filterInputByEditor.appendChild(item)
 
     const calHeatmap = document.querySelector(".heatmap")
@@ -23056,11 +23214,7 @@ async function betterUserStat() {
             const item = document.createElement("option")
             item.value = i
             item.setAttribute("is-editor-name", "yes")
-            if (i === 1) {
-                item.textContent = ` ${i} (${counts[i]} contribution)`
-            } else {
-                item.textContent = ` ${i} (${counts[i]} contributions)`
-            }
+            item.textContent = t("userProfile.editorContributions", { editor: i, count: counts[i] })
             filterInputByEditor.appendChild(item)
         })
     filterInputByEditor.appendChild(document.createElement("hr"))
@@ -23105,7 +23259,7 @@ async function makeProfileForDeletedUser(user) {
     div.classList.add("content-inner", "position-relative", "m-auto")
 
     const webArchiveLink = document.createElement("a")
-    webArchiveLink.textContent = "WebArchive"
+    webArchiveLink.textContent = t("links.webArchive")
     webArchiveLink.target = "_blank"
     webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + decodeURI(user)
     div.appendChild(webArchiveLink)
@@ -23113,7 +23267,7 @@ async function makeProfileForDeletedUser(user) {
 
     function makeOSMChaLink(username) {
         const osmchaLink = document.createElement("a")
-        osmchaLink.textContent = " [OSMCha] "
+        osmchaLink.textContent = t("userProfile.osmcha")
         osmchaLink.id = "osmcha_link"
         osmchaLink.title = "Open profile in OSMCha"
         osmchaLink.href = makeOsmchaLinkForUsername(username)
@@ -23149,7 +23303,7 @@ async function makeProfileForDeletedUser(user) {
             elemForResult.appendChild(document.createElement("br"))
             if (data[i].names?.length > 1) {
                 const p = document.createElement("p")
-                p.textContent = "Usernames: "
+                p.textContent = t("userProfile.usernames")
                 injectCSSIntoOSMPage(copyAnimationStyles)
                 data[i].names
                     .map(i => i.name)
@@ -23178,7 +23332,7 @@ async function makeProfileForDeletedUser(user) {
                 const blocksSpan = document.createElement("span")
 
                 const loadingStatus = document.createElement("span")
-                loadingStatus.textContent = " Finding blocks... "
+                loadingStatus.textContent = t("userProfile.findingBlocks")
                 loadingStatus.style.color = "gray"
                 blocksSpan.appendChild(document.createTextNode(" "))
                 blocksSpan.appendChild(loadingStatus)
@@ -23346,9 +23500,9 @@ async function makeProfileForDeletedUser(user) {
                     const selectedIDsCount = elemForResult.querySelectorAll(`input:checked[user-id="${id}"]`).length
                     elemForResult.querySelectorAll(`.copy-changesets-ids-btn[user-id="${id}"]`).forEach(i => {
                         if (selectedIDsCount) {
-                            i.textContent = `Copy ${selectedIDsCount} IDs`
+                            i.textContent = t("userProfile.copyIdsCount", { count: selectedIDsCount })
                         } else {
-                            i.textContent = `Copy IDs`
+                            i.textContent = t("userProfile.copyIds")
                         }
                     })
                 }
@@ -23375,7 +23529,7 @@ async function makeProfileForDeletedUser(user) {
                 changesetLine.appendChild(changesetDate)
 
                 const comment = document.createElement("span")
-                comment.textContent = " " + (ch.tags?.["comment"] ?? "No comment")
+                comment.textContent = " " + (ch.tags?.["comment"] ?? t("userProfile.noComment"))
                 changesetLine.appendChild(comment)
 
                 if (ch.comments_count) {
@@ -23399,7 +23553,7 @@ async function makeProfileForDeletedUser(user) {
             })
 
             const copyIds = document.createElement("button")
-            copyIds.textContent = "Copy IDs"
+            copyIds.textContent = t("userProfile.copyIds")
             copyIds.title = ""
             copyIds.classList.add("copy-changesets-ids-btn")
             copyIds.setAttribute("user-id", id)
@@ -23492,7 +23646,7 @@ out meta;
                 div.title = "via whosthat.osmz.ru"
             }
             if (names.length) {
-                userNamesP.textContent = "Usernames: "
+                userNamesP.textContent = t("userProfile.usernames")
                 injectCSSIntoOSMPage(copyAnimationStyles)
                 names.forEach(name => {
                     const usernameSpan = document.createElement("span")
@@ -23676,7 +23830,7 @@ async function setupHDYCInProfile() {
             }
             const usernames = userIDInfo.data[0]["names"].filter(i => i !== decodeURI(user)).join(", ")
             const dt = document.createElement("dt")
-            dt.textContent = "Past usernames: "
+            dt.textContent = t("userProfile.pastUsernames")
             dt.title = "Added by better-osm-org"
             dt.classList.add("list-inline-item", "m-0", "prev-usernames-label")
             const dd = document.createElement("dd")
@@ -23693,7 +23847,7 @@ async function setupHDYCInProfile() {
         function addUserID() {
             if (!document.querySelector('[href^="/api/0.6/user"]')) {
                 const dt = document.createElement("dt")
-                dt.textContent = "ID: "
+                dt.textContent = t("userProfile.userIdLabel")
                 dt.classList.add("list-inline-item", "m-0")
                 const dd = document.createElement("dd")
                 dd.classList.add("list-inline-item", "user-id")
@@ -23843,13 +23997,13 @@ function simplifyHDCYIframe() {
                 }
             `)
         if (isFirefox) {
-            warn.textContent = "Please disable tracking protection so that the HDYC account login works"
+            warn.textContent = t("userProfile.disableTrackingProtection")
 
             document.getElementById("authenticate").before(warn)
             const hdycLink = document.createElement("a")
             const match = location.pathname.match(/^\/user\/([^/]+)$/)
             hdycLink.href = "https://www.hdyc.neis-one.org/user/" + (match ? match[1] : "")
-            hdycLink.textContent = "Go to https://www.hdyc.neis-one.org/"
+            hdycLink.textContent = t("userProfile.goToHdyc")
             hdycLink.target = "_blank"
             hdycLink.id = "hdycLink"
             document.getElementById("authenticate").before(document.createElement("br"))
@@ -23973,7 +24127,7 @@ window.addEventListener("message", async e => {
             times.forEach(([name, time]) => {
                 const elem = document.createElement("p")
                 elem.classList.add("text-center", "routing-timestamp")
-                elem.textContent = `Routing data time for ${name}: ` + time
+                elem.textContent = t("routers.routingDataTimeFor", { name: name, time: time })
                 elem.title = "added by better-osm-org"
                 document.querySelector("#sidebar_content").appendChild(elem)
             })
@@ -23984,7 +24138,7 @@ window.addEventListener("message", async e => {
             const a = document.createElement("a")
             a.href = `https://map.project-osrm.org/debug/#${max(12, parseInt(z))}/${x}/${y}`
             a.target = "_blank"
-            a.textContent = "Open Debug Map"
+            a.textContent = t("routers.openDebugMap")
             p.appendChild(a)
             document.querySelector("#sidebar_content").appendChild(p)
         })
@@ -25394,7 +25548,7 @@ function renderOSMGeoJSON(xml, options = {}) {
         details.style.color = "gray"
 
         const summary = document.createElement("summary")
-        summary.textContent = "metainfo"
+        summary.textContent = t("geojson.metainfo")
         details.appendChild(summary)
         popupBody.appendChild(details)
 
@@ -25798,7 +25952,7 @@ function renderOSMGeoJSON(xml, options = {}) {
                     const editButton = layer.getPopup().getElement().querySelector(".edit-tags-btn")
                     if (currentVersionBanned("overpass_tags_editor")) {
                         editButton.classList.add("banned-feature")
-                        editButton.textContent = "Need update better-osm-org"
+                        editButton.textContent = t("geojson.needUpdateBetterOsmOrg")
                         editButton.title =
                             "Please click for update better-osm-org script.\nThe current version contains a bug that may corrupt OSM data."
                         editButton.addEventListener(
@@ -27988,7 +28142,7 @@ async function showHotkeyCommandsPopup() {
     const headerText = document.createElement("div")
     const title = document.createElement("h3")
     title.classList.add("better-osm-hotkey-commands-title")
-    title.textContent = "Available commands"
+    title.textContent = t("hotkeys.availableCommands")
     const subtitle = document.createElement("p")
     subtitle.classList.add("better-osm-hotkey-commands-subtitle")
     // subtitle.textContent = `Current contexts: ${currentContexts.join(", ")}`
@@ -28091,7 +28245,7 @@ async function showHotkeyCommandsPopup() {
         if (!filteredCommands.length) {
             const emptyState = document.createElement("p")
             emptyState.classList.add("better-osm-hotkey-commands-empty")
-            emptyState.textContent = normalizedQuery ? "No hotkeys match this search." : "No cataloged commands match this page."
+            emptyState.textContent = normalizedQuery ? t("hotkeys.noHotkeysMatchSearch") : t("hotkeys.noCatalogedCommandsMatchPage")
             content.append(emptyState)
             return
         }
@@ -28102,7 +28256,7 @@ async function showHotkeyCommandsPopup() {
 
             const heading = document.createElement("h4")
             heading.classList.add("better-osm-hotkey-commands-group-title")
-            heading.textContent = "Recent"
+            heading.textContent = t("hotkeys.recent")
             group.append(heading)
 
             const list = document.createElement("div")
@@ -29680,7 +29834,7 @@ function addImageryOffsetsDB() {
         return true
     }
     const loadBtn = document.createElement("button")
-    loadBtn.textContent = "Find offsets"
+    loadBtn.textContent = t("idEditor.findOffsets")
     loadBtn.classList.add("find-offsets-btn")
     loadBtn.title = "better-osm-org experimental feature"
     loadBtn.onclick = async () => {

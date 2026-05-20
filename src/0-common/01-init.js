@@ -31,7 +31,7 @@ function tryAddWarnAboutScriptIntoOsmOrgRepo() {
         warn.textContent = "⚠️⚠️⚠️️ "
         warn.classList.add("better-osm-org-warn")
         const subWarn = document.createElement("span")
-        subWarn.textContent = "Disable better-osm-org"
+        subWarn.textContent = t("init.disableBetterOsmOrg")
         subWarn.style.color = "red"
         warn.appendChild(subWarn)
         warn.appendChild(document.createTextNode(" before reporting bugs or asking questions about features ⚠️⚠️⚠️"))
