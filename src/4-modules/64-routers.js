@@ -58,7 +58,7 @@ window.addEventListener("message", async e => {
             times.forEach(([name, time]) => {
                 const elem = document.createElement("p")
                 elem.classList.add("text-center", "routing-timestamp")
-                elem.textContent = `Routing data time for ${name}: ` + time
+                elem.textContent = t("routers.routingDataTimeFor", { name: name, time: time })
                 elem.title = "added by better-osm-org"
                 document.querySelector("#sidebar_content").appendChild(elem)
             })
@@ -69,7 +69,7 @@ window.addEventListener("message", async e => {
             const a = document.createElement("a")
             a.href = `https://map.project-osrm.org/debug/#${max(12, parseInt(z))}/${x}/${y}`
             a.target = "_blank"
-            a.textContent = "Open Debug Map"
+            a.textContent = t("routers.openDebugMap")
             p.appendChild(a)
             document.querySelector("#sidebar_content").appendChild(p)
         })

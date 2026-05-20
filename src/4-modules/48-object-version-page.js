@@ -132,14 +132,14 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type) {
     if (osm_type === "way") {
         const lengthElem = document.createElement("span")
         const lengthText = wayLength < 1000 ? wayLength.toFixed(2) + " m" : wayLength.toFixed(0) + " m"
-        lengthElem.textContent = "Length: " + lengthText
+        lengthElem.textContent = t("objectVersionPage.length", { value: lengthText })
         infos.appendChild(lengthElem)
 
         if (wayArea !== null) {
             infos.appendChild(document.createTextNode(",\xA0"))
             const areaElem = document.createElement("span")
             const areaText = wayLength < 1000 ? wayArea.toFixed(2) + " m²" : wayArea.toFixed(0) + " m²"
-            areaElem.textContent = "Area: " + areaText
+            areaElem.textContent = t("objectVersionPage.area", { value: areaText })
             infos.appendChild(areaElem)
         }
     }

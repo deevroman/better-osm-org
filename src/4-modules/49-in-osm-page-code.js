@@ -374,7 +374,10 @@ function runInOsmPageCode() {
                     filterChangesets(doc)
                     setTimeout(() => {
                         const changesetsCount = document.querySelectorAll("ol > li").length
-                        document.querySelector("#hidden-changeset-counter").textContent = " Displayed " + (changesetsCount - getWindow().hiddenChangesetsCount) + "/" + changesetsCount
+                        document.querySelector("#hidden-changeset-counter").textContent = t("changesetsHistory.displayedCount", {
+                            displayed: changesetsCount - getWindow().hiddenChangesetsCount,
+                            total: changesetsCount,
+                        })
                     }, 100)
                     return new Response(doc.documentElement.outerHTML, {
                         status: response.status,

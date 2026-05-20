@@ -270,7 +270,7 @@ async function findChangesetInDiff(e) {
     e.target.before(document.createTextNode("\xA0"))
 
     const webArchiveLink = document.createElement("a")
-    webArchiveLink.textContent = "WebArchive"
+    webArchiveLink.textContent = t("links.webArchive")
     webArchiveLink.target = "_blank"
     webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + foundedUser
     e.target.before(webArchiveLink)

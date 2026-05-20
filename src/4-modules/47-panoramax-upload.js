@@ -313,7 +313,7 @@ function addUploadPanoramaxBtn() {
     needBlur.style.marginRight = "5px"
 
     const needBlueLabel = document.createElement("label")
-    needBlueLabel.textContent = "Blur faces"
+    needBlueLabel.textContent = t("panoramax.blurFaces")
     needBlueLabel.style.display = "none"
     needBlueLabel.prepend(needBlur)
 

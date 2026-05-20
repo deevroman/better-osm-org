@@ -2788,7 +2788,7 @@ function setupViewRedactions() {
             await restoreObjectHistory(showUnredactedBtn)
         } catch (e) {
             showUnredactedBtn.style.cursor = "not-allowed"
-            showUnredactedBtn.textContent = "Error :( Please report this page in better-osm-org GitHub repo"
+            showUnredactedBtn.textContent = t("historyDiff.errorPleaseReport")
             throw e
         }
 

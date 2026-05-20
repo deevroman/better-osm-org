@@ -10,7 +10,7 @@ function addImageryOffsetsDB() {
         return true
     }
     const loadBtn = document.createElement("button")
-    loadBtn.textContent = "Find offsets"
+    loadBtn.textContent = t("idEditor.findOffsets")
     loadBtn.classList.add("find-offsets-btn")
     loadBtn.title = "better-osm-org experimental feature"
     loadBtn.onclick = async () => {

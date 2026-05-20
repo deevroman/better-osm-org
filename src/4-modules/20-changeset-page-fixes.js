@@ -759,7 +759,7 @@ Press R for partial revert`
         if (secondaryActionsWithXml && !document.querySelector(".objects-selector")) {
             const selectObjects = document.createElement("a")
             selectObjects.classList.add("select-objects-btn")
-            selectObjects.textContent = "Select\xA0objects"
+            selectObjects.textContent = t("changesetPage.selectObjects").replace(" ", "\xA0")
             selectObjects.href = ""
             selectObjects.title = "to partial revert or edit in JOSM/Level0"
             selectObjects.onclick = e => {
@@ -773,7 +773,7 @@ Press R for partial revert`
                 const wrapper = document.createElement("div")
 
                 const revertBtn = document.createElement("button")
-                revertBtn.textContent = "Revert via osm-revert"
+                revertBtn.textContent = t("changesetPage.revertViaOsmRevert")
                 revertBtn.title = "Hotkey: R"
                 revertBtn.style.marginBottom = "4px"
                 revertBtn.onclick = () => document.querySelector("#revert_button_class").click()
@@ -781,7 +781,7 @@ Press R for partial revert`
                 wrapper.appendChild(document.createTextNode("\xA0"))
 
                 const josmBtn = document.createElement("button")
-                josmBtn.textContent = "Open in " + (isMobile ? "Vespucci" : "JOSM")
+                josmBtn.textContent = t("changesetPage.openInEditor", { editor: isMobile ? "Vespucci" : "JOSM" })
                 josmBtn.title = "Hotkey: J"
                 josmBtn.style.marginBottom = "4px"
                 josmBtn.onclick = openSelectedObjectsOnChangesetPage
@@ -789,7 +789,7 @@ Press R for partial revert`
                 wrapper.appendChild(document.createElement("br"))
 
                 const level0Btn = document.createElement("button")
-                level0Btn.textContent = "Open in Level0"
+                level0Btn.textContent = t("changesetPage.openInLevel0")
                 level0Btn.title = "Hotkey: Alt + J"
                 level0Btn.style.marginBottom = "4px"
                 level0Btn.onclick = () => openSelectedObjectsOnChangesetPage({ altKey: true })
@@ -797,7 +797,7 @@ Press R for partial revert`
                 wrapper.appendChild(document.createTextNode("\xA0"))
 
                 const level0BtnWithGeometry = document.createElement("button")
-                level0BtnWithGeometry.textContent = "Open in Level0 with ways geometry"
+                level0BtnWithGeometry.textContent = t("changesetPage.openInLevel0WithWaysGeometry")
                 level0BtnWithGeometry.title = "Hotkey: Shift + Alt + J"
                 level0BtnWithGeometry.style.marginBottom = "4px"
                 level0BtnWithGeometry.onclick = () => openSelectedObjectsOnChangesetPage({ altKey: true, shiftKey: true })

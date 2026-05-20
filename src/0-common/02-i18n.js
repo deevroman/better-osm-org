@@ -19,6 +19,10 @@ const currentLocale = Object.entries(localeMap).find(([, locales]) => locales.in
 /** @type {Record<Langs, Translations>} */
 const _translations = {
     en: {
+        init: {
+            disableBetterOsmOrg: "Disable better-osm-org",
+            scriptVersion: "Script version: ",
+        },
         config: {
             sectionID: "iD",
             sectionViewingEdits: "Viewing edits",
@@ -79,6 +83,7 @@ const _translations = {
             withGeometryChanges: "With geometry changes",
             withoutIntermediate: "Without intermediate",
             viewUnredactedHistory: "View Unredacted History β",
+            errorPleaseReport: "Error :( Please report this page in better-osm-org GitHub repo",
             tagsCount: ({ count }) => `${count} tag${count === 1 ? "" : "s"}`,
         },
         changesetQuicklook: {
@@ -94,8 +99,83 @@ const _translations = {
             moreLinks: "more links",
             editLinksList: "edit links list",
         },
+        routers: {
+            routingDataTimeFor: "Routing data time for {name}: {time}",
+            openDebugMap: "Open Debug Map",
+        },
+        satellite: {
+            setupCustomStyleJson: "Setup custom style.json for MapLibre.js",
+            setupCustomMapLayers: "Setup custom map layers",
+        },
+        geojson: {
+            metainfo: "metainfo",
+            needUpdateBetterOsmOrg: "Need update better-osm-org",
+        },
+        links: {
+            webArchive: "WebArchive",
+        },
+        hotkeys: {
+            availableCommands: "Available commands",
+            recent: "Recent",
+            noHotkeysMatchSearch: "No hotkeys match this search.",
+            noCatalogedCommandsMatchPage: "No cataloged commands match this page.",
+        },
+        objectVersionPage: {
+            length: "Length: {value}",
+            area: "Area: {value}",
+        },
+        userProfile: {
+            allEditors: "All editors",
+            editorContributions: ({ editor, count }) => ` ${editor} (${count} contribution${count === 1 ? "" : "s"})`,
+            osmcha: " [OSMCha] ",
+            usernames: "Usernames: ",
+            findingBlocks: " Finding blocks... ",
+            copyIds: "Copy IDs",
+            copyIdsCount: "Copy {count} IDs",
+            noComment: "No comment",
+            pastUsernames: "Past usernames: ",
+            userIdLabel: "ID: ",
+            disableTrackingProtection: "Please disable tracking protection so that the HDYC account login works",
+            goToHdyc: "Go to https://www.hdyc.neis-one.org/",
+        },
+        changesetsHistory: {
+            copyIds: "Copy IDs",
+            copyIdsCount: "Copy {count} IDs",
+            displayedCount: " Displayed {displayed}/{total}",
+            hideBigChangesets: "Hide big changesets",
+            hideChangesetsFrom: "🔄Hide changesets from ",
+            showChangesetsFrom: "🔄Show changesets from ",
+            hideChangesetsWith: "🔄Hide changesets with ",
+            showChangesetsWith: "🔄Show changesets with ",
+            loadMore: "Load {count}",
+        },
+        measurer: {
+            measureFromHere: "Measure from here",
+            endMeasure: "End measure",
+            cleanMeasurements: "Clean measurements",
+        },
+        panoramax: {
+            blurFaces: "Blur faces",
+        },
+        idEditor: {
+            findOffsets: "Find offsets",
+        },
+        changesetPage: {
+            selectObjects: "Select objects",
+            revertViaOsmRevert: "Revert via osm-revert",
+            openInEditor: "Open in {editor}",
+            openInLevel0: "Open in Level0",
+            openInLevel0WithWaysGeometry: "Open in Level0 with ways geometry",
+        },
+        nodeMover: {
+            moveNodeToHere: "Move node to here",
+        },
     },
     ru: {
+        init: {
+            disableBetterOsmOrg: "Отключите better-osm-org",
+            scriptVersion: "Версия скрипта: ",
+        },
         config: {
             sectionID: "iD",
             sectionViewingEdits: "Просмотр правок",
@@ -124,24 +204,24 @@ const _translations = {
             hdycInProfile: "Добавить HDYC в профиль пользователя",
             betterProfileStat: "Добавить фильтры в статистику профиля",
             navigationViaHotkeys:
-                'Добавить горячие клавиши <a href="https://github.com/deevroman/better-osm-org#Hotkeys" target="_blank">(список)</a>',
-            newEditorsLinks: "Добавить новые редакторы в меню редактирования",
+                'Включить горячие клавиши <a href="https://github.com/deevroman/better-osm-org#Hotkeys" target="_blank">(список)</a>',
+            newEditorsLinks: "Больше ссылок в меню Правка",
             resetSearchFormFocus: "Сбрасывать фокус с формы поиска",
-            satelliteLayers: "Добавить переключатели спутниковых слоёв",
+            satelliteLayers: "Добавить переключатели спутникового слоя",
             swipes: "Добавить свайпы между страницами правок пользователя",
-            resizableSidebar: "Ползунок ширины боковой панели",
+            resizableSidebar: "Разрешить изменять ширину боковой панели",
             clickableAvatar: "Открывать пакеты правок по клику на аватар",
-            overzoomForDataLayer: "Разрешить overzoom при включённом слое данные или подложке β",
+            overzoomForDataLayer: "Разрешить оверзум при включённом слое данные или подложке β",
             dragAndDropViewers: "Drag&Drop для .geojson, .jpg, .gpx, .osm",
-            viewer3DInNewTab: "Всегда открывать 3D-просмотрщики зданий в новой вкладке",
+            viewer3DInNewTab: "Открывать 3D-просмотрщики зданий в новой вкладке",
             betterTaginfo: "Добавить новые кнопки в Taginfo",
-            defaultZoomKeysBehaviour: "Не удваивать шаг зума у кнопок +/-",
-            addLocationFromNominatim: "Добавить местоположение из Nominatim для пакетов правок и заметок",
+            defaultZoomKeysBehaviour: "Не удваивать шаг зума для кнопок +/-",
+            addLocationFromNominatim: "Отображать адрес из Nominatim для правок и заметок",
             overpassInstance:
                 '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Сервер Overpass API</a>',
             panoramaxUploader: "Добавить форму загрузки фотографий в Panoramax",
-            routersTimestamps: "Добавить дату данных для GraphHopper, OSRM, Valhalla",
-            debugMode: "Включить отладочные и экспериментальные функции",
+            routersTimestamps: "Показывать дату данных для GraphHopper, OSRM, Valhalla",
+            debugMode: "Включить отладочные и экспериментальные фичи",
         },
         objectEditor: {
             delete: "Выпилить!",
@@ -156,6 +236,7 @@ const _translations = {
             withGeometryChanges: "Все изменения геометрии",
             withoutIntermediate: "Без промежуточных",
             viewUnredactedHistory: "Просмотр неотредактированной истории β",
+            errorPleaseReport: "Ошибка :( Пожалуйста, сообщите об этом в GitHub-репозитории better-osm-org",
             tagsCount: ({ count }) => {
                 if (count === 1) {
                     return `${count} тег`
@@ -178,6 +259,77 @@ const _translations = {
         editMenuLinks: {
             moreLinks: "больше ссылок",
             editLinksList: "редактировать список",
+        },
+        routers: {
+            routingDataTimeFor: "Время данных роутинга для {name}: {time}",
+            openDebugMap: "Открыть Debug Map",
+        },
+        satellite: {
+            setupCustomStyleJson: "Настройка своего стиля векторной карты",
+            setupCustomMapLayers: "Настройка подложки карты",
+        },
+        geojson: {
+            metainfo: "метаинформация",
+            needUpdateBetterOsmOrg: "Нужно обновить better-osm-org",
+        },
+        links: {
+            webArchive: "WebArchive",
+        },
+        hotkeys: {
+            availableCommands: "Доступные команды",
+            recent: "Недавние",
+            noHotkeysMatchSearch: "Нет подходящих горячих клавиш.",
+            noCatalogedCommandsMatchPage: "Для этой страницы нет подходящих команд.",
+        },
+        objectVersionPage: {
+            length: "Длина: {value}",
+            area: "Площадь: {value}",
+        },
+        userProfile: {
+            allEditors: "Все редакторы",
+            editorContributions: ({ editor, count }) => ` ${editor} (${count} вклад${count === 1 ? "" : count < 5 ? "а" : "ов"})`,
+            osmcha: " [OSMCha] ",
+            usernames: "Имена пользователей: ",
+            findingBlocks: " Ищем блокировки... ",
+            copyIds: "Скопировать ID",
+            copyIdsCount: "Скопировать {count} ID",
+            noComment: "Без комментария",
+            pastUsernames: "Прошлые имена: ",
+            userIdLabel: "ID: ",
+            disableTrackingProtection: "Отключите защиту от отслеживания, чтобы заработал показ информации с сайта HDYC",
+            goToHdyc: "Открыть https://www.hdyc.neis-one.org/",
+        },
+        changesetsHistory: {
+            copyIds: "Скопировать ID",
+            copyIdsCount: "Скопировать {count} ID",
+            displayedCount: " Показано {displayed}/{total}",
+            hideBigChangesets: "Скрывать большие пакеты правок",
+            hideChangesetsFrom: "🔄Скрывать правки от ",
+            showChangesetsFrom: "🔄Показывать правки от ",
+            hideChangesetsWith: "🔄Скрывать правки с ",
+            showChangesetsWith: "🔄Только правки с ",
+            loadMore: "Загрузить {count}",
+        },
+        measurer: {
+            measureFromHere: "Измерить отсюда",
+            endMeasure: "Закончить измерение",
+            cleanMeasurements: "Очистить измерения",
+        },
+        panoramax: {
+            blurFaces: "Размыть лица",
+        },
+        idEditor: {
+            findOffsets: "Найти смещения",
+        },
+        changesetPage: {
+            selectObjects: "Выбрать объекты",
+            revertViaOsmRevert: "Откатить через osm-revert",
+            openInEditor: "Открыть в {editor}",
+            openInLevel0: "Открыть в Level0",
+            openInLevel0WithWaysGeometry: "Открыть в Level0 с геометрией линий",
+        },
+        nodeMover: {
+            moveNodeToHere: "Переместить точку сюда",
         },
     },
     uk: {

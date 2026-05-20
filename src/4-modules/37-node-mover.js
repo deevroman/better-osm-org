@@ -16,7 +16,7 @@ function addPOIMoverItem(measuringMenuItem) {
     nodeMoverMenuItem.style.cursor = "pointer"
     const a = document.createElement("a")
     a.classList.add("dropdown-item", "d-flex", "align-items-center", "gap-3")
-    a.textContent = "Move node to here"
+    a.textContent = t("nodeMover.moveNodeToHere")
 
     const i = document.createElement("i")
     i.classList.add("bi", "bi-arrow-down")
