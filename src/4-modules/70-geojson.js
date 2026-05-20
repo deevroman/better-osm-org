@@ -466,7 +466,7 @@ function renderOSMGeoJSON(xml, options = {}) {
 
         const modeBtn = document.createElement("button")
         modeBtn.classList.add("mode-btn")
-        modeBtn.title = "Switch between table and raw editor"
+        modeBtn.title = t("geojson.switchTableAndRawEditor")
 
         popupBody.appendChild(document.createTextNode("\xA0"))
         popupBody.appendChild(modeBtn)

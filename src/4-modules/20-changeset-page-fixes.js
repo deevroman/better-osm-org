@@ -354,7 +354,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
         if (changesetProps["tags"].length) {
             const spanWrapper = document.createElement("span")
             spanWrapper.classList.add("review-tags")
-            spanWrapper.title = "OSMCha review tag. Right click to change\n"
+            spanWrapper.title = t("changesetPageFixes.osmchaReviewTag")
             spanWrapper.style.marginBottom = "3px"
             spanWrapper.style.position = "relative"
             spanWrapper.innerHTML = tagSvg
@@ -572,7 +572,6 @@ function addUserChangesetRssLink(username) {
     const rssfeed = document.createElement("link")
     rssfeed.id = "fixed-rss-feed"
     rssfeed.type = "application/atom+xml"
-    rssfeed.title = "ATOM"
     rssfeed.rel = "alternate"
     rssfeed.href = `https://www.openstreetmap.org/user/${encodeURI(username)}/history/feed`
     document.head.appendChild(rssfeed)
@@ -604,7 +603,7 @@ function addUsernameBadgesOrRestoreAction(changeset_id) {
                         const allChangesets = document.createElement("span")
                         allChangesets.textContent = `/${info["changesets"]["count"]}`
                         allChangesets.style.color = "gray"
-                        allChangesets.title = "how many changesets does the user have in total"
+                        allChangesets.title = t("changesetPageFixes.totalUserChangesets")
                         i.querySelector("td").appendChild(allChangesets)
                     }
 
@@ -623,7 +622,7 @@ function addUsernameBadgesOrRestoreAction(changeset_id) {
         metainfoHTML.innerHTML = ""
         metainfoHTML.appendChild(time)
         const findBtn = document.createElement("span")
-        findBtn.title = "Try find deleted user"
+        findBtn.title = t("deletedUsers.tryFindDeletedUser")
         findBtn.textContent = " 🔍 "
         findBtn.value = changeset_id
         findBtn.datetime = time.dateTime
@@ -750,7 +749,7 @@ Press R for partial revert`
         osmcha_link.style.height = "1em"
         osmcha_link.style.cursor = "pointer"
         osmcha_link.style.marginTop = "-3px"
-        osmcha_link.title = "Open changeset in OSMCha (or press O)\n(shift + O for open Achavi)"
+        osmcha_link.title = t("changesetPage.openChangesetInOsmcha")
         if (isDarkMode()) {
             osmcha_link.style.filter = "invert(0.7)"
         }
@@ -761,7 +760,7 @@ Press R for partial revert`
             selectObjects.classList.add("select-objects-btn")
             selectObjects.textContent = t("changesetPage.selectObjects").replace(" ", "\xA0")
             selectObjects.href = ""
-            selectObjects.title = "to partial revert or edit in JOSM/Level0"
+            selectObjects.title = t("changesetPage.partialRevertOrEdit")
             selectObjects.onclick = e => {
                 e.preventDefault()
                 e.stopPropagation()
@@ -774,7 +773,7 @@ Press R for partial revert`
 
                 const revertBtn = document.createElement("button")
                 revertBtn.textContent = t("changesetPage.revertViaOsmRevert")
-                revertBtn.title = "Hotkey: R"
+                revertBtn.title = t("changesetPage.hotkeyR")
                 revertBtn.style.marginBottom = "4px"
                 revertBtn.onclick = () => document.querySelector("#revert_button_class").click()
                 wrapper.appendChild(revertBtn)
@@ -782,7 +781,7 @@ Press R for partial revert`
 
                 const josmBtn = document.createElement("button")
                 josmBtn.textContent = t("changesetPage.openInEditor", { editor: isMobile ? "Vespucci" : "JOSM" })
-                josmBtn.title = "Hotkey: J"
+                josmBtn.title = t("changesetPage.hotkeyJ")
                 josmBtn.style.marginBottom = "4px"
                 josmBtn.onclick = openSelectedObjectsOnChangesetPage
                 wrapper.appendChild(josmBtn)
@@ -790,7 +789,7 @@ Press R for partial revert`
 
                 const level0Btn = document.createElement("button")
                 level0Btn.textContent = t("changesetPage.openInLevel0")
-                level0Btn.title = "Hotkey: Alt + J"
+                level0Btn.title = t("changesetPage.hotkeyAltJ")
                 level0Btn.style.marginBottom = "4px"
                 level0Btn.onclick = () => openSelectedObjectsOnChangesetPage({ altKey: true })
                 wrapper.appendChild(level0Btn)
@@ -798,7 +797,7 @@ Press R for partial revert`
 
                 const level0BtnWithGeometry = document.createElement("button")
                 level0BtnWithGeometry.textContent = t("changesetPage.openInLevel0WithWaysGeometry")
-                level0BtnWithGeometry.title = "Hotkey: Shift + Alt + J"
+                level0BtnWithGeometry.title = t("changesetPage.hotkeyShiftAltJ")
                 level0BtnWithGeometry.style.marginBottom = "4px"
                 level0BtnWithGeometry.onclick = () => openSelectedObjectsOnChangesetPage({ altKey: true, shiftKey: true })
                 wrapper.appendChild(level0BtnWithGeometry)
@@ -896,7 +895,7 @@ Press R for partial revert`
                 expander.textContent = "∇"
                 expander.style.textAlign = "center"
                 expander.style.cursor = "pointer"
-                expander.title = "Show hidden tags"
+                expander.title = t("changesetPageFixes.showHiddenTags")
                 document.querySelector(".browse-tag-list").appendChild(expander)
             }
             document.querySelector(".browse-tag-list")?.setAttribute("compacted", "true")
@@ -1330,7 +1329,7 @@ function setupCompactChangesetsHistory() {
                             commentElem.appendChild(text)
                             const more = document.createElement("span")
                             more.textContent = "..."
-                            more.title = "Click for view more"
+                            more.title = t("changesetPageFixes.clickForViewMore")
                             more.style.cursor = "pointer"
                             more.style.color = "rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1))"
                             more.onclick = () => {
@@ -1386,7 +1385,7 @@ function setupCompactChangesetsHistory() {
                     li.classList.add("review-requested-changeset")
                     const reviewRequestedBadge = document.createElement("span")
                     reviewRequestedBadge.textContent = " " + REVIEW_REQUESTED_EMOJI
-                    reviewRequestedBadge.title = "Mapper requested changeset review\n\nClick to filter changesets with review_requested=yes"
+                    reviewRequestedBadge.title = t("changesetPageFixes.mapperRequestedReview")
                     reviewRequestedBadge.style.cursor = "pointer"
                     if (!li.classList.contains("has-hidden-comments-badge")) {
                         if (isDarkMode()) {

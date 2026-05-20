@@ -148,7 +148,7 @@ ${CtrlKeyName} + Z: remove last node`
     unitsSwitch.style.cursor = "pointer"
     unitsSwitch.style.marginLeft = "auto"
     unitsSwitch.textContent = measuringUnits
-    unitsSwitch.title = "Click to switch units of measurement"
+    unitsSwitch.title = t("measurer.clickToSwitchUnits")
     unitsSwitch.onclick = e => {
         e.preventDefault()
         e.stopPropagation()
@@ -172,7 +172,7 @@ ${CtrlKeyName} + Z: remove last node`
         const cleanA = document.createElement("a")
         cleanA.classList.add("dropdown-item", "d-flex", "align-items-center", "gap-3")
         cleanA.textContent = t("measurer.cleanMeasurements")
-        cleanA.title = "Or press Escape twice"
+        cleanA.title = t("measurer.orPressEscapeTwice")
 
         const cleanI = document.createElement("i")
         cleanI.classList.add("bi", "bi-eraser")

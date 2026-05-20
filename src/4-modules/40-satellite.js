@@ -483,7 +483,7 @@ async function askCustomStyleUrl() {
         editBtn.style.marginLeft = "auto"
         editBtn.style.marginRight = "10px"
         editBtn.style.color = "gray"
-        editBtn.title = "duplicate style and edit it"
+        editBtn.title = t("satellite.duplicateStyleAndEdit")
         editBtn.onclick = async e => {
             if (!e.isTrusted) return
             editBtn.style.cursor = "progress"
@@ -517,7 +517,7 @@ async function askCustomStyleUrl() {
         }
 
         const externalLink = document.createElement("a")
-        externalLink.title = "Open map style home page"
+        externalLink.title = t("satellite.openMapStyleHomePage")
         externalLink.setAttribute("href", about)
         externalLink.setAttribute("target", "_blank")
         externalLink.innerHTML = '<i class="bi bi-box-arrow-up-right"></i>'
@@ -838,7 +838,7 @@ async function askCustomTileUrl() {
         input.addEventListener("click", onChange)
 
         const externalLink = document.createElement("a")
-        externalLink.title = "Open map layer home page"
+        externalLink.title = t("satellite.openMapLayerHomePage")
         externalLink.setAttribute("href", about)
         externalLink.innerHTML = externalLinkSvg
         externalLink.style.marginLeft = "auto"
@@ -1345,7 +1345,7 @@ function addSwitchTilesBtnOnNotePage() {
     }
     btnOnNotePage.style.cursor = "pointer"
     btnOnNotePage.classList.add("turn-on-satellite")
-    btnOnNotePage.title = "Switch between map and satellite images"
+    btnOnNotePage.title = t("satellite.switchMapAndSatellite")
 
     document.querySelectorAll("h4")[0].appendChild(document.createTextNode("\xA0"))
     document.querySelectorAll("h4")[0].appendChild(btnOnNotePage)
@@ -1395,7 +1395,7 @@ function createCustomLayerBtn() {
     btn.classList.add("set-custom-layer-btn")
     btn.textContent = " ⚙️"
     btn.style.cursor = "pointer"
-    btn.title = "Set custom layer (Shift + S)\nbetter-osm-org feature"
+    btn.title = t("satellite.setCustomLayer")
     btn.onclick = async () => {
         enableOverzoom()
         await askCustomTileUrl()
@@ -1423,7 +1423,7 @@ function addSwitchTilesButtonsOnPane() {
         const btnOnPane = document.createElement("span")
         btnOnPane.style.cursor = "pointer"
         btnOnPane.textContent = "🎨"
-        btnOnPane.title = "Set custom vector style (Shift + V)"
+        btnOnPane.title = t("satellite.setCustomVectorStyle")
         btnOnPane.onmouseover = async () => {
             await mapStylesDatabase.init()
         }

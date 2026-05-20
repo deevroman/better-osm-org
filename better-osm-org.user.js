@@ -1022,6 +1022,118 @@ const _translations = {
             checkDevScriptUpdates: "Check dev script updates",
             listOfHotkeys: "List of hotkeys",
         },
+        titles: {
+            remove: "remove",
+            clickForCopy: "Click for copy",
+            clickForCopyUserId: "Click for copy user ID",
+            addedByBetterOsmOrg: "added by better-osm-org",
+            openProfileInOsmcha: "Open profile in OSMCha",
+            shiftClickSelectRange: "Shift + click for select a range of empty checkboxes",
+            tryFindDeletedUser: "Try find deleted user",
+            clickForInvert: "Click for invert",
+            betterOsmOrgExperimentalFeature: "better-osm-org experimental feature",
+            osmchaReviewTag: "OSMCha review tag. Right click to change\n",
+            totalUserChangesets: "how many changesets does the user have in total",
+            openChangesetInOsmcha: "Open changeset in OSMCha (or press O)\n(shift + O for open Achavi)",
+            partialRevertOrEdit: "to partial revert or edit in JOSM/Level0",
+            hotkeyR: "Hotkey: R",
+            hotkeyJ: "Hotkey: J",
+            hotkeyAltJ: "Hotkey: Alt + J",
+            hotkeyShiftAltJ: "Hotkey: Shift + Alt + J",
+            showHiddenTags: "Show hidden tags",
+            clickForViewMore: "Click for view more",
+            mapperRequestedReview: "Mapper requested changeset review\n\nClick to filter changesets with review_requested=yes",
+            searchHashtagInOsmcha: "Search this hashtags in OSMCha",
+            filterNotesByHashtag:
+                "Click for filter notes by this hashtag.\nClick with CTLR or Shift for search this hashtags in osm-note-viewer",
+            clickToCopyName: "Click to copy name",
+            clickToCopyType: "Click to copy type",
+            userModerator: "This user is a moderator",
+            userImporter: "This user is a importer",
+            userBanned: "The user was banned",
+            userNewbie: "At the time of creating the changeset/note, the user had been editing OpenStreetMap for less than a month",
+            followingUser: "You are following this user",
+            openMapStateSnapshot: "Open the map state at the time of map snapshot",
+            openMapStateNoteCreation: "Open the map state at the time of note creation",
+            commaSeparatedSubstrings: "comma-separated substrings\nfilter also works by comments",
+            commaSeparatedUsernames: "comma-separated usernames",
+            activateSpyGlass: "Activate SpyGlass imitation mode (better-osm-org experiment)",
+            clickToZoomTrack: "click to zoom\nTip: press 8-9 to navigate between previous/next map position",
+            showGpxTracks: "Show GPX tracks in current map view",
+            clickToSwitchUnits: "Click to switch units of measurement",
+            orPressEscapeTwice: "Or press Escape twice",
+            duplicateStyleAndEdit: "duplicate style and edit it",
+            openMapStyleHomePage: "Open map style home page",
+            openMapLayerHomePage: "Open map layer home page",
+            switchMapAndSatellite: "Switch between map and satellite images",
+            setCustomLayer: "Set custom layer (Shift + S)\nbetter-osm-org feature",
+            setCustomVectorStyle: "Set custom vector style (Shift + V)",
+            gpsTrackerPosition: "Blue — position from GPS tracker\nOrange — estimated real position",
+            roofOrientationAcrossAlong: 'roof:orientation must be either "across" or "along"',
+            conditionalMustContainAt: ":conditional tag value must be contain @",
+            emptyPartAfterAt: "empty part after @",
+            emptyPartBeforeAt: "empty part before @",
+            emptyPartBetweenAt: "empty part between @",
+            observationNotFound: "Observation not found in iNaturalist API",
+            noErrorsOpeningHours: "no errors were found by opening_hours.js 👍",
+            phoneMustStartPlus: "phone number must start with +",
+            easterEgg: "better-osm-org easter egg",
+            needRoofOrientation: "it seems to need to be changed to roof:orientation",
+            clickShowEmbedded3d: "Click for show embedded 3D Viewer.\nIn userscript setting you can set open in OSM page by default",
+            setAsDefaultForClick: "Set as default for click",
+            defaultViewer: "It's default viewer",
+            keyTooShort: "The key is too short",
+            suspiciousCapitalKey: "Suspicious key starting with a capital letter",
+            openObjectHistory: "Click for open object history page\nOr press key H",
+            someNodesHidden: "Some nodes was hidden by moderators",
+            reloadAndReport: "Please try reload page.\nIf the error persists, a message about it in the better-osm-org repository",
+            someNodesHiddenSad: "Some nodes was hidden by moderators :\\",
+            filterIntermediateChanges: "Filter for intermediate changes",
+            downloadAllVersionsWithIntermediate: "Download all versions (with intermediate versions)",
+            someMembersHidden: "Some members was hidden by moderators",
+            downloadAllVersions: "Download all versions",
+            toggleCompactTagsDiff: "Toggle between full and compact tags diff.\nYou can also use the T key.",
+            switchTableAndRawEditor: "Switch between table and raw editor",
+            searchWithOverpass: "search with Overpass",
+            listWayNodesChanged: "List of way nodes has been changed",
+            nodesReversed: "Nodes of the way were reversed",
+            objectRestored: "Object was restored",
+            relationMembersChanged: "List of relation members has been changed.\nClick to see more details",
+            showRelationMembers: "Show list of relation members",
+            relationMembersReversed: "Members of the relation were reversed",
+            pinRelationOnMap: "Pin relation on map",
+            unpinRelationFromMap: "Unpin relation from map",
+            nodeCoordinatesChanged: "Coordinates of node has been changed",
+            downloadThisRelation: "Download this relation",
+            shiftClickZoomVia: 'Click with Shift for zoom to "via" members',
+            unableDisplaySomeData: "better-osm-org was unable to display some data",
+            pinRestrictionSign: "Pin restriction sign on map.\nYou can hide all the objects that better-osm-org adds by pressing ` or ~",
+            hideRestrictionSign: "Hide restriction sign",
+            selectCoordinatesFormat: "Select coordinates format for copy.\nTo copy just click by coordinates",
+            setDefaultCopyFormat: "Set as default for copy, when you click by coordinates",
+            defaultCopyFormat: "It's default format, when your click by coordinates",
+            openExternalRelationViewer: "Click for open external relation viewer.\nOr use key O",
+            displayOnOneMapAll: "Display on one map\nif nothing is checked, all uploaded non hidden changesets will open",
+            displayOnOneMap: "Display on one map",
+            addCheckboxesMassActions: "Add checkboxes for mass actions with changesets",
+            clickHideUserChangesets: "Click for hide this user changesets",
+            changesetsFilterVia: "Changesets filter via better-osm-org",
+            filterBySubstringInComments: "Filter by substring in changesets comments",
+            clickCopyChangesetId: "Click for copy changeset id",
+            loadRelationVersionViaOverpass: "Load relation version via Overpass API",
+            pleaseWaitUserChangesetsLoading: "Please wait while user changesets loading",
+            openSelectedChangesetsOnePage: "Alt + O for open selected changesets on one page",
+            regexSearchNotCaseSensitive: "Not case-sensitive regex search",
+            viaWhosthat: "via whosthat.osmz.ru",
+            viaOverpassApi: "via Overpass API",
+            editLink: "edit link",
+            pinThisLink: "pin this link",
+            moveUpLink: "move up link",
+            moveDownLink: "move down link",
+            removeLink: "remove link",
+            saveLink: "save link",
+            openPlaceExternalWebsite: "Open place in external website",
+        },
     },
     ru: {
         init: {
@@ -1188,6 +1300,121 @@ const _translations = {
             checkScriptUpdates: "Проверить обновления скрипта",
             checkDevScriptUpdates: "Проверить обновления dev-версии скрипта",
             listOfHotkeys: "Список горячих клавиш",
+        },
+        titles: {
+            remove: "удалить",
+            clickForCopy: "Нажмите, чтобы скопировать",
+            clickForCopyUserId: "Нажмите, чтобы скопировать ID пользователя",
+            addedByBetterOsmOrg: "добавлено better-osm-org",
+            openProfileInOsmcha: "Открыть профиль в OSMCha",
+            shiftClickSelectRange: "Shift + click для выбора диапазона пустых чекбоксов",
+            tryFindDeletedUser: "Попробовать найти удалённого пользователя",
+            clickForInvert: "Нажмите, чтобы инвертировать",
+            betterOsmOrgExperimentalFeature: "экспериментальная фича better-osm-org",
+            osmchaReviewTag: "Тег проверки OSMCha. Правая кнопка мыши для изменения\n",
+            totalUserChangesets: "сколько всего пакетов правок у пользователя",
+            openChangesetInOsmcha: "Открыть пакет правок в OSMCha (или нажмите O)\n(Shift + O для открытия Achavi)",
+            partialRevertOrEdit: "для частичного отката или редактирования в JOSM/Level0",
+            hotkeyR: "Горячая клавиша: R",
+            hotkeyJ: "Горячая клавиша: J",
+            hotkeyAltJ: "Горячая клавиша: Alt + J",
+            hotkeyShiftAltJ: "Горячая клавиша: Shift + Alt + J",
+            showHiddenTags: "Показать скрытые теги",
+            clickForViewMore: "Нажмите, чтобы показать больше",
+            mapperRequestedReview:
+                "Маппер запросил проверку пакета правок\n\nНажмите, чтобы отфильтровать пакеты правок с review_requested=yes",
+            searchHashtagInOsmcha: "Искать этот хэштег в OSMCha",
+            filterNotesByHashtag:
+                "Нажмите, чтобы фильтровать заметки по этому хэштегу.\nНажмите с CTLR или Shift, чтобы искать этот хэштег в osm-note-viewer",
+            clickToCopyName: "Нажмите, чтобы скопировать имя",
+            clickToCopyType: "Нажмите, чтобы скопировать тип",
+            userModerator: "Этот пользователь является модератором",
+            userImporter: "Этот пользователь является импортёром",
+            userBanned: "Пользователь был заблокирован",
+            userNewbie: "На момент создания пакета правок или заметки пользователь редактировал OpenStreetMap меньше месяца",
+            followingUser: "Вы подписаны на этого пользователя",
+            openMapStateSnapshot: "Открыть состояние карты на момент снимка",
+            openMapStateNoteCreation: "Открыть состояние карты на момент создания заметки",
+            commaSeparatedSubstrings: "подстроки через запятую\nфильтр также работает по комментариям",
+            commaSeparatedUsernames: "имена пользователей через запятую",
+            activateSpyGlass: "Включить режим имитации SpyGlass (эксперимент better-osm-org)",
+            clickToZoomTrack: "нажмите для приближения\nПодсказка: нажимайте 8-9 для перехода между предыдущим и следующим положением карты",
+            showGpxTracks: "Показать GPX-треки в текущем окне карты",
+            clickToSwitchUnits: "Нажмите, чтобы переключить единицы измерения",
+            orPressEscapeTwice: "Или нажмите Escape дважды",
+            duplicateStyleAndEdit: "дублировать стиль и отредактировать его",
+            openMapStyleHomePage: "Открыть домашнюю страницу стиля карты",
+            openMapLayerHomePage: "Открыть домашнюю страницу слоя карты",
+            switchMapAndSatellite: "Переключение между картой и спутниковыми снимками",
+            setCustomLayer: "Задать свой слой (Shift + S)\nфича better-osm-org",
+            setCustomVectorStyle: "Задать свой векторный стиль (Shift + V)",
+            gpsTrackerPosition: "Синий — позиция по GPS-трекеру\nОранжевый — предполагаемая реальная позиция",
+            roofOrientationAcrossAlong: 'roof:orientation должен быть либо "across", либо "along"',
+            conditionalMustContainAt: "значение тега :conditional должно содержать @",
+            emptyPartAfterAt: "пустая часть после @",
+            emptyPartBeforeAt: "пустая часть перед @",
+            emptyPartBetweenAt: "пустая часть между @",
+            observationNotFound: "Наблюдение не найдено в API iNaturalist",
+            noErrorsOpeningHours: "opening_hours.js не нашёл ошибок 👍",
+            phoneMustStartPlus: "номер телефона должен начинаться с +",
+            easterEgg: "пасхалка better-osm-org",
+            needRoofOrientation: "похоже, это нужно заменить на roof:orientation",
+            clickShowEmbedded3d:
+                "Нажмите, чтобы показать встроенный 3D Viewer.\nВ настройках userscript можно задать открытие на странице OSM по умолчанию",
+            setAsDefaultForClick: "Установить по умолчанию для клика",
+            defaultViewer: "Это просмотрщик по умолчанию",
+            keyTooShort: "Ключ слишком короткий",
+            suspiciousCapitalKey: "Подозрительный ключ, начинающийся с заглавной буквы",
+            openObjectHistory: "Нажмите, чтобы открыть страницу истории объекта\nИли нажмите клавишу H",
+            someNodesHidden: "Некоторые точки были скрыты модераторами",
+            reloadAndReport: "Попробуйте перезагрузить страницу.\nЕсли ошибка сохраняется, напишите об этом в репозитории better-osm-org",
+            someNodesHiddenSad: "Некоторые точки были скрыты модераторами :\\",
+            filterIntermediateChanges: "Фильтр промежуточных изменений",
+            downloadAllVersionsWithIntermediate: "Скачать все версии (включая промежуточные)",
+            someMembersHidden: "Некоторые участники были скрыты модераторами",
+            downloadAllVersions: "Скачать все версии",
+            toggleCompactTagsDiff: "Переключить между полным и компактным diff тегов.\nТакже можно использовать клавишу T.",
+            switchTableAndRawEditor: "Переключить между таблицей и сырым редактором",
+            searchWithOverpass: "искать через Overpass",
+            listWayNodesChanged: "Список точек линии был изменён",
+            nodesReversed: "Точки линии были развернуты",
+            objectRestored: "Объект был восстановлен",
+            relationMembersChanged: "Список участников relation был изменён.\nНажмите, чтобы увидеть подробности",
+            showRelationMembers: "Показать список участников relation",
+            relationMembersReversed: "Участники relation были развернуты",
+            pinRelationOnMap: "Закрепить relation на карте",
+            unpinRelationFromMap: "Открепить relation от карты",
+            nodeCoordinatesChanged: "Координаты точки были изменены",
+            downloadThisRelation: "Скачать эту relation",
+            shiftClickZoomVia: 'Нажмите с Shift, чтобы приблизить участников "via"',
+            unableDisplaySomeData: "better-osm-org не смог отобразить некоторые данные",
+            pinRestrictionSign:
+                "Закрепить знак restriction на карте.\nВы можете скрыть все объекты, которые добавляет better-osm-org, нажав ` или ~",
+            hideRestrictionSign: "Скрыть знак restriction",
+            selectCoordinatesFormat: "Выберите формат координат для копирования.\nЧтобы скопировать, просто нажмите по координатам",
+            setDefaultCopyFormat: "Сделать форматом копирования по умолчанию при клике по координатам",
+            defaultCopyFormat: "Это формат по умолчанию при клике по координатам",
+            openExternalRelationViewer: "Нажмите, чтобы открыть внешний relation viewer.\nИли используйте клавишу O",
+            displayOnOneMapAll: "Показать на одной карте\nесли ничего не отмечено, откроются все загруженные и не скрытые пакеты правок",
+            displayOnOneMap: "Показать на одной карте",
+            addCheckboxesMassActions: "Добавить чекбоксы для массовых действий с пакетами правок",
+            clickHideUserChangesets: "Нажмите, чтобы скрыть пакеты правок этого пользователя",
+            changesetsFilterVia: "Фильтр пакетов правок через better-osm-org",
+            filterBySubstringInComments: "Фильтр по подстроке в комментариях пакетов правок",
+            clickCopyChangesetId: "Нажмите, чтобы скопировать ID пакета правок",
+            loadRelationVersionViaOverpass: "Загрузить версию relation через Overpass API",
+            pleaseWaitUserChangesetsLoading: "Подождите, пока загружаются пакеты правок пользователя",
+            openSelectedChangesetsOnePage: "Alt + O для открытия выбранных пакетов правок на одной странице",
+            regexSearchNotCaseSensitive: "Регулярное выражение без учёта регистра",
+            viaWhosthat: "через whosthat.osmz.ru",
+            viaOverpassApi: "через Overpass API",
+            editLink: "редактировать ссылку",
+            pinThisLink: "закрепить эту ссылку",
+            moveUpLink: "переместить ссылку вверх",
+            moveDownLink: "переместить ссылку вниз",
+            removeLink: "удалить ссылку",
+            saveLink: "сохранить ссылку",
+            openPlaceExternalWebsite: "Открыть место на внешнем сайте",
         },
     },
     uk: {
@@ -1909,7 +2136,7 @@ function makeRow(label, text, without_delete = false, placeholder = "comment tha
     td.setAttribute("placeholder", placeholder)
 
     td2.textContent = "×"
-    td2.title = "remove"
+    td2.title = t("titles.remove")
     td2.style.width = "21px"
     td2.style.cursor = "pointer"
     td2.style.textAlign = "center"
@@ -2379,7 +2606,7 @@ const configOptions = {
             versionSection.textContent = t("init.scriptVersion")
             const version = document.createElement("span")
             version.textContent = GM_info.script.version
-            version.title = "Click for copy"
+            version.title = t("titles.clickForCopy")
             version.style.cursor = "pointer"
             version.onclick = e => {
                 navigator.clipboard.writeText(GM_info.script.version).then(() => copyAnimation(e, GM_info.script.version))
@@ -4775,7 +5002,7 @@ async function findChangesetInDiff(e) {
 
     const uid = document.createElement("span")
     uid.style.cursor = "pointer"
-    uid.title = "Click for copy user ID"
+    uid.title = t("titles.clickForCopyUserId")
     uid.onclick = e => {
         const text = foundedUserUid
         navigator.clipboard.writeText(text).then(() => copyAnimation(e, text))
@@ -5613,7 +5840,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
         if (changesetProps["tags"].length) {
             const spanWrapper = document.createElement("span")
             spanWrapper.classList.add("review-tags")
-            spanWrapper.title = "OSMCha review tag. Right click to change\n"
+            spanWrapper.title = t("titles.osmchaReviewTag")
             spanWrapper.style.marginBottom = "3px"
             spanWrapper.style.position = "relative"
             spanWrapper.innerHTML = tagSvg
@@ -5831,7 +6058,6 @@ function addUserChangesetRssLink(username) {
     const rssfeed = document.createElement("link")
     rssfeed.id = "fixed-rss-feed"
     rssfeed.type = "application/atom+xml"
-    rssfeed.title = "ATOM"
     rssfeed.rel = "alternate"
     rssfeed.href = `https://www.openstreetmap.org/user/${encodeURI(username)}/history/feed`
     document.head.appendChild(rssfeed)
@@ -5863,7 +6089,7 @@ function addUsernameBadgesOrRestoreAction(changeset_id) {
                         const allChangesets = document.createElement("span")
                         allChangesets.textContent = `/${info["changesets"]["count"]}`
                         allChangesets.style.color = "gray"
-                        allChangesets.title = "how many changesets does the user have in total"
+                        allChangesets.title = t("titles.totalUserChangesets")
                         i.querySelector("td").appendChild(allChangesets)
                     }
 
@@ -5882,7 +6108,7 @@ function addUsernameBadgesOrRestoreAction(changeset_id) {
         metainfoHTML.innerHTML = ""
         metainfoHTML.appendChild(time)
         const findBtn = document.createElement("span")
-        findBtn.title = "Try find deleted user"
+        findBtn.title = t("titles.tryFindDeletedUser")
         findBtn.textContent = " 🔍 "
         findBtn.value = changeset_id
         findBtn.datetime = time.dateTime
@@ -6009,7 +6235,7 @@ Press R for partial revert`
         osmcha_link.style.height = "1em"
         osmcha_link.style.cursor = "pointer"
         osmcha_link.style.marginTop = "-3px"
-        osmcha_link.title = "Open changeset in OSMCha (or press O)\n(shift + O for open Achavi)"
+        osmcha_link.title = t("titles.openChangesetInOsmcha")
         if (isDarkMode()) {
             osmcha_link.style.filter = "invert(0.7)"
         }
@@ -6020,7 +6246,7 @@ Press R for partial revert`
             selectObjects.classList.add("select-objects-btn")
             selectObjects.textContent = t("changesetPage.selectObjects").replace(" ", "\xA0")
             selectObjects.href = ""
-            selectObjects.title = "to partial revert or edit in JOSM/Level0"
+            selectObjects.title = t("titles.partialRevertOrEdit")
             selectObjects.onclick = e => {
                 e.preventDefault()
                 e.stopPropagation()
@@ -6033,7 +6259,7 @@ Press R for partial revert`
 
                 const revertBtn = document.createElement("button")
                 revertBtn.textContent = t("changesetPage.revertViaOsmRevert")
-                revertBtn.title = "Hotkey: R"
+                revertBtn.title = t("titles.hotkeyR")
                 revertBtn.style.marginBottom = "4px"
                 revertBtn.onclick = () => document.querySelector("#revert_button_class").click()
                 wrapper.appendChild(revertBtn)
@@ -6041,7 +6267,7 @@ Press R for partial revert`
 
                 const josmBtn = document.createElement("button")
                 josmBtn.textContent = t("changesetPage.openInEditor", { editor: isMobile ? "Vespucci" : "JOSM" })
-                josmBtn.title = "Hotkey: J"
+                josmBtn.title = t("titles.hotkeyJ")
                 josmBtn.style.marginBottom = "4px"
                 josmBtn.onclick = openSelectedObjectsOnChangesetPage
                 wrapper.appendChild(josmBtn)
@@ -6049,7 +6275,7 @@ Press R for partial revert`
 
                 const level0Btn = document.createElement("button")
                 level0Btn.textContent = t("changesetPage.openInLevel0")
-                level0Btn.title = "Hotkey: Alt + J"
+                level0Btn.title = t("titles.hotkeyAltJ")
                 level0Btn.style.marginBottom = "4px"
                 level0Btn.onclick = () => openSelectedObjectsOnChangesetPage({ altKey: true })
                 wrapper.appendChild(level0Btn)
@@ -6057,7 +6283,7 @@ Press R for partial revert`
 
                 const level0BtnWithGeometry = document.createElement("button")
                 level0BtnWithGeometry.textContent = t("changesetPage.openInLevel0WithWaysGeometry")
-                level0BtnWithGeometry.title = "Hotkey: Shift + Alt + J"
+                level0BtnWithGeometry.title = t("titles.hotkeyShiftAltJ")
                 level0BtnWithGeometry.style.marginBottom = "4px"
                 level0BtnWithGeometry.onclick = () => openSelectedObjectsOnChangesetPage({ altKey: true, shiftKey: true })
                 wrapper.appendChild(level0BtnWithGeometry)
@@ -6155,7 +6381,7 @@ Press R for partial revert`
                 expander.textContent = "∇"
                 expander.style.textAlign = "center"
                 expander.style.cursor = "pointer"
-                expander.title = "Show hidden tags"
+                expander.title = t("titles.showHiddenTags")
                 document.querySelector(".browse-tag-list").appendChild(expander)
             }
             document.querySelector(".browse-tag-list")?.setAttribute("compacted", "true")
@@ -6589,7 +6815,7 @@ function setupCompactChangesetsHistory() {
                             commentElem.appendChild(text)
                             const more = document.createElement("span")
                             more.textContent = "..."
-                            more.title = "Click for view more"
+                            more.title = t("titles.clickForViewMore")
                             more.style.cursor = "pointer"
                             more.style.color = "rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1))"
                             more.onclick = () => {
@@ -6645,7 +6871,7 @@ function setupCompactChangesetsHistory() {
                     li.classList.add("review-requested-changeset")
                     const reviewRequestedBadge = document.createElement("span")
                     reviewRequestedBadge.textContent = " " + REVIEW_REQUESTED_EMOJI
-                    reviewRequestedBadge.title = "Mapper requested changeset review\n\nClick to filter changesets with review_requested=yes"
+                    reviewRequestedBadge.title = t("titles.mapperRequestedReview")
                     reviewRequestedBadge.style.cursor = "pointer"
                     if (!li.classList.contains("has-hidden-comments-badge")) {
                         if (isDarkMode()) {
@@ -6716,7 +6942,7 @@ function makeHashtagsClickable() {
             const a = document.createElement("a")
             a.href = osmchaLink
             a.target = "_blank"
-            a.title = "Search this hashtags in OSMCha"
+            a.title = t("titles.searchHashtagInOsmcha")
             a.textContent = match
             return a.outerHTML
         })
@@ -6751,7 +6977,7 @@ function makeHashtagsInNotesClickable() {
                     a.id = "note-link-" + Math.random()
                     a.href = ""
                     a.target = "_blank"
-                    a.title = "Click for filter notes by this hashtag.\nClick with CTLR or Shift for search this hashtags in osm-note-viewer"
+                    a.title = t("titles.filterNotesByHashtag")
                     a.textContent = match
 
                     function fixLink() {
@@ -6800,7 +7026,7 @@ function makeHashtagsInNotesClickable() {
                 .replaceAll(/(?<=(POI name: ))(.+)/gu, function (match) {
                     const span = document.createElement("span")
                     span.classList.add("poi-name-in-note")
-                    span.title = "Click to copy name"
+                    span.title = t("titles.clickToCopyName")
                     span.setAttribute("data-name", match)
                     span.textContent = match
                     return span.outerHTML
@@ -6809,7 +7035,7 @@ function makeHashtagsInNotesClickable() {
                     injectCSSIntoOSMPage(copyAnimationStyles)
                     const span = document.createElement("span")
                     span.classList.add("poi-name-in-note")
-                    span.title = "Click to copy type"
+                    span.title = t("titles.clickToCopyType")
                     span.setAttribute("data-name", match)
                     span.textContent = match
                     return span.outerHTML
@@ -6886,7 +7112,7 @@ function makeBadge(userInfo, changesetDate = new Date()) {
     function makeModeratorBadge() {
         userBadge.style.position = "relative"
         userBadge.style.bottom = "2px"
-        userBadge.title = "This user is a moderator"
+        userBadge.title = t("titles.userModerator")
         userBadge.innerHTML = moderatorBadgeSvg
         userBadge.querySelector("svg").style.transform = "scale(0.9)"
     }
@@ -6894,13 +7120,13 @@ function makeBadge(userInfo, changesetDate = new Date()) {
     function makeImporterBadge() {
         userBadge.style.position = "relative"
         userBadge.style.bottom = "2px"
-        userBadge.title = "This user is a importer"
+        userBadge.title = t("titles.userImporter")
         userBadge.innerHTML = importerBadgeSvg
         userBadge.querySelector("svg").style.transform = "scale(0.9)"
     }
 
     function makeBannedUserBadge() {
-        userBadge.title = "The user was banned"
+        userBadge.title = t("titles.userBanned")
         userBadge.textContent = BAN_EMOJI + " "
         userBadge.classList.add("banned-badge")
         userBadge.style.cursor = "pointer"
@@ -6935,7 +7161,7 @@ function makeBadge(userInfo, changesetDate = new Date()) {
 
     function makeNewbieBadge() {
         userBadge.classList.add("newbie-badge")
-        userBadge.title = "At the time of creating the changeset/note, the user had been editing OpenStreetMap for less than a month"
+        userBadge.title = t("titles.userNewbie")
         userBadge.textContent = NEWBIE_EMOJI + " "
         userBadge.style.cursor = "pointer"
         userBadge.onclick = e => {
@@ -6984,7 +7210,7 @@ function makeBadge(userInfo, changesetDate = new Date()) {
         getFriends().then(res => {
             if (res.includes(userInfo["display_name"])) {
                 // todo warn if username startsWith 🫂 or use svg
-                userBadge.title = "You are following this user"
+                userBadge.title = t("titles.followingUser")
                 userBadge.textContent = "🫂 "
             }
         })
@@ -7499,9 +7725,9 @@ ${styleSuffix}`
         const btn = document.createElement("a")
         btn.id = "timeback-btn"
         if (organicmapsDate || mapsmeDate) {
-            btn.title = "Open the map state at the time of map snapshot"
+            btn.title = t("titles.openMapStateSnapshot")
         } else {
-            btn.title = "Open the map state at the time of note creation"
+            btn.title = t("titles.openMapStateNoteCreation")
         }
         btn.textContent = " 🕰"
         btn.style.cursor = "pointer"
@@ -7814,7 +8040,7 @@ function addNotesFiltersButtons() {
         filterByString.id = "filter-notes-by-string"
         filterByString.style.width = "100%"
         filterByString.placeholder = "word in notes"
-        filterByString.title = "comma-separated substrings\nfilter also works by comments"
+        filterByString.title = t("titles.commaSeparatedSubstrings")
         filterByString.addEventListener("keypress", function (event) {
             if (event.key === "Enter") {
                 filterByString.classList?.add("wait-fetch")
@@ -7888,7 +8114,7 @@ function addNotesFiltersButtons() {
     function makeFilterByUsernameWrapper() {
         filterByUsername.type = "input"
         filterByUsername.placeholder = "username"
-        filterByString.title = "comma-separated usernames"
+        filterByString.title = t("titles.commaSeparatedUsernames")
         filterByUsername.id = "filter-notes-by-username"
         filterByUsername.style.width = "100%"
         filterByUsername.addEventListener("keypress", function (event) {
@@ -8110,7 +8336,7 @@ function addSpyGlassButtons() {
     spyGlassBtn.style.cursor = "pointer"
     spyGlassBtn.style.marginLeft = "3px"
     spyGlassBtn.classList.add("bi", "bi-eye-slash-fill")
-    spyGlassBtn.title = "Activate SpyGlass imitation mode (better-osm-org experiment)"
+    spyGlassBtn.title = t("titles.activateSpyGlass")
 
     spyGlassBtn.onclick = async () => {
         getWindow().spyGlassMode = !getWindow().spyGlassMode
@@ -8313,7 +8539,7 @@ function addGPXFiltersButtons() {
                             downloadBtn.textContent = "⧈"
                             downloadBtn.innerHTML = fitToObjectSvg
                             downloadBtn.style.cursor = "pointer"
-                            downloadBtn.title = "click to zoom\nTip: press 8-9 to navigate between previous/next map position"
+                            downloadBtn.title = t("titles.clickToZoomTrack")
                             downloadBtn.onclick = () => {
                                 fitBounds([
                                     [trackMetadata.min_lat, trackMetadata.min_lon],
@@ -8350,7 +8576,7 @@ function addGPXFiltersButtons() {
     }
 
     filters.textContent = " 🔍"
-    filters.title = "Show GPX tracks in current map view"
+    filters.title = t("titles.showGpxTracks")
     gpxLabel.after(filters)
 }
 
@@ -8842,7 +9068,7 @@ ${CtrlKeyName} + Z: remove last node`
     unitsSwitch.style.cursor = "pointer"
     unitsSwitch.style.marginLeft = "auto"
     unitsSwitch.textContent = measuringUnits
-    unitsSwitch.title = "Click to switch units of measurement"
+    unitsSwitch.title = t("titles.clickToSwitchUnits")
     unitsSwitch.onclick = e => {
         e.preventDefault()
         e.stopPropagation()
@@ -8866,7 +9092,7 @@ ${CtrlKeyName} + Z: remove last node`
         const cleanA = document.createElement("a")
         cleanA.classList.add("dropdown-item", "d-flex", "align-items-center", "gap-3")
         cleanA.textContent = t("measurer.cleanMeasurements")
-        cleanA.title = "Or press Escape twice"
+        cleanA.title = t("titles.orPressEscapeTwice")
 
         const cleanI = document.createElement("i")
         cleanI.classList.add("bi", "bi-eraser")
@@ -9541,7 +9767,7 @@ async function askCustomStyleUrl() {
         editBtn.style.marginLeft = "auto"
         editBtn.style.marginRight = "10px"
         editBtn.style.color = "gray"
-        editBtn.title = "duplicate style and edit it"
+        editBtn.title = t("titles.duplicateStyleAndEdit")
         editBtn.onclick = async e => {
             if (!e.isTrusted) return
             editBtn.style.cursor = "progress"
@@ -9575,7 +9801,7 @@ async function askCustomStyleUrl() {
         }
 
         const externalLink = document.createElement("a")
-        externalLink.title = "Open map style home page"
+        externalLink.title = t("titles.openMapStyleHomePage")
         externalLink.setAttribute("href", about)
         externalLink.setAttribute("target", "_blank")
         externalLink.innerHTML = '<i class="bi bi-box-arrow-up-right"></i>'
@@ -9896,7 +10122,7 @@ async function askCustomTileUrl() {
         input.addEventListener("click", onChange)
 
         const externalLink = document.createElement("a")
-        externalLink.title = "Open map layer home page"
+        externalLink.title = t("titles.openMapLayerHomePage")
         externalLink.setAttribute("href", about)
         externalLink.innerHTML = externalLinkSvg
         externalLink.style.marginLeft = "auto"
@@ -10403,7 +10629,7 @@ function addSwitchTilesBtnOnNotePage() {
     }
     btnOnNotePage.style.cursor = "pointer"
     btnOnNotePage.classList.add("turn-on-satellite")
-    btnOnNotePage.title = "Switch between map and satellite images"
+    btnOnNotePage.title = t("titles.switchMapAndSatellite")
 
     document.querySelectorAll("h4")[0].appendChild(document.createTextNode("\xA0"))
     document.querySelectorAll("h4")[0].appendChild(btnOnNotePage)
@@ -10453,7 +10679,7 @@ function createCustomLayerBtn() {
     btn.classList.add("set-custom-layer-btn")
     btn.textContent = " ⚙️"
     btn.style.cursor = "pointer"
-    btn.title = "Set custom layer (Shift + S)\nbetter-osm-org feature"
+    btn.title = t("titles.setCustomLayer")
     btn.onclick = async () => {
         enableOverzoom()
         await askCustomTileUrl()
@@ -10481,7 +10707,7 @@ function addSwitchTilesButtonsOnPane() {
         const btnOnPane = document.createElement("span")
         btnOnPane.style.cursor = "pointer"
         btnOnPane.textContent = "🎨"
-        btnOnPane.title = "Set custom vector style (Shift + V)"
+        btnOnPane.title = t("titles.setCustomVectorStyle")
         btnOnPane.onmouseover = async () => {
             await mapStylesDatabase.init()
         }
@@ -11066,7 +11292,7 @@ function makeMapillaryValue(elem) {
                     const img = document.createElement("img")
                     img.src = imgData
                     img.alt = "image from Mapillary"
-                    img.title = "Blue — position from GPS tracker\nOrange — estimated real position"
+                    img.title = t("titles.gpsTrackerPosition")
                     img.style.width = "100%"
                     a.appendChild(img)
                 })
@@ -11195,26 +11421,26 @@ function makeWikimediaCommonsValue(elem) {
 function makeRoofOrientationValue(elem) {
     if (elem.textContent !== "across" && elem.textContent !== "along") {
         elem.classList.add("fixme-tag")
-        elem.title = 'roof:orientation must be either "across" or "along"'
+        elem.title = t("titles.roofOrientationAcrossAlong")
     }
 }
 
 function makeConditionalValue(elem) {
     if (!elem.textContent.includes("@")) {
         elem.classList.add("fixme-tag")
-        elem.title = ":conditional tag value must be contain @"
+        elem.title = t("titles.conditionalMustContainAt")
     }
     if (elem.textContent.match(/@\s*$/)) {
         elem.classList.add("fixme-tag")
-        elem.title = "empty part after @"
+        elem.title = t("titles.emptyPartAfterAt")
     }
     if (elem.textContent.match(/^\s*@/)) {
         elem.classList.add("fixme-tag")
-        elem.title = "empty part before @"
+        elem.title = t("titles.emptyPartBeforeAt")
     }
     if (elem.textContent.match(/@\s*@/)) {
         elem.classList.add("fixme-tag")
-        elem.title = "empty part between @"
+        elem.title = t("titles.emptyPartBetweenAt")
     }
 }
 
@@ -11296,7 +11522,7 @@ function makeRefInaturalistValue(elem) {
             const observation = observationsById.get(a.textContent)
             if (!observation) {
                 a.classList.add("warn-tag")
-                a.title = "Observation not found in iNaturalist API"
+                a.title = t("titles.observationNotFound")
                 continue
             }
             const { zoomSrc: imgSrc } = getInaturalistPhotoUrls(observation)
@@ -11337,7 +11563,7 @@ function makeOpeningHoursValue(valueCell, key, isVersionPage) {
     try {
         new opening_hours(valueCell.textContent, null, { tag_key: key })
         if (isVersionPage) {
-            valueCell.title = "no errors were found by opening_hours.js 👍"
+            valueCell.title = t("titles.noErrorsOpeningHours")
         }
     } catch (e) {
         valueCell.title = e
@@ -11351,7 +11577,7 @@ function makeOpeningHoursValue(valueCell, key, isVersionPage) {
 function makePhoneValue(valueCell, key) {
     try {
         if (valueCell.textContent[0] !== "+") {
-            valueCell.title = "phone number must start with +"
+            valueCell.title = t("titles.phoneMustStartPlus")
             valueCell.classList.add("fixme-tag")
             valueCell.querySelectorAll("a").forEach(i => i.classList.add("fixme-tag"))
         } else if (!valueCell.textContent.split(";").every(i => libphonenumber.isPossiblePhoneNumber(i.trim()))) {
@@ -11382,7 +11608,7 @@ function makeXmasFeatureEasterEgg() {
             snowBtn.classList.add("egg-snow-tag")
             snowBtn.textContent = " ❄️"
             snowBtn.style.cursor = "pointer"
-            snowBtn.title = "better-osm-org easter egg"
+            snowBtn.title = t("titles.easterEgg")
             snowBtn.addEventListener(
                 "click",
                 e => {
@@ -11537,7 +11763,7 @@ function makeRoofDirectionValue(valueCell, row, isVersionPage) {
     if (valueCell.textContent === "across" || valueCell.textContent === "along") {
         // todo more
         valueCell.classList.add("fixme-tag")
-        valueCell.title = "it seems to need to be changed to roof:orientation"
+        valueCell.title = t("titles.needRoofOrientation")
         return
     }
     if (!isVersionPage) {
@@ -11661,7 +11887,7 @@ function makeLinksInVersionTagClickable(row, objType) {
         viewIn3D.style.cursor = "pointer"
         viewIn3D.style.paddingTop = "3px"
         viewIn3D.style.paddingBottom = "3px"
-        viewIn3D.title = "Click for show embedded 3D Viewer.\nIn userscript setting you can set open in OSM page by default"
+        viewIn3D.title = t("titles.clickShowEmbedded3d")
 
         async function contextMenuHandler(e) {
             const buildingViewer = (await GM.getValue("3DViewer")) ?? "OSM Building Viewer"
@@ -11691,10 +11917,10 @@ function makeLinksInVersionTagClickable(row, objType) {
                 pinLabel.setAttribute("for", i.name)
                 pinLabel.classList.add("pin-label")
                 pinLabel.textContent = "📌"
-                pinLabel.title = "Set as default for click"
+                pinLabel.title = t("titles.setAsDefaultForClick")
                 if (i.name === buildingViewer) {
                     pin.checked = true
-                    pinLabel.title = "It's default viewer"
+                    pinLabel.title = t("titles.defaultViewer")
                 }
                 pin.onchange = async () => {
                     if (pin.checked) {
@@ -11862,10 +12088,10 @@ function makeLinksInVersionTagClickable(row, objType) {
         makeRefInaturalistValue(valueCell)
     } else if (key.length <= 2 && key !== "to" && key !== "tv" && key !== "it") {
         keyCell.classList.add("fixme-tag")
-        keyCell.title = "The key is too short"
+        keyCell.title = t("titles.keyTooShort")
     } else if (key.length >= 2 && rawKey[0] >= "A" && rawKey[0] <= "Z" && rawKey[1] >= "a" && rawKey[1] <= "z") {
         keyCell.classList.add("fixme-tag")
-        keyCell.title = "Suspicious key starting with a capital letter"
+        keyCell.title = t("titles.suspiciousCapitalKey")
     }
 }
 
@@ -11894,7 +12120,7 @@ function addHistoryLink() {
     const curHref = document.querySelector("#sidebar_content h4 a").href.match(/(.*)\/(\d+)$/)
     a.href = curHref[1]
     a.textContent = "🕒"
-    a.title = "Click for open object history page\nOr press key H"
+    a.title = t("titles.openObjectHistory")
     a.classList.add("history_button_class")
     if (curHref[2] !== "1") {
         versionInSidebar.after(a)
@@ -12699,7 +12925,7 @@ async function replaceDownloadWayButton(btn, wayID) {
                 console.trace()
                 console.log(currentNodes)
                 btn.style.background = "yellow"
-                btn.title = "Some nodes was hidden by moderators"
+                btn.title = t("titles.someNodesHidden")
                 return
             }
             const nodeLi = document.createElement("li")
@@ -12898,9 +13124,9 @@ async function replaceDownloadWayButton(btn, wayID) {
                     console.trace()
                     console.log(currentNodes)
                     btn.style.background = "yellow"
-                    btn.title = "Please try reload page.\nIf the error persists, a message about it in the better-osm-org repository"
+                    btn.title = t("titles.reloadAndReport")
                     divForNodesReplace.classList.add("broken-version")
-                    divForNodesReplace.title = "Some nodes was hidden by moderators :\\"
+                    divForNodesReplace.title = t("titles.someNodesHiddenSad")
                     divForNodesReplace.style.cursor = "auto"
                     return
                 }
@@ -13015,7 +13241,7 @@ async function replaceDownloadWayButton(btn, wayID) {
     if (document.querySelectorAll('[way-version="inter"]').length > 20) {
         const select = document.createElement("select")
         select.id = "versions-filter"
-        select.title = "Filter for intermediate changes"
+        select.title = t("titles.filterIntermediateChanges")
 
         const allVersions = document.createElement("option")
         allVersions.value = "all-versions"
@@ -13065,7 +13291,7 @@ async function showFullWayHistory(wayID) {
         await replaceDownloadWayButton(btn, wayID)
     } catch (err) {
         console.error(err)
-        btn.title = "Please try reload page.\nIf the error persists, a message about it in the better-osm-org repository"
+        btn.title = t("titles.reloadAndReport")
         btn.style.background = "red"
         btn.style.cursor = "auto"
     }
@@ -13084,7 +13310,7 @@ function setupWayVersionView() {
         const nodesList = filterObjectListByTimestamp(nodesHistory, targetVersion.timestamp)
         if (nodesList.some(i => i === null)) {
             htmlElem.parentElement.parentElement.classList.add("broken-version")
-            htmlElem.title = "Some nodes was hidden by moderators"
+            htmlElem.title = t("titles.someNodesHidden")
             htmlElem.style.cursor = "auto"
         } else {
             if (needShowWay) {
@@ -13177,7 +13403,7 @@ function setupWayVersionView() {
         downloadAllVersionsBtn.tabIndex = 0
         downloadAllVersionsBtn.textContent = "⏬"
         downloadAllVersionsBtn.style.cursor = "pointer"
-        downloadAllVersionsBtn.title = "Download all versions (with intermediate versions)"
+        downloadAllVersionsBtn.title = t("titles.downloadAllVersionsWithIntermediate")
         const clickHandler = async () => {
             downloadAllVersionsBtn.style.cursor = "progress"
             await unrollPaginationInHistory()
@@ -13749,7 +13975,7 @@ async function replaceDownloadRelationButton(btn, relationID) {
                 console.trace()
                 console.log(currentMembers)
                 btn.style.background = "yellow"
-                btn.title = "Some members was hidden by moderators"
+                btn.title = t("titles.someMembersHidden")
                 return
             }
             const memberLi = document.createElement("li")
@@ -13982,9 +14208,9 @@ async function replaceDownloadRelationButton(btn, relationID) {
                     console.trace()
                     console.log(currentMembers)
                     btn.style.background = "yellow"
-                    btn.title = "Please try reload page.\nIf the error persists, a message about it in the better-osm-org repository"
+                    btn.title = t("titles.reloadAndReport")
                     divForMembersReplace.classList.add("broken-version")
-                    divForMembersReplace.title = "Some nodes was hidden by moderators :\\"
+                    divForMembersReplace.title = t("titles.someNodesHiddenSad")
                     divForMembersReplace.style.cursor = "auto"
                     return
                 }
@@ -14111,7 +14337,7 @@ async function replaceDownloadRelationButton(btn, relationID) {
     if (document.querySelectorAll('[relation-version="inter"]').length > 20) {
         const select = document.createElement("select")
         select.id = "versions-filter"
-        select.title = "Filter for intermediate changes"
+        select.title = t("titles.filterIntermediateChanges")
 
         const allVersions = document.createElement("option")
         allVersions.value = "all-versions"
@@ -14165,7 +14391,7 @@ async function showFullRelationHistory(relationID) {
         await replaceDownloadRelationButton(btn, relationID)
     } catch (err) {
         console.error(err)
-        btn.title = "Please try reload page.\nIf the error persists, a message about it in the better-osm-org repository"
+        btn.title = t("titles.reloadAndReport")
         btn.style.background = "red"
         btn.style.cursor = "auto"
     }
@@ -14328,7 +14554,7 @@ function setupRelationVersionView() {
         downloadAllVersionsBtn.tabIndex = 0
         downloadAllVersionsBtn.textContent = "⏬"
         downloadAllVersionsBtn.style.cursor = "pointer"
-        downloadAllVersionsBtn.title = "Download all versions" // + " (with intermediate versions)"
+        downloadAllVersionsBtn.title = t("titles.downloadAllVersions") // + " (with intermediate versions)"
 
         const clickHandler = async e => {
             downloadAllVersionsBtn.style.cursor = "progress"
@@ -15229,7 +15455,7 @@ function transformDiffWithColors() {
             metainfoHTML.appendChild(time)
             const findBtn = document.createElement("span")
             findBtn.classList.add("find-user-btn")
-            findBtn.title = "Try find deleted user"
+            findBtn.title = t("titles.tryFindDeletedUser")
             findBtn.textContent = " 🔍 "
             findBtn.value = changesetID
             findBtn.datetime = time.dateTime
@@ -15671,7 +15897,7 @@ function addDiffInHistory(reason = "url_change") {
     }
     if (!document.querySelector(".compact-toggle-btn")) {
         const compactToggle = document.createElement("button")
-        compactToggle.title = "Toggle between full and compact tags diff.\nYou can also use the T key."
+        compactToggle.title = t("titles.toggleCompactTagsDiff")
         compactToggle.setAttribute("value", "><")
         compactToggle.innerHTML = compactModeSvg
         compactToggle.classList.add("compact-toggle-btn")
@@ -16207,10 +16433,10 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
             makeTypeValue(valueCell, objType)
         } else if (key.length <= 2 && key !== "to" && key !== "tv" && key !== "it") {
             keyCell.classList.add("fixme-tag")
-            keyCell.title = "The key is too short"
+            keyCell.title = t("titles.keyTooShort")
         } else if (key.length >= 2 && rawKey[0] >= "A" && rawKey[0] <= "Z" && rawKey[1] >= "a" && rawKey[1] <= "z") {
             keyCell.classList.add("fixme-tag")
-            keyCell.title = "Suspicious key starting with a capital letter"
+            keyCell.title = t("titles.suspiciousCapitalKey")
         }
     }
 }
@@ -16519,7 +16745,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         geomChangedFlag.textContent = " 📐"
         geomChangedFlag.tabIndex = 0
         geomChangedFlag.classList.add("nodes-changed")
-        geomChangedFlag.title = "List of way nodes has been changed"
+        geomChangedFlag.title = t("titles.listWayNodesChanged")
         geomChangedFlag.style.userSelect = "none"
         geomChangedFlag.style.background = "rgba(223, 238, 9, 0.6)"
         geomChangedFlag.style.cursor = "pointer"
@@ -16612,7 +16838,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         if (lineWasReversed) {
             const row = makeWayDiffRow("", "🔃")
             row.querySelectorAll("td").forEach(i => (i.style.textAlign = "center"))
-            row.querySelector("td:nth-of-type(2)").title = "Nodes of the way were reversed"
+            row.querySelector("td:nth-of-type(2)").title = t("titles.nodesReversed")
             tbody.appendChild(row)
 
             prevVersion.nodes.forEach((i, index) => {
@@ -16700,7 +16926,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
     if (prevVersion.visible === false && targetVersion?.visible !== false && targetVersion.version !== 1) {
         const restoredElemFlag = document.createElement("span")
         restoredElemFlag.textContent = " ♻️"
-        restoredElemFlag.title = "Object was restored"
+        restoredElemFlag.title = t("titles.objectRestored")
         restoredElemFlag.style.userSelect = "none"
         i.appendChild(restoredElemFlag)
     }
@@ -16713,10 +16939,10 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         let membersChanged = false
         if (JSON.stringify(prevVersion?.members ?? []) !== JSON.stringify(targetVersion.members) && targetVersion.version !== 1) {
             memChangedFlag.style.background = "rgba(223, 238, 9, 0.6)"
-            memChangedFlag.title = "List of relation members has been changed.\nClick to see more details"
+            memChangedFlag.title = t("titles.relationMembersChanged")
             membersChanged = true
         } else {
-            memChangedFlag.title = "Show list of relation members"
+            memChangedFlag.title = t("titles.showRelationMembers")
         }
         memChangedFlag.style.cursor = "pointer"
 
@@ -16910,7 +17136,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             // members reversed
             const row = makeRelationDiffRow("", "🔃")
             row.querySelectorAll("td").forEach(i => (i.style.textAlign = "center"))
-            row.querySelector("td:nth-of-type(2)").title = "Members of the relation were reversed"
+            row.querySelector("td:nth-of-type(2)").title = t("titles.relationMembersReversed")
             tbody.appendChild(row)
 
             prevVersion?.members?.forEach((i, index) => {
@@ -16993,7 +17219,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         pinRelation.classList.add("pin-relation")
         pinRelation.style.cursor = "pointer"
         pinRelation.style.display = "none"
-        pinRelation.title = "Pin relation on map"
+        pinRelation.title = t("titles.pinRelationOnMap")
         pinRelation.onkeypress = pinRelation.onclick = async e => {
             if (e.type === "keypress" && (e.code === "Space" || e.code === "Enter")) {
                 e.preventDefault()
@@ -17016,9 +17242,9 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 pinRelation.style.cursor = "pointer"
                 pinRelation.classList.add("pinned")
                 pinRelation.textContent = "📍"
-                pinRelation.title = "Unpin relation from map"
+                pinRelation.title = t("titles.unpinRelationFromMap")
             } else {
-                pinRelation.title = "Pin relation on map"
+                pinRelation.title = t("titles.pinRelationOnMap")
                 pinRelation.classList.remove("pinned")
                 pinRelation.textContent = "📌"
                 cleanObjectsByKey(`customObjects/${targetVersion.id}`)
@@ -17043,7 +17269,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             targetVersion.lon,
         ) * 1000;
         locationChangedFlag.textContent = ` 📍${distInMeters.toFixed(1)}m`
-        locationChangedFlag.title = "Coordinates of node has been changed"
+        locationChangedFlag.title = t("titles.nodeCoordinatesChanged")
         locationChangedFlag.classList.add("location-modified-marker")
         // if (distInMeters > 100) {
         //     locationChangedFlag.classList.add("location-modified-marker-warn")
@@ -17703,7 +17929,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
         const btn = document.createElement("a")
         btn.textContent = "📥"
         btn.classList.add("load-relation-version")
-        btn.title = "Download this relation"
+        btn.title = t("titles.downloadThisRelation")
         btn.tabIndex = 0
         btn.style.cursor = "pointer"
 
@@ -17732,7 +17958,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                     showValidationStatus(relationMetadata.restrictionRelationErrors, i.parentElement)
                 } else {
                     if (relationMetadata.isRestriction) {
-                        i.parentElement.parentElement.title = 'Click with Shift for zoom to "via" members'
+                        i.parentElement.parentElement.title = t("titles.shiftClickZoomVia")
                     }
                 }
                 i.parentElement.parentElement.onclick = e => {
@@ -18369,7 +18595,7 @@ async function processQuickLookInSidebar(changesetID) {
 
     function addCompactModeToggles(objType, uniqTypes) {
         const compactToggle = document.createElement("button")
-        compactToggle.title = "Toggle between full and compact tags diff.\nYou can also use the T key."
+        compactToggle.title = t("titles.toggleCompactTagsDiff")
         compactToggle.textContent = allTagsOfObjectsVisible ? "><" : "<>"
         compactToggle.classList.add("quick-look-compact-toggle-btn")
         compactToggle.classList.add("btn", "btn-sm", "btn-primary")
@@ -19154,7 +19380,7 @@ async function processQuickLookInSidebar(changesetID) {
                     }).toString()
                 a.target = "_blank"
                 a.appendChild(document.createTextNode("⚠️ Send Bug Report"))
-                a.title = "better-osm-org was unable to display some data"
+                a.title = t("titles.unableDisplaySomeData")
                 return a
             }
 
@@ -21065,7 +21291,7 @@ async function addHoverForRelationMembers() {
                 pinSign.classList.add("pinned")
                 pinSign.textContent = "📌"
                 pinSign.tabIndex = 0
-                pinSign.title = "Pin restriction sign on map.\nYou can hide all the objects that better-osm-org adds by pressing ` or ~"
+                pinSign.title = t("titles.pinRestrictionSign")
                 pinSign.style.cursor = "pointer"
                 pinSign.onkeypress = pinSign.onclick = async e => {
                     e.preventDefault()
@@ -21074,10 +21300,10 @@ async function addHoverForRelationMembers() {
                         pinSign.style.cursor = "pointer"
                         pinSign.classList.remove("pinned")
                         pinSign.style.filter = "grayscale(1)"
-                        pinSign.title = "Hide restriction sign"
+                        pinSign.title = t("titles.hideRestrictionSign")
                         restrictionArrows.forEach(i => (i.getElement().style.display = "none"))
                     } else {
-                        pinSign.title = "Hide restriction sign"
+                        pinSign.title = t("titles.hideRestrictionSign")
                         pinSign.classList.add("pinned")
                         pinSign.style.filter = ""
                         restrictionArrows.forEach(i => (i.getElement().style.display = ""))
@@ -21111,7 +21337,7 @@ function makeHeaderPartsClickable() {
         if (/^\d+$/.test(elem.textContent)) {
             elem.title = `Click to copy ID\n${CtrlKeyName} + click to copy URL`
         } else {
-            elem.title = "Click to copy"
+            elem.title = t("titles.clickForCopy")
         }
         elem.style.cursor = "pointer"
         elem.classList.add("copyable")
@@ -21226,7 +21452,7 @@ function addCopyCoordinatesButtons() {
         const copyButton = document.createElement("span")
         copyButton.classList.add("copy-coords-btn")
         copyButton.textContent = "📄"
-        copyButton.title = "Select coordinates format for copy.\nTo copy just click by coordinates"
+        copyButton.title = t("titles.selectCoordinatesFormat")
         copyButton.innerHTML = copyBtnSvg
         copyButton.style.height = "0.9rem"
         copyButton.style.position = "relative"
@@ -21269,10 +21495,10 @@ function addCopyCoordinatesButtons() {
                 pinLabel.setAttribute("for", "CoordFormat_" + ind)
                 pinLabel.classList.add("pin-label")
                 pinLabel.textContent = "📌"
-                pinLabel.title = "Set as default for copy, when you click by coordinates"
+                pinLabel.title = t("titles.setDefaultCopyFormat")
                 if (format === coordinatesFormat) {
                     pin.checked = true
-                    pinLabel.title = "It's default format, when your click by coordinates"
+                    pinLabel.title = t("titles.defaultCopyFormat")
                 }
                 pin.onchange = async () => {
                     if (pin.checked) {
@@ -21345,7 +21571,7 @@ function addRelationHistoryViewerLinks() {
     viewInExternal.style.position = "relative"
     viewInExternal.style.top = "-2px"
     viewInExternal.style.paddingLeft = "5px"
-    viewInExternal.title = "Click for open external relation viewer.\nOr use key O"
+    viewInExternal.title = t("titles.openExternalRelationViewer")
     viewInExternal.querySelector("svg").tabIndex = 0
 
     async function contextMenuHandler(e) {
@@ -21373,10 +21599,10 @@ function addRelationHistoryViewerLinks() {
             pinLabel.setAttribute("for", i.name)
             pinLabel.classList.add("pin-label")
             pinLabel.textContent = "📌"
-            pinLabel.title = "Set as default for click"
+            pinLabel.title = t("titles.setAsDefaultForClick")
             if (i.name === relationViewer) {
                 pin.checked = true
-                pinLabel.title = "It's default viewer"
+                pinLabel.title = t("titles.defaultViewer")
             }
             pin.onchange = async () => {
                 if (pin.checked) {
@@ -21442,7 +21668,7 @@ function makeVersionPageBetter() {
                 metainfoHTML.lastChild.remove()
                 const findBtn = document.createElement("span")
                 findBtn.classList.add("find-user-btn")
-                findBtn.title = "Try find deleted user"
+                findBtn.title = t("titles.tryFindDeletedUser")
                 findBtn.textContent = " 🔍 "
                 findBtn.value = changesetID
                 findBtn.datetime = time.dateTime
@@ -22324,7 +22550,7 @@ function makeTopActionBar() {
     }
     const viewChangesetsButton = document.createElement("button")
     viewChangesetsButton.textContent = "🔍"
-    viewChangesetsButton.title = "Display on one map\nif nothing is checked, all uploaded non hidden changesets will open"
+    viewChangesetsButton.title = t("titles.displayOnOneMapAll")
     viewChangesetsButton.onclick = openCombinedChangesetsMap
     actionsBar.appendChild(copyIds)
     actionsBar.appendChild(document.createTextNode("\xA0"))
@@ -22362,7 +22588,7 @@ function makeBottomActionBar() {
     revertButton.classList.add("page-link")
     const viewChangesetsButton = document.createElement("button")
     viewChangesetsButton.textContent = "🔍"
-    viewChangesetsButton.title = "Display on one map"
+    viewChangesetsButton.title = t("titles.displayOnOneMap")
     viewChangesetsButton.onclick = openCombinedChangesetsMap
     viewChangesetsButton.classList.add("page-link")
     const changesetMore = document.querySelector('#sidebar_content div.changeset_more:has([href*="before"]) li')
@@ -22407,7 +22633,7 @@ function addMassActionForUserChangesets() {
         return
     }
     const a = document.createElement("a")
-    a.title = "Add checkboxes for mass actions with changesets"
+    a.title = t("titles.addCheckboxesMassActions")
     a.textContent = " 📋"
     a.style.cursor = "pointer"
     a.id = "mass-action-btn"
@@ -22430,7 +22656,7 @@ function addMassActionForUserChangesets() {
     const osmchaLink = document.createElement("a")
     osmchaLink.innerHTML = osmchaSvgLogo
     osmchaLink.id = "osmcha_link"
-    osmchaLink.title = "Open profile in OSMCha"
+    osmchaLink.title = t("titles.openProfileInOsmcha")
     osmchaLink.href = makeOsmchaLinkForUsername(username)
     osmchaLink.target = "_blank"
     osmchaLink.rel = "noreferrer"
@@ -22472,7 +22698,7 @@ function addChangesetCheckbox(changesetElem) {
     checkbox.classList.add("mass-action-checkbox")
     checkbox.value = changesetElem.querySelector(".changeset_id").href.match(/\/(\d+)/)[1]
     checkbox.style.cursor = "pointer"
-    checkbox.title = "Shift + click for select a range of empty checkboxes"
+    checkbox.title = t("titles.shiftClickSelectRange")
     checkbox.onclick = e => {
         if (e.shiftKey) {
             let currentCheckboxFound = false
@@ -22669,7 +22895,7 @@ function makeUsernamesFilterable(usernameLink) {
     filterIcon.style.position = "relative"
     filterIcon.style.top = "-2px"
     filterIcon.style.marginLeft = "4px"
-    filterIcon.title = "Click for hide this user changesets"
+    filterIcon.title = t("titles.clickHideUserChangesets")
     filterIcon.onclick = async e => {
         e.preventDefault()
         await addUsernameIntoChangesetsFilter(usernameLink.textContent)
@@ -22712,7 +22938,7 @@ function addMassActionForGlobalChangesets() {
         a.textContent = " 🔎"
         a.style.cursor = "pointer"
         a.id = "changesets-filter-btn"
-        a.title = "Changesets filter via better-osm-org"
+        a.title = t("titles.changesetsFilterVia")
         a.onclick = async () => {
             document.querySelector("#sidebar .search_forms")?.setAttribute("hidden", "true")
 
@@ -22743,7 +22969,7 @@ function addMassActionForGlobalChangesets() {
 
                 const label = document.createElement("span")
                 label.textContent = t("changesetsHistory.hideChangesetsFrom")
-                label.title = "Click for invert"
+                label.title = t("titles.clickForInvert")
                 label.style.minWidth = "165px"
                 label.style.display = "inline-block"
                 label.style.cursor = "pointer"
@@ -22785,7 +23011,7 @@ function addMassActionForGlobalChangesets() {
 
                 const label2 = document.createElement("span")
                 label2.textContent = t("changesetsHistory.hideChangesetsWith")
-                label2.title = "Click for invert"
+                label2.title = t("titles.clickForInvert")
                 label2.style.minWidth = "165px"
                 label2.style.display = "inline-block"
                 label2.style.cursor = "pointer"
@@ -22811,7 +23037,7 @@ function addMassActionForGlobalChangesets() {
                 const filterByCommentInput = document.createElement("input")
                 filterByCommentInput.id = "filter-by-comment-input"
                 filterByCommentInput.placeholder = "words1,words2,... and press Enter"
-                filterByCommentInput.title = "Filter by substring in changesets comments"
+                filterByCommentInput.title = t("titles.filterBySubstringInComments")
                 filterByCommentInput.style.width = 253 - getScrollbarWidth() + "px"
                 filterByCommentInput.addEventListener("keypress", async function (event) {
                     if (event.key === "Enter") {
@@ -22895,7 +23121,7 @@ function addMassChangesetsActions() {
                 const id = e.target.innerText
                 navigator.clipboard.writeText(id).then(() => copyAnimation(e, id))
             }
-            item.title = "Click for copy changeset id"
+            item.title = t("titles.clickCopyChangesetId")
             if (location.pathname.match(/^\/history(\/?|\/friends)$/)) {
                 const usernameA = item.parentElement.parentElement.querySelector('a[href^="/user/"]')
                 getCachedUserInfo(usernameA?.textContent).then(res => {
@@ -22971,7 +23197,7 @@ function addRelationVersionView() {
     const btn = document.createElement("a")
     btn.textContent = "📥"
     btn.id = "load-relation-version"
-    btn.title = "Load relation version via Overpass API"
+    btn.title = t("titles.loadRelationVersionViaOverpass")
     btn.tabIndex = 0
     btn.style.cursor = "pointer"
 
@@ -23274,7 +23500,7 @@ async function betterUserStat() {
     filterInputByEditor.style.flex = "1"
     filterInputByEditor.id = "filter-input-by-editor"
     filterInputByEditor.setAttribute("disabled", true)
-    filterInputByEditor.title = "Please wait while user changesets loading"
+    filterInputByEditor.title = t("titles.pleaseWaitUserChangesetsLoading")
 
     const item = document.createElement("option")
     item.value = ""
@@ -23299,7 +23525,7 @@ async function betterUserStat() {
     const searchByComment = document.createElement("input")
     searchByComment.type = "search"
     searchByComment.placeholder = "Regex search by comments"
-    searchByComment.title = "Please wait while user changesets loading"
+    searchByComment.title = t("titles.pleaseWaitUserChangesetsLoading")
     searchByComment.setAttribute("disabled", true)
     searchByComment.style.flex = "1"
     searchByComment.style.height = "1.5rem"
@@ -23351,8 +23577,8 @@ async function betterUserStat() {
     changesets.forEach(ch => (editorOfChangesets[ch.id] = replace_with_rules(ch.tags?.["created_by"])))
     filterInputByEditor.removeAttribute("disabled")
     searchByComment.removeAttribute("disabled")
-    filterInputByEditor.title = "Alt + O for open selected changesets on one page"
-    searchByComment.title = "Not case-sensitive regex search"
+    filterInputByEditor.title = t("titles.openSelectedChangesetsOnePage")
+    searchByComment.title = t("titles.regexSearchNotCaseSensitive")
 
     async function inputHandler() {
         let filter = _ => true
@@ -23611,7 +23837,7 @@ async function makeProfileForDeletedUser(user) {
         const osmchaLink = document.createElement("a")
         osmchaLink.textContent = t("userProfile.osmcha")
         osmchaLink.id = "osmcha_link"
-        osmchaLink.title = "Open profile in OSMCha"
+        osmchaLink.title = t("titles.openProfileInOsmcha")
         osmchaLink.href = makeOsmchaLinkForUsername(username)
         osmchaLink.target = "_blank"
         osmchaLink.rel = "noreferrer"
@@ -23635,7 +23861,7 @@ async function makeProfileForDeletedUser(user) {
             const id = data[i].id
             const idSpan = document.createElement("span")
             idSpan.textContent = id
-            idSpan.title = "Click for copy"
+            idSpan.title = t("titles.clickForCopy")
             idSpan.style.cursor = "pointer"
             idSpan.onclick = e => {
                 navigator.clipboard.writeText(id).then(() => copyAnimation(e, id))
@@ -23652,7 +23878,7 @@ async function makeProfileForDeletedUser(user) {
                     .forEach(name => {
                         const usernameSpan = document.createElement("span")
                         usernameSpan.textContent = name
-                        usernameSpan.title = "Click for copy"
+                        usernameSpan.title = t("titles.clickForCopy")
                         usernameSpan.style.cursor = "pointer"
                         usernameSpan.onclick = e => {
                             navigator.clipboard.writeText(name).then(() => copyAnimation(e, name))
@@ -23820,7 +24046,7 @@ async function makeProfileForDeletedUser(user) {
                 checkbox.type = "checkbox"
                 checkbox.classList.add("mass-action-checkbox")
                 checkbox.textContent = "#" + ch.id + ""
-                checkbox.title = "Shift + click for select a range of empty checkboxes"
+                checkbox.title = t("titles.shiftClickSelectRange")
                 checkbox.value = ch.id
                 checkbox.setAttribute("user-id", id)
                 checkbox.onclick = e => {
@@ -23928,7 +24154,7 @@ async function makeProfileForDeletedUser(user) {
 
         const result = document.createElement("p")
         div.appendChild(result)
-        result.title = "via whosthat.osmz.ru"
+        result.title = t("titles.viaWhosthat")
         await processIDs(data, result)
     } else {
         setTimeout(async () => {
@@ -23948,7 +24174,7 @@ out meta;
 
                 const result = document.createElement("p")
                 div.appendChild(result)
-                result.title = "via Overpass API"
+                result.title = t("titles.viaOverpassApi")
                 await processIDs([{ id: res.elements[0].uid }], result)
             }
         })
@@ -23983,9 +24209,9 @@ out meta;
                 if (res?.elements?.length) {
                     names = [res.elements[0].user]
                 }
-                div.title = "via Overpass API"
+                div.title = t("titles.viaOverpassApi")
             } else {
-                div.title = "via whosthat.osmz.ru"
+                div.title = t("titles.viaWhosthat")
             }
             if (names.length) {
                 userNamesP.textContent = t("userProfile.usernames")
@@ -23993,7 +24219,7 @@ out meta;
                 names.forEach(name => {
                     const usernameSpan = document.createElement("span")
                     usernameSpan.textContent = name
-                    usernameSpan.title = "Click for copy"
+                    usernameSpan.title = t("titles.clickForCopy")
                     usernameSpan.style.cursor = "pointer"
                     usernameSpan.onclick = e => {
                         navigator.clipboard.writeText(name).then(() => copyAnimation(e, name))
@@ -24084,7 +24310,7 @@ async function setupHDYCInProfile() {
         const span = document.createElement("span")
         span.classList.add("copyable-username")
         span.textContent = usernameHeader.textContent
-        span.title = "Click for copy"
+        span.title = t("titles.clickForCopy")
         span.style.cursor = "pointer"
         span.onclick = e => {
             const username = usernameHeader.textContent.trim()
@@ -24173,12 +24399,12 @@ async function setupHDYCInProfile() {
             const usernames = userIDInfo.data[0]["names"].filter(i => i !== decodeURI(user)).join(", ")
             const dt = document.createElement("dt")
             dt.textContent = t("userProfile.pastUsernames")
-            dt.title = "Added by better-osm-org"
+            dt.title = t("titles.addedByBetterOsmOrg")
             dt.classList.add("list-inline-item", "m-0", "prev-usernames-label")
             const dd = document.createElement("dd")
             dd.classList.add("list-inline-item", "prev-usernames")
             dd.textContent = usernames
-            dd.title = "Added by better-osm-org"
+            dd.title = t("titles.addedByBetterOsmOrg")
             userDetails.appendChild(dt)
             userDetails.appendChild(document.createTextNode("\xA0"))
             userDetails.appendChild(dd)
@@ -24194,7 +24420,7 @@ async function setupHDYCInProfile() {
                 const dd = document.createElement("dd")
                 dd.classList.add("list-inline-item", "user-id")
                 dd.textContent = userID
-                dd.title = "Click for copy"
+                dd.title = t("titles.clickForCopy")
                 dd.style.cursor = "pointer"
                 dd.onclick = e => {
                     navigator.clipboard.writeText(userID).then(() => copyAnimation(e, userID))
@@ -24421,7 +24647,7 @@ window.addEventListener("message", async e => {
         const elem = document.createElement("p")
         elem.classList.add("text-center", "routing-timestamp")
         elem.textContent = text
-        elem.title = "added by better-osm-org"
+        elem.title = t("titles.addedByBetterOsmOrg")
         document.querySelector("#sidebar_content").appendChild(elem)
     }
 
@@ -24470,7 +24696,7 @@ window.addEventListener("message", async e => {
                 const elem = document.createElement("p")
                 elem.classList.add("text-center", "routing-timestamp")
                 elem.textContent = t("routers.routingDataTimeFor", { name: name, time: time })
-                elem.title = "added by better-osm-org"
+                elem.title = t("titles.addedByBetterOsmOrg")
                 document.querySelector("#sidebar_content").appendChild(elem)
             })
 
@@ -24904,7 +25130,7 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink, index) {
             const editBtn = document.createElement("button")
             editBtn.classList.add("edit-link-btn", "bi", "bi-pencil")
             editBtn.style.all = "unset"
-            editBtn.title = "edit link"
+            editBtn.title = t("titles.editLink")
             a.prepend(editBtn)
             editBtn.onclick = async e => {
                 e.preventDefault()
@@ -24937,7 +25163,7 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink, index) {
             const addBtn = document.createElement("button")
             addBtn.classList.add("add-link-btn", "bi", "bi-plus-lg")
             addBtn.style.all = "unset"
-            addBtn.title = "pin this link"
+            addBtn.title = t("titles.pinThisLink")
             a.prepend(addBtn)
             addBtn.onclick = async e => {
                 e.preventDefault()
@@ -25018,7 +25244,7 @@ function addOtherExternalLinks(editorsListUl) {
 function makeMoveUpLinkBtn(nameValue, addItemLi) {
     const upBtn = document.createElement("button")
     upBtn.classList.add("move-up-link-btn", "bi", "bi-chevron-up")
-    upBtn.title = "move up link"
+    upBtn.title = t("titles.moveUpLink")
     upBtn.onclick = async e => {
         e.preventDefault()
         e.stopPropagation()
@@ -25041,7 +25267,7 @@ function makeMoveUpLinkBtn(nameValue, addItemLi) {
 function makeMoveDownLinkBtn(nameValue, addItemLi) {
     const downBtn = document.createElement("button")
     downBtn.classList.add("move-down-link-btn", "bi", "bi-chevron-down")
-    downBtn.title = "move down link"
+    downBtn.title = t("titles.moveDownLink")
     downBtn.onclick = async e => {
         e.preventDefault()
         e.stopPropagation()
@@ -25064,7 +25290,7 @@ function makeMoveDownLinkBtn(nameValue, addItemLi) {
 function makeDeleteLinkBtn(nameValue, addItemLi) {
     const deleteBtn = document.createElement("button")
     deleteBtn.classList.add("delete-link-btn", "bi", "bi-trash")
-    deleteBtn.title = "remove link"
+    deleteBtn.title = t("titles.removeLink")
     deleteBtn.onclick = async e => {
         e.preventDefault()
         e.stopPropagation()
@@ -25102,7 +25328,7 @@ function makeExternalLinkEditable(targetLi, editorsListUl, nameValue = "", templ
     const createLikBtn = document.createElement("button")
     createLikBtn.classList.add("create-link-btn", "bi", nameValue === "" ? "bi-plus-lg" : "bi-floppy")
     createLikBtn.style.all = "unset"
-    createLikBtn.title = "save link"
+    createLikBtn.title = t("titles.saveLink")
 
     const template = document.createElement("input")
     template.classList.add("template-input")
@@ -25215,7 +25441,7 @@ async function _setupNewEditorsLinks(mutationsList) {
             const linksBtn = langSwitchBtn.cloneNode()
             linksBtn.removeAttribute("data-bs-target")
             linksBtn.removeAttribute("data-bs-toggle")
-            linksBtn.title = "Open place in external website"
+            linksBtn.title = t("titles.openPlaceExternalWebsite")
             linksBtn.innerHTML = externalLinkSvg
             const svg = linksBtn.querySelector("svg")
             svg.setAttribute("width", 20)
@@ -25874,7 +26100,7 @@ function renderOSMGeoJSON(xml, options = {}) {
 
         const modeBtn = document.createElement("button")
         modeBtn.classList.add("mode-btn")
-        modeBtn.title = "Switch between table and raw editor"
+        modeBtn.title = t("titles.switchTableAndRawEditor")
 
         popupBody.appendChild(document.createTextNode("\xA0"))
         popupBody.appendChild(modeBtn)
@@ -30178,7 +30404,7 @@ function addImageryOffsetsDB() {
     const loadBtn = document.createElement("button")
     loadBtn.textContent = t("idEditor.findOffsets")
     loadBtn.classList.add("find-offsets-btn")
-    loadBtn.title = "better-osm-org experimental feature"
+    loadBtn.title = t("titles.betterOsmOrgExperimentalFeature")
     loadBtn.onclick = async () => {
         loadBtn.style.cursor = "progress"
         try {
@@ -30557,7 +30783,7 @@ out geom;
             const overpassLink = document.createElement("a")
             overpassLink.classList.add("overpass-link")
             overpassLink.textContent = i.lastChild.textContent.trim()
-            overpassLink.title = "search with Overpass"
+            overpassLink.title = t("titles.searchWithOverpass")
             overpassLink.target = "_blank"
             const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ""))
             overpassLink.href =

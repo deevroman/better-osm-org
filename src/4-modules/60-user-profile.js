@@ -260,7 +260,7 @@ async function betterUserStat() {
     filterInputByEditor.style.flex = "1"
     filterInputByEditor.id = "filter-input-by-editor"
     filterInputByEditor.setAttribute("disabled", true)
-    filterInputByEditor.title = "Please wait while user changesets loading"
+    filterInputByEditor.title = t("userProfile.pleaseWaitChangesetsLoading")
 
     const item = document.createElement("option")
     item.value = ""
@@ -285,7 +285,7 @@ async function betterUserStat() {
     const searchByComment = document.createElement("input")
     searchByComment.type = "search"
     searchByComment.placeholder = "Regex search by comments"
-    searchByComment.title = "Please wait while user changesets loading"
+    searchByComment.title = t("userProfile.pleaseWaitChangesetsLoading")
     searchByComment.setAttribute("disabled", true)
     searchByComment.style.flex = "1"
     searchByComment.style.height = "1.5rem"
@@ -337,8 +337,8 @@ async function betterUserStat() {
     changesets.forEach(ch => (editorOfChangesets[ch.id] = replace_with_rules(ch.tags?.["created_by"])))
     filterInputByEditor.removeAttribute("disabled")
     searchByComment.removeAttribute("disabled")
-    filterInputByEditor.title = "Alt + O for open selected changesets on one page"
-    searchByComment.title = "Not case-sensitive regex search"
+    filterInputByEditor.title = t("userProfile.openSelectedChangesetsOnePage")
+    searchByComment.title = t("userProfile.regexSearchNotCaseSensitive")
 
     async function inputHandler() {
         let filter = _ => true
@@ -597,7 +597,7 @@ async function makeProfileForDeletedUser(user) {
         const osmchaLink = document.createElement("a")
         osmchaLink.textContent = t("userProfile.osmcha")
         osmchaLink.id = "osmcha_link"
-        osmchaLink.title = "Open profile in OSMCha"
+        osmchaLink.title = t("osmcha.openProfileInOsmcha")
         osmchaLink.href = makeOsmchaLinkForUsername(username)
         osmchaLink.target = "_blank"
         osmchaLink.rel = "noreferrer"
@@ -621,7 +621,7 @@ async function makeProfileForDeletedUser(user) {
             const id = data[i].id
             const idSpan = document.createElement("span")
             idSpan.textContent = id
-            idSpan.title = "Click for copy"
+            idSpan.title = t("copying.clickForCopy")
             idSpan.style.cursor = "pointer"
             idSpan.onclick = e => {
                 navigator.clipboard.writeText(id).then(() => copyAnimation(e, id))
@@ -638,7 +638,7 @@ async function makeProfileForDeletedUser(user) {
                     .forEach(name => {
                         const usernameSpan = document.createElement("span")
                         usernameSpan.textContent = name
-                        usernameSpan.title = "Click for copy"
+                        usernameSpan.title = t("copying.clickForCopy")
                         usernameSpan.style.cursor = "pointer"
                         usernameSpan.onclick = e => {
                             navigator.clipboard.writeText(name).then(() => copyAnimation(e, name))
@@ -806,7 +806,7 @@ async function makeProfileForDeletedUser(user) {
                 checkbox.type = "checkbox"
                 checkbox.classList.add("mass-action-checkbox")
                 checkbox.textContent = "#" + ch.id + ""
-                checkbox.title = "Shift + click for select a range of empty checkboxes"
+                checkbox.title = t("selection.shiftClickSelectRange")
                 checkbox.value = ch.id
                 checkbox.setAttribute("user-id", id)
                 checkbox.onclick = e => {
@@ -914,7 +914,7 @@ async function makeProfileForDeletedUser(user) {
 
         const result = document.createElement("p")
         div.appendChild(result)
-        result.title = "via whosthat.osmz.ru"
+        result.title = t("userProfile.viaWhosthat")
         await processIDs(data, result)
     } else {
         setTimeout(async () => {
@@ -934,7 +934,7 @@ out meta;
 
                 const result = document.createElement("p")
                 div.appendChild(result)
-                result.title = "via Overpass API"
+                result.title = t("userProfile.viaOverpassApi")
                 await processIDs([{ id: res.elements[0].uid }], result)
             }
         })
@@ -969,9 +969,9 @@ out meta;
                 if (res?.elements?.length) {
                     names = [res.elements[0].user]
                 }
-                div.title = "via Overpass API"
+                div.title = t("userProfile.viaOverpassApi")
             } else {
-                div.title = "via whosthat.osmz.ru"
+                div.title = t("userProfile.viaWhosthat")
             }
             if (names.length) {
                 userNamesP.textContent = t("userProfile.usernames")
@@ -979,7 +979,7 @@ out meta;
                 names.forEach(name => {
                     const usernameSpan = document.createElement("span")
                     usernameSpan.textContent = name
-                    usernameSpan.title = "Click for copy"
+                    usernameSpan.title = t("copying.clickForCopy")
                     usernameSpan.style.cursor = "pointer"
                     usernameSpan.onclick = e => {
                         navigator.clipboard.writeText(name).then(() => copyAnimation(e, name))
@@ -1070,7 +1070,7 @@ async function setupHDYCInProfile() {
         const span = document.createElement("span")
         span.classList.add("copyable-username")
         span.textContent = usernameHeader.textContent
-        span.title = "Click for copy"
+        span.title = t("copying.clickForCopy")
         span.style.cursor = "pointer"
         span.onclick = e => {
             const username = usernameHeader.textContent.trim()
@@ -1159,12 +1159,12 @@ async function setupHDYCInProfile() {
             const usernames = userIDInfo.data[0]["names"].filter(i => i !== decodeURI(user)).join(", ")
             const dt = document.createElement("dt")
             dt.textContent = t("userProfile.pastUsernames")
-            dt.title = "Added by better-osm-org"
+            dt.title = t("betterOsmOrg.addedByBetterOsmOrg")
             dt.classList.add("list-inline-item", "m-0", "prev-usernames-label")
             const dd = document.createElement("dd")
             dd.classList.add("list-inline-item", "prev-usernames")
             dd.textContent = usernames
-            dd.title = "Added by better-osm-org"
+            dd.title = t("betterOsmOrg.addedByBetterOsmOrg")
             userDetails.appendChild(dt)
             userDetails.appendChild(document.createTextNode("\xA0"))
             userDetails.appendChild(dd)
@@ -1180,7 +1180,7 @@ async function setupHDYCInProfile() {
                 const dd = document.createElement("dd")
                 dd.classList.add("list-inline-item", "user-id")
                 dd.textContent = userID
-                dd.title = "Click for copy"
+                dd.title = t("copying.clickForCopy")
                 dd.style.cursor = "pointer"
                 dd.onclick = e => {
                     navigator.clipboard.writeText(userID).then(() => copyAnimation(e, userID))

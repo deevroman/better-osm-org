@@ -305,9 +305,9 @@ ${styleSuffix}`
         const btn = document.createElement("a")
         btn.id = "timeback-btn"
         if (organicmapsDate || mapsmeDate) {
-            btn.title = "Open the map state at the time of map snapshot"
+            btn.title = t("notes.openMapStateSnapshot")
         } else {
-            btn.title = "Open the map state at the time of note creation"
+            btn.title = t("notes.openMapStateNoteCreation")
         }
         btn.textContent = " 🕰"
         btn.style.cursor = "pointer"
@@ -620,7 +620,7 @@ function addNotesFiltersButtons() {
         filterByString.id = "filter-notes-by-string"
         filterByString.style.width = "100%"
         filterByString.placeholder = "word in notes"
-        filterByString.title = "comma-separated substrings\nfilter also works by comments"
+        filterByString.title = t("notes.commaSeparatedSubstrings")
         filterByString.addEventListener("keypress", function (event) {
             if (event.key === "Enter") {
                 filterByString.classList?.add("wait-fetch")
@@ -694,7 +694,7 @@ function addNotesFiltersButtons() {
     function makeFilterByUsernameWrapper() {
         filterByUsername.type = "input"
         filterByUsername.placeholder = "username"
-        filterByString.title = "comma-separated usernames"
+        filterByString.title = t("notes.commaSeparatedUsernames")
         filterByUsername.id = "filter-notes-by-username"
         filterByUsername.style.width = "100%"
         filterByUsername.addEventListener("keypress", function (event) {

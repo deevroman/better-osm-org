@@ -77,7 +77,7 @@ function makeTopActionBar() {
     }
     const viewChangesetsButton = document.createElement("button")
     viewChangesetsButton.textContent = "🔍"
-    viewChangesetsButton.title = "Display on one map\nif nothing is checked, all uploaded non hidden changesets will open"
+    viewChangesetsButton.title = t("changesetsHistory.displayOnOneMapAll")
     viewChangesetsButton.onclick = openCombinedChangesetsMap
     actionsBar.appendChild(copyIds)
     actionsBar.appendChild(document.createTextNode("\xA0"))
@@ -115,7 +115,7 @@ function makeBottomActionBar() {
     revertButton.classList.add("page-link")
     const viewChangesetsButton = document.createElement("button")
     viewChangesetsButton.textContent = "🔍"
-    viewChangesetsButton.title = "Display on one map"
+    viewChangesetsButton.title = t("changesetsHistory.displayOnOneMap")
     viewChangesetsButton.onclick = openCombinedChangesetsMap
     viewChangesetsButton.classList.add("page-link")
     const changesetMore = document.querySelector('#sidebar_content div.changeset_more:has([href*="before"]) li')
@@ -160,7 +160,7 @@ function addMassActionForUserChangesets() {
         return
     }
     const a = document.createElement("a")
-    a.title = "Add checkboxes for mass actions with changesets"
+    a.title = t("changesetsHistory.addCheckboxesMassActions")
     a.textContent = " 📋"
     a.style.cursor = "pointer"
     a.id = "mass-action-btn"
@@ -183,7 +183,7 @@ function addMassActionForUserChangesets() {
     const osmchaLink = document.createElement("a")
     osmchaLink.innerHTML = osmchaSvgLogo
     osmchaLink.id = "osmcha_link"
-    osmchaLink.title = "Open profile in OSMCha"
+    osmchaLink.title = t("osmcha.openProfileInOsmcha")
     osmchaLink.href = makeOsmchaLinkForUsername(username)
     osmchaLink.target = "_blank"
     osmchaLink.rel = "noreferrer"
@@ -225,7 +225,7 @@ function addChangesetCheckbox(changesetElem) {
     checkbox.classList.add("mass-action-checkbox")
     checkbox.value = changesetElem.querySelector(".changeset_id").href.match(/\/(\d+)/)[1]
     checkbox.style.cursor = "pointer"
-    checkbox.title = "Shift + click for select a range of empty checkboxes"
+    checkbox.title = t("selection.shiftClickSelectRange")
     checkbox.onclick = e => {
         if (e.shiftKey) {
             let currentCheckboxFound = false
@@ -422,7 +422,7 @@ function makeUsernamesFilterable(usernameLink) {
     filterIcon.style.position = "relative"
     filterIcon.style.top = "-2px"
     filterIcon.style.marginLeft = "4px"
-    filterIcon.title = "Click for hide this user changesets"
+    filterIcon.title = t("changesetsHistory.clickHideUserChangesets")
     filterIcon.onclick = async e => {
         e.preventDefault()
         await addUsernameIntoChangesetsFilter(usernameLink.textContent)
@@ -465,7 +465,7 @@ function addMassActionForGlobalChangesets() {
         a.textContent = " 🔎"
         a.style.cursor = "pointer"
         a.id = "changesets-filter-btn"
-        a.title = "Changesets filter via better-osm-org"
+        a.title = t("changesetsHistory.filterViaBetterOsmOrg")
         a.onclick = async () => {
             document.querySelector("#sidebar .search_forms")?.setAttribute("hidden", "true")
 
@@ -496,7 +496,7 @@ function addMassActionForGlobalChangesets() {
 
                 const label = document.createElement("span")
                 label.textContent = t("changesetsHistory.hideChangesetsFrom")
-                label.title = "Click for invert"
+                label.title = t("selection.clickForInvert")
                 label.style.minWidth = "165px"
                 label.style.display = "inline-block"
                 label.style.cursor = "pointer"
@@ -538,7 +538,7 @@ function addMassActionForGlobalChangesets() {
 
                 const label2 = document.createElement("span")
                 label2.textContent = t("changesetsHistory.hideChangesetsWith")
-                label2.title = "Click for invert"
+                label2.title = t("selection.clickForInvert")
                 label2.style.minWidth = "165px"
                 label2.style.display = "inline-block"
                 label2.style.cursor = "pointer"
@@ -564,7 +564,7 @@ function addMassActionForGlobalChangesets() {
                 const filterByCommentInput = document.createElement("input")
                 filterByCommentInput.id = "filter-by-comment-input"
                 filterByCommentInput.placeholder = "words1,words2,... and press Enter"
-                filterByCommentInput.title = "Filter by substring in changesets comments"
+                filterByCommentInput.title = t("changesetsHistory.filterBySubstringInComments")
                 filterByCommentInput.style.width = 253 - getScrollbarWidth() + "px"
                 filterByCommentInput.addEventListener("keypress", async function (event) {
                     if (event.key === "Enter") {
@@ -648,7 +648,7 @@ function addMassChangesetsActions() {
                 const id = e.target.innerText
                 navigator.clipboard.writeText(id).then(() => copyAnimation(e, id))
             }
-            item.title = "Click for copy changeset id"
+            item.title = t("changesetsHistory.clickCopyChangesetId")
             if (location.pathname.match(/^\/history(\/?|\/friends)$/)) {
                 const usernameA = item.parentElement.parentElement.querySelector('a[href^="/user/"]')
                 getCachedUserInfo(usernameA?.textContent).then(res => {

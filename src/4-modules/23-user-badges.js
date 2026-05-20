@@ -56,7 +56,7 @@ function makeBadge(userInfo, changesetDate = new Date()) {
     function makeModeratorBadge() {
         userBadge.style.position = "relative"
         userBadge.style.bottom = "2px"
-        userBadge.title = "This user is a moderator"
+        userBadge.title = t("userBadges.userModerator")
         userBadge.innerHTML = moderatorBadgeSvg
         userBadge.querySelector("svg").style.transform = "scale(0.9)"
     }
@@ -64,13 +64,13 @@ function makeBadge(userInfo, changesetDate = new Date()) {
     function makeImporterBadge() {
         userBadge.style.position = "relative"
         userBadge.style.bottom = "2px"
-        userBadge.title = "This user is a importer"
+        userBadge.title = t("userBadges.userImporter")
         userBadge.innerHTML = importerBadgeSvg
         userBadge.querySelector("svg").style.transform = "scale(0.9)"
     }
 
     function makeBannedUserBadge() {
-        userBadge.title = "The user was banned"
+        userBadge.title = t("userBadges.userBanned")
         userBadge.textContent = BAN_EMOJI + " "
         userBadge.classList.add("banned-badge")
         userBadge.style.cursor = "pointer"
@@ -105,7 +105,7 @@ function makeBadge(userInfo, changesetDate = new Date()) {
 
     function makeNewbieBadge() {
         userBadge.classList.add("newbie-badge")
-        userBadge.title = "At the time of creating the changeset/note, the user had been editing OpenStreetMap for less than a month"
+        userBadge.title = t("userBadges.userNewbie")
         userBadge.textContent = NEWBIE_EMOJI + " "
         userBadge.style.cursor = "pointer"
         userBadge.onclick = e => {
@@ -154,7 +154,7 @@ function makeBadge(userInfo, changesetDate = new Date()) {
         getFriends().then(res => {
             if (res.includes(userInfo["display_name"])) {
                 // todo warn if username startsWith 🫂 or use svg
-                userBadge.title = "You are following this user"
+                userBadge.title = t("userBadges.followingUser")
                 userBadge.textContent = "🫂 "
             }
         })

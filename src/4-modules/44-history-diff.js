@@ -781,7 +781,7 @@ async function replaceDownloadWayButton(btn, wayID) {
                 console.trace()
                 console.log(currentNodes)
                 btn.style.background = "yellow"
-                btn.title = "Some nodes was hidden by moderators"
+                btn.title = t("historyDiff.someNodesHidden")
                 return
             }
             const nodeLi = document.createElement("li")
@@ -980,9 +980,9 @@ async function replaceDownloadWayButton(btn, wayID) {
                     console.trace()
                     console.log(currentNodes)
                     btn.style.background = "yellow"
-                    btn.title = "Please try reload page.\nIf the error persists, a message about it in the better-osm-org repository"
+                    btn.title = t("historyDiff.reloadAndReport")
                     divForNodesReplace.classList.add("broken-version")
-                    divForNodesReplace.title = "Some nodes was hidden by moderators :\\"
+                    divForNodesReplace.title = t("historyDiff.someNodesHiddenSad")
                     divForNodesReplace.style.cursor = "auto"
                     return
                 }
@@ -1097,7 +1097,7 @@ async function replaceDownloadWayButton(btn, wayID) {
     if (document.querySelectorAll('[way-version="inter"]').length > 20) {
         const select = document.createElement("select")
         select.id = "versions-filter"
-        select.title = "Filter for intermediate changes"
+        select.title = t("historyDiff.filterIntermediateChanges")
 
         const allVersions = document.createElement("option")
         allVersions.value = "all-versions"
@@ -1147,7 +1147,7 @@ async function showFullWayHistory(wayID) {
         await replaceDownloadWayButton(btn, wayID)
     } catch (err) {
         console.error(err)
-        btn.title = "Please try reload page.\nIf the error persists, a message about it in the better-osm-org repository"
+        btn.title = t("historyDiff.reloadAndReport")
         btn.style.background = "red"
         btn.style.cursor = "auto"
     }
@@ -1166,7 +1166,7 @@ function setupWayVersionView() {
         const nodesList = filterObjectListByTimestamp(nodesHistory, targetVersion.timestamp)
         if (nodesList.some(i => i === null)) {
             htmlElem.parentElement.parentElement.classList.add("broken-version")
-            htmlElem.title = "Some nodes was hidden by moderators"
+            htmlElem.title = t("historyDiff.someNodesHidden")
             htmlElem.style.cursor = "auto"
         } else {
             if (needShowWay) {
@@ -1259,7 +1259,7 @@ function setupWayVersionView() {
         downloadAllVersionsBtn.tabIndex = 0
         downloadAllVersionsBtn.textContent = "⏬"
         downloadAllVersionsBtn.style.cursor = "pointer"
-        downloadAllVersionsBtn.title = "Download all versions (with intermediate versions)"
+        downloadAllVersionsBtn.title = t("historyDiff.downloadAllVersionsWithIntermediate")
         const clickHandler = async () => {
             downloadAllVersionsBtn.style.cursor = "progress"
             await unrollPaginationInHistory()
@@ -1831,7 +1831,7 @@ async function replaceDownloadRelationButton(btn, relationID) {
                 console.trace()
                 console.log(currentMembers)
                 btn.style.background = "yellow"
-                btn.title = "Some members was hidden by moderators"
+                btn.title = t("historyDiff.someMembersHidden")
                 return
             }
             const memberLi = document.createElement("li")
@@ -2064,9 +2064,9 @@ async function replaceDownloadRelationButton(btn, relationID) {
                     console.trace()
                     console.log(currentMembers)
                     btn.style.background = "yellow"
-                    btn.title = "Please try reload page.\nIf the error persists, a message about it in the better-osm-org repository"
+                    btn.title = t("historyDiff.reloadAndReport")
                     divForMembersReplace.classList.add("broken-version")
-                    divForMembersReplace.title = "Some nodes was hidden by moderators :\\"
+                    divForMembersReplace.title = t("historyDiff.someNodesHiddenSad")
                     divForMembersReplace.style.cursor = "auto"
                     return
                 }
@@ -2193,7 +2193,7 @@ async function replaceDownloadRelationButton(btn, relationID) {
     if (document.querySelectorAll('[relation-version="inter"]').length > 20) {
         const select = document.createElement("select")
         select.id = "versions-filter"
-        select.title = "Filter for intermediate changes"
+        select.title = t("historyDiff.filterIntermediateChanges")
 
         const allVersions = document.createElement("option")
         allVersions.value = "all-versions"
@@ -2247,7 +2247,7 @@ async function showFullRelationHistory(relationID) {
         await replaceDownloadRelationButton(btn, relationID)
     } catch (err) {
         console.error(err)
-        btn.title = "Please try reload page.\nIf the error persists, a message about it in the better-osm-org repository"
+        btn.title = t("historyDiff.reloadAndReport")
         btn.style.background = "red"
         btn.style.cursor = "auto"
     }
@@ -2410,7 +2410,7 @@ function setupRelationVersionView() {
         downloadAllVersionsBtn.tabIndex = 0
         downloadAllVersionsBtn.textContent = "⏬"
         downloadAllVersionsBtn.style.cursor = "pointer"
-        downloadAllVersionsBtn.title = "Download all versions" // + " (with intermediate versions)"
+        downloadAllVersionsBtn.title = t("historyDiff.downloadAllVersions") // + " (with intermediate versions)"
 
         const clickHandler = async e => {
             downloadAllVersionsBtn.style.cursor = "progress"
@@ -3311,7 +3311,7 @@ function transformDiffWithColors() {
             metainfoHTML.appendChild(time)
             const findBtn = document.createElement("span")
             findBtn.classList.add("find-user-btn")
-            findBtn.title = "Try find deleted user"
+            findBtn.title = t("deletedUsers.tryFindDeletedUser")
             findBtn.textContent = " 🔍 "
             findBtn.value = changesetID
             findBtn.datetime = time.dateTime
@@ -3753,7 +3753,7 @@ function addDiffInHistory(reason = "url_change") {
     }
     if (!document.querySelector(".compact-toggle-btn")) {
         const compactToggle = document.createElement("button")
-        compactToggle.title = "Toggle between full and compact tags diff.\nYou can also use the T key."
+        compactToggle.title = t("historyDiff.toggleCompactTagsDiff")
         compactToggle.setAttribute("value", "><")
         compactToggle.innerHTML = compactModeSvg
         compactToggle.classList.add("compact-toggle-btn")

@@ -408,7 +408,7 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink, index) {
             const editBtn = document.createElement("button")
             editBtn.classList.add("edit-link-btn", "bi", "bi-pencil")
             editBtn.style.all = "unset"
-            editBtn.title = "edit link"
+            editBtn.title = t("editMenuLinks.editLink")
             a.prepend(editBtn)
             editBtn.onclick = async e => {
                 e.preventDefault()
@@ -441,7 +441,7 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink, index) {
             const addBtn = document.createElement("button")
             addBtn.classList.add("add-link-btn", "bi", "bi-plus-lg")
             addBtn.style.all = "unset"
-            addBtn.title = "pin this link"
+            addBtn.title = t("editMenuLinks.pinThisLink")
             a.prepend(addBtn)
             addBtn.onclick = async e => {
                 e.preventDefault()
@@ -522,7 +522,7 @@ function addOtherExternalLinks(editorsListUl) {
 function makeMoveUpLinkBtn(nameValue, addItemLi) {
     const upBtn = document.createElement("button")
     upBtn.classList.add("move-up-link-btn", "bi", "bi-chevron-up")
-    upBtn.title = "move up link"
+    upBtn.title = t("editMenuLinks.moveUpLink")
     upBtn.onclick = async e => {
         e.preventDefault()
         e.stopPropagation()
@@ -545,7 +545,7 @@ function makeMoveUpLinkBtn(nameValue, addItemLi) {
 function makeMoveDownLinkBtn(nameValue, addItemLi) {
     const downBtn = document.createElement("button")
     downBtn.classList.add("move-down-link-btn", "bi", "bi-chevron-down")
-    downBtn.title = "move down link"
+    downBtn.title = t("editMenuLinks.moveDownLink")
     downBtn.onclick = async e => {
         e.preventDefault()
         e.stopPropagation()
@@ -568,7 +568,7 @@ function makeMoveDownLinkBtn(nameValue, addItemLi) {
 function makeDeleteLinkBtn(nameValue, addItemLi) {
     const deleteBtn = document.createElement("button")
     deleteBtn.classList.add("delete-link-btn", "bi", "bi-trash")
-    deleteBtn.title = "remove link"
+    deleteBtn.title = t("editMenuLinks.removeLink")
     deleteBtn.onclick = async e => {
         e.preventDefault()
         e.stopPropagation()
@@ -606,7 +606,7 @@ function makeExternalLinkEditable(targetLi, editorsListUl, nameValue = "", templ
     const createLikBtn = document.createElement("button")
     createLikBtn.classList.add("create-link-btn", "bi", nameValue === "" ? "bi-plus-lg" : "bi-floppy")
     createLikBtn.style.all = "unset"
-    createLikBtn.title = "save link"
+    createLikBtn.title = t("editMenuLinks.saveLink")
 
     const template = document.createElement("input")
     template.classList.add("template-input")
@@ -719,7 +719,7 @@ async function _setupNewEditorsLinks(mutationsList) {
             const linksBtn = langSwitchBtn.cloneNode()
             linksBtn.removeAttribute("data-bs-target")
             linksBtn.removeAttribute("data-bs-toggle")
-            linksBtn.title = "Open place in external website"
+            linksBtn.title = t("editMenuLinks.openPlaceExternalWebsite")
             linksBtn.innerHTML = externalLinkSvg
             const svg = linksBtn.querySelector("svg")
             svg.setAttribute("width", 20)

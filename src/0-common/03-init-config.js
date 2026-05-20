@@ -17,7 +17,7 @@ function makeRow(label, text, without_delete = false, placeholder = "comment tha
     td.setAttribute("placeholder", placeholder)
 
     td2.textContent = "×"
-    td2.title = "remove"
+    td2.title = t("actions.remove")
     td2.style.width = "21px"
     td2.style.cursor = "pointer"
     td2.style.textAlign = "center"
@@ -487,7 +487,7 @@ const configOptions = {
             versionSection.textContent = t("init.scriptVersion")
             const version = document.createElement("span")
             version.textContent = GM_info.script.version
-            version.title = "Click for copy"
+            version.title = t("copying.clickForCopy")
             version.style.cursor = "pointer"
             version.onclick = e => {
                 navigator.clipboard.writeText(GM_info.script.version).then(() => copyAnimation(e, GM_info.script.version))
