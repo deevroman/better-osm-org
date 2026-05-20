@@ -629,7 +629,8 @@ const _translations = {
             noComment: "Sans commentaire",
             pastUsernames: "Anciens noms : ",
             userIdLabel: "ID : ",
-            disableTrackingProtection: "Désactivez la protection contre le pistage pour que l’affichage des informations du site HDYC fonctionne",
+            disableTrackingProtection:
+                "Désactivez la protection contre le pistage pour que l’affichage des informations du site HDYC fonctionne",
             goToHdyc: "Ouvrir https://www.hdyc.neis-one.org/",
         },
         changesetsHistory: {
@@ -790,7 +791,8 @@ const _translations = {
             noComment: "Kein Kommentar",
             pastUsernames: "Frühere Namen: ",
             userIdLabel: "ID: ",
-            disableTrackingProtection: "Deaktivieren Sie den Tracking-Schutz, damit die Anzeige der Informationen von der HDYC-Website funktioniert",
+            disableTrackingProtection:
+                "Deaktivieren Sie den Tracking-Schutz, damit die Anzeige der Informationen von der HDYC-Website funktioniert",
             goToHdyc: "https://www.hdyc.neis-one.org/ öffnen",
         },
         changesetsHistory: {
