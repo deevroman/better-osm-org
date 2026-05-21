@@ -5,8 +5,13 @@ import test from "node:test"
 import { fileURLToPath } from "node:url"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const i18nPath = path.resolve(__dirname, "../0-common/02-i18n.js")
-const i18nSource = fs.readFileSync(i18nPath, "utf8")
+const i18nDirPath = path.resolve(__dirname, "../0-common/02-i18n")
+const i18nSource = fs
+    .readdirSync(i18nDirPath)
+    .filter(fileName => fileName.endsWith(".js"))
+    .sort()
+    .map(fileName => fs.readFileSync(path.join(i18nDirPath, fileName), "utf8"))
+    .join("\n")
 
 const { _translations, flatTranslations, t } = new Function(
     i18nSource + "return { _translations, flatTranslations, t }",
