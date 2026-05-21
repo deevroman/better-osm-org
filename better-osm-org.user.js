@@ -930,6 +930,14 @@ const _translations = {
             withoutIntermediate: "Without intermediate",
             viewUnredactedHistory: "View Unredacted History β",
             errorPleaseReport: "Error :( Please report this page in better-osm-org GitHub repo",
+            someNodesHidden: "Some nodes was hidden by moderators",
+            reloadAndReport: "Please try reload page.\nIf the error persists, a message about it in the better-osm-org repository",
+            someNodesHiddenSad: "Some nodes was hidden by moderators :\\",
+            filterIntermediateChanges: "Filter for intermediate changes",
+            downloadAllVersionsWithIntermediate: "Download all versions (with intermediate versions)",
+            someMembersHidden: "Some members was hidden by moderators",
+            downloadAllVersions: "Download all versions",
+            toggleCompactTagsDiff: "Toggle between full and compact tags diff.\nYou can also use the T key.",
             tagsCount: ({ count }) => `${count} tag${count === 1 ? "" : "s"}`,
         },
         changesetQuicklook: {
@@ -940,10 +948,28 @@ const _translations = {
             objectRestored: " ⓘ The object is now restored",
             objectRestoredByAuthor: " ⓘ The object is now restored by author",
             objectRestoredTitle: "{user} restored this object",
+            listWayNodesChanged: "List of way nodes has been changed",
+            nodesReversed: "Nodes of the way were reversed",
+            relationMembersChanged: "List of relation members has been changed.\nClick to see more details",
+            showRelationMembers: "Show list of relation members",
+            relationMembersReversed: "Members of the relation were reversed",
+            pinRelationOnMap: "Pin relation on map",
+            unpinRelationFromMap: "Unpin relation from map",
+            nodeCoordinatesChanged: "Coordinates of node has been changed",
+            downloadThisRelation: "Download this relation",
+            shiftClickZoomVia: 'Click with Shift for zoom to "via" members',
+            unableDisplaySomeData: "better-osm-org was unable to display some data",
         },
         editMenuLinks: {
             moreLinks: "more links",
             editLinksList: "edit links list",
+            editLink: "edit link",
+            pinThisLink: "pin this link",
+            moveUpLink: "move up link",
+            moveDownLink: "move down link",
+            removeLink: "remove link",
+            saveLink: "save link",
+            openPlaceExternalWebsite: "Open place in external website",
         },
         routers: {
             routingDataTimeFor: "Routing data time for {name}: {time}",
@@ -952,10 +978,17 @@ const _translations = {
         satellite: {
             setupCustomStyleJson: "Setup custom style.json for MapLibre.js",
             setupCustomMapLayers: "Setup custom map layers",
+            duplicateStyleAndEdit: "duplicate style and edit it",
+            openMapStyleHomePage: "Open map style home page",
+            openMapLayerHomePage: "Open map layer home page",
+            switchMapAndSatellite: "Switch between map and satellite images",
+            setCustomLayer: "Set custom layer (Shift + S)\nbetter-osm-org feature",
+            setCustomVectorStyle: "Set custom vector style (Shift + V)",
         },
         geojson: {
             metainfo: "metainfo",
             needUpdateBetterOsmOrg: "Need update better-osm-org",
+            switchTableAndRawEditor: "Switch between table and raw editor",
         },
         links: {
             webArchive: "WebArchive",
@@ -969,6 +1002,12 @@ const _translations = {
         objectVersionPage: {
             length: "Length: {value}",
             area: "Area: {value}",
+            pinRestrictionSign: "Pin restriction sign on map.\nYou can hide all the objects that better-osm-org adds by pressing ` or ~",
+            hideRestrictionSign: "Hide restriction sign",
+            selectCoordinatesFormat: "Select coordinates format for copy.\nTo copy just click by coordinates",
+            setDefaultCopyFormat: "Set as default for copy, when you click by coordinates",
+            defaultCopyFormat: "It's default format, when your click by coordinates",
+            openExternalRelationViewer: "Click for open external relation viewer.\nOr use key O",
         },
         userProfile: {
             allEditors: "All editors",
@@ -983,6 +1022,11 @@ const _translations = {
             userIdLabel: "ID: ",
             disableTrackingProtection: "Please disable tracking protection so that the HDYC account login works",
             goToHdyc: "Go to https://www.hdyc.neis-one.org/",
+            pleaseWaitUserChangesetsLoading: "Please wait while user changesets loading",
+            openSelectedChangesetsOnePage: "Alt + O for open selected changesets on one page",
+            regexSearchNotCaseSensitive: "Not case-sensitive regex search",
+            viaWhosthat: "via whosthat.osmz.ru",
+            viaOverpassApi: "via Overpass API",
         },
         changesetsHistory: {
             copyIds: "Copy IDs",
@@ -994,11 +1038,20 @@ const _translations = {
             hideChangesetsWith: "🔄Hide changesets with ",
             showChangesetsWith: "🔄Show changesets with ",
             loadMore: "Load {count}",
+            displayOnOneMapAll: "Display on one map\nif nothing is checked, all uploaded non hidden changesets will open",
+            displayOnOneMap: "Display on one map",
+            addCheckboxesMassActions: "Add checkboxes for mass actions with changesets",
+            clickHideUserChangesets: "Click for hide this user changesets",
+            filterViaBetterOsmOrg: "Changesets filter via better-osm-org",
+            filterBySubstringInComments: "Filter by substring in changesets comments",
+            clickCopyChangesetId: "Click for copy changeset id",
         },
         measurer: {
             measureFromHere: "Measure from here",
             endMeasure: "End measure",
             cleanMeasurements: "Clean measurements",
+            clickToSwitchUnits: "Click to switch units of measurement",
+            orPressEscapeTwice: "Or press Escape twice",
         },
         panoramax: {
             blurFaces: "Blur faces",
@@ -1012,6 +1065,12 @@ const _translations = {
             openInEditor: "Open in {editor}",
             openInLevel0: "Open in Level0",
             openInLevel0WithWaysGeometry: "Open in Level0 with ways geometry",
+            openChangesetInOsmcha: "Open changeset in OSMCha (or press O)\n(shift + O for open Achavi)",
+            partialRevertOrEdit: "to partial revert or edit in JOSM/Level0",
+            hotkeyR: "Hotkey: R",
+            hotkeyJ: "Hotkey: J",
+            hotkeyAltJ: "Hotkey: Alt + J",
+            hotkeyShiftAltJ: "Hotkey: Shift + Alt + J",
         },
         nodeMover: {
             moveNodeToHere: "Move node to here",
@@ -1022,52 +1081,64 @@ const _translations = {
             checkDevScriptUpdates: "Check dev script updates",
             listOfHotkeys: "List of hotkeys",
         },
-        titles: {
+        actions: {
             remove: "remove",
+        },
+        copying: {
             clickForCopy: "Click for copy",
-            clickForCopyUserId: "Click for copy user ID",
+        },
+        betterOsmOrg: {
             addedByBetterOsmOrg: "added by better-osm-org",
+            experimentalFeature: "better-osm-org experimental feature",
+        },
+        osmcha: {
             openProfileInOsmcha: "Open profile in OSMCha",
+        },
+        selection: {
             shiftClickSelectRange: "Shift + click for select a range of empty checkboxes",
-            tryFindDeletedUser: "Try find deleted user",
             clickForInvert: "Click for invert",
-            betterOsmOrgExperimentalFeature: "better-osm-org experimental feature",
+        },
+        deletedUsers: {
+            tryFindDeletedUser: "Try find deleted user",
+        },
+        findUserInDiff: {
+            clickForCopyUserId: "Click for copy user ID",
+        },
+        changesetPageFixes: {
             osmchaReviewTag: "OSMCha review tag. Right click to change\n",
             totalUserChangesets: "how many changesets does the user have in total",
-            openChangesetInOsmcha: "Open changeset in OSMCha (or press O)\n(shift + O for open Achavi)",
-            partialRevertOrEdit: "to partial revert or edit in JOSM/Level0",
-            hotkeyR: "Hotkey: R",
-            hotkeyJ: "Hotkey: J",
-            hotkeyAltJ: "Hotkey: Alt + J",
-            hotkeyShiftAltJ: "Hotkey: Shift + Alt + J",
             showHiddenTags: "Show hidden tags",
             clickForViewMore: "Click for view more",
             mapperRequestedReview: "Mapper requested changeset review\n\nClick to filter changesets with review_requested=yes",
-            searchHashtagInOsmcha: "Search this hashtags in OSMCha",
+        },
+        hashtags: {
+            searchInOsmcha: "Search this hashtags in OSMCha",
             filterNotesByHashtag:
                 "Click for filter notes by this hashtag.\nClick with CTLR or Shift for search this hashtags in osm-note-viewer",
             clickToCopyName: "Click to copy name",
             clickToCopyType: "Click to copy type",
+        },
+        userBadges: {
             userModerator: "This user is a moderator",
             userImporter: "This user is a importer",
             userBanned: "The user was banned",
             userNewbie: "At the time of creating the changeset/note, the user had been editing OpenStreetMap for less than a month",
             followingUser: "You are following this user",
+        },
+        notes: {
             openMapStateSnapshot: "Open the map state at the time of map snapshot",
             openMapStateNoteCreation: "Open the map state at the time of note creation",
             commaSeparatedSubstrings: "comma-separated substrings\nfilter also works by comments",
             commaSeparatedUsernames: "comma-separated usernames",
+        },
+        spyGlass: {
             activateSpyGlass: "Activate SpyGlass imitation mode (better-osm-org experiment)",
+        },
+        gpxFilter: {
             clickToZoomTrack: "click to zoom\nTip: press 8-9 to navigate between previous/next map position",
             showGpxTracks: "Show GPX tracks in current map view",
-            clickToSwitchUnits: "Click to switch units of measurement",
-            orPressEscapeTwice: "Or press Escape twice",
-            duplicateStyleAndEdit: "duplicate style and edit it",
-            openMapStyleHomePage: "Open map style home page",
-            openMapLayerHomePage: "Open map layer home page",
-            switchMapAndSatellite: "Switch between map and satellite images",
-            setCustomLayer: "Set custom layer (Shift + S)\nbetter-osm-org feature",
-            setCustomVectorStyle: "Set custom vector style (Shift + V)",
+        },
+        objectPage: {
             gpsTrackerPosition: "Blue — position from GPS tracker\nOrange — estimated real position",
             roofOrientationAcrossAlong: 'roof:orientation must be either "across" or "along"',
             conditionalMustContainAt: ":conditional tag value must be contain @",
@@ -1085,54 +1156,12 @@ const _translations = {
             keyTooShort: "The key is too short",
             suspiciousCapitalKey: "Suspicious key starting with a capital letter",
             openObjectHistory: "Click for open object history page\nOr press key H",
-            someNodesHidden: "Some nodes was hidden by moderators",
-            reloadAndReport: "Please try reload page.\nIf the error persists, a message about it in the better-osm-org repository",
-            someNodesHiddenSad: "Some nodes was hidden by moderators :\\",
-            filterIntermediateChanges: "Filter for intermediate changes",
-            downloadAllVersionsWithIntermediate: "Download all versions (with intermediate versions)",
-            someMembersHidden: "Some members was hidden by moderators",
-            downloadAllVersions: "Download all versions",
-            toggleCompactTagsDiff: "Toggle between full and compact tags diff.\nYou can also use the T key.",
-            switchTableAndRawEditor: "Switch between table and raw editor",
+        },
+        taginfo: {
             searchWithOverpass: "search with Overpass",
-            listWayNodesChanged: "List of way nodes has been changed",
-            nodesReversed: "Nodes of the way were reversed",
-            objectRestored: "Object was restored",
-            relationMembersChanged: "List of relation members has been changed.\nClick to see more details",
-            showRelationMembers: "Show list of relation members",
-            relationMembersReversed: "Members of the relation were reversed",
-            pinRelationOnMap: "Pin relation on map",
-            unpinRelationFromMap: "Unpin relation from map",
-            nodeCoordinatesChanged: "Coordinates of node has been changed",
-            downloadThisRelation: "Download this relation",
-            shiftClickZoomVia: 'Click with Shift for zoom to "via" members',
-            unableDisplaySomeData: "better-osm-org was unable to display some data",
-            pinRestrictionSign: "Pin restriction sign on map.\nYou can hide all the objects that better-osm-org adds by pressing ` or ~",
-            hideRestrictionSign: "Hide restriction sign",
-            selectCoordinatesFormat: "Select coordinates format for copy.\nTo copy just click by coordinates",
-            setDefaultCopyFormat: "Set as default for copy, when you click by coordinates",
-            defaultCopyFormat: "It's default format, when your click by coordinates",
-            openExternalRelationViewer: "Click for open external relation viewer.\nOr use key O",
-            displayOnOneMapAll: "Display on one map\nif nothing is checked, all uploaded non hidden changesets will open",
-            displayOnOneMap: "Display on one map",
-            addCheckboxesMassActions: "Add checkboxes for mass actions with changesets",
-            clickHideUserChangesets: "Click for hide this user changesets",
-            changesetsFilterVia: "Changesets filter via better-osm-org",
-            filterBySubstringInComments: "Filter by substring in changesets comments",
-            clickCopyChangesetId: "Click for copy changeset id",
-            loadRelationVersionViaOverpass: "Load relation version via Overpass API",
-            pleaseWaitUserChangesetsLoading: "Please wait while user changesets loading",
-            openSelectedChangesetsOnePage: "Alt + O for open selected changesets on one page",
-            regexSearchNotCaseSensitive: "Not case-sensitive regex search",
-            viaWhosthat: "via whosthat.osmz.ru",
-            viaOverpassApi: "via Overpass API",
-            editLink: "edit link",
-            pinThisLink: "pin this link",
-            moveUpLink: "move up link",
-            moveDownLink: "move down link",
-            removeLink: "remove link",
-            saveLink: "save link",
-            openPlaceExternalWebsite: "Open place in external website",
+        },
+        relationVersionPage: {
+            loadViaOverpass: "Load relation version via Overpass API",
         },
     },
     ru: {
@@ -1157,11 +1186,11 @@ const _translations = {
             fullVersionsDiff: "Показывать промежуточные версии в истории линий",
             changesetQuickLook: "QuickLook для пакетов правок",
             showChangesetGeometry: "Показывать геометрию объектов в пакете правок",
-            massChangesetsActions: "Добавить действия для списка пакетов правок (массовый revert, фильтрация, ...)",
+            massChangesetsActions: "Добавить действия для списка пакетов правок (массовый откат, фильтрация, ...)",
             imagesAndLinksInTags: "Сделать некоторые теги кликабельными, короче и показывать фотографии",
             hideNoteHighlight: "Скрывать подсветку заметки",
             resolveNotesButton: "Дополнительные кнопки закрытия заметок:",
-            revertButton: "Кнопки отката и открытия OsmСha для пакета правок",
+            revertButton: "Кнопки отката и открытия OSMCha для пакета правок",
             deletor: "Кнопка удаления узла",
             oneClickDeletor: "Удалять узел без подтверждения",
             changesetsTemplates: 'Шаблоны комментариев к правкам <a id="last-comments-link" target="_blank">(ваши последние комментарии)</a>',
@@ -1201,6 +1230,14 @@ const _translations = {
             withoutIntermediate: "Без промежуточных",
             viewUnredactedHistory: "Просмотр неотредактированной истории β",
             errorPleaseReport: "Ошибка :( Пожалуйста, сообщите об этом в GitHub-репозитории better-osm-org",
+            someNodesHidden: "Некоторые точки были скрыты модераторами",
+            reloadAndReport: "Попробуйте перезагрузить страницу.\nЕсли ошибка сохраняется, напишите об этом в репозитории better-osm-org",
+            someNodesHiddenSad: "Некоторые точки были скрыты модераторами :\\",
+            filterIntermediateChanges: "Фильтр промежуточных изменений",
+            downloadAllVersionsWithIntermediate: "Скачать все версии (включая промежуточные)",
+            someMembersHidden: "Некоторые участники были скрыты модераторами",
+            downloadAllVersions: "Скачать все версии",
+            toggleCompactTagsDiff: "Переключить между полным и компактным diff тегов.\nТакже можно использовать клавишу T.",
             tagsCount: ({ count }) => {
                 if (count === 1) {
                     return `${count} тег`
@@ -1219,10 +1256,28 @@ const _translations = {
             objectRestored: " ⓘ Объект сейчас восстановлен",
             objectRestoredByAuthor: " ⓘ Автор уже восстановил объект",
             objectRestoredTitle: "{user} восстановил этот объект",
+            listWayNodesChanged: "Список точек линии был изменён",
+            nodesReversed: "Точки линии были развернуты",
+            relationMembersChanged: "Список участников отношения был изменён.\nНажмите, чтобы увидеть подробности",
+            showRelationMembers: "Показать список участников отношения",
+            relationMembersReversed: "Участники отношения были развернуты",
+            pinRelationOnMap: "Закрепить отношение на карте",
+            unpinRelationFromMap: "Убрать отношение с карты",
+            nodeCoordinatesChanged: "Координаты точки были изменены",
+            downloadThisRelation: "Скачать это отношение",
+            shiftClickZoomVia: "Нажмите с Shift, чтобы приблизить участников с ролью «via»",
+            unableDisplaySomeData: "better-osm-org не смог отобразить некоторые данные",
         },
         editMenuLinks: {
             moreLinks: "больше ссылок",
             editLinksList: "редактировать список",
+            editLink: "редактировать ссылку",
+            pinThisLink: "закрепить эту ссылку",
+            moveUpLink: "переместить ссылку вверх",
+            moveDownLink: "переместить ссылку вниз",
+            removeLink: "удалить ссылку",
+            saveLink: "сохранить ссылку",
+            openPlaceExternalWebsite: "Открыть место на внешнем сайте",
         },
         routers: {
             routingDataTimeFor: "Время данных роутинга для {name}: {time}",
@@ -1231,10 +1286,17 @@ const _translations = {
         satellite: {
             setupCustomStyleJson: "Настройка своего стиля векторной карты",
             setupCustomMapLayers: "Настройка подложки карты",
+            duplicateStyleAndEdit: "дублировать стиль и отредактировать его",
+            openMapStyleHomePage: "Открыть домашнюю страницу стиля карты",
+            openMapLayerHomePage: "Открыть домашнюю страницу слоя карты",
+            switchMapAndSatellite: "Переключение между картой и спутниковыми снимками",
+            setCustomLayer: "Задать свой слой (Shift + S)\nфича better-osm-org",
+            setCustomVectorStyle: "Задать свой векторный стиль (Shift + V)",
         },
         geojson: {
             metainfo: "метаинформация",
             needUpdateBetterOsmOrg: "Нужно обновить better-osm-org",
+            switchTableAndRawEditor: "Переключить между таблицей и сырым редактором",
         },
         links: {
             webArchive: "WebArchive",
@@ -1248,6 +1310,13 @@ const _translations = {
         objectVersionPage: {
             length: "Длина: {value}",
             area: "Площадь: {value}",
+            pinRestrictionSign:
+                "Закрепить знак restriction на карте.\nВы можете скрыть все объекты, которые добавляет better-osm-org, нажав ` или ~",
+            hideRestrictionSign: "Скрыть знак restriction",
+            selectCoordinatesFormat: "Выберите формат координат для копирования.\nЧтобы скопировать, просто нажмите по координатам",
+            setDefaultCopyFormat: "Сделать форматом копирования по умолчанию при клике по координатам",
+            defaultCopyFormat: "Это формат по умолчанию при клике по координатам",
+            openExternalRelationViewer: "Нажмите, чтобы открыть внешний просмотрщик отношений.\nИли используйте клавишу O",
         },
         userProfile: {
             allEditors: "Все редакторы",
@@ -1262,6 +1331,11 @@ const _translations = {
             userIdLabel: "ID: ",
             disableTrackingProtection: "Отключите защиту от отслеживания, чтобы заработал показ информации с сайта HDYC",
             goToHdyc: "Открыть https://www.hdyc.neis-one.org/",
+            pleaseWaitUserChangesetsLoading: "Подождите, пока загружаются пакеты правок пользователя",
+            openSelectedChangesetsOnePage: "Alt + O для открытия выбранных пакетов правок на одной странице",
+            regexSearchNotCaseSensitive: "Регулярное выражение без учёта регистра",
+            viaWhosthat: "через whosthat.osmz.ru",
+            viaOverpassApi: "через Overpass API",
         },
         changesetsHistory: {
             copyIds: "Скопировать ID",
@@ -1273,11 +1347,20 @@ const _translations = {
             hideChangesetsWith: "🔄Скрывать правки с ",
             showChangesetsWith: "🔄Только правки с ",
             loadMore: "Загрузить {count}",
+            displayOnOneMapAll: "Показать на одной карте\nесли ничего не отмечено, откроются все загруженные и не скрытые пакеты правок",
+            displayOnOneMap: "Показать на одной карте",
+            addCheckboxesMassActions: "Добавить чекбоксы для массовых действий с пакетами правок",
+            clickHideUserChangesets: "Нажмите, чтобы скрыть пакеты правок этого пользователя",
+            filterViaBetterOsmOrg: "Фильтр пакетов правок через better-osm-org",
+            filterBySubstringInComments: "Фильтр по подстроке в комментариях пакетов правок",
+            clickCopyChangesetId: "Нажмите, чтобы скопировать ID пакета правок",
         },
         measurer: {
             measureFromHere: "Измерить отсюда",
             endMeasure: "Закончить измерение",
             cleanMeasurements: "Очистить измерения",
+            clickToSwitchUnits: "Нажмите, чтобы переключить единицы измерения",
+            orPressEscapeTwice: "Или нажмите Escape дважды",
         },
         panoramax: {
             blurFaces: "Размыть лица",
@@ -1291,6 +1374,12 @@ const _translations = {
             openInEditor: "Открыть в {editor}",
             openInLevel0: "Открыть в Level0",
             openInLevel0WithWaysGeometry: "Открыть в Level0 с геометрией линий",
+            openChangesetInOsmcha: "Открыть пакет правок в OSMCha (или нажмите O)\n(Shift + O для открытия Achavi)",
+            partialRevertOrEdit: "для частичного отката или редактирования в JOSM/Level0",
+            hotkeyR: "Горячая клавиша: R",
+            hotkeyJ: "Горячая клавиша: J",
+            hotkeyAltJ: "Горячая клавиша: Alt + J",
+            hotkeyShiftAltJ: "Горячая клавиша: Shift + Alt + J",
         },
         nodeMover: {
             moveNodeToHere: "Переместить точку сюда",
@@ -1301,55 +1390,67 @@ const _translations = {
             checkDevScriptUpdates: "Проверить обновления dev-версии скрипта",
             listOfHotkeys: "Список горячих клавиш",
         },
-        titles: {
+        actions: {
             remove: "удалить",
+        },
+        copying: {
             clickForCopy: "Нажмите, чтобы скопировать",
-            clickForCopyUserId: "Нажмите, чтобы скопировать ID пользователя",
+        },
+        betterOsmOrg: {
             addedByBetterOsmOrg: "добавлено better-osm-org",
+            experimentalFeature: "экспериментальная фича better-osm-org",
+        },
+        osmcha: {
             openProfileInOsmcha: "Открыть профиль в OSMCha",
+        },
+        selection: {
             shiftClickSelectRange: "Shift + click для выбора диапазона пустых чекбоксов",
-            tryFindDeletedUser: "Попробовать найти удалённого пользователя",
             clickForInvert: "Нажмите, чтобы инвертировать",
-            betterOsmOrgExperimentalFeature: "экспериментальная фича better-osm-org",
+        },
+        deletedUsers: {
+            tryFindDeletedUser: "Попробовать найти удалённого пользователя",
+        },
+        findUserInDiff: {
+            clickForCopyUserId: "Нажмите, чтобы скопировать ID пользователя",
+        },
+        changesetPageFixes: {
             osmchaReviewTag: "Тег проверки OSMCha. Правая кнопка мыши для изменения\n",
             totalUserChangesets: "сколько всего пакетов правок у пользователя",
-            openChangesetInOsmcha: "Открыть пакет правок в OSMCha (или нажмите O)\n(Shift + O для открытия Achavi)",
-            partialRevertOrEdit: "для частичного отката или редактирования в JOSM/Level0",
-            hotkeyR: "Горячая клавиша: R",
-            hotkeyJ: "Горячая клавиша: J",
-            hotkeyAltJ: "Горячая клавиша: Alt + J",
-            hotkeyShiftAltJ: "Горячая клавиша: Shift + Alt + J",
             showHiddenTags: "Показать скрытые теги",
             clickForViewMore: "Нажмите, чтобы показать больше",
             mapperRequestedReview:
                 "Маппер запросил проверку пакета правок\n\nНажмите, чтобы отфильтровать пакеты правок с review_requested=yes",
-            searchHashtagInOsmcha: "Искать этот хэштег в OSMCha",
+        },
+        hashtags: {
+            searchInOsmcha: "Искать этот хэштег в OSMCha",
             filterNotesByHashtag:
                 "Нажмите, чтобы фильтровать заметки по этому хэштегу.\nНажмите с CTLR или Shift, чтобы искать этот хэштег в osm-note-viewer",
             clickToCopyName: "Нажмите, чтобы скопировать имя",
             clickToCopyType: "Нажмите, чтобы скопировать тип",
+        },
+        userBadges: {
             userModerator: "Этот пользователь является модератором",
             userImporter: "Этот пользователь является импортёром",
             userBanned: "Пользователь был заблокирован",
             userNewbie: "На момент создания пакета правок или заметки пользователь редактировал OpenStreetMap меньше месяца",
             followingUser: "Вы подписаны на этого пользователя",
+        },
+        notes: {
             openMapStateSnapshot: "Открыть состояние карты на момент снимка",
             openMapStateNoteCreation: "Открыть состояние карты на момент создания заметки",
             commaSeparatedSubstrings: "подстроки через запятую\nфильтр также работает по комментариям",
             commaSeparatedUsernames: "имена пользователей через запятую",
-            activateSpyGlass: "Включить режим имитации SpyGlass (эксперимент better-osm-org)",
+        },
+        spyGlass: {
+            activateSpyGlass: "Включить режим SpyGlass (эксперимент better-osm-org)",
+        },
+        gpxFilter: {
             clickToZoomTrack: "нажмите для приближения\nПодсказка: нажимайте 8-9 для перехода между предыдущим и следующим положением карты",
             showGpxTracks: "Показать GPX-треки в текущем окне карты",
-            clickToSwitchUnits: "Нажмите, чтобы переключить единицы измерения",
-            orPressEscapeTwice: "Или нажмите Escape дважды",
-            duplicateStyleAndEdit: "дублировать стиль и отредактировать его",
-            openMapStyleHomePage: "Открыть домашнюю страницу стиля карты",
-            openMapLayerHomePage: "Открыть домашнюю страницу слоя карты",
-            switchMapAndSatellite: "Переключение между картой и спутниковыми снимками",
-            setCustomLayer: "Задать свой слой (Shift + S)\nфича better-osm-org",
-            setCustomVectorStyle: "Задать свой векторный стиль (Shift + V)",
+        },
+        objectPage: {
             gpsTrackerPosition: "Синий — позиция по GPS-трекеру\nОранжевый — предполагаемая реальная позиция",
-            roofOrientationAcrossAlong: 'roof:orientation должен быть либо "across", либо "along"',
+            roofOrientationAcrossAlong: "roof:orientation должен быть либо «across», либо «along»",
             conditionalMustContainAt: "значение тега :conditional должно содержать @",
             emptyPartAfterAt: "пустая часть после @",
             emptyPartBeforeAt: "пустая часть перед @",
@@ -1357,7 +1458,7 @@ const _translations = {
             observationNotFound: "Наблюдение не найдено в API iNaturalist",
             noErrorsOpeningHours: "opening_hours.js не нашёл ошибок 👍",
             phoneMustStartPlus: "номер телефона должен начинаться с +",
-            easterEgg: "пасхалка better-osm-org",
+            easterEgg: "пасхалка от better-osm-org",
             needRoofOrientation: "похоже, это нужно заменить на roof:orientation",
             clickShowEmbedded3d:
                 "Нажмите, чтобы показать встроенный 3D Viewer.\nВ настройках userscript можно задать открытие на странице OSM по умолчанию",
@@ -1366,156 +1467,139 @@ const _translations = {
             keyTooShort: "Ключ слишком короткий",
             suspiciousCapitalKey: "Подозрительный ключ, начинающийся с заглавной буквы",
             openObjectHistory: "Нажмите, чтобы открыть страницу истории объекта\nИли нажмите клавишу H",
-            someNodesHidden: "Некоторые точки были скрыты модераторами",
-            reloadAndReport: "Попробуйте перезагрузить страницу.\nЕсли ошибка сохраняется, напишите об этом в репозитории better-osm-org",
-            someNodesHiddenSad: "Некоторые точки были скрыты модераторами :\\",
-            filterIntermediateChanges: "Фильтр промежуточных изменений",
-            downloadAllVersionsWithIntermediate: "Скачать все версии (включая промежуточные)",
-            someMembersHidden: "Некоторые участники были скрыты модераторами",
-            downloadAllVersions: "Скачать все версии",
-            toggleCompactTagsDiff: "Переключить между полным и компактным diff тегов.\nТакже можно использовать клавишу T.",
-            switchTableAndRawEditor: "Переключить между таблицей и сырым редактором",
-            searchWithOverpass: "искать через Overpass",
-            listWayNodesChanged: "Список точек линии был изменён",
-            nodesReversed: "Точки линии были развернуты",
-            objectRestored: "Объект был восстановлен",
-            relationMembersChanged: "Список участников relation был изменён.\nНажмите, чтобы увидеть подробности",
-            showRelationMembers: "Показать список участников relation",
-            relationMembersReversed: "Участники relation были развернуты",
-            pinRelationOnMap: "Закрепить relation на карте",
-            unpinRelationFromMap: "Открепить relation от карты",
-            nodeCoordinatesChanged: "Координаты точки были изменены",
-            downloadThisRelation: "Скачать эту relation",
-            shiftClickZoomVia: 'Нажмите с Shift, чтобы приблизить участников "via"',
-            unableDisplaySomeData: "better-osm-org не смог отобразить некоторые данные",
-            pinRestrictionSign:
-                "Закрепить знак restriction на карте.\nВы можете скрыть все объекты, которые добавляет better-osm-org, нажав ` или ~",
-            hideRestrictionSign: "Скрыть знак restriction",
-            selectCoordinatesFormat: "Выберите формат координат для копирования.\nЧтобы скопировать, просто нажмите по координатам",
-            setDefaultCopyFormat: "Сделать форматом копирования по умолчанию при клике по координатам",
-            defaultCopyFormat: "Это формат по умолчанию при клике по координатам",
-            openExternalRelationViewer: "Нажмите, чтобы открыть внешний relation viewer.\nИли используйте клавишу O",
-            displayOnOneMapAll: "Показать на одной карте\nесли ничего не отмечено, откроются все загруженные и не скрытые пакеты правок",
-            displayOnOneMap: "Показать на одной карте",
-            addCheckboxesMassActions: "Добавить чекбоксы для массовых действий с пакетами правок",
-            clickHideUserChangesets: "Нажмите, чтобы скрыть пакеты правок этого пользователя",
-            changesetsFilterVia: "Фильтр пакетов правок через better-osm-org",
-            filterBySubstringInComments: "Фильтр по подстроке в комментариях пакетов правок",
-            clickCopyChangesetId: "Нажмите, чтобы скопировать ID пакета правок",
-            loadRelationVersionViaOverpass: "Загрузить версию relation через Overpass API",
-            pleaseWaitUserChangesetsLoading: "Подождите, пока загружаются пакеты правок пользователя",
-            openSelectedChangesetsOnePage: "Alt + O для открытия выбранных пакетов правок на одной странице",
-            regexSearchNotCaseSensitive: "Регулярное выражение без учёта регистра",
-            viaWhosthat: "через whosthat.osmz.ru",
-            viaOverpassApi: "через Overpass API",
-            editLink: "редактировать ссылку",
-            pinThisLink: "закрепить эту ссылку",
-            moveUpLink: "переместить ссылку вверх",
-            moveDownLink: "переместить ссылку вниз",
-            removeLink: "удалить ссылку",
-            saveLink: "сохранить ссылку",
-            openPlaceExternalWebsite: "Открыть место на внешнем сайте",
+        },
+        taginfo: {
+            searchWithOverpass: "Поиск через Overpass",
+        },
+        relationVersionPage: {
+            loadViaOverpass: "Загрузить версию отношения через Overpass API",
         },
     },
     uk: {
         init: {
-            disableBetterOsmOrg: "Вимкніть better-osm-org",
-            scriptVersion: "Версія скрипта: ",
+            disableBetterOsmOrg: "Вимкнути better-osm-org",
+            scriptVersion: "Версія скрипту: ",
         },
         config: {
             sectionID: "iD",
             sectionViewingEdits: "Перегляд редагувань",
-            sectionWorkingWithNotes: "Робота із замітками",
+            sectionWorkingWithNotes: "Робота з нотатками",
             sectionNewActions: "Нові дії",
             sectionOther: "Інше",
             darkModeForMap: "Інвертувати кольори мапи в темній темі",
-            colorblindFriendlyPalette: "Палітра для людей із порушенням сприйняття кольорів β",
+            colorblindFriendlyPalette: "Палітра для дальтоніків β",
             betterTagsPaste: "Додавати = під час вставлення тегів, розділених пробілами або табуляцією",
             darkModeForID:
                 'Темна тема для iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Дякуємо AlexPS</a>)',
-            compactChangesetsHistory: "Компактна історія changeset’ів",
-            versionsDiff: "Додати diff тегів в історії",
+            compactChangesetsHistory: "Компактна історія наборів змін",
+            versionsDiff: "Додати різницю тегів в історії",
             showPreviousTagValue: "Показувати попереднє значення тега",
-            fullVersionsDiff: "Додати diff із проміжними версіями в історії ліній",
-            changesetQuickLook: "Додати QuickLook для changeset’ів",
-            showChangesetGeometry: "Показувати геометрію об’єктів у changeset’і",
-            massChangesetsActions: "Додати дії для списку changeset’ів (масовий revert, фільтрація, ...)",
-            imagesAndLinksInTags: "Зробити деякі теги клікабельними, коротшими та показувати фотографії",
-            hideNoteHighlight: "Приховувати підсвічування замітки",
-            resolveNotesButton: "Додаткові кнопки закриття заміток:",
-            revertButton: "Кнопка Revert&Osmcha для changeset’а",
-            deletor: "Кнопка видалення вузла",
-            oneClickDeletor: "Видаляти вузол без підтвердження",
-            changesetsTemplates: 'Шаблони коментарів до changeset’ів <a id="last-comments-link" target="_blank">(ваші останні коментарі)</a>',
+            fullVersionsDiff: "Додати diff із проміжними версіями в історії лінії",
+            changesetQuickLook: "Додати QuickLook для наборів змін",
+            showChangesetGeometry: "Показувати геометрію об'єктів у наборі змін",
+            massChangesetsActions: "Додати дії для списку наборів змін (масове скасування, фільтрація, ...)",
+            imagesAndLinksInTags: "Зробити деякі теги клікабельними, коротшими та показувати фото",
+            hideNoteHighlight: "Приховати підсвічування нотатки",
+            resolveNotesButton: "Додаткові кнопки вирішення:",
+            revertButton: "Кнопка набору змін Revert&Osmcha",
+            deletor: "Кнопка видалення точки",
+            oneClickDeletor: "Видаляти точку без підтвердження",
+            changesetsTemplates: 'Шаблони коментарів до наборів змін <a id="last-comments-link" target="_blank">(ваші останні коментарі)</a>',
             hdycInProfile: "Додати HDYC до профілю користувача",
             betterProfileStat: "Додати фільтри до статистики профілю",
             navigationViaHotkeys:
-                'Додати гарячі клавіші <a href="https://github.com/deevroman/better-osm-org#Hotkeys" target="_blank">(список)</a>',
-            newEditorsLinks: "Додати нові редактори до меню редагування",
-            resetSearchFormFocus: "Скидати фокус із форми пошуку",
+                'Додати гарячі клавіші <a href="https://github.com/deevroman/better-osm-org#Hotkeys" target="_blank">(Список)</a>',
+            newEditorsLinks: "Додати нові редактори до меню Edit",
+            resetSearchFormFocus: "Скидати фокус у формі пошуку",
             satelliteLayers: "Додати перемикачі супутникових шарів",
-            swipes: "Додати свайпи між changeset’ами користувача",
-            resizableSidebar: "Повзунок ширини бічної панелі",
-            clickableAvatar: "Відкривати changeset’и натисканням на аватар",
-            overzoomForDataLayer: "Дозволити overzoom, коли ввімкнено data/satellite шар β",
+            swipes: "Додати свайпи між наборами змін користувача",
+            resizableSidebar: "Повзунок для ширини бічної панелі",
+            clickableAvatar: "Клік по аватару для відкриття наборів змін",
+            overzoomForDataLayer: "Дозволити overzoom, коли увімкнено шар даних/супутника β",
             dragAndDropViewers: "Drag&Drop для .geojson, .jpg, .gpx, .osm",
             viewer3DInNewTab: "Завжди відкривати 3D-переглядачі будівель у новій вкладці",
             betterTaginfo: "Додати нові кнопки в Taginfo",
-            defaultZoomKeysBehaviour: "Не подвоювати крок зуму для кнопок +/-",
-            addLocationFromNominatim: "Додати місцезнаходження з Nominatim для changeset’ів і заміток",
+            defaultZoomKeysBehaviour: "Не подвоювати крок масштабування для кнопок +/-",
+            addLocationFromNominatim: "Додати локацію з Nominatim для наборів змін і нотаток",
             overpassInstance:
                 '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Сервер Overpass API</a>',
-            panoramaxUploader: "Додати форму завантаження фотографій у Panoramax",
-            routersTimestamps: "Додати дату даних маршрутизації",
-            debugMode: "Увімкнути налагоджувальні та експериментальні функції",
+            panoramaxUploader: "Додати форму для завантаження фото в Panoramax",
+            routersTimestamps: "Додати дату маршрутизаційних даних",
+            debugMode: "Увімкнути режим налагодження та експериментальні функції",
         },
         objectEditor: {
             delete: "Видалити",
         },
         historyDiff: {
             intermediateWayVersion: "Проміжна версія",
-            intermediateWayVersionTitle: "Відбулися зміни тегів або координат точок у лінії,\nякі не збільшили версію лінії",
+            intermediateWayVersionTitle: "Були зміни тегів або координат точок у лінії, які не збільшили версію лінії",
             intermediateRelationVersion: "Проміжна версія",
-            intermediateRelationVersionTitle: "Відбулися зміни тегів або координат точок у відношенні,\nякі не збільшили версію відношення",
+            intermediateRelationVersionTitle: "Були зміни тегів або координат точок у відношенні, які не збільшили версію відношення",
             allVersions: "Усі версії",
-            withGeometryChanges: "Усі зміни геометрії",
+            withGeometryChanges: "Із геометричними змінами",
             withoutIntermediate: "Без проміжних",
-            viewUnredactedHistory: "Перегляд неретушованої історії β",
-            errorPleaseReport: "Помилка :( Будь ласка, повідомте про це в GitHub-репозиторії better-osm-org",
-            tagsCount: ({ count }) => {
-                if (count === 1) {
-                    return `${count} тег`
-                }
-                if ((count < 10 || count > 20) && [2, 3, 4].includes(count % 10)) {
-                    return `${count} теги`
-                }
-                return `${count} тегів`
-            },
+            viewUnredactedHistory: "Переглянути нецензуровану історію β",
+            errorPleaseReport: "Помилка :( Будь ласка, повідомте про цю сторінку в репозиторії better-osm-org на GitHub",
+            someNodesHidden: "Деякі точки були приховані модераторами",
+            reloadAndReport: "Спробуйте перезавантажити сторінку.\nЯкщо помилка не зникає, напишіть про це в репозиторій better-osm-org",
+            someNodesHiddenSad: "Деякі точки були приховані модераторами :\\",
+            filterIntermediateChanges: "Фільтр проміжних змін",
+            downloadAllVersionsWithIntermediate: "Завантажити всі версії (з проміжними версіями)",
+            someMembersHidden: "Деякі елементи були приховані модераторами",
+            downloadAllVersions: "Завантажити всі версії",
+            toggleCompactTagsDiff: "Перемикати між повним і компактним diff тегів.\nТакож можна використати клавішу T.",
+            tagsCount: ({ count }) =>
+                `${count} тег${count % 10 === 1 && count % 100 !== 11 ? "" : count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14) ? "и" : "ів"}`,
         },
         changesetQuicklook: {
-            lineWasReversed: " ⓘ Лінію перевернули",
-            objectDeletedByAuthor: " ⓘ Автор уже видалив об’єкт",
-            objectDeleted: " ⓘ Об’єкт уже видалено",
-            objectDeletedTitle: "{user} видалив цей об’єкт",
-            objectRestored: " ⓘ Об’єкт зараз відновлено",
-            objectRestoredByAuthor: " ⓘ Автор уже відновив об’єкт",
-            objectRestoredTitle: "{user} відновив цей об’єкт",
+            lineWasReversed: "ⓘ Лінію було розвернуто",
+            objectDeletedByAuthor: " ⓘ Об'єкт зараз видалений автором",
+            objectDeleted: " ⓘ Об'єкт зараз видалений",
+            objectDeletedTitle: "{user} видалив цей об'єкт",
+            objectRestored: " ⓘ Об'єкт зараз відновлений",
+            objectRestoredByAuthor: " ⓘ Об'єкт зараз відновлений автором",
+            objectRestoredTitle: "{user} відновив цей об'єкт",
+            listWayNodesChanged: "Список точок лінії було змінено",
+            nodesReversed: "Точки лінії були розвернуті",
+            relationMembersChanged: "Список елементів відношення було змінено.\nНатисніть, щоб побачити більше деталей",
+            showRelationMembers: "Показати список елементів відношення",
+            relationMembersReversed: "Елементи відношення були розвернуті",
+            pinRelationOnMap: "Закріпити відношення на мапі",
+            unpinRelationFromMap: "Відкріпити відношення від мапи",
+            nodeCoordinatesChanged: "Координати точки було змінено",
+            downloadThisRelation: "Завантажити це відношення",
+            shiftClickZoomVia: 'Натисніть із Shift, щоб наблизити учасників "via"',
+            unableDisplaySomeData: "better-osm-org не зміг показати деякі дані",
         },
         editMenuLinks: {
             moreLinks: "більше посилань",
-            editLinksList: "редагувати список",
+            editLinksList: "список посилань для редагування",
+            editLink: "редагувати посилання",
+            pinThisLink: "закріпити це посилання",
+            moveUpLink: "перемістити посилання вгору",
+            moveDownLink: "перемістити посилання вниз",
+            removeLink: "видалити посилання",
+            saveLink: "зберегти посилання",
+            openPlaceExternalWebsite: "Відкрити місце на зовнішньому сайті",
         },
         routers: {
-            routingDataTimeFor: "Час даних роутингу для {name}: {time}",
+            routingDataTimeFor: "Дата даних маршрутизації для {name}: {time}",
             openDebugMap: "Відкрити Debug Map",
         },
         satellite: {
-            setupCustomStyleJson: "Налаштування власного стилю векторної карти",
-            setupCustomMapLayers: "Налаштування підкладки карти",
+            setupCustomStyleJson: "Налаштувати власний style.json для MapLibre.js",
+            setupCustomMapLayers: "Налаштувати власні шари мапи",
+            duplicateStyleAndEdit: "дублювати стиль і відредагувати його",
+            openMapStyleHomePage: "Відкрити домашню сторінку стилю мапи",
+            openMapLayerHomePage: "Відкрити домашню сторінку шару мапи",
+            switchMapAndSatellite: "Перемикатися між мапою та супутниковими знімками",
+            setCustomLayer: "Установити власний шар (Shift + S)\nфункція better-osm-org",
+            setCustomVectorStyle: "Установити власний векторний стиль (Shift + V)",
         },
         geojson: {
             metainfo: "метаінформація",
             needUpdateBetterOsmOrg: "Потрібно оновити better-osm-org",
+            switchTableAndRawEditor: "Перемкнути між таблицею та сирим редактором",
         },
         links: {
             webArchive: "WebArchive",
@@ -1523,42 +1607,64 @@ const _translations = {
         hotkeys: {
             availableCommands: "Доступні команди",
             recent: "Нещодавні",
-            noHotkeysMatchSearch: "Немає відповідних гарячих клавіш.",
+            noHotkeysMatchSearch: "Жодні гарячі клавіші не відповідають цьому пошуку.",
             noCatalogedCommandsMatchPage: "Для цієї сторінки немає відповідних команд.",
         },
         objectVersionPage: {
             length: "Довжина: {value}",
             area: "Площа: {value}",
+            pinRestrictionSign:
+                "Закріпити знак restriction на мапі.\nВи можете приховати всі об'єкти, які додає better-osm-org, натиснувши ` або ~",
+            hideRestrictionSign: "Приховати знак restriction",
+            selectCoordinatesFormat: "Виберіть формат координат для копіювання.\nЩоб скопіювати, просто натисніть на координати",
+            setDefaultCopyFormat: "Зробити форматом копіювання за замовчуванням під час кліку по координатах",
+            defaultCopyFormat: "Це формат за замовчуванням під час кліку по координатах",
+            openExternalRelationViewer: "Натисніть, щоб відкрити зовнішній переглядач відношень.\nАбо використайте клавішу O",
         },
         userProfile: {
             allEditors: "Усі редактори",
-            editorContributions: ({ editor, count }) => ` ${editor} (${count} внес${count === 1 ? "ок" : count < 5 ? "ки" : "ків"})`,
+            editorContributions: ({ editor, count }) =>
+                ` ${editor} (${count} внес${count % 10 === 1 && count % 100 !== 11 ? "ок" : count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14) ? "ки" : "ків"})`,
             osmcha: " [OSMCha] ",
             usernames: "Імена користувачів: ",
             findingBlocks: " Шукаємо блокування... ",
-            copyIds: "Скопіювати ID",
-            copyIdsCount: "Скопіювати {count} ID",
+            copyIds: "Копіювати ID",
+            copyIdsCount: "Копіювати {count} ID",
             noComment: "Без коментаря",
-            pastUsernames: "Колишні імена: ",
+            pastUsernames: "Попередні імена: ",
             userIdLabel: "ID: ",
-            disableTrackingProtection: "Вимкніть захист від стеження, щоб запрацював показ інформації з сайту HDYC",
-            goToHdyc: "Відкрити https://www.hdyc.neis-one.org/",
+            disableTrackingProtection: "Будь ласка, вимкніть захист від стеження, щоб працював вхід HDYC",
+            goToHdyc: "Перейти до https://www.hdyc.neis-one.org/",
+            pleaseWaitUserChangesetsLoading: "Зачекайте, поки завантажуються набори змін користувача",
+            openSelectedChangesetsOnePage: "Alt + O, щоб відкрити вибрані набори змін на одній сторінці",
+            regexSearchNotCaseSensitive: "Пошук regex без урахування регістру",
+            viaWhosthat: "через whosthat.osmz.ru",
+            viaOverpassApi: "через Overpass API",
         },
         changesetsHistory: {
-            copyIds: "Скопіювати ID",
-            copyIdsCount: "Скопіювати {count} ID",
+            copyIds: "Копіювати ID",
+            copyIdsCount: "Копіювати {count} ID",
             displayedCount: " Показано {displayed}/{total}",
-            hideBigChangesets: "Приховувати великі пакети редагувань",
-            hideChangesetsFrom: "🔄Приховувати редагування від ",
-            showChangesetsFrom: "🔄Показувати редагування від ",
-            hideChangesetsWith: "🔄Приховувати редагування з ",
-            showChangesetsWith: "🔄Лише редагування з ",
+            hideBigChangesets: "Приховувати великі набори змін",
+            hideChangesetsFrom: "🔄Приховати набори змін від ",
+            showChangesetsFrom: "🔄Показати набори змін від ",
+            hideChangesetsWith: "🔄Приховати набори змін із ",
+            showChangesetsWith: "🔄Показати набори змін із ",
             loadMore: "Завантажити {count}",
+            displayOnOneMapAll: "Показати все на одній мапі\nякщо нічого не вибрано, відкриються всі завантажені й не приховані набори змін",
+            displayOnOneMap: "Показати на одній мапі",
+            addCheckboxesMassActions: "Додати чекбокси для масових дій із наборами змін",
+            clickHideUserChangesets: "Натисніть, щоб приховати набори змін цього користувача",
+            filterViaBetterOsmOrg: "Фільтр наборів змін через better-osm-org",
+            filterBySubstringInComments: "Фільтр за підрядком у коментарях наборів змін",
+            clickCopyChangesetId: "Натисніть, щоб скопіювати ID набору змін",
         },
         measurer: {
             measureFromHere: "Виміряти звідси",
             endMeasure: "Завершити вимірювання",
             cleanMeasurements: "Очистити вимірювання",
+            clickToSwitchUnits: "Натисніть, щоб переключити одиниці вимірювання",
+            orPressEscapeTwice: "Або натисніть Escape двічі",
         },
         panoramax: {
             blurFaces: "Розмити обличчя",
@@ -1567,31 +1673,121 @@ const _translations = {
             findOffsets: "Знайти зміщення",
         },
         changesetPage: {
-            selectObjects: "Вибрати об’єкти",
+            selectObjects: "Вибрати об'єкти",
             revertViaOsmRevert: "Відкотити через osm-revert",
             openInEditor: "Відкрити в {editor}",
             openInLevel0: "Відкрити в Level0",
             openInLevel0WithWaysGeometry: "Відкрити в Level0 з геометрією ліній",
+            openChangesetInOsmcha: "Відкрити набір змін в OSMCha (або натисніть O)\n(Shift + O, щоб відкрити Achavi)",
+            partialRevertOrEdit: "для часткового відкоту або редагування в JOSM/Level0",
+            hotkeyR: "Гаряча клавіша: R",
+            hotkeyJ: "Гаряча клавіша: J",
+            hotkeyAltJ: "Гаряча клавіша: Alt + J",
+            hotkeyShiftAltJ: "Гаряча клавіша: Shift + Alt + J",
         },
         nodeMover: {
             moveNodeToHere: "Перемістити точку сюди",
         },
         scriptMenu: {
             settings: "Налаштування",
-            checkScriptUpdates: "Перевірити оновлення скрипта",
-            checkDevScriptUpdates: "Перевірити оновлення dev-версії скрипта",
+            checkScriptUpdates: "Перевірити оновлення скрипту",
+            checkDevScriptUpdates: "Перевірити оновлення dev-версії скрипту",
             listOfHotkeys: "Список гарячих клавіш",
+        },
+        actions: {
+            remove: "видалити",
+        },
+        copying: {
+            clickForCopy: "Натисніть, щоб скопіювати",
+        },
+        betterOsmOrg: {
+            addedByBetterOsmOrg: "додано better-osm-org",
+            experimentalFeature: "експериментальна функція better-osm-org",
+        },
+        osmcha: {
+            openProfileInOsmcha: "Відкрити профіль в OSMCha",
+        },
+        selection: {
+            shiftClickSelectRange: "Shift + click для вибору діапазону порожніх чекбоксів",
+            clickForInvert: "Натисніть, щоб інвертувати",
+        },
+        deletedUsers: {
+            tryFindDeletedUser: "Спробувати знайти видаленого користувача",
+        },
+        findUserInDiff: {
+            clickForCopyUserId: "Натисніть, щоб скопіювати ID користувача",
+        },
+        changesetPageFixes: {
+            osmchaReviewTag: "Тег перевірки OSMCha. Клік правою кнопкою для зміни\n",
+            totalUserChangesets: "скільки всього наборів змін має користувач",
+            showHiddenTags: "Показати приховані теги",
+            clickForViewMore: "Натисніть, щоб показати більше",
+            mapperRequestedReview:
+                "Мапер запросив перевірку набору змін\n\nНатисніть, щоб відфільтрувати набори змін із review_requested=yes",
+        },
+        hashtags: {
+            searchInOsmcha: "Шукати цей хештег в OSMCha",
+            filterNotesByHashtag:
+                "Натисніть, щоб відфільтрувати нотатки за цим хештегом.\nНатисніть із Ctrl або Shift, щоб шукати цей хештег в osm-note-viewer",
+            clickToCopyName: "Натисніть, щоб скопіювати назву",
+            clickToCopyType: "Натисніть, щоб скопіювати тип",
+        },
+        userBadges: {
+            userModerator: "Цей користувач є модератором",
+            userImporter: "Цей користувач є імпортером",
+            userBanned: "Користувача було заблоковано",
+            userNewbie: "На момент створення набору змін або нотатки користувач редагував OpenStreetMap менш ніж місяць",
+            followingUser: "Ви стежите за цим користувачем",
+        },
+        notes: {
+            openMapStateSnapshot: "Відкрити стан мапи на момент знімка",
+            openMapStateNoteCreation: "Відкрити стан мапи на момент створення нотатки",
+            commaSeparatedSubstrings: "підрядки, розділені комами\nфільтр також працює за коментарями",
+            commaSeparatedUsernames: "імена користувачів, розділені комами",
+        },
+        spyGlass: {
+            activateSpyGlass: "Увімкнути режим імітації SpyGlass (експеримент better-osm-org)",
+        },
+        gpxFilter: {
+            clickToZoomTrack: "натисніть для наближення\nПорада: натискайте 8-9 для переходу між попереднім і наступним положенням мапи",
+            showGpxTracks: "Показати GPX-треки в поточному вікні мапи",
+        },
+        objectPage: {
+            gpsTrackerPosition: "Синій — позиція з GPS-трекера\nПомаранчевий — оцінена реальна позиція",
+            roofOrientationAcrossAlong: 'roof:orientation має бути або "across", або "along"',
+            conditionalMustContainAt: "значення тега :conditional має містити @",
+            emptyPartAfterAt: "порожня частина після @",
+            emptyPartBeforeAt: "порожня частина перед @",
+            emptyPartBetweenAt: "порожня частина між @",
+            observationNotFound: "Спостереження не знайдено в API iNaturalist",
+            noErrorsOpeningHours: "opening_hours.js не знайшов помилок 👍",
+            phoneMustStartPlus: "номер телефону має починатися з +",
+            easterEgg: "пасхалка better-osm-org",
+            needRoofOrientation: "схоже, це потрібно змінити на roof:orientation",
+            clickShowEmbedded3d:
+                "Натисніть, щоб показати вбудований 3D-переглядач.\nУ налаштуваннях userscript можна задати відкриття на сторінці OSM за замовчуванням",
+            setAsDefaultForClick: "Установити за замовчуванням для кліку",
+            defaultViewer: "Це переглядач за замовчуванням",
+            keyTooShort: "Ключ надто короткий",
+            suspiciousCapitalKey: "Підозрілий ключ, що починається з великої літери",
+            openObjectHistory: "Натисніть, щоб відкрити сторінку історії об'єкта\nАбо натисніть клавішу H",
+        },
+        taginfo: {
+            searchWithOverpass: "шукати через Overpass",
+        },
+        relationVersionPage: {
+            loadViaOverpass: "Завантажити версію відношення через Overpass API",
         },
     },
     fr: {
         init: {
-            disableBetterOsmOrg: "Désactivez better-osm-org",
+            disableBetterOsmOrg: "Désactiver better-osm-org",
             scriptVersion: "Version du script : ",
         },
         config: {
             sectionID: "iD",
             sectionViewingEdits: "Consultation des modifications",
-            sectionWorkingWithNotes: "Travail avec les notes",
+            sectionWorkingWithNotes: "Gestion des notes",
             sectionNewActions: "Nouvelles actions",
             sectionOther: "Autre",
             darkModeForMap: "Inverser les couleurs de la carte en mode sombre",
@@ -1600,41 +1796,41 @@ const _translations = {
             darkModeForID:
                 'Mode sombre pour iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Merci AlexPS</a>)',
             compactChangesetsHistory: "Historique compact des changesets",
-            versionsDiff: "Ajouter le diff des tags dans l’historique",
+            versionsDiff: "Ajouter le diff des tags dans l'historique",
             showPreviousTagValue: "Afficher la valeur précédente du tag",
-            fullVersionsDiff: "Ajouter un diff avec les versions intermédiaires dans l’historique des lignes",
+            fullVersionsDiff: "Ajouter le diff avec les versions intermédiaires dans l'historique d'une voie",
             changesetQuickLook: "Ajouter QuickLook pour les changesets",
-            showChangesetGeometry: "Afficher la géométrie des objets dans le changeset",
-            massChangesetsActions: "Ajouter des actions pour la liste des changesets (revert massif, filtrage, ...)",
-            imagesAndLinksInTags: "Rendre certains tags cliquables, plus courts et afficher des photos",
-            hideNoteHighlight: "Masquer la surbrillance des notes",
-            resolveNotesButton: "Boutons supplémentaires de résolution des notes :",
+            showChangesetGeometry: "Afficher la géométrie des objets du changeset",
+            massChangesetsActions: "Ajouter des actions pour la liste des changesets (annulation en masse, filtrage, ...)",
+            imagesAndLinksInTags: "Rendre certains tags cliquables, plus courts et afficher les photos",
+            hideNoteHighlight: "Masquer la mise en évidence de la note",
+            resolveNotesButton: "Boutons supplémentaires de résolution :",
             revertButton: "Bouton de changeset Revert&Osmcha",
             deletor: "Bouton de suppression de nœud",
             oneClickDeletor: "Supprimer le nœud sans confirmation",
             changesetsTemplates:
-                'Modèles de commentaires de changesets <a id="last-comments-link" target="_blank">(vos derniers commentaires)</a>',
+                'Modèles de commentaires de changeset <a id="last-comments-link" target="_blank">(vos derniers commentaires)</a>',
             hdycInProfile: "Ajouter HDYC au profil utilisateur",
             betterProfileStat: "Ajouter des filtres aux statistiques du profil",
             navigationViaHotkeys:
-                'Ajouter des raccourcis clavier <a href="https://github.com/deevroman/better-osm-org#Hotkeys" target="_blank">(liste)</a>',
-            newEditorsLinks: "Ajouter de nouveaux éditeurs au menu d’édition",
+                'Ajouter des raccourcis clavier <a href="https://github.com/deevroman/better-osm-org#Hotkeys" target="_blank">(Liste)</a>',
+            newEditorsLinks: "Ajouter de nouveaux éditeurs au menu Edit",
             resetSearchFormFocus: "Réinitialiser le focus du formulaire de recherche",
             satelliteLayers: "Ajouter des commutateurs de couches satellite",
-            swipes: "Ajouter des balayages entre les changesets de l’utilisateur",
+            swipes: "Ajouter des balayages entre les changesets utilisateur",
             resizableSidebar: "Curseur pour la largeur de la barre latérale",
-            clickableAvatar: "Cliquer sur l’avatar pour ouvrir les changesets",
-            overzoomForDataLayer: "Autoriser le sur-zoom quand la couche data/satellite est activée β",
+            clickableAvatar: "Cliquer sur l'avatar pour ouvrir les changesets",
+            overzoomForDataLayer: "Autoriser le surzoom quand la couche données/satellite est activée β",
             dragAndDropViewers: "Glisser-déposer pour .geojson, .jpg, .gpx, .osm",
-            viewer3DInNewTab: "Toujours ouvrir les visionneuses 3D des bâtiments dans un nouvel onglet",
+            viewer3DInNewTab: "Toujours ouvrir les visualiseurs 3D de bâtiments dans un nouvel onglet",
             betterTaginfo: "Ajouter de nouveaux boutons dans Taginfo",
             defaultZoomKeysBehaviour: "Ne pas doubler le pas de zoom des boutons +/-",
-            addLocationFromNominatim: "Ajouter l’emplacement depuis Nominatim pour les changesets et les notes",
+            addLocationFromNominatim: "Ajouter l'emplacement depuis Nominatim pour les changesets et les notes",
             overpassInstance:
                 '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Serveur Overpass API</a>',
-            panoramaxUploader: "Ajouter un formulaire pour téléverser des photos dans Panoramax",
+            panoramaxUploader: "Ajouter un formulaire d'envoi de photos vers Panoramax",
             routersTimestamps: "Ajouter la date des données de routage",
-            debugMode: "Activer les fonctionnalités de débogage et expérimentales",
+            debugMode: "Activer le débogage et les fonctionnalités expérimentales",
         },
         objectEditor: {
             delete: "Supprimer",
@@ -1642,85 +1838,138 @@ const _translations = {
         historyDiff: {
             intermediateWayVersion: "Version intermédiaire",
             intermediateWayVersionTitle:
-                "Des modifications des tags ou des coordonnées des nœuds de la ligne\nn'ont pas augmenté la version de la ligne",
+                "Des modifications des tags ou des coordonnées de nœuds de la voie n'ont pas augmenté la version de la voie",
             intermediateRelationVersion: "Version intermédiaire",
             intermediateRelationVersionTitle:
-                "Des modifications des tags ou des coordonnées des nœuds de la relation\nn'ont pas augmenté la version de la relation",
+                "Des modifications des tags ou des coordonnées de nœuds de la relation n'ont pas augmenté la version de la relation",
             allVersions: "Toutes les versions",
-            withGeometryChanges: "Avec modifications géométriques",
+            withGeometryChanges: "Avec modifications de géométrie",
             withoutIntermediate: "Sans intermédiaires",
-            viewUnredactedHistory: "Voir l’historique non censuré β",
-            errorPleaseReport: "Erreur :( Merci de signaler cela dans le dépôt GitHub de better-osm-org",
-            tagsCount: ({ count }) => `${count} tag${count > 1 ? "s" : ""}`,
+            viewUnredactedHistory: "Voir l'historique non expurgé β",
+            errorPleaseReport: "Erreur :( Merci de signaler cette page dans le dépôt GitHub de better-osm-org",
+            someNodesHidden: "Certains nœuds ont été masqués par les modérateurs",
+            reloadAndReport: "Veuillez recharger la page.\nSi l'erreur persiste, signalez-la dans le dépôt better-osm-org",
+            someNodesHiddenSad: "Certains nœuds ont été masqués par les modérateurs :\\",
+            filterIntermediateChanges: "Filtrer les modifications intermédiaires",
+            downloadAllVersionsWithIntermediate: "Télécharger toutes les versions (avec les versions intermédiaires)",
+            someMembersHidden: "Certains membres ont été masqués par les modérateurs",
+            downloadAllVersions: "Télécharger toutes les versions",
+            toggleCompactTagsDiff: "Basculer entre le diff complet et compact des tags.\nVous pouvez aussi utiliser la touche T.",
+            tagsCount: ({ count }) => `${count} balise${count === 1 ? "" : "s"}`,
         },
         changesetQuicklook: {
-            lineWasReversed: " ⓘ La ligne a été inversée",
-            objectDeletedByAuthor: " ⓘ L’objet est maintenant supprimé par l’auteur",
-            objectDeleted: " ⓘ L’objet est maintenant supprimé",
+            lineWasReversed: "ⓘ La ligne a été inversée",
+            objectDeletedByAuthor: " ⓘ L'objet est maintenant supprimé par l'auteur",
+            objectDeleted: " ⓘ L'objet est maintenant supprimé",
             objectDeletedTitle: "{user} a supprimé cet objet",
-            objectRestored: " ⓘ L’objet est maintenant restauré",
-            objectRestoredByAuthor: " ⓘ L’auteur a restauré l’objet",
+            objectRestored: " ⓘ L'objet est maintenant restauré",
+            objectRestoredByAuthor: " ⓘ L'objet est maintenant restauré par l'auteur",
             objectRestoredTitle: "{user} a restauré cet objet",
+            listWayNodesChanged: "La liste des nœuds de la voie a été modifiée",
+            nodesReversed: "Les nœuds de la voie ont été inversés",
+            relationMembersChanged: "La liste des membres de la relation a été modifiée.\nCliquez pour voir plus de détails",
+            showRelationMembers: "Afficher la liste des membres de la relation",
+            relationMembersReversed: "Les membres de la relation ont été inversés",
+            pinRelationOnMap: "Épingler la relation sur la carte",
+            unpinRelationFromMap: "Désépingler la relation de la carte",
+            nodeCoordinatesChanged: "Les coordonnées du nœud ont été modifiées",
+            downloadThisRelation: "Télécharger cette relation",
+            shiftClickZoomVia: 'Maj + clic pour zoomer sur les membres "via"',
+            unableDisplaySomeData: "better-osm-org n'a pas pu afficher certaines données",
         },
         editMenuLinks: {
             moreLinks: "plus de liens",
-            editLinksList: "modifier la liste",
+            editLinksList: "liste des liens d'édition",
+            editLink: "modifier le lien",
+            pinThisLink: "épingler ce lien",
+            moveUpLink: "monter le lien",
+            moveDownLink: "descendre le lien",
+            removeLink: "supprimer le lien",
+            saveLink: "enregistrer le lien",
+            openPlaceExternalWebsite: "Ouvrir le lieu sur un site externe",
         },
         routers: {
             routingDataTimeFor: "Date des données de routage pour {name} : {time}",
             openDebugMap: "Ouvrir Debug Map",
         },
         satellite: {
-            setupCustomStyleJson: "Configurer votre propre style de carte vectorielle",
-            setupCustomMapLayers: "Configurer le fond de carte",
+            setupCustomStyleJson: "Configurer un style.json personnalisé pour MapLibre.js",
+            setupCustomMapLayers: "Configurer des couches de carte personnalisées",
+            duplicateStyleAndEdit: "dupliquer le style et le modifier",
+            openMapStyleHomePage: "Ouvrir la page d'accueil du style de carte",
+            openMapLayerHomePage: "Ouvrir la page d'accueil de la couche de carte",
+            switchMapAndSatellite: "Basculer entre la carte et les images satellite",
+            setCustomLayer: "Définir une couche personnalisée (Shift + S)\nfonction de better-osm-org",
+            setCustomVectorStyle: "Définir un style vectoriel personnalisé (Shift + V)",
         },
         geojson: {
-            metainfo: "métainformations",
-            needUpdateBetterOsmOrg: "Il faut mettre à jour better-osm-org",
+            metainfo: "métadonnées",
+            needUpdateBetterOsmOrg: "better-osm-org doit être mis à jour",
+            switchTableAndRawEditor: "Basculer entre le tableau et l'éditeur brut",
         },
         links: {
             webArchive: "WebArchive",
         },
         hotkeys: {
             availableCommands: "Commandes disponibles",
-            recent: "Récentes",
-            noHotkeysMatchSearch: "Aucun raccourci correspondant.",
-            noCatalogedCommandsMatchPage: "Aucune commande adaptée à cette page.",
+            recent: "Récents",
+            noHotkeysMatchSearch: "Aucun raccourci ne correspond à cette recherche.",
+            noCatalogedCommandsMatchPage: "Aucune commande cataloguée ne correspond à cette page.",
         },
         objectVersionPage: {
             length: "Longueur : {value}",
             area: "Surface : {value}",
+            pinRestrictionSign:
+                "Épingler le panneau restriction sur la carte.\nVous pouvez masquer tous les objets ajoutés par better-osm-org en appuyant sur ` ou ~",
+            hideRestrictionSign: "Masquer le panneau restriction",
+            selectCoordinatesFormat: "Sélectionnez le format des coordonnées à copier.\nPour copier, cliquez simplement sur les coordonnées",
+            setDefaultCopyFormat: "Définir comme format de copie par défaut lorsque vous cliquez sur les coordonnées",
+            defaultCopyFormat: "C'est le format par défaut lorsque vous cliquez sur les coordonnées",
+            openExternalRelationViewer: "Cliquer pour ouvrir un visualiseur externe de relations.\nOu utiliser la touche O",
         },
         userProfile: {
             allEditors: "Tous les éditeurs",
-            editorContributions: ({ editor, count }) => ` ${editor} (${count} contribution${count > 1 ? "s" : ""})`,
+            editorContributions: ({ editor, count }) => ` ${editor} (${count} contribution${count === 1 ? "" : "s"})`,
             osmcha: " [OSMCha] ",
-            usernames: "Noms d’utilisateur : ",
+            usernames: "Noms d'utilisateur : ",
             findingBlocks: " Recherche des blocages... ",
             copyIds: "Copier les ID",
             copyIdsCount: "Copier {count} ID",
             noComment: "Sans commentaire",
-            pastUsernames: "Anciens noms : ",
+            pastUsernames: "Anciens noms d'utilisateur : ",
             userIdLabel: "ID : ",
-            disableTrackingProtection:
-                "Désactivez la protection contre le pistage pour que l’affichage des informations du site HDYC fonctionne",
-            goToHdyc: "Ouvrir https://www.hdyc.neis-one.org/",
+            disableTrackingProtection: "Veuillez désactiver la protection contre le pistage pour que la connexion au compte HDYC fonctionne",
+            goToHdyc: "Aller à https://www.hdyc.neis-one.org/",
+            pleaseWaitUserChangesetsLoading: "Veuillez patienter pendant le chargement des changesets de l'utilisateur",
+            openSelectedChangesetsOnePage: "Alt + O pour ouvrir les changesets sélectionnés sur une seule page",
+            regexSearchNotCaseSensitive: "Recherche regex sans distinction de casse",
+            viaWhosthat: "via whosthat.osmz.ru",
+            viaOverpassApi: "via Overpass API",
         },
         changesetsHistory: {
             copyIds: "Copier les ID",
             copyIdsCount: "Copier {count} ID",
             displayedCount: " Affichés {displayed}/{total}",
-            hideBigChangesets: "Masquer les gros lots de modifications",
-            hideChangesetsFrom: "🔄Masquer les modifications de ",
-            showChangesetsFrom: "🔄Afficher les modifications de ",
-            hideChangesetsWith: "🔄Masquer les modifications avec ",
-            showChangesetsWith: "🔄Uniquement les modifications avec ",
+            hideBigChangesets: "Masquer les gros changesets",
+            hideChangesetsFrom: "🔄Masquer les changesets de ",
+            showChangesetsFrom: "🔄Afficher les changesets de ",
+            hideChangesetsWith: "🔄Masquer les changesets contenant ",
+            showChangesetsWith: "🔄Afficher les changesets contenant ",
             loadMore: "Charger {count}",
+            displayOnOneMapAll: "Afficher sur une seule carte\nsi rien n'est coché, tous les changesets chargés et non masqués s'ouvriront",
+            displayOnOneMap: "Afficher sur une seule carte",
+            addCheckboxesMassActions: "Ajouter des cases à cocher pour les actions de masse sur les changesets",
+            clickHideUserChangesets: "Cliquer pour masquer les changesets de cet utilisateur",
+            filterViaBetterOsmOrg: "Filtre de changesets via better-osm-org",
+            filterBySubstringInComments: "Filtrer par sous-chaîne dans les commentaires des changesets",
+            clickCopyChangesetId: "Cliquer pour copier l'ID du changeset",
         },
         measurer: {
-            measureFromHere: "Mesurer à partir d’ici",
+            measureFromHere: "Mesurer depuis ici",
             endMeasure: "Terminer la mesure",
             cleanMeasurements: "Effacer les mesures",
+            clickToSwitchUnits: "Cliquer pour changer d'unité de mesure",
+            orPressEscapeTwice: "Ou appuyer deux fois sur Escape",
         },
         panoramax: {
             blurFaces: "Flouter les visages",
@@ -1733,10 +1982,16 @@ const _translations = {
             revertViaOsmRevert: "Annuler via osm-revert",
             openInEditor: "Ouvrir dans {editor}",
             openInLevel0: "Ouvrir dans Level0",
-            openInLevel0WithWaysGeometry: "Ouvrir dans Level0 avec la géométrie des lignes",
+            openInLevel0WithWaysGeometry: "Ouvrir dans Level0 avec la géométrie des voies",
+            openChangesetInOsmcha: "Ouvrir le changeset dans OSMCha (ou appuyez sur O)\n(Maj + O pour ouvrir Achavi)",
+            partialRevertOrEdit: "pour une annulation partielle ou une édition dans JOSM/Level0",
+            hotkeyR: "Raccourci : R",
+            hotkeyJ: "Raccourci : J",
+            hotkeyAltJ: "Raccourci : Alt + J",
+            hotkeyShiftAltJ: "Raccourci : Shift + Alt + J",
         },
         nodeMover: {
-            moveNodeToHere: "Déplacer le point ici",
+            moveNodeToHere: "Déplacer le nœud ici",
         },
         scriptMenu: {
             settings: "Paramètres",
@@ -1744,33 +1999,117 @@ const _translations = {
             checkDevScriptUpdates: "Vérifier les mises à jour de la version dev du script",
             listOfHotkeys: "Liste des raccourcis clavier",
         },
+        actions: {
+            remove: "supprimer",
+        },
+        copying: {
+            clickForCopy: "Cliquer pour copier",
+        },
+        betterOsmOrg: {
+            addedByBetterOsmOrg: "ajouté par better-osm-org",
+            experimentalFeature: "fonction expérimentale de better-osm-org",
+        },
+        osmcha: {
+            openProfileInOsmcha: "Ouvrir le profil dans OSMCha",
+        },
+        selection: {
+            shiftClickSelectRange: "Maj + clic pour sélectionner une plage de cases vides",
+            clickForInvert: "Cliquer pour inverser",
+        },
+        deletedUsers: {
+            tryFindDeletedUser: "Essayer de trouver l'utilisateur supprimé",
+        },
+        findUserInDiff: {
+            clickForCopyUserId: "Cliquer pour copier l'ID utilisateur",
+        },
+        changesetPageFixes: {
+            osmchaReviewTag: "Tag de revue OSMCha. Clic droit pour modifier\n",
+            totalUserChangesets: "nombre total de changesets de l'utilisateur",
+            showHiddenTags: "Afficher les tags masqués",
+            clickForViewMore: "Cliquer pour voir plus",
+            mapperRequestedReview:
+                "Le contributeur a demandé une revue du changeset\n\nCliquez pour filtrer les changesets avec review_requested=yes",
+        },
+        hashtags: {
+            searchInOsmcha: "Rechercher ce hashtag dans OSMCha",
+            filterNotesByHashtag:
+                "Cliquer pour filtrer les notes par ce hashtag.\nCtrl + clic ou Maj + clic pour rechercher ce hashtag dans osm-note-viewer",
+            clickToCopyName: "Cliquer pour copier le nom",
+            clickToCopyType: "Cliquer pour copier le type",
+        },
+        userBadges: {
+            userModerator: "Cet utilisateur est modérateur",
+            userImporter: "Cet utilisateur est un importateur",
+            userBanned: "L'utilisateur a été banni",
+            userNewbie: "Au moment de créer le changeset ou la note, l'utilisateur modifiait OpenStreetMap depuis moins d'un mois",
+            followingUser: "Vous suivez cet utilisateur",
+        },
+        notes: {
+            openMapStateSnapshot: "Ouvrir l'état de la carte au moment de la capture",
+            openMapStateNoteCreation: "Ouvrir l'état de la carte au moment de la création de la note",
+            commaSeparatedSubstrings: "sous-chaînes séparées par des virgules\nle filtre fonctionne aussi sur les commentaires",
+            commaSeparatedUsernames: "noms d'utilisateur séparés par des virgules",
+        },
+        spyGlass: {
+            activateSpyGlass: "Activer le mode d'imitation SpyGlass (expérience better-osm-org)",
+        },
+        gpxFilter: {
+            clickToZoomTrack: "cliquer pour zoomer\nAstuce : appuyez sur 8-9 pour naviguer entre la position précédente/suivante de la carte",
+            showGpxTracks: "Afficher les traces GPX dans la vue actuelle de la carte",
+        },
+        objectPage: {
+            gpsTrackerPosition: "Bleu — position du traceur GPS\nOrange — position réelle estimée",
+            roofOrientationAcrossAlong: 'roof:orientation doit être "across" ou "along"',
+            conditionalMustContainAt: "la valeur du tag :conditional doit contenir @",
+            emptyPartAfterAt: "partie vide après @",
+            emptyPartBeforeAt: "partie vide avant @",
+            emptyPartBetweenAt: "partie vide entre @",
+            observationNotFound: "Observation introuvable dans l'API iNaturalist",
+            noErrorsOpeningHours: "aucune erreur trouvée par opening_hours.js 👍",
+            phoneMustStartPlus: "le numéro de téléphone doit commencer par +",
+            easterEgg: "easter egg better-osm-org",
+            needRoofOrientation: "il semble qu'il faut le remplacer par roof:orientation",
+            clickShowEmbedded3d:
+                "Cliquer pour afficher le visualiseur 3D intégré.\nDans les paramètres du userscript, vous pouvez définir l'ouverture par défaut sur la page OSM",
+            setAsDefaultForClick: "Définir par défaut au clic",
+            defaultViewer: "C'est le visualiseur par défaut",
+            keyTooShort: "La clé est trop courte",
+            suspiciousCapitalKey: "Clé suspecte commençant par une majuscule",
+            openObjectHistory: "Cliquer pour ouvrir la page d'historique de l'objet\nOu appuyer sur la touche H",
+        },
+        taginfo: {
+            searchWithOverpass: "rechercher avec Overpass",
+        },
+        relationVersionPage: {
+            loadViaOverpass: "Charger la version de la relation via l'API Overpass",
+        },
     },
     de: {
         init: {
-            disableBetterOsmOrg: "Deaktivieren Sie better-osm-org",
+            disableBetterOsmOrg: "better-osm-org deaktivieren",
             scriptVersion: "Skriptversion: ",
         },
         config: {
             sectionID: "iD",
-            sectionViewingEdits: "Bearbeitungen anzeigen",
-            sectionWorkingWithNotes: "Arbeiten mit Notizen",
+            sectionViewingEdits: "Bearbeitungen ansehen",
+            sectionWorkingWithNotes: "Mit Hinweisen arbeiten",
             sectionNewActions: "Neue Aktionen",
             sectionOther: "Sonstiges",
             darkModeForMap: "Kartenfarben im Dunkelmodus invertieren",
-            colorblindFriendlyPalette: "Farbenblindfreundliche Palette β",
-            betterTagsPaste: "= hinzufügen, wenn durch Leerzeichen oder Tabs getrennte Tags eingefügt werden",
+            colorblindFriendlyPalette: "Farbenblind-freundliche Palette β",
+            betterTagsPaste: "Beim Einfügen von Tags, die durch Leerzeichen oder Tabs getrennt sind, = hinzufügen",
             darkModeForID:
                 'Dunkelmodus für iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Danke AlexPS</a>)',
-            compactChangesetsHistory: "Kompakte Changeset-Historie",
-            versionsDiff: "Tag-Diff in der Historie hinzufügen",
+            compactChangesetsHistory: "Kompakter Changeset-Verlauf",
+            versionsDiff: "Tag-Diff im Verlauf hinzufügen",
             showPreviousTagValue: "Vorherigen Tag-Wert anzeigen",
-            fullVersionsDiff: "Diff mit Zwischenversionen in der Linienhistorie hinzufügen",
+            fullVersionsDiff: "Diff mit Zwischenversionen im Wegeverlauf hinzufügen",
             changesetQuickLook: "QuickLook für Changesets hinzufügen",
-            showChangesetGeometry: "Geometrie von Objekten im Changeset anzeigen",
+            showChangesetGeometry: "Geometrie der Objekte im Changeset anzeigen",
             massChangesetsActions: "Aktionen für die Changeset-Liste hinzufügen (Massen-Revert, Filterung, ...)",
-            imagesAndLinksInTags: "Einige Tags anklickbar und kürzer machen und Fotos anzeigen",
-            hideNoteHighlight: "Notizhervorhebung ausblenden",
-            resolveNotesButton: "Zusätzliche Schließen-Schaltflächen für Notizen:",
+            imagesAndLinksInTags: "Einige Tags anklickbar und kürzer machen sowie Fotos anzeigen",
+            hideNoteHighlight: "Hervorhebung der Notiz ausblenden",
+            resolveNotesButton: "Zusätzliche Schließen-Schaltflächen:",
             revertButton: "Revert&Osmcha-Changeset-Schaltfläche",
             deletor: "Schaltfläche zum Löschen von Knoten",
             oneClickDeletor: "Knoten ohne Bestätigung löschen",
@@ -1780,18 +2119,18 @@ const _translations = {
             betterProfileStat: "Filter zur Profilstatistik hinzufügen",
             navigationViaHotkeys:
                 'Tastenkürzel hinzufügen <a href="https://github.com/deevroman/better-osm-org#Hotkeys" target="_blank">(Liste)</a>',
-            newEditorsLinks: "Neue Editoren zum Bearbeitungsmenü hinzufügen",
+            newEditorsLinks: "Neue Editoren zum Edit-Menü hinzufügen",
             resetSearchFormFocus: "Fokus des Suchformulars zurücksetzen",
             satelliteLayers: "Schalter für Satellitenebenen hinzufügen",
             swipes: "Wischgesten zwischen Benutzer-Changesets hinzufügen",
             resizableSidebar: "Schieberegler für die Breite der Seitenleiste",
-            clickableAvatar: "Per Klick auf den Avatar Changesets öffnen",
-            overzoomForDataLayer: "Overzoom erlauben, wenn Daten-/Satellitenebene aktiviert ist β",
+            clickableAvatar: "Avatar anklicken, um Changesets zu öffnen",
+            overzoomForDataLayer: "Overzoom zulassen, wenn Daten-/Satellitenebene aktiviert ist β",
             dragAndDropViewers: "Drag&Drop für .geojson, .jpg, .gpx, .osm",
-            viewer3DInNewTab: "3D-Gebäude-Viewer immer in neuem Tab öffnen",
+            viewer3DInNewTab: "3D-Gebäude-Viewer immer in einem neuen Tab öffnen",
             betterTaginfo: "Neue Schaltflächen in Taginfo hinzufügen",
             defaultZoomKeysBehaviour: "Zoomschritt der +/- Schaltflächen nicht verdoppeln",
-            addLocationFromNominatim: "Standort aus Nominatim für Changesets und Notizen hinzufügen",
+            addLocationFromNominatim: "Standort aus Nominatim für Changesets und Hinweise hinzufügen",
             overpassInstance:
                 '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass-API-Server</a>',
             panoramaxUploader: "Formular zum Hochladen von Fotos nach Panoramax hinzufügen",
@@ -1803,55 +2142,94 @@ const _translations = {
         },
         historyDiff: {
             intermediateWayVersion: "Zwischenversion",
-            intermediateWayVersionTitle:
-                "Es gab Änderungen an Tags oder Knotenkoordinaten der Linie,\ndie die Versionsnummer der Linie nicht erhöht haben",
+            intermediateWayVersionTitle: "Es gab Änderungen an Tags oder Knotenkoordinaten im Weg, die die Wegversion nicht erhöht haben",
             intermediateRelationVersion: "Zwischenversion",
             intermediateRelationVersionTitle:
-                "Es gab Änderungen an Tags oder Knotenkoordinaten der Relation,\ndie die Versionsnummer der Relation nicht erhöht haben",
+                "Es gab Änderungen an Tags oder Knotenkoordinaten in der Relation, die die Relationsversion nicht erhöht haben",
             allVersions: "Alle Versionen",
             withGeometryChanges: "Mit Geometrieänderungen",
             withoutIntermediate: "Ohne Zwischenversionen",
-            viewUnredactedHistory: "Unzensierte Versionsgeschichte anzeigen β",
-            errorPleaseReport: "Fehler :( Bitte melden Sie das im GitHub-Repository von better-osm-org",
+            viewUnredactedHistory: "Ungeschwärzten Verlauf anzeigen β",
+            errorPleaseReport: "Fehler :( Bitte melde diese Seite im better-osm-org-GitHub-Repository",
+            someNodesHidden: "Einige Knoten wurden von Moderatoren verborgen",
+            reloadAndReport: "Bitte lade die Seite neu.\nWenn der Fehler bestehen bleibt, melde ihn im better-osm-org-Repository",
+            someNodesHiddenSad: "Einige Knoten wurden von Moderatoren verborgen :\\",
+            filterIntermediateChanges: "Zwischenänderungen filtern",
+            downloadAllVersionsWithIntermediate: "Alle Versionen herunterladen (mit Zwischenversionen)",
+            someMembersHidden: "Einige Mitglieder wurden von Moderatoren verborgen",
+            downloadAllVersions: "Alle Versionen herunterladen",
+            toggleCompactTagsDiff: "Zwischen vollständigem und kompaktem Tag-Diff umschalten.\nDu kannst auch die Taste T verwenden.",
             tagsCount: ({ count }) => `${count} Tag${count === 1 ? "" : "s"}`,
         },
         changesetQuicklook: {
-            lineWasReversed: " ⓘ Die Linie wurde umgedreht",
-            objectDeletedByAuthor: " ⓘ Das Objekt wurde bereits vom Autor gelöscht",
-            objectDeleted: " ⓘ Das Objekt wurde bereits gelöscht",
+            lineWasReversed: "ⓘ Die Linie wurde umgedreht",
+            objectDeletedByAuthor: " ⓘ Das Objekt wurde jetzt vom Autor gelöscht",
+            objectDeleted: " ⓘ Das Objekt wurde jetzt gelöscht",
             objectDeletedTitle: "{user} hat dieses Objekt gelöscht",
-            objectRestored: " ⓘ Das Objekt wurde wiederhergestellt",
-            objectRestoredByAuthor: " ⓘ Der Autor hat das Objekt bereits wiederhergestellt",
+            objectRestored: " ⓘ Das Objekt wurde jetzt wiederhergestellt",
+            objectRestoredByAuthor: " ⓘ Das Objekt wurde jetzt vom Autor wiederhergestellt",
             objectRestoredTitle: "{user} hat dieses Objekt wiederhergestellt",
+            listWayNodesChanged: "Die Liste der Wegknoten wurde geändert",
+            nodesReversed: "Die Knoten des Weges wurden umgedreht",
+            relationMembersChanged: "Die Liste der Relationsmitglieder wurde geändert.\nKlicken, um mehr Details zu sehen",
+            showRelationMembers: "Liste der Relationsmitglieder anzeigen",
+            relationMembersReversed: "Die Mitglieder der Relation wurden umgedreht",
+            pinRelationOnMap: "Relation auf der Karte anheften",
+            unpinRelationFromMap: "Relation von der Karte lösen",
+            nodeCoordinatesChanged: "Die Koordinaten des Knotens wurden geändert",
+            downloadThisRelation: "Diese Relation herunterladen",
+            shiftClickZoomVia: 'Mit Shift klicken, um auf "via"-Mitglieder zu zoomen',
+            unableDisplaySomeData: "better-osm-org konnte einige Daten nicht anzeigen",
         },
         editMenuLinks: {
             moreLinks: "mehr Links",
             editLinksList: "Linkliste bearbeiten",
+            editLink: "Link bearbeiten",
+            pinThisLink: "diesen Link anheften",
+            moveUpLink: "Link nach oben",
+            moveDownLink: "Link nach unten",
+            removeLink: "Link entfernen",
+            saveLink: "Link speichern",
+            openPlaceExternalWebsite: "Ort auf externer Website öffnen",
         },
         routers: {
-            routingDataTimeFor: "Routing-Datenzeit für {name}: {time}",
+            routingDataTimeFor: "Routingdatenstand für {name}: {time}",
             openDebugMap: "Debug Map öffnen",
         },
         satellite: {
-            setupCustomStyleJson: "Eigenen Stil der Vektorkarte einrichten",
-            setupCustomMapLayers: "Kartenhintergrund einrichten",
+            setupCustomStyleJson: "Benutzerdefinierte style.json für MapLibre.js einrichten",
+            setupCustomMapLayers: "Benutzerdefinierte Kartenebenen einrichten",
+            duplicateStyleAndEdit: "Stil duplizieren und bearbeiten",
+            openMapStyleHomePage: "Startseite des Kartenstils öffnen",
+            openMapLayerHomePage: "Startseite der Kartenebene öffnen",
+            switchMapAndSatellite: "Zwischen Karte und Satellitenbildern wechseln",
+            setCustomLayer: "Benutzerdefinierte Ebene setzen (Shift + S)\nbetter-osm-org-Funktion",
+            setCustomVectorStyle: "Benutzerdefinierten Vektorstil setzen (Shift + V)",
         },
         geojson: {
             metainfo: "Metainformationen",
             needUpdateBetterOsmOrg: "better-osm-org muss aktualisiert werden",
+            switchTableAndRawEditor: "Zwischen Tabelle und Roh-Editor wechseln",
         },
         links: {
             webArchive: "WebArchive",
         },
         hotkeys: {
             availableCommands: "Verfügbare Befehle",
-            recent: "Zuletzt verwendet",
-            noHotkeysMatchSearch: "Keine passenden Tastenkürzel gefunden.",
-            noCatalogedCommandsMatchPage: "Für diese Seite gibt es keine passenden Befehle.",
+            recent: "Zuletzt",
+            noHotkeysMatchSearch: "Keine Tastenkürzel passen zu dieser Suche.",
+            noCatalogedCommandsMatchPage: "Keine katalogisierten Befehle passen zu dieser Seite.",
         },
         objectVersionPage: {
             length: "Länge: {value}",
             area: "Fläche: {value}",
+            pinRestrictionSign:
+                "restriction-Schild auf der Karte anheften.\nDu kannst alle von better-osm-org hinzugefügten Objekte mit ` oder ~ ausblenden",
+            hideRestrictionSign: "restriction-Schild ausblenden",
+            selectCoordinatesFormat: "Koordinatenformat zum Kopieren auswählen.\nZum Kopieren einfach auf die Koordinaten klicken",
+            setDefaultCopyFormat: "Als Standard fürs Kopieren setzen, wenn du auf Koordinaten klickst",
+            defaultCopyFormat: "Dies ist das Standardformat, wenn du auf Koordinaten klickst",
+            openExternalRelationViewer: "Klicken, um einen externen Relations-Viewer zu öffnen.\nOder Taste O benutzen",
         },
         userProfile: {
             allEditors: "Alle Editoren",
@@ -1862,54 +2240,159 @@ const _translations = {
             copyIds: "IDs kopieren",
             copyIdsCount: "{count} IDs kopieren",
             noComment: "Kein Kommentar",
-            pastUsernames: "Frühere Namen: ",
+            pastUsernames: "Frühere Benutzernamen: ",
             userIdLabel: "ID: ",
-            disableTrackingProtection:
-                "Deaktivieren Sie den Tracking-Schutz, damit die Anzeige der Informationen von der HDYC-Website funktioniert",
-            goToHdyc: "https://www.hdyc.neis-one.org/ öffnen",
+            disableTrackingProtection: "Bitte deaktiviere den Tracking-Schutz, damit die HDYC-Anmeldung funktioniert",
+            goToHdyc: "Zu https://www.hdyc.neis-one.org/ gehen",
+            pleaseWaitUserChangesetsLoading: "Bitte warten, während die Changesets des Benutzers geladen werden",
+            openSelectedChangesetsOnePage: "Alt + O, um ausgewählte Changesets auf einer Seite zu öffnen",
+            regexSearchNotCaseSensitive: "Regex-Suche ohne Groß-/Kleinschreibung",
+            viaWhosthat: "via whosthat.osmz.ru",
+            viaOverpassApi: "via Overpass API",
         },
         changesetsHistory: {
             copyIds: "IDs kopieren",
             copyIdsCount: "{count} IDs kopieren",
             displayedCount: " Angezeigt {displayed}/{total}",
-            hideBigChangesets: "Große Änderungspakete ausblenden",
-            hideChangesetsFrom: "🔄Änderungen ausblenden von ",
-            showChangesetsFrom: "🔄Änderungen anzeigen von ",
-            hideChangesetsWith: "🔄Änderungen ausblenden mit ",
-            showChangesetsWith: "🔄Nur Änderungen mit ",
+            hideBigChangesets: "Große Changesets ausblenden",
+            hideChangesetsFrom: "🔄Changesets ausblenden von ",
+            showChangesetsFrom: "🔄Changesets anzeigen von ",
+            hideChangesetsWith: "🔄Changesets ausblenden mit ",
+            showChangesetsWith: "🔄Changesets anzeigen mit ",
             loadMore: "{count} laden",
+            displayOnOneMapAll:
+                "Auf einer Karte anzeigen\nwenn nichts ausgewählt ist, werden alle geladenen, nicht ausgeblendeten Changesets geöffnet",
+            displayOnOneMap: "Auf einer Karte anzeigen",
+            addCheckboxesMassActions: "Checkboxen für Massenaktionen mit Changesets hinzufügen",
+            clickHideUserChangesets: "Klicken, um die Changesets dieses Benutzers auszublenden",
+            filterViaBetterOsmOrg: "Changeset-Filter via better-osm-org",
+            filterBySubstringInComments: "Nach Teilzeichenfolge in Changeset-Kommentaren filtern",
+            clickCopyChangesetId: "Klicken, um die Changeset-ID zu kopieren",
         },
         measurer: {
             measureFromHere: "Von hier messen",
             endMeasure: "Messung beenden",
             cleanMeasurements: "Messungen löschen",
+            clickToSwitchUnits: "Klicken, um die Maßeinheiten zu wechseln",
+            orPressEscapeTwice: "Oder zweimal Escape drücken",
         },
         panoramax: {
             blurFaces: "Gesichter verwischen",
         },
         idEditor: {
-            findOffsets: "Verschiebungen finden",
+            findOffsets: "Offsets finden",
         },
         changesetPage: {
             selectObjects: "Objekte auswählen",
             revertViaOsmRevert: "Über osm-revert zurücksetzen",
             openInEditor: "In {editor} öffnen",
             openInLevel0: "In Level0 öffnen",
-            openInLevel0WithWaysGeometry: "In Level0 mit Liniengeometrie öffnen",
+            openInLevel0WithWaysGeometry: "In Level0 mit Wegegeometrie öffnen",
+            openChangesetInOsmcha: "Changeset in OSMCha öffnen (oder O drücken)\n(Shift + O, um Achavi zu öffnen)",
+            partialRevertOrEdit: "für teilweisen Revert oder Bearbeitung in JOSM/Level0",
+            hotkeyR: "Tastenkürzel: R",
+            hotkeyJ: "Tastenkürzel: J",
+            hotkeyAltJ: "Tastenkürzel: Alt + J",
+            hotkeyShiftAltJ: "Tastenkürzel: Shift + Alt + J",
         },
         nodeMover: {
-            moveNodeToHere: "Punkt hierhin verschieben",
+            moveNodeToHere: "Knoten hierhin verschieben",
         },
         scriptMenu: {
             settings: "Einstellungen",
-            checkScriptUpdates: "Nach Script-Updates suchen",
-            checkDevScriptUpdates: "Nach Updates der Dev-Version des Scripts suchen",
+            checkScriptUpdates: "Nach Skript-Updates suchen",
+            checkDevScriptUpdates: "Nach Updates der Dev-Version suchen",
             listOfHotkeys: "Liste der Tastenkürzel",
+        },
+        actions: {
+            remove: "entfernen",
+        },
+        copying: {
+            clickForCopy: "Klicken zum Kopieren",
+        },
+        betterOsmOrg: {
+            addedByBetterOsmOrg: "hinzugefügt von better-osm-org",
+            experimentalFeature: "experimentelle Funktion von better-osm-org",
+        },
+        osmcha: {
+            openProfileInOsmcha: "Profil in OSMCha öffnen",
+        },
+        selection: {
+            shiftClickSelectRange: "Shift + Klick, um einen Bereich leerer Checkboxen auszuwählen",
+            clickForInvert: "Klicken zum Umkehren",
+        },
+        deletedUsers: {
+            tryFindDeletedUser: "Versuchen, gelöschten Benutzer zu finden",
+        },
+        findUserInDiff: {
+            clickForCopyUserId: "Klicken, um die Benutzer-ID zu kopieren",
+        },
+        changesetPageFixes: {
+            osmchaReviewTag: "OSMCha-Prüf-Tag. Rechtsklick zum Ändern\n",
+            totalUserChangesets: "wie viele Changesets der Benutzer insgesamt hat",
+            showHiddenTags: "Versteckte Tags anzeigen",
+            clickForViewMore: "Klicken, um mehr anzuzeigen",
+            mapperRequestedReview:
+                "Mapper hat eine Changeset-Prüfung angefordert\n\nKlicken, um Changesets mit review_requested=yes zu filtern",
+        },
+        hashtags: {
+            searchInOsmcha: "Diesen Hashtag in OSMCha suchen",
+            filterNotesByHashtag:
+                "Klicken, um Hinweise nach diesem Hashtag zu filtern.\nMit Ctrl oder Shift klicken, um diesen Hashtag in osm-note-viewer zu suchen",
+            clickToCopyName: "Klicken, um den Namen zu kopieren",
+            clickToCopyType: "Klicken, um den Typ zu kopieren",
+        },
+        userBadges: {
+            userModerator: "Dieser Benutzer ist Moderator",
+            userImporter: "Dieser Benutzer ist ein Importeur",
+            userBanned: "Der Benutzer wurde gesperrt",
+            userNewbie:
+                "Zum Zeitpunkt der Erstellung des Changesets oder Hinweises bearbeitete der Benutzer OpenStreetMap seit weniger als einem Monat",
+            followingUser: "Du folgst diesem Benutzer",
+        },
+        notes: {
+            openMapStateSnapshot: "Kartenstand zum Zeitpunkt des Snapshots öffnen",
+            openMapStateNoteCreation: "Kartenstand zum Zeitpunkt der Hinweis-Erstellung öffnen",
+            commaSeparatedSubstrings: "durch Kommas getrennte Teilzeichenfolgen\nFilter funktioniert auch über Kommentare",
+            commaSeparatedUsernames: "durch Kommas getrennte Benutzernamen",
+        },
+        spyGlass: {
+            activateSpyGlass: "SpyGlass-Imitationsmodus aktivieren (better-osm-org-Experiment)",
+        },
+        gpxFilter: {
+            clickToZoomTrack: "klicken zum Zoomen\nTipp: Drücke 8-9, um zwischen vorheriger/nächster Kartenposition zu wechseln",
+            showGpxTracks: "GPX-Tracks in der aktuellen Kartenansicht anzeigen",
+        },
+        objectPage: {
+            gpsTrackerPosition: "Blau — Position vom GPS-Tracker\nOrange — geschätzte tatsächliche Position",
+            roofOrientationAcrossAlong: 'roof:orientation muss entweder "across" oder "along" sein',
+            conditionalMustContainAt: "Der Wert des Tags :conditional muss @ enthalten",
+            emptyPartAfterAt: "leerer Teil nach @",
+            emptyPartBeforeAt: "leerer Teil vor @",
+            emptyPartBetweenAt: "leerer Teil zwischen @",
+            observationNotFound: "Beobachtung in der iNaturalist-API nicht gefunden",
+            noErrorsOpeningHours: "opening_hours.js hat keine Fehler gefunden 👍",
+            phoneMustStartPlus: "Telefonnummer muss mit + beginnen",
+            easterEgg: "better-osm-org-Easter-Egg",
+            needRoofOrientation: "es sieht so aus, als müsste das zu roof:orientation geändert werden",
+            clickShowEmbedded3d:
+                "Klicken, um den eingebetteten 3D-Viewer anzuzeigen.\nIn den Userscript-Einstellungen kannst du festlegen, dass er standardmäßig auf der OSM-Seite geöffnet wird",
+            setAsDefaultForClick: "Als Standard für Klick setzen",
+            defaultViewer: "Dies ist der Standard-Viewer",
+            keyTooShort: "Der Schlüssel ist zu kurz",
+            suspiciousCapitalKey: "Verdächtiger Schlüssel, der mit einem Großbuchstaben beginnt",
+            openObjectHistory: "Klicken, um die Objektverlaufsseite zu öffnen\nOder Taste H drücken",
+        },
+        taginfo: {
+            searchWithOverpass: "mit Overpass suchen",
+        },
+        relationVersionPage: {
+            loadViaOverpass: "Relationsversion über die Overpass API laden",
         },
     },
     hr: {
         init: {
-            disableBetterOsmOrg: "Onemogućite better-osm-org",
+            disableBetterOsmOrg: "Onemogući better-osm-org",
             scriptVersion: "Verzija skripte: ",
         },
         config: {
@@ -1918,45 +2401,44 @@ const _translations = {
             sectionWorkingWithNotes: "Rad s bilješkama",
             sectionNewActions: "Nove radnje",
             sectionOther: "Ostalo",
-            darkModeForMap: "Invertiraj boje karte u tamnom načinu",
-            colorblindFriendlyPalette: "Paleta prilagođena daltonizmu β",
-            betterTagsPaste: "Dodaj = pri lijepljenju oznaka odvojenih razmacima ili tabovima",
+            darkModeForMap: "Invertiraj boje karte u tamnom načinu rada",
+            colorblindFriendlyPalette: "Paleta prilagođena daltonistima β",
+            betterTagsPaste: "Dodaj = pri lijepljenju oznaka odvojenih razmacima ili tabulatorima",
             darkModeForID:
                 'Tamni način za iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Hvala AlexPS</a>)',
             compactChangesetsHistory: "Kompaktna povijest changeseta",
             versionsDiff: "Dodaj diff oznaka u povijesti",
             showPreviousTagValue: "Prikaži prethodnu vrijednost oznake",
-            fullVersionsDiff: "Dodaj diff s međuverzijama u povijesti linija",
+            fullVersionsDiff: "Dodaj diff s međuverzijama u povijesti puta",
             changesetQuickLook: "Dodaj QuickLook za changesete",
             showChangesetGeometry: "Prikaži geometriju objekata u changesetu",
             massChangesetsActions: "Dodaj radnje za popis changeseta (masovni revert, filtriranje, ...)",
             imagesAndLinksInTags: "Učini neke oznake klikabilnima, kraćima i prikaži fotografije",
             hideNoteHighlight: "Sakrij isticanje bilješke",
-            resolveNotesButton: "Dodatni gumbi za zatvaranje bilješki:",
-            revertButton: "Gumb Revert&Osmcha za changeset",
+            resolveNotesButton: "Dodatni gumbi za rješavanje:",
+            revertButton: "Gumb changeseta Revert&Osmcha",
             deletor: "Gumb za brisanje čvora",
             oneClickDeletor: "Izbriši čvor bez potvrde",
-            changesetsTemplates: 'Predlošci komentara za changesete <a id="last-comments-link" target="_blank">(vaši zadnji komentari)</a>',
+            changesetsTemplates: 'Predlošci komentara changeseta <a id="last-comments-link" target="_blank">(vaši zadnji komentari)</a>',
             hdycInProfile: "Dodaj HDYC u korisnički profil",
             betterProfileStat: "Dodaj filtre u statistiku profila",
-            navigationViaHotkeys:
-                'Dodaj tipkovne prečace <a href="https://github.com/deevroman/better-osm-org#Hotkeys" target="_blank">(popis)</a>',
-            newEditorsLinks: "Dodaj nove uređivače u izbornik uređivanja",
-            resetSearchFormFocus: "Resetiraj fokus obrasca za pretraživanje",
+            navigationViaHotkeys: 'Dodaj prečace <a href="https://github.com/deevroman/better-osm-org#Hotkeys" target="_blank">(Popis)</a>',
+            newEditorsLinks: "Dodaj nove editore u izbornik Edit",
+            resetSearchFormFocus: "Resetiraj fokus obrasca pretraživanja",
             satelliteLayers: "Dodaj prekidače satelitskih slojeva",
-            swipes: "Dodaj swipe prijelaze između korisničkih changeseta",
-            resizableSidebar: "Klizač širine bočne trake",
-            clickableAvatar: "Otvori changesete klikom na avatar",
-            overzoomForDataLayer: "Dopusti overzoom kada je uključen data/satellite sloj β",
-            dragAndDropViewers: "Drag&Drop za .geojson, .jpg, .gpx, .osm",
+            swipes: "Dodaj prijelaze između korisničkih changeseta",
+            resizableSidebar: "Klizač za širinu bočne trake",
+            clickableAvatar: "Klik na avatar za otvaranje changeseta",
+            overzoomForDataLayer: "Dopusti overzoom kada je uključen sloj podataka/satelita β",
+            dragAndDropViewers: "Povuci i ispusti za .geojson, .jpg, .gpx, .osm",
             viewer3DInNewTab: "Uvijek otvori 3D preglednike zgrada u novoj kartici",
             betterTaginfo: "Dodaj nove gumbe u Taginfo",
             defaultZoomKeysBehaviour: "Nemoj udvostručiti korak zumiranja gumba +/-",
             addLocationFromNominatim: "Dodaj lokaciju iz Nominatima za changesete i bilješke",
             overpassInstance:
                 '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass API poslužitelj</a>',
-            panoramaxUploader: "Dodaj obrazac za učitavanje fotografija u Panoramax",
-            routersTimestamps: "Dodaj datum podataka rutiranja",
+            panoramaxUploader: "Dodaj obrazac za prijenos fotografija u Panoramax",
+            routersTimestamps: "Dodaj datum routing podataka",
             debugMode: "Omogući debug i eksperimentalne značajke",
         },
         objectEditor: {
@@ -1964,41 +2446,75 @@ const _translations = {
         },
         historyDiff: {
             intermediateWayVersion: "Međuverzija",
-            intermediateWayVersionTitle: "Došlo je do promjena oznaka ili koordinata čvorova na liniji,\nkoje nisu povećale verziju linije",
+            intermediateWayVersionTitle: "Došlo je do promjena oznaka ili koordinata čvorova na putu koje nisu povećale verziju puta",
             intermediateRelationVersion: "Međuverzija",
             intermediateRelationVersionTitle:
-                "Došlo je do promjena oznaka ili koordinata čvorova u relaciji,\nkoje nisu povećale verziju relacije",
+                "Došlo je do promjena oznaka ili koordinata čvorova u relaciji koje nisu povećale verziju relacije",
             allVersions: "Sve verzije",
-            withGeometryChanges: "Sa promjenama geometrije",
+            withGeometryChanges: "S promjenama geometrije",
             withoutIntermediate: "Bez međuverzija",
             viewUnredactedHistory: "Prikaži necenzuriranu povijest β",
-            errorPleaseReport: "Greška :( Molimo prijavite ovo u GitHub repozitoriju better-osm-org",
-            tagsCount: ({ count }) => `${count} oznaka${count % 10 >= 2 && count % 10 <= 4 && (count < 10 || count > 20) ? "e" : ""}`,
+            errorPleaseReport: "Greška :( Prijavite ovu stranicu u better-osm-org GitHub repozitoriju",
+            someNodesHidden: "Neke čvorove sakrili su moderatori",
+            reloadAndReport: "Pokušajte ponovno učitati stranicu.\nAko greška ostane, prijavite je u better-osm-org repozitoriju",
+            someNodesHiddenSad: "Neke čvorove sakrili su moderatori :\\",
+            filterIntermediateChanges: "Filtriraj međuizmjene",
+            downloadAllVersionsWithIntermediate: "Preuzmi sve verzije (s međuverzijama)",
+            someMembersHidden: "Neke članove sakrili su moderatori",
+            downloadAllVersions: "Preuzmi sve verzije",
+            toggleCompactTagsDiff: "Prebaci između punog i sažetog diffa oznaka.\nMožete koristiti i tipku T.",
+            tagsCount: ({ count }) =>
+                `${count} oznak${count % 10 === 1 && count % 100 !== 11 ? "a" : count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14) ? "e" : "a"}`,
         },
         changesetQuicklook: {
-            lineWasReversed: " ⓘ Linija je obrnuta",
-            objectDeletedByAuthor: " ⓘ Autor je već izbrisao objekt",
-            objectDeleted: " ⓘ Objekt je već izbrisan",
+            lineWasReversed: "ⓘ Linija je obrnuta",
+            objectDeletedByAuthor: " ⓘ Objekt je sada izbrisao autor",
+            objectDeleted: " ⓘ Objekt je sada izbrisan",
             objectDeletedTitle: "{user} je izbrisao ovaj objekt",
-            objectRestored: " ⓘ Objekt je sada vraćen",
-            objectRestoredByAuthor: " ⓘ Autor je već vratio objekt",
-            objectRestoredTitle: "{user} je vratio ovaj objekt",
+            objectRestored: " ⓘ Objekt je sada obnovljen",
+            objectRestoredByAuthor: " ⓘ Objekt je sada obnovio autor",
+            objectRestoredTitle: "{user} je obnovio ovaj objekt",
+            listWayNodesChanged: "Popis čvorova puta je promijenjen",
+            nodesReversed: "Čvorovi puta su obrnuti",
+            relationMembersChanged: "Popis članova relacije je promijenjen.\nKliknite za više detalja",
+            showRelationMembers: "Prikaži popis članova relacije",
+            relationMembersReversed: "Članovi relacije su obrnuti",
+            pinRelationOnMap: "Prikvači relaciju na kartu",
+            unpinRelationFromMap: "Otkvači relaciju s karte",
+            nodeCoordinatesChanged: "Koordinate čvora su promijenjene",
+            downloadThisRelation: "Preuzmi ovu relaciju",
+            shiftClickZoomVia: 'Kliknite sa Shift za zumiranje na "via" članove',
+            unableDisplaySomeData: "better-osm-org nije mogao prikazati neke podatke",
         },
         editMenuLinks: {
             moreLinks: "više poveznica",
-            editLinksList: "uredi popis poveznica",
+            editLinksList: "popis poveznica za uređivanje",
+            editLink: "uredi poveznicu",
+            pinThisLink: "prikvači ovu poveznicu",
+            moveUpLink: "pomakni poveznicu gore",
+            moveDownLink: "pomakni poveznicu dolje",
+            removeLink: "ukloni poveznicu",
+            saveLink: "spremi poveznicu",
+            openPlaceExternalWebsite: "Otvori mjesto na vanjskoj stranici",
         },
         routers: {
-            routingDataTimeFor: "Vrijeme podataka rutiranja za {name}: {time}",
+            routingDataTimeFor: "Vrijeme routing podataka za {name}: {time}",
             openDebugMap: "Otvori Debug Map",
         },
         satellite: {
-            setupCustomStyleJson: "Postavljanje vlastitog stila vektorske karte",
-            setupCustomMapLayers: "Postavljanje pozadinske karte",
+            setupCustomStyleJson: "Postavi prilagođeni style.json za MapLibre.js",
+            setupCustomMapLayers: "Postavi prilagođene slojeve karte",
+            duplicateStyleAndEdit: "dupliciraj stil i uredi ga",
+            openMapStyleHomePage: "Otvori početnu stranicu stila karte",
+            openMapLayerHomePage: "Otvori početnu stranicu sloja karte",
+            switchMapAndSatellite: "Prebacuj između karte i satelitskih snimaka",
+            setCustomLayer: "Postavi prilagođeni sloj (Shift + S)\nznačajka better-osm-org",
+            setCustomVectorStyle: "Postavi prilagođeni vektorski stil (Shift + V)",
         },
         geojson: {
             metainfo: "metapodaci",
-            needUpdateBetterOsmOrg: "Treba ažurirati better-osm-org",
+            needUpdateBetterOsmOrg: "Potrebno je ažurirati better-osm-org",
+            switchTableAndRawEditor: "Prebaci između tablice i sirovog uređivača",
         },
         links: {
             webArchive: "WebArchive",
@@ -2006,45 +2522,66 @@ const _translations = {
         hotkeys: {
             availableCommands: "Dostupne naredbe",
             recent: "Nedavno",
-            noHotkeysMatchSearch: "Nema odgovarajućih prečaca.",
-            noCatalogedCommandsMatchPage: "Za ovu stranicu nema odgovarajućih naredbi.",
+            noHotkeysMatchSearch: "Nijedan prečac ne odgovara ovom pretraživanju.",
+            noCatalogedCommandsMatchPage: "Nijedna katalogizirana naredba ne odgovara ovoj stranici.",
         },
         objectVersionPage: {
             length: "Duljina: {value}",
             area: "Površina: {value}",
+            pinRestrictionSign:
+                "Prikvači restriction znak na kartu.\nMožete sakriti sve objekte koje better-osm-org dodaje pritiskom na ` ili ~",
+            hideRestrictionSign: "Sakrij restriction znak",
+            selectCoordinatesFormat: "Odaberite format koordinata za kopiranje.\nZa kopiranje samo kliknite na koordinate",
+            setDefaultCopyFormat: "Postavi kao zadani format kopiranja pri kliku na koordinate",
+            defaultCopyFormat: "Ovo je zadani format pri kliku na koordinate",
+            openExternalRelationViewer: "Kliknite za otvaranje vanjskog preglednika relacija.\nIli koristite tipku O",
         },
         userProfile: {
-            allEditors: "Svi uređivači",
-            editorContributions: ({ editor, count }) => ` ${editor} (${count} doprinos${count === 1 ? "" : count < 5 ? "a" : "a"})`,
+            allEditors: "Svi editori",
+            editorContributions: ({ editor, count }) => ` ${editor} (${count} doprinos${count === 1 ? "" : "a"})`,
             osmcha: " [OSMCha] ",
             usernames: "Korisnička imena: ",
             findingBlocks: " Traženje blokada... ",
-            copyIds: "Kopiraj ID",
-            copyIdsCount: "Kopiraj {count} ID",
+            copyIds: "Kopiraj ID-ove",
+            copyIdsCount: "Kopiraj {count} ID-ova",
             noComment: "Bez komentara",
-            pastUsernames: "Prijašnja imena: ",
+            pastUsernames: "Prethodna korisnička imena: ",
             userIdLabel: "ID: ",
-            disableTrackingProtection: "Onemogućite zaštitu od praćenja kako bi radio prikaz informacija sa stranice HDYC",
-            goToHdyc: "Otvori https://www.hdyc.neis-one.org/",
+            disableTrackingProtection: "Onemogućite zaštitu od praćenja kako bi prijava na HDYC radila",
+            goToHdyc: "Idi na https://www.hdyc.neis-one.org/",
+            pleaseWaitUserChangesetsLoading: "Pričekajte dok se korisnički changeseti učitavaju",
+            openSelectedChangesetsOnePage: "Alt + O za otvaranje odabranih changeseta na jednoj stranici",
+            regexSearchNotCaseSensitive: "Pretraga regularnim izrazom bez razlikovanja velikih i malih slova",
+            viaWhosthat: "putem whosthat.osmz.ru",
+            viaOverpassApi: "putem Overpass API-ja",
         },
         changesetsHistory: {
-            copyIds: "Kopiraj ID",
-            copyIdsCount: "Kopiraj {count} ID",
+            copyIds: "Kopiraj ID-ove",
+            copyIdsCount: "Kopiraj {count} ID-ova",
             displayedCount: " Prikazano {displayed}/{total}",
-            hideBigChangesets: "Sakrij velike pakete izmjena",
-            hideChangesetsFrom: "🔄Sakrij izmjene od ",
-            showChangesetsFrom: "🔄Prikaži izmjene od ",
-            hideChangesetsWith: "🔄Sakrij izmjene s ",
-            showChangesetsWith: "🔄Samo izmjene s ",
+            hideBigChangesets: "Sakrij velike changesete",
+            hideChangesetsFrom: "🔄Sakrij changesete od ",
+            showChangesetsFrom: "🔄Prikaži changesete od ",
+            hideChangesetsWith: "🔄Sakrij changesete s ",
+            showChangesetsWith: "🔄Prikaži changesete s ",
             loadMore: "Učitaj {count}",
+            displayOnOneMapAll: "Prikaži na jednoj karti\nako ništa nije označeno, otvorit će se svi učitani i neskriveni changeseti",
+            displayOnOneMap: "Prikaži na jednoj karti",
+            addCheckboxesMassActions: "Dodaj potvrdne okvire za masovne radnje s changesetima",
+            clickHideUserChangesets: "Kliknite za skrivanje changeseta ovog korisnika",
+            filterViaBetterOsmOrg: "Filtar changeseta putem better-osm-org",
+            filterBySubstringInComments: "Filtriraj po podnizu u komentarima changeseta",
+            clickCopyChangesetId: "Kliknite za kopiranje ID-a changeseta",
         },
         measurer: {
             measureFromHere: "Mjeri odavde",
             endMeasure: "Završi mjerenje",
             cleanMeasurements: "Očisti mjerenja",
+            clickToSwitchUnits: "Kliknite za promjenu mjernih jedinica",
+            orPressEscapeTwice: "Ili dvaput pritisnite Escape",
         },
         panoramax: {
-            blurFaces: "Zamuti lica",
+            blurFaces: "Zamagli lica",
         },
         idEditor: {
             findOffsets: "Pronađi pomake",
@@ -2054,16 +2591,105 @@ const _translations = {
             revertViaOsmRevert: "Vrati putem osm-revert",
             openInEditor: "Otvori u {editor}",
             openInLevel0: "Otvori u Level0",
-            openInLevel0WithWaysGeometry: "Otvori u Level0 s geometrijom linija",
+            openInLevel0WithWaysGeometry: "Otvori u Level0 s geometrijom puteva",
+            openChangesetInOsmcha: "Otvori changeset u OSMCha (ili pritisnite O)\n(Shift + O za otvaranje Achavi)",
+            partialRevertOrEdit: "za djelomični revert ili uređivanje u JOSM/Level0",
+            hotkeyR: "Prečac: R",
+            hotkeyJ: "Prečac: J",
+            hotkeyAltJ: "Prečac: Alt + J",
+            hotkeyShiftAltJ: "Prečac: Shift + Alt + J",
         },
         nodeMover: {
-            moveNodeToHere: "Premjesti točku ovdje",
+            moveNodeToHere: "Premjesti čvor ovdje",
         },
         scriptMenu: {
             settings: "Postavke",
             checkScriptUpdates: "Provjeri ažuriranja skripte",
-            checkDevScriptUpdates: "Provjeri ažuriranja dev-verzije skripte",
-            listOfHotkeys: "Popis tipkovnih prečaca",
+            checkDevScriptUpdates: "Provjeri ažuriranja dev verzije skripte",
+            listOfHotkeys: "Popis prečaca",
+        },
+        actions: {
+            remove: "ukloni",
+        },
+        copying: {
+            clickForCopy: "Kliknite za kopiranje",
+        },
+        betterOsmOrg: {
+            addedByBetterOsmOrg: "dodao better-osm-org",
+            experimentalFeature: "eksperimentalna značajka better-osm-org",
+        },
+        osmcha: {
+            openProfileInOsmcha: "Otvori profil u OSMCha",
+        },
+        selection: {
+            shiftClickSelectRange: "Shift + klik za odabir raspona praznih kućica",
+            clickForInvert: "Kliknite za invertiranje",
+        },
+        deletedUsers: {
+            tryFindDeletedUser: "Pokušaj pronaći obrisanog korisnika",
+        },
+        findUserInDiff: {
+            clickForCopyUserId: "Kliknite za kopiranje korisničkog ID-a",
+        },
+        changesetPageFixes: {
+            osmchaReviewTag: "OSMCha oznaka pregleda. Desni klik za promjenu\n",
+            totalUserChangesets: "ukupan broj changeseta korisnika",
+            showHiddenTags: "Prikaži skrivene oznake",
+            clickForViewMore: "Kliknite za više",
+            mapperRequestedReview: "Maper je zatražio pregled changeseta\n\nKliknite za filtriranje changeseta s review_requested=yes",
+        },
+        hashtags: {
+            searchInOsmcha: "Pretraži ovaj hashtag u OSMCha",
+            filterNotesByHashtag:
+                "Kliknite za filtriranje bilješki po ovom hashtagu.\nKliknite s Ctrl ili Shift za pretragu ovog hashtaga u osm-note-viewer",
+            clickToCopyName: "Kliknite za kopiranje naziva",
+            clickToCopyType: "Kliknite za kopiranje tipa",
+        },
+        userBadges: {
+            userModerator: "Ovaj korisnik je moderator",
+            userImporter: "Ovaj korisnik je importer",
+            userBanned: "Korisnik je blokiran",
+            userNewbie: "U trenutku stvaranja changeseta ili bilješke korisnik je uređivao OpenStreetMap manje od mjesec dana",
+            followingUser: "Pratite ovog korisnika",
+        },
+        notes: {
+            openMapStateSnapshot: "Otvori stanje karte u trenutku snimke",
+            openMapStateNoteCreation: "Otvori stanje karte u trenutku stvaranja bilješke",
+            commaSeparatedSubstrings: "podnizovi odvojeni zarezima\nfiltar radi i po komentarima",
+            commaSeparatedUsernames: "korisnička imena odvojena zarezima",
+        },
+        spyGlass: {
+            activateSpyGlass: "Aktiviraj način imitacije SpyGlass (better-osm-org eksperiment)",
+        },
+        gpxFilter: {
+            clickToZoomTrack: "kliknite za zumiranje\nSavjet: pritisnite 8-9 za prijelaz na prethodnu/sljedeću poziciju karte",
+            showGpxTracks: "Prikaži GPX tragove u trenutnom prikazu karte",
+        },
+        objectPage: {
+            gpsTrackerPosition: "Plava — položaj s GPS trackera\nNarančasta — procijenjeni stvarni položaj",
+            roofOrientationAcrossAlong: 'roof:orientation mora biti "across" ili "along"',
+            conditionalMustContainAt: "vrijednost oznake :conditional mora sadržavati @",
+            emptyPartAfterAt: "prazan dio nakon @",
+            emptyPartBeforeAt: "prazan dio prije @",
+            emptyPartBetweenAt: "prazan dio između @",
+            observationNotFound: "Zapažanje nije pronađeno u iNaturalist API-ju",
+            noErrorsOpeningHours: "opening_hours.js nije pronašao greške 👍",
+            phoneMustStartPlus: "broj telefona mora početi s +",
+            easterEgg: "better-osm-org uskrsno jaje",
+            needRoofOrientation: "izgleda da ovo treba promijeniti u roof:orientation",
+            clickShowEmbedded3d:
+                "Kliknite za prikaz ugrađenog 3D preglednika.\nU postavkama userscripta možete postaviti otvaranje na OSM stranici kao zadano",
+            setAsDefaultForClick: "Postavi kao zadano za klik",
+            defaultViewer: "Ovo je zadani preglednik",
+            keyTooShort: "Ključ je prekratak",
+            suspiciousCapitalKey: "Sumnjiv ključ koji počinje velikim slovom",
+            openObjectHistory: "Kliknite za otvaranje stranice povijesti objekta\nIli pritisnite tipku H",
+        },
+        taginfo: {
+            searchWithOverpass: "pretraži pomoću Overpassa",
+        },
+        relationVersionPage: {
+            loadViaOverpass: "Učitaj verziju relacije putem Overpass API-ja",
         },
     },
 }
@@ -2136,7 +2762,7 @@ function makeRow(label, text, without_delete = false, placeholder = "comment tha
     td.setAttribute("placeholder", placeholder)
 
     td2.textContent = "×"
-    td2.title = t("titles.remove")
+    td2.title = t("actions.remove")
     td2.style.width = "21px"
     td2.style.cursor = "pointer"
     td2.style.textAlign = "center"
@@ -2606,7 +3232,7 @@ const configOptions = {
             versionSection.textContent = t("init.scriptVersion")
             const version = document.createElement("span")
             version.textContent = GM_info.script.version
-            version.title = t("titles.clickForCopy")
+            version.title = t("copying.clickForCopy")
             version.style.cursor = "pointer"
             version.onclick = e => {
                 navigator.clipboard.writeText(GM_info.script.version).then(() => copyAnimation(e, GM_info.script.version))
@@ -5002,7 +5628,7 @@ async function findChangesetInDiff(e) {
 
     const uid = document.createElement("span")
     uid.style.cursor = "pointer"
-    uid.title = t("titles.clickForCopyUserId")
+    uid.title = t("findUserInDiff.clickForCopyUserId")
     uid.onclick = e => {
         const text = foundedUserUid
         navigator.clipboard.writeText(text).then(() => copyAnimation(e, text))
@@ -5840,7 +6466,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
         if (changesetProps["tags"].length) {
             const spanWrapper = document.createElement("span")
             spanWrapper.classList.add("review-tags")
-            spanWrapper.title = t("titles.osmchaReviewTag")
+            spanWrapper.title = t("changesetPageFixes.osmchaReviewTag")
             spanWrapper.style.marginBottom = "3px"
             spanWrapper.style.position = "relative"
             spanWrapper.innerHTML = tagSvg
@@ -6089,7 +6715,7 @@ function addUsernameBadgesOrRestoreAction(changeset_id) {
                         const allChangesets = document.createElement("span")
                         allChangesets.textContent = `/${info["changesets"]["count"]}`
                         allChangesets.style.color = "gray"
-                        allChangesets.title = t("titles.totalUserChangesets")
+                        allChangesets.title = t("changesetPageFixes.totalUserChangesets")
                         i.querySelector("td").appendChild(allChangesets)
                     }
 
@@ -6108,7 +6734,7 @@ function addUsernameBadgesOrRestoreAction(changeset_id) {
         metainfoHTML.innerHTML = ""
         metainfoHTML.appendChild(time)
         const findBtn = document.createElement("span")
-        findBtn.title = t("titles.tryFindDeletedUser")
+        findBtn.title = t("deletedUsers.tryFindDeletedUser")
         findBtn.textContent = " 🔍 "
         findBtn.value = changeset_id
         findBtn.datetime = time.dateTime
@@ -6235,7 +6861,7 @@ Press R for partial revert`
         osmcha_link.style.height = "1em"
         osmcha_link.style.cursor = "pointer"
         osmcha_link.style.marginTop = "-3px"
-        osmcha_link.title = t("titles.openChangesetInOsmcha")
+        osmcha_link.title = t("changesetPage.openChangesetInOsmcha")
         if (isDarkMode()) {
             osmcha_link.style.filter = "invert(0.7)"
         }
@@ -6246,7 +6872,7 @@ Press R for partial revert`
             selectObjects.classList.add("select-objects-btn")
             selectObjects.textContent = t("changesetPage.selectObjects").replace(" ", "\xA0")
             selectObjects.href = ""
-            selectObjects.title = t("titles.partialRevertOrEdit")
+            selectObjects.title = t("changesetPage.partialRevertOrEdit")
             selectObjects.onclick = e => {
                 e.preventDefault()
                 e.stopPropagation()
@@ -6259,7 +6885,7 @@ Press R for partial revert`
 
                 const revertBtn = document.createElement("button")
                 revertBtn.textContent = t("changesetPage.revertViaOsmRevert")
-                revertBtn.title = t("titles.hotkeyR")
+                revertBtn.title = t("changesetPage.hotkeyR")
                 revertBtn.style.marginBottom = "4px"
                 revertBtn.onclick = () => document.querySelector("#revert_button_class").click()
                 wrapper.appendChild(revertBtn)
@@ -6267,7 +6893,7 @@ Press R for partial revert`
 
                 const josmBtn = document.createElement("button")
                 josmBtn.textContent = t("changesetPage.openInEditor", { editor: isMobile ? "Vespucci" : "JOSM" })
-                josmBtn.title = t("titles.hotkeyJ")
+                josmBtn.title = t("changesetPage.hotkeyJ")
                 josmBtn.style.marginBottom = "4px"
                 josmBtn.onclick = openSelectedObjectsOnChangesetPage
                 wrapper.appendChild(josmBtn)
@@ -6275,7 +6901,7 @@ Press R for partial revert`
 
                 const level0Btn = document.createElement("button")
                 level0Btn.textContent = t("changesetPage.openInLevel0")
-                level0Btn.title = t("titles.hotkeyAltJ")
+                level0Btn.title = t("changesetPage.hotkeyAltJ")
                 level0Btn.style.marginBottom = "4px"
                 level0Btn.onclick = () => openSelectedObjectsOnChangesetPage({ altKey: true })
                 wrapper.appendChild(level0Btn)
@@ -6283,7 +6909,7 @@ Press R for partial revert`
 
                 const level0BtnWithGeometry = document.createElement("button")
                 level0BtnWithGeometry.textContent = t("changesetPage.openInLevel0WithWaysGeometry")
-                level0BtnWithGeometry.title = t("titles.hotkeyShiftAltJ")
+                level0BtnWithGeometry.title = t("changesetPage.hotkeyShiftAltJ")
                 level0BtnWithGeometry.style.marginBottom = "4px"
                 level0BtnWithGeometry.onclick = () => openSelectedObjectsOnChangesetPage({ altKey: true, shiftKey: true })
                 wrapper.appendChild(level0BtnWithGeometry)
@@ -6381,7 +7007,7 @@ Press R for partial revert`
                 expander.textContent = "∇"
                 expander.style.textAlign = "center"
                 expander.style.cursor = "pointer"
-                expander.title = t("titles.showHiddenTags")
+                expander.title = t("changesetPageFixes.showHiddenTags")
                 document.querySelector(".browse-tag-list").appendChild(expander)
             }
             document.querySelector(".browse-tag-list")?.setAttribute("compacted", "true")
@@ -6815,7 +7441,7 @@ function setupCompactChangesetsHistory() {
                             commentElem.appendChild(text)
                             const more = document.createElement("span")
                             more.textContent = "..."
-                            more.title = t("titles.clickForViewMore")
+                            more.title = t("changesetPageFixes.clickForViewMore")
                             more.style.cursor = "pointer"
                             more.style.color = "rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1))"
                             more.onclick = () => {
@@ -6871,7 +7497,7 @@ function setupCompactChangesetsHistory() {
                     li.classList.add("review-requested-changeset")
                     const reviewRequestedBadge = document.createElement("span")
                     reviewRequestedBadge.textContent = " " + REVIEW_REQUESTED_EMOJI
-                    reviewRequestedBadge.title = t("titles.mapperRequestedReview")
+                    reviewRequestedBadge.title = t("changesetPageFixes.mapperRequestedReview")
                     reviewRequestedBadge.style.cursor = "pointer"
                     if (!li.classList.contains("has-hidden-comments-badge")) {
                         if (isDarkMode()) {
@@ -6942,7 +7568,7 @@ function makeHashtagsClickable() {
             const a = document.createElement("a")
             a.href = osmchaLink
             a.target = "_blank"
-            a.title = t("titles.searchHashtagInOsmcha")
+            a.title = t("hashtags.searchInOsmcha")
             a.textContent = match
             return a.outerHTML
         })
@@ -6977,7 +7603,7 @@ function makeHashtagsInNotesClickable() {
                     a.id = "note-link-" + Math.random()
                     a.href = ""
                     a.target = "_blank"
-                    a.title = t("titles.filterNotesByHashtag")
+                    a.title = t("hashtags.filterNotesByHashtag")
                     a.textContent = match
 
                     function fixLink() {
@@ -7026,7 +7652,7 @@ function makeHashtagsInNotesClickable() {
                 .replaceAll(/(?<=(POI name: ))(.+)/gu, function (match) {
                     const span = document.createElement("span")
                     span.classList.add("poi-name-in-note")
-                    span.title = t("titles.clickToCopyName")
+                    span.title = t("hashtags.clickToCopyName")
                     span.setAttribute("data-name", match)
                     span.textContent = match
                     return span.outerHTML
@@ -7035,7 +7661,7 @@ function makeHashtagsInNotesClickable() {
                     injectCSSIntoOSMPage(copyAnimationStyles)
                     const span = document.createElement("span")
                     span.classList.add("poi-name-in-note")
-                    span.title = t("titles.clickToCopyType")
+                    span.title = t("hashtags.clickToCopyType")
                     span.setAttribute("data-name", match)
                     span.textContent = match
                     return span.outerHTML
@@ -7112,7 +7738,7 @@ function makeBadge(userInfo, changesetDate = new Date()) {
     function makeModeratorBadge() {
         userBadge.style.position = "relative"
         userBadge.style.bottom = "2px"
-        userBadge.title = t("titles.userModerator")
+        userBadge.title = t("userBadges.userModerator")
         userBadge.innerHTML = moderatorBadgeSvg
         userBadge.querySelector("svg").style.transform = "scale(0.9)"
     }
@@ -7120,13 +7746,13 @@ function makeBadge(userInfo, changesetDate = new Date()) {
     function makeImporterBadge() {
         userBadge.style.position = "relative"
         userBadge.style.bottom = "2px"
-        userBadge.title = t("titles.userImporter")
+        userBadge.title = t("userBadges.userImporter")
         userBadge.innerHTML = importerBadgeSvg
         userBadge.querySelector("svg").style.transform = "scale(0.9)"
     }
 
     function makeBannedUserBadge() {
-        userBadge.title = t("titles.userBanned")
+        userBadge.title = t("userBadges.userBanned")
         userBadge.textContent = BAN_EMOJI + " "
         userBadge.classList.add("banned-badge")
         userBadge.style.cursor = "pointer"
@@ -7161,7 +7787,7 @@ function makeBadge(userInfo, changesetDate = new Date()) {
 
     function makeNewbieBadge() {
         userBadge.classList.add("newbie-badge")
-        userBadge.title = t("titles.userNewbie")
+        userBadge.title = t("userBadges.userNewbie")
         userBadge.textContent = NEWBIE_EMOJI + " "
         userBadge.style.cursor = "pointer"
         userBadge.onclick = e => {
@@ -7210,7 +7836,7 @@ function makeBadge(userInfo, changesetDate = new Date()) {
         getFriends().then(res => {
             if (res.includes(userInfo["display_name"])) {
                 // todo warn if username startsWith 🫂 or use svg
-                userBadge.title = t("titles.followingUser")
+                userBadge.title = t("userBadges.followingUser")
                 userBadge.textContent = "🫂 "
             }
         })
@@ -7725,9 +8351,9 @@ ${styleSuffix}`
         const btn = document.createElement("a")
         btn.id = "timeback-btn"
         if (organicmapsDate || mapsmeDate) {
-            btn.title = t("titles.openMapStateSnapshot")
+            btn.title = t("notes.openMapStateSnapshot")
         } else {
-            btn.title = t("titles.openMapStateNoteCreation")
+            btn.title = t("notes.openMapStateNoteCreation")
         }
         btn.textContent = " 🕰"
         btn.style.cursor = "pointer"
@@ -8040,7 +8666,7 @@ function addNotesFiltersButtons() {
         filterByString.id = "filter-notes-by-string"
         filterByString.style.width = "100%"
         filterByString.placeholder = "word in notes"
-        filterByString.title = t("titles.commaSeparatedSubstrings")
+        filterByString.title = t("notes.commaSeparatedSubstrings")
         filterByString.addEventListener("keypress", function (event) {
             if (event.key === "Enter") {
                 filterByString.classList?.add("wait-fetch")
@@ -8114,7 +8740,7 @@ function addNotesFiltersButtons() {
     function makeFilterByUsernameWrapper() {
         filterByUsername.type = "input"
         filterByUsername.placeholder = "username"
-        filterByString.title = t("titles.commaSeparatedUsernames")
+        filterByString.title = t("notes.commaSeparatedUsernames")
         filterByUsername.id = "filter-notes-by-username"
         filterByUsername.style.width = "100%"
         filterByUsername.addEventListener("keypress", function (event) {
@@ -8336,7 +8962,7 @@ function addSpyGlassButtons() {
     spyGlassBtn.style.cursor = "pointer"
     spyGlassBtn.style.marginLeft = "3px"
     spyGlassBtn.classList.add("bi", "bi-eye-slash-fill")
-    spyGlassBtn.title = t("titles.activateSpyGlass")
+    spyGlassBtn.title = t("spyGlass.activateSpyGlass")
 
     spyGlassBtn.onclick = async () => {
         getWindow().spyGlassMode = !getWindow().spyGlassMode
@@ -8539,7 +9165,7 @@ function addGPXFiltersButtons() {
                             downloadBtn.textContent = "⧈"
                             downloadBtn.innerHTML = fitToObjectSvg
                             downloadBtn.style.cursor = "pointer"
-                            downloadBtn.title = t("titles.clickToZoomTrack")
+                            downloadBtn.title = t("gpxFilter.clickToZoomTrack")
                             downloadBtn.onclick = () => {
                                 fitBounds([
                                     [trackMetadata.min_lat, trackMetadata.min_lon],
@@ -8576,7 +9202,7 @@ function addGPXFiltersButtons() {
     }
 
     filters.textContent = " 🔍"
-    filters.title = t("titles.showGpxTracks")
+    filters.title = t("gpxFilter.showGpxTracks")
     gpxLabel.after(filters)
 }
 
@@ -9068,7 +9694,7 @@ ${CtrlKeyName} + Z: remove last node`
     unitsSwitch.style.cursor = "pointer"
     unitsSwitch.style.marginLeft = "auto"
     unitsSwitch.textContent = measuringUnits
-    unitsSwitch.title = t("titles.clickToSwitchUnits")
+    unitsSwitch.title = t("measurer.clickToSwitchUnits")
     unitsSwitch.onclick = e => {
         e.preventDefault()
         e.stopPropagation()
@@ -9092,7 +9718,7 @@ ${CtrlKeyName} + Z: remove last node`
         const cleanA = document.createElement("a")
         cleanA.classList.add("dropdown-item", "d-flex", "align-items-center", "gap-3")
         cleanA.textContent = t("measurer.cleanMeasurements")
-        cleanA.title = t("titles.orPressEscapeTwice")
+        cleanA.title = t("measurer.orPressEscapeTwice")
 
         const cleanI = document.createElement("i")
         cleanI.classList.add("bi", "bi-eraser")
@@ -9767,7 +10393,7 @@ async function askCustomStyleUrl() {
         editBtn.style.marginLeft = "auto"
         editBtn.style.marginRight = "10px"
         editBtn.style.color = "gray"
-        editBtn.title = t("titles.duplicateStyleAndEdit")
+        editBtn.title = t("satellite.duplicateStyleAndEdit")
         editBtn.onclick = async e => {
             if (!e.isTrusted) return
             editBtn.style.cursor = "progress"
@@ -9801,7 +10427,7 @@ async function askCustomStyleUrl() {
         }
 
         const externalLink = document.createElement("a")
-        externalLink.title = t("titles.openMapStyleHomePage")
+        externalLink.title = t("satellite.openMapStyleHomePage")
         externalLink.setAttribute("href", about)
         externalLink.setAttribute("target", "_blank")
         externalLink.innerHTML = '<i class="bi bi-box-arrow-up-right"></i>'
@@ -10122,7 +10748,7 @@ async function askCustomTileUrl() {
         input.addEventListener("click", onChange)
 
         const externalLink = document.createElement("a")
-        externalLink.title = t("titles.openMapLayerHomePage")
+        externalLink.title = t("satellite.openMapLayerHomePage")
         externalLink.setAttribute("href", about)
         externalLink.innerHTML = externalLinkSvg
         externalLink.style.marginLeft = "auto"
@@ -10629,7 +11255,7 @@ function addSwitchTilesBtnOnNotePage() {
     }
     btnOnNotePage.style.cursor = "pointer"
     btnOnNotePage.classList.add("turn-on-satellite")
-    btnOnNotePage.title = t("titles.switchMapAndSatellite")
+    btnOnNotePage.title = t("satellite.switchMapAndSatellite")
 
     document.querySelectorAll("h4")[0].appendChild(document.createTextNode("\xA0"))
     document.querySelectorAll("h4")[0].appendChild(btnOnNotePage)
@@ -10679,7 +11305,7 @@ function createCustomLayerBtn() {
     btn.classList.add("set-custom-layer-btn")
     btn.textContent = " ⚙️"
     btn.style.cursor = "pointer"
-    btn.title = t("titles.setCustomLayer")
+    btn.title = t("satellite.setCustomLayer")
     btn.onclick = async () => {
         enableOverzoom()
         await askCustomTileUrl()
@@ -10707,7 +11333,7 @@ function addSwitchTilesButtonsOnPane() {
         const btnOnPane = document.createElement("span")
         btnOnPane.style.cursor = "pointer"
         btnOnPane.textContent = "🎨"
-        btnOnPane.title = t("titles.setCustomVectorStyle")
+        btnOnPane.title = t("satellite.setCustomVectorStyle")
         btnOnPane.onmouseover = async () => {
             await mapStylesDatabase.init()
         }
@@ -11292,7 +11918,7 @@ function makeMapillaryValue(elem) {
                     const img = document.createElement("img")
                     img.src = imgData
                     img.alt = "image from Mapillary"
-                    img.title = t("titles.gpsTrackerPosition")
+                    img.title = t("objectPage.gpsTrackerPosition")
                     img.style.width = "100%"
                     a.appendChild(img)
                 })
@@ -11421,26 +12047,26 @@ function makeWikimediaCommonsValue(elem) {
 function makeRoofOrientationValue(elem) {
     if (elem.textContent !== "across" && elem.textContent !== "along") {
         elem.classList.add("fixme-tag")
-        elem.title = t("titles.roofOrientationAcrossAlong")
+        elem.title = t("objectPage.roofOrientationAcrossAlong")
     }
 }
 
 function makeConditionalValue(elem) {
     if (!elem.textContent.includes("@")) {
         elem.classList.add("fixme-tag")
-        elem.title = t("titles.conditionalMustContainAt")
+        elem.title = t("objectPage.conditionalMustContainAt")
     }
     if (elem.textContent.match(/@\s*$/)) {
         elem.classList.add("fixme-tag")
-        elem.title = t("titles.emptyPartAfterAt")
+        elem.title = t("objectPage.emptyPartAfterAt")
     }
     if (elem.textContent.match(/^\s*@/)) {
         elem.classList.add("fixme-tag")
-        elem.title = t("titles.emptyPartBeforeAt")
+        elem.title = t("objectPage.emptyPartBeforeAt")
     }
     if (elem.textContent.match(/@\s*@/)) {
         elem.classList.add("fixme-tag")
-        elem.title = t("titles.emptyPartBetweenAt")
+        elem.title = t("objectPage.emptyPartBetweenAt")
     }
 }
 
@@ -11522,7 +12148,7 @@ function makeRefInaturalistValue(elem) {
             const observation = observationsById.get(a.textContent)
             if (!observation) {
                 a.classList.add("warn-tag")
-                a.title = t("titles.observationNotFound")
+                a.title = t("objectPage.observationNotFound")
                 continue
             }
             const { zoomSrc: imgSrc } = getInaturalistPhotoUrls(observation)
@@ -11563,7 +12189,7 @@ function makeOpeningHoursValue(valueCell, key, isVersionPage) {
     try {
         new opening_hours(valueCell.textContent, null, { tag_key: key })
         if (isVersionPage) {
-            valueCell.title = t("titles.noErrorsOpeningHours")
+            valueCell.title = t("objectPage.noErrorsOpeningHours")
         }
     } catch (e) {
         valueCell.title = e
@@ -11577,7 +12203,7 @@ function makeOpeningHoursValue(valueCell, key, isVersionPage) {
 function makePhoneValue(valueCell, key) {
     try {
         if (valueCell.textContent[0] !== "+") {
-            valueCell.title = t("titles.phoneMustStartPlus")
+            valueCell.title = t("objectPage.phoneMustStartPlus")
             valueCell.classList.add("fixme-tag")
             valueCell.querySelectorAll("a").forEach(i => i.classList.add("fixme-tag"))
         } else if (!valueCell.textContent.split(";").every(i => libphonenumber.isPossiblePhoneNumber(i.trim()))) {
@@ -11608,7 +12234,7 @@ function makeXmasFeatureEasterEgg() {
             snowBtn.classList.add("egg-snow-tag")
             snowBtn.textContent = " ❄️"
             snowBtn.style.cursor = "pointer"
-            snowBtn.title = t("titles.easterEgg")
+            snowBtn.title = t("objectPage.easterEgg")
             snowBtn.addEventListener(
                 "click",
                 e => {
@@ -11763,7 +12389,7 @@ function makeRoofDirectionValue(valueCell, row, isVersionPage) {
     if (valueCell.textContent === "across" || valueCell.textContent === "along") {
         // todo more
         valueCell.classList.add("fixme-tag")
-        valueCell.title = t("titles.needRoofOrientation")
+        valueCell.title = t("objectPage.needRoofOrientation")
         return
     }
     if (!isVersionPage) {
@@ -11887,7 +12513,7 @@ function makeLinksInVersionTagClickable(row, objType) {
         viewIn3D.style.cursor = "pointer"
         viewIn3D.style.paddingTop = "3px"
         viewIn3D.style.paddingBottom = "3px"
-        viewIn3D.title = t("titles.clickShowEmbedded3d")
+        viewIn3D.title = t("objectPage.clickShowEmbedded3d")
 
         async function contextMenuHandler(e) {
             const buildingViewer = (await GM.getValue("3DViewer")) ?? "OSM Building Viewer"
@@ -11917,10 +12543,10 @@ function makeLinksInVersionTagClickable(row, objType) {
                 pinLabel.setAttribute("for", i.name)
                 pinLabel.classList.add("pin-label")
                 pinLabel.textContent = "📌"
-                pinLabel.title = t("titles.setAsDefaultForClick")
+                pinLabel.title = t("objectPage.setAsDefaultForClick")
                 if (i.name === buildingViewer) {
                     pin.checked = true
-                    pinLabel.title = t("titles.defaultViewer")
+                    pinLabel.title = t("objectPage.defaultViewer")
                 }
                 pin.onchange = async () => {
                     if (pin.checked) {
@@ -12088,10 +12714,10 @@ function makeLinksInVersionTagClickable(row, objType) {
         makeRefInaturalistValue(valueCell)
     } else if (key.length <= 2 && key !== "to" && key !== "tv" && key !== "it") {
         keyCell.classList.add("fixme-tag")
-        keyCell.title = t("titles.keyTooShort")
+        keyCell.title = t("objectPage.keyTooShort")
     } else if (key.length >= 2 && rawKey[0] >= "A" && rawKey[0] <= "Z" && rawKey[1] >= "a" && rawKey[1] <= "z") {
         keyCell.classList.add("fixme-tag")
-        keyCell.title = t("titles.suspiciousCapitalKey")
+        keyCell.title = t("objectPage.suspiciousCapitalKey")
     }
 }
 
@@ -12120,7 +12746,7 @@ function addHistoryLink() {
     const curHref = document.querySelector("#sidebar_content h4 a").href.match(/(.*)\/(\d+)$/)
     a.href = curHref[1]
     a.textContent = "🕒"
-    a.title = t("titles.openObjectHistory")
+    a.title = t("objectPage.openObjectHistory")
     a.classList.add("history_button_class")
     if (curHref[2] !== "1") {
         versionInSidebar.after(a)
@@ -12925,7 +13551,7 @@ async function replaceDownloadWayButton(btn, wayID) {
                 console.trace()
                 console.log(currentNodes)
                 btn.style.background = "yellow"
-                btn.title = t("titles.someNodesHidden")
+                btn.title = t("historyDiff.someNodesHidden")
                 return
             }
             const nodeLi = document.createElement("li")
@@ -13124,9 +13750,9 @@ async function replaceDownloadWayButton(btn, wayID) {
                     console.trace()
                     console.log(currentNodes)
                     btn.style.background = "yellow"
-                    btn.title = t("titles.reloadAndReport")
+                    btn.title = t("historyDiff.reloadAndReport")
                     divForNodesReplace.classList.add("broken-version")
-                    divForNodesReplace.title = t("titles.someNodesHiddenSad")
+                    divForNodesReplace.title = t("historyDiff.someNodesHiddenSad")
                     divForNodesReplace.style.cursor = "auto"
                     return
                 }
@@ -13241,7 +13867,7 @@ async function replaceDownloadWayButton(btn, wayID) {
     if (document.querySelectorAll('[way-version="inter"]').length > 20) {
         const select = document.createElement("select")
         select.id = "versions-filter"
-        select.title = t("titles.filterIntermediateChanges")
+        select.title = t("historyDiff.filterIntermediateChanges")
 
         const allVersions = document.createElement("option")
         allVersions.value = "all-versions"
@@ -13291,7 +13917,7 @@ async function showFullWayHistory(wayID) {
         await replaceDownloadWayButton(btn, wayID)
     } catch (err) {
         console.error(err)
-        btn.title = t("titles.reloadAndReport")
+        btn.title = t("historyDiff.reloadAndReport")
         btn.style.background = "red"
         btn.style.cursor = "auto"
     }
@@ -13310,7 +13936,7 @@ function setupWayVersionView() {
         const nodesList = filterObjectListByTimestamp(nodesHistory, targetVersion.timestamp)
         if (nodesList.some(i => i === null)) {
             htmlElem.parentElement.parentElement.classList.add("broken-version")
-            htmlElem.title = t("titles.someNodesHidden")
+            htmlElem.title = t("historyDiff.someNodesHidden")
             htmlElem.style.cursor = "auto"
         } else {
             if (needShowWay) {
@@ -13403,7 +14029,7 @@ function setupWayVersionView() {
         downloadAllVersionsBtn.tabIndex = 0
         downloadAllVersionsBtn.textContent = "⏬"
         downloadAllVersionsBtn.style.cursor = "pointer"
-        downloadAllVersionsBtn.title = t("titles.downloadAllVersionsWithIntermediate")
+        downloadAllVersionsBtn.title = t("historyDiff.downloadAllVersionsWithIntermediate")
         const clickHandler = async () => {
             downloadAllVersionsBtn.style.cursor = "progress"
             await unrollPaginationInHistory()
@@ -13975,7 +14601,7 @@ async function replaceDownloadRelationButton(btn, relationID) {
                 console.trace()
                 console.log(currentMembers)
                 btn.style.background = "yellow"
-                btn.title = t("titles.someMembersHidden")
+                btn.title = t("historyDiff.someMembersHidden")
                 return
             }
             const memberLi = document.createElement("li")
@@ -14208,9 +14834,9 @@ async function replaceDownloadRelationButton(btn, relationID) {
                     console.trace()
                     console.log(currentMembers)
                     btn.style.background = "yellow"
-                    btn.title = t("titles.reloadAndReport")
+                    btn.title = t("historyDiff.reloadAndReport")
                     divForMembersReplace.classList.add("broken-version")
-                    divForMembersReplace.title = t("titles.someNodesHiddenSad")
+                    divForMembersReplace.title = t("historyDiff.someNodesHiddenSad")
                     divForMembersReplace.style.cursor = "auto"
                     return
                 }
@@ -14337,7 +14963,7 @@ async function replaceDownloadRelationButton(btn, relationID) {
     if (document.querySelectorAll('[relation-version="inter"]').length > 20) {
         const select = document.createElement("select")
         select.id = "versions-filter"
-        select.title = t("titles.filterIntermediateChanges")
+        select.title = t("historyDiff.filterIntermediateChanges")
 
         const allVersions = document.createElement("option")
         allVersions.value = "all-versions"
@@ -14391,7 +15017,7 @@ async function showFullRelationHistory(relationID) {
         await replaceDownloadRelationButton(btn, relationID)
     } catch (err) {
         console.error(err)
-        btn.title = t("titles.reloadAndReport")
+        btn.title = t("historyDiff.reloadAndReport")
         btn.style.background = "red"
         btn.style.cursor = "auto"
     }
@@ -14554,7 +15180,7 @@ function setupRelationVersionView() {
         downloadAllVersionsBtn.tabIndex = 0
         downloadAllVersionsBtn.textContent = "⏬"
         downloadAllVersionsBtn.style.cursor = "pointer"
-        downloadAllVersionsBtn.title = t("titles.downloadAllVersions") // + " (with intermediate versions)"
+        downloadAllVersionsBtn.title = t("historyDiff.downloadAllVersions") // + " (with intermediate versions)"
 
         const clickHandler = async e => {
             downloadAllVersionsBtn.style.cursor = "progress"
@@ -15455,7 +16081,7 @@ function transformDiffWithColors() {
             metainfoHTML.appendChild(time)
             const findBtn = document.createElement("span")
             findBtn.classList.add("find-user-btn")
-            findBtn.title = t("titles.tryFindDeletedUser")
+            findBtn.title = t("deletedUsers.tryFindDeletedUser")
             findBtn.textContent = " 🔍 "
             findBtn.value = changesetID
             findBtn.datetime = time.dateTime
@@ -15897,7 +16523,7 @@ function addDiffInHistory(reason = "url_change") {
     }
     if (!document.querySelector(".compact-toggle-btn")) {
         const compactToggle = document.createElement("button")
-        compactToggle.title = t("titles.toggleCompactTagsDiff")
+        compactToggle.title = t("historyDiff.toggleCompactTagsDiff")
         compactToggle.setAttribute("value", "><")
         compactToggle.innerHTML = compactModeSvg
         compactToggle.classList.add("compact-toggle-btn")
@@ -16433,10 +17059,10 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
             makeTypeValue(valueCell, objType)
         } else if (key.length <= 2 && key !== "to" && key !== "tv" && key !== "it") {
             keyCell.classList.add("fixme-tag")
-            keyCell.title = t("titles.keyTooShort")
+            keyCell.title = t("objectPage.keyTooShort")
         } else if (key.length >= 2 && rawKey[0] >= "A" && rawKey[0] <= "Z" && rawKey[1] >= "a" && rawKey[1] <= "z") {
             keyCell.classList.add("fixme-tag")
-            keyCell.title = t("titles.suspiciousCapitalKey")
+            keyCell.title = t("objectPage.suspiciousCapitalKey")
         }
     }
 }
@@ -16745,7 +17371,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         geomChangedFlag.textContent = " 📐"
         geomChangedFlag.tabIndex = 0
         geomChangedFlag.classList.add("nodes-changed")
-        geomChangedFlag.title = t("titles.listWayNodesChanged")
+        geomChangedFlag.title = t("changesetQuicklook.listWayNodesChanged")
         geomChangedFlag.style.userSelect = "none"
         geomChangedFlag.style.background = "rgba(223, 238, 9, 0.6)"
         geomChangedFlag.style.cursor = "pointer"
@@ -16838,7 +17464,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         if (lineWasReversed) {
             const row = makeWayDiffRow("", "🔃")
             row.querySelectorAll("td").forEach(i => (i.style.textAlign = "center"))
-            row.querySelector("td:nth-of-type(2)").title = t("titles.nodesReversed")
+            row.querySelector("td:nth-of-type(2)").title = t("changesetQuicklook.nodesReversed")
             tbody.appendChild(row)
 
             prevVersion.nodes.forEach((i, index) => {
@@ -16926,7 +17552,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
     if (prevVersion.visible === false && targetVersion?.visible !== false && targetVersion.version !== 1) {
         const restoredElemFlag = document.createElement("span")
         restoredElemFlag.textContent = " ♻️"
-        restoredElemFlag.title = t("titles.objectRestored")
+        restoredElemFlag.title = t("changesetQuicklook.objectRestored")
         restoredElemFlag.style.userSelect = "none"
         i.appendChild(restoredElemFlag)
     }
@@ -16939,10 +17565,10 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         let membersChanged = false
         if (JSON.stringify(prevVersion?.members ?? []) !== JSON.stringify(targetVersion.members) && targetVersion.version !== 1) {
             memChangedFlag.style.background = "rgba(223, 238, 9, 0.6)"
-            memChangedFlag.title = t("titles.relationMembersChanged")
+            memChangedFlag.title = t("changesetQuicklook.relationMembersChanged")
             membersChanged = true
         } else {
-            memChangedFlag.title = t("titles.showRelationMembers")
+            memChangedFlag.title = t("changesetQuicklook.showRelationMembers")
         }
         memChangedFlag.style.cursor = "pointer"
 
@@ -17136,7 +17762,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             // members reversed
             const row = makeRelationDiffRow("", "🔃")
             row.querySelectorAll("td").forEach(i => (i.style.textAlign = "center"))
-            row.querySelector("td:nth-of-type(2)").title = t("titles.relationMembersReversed")
+            row.querySelector("td:nth-of-type(2)").title = t("changesetQuicklook.relationMembersReversed")
             tbody.appendChild(row)
 
             prevVersion?.members?.forEach((i, index) => {
@@ -17219,7 +17845,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         pinRelation.classList.add("pin-relation")
         pinRelation.style.cursor = "pointer"
         pinRelation.style.display = "none"
-        pinRelation.title = t("titles.pinRelationOnMap")
+        pinRelation.title = t("changesetQuicklook.pinRelationOnMap")
         pinRelation.onkeypress = pinRelation.onclick = async e => {
             if (e.type === "keypress" && (e.code === "Space" || e.code === "Enter")) {
                 e.preventDefault()
@@ -17242,9 +17868,9 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 pinRelation.style.cursor = "pointer"
                 pinRelation.classList.add("pinned")
                 pinRelation.textContent = "📍"
-                pinRelation.title = t("titles.unpinRelationFromMap")
+                pinRelation.title = t("changesetQuicklook.unpinRelationFromMap")
             } else {
-                pinRelation.title = t("titles.pinRelationOnMap")
+                pinRelation.title = t("changesetQuicklook.pinRelationOnMap")
                 pinRelation.classList.remove("pinned")
                 pinRelation.textContent = "📌"
                 cleanObjectsByKey(`customObjects/${targetVersion.id}`)
@@ -17269,7 +17895,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             targetVersion.lon,
         ) * 1000;
         locationChangedFlag.textContent = ` 📍${distInMeters.toFixed(1)}m`
-        locationChangedFlag.title = t("titles.nodeCoordinatesChanged")
+        locationChangedFlag.title = t("changesetQuicklook.nodeCoordinatesChanged")
         locationChangedFlag.classList.add("location-modified-marker")
         // if (distInMeters > 100) {
         //     locationChangedFlag.classList.add("location-modified-marker-warn")
@@ -17929,7 +18555,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
         const btn = document.createElement("a")
         btn.textContent = "📥"
         btn.classList.add("load-relation-version")
-        btn.title = t("titles.downloadThisRelation")
+        btn.title = t("changesetQuicklook.downloadThisRelation")
         btn.tabIndex = 0
         btn.style.cursor = "pointer"
 
@@ -17958,7 +18584,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                     showValidationStatus(relationMetadata.restrictionRelationErrors, i.parentElement)
                 } else {
                     if (relationMetadata.isRestriction) {
-                        i.parentElement.parentElement.title = t("titles.shiftClickZoomVia")
+                        i.parentElement.parentElement.title = t("changesetQuicklook.shiftClickZoomVia")
                     }
                 }
                 i.parentElement.parentElement.onclick = e => {
@@ -18595,7 +19221,7 @@ async function processQuickLookInSidebar(changesetID) {
 
     function addCompactModeToggles(objType, uniqTypes) {
         const compactToggle = document.createElement("button")
-        compactToggle.title = t("titles.toggleCompactTagsDiff")
+        compactToggle.title = t("historyDiff.toggleCompactTagsDiff")
         compactToggle.textContent = allTagsOfObjectsVisible ? "><" : "<>"
         compactToggle.classList.add("quick-look-compact-toggle-btn")
         compactToggle.classList.add("btn", "btn-sm", "btn-primary")
@@ -19380,7 +20006,7 @@ async function processQuickLookInSidebar(changesetID) {
                     }).toString()
                 a.target = "_blank"
                 a.appendChild(document.createTextNode("⚠️ Send Bug Report"))
-                a.title = t("titles.unableDisplaySomeData")
+                a.title = t("changesetQuicklook.unableDisplaySomeData")
                 return a
             }
 
@@ -21291,7 +21917,7 @@ async function addHoverForRelationMembers() {
                 pinSign.classList.add("pinned")
                 pinSign.textContent = "📌"
                 pinSign.tabIndex = 0
-                pinSign.title = t("titles.pinRestrictionSign")
+                pinSign.title = t("objectVersionPage.pinRestrictionSign")
                 pinSign.style.cursor = "pointer"
                 pinSign.onkeypress = pinSign.onclick = async e => {
                     e.preventDefault()
@@ -21300,10 +21926,10 @@ async function addHoverForRelationMembers() {
                         pinSign.style.cursor = "pointer"
                         pinSign.classList.remove("pinned")
                         pinSign.style.filter = "grayscale(1)"
-                        pinSign.title = t("titles.hideRestrictionSign")
+                        pinSign.title = t("objectVersionPage.hideRestrictionSign")
                         restrictionArrows.forEach(i => (i.getElement().style.display = "none"))
                     } else {
-                        pinSign.title = t("titles.hideRestrictionSign")
+                        pinSign.title = t("objectVersionPage.hideRestrictionSign")
                         pinSign.classList.add("pinned")
                         pinSign.style.filter = ""
                         restrictionArrows.forEach(i => (i.getElement().style.display = ""))
@@ -21337,7 +21963,7 @@ function makeHeaderPartsClickable() {
         if (/^\d+$/.test(elem.textContent)) {
             elem.title = `Click to copy ID\n${CtrlKeyName} + click to copy URL`
         } else {
-            elem.title = t("titles.clickForCopy")
+            elem.title = t("copying.clickForCopy")
         }
         elem.style.cursor = "pointer"
         elem.classList.add("copyable")
@@ -21452,7 +22078,7 @@ function addCopyCoordinatesButtons() {
         const copyButton = document.createElement("span")
         copyButton.classList.add("copy-coords-btn")
         copyButton.textContent = "📄"
-        copyButton.title = t("titles.selectCoordinatesFormat")
+        copyButton.title = t("objectVersionPage.selectCoordinatesFormat")
         copyButton.innerHTML = copyBtnSvg
         copyButton.style.height = "0.9rem"
         copyButton.style.position = "relative"
@@ -21495,10 +22121,10 @@ function addCopyCoordinatesButtons() {
                 pinLabel.setAttribute("for", "CoordFormat_" + ind)
                 pinLabel.classList.add("pin-label")
                 pinLabel.textContent = "📌"
-                pinLabel.title = t("titles.setDefaultCopyFormat")
+                pinLabel.title = t("objectVersionPage.setDefaultCopyFormat")
                 if (format === coordinatesFormat) {
                     pin.checked = true
-                    pinLabel.title = t("titles.defaultCopyFormat")
+                    pinLabel.title = t("objectVersionPage.defaultCopyFormat")
                 }
                 pin.onchange = async () => {
                     if (pin.checked) {
@@ -21571,7 +22197,7 @@ function addRelationHistoryViewerLinks() {
     viewInExternal.style.position = "relative"
     viewInExternal.style.top = "-2px"
     viewInExternal.style.paddingLeft = "5px"
-    viewInExternal.title = t("titles.openExternalRelationViewer")
+    viewInExternal.title = t("objectVersionPage.openExternalRelationViewer")
     viewInExternal.querySelector("svg").tabIndex = 0
 
     async function contextMenuHandler(e) {
@@ -21599,10 +22225,10 @@ function addRelationHistoryViewerLinks() {
             pinLabel.setAttribute("for", i.name)
             pinLabel.classList.add("pin-label")
             pinLabel.textContent = "📌"
-            pinLabel.title = t("titles.setAsDefaultForClick")
+            pinLabel.title = t("objectPage.setAsDefaultForClick")
             if (i.name === relationViewer) {
                 pin.checked = true
-                pinLabel.title = t("titles.defaultViewer")
+                pinLabel.title = t("objectPage.defaultViewer")
             }
             pin.onchange = async () => {
                 if (pin.checked) {
@@ -21668,7 +22294,7 @@ function makeVersionPageBetter() {
                 metainfoHTML.lastChild.remove()
                 const findBtn = document.createElement("span")
                 findBtn.classList.add("find-user-btn")
-                findBtn.title = t("titles.tryFindDeletedUser")
+                findBtn.title = t("deletedUsers.tryFindDeletedUser")
                 findBtn.textContent = " 🔍 "
                 findBtn.value = changesetID
                 findBtn.datetime = time.dateTime
@@ -22550,7 +23176,7 @@ function makeTopActionBar() {
     }
     const viewChangesetsButton = document.createElement("button")
     viewChangesetsButton.textContent = "🔍"
-    viewChangesetsButton.title = t("titles.displayOnOneMapAll")
+    viewChangesetsButton.title = t("changesetsHistory.displayOnOneMapAll")
     viewChangesetsButton.onclick = openCombinedChangesetsMap
     actionsBar.appendChild(copyIds)
     actionsBar.appendChild(document.createTextNode("\xA0"))
@@ -22588,7 +23214,7 @@ function makeBottomActionBar() {
     revertButton.classList.add("page-link")
     const viewChangesetsButton = document.createElement("button")
     viewChangesetsButton.textContent = "🔍"
-    viewChangesetsButton.title = t("titles.displayOnOneMap")
+    viewChangesetsButton.title = t("changesetsHistory.displayOnOneMap")
     viewChangesetsButton.onclick = openCombinedChangesetsMap
     viewChangesetsButton.classList.add("page-link")
     const changesetMore = document.querySelector('#sidebar_content div.changeset_more:has([href*="before"]) li')
@@ -22633,7 +23259,7 @@ function addMassActionForUserChangesets() {
         return
     }
     const a = document.createElement("a")
-    a.title = t("titles.addCheckboxesMassActions")
+    a.title = t("changesetsHistory.addCheckboxesMassActions")
     a.textContent = " 📋"
     a.style.cursor = "pointer"
     a.id = "mass-action-btn"
@@ -22656,7 +23282,7 @@ function addMassActionForUserChangesets() {
     const osmchaLink = document.createElement("a")
     osmchaLink.innerHTML = osmchaSvgLogo
     osmchaLink.id = "osmcha_link"
-    osmchaLink.title = t("titles.openProfileInOsmcha")
+    osmchaLink.title = t("osmcha.openProfileInOsmcha")
     osmchaLink.href = makeOsmchaLinkForUsername(username)
     osmchaLink.target = "_blank"
     osmchaLink.rel = "noreferrer"
@@ -22698,7 +23324,7 @@ function addChangesetCheckbox(changesetElem) {
     checkbox.classList.add("mass-action-checkbox")
     checkbox.value = changesetElem.querySelector(".changeset_id").href.match(/\/(\d+)/)[1]
     checkbox.style.cursor = "pointer"
-    checkbox.title = t("titles.shiftClickSelectRange")
+    checkbox.title = t("selection.shiftClickSelectRange")
     checkbox.onclick = e => {
         if (e.shiftKey) {
             let currentCheckboxFound = false
@@ -22895,7 +23521,7 @@ function makeUsernamesFilterable(usernameLink) {
     filterIcon.style.position = "relative"
     filterIcon.style.top = "-2px"
     filterIcon.style.marginLeft = "4px"
-    filterIcon.title = t("titles.clickHideUserChangesets")
+    filterIcon.title = t("changesetsHistory.clickHideUserChangesets")
     filterIcon.onclick = async e => {
         e.preventDefault()
         await addUsernameIntoChangesetsFilter(usernameLink.textContent)
@@ -22938,7 +23564,7 @@ function addMassActionForGlobalChangesets() {
         a.textContent = " 🔎"
         a.style.cursor = "pointer"
         a.id = "changesets-filter-btn"
-        a.title = t("titles.changesetsFilterVia")
+        a.title = t("changesetsHistory.filterViaBetterOsmOrg")
         a.onclick = async () => {
             document.querySelector("#sidebar .search_forms")?.setAttribute("hidden", "true")
 
@@ -22969,7 +23595,7 @@ function addMassActionForGlobalChangesets() {
 
                 const label = document.createElement("span")
                 label.textContent = t("changesetsHistory.hideChangesetsFrom")
-                label.title = t("titles.clickForInvert")
+                label.title = t("selection.clickForInvert")
                 label.style.minWidth = "165px"
                 label.style.display = "inline-block"
                 label.style.cursor = "pointer"
@@ -23011,7 +23637,7 @@ function addMassActionForGlobalChangesets() {
 
                 const label2 = document.createElement("span")
                 label2.textContent = t("changesetsHistory.hideChangesetsWith")
-                label2.title = t("titles.clickForInvert")
+                label2.title = t("selection.clickForInvert")
                 label2.style.minWidth = "165px"
                 label2.style.display = "inline-block"
                 label2.style.cursor = "pointer"
@@ -23037,7 +23663,7 @@ function addMassActionForGlobalChangesets() {
                 const filterByCommentInput = document.createElement("input")
                 filterByCommentInput.id = "filter-by-comment-input"
                 filterByCommentInput.placeholder = "words1,words2,... and press Enter"
-                filterByCommentInput.title = t("titles.filterBySubstringInComments")
+                filterByCommentInput.title = t("changesetsHistory.filterBySubstringInComments")
                 filterByCommentInput.style.width = 253 - getScrollbarWidth() + "px"
                 filterByCommentInput.addEventListener("keypress", async function (event) {
                     if (event.key === "Enter") {
@@ -23121,7 +23747,7 @@ function addMassChangesetsActions() {
                 const id = e.target.innerText
                 navigator.clipboard.writeText(id).then(() => copyAnimation(e, id))
             }
-            item.title = t("titles.clickCopyChangesetId")
+            item.title = t("changesetsHistory.clickCopyChangesetId")
             if (location.pathname.match(/^\/history(\/?|\/friends)$/)) {
                 const usernameA = item.parentElement.parentElement.querySelector('a[href^="/user/"]')
                 getCachedUserInfo(usernameA?.textContent).then(res => {
@@ -23197,7 +23823,7 @@ function addRelationVersionView() {
     const btn = document.createElement("a")
     btn.textContent = "📥"
     btn.id = "load-relation-version"
-    btn.title = t("titles.loadRelationVersionViaOverpass")
+    btn.title = t("relationVersionPage.loadViaOverpass")
     btn.tabIndex = 0
     btn.style.cursor = "pointer"
 
@@ -23500,7 +24126,7 @@ async function betterUserStat() {
     filterInputByEditor.style.flex = "1"
     filterInputByEditor.id = "filter-input-by-editor"
     filterInputByEditor.setAttribute("disabled", true)
-    filterInputByEditor.title = t("titles.pleaseWaitUserChangesetsLoading")
+    filterInputByEditor.title = t("userProfile.pleaseWaitChangesetsLoading")
 
     const item = document.createElement("option")
     item.value = ""
@@ -23525,7 +24151,7 @@ async function betterUserStat() {
     const searchByComment = document.createElement("input")
     searchByComment.type = "search"
     searchByComment.placeholder = "Regex search by comments"
-    searchByComment.title = t("titles.pleaseWaitUserChangesetsLoading")
+    searchByComment.title = t("userProfile.pleaseWaitChangesetsLoading")
     searchByComment.setAttribute("disabled", true)
     searchByComment.style.flex = "1"
     searchByComment.style.height = "1.5rem"
@@ -23577,8 +24203,8 @@ async function betterUserStat() {
     changesets.forEach(ch => (editorOfChangesets[ch.id] = replace_with_rules(ch.tags?.["created_by"])))
     filterInputByEditor.removeAttribute("disabled")
     searchByComment.removeAttribute("disabled")
-    filterInputByEditor.title = t("titles.openSelectedChangesetsOnePage")
-    searchByComment.title = t("titles.regexSearchNotCaseSensitive")
+    filterInputByEditor.title = t("userProfile.openSelectedChangesetsOnePage")
+    searchByComment.title = t("userProfile.regexSearchNotCaseSensitive")
 
     async function inputHandler() {
         let filter = _ => true
@@ -23837,7 +24463,7 @@ async function makeProfileForDeletedUser(user) {
         const osmchaLink = document.createElement("a")
         osmchaLink.textContent = t("userProfile.osmcha")
         osmchaLink.id = "osmcha_link"
-        osmchaLink.title = t("titles.openProfileInOsmcha")
+        osmchaLink.title = t("osmcha.openProfileInOsmcha")
         osmchaLink.href = makeOsmchaLinkForUsername(username)
         osmchaLink.target = "_blank"
         osmchaLink.rel = "noreferrer"
@@ -23861,7 +24487,7 @@ async function makeProfileForDeletedUser(user) {
             const id = data[i].id
             const idSpan = document.createElement("span")
             idSpan.textContent = id
-            idSpan.title = t("titles.clickForCopy")
+            idSpan.title = t("copying.clickForCopy")
             idSpan.style.cursor = "pointer"
             idSpan.onclick = e => {
                 navigator.clipboard.writeText(id).then(() => copyAnimation(e, id))
@@ -23878,7 +24504,7 @@ async function makeProfileForDeletedUser(user) {
                     .forEach(name => {
                         const usernameSpan = document.createElement("span")
                         usernameSpan.textContent = name
-                        usernameSpan.title = t("titles.clickForCopy")
+                        usernameSpan.title = t("copying.clickForCopy")
                         usernameSpan.style.cursor = "pointer"
                         usernameSpan.onclick = e => {
                             navigator.clipboard.writeText(name).then(() => copyAnimation(e, name))
@@ -24046,7 +24672,7 @@ async function makeProfileForDeletedUser(user) {
                 checkbox.type = "checkbox"
                 checkbox.classList.add("mass-action-checkbox")
                 checkbox.textContent = "#" + ch.id + ""
-                checkbox.title = t("titles.shiftClickSelectRange")
+                checkbox.title = t("selection.shiftClickSelectRange")
                 checkbox.value = ch.id
                 checkbox.setAttribute("user-id", id)
                 checkbox.onclick = e => {
@@ -24154,7 +24780,7 @@ async function makeProfileForDeletedUser(user) {
 
         const result = document.createElement("p")
         div.appendChild(result)
-        result.title = t("titles.viaWhosthat")
+        result.title = t("userProfile.viaWhosthat")
         await processIDs(data, result)
     } else {
         setTimeout(async () => {
@@ -24174,7 +24800,7 @@ out meta;
 
                 const result = document.createElement("p")
                 div.appendChild(result)
-                result.title = t("titles.viaOverpassApi")
+                result.title = t("userProfile.viaOverpassApi")
                 await processIDs([{ id: res.elements[0].uid }], result)
             }
         })
@@ -24209,9 +24835,9 @@ out meta;
                 if (res?.elements?.length) {
                     names = [res.elements[0].user]
                 }
-                div.title = t("titles.viaOverpassApi")
+                div.title = t("userProfile.viaOverpassApi")
             } else {
-                div.title = t("titles.viaWhosthat")
+                div.title = t("userProfile.viaWhosthat")
             }
             if (names.length) {
                 userNamesP.textContent = t("userProfile.usernames")
@@ -24219,7 +24845,7 @@ out meta;
                 names.forEach(name => {
                     const usernameSpan = document.createElement("span")
                     usernameSpan.textContent = name
-                    usernameSpan.title = t("titles.clickForCopy")
+                    usernameSpan.title = t("copying.clickForCopy")
                     usernameSpan.style.cursor = "pointer"
                     usernameSpan.onclick = e => {
                         navigator.clipboard.writeText(name).then(() => copyAnimation(e, name))
@@ -24310,7 +24936,7 @@ async function setupHDYCInProfile() {
         const span = document.createElement("span")
         span.classList.add("copyable-username")
         span.textContent = usernameHeader.textContent
-        span.title = t("titles.clickForCopy")
+        span.title = t("copying.clickForCopy")
         span.style.cursor = "pointer"
         span.onclick = e => {
             const username = usernameHeader.textContent.trim()
@@ -24399,12 +25025,12 @@ async function setupHDYCInProfile() {
             const usernames = userIDInfo.data[0]["names"].filter(i => i !== decodeURI(user)).join(", ")
             const dt = document.createElement("dt")
             dt.textContent = t("userProfile.pastUsernames")
-            dt.title = t("titles.addedByBetterOsmOrg")
+            dt.title = t("betterOsmOrg.addedByBetterOsmOrg")
             dt.classList.add("list-inline-item", "m-0", "prev-usernames-label")
             const dd = document.createElement("dd")
             dd.classList.add("list-inline-item", "prev-usernames")
             dd.textContent = usernames
-            dd.title = t("titles.addedByBetterOsmOrg")
+            dd.title = t("betterOsmOrg.addedByBetterOsmOrg")
             userDetails.appendChild(dt)
             userDetails.appendChild(document.createTextNode("\xA0"))
             userDetails.appendChild(dd)
@@ -24420,7 +25046,7 @@ async function setupHDYCInProfile() {
                 const dd = document.createElement("dd")
                 dd.classList.add("list-inline-item", "user-id")
                 dd.textContent = userID
-                dd.title = t("titles.clickForCopy")
+                dd.title = t("copying.clickForCopy")
                 dd.style.cursor = "pointer"
                 dd.onclick = e => {
                     navigator.clipboard.writeText(userID).then(() => copyAnimation(e, userID))
@@ -24647,7 +25273,7 @@ window.addEventListener("message", async e => {
         const elem = document.createElement("p")
         elem.classList.add("text-center", "routing-timestamp")
         elem.textContent = text
-        elem.title = t("titles.addedByBetterOsmOrg")
+        elem.title = t("betterOsmOrg.addedByBetterOsmOrg")
         document.querySelector("#sidebar_content").appendChild(elem)
     }
 
@@ -24696,7 +25322,7 @@ window.addEventListener("message", async e => {
                 const elem = document.createElement("p")
                 elem.classList.add("text-center", "routing-timestamp")
                 elem.textContent = t("routers.routingDataTimeFor", { name: name, time: time })
-                elem.title = t("titles.addedByBetterOsmOrg")
+                elem.title = t("betterOsmOrg.addedByBetterOsmOrg")
                 document.querySelector("#sidebar_content").appendChild(elem)
             })
 
@@ -25130,7 +25756,7 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink, index) {
             const editBtn = document.createElement("button")
             editBtn.classList.add("edit-link-btn", "bi", "bi-pencil")
             editBtn.style.all = "unset"
-            editBtn.title = t("titles.editLink")
+            editBtn.title = t("editMenuLinks.editLink")
             a.prepend(editBtn)
             editBtn.onclick = async e => {
                 e.preventDefault()
@@ -25163,7 +25789,7 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink, index) {
             const addBtn = document.createElement("button")
             addBtn.classList.add("add-link-btn", "bi", "bi-plus-lg")
             addBtn.style.all = "unset"
-            addBtn.title = t("titles.pinThisLink")
+            addBtn.title = t("editMenuLinks.pinThisLink")
             a.prepend(addBtn)
             addBtn.onclick = async e => {
                 e.preventDefault()
@@ -25244,7 +25870,7 @@ function addOtherExternalLinks(editorsListUl) {
 function makeMoveUpLinkBtn(nameValue, addItemLi) {
     const upBtn = document.createElement("button")
     upBtn.classList.add("move-up-link-btn", "bi", "bi-chevron-up")
-    upBtn.title = t("titles.moveUpLink")
+    upBtn.title = t("editMenuLinks.moveUpLink")
     upBtn.onclick = async e => {
         e.preventDefault()
         e.stopPropagation()
@@ -25267,7 +25893,7 @@ function makeMoveUpLinkBtn(nameValue, addItemLi) {
 function makeMoveDownLinkBtn(nameValue, addItemLi) {
     const downBtn = document.createElement("button")
     downBtn.classList.add("move-down-link-btn", "bi", "bi-chevron-down")
-    downBtn.title = t("titles.moveDownLink")
+    downBtn.title = t("editMenuLinks.moveDownLink")
     downBtn.onclick = async e => {
         e.preventDefault()
         e.stopPropagation()
@@ -25290,7 +25916,7 @@ function makeMoveDownLinkBtn(nameValue, addItemLi) {
 function makeDeleteLinkBtn(nameValue, addItemLi) {
     const deleteBtn = document.createElement("button")
     deleteBtn.classList.add("delete-link-btn", "bi", "bi-trash")
-    deleteBtn.title = t("titles.removeLink")
+    deleteBtn.title = t("editMenuLinks.removeLink")
     deleteBtn.onclick = async e => {
         e.preventDefault()
         e.stopPropagation()
@@ -25328,7 +25954,7 @@ function makeExternalLinkEditable(targetLi, editorsListUl, nameValue = "", templ
     const createLikBtn = document.createElement("button")
     createLikBtn.classList.add("create-link-btn", "bi", nameValue === "" ? "bi-plus-lg" : "bi-floppy")
     createLikBtn.style.all = "unset"
-    createLikBtn.title = t("titles.saveLink")
+    createLikBtn.title = t("editMenuLinks.saveLink")
 
     const template = document.createElement("input")
     template.classList.add("template-input")
@@ -25441,7 +26067,7 @@ async function _setupNewEditorsLinks(mutationsList) {
             const linksBtn = langSwitchBtn.cloneNode()
             linksBtn.removeAttribute("data-bs-target")
             linksBtn.removeAttribute("data-bs-toggle")
-            linksBtn.title = t("titles.openPlaceExternalWebsite")
+            linksBtn.title = t("editMenuLinks.openPlaceExternalWebsite")
             linksBtn.innerHTML = externalLinkSvg
             const svg = linksBtn.querySelector("svg")
             svg.setAttribute("width", 20)
@@ -26100,7 +26726,7 @@ function renderOSMGeoJSON(xml, options = {}) {
 
         const modeBtn = document.createElement("button")
         modeBtn.classList.add("mode-btn")
-        modeBtn.title = t("titles.switchTableAndRawEditor")
+        modeBtn.title = t("geojson.switchTableAndRawEditor")
 
         popupBody.appendChild(document.createTextNode("\xA0"))
         popupBody.appendChild(modeBtn)
@@ -30404,7 +31030,7 @@ function addImageryOffsetsDB() {
     const loadBtn = document.createElement("button")
     loadBtn.textContent = t("idEditor.findOffsets")
     loadBtn.classList.add("find-offsets-btn")
-    loadBtn.title = t("titles.betterOsmOrgExperimentalFeature")
+    loadBtn.title = t("betterOsmOrg.experimentalFeature")
     loadBtn.onclick = async () => {
         loadBtn.style.cursor = "progress"
         try {
@@ -30783,7 +31409,7 @@ out geom;
             const overpassLink = document.createElement("a")
             overpassLink.classList.add("overpass-link")
             overpassLink.textContent = i.lastChild.textContent.trim()
-            overpassLink.title = t("titles.searchWithOverpass")
+            overpassLink.title = t("taginfo.searchWithOverpass")
             overpassLink.target = "_blank"
             const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ""))
             overpassLink.href =
