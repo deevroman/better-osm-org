@@ -2,6 +2,21 @@ _translations["hr"] = {
     init: {
         disableBetterOsmOrg: "Onemogući better-osm-org",
         scriptVersion: "Verzija skripte: ",
+        reportingFeaturesWarning: " prije prijave grešaka ili pitanja o funkcijama ⚠️⚠️⚠️",
+        greasemonkeyUnsupportedAlert:
+            "better-osm-org neće raditi u GreasyMonkeyju :(\n\n" +
+            "Ne podržava važne API-je bez kojih većina funkcija skripte neće raditi.\n\n" +
+            "Koristi ViolentMonkey ili TamperMonkey\n\n" +
+            "Rasprava: https://github.com/deevroman/better-osm-org/issues/217",
+    },
+    datetimeFormatSwitch: {
+        versionWasCreated: "verzija je stvorena",
+        noteWasCreated: "bilješka je stvorena",
+        changesetWasClosed: "changeset je zatvoren",
+        clickToChangeTimeFormat: "Kliknite za promjenu formata vremena",
+        clickWithCtrlOpenMapState: "Kliknite s Ctrl za otvaranje stanja karte u trenutku kada je {time}",
+        clickWithAltViewAdiff: "Kliknite s Alt za prikaz adiffa",
+        openMapStateAtTime: "Otvori stanje karte u trenutku kada je {time}",
     },
     config: {
         sectionID: "iD",
@@ -70,6 +85,7 @@ _translations["hr"] = {
         someMembersHidden: "Neke članove sakrili su moderatori",
         downloadAllVersions: "Preuzmi sve verzije",
         toggleCompactTagsDiff: "Prebaci između punog i sažetog diffa oznaka.\nMožete koristiti i tipku T.",
+        hidePreviousValue: "Kliknite za skrivanje prethodne vrijednosti",
         tagsCount: ({ count }) =>
             `${count} oznak${count % 10 === 1 && count % 100 !== 11 ? "a" : count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14) ? "e" : "a"}`,
     },
@@ -92,6 +108,20 @@ _translations["hr"] = {
         downloadThisRelation: "Preuzmi ovu relaciju",
         shiftClickZoomVia: 'Kliknite sa Shift za zumiranje na "via" članove',
         unableDisplaySomeData: "better-osm-org nije mogao prikazati neke podatke",
+        editsWarTitle: ({ details }) => `Rat izmjena. ${details}\nKliknite za detalje`,
+        tagRestored: "Oznaka je sada vraćena",
+        nowIsTag: "Sada je {key}={value}",
+        tagDeleted: "Oznaka je sada obrisana",
+        wasValue: "bilo je: {value}",
+        tagReverted: "Oznaka je sada vraćena na staro",
+        nodesCountChanged: "Broj točaka: {prevCount} → {nextCount}",
+        nodesCount: "Broj točaka: {count}",
+        intermediateNodeChangesTitle:
+            "Oznake i koordinate točaka puta promijenjene su više puta tijekom changeseta.\n" +
+            "To može biti namjerno ili se može dogoditi pri skupnom učitavanju izmjena preko JOSM-a.\n" +
+            "Prikazano je završno stanje. Kliknite za otvaranje pune povijesti puta",
+        sendBugReport: "⚠️ Pošalji prijavu greške",
+        debugAlert: "⚠ pročitajte logove u konzoli preglednika (F12).\nOvu poruku treba vidjeti samo razvojni programer skripte",
     },
     editMenuLinks: {
         moreLinks: "više poveznica",
@@ -117,11 +147,27 @@ _translations["hr"] = {
         switchMapAndSatellite: "Prebacuj između karte i satelitskih snimaka",
         setCustomLayer: "Postavi prilagođeni sloj (Shift + S)\nznačajka better-osm-org",
         setCustomVectorStyle: "Postavi prilagođeni vektorski stil (Shift + V)",
+        stravaLoginRequiredAlert: "Potrebna je prijava na Stravu za pristup heatmapi.\nNakon toga ponovno učitajte karticu.",
+        customStyleSetupHelpAlert:
+            "Pokušajte ponovno učitati stranicu bez predmemorije pomoću Ctrl + F5.\n" +
+            "Ili:\n" +
+            "1. U postavkama TamperMonkeyja uključite Advanced Config Mode\n" +
+            '2. U postavkama TamperMonkeyja promijenite "Content Script API" u "UserScript API Dynamic"\n' +
+            "Više informacija: https://c.osm.org/t/121670/208\n\n" +
+            "Ili zatvorite ovu karticu i otvorite novu\n" +
+            "Ili isključite pa uključite skriptu\n" +
+            "Ili pokušajte koristiti Firefox s ViolentMonkeyjem",
     },
     geojson: {
         metainfo: "metapodaci",
         needUpdateBetterOsmOrg: "Potrebno je ažurirati better-osm-org",
         switchTableAndRawEditor: "Prebaci između tablice i sirovog uređivača",
+        conflict: "Sukob",
+    },
+    overpassSearch: {
+        httpError: "Greška. HTTP kod: {status}",
+        httpErrorWithQuery: "Greška. HTTP kod: {status}\nPoslani upit:\n\n{query}",
+        invalidQuery: "neispravan upit",
     },
     links: {
         webArchive: "WebArchive",
@@ -141,6 +187,11 @@ _translations["hr"] = {
         setDefaultCopyFormat: "Postavi kao zadani format kopiranja pri kliku na koordinate",
         defaultCopyFormat: "Ovo je zadani format pri kliku na koordinate",
         openExternalRelationViewer: "Kliknite za otvaranje vanjskog preglednika relacija.\nIli koristite tipku O",
+        clickToCopyTopLeft: "Kliknite za kopiranje TopLeft: {value}",
+        clickToCopyCenter: "Kliknite za kopiranje središta: {value}",
+        clickToCopyRightBottom: "Kliknite za kopiranje RightBottom: {value}",
+        clickToCopyBbox: "Kliknite za kopiranje bboxa",
+        clickToCopyIdOrUrl: ({ modifier }) => `Kliknite za kopiranje ID-a\n${modifier} + klik za kopiranje URL-a`,
     },
     userProfile: {
         allEditors: "Svi editori",
@@ -160,6 +211,12 @@ _translations["hr"] = {
         regexSearchNotCaseSensitive: "Pretraga regularnim izrazom bez razlikovanja velikih i malih slova",
         viaWhosthat: "putem whosthat.osmz.ru",
         viaOverpassApi: "putem Overpass API-ja",
+        filteredChangesets: "Filtrirano changeseta: {count}",
+        singleUserIdLabel: "ID korisnika: ",
+        foundUserIds: "⚠️ Pronađeno ID-ova korisnika: {count}",
+        userIdBadge: "🆔: ",
+        scannedBlocksAfter: "Sva blokiranja nakon #{id} su pregledana",
+        lastChangesets: "Zadnjih {count} changeseta:",
     },
     changesetsHistory: {
         copyIds: "Kopiraj ID-ove",
@@ -178,6 +235,7 @@ _translations["hr"] = {
         filterViaBetterOsmOrg: "Filtar changeseta putem better-osm-org",
         filterBySubstringInComments: "Filtriraj po podnizu u komentarima changeseta",
         clickCopyChangesetId: "Kliknite za kopiranje ID-a changeseta",
+        revertViaOsmRevert: "vrati putem {name}",
     },
     measurer: {
         measureFromHere: "Mjeri odavde",
@@ -185,12 +243,19 @@ _translations["hr"] = {
         cleanMeasurements: "Očisti mjerenja",
         clickToSwitchUnits: "Kliknite za promjenu mjernih jedinica",
         orPressEscapeTwice: "Ili dvaput pritisnite Escape",
+        hotkeysTitle: ({ modifier }) => `Alt + klik: započni novu liniju\nEsc: zaustavi mjerenje\n${modifier} + Z: ukloni zadnju točku`,
     },
     panoramax: {
         blurFaces: "Zamagli lica",
+        loginRequiredAlert: "Prijavite se u Panoramax",
+        uploadPhoto: "Prenesi fotografiju u Panoramax",
+        selectFileAlert: "Odaberite datoteku",
+        uploadError: "Greška: {message}",
+        exifInfo: "Podaci iz EXIF-a:\nDateTime: {dateTime}\nLat: {lat}\nLon: {lon}",
     },
     idEditor: {
         findOffsets: "Pronađi pomake",
+        focusIframeAlert: "Prebacite fokus na iD iframe.\nSamo kliknite bilo gdje u uređivaču.",
     },
     changesetPage: {
         selectObjects: "Odaberi objekte",
@@ -216,9 +281,13 @@ _translations["hr"] = {
     },
     actions: {
         remove: "ukloni",
+        level0WorksOnlyOnOsmOrg: "level0 radi samo s osm.org",
     },
     copying: {
         clickForCopy: "Kliknite za kopiranje",
+        failedToCopy: "kopiranje nije uspjelo:\n{text}",
+        changeCoordinatesFormat: "Promijeni format koordinata\nTrenutni: {format}",
+        clickToCopyValue: "Kliknite za kopiranje {value}",
     },
     betterOsmOrg: {
         addedByBetterOsmOrg: "dodao better-osm-org",
@@ -236,6 +305,8 @@ _translations["hr"] = {
     },
     findUserInDiff: {
         clickForCopyUserId: "Kliknite za kopiranje korisničkog ID-a",
+        notFoundAlert: "Korisnik nije pronađen",
+        userIdLabel: "ID: ",
     },
     changesetPageFixes: {
         osmchaReviewTag: "OSMCha oznaka pregleda. Desni klik za promjenu\n",
@@ -243,6 +314,27 @@ _translations["hr"] = {
         showHiddenTags: "Prikaži skrivene oznake",
         clickForViewMore: "Kliknite za više",
         mapperRequestedReview: "Maper je zatražio pregled changeseta\n\nKliknite za filtriranje changeseta s review_requested=yes",
+        josmNotRunningAlert: "JOSM nije pokrenut",
+        customOsmApiInJosmAlert:
+            "U JOSM-u koristite prilagođeni OSM API server.\n\nPromijenite postavke JOSM-a ili otvorite drugu web-stranicu",
+        otherOsmInstanceInJosmAlert:
+            "Koristite drugu OSM instancu, ali JOSM koristi zadani server.\n\nPromijenite postavke JOSM-a ili otvorite drugu web-stranicu",
+        osmchaReviewLike: "Pozitivna OSMCha ocjena\n\nDesni klik za dodavanje oznaka pregleda",
+        osmchaReviewDislike: "Negativna OSMCha ocjena\n\nDesni klik za dodavanje oznaka pregleda",
+        osmchaLoginAlert: "Prijavite se u OSMCha",
+        osmchaChangesetNotFoundTitle:
+            "Changeset nije pronađen u OSMCha bazi podataka.\nIli OSMCha još nije stigla obraditi taj changeset, ili je previše star.",
+        osmchaChangesetNotFoundAlert: "Changeset nije pronađen u OSMCha bazi podataka",
+        selectRangeHotkeys:
+            "Kliknite sa Shift za odabir raspona\nPritisnite R za vraćanje putem {name}\nPritisnite J za otvaranje objekata u JOSM-u\nPritisnite Alt + J za otvaranje objekata u Level0",
+        reverterTitle: "Otvori {name}\nShift + klik za vraćanje putem JOSM-a\nPritisnite R za djelomično vraćanje",
+        josmDoesNotSupportPartialRevert: "JOSM ne podržava djelomično vraćanje",
+        osmRevertOnlyMainServers: "{name} radi samo za www.OpenStreetMap.org i www.OpenHistoricalMap.org",
+        osmRevertOnlyMainServersWithJosm:
+            "{name} radi samo za www.OpenStreetMap.org i www.OpenHistoricalMap.org\n\n" +
+            "Ali možete instalirati reverter plugin u JOSM i koristiti shift+klik za druge OSM servere.\n\n" +
+            "⚠️ Promijenite OSM server u postavkama JOSM-a!",
+        commentTemplateTitle: 'Tekst "{text}" bit će dodan u komentar.\nOvaj tekst možete promijeniti u postavkama userscripta',
     },
     hashtags: {
         searchInOsmcha: "Pretraži ovaj hashtag u OSMCha",
@@ -257,12 +349,16 @@ _translations["hr"] = {
         userBanned: "Korisnik je blokiran",
         userNewbie: "U trenutku stvaranja changeseta ili bilješke korisnik je uređivao OpenStreetMap manje od mjesec dana",
         followingUser: "Pratite ovog korisnika",
+        corporateMapper: "{names} korporativni mapper\n\nKliknite za otvaranje wiki stranice\nKliknite s Alt za otvaranje izvora podataka",
     },
     notes: {
         openMapStateSnapshot: "Otvori stanje karte u trenutku snimke",
         openMapStateNoteCreation: "Otvori stanje karte u trenutku stvaranja bilješke",
         commaSeparatedSubstrings: "podnizovi odvojeni zarezima\nfiltar radi i po komentarima",
         commaSeparatedUsernames: "korisnička imena odvojena zarezima",
+        addNewObjectOnMap: "Dodaj novi objekt na kartu\nZalijepite oznake u textarea\nkey=value\nkey2=value2\n...",
+        textareaWithoutTagsAlert: "Textarea ne sadrži nijednu oznaku",
+        resolveButtonTitle: 'Dodaj "{text}" u komentar i zatvori bilješku.\nEmoji možete promijeniti u postavkama userscripta',
     },
     spyGlass: {
         activateSpyGlass: "Aktiviraj način imitacije SpyGlass (better-osm-org eksperiment)",
@@ -270,6 +366,10 @@ _translations["hr"] = {
     gpxFilter: {
         clickToZoomTrack: "kliknite za zumiranje\nSavjet: pritisnite 8-9 za prijelaz na prethodnu/sljedeću poziciju karte",
         showGpxTracks: "Prikaži GPX tragove u trenutnom prikazu karte",
+        downloadFailed: "preuzimanje nije uspjelo: {error}",
+    },
+    dragAndDrop: {
+        tooManyCsvLines: "Previše redaka u CSV datoteci. Prikazat će se samo objekti unutar trenutnog bboxa",
     },
     objectPage: {
         gpsTrackerPosition: "Plava — položaj s GPS trackera\nNarančasta — procijenjeni stvarni položaj",
@@ -290,9 +390,21 @@ _translations["hr"] = {
         keyTooShort: "Ključ je prekratak",
         suspiciousCapitalKey: "Sumnjiv ključ koji počinje velikim slovom",
         openObjectHistory: "Kliknite za otvaranje stranice povijesti objekta\nIli pritisnite tipku H",
+        photoBy: "Fotografija: {author}",
+        observedBy: "Promatrao: {user}",
+        invalidPhone: "{value} nije valjan broj telefona prema libphonenumber.js",
+        invalidEmail: "{value} nije valjana e-mail adresa",
+        typeOnlyForRelations: "type=* samo za relacije",
+        suspiciousRelationType: "type={value} koristi se manje od 50 puta. To je vjerojatno greška.",
+        openWebsite: "Otvori {host}",
+        editWithWebsite: "Uredi pomoću {host}",
     },
     taginfo: {
         searchWithOverpass: "pretraži pomoću Overpassa",
+    },
+    wiki: {
+        needMoreVotes: "potrebno je još {count} glasova do 75 %",
+        interimResults: "Privremeni rezultati izračunati pomoću better-osm-org:",
     },
     relationVersionPage: {
         loadViaOverpass: "Učitaj verziju relacije putem Overpass API-ja",

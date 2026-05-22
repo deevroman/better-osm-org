@@ -2,6 +2,21 @@ _translations["de"] = {
     init: {
         disableBetterOsmOrg: "better-osm-org deaktivieren",
         scriptVersion: "Skriptversion: ",
+        reportingFeaturesWarning: " bevor du Fehler meldest oder Fragen zu Funktionen stellst ⚠️⚠️⚠️",
+        greasemonkeyUnsupportedAlert:
+            "better-osm-org funktioniert in GreasyMonkey nicht :(\n\n" +
+            "Es unterstützt keine wichtigen APIs, ohne die die meisten Funktionen des Skripts nicht funktionieren.\n\n" +
+            "Verwende ViolentMonkey oder TamperMonkey\n\n" +
+            "Diskussion: https://github.com/deevroman/better-osm-org/issues/217",
+    },
+    datetimeFormatSwitch: {
+        versionWasCreated: "Version wurde erstellt",
+        noteWasCreated: "Hinweis wurde erstellt",
+        changesetWasClosed: "Changeset wurde geschlossen",
+        clickToChangeTimeFormat: "Klicken, um das Zeitformat zu ändern",
+        clickWithCtrlOpenMapState: "Mit Strg klicken, um den Kartenstand zum Zeitpunkt {time} zu öffnen",
+        clickWithAltViewAdiff: "Mit Alt klicken, um adiff anzuzeigen",
+        openMapStateAtTime: "Kartenstand zum Zeitpunkt {time} öffnen",
     },
     config: {
         sectionID: "iD",
@@ -71,6 +86,7 @@ _translations["de"] = {
         someMembersHidden: "Einige Mitglieder wurden von Moderatoren verborgen",
         downloadAllVersions: "Alle Versionen herunterladen",
         toggleCompactTagsDiff: "Zwischen vollständigem und kompaktem Tag-Diff umschalten.\nDu kannst auch die Taste T verwenden.",
+        hidePreviousValue: "Klicken, um den vorherigen Wert auszublenden",
         tagsCount: ({ count }) => `${count} Tag${count === 1 ? "" : "s"}`,
     },
     changesetQuicklook: {
@@ -92,6 +108,20 @@ _translations["de"] = {
         downloadThisRelation: "Diese Relation herunterladen",
         shiftClickZoomVia: 'Mit Shift klicken, um auf "via"-Mitglieder zu zoomen',
         unableDisplaySomeData: "better-osm-org konnte einige Daten nicht anzeigen",
+        editsWarTitle: ({ details }) => `Edit-War. ${details}\nKlicken für Details`,
+        tagRestored: "Das Tag ist jetzt wiederhergestellt",
+        nowIsTag: "Jetzt ist {key}={value}",
+        tagDeleted: "Das Tag ist jetzt gelöscht",
+        wasValue: "vorher: {value}",
+        tagReverted: "Das Tag ist jetzt zurückgesetzt",
+        nodesCountChanged: "Anzahl der Knoten: {prevCount} → {nextCount}",
+        nodesCount: "Anzahl der Knoten: {count}",
+        intermediateNodeChangesTitle:
+            "Die Tags und Koordinaten der Wegknoten wurden während des Changesets mehrmals geändert.\n" +
+            "Das kann beabsichtigt sein oder beim Hochladen einer Bearbeitungsserie mit JOSM passieren.\n" +
+            "Der Endzustand wird angezeigt. Klicken, um den vollständigen Wegverlauf zu öffnen",
+        sendBugReport: "⚠️ Fehlerbericht senden",
+        debugAlert: "⚠ Browser-Konsole lesen (F12).\nDiese Meldung sollte nur der Skriptentwickler sehen",
     },
     editMenuLinks: {
         moreLinks: "mehr Links",
@@ -117,11 +147,27 @@ _translations["de"] = {
         switchMapAndSatellite: "Zwischen Karte und Satellitenbildern wechseln",
         setCustomLayer: "Benutzerdefinierte Ebene setzen (Shift + S)\nbetter-osm-org-Funktion",
         setCustomVectorStyle: "Benutzerdefinierten Vektorstil setzen (Shift + V)",
+        stravaLoginRequiredAlert: "Für den Zugriff auf die Heatmap ist eine Anmeldung bei Strava erforderlich.\nLade danach den Tab neu.",
+        customStyleSetupHelpAlert:
+            "Versuche, die Seite ohne Cache mit Strg + F5 neu zu laden.\n" +
+            "Oder:\n" +
+            "1. Aktiviere in den TamperMonkey-Einstellungen den Advanced Config Mode\n" +
+            '2. Stelle in den TamperMonkey-Einstellungen "Content Script API" auf "UserScript API Dynamic"\n' +
+            "Mehr Infos: https://c.osm.org/t/121670/208\n\n" +
+            "Oder schließe diesen Tab und öffne einen neuen\n" +
+            "Oder schalte das Skript aus und wieder ein\n" +
+            "Oder versuche Firefox mit ViolentMonkey zu verwenden",
     },
     geojson: {
         metainfo: "Metainformationen",
         needUpdateBetterOsmOrg: "better-osm-org muss aktualisiert werden",
         switchTableAndRawEditor: "Zwischen Tabelle und Roh-Editor wechseln",
+        conflict: "Konflikt",
+    },
+    overpassSearch: {
+        httpError: "Fehler. HTTP-Code: {status}",
+        httpErrorWithQuery: "Fehler. HTTP-Code: {status}\nGesendete Anfrage:\n\n{query}",
+        invalidQuery: "ungültige Anfrage",
     },
     links: {
         webArchive: "WebArchive",
@@ -142,6 +188,11 @@ _translations["de"] = {
         setDefaultCopyFormat: "Als Standard fürs Kopieren setzen, wenn du auf Koordinaten klickst",
         defaultCopyFormat: "Dies ist das Standardformat, wenn du auf Koordinaten klickst",
         openExternalRelationViewer: "Klicken, um einen externen Relations-Viewer zu öffnen.\nOder Taste O benutzen",
+        clickToCopyTopLeft: "Klicken, um TopLeft zu kopieren: {value}",
+        clickToCopyCenter: "Klicken, um den Mittelpunkt zu kopieren: {value}",
+        clickToCopyRightBottom: "Klicken, um RightBottom zu kopieren: {value}",
+        clickToCopyBbox: "Klicken, um bbox zu kopieren",
+        clickToCopyIdOrUrl: ({ modifier }) => `Klicken, um die ID zu kopieren\n${modifier} + Klick, um die URL zu kopieren`,
     },
     userProfile: {
         allEditors: "Alle Editoren",
@@ -161,6 +212,12 @@ _translations["de"] = {
         regexSearchNotCaseSensitive: "Regex-Suche ohne Groß-/Kleinschreibung",
         viaWhosthat: "via whosthat.osmz.ru",
         viaOverpassApi: "via Overpass API",
+        filteredChangesets: "{count} Changesets gefiltert",
+        singleUserIdLabel: "Benutzer-ID: ",
+        foundUserIds: "⚠️ {count} Benutzer-IDs gefunden",
+        userIdBadge: "🆔: ",
+        scannedBlocksAfter: "Alle Sperren nach #{id} durchsucht",
+        lastChangesets: "Letzte {count} Changesets:",
     },
     changesetsHistory: {
         copyIds: "IDs kopieren",
@@ -180,6 +237,7 @@ _translations["de"] = {
         filterViaBetterOsmOrg: "Changeset-Filter via better-osm-org",
         filterBySubstringInComments: "Nach Teilzeichenfolge in Changeset-Kommentaren filtern",
         clickCopyChangesetId: "Klicken, um die Changeset-ID zu kopieren",
+        revertViaOsmRevert: "über {name} zurücksetzen",
     },
     measurer: {
         measureFromHere: "Von hier messen",
@@ -187,12 +245,19 @@ _translations["de"] = {
         cleanMeasurements: "Messungen löschen",
         clickToSwitchUnits: "Klicken, um die Maßeinheiten zu wechseln",
         orPressEscapeTwice: "Oder zweimal Escape drücken",
+        hotkeysTitle: ({ modifier }) => `Alt + Klick: neue Linie beginnen\nEsc: Messen beenden\n${modifier} + Z: letzten Punkt entfernen`,
     },
     panoramax: {
         blurFaces: "Gesichter verwischen",
+        loginRequiredAlert: "Bitte melde dich bei Panoramax an",
+        uploadPhoto: "Foto zu Panoramax hochladen",
+        selectFileAlert: "Datei auswählen",
+        uploadError: "Fehler: {message}",
+        exifInfo: "Info aus EXIF:\nDateTime: {dateTime}\nLat: {lat}\nLon: {lon}",
     },
     idEditor: {
         findOffsets: "Offsets finden",
+        focusIframeAlert: "Bitte setze den Fokus auf das iD-Iframe.\nKlicke einfach irgendwo im Editor.",
     },
     changesetPage: {
         selectObjects: "Objekte auswählen",
@@ -218,9 +283,13 @@ _translations["de"] = {
     },
     actions: {
         remove: "entfernen",
+        level0WorksOnlyOnOsmOrg: "level0 funktioniert nur mit osm.org",
     },
     copying: {
         clickForCopy: "Klicken zum Kopieren",
+        failedToCopy: "Kopieren fehlgeschlagen:\n{text}",
+        changeCoordinatesFormat: "Koordinatenformat ändern\nAktuell: {format}",
+        clickToCopyValue: "Klicken, um {value} zu kopieren",
     },
     betterOsmOrg: {
         addedByBetterOsmOrg: "hinzugefügt von better-osm-org",
@@ -238,6 +307,8 @@ _translations["de"] = {
     },
     findUserInDiff: {
         clickForCopyUserId: "Klicken, um die Benutzer-ID zu kopieren",
+        notFoundAlert: "Benutzer nicht gefunden",
+        userIdLabel: "ID: ",
     },
     changesetPageFixes: {
         osmchaReviewTag: "OSMCha-Prüf-Tag. Rechtsklick zum Ändern\n",
@@ -245,6 +316,27 @@ _translations["de"] = {
         showHiddenTags: "Versteckte Tags anzeigen",
         clickForViewMore: "Klicken, um mehr anzuzeigen",
         mapperRequestedReview: "Mapper hat eine Changeset-Prüfung angefordert\n\nKlicken, um Changesets mit review_requested=yes zu filtern",
+        josmNotRunningAlert: "JOSM läuft nicht",
+        customOsmApiInJosmAlert:
+            "Du verwendest in JOSM einen benutzerdefinierten OSM-API-Server.\n\nÄndere die JOSM-Einstellungen oder öffne eine andere Website",
+        otherOsmInstanceInJosmAlert:
+            "Du verwendest eine andere OSM-Instanz, aber JOSM nutzt den Standardsserver.\n\nÄndere die JOSM-Einstellungen oder öffne eine andere Website",
+        osmchaReviewLike: "OSMCha positive Bewertung\n\nRechtsklick, um Prüfungstags hinzuzufügen",
+        osmchaReviewDislike: "OSMCha negative Bewertung\n\nRechtsklick, um Prüfungstags hinzuzufügen",
+        osmchaLoginAlert: "Bitte melde dich bei OSMCha an",
+        osmchaChangesetNotFoundTitle:
+            "Changeset in der OSMCha-Datenbank nicht gefunden.\nEntweder hatte OSMCha noch keine Zeit, dieses Changeset zu verarbeiten, oder es ist zu alt.",
+        osmchaChangesetNotFoundAlert: "Changeset in der OSMCha-Datenbank nicht gefunden",
+        selectRangeHotkeys:
+            "Mit Shift klicken, um einen Bereich auszuwählen\nDrücke R für Revert über {name}\nDrücke J, um Objekte in JOSM zu öffnen\nDrücke Alt + J, um Objekte in Level0 zu öffnen",
+        reverterTitle: "Öffne {name}\nShift + Klick für Revert über JOSM\nDrücke R für teilweisen Revert",
+        josmDoesNotSupportPartialRevert: "JOSM unterstützt keinen teilweisen Revert",
+        osmRevertOnlyMainServers: "{name} funktioniert nur für www.OpenStreetMap.org und www.OpenHistoricalMap.org",
+        osmRevertOnlyMainServersWithJosm:
+            "{name} funktioniert nur für www.OpenStreetMap.org und www.OpenHistoricalMap.org\n\n" +
+            "Du kannst aber das reverter-Plugin in JOSM installieren und für andere OSM-Server Shift+Klick verwenden.\n\n" +
+            "⚠️ Ändere den OSM-Server in den JOSM-Einstellungen!",
+        commentTemplateTitle: '"{text}" wird dem Kommentartext hinzugefügt.\nDu kannst den Text in den Userscript-Einstellungen ändern',
     },
     hashtags: {
         searchInOsmcha: "Diesen Hashtag in OSMCha suchen",
@@ -260,12 +352,16 @@ _translations["de"] = {
         userNewbie:
             "Zum Zeitpunkt der Erstellung des Changesets oder Hinweises bearbeitete der Benutzer OpenStreetMap seit weniger als einem Monat",
         followingUser: "Du folgst diesem Benutzer",
+        corporateMapper: "{names} Firmen-Mapping\n\nKlicken, um die Wiki-Seite zu öffnen\nMit Alt klicken, um die Datenquelle zu öffnen",
     },
     notes: {
         openMapStateSnapshot: "Kartenstand zum Zeitpunkt des Snapshots öffnen",
         openMapStateNoteCreation: "Kartenstand zum Zeitpunkt der Hinweis-Erstellung öffnen",
         commaSeparatedSubstrings: "durch Kommas getrennte Teilzeichenfolgen\nFilter funktioniert auch über Kommentare",
         commaSeparatedUsernames: "durch Kommas getrennte Benutzernamen",
+        addNewObjectOnMap: "Neues Objekt auf der Karte hinzufügen\nTags in die Textarea einfügen\nkey=value\nkey2=value2\n...",
+        textareaWithoutTagsAlert: "Die Textarea enthält keine Tags",
+        resolveButtonTitle: 'Zu dem Kommentar "{text}" hinzufügen und den Hinweis schließen.\nDu kannst das Emoji in den Userscript-Einstellungen ändern',
     },
     spyGlass: {
         activateSpyGlass: "SpyGlass-Imitationsmodus aktivieren (better-osm-org-Experiment)",
@@ -273,6 +369,10 @@ _translations["de"] = {
     gpxFilter: {
         clickToZoomTrack: "klicken zum Zoomen\nTipp: Drücke 8-9, um zwischen vorheriger/nächster Kartenposition zu wechseln",
         showGpxTracks: "GPX-Tracks in der aktuellen Kartenansicht anzeigen",
+        downloadFailed: "Download fehlgeschlagen: {error}",
+    },
+    dragAndDrop: {
+        tooManyCsvLines: "Zu viele Zeilen in der CSV-Datei. Es werden nur Objekte im aktuellen bbox angezeigt",
     },
     objectPage: {
         gpsTrackerPosition: "Blau — Position vom GPS-Tracker\nOrange — geschätzte tatsächliche Position",
@@ -293,9 +393,21 @@ _translations["de"] = {
         keyTooShort: "Der Schlüssel ist zu kurz",
         suspiciousCapitalKey: "Verdächtiger Schlüssel, der mit einem Großbuchstaben beginnt",
         openObjectHistory: "Klicken, um die Objektverlaufsseite zu öffnen\nOder Taste H drücken",
+        photoBy: "Foto von {author}",
+        observedBy: "Beobachtet von {user}",
+        invalidPhone: "{value} ist laut libphonenumber.js keine gültige Telefonnummer",
+        invalidEmail: "{value} ist keine gültige E-Mail-Adresse",
+        typeOnlyForRelations: "type=* nur für Relationen",
+        suspiciousRelationType: "type={value} wird seltener als 50 Mal verwendet. Das ist wahrscheinlich ein Fehler.",
+        openWebsite: "{host} öffnen",
+        editWithWebsite: "Mit {host} bearbeiten",
     },
     taginfo: {
         searchWithOverpass: "mit Overpass suchen",
+    },
+    wiki: {
+        needMoreVotes: "noch {count} Stimmen bis 75 % nötig",
+        interimResults: "Von better-osm-org berechnete Zwischenergebnisse:",
     },
     relationVersionPage: {
         loadViaOverpass: "Relationsversion über die Overpass API laden",

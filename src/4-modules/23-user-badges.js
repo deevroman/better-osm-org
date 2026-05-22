@@ -130,7 +130,7 @@ function makeBadge(userInfo, changesetDate = new Date()) {
 
     function makeCorporateBadge() {
         const info = corporateMappers.get(userInfo["display_name"])
-        userBadge.title = `${info.join(", ")} corporate mapper\n\nClick to open wiki page\nClick with Alt to open data source`
+        userBadge.title = t("userBadges.corporateMapper", { names: info.join(", ") })
         userBadge.textContent = CORPORATE_EMOJI + " "
         userBadge.classList.add("corporate-badge")
         userBadge.style.cursor = "pointer"

@@ -2,6 +2,21 @@ _translations["ru"] = {
     init: {
         disableBetterOsmOrg: "Отключите better-osm-org",
         scriptVersion: "Версия скрипта: ",
+        reportingFeaturesWarning: " перед сообщением об ошибках или вопросами о функциях ⚠️⚠️⚠️",
+        greasemonkeyUnsupportedAlert:
+            "better-osm-org не будет работать в GreasyMonkey :(\n\n" +
+            "Он не поддерживает важные API, без которых большинство функций скрипта не будет работать.\n\n" +
+            "Используйте ViolentMonkey или TamperMonkey\n\n" +
+            "Обсуждение: https://github.com/deevroman/better-osm-org/issues/217",
+    },
+    datetimeFormatSwitch: {
+        versionWasCreated: "версия была создана",
+        noteWasCreated: "заметка была создана",
+        changesetWasClosed: "пакет правок был закрыт",
+        clickToChangeTimeFormat: "Нажмите, чтобы сменить формат времени",
+        clickWithCtrlOpenMapState: "Нажмите с Ctrl, чтобы открыть состояние карты на момент, когда {time}",
+        clickWithAltViewAdiff: "Нажмите с Alt, чтобы посмотреть adiff",
+        openMapStateAtTime: "Открыть состояние карты на момент, когда {time}",
     },
     config: {
         sectionID: "iD",
@@ -70,6 +85,7 @@ _translations["ru"] = {
         someMembersHidden: "Некоторые участники были скрыты модераторами",
         downloadAllVersions: "Скачать все версии",
         toggleCompactTagsDiff: "Переключить между полным и компактным diff тегов.\nТакже можно использовать клавишу T.",
+        hidePreviousValue: "Нажмите, чтобы скрыть предыдущее значение",
         tagsCount: ({ count }) => {
             if (count === 1) {
                 return `${count} тег`
@@ -99,6 +115,20 @@ _translations["ru"] = {
         downloadThisRelation: "Скачать это отношение",
         shiftClickZoomVia: "Нажмите с Shift, чтобы приблизить участников с ролью «via»",
         unableDisplaySomeData: "better-osm-org не смог отобразить некоторые данные",
+        editsWarTitle: ({ details }) => `Война правок. ${details}\nНажмите для подробностей`,
+        tagRestored: " Тег теперь восстановлен",
+        nowIsTag: "Сейчас {key}={value}",
+        tagDeleted: "Тег теперь удалён",
+        wasValue: "было: {value}",
+        tagReverted: "Тег теперь откачен",
+        nodesCountChanged: "Количество точек: {prevCount} → {nextCount}",
+        nodesCount: "Количество точек: {count}",
+        intermediateNodeChangesTitle:
+            "Теги и координаты точек линии изменялись несколько раз в течение пакета правок.\n" +
+            "Это может быть намеренно или происходить при пакетной загрузке правок через JOSM.\n" +
+            "Показано итоговое состояние. Нажмите, чтобы открыть полную историю линии",
+        sendBugReport: "⚠️ Отправить баг-репорт",
+        debugAlert: "⚠ прочитайте логи в консоли браузера (F12).\nЭто сообщение должен видеть только разработчик скрипта",
     },
     editMenuLinks: {
         moreLinks: "больше ссылок",
@@ -124,11 +154,27 @@ _translations["ru"] = {
         switchMapAndSatellite: "Переключение между картой и спутниковыми снимками",
         setCustomLayer: "Задать свой слой (Shift + S)\nфича better-osm-org",
         setCustomVectorStyle: "Задать свой векторный стиль (Shift + V)",
+        stravaLoginRequiredAlert: "Нужно войти в Strava для доступа к тепловой карте.\nПосле этого перезагрузите вкладку.",
+        customStyleSetupHelpAlert:
+            "Попробуйте перезагрузить страницу без кеша Ctrl + F5.\n" +
+            "Или:\n" +
+            "1. В настройках TamperMonkey включите Advanced Config Mode\n" +
+            '2. В настройках TamperMonkey переключите "Content Script API" на "UserScript API Dynamic"\n' +
+            "Подробнее: https://c.osm.org/t/121670/208\n\n" +
+            "Или закройте эту вкладку и откройте новую\n" +
+            "Или выключите и включите скрипт\n" +
+            "Или попробуйте Firefox с ViolentMonkey",
     },
     geojson: {
         metainfo: "метаинформация",
         needUpdateBetterOsmOrg: "Нужно обновить better-osm-org",
         switchTableAndRawEditor: "Переключить между таблицей и сырым редактором",
+        conflict: "Конфликт",
+    },
+    overpassSearch: {
+        httpError: "Ошибка. HTTP код: {status}",
+        httpErrorWithQuery: "Ошибка. HTTP код: {status}\nОтправленный запрос:\n\n{query}",
+        invalidQuery: "неверный запрос",
     },
     links: {
         webArchive: "WebArchive",
@@ -149,6 +195,11 @@ _translations["ru"] = {
         setDefaultCopyFormat: "Сделать форматом копирования по умолчанию при клике по координатам",
         defaultCopyFormat: "Это формат по умолчанию при клике по координатам",
         openExternalRelationViewer: "Нажмите, чтобы открыть внешний просмотрщик отношений.\nИли используйте клавишу O",
+        clickToCopyTopLeft: "Нажмите, чтобы скопировать TopLeft: {value}",
+        clickToCopyCenter: "Нажмите, чтобы скопировать центр: {value}",
+        clickToCopyRightBottom: "Нажмите, чтобы скопировать RightBottom: {value}",
+        clickToCopyBbox: "Нажмите, чтобы скопировать bbox",
+        clickToCopyIdOrUrl: ({ modifier }) => `Нажмите, чтобы скопировать ID\n${modifier} + click, чтобы скопировать URL`,
     },
     userProfile: {
         allEditors: "Все редакторы",
@@ -168,6 +219,12 @@ _translations["ru"] = {
         regexSearchNotCaseSensitive: "Регулярное выражение без учёта регистра",
         viaWhosthat: "через whosthat.osmz.ru",
         viaOverpassApi: "через Overpass API",
+        filteredChangesets: "Отфильтровано пакетов правок: {count}",
+        singleUserIdLabel: "ID пользователя: ",
+        foundUserIds: "⚠️ Найдено ID пользователей: {count}",
+        userIdBadge: "🆔: ",
+        scannedBlocksAfter: "Просканированы все блокировки после #{id}",
+        lastChangesets: "Последние пакеты правок: {count}",
     },
     changesetsHistory: {
         copyIds: "Скопировать ID",
@@ -186,6 +243,7 @@ _translations["ru"] = {
         filterViaBetterOsmOrg: "Фильтр пакетов правок через better-osm-org",
         filterBySubstringInComments: "Фильтр по подстроке в комментариях пакетов правок",
         clickCopyChangesetId: "Нажмите, чтобы скопировать ID пакета правок",
+        revertViaOsmRevert: "откатить через {name}",
     },
     measurer: {
         measureFromHere: "Измерить отсюда",
@@ -193,12 +251,20 @@ _translations["ru"] = {
         cleanMeasurements: "Очистить измерения",
         clickToSwitchUnits: "Нажмите, чтобы переключить единицы измерения",
         orPressEscapeTwice: "Или нажмите Escape дважды",
+        hotkeysTitle: ({ modifier }) =>
+            `Alt + Click: начать новую линию\nEsc: остановить измерение\n${modifier} + Z: удалить последнюю точку`,
     },
     panoramax: {
         blurFaces: "Размыть лица",
+        loginRequiredAlert: "Пожалуйста, войдите в Panoramax",
+        uploadPhoto: "Загрузить фото в Panoramax",
+        selectFileAlert: "Выберите файл",
+        uploadError: "Ошибка: {message}",
+        exifInfo: "Информация из EXIF:\nDateTime: {dateTime}\nLat: {lat}\nLon: {lon}",
     },
     idEditor: {
         findOffsets: "Найти смещения",
+        focusIframeAlert: "Пожалуйста, переключите фокус на iframe iD.\nПросто кликните в любом месте редактора.",
     },
     changesetPage: {
         selectObjects: "Выбрать объекты",
@@ -224,9 +290,13 @@ _translations["ru"] = {
     },
     actions: {
         remove: "удалить",
+        level0WorksOnlyOnOsmOrg: "level0 работает только с osm.org",
     },
     copying: {
         clickForCopy: "Нажмите, чтобы скопировать",
+        failedToCopy: "не удалось скопировать:\n{text}",
+        changeCoordinatesFormat: "Изменить формат координат\nТекущий: {format}",
+        clickToCopyValue: "Нажмите, чтобы скопировать {value}",
     },
     betterOsmOrg: {
         addedByBetterOsmOrg: "добавлено better-osm-org",
@@ -244,6 +314,8 @@ _translations["ru"] = {
     },
     findUserInDiff: {
         clickForCopyUserId: "Нажмите, чтобы скопировать ID пользователя",
+        notFoundAlert: "Пользователь не найден",
+        userIdLabel: "ID: ",
     },
     changesetPageFixes: {
         osmchaReviewTag: "Тег проверки OSMCha. Правая кнопка мыши для изменения\n",
@@ -251,6 +323,26 @@ _translations["ru"] = {
         showHiddenTags: "Показать скрытые теги",
         clickForViewMore: "Нажмите, чтобы показать больше",
         mapperRequestedReview: "Маппер запросил проверку пакета правок\n\nНажмите, чтобы отфильтровать пакеты правок с review_requested=yes",
+        josmNotRunningAlert: "JOSM не запущен",
+        customOsmApiInJosmAlert: "В JOSM используется кастомный OSM API сервер.\n\nИзмените настройки JOSM или откройте другой сайт",
+        otherOsmInstanceInJosmAlert:
+            "Вы используете другой экземпляр OSM, но JOSM использует сервер по умолчанию.\n\nИзмените настройки JOSM или откройте другой сайт",
+        osmchaReviewLike: "Положительная оценка OSMCha\n\nПравая кнопка мыши для добавления тегов проверки",
+        osmchaReviewDislike: "Отрицательная оценка OSMCha\n\nПравая кнопка мыши для добавления тегов проверки",
+        osmchaLoginAlert: "Пожалуйста, войдите в OSMCha",
+        osmchaChangesetNotFoundTitle:
+            "Пакет правок не найден в базе OSMCha.\nВозможно, OSMCha ещё не успел обработать этот пакет правок или он слишком старый.",
+        osmchaChangesetNotFoundAlert: "Пакет правок не найден в базе OSMCha",
+        selectRangeHotkeys:
+            "Нажмите с Shift для выбора диапазона\nНажмите R для отката через {name}\nНажмите J для открытия объектов в JOSM\nНажмите Alt + J для открытия объектов в Level0",
+        reverterTitle: "Открыть {name}\nShift + click для отката через JOSM\nНажмите R для частичного отката",
+        josmDoesNotSupportPartialRevert: "JOSM не поддерживает частичный откат",
+        osmRevertOnlyMainServers: "{name} работает только для www.OpenStreetMap.org и www.OpenHistoricalMap.org",
+        osmRevertOnlyMainServersWithJosm:
+            "{name} работает только для www.OpenStreetMap.org и www.OpenHistoricalMap.org\n\n" +
+            "Но вы можете установить reverter plugin в JOSM и использовать shift+click для других OSM серверов.\n\n" +
+            "⚠️ Измените OSM сервер в настройках JOSM!",
+        commentTemplateTitle: 'Текст "{text}" будет добавлен в комментарий.\nВы можете изменить этот текст в настройках userscript',
     },
     hashtags: {
         searchInOsmcha: "Искать этот хэштег в OSMCha",
@@ -265,12 +357,16 @@ _translations["ru"] = {
         userBanned: "Пользователь был заблокирован",
         userNewbie: "На момент создания пакета правок или заметки пользователь редактировал OpenStreetMap меньше месяца",
         followingUser: "Вы подписаны на этого пользователя",
+        corporateMapper: "{names} корпоративный маппер\n\nНажмите, чтобы открыть страницу вики\nНажмите с Alt, чтобы открыть источник данных",
     },
     notes: {
         openMapStateSnapshot: "Открыть состояние карты на момент снимка",
         openMapStateNoteCreation: "Открыть состояние карты на момент создания заметки",
         commaSeparatedSubstrings: "подстроки через запятую\nфильтр также работает по комментариям",
         commaSeparatedUsernames: "имена пользователей через запятую",
+        addNewObjectOnMap: "Добавить новый объект на карту\nВставьте теги в textarea\nkey=value\nkey2=value2\n...",
+        textareaWithoutTagsAlert: "В textarea нет ни одного тега",
+        resolveButtonTitle: 'Добавить в комментарий "{text}" и закрыть заметку.\nВы можете изменить emoji в настройках userscript',
     },
     spyGlass: {
         activateSpyGlass: "Включить режим SpyGlass (эксперимент better-osm-org)",
@@ -278,6 +374,10 @@ _translations["ru"] = {
     gpxFilter: {
         clickToZoomTrack: "нажмите для приближения\nПодсказка: нажимайте 8-9 для перехода между предыдущим и следующим положением карты",
         showGpxTracks: "Показать GPX-треки в текущем окне карты",
+        downloadFailed: "ошибка загрузки: {error}",
+    },
+    dragAndDrop: {
+        tooManyCsvLines: "Слишком много строк в CSV-файле. Будут показаны только объекты в текущем bbox",
     },
     objectPage: {
         gpsTrackerPosition: "Синий — позиция по GPS-трекеру\nОранжевый — предполагаемая реальная позиция",
@@ -298,9 +398,21 @@ _translations["ru"] = {
         keyTooShort: "Ключ слишком короткий",
         suspiciousCapitalKey: "Подозрительный ключ, начинающийся с заглавной буквы",
         openObjectHistory: "Нажмите, чтобы открыть страницу истории объекта\nИли нажмите клавишу H",
+        photoBy: "Фото: {author}",
+        observedBy: "Наблюдал: {user}",
+        invalidPhone: "{value} некорректный номер телефона по версии libphonenumber.js",
+        invalidEmail: "{value} некорректный email",
+        typeOnlyForRelations: "type=* используется только для отношений",
+        suspiciousRelationType: "type={value} используется в базе меньше 50 раз. Скорее всего, это ошибка.",
+        openWebsite: "Открыть {host}",
+        editWithWebsite: "Редактировать через {host}",
     },
     taginfo: {
         searchWithOverpass: "Поиск через Overpass",
+    },
+    wiki: {
+        needMoreVotes: "нужно ещё {count} голосов до 75 %",
+        interimResults: "Промежуточные результаты, рассчитанные better-osm-org:",
     },
     relationVersionPage: {
         loadViaOverpass: "Загрузить версию отношения через Overpass API",

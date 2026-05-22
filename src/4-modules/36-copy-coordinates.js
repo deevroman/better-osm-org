@@ -50,14 +50,14 @@ function addCopyCoordinatesMenuItem(prevItem) {
         e.preventDefault()
         e.stopPropagation()
         e.stopImmediatePropagation()
-        navigator.clipboard.writeText(text).catch(e => alert(`failed to copy:\n${text}`))
+        navigator.clipboard.writeText(text).catch(e => alert(t("copying.failedToCopy", { text })))
         getMap().osm_contextmenu.hide()
     }
 
     const formatSwitch = document.createElement("span")
     formatSwitch.classList.add("bi", "bi-arrow-left-right", "copy-coordinates-btn")
     formatSwitch.style.marginLeft = "auto"
-    formatSwitch.title = `Change coordinates format\nCurrent: ${coordinatesFormat}`
+    formatSwitch.title = t("copying.changeCoordinatesFormat", { format: coordinatesFormat })
 
     formatSwitch.onclick = async e => {
         e.preventDefault()

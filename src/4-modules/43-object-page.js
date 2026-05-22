@@ -41,6 +41,16 @@ function drawPanoramaxCapturePlace(feature) {
     }
 }
 
+function appendTitleLine(elem, text) {
+    if (!text) {
+        return
+    }
+    if (elem.title && elem.title.length !== 0) {
+        elem.title += "\n"
+    }
+    elem.title += text
+}
+
 async function attachPanoramaxHoverCaptureHandler(a, uuid, panoramaxServer) {
     const res = (
         await externalFetchRetry({
@@ -56,17 +66,11 @@ async function attachPanoramaxHoverCaptureHandler(a, uuid, panoramaxServer) {
     const author = res["features"][0]?.properties?.["geovisio:producer"]
     const artist = res["features"][0]?.properties?.exif?.["Exif.Image.Artist"]
     if (author) {
-        if (a.title && a.title?.length !== 0) {
-            a.title += "\n"
-        }
-        a.title += "Photo by " + author
-        if (artist && artist !== author) {
-            a.title += " / " + artist
-        }
+        appendTitleLine(a, t("objectPage.photoBy", { author: artist && artist !== author ? `${author} / ${artist}` : author }))
     }
     const date = res["features"][0]?.properties?.exif?.["Exif.Image.DateTime"]
     if (date) {
-        a.title += "\n" + date
+        appendTitleLine(a, date)
     }
 }
 
@@ -74,16 +78,13 @@ function attachMapillaryHoverCaptureHandler(a, res) {
     a.onmouseenter = () => mapillaryMouseEnter(res)
     const author = res["creator"]["username"]
     if (author) {
-        if (a.title && a.title?.length !== 0) {
-            a.title += "\n"
-        }
-        a.title += "Photo by " + author
+        appendTitleLine(a, t("objectPage.photoBy", { author }))
     }
     const date = res["captured_at"]
     if (date) {
         const d = new Date()
         d.setTime(date)
-        a.title += "\n" + d.toISOString()
+        appendTitleLine(a, d.toISOString())
     }
 }
 
@@ -92,12 +93,9 @@ function attachWikimediaHoverCaptureHandler(a, res) {
     try {
         const author = res["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["Artist"]["value"]
         if (author) {
-            if (a.title && a.title?.length !== 0) {
-                a.title += "\n"
-            }
             // отдавать HTML придумал гений, блять
             const fixedAuthor = author.endsWith("</a>") ? (author.match(/">(.*)<\/a>$/)[1] ?? author) : author
-            a.title += "Photo by " + fixedAuthor
+            appendTitleLine(a, t("objectPage.photoBy", { author: fixedAuthor }))
         }
     } catch (err) {
         console.error(err)
@@ -105,14 +103,14 @@ function attachWikimediaHoverCaptureHandler(a, res) {
     try {
         const date = res["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["DateTimeOriginal"]["value"]
         if (date) {
-            a.title += "\n" + date
+            appendTitleLine(a, date)
         }
     } catch (err) {
         console.error(err)
     }
     const license = res["query"]["pages"]["-1"]["imageinfo"][0]["extmetadata"]["LicenseShortName"]["value"]
     if (license) {
-        a.title += "\n" + license
+        appendTitleLine(a, license)
     }
 }
 
@@ -138,7 +136,7 @@ function attachInaturalistHoverCaptureHandler(a, observation) {
         titleLines.push(commonName ?? scientificName ?? speciesGuess)
     }
     if (observation?.user?.login) {
-        titleLines.push(`Observed by ${observation.user.login}`)
+        titleLines.push(t("objectPage.observedBy", { user: observation.user.login }))
     }
     if (observation?.observed_on) {
         titleLines.push(observation.observed_on)
@@ -310,7 +308,7 @@ function makeMapillaryValue(elem) {
                 const img = GM_addElement("img", {
                     src: imgSrc,
                     alt: "image from Mapillary",
-                    title: "Blue — position from GPS tracker\nOrange — estimated real position",
+                    title: t("objectPage.gpsTrackerPosition"),
                     width: "100%",
                     // crossorigin: "anonymous"
                 })
@@ -591,7 +589,7 @@ function makePhoneValue(valueCell, key) {
             valueCell.classList.add("fixme-tag")
             valueCell.querySelectorAll("a").forEach(i => i.classList.add("fixme-tag"))
         } else if (!valueCell.textContent.split(";").every(i => libphonenumber.isPossiblePhoneNumber(i.trim()))) {
-            valueCell.title = `${valueCell.textContent} invalid phone according to libphonenumber.js`
+            valueCell.title = t("objectPage.invalidPhone", { value: valueCell.textContent })
             valueCell.classList.add("warn-tag")
             valueCell.querySelectorAll("a").forEach(i => i.classList.add("warn-tag"))
         }
@@ -604,7 +602,7 @@ function makeEmailValue(valueCell, key) {
     const email_regex = /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i
 
     if (!valueCell.textContent.split(";").every(i => i.trim().match(email_regex))) {
-        valueCell.title = `${valueCell.textContent} invalid email`
+        valueCell.title = t("objectPage.invalidEmail", { value: valueCell.textContent })
         valueCell.classList.add("warn-tag")
         valueCell.querySelectorAll("a").forEach(i => i.classList.add("warn-tag"))
     }
@@ -714,7 +712,7 @@ const allowedRelationTypes = new Set([
 
 function makeTypeValue(elem, objType) {
     if (objType !== "relation") {
-        const hint = "type=* only for relations"
+        const hint = t("objectPage.typeOnlyForRelations")
         elem.querySelectorAll("a:not(.warn-tag)").forEach(a => {
             a.classList.add("warn-tag")
             a.title = hint + "\n\n" + a.title
@@ -725,7 +723,7 @@ function makeTypeValue(elem, objType) {
     }
     const value = elem.textContent.replace(/(^was:|^disused:|^abandoned:)/, "")
     if (!allowedRelationTypes.has(value)) {
-        const hint = `type=${value} used < 50 times. This is probably a mistake.`
+        const hint = t("objectPage.suspiciousRelationType", { value })
         elem.querySelectorAll("a:not(.warn-tag)").forEach(a => {
             a.classList.add("warn-tag")
             a.title = hint + "\n\n" + a.title
@@ -1039,7 +1037,7 @@ function makeLinksInVersionTagClickable(row, objType) {
         relationViewer.style.cursor = "pointer"
         relationViewer.style.paddingLeft = "5px"
         relationViewer.style.paddingRight = "10px"
-        relationViewer.title = `Open ${waymarkedtrails_type}.waymarkedtrails.org` // `\nRight click for select viewer`
+        relationViewer.title = t("objectPage.openWebsite", { host: `${waymarkedtrails_type}.waymarkedtrails.org` }) // `\nRight click for select viewer`
 
         const [x, y, z] = getCurrentXYZ()
         relationViewer.href = waymarkedtrailsLink.makeURL({ x, y, z, type, id, waymarkedtrails_type })
@@ -1068,7 +1066,7 @@ function makeLinksInVersionTagClickable(row, objType) {
         relationViewer.style.cursor = "pointer"
         relationViewer.style.paddingLeft = "8px"
         relationViewer.style.paddingRight = "5px"
-        relationViewer.title = `Open ptna.openstreetmap.de`
+        relationViewer.title = t("objectPage.openWebsite", { host: "ptna.openstreetmap.de" })
 
         relationViewer.href = publicTransportNetworkAnalysisLink.makeURL({ id })
         relationViewer.target = "_blank"
@@ -1080,7 +1078,7 @@ function makeLinksInVersionTagClickable(row, objType) {
         relationEditor.style.cursor = "pointer"
         relationEditor.style.paddingLeft = "5px"
         relationEditor.style.paddingRight = "5px"
-        relationEditor.title = `Edit with relatify.monicz.dev`
+        relationEditor.title = t("objectPage.editWithWebsite", { host: "relatify.monicz.dev" })
 
         relationEditor.href = relatifyLink.makeURL({ id })
         relationEditor.target = "_blank"
@@ -1111,7 +1109,9 @@ function makeLinksInVersionTagsClickable() {
         .forEach(row => makeLinksInVersionTagClickable(row, location.pathname.match(/\/(node|way|relation)\/(\d+)/)?.[1]))
     const tagsTable = document.querySelector(".browse-tag-list")
     if (tagsTable) {
-        tagsTable.parentElement.previousElementSibling.title = tagsTable.querySelectorAll("tr th").length + " tags"
+        tagsTable.parentElement.previousElementSibling.title = t("historyDiff.tagsCount", {
+            count: tagsTable.querySelectorAll("tr th").length,
+        })
     }
 }
 

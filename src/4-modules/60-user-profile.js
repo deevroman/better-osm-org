@@ -365,7 +365,7 @@ async function betterUserStat() {
         const maxPerDay = Object.values(newHeatmapData)
             .map(i => i[0])
             .reduce((a, b) => max(a, b), 0)
-        searchByComment.title = `${changesets_count} changesets filtered`
+        searchByComment.title = t("userProfile.filteredChangesets", { count: changesets_count })
 
         function replaceElementTag(oldElement, newTagName) {
             const attrs = {}
@@ -606,17 +606,17 @@ async function makeProfileForDeletedUser(user) {
 
     async function processIDs(data, elemForResult) {
         if (data.length === 1) {
-            elemForResult.appendChild(document.createTextNode("User ID: "))
+            elemForResult.appendChild(document.createTextNode(t("userProfile.singleUserIdLabel")))
         } else {
-            elemForResult.appendChild(document.createTextNode(`⚠️ Found ${data.length} user IDs`))
+            elemForResult.appendChild(document.createTextNode(t("userProfile.foundUserIds", { count: data.length })))
             elemForResult.appendChild(document.createElement("br"))
-            elemForResult.appendChild(document.createTextNode(`🆔: `))
+            elemForResult.appendChild(document.createTextNode(t("userProfile.userIdBadge")))
         }
         for (let i = 0; i < data.length; i++) {
             if (i !== 0) {
                 elemForResult.appendChild(document.createElement("br"))
                 elemForResult.appendChild(document.createElement("hr"))
-                elemForResult.appendChild(document.createTextNode("🆔:"))
+                elemForResult.appendChild(document.createTextNode(t("userProfile.userIdBadge").trim()))
             }
             const id = data[i].id
             const idSpan = document.createElement("span")
@@ -745,7 +745,7 @@ async function makeProfileForDeletedUser(user) {
                         const onPage = 20
                         const threads = 10
                         console.log("download user_block batch before ", lastUserBlock)
-                        loadingStatus.title = `Scanned all blocks after #${lastUserBlock}`
+                        loadingStatus.title = t("userProfile.scannedBlocksAfter", { id: lastUserBlock })
                         const batch = []
                         for (let j = 0; j < threads; j++) {
                             batch.push(processBlocks(lastUserBlock - onPage * j))
@@ -798,7 +798,7 @@ async function makeProfileForDeletedUser(user) {
                 lastChangesets.changesets.push(...(ch.changesets ?? []))
             }
 
-            elemForResult.appendChild(document.createTextNode(`Last ${lastChangesets.changesets?.length} changesets:`))
+            elemForResult.appendChild(document.createTextNode(t("userProfile.lastChangesets", { count: lastChangesets.changesets?.length })))
             lastChangesets.changesets.forEach(ch => {
                 const changesetLine = document.createElement("div")
                 const changesetTime = ch["created_at"]

@@ -60,7 +60,7 @@ function makeTopActionBar() {
     copyIds.onclick = onClickByCopyIds
     const revertButton = document.createElement("button")
     revertButton.textContent = "↩️"
-    revertButton.title = `revert via ${osm_revert_name}`
+    revertButton.title = t("changesetsHistory.revertViaOsmRevert", { name: osm_revert_name })
     revertButton.onclick = () => {
         const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked"))
             .map(i => i.value)
@@ -105,7 +105,7 @@ function makeBottomActionBar() {
     copyIds.onclick = onClickByCopyIds
     const revertButton = document.createElement("button")
     revertButton.textContent = "↩️"
-    revertButton.title = `revert via ${osm_revert_name}`
+    revertButton.title = t("changesetsHistory.revertViaOsmRevert", { name: osm_revert_name })
     revertButton.onclick = () => {
         const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked"))
             .map(i => i.value)

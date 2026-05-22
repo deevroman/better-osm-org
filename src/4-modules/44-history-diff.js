@@ -3490,7 +3490,7 @@ function transformDiffWithColors() {
                         if (!showPreviousTagValue) {
                             prevValueSpan.classList.add("hidden")
                         }
-                        i.title = `Click for hide previous value`
+                        i.title = t("historyDiff.hidePreviousValue")
                         // i.title = `was: "${el[1]}"`;
                         wasModifiedObject = tagWasModified = true
                     }

@@ -36,6 +36,11 @@ function makeTimesSwitchable() {
 
     const isObjectPage = location.pathname.includes("node") || location.pathname.includes("way") || location.pathname.includes("relation")
     const isNotePage = location.pathname.includes("note")
+    const mapStateTimeLabel = isObjectPage
+        ? t("datetimeFormatSwitch.versionWasCreated")
+        : isNotePage
+          ? t("datetimeFormatSwitch.noteWasCreated")
+          : t("datetimeFormatSwitch.changesetWasClosed")
 
     async function openMapStateInOverpass(elem, adiff = false) {
         const { lng: lon, lat: lat } = getMapCenter()
@@ -69,8 +74,12 @@ out meta;
         if (i.title !== "") {
             i.title += `\n\n`
         }
-        i.title += `Click for change time format`
-        i.title += `\nClick with ctrl for open the map state at the time of ${isObjectPage ? "version was created" : isNotePage ? "note was created" : "changeset was closed"}\nClick with Alt for view adiff`
+        i.title += t("datetimeFormatSwitch.clickToChangeTimeFormat")
+        i.title +=
+            "\n" +
+            t("datetimeFormatSwitch.clickWithCtrlOpenMapState", { time: mapStateTimeLabel }) +
+            "\n" +
+            t("datetimeFormatSwitch.clickWithAltViewAdiff")
 
         async function clickEvent(e) {
             if (e.metaKey || e.ctrlKey || e.altKey) {
@@ -89,7 +98,7 @@ out meta;
         i.setAttribute("switchable", "true")
         const btn = document.createElement("a")
         btn.classList.add("timeback-btn")
-        btn.title = `Open the map state at the time of ${isObjectPage ? "version was created" : "changeset was closed"}`
+        btn.title = t("datetimeFormatSwitch.openMapStateAtTime", { time: mapStateTimeLabel })
         btn.textContent = " 🕰"
         btn.style.cursor = "pointer"
         btn.style.display = "none"
