@@ -992,6 +992,8 @@ _translations["en"] = {
         removeLink: "remove link",
         saveLink: "save link",
         openPlaceExternalWebsite: "Open place in external website",
+        linkNamePlaceholder: "Link name",
+        urlExamplePrefix: "URL example: ",
     },
     routers: {
         routingDataTimeFor: "Routing data time for {name}: {time}",
@@ -1007,6 +1009,9 @@ _translations["en"] = {
         setCustomLayer: "Set custom layer (Shift + S)\nbetter-osm-org feature",
         setCustomVectorStyle: "Set custom vector style (Shift + V)",
         stravaLoginRequiredAlert: "Need login in Strava for access to heatmap.\nAnd after that, reload the tab.",
+        vectorStyleUrlPlaceholder: "example: https://vector.openstreetmap.org/styles/shortbread/neutrino.json",
+        pasteStyleJsonPlaceholder: "Paste style.json",
+        tileUrlPlaceholder: "example: https://tile.openstreetmap.org/{z}/{x}/{y}.png",
         customStyleSetupHelpAlert:
             "Try reload page page without cache Ctrl + F5.\n" +
             "Or:\n" +
@@ -1036,6 +1041,7 @@ _translations["en"] = {
         recent: "Recent",
         noHotkeysMatchSearch: "No hotkeys match this search.",
         noCatalogedCommandsMatchPage: "No cataloged commands match this page.",
+        searchByNamePlaceholder: "Search by hotkey name",
     },
     objectVersionPage: {
         length: "Length: {value}",
@@ -1070,6 +1076,7 @@ _translations["en"] = {
         regexSearchNotCaseSensitive: "Not case-sensitive regex search",
         viaWhosthat: "via whosthat.osmz.ru",
         viaOverpassApi: "via Overpass API",
+        regexSearchByCommentsPlaceholder: "Regex search by comments",
         filteredChangesets: "{count} changesets filtered",
         singleUserIdLabel: "User ID: ",
         foundUserIds: "⚠️ Found {count} user IDs",
@@ -1094,6 +1101,8 @@ _translations["en"] = {
         filterViaBetterOsmOrg: "Changesets filter via better-osm-org",
         filterBySubstringInComments: "Filter by substring in changesets comments",
         clickCopyChangesetId: "Click for copy changeset id",
+        usersFilterPlaceholder: "user1,user2,... and press Enter",
+        commentsFilterPlaceholder: "words1,words2,... and press Enter",
         revertViaOsmRevert: "revert via {name}",
     },
     measurer: {
@@ -1212,6 +1221,9 @@ _translations["en"] = {
         openMapStateNoteCreation: "Open the map state at the time of note creation",
         commaSeparatedSubstrings: "comma-separated substrings\nfilter also works by comments",
         commaSeparatedUsernames: "comma-separated usernames",
+        wordInNotesPlaceholder: "word in notes",
+        usernamePlaceholder: "username",
+        wordInCommentsPlaceholder: "word in comments",
         addNewObjectOnMap: "Add new object on map\nPaste tags in textarea\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "Textarea not contains any tag",
         resolveButtonTitle: 'Add to the comment "{text}" and close the note.\nYou can change emoji in userscript settings',
@@ -1408,6 +1420,8 @@ _translations["ru"] = {
         removeLink: "удалить ссылку",
         saveLink: "сохранить ссылку",
         openPlaceExternalWebsite: "Открыть место на внешнем сайте",
+        linkNamePlaceholder: "Название ссылки",
+        urlExamplePrefix: "Пример URL: ",
     },
     routers: {
         routingDataTimeFor: "Время данных роутинга для {name}: {time}",
@@ -1423,6 +1437,9 @@ _translations["ru"] = {
         setCustomLayer: "Задать свой слой (Shift + S)\nфича better-osm-org",
         setCustomVectorStyle: "Задать свой векторный стиль (Shift + V)",
         stravaLoginRequiredAlert: "Нужно войти в Strava для доступа к тепловой карте.\nПосле этого перезагрузите вкладку.",
+        vectorStyleUrlPlaceholder: "пример: https://vector.openstreetmap.org/styles/shortbread/neutrino.json",
+        pasteStyleJsonPlaceholder: "Вставьте style.json",
+        tileUrlPlaceholder: "пример: https://tile.openstreetmap.org/{z}/{x}/{y}.png",
         customStyleSetupHelpAlert:
             "Попробуйте перезагрузить страницу без кеша Ctrl + F5.\n" +
             "Или:\n" +
@@ -1452,6 +1469,7 @@ _translations["ru"] = {
         recent: "Недавние",
         noHotkeysMatchSearch: "Нет подходящих горячих клавиш.",
         noCatalogedCommandsMatchPage: "Для этой страницы нет подходящих команд.",
+        searchByNamePlaceholder: "Поиск по названию хоткея",
     },
     objectVersionPage: {
         length: "Длина: {value}",
@@ -1487,6 +1505,7 @@ _translations["ru"] = {
         regexSearchNotCaseSensitive: "Регулярное выражение без учёта регистра",
         viaWhosthat: "через whosthat.osmz.ru",
         viaOverpassApi: "через Overpass API",
+        regexSearchByCommentsPlaceholder: "Regex-поиск по комментариям",
         filteredChangesets: "Отфильтровано пакетов правок: {count}",
         singleUserIdLabel: "ID пользователя: ",
         foundUserIds: "⚠️ Найдено ID пользователей: {count}",
@@ -1511,6 +1530,8 @@ _translations["ru"] = {
         filterViaBetterOsmOrg: "Фильтр пакетов правок через better-osm-org",
         filterBySubstringInComments: "Фильтр по подстроке в комментариях пакетов правок",
         clickCopyChangesetId: "Нажмите, чтобы скопировать ID пакета правок",
+        usersFilterPlaceholder: "user1,user2,... и нажмите Enter",
+        commentsFilterPlaceholder: "words1,words2,... и нажмите Enter",
         revertViaOsmRevert: "откатить через {name}",
     },
     measurer: {
@@ -1632,6 +1653,9 @@ _translations["ru"] = {
         openMapStateNoteCreation: "Открыть состояние карты на момент создания заметки",
         commaSeparatedSubstrings: "подстроки через запятую\nфильтр также работает по комментариям",
         commaSeparatedUsernames: "имена пользователей через запятую",
+        wordInNotesPlaceholder: "слово в заметках",
+        usernamePlaceholder: "имя пользователя",
+        wordInCommentsPlaceholder: "слово в комментариях",
         addNewObjectOnMap: "Добавить новый объект на карту\nВставьте теги в textarea\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "В textarea нет ни одного тега",
         resolveButtonTitle: 'Добавить в комментарий "{text}" и закрыть заметку.\nВы можете изменить emoji в настройках userscript',
@@ -1822,6 +1846,8 @@ _translations["de"] = {
         removeLink: "Link entfernen",
         saveLink: "Link speichern",
         openPlaceExternalWebsite: "Ort auf externer Website öffnen",
+        linkNamePlaceholder: "Linkname",
+        urlExamplePrefix: "URL-Beispiel: ",
     },
     routers: {
         routingDataTimeFor: "Routingdatenstand für {name}: {time}",
@@ -1837,6 +1863,9 @@ _translations["de"] = {
         setCustomLayer: "Benutzerdefinierte Ebene setzen (Shift + S)\nbetter-osm-org-Funktion",
         setCustomVectorStyle: "Benutzerdefinierten Vektorstil setzen (Shift + V)",
         stravaLoginRequiredAlert: "Für den Zugriff auf die Heatmap ist eine Anmeldung bei Strava erforderlich.\nLade danach den Tab neu.",
+        vectorStyleUrlPlaceholder: "Beispiel: https://vector.openstreetmap.org/styles/shortbread/neutrino.json",
+        pasteStyleJsonPlaceholder: "style.json einfügen",
+        tileUrlPlaceholder: "Beispiel: https://tile.openstreetmap.org/{z}/{x}/{y}.png",
         customStyleSetupHelpAlert:
             "Versuche, die Seite ohne Cache mit Strg + F5 neu zu laden.\n" +
             "Oder:\n" +
@@ -1866,6 +1895,7 @@ _translations["de"] = {
         recent: "Zuletzt",
         noHotkeysMatchSearch: "Keine Tastenkürzel passen zu dieser Suche.",
         noCatalogedCommandsMatchPage: "Keine katalogisierten Befehle passen zu dieser Seite.",
+        searchByNamePlaceholder: "Nach Hotkey-Namen suchen",
     },
     objectVersionPage: {
         length: "Länge: {value}",
@@ -1901,6 +1931,7 @@ _translations["de"] = {
         regexSearchNotCaseSensitive: "Regex-Suche ohne Groß-/Kleinschreibung",
         viaWhosthat: "via whosthat.osmz.ru",
         viaOverpassApi: "via Overpass API",
+        regexSearchByCommentsPlaceholder: "Regex-Suche in Kommentaren",
         filteredChangesets: "{count} Changesets gefiltert",
         singleUserIdLabel: "Benutzer-ID: ",
         foundUserIds: "⚠️ {count} Benutzer-IDs gefunden",
@@ -1926,6 +1957,8 @@ _translations["de"] = {
         filterViaBetterOsmOrg: "Changeset-Filter via better-osm-org",
         filterBySubstringInComments: "Nach Teilzeichenfolge in Changeset-Kommentaren filtern",
         clickCopyChangesetId: "Klicken, um die Changeset-ID zu kopieren",
+        usersFilterPlaceholder: "user1,user2,... und Enter drücken",
+        commentsFilterPlaceholder: "words1,words2,... und Enter drücken",
         revertViaOsmRevert: "über {name} zurücksetzen",
     },
     measurer: {
@@ -2048,6 +2081,9 @@ _translations["de"] = {
         openMapStateNoteCreation: "Kartenstand zum Zeitpunkt der Hinweis-Erstellung öffnen",
         commaSeparatedSubstrings: "durch Kommas getrennte Teilzeichenfolgen\nFilter funktioniert auch über Kommentare",
         commaSeparatedUsernames: "durch Kommas getrennte Benutzernamen",
+        wordInNotesPlaceholder: "Wort in Hinweisen",
+        usernamePlaceholder: "Benutzername",
+        wordInCommentsPlaceholder: "Wort in Kommentaren",
         addNewObjectOnMap: "Neues Objekt auf der Karte hinzufügen\nTags in die Textarea einfügen\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "Die Textarea enthält keine Tags",
         resolveButtonTitle: 'Zu dem Kommentar "{text}" hinzufügen und den Hinweis schließen.\nDu kannst das Emoji in den Userscript-Einstellungen ändern',
@@ -2240,6 +2276,8 @@ _translations["fr"] = {
         removeLink: "supprimer le lien",
         saveLink: "enregistrer le lien",
         openPlaceExternalWebsite: "Ouvrir le lieu sur un site externe",
+        linkNamePlaceholder: "Nom du lien",
+        urlExamplePrefix: "Exemple d’URL : ",
     },
     routers: {
         routingDataTimeFor: "Date des données de routage pour {name} : {time}",
@@ -2255,6 +2293,9 @@ _translations["fr"] = {
         setCustomLayer: "Définir une couche personnalisée (Shift + S)\nfonction de better-osm-org",
         setCustomVectorStyle: "Définir un style vectoriel personnalisé (Shift + V)",
         stravaLoginRequiredAlert: "Une connexion à Strava est nécessaire pour accéder à la heatmap.\nRechargez ensuite l'onglet.",
+        vectorStyleUrlPlaceholder: "exemple : https://vector.openstreetmap.org/styles/shortbread/neutrino.json",
+        pasteStyleJsonPlaceholder: "Collez style.json",
+        tileUrlPlaceholder: "exemple : https://tile.openstreetmap.org/{z}/{x}/{y}.png",
         customStyleSetupHelpAlert:
             "Essayez de recharger la page sans le cache avec Ctrl + F5.\n" +
             "Ou :\n" +
@@ -2284,6 +2325,7 @@ _translations["fr"] = {
         recent: "Récents",
         noHotkeysMatchSearch: "Aucun raccourci ne correspond à cette recherche.",
         noCatalogedCommandsMatchPage: "Aucune commande cataloguée ne correspond à cette page.",
+        searchByNamePlaceholder: "Rechercher par nom de raccourci",
     },
     objectVersionPage: {
         length: "Longueur : {value}",
@@ -2319,6 +2361,7 @@ _translations["fr"] = {
         regexSearchNotCaseSensitive: "Recherche regex sans distinction de casse",
         viaWhosthat: "via whosthat.osmz.ru",
         viaOverpassApi: "via Overpass API",
+        regexSearchByCommentsPlaceholder: "Recherche regex dans les commentaires",
         filteredChangesets: "{count} changesets filtrés",
         singleUserIdLabel: "ID utilisateur : ",
         foundUserIds: "⚠️ {count} ID utilisateur trouvés",
@@ -2343,6 +2386,8 @@ _translations["fr"] = {
         filterViaBetterOsmOrg: "Filtre de changesets via better-osm-org",
         filterBySubstringInComments: "Filtrer par sous-chaîne dans les commentaires des changesets",
         clickCopyChangesetId: "Cliquer pour copier l'ID du changeset",
+        usersFilterPlaceholder: "user1,user2,... puis appuyez sur Entrée",
+        commentsFilterPlaceholder: "words1,words2,... puis appuyez sur Entrée",
         revertViaOsmRevert: "annuler via {name}",
     },
     measurer: {
@@ -2465,6 +2510,9 @@ _translations["fr"] = {
         openMapStateNoteCreation: "Ouvrir l'état de la carte au moment de la création de la note",
         commaSeparatedSubstrings: "sous-chaînes séparées par des virgules\nle filtre fonctionne aussi sur les commentaires",
         commaSeparatedUsernames: "noms d'utilisateur séparés par des virgules",
+        wordInNotesPlaceholder: "mot dans les notes",
+        usernamePlaceholder: "nom d'utilisateur",
+        wordInCommentsPlaceholder: "mot dans les commentaires",
         addNewObjectOnMap: "Ajouter un nouvel objet sur la carte\nCollez les tags dans la zone de texte\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "La zone de texte ne contient aucun tag",
         resolveButtonTitle: 'Ajouter "{text}" au commentaire et fermer la note.\nVous pouvez changer l’emoji dans les paramètres du userscript',
@@ -2655,6 +2703,8 @@ _translations["hr"] = {
         removeLink: "ukloni poveznicu",
         saveLink: "spremi poveznicu",
         openPlaceExternalWebsite: "Otvori mjesto na vanjskoj stranici",
+        linkNamePlaceholder: "Naziv poveznice",
+        urlExamplePrefix: "Primjer URL-a: ",
     },
     routers: {
         routingDataTimeFor: "Vrijeme routing podataka za {name}: {time}",
@@ -2670,6 +2720,9 @@ _translations["hr"] = {
         setCustomLayer: "Postavi prilagođeni sloj (Shift + S)\nznačajka better-osm-org",
         setCustomVectorStyle: "Postavi prilagođeni vektorski stil (Shift + V)",
         stravaLoginRequiredAlert: "Potrebna je prijava na Stravu za pristup heatmapi.\nNakon toga ponovno učitajte karticu.",
+        vectorStyleUrlPlaceholder: "primjer: https://vector.openstreetmap.org/styles/shortbread/neutrino.json",
+        pasteStyleJsonPlaceholder: "Zalijepite style.json",
+        tileUrlPlaceholder: "primjer: https://tile.openstreetmap.org/{z}/{x}/{y}.png",
         customStyleSetupHelpAlert:
             "Pokušajte ponovno učitati stranicu bez predmemorije pomoću Ctrl + F5.\n" +
             "Ili:\n" +
@@ -2699,6 +2752,7 @@ _translations["hr"] = {
         recent: "Nedavno",
         noHotkeysMatchSearch: "Nijedan prečac ne odgovara ovom pretraživanju.",
         noCatalogedCommandsMatchPage: "Nijedna katalogizirana naredba ne odgovara ovoj stranici.",
+        searchByNamePlaceholder: "Pretraži po nazivu prečaca",
     },
     objectVersionPage: {
         length: "Duljina: {value}",
@@ -2733,6 +2787,7 @@ _translations["hr"] = {
         regexSearchNotCaseSensitive: "Pretraga regularnim izrazom bez razlikovanja velikih i malih slova",
         viaWhosthat: "putem whosthat.osmz.ru",
         viaOverpassApi: "putem Overpass API-ja",
+        regexSearchByCommentsPlaceholder: "Regex pretraga po komentarima",
         filteredChangesets: "Filtrirano changeseta: {count}",
         singleUserIdLabel: "ID korisnika: ",
         foundUserIds: "⚠️ Pronađeno ID-ova korisnika: {count}",
@@ -2757,6 +2812,8 @@ _translations["hr"] = {
         filterViaBetterOsmOrg: "Filtar changeseta putem better-osm-org",
         filterBySubstringInComments: "Filtriraj po podnizu u komentarima changeseta",
         clickCopyChangesetId: "Kliknite za kopiranje ID-a changeseta",
+        usersFilterPlaceholder: "user1,user2,... i pritisnite Enter",
+        commentsFilterPlaceholder: "words1,words2,... i pritisnite Enter",
         revertViaOsmRevert: "vrati putem {name}",
     },
     measurer: {
@@ -2878,6 +2935,9 @@ _translations["hr"] = {
         openMapStateNoteCreation: "Otvori stanje karte u trenutku stvaranja bilješke",
         commaSeparatedSubstrings: "podnizovi odvojeni zarezima\nfiltar radi i po komentarima",
         commaSeparatedUsernames: "korisnička imena odvojena zarezima",
+        wordInNotesPlaceholder: "riječ u bilješkama",
+        usernamePlaceholder: "korisničko ime",
+        wordInCommentsPlaceholder: "riječ u komentarima",
         addNewObjectOnMap: "Dodaj novi objekt na kartu\nZalijepite oznake u textarea\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "Textarea ne sadrži nijednu oznaku",
         resolveButtonTitle: 'Dodaj "{text}" u komentar i zatvori bilješku.\nEmoji možete promijeniti u postavkama userscripta',
@@ -3068,6 +3128,8 @@ _translations["uk"] = {
         removeLink: "видалити посилання",
         saveLink: "зберегти посилання",
         openPlaceExternalWebsite: "Відкрити місце на зовнішньому сайті",
+        linkNamePlaceholder: "Назва посилання",
+        urlExamplePrefix: "Приклад URL: ",
     },
     routers: {
         routingDataTimeFor: "Дата даних маршрутизації для {name}: {time}",
@@ -3083,6 +3145,9 @@ _translations["uk"] = {
         setCustomLayer: "Установити власний шар (Shift + S)\nфункція better-osm-org",
         setCustomVectorStyle: "Установити власний векторний стиль (Shift + V)",
         stravaLoginRequiredAlert: "Потрібно увійти в Strava для доступу до heatmap.\nПісля цього перезавантажте вкладку.",
+        vectorStyleUrlPlaceholder: "приклад: https://vector.openstreetmap.org/styles/shortbread/neutrino.json",
+        pasteStyleJsonPlaceholder: "Вставте style.json",
+        tileUrlPlaceholder: "приклад: https://tile.openstreetmap.org/{z}/{x}/{y}.png",
         customStyleSetupHelpAlert:
             "Спробуйте перезавантажити сторінку без кешу за допомогою Ctrl + F5.\n" +
             "Або:\n" +
@@ -3112,6 +3177,7 @@ _translations["uk"] = {
         recent: "Нещодавні",
         noHotkeysMatchSearch: "Жодні гарячі клавіші не відповідають цьому пошуку.",
         noCatalogedCommandsMatchPage: "Для цієї сторінки немає відповідних команд.",
+        searchByNamePlaceholder: "Пошук за назвою хоткея",
     },
     objectVersionPage: {
         length: "Довжина: {value}",
@@ -3148,6 +3214,7 @@ _translations["uk"] = {
         regexSearchNotCaseSensitive: "Пошук regex без урахування регістру",
         viaWhosthat: "через whosthat.osmz.ru",
         viaOverpassApi: "через Overpass API",
+        regexSearchByCommentsPlaceholder: "Regex-пошук за коментарями",
         filteredChangesets: "Відфільтровано наборів змін: {count}",
         singleUserIdLabel: "ID користувача: ",
         foundUserIds: "⚠️ Знайдено ID користувачів: {count}",
@@ -3172,6 +3239,8 @@ _translations["uk"] = {
         filterViaBetterOsmOrg: "Фільтр наборів змін через better-osm-org",
         filterBySubstringInComments: "Фільтр за підрядком у коментарях наборів змін",
         clickCopyChangesetId: "Натисніть, щоб скопіювати ID набору змін",
+        usersFilterPlaceholder: "user1,user2,... і натисніть Enter",
+        commentsFilterPlaceholder: "words1,words2,... і натисніть Enter",
         revertViaOsmRevert: "відкотити через {name}",
     },
     measurer: {
@@ -3292,6 +3361,9 @@ _translations["uk"] = {
         openMapStateNoteCreation: "Відкрити стан мапи на момент створення нотатки",
         commaSeparatedSubstrings: "підрядки, розділені комами\nфільтр також працює за коментарями",
         commaSeparatedUsernames: "імена користувачів, розділені комами",
+        wordInNotesPlaceholder: "слово в нотатках",
+        usernamePlaceholder: "ім'я користувача",
+        wordInCommentsPlaceholder: "слово в коментарях",
         addNewObjectOnMap: "Додати новий об'єкт на мапу\nВставте теги в textarea\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "У textarea немає жодного тега",
         resolveButtonTitle: 'Додати в коментар "{text}" і закрити нотатку.\nВи можете змінити emoji в налаштуваннях userscript',
@@ -9316,7 +9388,7 @@ function addNotesFiltersButtons() {
         filterByString.type = "input"
         filterByString.id = "filter-notes-by-string"
         filterByString.style.width = "100%"
-        filterByString.placeholder = "word in notes"
+        filterByString.placeholder = t("notes.wordInNotesPlaceholder")
         filterByString.title = t("notes.commaSeparatedSubstrings")
         filterByString.addEventListener("keypress", function (event) {
             if (event.key === "Enter") {
@@ -9390,7 +9462,7 @@ function addNotesFiltersButtons() {
 
     function makeFilterByUsernameWrapper() {
         filterByUsername.type = "input"
-        filterByUsername.placeholder = "username"
+        filterByUsername.placeholder = t("notes.usernamePlaceholder")
         filterByString.title = t("notes.commaSeparatedUsernames")
         filterByUsername.id = "filter-notes-by-username"
         filterByUsername.style.width = "100%"
@@ -9486,7 +9558,7 @@ function addNotesFiltersButtons() {
 
     function makeFilterByCommentsWrapper() {
         filterByComment.id = "filter-notes-by-closed"
-        filterByComment.placeholder = "word in comments"
+        filterByComment.placeholder = t("notes.wordInCommentsPlaceholder")
         filterByComment.style.width = "100%"
         filterByComment.style.color = "gray"
         filterByComment.setAttribute("list", "comments-filters")
@@ -11093,7 +11165,7 @@ async function askCustomStyleUrl() {
         wrapper.append(input)
         const urlInput = document.createElement("input")
         urlInput.type = "text"
-        urlInput.placeholder = "example: https://vector.openstreetmap.org/styles/shortbread/neutrino.json"
+        urlInput.placeholder = t("satellite.vectorStyleUrlPlaceholder")
         urlInput.style.width = "100%"
         if (lastVectorLayerStyleUrl) {
             urlInput.value = lastVectorLayerStyleUrl
@@ -11135,7 +11207,7 @@ async function askCustomStyleUrl() {
         } else {
             jsonArea.rows = 1
         }
-        jsonArea.placeholder = `Paste style.json`
+        jsonArea.placeholder = t("satellite.pasteStyleJsonPlaceholder")
         jsonArea.style.width = "100%"
         jsonArea.style.fontFamily = "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
         jsonArea.addEventListener(
@@ -11439,7 +11511,7 @@ async function askCustomTileUrl() {
         wrapper.append(input)
         const urlInput = document.createElement("input")
         urlInput.type = "text"
-        urlInput.placeholder = "example: https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+        urlInput.placeholder = t("satellite.tileUrlPlaceholder")
         urlInput.style.width = "100%"
         if (lastCustomLayerUrl) {
             urlInput.value = lastCustomLayerUrl
@@ -24262,7 +24334,7 @@ function addMassActionForGlobalChangesets() {
                 }
                 filterBar.appendChild(label)
                 const filterByUsersInput = document.createElement("input")
-                filterByUsersInput.placeholder = "user1,user2,... and press Enter"
+                filterByUsersInput.placeholder = t("changesetsHistory.usersFilterPlaceholder")
                 filterByUsersInput.id = "filter-by-user-input"
                 filterByUsersInput.style.width = 253 - getScrollbarWidth() + "px"
                 filterByUsersInput.style.marginBottom = "3px"
@@ -24305,7 +24377,7 @@ function addMassActionForGlobalChangesets() {
                 filterBar.appendChild(label2)
                 const filterByCommentInput = document.createElement("input")
                 filterByCommentInput.id = "filter-by-comment-input"
-                filterByCommentInput.placeholder = "words1,words2,... and press Enter"
+                filterByCommentInput.placeholder = t("changesetsHistory.commentsFilterPlaceholder")
                 filterByCommentInput.title = t("changesetsHistory.filterBySubstringInComments")
                 filterByCommentInput.style.width = 253 - getScrollbarWidth() + "px"
                 filterByCommentInput.addEventListener("keypress", async function (event) {
@@ -24769,7 +24841,7 @@ async function betterUserStat() {
     filterInputByEditor.style.flex = "1"
     filterInputByEditor.id = "filter-input-by-editor"
     filterInputByEditor.setAttribute("disabled", true)
-    filterInputByEditor.title = t("userProfile.pleaseWaitChangesetsLoading")
+    filterInputByEditor.title = t("userProfile.pleaseWaitUserChangesetsLoading")
 
     const item = document.createElement("option")
     item.value = ""
@@ -24793,8 +24865,8 @@ async function betterUserStat() {
 
     const searchByComment = document.createElement("input")
     searchByComment.type = "search"
-    searchByComment.placeholder = "Regex search by comments"
-    searchByComment.title = t("userProfile.pleaseWaitChangesetsLoading")
+    searchByComment.placeholder = t("userProfile.regexSearchByCommentsPlaceholder")
+    searchByComment.title = t("userProfile.pleaseWaitUserChangesetsLoading")
     searchByComment.setAttribute("disabled", true)
     searchByComment.style.flex = "1"
     searchByComment.style.height = "1.5rem"
@@ -26591,7 +26663,7 @@ function makeExternalLinkEditable(targetLi, editorsListUl, nameValue = "", templ
 
     const title = document.createElement("input")
     title.classList.add("title-input")
-    title.placeholder = "Link name"
+    title.placeholder = t("editMenuLinks.linkNamePlaceholder")
     title.value = nameValue
 
     const createLikBtn = document.createElement("button")
@@ -26601,7 +26673,7 @@ function makeExternalLinkEditable(targetLi, editorsListUl, nameValue = "", templ
 
     const template = document.createElement("input")
     template.classList.add("template-input")
-    template.placeholder = (isMobile ? "" : "URL example: ") + "https://osm.org/{osm_type}/{osm_id}/#map={zoom}/{lat}/{lon}"
+    template.placeholder = (isMobile ? "" : t("editMenuLinks.urlExamplePrefix")) + "https://osm.org/{osm_type}/{osm_id}/#map={zoom}/{lat}/{lon}"
     template.name = "custom-link-template"
     template.value = templateValue
 
@@ -30002,8 +30074,8 @@ async function showHotkeyCommandsPopup() {
     const searchInput = document.createElement("input")
     searchInput.classList.add("better-osm-hotkey-commands-search")
     searchInput.type = "search"
-    searchInput.placeholder = "Search by hotkey name"
-    searchInput.setAttribute("aria-label", "Search hotkeys by name")
+    searchInput.placeholder = t("hotkeys.searchByNamePlaceholder")
+    searchInput.setAttribute("aria-label", t("hotkeys.searchByNamePlaceholder"))
     panel.append(searchInput)
 
     const content = document.createElement("div")

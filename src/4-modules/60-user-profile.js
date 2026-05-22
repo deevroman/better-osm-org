@@ -260,7 +260,7 @@ async function betterUserStat() {
     filterInputByEditor.style.flex = "1"
     filterInputByEditor.id = "filter-input-by-editor"
     filterInputByEditor.setAttribute("disabled", true)
-    filterInputByEditor.title = t("userProfile.pleaseWaitChangesetsLoading")
+    filterInputByEditor.title = t("userProfile.pleaseWaitUserChangesetsLoading")
 
     const item = document.createElement("option")
     item.value = ""
@@ -284,8 +284,8 @@ async function betterUserStat() {
 
     const searchByComment = document.createElement("input")
     searchByComment.type = "search"
-    searchByComment.placeholder = "Regex search by comments"
-    searchByComment.title = t("userProfile.pleaseWaitChangesetsLoading")
+    searchByComment.placeholder = t("userProfile.regexSearchByCommentsPlaceholder")
+    searchByComment.title = t("userProfile.pleaseWaitUserChangesetsLoading")
     searchByComment.setAttribute("disabled", true)
     searchByComment.style.flex = "1"
     searchByComment.style.height = "1.5rem"

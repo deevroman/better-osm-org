@@ -1648,8 +1648,8 @@ async function showHotkeyCommandsPopup() {
     const searchInput = document.createElement("input")
     searchInput.classList.add("better-osm-hotkey-commands-search")
     searchInput.type = "search"
-    searchInput.placeholder = "Search by hotkey name"
-    searchInput.setAttribute("aria-label", "Search hotkeys by name")
+    searchInput.placeholder = t("hotkeys.searchByNamePlaceholder")
+    searchInput.setAttribute("aria-label", t("hotkeys.searchByNamePlaceholder"))
     panel.append(searchInput)
 
     const content = document.createElement("div")
