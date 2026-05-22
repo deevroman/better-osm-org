@@ -99,7 +99,7 @@ function coord4326To3857(lon, lat) {
 function stravaAuthNotify() {
     if (!needStravaAuth) {
         needStravaAuth = true
-        alert("Need login in Strava for access to heatmap.\nAnd after that, reload the tab.")
+        alert(t("satellite.stravaLoginRequiredAlert"))
         const [x, y, z] = getCurrentXYZ()
         const hash = `#${z}/${x}/${y}`
         window.open("https://www.strava.com/maps/global-heatmap" + hash, "_blank")
@@ -358,17 +358,7 @@ const mapStylesDatabase = resourceCacher(githubMapStylesURL, "custom-vector-map-
 
 async function askCustomStyleUrl() {
     if (!initCustomFetch) {
-        alert(
-            "Try reload page page without cache Ctrl + F5.\n" +
-                "Or:\n" +
-                "1. In TamperMonkey settings enable Advanced Config Mode\n" +
-                '2. In TamperMonkey settings change "Content Script API" to "UserScript API Dynamic"\n' +
-                "More info: https://c.osm.org/t/121670/208\n" +
-                "\n" +
-                "Or close this tab and open new tab\n" +
-                "Or switch on/off script\n" +
-                "Or try to use Firefox with ViolentMonkey",
-        )
+        alert(t("satellite.customStyleSetupHelpAlert"))
         return
     }
     if (document.querySelector(".vector-tiles-selector-popup")) {

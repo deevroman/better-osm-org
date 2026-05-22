@@ -240,7 +240,7 @@ async function findChangesetInDiff(e) {
         if (!foundedInfo.user) {
             foundedInfo = await tryFindDeletedChangesetAuthorViaWhosthat(e.target.datetime, changesetID)
             if (!foundedInfo.user) {
-                alert(":(")
+                alert(t("findUserInDiff.notFoundAlert"))
                 e.target.style.cursor = "pointer"
                 return
             }
@@ -265,7 +265,7 @@ async function findChangesetInDiff(e) {
     }
     uid.textContent = foundedUserUid
 
-    e.target.before(document.createTextNode("ID: "))
+    e.target.before(document.createTextNode(t("findUserInDiff.userIdLabel")))
     e.target.before(uid)
     e.target.before(document.createTextNode("\xA0"))
 

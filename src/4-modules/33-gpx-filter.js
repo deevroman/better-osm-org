@@ -42,7 +42,7 @@ function addGPXFiltersButtons() {
                         }),
                 })
                 if (response.status !== 200) {
-                    alert("download failed: " + response.responseText)
+                    alert(t("gpxFilter.downloadFailed", { error: response.responseText }))
                     throw response.responseText
                 }
                 if (page === 0) {

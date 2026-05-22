@@ -73,7 +73,7 @@ function showBboxMenu(e, bbox) {
         const listItem = document.createElement("div")
         const a = document.createElement("a")
         a.textContent = text
-        a.title = "Click to copy " + text
+        a.title = t("copying.clickToCopyValue", { value: text })
         a.style.width = "100%"
         a.style.fontVariantNumeric = "tabular-nums"
         a.onclick = e => {
@@ -159,7 +159,7 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type) {
     icon1.innerHTML = svg1
     icon1.style.cursor = "pointer"
     const text1 = `${bbox.max_lat.toString()} ${bbox.min_lon.toString()}`
-    icon1.title = "Click to copy TopLeft: " + text1
+    icon1.title = t("objectVersionPage.clickToCopyTopLeft", { value: text1 })
     icon1.onmouseenter = () => {
         showActiveNodeMarker(bbox.max_lat.toString(), bbox.min_lon.toString(), "red", true)
         showActiveNodeIconMarker(bbox.max_lat.toString(), bbox.min_lon.toString(), null, false)
@@ -182,7 +182,7 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type) {
     icon2.innerHTML = svg2
     icon2.style.cursor = "pointer"
     const text2 = `${center.lat.toFixed(6)} ${center.lng.toFixed(6)}`
-    icon2.title = "Click to copy center: " + text2
+    icon2.title = t("objectVersionPage.clickToCopyCenter", { value: text2 })
     icon2.onmouseenter = () => {
         showActiveNodeMarker(center.lat.toString(), center.lng.toString(), "red")
         showActiveNodeIconMarker(center.lat.toString(), center.lng.toString(), null, false)
@@ -206,7 +206,7 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type) {
     icon3.innerHTML = svg3
     icon3.style.cursor = "pointer"
     const text3 = `${bbox.min_lat.toString()} ${bbox.max_lon.toString()}`
-    icon3.title = "Click to copy RightBottom: " + text3
+    icon3.title = t("objectVersionPage.clickToCopyRightBottom", { value: text3 })
     icon3.onmouseenter = () => {
         showActiveNodeMarker(bbox.min_lat.toString(), bbox.max_lon.toString(), "red")
         showActiveNodeIconMarker(bbox.min_lat.toString(), bbox.max_lon.toString(), null, false)
@@ -225,7 +225,7 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type) {
     const icon4 = document.createElement("span")
     icon4.innerHTML = svg4
     icon4.style.cursor = "pointer"
-    icon4.title = "Click to copy bbox"
+    icon4.title = t("objectVersionPage.clickToCopyBbox")
     icon4.onmouseenter = () => {
         cleanObjectsByKey("activeObjects")
         const rect = getWindow()
@@ -753,7 +753,7 @@ async function addHoverForRelationMembers() {
 function makeHeaderPartsClickable() {
     function makeElemCopyable(elem, url = "") {
         if (/^\d+$/.test(elem.textContent)) {
-            elem.title = `Click to copy ID\n${CtrlKeyName} + click to copy URL`
+            elem.title = t("objectVersionPage.clickToCopyIdOrUrl", { modifier: CtrlKeyName })
         } else {
             elem.title = t("copying.clickForCopy")
         }
@@ -864,7 +864,7 @@ function addCopyCoordinatesButtons() {
         }
         setTimeout(async () => {
             const coordinatesFormat = (await GM.getValue("CoordinatesFormat")) ?? "Lat Lon"
-            coordsElem.title = "Click to copy " + coordinatesFormatters[coordinatesFormat]["getter"]()
+            coordsElem.title = t("copying.clickToCopyValue", { value: coordinatesFormatters[coordinatesFormat]["getter"]() })
         })
         coordsElem.classList.add("copyable")
         const copyButton = document.createElement("span")
@@ -897,7 +897,7 @@ function addCopyCoordinatesButtons() {
                 const text = formatter.getter()
                 const a = document.createElement("a")
                 a.textContent = text
-                a.title = "Click to copy " + text
+                a.title = t("copying.clickToCopyValue", { value: text })
                 a.style.width = "100%"
                 a.onclick = e => {
                     e.preventDefault()
@@ -921,7 +921,7 @@ function addCopyCoordinatesButtons() {
                 pin.onchange = async () => {
                     if (pin.checked) {
                         await GM.setValue("CoordinatesFormat", format)
-                        coordsElem.title = "Click to copy " + coordinatesFormatters[format]["getter"]()
+                        coordsElem.title = t("copying.clickToCopyValue", { value: coordinatesFormatters[format]["getter"]() })
                     }
                 }
                 listItem.appendChild(pin)

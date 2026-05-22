@@ -185,9 +185,9 @@ out geom;
         const xml = new DOMParser().parseFromString(res.response, "text/xml")
         if (res.status !== 200) {
             if (xml.querySelector("parsererror")) {
-                alert(`Error. HTTP Code: ${res.status}`)
+                alert(t("overpassSearch.httpError", { status: res.status }))
             } else {
-                let errorMessage = `Error. HTTP Code: ${res.status}\nSubmitted request:\n\n${overpassQuery}\n`
+                let errorMessage = t("overpassSearch.httpErrorWithQuery", { status: res.status, query: overpassQuery }) + "\n"
 
                 xml.querySelectorAll("p").forEach(i => {
                     const lineText = i.textContent
@@ -227,7 +227,7 @@ out geom;
         })
         console.log(bbox)
         if (bbox.min_lon === 10000000) {
-            alert("invalid query")
+            alert(t("overpassSearch.invalidQuery"))
             return
         }
         console.time("render overpass response")

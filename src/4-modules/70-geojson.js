@@ -705,7 +705,7 @@ function renderOSMGeoJSON(xml, options = {}) {
                     const lastVersion = parseInt(objectInfo.querySelector("[version]:not(osm)").getAttribute("version"))
                     if (lastVersion !== object_version) {
                         startEditEvent.target.textContent = "🔄"
-                        alert("Conflict")
+                        alert(t("geojson.conflict"))
                         throw ""
                     }
 

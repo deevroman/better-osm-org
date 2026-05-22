@@ -75,7 +75,7 @@ function setupIDframe() {
         if (!token) {
             token = localStorage.getItem(`${osm_server.url}oauth2_access_token`)
             if (!token) {
-                alert("Please switch the focus to the Iframe iD.\nJust click anywhere in the editor.")
+                alert(t("idEditor.focusIframeAlert"))
                 return
             }
         }

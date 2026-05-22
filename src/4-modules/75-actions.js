@@ -934,7 +934,7 @@ async function openObjectInJosmOrLevel0(e) {
     const shortType = type === "node" ? "n" : type === "way" ? "w" : "r"
     if (e.altKey) {
         if (osm_server !== prod_server) {
-            alert("level0 works only with osm.org")
+            alert(t("actions.level0WorksOnlyOnOsmOrg"))
             return
         }
         window.open(
@@ -1002,7 +1002,7 @@ async function openSelectedObjectsOnChangesetPage(e) {
 
     if (e.altKey) {
         if (osm_server !== prod_server) {
-            alert("level0 works only with osm.org")
+            alert(t("actions.level0WorksOnlyOnOsmOrg"))
             return
         }
         // prettier-ignore

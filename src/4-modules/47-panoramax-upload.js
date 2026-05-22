@@ -7,7 +7,7 @@ async function getPanoramaxToken() {
     })
     if (!res.response?.[0]?.links?.[0]?.href) {
         console.error(res.responseText)
-        alert("Please, login to Panoramax")
+        alert(t("panoramax.loginRequiredAlert"))
         window.open(panoramaxInstance, "_blank")
         return
     }
@@ -212,7 +212,7 @@ function addUploadPanoramaxBtn() {
     wrapper.appendChild(secondBlock)
     wrapper.appendChild(thirdBlock)
 
-    firstBlock.appendChild(document.createTextNode("Upload photo to Panoramax"))
+    firstBlock.appendChild(document.createTextNode(t("panoramax.uploadPhoto")))
 
     const fileInput = document.createElement("input")
     fileInput.type = "file"
@@ -246,7 +246,7 @@ function addUploadPanoramaxBtn() {
         new URL(instanceInput.value)
         void GM.setValue("panoramaxInstance", (panoramaxInstance = instanceInput.value))
         if (!fileInput.files.length) {
-            return alert("Select file")
+            return alert(t("panoramax.selectFileAlert"))
         }
         wrapper.classList.add("is-loading")
         uploadImgBtn.style.display = "none"
@@ -272,9 +272,14 @@ function addUploadPanoramaxBtn() {
         } catch (err) {
             console.error(err)
             alert(
-                `Error: ${err.message}\n\n` +
+                t("panoramax.uploadError", { message: err.message }) +
+                "\n\n" +
                     (metadata
-                        ? `Info from EXIF:\nDateTime: ${metadata.DateTime}\nLat: ${metadata.GPSLatitude}\nLon: ${metadata.GPSLongitude}`
+                        ? t("panoramax.exifInfo", {
+                              dateTime: metadata.DateTime,
+                              lat: metadata.GPSLatitude,
+                              lon: metadata.GPSLongitude,
+                          })
                         : ""),
             )
         } finally {

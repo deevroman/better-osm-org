@@ -135,16 +135,16 @@ async function validateOsmServerInJOSM() {
      */
     const res = await (
         await fetch("http://127.0.0.1:8111/version").catch(() => {
-            alert("JOSM is not running")
+            alert(t("changesetPageFixes.josmNotRunningAlert"))
             throw "JOSM is not running"
         })
     ).json()
     if (res["osm_server"] === "custom" && osm_server === prod_server) {
-        alert(`You are using custom OSM API server in JOSM.\n\nChange JOSM settings or open other website`)
+        alert(t("changesetPageFixes.customOsmApiInJosmAlert"))
         return false
     }
     if (res["osm_server"] === "default" && osm_server !== prod_server) {
-        alert(`You are using other OSM instance, but JOSM uses default server.\n\nChange JOSM settings or open other website`)
+        alert(t("changesetPageFixes.otherOsmInstanceInJosmAlert"))
         return false
     }
     return true
@@ -209,8 +209,8 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
         },
     ]
 
-    const likeTitle = "OSMCha review like\n\nRight click to add review tags"
-    const dislikeTitle = "OSMCha review dislike\n\nRight click to add review tags"
+    const likeTitle = t("changesetPageFixes.osmchaReviewLike")
+    const dislikeTitle = t("changesetPageFixes.osmchaReviewDislike")
 
     async function osmchaRequest(url, method) {
         console.debug(`osmchaRequest(${url}, ${method})`)
@@ -240,7 +240,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
     likeBtn.onclick = async e => {
         const osmchaToken = await getOsmchaToken()
         if (!osmchaToken) {
-            alert("Please, login into OSMCha")
+            alert(t("changesetPageFixes.osmchaLoginAlert"))
             window.open(osmcha_server_origin)
             return
         }
@@ -272,7 +272,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
     dislikeBtn.onclick = async e => {
         const osmchaToken = await getOsmchaToken()
         if (!osmchaToken) {
-            alert("Please, login into OSMCha")
+            alert(t("changesetPageFixes.osmchaLoginAlert"))
             window.open(osmcha_server_origin)
             return
         }
@@ -304,10 +304,8 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
         }
         const res = await osmchaRequest(`${osmcha_server_origin}/api/v1/changesets/${changeset_id}/`, "GET")
         if (res.status === 404) {
-            likeImg.title =
-                "Changeset not found in OSMCha database.\nEither OSMCha did not have time to process this changeset, or it is too old."
-            dislikeImg.title =
-                "Changeset not found in OSMCha database.\nEither OSMCha did not have time to process this changeset, or it is too old."
+            likeImg.title = t("changesetPageFixes.osmchaChangesetNotFoundTitle")
+            dislikeImg.title = t("changesetPageFixes.osmchaChangesetNotFoundTitle")
             console.warn("Changeset not found in OSMCha database") // todo show alert/title
             return
         }
@@ -412,7 +410,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
                 .match(/\/user\/(.*)$/)[1],
         )
         if (!changesetProps) {
-            alert("Changeset not found in OSMCha database")
+            alert(t("changesetPageFixes.osmchaChangesetNotFoundAlert"))
             return
         }
         if (changesetProps["check_user"] && changesetProps["check_user"] !== currentUser) {
@@ -501,10 +499,7 @@ function addCheckboxesForChangesetObjects() {
         document.querySelectorAll(`${selector} .browse-element-list li`).forEach(obj => {
             const checkbox = document.createElement("input")
             checkbox.type = "checkbox"
-            checkbox.title = `Click with Shift for select range
-Press R for revert via ${osm_revert_name}
-Press J for open objects in JOSM
-Press alt + J for open objects in Level0`
+            checkbox.title = t("changesetPageFixes.selectRangeHotkeys", { name: osm_revert_name })
             checkbox.tabIndex = 0
             checkbox.style.width = "18px"
             checkbox.style.height = "18px"
@@ -642,9 +637,7 @@ function addRevertButton() {
         hideSearchForm()
         // sidebar.classList.add("changeset-header")
         const changeset_id = sidebar.innerHTML.match(/([0-9]+)/)[0]
-        const reverterTitle = `Open ${osm_revert_name}
-Shift + click for revert via JOSM
-Press R for partial revert`
+        const reverterTitle = t("changesetPageFixes.reverterTitle", { name: osm_revert_name })
         // prettier-ignore
         sidebar.innerHTML +=
             ` <a href="${osm_revert_origin}/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="${reverterTitle}">↩️</a>
@@ -653,13 +646,13 @@ Press R for partial revert`
         document.querySelector("#revert_button_class").onclick = async e => {
             if (changesetObjectsSelectionModeEnabled) {
                 if (e.shiftKey) {
-                    alert("JOSM doesn't support partial revert")
+                    alert(t("changesetPageFixes.josmDoesNotSupportPartialRevert"))
                     return
                 }
                 e.preventDefault()
                 if (osm_server !== prod_server && osm_server !== ohm_prod_server) {
                     e.preventDefault()
-                    alert(`${osm_revert_name} works only for www.OpenStreetMap.org and www.OpenHistoricalMap.org`)
+                    alert(t("changesetPageFixes.osmRevertOnlyMainServers", { name: osm_revert_name }))
                     return
                 }
 
@@ -712,11 +705,7 @@ Press R for partial revert`
             if (!e.shiftKey) {
                 if (osm_server !== prod_server && osm_server !== ohm_prod_server) {
                     e.preventDefault()
-                    alert(
-                        "${osm_revert_name} works only for www.OpenStreetMap.org and www.OpenHistoricalMap.org\n\n" +
-                            "But you can install reverter plugin in JOSM and use shift+click for other OSM servers.\n\n" +
-                            "⚠️Change the osm server in the josm settings!",
-                    )
+                    alert(t("changesetPageFixes.osmRevertOnlyMainServersWithJosm", { name: osm_revert_name }))
                 }
                 return
             }
@@ -937,7 +926,7 @@ Press R for partial revert`
                     const b = document.createElement("span")
                     b.classList.add("comment-template", "btn", "btn-primary")
                     b.textContent = label
-                    b.title = `"${text}" will be added to the comment text.\nYou can change text in userscript settings`
+                    b.title = t("changesetPageFixes.commentTemplateTitle", { text })
                     buttonsWrapper.appendChild(b)
                     b.onmousedown = e => {
                         e.preventDefault()

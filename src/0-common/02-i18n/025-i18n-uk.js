@@ -2,6 +2,21 @@ _translations["uk"] = {
     init: {
         disableBetterOsmOrg: "Вимкнути better-osm-org",
         scriptVersion: "Версія скрипту: ",
+        reportingFeaturesWarning: " перед повідомленням про помилки або питаннями про функції ⚠️⚠️⚠️",
+        greasemonkeyUnsupportedAlert:
+            "better-osm-org не працюватиме в GreasyMonkey :(\n\n" +
+            "Він не підтримує важливі API, без яких більшість функцій скрипта не працюватиме.\n\n" +
+            "Використовуйте ViolentMonkey або TamperMonkey\n\n" +
+            "Обговорення: https://github.com/deevroman/better-osm-org/issues/217",
+    },
+    datetimeFormatSwitch: {
+        versionWasCreated: "версію було створено",
+        noteWasCreated: "нотатку було створено",
+        changesetWasClosed: "набір змін було закрито",
+        clickToChangeTimeFormat: "Натисніть, щоб змінити формат часу",
+        clickWithCtrlOpenMapState: "Натисніть із Ctrl, щоб відкрити стан мапи на момент, коли {time}",
+        clickWithAltViewAdiff: "Натисніть із Alt, щоб переглянути adiff",
+        openMapStateAtTime: "Відкрити стан мапи на момент, коли {time}",
     },
     config: {
         sectionID: "iD",
@@ -70,6 +85,7 @@ _translations["uk"] = {
         someMembersHidden: "Деякі елементи були приховані модераторами",
         downloadAllVersions: "Завантажити всі версії",
         toggleCompactTagsDiff: "Перемикати між повним і компактним diff тегів.\nТакож можна використати клавішу T.",
+        hidePreviousValue: "Натисніть, щоб приховати попереднє значення",
         tagsCount: ({ count }) =>
             `${count} тег${count % 10 === 1 && count % 100 !== 11 ? "" : count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14) ? "и" : "ів"}`,
     },
@@ -92,6 +108,20 @@ _translations["uk"] = {
         downloadThisRelation: "Завантажити це відношення",
         shiftClickZoomVia: 'Натисніть із Shift, щоб наблизити учасників "via"',
         unableDisplaySomeData: "better-osm-org не зміг показати деякі дані",
+        editsWarTitle: ({ details }) => `Війна редагувань. ${details}\nНатисніть для подробиць`,
+        tagRestored: "Тег тепер відновлено",
+        nowIsTag: "Зараз {key}={value}",
+        tagDeleted: "Тег тепер видалено",
+        wasValue: "було: {value}",
+        tagReverted: "Тег тепер відкочено",
+        nodesCountChanged: "Кількість точок: {prevCount} → {nextCount}",
+        nodesCount: "Кількість точок: {count}",
+        intermediateNodeChangesTitle:
+            "Теги й координати точок лінії змінювалися кілька разів протягом набору змін.\n" +
+            "Це може бути навмисно або траплятися під час пакетного завантаження редагувань через JOSM.\n" +
+            "Показано фінальний стан. Натисніть, щоб відкрити повну історію лінії",
+        sendBugReport: "⚠️ Надіслати баг-репорт",
+        debugAlert: "⚠ прочитайте логи в консолі браузера (F12).\nЦе повідомлення має бачити лише розробник скрипта",
     },
     editMenuLinks: {
         moreLinks: "більше посилань",
@@ -117,11 +147,27 @@ _translations["uk"] = {
         switchMapAndSatellite: "Перемикатися між мапою та супутниковими знімками",
         setCustomLayer: "Установити власний шар (Shift + S)\nфункція better-osm-org",
         setCustomVectorStyle: "Установити власний векторний стиль (Shift + V)",
+        stravaLoginRequiredAlert: "Потрібно увійти в Strava для доступу до heatmap.\nПісля цього перезавантажте вкладку.",
+        customStyleSetupHelpAlert:
+            "Спробуйте перезавантажити сторінку без кешу за допомогою Ctrl + F5.\n" +
+            "Або:\n" +
+            "1. У налаштуваннях TamperMonkey увімкніть Advanced Config Mode\n" +
+            '2. У налаштуваннях TamperMonkey змініть "Content Script API" на "UserScript API Dynamic"\n' +
+            "Докладніше: https://c.osm.org/t/121670/208\n\n" +
+            "Або закрийте цю вкладку й відкрийте нову\n" +
+            "Або вимкніть і ввімкніть скрипт\n" +
+            "Або спробуйте Firefox із ViolentMonkey",
     },
     geojson: {
         metainfo: "метаінформація",
         needUpdateBetterOsmOrg: "Потрібно оновити better-osm-org",
         switchTableAndRawEditor: "Перемкнути між таблицею та сирим редактором",
+        conflict: "Конфлікт",
+    },
+    overpassSearch: {
+        httpError: "Помилка. HTTP код: {status}",
+        httpErrorWithQuery: "Помилка. HTTP код: {status}\nНадісланий запит:\n\n{query}",
+        invalidQuery: "неправильний запит",
     },
     links: {
         webArchive: "WebArchive",
@@ -142,6 +188,11 @@ _translations["uk"] = {
         setDefaultCopyFormat: "Зробити форматом копіювання за замовчуванням під час кліку по координатах",
         defaultCopyFormat: "Це формат за замовчуванням під час кліку по координатах",
         openExternalRelationViewer: "Натисніть, щоб відкрити зовнішній переглядач відношень.\nАбо використайте клавішу O",
+        clickToCopyTopLeft: "Натисніть, щоб скопіювати TopLeft: {value}",
+        clickToCopyCenter: "Натисніть, щоб скопіювати центр: {value}",
+        clickToCopyRightBottom: "Натисніть, щоб скопіювати RightBottom: {value}",
+        clickToCopyBbox: "Натисніть, щоб скопіювати bbox",
+        clickToCopyIdOrUrl: ({ modifier }) => `Натисніть, щоб скопіювати ID\n${modifier} + click, щоб скопіювати URL`,
     },
     userProfile: {
         allEditors: "Усі редактори",
@@ -162,6 +213,12 @@ _translations["uk"] = {
         regexSearchNotCaseSensitive: "Пошук regex без урахування регістру",
         viaWhosthat: "через whosthat.osmz.ru",
         viaOverpassApi: "через Overpass API",
+        filteredChangesets: "Відфільтровано наборів змін: {count}",
+        singleUserIdLabel: "ID користувача: ",
+        foundUserIds: "⚠️ Знайдено ID користувачів: {count}",
+        userIdBadge: "🆔: ",
+        scannedBlocksAfter: "Проскановано всі блокування після #{id}",
+        lastChangesets: "Останні {count} наборів змін:",
     },
     changesetsHistory: {
         copyIds: "Копіювати ID",
@@ -180,6 +237,7 @@ _translations["uk"] = {
         filterViaBetterOsmOrg: "Фільтр наборів змін через better-osm-org",
         filterBySubstringInComments: "Фільтр за підрядком у коментарях наборів змін",
         clickCopyChangesetId: "Натисніть, щоб скопіювати ID набору змін",
+        revertViaOsmRevert: "відкотити через {name}",
     },
     measurer: {
         measureFromHere: "Виміряти звідси",
@@ -187,12 +245,19 @@ _translations["uk"] = {
         cleanMeasurements: "Очистити вимірювання",
         clickToSwitchUnits: "Натисніть, щоб переключити одиниці вимірювання",
         orPressEscapeTwice: "Або натисніть Escape двічі",
+        hotkeysTitle: ({ modifier }) => `Alt + click: почати нову лінію\nEsc: зупинити вимірювання\n${modifier} + Z: видалити останню точку`,
     },
     panoramax: {
         blurFaces: "Розмити обличчя",
+        loginRequiredAlert: "Будь ласка, увійдіть у Panoramax",
+        uploadPhoto: "Завантажити фото в Panoramax",
+        selectFileAlert: "Виберіть файл",
+        uploadError: "Помилка: {message}",
+        exifInfo: "Інформація з EXIF:\nDateTime: {dateTime}\nLat: {lat}\nLon: {lon}",
     },
     idEditor: {
         findOffsets: "Знайти зміщення",
+        focusIframeAlert: "Будь ласка, переключіть фокус на iframe iD.\nПросто клікніть будь-де в редакторі.",
     },
     changesetPage: {
         selectObjects: "Вибрати об'єкти",
@@ -218,9 +283,13 @@ _translations["uk"] = {
     },
     actions: {
         remove: "видалити",
+        level0WorksOnlyOnOsmOrg: "level0 працює лише з osm.org",
     },
     copying: {
         clickForCopy: "Натисніть, щоб скопіювати",
+        failedToCopy: "не вдалося скопіювати:\n{text}",
+        changeCoordinatesFormat: "Змінити формат координат\nПоточний: {format}",
+        clickToCopyValue: "Натисніть, щоб скопіювати {value}",
     },
     betterOsmOrg: {
         addedByBetterOsmOrg: "додано better-osm-org",
@@ -238,6 +307,8 @@ _translations["uk"] = {
     },
     findUserInDiff: {
         clickForCopyUserId: "Натисніть, щоб скопіювати ID користувача",
+        notFoundAlert: "Користувача не знайдено",
+        userIdLabel: "ID: ",
     },
     changesetPageFixes: {
         osmchaReviewTag: "Тег перевірки OSMCha. Клік правою кнопкою для зміни\n",
@@ -245,6 +316,26 @@ _translations["uk"] = {
         showHiddenTags: "Показати приховані теги",
         clickForViewMore: "Натисніть, щоб показати більше",
         mapperRequestedReview: "Мапер запросив перевірку набору змін\n\nНатисніть, щоб відфільтрувати набори змін із review_requested=yes",
+        josmNotRunningAlert: "JOSM не запущено",
+        customOsmApiInJosmAlert: "У JOSM використовується кастомний OSM API сервер.\n\nЗмініть налаштування JOSM або відкрийте інший сайт",
+        otherOsmInstanceInJosmAlert:
+            "Ви використовуєте інший екземпляр OSM, але JOSM використовує сервер за замовчуванням.\n\nЗмініть налаштування JOSM або відкрийте інший сайт",
+        osmchaReviewLike: "Позитивна оцінка OSMCha\n\nКлік правою кнопкою для додавання тегів перевірки",
+        osmchaReviewDislike: "Негативна оцінка OSMCha\n\nКлік правою кнопкою для додавання тегів перевірки",
+        osmchaLoginAlert: "Будь ласка, увійдіть в OSMCha",
+        osmchaChangesetNotFoundTitle:
+            "Набір змін не знайдено в базі OSMCha.\nМожливо, OSMCha ще не встиг обробити цей набір змін або він надто старий.",
+        osmchaChangesetNotFoundAlert: "Набір змін не знайдено в базі OSMCha",
+        selectRangeHotkeys:
+            "Натисніть із Shift для вибору діапазону\nНатисніть R для відкоту через {name}\nНатисніть J для відкриття об'єктів у JOSM\nНатисніть Alt + J для відкриття об'єктів у Level0",
+        reverterTitle: "Відкрити {name}\nShift + click для відкоту через JOSM\nНатисніть R для часткового відкоту",
+        josmDoesNotSupportPartialRevert: "JOSM не підтримує частковий відкoт",
+        osmRevertOnlyMainServers: "{name} працює лише для www.OpenStreetMap.org і www.OpenHistoricalMap.org",
+        osmRevertOnlyMainServersWithJosm:
+            "{name} працює лише для www.OpenStreetMap.org і www.OpenHistoricalMap.org\n\n" +
+            "Але ви можете встановити reverter plugin у JOSM і використовувати shift+click для інших OSM серверів.\n\n" +
+            "⚠️ Змініть OSM сервер у налаштуваннях JOSM!",
+        commentTemplateTitle: 'Текст "{text}" буде додано в коментар.\nВи можете змінити цей текст у налаштуваннях userscript',
     },
     hashtags: {
         searchInOsmcha: "Шукати цей хештег в OSMCha",
@@ -259,12 +350,16 @@ _translations["uk"] = {
         userBanned: "Користувача було заблоковано",
         userNewbie: "На момент створення набору змін або нотатки користувач редагував OpenStreetMap менш ніж місяць",
         followingUser: "Ви стежите за цим користувачем",
+        corporateMapper: "{names} корпоративний мапер\n\nНатисніть, щоб відкрити сторінку вікі\nНатисніть із Alt, щоб відкрити джерело даних",
     },
     notes: {
         openMapStateSnapshot: "Відкрити стан мапи на момент знімка",
         openMapStateNoteCreation: "Відкрити стан мапи на момент створення нотатки",
         commaSeparatedSubstrings: "підрядки, розділені комами\nфільтр також працює за коментарями",
         commaSeparatedUsernames: "імена користувачів, розділені комами",
+        addNewObjectOnMap: "Додати новий об'єкт на мапу\nВставте теги в textarea\nkey=value\nkey2=value2\n...",
+        textareaWithoutTagsAlert: "У textarea немає жодного тега",
+        resolveButtonTitle: 'Додати в коментар "{text}" і закрити нотатку.\nВи можете змінити emoji в налаштуваннях userscript',
     },
     spyGlass: {
         activateSpyGlass: "Увімкнути режим імітації SpyGlass (експеримент better-osm-org)",
@@ -272,6 +367,10 @@ _translations["uk"] = {
     gpxFilter: {
         clickToZoomTrack: "натисніть для наближення\nПорада: натискайте 8-9 для переходу між попереднім і наступним положенням мапи",
         showGpxTracks: "Показати GPX-треки в поточному вікні мапи",
+        downloadFailed: "помилка завантаження: {error}",
+    },
+    dragAndDrop: {
+        tooManyCsvLines: "Занадто багато рядків у CSV-файлі. Будуть показані лише об'єкти в поточному bbox",
     },
     objectPage: {
         gpsTrackerPosition: "Синій — позиція з GPS-трекера\nПомаранчевий — оцінена реальна позиція",
@@ -292,9 +391,21 @@ _translations["uk"] = {
         keyTooShort: "Ключ надто короткий",
         suspiciousCapitalKey: "Підозрілий ключ, що починається з великої літери",
         openObjectHistory: "Натисніть, щоб відкрити сторінку історії об'єкта\nАбо натисніть клавішу H",
+        photoBy: "Фото: {author}",
+        observedBy: "Спостерігав: {user}",
+        invalidPhone: "{value} некоректний номер телефону за версією libphonenumber.js",
+        invalidEmail: "{value} некоректний email",
+        typeOnlyForRelations: "type=* використовується лише для відношень",
+        suspiciousRelationType: "type={value} використовується менше 50 разів. Найімовірніше, це помилка.",
+        openWebsite: "Відкрити {host}",
+        editWithWebsite: "Редагувати через {host}",
     },
     taginfo: {
         searchWithOverpass: "шукати через Overpass",
+    },
+    wiki: {
+        needMoreVotes: "потрібно ще {count} голосів до 75 %",
+        interimResults: "Проміжні результати, розраховані better-osm-org:",
     },
     relationVersionPage: {
         loadViaOverpass: "Завантажити версію відношення через Overpass API",

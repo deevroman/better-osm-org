@@ -139,9 +139,7 @@ function addMeasureMenuItem(customSeparator) {
     const a = document.createElement("a")
     a.classList.add("dropdown-item", "d-flex", "align-items-center", "gap-3")
     a.textContent = measuring ? t("measurer.endMeasure") : t("measurer.measureFromHere")
-    a.title = `Alt + Click: start new line
-Esc: stop measuring
-${CtrlKeyName} + Z: remove last node`
+    a.title = t("measurer.hotkeysTitle", { modifier: CtrlKeyName })
 
     const unitsSwitch = document.createElement("span")
     unitsSwitch.style.color = "gray"

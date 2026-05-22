@@ -31,7 +31,7 @@ function addCreateNewPOIButton() {
             b.style.display = ""
         })
     }
-    b.title = `Add new object on map\nPaste tags in textarea\nkey=value\nkey2=value2\n...`
+    b.title = t("notes.addNewObjectOnMap")
     document.querySelector("#sidebar_content form div:has(input)").appendChild(b)
     b.parentElement.style.display = "flex"
     b.before(document.createTextNode("\xA0"))
@@ -50,7 +50,7 @@ function addCreateNewPOIButton() {
             return
         }
         if (tags.size === 0) {
-            alert("Textarea not contains any tag")
+            alert(t("notes.textareaWithoutTagsAlert"))
             return
         }
 
@@ -431,7 +431,7 @@ function insertNoteResolveButtons() {
         const b = document.createElement("button")
         b.classList.add("resolve-note-done", "btn", "btn-primary")
         b.textContent = label
-        b.title = `Add to the comment "${text}" and close the note.\nYou can change emoji in userscript settings`
+        b.title = t("notes.resolveButtonTitle", { text })
         document.querySelectorAll("form.mb-3")[0].before(b)
         b.after(document.createTextNode("\xA0"))
         b.onclick = async () => {

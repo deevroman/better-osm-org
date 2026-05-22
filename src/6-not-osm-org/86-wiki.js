@@ -61,7 +61,7 @@ function setupWiki() {
         } else {
             support
                 .insertCell()
-                .appendChild(document.createTextNode(`need ${3 * opposeList.length - supportList.length} more votes up to 75 %`))
+                .appendChild(document.createTextNode(t("wiki.needMoreVotes", { count: 3 * opposeList.length - supportList.length })))
         }
 
         oppose.insertCell().appendChild(opposeImg)
@@ -74,7 +74,7 @@ function setupWiki() {
 
         Array.from(document.querySelectorAll(":is(h2,h1):has(#Voting) ~ :is(ul,dl)")).at(-1).after(results)
         results.before(document.createElement("br"))
-        results.before(document.createTextNode("Interim results calculated by better-osm-org:"))
+        results.before(document.createTextNode(t("wiki.interimResults")))
     }
 }
 

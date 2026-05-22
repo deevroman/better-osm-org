@@ -34,7 +34,7 @@ function tryAddWarnAboutScriptIntoOsmOrgRepo() {
         subWarn.textContent = t("init.disableBetterOsmOrg")
         subWarn.style.color = "red"
         warn.appendChild(subWarn)
-        warn.appendChild(document.createTextNode(" before reporting bugs or asking questions about features ⚠️⚠️⚠️"))
+        warn.appendChild(document.createTextNode(t("init.reportingFeaturesWarning")))
         result.before(warn)
         result.before(document.createElement("br"))
     }
@@ -85,12 +85,7 @@ if (["Userscripts", "Greasemonkey", "Firemonkey", "OrangeMonkey"].includes(GM_in
 
 if (GM_info.scriptHandler === "Greasemonkey") {
     // prettier-ignore
-    alert(
-        "better-osm-org will not work in GreasyMonkey :(\n\n" +
-        "It does not support important APIs without which most of the script's functions will not work.\n\n" +
-        "Use ViolentMonkey or TamperMonkey\n\n" +
-        "Discussion: https://github.com/deevroman/better-osm-org/issues/217",
-    )
+    alert(t("init.greasemonkeyUnsupportedAlert"))
     throw ""
 }
 

@@ -549,7 +549,7 @@ function detectEditsWars(prevVersion, targetVersion, objHistory, row, key) {
     }
     if (revertsCounter > 3) {
         row.classList.add("edits-wars-tag")
-        row.title = `Edits war. ${row.title}\nClick for details`
+        row.title = t("changesetQuicklook.editsWarTitle", { details: row.title })
     }
     const tr = document.createElement("tr")
     const td = document.createElement("td")
@@ -666,7 +666,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 changedOnlyUninterestedTags = false
                 if (lastVersion.tags && getValue(lastVersion.tags, key) === getValue(prevVersion.tags, key)) {
                     row.classList.add("restored-tag")
-                    row.title = row.title + "The tag is now restored"
+                    row.title += t("changesetQuicklook.tagRestored")
                 }
                 makeLinksInChangesetObjectRowClickable(row, objType)
                 detectEditsWars(prevVersion, targetVersion, objHistory, row, key)
@@ -685,10 +685,10 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             if (!lastVersion.tags || getValue(lastVersion.tags, key) !== getValue(targetVersion.tags, key)) {
                 if (lastVersion.tags && hasKey(lastVersion.tags, key)) {
                     row.classList.add("replaced-tag")
-                    row.title = `Now is ${key}=${getValue(lastVersion.tags, key)}`
+                    row.title = t("changesetQuicklook.nowIsTag", { key, value: getValue(lastVersion.tags, key) })
                 } else if (lastVersion.visible !== false) {
                     row.classList.add("removed-tag")
-                    row.title = `The tag is now deleted`
+                    row.title = t("changesetQuicklook.tagDeleted")
                 }
             }
             makeLinksInChangesetObjectRowClickable(row, objType)
@@ -754,18 +754,18 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
                 valCell.appendChild(document.createTextNode(` ${arrowSymbolForChanges} `))
                 valCell.appendChild(newSpan)
             }
-            valCell.title = "was: " + getValue(prevVersion.tags, key)
+            valCell.title = t("changesetQuicklook.wasValue", { value: getValue(prevVersion.tags, key) })
             tagsWasChanged = true
             if (!lastVersion.tags || getValue(lastVersion.tags, key) !== getValue(targetVersion.tags, key)) {
                 if (lastVersion.tags && prevVersion.tags && getValue(lastVersion.tags, key) === getValue(prevVersion.tags, key)) {
                     row.classList.add("reverted-tag")
-                    row.title = `The tag is now reverted`
+                    row.title = t("changesetQuicklook.tagReverted")
                 } else if (lastVersion.tags && getValue(lastVersion.tags, key)) {
                     row.classList.add("replaced-tag")
-                    row.title = `Now is ${key}=${getValue(lastVersion.tags, key)}`
+                    row.title = t("changesetQuicklook.nowIsTag", { key, value: getValue(lastVersion.tags, key) })
                 } else if (lastVersion.visible !== false) {
                     row.classList.add("removed-tag")
-                    row.title = `The tag is now deleted`
+                    row.title = t("changesetQuicklook.tagDeleted")
                 }
             }
             tbody.appendChild(row)
@@ -954,9 +954,11 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
     }
     if (objType === "way" && targetVersion.visible !== false) {
         if (prevVersion.nodes && prevVersion.nodes.length !== targetVersion.nodes?.length) {
-            i.title += (i.title === "" ? "" : "\n") + `Nodes count: ${prevVersion.nodes.length} → ${targetVersion.nodes.length}`
+            i.title +=
+                (i.title === "" ? "" : "\n") +
+                t("changesetQuicklook.nodesCountChanged", { prevCount: prevVersion.nodes.length, nextCount: targetVersion.nodes.length })
         } else {
-            i.title += (i.title === "" ? "" : "\n") + `Nodes count: ${targetVersion.nodes.length}`
+            i.title += (i.title === "" ? "" : "\n") + t("changesetQuicklook.nodesCount", { count: targetVersion.nodes.length })
         }
     }
     if (prevVersion.visible === false && targetVersion?.visible !== false && targetVersion.version !== 1) {
@@ -1764,10 +1766,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 hasInterChangesWarn.textContent = "…"
                 hasInterChangesWarn.setAttribute("href", `/way/${objID}/history`)
                 hasInterChangesWarn.setAttribute("target", `_blank`)
-                hasInterChangesWarn.title =
-                    "The tags and coordinates of the way nodes were changed several times during the changeset.\n" +
-                    "This may be intentional or it may occur when uploading a batch of edits using JOSM.\n" +
-                    "The final state is shown. Click to open full way history"
+                hasInterChangesWarn.title = t("changesetQuicklook.intermediateNodeChangesTitle")
                 i.querySelector("a ~ table.quick-look")?.before(hasInterChangesWarn)
             }
             const nodesMap = {}
@@ -3415,7 +3414,7 @@ async function processQuickLookInSidebar(changesetID) {
                         labels: "bug,crash",
                     }).toString()
                 a.target = "_blank"
-                a.appendChild(document.createTextNode("⚠️ Send Bug Report"))
+                a.appendChild(document.createTextNode(t("changesetQuicklook.sendBugReport")))
                 a.title = t("changesetQuicklook.unableDisplaySomeData")
                 return a
             }
@@ -3436,7 +3435,7 @@ async function processQuickLookInSidebar(changesetID) {
                     /* empty */
                 }
                 if (isDebug()) {
-                    alert("⚠ read logs in browser console (F12).\nOnly the script developer should see this message")
+                    alert(t("changesetQuicklook.debugAlert"))
                 }
                 // eslint-disable-next-line no-debugger
                 debugger

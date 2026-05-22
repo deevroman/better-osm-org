@@ -2,6 +2,21 @@ _translations["en"] = {
     init: {
         disableBetterOsmOrg: "Disable better-osm-org",
         scriptVersion: "Script version: ",
+        reportingFeaturesWarning: " before reporting bugs or asking questions about features ⚠️⚠️⚠️",
+        greasemonkeyUnsupportedAlert:
+            "better-osm-org will not work in GreasyMonkey :(\n\n" +
+            "It does not support important APIs without which most of the script's functions will not work.\n\n" +
+            "Use ViolentMonkey or TamperMonkey\n\n" +
+            "Discussion: https://github.com/deevroman/better-osm-org/issues/217",
+    },
+    datetimeFormatSwitch: {
+        versionWasCreated: "version was created",
+        noteWasCreated: "note was created",
+        changesetWasClosed: "changeset was closed",
+        clickToChangeTimeFormat: "Click for change time format",
+        clickWithCtrlOpenMapState: "Click with ctrl for open the map state at the time of {time}",
+        clickWithAltViewAdiff: "Click with Alt for view adiff",
+        openMapStateAtTime: "Open the map state at the time of {time}",
     },
     config: {
         sectionID: "iD",
@@ -71,6 +86,7 @@ _translations["en"] = {
         someMembersHidden: "Some members was hidden by moderators",
         downloadAllVersions: "Download all versions",
         toggleCompactTagsDiff: "Toggle between full and compact tags diff.\nYou can also use the T key.",
+        hidePreviousValue: "Click for hide previous value",
         tagsCount: ({ count }) => `${count} tag${count === 1 ? "" : "s"}`,
     },
     changesetQuicklook: {
@@ -92,6 +108,20 @@ _translations["en"] = {
         downloadThisRelation: "Download this relation",
         shiftClickZoomVia: 'Click with Shift for zoom to "via" members',
         unableDisplaySomeData: "better-osm-org was unable to display some data",
+        editsWarTitle: ({ details }) => `Edits war. ${details}\nClick for details`,
+        tagRestored: "The tag is now restored",
+        nowIsTag: "Now is {key}={value}",
+        tagDeleted: "The tag is now deleted",
+        wasValue: "was: {value}",
+        tagReverted: "The tag is now reverted",
+        nodesCountChanged: "Nodes count: {prevCount} → {nextCount}",
+        nodesCount: "Nodes count: {count}",
+        intermediateNodeChangesTitle:
+            "The tags and coordinates of the way nodes were changed several times during the changeset.\n" +
+            "This may be intentional or it may occur when uploading a batch of edits using JOSM.\n" +
+            "The final state is shown. Click to open full way history",
+        sendBugReport: "⚠️ Send Bug Report",
+        debugAlert: "⚠ read logs in browser console (F12).\nOnly the script developer should see this message",
     },
     editMenuLinks: {
         moreLinks: "more links",
@@ -117,11 +147,27 @@ _translations["en"] = {
         switchMapAndSatellite: "Switch between map and satellite images",
         setCustomLayer: "Set custom layer (Shift + S)\nbetter-osm-org feature",
         setCustomVectorStyle: "Set custom vector style (Shift + V)",
+        stravaLoginRequiredAlert: "Need login in Strava for access to heatmap.\nAnd after that, reload the tab.",
+        customStyleSetupHelpAlert:
+            "Try reload page page without cache Ctrl + F5.\n" +
+            "Or:\n" +
+            "1. In TamperMonkey settings enable Advanced Config Mode\n" +
+            '2. In TamperMonkey settings change "Content Script API" to "UserScript API Dynamic"\n' +
+            "More info: https://c.osm.org/t/121670/208\n\n" +
+            "Or close this tab and open new tab\n" +
+            "Or switch on/off script\n" +
+            "Or try to use Firefox with ViolentMonkey",
     },
     geojson: {
         metainfo: "metainfo",
         needUpdateBetterOsmOrg: "Need update better-osm-org",
         switchTableAndRawEditor: "Switch between table and raw editor",
+        conflict: "Conflict",
+    },
+    overpassSearch: {
+        httpError: "Error. HTTP Code: {status}",
+        httpErrorWithQuery: "Error. HTTP Code: {status}\nSubmitted request:\n\n{query}",
+        invalidQuery: "invalid query",
     },
     links: {
         webArchive: "WebArchive",
@@ -141,6 +187,11 @@ _translations["en"] = {
         setDefaultCopyFormat: "Set as default for copy, when you click by coordinates",
         defaultCopyFormat: "It's default format, when your click by coordinates",
         openExternalRelationViewer: "Click for open external relation viewer.\nOr use key O",
+        clickToCopyTopLeft: "Click to copy TopLeft: {value}",
+        clickToCopyCenter: "Click to copy center: {value}",
+        clickToCopyRightBottom: "Click to copy RightBottom: {value}",
+        clickToCopyBbox: "Click to copy bbox",
+        clickToCopyIdOrUrl: ({ modifier }) => `Click to copy ID\n${modifier} + click to copy URL`,
     },
     userProfile: {
         allEditors: "All editors",
@@ -160,6 +211,12 @@ _translations["en"] = {
         regexSearchNotCaseSensitive: "Not case-sensitive regex search",
         viaWhosthat: "via whosthat.osmz.ru",
         viaOverpassApi: "via Overpass API",
+        filteredChangesets: "{count} changesets filtered",
+        singleUserIdLabel: "User ID: ",
+        foundUserIds: "⚠️ Found {count} user IDs",
+        userIdBadge: "🆔: ",
+        scannedBlocksAfter: "Scanned all blocks after #{id}",
+        lastChangesets: "Last {count} changesets:",
     },
     changesetsHistory: {
         copyIds: "Copy IDs",
@@ -178,6 +235,7 @@ _translations["en"] = {
         filterViaBetterOsmOrg: "Changesets filter via better-osm-org",
         filterBySubstringInComments: "Filter by substring in changesets comments",
         clickCopyChangesetId: "Click for copy changeset id",
+        revertViaOsmRevert: "revert via {name}",
     },
     measurer: {
         measureFromHere: "Measure from here",
@@ -185,12 +243,19 @@ _translations["en"] = {
         cleanMeasurements: "Clean measurements",
         clickToSwitchUnits: "Click to switch units of measurement",
         orPressEscapeTwice: "Or press Escape twice",
+        hotkeysTitle: ({ modifier }) => `Alt + Click: start new line\nEsc: stop measuring\n${modifier} + Z: remove last node`,
     },
     panoramax: {
         blurFaces: "Blur faces",
+        loginRequiredAlert: "Please, login to Panoramax",
+        uploadPhoto: "Upload photo to Panoramax",
+        selectFileAlert: "Select file",
+        uploadError: "Error: {message}",
+        exifInfo: "Info from EXIF:\nDateTime: {dateTime}\nLat: {lat}\nLon: {lon}",
     },
     idEditor: {
         findOffsets: "Find offsets",
+        focusIframeAlert: "Please switch the focus to the Iframe iD.\nJust click anywhere in the editor.",
     },
     changesetPage: {
         selectObjects: "Select objects",
@@ -216,9 +281,13 @@ _translations["en"] = {
     },
     actions: {
         remove: "remove",
+        level0WorksOnlyOnOsmOrg: "level0 works only with osm.org",
     },
     copying: {
         clickForCopy: "Click for copy",
+        failedToCopy: "failed to copy:\n{text}",
+        changeCoordinatesFormat: "Change coordinates format\nCurrent: {format}",
+        clickToCopyValue: "Click to copy {value}",
     },
     betterOsmOrg: {
         addedByBetterOsmOrg: "added by better-osm-org",
@@ -236,6 +305,8 @@ _translations["en"] = {
     },
     findUserInDiff: {
         clickForCopyUserId: "Click for copy user ID",
+        notFoundAlert: "User not found",
+        userIdLabel: "ID: ",
     },
     changesetPageFixes: {
         osmchaReviewTag: "OSMCha review tag. Right click to change\n",
@@ -243,6 +314,25 @@ _translations["en"] = {
         showHiddenTags: "Show hidden tags",
         clickForViewMore: "Click for view more",
         mapperRequestedReview: "Mapper requested changeset review\n\nClick to filter changesets with review_requested=yes",
+        josmNotRunningAlert: "JOSM is not running",
+        customOsmApiInJosmAlert: "You are using custom OSM API server in JOSM.\n\nChange JOSM settings or open other website",
+        otherOsmInstanceInJosmAlert: "You are using other OSM instance, but JOSM uses default server.\n\nChange JOSM settings or open other website",
+        osmchaReviewLike: "OSMCha review like\n\nRight click to add review tags",
+        osmchaReviewDislike: "OSMCha review dislike\n\nRight click to add review tags",
+        osmchaLoginAlert: "Please, login into OSMCha",
+        osmchaChangesetNotFoundTitle:
+            "Changeset not found in OSMCha database.\nEither OSMCha did not have time to process this changeset, or it is too old.",
+        osmchaChangesetNotFoundAlert: "Changeset not found in OSMCha database",
+        selectRangeHotkeys:
+            "Click with Shift for select range\nPress R for revert via {name}\nPress J for open objects in JOSM\nPress alt + J for open objects in Level0",
+        reverterTitle: "Open {name}\nShift + click for revert via JOSM\nPress R for partial revert",
+        josmDoesNotSupportPartialRevert: "JOSM doesn't support partial revert",
+        osmRevertOnlyMainServers: "{name} works only for www.OpenStreetMap.org and www.OpenHistoricalMap.org",
+        osmRevertOnlyMainServersWithJosm:
+            "{name} works only for www.OpenStreetMap.org and www.OpenHistoricalMap.org\n\n" +
+            "But you can install reverter plugin in JOSM and use shift+click for other OSM servers.\n\n" +
+            "⚠️Change the osm server in the josm settings!",
+        commentTemplateTitle: '"{text}" will be added to the comment text.\nYou can change text in userscript settings',
     },
     hashtags: {
         searchInOsmcha: "Search this hashtags in OSMCha",
@@ -256,12 +346,16 @@ _translations["en"] = {
         userBanned: "The user was banned",
         userNewbie: "At the time of creating the changeset/note, the user had been editing OpenStreetMap for less than a month",
         followingUser: "You are following this user",
+        corporateMapper: "{names} corporate mapper\n\nClick to open wiki page\nClick with Alt to open data source",
     },
     notes: {
         openMapStateSnapshot: "Open the map state at the time of map snapshot",
         openMapStateNoteCreation: "Open the map state at the time of note creation",
         commaSeparatedSubstrings: "comma-separated substrings\nfilter also works by comments",
         commaSeparatedUsernames: "comma-separated usernames",
+        addNewObjectOnMap: "Add new object on map\nPaste tags in textarea\nkey=value\nkey2=value2\n...",
+        textareaWithoutTagsAlert: "Textarea not contains any tag",
+        resolveButtonTitle: 'Add to the comment "{text}" and close the note.\nYou can change emoji in userscript settings',
     },
     spyGlass: {
         activateSpyGlass: "Activate SpyGlass imitation mode (better-osm-org experiment)",
@@ -269,6 +363,10 @@ _translations["en"] = {
     gpxFilter: {
         clickToZoomTrack: "click to zoom\nTip: press 8-9 to navigate between previous/next map position",
         showGpxTracks: "Show GPX tracks in current map view",
+        downloadFailed: "download failed: {error}",
+    },
+    dragAndDrop: {
+        tooManyCsvLines: "Too many lines in CSV file. Only object in bbox will be displayed",
     },
     objectPage: {
         gpsTrackerPosition: "Blue — position from GPS tracker\nOrange — estimated real position",
@@ -288,9 +386,21 @@ _translations["en"] = {
         keyTooShort: "The key is too short",
         suspiciousCapitalKey: "Suspicious key starting with a capital letter",
         openObjectHistory: "Click for open object history page\nOr press key H",
+        photoBy: "Photo by {author}",
+        observedBy: "Observed by {user}",
+        invalidPhone: "{value} invalid phone according to libphonenumber.js",
+        invalidEmail: "{value} invalid email",
+        typeOnlyForRelations: "type=* only for relations",
+        suspiciousRelationType: "type={value} used < 50 times. This is probably a mistake.",
+        openWebsite: "Open {host}",
+        editWithWebsite: "Edit with {host}",
     },
     taginfo: {
         searchWithOverpass: "search with Overpass",
+    },
+    wiki: {
+        needMoreVotes: "need {count} more votes up to 75 %",
+        interimResults: "Interim results calculated by better-osm-org:",
     },
     relationVersionPage: {
         loadViaOverpass: "Load relation version via Overpass API",
