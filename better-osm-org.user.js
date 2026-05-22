@@ -1184,7 +1184,8 @@ _translations["en"] = {
         mapperRequestedReview: "Mapper requested changeset review\n\nClick to filter changesets with review_requested=yes",
         josmNotRunningAlert: "JOSM is not running",
         customOsmApiInJosmAlert: "You are using custom OSM API server in JOSM.\n\nChange JOSM settings or open other website",
-        otherOsmInstanceInJosmAlert: "You are using other OSM instance, but JOSM uses default server.\n\nChange JOSM settings or open other website",
+        otherOsmInstanceInJosmAlert:
+            "You are using other OSM instance, but JOSM uses default server.\n\nChange JOSM settings or open other website",
         osmchaReviewLike: "OSMCha review like\n\nRight click to add review tags",
         osmchaReviewDislike: "OSMCha review dislike\n\nRight click to add review tags",
         osmchaLoginAlert: "Please, login into OSMCha",
@@ -2086,7 +2087,8 @@ _translations["de"] = {
         wordInCommentsPlaceholder: "Wort in Kommentaren",
         addNewObjectOnMap: "Neues Objekt auf der Karte hinzufügen\nTags in die Textarea einfügen\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "Die Textarea enthält keine Tags",
-        resolveButtonTitle: 'Zu dem Kommentar "{text}" hinzufügen und den Hinweis schließen.\nDu kannst das Emoji in den Userscript-Einstellungen ändern',
+        resolveButtonTitle:
+            'Zu dem Kommentar "{text}" hinzufügen und den Hinweis schließen.\nDu kannst das Emoji in den Userscript-Einstellungen ändern',
     },
     spyGlass: {
         activateSpyGlass: "SpyGlass-Imitationsmodus aktivieren (better-osm-org-Experiment)",
@@ -2396,7 +2398,8 @@ _translations["fr"] = {
         cleanMeasurements: "Effacer les mesures",
         clickToSwitchUnits: "Cliquer pour changer d'unité de mesure",
         orPressEscapeTwice: "Ou appuyer deux fois sur Escape",
-        hotkeysTitle: ({ modifier }) => `Alt + clic : commencer une nouvelle ligne\nÉchap : arrêter la mesure\n${modifier} + Z : supprimer le dernier point`,
+        hotkeysTitle: ({ modifier }) =>
+            `Alt + clic : commencer une nouvelle ligne\nÉchap : arrêter la mesure\n${modifier} + Z : supprimer le dernier point`,
     },
     panoramax: {
         blurFaces: "Flouter les visages",
@@ -2488,7 +2491,8 @@ _translations["fr"] = {
             "{name} fonctionne uniquement pour www.OpenStreetMap.org et www.OpenHistoricalMap.org\n\n" +
             "Mais vous pouvez installer le plugin reverter dans JOSM et utiliser Shift+clic pour les autres serveurs OSM.\n\n" +
             "⚠️ Modifiez le serveur OSM dans les paramètres de JOSM !",
-        commentTemplateTitle: 'Le texte "{text}" sera ajouté au commentaire.\nVous pouvez modifier ce texte dans les paramètres du userscript',
+        commentTemplateTitle:
+            'Le texte "{text}" sera ajouté au commentaire.\nVous pouvez modifier ce texte dans les paramètres du userscript',
     },
     hashtags: {
         searchInOsmcha: "Rechercher ce hashtag dans OSMCha",
@@ -2503,7 +2507,8 @@ _translations["fr"] = {
         userBanned: "L'utilisateur a été banni",
         userNewbie: "Au moment de créer le changeset ou la note, l'utilisateur modifiait OpenStreetMap depuis moins d'un mois",
         followingUser: "Vous suivez cet utilisateur",
-        corporateMapper: "{names} contributeur d'entreprise\n\nCliquer pour ouvrir la page wiki\nCliquer avec Alt pour ouvrir la source des données",
+        corporateMapper:
+            "{names} contributeur d'entreprise\n\nCliquer pour ouvrir la page wiki\nCliquer avec Alt pour ouvrir la source des données",
     },
     notes: {
         openMapStateSnapshot: "Ouvrir l'état de la carte au moment de la capture",
@@ -2515,7 +2520,8 @@ _translations["fr"] = {
         wordInCommentsPlaceholder: "mot dans les commentaires",
         addNewObjectOnMap: "Ajouter un nouvel objet sur la carte\nCollez les tags dans la zone de texte\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "La zone de texte ne contient aucun tag",
-        resolveButtonTitle: 'Ajouter "{text}" au commentaire et fermer la note.\nVous pouvez changer l’emoji dans les paramètres du userscript',
+        resolveButtonTitle:
+            'Ajouter "{text}" au commentaire et fermer la note.\nVous pouvez changer l’emoji dans les paramètres du userscript',
     },
     spyGlass: {
         activateSpyGlass: "Activer le mode d'imitation SpyGlass (expérience better-osm-org)",

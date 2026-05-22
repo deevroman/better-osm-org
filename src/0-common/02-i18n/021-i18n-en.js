@@ -325,7 +325,8 @@ _translations["en"] = {
         mapperRequestedReview: "Mapper requested changeset review\n\nClick to filter changesets with review_requested=yes",
         josmNotRunningAlert: "JOSM is not running",
         customOsmApiInJosmAlert: "You are using custom OSM API server in JOSM.\n\nChange JOSM settings or open other website",
-        otherOsmInstanceInJosmAlert: "You are using other OSM instance, but JOSM uses default server.\n\nChange JOSM settings or open other website",
+        otherOsmInstanceInJosmAlert:
+            "You are using other OSM instance, but JOSM uses default server.\n\nChange JOSM settings or open other website",
         osmchaReviewLike: "OSMCha review like\n\nRight click to add review tags",
         osmchaReviewDislike: "OSMCha review dislike\n\nRight click to add review tags",
         osmchaLoginAlert: "Please, login into OSMCha",
