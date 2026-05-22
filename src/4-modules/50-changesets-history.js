@@ -520,7 +520,7 @@ function addMassActionForGlobalChangesets() {
                 }
                 filterBar.appendChild(label)
                 const filterByUsersInput = document.createElement("input")
-                filterByUsersInput.placeholder = "user1,user2,... and press Enter"
+                filterByUsersInput.placeholder = t("changesetsHistory.usersFilterPlaceholder")
                 filterByUsersInput.id = "filter-by-user-input"
                 filterByUsersInput.style.width = 253 - getScrollbarWidth() + "px"
                 filterByUsersInput.style.marginBottom = "3px"
@@ -563,7 +563,7 @@ function addMassActionForGlobalChangesets() {
                 filterBar.appendChild(label2)
                 const filterByCommentInput = document.createElement("input")
                 filterByCommentInput.id = "filter-by-comment-input"
-                filterByCommentInput.placeholder = "words1,words2,... and press Enter"
+                filterByCommentInput.placeholder = t("changesetsHistory.commentsFilterPlaceholder")
                 filterByCommentInput.title = t("changesetsHistory.filterBySubstringInComments")
                 filterByCommentInput.style.width = 253 - getScrollbarWidth() + "px"
                 filterByCommentInput.addEventListener("keypress", async function (event) {

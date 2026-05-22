@@ -133,6 +133,8 @@ _translations["hr"] = {
         removeLink: "ukloni poveznicu",
         saveLink: "spremi poveznicu",
         openPlaceExternalWebsite: "Otvori mjesto na vanjskoj stranici",
+        linkNamePlaceholder: "Naziv poveznice",
+        urlExamplePrefix: "Primjer URL-a: ",
     },
     routers: {
         routingDataTimeFor: "Vrijeme routing podataka za {name}: {time}",
@@ -148,6 +150,9 @@ _translations["hr"] = {
         setCustomLayer: "Postavi prilagođeni sloj (Shift + S)\nznačajka better-osm-org",
         setCustomVectorStyle: "Postavi prilagođeni vektorski stil (Shift + V)",
         stravaLoginRequiredAlert: "Potrebna je prijava na Stravu za pristup heatmapi.\nNakon toga ponovno učitajte karticu.",
+        vectorStyleUrlPlaceholder: "primjer: https://vector.openstreetmap.org/styles/shortbread/neutrino.json",
+        pasteStyleJsonPlaceholder: "Zalijepite style.json",
+        tileUrlPlaceholder: "primjer: https://tile.openstreetmap.org/{z}/{x}/{y}.png",
         customStyleSetupHelpAlert:
             "Pokušajte ponovno učitati stranicu bez predmemorije pomoću Ctrl + F5.\n" +
             "Ili:\n" +
@@ -177,6 +182,7 @@ _translations["hr"] = {
         recent: "Nedavno",
         noHotkeysMatchSearch: "Nijedan prečac ne odgovara ovom pretraživanju.",
         noCatalogedCommandsMatchPage: "Nijedna katalogizirana naredba ne odgovara ovoj stranici.",
+        searchByNamePlaceholder: "Pretraži po nazivu prečaca",
     },
     objectVersionPage: {
         length: "Duljina: {value}",
@@ -211,6 +217,7 @@ _translations["hr"] = {
         regexSearchNotCaseSensitive: "Pretraga regularnim izrazom bez razlikovanja velikih i malih slova",
         viaWhosthat: "putem whosthat.osmz.ru",
         viaOverpassApi: "putem Overpass API-ja",
+        regexSearchByCommentsPlaceholder: "Regex pretraga po komentarima",
         filteredChangesets: "Filtrirano changeseta: {count}",
         singleUserIdLabel: "ID korisnika: ",
         foundUserIds: "⚠️ Pronađeno ID-ova korisnika: {count}",
@@ -235,6 +242,8 @@ _translations["hr"] = {
         filterViaBetterOsmOrg: "Filtar changeseta putem better-osm-org",
         filterBySubstringInComments: "Filtriraj po podnizu u komentarima changeseta",
         clickCopyChangesetId: "Kliknite za kopiranje ID-a changeseta",
+        usersFilterPlaceholder: "user1,user2,... i pritisnite Enter",
+        commentsFilterPlaceholder: "words1,words2,... i pritisnite Enter",
         revertViaOsmRevert: "vrati putem {name}",
     },
     measurer: {
@@ -356,6 +365,9 @@ _translations["hr"] = {
         openMapStateNoteCreation: "Otvori stanje karte u trenutku stvaranja bilješke",
         commaSeparatedSubstrings: "podnizovi odvojeni zarezima\nfiltar radi i po komentarima",
         commaSeparatedUsernames: "korisnička imena odvojena zarezima",
+        wordInNotesPlaceholder: "riječ u bilješkama",
+        usernamePlaceholder: "korisničko ime",
+        wordInCommentsPlaceholder: "riječ u komentarima",
         addNewObjectOnMap: "Dodaj novi objekt na kartu\nZalijepite oznake u textarea\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "Textarea ne sadrži nijednu oznaku",
         resolveButtonTitle: 'Dodaj "{text}" u komentar i zatvori bilješku.\nEmoji možete promijeniti u postavkama userscripta',

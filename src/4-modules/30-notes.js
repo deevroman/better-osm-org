@@ -619,7 +619,7 @@ function addNotesFiltersButtons() {
         filterByString.type = "input"
         filterByString.id = "filter-notes-by-string"
         filterByString.style.width = "100%"
-        filterByString.placeholder = "word in notes"
+        filterByString.placeholder = t("notes.wordInNotesPlaceholder")
         filterByString.title = t("notes.commaSeparatedSubstrings")
         filterByString.addEventListener("keypress", function (event) {
             if (event.key === "Enter") {
@@ -693,7 +693,7 @@ function addNotesFiltersButtons() {
 
     function makeFilterByUsernameWrapper() {
         filterByUsername.type = "input"
-        filterByUsername.placeholder = "username"
+        filterByUsername.placeholder = t("notes.usernamePlaceholder")
         filterByString.title = t("notes.commaSeparatedUsernames")
         filterByUsername.id = "filter-notes-by-username"
         filterByUsername.style.width = "100%"
@@ -789,7 +789,7 @@ function addNotesFiltersButtons() {
 
     function makeFilterByCommentsWrapper() {
         filterByComment.id = "filter-notes-by-closed"
-        filterByComment.placeholder = "word in comments"
+        filterByComment.placeholder = t("notes.wordInCommentsPlaceholder")
         filterByComment.style.width = "100%"
         filterByComment.style.color = "gray"
         filterByComment.setAttribute("list", "comments-filters")

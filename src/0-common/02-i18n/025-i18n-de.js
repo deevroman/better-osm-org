@@ -133,6 +133,8 @@ _translations["de"] = {
         removeLink: "Link entfernen",
         saveLink: "Link speichern",
         openPlaceExternalWebsite: "Ort auf externer Website öffnen",
+        linkNamePlaceholder: "Linkname",
+        urlExamplePrefix: "URL-Beispiel: ",
     },
     routers: {
         routingDataTimeFor: "Routingdatenstand für {name}: {time}",
@@ -148,6 +150,9 @@ _translations["de"] = {
         setCustomLayer: "Benutzerdefinierte Ebene setzen (Shift + S)\nbetter-osm-org-Funktion",
         setCustomVectorStyle: "Benutzerdefinierten Vektorstil setzen (Shift + V)",
         stravaLoginRequiredAlert: "Für den Zugriff auf die Heatmap ist eine Anmeldung bei Strava erforderlich.\nLade danach den Tab neu.",
+        vectorStyleUrlPlaceholder: "Beispiel: https://vector.openstreetmap.org/styles/shortbread/neutrino.json",
+        pasteStyleJsonPlaceholder: "style.json einfügen",
+        tileUrlPlaceholder: "Beispiel: https://tile.openstreetmap.org/{z}/{x}/{y}.png",
         customStyleSetupHelpAlert:
             "Versuche, die Seite ohne Cache mit Strg + F5 neu zu laden.\n" +
             "Oder:\n" +
@@ -177,6 +182,7 @@ _translations["de"] = {
         recent: "Zuletzt",
         noHotkeysMatchSearch: "Keine Tastenkürzel passen zu dieser Suche.",
         noCatalogedCommandsMatchPage: "Keine katalogisierten Befehle passen zu dieser Seite.",
+        searchByNamePlaceholder: "Nach Hotkey-Namen suchen",
     },
     objectVersionPage: {
         length: "Länge: {value}",
@@ -212,6 +218,7 @@ _translations["de"] = {
         regexSearchNotCaseSensitive: "Regex-Suche ohne Groß-/Kleinschreibung",
         viaWhosthat: "via whosthat.osmz.ru",
         viaOverpassApi: "via Overpass API",
+        regexSearchByCommentsPlaceholder: "Regex-Suche in Kommentaren",
         filteredChangesets: "{count} Changesets gefiltert",
         singleUserIdLabel: "Benutzer-ID: ",
         foundUserIds: "⚠️ {count} Benutzer-IDs gefunden",
@@ -237,6 +244,8 @@ _translations["de"] = {
         filterViaBetterOsmOrg: "Changeset-Filter via better-osm-org",
         filterBySubstringInComments: "Nach Teilzeichenfolge in Changeset-Kommentaren filtern",
         clickCopyChangesetId: "Klicken, um die Changeset-ID zu kopieren",
+        usersFilterPlaceholder: "user1,user2,... und Enter drücken",
+        commentsFilterPlaceholder: "words1,words2,... und Enter drücken",
         revertViaOsmRevert: "über {name} zurücksetzen",
     },
     measurer: {
@@ -359,6 +368,9 @@ _translations["de"] = {
         openMapStateNoteCreation: "Kartenstand zum Zeitpunkt der Hinweis-Erstellung öffnen",
         commaSeparatedSubstrings: "durch Kommas getrennte Teilzeichenfolgen\nFilter funktioniert auch über Kommentare",
         commaSeparatedUsernames: "durch Kommas getrennte Benutzernamen",
+        wordInNotesPlaceholder: "Wort in Hinweisen",
+        usernamePlaceholder: "Benutzername",
+        wordInCommentsPlaceholder: "Wort in Kommentaren",
         addNewObjectOnMap: "Neues Objekt auf der Karte hinzufügen\nTags in die Textarea einfügen\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "Die Textarea enthält keine Tags",
         resolveButtonTitle: 'Zu dem Kommentar "{text}" hinzufügen und den Hinweis schließen.\nDu kannst das Emoji in den Userscript-Einstellungen ändern',

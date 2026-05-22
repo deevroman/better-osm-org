@@ -534,7 +534,7 @@ async function askCustomStyleUrl() {
         wrapper.append(input)
         const urlInput = document.createElement("input")
         urlInput.type = "text"
-        urlInput.placeholder = "example: https://vector.openstreetmap.org/styles/shortbread/neutrino.json"
+        urlInput.placeholder = t("satellite.vectorStyleUrlPlaceholder")
         urlInput.style.width = "100%"
         if (lastVectorLayerStyleUrl) {
             urlInput.value = lastVectorLayerStyleUrl
@@ -576,7 +576,7 @@ async function askCustomStyleUrl() {
         } else {
             jsonArea.rows = 1
         }
-        jsonArea.placeholder = `Paste style.json`
+        jsonArea.placeholder = t("satellite.pasteStyleJsonPlaceholder")
         jsonArea.style.width = "100%"
         jsonArea.style.fontFamily = "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
         jsonArea.addEventListener(
@@ -880,7 +880,7 @@ async function askCustomTileUrl() {
         wrapper.append(input)
         const urlInput = document.createElement("input")
         urlInput.type = "text"
-        urlInput.placeholder = "example: https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+        urlInput.placeholder = t("satellite.tileUrlPlaceholder")
         urlInput.style.width = "100%"
         if (lastCustomLayerUrl) {
             urlInput.value = lastCustomLayerUrl

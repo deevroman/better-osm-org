@@ -133,6 +133,8 @@ _translations["uk"] = {
         removeLink: "видалити посилання",
         saveLink: "зберегти посилання",
         openPlaceExternalWebsite: "Відкрити місце на зовнішньому сайті",
+        linkNamePlaceholder: "Назва посилання",
+        urlExamplePrefix: "Приклад URL: ",
     },
     routers: {
         routingDataTimeFor: "Дата даних маршрутизації для {name}: {time}",
@@ -148,6 +150,9 @@ _translations["uk"] = {
         setCustomLayer: "Установити власний шар (Shift + S)\nфункція better-osm-org",
         setCustomVectorStyle: "Установити власний векторний стиль (Shift + V)",
         stravaLoginRequiredAlert: "Потрібно увійти в Strava для доступу до heatmap.\nПісля цього перезавантажте вкладку.",
+        vectorStyleUrlPlaceholder: "приклад: https://vector.openstreetmap.org/styles/shortbread/neutrino.json",
+        pasteStyleJsonPlaceholder: "Вставте style.json",
+        tileUrlPlaceholder: "приклад: https://tile.openstreetmap.org/{z}/{x}/{y}.png",
         customStyleSetupHelpAlert:
             "Спробуйте перезавантажити сторінку без кешу за допомогою Ctrl + F5.\n" +
             "Або:\n" +
@@ -177,6 +182,7 @@ _translations["uk"] = {
         recent: "Нещодавні",
         noHotkeysMatchSearch: "Жодні гарячі клавіші не відповідають цьому пошуку.",
         noCatalogedCommandsMatchPage: "Для цієї сторінки немає відповідних команд.",
+        searchByNamePlaceholder: "Пошук за назвою хоткея",
     },
     objectVersionPage: {
         length: "Довжина: {value}",
@@ -213,6 +219,7 @@ _translations["uk"] = {
         regexSearchNotCaseSensitive: "Пошук regex без урахування регістру",
         viaWhosthat: "через whosthat.osmz.ru",
         viaOverpassApi: "через Overpass API",
+        regexSearchByCommentsPlaceholder: "Regex-пошук за коментарями",
         filteredChangesets: "Відфільтровано наборів змін: {count}",
         singleUserIdLabel: "ID користувача: ",
         foundUserIds: "⚠️ Знайдено ID користувачів: {count}",
@@ -237,6 +244,8 @@ _translations["uk"] = {
         filterViaBetterOsmOrg: "Фільтр наборів змін через better-osm-org",
         filterBySubstringInComments: "Фільтр за підрядком у коментарях наборів змін",
         clickCopyChangesetId: "Натисніть, щоб скопіювати ID набору змін",
+        usersFilterPlaceholder: "user1,user2,... і натисніть Enter",
+        commentsFilterPlaceholder: "words1,words2,... і натисніть Enter",
         revertViaOsmRevert: "відкотити через {name}",
     },
     measurer: {
@@ -357,6 +366,9 @@ _translations["uk"] = {
         openMapStateNoteCreation: "Відкрити стан мапи на момент створення нотатки",
         commaSeparatedSubstrings: "підрядки, розділені комами\nфільтр також працює за коментарями",
         commaSeparatedUsernames: "імена користувачів, розділені комами",
+        wordInNotesPlaceholder: "слово в нотатках",
+        usernamePlaceholder: "ім'я користувача",
+        wordInCommentsPlaceholder: "слово в коментарях",
         addNewObjectOnMap: "Додати новий об'єкт на мапу\nВставте теги в textarea\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "У textarea немає жодного тега",
         resolveButtonTitle: 'Додати в коментар "{text}" і закрити нотатку.\nВи можете змінити emoji в налаштуваннях userscript',

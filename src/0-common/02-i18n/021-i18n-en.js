@@ -133,6 +133,8 @@ _translations["en"] = {
         removeLink: "remove link",
         saveLink: "save link",
         openPlaceExternalWebsite: "Open place in external website",
+        linkNamePlaceholder: "Link name",
+        urlExamplePrefix: "URL example: ",
     },
     routers: {
         routingDataTimeFor: "Routing data time for {name}: {time}",
@@ -148,6 +150,9 @@ _translations["en"] = {
         setCustomLayer: "Set custom layer (Shift + S)\nbetter-osm-org feature",
         setCustomVectorStyle: "Set custom vector style (Shift + V)",
         stravaLoginRequiredAlert: "Need login in Strava for access to heatmap.\nAnd after that, reload the tab.",
+        vectorStyleUrlPlaceholder: "example: https://vector.openstreetmap.org/styles/shortbread/neutrino.json",
+        pasteStyleJsonPlaceholder: "Paste style.json",
+        tileUrlPlaceholder: "example: https://tile.openstreetmap.org/{z}/{x}/{y}.png",
         customStyleSetupHelpAlert:
             "Try reload page page without cache Ctrl + F5.\n" +
             "Or:\n" +
@@ -177,6 +182,7 @@ _translations["en"] = {
         recent: "Recent",
         noHotkeysMatchSearch: "No hotkeys match this search.",
         noCatalogedCommandsMatchPage: "No cataloged commands match this page.",
+        searchByNamePlaceholder: "Search by hotkey name",
     },
     objectVersionPage: {
         length: "Length: {value}",
@@ -211,6 +217,7 @@ _translations["en"] = {
         regexSearchNotCaseSensitive: "Not case-sensitive regex search",
         viaWhosthat: "via whosthat.osmz.ru",
         viaOverpassApi: "via Overpass API",
+        regexSearchByCommentsPlaceholder: "Regex search by comments",
         filteredChangesets: "{count} changesets filtered",
         singleUserIdLabel: "User ID: ",
         foundUserIds: "⚠️ Found {count} user IDs",
@@ -235,6 +242,8 @@ _translations["en"] = {
         filterViaBetterOsmOrg: "Changesets filter via better-osm-org",
         filterBySubstringInComments: "Filter by substring in changesets comments",
         clickCopyChangesetId: "Click for copy changeset id",
+        usersFilterPlaceholder: "user1,user2,... and press Enter",
+        commentsFilterPlaceholder: "words1,words2,... and press Enter",
         revertViaOsmRevert: "revert via {name}",
     },
     measurer: {
@@ -353,6 +362,9 @@ _translations["en"] = {
         openMapStateNoteCreation: "Open the map state at the time of note creation",
         commaSeparatedSubstrings: "comma-separated substrings\nfilter also works by comments",
         commaSeparatedUsernames: "comma-separated usernames",
+        wordInNotesPlaceholder: "word in notes",
+        usernamePlaceholder: "username",
+        wordInCommentsPlaceholder: "word in comments",
         addNewObjectOnMap: "Add new object on map\nPaste tags in textarea\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "Textarea not contains any tag",
         resolveButtonTitle: 'Add to the comment "{text}" and close the note.\nYou can change emoji in userscript settings',

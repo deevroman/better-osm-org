@@ -140,6 +140,8 @@ _translations["ru"] = {
         removeLink: "удалить ссылку",
         saveLink: "сохранить ссылку",
         openPlaceExternalWebsite: "Открыть место на внешнем сайте",
+        linkNamePlaceholder: "Название ссылки",
+        urlExamplePrefix: "Пример URL: ",
     },
     routers: {
         routingDataTimeFor: "Время данных роутинга для {name}: {time}",
@@ -155,6 +157,9 @@ _translations["ru"] = {
         setCustomLayer: "Задать свой слой (Shift + S)\nфича better-osm-org",
         setCustomVectorStyle: "Задать свой векторный стиль (Shift + V)",
         stravaLoginRequiredAlert: "Нужно войти в Strava для доступа к тепловой карте.\nПосле этого перезагрузите вкладку.",
+        vectorStyleUrlPlaceholder: "пример: https://vector.openstreetmap.org/styles/shortbread/neutrino.json",
+        pasteStyleJsonPlaceholder: "Вставьте style.json",
+        tileUrlPlaceholder: "пример: https://tile.openstreetmap.org/{z}/{x}/{y}.png",
         customStyleSetupHelpAlert:
             "Попробуйте перезагрузить страницу без кеша Ctrl + F5.\n" +
             "Или:\n" +
@@ -184,6 +189,7 @@ _translations["ru"] = {
         recent: "Недавние",
         noHotkeysMatchSearch: "Нет подходящих горячих клавиш.",
         noCatalogedCommandsMatchPage: "Для этой страницы нет подходящих команд.",
+        searchByNamePlaceholder: "Поиск по названию хоткея",
     },
     objectVersionPage: {
         length: "Длина: {value}",
@@ -219,6 +225,7 @@ _translations["ru"] = {
         regexSearchNotCaseSensitive: "Регулярное выражение без учёта регистра",
         viaWhosthat: "через whosthat.osmz.ru",
         viaOverpassApi: "через Overpass API",
+        regexSearchByCommentsPlaceholder: "Regex-поиск по комментариям",
         filteredChangesets: "Отфильтровано пакетов правок: {count}",
         singleUserIdLabel: "ID пользователя: ",
         foundUserIds: "⚠️ Найдено ID пользователей: {count}",
@@ -243,6 +250,8 @@ _translations["ru"] = {
         filterViaBetterOsmOrg: "Фильтр пакетов правок через better-osm-org",
         filterBySubstringInComments: "Фильтр по подстроке в комментариях пакетов правок",
         clickCopyChangesetId: "Нажмите, чтобы скопировать ID пакета правок",
+        usersFilterPlaceholder: "user1,user2,... и нажмите Enter",
+        commentsFilterPlaceholder: "words1,words2,... и нажмите Enter",
         revertViaOsmRevert: "откатить через {name}",
     },
     measurer: {
@@ -364,6 +373,9 @@ _translations["ru"] = {
         openMapStateNoteCreation: "Открыть состояние карты на момент создания заметки",
         commaSeparatedSubstrings: "подстроки через запятую\nфильтр также работает по комментариям",
         commaSeparatedUsernames: "имена пользователей через запятую",
+        wordInNotesPlaceholder: "слово в заметках",
+        usernamePlaceholder: "имя пользователя",
+        wordInCommentsPlaceholder: "слово в комментариях",
         addNewObjectOnMap: "Добавить новый объект на карту\nВставьте теги в textarea\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "В textarea нет ни одного тега",
         resolveButtonTitle: 'Добавить в комментарий "{text}" и закрыть заметку.\nВы можете изменить emoji в настройках userscript',
