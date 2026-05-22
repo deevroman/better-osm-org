@@ -273,7 +273,7 @@ function addUploadPanoramaxBtn() {
             console.error(err)
             alert(
                 t("panoramax.uploadError", { message: err.message }) +
-                "\n\n" +
+                    "\n\n" +
                     (metadata
                         ? t("panoramax.exifInfo", {
                               dateTime: metadata.DateTime,

@@ -610,7 +610,8 @@ function makeExternalLinkEditable(targetLi, editorsListUl, nameValue = "", templ
 
     const template = document.createElement("input")
     template.classList.add("template-input")
-    template.placeholder = (isMobile ? "" : t("editMenuLinks.urlExamplePrefix")) + "https://osm.org/{osm_type}/{osm_id}/#map={zoom}/{lat}/{lon}"
+    template.placeholder =
+        (isMobile ? "" : t("editMenuLinks.urlExamplePrefix")) + "https://osm.org/{osm_type}/{osm_id}/#map={zoom}/{lat}/{lon}"
     template.name = "custom-link-template"
     template.value = templateValue
 
