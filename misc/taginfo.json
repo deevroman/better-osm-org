@@ -80,7 +80,7 @@
     },
     {
       "key": "ref:inaturalist.org",
-      "description": "linkify tag value"
+      "description": "to display photos in the tag values field"
     },
     {
       "key": "restriction",
