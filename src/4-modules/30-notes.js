@@ -499,9 +499,7 @@ function addResolveNotesButton() {
         return
     }
     insertNoteResolveButtons()
-    if (isDebug()) {
-        addAutoComplete()
-    }
+    addAutoComplete()
 }
 
 function setupResolveNotesButton() {

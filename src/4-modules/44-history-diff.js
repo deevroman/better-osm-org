@@ -2422,7 +2422,7 @@ function setupRelationVersionView() {
                 await loadRelationVersion(i)
             }
             if (isDebug() && GM_config.get("FullVersionsDiff")) {
-                downloadAllVersionsBtn.textContent += " downloading intermediate versions..."
+                downloadAllVersionsBtn.textContent += " downloading intermediate versions β ..."
                 console.time("full history")
                 addQuickLookStyles()
                 await showFullRelationHistory(parseInt(relationID))
