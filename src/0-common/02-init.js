@@ -17,7 +17,6 @@
 /*global runSnowAnimation*/
 /*global unzipit*/
 /*global bz2*/
-performance.mark("BETTER_OSM_START")
 function tryAddWarnAboutScriptIntoOsmOrgRepo() {
     if (document.querySelector(".better-osm-org-warn")) {
         return
