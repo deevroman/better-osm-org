@@ -159,7 +159,15 @@ function makeUsernameTitle(userInfo) {
 }
 
 async function getOsmchaToken() {
-    return await GM.getValue(isOHMServer() ? "OHM_OSMCHA_TOKEN" : "OSMCHA_TOKEN")
+    const tokens = await GM.getValue(isOHMServer() ? "OHM_OSMCHA_TOKENS" : "OSMCHA_TOKENS")
+    const fallback = await GM.getValue(isOHMServer() ? "OHM_OSMCHA_TOKEN" : "OSMCHA_TOKEN")
+    if (!tokens) {
+        return fallback
+    }
+    if (tokens[dataUser]) {
+        return tokens[dataUser]
+    }
+    return fallback
 }
 
 function addOsmchaButtons(changeset_id, reactionsContainer) {

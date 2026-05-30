@@ -7032,7 +7032,15 @@ function makeUsernameTitle(userInfo) {
 }
 
 async function getOsmchaToken() {
-    return await GM.getValue(isOHMServer() ? "OHM_OSMCHA_TOKEN" : "OSMCHA_TOKEN")
+    const tokens = await GM.getValue(isOHMServer() ? "OHM_OSMCHA_TOKENS" : "OSMCHA_TOKENS")
+    const fallback = await GM.getValue(isOHMServer() ? "OHM_OSMCHA_TOKEN" : "OSMCHA_TOKEN")
+    if (!tokens) {
+        return fallback
+    }
+    if (tokens[dataUser]) {
+        return tokens[dataUser]
+    }
+    return fallback
 }
 
 function addOsmchaButtons(changeset_id, reactionsContainer) {
@@ -32253,6 +32261,57 @@ function setupWiki() {
 
 //</editor-fold>
 
+//<editor-fold desc="osmcha" defaultstate="collapsed">
+
+async function extractOsmchaToken() {
+    function _extractOsmchaToken() {
+        let token = localStorage.getItem("token")
+        if (!token) {
+            token = JSON.parse(localStorage.getItem("auth"))["state"]["token"]
+        }
+        return token
+    }
+
+    try {
+        return _extractOsmchaToken()
+    } catch (e) {
+        console.error(e)
+        await sleep(3000)
+        return _extractOsmchaToken()
+    }
+}
+
+async function storeOsmchaTokenWithOwner(origin, token, STORAGE_KEY) {
+    const userinfo = await fetch(`${origin}/api/v1/users`, { headers: { Authorization: `Token ${token}` } }).then(res => res.json())
+    if (!userinfo.uid) {
+        return
+    }
+    const prev = await GM.getValue(STORAGE_KEY, {})
+    await GM.setValue(STORAGE_KEY, {
+        ...prev,
+        [userinfo.uid]: token,
+    })
+    console.log("stored osmcha token", origin, userinfo.uid, token.slice(0, 5) + "...")
+}
+
+function setupOsmcha() {
+    setTimeout(async () => {
+        const token = await extractOsmchaToken()
+        await GM.setValue("OSMCHA_TOKEN", token)
+        await storeOsmchaTokenWithOwner("https://osmcha.org", token, "OSMCHA_TOKENS")
+    }, 1000)
+}
+
+function setupOhmOsmcha() {
+    setTimeout(async () => {
+        const token = await extractOsmchaToken()
+        await GM.setValue("OHM_OSMCHA_TOKEN", token)
+        await storeOsmchaTokenWithOwner("https://osmcha.openhistoricalmap.org", token, "OHM_OSMCHA_TOKENS")
+    }, 1000)
+}
+
+//</editor-fold>
+
 //<editor-fold desc="script-menu" defaultstate="collapsed">
 
 function makeCommandsMenu() {
@@ -32303,24 +32362,13 @@ function _main() {
         simplifyHDCYIframe()
         return
     }
+
     if (location.origin === "https://osmcha.org") {
-        let token = localStorage.getItem("token")
-        if (!token) {
-            token = JSON.parse(localStorage.getItem("auth"))["state"]["token"]
-        }
-        setTimeout(async () => {
-            await GM.setValue("OSMCHA_TOKEN", token)
-        }, 1000)
+        setupOsmcha()
         return
     }
     if (location.origin === "https://osmcha.openhistoricalmap.org") {
-        setTimeout(async () => {
-            let token = localStorage.getItem("token")
-            if (!token) {
-                token = JSON.parse(localStorage.getItem("auth"))["state"]["token"]
-            }
-            await GM.setValue("OHM_OSMCHA_TOKEN", token)
-        }, 1000)
+        setupOhmOsmcha()
         return
     }
     makeCommandsMenu()
