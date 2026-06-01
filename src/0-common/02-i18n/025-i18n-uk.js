@@ -198,7 +198,7 @@ _translations["uk"] = {
         clickToCopyCenter: "Натисніть, щоб скопіювати центр: {value}",
         clickToCopyRightBottom: "Натисніть, щоб скопіювати RightBottom: {value}",
         clickToCopyBbox: "Натисніть, щоб скопіювати bbox",
-        clickToCopyIdOrUrl: ({ modifier }) => `Натисніть, щоб скопіювати ID\n${modifier} + click, щоб скопіювати URL`,
+        clickToCopyIdOrUrl: `Натисніть, щоб скопіювати ID\n{modifier} + click, щоб скопіювати URL`,
     },
     userProfile: {
         allEditors: "Усі редактори",

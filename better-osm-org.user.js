@@ -403,7 +403,7 @@ _translations["en"] = {
         clickToCopyCenter: "Click to copy center: {value}",
         clickToCopyRightBottom: "Click to copy RightBottom: {value}",
         clickToCopyBbox: "Click to copy bbox",
-        clickToCopyIdOrUrl: ({ modifier }) => `Click to copy ID\n${modifier} + click to copy URL`,
+        clickToCopyIdOrUrl: `Click to copy ID\n{modifier} + click to copy URL`,
     },
     userProfile: {
         allEditors: "All editors",
@@ -825,7 +825,7 @@ _translations["tr"] = {
         clickToCopyCenter: "Click to copy center: {value}",
         clickToCopyRightBottom: "Click to copy RightBottom: {value}",
         clickToCopyBbox: "Click to copy bbox",
-        clickToCopyIdOrUrl: ({ modifier }) => `Click to copy ID\n${modifier} + click to copy URL`,
+        clickToCopyIdOrUrl: `Click to copy ID\n{modifier} + click to copy URL`,
     },
     userProfile: {
         allEditors: "All editors",
@@ -1255,7 +1255,7 @@ _translations["ru"] = {
         clickToCopyCenter: "Нажмите, чтобы скопировать центр: {value}",
         clickToCopyRightBottom: "Нажмите, чтобы скопировать RightBottom: {value}",
         clickToCopyBbox: "Нажмите, чтобы скопировать bbox",
-        clickToCopyIdOrUrl: ({ modifier }) => `Нажмите, чтобы скопировать ID\n${modifier} + click, чтобы скопировать URL`,
+        clickToCopyIdOrUrl: `Нажмите, чтобы скопировать ID\n{modifier} + click, чтобы скопировать URL`,
     },
     userProfile: {
         allEditors: "Все редакторы",
@@ -1680,7 +1680,7 @@ _translations["de"] = {
         clickToCopyCenter: "Klicken, um den Mittelpunkt zu kopieren: {value}",
         clickToCopyRightBottom: "Klicken, um RightBottom zu kopieren: {value}",
         clickToCopyBbox: "Klicken, um bbox zu kopieren",
-        clickToCopyIdOrUrl: ({ modifier }) => `Klicken, um die ID zu kopieren\n${modifier} + Klick, um die URL zu kopieren`,
+        clickToCopyIdOrUrl: `Klicken, um die ID zu kopieren\n{modifier} + Klick, um die URL zu kopieren`,
     },
     userProfile: {
         allEditors: "Alle Editoren",
@@ -2111,7 +2111,7 @@ _translations["fr"] = {
         clickToCopyCenter: "Cliquer pour copier le centre : {value}",
         clickToCopyRightBottom: "Cliquer pour copier RightBottom : {value}",
         clickToCopyBbox: "Cliquer pour copier la bbox",
-        clickToCopyIdOrUrl: ({ modifier }) => `Cliquer pour copier l'ID\n${modifier} + clic pour copier l'URL`,
+        clickToCopyIdOrUrl: `Cliquer pour copier l'ID\n{modifier} + clic pour copier l'URL`,
     },
     userProfile: {
         allEditors: "Tous les éditeurs",
@@ -2540,7 +2540,7 @@ _translations["hr"] = {
         clickToCopyCenter: "Kliknite za kopiranje središta: {value}",
         clickToCopyRightBottom: "Kliknite za kopiranje RightBottom: {value}",
         clickToCopyBbox: "Kliknite za kopiranje bboxa",
-        clickToCopyIdOrUrl: ({ modifier }) => `Kliknite za kopiranje ID-a\n${modifier} + klik za kopiranje URL-a`,
+        clickToCopyIdOrUrl: `Kliknite za kopiranje ID-a\n{modifier} + klik za kopiranje URL-a`,
     },
     userProfile: {
         allEditors: "Svi editori",
@@ -2966,7 +2966,7 @@ _translations["uk"] = {
         clickToCopyCenter: "Натисніть, щоб скопіювати центр: {value}",
         clickToCopyRightBottom: "Натисніть, щоб скопіювати RightBottom: {value}",
         clickToCopyBbox: "Натисніть, щоб скопіювати bbox",
-        clickToCopyIdOrUrl: ({ modifier }) => `Натисніть, щоб скопіювати ID\n${modifier} + click, щоб скопіювати URL`,
+        clickToCopyIdOrUrl: `Натисніть, щоб скопіювати ID\n{modifier} + click, щоб скопіювати URL`,
     },
     userProfile: {
         allEditors: "Усі редактори",

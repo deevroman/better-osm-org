@@ -198,7 +198,7 @@ _translations["de"] = {
         clickToCopyCenter: "Klicken, um den Mittelpunkt zu kopieren: {value}",
         clickToCopyRightBottom: "Klicken, um RightBottom zu kopieren: {value}",
         clickToCopyBbox: "Klicken, um bbox zu kopieren",
-        clickToCopyIdOrUrl: ({ modifier }) => `Klicken, um die ID zu kopieren\n${modifier} + Klick, um die URL zu kopieren`,
+        clickToCopyIdOrUrl: `Klicken, um die ID zu kopieren\n{modifier} + Klick, um die URL zu kopieren`,
     },
     userProfile: {
         allEditors: "Alle Editoren",

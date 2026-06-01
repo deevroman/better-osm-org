@@ -197,7 +197,7 @@ _translations["hr"] = {
         clickToCopyCenter: "Kliknite za kopiranje središta: {value}",
         clickToCopyRightBottom: "Kliknite za kopiranje RightBottom: {value}",
         clickToCopyBbox: "Kliknite za kopiranje bboxa",
-        clickToCopyIdOrUrl: ({ modifier }) => `Kliknite za kopiranje ID-a\n${modifier} + klik za kopiranje URL-a`,
+        clickToCopyIdOrUrl: `Kliknite za kopiranje ID-a\n{modifier} + klik za kopiranje URL-a`,
     },
     userProfile: {
         allEditors: "Svi editori",

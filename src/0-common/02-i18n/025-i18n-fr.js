@@ -200,7 +200,7 @@ _translations["fr"] = {
         clickToCopyCenter: "Cliquer pour copier le centre : {value}",
         clickToCopyRightBottom: "Cliquer pour copier RightBottom : {value}",
         clickToCopyBbox: "Cliquer pour copier la bbox",
-        clickToCopyIdOrUrl: ({ modifier }) => `Cliquer pour copier l'ID\n${modifier} + clic pour copier l'URL`,
+        clickToCopyIdOrUrl: `Cliquer pour copier l'ID\n{modifier} + clic pour copier l'URL`,
     },
     userProfile: {
         allEditors: "Tous les éditeurs",

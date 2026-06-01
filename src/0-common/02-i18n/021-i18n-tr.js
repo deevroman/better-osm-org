@@ -197,7 +197,7 @@ _translations["tr"] = {
         clickToCopyCenter: "Click to copy center: {value}",
         clickToCopyRightBottom: "Click to copy RightBottom: {value}",
         clickToCopyBbox: "Click to copy bbox",
-        clickToCopyIdOrUrl: ({ modifier }) => `Click to copy ID\n${modifier} + click to copy URL`,
+        clickToCopyIdOrUrl: `Click to copy ID\n{modifier} + click to copy URL`,
     },
     userProfile: {
         allEditors: "All editors",
