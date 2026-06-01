@@ -203,7 +203,7 @@ _translations["uk"] = {
     userProfile: {
         allEditors: "Усі редактори",
         editorContributions: ({ editor, count }) =>
-            ` ${editor} (${count} внес${count % 10 === 1 && count % 100 !== 11 ? "ок" : count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14) ? "ки" : "ків"})`,
+            `${editor} (${count} прав${count % 10 === 1 && count % 100 !== 11 ? "ка" : count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14) ? "ки" : "ок"})`,
         osmcha: " [OSMCha] ",
         usernames: "Імена користувачів: ",
         findingBlocks: " Шукаємо блокування... ",

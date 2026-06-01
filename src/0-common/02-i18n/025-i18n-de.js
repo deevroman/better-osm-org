@@ -202,7 +202,7 @@ _translations["de"] = {
     },
     userProfile: {
         allEditors: "Alle Editoren",
-        editorContributions: ({ editor, count }) => ` ${editor} (${count} Beitrag${count === 1 ? "" : "e"})`,
+        editorContributions: ({ editor, count }) => `${editor} (${count} Bearbeitung${count === 1 ? "" : "en"})`,
         osmcha: " [OSMCha] ",
         usernames: "Benutzernamen: ",
         findingBlocks: " Sperren werden gesucht... ",

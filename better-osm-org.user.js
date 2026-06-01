@@ -829,7 +829,7 @@ _translations["tr"] = {
     },
     userProfile: {
         allEditors: "All editors",
-        editorContributions: ({ editor, count }) => ` ${editor} (${count} contribution${count === 1 ? "" : "s"})`,
+        editorContributions: ({ editor, count }) => `${editor} (${count} düzenleme)`,
         osmcha: " [OSMCha] ",
         usernames: "Usernames: ",
         findingBlocks: " Finding blocks... ",
@@ -1259,7 +1259,15 @@ _translations["ru"] = {
     },
     userProfile: {
         allEditors: "Все редакторы",
-        editorContributions: ({ editor, count }) => ` ${editor} (${count} вклад${count === 1 ? "" : count < 5 ? "а" : "ов"})`,
+        editorContributions: ({ editor, count }) => {
+            if (count === 1) {
+                return `${editor} (1 правка)`
+            }
+            if ((count < 10 || count > 20) && [2, 3, 4].includes(count % 10)) {
+                return `${count} правок`
+            }
+            return `${editor} (${count} правка)`
+        },
         osmcha: " [OSMCha] ",
         usernames: "Имена пользователей: ",
         findingBlocks: " Ищем блокировки... ",
@@ -1684,7 +1692,7 @@ _translations["de"] = {
     },
     userProfile: {
         allEditors: "Alle Editoren",
-        editorContributions: ({ editor, count }) => ` ${editor} (${count} Beitrag${count === 1 ? "" : "e"})`,
+        editorContributions: ({ editor, count }) => `${editor} (${count} Bearbeitung${count === 1 ? "" : "en"})`,
         osmcha: " [OSMCha] ",
         usernames: "Benutzernamen: ",
         findingBlocks: " Sperren werden gesucht... ",
@@ -2115,7 +2123,7 @@ _translations["fr"] = {
     },
     userProfile: {
         allEditors: "Tous les éditeurs",
-        editorContributions: ({ editor, count }) => ` ${editor} (${count} contribution${count === 1 ? "" : "s"})`,
+        editorContributions: ({ editor, count }) => `${editor} (${count} modification${count === 1 ? "" : "s"})`,
         osmcha: " [OSMCha] ",
         usernames: "Noms d'utilisateur : ",
         findingBlocks: " Recherche des blocages... ",
@@ -2544,7 +2552,8 @@ _translations["hr"] = {
     },
     userProfile: {
         allEditors: "Svi editori",
-        editorContributions: ({ editor, count }) => ` ${editor} (${count} doprinos${count === 1 ? "" : "a"})`,
+        editorContributions: ({ editor, count }) =>
+            `${editor} (${count} izmjen${count % 10 === 1 && count % 100 !== 11 ? "a" : count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14) ? "e" : "a"})`,
         osmcha: " [OSMCha] ",
         usernames: "Korisnička imena: ",
         findingBlocks: " Traženje blokada... ",
@@ -2971,7 +2980,7 @@ _translations["uk"] = {
     userProfile: {
         allEditors: "Усі редактори",
         editorContributions: ({ editor, count }) =>
-            ` ${editor} (${count} внес${count % 10 === 1 && count % 100 !== 11 ? "ок" : count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14) ? "ки" : "ків"})`,
+            `${editor} (${count} прав${count % 10 === 1 && count % 100 !== 11 ? "ка" : count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14) ? "ки" : "ок"})`,
         osmcha: " [OSMCha] ",
         usernames: "Імена користувачів: ",
         findingBlocks: " Шукаємо блокування... ",

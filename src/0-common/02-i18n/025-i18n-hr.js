@@ -201,7 +201,8 @@ _translations["hr"] = {
     },
     userProfile: {
         allEditors: "Svi editori",
-        editorContributions: ({ editor, count }) => ` ${editor} (${count} doprinos${count === 1 ? "" : "a"})`,
+        editorContributions: ({ editor, count }) =>
+            `${editor} (${count} izmjen${count % 10 === 1 && count % 100 !== 11 ? "a" : count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14) ? "e" : "a"})`,
         osmcha: " [OSMCha] ",
         usernames: "Korisnička imena: ",
         findingBlocks: " Traženje blokada... ",
