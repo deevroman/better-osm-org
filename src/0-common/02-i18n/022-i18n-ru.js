@@ -115,7 +115,7 @@ _translations["ru"] = {
         downloadThisRelation: "Скачать это отношение",
         shiftClickZoomVia: "Нажмите с Shift, чтобы приблизить участников с ролью «via»",
         unableDisplaySomeData: "better-osm-org не смог отобразить некоторые данные",
-        editsWarTitle: ({ details }) => `Война правок. ${details}\nНажмите для подробностей`,
+        editsWarTitle: "Война правок. {details}\nНажмите для подробностей",
         tagRestored: " Тег теперь восстановлен",
         nowIsTag: "Сейчас {key}={value}",
         tagDeleted: "Тег теперь удалён",
@@ -260,8 +260,7 @@ _translations["ru"] = {
         cleanMeasurements: "Очистить измерения",
         clickToSwitchUnits: "Нажмите, чтобы переключить единицы измерения",
         orPressEscapeTwice: "Или нажмите Escape дважды",
-        hotkeysTitle: ({ modifier }) =>
-            `Alt + Click: начать новую линию\nEsc: остановить измерение\n${modifier} + Z: удалить последнюю точку`,
+        hotkeysTitle: "Alt + Click: начать новую линию\nEsc: остановить измерение\n{modifier} + Z: удалить последнюю точку",
     },
     panoramax: {
         blurFaces: "Размыть лица",

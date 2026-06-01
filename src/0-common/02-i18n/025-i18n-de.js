@@ -108,7 +108,7 @@ _translations["de"] = {
         downloadThisRelation: "Diese Relation herunterladen",
         shiftClickZoomVia: 'Mit Shift klicken, um auf "via"-Mitglieder zu zoomen',
         unableDisplaySomeData: "better-osm-org konnte einige Daten nicht anzeigen",
-        editsWarTitle: ({ details }) => `Edit-War. ${details}\nKlicken für Details`,
+        editsWarTitle: "Edit-War. {details}\nKlicken für Details",
         tagRestored: "Das Tag ist jetzt wiederhergestellt",
         nowIsTag: "Jetzt ist {key}={value}",
         tagDeleted: "Das Tag ist jetzt gelöscht",
@@ -254,7 +254,7 @@ _translations["de"] = {
         cleanMeasurements: "Messungen löschen",
         clickToSwitchUnits: "Klicken, um die Maßeinheiten zu wechseln",
         orPressEscapeTwice: "Oder zweimal Escape drücken",
-        hotkeysTitle: ({ modifier }) => `Alt + Klick: neue Linie beginnen\nEsc: Messen beenden\n${modifier} + Z: letzten Punkt entfernen`,
+        hotkeysTitle: "Alt + Klick: neue Linie beginnen\nEsc: Messen beenden\n{modifier} + Z: letzten Punkt entfernen",
     },
     panoramax: {
         blurFaces: "Gesichter verwischen",
