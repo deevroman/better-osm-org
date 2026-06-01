@@ -205,7 +205,7 @@ _translations["ru"] = {
         clickToCopyCenter: "Нажмите, чтобы скопировать центр: {value}",
         clickToCopyRightBottom: "Нажмите, чтобы скопировать RightBottom: {value}",
         clickToCopyBbox: "Нажмите, чтобы скопировать bbox",
-        clickToCopyIdOrUrl: ({ modifier }) => `Нажмите, чтобы скопировать ID\n${modifier} + click, чтобы скопировать URL`,
+        clickToCopyIdOrUrl: `Нажмите, чтобы скопировать ID\n{modifier} + click, чтобы скопировать URL`,
     },
     userProfile: {
         allEditors: "Все редакторы",
