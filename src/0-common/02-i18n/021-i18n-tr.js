@@ -201,7 +201,7 @@ _translations["tr"] = {
     },
     userProfile: {
         allEditors: "All editors",
-        editorContributions: ({ editor, count }) => ` ${editor} (${count} contribution${count === 1 ? "" : "s"})`,
+        editorContributions: ({ editor, count }) => `${editor} (${count} düzenleme)`,
         osmcha: " [OSMCha] ",
         usernames: "Usernames: ",
         findingBlocks: " Finding blocks... ",

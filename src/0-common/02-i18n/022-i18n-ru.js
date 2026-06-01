@@ -209,7 +209,15 @@ _translations["ru"] = {
     },
     userProfile: {
         allEditors: "Все редакторы",
-        editorContributions: ({ editor, count }) => ` ${editor} (${count} вклад${count === 1 ? "" : count < 5 ? "а" : "ов"})`,
+        editorContributions: ({ editor, count }) => {
+            if (count === 1) {
+                return `${editor} (1 правка)`
+            }
+            if ((count < 10 || count > 20) && [2, 3, 4].includes(count % 10)) {
+                return `${count} правок`
+            }
+            return `${editor} (${count} правка)`
+        },
         osmcha: " [OSMCha] ",
         usernames: "Имена пользователей: ",
         findingBlocks: " Ищем блокировки... ",

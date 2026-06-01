@@ -204,7 +204,7 @@ _translations["fr"] = {
     },
     userProfile: {
         allEditors: "Tous les éditeurs",
-        editorContributions: ({ editor, count }) => ` ${editor} (${count} contribution${count === 1 ? "" : "s"})`,
+        editorContributions: ({ editor, count }) => `${editor} (${count} modification${count === 1 ? "" : "s"})`,
         osmcha: " [OSMCha] ",
         usernames: "Noms d'utilisateur : ",
         findingBlocks: " Recherche des blocages... ",
