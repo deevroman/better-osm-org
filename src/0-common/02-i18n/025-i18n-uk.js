@@ -108,7 +108,7 @@ _translations["uk"] = {
         downloadThisRelation: "Завантажити це відношення",
         shiftClickZoomVia: 'Натисніть із Shift, щоб наблизити учасників "via"',
         unableDisplaySomeData: "better-osm-org не зміг показати деякі дані",
-        editsWarTitle: ({ details }) => `Війна редагувань. ${details}\nНатисніть для подробиць`,
+        editsWarTitle: "Війна редагувань. {details}\nНатисніть для подробиць",
         tagRestored: "Тег тепер відновлено",
         nowIsTag: "Зараз {key}={value}",
         tagDeleted: "Тег тепер видалено",
@@ -254,7 +254,7 @@ _translations["uk"] = {
         cleanMeasurements: "Очистити вимірювання",
         clickToSwitchUnits: "Натисніть, щоб переключити одиниці вимірювання",
         orPressEscapeTwice: "Або натисніть Escape двічі",
-        hotkeysTitle: ({ modifier }) => `Alt + click: почати нову лінію\nEsc: зупинити вимірювання\n${modifier} + Z: видалити останню точку`,
+        hotkeysTitle: "Alt + click: почати нову лінію\nEsc: зупинити вимірювання\n{modifier} + Z: видалити останню точку",
     },
     panoramax: {
         blurFaces: "Розмити обличчя",

@@ -6,9 +6,10 @@ const localeMap = {
     fr: ["fr-FR", "fr"],
     de: ["de-DE", "de"],
     hr: ["hr-HR", "hr"],
+    tr: ["tr-TR", "tr"],
 }
 
-/** @typedef {"ru"|"en"|"uk"|"fr"|"de"|"hr"} Langs */
+/** @typedef {"ru"|"en"|"uk"|"fr"|"de"|"hr"|"tr"} Langs */
 /** @type {Langs} */
 const currentLocale = Object.entries(localeMap).find(([, locales]) => locales.includes(navigator.language))?.[0] ?? "en"
 

@@ -1,4 +1,4 @@
-_translations["en"] = {
+_translations["tr"] = {
     init: {
         disableBetterOsmOrg: "Disable better-osm-org",
         scriptVersion: "Script version: ",

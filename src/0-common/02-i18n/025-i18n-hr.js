@@ -108,7 +108,7 @@ _translations["hr"] = {
         downloadThisRelation: "Preuzmi ovu relaciju",
         shiftClickZoomVia: 'Kliknite sa Shift za zumiranje na "via" članove',
         unableDisplaySomeData: "better-osm-org nije mogao prikazati neke podatke",
-        editsWarTitle: ({ details }) => `Rat izmjena. ${details}\nKliknite za detalje`,
+        editsWarTitle: "Rat izmjena. {details}\nKliknite za detalje",
         tagRestored: "Oznaka je sada vraćena",
         nowIsTag: "Sada je {key}={value}",
         tagDeleted: "Oznaka je sada obrisana",
@@ -252,7 +252,7 @@ _translations["hr"] = {
         cleanMeasurements: "Očisti mjerenja",
         clickToSwitchUnits: "Kliknite za promjenu mjernih jedinica",
         orPressEscapeTwice: "Ili dvaput pritisnite Escape",
-        hotkeysTitle: ({ modifier }) => `Alt + klik: započni novu liniju\nEsc: zaustavi mjerenje\n${modifier} + Z: ukloni zadnju točku`,
+        hotkeysTitle: "Alt + klik: započni novu liniju\nEsc: zaustavi mjerenje\n{modifier} + Z: ukloni zadnju točku",
     },
     panoramax: {
         blurFaces: "Zamagli lica",
