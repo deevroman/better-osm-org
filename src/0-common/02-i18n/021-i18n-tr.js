@@ -327,7 +327,8 @@ _translations["tr"] = {
         mapperRequestedReview:
             "Haritacı değişiklik setinin incelenmesini istedi\n\nreview_requested=yes olan değişiklik setlerini filtrelemek için tıklayın",
         josmNotRunningAlert: "JOSM çalışmıyor",
-        customOsmApiInJosmAlert: "JOSM'da özel OSM API sunucusu kullanıyorsunuz.\n\nJOSM ayarlarını değiştirin veya başka internet sitesi açın",
+        customOsmApiInJosmAlert:
+            "JOSM'da özel OSM API sunucusu kullanıyorsunuz.\n\nJOSM ayarlarını değiştirin veya başka internet sitesi açın",
         otherOsmInstanceInJosmAlert:
             "Başka bir OSM örneği kullanıyorsunuz, ancak JOSM varsayılan sunucuyu kullanıyor.\n\nJOSM ayarlarını değiştirin veya başka internet sitesi açın",
         osmchaReviewLike: "OSMCha olumlu inceleme\n\nİnceleme etiketleri eklemek için sağ tıklayın",
