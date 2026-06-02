@@ -56,7 +56,7 @@ Photos are also displayed in the tags `panoramax=*` and `wikimedia_commons=*`
 
 ### Hotkeys
 
-- `<` `>` for user changesets
+- `,` `.` for user changesets (to remember: these keys usually have the characters `<` `>`)
 - `N` — on/off notes layer
 - `D` — on/off Map Data layer
 - `G` — on/off GPS tracks layer
