@@ -22315,7 +22315,6 @@ function addUploadPanoramaxBtn() {
             return alert(t("panoramax.selectFileAlert"))
         }
         wrapper.classList.add("is-loading")
-        uploadImgBtn.style.display = "none"
         const file = fileInput.files[0]
         let metadata
         if (file.type.startsWith("image/jpeg")) {
@@ -22330,6 +22329,7 @@ function addUploadPanoramaxBtn() {
             if (!token) {
                 return
             }
+            uploadImgBtn.style.display = "none"
             const uuid = await uploadImage(token, file, `Upload from better-osm-org for ${object_type}/${object_id}`, needBlur.checked)
             await addPanoramaxTag(uuid, object_type, object_id)
             await GM.setValue("lastUploadedPanoramaxPicture", JSON.stringify({ uuid: uuid, instance: panoramaxInstance }))
