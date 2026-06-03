@@ -463,6 +463,8 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
             makePhoneValue(valueCell)
         } else if (needValidateEmailKey(key)) {
             makeEmailValue(valueCell)
+        } else if (needValidateTrackingParamsInContact(key)) {
+            makeContactValue(valueCell, key)
         } else if (needValidateConditionalAccessKey(key)) {
             makeConditionalValue(valueCell)
         } else if (key === "type") {

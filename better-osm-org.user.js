@@ -13234,6 +13234,48 @@ function makeRoofOrientationValue(elem) {
     }
 }
 
+function makeContactValue(elem, key) {
+    try {
+        const urlParams = new URL(elem.textContent).searchParams
+        const warns = []
+        ;[
+            "fbclid",
+            "gclid",
+            "gclsrc",
+            "igsh",
+            "igshid",
+            "mc_id",
+            "si",
+            "utm_campaign",
+            "utm_content",
+            "utm_medium",
+            "utm_source",
+            "utm_term",
+            "yclid",
+            "ysclid",
+        ].forEach(param => {
+            if (urlParams.has(param)) {
+                warns.push(param)
+            }
+        })
+        if (warns.length > 0) {
+            elem.classList.add("warn-tag")
+            elem.querySelectorAll("a").forEach(a => a.classList.add("warn-tag"))
+            elem.title = warns.map(param => `Tracking "${param}=" param in URL`).join("\n")
+        }
+    } catch (e) {
+        // todo report about invalid URL
+        console.error(e)
+    }
+    if (key === "website" || key === "contact:website") {
+        if (!elem.textContent.startsWith("https://") && !elem.textContent.startsWith("http://")) {
+            elem.classList.add("warn-tag")
+            elem.querySelectorAll("a").forEach(a => a.classList.add("warn-tag"))
+            elem.title = "URL should be start with https:// or http://"
+        }
+    }
+}
+
 function makeConditionalValue(elem) {
     if (!elem.textContent.includes("@")) {
         elem.classList.add("fixme-tag")
@@ -13568,6 +13610,17 @@ function needValidateEmailKey(key) {
     return key === "contact:email" || key === "email" || key === "brand:email"
 }
 
+function needValidateTrackingParamsInContact(key) {
+    // TODO need more tags (and add in taginfo.json (source=, image=, ...))
+    return (
+        key === "website" ||
+        key.startsWith("website:") ||
+        key.endsWith(":website") ||
+        key === "contact:instagram" ||
+        key === "contact:facebook"
+    )
+}
+
 function makeRoofDirectionValue(valueCell, row, isVersionPage) {
     if (valueCell.textContent === "across" || valueCell.textContent === "along") {
         // todo more
@@ -13642,6 +13695,8 @@ function makeLinksInVersionTagClickable(row, objType) {
         makePhoneValue(valueCell)
     } else if (needValidateEmailKey(key)) {
         makeEmailValue(valueCell)
+    } else if (needValidateTrackingParamsInContact(key)) {
+        makeContactValue(valueCell, key)
     } else if (needValidateConditionalAccessKey(key)) {
         makeConditionalValue(valueCell)
     } else if (needValidateOpeningHoursKey(key)) {
@@ -18238,6 +18293,8 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
             makePhoneValue(valueCell)
         } else if (needValidateEmailKey(key)) {
             makeEmailValue(valueCell)
+        } else if (needValidateTrackingParamsInContact(key)) {
+            makeContactValue(valueCell, key)
         } else if (needValidateConditionalAccessKey(key)) {
             makeConditionalValue(valueCell)
         } else if (key === "type") {
