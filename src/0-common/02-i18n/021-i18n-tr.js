@@ -396,6 +396,8 @@ _translations["tr"] = {
         observationNotFound: "Gözlem iNaturalist API'sinde bulunamadı",
         noErrorsOpeningHours: "opening_hours.js hata bulamadı 👍",
         phoneMustStartPlus: "telefon numarası + ile başlamalıdır",
+        trackingParamInUrl: 'URL\'de izleme parametresi "{param}="',
+        urlShouldStartWithHttp: "URL https:// veya http:// ile başlamalıdır",
         easterEgg: "better-osm-org paskalya yumurtası",
         needRoofOrientation: "bunun roof:orientation olarak değiştirilmesi gerekiyor gibi görünüyor",
         clickShowEmbedded3d:

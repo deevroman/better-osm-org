@@ -460,7 +460,7 @@ function makeContactValue(elem, key) {
         if (warns.length > 0) {
             elem.classList.add("warn-tag")
             elem.querySelectorAll("a").forEach(a => a.classList.add("warn-tag"))
-            elem.title = warns.map(param => `Tracking "${param}=" param in URL`).join("\n")
+            elem.title = warns.map(param => t("objectPage.trackingParamInUrl", { param })).join("\n")
         }
     } catch (e) {
         // todo report about invalid URL
@@ -470,7 +470,7 @@ function makeContactValue(elem, key) {
         if (!elem.textContent.startsWith("https://") && !elem.textContent.startsWith("http://")) {
             elem.classList.add("warn-tag")
             elem.querySelectorAll("a").forEach(a => a.classList.add("warn-tag"))
-            elem.title = "URL should be start with https:// or http://"
+            elem.title = t("objectPage.urlShouldStartWithHttp")
         }
     }
 }

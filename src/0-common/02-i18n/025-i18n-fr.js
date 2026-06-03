@@ -400,6 +400,8 @@ _translations["fr"] = {
         observationNotFound: "Observation introuvable dans l'API iNaturalist",
         noErrorsOpeningHours: "aucune erreur trouvée par opening_hours.js 👍",
         phoneMustStartPlus: "le numéro de téléphone doit commencer par +",
+        trackingParamInUrl: 'Paramètre de suivi "{param}=" dans l\'URL',
+        urlShouldStartWithHttp: "L'URL doit commencer par https:// ou http://",
         easterEgg: "easter egg better-osm-org",
         needRoofOrientation: "il semble qu'il faut le remplacer par roof:orientation",
         clickShowEmbedded3d:

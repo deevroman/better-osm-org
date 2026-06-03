@@ -1,6 +1,10 @@
 # Changelog archive
 
 [Changelog with illustrations on OSM Community Forum](https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670)
+- v1.6.5: Warn about tracking params in website=* ans similar tags
+- v1.6.5: Add translations for Russian, Ukrainian, German, French, Croatian, Turkish
+- v1.6.3: F1 hotkey for hotkeys list, preview Panoramax photos in Overpass search results, CSV reader
+- v1.6.3: Validate phone=*, email=*, short keys and keys with the first capital letter
 - v1.6.0: OpenGeoFiction support under debug flag in settings, add OSM2World 3D viewer, type=* validator
 - v1.6.0: Note marker in Overpass Turbo, more stable Overpass search
 - v1.5.9: memorizing the last satellite layer, simple vector style editor

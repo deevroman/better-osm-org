@@ -394,6 +394,8 @@ _translations["uk"] = {
         observationNotFound: "Спостереження не знайдено в API iNaturalist",
         noErrorsOpeningHours: "opening_hours.js не знайшов помилок 👍",
         phoneMustStartPlus: "номер телефону має починатися з +",
+        trackingParamInUrl: 'В URL є трекінговий параметр "{param}="',
+        urlShouldStartWithHttp: "URL має починатися з https:// або http://",
         easterEgg: "пасхалка better-osm-org",
         needRoofOrientation: "схоже, це потрібно змінити на roof:orientation",
         clickShowEmbedded3d:

@@ -391,6 +391,8 @@ _translations["en"] = {
         observationNotFound: "Observation not found in iNaturalist API",
         noErrorsOpeningHours: "no errors were found by opening_hours.js 👍",
         phoneMustStartPlus: "phone number must start with +",
+        trackingParamInUrl: 'Tracking "{param}=" parameter in URL',
+        urlShouldStartWithHttp: "URL should start with https:// or http://",
         easterEgg: "better-osm-org easter egg",
         needRoofOrientation: "it seems to need to be changed to roof:orientation",
         clickShowEmbedded3d: "Click for show embedded 3D Viewer.\nIn userscript setting you can set open in OSM page by default",
