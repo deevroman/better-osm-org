@@ -290,13 +290,14 @@ function addUploadPanoramaxBtn() {
     const datalistInstances = document.createElement("datalist")
     datalistInstances.id = "panoramax-instances"
     ;[
-        // prettier-ignore
         "https://panoramax.openstreetmap.fr",
         "https://panoramax.ign.fr",
         "https://panoramax.mapcomplete.org",
         "https://panoramax.multimob.be",
         "https://panoramax.liswu.me",
         "https://panoramax.osm-hr.org",
+        "https://panoramax.osm.tw",
+        "https://panoramax.libre.net.ar",
     ].forEach(i => {
         const opt = document.createElement("option")
         opt.value = i

@@ -114,6 +114,8 @@
 // @connect      panoramax.multimob.be
 // @connect      panoramax.liswu.me
 // @connect      panoramax.osm-hr.org
+// @connect      panoramax.osm.tw
+// @connect      panoramax.libre.net.ar
 // @connect      westnordost.de
 // @connect      streetcomplete.app
 // @comment      for downloading gps-tracks — osm stores tracks in AWS
@@ -22354,13 +22356,14 @@ function addUploadPanoramaxBtn() {
     const datalistInstances = document.createElement("datalist")
     datalistInstances.id = "panoramax-instances"
     ;[
-        // prettier-ignore
         "https://panoramax.openstreetmap.fr",
         "https://panoramax.ign.fr",
         "https://panoramax.mapcomplete.org",
         "https://panoramax.multimob.be",
         "https://panoramax.liswu.me",
         "https://panoramax.osm-hr.org",
+        "https://panoramax.osm.tw",
+        "https://panoramax.libre.net.ar",
     ].forEach(i => {
         const opt = document.createElement("option")
         opt.value = i
