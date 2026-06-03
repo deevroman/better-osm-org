@@ -394,6 +394,8 @@ _translations["hr"] = {
         observationNotFound: "Zapažanje nije pronađeno u iNaturalist API-ju",
         noErrorsOpeningHours: "opening_hours.js nije pronašao greške 👍",
         phoneMustStartPlus: "broj telefona mora početi s +",
+        trackingParamInUrl: 'Parametar za praćenje "{param}=" u URL-u',
+        urlShouldStartWithHttp: "URL mora početi s https:// ili http://",
         easterEgg: "better-osm-org uskrsno jaje",
         needRoofOrientation: "izgleda da ovo treba promijeniti u roof:orientation",
         clickShowEmbedded3d:

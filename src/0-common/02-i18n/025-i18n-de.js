@@ -397,6 +397,8 @@ _translations["de"] = {
         observationNotFound: "Beobachtung in der iNaturalist-API nicht gefunden",
         noErrorsOpeningHours: "opening_hours.js hat keine Fehler gefunden 👍",
         phoneMustStartPlus: "Telefonnummer muss mit + beginnen",
+        trackingParamInUrl: 'Tracking-Parameter "{param}=" in der URL',
+        urlShouldStartWithHttp: "URL muss mit https:// oder http:// beginnen",
         easterEgg: "better-osm-org-Easter-Egg",
         needRoofOrientation: "es sieht so aus, als müsste das zu roof:orientation geändert werden",
         clickShowEmbedded3d:

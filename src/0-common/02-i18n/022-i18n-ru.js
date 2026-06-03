@@ -408,6 +408,8 @@ _translations["ru"] = {
         observationNotFound: "Наблюдение не найдено в API iNaturalist",
         noErrorsOpeningHours: "opening_hours.js не нашёл ошибок 👍",
         phoneMustStartPlus: "номер телефона должен начинаться с +",
+        trackingParamInUrl: 'В URL есть трекинговый параметр "{param}="',
+        urlShouldStartWithHttp: "URL должен начинаться с https:// или http://",
         easterEgg: "пасхалка от better-osm-org",
         needRoofOrientation: "похоже, это нужно заменить на roof:orientation",
         clickShowEmbedded3d:

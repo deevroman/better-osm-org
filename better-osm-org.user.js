@@ -2,6 +2,8 @@
 // @name            Better osm.org
 // @name:ru         Better osm.org
 // @version         1.6.5
+// @changelog       v1.6.5: Warn about tracking params in website=* ans similar tags
+// @changelog       v1.6.5: Add translations for Russian, Ukrainian, German, French, Croatian, Turkish
 // @changelog       v1.6.3: F1 hotkey for hotkeys list, preview Panoramax photos in Overpass search results, CSV reader
 // @changelog       v1.6.3: Validate phone=*, email=*, short keys and keys with the first capital letter
 // @changelog       v1.6.0: OpenGeoFiction support under debug flag in settings, add OSM2World 3D viewer, type=* validator
@@ -602,6 +604,8 @@ _translations["en"] = {
         observationNotFound: "Observation not found in iNaturalist API",
         noErrorsOpeningHours: "no errors were found by opening_hours.js 👍",
         phoneMustStartPlus: "phone number must start with +",
+        trackingParamInUrl: 'Tracking "{param}=" parameter in URL',
+        urlShouldStartWithHttp: "URL should start with https:// or http://",
         easterEgg: "better-osm-org easter egg",
         needRoofOrientation: "it seems to need to be changed to roof:orientation",
         clickShowEmbedded3d: "Click for show embedded 3D Viewer.\nIn userscript setting you can set open in OSM page by default",
@@ -1029,6 +1033,8 @@ _translations["tr"] = {
         observationNotFound: "Gözlem iNaturalist API'sinde bulunamadı",
         noErrorsOpeningHours: "opening_hours.js hata bulamadı 👍",
         phoneMustStartPlus: "telefon numarası + ile başlamalıdır",
+        trackingParamInUrl: 'URL\'de izleme parametresi "{param}="',
+        urlShouldStartWithHttp: "URL https:// veya http:// ile başlamalıdır",
         easterEgg: "better-osm-org paskalya yumurtası",
         needRoofOrientation: "bunun roof:orientation olarak değiştirilmesi gerekiyor gibi görünüyor",
         clickShowEmbedded3d:
@@ -1469,6 +1475,8 @@ _translations["ru"] = {
         observationNotFound: "Наблюдение не найдено в API iNaturalist",
         noErrorsOpeningHours: "opening_hours.js не нашёл ошибок 👍",
         phoneMustStartPlus: "номер телефона должен начинаться с +",
+        trackingParamInUrl: 'В URL есть трекинговый параметр "{param}="',
+        urlShouldStartWithHttp: "URL должен начинаться с https:// или http://",
         easterEgg: "пасхалка от better-osm-org",
         needRoofOrientation: "похоже, это нужно заменить на roof:orientation",
         clickShowEmbedded3d:
@@ -1898,6 +1906,8 @@ _translations["de"] = {
         observationNotFound: "Beobachtung in der iNaturalist-API nicht gefunden",
         noErrorsOpeningHours: "opening_hours.js hat keine Fehler gefunden 👍",
         phoneMustStartPlus: "Telefonnummer muss mit + beginnen",
+        trackingParamInUrl: 'Tracking-Parameter "{param}=" in der URL',
+        urlShouldStartWithHttp: "URL muss mit https:// oder http:// beginnen",
         easterEgg: "better-osm-org-Easter-Egg",
         needRoofOrientation: "es sieht so aus, als müsste das zu roof:orientation geändert werden",
         clickShowEmbedded3d:
@@ -2330,6 +2340,8 @@ _translations["fr"] = {
         observationNotFound: "Observation introuvable dans l'API iNaturalist",
         noErrorsOpeningHours: "aucune erreur trouvée par opening_hours.js 👍",
         phoneMustStartPlus: "le numéro de téléphone doit commencer par +",
+        trackingParamInUrl: 'Paramètre de suivi "{param}=" dans l\'URL',
+        urlShouldStartWithHttp: "L'URL doit commencer par https:// ou http://",
         easterEgg: "easter egg better-osm-org",
         needRoofOrientation: "il semble qu'il faut le remplacer par roof:orientation",
         clickShowEmbedded3d:
@@ -2756,6 +2768,8 @@ _translations["hr"] = {
         observationNotFound: "Zapažanje nije pronađeno u iNaturalist API-ju",
         noErrorsOpeningHours: "opening_hours.js nije pronašao greške 👍",
         phoneMustStartPlus: "broj telefona mora početi s +",
+        trackingParamInUrl: 'Parametar za praćenje "{param}=" u URL-u',
+        urlShouldStartWithHttp: "URL mora početi s https:// ili http://",
         easterEgg: "better-osm-org uskrsno jaje",
         needRoofOrientation: "izgleda da ovo treba promijeniti u roof:orientation",
         clickShowEmbedded3d:
@@ -3182,6 +3196,8 @@ _translations["uk"] = {
         observationNotFound: "Спостереження не знайдено в API iNaturalist",
         noErrorsOpeningHours: "opening_hours.js не знайшов помилок 👍",
         phoneMustStartPlus: "номер телефону має починатися з +",
+        trackingParamInUrl: 'В URL є трекінговий параметр "{param}="',
+        urlShouldStartWithHttp: "URL має починатися з https:// або http://",
         easterEgg: "пасхалка better-osm-org",
         needRoofOrientation: "схоже, це потрібно змінити на roof:orientation",
         clickShowEmbedded3d:
@@ -13261,7 +13277,7 @@ function makeContactValue(elem, key) {
         if (warns.length > 0) {
             elem.classList.add("warn-tag")
             elem.querySelectorAll("a").forEach(a => a.classList.add("warn-tag"))
-            elem.title = warns.map(param => `Tracking "${param}=" param in URL`).join("\n")
+            elem.title = warns.map(param => t("objectPage.trackingParamInUrl", { param })).join("\n")
         }
     } catch (e) {
         // todo report about invalid URL
@@ -13271,7 +13287,7 @@ function makeContactValue(elem, key) {
         if (!elem.textContent.startsWith("https://") && !elem.textContent.startsWith("http://")) {
             elem.classList.add("warn-tag")
             elem.querySelectorAll("a").forEach(a => a.classList.add("warn-tag"))
-            elem.title = "URL should be start with https:// or http://"
+            elem.title = t("objectPage.urlShouldStartWithHttp")
         }
     }
 }
