@@ -205,6 +205,22 @@
       "description": "tag value validation"
     },
     {
+      "key": "contact:website",
+      "description": "warn about tracking params in URL"
+    },
+    {
+      "key": "contact:instagram",
+      "description": "warn about tracking params in URL"
+    },
+    {
+      "key": "contact:facebook",
+      "description": "warn about tracking params in URL"
+    },
+    {
+      "key": "contact:youtube",
+      "description": "warn about tracking params in URL"
+    },
+    {
       "key": "phone",
       "description": "tag value validation via libphonenumber.js"
     },
@@ -219,6 +235,10 @@
     {
       "key": "email",
       "description": "tag value validation"
+    },
+    {
+      "key": "website",
+      "description": "warn about tracking params in URL"
     }
   ]
 }
