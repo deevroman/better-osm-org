@@ -1410,8 +1410,8 @@ _translations["ru"] = {
         customOsmApiInJosmAlert: "В JOSM используется кастомный OSM API сервер.\n\nИзмените настройки JOSM или откройте другой сайт",
         otherOsmInstanceInJosmAlert:
             "Вы используете другой экземпляр OSM, но JOSM использует сервер по умолчанию.\n\nИзмените настройки JOSM или откройте другой сайт",
-        osmchaReviewLike: "Положительная оценка OSMCha\n\nПравая кнопка мыши для добавления тегов проверки",
-        osmchaReviewDislike: "Отрицательная оценка OSMCha\n\nПравая кнопка мыши для добавления тегов проверки",
+        osmchaReviewLike: "Положительная оценка OSMCha\n\nПравая кнопка мыши для добавления тегов",
+        osmchaReviewDislike: "Отрицательная оценка OSMCha\n\nПравая кнопка мыши для добавления тегов",
         osmchaLoginAlert: "Пожалуйста, войдите в OSMCha",
         osmchaChangesetNotFoundTitle:
             "Пакет правок не найден в базе OSMCha.\nВозможно, OSMCha ещё не успел обработать этот пакет правок или он слишком старый.",
@@ -1452,7 +1452,7 @@ _translations["ru"] = {
         wordInCommentsPlaceholder: "слово в комментариях",
         addNewObjectOnMap: "Добавить новый объект на карту\nВставьте теги в textarea\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "В textarea нет ни одного тега",
-        resolveButtonTitle: 'Добавить в комментарий "{text}" и закрыть заметку.\nВы можете изменить emoji в настройках userscript',
+        resolveButtonTitle: 'Добавить в комментарий "{text}" и закрыть заметку.\nВы можете изменить эмодзи в настройках скрипта',
     },
     spyGlass: {
         activateSpyGlass: "Включить режим SpyGlass (эксперимент better-osm-org)",
