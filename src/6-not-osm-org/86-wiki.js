@@ -11,7 +11,7 @@ function addToList(list, who, type) {
 
 function setupWiki() {
     if (!location.pathname.startsWith("/wiki/Proposal:")) {
-        return;
+        return
     }
     const supportList = new Set()
     const opposeList = new Set()
@@ -24,8 +24,7 @@ function setupWiki() {
     for (const ul of document.querySelectorAll(":is(h1,h2):has(#Voting) ~ ul")) {
         for (const li of ul.querySelectorAll('li:has([typeof="mw:File"])')) {
             const anchors = Array.from(li.querySelectorAll(":scope > a"))
-            const who = (anchors.at(-2) ?? anchors.at(-1))
-                .textContent
+            const who = (anchors.at(-2) ?? anchors.at(-1)).textContent
             if (li.querySelectorAll(supportSymbolQuery).length === 1) {
                 hasDupeVotes |= !addToList(supportList, who, "support")
             } else if (li.querySelectorAll(opposeSymbolQuery).length === 1) {
@@ -67,9 +66,7 @@ function setupWiki() {
     if (supportList.size > opposeList.size * 3) {
         support.insertCell().appendChild(document.createTextNode(`> 75%`))
     } else {
-        support
-            .insertCell()
-            .appendChild(document.createTextNode(t("wiki.needMoreVotes", { count: 3 * opposeList.size - supportList.size })))
+        support.insertCell().appendChild(document.createTextNode(t("wiki.needMoreVotes", { count: 3 * opposeList.size - supportList.size })))
     }
 
     oppose.insertCell().appendChild(opposeImg)
