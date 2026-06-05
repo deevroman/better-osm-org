@@ -27,11 +27,11 @@ function setupWiki() {
             const who = (anchors.at(-2) ?? anchors.at(-1))
                 .textContent
             if (li.querySelectorAll(supportSymbolQuery).length === 1) {
-                hasDupeVotes = hasDupeVotes || !addToList(supportList, who, "support")
+                hasDupeVotes |= !addToList(supportList, who, "support")
             } else if (li.querySelectorAll(opposeSymbolQuery).length === 1) {
-                hasDupeVotes = hasDupeVotes || !addToList(opposeList, who, "oppose")
+                hasDupeVotes |= !addToList(opposeList, who, "oppose")
             } else if (li.querySelectorAll(abstainSymbolQuery).length === 1) {
-                hasDupeVotes = hasDupeVotes || !addToList(abstainList, who, "abstain")
+                hasDupeVotes |= !addToList(abstainList, who, "abstain")
             } else {
                 console.error("invalid data for", li)
                 return
@@ -61,47 +61,24 @@ function setupWiki() {
     const opposeImg = document.querySelector(opposeSymbolQuery).cloneNode(true)
     const abstainImg = document.querySelector(abstainSymbolQuery).cloneNode(true)
 
-    const voteTypes = [
-        {
-            type: "support",
-            img: supportImg,
-            list: supportList,
-            row: support
-        },
-        {
-            type: "oppose",
-            img: opposeImg,
-            list: opposeList,
-            row: oppose
-        },
-        {
-            type: "abstain",
-            img: abstainImg,
-            list: abstainList,
-            row: abstain
-        }
-    ]
-    arr.forEach(({ type, img, list, row }) => {
-        row.insertCell().appendChild(img)
-        row.insertCell().appendChild(document.createTextNode(`${list.size}`))
-        if (type === "support") {
-            const percentage = ((list.size / sum) * 100).toFixed(1)
-            row.insertCell().appendChild(document.createTextNode(`${percentage}%`))
-            if (list.size > opposeList.size * 3) {
-                row.insertCell().appendChild(document.createTextNode(`> 75%`))
-            } else {
-                const neededVotes = 3 * opposeList.size - list.size
-                row
-                    .insertCell()
-                    .appendChild(document.createTextNode(t("wiki.needMoreVotes", { count: neededVotes })))
-            }
-        } else if (type === "oppose") {
-            const percentage = ((list.size / sum) * 100).toFixed(1)
-            row.insertCell().appendChild(document.createTextNode(`${percentage}%`))
-        } else {
-            row.insertCell().appendChild(document.createTextNode(``))
-        }
-    })
+    support.insertCell().appendChild(supportImg)
+    support.insertCell().appendChild(document.createTextNode(`${supportList.size}`))
+    support.insertCell().appendChild(document.createTextNode(`${((supportList.size / sum) * 100).toFixed(1)}%`))
+    if (supportList.size > opposeList.size * 3) {
+        support.insertCell().appendChild(document.createTextNode(`> 75%`))
+    } else {
+        support
+            .insertCell()
+            .appendChild(document.createTextNode(t("wiki.needMoreVotes", { count: 3 * opposeList.size - supportList.size })))
+    }
+
+    oppose.insertCell().appendChild(opposeImg)
+    oppose.insertCell().appendChild(document.createTextNode(`${opposeList.size}`))
+    oppose.insertCell().appendChild(document.createTextNode(`${((opposeList.size / sum) * 100).toFixed(1)}%`))
+
+    abstain.insertCell().appendChild(abstainImg)
+    abstain.insertCell().appendChild(document.createTextNode(`${abstainList.size}`))
+    abstain.insertCell().appendChild(document.createTextNode(``))
 
     Array.from(document.querySelectorAll(":is(h2,h1):has(#Voting) ~ :is(ul,dl)")).at(-1).after(results)
     results.before(document.createElement("br"))
