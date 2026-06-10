@@ -2019,6 +2019,10 @@ function actionToggleNotesLayer() {
     Array.from(document.querySelectorAll(".overlay-layers label"))[0].click()
 }
 
+function actionDownloadVisibleNotesAsKml() {
+    downloadVisibleNotesAsKml()
+}
+
 function actionToggleMapDataLayer() {
     Array.from(document.querySelectorAll(".overlay-layers label input"))[1].removeAttribute("disabled")
     Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()

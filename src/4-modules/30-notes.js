@@ -218,6 +218,20 @@ function downloadTextFile(filename, text, mimeType) {
     setTimeout(() => URL.revokeObjectURL(link.href))
 }
 
+function downloadVisibleNotesAsKml() {
+    const notes = structuredClone(getWindow().visibleNotes ?? [])
+    if (notes.length === 0) {
+        alert("No visible notes to download")
+        return
+    }
+
+    const filenameDate = new Date()
+        .toISOString()
+        .replaceAll(":", "-")
+        .replace(/\.\d{3}Z$/, "Z")
+    downloadTextFile(`osm-notes-${filenameDate}.kml`, makeNotesKml(notes), "application/vnd.google-earth.kml+xml;charset=utf-8")
+}
+
 const noteHashtags = [
     "#added",
     "#fixed",
@@ -969,19 +983,7 @@ function addNotesFiltersButtons() {
     downloadNotes.style.cursor = "pointer"
     downloadNotes.style.paddingLeft = "5px"
     noteLabel.after(downloadNotes)
-    downloadNotes.onclick = function () {
-        const notes = structuredClone(getWindow().visibleNotes)
-        if (notes.length === 0) {
-            alert("No visible notes to download")
-            return
-        }
-
-        const filenameDate = new Date()
-            .toISOString()
-            .replaceAll(":", "-")
-            .replace(/\.\d{3}Z$/, "Z")
-        downloadTextFile(`osm-notes-${filenameDate}.kml`, makeNotesKml(notes), "application/vnd.google-earth.kml+xml;charset=utf-8")
-    }
+    downloadNotes.onclick = downloadVisibleNotesAsKml
 }
 
 function setupNotesFiltersButtons() {
