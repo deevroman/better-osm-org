@@ -10242,7 +10242,7 @@ function addNotesFiltersButtons() {
     downloadNotes.style.paddingLeft = "5px"
     noteLabel.after(downloadNotes)
     downloadNotes.onclick = function () {
-        const notes = getWindow().visibleNotes
+        const notes = structuredClone(getWindow().visibleNotes)
         if (notes.length === 0) {
             alert("No visible notes to download")
             return
