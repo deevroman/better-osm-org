@@ -366,8 +366,8 @@ _translations["de"] = {
     notes: {
         openMapStateSnapshot: "Kartenstand zum Zeitpunkt des Snapshots öffnen",
         openMapStateNoteCreation: "Kartenstand zum Zeitpunkt der Hinweis-Erstellung öffnen",
-        commaSeparatedSubstrings: "durch Kommas getrennte Teilzeichenfolgen\nFilter funktioniert auch über Kommentare",
-        commaSeparatedUsernames: "durch Kommas getrennte Benutzernamen",
+        commaSeparatedSubstrings: "Durch Kommas getrennte Teilzeichenfolgen\nFilter funktioniert auch über Kommentare",
+        commaSeparatedUsernames: 'Durch Kommas getrennte Benutzernamen.\n\nVerwende "anon" für anonyme Hinweise',
         wordInNotesPlaceholder: "Wort in Hinweisen",
         usernamePlaceholder: "Benutzername",
         wordInCommentsPlaceholder: "Wort in Kommentaren",

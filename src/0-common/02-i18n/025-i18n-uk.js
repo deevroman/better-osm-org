@@ -364,8 +364,8 @@ _translations["uk"] = {
     notes: {
         openMapStateSnapshot: "Відкрити стан мапи на момент знімка",
         openMapStateNoteCreation: "Відкрити стан мапи на момент створення нотатки",
-        commaSeparatedSubstrings: "підрядки, розділені комами\nфільтр також працює за коментарями",
-        commaSeparatedUsernames: "імена користувачів, розділені комами",
+        commaSeparatedSubstrings: "Підрядки, розділені комами\nФільтр також працює за коментарями",
+        commaSeparatedUsernames: 'Імена користувачів, розділені комами.\n\nВикористовуйте "anon" для анонімних нотаток',
         wordInNotesPlaceholder: "слово в нотатках",
         usernamePlaceholder: "ім'я користувача",
         wordInCommentsPlaceholder: "слово в коментарях",

@@ -378,8 +378,8 @@ _translations["ru"] = {
     notes: {
         openMapStateSnapshot: "Открыть состояние карты на момент снимка",
         openMapStateNoteCreation: "Открыть состояние карты на момент создания заметки",
-        commaSeparatedSubstrings: "подстроки через запятую\nфильтр также работает по комментариям",
-        commaSeparatedUsernames: "имена пользователей через запятую",
+        commaSeparatedSubstrings: "Подстроки через запятую\nФильтр также работает по комментариям",
+        commaSeparatedUsernames: 'Имена пользователей через запятую.\n\nИспользуйте "anon" для анонимных заметок',
         wordInNotesPlaceholder: "слово в заметках",
         usernamePlaceholder: "имя пользователя",
         wordInCommentsPlaceholder: "слово в комментариях",

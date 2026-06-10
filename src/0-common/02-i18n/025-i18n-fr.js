@@ -369,8 +369,8 @@ _translations["fr"] = {
     notes: {
         openMapStateSnapshot: "Ouvrir l'état de la carte au moment de la capture",
         openMapStateNoteCreation: "Ouvrir l'état de la carte au moment de la création de la note",
-        commaSeparatedSubstrings: "sous-chaînes séparées par des virgules\nle filtre fonctionne aussi sur les commentaires",
-        commaSeparatedUsernames: "noms d'utilisateur séparés par des virgules",
+        commaSeparatedSubstrings: "Sous-chaînes séparées par des virgules\nLe filtre fonctionne aussi sur les commentaires",
+        commaSeparatedUsernames: 'Noms d’utilisateur séparés par des virgules.\n\nUtilisez "anon" pour les notes anonymes',
         wordInNotesPlaceholder: "mot dans les notes",
         usernamePlaceholder: "nom d'utilisateur",
         wordInCommentsPlaceholder: "mot dans les commentaires",
