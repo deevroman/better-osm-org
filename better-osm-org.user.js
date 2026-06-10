@@ -10120,7 +10120,7 @@ function addNotesFiltersButtons() {
     function makeFilterByUsernameWrapper() {
         filterByUsername.type = "input"
         filterByUsername.placeholder = t("notes.usernamePlaceholder")
-        filterByString.title = t("notes.commaSeparatedUsernames")
+        filterByUsername.title = t("notes.commaSeparatedUsernames")
         filterByUsername.id = "filter-notes-by-username"
         filterByUsername.style.width = "100%"
         filterByUsername.addEventListener("keypress", function (event) {
