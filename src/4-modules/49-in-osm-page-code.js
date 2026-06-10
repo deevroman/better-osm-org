@@ -207,13 +207,14 @@ function runInOsmPageCode() {
     console.log('Fetch intercepted');
     window.fetch = async (...args) => {
         try {
-            if (args[0]?.includes?.("notes.json") && (
-                    window.notesDisplayName !== ""
+            if (args[0]?.includes?.("notes.json")) {
+                if (!(window.notesDisplayName !== ""
                     || window.notesQFilter !== ""
-                    || (window.notesClosedFilter !== "" && window.notesClosedFilter !== "7"))
-                || window.notesCommentsFilter !== ""
-                || window.notesIDsFilter.size
-            ) {
+                    || (window.notesClosedFilter !== "" && window.notesClosedFilter !== "7")
+                    || window.notesCommentsFilter !== ""
+                    || window.notesIDsFilter.size)) {
+                    return originalFetch(...args);
+                }
                 const url = new URL(args[0], location.origin);
                 url.pathname = url.pathname.replace("notes.json", "notes/search.json")
                 url.searchParams.set("limit", "1000")
@@ -248,7 +249,7 @@ function runInOsmPageCode() {
                 }
                 /** @type import('geojson').GeoJSON */
                 const originalJSON = await response.json();
-                originalJSON.features = originalJSON.features?.filter(note => {
+                window.visibleNotes = originalJSON.features = originalJSON.features?.filter(note => {
                     if (window.notesCommentsFilter) {
                         const currentUserID = document.head.getAttribute("data-user")
                         switch (window.notesCommentsFilter) {
