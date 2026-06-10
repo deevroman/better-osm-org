@@ -23817,7 +23817,17 @@ function runInOsmPageCode() {
                     || (window.notesClosedFilter !== "" && window.notesClosedFilter !== "7")
                     || window.notesCommentsFilter !== ""
                     || window.notesIDsFilter.size)) {
-                    return originalFetch(...args);
+                    const response = await originalFetch(...args);
+                    if (response.status !== 200) {
+                        return response
+                    }
+                    const originalJSON = await response.json();
+                    window.visibleNotes = originalJSON;
+                    return new Response(JSON.stringify(originalJSON), {
+                        status: response.status,
+                        statusText: response.statusText,
+                        headers: response.headers
+                    });
                 }
                 const url = new URL(args[0], location.origin);
                 url.pathname = url.pathname.replace("notes.json", "notes/search.json")
