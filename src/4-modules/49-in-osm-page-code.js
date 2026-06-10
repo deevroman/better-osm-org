@@ -218,7 +218,7 @@ function runInOsmPageCode() {
                         return response
                     }
                     const originalJSON = await response.json();
-                    window.visibleNotes = originalJSON;
+                    window.visibleNotes = originalJSON.features;
                     return new Response(JSON.stringify(originalJSON), {
                         status: response.status,
                         statusText: response.statusText,

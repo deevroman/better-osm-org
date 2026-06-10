@@ -168,4 +168,10 @@ const tableEditSvg =
     "64L64 480c-35.3 0-64-28.7-64-64L0 96zm64 0l0 64 64 0 0-64L64 96zm384 0L192 96l0 64 256 0 0-64zM64 224l0 64 64 0 " +
     '0-64-64 0zm384 0l-256 0 0 64 256 0 0-64zM64 352l0 64 64 0 0-64-64 0zm384 0l-256 0 0 64 256 0 0-64z"></path></svg>'
 
+const downloadSvg =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" ' +
+    'stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" ' +
+    'class="lucide lucide-arrow-down-to-line-icon lucide-arrow-down-to-line">' +
+    '<path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/></svg>'
+
 //</editor-fold>
