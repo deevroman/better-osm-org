@@ -364,8 +364,8 @@ _translations["hr"] = {
     notes: {
         openMapStateSnapshot: "Otvori stanje karte u trenutku snimke",
         openMapStateNoteCreation: "Otvori stanje karte u trenutku stvaranja bilješke",
-        commaSeparatedSubstrings: "podnizovi odvojeni zarezima\nfiltar radi i po komentarima",
-        commaSeparatedUsernames: "korisnička imena odvojena zarezima",
+        commaSeparatedSubstrings: "Podnizovi odvojeni zarezima\nFiltar radi i po komentarima",
+        commaSeparatedUsernames: 'Korisnička imena odvojena zarezima.\n\nKoristite "anon" za anonimne bilješke',
         wordInNotesPlaceholder: "riječ u bilješkama",
         usernamePlaceholder: "korisničko ime",
         wordInCommentsPlaceholder: "riječ u komentarima",

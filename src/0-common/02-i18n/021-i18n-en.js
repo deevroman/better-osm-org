@@ -361,8 +361,8 @@ _translations["en"] = {
     notes: {
         openMapStateSnapshot: "Open the map state at the time of map snapshot",
         openMapStateNoteCreation: "Open the map state at the time of note creation",
-        commaSeparatedSubstrings: "comma-separated substrings\nfilter also works by comments",
-        commaSeparatedUsernames: "comma-separated usernames",
+        commaSeparatedSubstrings: "Comma-separated substrings\nFilter also works by comments",
+        commaSeparatedUsernames: 'Comma-separated usernames.\n\nUse "anon" for anonymous notes',
         wordInNotesPlaceholder: "word in notes",
         usernamePlaceholder: "username",
         wordInCommentsPlaceholder: "word in comments",

@@ -366,8 +366,8 @@ _translations["tr"] = {
     notes: {
         openMapStateSnapshot: "Harita anlık görüntüsü zamanındaki harita durumunu aç",
         openMapStateNoteCreation: "Not oluşturma zamanındaki harita durumunu aç",
-        commaSeparatedSubstrings: "virgülle ayrılmış alt dizeler\nfiltre yorumlarda da çalışır",
-        commaSeparatedUsernames: "virgülle ayrılmış kullanıcı adları",
+        commaSeparatedSubstrings: "Virgülle ayrılmış alt dizeler\nFiltre yorumlarda da çalışır",
+        commaSeparatedUsernames: 'Virgülle ayrılmış kullanıcı adları.\n\nAnonim notlar için "anon" kullanın',
         wordInNotesPlaceholder: "notlardaki kelime",
         usernamePlaceholder: "kullanıcı adı",
         wordInCommentsPlaceholder: "yorumlardaki kelime",
