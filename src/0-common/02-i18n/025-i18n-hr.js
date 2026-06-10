@@ -344,7 +344,7 @@ _translations["hr"] = {
             "{name} radi samo za www.OpenStreetMap.org i www.OpenHistoricalMap.org\n\n" +
             "Ali možete instalirati reverter plugin u JOSM i koristiti shift+klik za druge OSM servere.\n\n" +
             "⚠️ Promijenite OSM server u postavkama JOSM-a!",
-        commentTemplateTitle: 'Tekst "{text}" bit će dodan u komentar.\nOvaj tekst možete promijeniti u postavkama userscripta',
+        commentTemplateTitle: 'Tekst "{text}" bit će dodan u komentar.\nOvaj tekst možete promijeniti u postavkama skripte',
     },
     hashtags: {
         searchInOsmcha: "Pretraži ovaj hashtag u OSMCha",
@@ -400,7 +400,7 @@ _translations["hr"] = {
         easterEgg: "better-osm-org uskrsno jaje",
         needRoofOrientation: "izgleda da ovo treba promijeniti u roof:orientation",
         clickShowEmbedded3d:
-            "Kliknite za prikaz ugrađenog 3D preglednika.\nU postavkama userscripta možete postaviti otvaranje na OSM stranici kao zadano",
+            "Kliknite za prikaz ugrađenog 3D preglednika.\nU postavkama skripte možete postaviti otvaranje na OSM stranici kao zadano",
         setAsDefaultForClick: "Postavi kao zadano za klik",
         defaultViewer: "Ovo je zadani preglednik",
         keyTooShort: "Ključ je prekratak",

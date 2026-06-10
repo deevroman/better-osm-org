@@ -347,8 +347,7 @@ _translations["fr"] = {
             "{name} fonctionne uniquement pour www.OpenStreetMap.org et www.OpenHistoricalMap.org\n\n" +
             "Mais vous pouvez installer le plugin reverter dans JOSM et utiliser Shift+clic pour les autres serveurs OSM.\n\n" +
             "⚠️ Modifiez le serveur OSM dans les paramètres de JOSM !",
-        commentTemplateTitle:
-            'Le texte "{text}" sera ajouté au commentaire.\nVous pouvez modifier ce texte dans les paramètres du userscript',
+        commentTemplateTitle: 'Le texte "{text}" sera ajouté au commentaire.\nVous pouvez modifier ce texte dans les paramètres du script',
     },
     hashtags: {
         searchInOsmcha: "Rechercher ce hashtag dans OSMCha",
@@ -406,7 +405,7 @@ _translations["fr"] = {
         easterEgg: "easter egg better-osm-org",
         needRoofOrientation: "il semble qu'il faut le remplacer par roof:orientation",
         clickShowEmbedded3d:
-            "Cliquer pour afficher le visualiseur 3D intégré.\nDans les paramètres du userscript, vous pouvez définir l'ouverture par défaut sur la page OSM",
+            "Cliquer pour afficher le visualiseur 3D intégré.\nDans les paramètres du script, vous pouvez définir l'ouverture par défaut sur la page OSM",
         setAsDefaultForClick: "Définir par défaut au clic",
         defaultViewer: "C'est le visualiseur par défaut",
         keyTooShort: "La clé est trop courte",
