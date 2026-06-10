@@ -105,7 +105,7 @@ function makeCommentKmlHtml(text) {
             if (!streetCompletePhotoUrlRegex.test(url)) {
                 return html
             }
-            return `${html}<br><img src="${escapeHtml(url)}">`
+            return `${html}<br><img width="100%" src="${escapeHtml(url)}">`
         })
         .join("<br>")
 }
@@ -173,8 +173,14 @@ function makeNotesKml(notes) {
         placemark.setAttribute("id", `note-${props.id}`)
         documentElement.appendChild(placemark)
 
-        const text = (note.properties?.comments?.[0]?.text ?? "").replace(/\s+/g, " ").trim()
-        const title = `💬${text.length > 70 ? text.slice(0, 67).trim() + "..." : text}`
+        const shortText = (note.properties?.comments?.[0]?.text ?? "")
+            .replace(/\s+/g, " ")
+            .trim()
+            .replace(/A user of .*$/, "")
+            .replace(/OSM snapshot date.*$/, "")
+            .replace(/Attached photo.*$/, "Attached photo")
+            .replace(/(https:\/\/streetcomplete\.app\/|https:\/\/westnordost\.de\/).*$/, "")
+        const title = shortText.length > 70 ? shortText.slice(0, 67).trim() + "..." : shortText
         appendKmlTextElement(placemark, "name", title)
 
         appendKmlTextElement(placemark, "styleUrl", "#placemark-blue")
