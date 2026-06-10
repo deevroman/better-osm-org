@@ -9490,6 +9490,20 @@ function downloadTextFile(filename, text, mimeType) {
     setTimeout(() => URL.revokeObjectURL(link.href))
 }
 
+function downloadVisibleNotesAsKml() {
+    const notes = structuredClone(getWindow().visibleNotes ?? [])
+    if (notes.length === 0) {
+        alert("No visible notes to download")
+        return
+    }
+
+    const filenameDate = new Date()
+        .toISOString()
+        .replaceAll(":", "-")
+        .replace(/\.\d{3}Z$/, "Z")
+    downloadTextFile(`osm-notes-${filenameDate}.kml`, makeNotesKml(notes), "application/vnd.google-earth.kml+xml;charset=utf-8")
+}
+
 const noteHashtags = [
     "#added",
     "#fixed",
@@ -10241,19 +10255,7 @@ function addNotesFiltersButtons() {
     downloadNotes.style.cursor = "pointer"
     downloadNotes.style.paddingLeft = "5px"
     noteLabel.after(downloadNotes)
-    downloadNotes.onclick = function () {
-        const notes = structuredClone(getWindow().visibleNotes)
-        if (notes.length === 0) {
-            alert("No visible notes to download")
-            return
-        }
-
-        const filenameDate = new Date()
-            .toISOString()
-            .replaceAll(":", "-")
-            .replace(/\.\d{3}Z$/, "Z")
-        downloadTextFile(`osm-notes-${filenameDate}.kml`, makeNotesKml(notes), "application/vnd.google-earth.kml+xml;charset=utf-8")
-    }
+    downloadNotes.onclick = downloadVisibleNotesAsKml
 }
 
 function setupNotesFiltersButtons() {
@@ -31168,6 +31170,10 @@ function actionToggleNotesLayer() {
     Array.from(document.querySelectorAll(".overlay-layers label"))[0].click()
 }
 
+function actionDownloadVisibleNotesAsKml() {
+    downloadVisibleNotesAsKml()
+}
+
 function actionToggleMapDataLayer() {
     Array.from(document.querySelectorAll(".overlay-layers label input"))[1].removeAttribute("disabled")
     Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
@@ -31807,6 +31813,13 @@ const hotkeyActions = {
         contexts: ["Main pages"],
         when: () => !isUserPageWithoutHistory(),
         run: actionToggleNotesLayer,
+    },
+    downloadVisibleNotesAsKml: {
+        title: "Download visible notes as KML",
+        defaultBindings: [],
+        contexts: ["Main pages"],
+        when: () => !isUserPageWithoutHistory(),
+        run: actionDownloadVisibleNotesAsKml,
     },
     toggleMapDataLayer: {
         title: "Toggle Map Data layer",

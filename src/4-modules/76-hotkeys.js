@@ -207,6 +207,13 @@ const hotkeyActions = {
         when: () => !isUserPageWithoutHistory(),
         run: actionToggleNotesLayer,
     },
+    downloadVisibleNotesAsKml: {
+        title: "Download visible notes as KML",
+        defaultBindings: [],
+        contexts: ["Main pages"],
+        when: () => !isUserPageWithoutHistory(),
+        run: actionDownloadVisibleNotesAsKml,
+    },
     toggleMapDataLayer: {
         title: "Toggle Map Data layer",
         defaultBindings: ["KeyD"],
