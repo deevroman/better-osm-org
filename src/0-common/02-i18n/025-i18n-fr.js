@@ -374,6 +374,7 @@ _translations["fr"] = {
         wordInNotesPlaceholder: "mot dans les notes",
         usernamePlaceholder: "nom d'utilisateur",
         wordInCommentsPlaceholder: "mot dans les commentaires",
+        downloadVisibleNotesAsKmlTitle: "Télécharger les notes visibles comme fichier .kml",
         addNewObjectOnMap: "Ajouter un nouvel objet sur la carte\nCollez les tags dans la zone de texte\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "La zone de texte ne contient aucun tag",
         resolveButtonTitle:

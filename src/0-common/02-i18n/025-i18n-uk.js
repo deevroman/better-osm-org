@@ -369,6 +369,7 @@ _translations["uk"] = {
         wordInNotesPlaceholder: "слово в нотатках",
         usernamePlaceholder: "ім'я користувача",
         wordInCommentsPlaceholder: "слово в коментарях",
+        downloadVisibleNotesAsKmlTitle: "Завантажити видимі нотатки як .kml файл",
         addNewObjectOnMap: "Додати новий об'єкт на мапу\nВставте теги в textarea\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "У textarea немає жодного тега",
         resolveButtonTitle: 'Додати в коментар "{text}" і закрити нотатку.\nВи можете змінити emoji в налаштуваннях userscript',

@@ -371,6 +371,7 @@ _translations["de"] = {
         wordInNotesPlaceholder: "Wort in Hinweisen",
         usernamePlaceholder: "Benutzername",
         wordInCommentsPlaceholder: "Wort in Kommentaren",
+        downloadVisibleNotesAsKmlTitle: "Sichtbare Hinweise als .kml-Datei herunterladen",
         addNewObjectOnMap: "Neues Objekt auf der Karte hinzufügen\nTags in die Textarea einfügen\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "Die Textarea enthält keine Tags",
         resolveButtonTitle:
