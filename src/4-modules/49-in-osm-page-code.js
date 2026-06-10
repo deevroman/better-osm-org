@@ -229,7 +229,7 @@ function runInOsmPageCode() {
                 url.pathname = url.pathname.replace("notes.json", "notes/search.json")
                 url.searchParams.set("limit", "1000")
                 if (window.notesDisplayName && !window.invertDisplayName && !window.notesDisplayName.includes(",")) {
-                    if (window.notesDisplayName !== "anon") {
+                    if (window.notesDisplayName !== "anon" && window.notesDisplayName !== "анон" && window.notesDisplayName !== "anonymous") {
                         url.searchParams.set("display_name", window.notesDisplayName)
                     }
                 }
@@ -305,7 +305,7 @@ function runInOsmPageCode() {
                         if (window.invertDisplayName) {
                             const usernames = window.notesDisplayName.split(",")
                             for (const username of usernames) {
-                                if (username === "anon" && !note.properties.comments?.[0]?.user) {
+                                if ((username === "anon" || username === "анон" || username === "anonymous") && !note.properties.comments?.[0]?.user) {
                                     return false
                                 } else if (note.properties.comments?.[0]?.user === username) {
                                     return false
@@ -315,7 +315,7 @@ function runInOsmPageCode() {
                             const usernames = window.notesDisplayName.split(",")
                             let found = false
                             for (const username of usernames) {
-                                if (username === "anon" && !note.properties.comments?.[0]?.user) {
+                                if ((username === "anon" || username === "анон" || username === "anonymous") && !note.properties.comments?.[0]?.user) {
                                     found = true
                                 } else if (note.properties.comments?.[0]?.user === username) {
                                     found = true
