@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.6.5
+// @version         1.6.6
 // @changelog       v1.6.5: Warn about tracking params in website=* ans similar tags
 // @changelog       v1.6.5: Add translations for Russian, Ukrainian, German, French, Croatian, Turkish
 // @changelog       v1.6.3: F1 hotkey for hotkeys list, preview Panoramax photos in Overpass search results, CSV reader
@@ -579,6 +579,7 @@ _translations["en"] = {
         wordInNotesPlaceholder: "word in notes",
         usernamePlaceholder: "username",
         wordInCommentsPlaceholder: "word in comments",
+        downloadVisibleNotesAsKmlTitle: "Download visible notes as .kml file",
         addNewObjectOnMap: "Add new object on map\nPaste tags in textarea\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "Textarea not contains any tag",
         resolveButtonTitle: 'Add to the comment "{text}" and close the note.\nYou can change emoji in userscript settings',
@@ -1008,6 +1009,7 @@ _translations["tr"] = {
         wordInNotesPlaceholder: "notlardaki kelime",
         usernamePlaceholder: "kullanıcı adı",
         wordInCommentsPlaceholder: "yorumlardaki kelime",
+        downloadVisibleNotesAsKmlTitle: "Görünen notları .kml dosyası olarak indir",
         addNewObjectOnMap: "Haritaya yeni nesne ekle\nEtiketleri metin alanına yapıştır\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "Metin alanı hiçbir etiket içermiyor",
         resolveButtonTitle: 'Yoruma "{text}" ekle ve notu kapat.\nEmoji userscript ayarlarında değiştirilebilir',
@@ -1450,6 +1452,7 @@ _translations["ru"] = {
         wordInNotesPlaceholder: "слово в заметках",
         usernamePlaceholder: "имя пользователя",
         wordInCommentsPlaceholder: "слово в комментариях",
+        downloadVisibleNotesAsKmlTitle: "Скачать видимые заметки как .kml файл",
         addNewObjectOnMap: "Добавить новый объект на карту\nВставьте теги в textarea\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "В textarea нет ни одного тега",
         resolveButtonTitle: 'Добавить в комментарий "{text}" и закрыть заметку.\nВы можете изменить эмодзи в настройках скрипта',
@@ -1880,6 +1883,7 @@ _translations["de"] = {
         wordInNotesPlaceholder: "Wort in Hinweisen",
         usernamePlaceholder: "Benutzername",
         wordInCommentsPlaceholder: "Wort in Kommentaren",
+        downloadVisibleNotesAsKmlTitle: "Sichtbare Hinweise als .kml-Datei herunterladen",
         addNewObjectOnMap: "Neues Objekt auf der Karte hinzufügen\nTags in die Textarea einfügen\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "Die Textarea enthält keine Tags",
         resolveButtonTitle:
@@ -2314,6 +2318,7 @@ _translations["fr"] = {
         wordInNotesPlaceholder: "mot dans les notes",
         usernamePlaceholder: "nom d'utilisateur",
         wordInCommentsPlaceholder: "mot dans les commentaires",
+        downloadVisibleNotesAsKmlTitle: "Télécharger les notes visibles comme fichier .kml",
         addNewObjectOnMap: "Ajouter un nouvel objet sur la carte\nCollez les tags dans la zone de texte\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "La zone de texte ne contient aucun tag",
         resolveButtonTitle:
@@ -2743,6 +2748,7 @@ _translations["hr"] = {
         wordInNotesPlaceholder: "riječ u bilješkama",
         usernamePlaceholder: "korisničko ime",
         wordInCommentsPlaceholder: "riječ u komentarima",
+        downloadVisibleNotesAsKmlTitle: "Preuzmi vidljive bilješke kao .kml datoteku",
         addNewObjectOnMap: "Dodaj novi objekt na kartu\nZalijepite oznake u textarea\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "Textarea ne sadrži nijednu oznaku",
         resolveButtonTitle: 'Dodaj "{text}" u komentar i zatvori bilješku.\nEmoji možete promijeniti u postavkama userscripta',
@@ -3171,6 +3177,7 @@ _translations["uk"] = {
         wordInNotesPlaceholder: "слово в нотатках",
         usernamePlaceholder: "ім'я користувача",
         wordInCommentsPlaceholder: "слово в коментарях",
+        downloadVisibleNotesAsKmlTitle: "Завантажити видимі нотатки як .kml файл",
         addNewObjectOnMap: "Додати новий об'єкт на мапу\nВставте теги в textarea\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "У textarea немає жодного тега",
         resolveButtonTitle: 'Додати в коментар "{text}" і закрити нотатку.\nВи можете змінити emoji в налаштуваннях userscript',
@@ -10254,7 +10261,7 @@ function addNotesFiltersButtons() {
 
     const downloadNotes = document.createElement("span")
     downloadNotes.id = "download-notes"
-    downloadNotes.title = "Download visible notes as .kml file"
+    downloadNotes.title = t("notes.downloadVisibleNotesAsKmlTitle")
     downloadNotes.innerHTML = downloadSvg
     downloadNotes.querySelector("svg").style.marginTop = "-3px"
     downloadNotes.style.opacity = "0.5"

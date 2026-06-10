@@ -371,6 +371,7 @@ _translations["tr"] = {
         wordInNotesPlaceholder: "notlardaki kelime",
         usernamePlaceholder: "kullanıcı adı",
         wordInCommentsPlaceholder: "yorumlardaki kelime",
+        downloadVisibleNotesAsKmlTitle: "Görünen notları .kml dosyası olarak indir",
         addNewObjectOnMap: "Haritaya yeni nesne ekle\nEtiketleri metin alanına yapıştır\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "Metin alanı hiçbir etiket içermiyor",
         resolveButtonTitle: 'Yoruma "{text}" ekle ve notu kapat.\nEmoji userscript ayarlarında değiştirilebilir',

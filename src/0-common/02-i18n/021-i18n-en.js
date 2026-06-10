@@ -366,6 +366,7 @@ _translations["en"] = {
         wordInNotesPlaceholder: "word in notes",
         usernamePlaceholder: "username",
         wordInCommentsPlaceholder: "word in comments",
+        downloadVisibleNotesAsKmlTitle: "Download visible notes as .kml file",
         addNewObjectOnMap: "Add new object on map\nPaste tags in textarea\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "Textarea not contains any tag",
         resolveButtonTitle: 'Add to the comment "{text}" and close the note.\nYou can change emoji in userscript settings',

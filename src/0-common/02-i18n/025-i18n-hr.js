@@ -369,6 +369,7 @@ _translations["hr"] = {
         wordInNotesPlaceholder: "riječ u bilješkama",
         usernamePlaceholder: "korisničko ime",
         wordInCommentsPlaceholder: "riječ u komentarima",
+        downloadVisibleNotesAsKmlTitle: "Preuzmi vidljive bilješke kao .kml datoteku",
         addNewObjectOnMap: "Dodaj novi objekt na kartu\nZalijepite oznake u textarea\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "Textarea ne sadrži nijednu oznaku",
         resolveButtonTitle: 'Dodaj "{text}" u komentar i zatvori bilješku.\nEmoji možete promijeniti u postavkama userscripta',

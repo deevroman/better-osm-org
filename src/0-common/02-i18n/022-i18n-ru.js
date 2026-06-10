@@ -383,6 +383,7 @@ _translations["ru"] = {
         wordInNotesPlaceholder: "слово в заметках",
         usernamePlaceholder: "имя пользователя",
         wordInCommentsPlaceholder: "слово в комментариях",
+        downloadVisibleNotesAsKmlTitle: "Скачать видимые заметки как .kml файл",
         addNewObjectOnMap: "Добавить новый объект на карту\nВставьте теги в textarea\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "В textarea нет ни одного тега",
         resolveButtonTitle: 'Добавить в комментарий "{text}" и закрыть заметку.\nВы можете изменить эмодзи в настройках скрипта',
