@@ -2,6 +2,7 @@
 // @name            Better osm.org
 // @name:ru         Better osm.org
 // @version         1.6.6
+// @changelog       v1.6.6: Download visible notes as .kml
 // @changelog       v1.6.5: Warn about tracking params in website=* ans similar tags
 // @changelog       v1.6.5: Add translations for Russian, Ukrainian, German, French, Croatian, Turkish
 // @changelog       v1.6.3: F1 hotkey for hotkeys list, preview Panoramax photos in Overpass search results, CSV reader
