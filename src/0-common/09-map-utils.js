@@ -104,6 +104,11 @@ function setZoom(zoomLevel) {
     }
 }
 
+function setAttributionPrefix(prefix) {
+    console.trace("New prefix:", prefix) // todo -> .log
+    getMap().attributionControl?.setPrefix(prefix)
+}
+
 function resetMapHover() {
     document.querySelectorAll(".map-hover").forEach(el => {
         el.classList.remove("map-hover")

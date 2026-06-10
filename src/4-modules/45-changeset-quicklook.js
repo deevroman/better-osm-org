@@ -220,7 +220,7 @@ async function geocodeCurrentView(attempts = 5) {
     if (location.search.includes("changesets")) return
     await interceptMapManually()
     if (getZoom() <= 10) {
-        getMap().attributionControl?.setPrefix("")
+        setAttributionPrefix("")
         if (attempts > 0) {
             console.log(`Attempt №${7 - attempts} for geocoding`)
             setTimeout(geocodeCurrentView, 100, attempts - 1)
@@ -249,7 +249,7 @@ async function geocodeCurrentView(attempts = 5) {
         .then(r => {
             cachedNominatimRequests.add(url)
             if (r?.address?.state) {
-                getMap().attributionControl?.setPrefix(`${r.address.state}`)
+                setAttributionPrefix(`${r.address.state}`)
                 console.timeEnd(`Geocoding ${latStr}, ${lngStr}`)
             }
         })
@@ -3431,7 +3431,7 @@ async function processQuickLookInSidebar(changesetID) {
                         document.querySelector("#sidebar_content .secondary-actions").appendChild(makeGithubIssueLink(reportText))
                     }
                     if (isDebug()) {
-                        getMap()?.attributionControl?.setPrefix("⚠️")
+                        setAttributionPrefix("⚠️")
                     }
                 } catch {
                     /* empty */

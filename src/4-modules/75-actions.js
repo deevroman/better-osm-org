@@ -2241,7 +2241,7 @@ function actionZoomOutToWorld() {
     fetch(`https://nominatim.openstreetmap.org/reverse.php?lon=${center.lng}&lat=${center.lat}&format=jsonv2`).then(res => {
         res.json().then(r => {
             if (r?.address?.state) {
-                getMap().attributionControl?.setPrefix(`${r.address.state}`)
+                setAttributionPrefix(`${r.address.state}`)
             }
         })
     })
