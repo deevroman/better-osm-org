@@ -346,7 +346,7 @@ _translations["tr"] = {
             "{name} yalnızca www.OpenStreetMap.org ve www.OpenHistoricalMap.org için çalışır\n\n" +
             "Ancak JOSM'da reverter eklentisini kurabilir ve diğer OSM sunucuları için shift+tık kullanabilirsiniz.\n\n" +
             "⚠️JOSM ayarlarında osm sunucusunu değiştirin!",
-        commentTemplateTitle: '"{text}" yorum metnine eklenecek.\nMetni userscript ayarlarında değiştirebilirsiniz',
+        commentTemplateTitle: '"{text}" yoruma eklenecek.\nBu metni script ayarlarında değiştirebilirsiniz',
     },
     hashtags: {
         searchInOsmcha: "Bu hashtag'leri OSMCha'da ara",
@@ -402,7 +402,7 @@ _translations["tr"] = {
         easterEgg: "better-osm-org paskalya yumurtası",
         needRoofOrientation: "bunun roof:orientation olarak değiştirilmesi gerekiyor gibi görünüyor",
         clickShowEmbedded3d:
-            "Gömülü 3B Görüntüleyiciyi göstermek için tıklayın.\nUserscript ayarlarında OSM sayfasında varsayılan olarak açılmasını ayarlayabilirsiniz",
+            "Gömülü 3B Görüntüleyiciyi göstermek için tıklayın.\nScript ayarlarında varsayılan olarak OSM sayfasında açılmasını ayarlayabilirsiniz",
         setAsDefaultForClick: "Tıklama için varsayılan yap",
         defaultViewer: "Bu varsayılan görüntüleyici",
         keyTooShort: "Anahtar çok kısa",

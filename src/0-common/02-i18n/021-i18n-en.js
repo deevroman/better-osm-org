@@ -342,7 +342,7 @@ _translations["en"] = {
             "{name} works only for www.OpenStreetMap.org and www.OpenHistoricalMap.org\n\n" +
             "But you can install reverter plugin in JOSM and use shift+click for other OSM servers.\n\n" +
             "⚠️Change the osm server in the josm settings!",
-        commentTemplateTitle: '"{text}" will be added to the comment text.\nYou can change text in userscript settings',
+        commentTemplateTitle: '"{text}" will be added to the comment.\nYou can change this text in the script settings',
     },
     hashtags: {
         searchInOsmcha: "Search this hashtags in OSMCha",
@@ -396,7 +396,8 @@ _translations["en"] = {
         urlShouldStartWithHttp: "URL should start with https:// or http://",
         easterEgg: "better-osm-org easter egg",
         needRoofOrientation: "it seems to need to be changed to roof:orientation",
-        clickShowEmbedded3d: "Click for show embedded 3D Viewer.\nIn userscript setting you can set open in OSM page by default",
+        clickShowEmbedded3d:
+            "Click to show the embedded 3D Viewer.\nIn the script settings, you can set it to open on the OSM page by default",
         setAsDefaultForClick: "Set as default for click",
         defaultViewer: "It's default viewer",
         keyTooShort: "The key is too short",

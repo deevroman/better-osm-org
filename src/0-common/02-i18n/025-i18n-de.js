@@ -345,7 +345,7 @@ _translations["de"] = {
             "{name} funktioniert nur für www.OpenStreetMap.org und www.OpenHistoricalMap.org\n\n" +
             "Du kannst aber das reverter-Plugin in JOSM installieren und für andere OSM-Server Shift+Klick verwenden.\n\n" +
             "⚠️ Ändere den OSM-Server in den JOSM-Einstellungen!",
-        commentTemplateTitle: '"{text}" wird dem Kommentartext hinzugefügt.\nDu kannst den Text in den Userscript-Einstellungen ändern',
+        commentTemplateTitle: '"{text}" wird dem Kommentar hinzugefügt.\nDu kannst diesen Text in den Skript-Einstellungen ändern',
     },
     hashtags: {
         searchInOsmcha: "Diesen Hashtag in OSMCha suchen",
@@ -403,7 +403,7 @@ _translations["de"] = {
         easterEgg: "better-osm-org-Easter-Egg",
         needRoofOrientation: "es sieht so aus, als müsste das zu roof:orientation geändert werden",
         clickShowEmbedded3d:
-            "Klicken, um den eingebetteten 3D-Viewer anzuzeigen.\nIn den Userscript-Einstellungen kannst du festlegen, dass er standardmäßig auf der OSM-Seite geöffnet wird",
+            "Klicken, um den eingebetteten 3D-Viewer anzuzeigen.\nIn den Skript-Einstellungen kannst du festlegen, dass er standardmäßig auf der OSM-Seite geöffnet wird",
         setAsDefaultForClick: "Als Standard für Klick setzen",
         defaultViewer: "Dies ist der Standard-Viewer",
         keyTooShort: "Der Schlüssel ist zu kurz",
