@@ -298,6 +298,8 @@ function addUploadPanoramaxBtn() {
         "https://panoramax.osm-hr.org",
         "https://panoramax.osm.tw",
         "https://panoramax.libre.net.ar",
+        "https://panoramax.koenhabets.nl",
+        "https://panoramax.basi.re",
     ].forEach(i => {
         const opt = document.createElement("option")
         opt.value = i

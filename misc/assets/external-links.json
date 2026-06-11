@@ -28,7 +28,7 @@
     },
     {
       "name": "Panoramax",
-      "template": "https://panoramax.openstreetmap.fr/?background=streets&focus=map&map={zoom}/{latitude}/{longitude}",
+      "template": "https://explore.panoramax.fr/?background=streets&focus=map&map={zoom}/{latitude}/{longitude}",
       "description": "Federated field photos database",
       "default": true
     },

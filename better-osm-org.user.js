@@ -119,6 +119,8 @@
 // @connect      panoramax.osm-hr.org
 // @connect      panoramax.osm.tw
 // @connect      panoramax.libre.net.ar
+// @connect      panoramax.koenhabets.nl
+// @connect      panoramax.basi.re
 // @connect      westnordost.de
 // @connect      streetcomplete.app
 // @comment      for downloading gps-tracks — osm stores tracks in AWS
@@ -22616,6 +22618,8 @@ function addUploadPanoramaxBtn() {
         "https://panoramax.osm-hr.org",
         "https://panoramax.osm.tw",
         "https://panoramax.libre.net.ar",
+        "https://panoramax.koenhabets.nl",
+        "https://panoramax.basi.re",
     ].forEach(i => {
         const opt = document.createElement("option")
         opt.value = i
@@ -27136,6 +27140,11 @@ async function loadCurrentLinksList() {
         externalLinks = JSON.parse(raw_data).map(link => {
             if (link.template === "http://test.osm2pgsql.org/?#p={zoom}/{latitude}/{longitude}") {
                 link.template = "https://spyglass.jochentopf.com/?#p={zoom}/{latitude}/{longitude}"
+                migrated = true
+            } else if (
+                link.template === "https://panoramax.openstreetmap.fr/?background=streets&focus=map&map={zoom}/{latitude}/{longitude}"
+            ) {
+                link.template = "https://explore.panoramax.fr/?background=streets&focus=map&map={zoom}/{latitude}/{longitude}"
                 migrated = true
             }
             return link

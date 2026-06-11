@@ -336,6 +336,11 @@ async function loadCurrentLinksList() {
             if (link.template === "http://test.osm2pgsql.org/?#p={zoom}/{latitude}/{longitude}") {
                 link.template = "https://spyglass.jochentopf.com/?#p={zoom}/{latitude}/{longitude}"
                 migrated = true
+            } else if (
+                link.template === "https://panoramax.openstreetmap.fr/?background=streets&focus=map&map={zoom}/{latitude}/{longitude}"
+            ) {
+                link.template = "https://explore.panoramax.fr/?background=streets&focus=map&map={zoom}/{latitude}/{longitude}"
+                migrated = true
             }
             return link
         })
