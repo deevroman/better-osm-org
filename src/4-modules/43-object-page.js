@@ -374,54 +374,56 @@ function makeWikimediaCommonsValue(elem) {
     elem.querySelectorAll('a[href^="//commons.wikimedia.org/wiki/"]:not(.preview-img-link)').forEach(a => {
         a.classList.add("preview-img-link")
         setTimeout(async () => {
-            if (a.textContent.startsWith("Category:")) {
-                const categoryResponse = await downloadWikimediaCategoryInfo(a.textContent)
-                const fileTitles = categoryResponse?.query?.categorymembers?.map(file => file.title) ?? []
-                if (fileTitles.length === 0) {
+            for (let item of a.textContent.split(";")) {
+                if (item.startsWith("Category:")) {
+                    const categoryResponse = await downloadWikimediaCategoryInfo(item)
+                    const fileTitles = categoryResponse?.query?.categorymembers?.map(file => file.title) ?? []
+                    if (fileTitles.length === 0) {
+                        return
+                    }
+                    const previewsWrap = document.createElement("div")
+                    Object.assign(previewsWrap.style, {
+                        display: "grid",
+                        gridTemplateColumns: "repeat(1, 1fr)",
+                        gap: "2px",
+                    })
+                    a.after(previewsWrap)
+                    for (const fileTitle of fileTitles) {
+                        const wikimediaResponse = await downloadWikimediaInfo(fileTitle)
+                        const imageInfo = wikimediaResponse?.query?.pages?.["-1"]?.imageinfo?.[0]
+                        if (!imageInfo?.thumburl) {
+                            continue
+                        }
+                        const previewLink = document.createElement("a")
+                        previewLink.href = `https://commons.wikimedia.org/wiki/${fileTitle.replaceAll(" ", "_")}`
+                        previewLink.target = "_blank"
+                        previewLink.rel = "noreferrer"
+                        previewLink.classList.add("preview-img-link")
+                        previewLink.style.display = "block"
+                        const img = GM_addElement("img", {
+                            src: imageInfo["thumburl"],
+                            // crossorigin: "anonymous"
+                        })
+                        Object.assign(img.style, {
+                            width: "100%",
+                            aspectRatio: "1 / 1",
+                            objectFit: "cover",
+                        })
+                        previewLink.appendChild(img)
+                        previewsWrap.appendChild(previewLink)
+                        attachWikimediaHoverCaptureHandler(previewLink, wikimediaResponse)
+                    }
                     return
                 }
-                const previewsWrap = document.createElement("div")
-                Object.assign(previewsWrap.style, {
-                    display: "grid",
-                    gridTemplateColumns: "repeat(1, 1fr)",
-                    gap: "2px",
+                const wikimediaResponse = await downloadWikimediaInfo(item)
+                const img = GM_addElement("img", {
+                    src: wikimediaResponse["query"]["pages"]["-1"]["imageinfo"][0]["thumburl"],
+                    // crossorigin: "anonymous"
                 })
-                a.after(previewsWrap)
-                for (const fileTitle of fileTitles) {
-                    const wikimediaResponse = await downloadWikimediaInfo(fileTitle)
-                    const imageInfo = wikimediaResponse?.query?.pages?.["-1"]?.imageinfo?.[0]
-                    if (!imageInfo?.thumburl) {
-                        continue
-                    }
-                    const previewLink = document.createElement("a")
-                    previewLink.href = `https://commons.wikimedia.org/wiki/${fileTitle.replaceAll(" ", "_")}`
-                    previewLink.target = "_blank"
-                    previewLink.rel = "noreferrer"
-                    previewLink.classList.add("preview-img-link")
-                    previewLink.style.display = "block"
-                    const img = GM_addElement("img", {
-                        src: imageInfo["thumburl"],
-                        // crossorigin: "anonymous"
-                    })
-                    Object.assign(img.style, {
-                        width: "100%",
-                        aspectRatio: "1 / 1",
-                        objectFit: "cover",
-                    })
-                    previewLink.appendChild(img)
-                    previewsWrap.appendChild(previewLink)
-                    attachWikimediaHoverCaptureHandler(previewLink, wikimediaResponse)
-                }
-                return
+                img.style.width = "100%"
+                a.appendChild(img)
+                attachWikimediaHoverCaptureHandler(img, wikimediaResponse)
             }
-            const wikimediaResponse = await downloadWikimediaInfo(a.textContent)
-            const img = GM_addElement("img", {
-                src: wikimediaResponse["query"]["pages"]["-1"]["imageinfo"][0]["thumburl"],
-                // crossorigin: "anonymous"
-            })
-            img.style.width = "100%"
-            a.appendChild(img)
-            attachWikimediaHoverCaptureHandler(a, wikimediaResponse)
         })
     })
 }
