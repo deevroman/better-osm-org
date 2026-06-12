@@ -13814,13 +13814,15 @@ function needValidateEmailKey(key) {
 }
 
 function needValidateTrackingParamsInContact(key) {
-    // TODO need more tags (and add in taginfo.json (source=, image=, ...))
+    // TODO any https:// ?
     return (
         key === "website" ||
         key.startsWith("website:") ||
         key.endsWith(":website") ||
         key === "contact:instagram" ||
-        key === "contact:facebook"
+        key === "contact:facebook" ||
+        key === "source" ||
+        key === "image"
     )
 }
 
