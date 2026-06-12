@@ -126,7 +126,7 @@ _translations["fr"] = {
         debugAlert: "⚠ lisez les logs dans la console du navigateur (F12).\nSeul le développeur du script devrait voir ce message",
     },
     editMenuLinks: {
-        moreLinks: "plus de liens",
+        moreLinks: "plus de liens / modifier la liste",
         editLinksList: "liste des liens d'édition",
         editLink: "modifier le lien",
         pinThisLink: "épingler ce lien",

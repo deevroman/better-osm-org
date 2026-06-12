@@ -124,7 +124,7 @@ _translations["hr"] = {
         debugAlert: "⚠ pročitajte logove u konzoli preglednika (F12).\nOvu poruku treba vidjeti samo razvojni programer skripte",
     },
     editMenuLinks: {
-        moreLinks: "više poveznica",
+        moreLinks: "više poveznica / uredi popis",
         editLinksList: "popis poveznica za uređivanje",
         editLink: "uredi poveznicu",
         pinThisLink: "prikvači ovu poveznicu",
