@@ -125,7 +125,7 @@ _translations["tr"] = {
         debugAlert: "⚠ tarayıcı konsolundaki günlükleri okuyun (F12).\nBu mesajı yalnızca betik geliştiricisi görmelidir",
     },
     editMenuLinks: {
-        moreLinks: "daha fazla bağlantı",
+        moreLinks: "daha fazla bağlantı / listeyi düzenle",
         editLinksList: "bağlantı listesini düzenle",
         editLink: "bağlantıyı düzenle",
         pinThisLink: "bu bağlantıyı sabitle",

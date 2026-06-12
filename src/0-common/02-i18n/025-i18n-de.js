@@ -124,7 +124,7 @@ _translations["de"] = {
         debugAlert: "⚠ Browser-Konsole lesen (F12).\nDiese Meldung sollte nur der Skriptentwickler sehen",
     },
     editMenuLinks: {
-        moreLinks: "mehr Links",
+        moreLinks: "mehr Links / Liste bearbeiten",
         editLinksList: "Linkliste bearbeiten",
         editLink: "Link bearbeiten",
         pinThisLink: "diesen Link anheften",
