@@ -340,7 +340,7 @@ _translations["en"] = {
         debugAlert: "⚠ read logs in browser console (F12).\nOnly the script developer should see this message",
     },
     editMenuLinks: {
-        moreLinks: "more links",
+        moreLinks: "more links / edit list",
         editLinksList: "edit links list",
         editLink: "edit link",
         pinThisLink: "pin this link",
@@ -767,7 +767,7 @@ _translations["tr"] = {
         debugAlert: "⚠ tarayıcı konsolundaki günlükleri okuyun (F12).\nBu mesajı yalnızca betik geliştiricisi görmelidir",
     },
     editMenuLinks: {
-        moreLinks: "daha fazla bağlantı",
+        moreLinks: "daha fazla bağlantı / listeyi düzenle",
         editLinksList: "bağlantı listesini düzenle",
         editLink: "bağlantıyı düzenle",
         pinThisLink: "bu bağlantıyı sabitle",
@@ -1204,7 +1204,7 @@ _translations["ru"] = {
         debugAlert: "⚠ прочитайте логи в консоли браузера (F12).\nЭто сообщение должен видеть только разработчик скрипта",
     },
     editMenuLinks: {
-        moreLinks: "больше ссылок",
+        moreLinks: "больше ссылок / изменить список",
         editLinksList: "редактировать список",
         editLink: "редактировать ссылку",
         pinThisLink: "закрепить эту ссылку",
@@ -1640,7 +1640,7 @@ _translations["de"] = {
         debugAlert: "⚠ Browser-Konsole lesen (F12).\nDiese Meldung sollte nur der Skriptentwickler sehen",
     },
     editMenuLinks: {
-        moreLinks: "mehr Links",
+        moreLinks: "mehr Links / Liste bearbeiten",
         editLinksList: "Linkliste bearbeiten",
         editLink: "Link bearbeiten",
         pinThisLink: "diesen Link anheften",
@@ -2074,7 +2074,7 @@ _translations["fr"] = {
         debugAlert: "⚠ lisez les logs dans la console du navigateur (F12).\nSeul le développeur du script devrait voir ce message",
     },
     editMenuLinks: {
-        moreLinks: "plus de liens",
+        moreLinks: "plus de liens / modifier la liste",
         editLinksList: "liste des liens d'édition",
         editLink: "modifier le lien",
         pinThisLink: "épingler ce lien",
@@ -2506,7 +2506,7 @@ _translations["hr"] = {
         debugAlert: "⚠ pročitajte logove u konzoli preglednika (F12).\nOvu poruku treba vidjeti samo razvojni programer skripte",
     },
     editMenuLinks: {
-        moreLinks: "više poveznica",
+        moreLinks: "više poveznica / uredi popis",
         editLinksList: "popis poveznica za uređivanje",
         editLink: "uredi poveznicu",
         pinThisLink: "prikvači ovu poveznicu",
@@ -2935,7 +2935,7 @@ _translations["uk"] = {
         debugAlert: "⚠ прочитайте логи в консолі браузера (F12).\nЦе повідомлення має бачити лише розробник скрипта",
     },
     editMenuLinks: {
-        moreLinks: "більше посилань",
+        moreLinks: "більше посилань / змінити список",
         editLinksList: "список посилань для редагування",
         editLink: "редагувати посилання",
         pinThisLink: "закріпити це посилання",
@@ -11960,11 +11960,11 @@ async function askCustomTileUrl() {
             value: "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/10/{z}/{y}/{x}?blankTile=false",
             about: "https://osm.wiki/Esri",
         },
-        {
-            label: "OpenAerialMap Mosaic, by Kontur.io",
-            value: "https://apps.kontur.io/raster-tiler/oam/mosaic/{z}/{x}/{y}.png",
-            about: "https://www.kontur.io/solutions/global-orthomosaic-layer/",
-        },
+        // {
+        //     label: "OpenAerialMap Mosaic, by Kontur.io",
+        //     value: "https://apps.kontur.io/raster-tiler/oam/mosaic/{z}/{x}/{y}.png",
+        //     about: "https://www.kontur.io/solutions/global-orthomosaic-layer/",
+        // },
         // {
         //     label: "GeoScribbles",
         //     value: "https://geoscribble.osmz.ru/wms?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.1.1&SERVICE=WMS&REQUEST=GetMap&LAYERS=scribbles&STYLES=&SRS=EPSG:3857&WIDTH=512&HEIGHT=512&BBOX={bbox-epsg-3857}",
@@ -11987,15 +11987,15 @@ async function askCustomTileUrl() {
             value: "https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.3.0&SERVICE=WMS&REQUEST=GetMap&LAYERS=OI.OrthoimageCoverage&STYLES=&CRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}",
             about: "https://osm.wiki/GeoScribble",
         },
-        {
-            label: "Strava Heatmap via freemap.sk",
-            value: "https://strava-heatmap.tiles.freemap.sk/all/hot/{z}/{x}/{y}.png?px=512",
-            about: "https://www.freemap.sk",
-            forceVector: true,
-        },
+        // {
+        //     label: "Strava Heatmap via freemap.sk",
+        //     value: "https://strava-heatmap.tiles.freemap.sk/all/hot/{z}/{x}/{y}.png?px=512",
+        //     about: "https://www.freemap.sk",
+        //     forceVector: true,
+        // },
         {
             label: "Strava Heatmap β",
-            value: "https://content-a.strava.com/identified/globalheat/{sport}/blue/{z}/{x}/{y}@2x.png",
+            value: "https://content-a.strava.com/identified/globalheat/{sport}/{color}/{z}/{x}/{y}@2x.png",
             about: "https://www.strava.com/maps/global-heatmap",
             forceVector: true,
             fields: {
@@ -12006,10 +12006,10 @@ async function askCustomTileUrl() {
                     { name: "water", value: "water" },
                     { name: "winter", value: "winter" },
                 ],
-                // color: [
-                //     { name: "blue", value: "blue" },
-                //     { name: "hot", value: "hot" },
-                // ],
+                color: [
+                    { name: "blue", value: "blue" },
+                    { name: "hot", value: "hot" },
+                ],
             },
         },
         {
