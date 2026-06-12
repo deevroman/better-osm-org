@@ -13367,9 +13367,13 @@ async function downloadWikimediaCategoryInfo(categoryName, limit = 8) {
     ).response
 }
 
-function makeWikimediaCommonsValue(elem) {
+function makeWikimediaCommonsValue(elem, isVersionPage) {
     if (!GM_config.get("ImagesAndLinksInTags")) return
-    elem.querySelectorAll('a[href^="//commons.wikimedia.org/wiki/"]:not(.preview-img-link)').forEach(a => {
+    const items = isVersionPage ? elem.querySelectorAll('a[href^="//commons.wikimedia.org/wiki/"]:not(.preview-img-link)') : [elem]
+    items.forEach(a => {
+        if (a.classList.contains("preview-img-link")) {
+            return
+        }
         a.classList.add("preview-img-link")
         setTimeout(async () => {
             for (let item of a.textContent.split(";")) {
@@ -13870,7 +13874,7 @@ function makeLinksInVersionTagClickable(row, objType) {
     } else if ((key === "xmas:feature" && !document.querySelector(".egg-snow-tag")) || valueCell.textContent.includes("snow")) {
         makeXmasFeatureEasterEgg()
     } else if (key === "wikimedia_commons") {
-        makeWikimediaCommonsValue(valueCell)
+        makeWikimediaCommonsValue(valueCell, true)
     } else if (key === "direction" || key === "camera:direction" || key === "light:direction") {
         const coords = row.parentElement.parentElement.parentElement.parentElement.querySelector("span.latitude")
         if (coords) {
@@ -18479,7 +18483,7 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
         } else if (key.startsWith("mapillary")) {
             makeMapillaryValue(valueCell)
         } else if (key.startsWith("wikimedia_commons")) {
-            makeWikimediaCommonsValue(valueCell)
+            makeWikimediaCommonsValue(valueCell, false)
         } else if (key.startsWith("ref:inaturalist.org")) {
             makeRefInaturalistValue(valueCell)
         } else if (needValidateOpeningHoursKey(key)) {
