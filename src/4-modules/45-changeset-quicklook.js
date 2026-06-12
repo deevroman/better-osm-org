@@ -450,7 +450,7 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
         } else if (key.startsWith("mapillary")) {
             makeMapillaryValue(valueCell)
         } else if (key.startsWith("wikimedia_commons")) {
-            makeWikimediaCommonsValue(valueCell)
+            makeWikimediaCommonsValue(valueCell, false)
         } else if (key.startsWith("ref:inaturalist.org")) {
             makeRefInaturalistValue(valueCell)
         } else if (needValidateOpeningHoursKey(key)) {
