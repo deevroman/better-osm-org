@@ -170,6 +170,7 @@
 // @sandbox      JavaScript
 // @resource     OAUTH_HTML https://raw.githubusercontent.com/deevroman/better-osm-org/master/misc/assets/finish-oauth.html?bypass_cache
 // @resource     DARK_THEME_FOR_ID_CSS https://gist.githubusercontent.com/deevroman/55f35da68ab1efb57b7ba4636bdf013d/raw/1e91d589ca8cb51c693a119424a45d9f773c265e/dark.css
+// @resource     REGIONAL_TAGINFOS https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/dev/misc/assets/regional-taginfo-list.html
 // @run-at       document-start
 // ==/UserScript==
 
@@ -32762,11 +32763,71 @@ function setupOSMWebsite() {
 
 //<editor-fold desc="taginfo" defaultstate="collapsed">
 
+async function saveCurrentRegionalInstance(value, name) {
+    const history = JSON.parse(await GM.getValue("last-regional-taginfo-instances", "[]")).filter(i => i.value !== value)
+    history.push({
+        value,
+        name,
+    })
+    if (history.length > 10) {
+        history.shift()
+    }
+    await GM.setValue("last-regional-taginfo-instances", JSON.stringify(history))
+}
+
+function addRegionalTaginfoSelector() {
+    if (location.origin !== "https://taginfo.openstreetmap.org") {
+        const instance_select = document.querySelector("#instance_select")
+        if (!instance_select) {
+            return
+        }
+        if (location.pathname.includes(instance_select.value)) {
+            void saveCurrentRegionalInstance(instance_select.value, instance_select.selectedOptions[0].textContent)
+        }
+        return
+    }
+    if (document.querySelector("#instance_select")) {
+        return
+    }
+    const locale_select = document.querySelector("#locale")
+    const instance_select = locale_select.cloneNode()
+    instance_select.id = "instance_select"
+    locale_select.before(instance_select)
+
+    instance_select.appendChild(document.createElement("option"))
+
+    const page = new DOMParser().parseFromString(GM_getResourceText("REGIONAL_TAGINFOS"), "text/html")
+    page.querySelectorAll("option").forEach(i => {
+        const opt = document.createElement("option")
+        opt.value = i.value
+        opt.textContent = i.textContent.replace(/^   /, "")
+        instance_select.appendChild(opt)
+    })
+    queueMicrotask(async () => {
+        const history = JSON.parse(await GM.getValue("last-regional-taginfo-instances", "[]"))
+        const hr = document.createElement("hr")
+        instance_select.firstChild.after(hr)
+        history.forEach(({ value, name }) => {
+            const opt = document.createElement("option")
+            opt.value = value
+            opt.textContent = name
+            instance_select.firstChild.after(opt)
+        })
+    })
+    instance_select.onchange = async e => {
+        const instance = instance_select.value
+        void saveCurrentRegionalInstance(instance, instance_select.selectedOptions[0].textContent)
+        location.href = "https://taginfo.geofabrik.de/" + instance + location.pathname + location.search + location.hash
+    }
+}
+
 function setupTaginfo() {
     if (!GM_config.get("BetterTaginfo")) return
 
     const instance_text = document.querySelector("#instance")?.textContent
     const instance = instance_text?.replace(/ \(.*\)/, "")
+
+    addRegionalTaginfoSelector()
 
     // fix overpass links on regional taginfo
     if (instance_text?.includes(" ")) {
@@ -33108,16 +33169,16 @@ function _main() {
         setupOhmOsmcha()
         return
     }
-    makeCommandsMenu()
     if (location.origin === "https://taginfo.openstreetmap.org" || location.origin === "https://taginfo.geofabrik.de") {
         new MutationObserver(
             (function fn() {
-                setTimeout(setupTaginfo, 0)
+                queueMicrotask(setupTaginfo)
                 return fn
             })(),
         ).observe(document, { subtree: true, childList: true })
         return
     }
+    makeCommandsMenu()
     if (isOsmServer()) {
         setupOSMWebsite()
     }

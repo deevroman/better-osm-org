@@ -24,16 +24,16 @@ function _main() {
         setupOhmOsmcha()
         return
     }
-    makeCommandsMenu()
     if (location.origin === "https://taginfo.openstreetmap.org" || location.origin === "https://taginfo.geofabrik.de") {
         new MutationObserver(
             (function fn() {
-                setTimeout(setupTaginfo, 0)
+                queueMicrotask(setupTaginfo)
                 return fn
             })(),
         ).observe(document, { subtree: true, childList: true })
         return
     }
+    makeCommandsMenu()
     if (isOsmServer()) {
         setupOSMWebsite()
     }
