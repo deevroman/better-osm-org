@@ -21,6 +21,18 @@ function addRegionalTaginfoSelector() {
         if (location.pathname.includes(instance_select.value)) {
             void saveCurrentRegionalInstance(instance_select.value, instance_select.selectedOptions[0].textContent)
         }
+        if (!document.querySelector("#global-taginfo-link")) {
+            const tools = document.querySelector("#tools ul")
+            const li = document.createElement("li")
+            li.classList.add("button")
+            tools.prepend(li)
+
+            const a = document.createElement("a")
+            a.id = "global-taginfo-link"
+            a.textContent = "global"
+            a.href = "https://taginfo.openstreetmap.org/" + location.pathname.replace(/^.+?\//, "")
+            li.appendChild(a)
+        }
         return
     }
     if (document.querySelector("#instance_select")) {
