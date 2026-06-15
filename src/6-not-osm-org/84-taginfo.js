@@ -23,15 +23,17 @@ function addRegionalTaginfoSelector() {
         }
         if (!document.querySelector("#global-taginfo-link")) {
             const tools = document.querySelector("#tools ul")
-            const li = document.createElement("li")
-            li.classList.add("button")
-            tools.prepend(li)
+            if (tools) {
+                const li = document.createElement("li")
+                li.classList.add("button")
+                tools.prepend(li)
 
-            const a = document.createElement("a")
-            a.id = "global-taginfo-link"
-            a.textContent = "global"
-            a.href = "https://taginfo.openstreetmap.org/" + location.pathname.replace(/^.+?\//, "")
-            li.appendChild(a)
+                const a = document.createElement("a")
+                a.id = "global-taginfo-link"
+                a.textContent = "global"
+                a.href = "https://taginfo.openstreetmap.org/" + location.pathname.replace(/^.+?\//, "")
+                li.appendChild(a)
+            }
         }
         return
     }
