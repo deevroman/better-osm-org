@@ -645,6 +645,9 @@ function hasKey(tags, key) {
  * @param {NodeVersion[]|WayVersion[]|RelationVersion[]} objHistory
  */
 async function processObject(i, objType, prevVersion, targetVersion, lastVersion, objHistory) {
+    if (i.parentElement.parentElement.classList.contains("tags-processed-object")) {
+        return
+    }
     const tagsTable = document.createElement("table")
     tagsTable.classList.add("quick-look")
     tagsTable.classList.toggle("hide-non-modified-tags", !allTagsOfObjectsVisible)
