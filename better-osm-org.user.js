@@ -6114,6 +6114,26 @@ async function getOsmObjectInfo(object_type, object_id) {
     return res
 }
 
+async function getOsmObjectHistory(object_type, object_id) {
+    // todo drop osmEditAuth
+    const rawObjectInfo = await (
+        await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id + "/history", {
+            method: "GET",
+            prefix: false,
+        })
+    ).text()
+    const res = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
+    const error = res.querySelector("parsererror")
+    if (error) {
+        throw new Error("getOsmObjectInfo: Parsing failed: " + error.textContent)
+    }
+    return res
+}
+
+/**
+ * @param body {string}
+ * @return {Promise<void>}
+ */
 async function createOsmNodes(body) {
     const res = await osmEditAuth.fetch(osm_server.apiBase + "nodes", {
         method: "POST",
@@ -10661,11 +10681,80 @@ async function deleteObject(object_type, object_id) {
     }
 }
 
+async function restoreObject(object_type, object_id) {
+    const objectHistory = await getOsmObjectHistory(object_type, object_id)
+    const prevVersionInfo = Array.from(objectHistory.querySelectorAll(object_type)).at(-2)
+
+    let tagsHint = ""
+    const tags = Array.from(prevVersionInfo.querySelectorAll("tag"))
+    for (const i of tags) {
+        if (mainTags.includes(i.getAttribute("k"))) {
+            tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
+            break
+        }
+    }
+    for (const i of tags) {
+        if (i.getAttribute("k") === "name") {
+            tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
+            break
+        }
+    }
+    const comment = `Restore ${object_type}/${object_id} ${tagsHint}`
+    const changesetId = await openOsmChangeset(comment)
+    try {
+        const nodePayload = document.createElement("osm")
+        nodePayload.appendChild(prevVersionInfo)
+
+        prevVersionInfo.setAttribute("changeset", changesetId)
+        prevVersionInfo.setAttribute("version", parseInt(prevVersionInfo.getAttribute("version")) + 1)
+
+        const nodeStr = new XMLSerializer().serializeToString(nodePayload).replace(/xmlns="[^"]+"/, "")
+        await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
+            method: "PUT",
+            prefix: false,
+            body: nodeStr,
+        })
+    } finally {
+        try {
+            await closeOsmChangeset(changesetId)
+        } finally {
+            window.location.reload()
+        }
+    }
+}
+
+function addRestoreButton(object_type, object_id) {
+    if (!document.querySelector(".secondary-actions")) {
+        const secondaryActions = document.createElement("div")
+        secondaryActions.classList.add("secondary-actions")
+        document.querySelector("#sidebar_content nav").before(secondaryActions)
+    }
+    const secondaryActions = document.querySelector(".secondary-actions")
+    secondaryActions.classList.add("deleted-object")
+    secondaryActions.style.fontSize = "0px" // hide Edit tags
+
+    const link = document.createElement("a")
+    link.text = "Restore"
+    link.href = ""
+    link.style.setProperty("font-size", "14px", "important")
+    link.classList.add("restore_object_button_class")
+    secondaryActions.appendChild(link)
+
+    secondaryActions.previousElementSibling.style.setProperty("margin-bottom", "0px", "important")
+    secondaryActions.previousElementSibling.style.setProperty("padding-bottom", "0px", "important")
+
+    link.onclick = e => {
+        e.preventDefault()
+        return restoreObject(object_type, object_id)
+    }
+}
+
 function addDeleteButton() {
     if (!location.pathname.startsWith("/node/") && !location.pathname.startsWith("/relation/")) return
     if (location.pathname.includes("/history")) return
 
     if (document.querySelector(".delete_object_button_class")) return true
+    if (document.querySelector(".restore_object_button_class")) return true
 
     const match = location.pathname.match(/(node|relation)\/(\d+)/)
     if (!match) return
@@ -10673,16 +10762,13 @@ function addDeleteButton() {
     const object_id = match[2]
 
     initOsmAuth()
-    const link = document.createElement("a")
-    link.text = t("objectEditor.delete")
-    link.href = ""
-    link.classList.add("delete_object_button_class")
     // skip deleted
     if (object_type === "node") {
         if (
             document.querySelectorAll("#sidebar_content > div:first-of-type h4").length < 2 &&
             document.querySelector("#sidebar_content > div .latitude") === null
         ) {
+            addRestoreButton(object_type, object_id)
             return
         }
     } else if (object_type === "way") {
@@ -10715,6 +10801,10 @@ function addDeleteButton() {
         }
     }
 
+    const link = document.createElement("a")
+    link.text = t("objectEditor.delete")
+    link.href = ""
+    link.classList.add("delete_object_button_class")
     if (!document.querySelector(".secondary-actions")) return
     document.querySelector(".secondary-actions").appendChild(link)
     link.after(document.createTextNode("\xA0"))
@@ -22512,6 +22602,9 @@ async function addPanoramaxTag(pictureId, object_type, object_id) {
 function addUploadPanoramaxBtn() {
     if (!isDebug() && !GM_config.get("PanoramaxUploader") && !isMobile) return
     if (!document.querySelector("#sidebar_content nav")) {
+        return
+    }
+    if (!document.querySelector(".secondary-actions") || document.querySelector(".restore_object_button_class")) {
         return
     }
     if (!location.pathname.match(/\/(node|way|relation)\/[0-9]+\/?$/)) {

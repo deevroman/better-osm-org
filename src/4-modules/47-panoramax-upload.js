@@ -185,6 +185,9 @@ function addUploadPanoramaxBtn() {
     if (!document.querySelector("#sidebar_content nav")) {
         return
     }
+    if (!document.querySelector(".secondary-actions") || document.querySelector(".restore_object_button_class")) {
+        return
+    }
     if (!location.pathname.match(/\/(node|way|relation)\/[0-9]+\/?$/)) {
         return
     }

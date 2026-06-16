@@ -73,6 +73,26 @@ async function getOsmObjectInfo(object_type, object_id) {
     return res
 }
 
+async function getOsmObjectHistory(object_type, object_id) {
+    // todo drop osmEditAuth
+    const rawObjectInfo = await (
+        await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id + "/history", {
+            method: "GET",
+            prefix: false,
+        })
+    ).text()
+    const res = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
+    const error = res.querySelector("parsererror")
+    if (error) {
+        throw new Error("getOsmObjectInfo: Parsing failed: " + error.textContent)
+    }
+    return res
+}
+
+/**
+ * @param body {string}
+ * @return {Promise<void>}
+ */
 async function createOsmNodes(body) {
     const res = await osmEditAuth.fetch(osm_server.apiBase + "nodes", {
         method: "POST",
