@@ -686,6 +686,20 @@ function makeVersionUl(timestamp, username, changesetID) {
     return ul
 }
 
+function registerObjectCleanerOnHeader() {
+    document.querySelector("#sidebar_content h2").addEventListener(
+        "mouseleave",
+        () => {
+            document.querySelector("#sidebar_content h2").onmouseenter = () => {
+                cleanAllObjects()
+            }
+        },
+        {
+            once: true,
+        },
+    )
+}
+
 async function replaceDownloadWayButton(btn, wayID) {
     const objectsBag = await sortWayNodesByTimestamp(wayID)
 
@@ -1082,17 +1096,7 @@ async function replaceDownloadWayButton(btn, wayID) {
     if (Object.entries(currentChanges).length) {
         renderInterVersion()
     }
-    document.querySelector("#sidebar_content h2").addEventListener(
-        "mouseleave",
-        () => {
-            document.querySelector("#sidebar_content h2").onmouseenter = () => {
-                cleanAllObjects()
-            }
-        },
-        {
-            once: true,
-        },
-    )
+    registerObjectCleanerOnHeader()
     // making version filter
     if (document.querySelectorAll('[way-version="inter"]').length > 20) {
         const select = document.createElement("select")
@@ -2178,17 +2182,7 @@ async function replaceDownloadRelationButton(btn, relationID) {
     if (Object.entries(currentChanges).length) {
         renderInterVersion()
     }
-    document.querySelector("#sidebar_content h2").addEventListener(
-        "mouseleave",
-        () => {
-            document.querySelector("#sidebar_content h2").onmouseenter = () => {
-                cleanAllObjects()
-            }
-        },
-        {
-            once: true,
-        },
-    )
+    registerObjectCleanerOnHeader()
     // making version filter
     if (document.querySelectorAll('[relation-version="inter"]').length > 20) {
         const select = document.createElement("select")
