@@ -15006,6 +15006,60 @@ function registerObjectCleanerOnHeader() {
     )
 }
 
+function makeVersionsFiltersSelector() {
+    const select = document.createElement("select")
+    select.id = "versions-filter"
+    select.title = t("historyDiff.filterIntermediateChanges")
+
+    const allVersions = document.createElement("option")
+    allVersions.value = "all-versions"
+    allVersions.textContent = t("historyDiff.allVersions")
+    select.appendChild(allVersions)
+
+    const withGeom = document.createElement("option")
+    withGeom.value = "with-geom"
+    withGeom.textContent = t("historyDiff.withGeometryChanges")
+    withGeom.setAttribute("selected", "selected")
+    select.appendChild(withGeom)
+
+    const withoutInter = document.createElement("option")
+    withoutInter.value = "without-inter"
+    withoutInter.textContent = t("historyDiff.withoutIntermediate")
+    select.appendChild(withoutInter)
+    return select
+}
+
+/**
+ * @param btn
+ * @param {"way"|"relation"} type
+ */
+function addVersionsFilters(btn, type) {
+    const select = makeVersionsFiltersSelector()
+
+    select.onchange = e => {
+        if (e.target.value === "all-versions") {
+            document.querySelectorAll(`[${type}-version="inter"]`).forEach(i => {
+                i.removeAttribute("hidden")
+            })
+        } else if (e.target.value === "with-geom") {
+            document.querySelectorAll(`.only-tags-changed[${type}-version="inter"]`).forEach(i => {
+                i.setAttribute("hidden", "true")
+            })
+            document.querySelectorAll(`[${type}-version="inter"]:not(.only-tags-changed)`).forEach(i => {
+                i.removeAttribute("hidden")
+            })
+        } else if (e.target.value === "without-inter") {
+            document.querySelectorAll(`[${type}-version="inter"]`).forEach(i => {
+                i.setAttribute("hidden", "true")
+            })
+        }
+    }
+    document.querySelectorAll(`.only-tags-changed[${type}-version="inter"]`).forEach(i => {
+        i.setAttribute("hidden", "true")
+    })
+    btn.after(select)
+}
+
 async function replaceDownloadWayButton(btn, wayID) {
     const objectsBag = await sortWayNodesByTimestamp(wayID)
 
@@ -15403,50 +15457,8 @@ async function replaceDownloadWayButton(btn, wayID) {
         renderInterVersion()
     }
     registerObjectCleanerOnHeader()
-    // making version filter
     if (document.querySelectorAll('[way-version="inter"]').length > 20) {
-        const select = document.createElement("select")
-        select.id = "versions-filter"
-        select.title = t("historyDiff.filterIntermediateChanges")
-
-        const allVersions = document.createElement("option")
-        allVersions.value = "all-versions"
-        allVersions.textContent = t("historyDiff.allVersions")
-        select.appendChild(allVersions)
-
-        const withGeom = document.createElement("option")
-        withGeom.value = "with-geom"
-        withGeom.textContent = t("historyDiff.withGeometryChanges")
-        withGeom.setAttribute("selected", "selected")
-        select.appendChild(withGeom)
-
-        const withoutInter = document.createElement("option")
-        withoutInter.value = "without-inter"
-        withoutInter.textContent = t("historyDiff.withoutIntermediate")
-        select.appendChild(withoutInter)
-
-        select.onchange = e => {
-            if (e.target.value === "all-versions") {
-                document.querySelectorAll('[way-version="inter"]').forEach(i => {
-                    i.removeAttribute("hidden")
-                })
-            } else if (e.target.value === "with-geom") {
-                document.querySelectorAll('.only-tags-changed[way-version="inter"]').forEach(i => {
-                    i.setAttribute("hidden", "true")
-                })
-                document.querySelectorAll('[way-version="inter"]:not(.only-tags-changed)').forEach(i => {
-                    i.removeAttribute("hidden")
-                })
-            } else if (e.target.value === "without-inter") {
-                document.querySelectorAll('[way-version="inter"]').forEach(i => {
-                    i.setAttribute("hidden", "true")
-                })
-            }
-        }
-        document.querySelectorAll('.only-tags-changed[way-version="inter"]').forEach(i => {
-            i.setAttribute("hidden", "true")
-        })
-        btn.after(select)
+        addVersionsFilters(btn, "way")
     }
     btn.remove()
 }
@@ -16489,50 +16501,8 @@ async function replaceDownloadRelationButton(btn, relationID) {
         renderInterVersion()
     }
     registerObjectCleanerOnHeader()
-    // making version filter
     if (document.querySelectorAll('[relation-version="inter"]').length > 20) {
-        const select = document.createElement("select")
-        select.id = "versions-filter"
-        select.title = t("historyDiff.filterIntermediateChanges")
-
-        const allVersions = document.createElement("option")
-        allVersions.value = "all-versions"
-        allVersions.textContent = t("historyDiff.allVersions")
-        select.appendChild(allVersions)
-
-        const withGeom = document.createElement("option")
-        withGeom.value = "with-geom"
-        withGeom.textContent = t("historyDiff.withGeometryChanges")
-        withGeom.setAttribute("selected", "selected")
-        select.appendChild(withGeom)
-
-        const withoutInter = document.createElement("option")
-        withoutInter.value = "without-inter"
-        withoutInter.textContent = t("historyDiff.withoutIntermediate")
-        select.appendChild(withoutInter)
-
-        select.onchange = e => {
-            if (e.target.value === "all-versions") {
-                document.querySelectorAll('[relation-version="inter"]').forEach(i => {
-                    i.removeAttribute("hidden")
-                })
-            } else if (e.target.value === "with-geom") {
-                document.querySelectorAll('.only-tags-changed[relation-version="inter"]').forEach(i => {
-                    i.setAttribute("hidden", "true")
-                })
-                document.querySelectorAll('[relation-version="inter"]:not(.only-tags-changed)').forEach(i => {
-                    i.removeAttribute("hidden")
-                })
-            } else if (e.target.value === "without-inter") {
-                document.querySelectorAll('[relation-version="inter"]').forEach(i => {
-                    i.setAttribute("hidden", "true")
-                })
-            }
-        }
-        document.querySelectorAll('.only-tags-changed[relation-version="inter"]').forEach(i => {
-            i.setAttribute("hidden", "true")
-        })
-        btn.after(select)
+        addVersionsFilters(btn, "relation")
     }
     btn.remove()
 }
