@@ -66,6 +66,7 @@ _translations["de"] = {
     },
     objectEditor: {
         delete: "Löschen",
+        restore: "Wiederherstellen",
     },
     historyDiff: {
         intermediateWayVersion: "Zwischenversion",

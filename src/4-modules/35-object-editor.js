@@ -103,7 +103,7 @@ function addRestoreButton(object_type, object_id) {
     secondaryActions.style.fontSize = "0px" // hide Edit tags
 
     const link = document.createElement("a")
-    link.text = "Restore"
+    link.text = t("objectEditor.restore")
     link.href = ""
     link.style.setProperty("font-size", "14px", "important")
     link.classList.add("restore_object_button_class")

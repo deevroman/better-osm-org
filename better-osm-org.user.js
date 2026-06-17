@@ -282,6 +282,7 @@ _translations["en"] = {
     },
     objectEditor: {
         delete: "Delete",
+        restore: "Restore",
     },
     historyDiff: {
         intermediateWayVersion: "Intermediate version",
@@ -710,6 +711,7 @@ _translations["tr"] = {
     },
     objectEditor: {
         delete: "Sil",
+        restore: "Geri yükle",
     },
     historyDiff: {
         intermediateWayVersion: "Ara sürüm",
@@ -1140,6 +1142,7 @@ _translations["ru"] = {
     },
     objectEditor: {
         delete: "Выпилить!",
+        restore: "Восстановить",
     },
     historyDiff: {
         intermediateWayVersion: "Промежуточная версия",
@@ -1583,6 +1586,7 @@ _translations["de"] = {
     },
     objectEditor: {
         delete: "Löschen",
+        restore: "Wiederherstellen",
     },
     historyDiff: {
         intermediateWayVersion: "Zwischenversion",
@@ -2016,6 +2020,7 @@ _translations["fr"] = {
     },
     objectEditor: {
         delete: "Supprimer",
+        restore: "Restaurer",
     },
     historyDiff: {
         intermediateWayVersion: "Version intermédiaire",
@@ -2449,6 +2454,7 @@ _translations["hr"] = {
     },
     objectEditor: {
         delete: "Izbriši",
+        restore: "Vrati",
     },
     historyDiff: {
         intermediateWayVersion: "Međuverzija",
@@ -2878,6 +2884,7 @@ _translations["uk"] = {
     },
     objectEditor: {
         delete: "Видалити",
+        restore: "Відновити",
     },
     historyDiff: {
         intermediateWayVersion: "Проміжна версія",
@@ -10734,7 +10741,7 @@ function addRestoreButton(object_type, object_id) {
     secondaryActions.style.fontSize = "0px" // hide Edit tags
 
     const link = document.createElement("a")
-    link.text = "Restore"
+    link.text = t("objectEditor.restore")
     link.href = ""
     link.style.setProperty("font-size", "14px", "important")
     link.classList.add("restore_object_button_class")

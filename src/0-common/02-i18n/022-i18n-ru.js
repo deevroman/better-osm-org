@@ -66,6 +66,7 @@ _translations["ru"] = {
     },
     objectEditor: {
         delete: "Выпилить!",
+        restore: "Восстановить",
     },
     historyDiff: {
         intermediateWayVersion: "Промежуточная версия",

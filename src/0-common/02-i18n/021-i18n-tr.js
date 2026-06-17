@@ -67,6 +67,7 @@ _translations["tr"] = {
     },
     objectEditor: {
         delete: "Sil",
+        restore: "Geri yükle",
     },
     historyDiff: {
         intermediateWayVersion: "Ara sürüm",
