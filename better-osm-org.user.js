@@ -32854,7 +32854,8 @@ function addRegionalTaginfoSelector() {
                 const a = document.createElement("a")
                 a.id = "global-taginfo-link"
                 a.textContent = "global"
-                a.href = "https://taginfo.openstreetmap.org/" + location.pathname.replace(/^.+?\//, "")
+                a.target = "_blank"
+                a.href = "https://taginfo.openstreetmap.org/" + location.pathname.replace(/^.+?\//, "") + location.hash
                 li.appendChild(a)
             }
         }
@@ -32916,13 +32917,18 @@ function setupTaginfo() {
         return s.replaceAll("\\", "\\\\").replaceAll('"', '\\"').replaceAll("␣", " ")
     }
 
+    function makeOverpassLink() {
+        const a = document.createElement("a")
+        a.classList.add("overpass-link")
+        a.textContent = "🔍"
+        a.target = "_blank"
+        return a
+    }
+
     if (location.pathname.match(/reports\/key_lengths$/)) {
         document.querySelectorAll(".dt-body[data-col='1']").forEach(i => {
             if (i.querySelector(".overpass-link")) return
-            const overpassLink = document.createElement("a")
-            overpassLink.classList.add("overpass-link")
-            overpassLink.textContent = "🔍"
-            overpassLink.target = "_blank"
+            const overpassLink = makeOverpassLink()
             const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ""))
             const key = i.querySelector(".empty") ? "" : escapeTaginfoString(i.querySelector("a").textContent)
             overpassLink.href =
@@ -32948,10 +32954,7 @@ function setupTaginfo() {
         }
         document.querySelectorAll("#roles .dt-body[data-col='0']").forEach(i => {
             if (i.querySelector(".overpass-link")) return
-            const overpassLink = document.createElement("a")
-            overpassLink.classList.add("overpass-link")
-            overpassLink.textContent = "🔍"
-            overpassLink.target = "_blank"
+            const overpassLink = makeOverpassLink()
             overpassLink.style.cursor = "progress"
             const role = i.querySelector(".empty") ? "" : escapeTaginfoString(i.textContent)
             const type = location.pathname.match(/relations\/(.*$)/)[1]
@@ -32994,10 +32997,7 @@ out geom;
         const key = escapeTaginfoString(document.querySelector("h1").textContent)
         document.querySelectorAll("#values .dt-body[data-col='0']").forEach(i => {
             if (i.querySelector(".overpass-link")) return
-            const overpassLink = document.createElement("a")
-            overpassLink.classList.add("overpass-link")
-            overpassLink.textContent = "🔍"
-            overpassLink.target = "_blank"
+            const overpassLink = makeOverpassLink()
             const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ""))
             const value = i.querySelector(".empty") ? "" : escapeTaginfoString(i.querySelector("a").textContent)
             overpassLink.href =
@@ -33013,6 +33013,53 @@ out geom;
             i.prepend(document.createTextNode("\xA0"))
             i.prepend(overpassLink)
         })
+    } else if (location.hash === "#combinations") {
+        if (location.pathname.includes("/keys/")) {
+            const key = escapeTaginfoString(document.querySelector("h1").textContent)
+            document.querySelectorAll("#combinations .dt-body[data-col='1']").forEach(i => {
+                if (i.querySelector(".overpass-link")) return
+                const overpassLink = makeOverpassLink()
+                const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ""))
+                const key2 = i.querySelector(".empty") ? "" : escapeTaginfoString(i.querySelector("a").textContent)
+                overpassLink.href =
+                    `${overpass_server.url}?` +
+                    (count > 10000
+                        ? new URLSearchParams({
+                              w: `"${key}"=* and "${key2}"=*`,
+                          }).toString()
+                        : new URLSearchParams({
+                              w: instance ? `"${key}"=* and "${key2}"=* in "${instance}"` : `"${key}"=* and "${key2}"=* global`,
+                              R: "",
+                          }).toString())
+                i.prepend(document.createTextNode("\xA0"))
+                i.prepend(overpassLink)
+            })
+        } else if (location.pathname.includes("/tags/")) {
+            const rawKeyValue = escapeTaginfoString(document.querySelector("h1").textContent)
+            const [key, ...tail] = rawKeyValue.split("=")
+            const tagValue = `${key}="${tail.join("=")}"`
+            document.querySelectorAll("#combinations .dt-body[data-col='1']").forEach(i => {
+                if (i.querySelector(".overpass-link")) return
+                const overpassLink = makeOverpassLink()
+                const count = parseInt(i.nextElementSibling.querySelector(".value").textContent.replace(/\s/g, ""))
+                const [keyLink, valueLink] = Array.from(i.querySelectorAll("a"))
+                const rawKey2 = `"${escapeTaginfoString(keyLink.textContent)}"`
+                const rawValue2 = valueLink === undefined ? "*" : `"${escapeTaginfoString(valueLink.textContent)}"`
+                const tag2Value = `${rawKey2}=${rawValue2}`
+                overpassLink.href =
+                    `${overpass_server.url}?` +
+                    (count > 10000
+                        ? new URLSearchParams({
+                              w: `${tagValue} and ${tag2Value}`,
+                          }).toString()
+                        : new URLSearchParams({
+                              w: instance ? `${tagValue} and ${tag2Value} in "${instance}"` : `${tagValue} and ${tag2Value} global`,
+                              R: "",
+                          }).toString())
+                i.prepend(document.createTextNode("\xA0"))
+                i.prepend(overpassLink)
+            })
+        }
     } else if (location.pathname.includes("/tags/") && document.querySelector(".overview-container")) {
         // overpass links for tag by OSM type
         const rawKeyValue = escapeTaginfoString(document.querySelector("h1").textContent)
