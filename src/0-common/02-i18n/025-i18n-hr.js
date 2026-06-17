@@ -66,6 +66,7 @@ _translations["hr"] = {
     },
     objectEditor: {
         delete: "Izbriši",
+        restore: "Vrati",
     },
     historyDiff: {
         intermediateWayVersion: "Međuverzija",

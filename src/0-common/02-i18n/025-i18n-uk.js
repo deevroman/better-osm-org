@@ -66,6 +66,7 @@ _translations["uk"] = {
     },
     objectEditor: {
         delete: "Видалити",
+        restore: "Відновити",
     },
     historyDiff: {
         intermediateWayVersion: "Проміжна версія",
