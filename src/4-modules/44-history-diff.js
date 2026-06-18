@@ -804,7 +804,7 @@ async function replaceDownloadWayButton(btn, wayID) {
         return interVersionDivHeader
     }
 
-    function renderInterVersion() {
+    async function renderInterVersion() {
         const currentNodes = []
         wayVersionsIndex[currentWayVersion.version].nodes.forEach(nodeID => {
             const uniq_key = `node ${nodeID}`
@@ -844,13 +844,13 @@ async function replaceDownloadWayButton(btn, wayID) {
         nodesDetails.appendChild(summary)
         const ulNodes = document.createElement("ul")
         ulNodes.classList.add("list-unstyled")
-        currentNodes.forEach(i => {
+        for (const i of currentNodes) {
             if (i === undefined) {
                 console.trace()
                 console.log(currentNodes)
                 btn.style.background = "yellow"
                 btn.title = t("historyDiff.someNodesHidden")
-                return
+                continue
             }
             const nodeLi = document.createElement("li")
             const div = document.createElement("div")
@@ -876,7 +876,7 @@ async function replaceDownloadWayButton(btn, wayID) {
 
             const curChange = currentChanges[`node ${i.id}`]
             const nodesHistory = nodesHistories[i.id]
-            const tagsTable = processObject(
+            const tagsTable = await processObject(
                 div2,
                 "node",
                 curChange[1] ?? curChange[2],
@@ -884,25 +884,21 @@ async function replaceDownloadWayButton(btn, wayID) {
                 nodesHistory[nodesHistory.length - 1],
                 nodesHistory,
             )
-            setTimeout(async () => {
-                await processObjectInteractions(
-                    "",
-                    "node",
-                    { nodes: [] },
-                    div2,
-                    ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))),
-                )
-            }, 0)
-            tagsTable.then(table => {
-                if (nodeLi.classList.contains("tags-non-modified")) {
-                    div2.appendChild(table)
-                }
-                // table.style.borderColor = "var(--bs-body-color)";
-                // table.style.borderStyle = "solid";
-                // table.style.borderWidth = "1px";
-            })
+            await processObjectInteractions(
+                i.id.toString(),
+                "node",
+                { nodes: [] },
+                div2,
+                ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))),
+            )
+            if (nodeLi.classList.contains("tags-non-modified")) {
+                div2.appendChild(tagsTable)
+            }
+            // table.style.borderColor = "var(--bs-body-color)";
+            // table.style.borderStyle = "solid";
+            // table.style.borderWidth = "1px";
             ulNodes.appendChild(nodeLi)
-        })
+        }
         nodesDetails.appendChild(ulNodes)
         interVersionDiv.appendChild(nodesDetails)
 
@@ -971,7 +967,7 @@ async function replaceDownloadWayButton(btn, wayID) {
         insertBeforeThat.before(interVersionDiv)
     }
 
-    function replaceWayVersion(it) {
+    async function replaceWayVersion(it) {
         let divForNodesReplace = document.querySelector(`#element_versions_list > :where(div, details)[way-version="${it.version}"]`)
         if (Object.keys(currentChanges).length > 1 && divForNodesReplace.classList?.contains("empty-version")) {
             divForNodesReplace.querySelector("summary")?.remove()
@@ -1043,7 +1039,7 @@ async function replaceDownloadWayButton(btn, wayID) {
                     })
                 })
             }
-            currentNodes.forEach(([img, i]) => {
+            for (const [img, i] of currentNodes) {
                 if (i === undefined) {
                     console.trace()
                     console.log(currentNodes)
@@ -1052,7 +1048,7 @@ async function replaceDownloadWayButton(btn, wayID) {
                     divForNodesReplace.classList.add("broken-version")
                     divForNodesReplace.title = t("historyDiff.someNodesHiddenSad")
                     divForNodesReplace.style.cursor = "auto"
-                    return
+                    continue
                 }
                 const nodeLi = document.createElement("li")
                 const div = document.createElement("div")
@@ -1085,7 +1081,7 @@ async function replaceDownloadWayButton(btn, wayID) {
 
                 const curChange = currentChanges[`node ${i.id}`]
                 const nodesHistory = nodesHistories[i.id]
-                const tagsTable = processObject(
+                const tagsTable = await processObject(
                     div2,
                     "node",
                     curChange[1] ?? curChange[2],
@@ -1093,25 +1089,21 @@ async function replaceDownloadWayButton(btn, wayID) {
                     nodesHistory[nodesHistory.length - 1],
                     nodesHistory,
                 )
-                setTimeout(async () => {
-                    await processObjectInteractions(
-                        "",
-                        "node",
-                        { nodes: [] },
-                        div2,
-                        ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))),
-                    )
-                }, 0)
-                tagsTable.then(table => {
-                    if (nodeLi.classList.contains("tags-non-modified")) {
-                        div2.appendChild(table)
-                    }
-                    //                            table.style.borderColor = "var(--bs-body-color)";
-                    //                             table.style.borderStyle = "solid";
-                    //                             table.style.borderWidth = "1px";
-                })
+                await processObjectInteractions(
+                    i.changeset.toString(),
+                    "node",
+                    { nodes: [] },
+                    div2,
+                    ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))),
+                )
+                if (nodeLi.classList.contains("tags-non-modified")) {
+                    div2.appendChild(tagsTable)
+                }
+                // table.style.borderColor = "var(--bs-body-color)";
+                //  table.style.borderStyle = "solid";
+                //  table.style.borderWidth = "1px";
                 ulNodes.appendChild(nodeLi)
-            })
+            }
         }
         currentChanges = {}
         currentChangeset = null
@@ -1133,7 +1125,7 @@ async function replaceDownloadWayButton(btn, wayID) {
             storeChanges(uniq_key, it)
         } else {
             if (currentWayVersion.version !== 0) {
-                renderInterVersion()
+                await renderInterVersion()
             }
             currentChanges = {}
             storeChanges(uniq_key, it)
@@ -1144,11 +1136,11 @@ async function replaceDownloadWayButton(btn, wayID) {
         objectStates[uniq_key] = it
         // для настоящей версии линии
         if (it.type === "way") {
-            replaceWayVersion(it)
+            await replaceWayVersion(it)
         }
     }
     if (Object.entries(currentChanges).length) {
-        renderInterVersion()
+        await renderInterVersion()
     }
     registerObjectCleanerOnHeader()
     if (document.querySelectorAll('[way-version="inter"]').length > 20) {
@@ -1157,16 +1149,37 @@ async function replaceDownloadWayButton(btn, wayID) {
     btn.remove()
 }
 
-async function showFullWayHistory(wayID) {
+/**
+ * @param {"way"|"relation"} type
+ * @param objectId {number}
+ * @return {Promise<void>}
+ */
+async function showFullObjectHistory(type, objectId) {
+    console.time("full history")
     const btn = document.querySelector("#download-all-versions-btn")
     try {
-        await replaceDownloadWayButton(btn, wayID)
+        if (type === "way") {
+            await replaceDownloadWayButton(btn, objectId)
+        } else {
+            await replaceDownloadRelationButton(btn, objectId)
+        }
     } catch (err) {
         console.error(err)
         btn.title = t("historyDiff.reloadAndReport")
         btn.style.background = "red"
         btn.style.cursor = "auto"
+    } finally {
+        console.timeEnd("full history")
     }
+}
+
+function makeDownloadVersionsButton() {
+    const downloadAllVersionsBtn = document.createElement("a")
+    downloadAllVersionsBtn.id = "download-all-versions-btn"
+    downloadAllVersionsBtn.tabIndex = 0
+    downloadAllVersionsBtn.textContent = "⏬"
+    downloadAllVersionsBtn.style.cursor = "pointer"
+    return downloadAllVersionsBtn
 }
 
 function setupWayVersionView() {
@@ -1270,12 +1283,9 @@ function setupWayVersionView() {
     })
 
     if (!document.getElementById("download-all-versions-btn")) {
-        const downloadAllVersionsBtn = document.createElement("a")
-        downloadAllVersionsBtn.id = "download-all-versions-btn"
-        downloadAllVersionsBtn.tabIndex = 0
-        downloadAllVersionsBtn.textContent = "⏬"
-        downloadAllVersionsBtn.style.cursor = "pointer"
+        const downloadAllVersionsBtn = makeDownloadVersionsButton()
         downloadAllVersionsBtn.title = t("historyDiff.downloadAllVersionsWithIntermediate")
+
         const clickHandler = async () => {
             downloadAllVersionsBtn.style.cursor = "progress"
             await unrollPaginationInHistory()
@@ -1288,10 +1298,8 @@ function setupWayVersionView() {
                 }
             }
             if (GM_config.get("FullVersionsDiff")) {
-                console.time("full history")
                 addQuickLookStyles()
-                await showFullWayHistory(wayID)
-                console.timeEnd("full history")
+                await showFullObjectHistory("way", parseInt(wayID))
             }
         }
         downloadAllVersionsBtn.addEventListener("click", clickHandler, { once: true })
@@ -1787,7 +1795,7 @@ async function replaceDownloadRelationButton(btn, relationID) {
         return interVersionDivHeader
     }
 
-    function renderInterVersion() {
+    async function renderInterVersion() {
         /** @type {(NodeVersion|WayVersion|RelationVersion)[]}*/
         const currentMembers = []
         /** @type {Object.<string, NodesBag>} */
@@ -1842,13 +1850,13 @@ async function replaceDownloadRelationButton(btn, relationID) {
         membersDetails.appendChild(summary)
         const ulMembers = document.createElement("ul")
         ulMembers.classList.add("list-unstyled")
-        currentMembers.forEach(i => {
+        for (const i of currentMembers) {
             if (i === undefined) {
                 console.trace()
                 console.log(currentMembers)
                 btn.style.background = "yellow"
                 btn.title = t("historyDiff.someMembersHidden")
-                return
+                continue
             }
             const memberLi = document.createElement("li")
             const div = document.createElement("div")
@@ -1872,22 +1880,39 @@ async function replaceDownloadRelationButton(btn, relationID) {
             div2.appendChild(aVersion)
             memberLi.appendChild(div)
 
-            // const curChange = currentChanges[`${i.type} ${i.id}`]
-            // const memberHistory = histories[i.type][i.id]
-            // const tagsTable = processObject(div2, i.type, curChange[1] ?? curChange[2], curChange[2], memberHistory[memberHistory.length - 1], memberHistory)
-            // setTimeout(async () => {
-            //     await processObjectInteractions("", i.type, { nodes: [], ways: [], relations: [] }, div2, ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))))
-            // }, 0)
-            // tagsTable.then(table => {
-            //     if (memberLi.classList.contains("tags-non-modified")) {
-            //         div2.appendChild(table)
-            //     }
-            // table.style.borderColor = "var(--bs-body-color)";
-            // table.style.borderStyle = "solid";
-            // table.style.borderWidth = "1px";
-            // })
+            const curChange = currentChanges[`${i.type} ${i.id}`]
+            const memberHistory = histories[i.type][i.id]
+            const tagsTable = processObject(
+                div2,
+                i.type,
+                curChange[1] ?? curChange[2],
+                curChange[2],
+                memberHistory[memberHistory.length - 1],
+                memberHistory,
+            )
+            setTimeout(async () => {
+                await processObjectInteractions(
+                    i.changeset.toString(),
+                    i.type,
+                    {
+                        nodes: [],
+                        ways: [],
+                        relations: [],
+                    },
+                    div2,
+                    ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))),
+                )
+            }, 0)
+            tagsTable.then(table => {
+                if (memberLi.classList.contains("tags-non-modified")) {
+                    div2.appendChild(table)
+                }
+                // table.style.borderColor = "var(--bs-body-color)";
+                // table.style.borderStyle = "solid";
+                // table.style.borderWidth = "1px";
+            })
             ulMembers.appendChild(memberLi)
-        })
+        }
         membersDetails.appendChild(ulMembers)
         interVersionDiv.appendChild(membersDetails)
 
@@ -1994,7 +2019,7 @@ async function replaceDownloadRelationButton(btn, relationID) {
         insertBeforeThat.before(interVersionDiv)
     }
 
-    function replaceRelationVersion(it) {
+    async function replaceRelationVersion(it) {
         let divForMembersReplace = document.querySelector(`#element_versions_list > :where(div, details)[relation-version="${it.version}"]`)
         if (Object.keys(currentChanges).length > 1 && divForMembersReplace.classList?.contains("empty-version")) {
             divForMembersReplace.querySelector("summary")?.remove()
@@ -2075,7 +2100,7 @@ async function replaceDownloadRelationButton(btn, relationID) {
                     })
                 })
             }
-            currentMembers.forEach(([img, i]) => {
+            for (const [img, i] of currentMembers) {
                 if (i === undefined) {
                     console.trace()
                     console.log(currentMembers)
@@ -2084,7 +2109,7 @@ async function replaceDownloadRelationButton(btn, relationID) {
                     divForMembersReplace.classList.add("broken-version")
                     divForMembersReplace.title = t("historyDiff.someNodesHiddenSad")
                     divForMembersReplace.style.cursor = "auto"
-                    return
+                    continue
                 }
                 const memberLi = document.createElement("li")
                 const div = document.createElement("div")
@@ -2118,7 +2143,7 @@ async function replaceDownloadRelationButton(btn, relationID) {
                 const curChange = currentChanges[`${i.type} ${i.id}`]
                 const memberHistory = histories[i.type][i.id]
                 // todo нужна предзагрузка пакетов правок, потому что теперь рендерятся и линии
-                const tagsTable = processObject(
+                const tagsTable = await processObject(
                     div2,
                     i.type,
                     curChange[1] ?? curChange[2],
@@ -2126,29 +2151,25 @@ async function replaceDownloadRelationButton(btn, relationID) {
                     memberHistory[memberHistory.length - 1],
                     memberHistory,
                 )
-                setTimeout(async () => {
-                    await processObjectInteractions(
-                        "",
-                        i.type,
-                        {
-                            nodes: [],
-                            ways: [],
-                            relations: [],
-                        },
-                        div2,
-                        ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))),
-                    )
-                }, 0)
-                tagsTable.then(table => {
-                    if (memberLi.classList.contains("tags-non-modified")) {
-                        div2.appendChild(table)
-                    }
-                    //                            table.style.borderColor = "var(--bs-body-color)";
-                    //                             table.style.borderStyle = "solid";
-                    //                             table.style.borderWidth = "1px";
-                })
+                await processObjectInteractions(
+                    i.changeset.toString(),
+                    i.type,
+                    {
+                        nodes: [],
+                        ways: [],
+                        relations: [],
+                    },
+                    div2,
+                    ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))),
+                )
+                if (memberLi.classList.contains("tags-non-modified")) {
+                    div2.appendChild(tagsTable)
+                }
+                //                            table.style.borderColor = "var(--bs-body-color)";
+                //                             table.style.borderStyle = "solid";
+                //                             table.style.borderWidth = "1px";
                 ulMembers.appendChild(memberLi)
-            })
+            }
         }
         currentChanges = {}
         currentChangeset = null
@@ -2156,7 +2177,7 @@ async function replaceDownloadRelationButton(btn, relationID) {
 
     for (const it of objectsBag) {
         // debugger
-        // console.debug(it)
+        console.debug(it)
         const uniq_key = `${it.type} ${it.id}`
 
         if ((it.type === "node" || it.type === "way") && currentRelationVersion.version > 0 && !currentRelationObjectsSet.has(uniq_key)) {
@@ -2177,7 +2198,8 @@ async function replaceDownloadRelationButton(btn, relationID) {
             storeChanges(uniq_key, it)
         } else {
             if (currentRelationVersion.version !== 0) {
-                renderInterVersion()
+                // await sleep(1000)
+                await cleanAllPrevAfter(renderInterVersion)
             }
             currentChanges = {}
             storeChanges(uniq_key, it)
@@ -2188,33 +2210,20 @@ async function replaceDownloadRelationButton(btn, relationID) {
         objectStates[uniq_key] = it
         // для настоящей версии линии
         if (it.type === "relation") {
-            replaceRelationVersion(it)
+            // todo ещё проверять id
+            // await sleep(1000)
+            await cleanAllPrevAfter(replaceRelationVersion, it)
         }
     }
     if (Object.entries(currentChanges).length) {
-        renderInterVersion()
+        // await sleep(1000)
+        await cleanAllPrevAfter(renderInterVersion)
     }
     registerObjectCleanerOnHeader()
     if (document.querySelectorAll('[relation-version="inter"]').length > 20) {
         addVersionsFilters(btn, "relation")
     }
     btn.remove()
-}
-
-/**
- * @param relationID {number}
- * @return {Promise<void>}
- */
-async function showFullRelationHistory(relationID) {
-    const btn = document.querySelector("#download-all-versions-btn")
-    try {
-        await replaceDownloadRelationButton(btn, relationID)
-    } catch (err) {
-        console.error(err)
-        btn.title = t("historyDiff.reloadAndReport")
-        btn.style.background = "red"
-        btn.style.cursor = "auto"
-    }
 }
 
 function setupRelationVersionView() {
@@ -2369,11 +2378,7 @@ function setupRelationVersionView() {
         !document.getElementById("download-all-versions-btn")
     ) {
         // todo remove check after when would full history
-        const downloadAllVersionsBtn = document.createElement("a")
-        downloadAllVersionsBtn.id = "download-all-versions-btn"
-        downloadAllVersionsBtn.tabIndex = 0
-        downloadAllVersionsBtn.textContent = "⏬"
-        downloadAllVersionsBtn.style.cursor = "pointer"
+        const downloadAllVersionsBtn = makeDownloadVersionsButton()
         downloadAllVersionsBtn.title = t("historyDiff.downloadAllVersions") // + " (with intermediate versions)"
 
         const clickHandler = async e => {
@@ -2387,10 +2392,8 @@ function setupRelationVersionView() {
             }
             if (isDebug() && GM_config.get("FullVersionsDiff")) {
                 downloadAllVersionsBtn.textContent += " downloading intermediate versions β ..."
-                console.time("full history")
                 addQuickLookStyles()
-                await showFullRelationHistory(parseInt(relationID))
-                console.timeEnd("full history")
+                await showFullObjectHistory("relation", parseInt(relationID))
             }
             e.target.remove()
         }
@@ -2450,7 +2453,8 @@ async function downloadVersionsOfObjectWithRedactionBefore2012(type, objID) {
     }
 
     const urlPrefix =
-        "https://raw.githubusercontent.com/osm-cc-by-sa/data/refs/heads/main/versions_affected_by_disagreed_users_and_all_after_with_redaction_period"
+        "https://raw.githubusercontent.com/osm-cc-by-sa/data/" +
+        "refs/heads/main/versions_affected_by_disagreed_users_and_all_after_with_redaction_period"
     const url = `${urlPrefix}/${type}/${id_prefix}.osm` + (type === "relation" ? ".gz" : "")
     return await downloadArchiveData(url, objID, type === "relation")
 }
@@ -3489,7 +3493,9 @@ function transformDiffWithColors() {
             )
             const td = document.createElement("td")
             if (k.includes("colour")) {
-                td.innerHTML = `<svg width="14" height="14" class="float-end m-1"><title></title><rect x="0.5" y="0.5" width="13" height="13" fill="" stroke="#2222"></rect></svg>`
+                td.innerHTML =
+                    '<svg width="14" height="14" class="float-end m-1"><title></title>' +
+                    '<rect x="0.5" y="0.5" width="13" height="13" fill="" stroke="#2222"></rect></svg>'
                 td.querySelector("svg rect").setAttribute("fill", v)
                 td.appendChild(document.createTextNode(v))
             } else {

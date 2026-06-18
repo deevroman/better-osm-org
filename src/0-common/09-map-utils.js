@@ -143,6 +143,18 @@ function cleanAllObjects() {
     }
 }
 
+async function cleanAllPrevAfter(cb, ...args) {
+    const toRemove = []
+    for (let member in layers) {
+        layers[member].forEach(i => {
+            toRemove.push(i)
+        })
+        layers[member] = []
+    }
+    await cb(...args)
+    toRemove.forEach(i => i.remove())
+}
+
 /**
  * @name cleanObjectsByKey
  * @param {string} key
