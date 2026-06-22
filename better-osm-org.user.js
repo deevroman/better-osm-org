@@ -12063,12 +12063,12 @@ async function askCustomTileUrl() {
         //     value: "https://apps.kontur.io/raster-tiler/oam/mosaic/{z}/{x}/{y}.png",
         //     about: "https://www.kontur.io/solutions/global-orthomosaic-layer/",
         // },
-        // {
-        //     label: "GeoScribbles",
-        //     value: "https://geoscribble.osmz.ru/wms?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.1.1&SERVICE=WMS&REQUEST=GetMap&LAYERS=scribbles&STYLES=&SRS=EPSG:3857&WIDTH=512&HEIGHT=512&BBOX={bbox-epsg-3857}",
-        //     about: "https://osm.wiki/GeoScribble",
-        //     forceVector: true,
-        // },
+        {
+            label: "GeoScribbles",
+            value: "https://geoscribble.osmz.ru/wms?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.1.1&SERVICE=WMS&REQUEST=GetMap&LAYERS=scribbles&STYLES=&SRS=EPSG:3857&WIDTH=512&HEIGHT=512&BBOX={bbox-epsg-3857}",
+            about: "https://osm.wiki/GeoScribble",
+            forceVector: true,
+        },
         {
             label: "OpenRailwayMap",
             value: "https://tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png",
@@ -12083,7 +12083,7 @@ async function askCustomTileUrl() {
         {
             label: "Hrvatska GeoPortal",
             value: "https://geoportal.dgu.hr/services/inspire/orthophoto_2021_2022/ows?FORMAT=image/png&TRANSPARENT=TRUE&VERSION=1.3.0&SERVICE=WMS&REQUEST=GetMap&LAYERS=OI.OrthoimageCoverage&STYLES=&CRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}",
-            about: "https://osm.wiki/GeoScribble",
+            about: "",
         },
         // {
         //     label: "Strava Heatmap via freemap.sk",
