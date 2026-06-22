@@ -304,6 +304,11 @@
       "disabled": true
     },
     {
+      "name": "Geoscribbles map",
+      "template": "https://geoscribble.osmz.ru/map#{zoom}/{latitude}/{longitude}",
+      "description": "Map"
+    },
+    {
       "name": "OSM 411",
       "template": "https://osm411.org/#map={zoom}/{latitude}/{longitude}",
       "description": ""
