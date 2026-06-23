@@ -63,6 +63,16 @@
       "label": "OSRM debug style (simplified)",
       "value": "https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/master/misc/assets/vector-styles/osrm-debug-style.json",
       "about": "https://map.project-osrm.org/debug"
+    },
+    {
+      "label": "wb.ru tiles",
+      "value": "https://wb-maps.wb.ru/api/tiles/style/weblight-ru.json?key=Sc2QfP6Ujk2KmDxkeOxA",
+      "about": "https://wb-maps.wb.ru"
+    },
+    {
+      "label": "ozon.ru tiles",
+      "value": "https://gist.githubusercontent.com/deevroman/fdef5a2bf8412755d5e617618cfb1377/raw/6b46921af52a2e163f87eff69480f33ecb73bacd/style.json",
+      "about": "https://www.ozon.ru/geo"
     }
   ]
 }
