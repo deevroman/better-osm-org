@@ -90,10 +90,10 @@
 // @grant        GM.xmlHttpRequest
 // @grant        GM.fetch
 // @grant        GM_info
-// @comment      for get diffs for finding deleted users
+// @note         for get diffs for finding deleted users
 // @connect      planet.openstreetmap.org
 // @connect      planet.maps.mail.ru
-// @comment      overpass instances
+// @note         overpass instances
 // @connect      maps.mail.ru
 // @connect      overpass.private.coffee
 // @connect      turbo.overpass.private.coffee
@@ -106,7 +106,7 @@
 // @connect      www.openstreetmap.org
 // @connect      osmcha.org
 // @connect      raw.githubusercontent.com
-// @comment      for images preview from Wikimedia Commons, Panoramax, Mapillary, StreetComplete
+// @note         for images preview from Wikimedia Commons, Panoramax, Mapillary, StreetComplete
 // @connect      en.wikipedia.org
 // @connect      commons.wikimedia.org
 // @connect      graph.mapillary.com
@@ -124,9 +124,9 @@
 // @connect      panoramax.basi.re
 // @connect      westnordost.de
 // @connect      streetcomplete.app
-// @comment      for downloading gps-tracks — osm stores tracks in AWS
+// @note         for downloading gps-tracks — osm stores tracks in AWS
 // @connect      amazonaws.com
-// @comment      for satellite images and custom tiles
+// @note         for satellite images and custom tiles
 // @connect      server.arcgisonline.com
 // @connect      services.arcgisonline.com
 // @connect      clarity.maptiles.arcgis.com
@@ -155,17 +155,17 @@
 // @connect      tile-c.openstreetmap.fr
 // @connect      api.thunderforest.com
 // @connect      tile.tracestrack.com
-// @comment      * for custom layers. ViolentMonkey ignores @connect by default,
-// @comment      Tampermonkey will show a warning before connecting to a host that is not listed above
+// @note         * for custom layers. ViolentMonkey ignores @connect by default,
+// @note         Tampermonkey will show a warning before connecting to a host that is not listed above
 // @connect      *
 // @connect      geoscribble.osmz.ru
 // @connect      geoportal.dgu.hr
-// @comment      geocoder
+// @note         geocoder
 // @connect      photon.komoot.io
 // @connect      whosthat.osmz.ru
 // @connect      content-a.strava.com
 // @connect      strava-heatmap.tiles.freemap.sk
-// @comment      for downloading routers data age
+// @note         for downloading routers data age
 // @connect      map.project-osrm.org
 // @connect      valhalla1.openstreetmap.de
 // @sandbox      JavaScript
