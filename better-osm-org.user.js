@@ -5650,6 +5650,18 @@ function cleanAllObjects() {
     }
 }
 
+async function cleanAllPrevAfter(cb, ...args) {
+    const toRemove = []
+    for (let member in layers) {
+        layers[member].forEach(i => {
+            toRemove.push(i)
+        })
+        layers[member] = []
+    }
+    await cb(...args)
+    toRemove.forEach(i => i.remove())
+}
+
 /**
  * @name cleanObjectsByKey
  * @param {string} key
@@ -14476,6 +14488,7 @@ async function getNodeHistory(nodeID) {
 
 /**
  * @typedef {WayVersion[]} WayHistory
+ * @property {unique symbol} __brand_way_history
  */
 
 const enrichedHistories = new Set()
@@ -15041,6 +15054,10 @@ function makeVersionsFiltersSelector() {
  * @param {"way"|"relation"} type
  */
 function addVersionsFilters(btn, type) {
+    if (document.querySelectorAll(`[${type}-version="inter"]`).length <= 20) {
+        console.log("don't add filters")
+        return
+    }
     const select = makeVersionsFiltersSelector()
 
     select.onchange = e => {
@@ -15067,103 +15084,279 @@ function addVersionsFilters(btn, type) {
     btn.after(select)
 }
 
-async function replaceDownloadWayButton(btn, wayID) {
-    const objectsBag = await sortWayNodesByTimestamp(wayID)
+function reportAboutHiddenMember(i, currentMembers, parentType, btn, divForMembersReplace) {
+    console.trace(currentMembers)
+    btn.style.background = "yellow"
+    btn.title = t("historyDiff.reloadAndReport")
+    divForMembersReplace.classList.add("broken-version")
+    divForMembersReplace.title = t("historyDiff.someNodesHiddenSad")
+    divForMembersReplace.style.cursor = "auto"
+}
 
-    /** @type {Object<number, WayVersion>} */
-    const wayVersionsIndex = makeObjectVersionsIndex(await getWayHistory(wayID))
-    /** @type {Object.<string, NodeVersion|WayVersion>}*/
-    const objectStates = {}
-    /** @type {Object.<string, [string, NodeVersion|WayVersion, NodeVersion|WayVersion]>} */
-    let currentChanges = {}
+function makeInterVersionHeader(type) {
+    const h = document.createElement("h4")
+    const abbr = document.createElement("abbr")
+    abbr.textContent = type === "way" ? t("historyDiff.intermediateWayVersion") : t("historyDiff.intermediateRelationVersion")
+    abbr.title = type === "way" ? t("historyDiff.intermediateWayVersionTitle") : t("historyDiff.intermediateRelationVersionTitle")
+    h.appendChild(abbr)
+    return h
+}
 
-    /**
-     * @param {string} key
-     * @param {NodeVersion|WayVersion} newVersion
-     */
-    function storeChanges(key, newVersion) {
-        const prev = objectStates[key]
-        if (prev === undefined) {
-            currentChanges[key] = ["new", prev, newVersion]
+function makeInterVersionSection(type, changeset, timestamp, user, count) {
+    const interVersionDiv = document.createElement("div")
+    interVersionDiv.setAttribute(`${type}-version`, "inter")
+    interVersionDiv.classList.add("mb-3", "border-bottom", "border-secondary-subtle", "pb-3", "browse-section")
+
+    const interVersionDivHeader = makeInterVersionHeader()
+    interVersionDiv.appendChild(interVersionDivHeader)
+
+    const p = document.createElement("p")
+    interVersionDiv.appendChild(p)
+    loadChangesetMetadata(changeset).then(ch => {
+        p.textContent = shortOsmOrgLinksInText(ch.tags["comment"] ?? "")
+    })
+
+    interVersionDiv.appendChild(makeVersionUl(timestamp, user, changeset))
+
+    const details = document.createElement("details")
+    details.classList.add("way-version-nodes") // TODO
+    details.onclick = e => {
+        e.stopImmediatePropagation()
+    }
+    const summary = document.createElement("summary")
+    summary.textContent = count
+    summary.classList.add("history-diff-modified-tag")
+    details.appendChild(summary)
+    const ulChildren = document.createElement("ul")
+    ulChildren.classList.add("list-unstyled")
+    return { interVersionDiv, childrenDetails: details, ulChildren }
+}
+
+const emptyComments = Object.freeze({
+    nodes: [],
+    ways: [],
+    relations: [],
+})
+
+async function renderWayInterVersion(btn, objectVersionsIndex, objectStates, current, type) {
+    /** @type {NodeVersion[]}*/
+    const currentChildren = []
+    objectVersionsIndex[current.objectVersion.version].nodes.forEach(nodeID => {
+        const uniq_key = `node ${nodeID}`
+        currentChildren.push(objectStates[uniq_key])
+        if (current.changes[uniq_key] !== undefined) return
+        const curV = objectStates[uniq_key]
+        if (curV) {
+            current.changes[uniq_key] = ["", curV, curV]
         } else {
-            if (locationChanged(prev, newVersion) && tagsChanged(prev, newVersion)) {
-                currentChanges[key] = ["new", prev, newVersion]
-            } else if (locationChanged(prev, newVersion)) {
-                currentChanges[key] = ["location", prev, newVersion]
-            } else if (tagsChanged(prev, newVersion)) {
-                currentChanges[key] = ["tags", prev, newVersion]
-            } else {
-                currentChanges[key] = ["", prev, newVersion]
-            }
+            console.warn(`${uniq_key} not found in states`)
         }
+    })
+    const count = currentChildren.length
+    const {
+        interVersionDiv,
+        childrenDetails: nodesDetails,
+        ulChildren: ulNodes,
+    } = makeInterVersionSection(type, current.changeset, current.timestamp, current.user, count)
+    for (const i of currentChildren) {
+        if (i === undefined) {
+            console.trace(currentChildren)
+            btn.style.background = "yellow"
+            btn.title = t("historyDiff.someNodesHidden")
+            continue
+        }
+        const nodeLi = document.createElement("li")
+        const div = document.createElement("div")
+        div.classList.add("d-flex", "gap-1")
+        const div2 = document.createElement("div")
+        div2.classList.add("align-self-center")
+        div.appendChild(div2)
+
+        const aHistory = document.createElement("a")
+        aHistory.classList.add(i.type)
+        aHistory.href = `/${i.type}/${i.id}/history`
+        aHistory.textContent = i.id
+        div2.appendChild(aHistory)
+
+        div2.appendChild(document.createTextNode(", "))
+
+        const aVersion = document.createElement("a")
+        aVersion.classList.add(i.type)
+        aVersion.href = `/${i.type}/${i.id}/history/${i.version}`
+        aVersion.textContent = "v" + i.version
+        div2.appendChild(aVersion)
+        nodeLi.appendChild(div)
+
+        const curChange = current.changes[`${i.type} ${i.id}`]
+        const nodesHistory = histories[i.type][i.id]
+        const tagsTable = await processObject(
+            div2,
+            i.type,
+            curChange[1] ?? curChange[2],
+            curChange[2],
+            nodesHistory[nodesHistory.length - 1],
+            nodesHistory,
+        )
+        await processObjectInteractions(
+            i.id.toString(),
+            i.type,
+            emptyComments,
+            div2,
+            ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))),
+        )
+        if (nodeLi.classList.contains("tags-non-modified")) {
+            div2.appendChild(tagsTable)
+        }
+        // table.style.borderColor = "var(--bs-body-color)";
+        // table.style.borderStyle = "solid";
+        // table.style.borderWidth = "1px";
+        ulNodes.appendChild(nodeLi)
     }
+    nodesDetails.appendChild(ulNodes)
+    interVersionDiv.appendChild(nodesDetails)
 
-    /** @type {number|null} */
-    let currentChangeset = null
-    /** @type {string|null} */
-    let currentUser = null
-    /** @type {string|null} */
-    let currentTimestamp = null
-    /** @type {WayVersion}*/
-    let currentWayVersion = { version: 0, nodes: [] }
-    let currentWayNodesSet = new Set()
-
-    function makeInterWayVersionHeader() {
-        const interVersionDivHeader = document.createElement("h4")
-        const interVersionDivAbbr = document.createElement("abbr")
-        interVersionDivAbbr.textContent = t("historyDiff.intermediateWayVersion")
-        interVersionDivAbbr.title = t("historyDiff.intermediateWayVersionTitle")
-        interVersionDivHeader.appendChild(interVersionDivAbbr)
-        return interVersionDivHeader
+    const tmpChangedNodes = Object.values(current.changes).filter(i => i[2].type === "node")
+    if (tmpChangedNodes.every(i => i[0] === "tags")) {
+        interVersionDiv.classList.add("only-tags-changed")
     }
+    const changedNodes = tmpChangedNodes.filter(i => i[0] !== "location")
+    interVersionDiv.onmouseenter = () => {
+        resetMapHover()
+        cleanAllObjects()
+        showWay(currentChildren, "#000000", false, darkModeForMap && isDarkMode())
+        currentChildren.forEach(node => {
+            if (node.tags && Object.keys(node.tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                showNodeMarker(node.lat.toString(), node.lon.toString(), "rgb(161,161,161)", null, "customObjects", 3)
+            }
+        })
+        changedNodes.forEach(i => {
+            if (i[0] === "") return
+            if (i[2].visible === false) {
+                if (i[1].visible !== false) {
+                    showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
+                }
+            } else if (i[0] === "new") {
+                if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+                }
+                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+            } else {
+                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
+            }
+        })
+    }
+    interVersionDiv.onclick = e => {
+        resetMapHover()
+        cleanAllObjects()
+        showWay(currentChildren, "#000000", e.isTrusted, darkModeForMap && isDarkMode())
+        currentChildren.forEach(node => {
+            if (node.tags && Object.keys(node.tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                showNodeMarker(node.lat.toString(), node.lon.toString(), "rgb(161,161,161)", null, "customObjects", 3)
+            }
+        })
+        changedNodes.forEach(i => {
+            if (i[0] === "") return
+            if (i[2].visible === false) {
+                if (i[1].visible !== false) {
+                    showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
+                }
+            } else if (i[0] === "new") {
+                if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+                }
+                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+            } else {
+                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
+            }
+        })
+    }
+    let insertBeforeThat = document.querySelector(
+        `#element_versions_list > :where(div, details)[way-version="${current.objectVersion.version}"]`,
+    )
+    while (insertBeforeThat.previousElementSibling?.getAttribute("way-version") === "inter") {
+        // fixme O(n^2)
+        insertBeforeThat = insertBeforeThat.previousElementSibling
+    }
+    insertBeforeThat.before(interVersionDiv)
+}
 
-    function renderInterVersion() {
-        const currentNodes = []
-        wayVersionsIndex[currentWayVersion.version].nodes.forEach(nodeID => {
-            const uniq_key = `node ${nodeID}`
-            currentNodes.push(objectStates[uniq_key])
-            if (currentChanges[uniq_key] !== undefined) return
+async function replaceRealWayVersion(it, objectStates, current) {
+    let divForNodesReplace = document.querySelector(`#element_versions_list > :where(div, details)[way-version="${it.version}"]`)
+    if (Object.keys(current.changes).length > 1 && divForNodesReplace.classList?.contains("empty-version")) {
+        divForNodesReplace.querySelector("summary")?.remove()
+        const div = document.createElement("div")
+        div.innerHTML = divForNodesReplace.innerHTML
+        div.setAttribute("way-version", divForNodesReplace.getAttribute("way-version"))
+        divForNodesReplace.replaceWith(div)
+        divForNodesReplace = div
+    }
+    current.objectVersion = it
+    current.objectObjectsSet = new Set()
+    current.objectVersion.nodes?.forEach(nodeID => {
+        const uniq_key = `node ${nodeID}`
+        current.objectObjectsSet.add(uniq_key)
+        if (current.changes[uniq_key] === undefined) {
             const curV = objectStates[uniq_key]
             if (curV) {
-                currentChanges[uniq_key] = ["", curV, curV]
+                if (curV.version === 1 && current.objectVersion.changeset === curV.changeset) {
+                    current.changes[uniq_key] = ["new", emptyVersion, curV]
+                } else {
+                    current.changes[uniq_key] = ["", curV, curV]
+                }
             } else {
                 console.warn(`${uniq_key} not found in states`)
             }
-        })
-
-        const interVersionDiv = document.createElement("div")
-        interVersionDiv.setAttribute("way-version", "inter")
-        interVersionDiv.classList.add("mb-3", "border-bottom", "border-secondary-subtle", "pb-3", "browse-section")
-
-        const interVersionDivHeader = makeInterWayVersionHeader()
-        interVersionDiv.appendChild(interVersionDivHeader)
-
-        const p = document.createElement("p")
-        interVersionDiv.appendChild(p)
-        loadChangesetMetadata(currentChangeset).then(ch => {
-            p.textContent = ch.tags["comment"]
-        })
-
-        interVersionDiv.appendChild(makeVersionUl(currentTimestamp, currentUser, currentChangeset))
-
-        const nodesDetails = document.createElement("details")
-        nodesDetails.classList.add("way-version-nodes")
-        nodesDetails.onclick = e => {
-            e.stopImmediatePropagation()
         }
-        const summary = document.createElement("summary")
-        summary.textContent = currentNodes.length
-        summary.classList.add("history-diff-modified-tag")
-        nodesDetails.appendChild(summary)
-        const ulNodes = document.createElement("ul")
-        ulNodes.classList.add("list-unstyled")
-        currentNodes.forEach(i => {
+    })
+    if (divForNodesReplace && current.objectVersion.nodes) {
+        /** @type {[HTMLImageElement, NodeVersion][]} */
+        const currentNodes = []
+        const ulNodes = divForNodesReplace.querySelector("details:not(.empty-version) ul")
+        ulNodes.parentElement.classList.add("way-version-nodes")
+        ulNodes.querySelectorAll("li").forEach(li => {
+            li.style.display = "none"
+            const id = li.querySelector("div div a").href.match(/node\/(\d+)/)[1]
+            currentNodes.push([li.querySelector("img"), objectStates[`node ${id}`]])
+        })
+        if (it.version !== 1) {
+            const changedNodes = Object.values(current.changes).filter(i => i[2].type === "node" && i[0] !== "location" && i[0] !== "")
+            document.querySelector(`#element_versions_list > div[way-version="${it.version}"]`)?.addEventListener("mouseenter", () => {
+                changedNodes.forEach(i => {
+                    if (i[2].visible === false) {
+                        if (i[1].visible !== false) {
+                            showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
+                        }
+                    } else if (i[0] === "new") {
+                        if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                            showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+                        }
+                        showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+                    } else {
+                        showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
+                    }
+                })
+            })
+            document.querySelector(`#element_versions_list > div[way-version="${it.version}"]`)?.addEventListener("click", () => {
+                changedNodes.forEach(i => {
+                    if (i[2].visible === false) {
+                        if (i[1].visible !== false) {
+                            showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
+                        }
+                    } else if (i[0] === "new") {
+                        if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                            showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+                        }
+                        showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+                    } else {
+                        showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
+                    }
+                })
+            })
+        }
+        for (const [img, i] of currentNodes) {
             if (i === undefined) {
-                console.trace()
-                console.log(currentNodes)
-                btn.style.background = "yellow"
-                btn.title = t("historyDiff.someNodesHidden")
-                return
+                reportAboutHiddenMember(currentNodes, it.type, btn, divForNodesReplace)
+                continue
             }
             const nodeLi = document.createElement("li")
             const div = document.createElement("div")
@@ -15172,11 +15365,18 @@ async function replaceDownloadWayButton(btn, wayID) {
             div2.classList.add("align-self-center")
             div.appendChild(div2)
 
+            if (img) {
+                div2.before(img.cloneNode(true))
+            } else {
+                console.warn("img is undefined")
+            }
+
             const aHistory = document.createElement("a")
-            aHistory.classList.add("node")
-            aHistory.href = "/node/" + i.id + "/history"
+            aHistory.classList.add(i.type)
+            aHistory.href = `/${i.type}/${i.id}/history`
             aHistory.textContent = i.id
             div2.appendChild(aHistory)
+            nodeLi.appendChild(div)
 
             div2.appendChild(document.createTextNode(", "))
 
@@ -15187,299 +15387,108 @@ async function replaceDownloadWayButton(btn, wayID) {
             div2.appendChild(aVersion)
             nodeLi.appendChild(div)
 
-            const curChange = currentChanges[`node ${i.id}`]
-            const nodesHistory = nodesHistories[i.id]
-            const tagsTable = processObject(
+            const curChange = current.changes[`${i.type} ${i.id}`]
+            const nodesHistory = histories[i.type][i.id]
+            const tagsTable = await processObject(
                 div2,
-                "node",
+                i.type,
                 curChange[1] ?? curChange[2],
                 curChange[2],
                 nodesHistory[nodesHistory.length - 1],
                 nodesHistory,
             )
-            setTimeout(async () => {
-                await processObjectInteractions(
-                    "",
-                    "node",
-                    { nodes: [] },
-                    div2,
-                    ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))),
-                )
-            }, 0)
-            tagsTable.then(table => {
-                if (nodeLi.classList.contains("tags-non-modified")) {
-                    div2.appendChild(table)
-                }
-                // table.style.borderColor = "var(--bs-body-color)";
-                // table.style.borderStyle = "solid";
-                // table.style.borderWidth = "1px";
-            })
+            await processObjectInteractions(
+                i.changeset.toString(),
+                i.type,
+                emptyComments,
+                div2,
+                ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))),
+            )
+            if (nodeLi.classList.contains("tags-non-modified")) {
+                div2.appendChild(tagsTable)
+            }
+            // table.style.borderColor = "var(--bs-body-color)";
+            //  table.style.borderStyle = "solid";
+            //  table.style.borderWidth = "1px";
             ulNodes.appendChild(nodeLi)
-        })
-        nodesDetails.appendChild(ulNodes)
-        interVersionDiv.appendChild(nodesDetails)
-
-        const tmpChangedNodes = Object.values(currentChanges).filter(i => i[2].type === "node")
-        if (tmpChangedNodes.every(i => i[0] === "tags")) {
-            interVersionDiv.classList.add("only-tags-changed")
-        }
-        const changedNodes = tmpChangedNodes.filter(i => i[0] !== "location")
-        interVersionDiv.onmouseenter = () => {
-            resetMapHover()
-            cleanAllObjects()
-            showWay(currentNodes, "#000000", false, darkModeForMap && isDarkMode())
-            currentNodes.forEach(node => {
-                if (node.tags && Object.keys(node.tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
-                    showNodeMarker(node.lat.toString(), node.lon.toString(), "rgb(161,161,161)", null, "customObjects", 3)
-                }
-            })
-            changedNodes.forEach(i => {
-                if (i[0] === "") return
-                if (i[2].visible === false) {
-                    if (i[1].visible !== false) {
-                        showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
-                    }
-                } else if (i[0] === "new") {
-                    if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
-                        showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
-                    }
-                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
-                } else {
-                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
-                }
-            })
-        }
-        interVersionDiv.onclick = e => {
-            resetMapHover()
-            cleanAllObjects()
-            showWay(currentNodes, "#000000", e.isTrusted, darkModeForMap && isDarkMode())
-            currentNodes.forEach(node => {
-                if (node.tags && Object.keys(node.tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
-                    showNodeMarker(node.lat.toString(), node.lon.toString(), "rgb(161,161,161)", null, "customObjects", 3)
-                }
-            })
-            changedNodes.forEach(i => {
-                if (i[0] === "") return
-                if (i[2].visible === false) {
-                    if (i[1].visible !== false) {
-                        showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
-                    }
-                } else if (i[0] === "new") {
-                    if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
-                        showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
-                    }
-                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
-                } else {
-                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
-                }
-            })
-        }
-        let insertBeforeThat = document.querySelector(
-            `#element_versions_list > :where(div, details)[way-version="${currentWayVersion.version}"]`,
-        )
-        while (insertBeforeThat.previousElementSibling?.getAttribute("way-version") === "inter") {
-            // fixme O(n^2)
-            insertBeforeThat = insertBeforeThat.previousElementSibling
-        }
-        insertBeforeThat.before(interVersionDiv)
-    }
-
-    function replaceWayVersion(it) {
-        let divForNodesReplace = document.querySelector(`#element_versions_list > :where(div, details)[way-version="${it.version}"]`)
-        if (Object.keys(currentChanges).length > 1 && divForNodesReplace.classList?.contains("empty-version")) {
-            divForNodesReplace.querySelector("summary")?.remove()
-            const div = document.createElement("div")
-            div.innerHTML = divForNodesReplace.innerHTML
-            div.setAttribute("way-version", divForNodesReplace.getAttribute("way-version"))
-            divForNodesReplace.replaceWith(div)
-            divForNodesReplace = div
-        }
-        currentWayVersion = it
-        currentWayNodesSet = new Set()
-        currentWayVersion.nodes?.forEach(nodeID => {
-            currentWayNodesSet.add(nodeID)
-            const uniq_key = `node ${nodeID}`
-            if (currentChanges[uniq_key] === undefined) {
-                const curV = objectStates[uniq_key]
-                if (curV) {
-                    if (curV.version === 1 && currentWayVersion.changeset === curV.changeset) {
-                        currentChanges[uniq_key] = ["new", emptyVersion, curV]
-                    } else {
-                        currentChanges[uniq_key] = ["", curV, curV]
-                    }
-                } else {
-                    console.warn(`${uniq_key} not found in states`)
-                }
-            }
-        })
-        if (divForNodesReplace && currentWayVersion.nodes) {
-            const currentNodes = []
-            const ulNodes = divForNodesReplace.querySelector("details:not(.empty-version) ul")
-            ulNodes.parentElement.classList.add("way-version-nodes")
-            ulNodes.querySelectorAll("li").forEach(li => {
-                li.style.display = "none"
-                const id = li.querySelector("div div a").href.match(/node\/(\d+)/)[1]
-                currentNodes.push([li.querySelector("img"), objectStates[`node ${id}`]])
-            })
-            if (it.version !== 1) {
-                const changedNodes = Object.values(currentChanges).filter(i => i[2].type === "node" && i[0] !== "location" && i[0] !== "")
-                document.querySelector(`#element_versions_list > div[way-version="${it.version}"]`)?.addEventListener("mouseenter", () => {
-                    changedNodes.forEach(i => {
-                        if (i[2].visible === false) {
-                            if (i[1].visible !== false) {
-                                showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
-                            }
-                        } else if (i[0] === "new") {
-                            if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
-                                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
-                            }
-                            showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
-                        } else {
-                            showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
-                        }
-                    })
-                })
-                document.querySelector(`#element_versions_list > div[way-version="${it.version}"]`)?.addEventListener("click", () => {
-                    changedNodes.forEach(i => {
-                        if (i[2].visible === false) {
-                            if (i[1].visible !== false) {
-                                showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
-                            }
-                        } else if (i[0] === "new") {
-                            if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
-                                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
-                            }
-                            showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
-                        } else {
-                            showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
-                        }
-                    })
-                })
-            }
-            currentNodes.forEach(([img, i]) => {
-                if (i === undefined) {
-                    console.trace()
-                    console.log(currentNodes)
-                    btn.style.background = "yellow"
-                    btn.title = t("historyDiff.reloadAndReport")
-                    divForNodesReplace.classList.add("broken-version")
-                    divForNodesReplace.title = t("historyDiff.someNodesHiddenSad")
-                    divForNodesReplace.style.cursor = "auto"
-                    return
-                }
-                const nodeLi = document.createElement("li")
-                const div = document.createElement("div")
-                div.classList.add("d-flex", "gap-1")
-                const div2 = document.createElement("div")
-                div2.classList.add("align-self-center")
-                div.appendChild(div2)
-
-                if (img) {
-                    div2.before(img.cloneNode(true))
-                } else {
-                    console.warn("img is undefined")
-                }
-
-                const aHistory = document.createElement("a")
-                aHistory.classList.add("node")
-                aHistory.href = "/node/" + i.id + "/history"
-                aHistory.textContent = i.id
-                div2.appendChild(aHistory)
-                nodeLi.appendChild(div)
-
-                div2.appendChild(document.createTextNode(", "))
-
-                const aVersion = document.createElement("a")
-                aVersion.classList.add("node")
-                aVersion.href = "/node/" + i.id + "/history/" + i.version
-                aVersion.textContent = "v" + i.version
-                div2.appendChild(aVersion)
-                nodeLi.appendChild(div)
-
-                const curChange = currentChanges[`node ${i.id}`]
-                const nodesHistory = nodesHistories[i.id]
-                const tagsTable = processObject(
-                    div2,
-                    "node",
-                    curChange[1] ?? curChange[2],
-                    curChange[2],
-                    nodesHistory[nodesHistory.length - 1],
-                    nodesHistory,
-                )
-                setTimeout(async () => {
-                    await processObjectInteractions(
-                        "",
-                        "node",
-                        { nodes: [] },
-                        div2,
-                        ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))),
-                    )
-                }, 0)
-                tagsTable.then(table => {
-                    if (nodeLi.classList.contains("tags-non-modified")) {
-                        div2.appendChild(table)
-                    }
-                    //                            table.style.borderColor = "var(--bs-body-color)";
-                    //                             table.style.borderStyle = "solid";
-                    //                             table.style.borderWidth = "1px";
-                })
-                ulNodes.appendChild(nodeLi)
-            })
-        }
-        currentChanges = {}
-        currentChangeset = null
-    }
-
-    for (const it of objectsBag) {
-        console.debug(it)
-        const uniq_key = `${it.type} ${it.id}`
-        if (it.type === "node" && currentWayVersion.version > 0 && !currentWayNodesSet.has(it.id)) {
-            objectStates[uniq_key] = it
-            continue
-        }
-        if (it.changeset === currentChangeset) {
-            storeChanges(uniq_key, it) // todo split if new way version
-        } else if (currentChangeset === null) {
-            currentChangeset = it.changeset
-            currentUser = it.user
-            currentTimestamp = it.timestamp
-            storeChanges(uniq_key, it)
-        } else {
-            if (currentWayVersion.version !== 0) {
-                renderInterVersion()
-            }
-            currentChanges = {}
-            storeChanges(uniq_key, it)
-            currentChangeset = it.changeset
-            currentUser = it.user
-            currentTimestamp = it.timestamp
-        }
-        objectStates[uniq_key] = it
-        // для настоящей версии линии
-        if (it.type === "way") {
-            replaceWayVersion(it)
         }
     }
-    if (Object.entries(currentChanges).length) {
-        renderInterVersion()
+    current.changes = {}
+    current.changeset = null
+}
+
+/**
+ * @param {"way"} type
+ * @param btn {HTMLElement}
+ * @param objectID {number}
+ * @return {Promise<void>}
+ */
+async function replaceDownloadWayButton(type, btn, objectID) {
+    const objectsBag = await sortWayNodesByTimestamp(objectID)
+    await preloadChangesetsForObjectsBag(objectsBag)
+
+    /** @type {Object<number, WayVersion>} */
+    const objectVersionsIndex = makeObjectVersionsIndex(await getObjectHistory(type, objectID))
+    /** @type {Object.<string, NodeVersion|WayVersion>}*/
+    const objectStates = {}
+
+    /**
+     * @type {{
+     * changeset: number|null,
+     * currentUser: string|null,
+     * timestamp: string|null
+     * changes: Object.<string, [string, NodeVersion|WayVersion, NodeVersion|WayVersion]>,
+     * objectVersion: WayVersion,
+     * objectObjectsSet: Set<string>,
+     * }}
+     */
+    const current = {
+        changeset: null,
+        user: null,
+        timestamp: null,
+        changes: {},
+        objectVersion: { version: 0, nodes: [] },
+        objectObjectsSet: new Set(),
     }
+
+    await processObjectsBag(objectsBag, objectStates, current, type, objectID, objectVersionsIndex, btn)
     registerObjectCleanerOnHeader()
-    if (document.querySelectorAll('[way-version="inter"]').length > 20) {
-        addVersionsFilters(btn, "way")
-    }
+    addVersionsFilters(btn, type)
     btn.remove()
 }
 
-async function showFullWayHistory(wayID) {
+/**
+ * @param {"way"|"relation"} type
+ * @param objectId {number}
+ * @return {Promise<void>}
+ */
+async function showFullObjectHistory(type, objectId) {
+    console.time("full history")
     const btn = document.querySelector("#download-all-versions-btn")
     try {
-        await replaceDownloadWayButton(btn, wayID)
+        if (type === "way") {
+            await replaceDownloadWayButton(type, btn, objectId)
+        } else {
+            await replaceDownloadRelationButton(type, btn, objectId)
+        }
     } catch (err) {
         console.error(err)
         btn.title = t("historyDiff.reloadAndReport")
         btn.style.background = "red"
         btn.style.cursor = "auto"
+        throw err
+    } finally {
+        console.timeEnd("full history")
     }
+}
+
+function makeDownloadVersionsButton() {
+    const downloadAllVersionsBtn = document.createElement("a")
+    downloadAllVersionsBtn.id = "download-all-versions-btn"
+    downloadAllVersionsBtn.tabIndex = 0
+    downloadAllVersionsBtn.textContent = "⏬"
+    downloadAllVersionsBtn.style.cursor = "pointer"
+    return downloadAllVersionsBtn
 }
 
 function setupWayVersionView() {
@@ -15583,12 +15592,9 @@ function setupWayVersionView() {
     })
 
     if (!document.getElementById("download-all-versions-btn")) {
-        const downloadAllVersionsBtn = document.createElement("a")
-        downloadAllVersionsBtn.id = "download-all-versions-btn"
-        downloadAllVersionsBtn.tabIndex = 0
-        downloadAllVersionsBtn.textContent = "⏬"
-        downloadAllVersionsBtn.style.cursor = "pointer"
+        const downloadAllVersionsBtn = makeDownloadVersionsButton()
         downloadAllVersionsBtn.title = t("historyDiff.downloadAllVersionsWithIntermediate")
+
         const clickHandler = async () => {
             downloadAllVersionsBtn.style.cursor = "progress"
             await unrollPaginationInHistory()
@@ -15601,10 +15607,8 @@ function setupWayVersionView() {
                 }
             }
             if (GM_config.get("FullVersionsDiff")) {
-                console.time("full history")
                 addQuickLookStyles()
-                await showFullWayHistory(wayID)
-                console.timeEnd("full history")
+                await showFullObjectHistory("way", parseInt(wayID))
             }
         }
         downloadAllVersionsBtn.addEventListener("click", clickHandler, { once: true })
@@ -15690,6 +15694,18 @@ async function getRelationHistory(relationID) {
     } else {
         const res = await fetchRetry(osm_server.apiBase + "relation" + "/" + relationID + "/history.json")
         return (relationsHistories[relationID] = (await res.json()).elements)
+    }
+}
+
+async function getObjectHistory(type, objectID) {
+    if (type === "node") {
+        return await getNodeHistory(objectID)
+    } else if (type === "way") {
+        return await getWayHistory(objectID)
+    } else if (type === "relation") {
+        return await getRelationHistory(objectID)
+    } else {
+        throw `unknown ${type} type`
     }
 }
 
@@ -16025,143 +16041,378 @@ async function loadRelationVersionMembers(relationID, version) {
     return { targetVersion: targetVersion, membersHistory: membersHistory }
 }
 
-/**
- * @param btn {HTMLElement}
- * @param relationID {number}
- * @return {Promise<void>}
- */
-async function replaceDownloadRelationButton(btn, relationID) {
-    const objectsBag = await sortRelationMembersByTimestamp(relationID)
+async function preloadChangesetsForObjectsBag(objectsBag) {
     const changesetsSet = new Set()
     objectsBag.forEach(o => changesetsSet.add(o.changeset))
     console.log("uniq changesets in versions:", changesetsSet.size)
     await Promise.all(arraySplit(Array.from(changesetsSet).filter(ch => !changesetMetadatas[ch])).map(it => loadChangesetMetadatas(it)))
+}
 
-    /** @type {Object<number, RelationVersion>} */
-    const relationVersionsIndex = makeObjectVersionsIndex(await getRelationHistory(relationID))
-    /** @type {Object.<string, NodeVersion|WayVersion|RelationVersion>}*/
-    const objectStates = {}
-    /** @type {Object.<string, [string, NodeVersion|WayVersion|RelationVersion, NodeVersion|WayVersion|RelationVersion]>} */
-    let currentChanges = {}
-
-    /**
-     * @param {string} key
-     * @param {NodeVersion|WayVersion|RelationVersion} newVersion
-     */
-    function storeChanges(key, newVersion) {
-        const prev = objectStates[key]
-        if (prev === undefined) {
-            currentChanges[key] = ["new", prev, newVersion]
-        } else {
-            if (newVersion.type !== "node") {
-                if (newVersion.type === "way") {
-                    if (nodesChanged(prev, newVersion)) {
-                        currentChanges[key] = ["nodes", prev, newVersion]
-                    } else {
-                        currentChanges[key] = ["", prev, newVersion]
-                    }
+/**
+ * @param {Object.<string, NodeVersion|WayVersion|RelationVersion>} objectStates
+ * @param {Object.<string, [string, NodeVersion|WayVersion|RelationVersion, NodeVersion|WayVersion|RelationVersion]>} currentChanges
+ * @param {string} key
+ * @param {NodeVersion|WayVersion|RelationVersion} newVersion
+ */
+function storeChanges(objectStates, currentChanges, key, newVersion) {
+    const prev = objectStates[key]
+    if (prev === undefined) {
+        currentChanges[key] = ["new", prev, newVersion]
+    } else {
+        if (newVersion.type !== "node") {
+            if (newVersion.type === "way") {
+                if (nodesChanged(prev, newVersion)) {
+                    currentChanges[key] = ["nodes", prev, newVersion]
                 } else {
-                    if (membersChanged(prev, newVersion)) {
-                        currentChanges[key] = ["members", prev, newVersion]
-                    } else {
-                        currentChanges[key] = ["", prev, newVersion]
-                    }
+                    currentChanges[key] = ["", prev, newVersion]
                 }
-                // debugger // todo
-            } else if (locationChanged(prev, newVersion) && tagsChanged(prev, newVersion)) {
-                currentChanges[key] = ["new", prev, newVersion]
-            } else if (locationChanged(prev, newVersion)) {
-                currentChanges[key] = ["location", prev, newVersion]
-            } else if (tagsChanged(prev, newVersion)) {
-                currentChanges[key] = ["tags", prev, newVersion]
             } else {
-                currentChanges[key] = ["", prev, newVersion]
+                if (membersChanged(prev, newVersion)) {
+                    currentChanges[key] = ["members", prev, newVersion]
+                } else {
+                    currentChanges[key] = ["", prev, newVersion]
+                }
             }
+            // debugger // todo
+        } else if (locationChanged(prev, newVersion) && tagsChanged(prev, newVersion)) {
+            currentChanges[key] = ["new", prev, newVersion]
+        } else if (locationChanged(prev, newVersion)) {
+            currentChanges[key] = ["location", prev, newVersion]
+        } else if (tagsChanged(prev, newVersion)) {
+            currentChanges[key] = ["tags", prev, newVersion]
+        } else {
+            currentChanges[key] = ["", prev, newVersion]
         }
     }
+}
 
-    /** @type {number|null} */
-    let currentChangeset = null
-    /** @type {string|null} */
-    let currentUser = null
-    /** @type {string|null} */
-    let currentTimestamp = null
-    /** @type {RelationVersion} */
-    let currentRelationVersion = { version: 0, members: [] }
-    /** @type {Set<string>} */
-    let currentRelationObjectsSet = new Set()
-
-    function makeInterRelationVersionHeader() {
-        const interVersionDivHeader = document.createElement("h4")
-        const interVersionDivAbbr = document.createElement("abbr")
-        interVersionDivAbbr.textContent = t("historyDiff.intermediateRelationVersion")
-        interVersionDivAbbr.title = t("historyDiff.intermediateRelationVersionTitle")
-        interVersionDivHeader.appendChild(interVersionDivAbbr)
-        return interVersionDivHeader
+async function processObjectsBag(objectsBag, objectStates, current, type, objectID, objectVersionsIndex, btn) {
+    const renderInterVersion = type === "way" ? renderWayInterVersion : renderRelationInterVersion
+    const replaceRealVersion = type === "way" ? replaceRealWayVersion : replaceRealRelationVersion
+    for (const it of objectsBag) {
+        console.debug(it)
+        const uniq_key = `${it.type} ${it.id}`
+        if (it.type === "node" && current.objectVersion.version > 0 && !current.objectObjectsSet.has(uniq_key)) {
+            objectStates[uniq_key] = it
+            continue
+        }
+        if (type === "relation" && it.type === "way" && current.objectVersion.version > 0 && !current.objectObjectsSet.has(uniq_key)) {
+            objectStates[uniq_key] = it
+            continue
+        }
+        if (it.type === "way") {
+            // debugger
+        } else if (it.type === "relation") {
+            // debugger
+        }
+        if (it.changeset === current.changeset) {
+            storeChanges(objectStates, current.changes, uniq_key, it) // todo split if new way version
+        } else if (current.changeset === null) {
+            current.changeset = it.changeset
+            current.user = it.user
+            current.timestamp = it.timestamp
+            storeChanges(objectStates, current.changes, uniq_key, it)
+        } else {
+            // debugger
+            if (current.objectVersion.version !== 0) {
+                await cleanAllPrevAfter(renderInterVersion, btn, objectVersionsIndex, objectStates, current, type)
+            }
+            current.changes = {}
+            storeChanges(objectStates, current.changes, uniq_key, it)
+            current.changeset = it.changeset
+            current.user = it.user
+            current.timestamp = it.timestamp
+        }
+        objectStates[uniq_key] = it
+        if (it.type === type && it.id === objectID) {
+            await cleanAllPrevAfter(replaceRealVersion, it, objectStates, current)
+        }
     }
+    if (Object.entries(current.changes).length) {
+        await cleanAllPrevAfter(renderInterVersion, btn, objectVersionsIndex, objectStates, current, type)
+    }
+}
 
-    function renderInterVersion() {
-        /** @type {(NodeVersion|WayVersion|RelationVersion)[]}*/
-        const currentMembers = []
-        /** @type {Object.<string, NodesBag>} */
-        const currentWaysNodes = {}
+async function renderRelationInterVersion(btn, objectVersionsIndex, objectStates, current, type) {
+    /** @type {(NodeVersion|WayVersion|RelationVersion)[]}*/
+    const currentChildren = []
+    /** @type {Object.<string, NodesBag>} */
+    const currentWaysNodes = {}
 
-        relationVersionsIndex[currentRelationVersion.version].members.forEach(member => {
-            const uniq_key = `${member.type} ${member.ref}`
-            currentMembers.push(objectStates[uniq_key])
+    objectVersionsIndex[current.objectVersion.version].members.forEach(member => {
+        const uniq_key = `${member.type} ${member.ref}`
+        currentChildren.push(objectStates[uniq_key])
+        if (member.type === "way") {
+            currentWaysNodes[member.ref] = intoPage(
+                objectStates[uniq_key].nodes.map(n => {
+                    const objectState = objectStates[`node ${n}`]
+                    if (!objectState) {
+                        console.trace("not found node", n)
+                    }
+                    return objectState
+                }),
+            )
+        }
+        if (current.changes[uniq_key] !== undefined) return
+        const curV = objectStates[uniq_key]
+        if (curV) {
+            current.changes[uniq_key] = ["", curV, curV]
+        } else {
+            console.warn(`${uniq_key} not found in states`)
+        }
+    })
+
+    const count = currentChildren.length
+    const {
+        interVersionDiv,
+        childrenDetails: membersDetails,
+        ulChildren: ulMembers,
+    } = makeInterVersionSection(type, current.changeset, current.timestamp, current.user, count)
+    for (const i of currentChildren) {
+        if (i === undefined) {
+            console.trace(currentChildren)
+            btn.style.background = "yellow"
+            btn.title = t("historyDiff.someMembersHidden")
+            continue
+        }
+        const memberLi = document.createElement("li")
+        const div = document.createElement("div")
+        div.classList.add("d-flex", "gap-1")
+        const div2 = document.createElement("div")
+        div2.classList.add("align-self-center")
+        div.appendChild(div2)
+
+        const aHistory = document.createElement("a")
+        aHistory.classList.add(i.type)
+        aHistory.href = `/${i.type}/${i.id}/history`
+        aHistory.textContent = i.id
+        div2.appendChild(aHistory)
+
+        div2.appendChild(document.createTextNode(", "))
+
+        const aVersion = document.createElement("a")
+        aVersion.classList.add(i.type)
+        aVersion.href = `/${i.type}/${i.id}/history/${i.version}`
+        aVersion.textContent = "v" + i.version
+        div2.appendChild(aVersion)
+        memberLi.appendChild(div)
+
+        const curChange = current.changes[`${i.type} ${i.id}`]
+        const memberHistory = histories[i.type][i.id]
+        const tagsTable = await processObject(
+            div2,
+            i.type,
+            curChange[1] ?? curChange[2],
+            curChange[2],
+            memberHistory[memberHistory.length - 1],
+            memberHistory,
+        )
+        await processObjectInteractions(
+            i.changeset.toString(),
+            i.type,
+            emptyComments,
+            div2,
+            ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))),
+        )
+        if (memberLi.classList.contains("tags-non-modified")) {
+            div2.appendChild(tagsTable)
+        }
+        // table.style.borderColor = "var(--bs-body-color)";
+        // table.style.borderStyle = "solid";
+        // table.style.borderWidth = "1px";
+        ulMembers.appendChild(memberLi)
+    }
+    membersDetails.appendChild(ulMembers)
+    interVersionDiv.appendChild(membersDetails)
+
+    const tmpChangedNodes = Object.values(current.changes).filter(i => i[2].type === "node")
+    if (tmpChangedNodes.every(i => i[0] === "tags")) {
+        interVersionDiv.classList.add("only-tags-changed")
+    }
+    const changedNodes = tmpChangedNodes.filter(i => i[0] !== "location") // fixme members lists changes
+    interVersionDiv.onmouseenter = () => {
+        resetMapHover()
+        cleanAllObjects()
+        currentChildren.forEach(member => {
             if (member.type === "way") {
-                currentWaysNodes[member.ref] = intoPage(
-                    objectStates[uniq_key].nodes.map(n => {
-                        const objectState = objectStates[`node ${n}`]
-                        if (!objectState) {
-                            console.trace("not found node", n)
-                        }
-                        return objectState
-                    }),
+                const color = "#000000"
+                displayWay(
+                    currentWaysNodes[member.id],
+                    false,
+                    color,
+                    4,
+                    null,
+                    "customObjects",
+                    null,
+                    null,
+                    darkModeForMap && isDarkMode(),
+                    true,
                 )
             }
-            if (currentChanges[uniq_key] !== undefined) return
+        })
+        currentChildren.forEach(member => {
+            if (member.type !== "node") {
+                return
+            }
+            if (member.tags && Object.keys(member.tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                showNodeMarker(member.lat.toString(), member.lon.toString(), "rgb(161,161,161)", null, "customObjects", 3)
+            }
+        })
+        changedNodes.forEach(i => {
+            if (i[0] === "") return
+            if (i[2].visible === false) {
+                if (i[1].visible !== false) {
+                    showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
+                }
+            } else if (i[0] === "new") {
+                if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+                }
+                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+            } else {
+                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
+            }
+        })
+    }
+    interVersionDiv.onclick = e => {
+        resetMapHover()
+        cleanAllObjects()
+        currentChildren.forEach(member => {
+            if (member.type === "way") {
+                displayWay(
+                    currentWaysNodes[member.id],
+                    false,
+                    "#000000",
+                    4,
+                    null,
+                    "customObjects",
+                    null,
+                    null,
+                    darkModeForMap && isDarkMode(),
+                    true,
+                )
+            }
+        })
+        currentChildren.forEach(member => {
+            if (member.type !== "node") {
+                return
+            }
+            if (member.tags && Object.keys(member.tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                showNodeMarker(member.lat.toString(), member.lon.toString(), "rgb(161,161,161)", null, "customObjects", 3)
+            }
+        })
+        changedNodes.forEach(i => {
+            if (i[0] === "") return
+            if (i[2].visible === false) {
+                if (i[1].visible !== false) {
+                    showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
+                }
+            } else if (i[0] === "new") {
+                if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+                }
+                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+            } else {
+                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
+            }
+        })
+    }
+    // fixme slow selector too much object
+    let insertBeforeThat = document.querySelector(
+        `#element_versions_list > :where(div, details)[relation-version="${current.objectVersion.version}"]`,
+    )
+    while (insertBeforeThat.previousElementSibling?.getAttribute("relation-version") === "inter") {
+        // fixme O(n^2)
+        insertBeforeThat = insertBeforeThat.previousElementSibling
+    }
+    insertBeforeThat.before(interVersionDiv)
+}
+
+async function replaceRealRelationVersion(it, objectStates, current) {
+    let divForMembersReplace = document.querySelector(`#element_versions_list > :where(div, details)[relation-version="${it.version}"]`)
+    if (Object.keys(current.changes).length > 1 && divForMembersReplace.classList?.contains("empty-version")) {
+        divForMembersReplace.querySelector("summary")?.remove()
+        const div = document.createElement("div")
+        div.innerHTML = divForMembersReplace.innerHTML
+        div.setAttribute("relation-version", divForMembersReplace.getAttribute("relation-version"))
+        divForMembersReplace.replaceWith(div)
+        divForMembersReplace = div
+    }
+    current.objectVersion = it
+    current.objectObjectsSet = new Set()
+    current.objectVersion.members?.forEach(member => {
+        const uniq_key = `${member.type} ${member.ref}`
+        current.objectObjectsSet.add(uniq_key)
+        if (member.type === "node") {
+            current.objectObjectsSet.add(`node ${member.ref}`)
+        } else if (member.type === "way") {
+            objectStates[uniq_key].nodes.forEach(nodeID => current.objectObjectsSet.add(`node ${nodeID}`))
+        } else if (member.type === "relation") {
+            objectStates[uniq_key].members.forEach(member => current.objectObjectsSet.add(`${member.type} ${member.ref}`))
+            // todo rec
+        }
+        if (current.changes[uniq_key] === undefined) {
             const curV = objectStates[uniq_key]
             if (curV) {
-                currentChanges[uniq_key] = ["", curV, curV]
+                if (curV.version === 1 && current.objectVersion.changeset === curV.changeset) {
+                    current.changes[uniq_key] = ["new", emptyVersion, curV]
+                } else {
+                    current.changes[uniq_key] = ["", curV, curV]
+                }
             } else {
                 console.warn(`${uniq_key} not found in states`)
             }
-        })
-
-        const interVersionDiv = document.createElement("div")
-        interVersionDiv.setAttribute("relation-version", "inter")
-        interVersionDiv.classList.add("mb-3", "border-bottom", "border-secondary-subtle", "pb-3", "browse-section")
-
-        const interVersionDivHeader = makeInterRelationVersionHeader()
-        interVersionDiv.appendChild(interVersionDivHeader)
-
-        const p = document.createElement("p")
-        interVersionDiv.appendChild(p)
-        loadChangesetMetadata(currentChangeset).then(ch => {
-            p.textContent = shortOsmOrgLinksInText(ch.tags["comment"] ?? "")
-        })
-
-        interVersionDiv.appendChild(makeVersionUl(currentTimestamp, currentUser, currentChangeset))
-
-        const membersDetails = document.createElement("details")
-        membersDetails.classList.add("way-version-nodes")
-        membersDetails.onclick = e => {
-            e.stopImmediatePropagation()
         }
-        const summary = document.createElement("summary")
-        summary.textContent = currentMembers.length
-        summary.classList.add("history-diff-modified-tag")
-        membersDetails.appendChild(summary)
-        const ulMembers = document.createElement("ul")
-        ulMembers.classList.add("list-unstyled")
-        currentMembers.forEach(i => {
+    })
+    if (divForMembersReplace && current.objectVersion.members) {
+        /** @type {[HTMLImageElement, (NodeVersion|WayVersion|RelationVersion)][]}*/
+        const currentMembers = []
+        const ulMembers = divForMembersReplace.querySelector("details:not(.empty-version) ul")
+        ulMembers.parentElement.classList.add("way-version-nodes")
+        ulMembers.querySelectorAll("li").forEach(li => {
+            li.style.display = "none"
+            const [, type, id] = li.querySelector("div div a").href.match(/(node|way|relation)\/(\d+)/)
+            currentMembers.push([li.querySelector("img"), objectStates[`${type} ${id}`]])
+        })
+        if (it.version !== 1) {
+            const changedNodes = Object.values(current.changes).filter(i => i[2].type === "node" && i[0] !== "location" && i[0] !== "")
+            document.querySelector(`#element_versions_list > div[relation-version="${it.version}"]`)?.addEventListener("mouseenter", () => {
+                changedNodes.forEach(i => {
+                    if (i[2].visible === false) {
+                        if (i[1].visible !== false) {
+                            showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
+                        }
+                    } else if (i[0] === "new") {
+                        if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                            showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+                        }
+                        showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+                    } else {
+                        showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
+                    }
+                })
+            })
+            document.querySelector(`#element_versions_list > div[relation-version="${it.version}"]`)?.addEventListener("click", () => {
+                changedNodes.forEach(i => {
+                    if (i[2].visible === false) {
+                        if (i[1].visible !== false) {
+                            showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
+                        }
+                    } else if (i[0] === "new") {
+                        if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
+                            showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+                        }
+                        showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
+                    } else {
+                        showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
+                    }
+                })
+            })
+        }
+        for (const [img, i] of currentMembers) {
             if (i === undefined) {
-                console.trace()
-                console.log(currentMembers)
-                btn.style.background = "yellow"
-                btn.title = t("historyDiff.someMembersHidden")
-                return
+                reportAboutHiddenMember(currentMembers, it.type, btn, divForMembersReplace)
+                continue
             }
             const memberLi = document.createElement("li")
             const div = document.createElement("div")
@@ -16170,11 +16421,18 @@ async function replaceDownloadRelationButton(btn, relationID) {
             div2.classList.add("align-self-center")
             div.appendChild(div2)
 
+            if (img) {
+                div2.before(img.cloneNode(true))
+            } else {
+                console.warn("img is undefined")
+            }
+
             const aHistory = document.createElement("a")
             aHistory.classList.add(i.type)
             aHistory.href = `/${i.type}/${i.id}/history`
             aHistory.textContent = i.id
             div2.appendChild(aHistory)
+            memberLi.appendChild(div)
 
             div2.appendChild(document.createTextNode(", "))
 
@@ -16185,349 +16443,75 @@ async function replaceDownloadRelationButton(btn, relationID) {
             div2.appendChild(aVersion)
             memberLi.appendChild(div)
 
-            // const curChange = currentChanges[`${i.type} ${i.id}`]
-            // const memberHistory = histories[i.type][i.id]
-            // const tagsTable = processObject(div2, i.type, curChange[1] ?? curChange[2], curChange[2], memberHistory[memberHistory.length - 1], memberHistory)
-            // setTimeout(async () => {
-            //     await processObjectInteractions("", i.type, { nodes: [], ways: [], relations: [] }, div2, ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))))
-            // }, 0)
-            // tagsTable.then(table => {
-            //     if (memberLi.classList.contains("tags-non-modified")) {
-            //         div2.appendChild(table)
-            //     }
-            // table.style.borderColor = "var(--bs-body-color)";
-            // table.style.borderStyle = "solid";
-            // table.style.borderWidth = "1px";
-            // })
+            const curChange = current.changes[`${i.type} ${i.id}`]
+            const memberHistory = histories[i.type][i.id]
+            // todo нужна предзагрузка пакетов правок, потому что теперь рендерятся и линии
+            const tagsTable = await processObject(
+                div2,
+                i.type,
+                curChange[1] ?? curChange[2],
+                curChange[2],
+                memberHistory[memberHistory.length - 1],
+                memberHistory,
+            )
+            await processObjectInteractions(
+                i.changeset.toString(),
+                i.type,
+                emptyComments,
+                div2,
+                ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))),
+            )
+            if (memberLi.classList.contains("tags-non-modified")) {
+                div2.appendChild(tagsTable)
+            }
+            tagsTable.style.borderColor = "var(--bs-body-color)"
+            tagsTable.style.borderStyle = "solid"
+            tagsTable.style.borderWidth = "1px"
             ulMembers.appendChild(memberLi)
-        })
-        membersDetails.appendChild(ulMembers)
-        interVersionDiv.appendChild(membersDetails)
-
-        const tmpChangedNodes = Object.values(currentChanges).filter(i => i[2].type === "node")
-        if (tmpChangedNodes.every(i => i[0] === "tags")) {
-            interVersionDiv.classList.add("only-tags-changed")
-        }
-        const changedNodes = tmpChangedNodes.filter(i => i[0] !== "location") // fixme members lists changes
-        interVersionDiv.onmouseenter = () => {
-            resetMapHover()
-            cleanAllObjects()
-            currentMembers.forEach(member => {
-                if (member.type === "way") {
-                    const color = "#000000"
-                    displayWay(
-                        currentWaysNodes[member.id],
-                        false,
-                        color,
-                        4,
-                        null,
-                        "customObjects",
-                        null,
-                        null,
-                        darkModeForMap && isDarkMode(),
-                        true,
-                    )
-                }
-            })
-            currentMembers.forEach(member => {
-                if (member.type !== "node") {
-                    return
-                }
-                if (member.tags && Object.keys(member.tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
-                    showNodeMarker(member.lat.toString(), member.lon.toString(), "rgb(161,161,161)", null, "customObjects", 3)
-                }
-            })
-            changedNodes.forEach(i => {
-                if (i[0] === "") return
-                if (i[2].visible === false) {
-                    if (i[1].visible !== false) {
-                        showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
-                    }
-                } else if (i[0] === "new") {
-                    if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
-                        showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
-                    }
-                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
-                } else {
-                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
-                }
-            })
-        }
-        interVersionDiv.onclick = e => {
-            resetMapHover()
-            cleanAllObjects()
-            currentMembers.forEach(member => {
-                if (member.type === "way") {
-                    displayWay(
-                        currentWaysNodes[member.id],
-                        false,
-                        "#000000",
-                        4,
-                        null,
-                        "customObjects",
-                        null,
-                        null,
-                        darkModeForMap && isDarkMode(),
-                        true,
-                    )
-                }
-            })
-            currentMembers.forEach(member => {
-                if (member.type !== "node") {
-                    return
-                }
-                if (member.tags && Object.keys(member.tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
-                    showNodeMarker(member.lat.toString(), member.lon.toString(), "rgb(161,161,161)", null, "customObjects", 3)
-                }
-            })
-            changedNodes.forEach(i => {
-                if (i[0] === "") return
-                if (i[2].visible === false) {
-                    if (i[1].visible !== false) {
-                        showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
-                    }
-                } else if (i[0] === "new") {
-                    if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
-                        showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
-                    }
-                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
-                } else {
-                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
-                }
-            })
-        }
-        // fixme slow selector too much object
-        let insertBeforeThat = document.querySelector(
-            `#element_versions_list > :where(div, details)[relation-version="${currentRelationVersion.version}"]`,
-        )
-        while (insertBeforeThat.previousElementSibling?.getAttribute("relation-version") === "inter") {
-            // fixme O(n^2)
-            insertBeforeThat = insertBeforeThat.previousElementSibling
-        }
-        insertBeforeThat.before(interVersionDiv)
-    }
-
-    function replaceRelationVersion(it) {
-        let divForMembersReplace = document.querySelector(`#element_versions_list > :where(div, details)[relation-version="${it.version}"]`)
-        if (Object.keys(currentChanges).length > 1 && divForMembersReplace.classList?.contains("empty-version")) {
-            divForMembersReplace.querySelector("summary")?.remove()
-            const div = document.createElement("div")
-            div.innerHTML = divForMembersReplace.innerHTML
-            div.setAttribute("relation-version", divForMembersReplace.getAttribute("relation-version"))
-            divForMembersReplace.replaceWith(div)
-            divForMembersReplace = div
-        }
-        currentRelationVersion = it
-        currentRelationObjectsSet = new Set()
-        currentRelationVersion.members?.forEach(member => {
-            const uniq_key = `${member.type} ${member.ref}`
-            currentRelationObjectsSet.add(uniq_key)
-            if (member.type === "way") {
-                objectStates[uniq_key].nodes.forEach(nodeID => currentRelationObjectsSet.add(`node ${nodeID}`))
-            } else if (member.type === "relation") {
-                objectStates[uniq_key].members.forEach(member => currentRelationObjectsSet.add(`${member.type} ${member.ref}`))
-                // todo rec
-            }
-            if (currentChanges[uniq_key] === undefined) {
-                const curV = objectStates[uniq_key]
-                if (curV) {
-                    if (curV.version === 1 && currentRelationVersion.changeset === curV.changeset) {
-                        currentChanges[uniq_key] = ["new", emptyVersion, curV]
-                    } else {
-                        currentChanges[uniq_key] = ["", curV, curV]
-                    }
-                } else {
-                    console.warn(`${uniq_key} not found in states`)
-                }
-            }
-        })
-        if (divForMembersReplace && currentRelationVersion.members) {
-            /** @type {[HTMLImageElement, (NodeVersion|WayVersion|RelationVersion)][]}*/
-            const currentMembers = []
-            const ulMembers = divForMembersReplace.querySelector("details:not(.empty-version) ul")
-            ulMembers.parentElement.classList.add("way-version-nodes")
-            ulMembers.querySelectorAll("li").forEach(li => {
-                li.style.display = "none"
-                const [, type, id] = li.querySelector("div div a").href.match(/(node|way|relation)\/(\d+)/)
-                currentMembers.push([li.querySelector("img"), objectStates[`${type} ${id}`]])
-            })
-            if (it.version !== 1) {
-                const changedNodes = Object.values(currentChanges).filter(i => i[2].type === "node" && i[0] !== "location" && i[0] !== "")
-                document
-                    .querySelector(`#element_versions_list > div[relation-version="${it.version}"]`)
-                    ?.addEventListener("mouseenter", () => {
-                        changedNodes.forEach(i => {
-                            if (i[2].visible === false) {
-                                if (i[1].visible !== false) {
-                                    showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
-                                }
-                            } else if (i[0] === "new") {
-                                if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
-                                    showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
-                                }
-                                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
-                            } else {
-                                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
-                            }
-                        })
-                    })
-                document.querySelector(`#element_versions_list > div[relation-version="${it.version}"]`)?.addEventListener("click", () => {
-                    changedNodes.forEach(i => {
-                        if (i[2].visible === false) {
-                            if (i[1].visible !== false) {
-                                showNodeMarker(i[1].lat.toString(), i[1].lon.toString(), "#ff0000", null, "customObjects", 3)
-                            }
-                        } else if (i[0] === "new") {
-                            if (i[2].tags && Object.keys(i[2].tags).filter(k => k !== "created_by" && k !== "source").length > 0) {
-                                showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
-                            }
-                            showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "#00a500", null, "customObjects", 3)
-                        } else {
-                            showNodeMarker(i[2].lat.toString(), i[2].lon.toString(), "rgb(255,245,41)", null, "customObjects", 3)
-                        }
-                    })
-                })
-            }
-            currentMembers.forEach(([img, i]) => {
-                if (i === undefined) {
-                    console.trace()
-                    console.log(currentMembers)
-                    btn.style.background = "yellow"
-                    btn.title = t("historyDiff.reloadAndReport")
-                    divForMembersReplace.classList.add("broken-version")
-                    divForMembersReplace.title = t("historyDiff.someNodesHiddenSad")
-                    divForMembersReplace.style.cursor = "auto"
-                    return
-                }
-                const memberLi = document.createElement("li")
-                const div = document.createElement("div")
-                div.classList.add("d-flex", "gap-1")
-                const div2 = document.createElement("div")
-                div2.classList.add("align-self-center")
-                div.appendChild(div2)
-
-                if (img) {
-                    div2.before(img.cloneNode(true))
-                } else {
-                    console.warn("img is undefined")
-                }
-
-                const aHistory = document.createElement("a")
-                aHistory.classList.add(i.type)
-                aHistory.href = `/${i.type}/${i.id}/history`
-                aHistory.textContent = i.id
-                div2.appendChild(aHistory)
-                memberLi.appendChild(div)
-
-                div2.appendChild(document.createTextNode(", "))
-
-                const aVersion = document.createElement("a")
-                aVersion.classList.add(i.type)
-                aVersion.href = `/${i.type}/${i.id}/history/${i.version}`
-                aVersion.textContent = "v" + i.version
-                div2.appendChild(aVersion)
-                memberLi.appendChild(div)
-
-                const curChange = currentChanges[`${i.type} ${i.id}`]
-                const memberHistory = histories[i.type][i.id]
-                // todo нужна предзагрузка пакетов правок, потому что теперь рендерятся и линии
-                const tagsTable = processObject(
-                    div2,
-                    i.type,
-                    curChange[1] ?? curChange[2],
-                    curChange[2],
-                    memberHistory[memberHistory.length - 1],
-                    memberHistory,
-                )
-                setTimeout(async () => {
-                    await processObjectInteractions(
-                        "",
-                        i.type,
-                        {
-                            nodes: [],
-                            ways: [],
-                            relations: [],
-                        },
-                        div2,
-                        ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(div2))),
-                    )
-                }, 0)
-                tagsTable.then(table => {
-                    if (memberLi.classList.contains("tags-non-modified")) {
-                        div2.appendChild(table)
-                    }
-                    //                            table.style.borderColor = "var(--bs-body-color)";
-                    //                             table.style.borderStyle = "solid";
-                    //                             table.style.borderWidth = "1px";
-                })
-                ulMembers.appendChild(memberLi)
-            })
-        }
-        currentChanges = {}
-        currentChangeset = null
-    }
-
-    for (const it of objectsBag) {
-        // debugger
-        // console.debug(it)
-        const uniq_key = `${it.type} ${it.id}`
-
-        if ((it.type === "node" || it.type === "way") && currentRelationVersion.version > 0 && !currentRelationObjectsSet.has(uniq_key)) {
-            objectStates[uniq_key] = it
-            continue
-        }
-        if (it.type === "way") {
-            // debugger
-        } else if (it.type === "relation") {
-            // debugger
-        }
-        if (it.changeset === currentChangeset) {
-            storeChanges(uniq_key, it) // todo split if new way version
-        } else if (currentChangeset === null) {
-            currentChangeset = it.changeset
-            currentUser = it.user
-            currentTimestamp = it.timestamp
-            storeChanges(uniq_key, it)
-        } else {
-            if (currentRelationVersion.version !== 0) {
-                renderInterVersion()
-            }
-            currentChanges = {}
-            storeChanges(uniq_key, it)
-            currentChangeset = it.changeset
-            currentUser = it.user
-            currentTimestamp = it.timestamp
-        }
-        objectStates[uniq_key] = it
-        // для настоящей версии линии
-        if (it.type === "relation") {
-            replaceRelationVersion(it)
         }
     }
-    if (Object.entries(currentChanges).length) {
-        renderInterVersion()
-    }
-    registerObjectCleanerOnHeader()
-    if (document.querySelectorAll('[relation-version="inter"]').length > 20) {
-        addVersionsFilters(btn, "relation")
-    }
-    btn.remove()
+    current.changes = {}
+    current.changeset = null
 }
 
 /**
- * @param relationID {number}
+ * @param {"relation"} type
+ * @param btn {HTMLElement}
+ * @param objectID {number}
  * @return {Promise<void>}
  */
-async function showFullRelationHistory(relationID) {
-    const btn = document.querySelector("#download-all-versions-btn")
-    try {
-        await replaceDownloadRelationButton(btn, relationID)
-    } catch (err) {
-        console.error(err)
-        btn.title = t("historyDiff.reloadAndReport")
-        btn.style.background = "red"
-        btn.style.cursor = "auto"
+async function replaceDownloadRelationButton(type, btn, objectID) {
+    const objectsBag = await sortRelationMembersByTimestamp(objectID)
+    await preloadChangesetsForObjectsBag(objectsBag)
+
+    /** @type {Object<number, RelationVersion>} */
+    const objectVersionsIndex = makeObjectVersionsIndex(await getObjectHistory(type, objectID))
+    /** @type {Object.<string, NodeVersion|WayVersion|RelationVersion>}*/
+    const objectStates = {}
+
+    /**
+     * @type {{
+     * changeset: number|null,
+     * currentUser: string|null,
+     * timestamp: string|null,
+     * changes: Object.<string, [string, NodeVersion|WayVersion|RelationVersion, NodeVersion|WayVersion|RelationVersion]>
+     * objectVersion: RelationVersion,
+     * objectObjectsSet: Set<string>,
+     * }}
+     */
+    const current = {
+        changeset: null,
+        user: null,
+        timestamp: null,
+        changes: {},
+        objectVersion: { version: 0, members: [] },
+        objectObjectsSet: new Set(),
     }
+
+    await processObjectsBag(objectsBag, objectStates, current, type, objectID, objectVersionsIndex, btn)
+    registerObjectCleanerOnHeader()
+    addVersionsFilters(btn, type)
+    btn.remove()
 }
 
 function setupRelationVersionView() {
@@ -16682,11 +16666,7 @@ function setupRelationVersionView() {
         !document.getElementById("download-all-versions-btn")
     ) {
         // todo remove check after when would full history
-        const downloadAllVersionsBtn = document.createElement("a")
-        downloadAllVersionsBtn.id = "download-all-versions-btn"
-        downloadAllVersionsBtn.tabIndex = 0
-        downloadAllVersionsBtn.textContent = "⏬"
-        downloadAllVersionsBtn.style.cursor = "pointer"
+        const downloadAllVersionsBtn = makeDownloadVersionsButton()
         downloadAllVersionsBtn.title = t("historyDiff.downloadAllVersions") // + " (with intermediate versions)"
 
         const clickHandler = async e => {
@@ -16700,10 +16680,8 @@ function setupRelationVersionView() {
             }
             if (isDebug() && GM_config.get("FullVersionsDiff")) {
                 downloadAllVersionsBtn.textContent += " downloading intermediate versions β ..."
-                console.time("full history")
                 addQuickLookStyles()
-                await showFullRelationHistory(parseInt(relationID))
-                console.timeEnd("full history")
+                await showFullObjectHistory("relation", parseInt(relationID))
             }
             e.target.remove()
         }
@@ -16763,7 +16741,8 @@ async function downloadVersionsOfObjectWithRedactionBefore2012(type, objID) {
     }
 
     const urlPrefix =
-        "https://raw.githubusercontent.com/osm-cc-by-sa/data/refs/heads/main/versions_affected_by_disagreed_users_and_all_after_with_redaction_period"
+        "https://raw.githubusercontent.com/osm-cc-by-sa/data/" +
+        "refs/heads/main/versions_affected_by_disagreed_users_and_all_after_with_redaction_period"
     const url = `${urlPrefix}/${type}/${id_prefix}.osm` + (type === "relation" ? ".gz" : "")
     return await downloadArchiveData(url, objID, type === "relation")
 }
@@ -17802,7 +17781,9 @@ function transformDiffWithColors() {
             )
             const td = document.createElement("td")
             if (k.includes("colour")) {
-                td.innerHTML = `<svg width="14" height="14" class="float-end m-1"><title></title><rect x="0.5" y="0.5" width="13" height="13" fill="" stroke="#2222"></rect></svg>`
+                td.innerHTML =
+                    '<svg width="14" height="14" class="float-end m-1"><title></title>' +
+                    '<rect x="0.5" y="0.5" width="13" height="13" fill="" stroke="#2222"></rect></svg>'
                 td.querySelector("svg rect").setAttribute("fill", v)
                 td.appendChild(document.createTextNode(v))
             } else {
