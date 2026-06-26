@@ -26,6 +26,7 @@ const modules = [
     setupOverzoomForDataLayer,
     setupDragAndDropViewers,
     setupBetterTagsPaste,
+    setupClickableMap,
 ]
 /***@type {((function(): Promise<void>|void))[]}*/
 const alwaysEnabledModules = [

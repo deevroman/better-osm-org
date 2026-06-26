@@ -93,6 +93,9 @@ async function restoreObject(object_type, object_id) {
 }
 
 function addRestoreButton(object_type, object_id) {
+    if (!document.querySelector("#sidebar_content nav")) {
+        return
+    }
     if (!document.querySelector(".secondary-actions")) {
         const secondaryActions = document.createElement("div")
         secondaryActions.classList.add("secondary-actions")

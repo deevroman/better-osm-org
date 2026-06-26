@@ -62,6 +62,7 @@ _translations["ru"] = {
         overpassInstance: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Сервер Overpass API</a>',
         panoramaxUploader: "Добавить форму загрузки фотографий в Panoramax",
         routersTimestamps: "Показывать дату данных для GraphHopper, OSRM, Valhalla",
+        clickableMap: "Сделать карту кликабельной β",
         debugMode: "Включить отладочные и экспериментальные фичи",
     },
     objectEditor: {
