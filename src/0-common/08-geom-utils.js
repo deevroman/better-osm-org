@@ -114,4 +114,26 @@ function ringArea(points) {
     return area
 }
 
+/**
+ * @param {{x: number, y: number}} p
+ * @param {{x: number, y: number}} a
+ * @param {{x: number, y: number}} b
+ * @return {number}
+ */
+function distanceToSegment(p, a, b) {
+    const dx = b.x - a.x
+    const dy = b.y - a.y
+
+    if (dx === 0 && dy === 0) {
+        const dpx = p.x - a.x
+        const dpy = p.y - a.y
+        return Math.hypot(dpx, dpy)
+    }
+
+    const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / (dx * dx + dy * dy)))
+    const proj = { x: a.x + t * dx, y: a.y + t * dy }
+
+    return Math.hypot(p.x - proj.x, p.y - proj.y)
+}
+
 //</editor-fold>

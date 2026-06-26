@@ -278,6 +278,7 @@ _translations["en"] = {
         overpassInstance: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass API server</a>',
         panoramaxUploader: "Add form for uploading photos into Panoramax",
         routersTimestamps: "Add routing data date",
+        clickableMap: "Clickable map β",
         debugMode: "Enable debug and experimental features",
     },
     objectEditor: {
@@ -1138,6 +1139,7 @@ _translations["ru"] = {
         overpassInstance: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Сервер Overpass API</a>',
         panoramaxUploader: "Добавить форму загрузки фотографий в Panoramax",
         routersTimestamps: "Показывать дату данных для GraphHopper, OSRM, Valhalla",
+        clickableMap: "Сделать карту кликабельной β",
         debugMode: "Включить отладочные и экспериментальные фичи",
     },
     objectEditor: {
@@ -4258,6 +4260,12 @@ const configOptions = {
             default: true,
             labelPos: "right",
         },
+        ClickableMap: {
+            label: t("config.clickableMap"),
+            type: "checkbox",
+            default: true,
+            labelPos: "right",
+        },
         DebugMode: {
             label: t("config.debugMode"),
             type: "checkbox",
@@ -5501,6 +5509,28 @@ function ringArea(points) {
     }
 
     return area
+}
+
+/**
+ * @param {{x: number, y: number}} p
+ * @param {{x: number, y: number}} a
+ * @param {{x: number, y: number}} b
+ * @return {number}
+ */
+function distanceToSegment(p, a, b) {
+    const dx = b.x - a.x
+    const dy = b.y - a.y
+
+    if (dx === 0 && dy === 0) {
+        const dpx = p.x - a.x
+        const dpy = p.y - a.y
+        return Math.hypot(dpx, dpy)
+    }
+
+    const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / (dx * dx + dy * dy)))
+    const proj = { x: a.x + t * dx, y: a.y + t * dy }
+
+    return Math.hypot(p.x - proj.x, p.y - proj.y)
 }
 
 //</editor-fold>
@@ -9396,6 +9426,167 @@ function addSwipes() {
 
 //</editor-fold>
 
+//<editor-fold desc="click" defaultstate="collapsed">
+
+function getWaynodesCentroid(wayNodes) {
+    // simple impl
+    let latSum = 0.0
+    let lonSum = 0.0
+    wayNodes.forEach(i => {
+        latSum += i.lat
+        lonSum += i.lon
+    })
+    return {
+        lat: latSum / wayNodes.length,
+        lon: lonSum / wayNodes.length,
+    }
+}
+
+function getBooxAroundPoint(lat, lng, halfSizeMeters) {
+    const dLat = halfSizeMeters / 111320
+    const dLng = halfSizeMeters / (111320 * Math.cos((lat * Math.PI) / 180))
+    return [lng - dLng, lat - dLat, lng + dLng, lat + dLat].join(",")
+}
+
+async function getElementsAroundNode(lat, lng) {
+    for (const radius of [15, 70, 300, 750]) {
+        console.time(`/map call radius=${radius}`)
+        const response = await fetch(`${osm_server.apiBase}map.json?bbox=${getBooxAroundPoint(lat, lng, radius)}`)
+        console.timeEnd(`/map call radius=${radius}`)
+        if (!response.ok) {
+            throw new Error(`OSM API error: ${response.status}`)
+        }
+        const data = await response.json()
+        if (data.elements.length === 0) {
+            continue
+        }
+        return data.elements
+    }
+    throw "empty region"
+}
+
+async function mapClickHandler(e) {
+    const z = getZoom()
+    if (z < 14) {
+        return
+    }
+    if (location.hash.includes("D") /* || Object.keys(getMap?.()?.dataLayer?._layers ?? {}).length*/) {
+        return
+    }
+    const { lat: lat, lng: lng } = e.latlng
+
+    /** @type {(NodeVersion|WayVersion|RelationVersion)[]} */
+    const elements = await getElementsAroundNode(lat, lng)
+
+    /** @type {Map<number, NodeVersion>} */
+    const nodes = new Map()
+    /** @type {Map<number, WayVersion>} */
+    const downloadedWays = new Map()
+    elements.forEach(i => {
+        if (i.type === "node") {
+            nodes.set(i.id, i)
+        } else if (i.type === "way") {
+            downloadedWays.set(i.id, i)
+        }
+    })
+
+    let bestObj = elements.find(i => i.type === "node")
+    let bestDist = bestObj ? getDistanceFromLatLonInKm(lat, lng, bestObj.lat, bestObj.lon) * 1000 : 1e9
+    for (const i of elements) {
+        if (!i.tags) {
+            continue
+        }
+        if (i.type === "node") {
+            const dist = getDistanceFromLatLonInKm(lat, lng, i.lat, i.lon) * 1000
+            if (dist < bestDist) {
+                bestDist = dist
+                bestObj = i
+            }
+        } else if (i.type === "way") {
+            const wayNodes = i.nodes.map(id => nodes.get(id))
+            if (wayNodes[0].id === wayNodes.at(-1).id) {
+                // polygon
+                const centroid = getWaynodesCentroid(wayNodes)
+                const dist = getDistanceFromLatLonInKm(lat, lng, centroid.lat, centroid.lon) * 1000
+                if (dist < bestDist) {
+                    bestDist = dist
+                    bestObj = i
+                }
+            }
+            for (let j = 0; j < wayNodes.length - 1; j++) {
+                const a = toMercator(wayNodes[j].lat, wayNodes[j].lon)
+                const b = toMercator(wayNodes[j + 1].lat, wayNodes[j + 1].lon)
+
+                const dist = distanceToSegment(toMercator(lat, lng), a, b)
+                if (dist < bestDist) {
+                    bestDist = dist
+                    bestObj = i
+                }
+            }
+        } else if (i.type === "relation") {
+            const relationChildNodes = []
+            for (let member of i.members) {
+                if (member.type !== "way") {
+                    continue
+                }
+                if (downloadedWays.has(member.ref)) {
+                    const way = downloadedWays.get(member.ref)
+                    way.nodes.forEach(id => {
+                        if (nodes.has(id)) {
+                            relationChildNodes.push(nodes.get(id))
+                        }
+                    })
+                    for (let j = 0; j < way.nodes.length - 1; j++) {
+                        const _a = nodes.get(way.nodes[j])
+                        const _b = nodes.get(way.nodes[j + 1])
+                        if (!_a || !_b) {
+                            continue
+                        }
+                        const a = toMercator(_a.lat, _a.lon)
+                        const b = toMercator(_b.lat, _b.lon)
+
+                        const dist = distanceToSegment(toMercator(lat, lng), a, b)
+                        if (dist < bestDist) {
+                            bestDist = dist
+                            bestObj = i
+                        }
+                    }
+                }
+            }
+            const centroid = getWaynodesCentroid(relationChildNodes)
+            const dist = getDistanceFromLatLonInKm(lat, lng, centroid.lat, centroid.lon) * 1000
+            if (dist < bestDist) {
+                bestDist = dist
+                bestObj = i
+            }
+        }
+    }
+    getWindow().OSM.router.route(`/${bestObj.type}/${bestObj.id}`)
+    console.log(elements)
+}
+
+let clickableMapSetuped = false
+
+async function setupClickableMap() {
+    if (!GM_config.get("ClickableMap")) {
+        return
+    }
+    await interceptMapManually()
+    if (clickableMapSetuped) {
+        return
+    }
+    clickableMapSetuped = true
+    getMap().on("click", intoPageWithFun(mapClickHandler))
+
+    injectCSSIntoOSMPage(`
+    #map.leaflet-grab:not(.leaflet-drag-target) {
+        cursor: revert;
+    }
+    `)
+}
+
+//</editor-fold>
+
 //<editor-fold desc="notes" defaultstate="collapsed">
 
 function makeTextareaFromTagsTable(table) {
@@ -10819,6 +11010,9 @@ async function restoreObject(object_type, object_id) {
 }
 
 function addRestoreButton(object_type, object_id) {
+    if (!document.querySelector("#sidebar_content nav")) {
+        return
+    }
     if (!document.querySelector(".secondary-actions")) {
         const secondaryActions = document.createElement("div")
         secondaryActions.classList.add("secondary-actions")
@@ -15207,9 +15401,9 @@ async function renderWayInterVersion(btn, objectVersionsIndex, objectStates, cur
         if (nodeLi.classList.contains("tags-non-modified")) {
             div2.appendChild(tagsTable)
         }
-        // table.style.borderColor = "var(--bs-body-color)";
-        // table.style.borderStyle = "solid";
-        // table.style.borderWidth = "1px";
+        // tagsTable.style.borderColor = "var(--bs-body-color)"
+        // tagsTable.style.borderStyle = "solid"
+        // tagsTable.style.borderWidth = "1px"
         ulNodes.appendChild(nodeLi)
     }
     nodesDetails.appendChild(ulNodes)
@@ -16128,6 +16322,7 @@ async function processObjectsBag(objectsBag, objectStates, current, type, object
             await cleanAllPrevAfter(replaceRealVersion, it, objectStates, current)
         }
     }
+    debugger
     if (Object.entries(current.changes).length) {
         await cleanAllPrevAfter(renderInterVersion, btn, objectVersionsIndex, objectStates, current, type)
     }
@@ -32666,6 +32861,7 @@ const modules = [
     setupOverzoomForDataLayer,
     setupDragAndDropViewers,
     setupBetterTagsPaste,
+    setupClickableMap,
 ]
 /***@type {((function(): Promise<void>|void))[]}*/
 const alwaysEnabledModules = [

@@ -882,9 +882,9 @@ async function renderWayInterVersion(btn, objectVersionsIndex, objectStates, cur
         if (nodeLi.classList.contains("tags-non-modified")) {
             div2.appendChild(tagsTable)
         }
-        // table.style.borderColor = "var(--bs-body-color)";
-        // table.style.borderStyle = "solid";
-        // table.style.borderWidth = "1px";
+        // tagsTable.style.borderColor = "var(--bs-body-color)"
+        // tagsTable.style.borderStyle = "solid"
+        // tagsTable.style.borderWidth = "1px"
         ulNodes.appendChild(nodeLi)
     }
     nodesDetails.appendChild(ulNodes)
@@ -1803,6 +1803,7 @@ async function processObjectsBag(objectsBag, objectStates, current, type, object
             await cleanAllPrevAfter(replaceRealVersion, it, objectStates, current)
         }
     }
+    debugger
     if (Object.entries(current.changes).length) {
         await cleanAllPrevAfter(renderInterVersion, btn, objectVersionsIndex, objectStates, current, type)
     }

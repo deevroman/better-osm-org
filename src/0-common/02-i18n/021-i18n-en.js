@@ -61,6 +61,7 @@ _translations["en"] = {
         overpassInstance: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass API server</a>',
         panoramaxUploader: "Add form for uploading photos into Panoramax",
         routersTimestamps: "Add routing data date",
+        clickableMap: "Clickable map β",
         debugMode: "Enable debug and experimental features",
     },
     objectEditor: {
