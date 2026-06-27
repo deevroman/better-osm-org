@@ -136,6 +136,11 @@ function distanceToSegment(p, a, b) {
     return Math.hypot(p.x - proj.x, p.y - proj.y)
 }
 
+function distanceToSegmentInMeters(p, a, b, lat) {
+    return distanceToSegment(p, a, b) * cos((lat * PI) / 180)
+}
+
+/*
 function psevdoskal(x1, y1, x2, y2) {
     return x1 * y2 - x2 * y1
 }
@@ -152,12 +157,12 @@ function _check(a, b, c) {
     }
 }
 
-/**
+/!**
  * @param {{x: number, y: number}} c
  * @param {{x: number, y: number}} a
  * @param {{x: number, y: number}} b
  * @return {number}
- */
+ *!/
 function distanceToSegment2(c, a, b) {
     if (psevdoskal(b.x - a.x, b.y - a.y, c.x - a.x, c.y - a.y) === 0) {
         if (_check(a, b, c)) {
@@ -173,6 +178,6 @@ function distanceToSegment2(c, a, b) {
         return hypot(a.x - c.x, a.y - c.y)
     }
     return abs(psevdoskal(c.x - a.x, c.y - a.y, b.x - a.x, b.y - a.y) / hypot(b.x - a.x, b.y - a.y))
-}
+}*/
 
 //</editor-fold>

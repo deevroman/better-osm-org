@@ -5537,6 +5537,11 @@ function distanceToSegment(p, a, b) {
     return Math.hypot(p.x - proj.x, p.y - proj.y)
 }
 
+function distanceToSegmentInMeters(p, a, b, lat) {
+    return distanceToSegment(p, a, b) * cos((lat * PI) / 180)
+}
+
+/*
 function psevdoskal(x1, y1, x2, y2) {
     return x1 * y2 - x2 * y1
 }
@@ -5553,12 +5558,12 @@ function _check(a, b, c) {
     }
 }
 
-/**
+/!**
  * @param {{x: number, y: number}} c
  * @param {{x: number, y: number}} a
  * @param {{x: number, y: number}} b
  * @return {number}
- */
+ *!/
 function distanceToSegment2(c, a, b) {
     if (psevdoskal(b.x - a.x, b.y - a.y, c.x - a.x, c.y - a.y) === 0) {
         if (_check(a, b, c)) {
@@ -5574,7 +5579,7 @@ function distanceToSegment2(c, a, b) {
         return hypot(a.x - c.x, a.y - c.y)
     }
     return abs(psevdoskal(c.x - a.x, c.y - a.y, b.x - a.x, b.y - a.y) / hypot(b.x - a.x, b.y - a.y))
-}
+}*/
 
 //</editor-fold>
 
@@ -9563,7 +9568,7 @@ async function mapClickHandler(e) {
                 const a = toMercator(wayNodes[j].lat, wayNodes[j].lon)
                 const b = toMercator(wayNodes[j + 1].lat, wayNodes[j + 1].lon)
 
-                const dist = distanceToSegment(toMercator(lat, lng), a, b) * cos((lat * PI) / 180)
+                const dist = distanceToSegmentInMeters(toMercator(lat, lng), a, b, lat)
                 if (dist < bestDist) {
                     bestDist = dist
                     bestObj = i
@@ -9591,7 +9596,7 @@ async function mapClickHandler(e) {
                         const a = toMercator(_a.lat, _a.lon)
                         const b = toMercator(_b.lat, _b.lon)
 
-                        const dist = distanceToSegment(toMercator(lat, lng), a, b)
+                        const dist = distanceToSegmentInMeters(toMercator(lat, lng), a, b, lat)
                         if (dist < bestDist) {
                             bestDist = dist
                             bestObj = i

@@ -92,7 +92,7 @@ async function mapClickHandler(e) {
                 const a = toMercator(wayNodes[j].lat, wayNodes[j].lon)
                 const b = toMercator(wayNodes[j + 1].lat, wayNodes[j + 1].lon)
 
-                const dist = distanceToSegment(toMercator(lat, lng), a, b) * cos((lat * PI) / 180)
+                const dist = distanceToSegmentInMeters(toMercator(lat, lng), a, b, lat)
                 if (dist < bestDist) {
                     bestDist = dist
                     bestObj = i
@@ -120,7 +120,7 @@ async function mapClickHandler(e) {
                         const a = toMercator(_a.lat, _a.lon)
                         const b = toMercator(_b.lat, _b.lon)
 
-                        const dist = distanceToSegment(toMercator(lat, lng), a, b)
+                        const dist = distanceToSegmentInMeters(toMercator(lat, lng), a, b, lat)
                         if (dist < bestDist) {
                             bestDist = dist
                             bestObj = i
