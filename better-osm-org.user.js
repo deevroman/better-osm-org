@@ -708,6 +708,7 @@ _translations["tr"] = {
             '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass API sunucusu</a>',
         panoramaxUploader: "Panoramax'a fotoğraf yükleme formu ekle",
         routersTimestamps: "Rota verisi tarihini ekle",
+        clickableMap: "Haritayı tıklanabilir yap β",
         debugMode: "Hata ayıklama ve deneysel özellikleri etkinleştir",
     },
     objectEditor: {
@@ -1584,6 +1585,7 @@ _translations["de"] = {
         overpassInstance: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass-API-Server</a>',
         panoramaxUploader: "Formular zum Hochladen von Fotos nach Panoramax hinzufügen",
         routersTimestamps: "Datum der Routing-Daten hinzufügen",
+        clickableMap: "Karte anklickbar machen β",
         debugMode: "Debug- und experimentelle Funktionen aktivieren",
     },
     objectEditor: {
@@ -2018,6 +2020,7 @@ _translations["fr"] = {
         overpassInstance: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Serveur Overpass API</a>',
         panoramaxUploader: "Ajouter un formulaire d'envoi de photos vers Panoramax",
         routersTimestamps: "Ajouter la date des données de routage",
+        clickableMap: "Rendre la carte cliquable β",
         debugMode: "Activer le débogage et les fonctionnalités expérimentales",
     },
     objectEditor: {
@@ -2452,6 +2455,7 @@ _translations["hr"] = {
             '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass API poslužitelj</a>',
         panoramaxUploader: "Dodaj obrazac za prijenos fotografija u Panoramax",
         routersTimestamps: "Dodaj datum routing podataka",
+        clickableMap: "Učini kartu klikabilnom β",
         debugMode: "Omogući debug i eksperimentalne značajke",
     },
     objectEditor: {
@@ -2882,6 +2886,7 @@ _translations["uk"] = {
         overpassInstance: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Сервер Overpass API</a>',
         panoramaxUploader: "Додати форму для завантаження фото в Panoramax",
         routersTimestamps: "Додати дату маршрутизаційних даних",
+        clickableMap: "Зробити мапу клікабельною β",
         debugMode: "Увімкнути режим налагодження та експериментальні функції",
     },
     objectEditor: {

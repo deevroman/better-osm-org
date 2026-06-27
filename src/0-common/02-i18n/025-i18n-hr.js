@@ -62,6 +62,7 @@ _translations["hr"] = {
             '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass API poslužitelj</a>',
         panoramaxUploader: "Dodaj obrazac za prijenos fotografija u Panoramax",
         routersTimestamps: "Dodaj datum routing podataka",
+        clickableMap: "Učini kartu klikabilnom β",
         debugMode: "Omogući debug i eksperimentalne značajke",
     },
     objectEditor: {
