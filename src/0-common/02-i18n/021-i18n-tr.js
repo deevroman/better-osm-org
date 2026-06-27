@@ -63,6 +63,7 @@ _translations["tr"] = {
             '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass API sunucusu</a>',
         panoramaxUploader: "Panoramax'a fotoğraf yükleme formu ekle",
         routersTimestamps: "Rota verisi tarihini ekle",
+        clickableMap: "Haritayı tıklanabilir yap β",
         debugMode: "Hata ayıklama ve deneysel özellikleri etkinleştir",
     },
     objectEditor: {
