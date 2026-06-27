@@ -21,7 +21,7 @@ function getBooxAroundPoint(lat, lng, halfSizeMeters) {
 }
 
 async function getElementsAroundNode(lat, lng) {
-    for (const radius of [15, 70, 300, 750]) {
+    for (const radius of [15, 70, 300, 750, 2000]) {
         console.time(`/map call radius=${radius}`)
         const response = await fetch(`${osm_server.apiBase}map.json?bbox=${getBooxAroundPoint(lat, lng, radius)}`)
         console.timeEnd(`/map call radius=${radius}`)
@@ -42,16 +42,25 @@ async function mapClickHandler(e) {
         return
     }
     const z = getZoom()
-    if (z < 14) {
+    if (z < 13) {
         return
     }
     if (location.hash.includes("D") /* || Object.keys(getMap?.()?.dataLayer?._layers ?? {}).length*/) {
+        return
+    }
+    if (jsonLayer) {
+        return
+    }
+    if (stopClick) {
         return
     }
     const { lat: lat, lng: lng } = e.latlng
 
     /** @type {(NodeVersion|WayVersion|RelationVersion)[]} */
     const elements = await getElementsAroundNode(lat, lng)
+    if (stopClick) {
+        return
+    }
 
     /** @type {Map<number, NodeVersion>} */
     const nodes = new Map()
@@ -141,6 +150,7 @@ async function mapClickHandler(e) {
 }
 
 let clickableMapSetuped = false
+let stopClick = false
 let skipClick = false
 
 async function setupClickableMap() {
@@ -153,6 +163,15 @@ async function setupClickableMap() {
     }
     clickableMapSetuped = true
     getMap().on("click", intoPageWithFun(mapClickHandler))
+    getMap().on(
+        "dblclick",
+        intoPageWithFun(() => {
+            stopClick = true
+            setTimeout(() => {
+                stopClick = false
+            }, 1200)
+        }),
+    )
     getMap().on(
         "mousedown",
         intoPageWithFun(() => {
