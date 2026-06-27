@@ -61,6 +61,10 @@ function injectCSSIntoSimplePage(text) {
 const min = Math.min
 const max = Math.max
 const abs = Math.abs
+const hypot = Math.hypot
+const cos = Math.cos
+const sin = Math.sin
+const PI = Math.PI
 
 /**
  * @type {Object.<string, AbortController>}

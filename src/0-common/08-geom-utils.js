@@ -136,4 +136,43 @@ function distanceToSegment(p, a, b) {
     return Math.hypot(p.x - proj.x, p.y - proj.y)
 }
 
+function psevdoskal(x1, y1, x2, y2) {
+    return x1 * y2 - x2 * y1
+}
+
+function skal(x1, y1, x2, y2) {
+    return x1 * x2 + y1 * y2
+}
+
+function _check(a, b, c) {
+    if (a.x === b.x) {
+        return min(a.y, b.y) <= c.y && c.y <= max(a.y, b.y)
+    } else {
+        return min(a.x, b.x) <= c.x && c.x <= max(a.x, b.x)
+    }
+}
+
+/**
+ * @param {{x: number, y: number}} c
+ * @param {{x: number, y: number}} a
+ * @param {{x: number, y: number}} b
+ * @return {number}
+ */
+function distanceToSegment2(c, a, b) {
+    if (psevdoskal(b.x - a.x, b.y - a.y, c.x - a.x, c.y - a.y) === 0) {
+        if (_check(a, b, c)) {
+            return 0.0
+        } else {
+            return min(hypot(b.x - c.x, b.y - c.y), hypot(a.x - c.x, a.y - c.y))
+        }
+    }
+    if (skal(c.x - b.x, c.y - b.y, a.x - b.x, a.y - b.y) < 0) {
+        return hypot(b.x - c.x, b.y - c.y)
+    }
+    if (skal(c.x - a.x, c.y - a.y, b.x - a.x, b.y - a.y) < 0) {
+        return hypot(a.x - c.x, a.y - c.y)
+    }
+    return abs(psevdoskal(c.x - a.x, c.y - a.y, b.x - a.x, b.y - a.y) / hypot(b.x - a.x, b.y - a.y))
+}
+
 //</editor-fold>

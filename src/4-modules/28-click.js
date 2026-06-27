@@ -38,6 +38,9 @@ async function getElementsAroundNode(lat, lng) {
 }
 
 async function mapClickHandler(e) {
+    if (skipClick) {
+        return
+    }
     const z = getZoom()
     if (z < 14) {
         return
@@ -89,7 +92,7 @@ async function mapClickHandler(e) {
                 const a = toMercator(wayNodes[j].lat, wayNodes[j].lon)
                 const b = toMercator(wayNodes[j + 1].lat, wayNodes[j + 1].lon)
 
-                const dist = distanceToSegment(toMercator(lat, lng), a, b)
+                const dist = distanceToSegment(toMercator(lat, lng), a, b) * cos((lat * PI) / 180)
                 if (dist < bestDist) {
                     bestDist = dist
                     bestObj = i
@@ -138,6 +141,7 @@ async function mapClickHandler(e) {
 }
 
 let clickableMapSetuped = false
+let skipClick = false
 
 async function setupClickableMap() {
     if (!GM_config.get("ClickableMap")) {
@@ -149,6 +153,12 @@ async function setupClickableMap() {
     }
     clickableMapSetuped = true
     getMap().on("click", intoPageWithFun(mapClickHandler))
+    getMap().on(
+        "mousedown",
+        intoPageWithFun(() => {
+            skipClick = document.querySelector("#map-context-menu").checkVisibility()
+        }),
+    )
 
     injectCSSIntoOSMPage(`
     #map.leaflet-grab:not(.leaflet-drag-target) {

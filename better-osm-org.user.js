@@ -4835,6 +4835,10 @@ function injectCSSIntoSimplePage(text) {
 const min = Math.min
 const max = Math.max
 const abs = Math.abs
+const hypot = Math.hypot
+const cos = Math.cos
+const sin = Math.sin
+const PI = Math.PI
 
 /**
  * @type {Object.<string, AbortController>}
@@ -5531,6 +5535,45 @@ function distanceToSegment(p, a, b) {
     const proj = { x: a.x + t * dx, y: a.y + t * dy }
 
     return Math.hypot(p.x - proj.x, p.y - proj.y)
+}
+
+function psevdoskal(x1, y1, x2, y2) {
+    return x1 * y2 - x2 * y1
+}
+
+function skal(x1, y1, x2, y2) {
+    return x1 * x2 + y1 * y2
+}
+
+function _check(a, b, c) {
+    if (a.x === b.x) {
+        return min(a.y, b.y) <= c.y && c.y <= max(a.y, b.y)
+    } else {
+        return min(a.x, b.x) <= c.x && c.x <= max(a.x, b.x)
+    }
+}
+
+/**
+ * @param {{x: number, y: number}} c
+ * @param {{x: number, y: number}} a
+ * @param {{x: number, y: number}} b
+ * @return {number}
+ */
+function distanceToSegment2(c, a, b) {
+    if (psevdoskal(b.x - a.x, b.y - a.y, c.x - a.x, c.y - a.y) === 0) {
+        if (_check(a, b, c)) {
+            return 0.0
+        } else {
+            return min(hypot(b.x - c.x, b.y - c.y), hypot(a.x - c.x, a.y - c.y))
+        }
+    }
+    if (skal(c.x - b.x, c.y - b.y, a.x - b.x, a.y - b.y) < 0) {
+        return hypot(b.x - c.x, b.y - c.y)
+    }
+    if (skal(c.x - a.x, c.y - a.y, b.x - a.x, b.y - a.y) < 0) {
+        return hypot(a.x - c.x, a.y - c.y)
+    }
+    return abs(psevdoskal(c.x - a.x, c.y - a.y, b.x - a.x, b.y - a.y) / hypot(b.x - a.x, b.y - a.y))
 }
 
 //</editor-fold>
@@ -9466,6 +9509,9 @@ async function getElementsAroundNode(lat, lng) {
 }
 
 async function mapClickHandler(e) {
+    if (skipClick) {
+        return
+    }
     const z = getZoom()
     if (z < 14) {
         return
@@ -9517,7 +9563,7 @@ async function mapClickHandler(e) {
                 const a = toMercator(wayNodes[j].lat, wayNodes[j].lon)
                 const b = toMercator(wayNodes[j + 1].lat, wayNodes[j + 1].lon)
 
-                const dist = distanceToSegment(toMercator(lat, lng), a, b)
+                const dist = distanceToSegment(toMercator(lat, lng), a, b) * cos((lat * PI) / 180)
                 if (dist < bestDist) {
                     bestDist = dist
                     bestObj = i
@@ -9566,6 +9612,7 @@ async function mapClickHandler(e) {
 }
 
 let clickableMapSetuped = false
+let skipClick = false
 
 async function setupClickableMap() {
     if (!GM_config.get("ClickableMap")) {
@@ -9577,6 +9624,12 @@ async function setupClickableMap() {
     }
     clickableMapSetuped = true
     getMap().on("click", intoPageWithFun(mapClickHandler))
+    getMap().on(
+        "mousedown",
+        intoPageWithFun(() => {
+            skipClick = document.querySelector("#map-context-menu").checkVisibility()
+        }),
+    )
 
     injectCSSIntoOSMPage(`
     #map.leaflet-grab:not(.leaflet-drag-target) {
