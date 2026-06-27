@@ -9497,7 +9497,7 @@ function getBooxAroundPoint(lat, lng, halfSizeMeters) {
 }
 
 async function getElementsAroundNode(lat, lng) {
-    for (const radius of [15, 70, 300, 750, 2000]) {
+    for (const radius of [15, 70, 300, 750, 2000, 5000]) {
         console.time(`/map call radius=${radius}`)
         const response = await fetch(`${osm_server.apiBase}map.json?bbox=${getBooxAroundPoint(lat, lng, radius)}`)
         console.timeEnd(`/map call radius=${radius}`)
@@ -9651,7 +9651,7 @@ async function setupClickableMap() {
     getMap().on(
         "mousedown",
         intoPageWithFun(() => {
-            skipClick = document.querySelector("#map-context-menu").checkVisibility()
+            skipClick = document.querySelector("#map-context-menu").checkVisibility() || document.querySelector(".dropdown-menu.show")
         }),
     )
 
