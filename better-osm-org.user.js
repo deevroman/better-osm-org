@@ -4263,7 +4263,7 @@ const configOptions = {
         ClickableMap: {
             label: t("config.clickableMap"),
             type: "checkbox",
-            default: true,
+            default: false,
             labelPos: "right",
         },
         DebugMode: {
@@ -9630,7 +9630,7 @@ let stopClick = false
 let skipClick = false
 
 async function setupClickableMap() {
-    if (!GM_config.get("ClickableMap")) {
+    if (!isDebug() && !GM_config.get("ClickableMap")) {
         return
     }
     await interceptMapManually()

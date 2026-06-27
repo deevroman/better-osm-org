@@ -154,7 +154,7 @@ let stopClick = false
 let skipClick = false
 
 async function setupClickableMap() {
-    if (!GM_config.get("ClickableMap")) {
+    if (!isDebug() && !GM_config.get("ClickableMap")) {
         return
     }
     await interceptMapManually()

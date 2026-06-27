@@ -289,7 +289,7 @@ const configOptions = {
         ClickableMap: {
             label: t("config.clickableMap"),
             type: "checkbox",
-            default: true,
+            default: false,
             labelPos: "right",
         },
         DebugMode: {
