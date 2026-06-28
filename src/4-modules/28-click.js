@@ -57,7 +57,7 @@ async function mapClickHandler(e) {
     if (document.querySelector(".control-query.active")) {
         return
     }
-    if (location.pathname === "/export" || location.pathname === "/note/new" || location.pathname.startsWith("/changeset")) {
+    if (location.pathname === "/export" || location.pathname === "/note/new") {
         return
     }
     if (e.originalEvent.explicitOriginalTarget.id !== "map") {
@@ -156,7 +156,11 @@ async function mapClickHandler(e) {
             }
         }
     }
-    getWindow().OSM.router.route(`/${bestObj.type}/${bestObj.id}`)
+    const targetURL = `/${bestObj.type}/${bestObj.id}`
+    if (location.pathname.startsWith("/changeset") && !confirm(`Open ${targetURL}`)) {
+        return
+    }
+    getWindow().OSM.router.route(targetURL)
     console.log(elements)
 }
 
