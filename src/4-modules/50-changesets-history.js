@@ -159,6 +159,7 @@ function addMassActionForUserChangesets() {
     if (!location.pathname.includes("/user/") || document.querySelector("#mass-action-btn")) {
         return
     }
+    setTimeout(() => void geocodeCurrentView(), 100) // todo without timeout
     const a = document.createElement("a")
     a.title = t("changesetsHistory.addCheckboxesMassActions")
     a.textContent = " 📋"

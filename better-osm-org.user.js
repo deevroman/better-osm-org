@@ -25049,6 +25049,7 @@ function addMassActionForUserChangesets() {
     if (!location.pathname.includes("/user/") || document.querySelector("#mass-action-btn")) {
         return
     }
+    setTimeout(() => void geocodeCurrentView(), 100) // todo without timeout
     const a = document.createElement("a")
     a.title = t("changesetsHistory.addCheckboxesMassActions")
     a.textContent = " 📋"
@@ -29449,6 +29450,7 @@ async function setupDragAndDropViewers() {
         e.target.style.cursor = "progress"
         try {
             handleDroppedFiles([...e.dataTransfer.items].filter(i => i.kind === "file").map(i => i.getAsFile()))
+            stopClick = true
         } finally {
             e.target.style.cursor = "grab"
         }

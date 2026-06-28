@@ -164,6 +164,7 @@ async function setupDragAndDropViewers() {
         e.target.style.cursor = "progress"
         try {
             handleDroppedFiles([...e.dataTransfer.items].filter(i => i.kind === "file").map(i => i.getAsFile()))
+            stopClick = true
         } finally {
             e.target.style.cursor = "grab"
         }
