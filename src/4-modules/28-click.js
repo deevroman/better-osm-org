@@ -57,6 +57,14 @@ async function mapClickHandler(e) {
     if (document.querySelector(".control-query.active")) {
         return
     }
+    if (location.pathname === "/export" || location.pathname === "/note/new") {
+        return
+    }
+    if (e.originalEvent.explicitOriginalTarget.id !== "map") {
+        if (e.originalEvent.explicitOriginalTarget.nodeName !== "path") {
+            return
+        }
+    }
     const { lat: lat, lng: lng } = e.latlng
 
     /** @type {(NodeVersion|WayVersion|RelationVersion)[]} */
