@@ -49,6 +49,7 @@
 // @match        https://hdyc.neis-one.org/*
 // @match        https://osmcha.org/*
 // @match        https://osmcha.openhistoricalmap.org/*
+// @match        https://overpass-turbo.eu/*
 // @exclude      https://www.openhistoricalmap.org/api*
 // @exclude      https://www.openhistoricalmap.org/account*
 // @exclude      https://www.openhistoricalmap.org/messages/*
