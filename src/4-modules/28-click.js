@@ -54,6 +54,9 @@ async function mapClickHandler(e) {
     if (stopClick) {
         return
     }
+    if (document.querySelector(".control-query.active")) {
+        return
+    }
     const { lat: lat, lng: lng } = e.latlng
 
     /** @type {(NodeVersion|WayVersion|RelationVersion)[]} */
