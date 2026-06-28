@@ -57,7 +57,7 @@ async function mapClickHandler(e) {
     if (document.querySelector(".control-query.active")) {
         return
     }
-    if (location.pathname === "/export" || location.pathname === "/note/new") {
+    if (location.pathname === "/export" || location.pathname === "/note/new" || location.pathname.startsWith("/changeset")) {
         return
     }
     if (e.originalEvent.explicitOriginalTarget.id !== "map") {
