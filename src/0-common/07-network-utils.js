@@ -138,7 +138,7 @@ async function _fetchRetry(fetchImpl, ...args) {
                 if (count === 0) {
                     console.error("oops, DOS block")
                     setTimeout(async () => {
-                        getMap()?.attributionControl?.setPrefix(escapeHtml(await res.text()))
+                        setAttributionPrefix(escapeHtml(await res.text()))
                     })
                     throw "rate limit ban is too long"
                 }

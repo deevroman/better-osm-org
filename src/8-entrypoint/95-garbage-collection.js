@@ -34,5 +34,3 @@ async function runGC() {
     console.log("Old cache cleaned")
 }
 setTimeout(runGC, 1000 * 12)
-
-performance.mark("BETTER_OSM_END")

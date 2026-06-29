@@ -1132,6 +1132,38 @@ async function replaceDownloadWayButton(type, btn, objectID) {
     btn.remove()
 }
 
+async function tryFindWayAncestor(objectId) {
+    return
+    const way = await getWayHistory(objectId)
+    const firstWayVersion = way.at(0)
+    if (firstWayVersion.version !== 1) {
+        console.warn("missing first version for ancestor finding")
+        return
+    }
+    const firstVersionDate = new Date(firstWayVersion.timestamp)
+    const olderThatWay = []
+
+    for (const id of firstWayVersion.nodes) {
+        const nodeHistory = await getNodeHistory(id)
+        const firstNodeVersion = nodeHistory.at(0)
+        if (!firstNodeVersion) {
+            return
+        }
+        if (new Date(firstNodeVersion.timestamp) < firstVersionDate) {
+            // todo на самом деле правильнее ещё на пакет правок смотреть
+            olderThatWay.push(firstNodeVersion)
+        }
+    }
+
+    if (olderThatWay.length) {
+        console.log("All nodes are new")
+        return
+    }
+
+    const changeset = await getChangeset(firstWayVersion.changeset)
+    changeset.data.querySelectorAll("way")
+}
+
 /**
  * @param {"way"|"relation"} type
  * @param objectId {number}
@@ -1154,6 +1186,9 @@ async function showFullObjectHistory(type, objectId) {
         throw err
     } finally {
         console.timeEnd("full history")
+    }
+    if (type === "way") {
+        await tryFindWayAncestor(objectId)
     }
 }
 
@@ -1803,7 +1838,7 @@ async function processObjectsBag(objectsBag, objectStates, current, type, object
             await cleanAllPrevAfter(replaceRealVersion, it, objectStates, current)
         }
     }
-    debugger
+    // debugger
     if (Object.entries(current.changes).length) {
         await cleanAllPrevAfter(renderInterVersion, btn, objectVersionsIndex, objectStates, current, type)
     }

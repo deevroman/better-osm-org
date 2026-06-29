@@ -273,7 +273,7 @@ out geom;
             }
         }
 
-        getMap()?.attributionControl?.setPrefix(statusPrefix)
+        setAttributionPrefix(statusPrefix)
     } finally {
         if (document.title === newTitle) {
             document.title = prevTitle

@@ -74,7 +74,7 @@ function cleanupBeforeNewLocation(path) {
         abortPrevControllers(ABORT_ERROR_WHEN_PAGE_CHANGED)
         tracksCounter = 0
         cleanAllObjects()
-        getMap()?.attributionControl?.setPrefix("")
+        setAttributionPrefix("")
         addSwipes()
         document.querySelector("#fixed-rss-feed")?.remove()
         buildingViewerIframe?.remove()
