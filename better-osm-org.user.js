@@ -33525,6 +33525,7 @@ function addLevel0Reborn() {
     }
     if (document.querySelector("#export-editors-level0-reborn")) {
         document.querySelector("#export-editors-level0-reborn").remove()
+        document.querySelector("#export-editors-level0-reborn-bbox")?.remove()
     }
     const l0export = document.querySelector("#export-editors-level0")
 
