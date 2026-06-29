@@ -21,7 +21,8 @@ function addRegionalTaginfoSelector() {
         if (location.pathname.includes(instance_select.value)) {
             void saveCurrentRegionalInstance(instance_select.value, instance_select.selectedOptions[0].textContent)
         }
-        if (!document.querySelector("#global-taginfo-link")) {
+        if (!document.querySelector(".global-taginfo-link")) {
+            const globalHref = "https://taginfo.openstreetmap.org/" + location.pathname.replace(/^.+?(\/|$)/, "") + location.hash
             const tools = document.querySelector("#tools ul")
             if (tools) {
                 const li = document.createElement("li")
@@ -29,12 +30,23 @@ function addRegionalTaginfoSelector() {
                 tools.prepend(li)
 
                 const a = document.createElement("a")
-                a.id = "global-taginfo-link"
+                a.classList.add("global-taginfo-link")
                 a.textContent = "global"
                 a.target = "_blank"
-                a.href = "https://taginfo.openstreetmap.org/" + location.pathname.replace(/^.+?\//, "") + location.hash
+                a.href = globalHref
                 li.appendChild(a)
             }
+            const dataDate = document.querySelector(".header-date")
+            dataDate.style.display = "flex"
+            const newTitle = "Go to global Taginfo"
+            dataDate.setAttribute("title", newTitle)
+            dataDate.setAttribute("data-tooltip-text", newTitle)
+            const globalLink = document.createElement("a")
+            globalLink.classList.add("global-taginfo-link")
+            globalLink.style.marginRight = "auto"
+            globalLink.textContent = "🌐"
+            globalLink.href = globalHref
+            dataDate.prepend(globalLink)
         }
         return
     }
