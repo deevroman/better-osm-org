@@ -177,21 +177,21 @@ function addEsriDate() {
             const date = new Date(result.SRC_DATE2)
             const strDate = `${date.getUTCFullYear()}-${(date.getUTCMonth() + 1).toString().padStart(2, "0")}-${date.getUTCDate().toString().padStart(2, "0")}`
             lastEsriDate = strDate
-            getMap()?.attributionControl?.setPrefix(strDate + " ESRI")
+            setAttributionPrefix(strDate + " ESRI")
         } else if (result && !result.SRC_DATE2) {
             lastEsriDate = ""
-            getMap()?.attributionControl?.setPrefix("ESRI")
+            setAttributionPrefix("ESRI")
         }
     })
 }
 
 function addLayerPrefix() {
     if (customLayerInfo.url === ESRIBetaTemplate) {
-        getMap()?.attributionControl?.setPrefix("ESRI beta")
+        setAttributionPrefix("ESRI beta")
     } else if (customLayerInfo.url === ESRITemplate) {
-        getMap()?.attributionControl?.setPrefix("ESRI")
+        setAttributionPrefix("ESRI")
     } else if (customLayerInfo.url) {
-        getMap()?.attributionControl?.setPrefix(customLayerInfo.label)
+        setAttributionPrefix(customLayerInfo.label)
     }
     if (customLayerInfo.url === ESRITemplate) {
         addEsriDate()
@@ -462,7 +462,7 @@ async function askCustomStyleUrl() {
         input.addEventListener("change", async () => {
             if (input.checked) {
                 await applyCustomVectorMapStyle(value)
-                getMap()?.attributionControl?.setPrefix(label)
+                setAttributionPrefix(label)
             }
         })
 
@@ -553,7 +553,7 @@ async function askCustomStyleUrl() {
             if (e.key === "Enter" && urlInput.value.trim() !== "") {
                 input.click()
                 await applyCustomVectorMapStyle(urlInput.value, true)
-                getMap()?.attributionControl?.setPrefix("Custom map style from " + escapeHtml(new URL(urlInput.value).host))
+                setAttributionPrefix("Custom map style from " + escapeHtml(new URL(urlInput.value).host))
             }
         }
         radioContainer.appendChild(wrapper)
@@ -622,7 +622,7 @@ async function askCustomStyleUrl() {
             jsonArea.setCustomValidity("")
             input.click()
             await applyCustomVectorMapStyle(jsonArea.value, true)
-            getMap()?.attributionControl?.setPrefix("Custom map style")
+            setAttributionPrefix("Custom map style")
         }
 
         radioContainer.appendChild(wrapper)
@@ -821,7 +821,7 @@ async function askCustomTileUrl() {
                 const { url, fieldsValues } = applyFields(input.value)
                 applyCustomLayer({ url: url, url_template: input.value, label: label, fieldsValues: fieldsValues, forceVector: forceVector })
                 switchTiles(currentTilesMode === MAPNIK_MODE)
-                getMap()?.attributionControl?.setPrefix(label)
+                setAttributionPrefix(label)
             }
         }
         input.addEventListener("change", onChange)
@@ -1096,7 +1096,7 @@ function rasterSwitch() {
         }
         addLayerPrefix()
     } else {
-        getMap()?.attributionControl?.setPrefix("")
+        setAttributionPrefix("")
     }
     document.querySelectorAll(".leaflet-tile").forEach(i => {
         if (i.nodeName !== "IMG") {
@@ -1217,9 +1217,9 @@ function switchOverlayTiles() {
     }
     currentOverlayModeIsStrava = invertOverlayMode(currentOverlayModeIsStrava)
     if (currentOverlayModeIsStrava) {
-        getMap()?.attributionControl?.setPrefix("Strava")
+        setAttributionPrefix("Strava")
     } else {
-        getMap()?.attributionControl?.setPrefix("")
+        setAttributionPrefix("")
     }
     document.querySelectorAll(".leaflet-tile").forEach(i => {
         if (i.nodeName !== "IMG") {

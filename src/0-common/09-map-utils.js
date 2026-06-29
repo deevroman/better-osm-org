@@ -106,7 +106,7 @@ function setZoom(zoomLevel) {
 
 function setAttributionPrefix(prefix) {
     console.trace("New prefix:", prefix) // todo -> .log
-    getMap().attributionControl?.setPrefix(prefix)
+    getMap?.()?.attributionControl?.setPrefix(prefix)
 }
 
 function resetMapHover() {

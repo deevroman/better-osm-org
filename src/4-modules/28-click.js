@@ -45,7 +45,7 @@ async function mapClickHandler(e) {
     if (z < 13) {
         return
     }
-    if (location.hash.includes("D") /* || Object.keys(getMap?.()?.dataLayer?._layers ?? {}).length*/) {
+    if (location.hash.includes("D") || getCurrentLayers().includes("D")) {
         return
     }
     if (jsonLayer) {
@@ -55,6 +55,9 @@ async function mapClickHandler(e) {
         return
     }
     if (document.querySelector(".control-query.active")) {
+        return
+    }
+    if (document.getElementById("Config")) {
         return
     }
     if (location.pathname === "/export" || location.pathname === "/note/new") {
@@ -190,7 +193,10 @@ async function setupClickableMap() {
     getMap().on(
         "mousedown",
         intoPageWithFun(() => {
-            skipClick = document.querySelector("#map-context-menu").checkVisibility() || document.querySelector(".dropdown-menu.show")
+            skipClick =
+                document.querySelector("#map-context-menu").checkVisibility() ||
+                document.querySelector(".dropdown-menu.show") ||
+                window.getSelection().type === "Range"
         }),
     )
 

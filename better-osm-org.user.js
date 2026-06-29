@@ -5127,7 +5127,7 @@ async function _fetchRetry(fetchImpl, ...args) {
                 if (count === 0) {
                     console.error("oops, DOS block")
                     setTimeout(async () => {
-                        getMap()?.attributionControl?.setPrefix(escapeHtml(await res.text()))
+                        setAttributionPrefix(escapeHtml(await res.text()))
                     })
                     throw "rate limit ban is too long"
                 }
@@ -5697,7 +5697,7 @@ function setZoom(zoomLevel) {
 
 function setAttributionPrefix(prefix) {
     console.trace("New prefix:", prefix) // todo -> .log
-    getMap().attributionControl?.setPrefix(prefix)
+    getMap?.()?.attributionControl?.setPrefix(prefix)
 }
 
 function resetMapHover() {
@@ -9527,7 +9527,7 @@ async function mapClickHandler(e) {
     if (z < 13) {
         return
     }
-    if (location.hash.includes("D") /* || Object.keys(getMap?.()?.dataLayer?._layers ?? {}).length*/) {
+    if (location.hash.includes("D") || getCurrentLayers().includes("D")) {
         return
     }
     if (jsonLayer) {
@@ -9537,6 +9537,9 @@ async function mapClickHandler(e) {
         return
     }
     if (document.querySelector(".control-query.active")) {
+        return
+    }
+    if (document.getElementById("Config")) {
         return
     }
     if (location.pathname === "/export" || location.pathname === "/note/new") {
@@ -9672,7 +9675,10 @@ async function setupClickableMap() {
     getMap().on(
         "mousedown",
         intoPageWithFun(() => {
-            skipClick = document.querySelector("#map-context-menu").checkVisibility() || document.querySelector(".dropdown-menu.show")
+            skipClick =
+                document.querySelector("#map-context-menu").checkVisibility() ||
+                document.querySelector(".dropdown-menu.show") ||
+                window.getSelection().type === "Range"
         }),
     )
 
@@ -11957,21 +11963,21 @@ function addEsriDate() {
             const date = new Date(result.SRC_DATE2)
             const strDate = `${date.getUTCFullYear()}-${(date.getUTCMonth() + 1).toString().padStart(2, "0")}-${date.getUTCDate().toString().padStart(2, "0")}`
             lastEsriDate = strDate
-            getMap()?.attributionControl?.setPrefix(strDate + " ESRI")
+            setAttributionPrefix(strDate + " ESRI")
         } else if (result && !result.SRC_DATE2) {
             lastEsriDate = ""
-            getMap()?.attributionControl?.setPrefix("ESRI")
+            setAttributionPrefix("ESRI")
         }
     })
 }
 
 function addLayerPrefix() {
     if (customLayerInfo.url === ESRIBetaTemplate) {
-        getMap()?.attributionControl?.setPrefix("ESRI beta")
+        setAttributionPrefix("ESRI beta")
     } else if (customLayerInfo.url === ESRITemplate) {
-        getMap()?.attributionControl?.setPrefix("ESRI")
+        setAttributionPrefix("ESRI")
     } else if (customLayerInfo.url) {
-        getMap()?.attributionControl?.setPrefix(customLayerInfo.label)
+        setAttributionPrefix(customLayerInfo.label)
     }
     if (customLayerInfo.url === ESRITemplate) {
         addEsriDate()
@@ -12242,7 +12248,7 @@ async function askCustomStyleUrl() {
         input.addEventListener("change", async () => {
             if (input.checked) {
                 await applyCustomVectorMapStyle(value)
-                getMap()?.attributionControl?.setPrefix(label)
+                setAttributionPrefix(label)
             }
         })
 
@@ -12333,7 +12339,7 @@ async function askCustomStyleUrl() {
             if (e.key === "Enter" && urlInput.value.trim() !== "") {
                 input.click()
                 await applyCustomVectorMapStyle(urlInput.value, true)
-                getMap()?.attributionControl?.setPrefix("Custom map style from " + escapeHtml(new URL(urlInput.value).host))
+                setAttributionPrefix("Custom map style from " + escapeHtml(new URL(urlInput.value).host))
             }
         }
         radioContainer.appendChild(wrapper)
@@ -12402,7 +12408,7 @@ async function askCustomStyleUrl() {
             jsonArea.setCustomValidity("")
             input.click()
             await applyCustomVectorMapStyle(jsonArea.value, true)
-            getMap()?.attributionControl?.setPrefix("Custom map style")
+            setAttributionPrefix("Custom map style")
         }
 
         radioContainer.appendChild(wrapper)
@@ -12601,7 +12607,7 @@ async function askCustomTileUrl() {
                 const { url, fieldsValues } = applyFields(input.value)
                 applyCustomLayer({ url: url, url_template: input.value, label: label, fieldsValues: fieldsValues, forceVector: forceVector })
                 switchTiles(currentTilesMode === MAPNIK_MODE)
-                getMap()?.attributionControl?.setPrefix(label)
+                setAttributionPrefix(label)
             }
         }
         input.addEventListener("change", onChange)
@@ -12876,7 +12882,7 @@ function rasterSwitch() {
         }
         addLayerPrefix()
     } else {
-        getMap()?.attributionControl?.setPrefix("")
+        setAttributionPrefix("")
     }
     document.querySelectorAll(".leaflet-tile").forEach(i => {
         if (i.nodeName !== "IMG") {
@@ -12997,9 +13003,9 @@ function switchOverlayTiles() {
     }
     currentOverlayModeIsStrava = invertOverlayMode(currentOverlayModeIsStrava)
     if (currentOverlayModeIsStrava) {
-        getMap()?.attributionControl?.setPrefix("Strava")
+        setAttributionPrefix("Strava")
     } else {
-        getMap()?.attributionControl?.setPrefix("")
+        setAttributionPrefix("")
     }
     document.querySelectorAll(".leaflet-tile").forEach(i => {
         if (i.nodeName !== "IMG") {
@@ -15749,6 +15755,38 @@ async function replaceDownloadWayButton(type, btn, objectID) {
     btn.remove()
 }
 
+async function tryFindWayAncestor(objectId) {
+    return
+    const way = await getWayHistory(objectId)
+    const firstWayVersion = way.at(0)
+    if (firstWayVersion.version !== 1) {
+        console.warn("missing first version for ancestor finding")
+        return
+    }
+    const firstVersionDate = new Date(firstWayVersion.timestamp)
+    const olderThatWay = []
+
+    for (const id of firstWayVersion.nodes) {
+        const nodeHistory = await getNodeHistory(id)
+        const firstNodeVersion = nodeHistory.at(0)
+        if (!firstNodeVersion) {
+            return
+        }
+        if (new Date(firstNodeVersion.timestamp) < firstVersionDate) {
+            // todo на самом деле правильнее ещё на пакет правок смотреть
+            olderThatWay.push(firstNodeVersion)
+        }
+    }
+
+    if (olderThatWay.length) {
+        console.log("All nodes are new")
+        return
+    }
+
+    const changeset = await getChangeset(firstWayVersion.changeset)
+    changeset.data.querySelectorAll("way")
+}
+
 /**
  * @param {"way"|"relation"} type
  * @param objectId {number}
@@ -15771,6 +15809,9 @@ async function showFullObjectHistory(type, objectId) {
         throw err
     } finally {
         console.timeEnd("full history")
+    }
+    if (type === "way") {
+        await tryFindWayAncestor(objectId)
     }
 }
 
@@ -16420,7 +16461,7 @@ async function processObjectsBag(objectsBag, objectStates, current, type, object
             await cleanAllPrevAfter(replaceRealVersion, it, objectStates, current)
         }
     }
-    debugger
+    // debugger
     if (Object.entries(current.changes).length) {
         await cleanAllPrevAfter(renderInterVersion, btn, objectVersionsIndex, objectStates, current, type)
     }
@@ -29290,7 +29331,7 @@ out geom;
             }
         }
 
-        getMap()?.attributionControl?.setPrefix(statusPrefix)
+        setAttributionPrefix(statusPrefix)
     } finally {
         if (document.title === newTitle) {
             document.title = prevTitle
@@ -33009,7 +33050,7 @@ function cleanupBeforeNewLocation(path) {
         abortPrevControllers(ABORT_ERROR_WHEN_PAGE_CHANGED)
         tracksCounter = 0
         cleanAllObjects()
-        getMap()?.attributionControl?.setPrefix("")
+        setAttributionPrefix("")
         addSwipes()
         document.querySelector("#fixed-rss-feed")?.remove()
         buildingViewerIframe?.remove()
@@ -33490,11 +33531,45 @@ function addLevel0Reborn() {
     const l0reborn = l0export.cloneNode(true)
     l0reborn.id = "export-editors-level0-reborn"
     l0reborn.textContent += "Reborn β"
-    l0reborn.setAttribute(
-        "href",
-        l0reborn.getAttribute("href").replace("https://level0.osmz.ru", "https://deevroman.github.io/level0-reborn"),
-    )
+    l0reborn.setAttribute("href", "")
+    l0reborn.onclick = function () {
+        const originalHref = l0export.getAttribute("href")
+        const newHref = originalHref.replace("https://level0.osmz.ru", "https://deevroman.github.io/level0-reborn")
+        Array.from(document.querySelectorAll(".modal.is-active .modal-card-head .delete")).at(-1).click()
+        l0reborn.setAttribute("href", newHref)
+    }
+
     l0export.after(l0reborn)
+
+    const l0rebornBboox = l0export.cloneNode(true)
+    l0rebornBboox.id = "export-editors-level0-reborn-bbox"
+    l0rebornBboox.textContent = "only bbox"
+    l0rebornBboox.setAttribute("href", "")
+    l0rebornBboox.onclick = function () {
+        document.querySelector("#export-map-state").click()
+        const bbox = Array.from(document.querySelectorAll(".modal.is-active .modal-card-body p:has(small)")).at(-1).firstChild.data
+
+        const originalHref = l0export.getAttribute("href")
+        const originalURL = new URL(originalHref)
+        const params = new URLSearchParams(originalURL.search)
+        const overpassURL = new URL(params.get("url"))
+
+        const bboxedParams = new URLSearchParams(overpassURL.search)
+        if (!bboxedParams.get("data").includes("[bbox:")) {
+            bboxedParams.set("data", `[bbox:${bbox.replaceAll(" ", "")}]` + bboxedParams.get("data"))
+        }
+        bboxedParams.toString()
+
+        overpassURL.search = bboxedParams.toString()
+        params.set("url", overpassURL.toString())
+        originalURL.search = params.toString()
+
+        const newHref = originalURL.toString().replace("https://level0.osmz.ru", "https://deevroman.github.io/level0-reborn")
+        Array.from(document.querySelectorAll(".modal.is-active .modal-card-head .delete")).at(-1).click()
+        l0rebornBboox.setAttribute("href", newHref)
+    }
+    l0reborn.after(l0rebornBboox)
+    l0reborn.after(document.createTextNode("\xA0"))
 }
 
 function setupOverpass() {
@@ -33681,4 +33756,48 @@ async function runGC() {
 }
 setTimeout(runGC, 1000 * 12)
 
+/* const unhandledExceptions = []
+
+const globalWarn = "<a class='global-report' title='Open browser console'>⚠️ </a>"
+
+window.addEventListener("error", function (message, file, line, col, error) {
+    if (isDebug()) {
+        unhandledExceptions.push(error)
+        setAttributionPrefix(globalWarn)
+    }
+    return false
+})
+
+getWindow().addEventListener(
+    "error",
+    intoPageWithFun(function (message, file, line, col, error) {
+        if (isDebug()) {
+            unhandledExceptions.push(error)
+            setAttributionPrefix(globalWarn)
+        }
+        return false
+    }),
+)
+
+getWindow().addEventListener(
+    "unhandledrejection",
+    intoPageWithFun(e => {
+        if (isDebug()) {
+            unhandledExceptions.push(e)
+            setAttributionPrefix(globalWarn)
+        }
+        return false
+    }),
+)
+
+injectJSIntoPage(`
+// window.$(".global-report")
+//     .on(
+//         "click",
+//         intoPageWithFun(() => {
+//             alert(1)
+//         }),
+//     )
+// `)
+ */
 performance.mark("BETTER_OSM_END")
