@@ -16,7 +16,7 @@ function addLevel0Reborn() {
     l0reborn.setAttribute("href", "")
     l0reborn.onclick = function () {
         const originalHref = l0export.getAttribute("href")
-        const newHref = originalHref.replace("https://level0.osmz.ru", "https://deevroman.github.io/level0-reborn")
+        const newHref = originalHref.replace(MAIN_LEVEL0_INSTANCE, REBORN_LEVEL0_INSTANCE)
         Array.from(document.querySelectorAll(".modal.is-active .modal-card-head .delete")).at(-1).click()
         l0reborn.setAttribute("href", newHref)
     }
@@ -46,7 +46,7 @@ function addLevel0Reborn() {
         params.set("url", overpassURL.toString())
         originalURL.search = params.toString()
 
-        const newHref = originalURL.toString().replace("https://level0.osmz.ru", "https://deevroman.github.io/level0-reborn")
+        const newHref = originalURL.toString().replace(MAIN_LEVEL0_INSTANCE, REBORN_LEVEL0_INSTANCE)
         Array.from(document.querySelectorAll(".modal.is-active .modal-card-head .delete")).at(-1).click()
         l0rebornBboox.setAttribute("href", newHref)
     }

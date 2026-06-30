@@ -296,6 +296,11 @@ const OHM_OSM_REVERT_NAME = "ohm-revert"
 const osm_revert_origin = isOHMServer() ? OHM_OSM_REVERT : MAIN_OSM_REVERT
 const osm_revert_name = isOHMServer() ? OHM_OSM_REVERT_NAME : MAIN_OSM_REVERT_NAME
 
+const MAIN_LEVEL0_INSTANCE = "https://level0.osmz.ru"
+const REBORN_LEVEL0_INSTANCE = "https://deevroman.github.io/level0-reborn"
+
+let level0Instance = REBORN_LEVEL0_INSTANCE
+
 const MAIN_PANORAMAX_DISCOVERY_SERVER = "https://api.panoramax.xyz"
 const panoramaxDiscoveryServer = MAIN_PANORAMAX_DISCOVERY_SERVER
 

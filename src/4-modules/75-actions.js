@@ -938,7 +938,8 @@ async function openObjectInJosmOrLevel0(e) {
             return
         }
         window.open(
-            "https://level0.osmz.ru/?" +
+            level0Instance +
+                "/?" +
                 new URLSearchParams({
                     url: shortType + id + "!",
                 }).toString(),
@@ -1006,7 +1007,7 @@ async function openSelectedObjectsOnChangesetPage(e) {
             return
         }
         // prettier-ignore
-        window.open("https://level0.osmz.ru/?" + new URLSearchParams({
+        window.open(level0Instance + "/?" + new URLSearchParams({
             url: [
                 Array.from(nodes).map(i => "n" + i).join(","),
                 Array.from(ways).map(i => "w" + i + (e.shiftKey ? "!" : "")).join(","),
@@ -1174,7 +1175,12 @@ function actionToggleCompactMode() {
 
 function actionOpenOverpassSearch() {
     setTimeout(async () => {
-        getMap().getBounds()
+        await interceptMapManually()
+        try {
+            getMap().getBounds()
+        } catch (e) {
+            alert("Try to reload tab")
+        }
         let message = `Type overpass selector. Examples:
 \tkey
 \tpanoramax|mapillary|wikimedia_commons|...
