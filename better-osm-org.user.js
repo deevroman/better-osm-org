@@ -3601,6 +3601,11 @@ const OHM_OSM_REVERT_NAME = "ohm-revert"
 const osm_revert_origin = isOHMServer() ? OHM_OSM_REVERT : MAIN_OSM_REVERT
 const osm_revert_name = isOHMServer() ? OHM_OSM_REVERT_NAME : MAIN_OSM_REVERT_NAME
 
+const MAIN_LEVEL0_INSTANCE = "https://level0.osmz.ru"
+const REBORN_LEVEL0_INSTANCE = "https://deevroman.github.io/level0-reborn"
+
+let level0Instance = REBORN_LEVEL0_INSTANCE
+
 const MAIN_PANORAMAX_DISCOVERY_SERVER = "https://api.panoramax.xyz"
 const panoramaxDiscoveryServer = MAIN_PANORAMAX_DISCOVERY_SERVER
 
@@ -30505,7 +30510,8 @@ async function openObjectInJosmOrLevel0(e) {
             return
         }
         window.open(
-            "https://level0.osmz.ru/?" +
+            level0Instance +
+                "/?" +
                 new URLSearchParams({
                     url: shortType + id + "!",
                 }).toString(),
@@ -30573,7 +30579,7 @@ async function openSelectedObjectsOnChangesetPage(e) {
             return
         }
         // prettier-ignore
-        window.open("https://level0.osmz.ru/?" + new URLSearchParams({
+        window.open(level0Instance + "/?" + new URLSearchParams({
             url: [
                 Array.from(nodes).map(i => "n" + i).join(","),
                 Array.from(ways).map(i => "w" + i + (e.shiftKey ? "!" : "")).join(","),
@@ -30741,7 +30747,12 @@ function actionToggleCompactMode() {
 
 function actionOpenOverpassSearch() {
     setTimeout(async () => {
-        getMap().getBounds()
+        await interceptMapManually()
+        try {
+            getMap().getBounds()
+        } catch (e) {
+            alert("Try to reload tab")
+        }
         let message = `Type overpass selector. Examples:
 \tkey
 \tpanoramax|mapillary|wikimedia_commons|...
@@ -33029,6 +33040,14 @@ function selectOverpassServer() {
     }
 }
 
+function selectLevel0Instance() {
+    if (isDebug()) {
+        level0Instance = REBORN_LEVEL0_INSTANCE
+    } else {
+        level0Instance = MAIN_LEVEL0_INSTANCE
+    }
+}
+
 function applyModules(path) {
     for (const module of modules.filter(module => GM_config.get(module.name.slice("setup".length)))) {
         queueMicrotask(() => {
@@ -33104,6 +33123,7 @@ function setupOSMWebsite() {
 
     resetSearchFormFocus()
     selectOverpassServer()
+    selectLevel0Instance()
     let lastPath = ""
     new MutationObserver(
         (function mainObserverHandler() {
@@ -33535,7 +33555,7 @@ function addLevel0Reborn() {
     l0reborn.setAttribute("href", "")
     l0reborn.onclick = function () {
         const originalHref = l0export.getAttribute("href")
-        const newHref = originalHref.replace("https://level0.osmz.ru", "https://deevroman.github.io/level0-reborn")
+        const newHref = originalHref.replace(MAIN_LEVEL0_INSTANCE, REBORN_LEVEL0_INSTANCE)
         Array.from(document.querySelectorAll(".modal.is-active .modal-card-head .delete")).at(-1).click()
         l0reborn.setAttribute("href", newHref)
     }
@@ -33565,7 +33585,7 @@ function addLevel0Reborn() {
         params.set("url", overpassURL.toString())
         originalURL.search = params.toString()
 
-        const newHref = originalURL.toString().replace("https://level0.osmz.ru", "https://deevroman.github.io/level0-reborn")
+        const newHref = originalURL.toString().replace(MAIN_LEVEL0_INSTANCE, REBORN_LEVEL0_INSTANCE)
         Array.from(document.querySelectorAll(".modal.is-active .modal-card-head .delete")).at(-1).click()
         l0rebornBboox.setAttribute("href", newHref)
     }

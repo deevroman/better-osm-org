@@ -53,6 +53,14 @@ function selectOverpassServer() {
     }
 }
 
+function selectLevel0Instance() {
+    if (isDebug()) {
+        level0Instance = REBORN_LEVEL0_INSTANCE
+    } else {
+        level0Instance = MAIN_LEVEL0_INSTANCE
+    }
+}
+
 function applyModules(path) {
     for (const module of modules.filter(module => GM_config.get(module.name.slice("setup".length)))) {
         queueMicrotask(() => {
@@ -128,6 +136,7 @@ function setupOSMWebsite() {
 
     resetSearchFormFocus()
     selectOverpassServer()
+    selectLevel0Instance()
     let lastPath = ""
     new MutationObserver(
         (function mainObserverHandler() {
