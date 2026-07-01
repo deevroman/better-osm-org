@@ -160,7 +160,7 @@ async function mapClickHandler(e) {
         }
     }
     const targetURL = `/${bestObj.type}/${bestObj.id}`
-    if (location.pathname.startsWith("/changeset") && !confirm(`Open ${targetURL}`)) {
+    if (location.pathname.startsWith("/changeset") /* && !confirm(`Open ${targetURL}`)*/) {
         return
     }
     getWindow().OSM.router.route(targetURL)
