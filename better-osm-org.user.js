@@ -9647,7 +9647,7 @@ async function mapClickHandler(e) {
         }
     }
     const targetURL = `/${bestObj.type}/${bestObj.id}`
-    if (location.pathname.startsWith("/changeset") && !confirm(`Open ${targetURL}`)) {
+    if (location.pathname.startsWith("/changeset") /* && !confirm(`Open ${targetURL}`)*/) {
         return
     }
     getWindow().OSM.router.route(targetURL)
@@ -33713,6 +33713,7 @@ function _main() {
         setupOhmOsmcha()
         return
     }
+    makeCommandsMenu()
     if (location.origin === "https://taginfo.openstreetmap.org" || location.origin === "https://taginfo.geofabrik.de") {
         new MutationObserver(
             (function fn() {
@@ -33722,7 +33723,6 @@ function _main() {
         ).observe(document, { subtree: true, childList: true })
         return
     }
-    makeCommandsMenu()
     if (isOsmServer()) {
         setupOSMWebsite()
     }
