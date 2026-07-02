@@ -15,11 +15,6 @@
       }
     },
     {
-      "label": "SomeoneElse's vector map style",
-      "value": "https://map.atownsend.org.uk/vector/style_svwd03.json",
-      "about": "https://github.com/SomeoneElseOSM/SomeoneElse-vector-web-display"
-    },
-    {
       "label": "StreetComplete map style",
       "value": "https://raw.githubusercontent.com/streetcomplete/maplibre-streetcomplete-style/refs/heads/master/demo/streetcomplete{style}.json",
       "about": "https://github.com/streetcomplete/maplibre-streetcomplete-style",
@@ -42,6 +37,11 @@
           { "name": "Fiord", "value": "fiord" }
         ]
       }
+    },
+    {
+      "label": "SomeoneElse's vector map style",
+      "value": "https://map.atownsend.org.uk/vector/style_svwd03.json",
+      "about": "https://github.com/SomeoneElseOSM/SomeoneElse-vector-web-display"
     },
     {
       "label": "OpenHistoricalMap style",
