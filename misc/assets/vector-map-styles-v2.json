@@ -40,8 +40,8 @@
     },
     {
       "label": "indoorequal.com tiles for level=",
-      "value": "https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/master/misc/assets/vector-styles/indoorequal-level0-style.json",
-      "about": "https://github.com/deevroman/better-osm-org/blob/master/misc/assets/vector-styles/indoorequal-level{level}-style.json",
+      "value": "https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/master/misc/assets/vector-styles/indoorequal-level{level}-style.json",
+      "about": "https://github.com/deevroman/better-osm-org/blob/master/misc/assets/vector-styles/indoorequal-level0-style.json",
       "fields": {
         "level": [
           { "name": "0", "value": "0" },
