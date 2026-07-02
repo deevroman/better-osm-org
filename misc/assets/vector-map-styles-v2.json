@@ -1,0 +1,71 @@
+{
+  "styles": [
+    {
+      "label": "VersaTiles (Shortbread)",
+      "value": "https://vector.openstreetmap.org/styles/shortbread/{style}.json",
+      "about": "https://github.com/versatiles-org/versatiles-style",
+      "fields": {
+        "style": [
+          { "name": "Colorful", "value": "colorful" },
+          { "name": "Eclipse", "value": "eclipse" },
+          { "name": "Neutrino", "value": "neutrino" },
+          { "name": "Shadow", "value": "shadow" },
+          { "name": "Graybeard", "value": "graybeard" }
+        ]
+      }
+    },
+    {
+      "label": "SomeoneElse's vector map style",
+      "value": "https://map.atownsend.org.uk/vector/style_svwd03.json",
+      "about": "https://github.com/SomeoneElseOSM/SomeoneElse-vector-web-display"
+    },
+    {
+      "label": "StreetComplete map style",
+      "value": "https://raw.githubusercontent.com/streetcomplete/maplibre-streetcomplete-style/refs/heads/master/demo/streetcomplete.json",
+      "about": "https://github.com/streetcomplete/maplibre-streetcomplete-style"
+    },
+    {
+      "label": "OpenFreeMap Positron",
+      "value": "https://tiles.openfreemap.org/styles/positron"
+    },
+    {
+      "label": "OpenHistoricalMap style",
+      "value": "https://openhistoricalmap.org/map-styles/main/main.json",
+      "about": "osm.wiki/OpenHistoricalMap/Reuse#Displaying_a_map"
+    },
+    {
+      "label": "FreeExec's background style",
+      "value": "https://frexosm.ru/power/power.json",
+      "about": "https://frexosm.ru/power"
+    },
+    {
+      "label": "indoorequal.com tiles for",
+      "value": "https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/master/misc/assets/vector-styles/indoorequal-level0-style.json",
+      "about": "https://github.com/deevroman/better-osm-org/blob/master/misc/assets/vector-styles/indoorequal-level{level}-style.json",
+      "fields": {
+        "level": [
+          { "name": "level=0", "value": "0" },
+          { "name": "level=1", "value": "1" },
+          { "name": "level=2", "value": "2" },
+          { "name": "level=3", "value": "3" },
+          { "name": "level=4", "value": "4" }
+        ]
+      }
+    },
+    {
+      "label": "OSRM debug style (simplified)",
+      "value": "https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/master/misc/assets/vector-styles/osrm-debug-style.json",
+      "about": "https://map.project-osrm.org/debug"
+    },
+    {
+      "label": "wb.ru tiles",
+      "value": "https://wb-maps.wb.ru/api/tiles/style/weblight-ru.json?key=Sc2QfP6Ujk2KmDxkeOxA",
+      "about": "https://wb-maps.wb.ru"
+    },
+    {
+      "label": "ozon.ru tiles",
+      "value": "https://gist.githubusercontent.com/deevroman/fdef5a2bf8412755d5e617618cfb1377/raw/6b46921af52a2e163f87eff69480f33ecb73bacd/style.json",
+      "about": "https://www.ozon.ru/geo"
+    }
+  ]
+}

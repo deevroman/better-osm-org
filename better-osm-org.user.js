@@ -12146,7 +12146,7 @@ function vectorLayerEnabled() {
 }
 
 // const localMapStylesURL = "http://localhost:7777/misc/assets/vector-map-styles.json"
-const githubMapStylesURL = `https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/dev/misc/assets/vector-map-styles.json?bypasscache=${Math.random()}`
+const githubMapStylesURL = `https://raw.githubusercontent.com/deevroman/better-osm-org/refs/heads/dev/misc/assets/vector-map-styles-v2.json?bypasscache=${Math.random()}`
 
 const mapStylesDatabase = resourceCacher(githubMapStylesURL, "custom-vector-map-styles", "vector map styles list", 6 * 60 * 60 * 1000, "json")
 
