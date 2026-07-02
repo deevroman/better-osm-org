@@ -21,8 +21,14 @@
     },
     {
       "label": "StreetComplete map style",
-      "value": "https://raw.githubusercontent.com/streetcomplete/maplibre-streetcomplete-style/refs/heads/master/demo/streetcomplete.json",
-      "about": "https://github.com/streetcomplete/maplibre-streetcomplete-style"
+      "value": "https://raw.githubusercontent.com/streetcomplete/maplibre-streetcomplete-style/refs/heads/master/demo/streetcomplete{style}.json",
+      "about": "https://github.com/streetcomplete/maplibre-streetcomplete-style",
+      "fields": {
+        "style": [
+          { "name": "Default", "value": "" },
+          { "name": "Night", "value": "-night" }
+        ]
+      }
     },
     {
       "label": "OpenFreeMap Positron",
@@ -31,7 +37,7 @@
         "style": [
           { "name": "Positron", "value": "positron" },
           { "name": "Bright", "value": "bright" },
-          { "name": "Liberty", "value": "Liberty" },
+          { "name": "Liberty", "value": "liberty" },
           { "name": "Dark", "value": "dark" },
           { "name": "Fiord", "value": "fiord" }
         ]
