@@ -297,7 +297,8 @@ function findVectorMap() {
 
 let vectorStyleValidatorTimer = null
 
-async function applyCustomVectorMapStyle(styleUrl, updateUrlInStorage = false) {
+async function applyCustomVectorMapStyle(styleInfo, updateUrlInStorage = false) {
+    let { url: styleUrl } = styleInfo
     try {
         getWindow().customVectorStyleLayerOrigin = vectorLayerStyleUrlOrigin = new URL(styleUrl).origin
         if (updateUrlInStorage) {
@@ -451,7 +452,7 @@ async function askCustomStyleUrl() {
         return wrapper
     }
 
-    function addRadio({ label, value, about }) {
+    function addRadio({ label, value, about, fields }) {
         const wrapper = makeWrapper()
 
         const input = document.createElement("input")
@@ -459,12 +460,14 @@ async function askCustomStyleUrl() {
         input.name = radiosName
         wrapper.title = input.value = value
 
-        input.addEventListener("change", async () => {
+        async function onChange() {
             if (input.checked) {
-                await applyCustomVectorMapStyle(value)
+                const { url, fieldsValues } = applyFields(input.value, fields, wrapper)
+                await applyCustomVectorMapStyle({ url: url, url_template: input.value, label: label, fieldsValues: fieldsValues })
                 setAttributionPrefix(label)
             }
-        })
+        }
+        input.addEventListener("change", onChange)
 
         const editBtn = document.createElement("button")
         editBtn.classList.add("edit-vector-style-btn", "bi", "bi-download")
@@ -497,7 +500,7 @@ async function askCustomStyleUrl() {
             if (ta.parentElement.querySelector("input")?.checked) {
                 ta.style.removeProperty("border-color")
                 if (ta.value.trim() !== "") {
-                    await applyCustomVectorMapStyle(ta.value, true)
+                    await applyCustomVectorMapStyle({ url: ta.value }, true)
                 } else {
                     void GM.setValue("customLayerTextarea", "")
                 }
@@ -519,6 +522,31 @@ async function askCustomStyleUrl() {
         const labelSpan = document.createElement("span")
         labelSpan.textContent = label
         wrapper.append(input, labelSpan, editBtn, externalLink)
+
+        if (fields) {
+            Object.entries(fields).forEach(([field_name, values]) => {
+                const select = document.createElement("select")
+                select.name = field_name
+                values.forEach(o => {
+                    const opt = document.createElement("option")
+                    opt.textContent = o.name
+                    opt.value = o.value
+                    select.appendChild(opt)
+                })
+                select.onchange = async () => {
+                    if (!input.checked) {
+                        input.click()
+                    } else {
+                        await onChange()
+                    }
+                }
+                // if (customLayerInfo.url_template === value && customLayerInfo.fieldsValues?.[field_name]) {
+                //     select.value = customLayerInfo.fieldsValues[field_name]
+                // }
+                labelSpan.after(select)
+            })
+        }
+
         radioContainer.appendChild(wrapper)
     }
 
@@ -544,7 +572,7 @@ async function askCustomStyleUrl() {
         input.onchange = async e => {
             if (!e.isTrusted) return
             if (input.checked && urlInput.value.trim() !== "") {
-                await applyCustomVectorMapStyle(urlInput.value, true)
+                await applyCustomVectorMapStyle({ url: urlInput.value }, true)
             }
         }
 
@@ -552,7 +580,7 @@ async function askCustomStyleUrl() {
             if (!e.isTrusted) return
             if (e.key === "Enter" && urlInput.value.trim() !== "") {
                 input.click()
-                await applyCustomVectorMapStyle(urlInput.value, true)
+                await applyCustomVectorMapStyle({ url: urlInput.value }, true)
                 setAttributionPrefix("Custom map style from " + escapeHtml(new URL(urlInput.value).host))
             }
         }
@@ -597,7 +625,7 @@ async function askCustomStyleUrl() {
             if (input.checked) {
                 jsonArea.style.removeProperty("border-color")
                 if (jsonArea.value.trim() !== "") {
-                    await applyCustomVectorMapStyle(jsonArea.value, true)
+                    await applyCustomVectorMapStyle({ url: jsonArea.value }, true)
                 } else {
                     void GM.setValue("customLayerTextarea", "")
                 }
@@ -621,7 +649,7 @@ async function askCustomStyleUrl() {
             jsonArea.style.removeProperty("border-color")
             jsonArea.setCustomValidity("")
             input.click()
-            await applyCustomVectorMapStyle(jsonArea.value, true)
+            await applyCustomVectorMapStyle({ url: jsonArea.value }, true)
             setAttributionPrefix("Custom map style")
         }
 
@@ -635,6 +663,18 @@ async function askCustomStyleUrl() {
     popup.appendChild(note)
     document.body.appendChild(popup)
     popup.querySelector('label:has([href^="https://github.com/versatiles-org/versatiles-style"])')?.querySelector("input")?.focus()
+}
+
+function applyFields(url, fields, wrapper) {
+    const fieldsValues = {}
+    if (!fields) {
+        return { url, fieldsValues }
+    }
+    Object.entries(fields).forEach(([field_name, values]) => {
+        const select = wrapper.querySelector(`select[name="${field_name}"]`)
+        url = url.replaceAll(`{${field_name}}`, (fieldsValues[field_name] = select.value))
+    })
+    return { url, fieldsValues }
 }
 
 async function askCustomTileUrl() {
@@ -801,24 +841,13 @@ async function askCustomTileUrl() {
         wrapper.title = input.value = value
 
         async function onChange() {
-            function applyFields(url) {
-                const fieldsValues = {}
-                if (!fields) {
-                    return { url, fieldsValues }
-                }
-                Object.entries(fields).forEach(([field_name, values]) => {
-                    const select = wrapper.querySelector(`select[name="${field_name}"]`)
-                    url = url.replaceAll(`{${field_name}}`, (fieldsValues[field_name] = select.value))
-                })
-                return { url, fieldsValues }
-            }
             if (input.checked) {
                 if (forceVector && !vectorLayerEnabled()) {
                     nextVectorLayer()
                     await sleep(100)
                 }
                 abortTilesAbortController(customLayerUrlOrigin)
-                const { url, fieldsValues } = applyFields(input.value)
+                const { url, fieldsValues } = applyFields(input.value, fields, wrapper)
                 applyCustomLayer({ url: url, url_template: input.value, label: label, fieldsValues: fieldsValues, forceVector: forceVector })
                 switchTiles(currentTilesMode === MAPNIK_MODE)
                 setAttributionPrefix(label)
