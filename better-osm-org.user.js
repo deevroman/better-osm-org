@@ -9875,9 +9875,12 @@ function makeNotesKml(notes) {
             .replace(/\s+/g, " ")
             .trim()
             .replace(/A user of .*$/, "")
+            .replace(/A CoMaps user .*$/, "")
             .replace(/OSM snapshot date.*$/, "")
-            .replace(/Attached photo.*$/, "Attached photo")
-            .replace(/(https:\/\/streetcomplete\.app\/|https:\/\/westnordost\.de\/).*$/, "")
+            .replace(/via StreetComplete \d+\.\d+/im, "#StreetComplete")
+            .replace(/via StreetComplete_ee \d+\.\d+/im, "#StreetComplete_ee")
+            .replace(/Attached photo.*$/im, "+ photo")
+            .replace(/https?:\/\/(www.)?.*$/i, "")
         const title = shortText.length > 70 ? shortText.slice(0, 67).trim() + "..." : shortText
         appendKmlTextElement(placemark, "name", title)
 
