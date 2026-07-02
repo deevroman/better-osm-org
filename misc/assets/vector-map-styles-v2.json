@@ -26,12 +26,21 @@
     },
     {
       "label": "OpenFreeMap Positron",
-      "value": "https://tiles.openfreemap.org/styles/positron"
+      "value": "https://tiles.openfreemap.org/styles/{style}",
+      "fields": {
+        "style": [
+          { "name": "Positron", "value": "positron" },
+          { "name": "Bright", "value": "bright" },
+          { "name": "Liberty", "value": "Liberty" },
+          { "name": "Dark", "value": "dark" },
+          { "name": "Fiord", "value": "fiord" }
+        ]
+      }
     },
     {
       "label": "OpenHistoricalMap style",
       "value": "https://openhistoricalmap.org/map-styles/main/main.json",
-      "about": "osm.wiki/OpenHistoricalMap/Reuse#Displaying_a_map"
+      "about": "https://osm.wiki/OpenHistoricalMap/Reuse#Displaying_a_map"
     },
     {
       "label": "FreeExec's background style",
