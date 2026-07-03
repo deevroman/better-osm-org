@@ -127,6 +127,7 @@ function addDeleteButton() {
 
     if (document.querySelector(".delete_object_button_class")) return true
     if (document.querySelector(".restore_object_button_class")) return true
+    if (document.querySelector(".btn.btn-danger") !== null) return
 
     const match = location.pathname.match(/(node|relation)\/(\d+)/)
     if (!match) return
