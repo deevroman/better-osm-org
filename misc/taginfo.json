@@ -209,6 +209,10 @@
       "description": "warn about tracking params in URL"
     },
     {
+      "key": "contact:vk",
+      "description": "warn about tracking params in URL"
+    },
+    {
       "key": "contact:instagram",
       "description": "warn about tracking params in URL"
     },

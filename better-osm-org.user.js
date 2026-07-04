@@ -14269,6 +14269,7 @@ function needValidateTrackingParamsInContact(key) {
         key === "website" ||
         key.startsWith("website:") ||
         key.endsWith(":website") ||
+        key === "contact:vk" ||
         key === "contact:instagram" ||
         key === "contact:facebook" ||
         key === "source" ||
