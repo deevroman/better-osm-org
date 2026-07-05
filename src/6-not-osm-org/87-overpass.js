@@ -23,13 +23,14 @@ function addLevel0Reborn() {
 
     l0export.after(l0reborn)
 
-    const l0rebornBboox = l0export.cloneNode(true)
-    l0rebornBboox.id = "export-editors-level0-reborn-bbox"
-    l0rebornBboox.textContent = "only bbox"
-    l0rebornBboox.setAttribute("href", "")
-    l0rebornBboox.onclick = function () {
+    const l0rebornBbox = l0export.cloneNode(true)
+    l0rebornBbox.id = "export-editors-level0-reborn-bbox"
+    l0rebornBbox.textContent = "only bbox"
+    l0rebornBbox.setAttribute("href", "")
+    l0rebornBbox.onclick = function () {
         document.querySelector("#export-map-state").click()
         const bbox = Array.from(document.querySelectorAll(".modal.is-active .modal-card-body p:has(small)")).at(-1).firstChild.data
+        Array.from(document.querySelectorAll(".modal.is-active .modal-card-head .delete")).at(-1).click()
 
         const originalHref = l0export.getAttribute("href")
         const originalURL = new URL(originalHref)
@@ -46,11 +47,13 @@ function addLevel0Reborn() {
         params.set("url", overpassURL.toString())
         originalURL.search = params.toString()
 
-        const newHref = originalURL.toString().replace(MAIN_LEVEL0_INSTANCE, REBORN_LEVEL0_INSTANCE)
-        Array.from(document.querySelectorAll(".modal.is-active .modal-card-head .delete")).at(-1).click()
-        l0rebornBboox.setAttribute("href", newHref)
+        const newHref = originalURL
+            .toString()
+            .replace(LEGACY_MAIN_LEVEL0_INSTANCE, REBORN_LEVEL0_INSTANCE)
+            .replace(MAIN_LEVEL0_INSTANCE, REBORN_LEVEL0_INSTANCE)
+        l0rebornBbox.setAttribute("href", newHref)
     }
-    l0reborn.after(l0rebornBboox)
+    l0reborn.after(l0rebornBbox)
     l0reborn.after(document.createTextNode("\xA0"))
 }
 

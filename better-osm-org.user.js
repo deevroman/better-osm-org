@@ -51,6 +51,7 @@
 // @match        https://osmcha.org/*
 // @match        https://osmcha.openhistoricalmap.org/*
 // @match        https://overpass-turbo.eu/*
+// @match        https://maps.mail.ru/osm/tools/overpass/*
 // @exclude      https://www.openhistoricalmap.org/api*
 // @exclude      https://www.openhistoricalmap.org/account*
 // @exclude      https://www.openhistoricalmap.org/messages/*
@@ -3603,6 +3604,7 @@ const OHM_OSM_REVERT_NAME = "ohm-revert"
 const osm_revert_origin = isOHMServer() ? OHM_OSM_REVERT : MAIN_OSM_REVERT
 const osm_revert_name = isOHMServer() ? OHM_OSM_REVERT_NAME : MAIN_OSM_REVERT_NAME
 
+const LEGACY_MAIN_LEVEL0_INSTANCE = "http://level0.osmz.ru"
 const MAIN_LEVEL0_INSTANCE = "https://level0.osmz.ru"
 const REBORN_LEVEL0_INSTANCE = "https://deevroman.github.io/level0-reborn"
 
@@ -33600,13 +33602,14 @@ function addLevel0Reborn() {
 
     l0export.after(l0reborn)
 
-    const l0rebornBboox = l0export.cloneNode(true)
-    l0rebornBboox.id = "export-editors-level0-reborn-bbox"
-    l0rebornBboox.textContent = "only bbox"
-    l0rebornBboox.setAttribute("href", "")
-    l0rebornBboox.onclick = function () {
+    const l0rebornBbox = l0export.cloneNode(true)
+    l0rebornBbox.id = "export-editors-level0-reborn-bbox"
+    l0rebornBbox.textContent = "only bbox"
+    l0rebornBbox.setAttribute("href", "")
+    l0rebornBbox.onclick = function () {
         document.querySelector("#export-map-state").click()
         const bbox = Array.from(document.querySelectorAll(".modal.is-active .modal-card-body p:has(small)")).at(-1).firstChild.data
+        Array.from(document.querySelectorAll(".modal.is-active .modal-card-head .delete")).at(-1).click()
 
         const originalHref = l0export.getAttribute("href")
         const originalURL = new URL(originalHref)
@@ -33623,11 +33626,13 @@ function addLevel0Reborn() {
         params.set("url", overpassURL.toString())
         originalURL.search = params.toString()
 
-        const newHref = originalURL.toString().replace(MAIN_LEVEL0_INSTANCE, REBORN_LEVEL0_INSTANCE)
-        Array.from(document.querySelectorAll(".modal.is-active .modal-card-head .delete")).at(-1).click()
-        l0rebornBboox.setAttribute("href", newHref)
+        const newHref = originalURL
+            .toString()
+            .replace(LEGACY_MAIN_LEVEL0_INSTANCE, REBORN_LEVEL0_INSTANCE)
+            .replace(MAIN_LEVEL0_INSTANCE, REBORN_LEVEL0_INSTANCE)
+        l0rebornBbox.setAttribute("href", newHref)
     }
-    l0reborn.after(l0rebornBboox)
+    l0reborn.after(l0rebornBbox)
     l0reborn.after(document.createTextNode("\xA0"))
 }
 
@@ -33767,7 +33772,10 @@ function _main() {
     if (location.origin === "https://wiki.openstreetmap.org") {
         setupWiki()
     }
-    if (location.origin === "https://overpass-turbo.eu") {
+    if (
+        location.origin === "https://overpass-turbo.eu" ||
+        (location.origin === "https://maps.mail.ru" && location.pathname === "/osm/tools/overpass/")
+    ) {
         setupOverpass()
     }
 }
