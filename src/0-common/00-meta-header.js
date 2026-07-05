@@ -52,6 +52,7 @@
 // @match        https://osmcha.org/*
 // @match        https://osmcha.openhistoricalmap.org/*
 // @match        https://overpass-turbo.eu/*
+// @match        https://maps.mail.ru/osm/tools/overpass/*
 // @exclude      https://www.openhistoricalmap.org/api*
 // @exclude      https://www.openhistoricalmap.org/account*
 // @exclude      https://www.openhistoricalmap.org/messages/*

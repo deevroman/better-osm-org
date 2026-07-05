@@ -40,7 +40,10 @@ function _main() {
     if (location.origin === "https://wiki.openstreetmap.org") {
         setupWiki()
     }
-    if (location.origin === "https://overpass-turbo.eu") {
+    if (
+        location.origin === "https://overpass-turbo.eu" ||
+        (location.origin === "https://maps.mail.ru" && location.pathname === "/osm/tools/overpass/")
+    ) {
         setupOverpass()
     }
 }
