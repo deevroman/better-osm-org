@@ -9530,6 +9530,10 @@ async function getElementsAroundNode(lat, lng) {
     throw "empty region"
 }
 
+/**
+ * @param {PointerEvent} e
+ * @return {Promise<void>}
+ */
 async function mapClickHandler(e) {
     if (skipClick) {
         return
@@ -9656,7 +9660,16 @@ async function mapClickHandler(e) {
     if (location.pathname.startsWith("/changeset") /* && !confirm(`Open ${targetURL}`)*/) {
         return
     }
-    getWindow().OSM.router.route(targetURL)
+    if (e.ctrlKey || e.metaKey) {
+        window.open(location.origin + targetURL)
+    } else {
+        try {
+            getWindow().OSM.router.route(targetURL)
+        } catch (e) {
+            window.open(location.origin + targetURL)
+        }
+    }
+
     console.log(elements)
 }
 
