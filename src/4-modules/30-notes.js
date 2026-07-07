@@ -603,8 +603,8 @@ function addResolveNotesButton() {
         addCreateNewPOIButton()
         return
     }
-    if (document.querySelector(".resolve-note-done")) return true
-    if (document.querySelector("#timeback-btn")) return true
+    if (document.querySelector(".resolve-note-done")) return
+    if (document.querySelector("#timeback-btn")) return
     resetSearchFormFocus()
     void geocodeCurrentView()
 

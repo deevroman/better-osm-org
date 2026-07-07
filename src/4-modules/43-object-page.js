@@ -441,6 +441,9 @@ function makeRoofOrientationValue(elem) {
 
 function makeContactValue(elem, key) {
     try {
+        if (!elem.textContent.includes(".")) {
+            return
+        }
         const urlParams = new URL(elem.textContent).searchParams
         const warns = []
         ;[
