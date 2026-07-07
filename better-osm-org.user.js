@@ -10320,8 +10320,8 @@ function addResolveNotesButton() {
         addCreateNewPOIButton()
         return
     }
-    if (document.querySelector(".resolve-note-done")) return true
-    if (document.querySelector("#timeback-btn")) return true
+    if (document.querySelector(".resolve-note-done")) return
+    if (document.querySelector("#timeback-btn")) return
     resetSearchFormFocus()
     void geocodeCurrentView()
 
@@ -13904,6 +13904,9 @@ function makeRoofOrientationValue(elem) {
 
 function makeContactValue(elem, key) {
     try {
+        if (!elem.textContent.includes(".")) {
+            return
+        }
         const urlParams = new URL(elem.textContent).searchParams
         const warns = []
         ;[
