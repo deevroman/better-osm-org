@@ -597,6 +597,17 @@ function insertNoteResolveButtons() {
     document.querySelector("form.mb-3 .form-control").rows = 3
 }
 
+function initKostylForSidebarStateChange(cb) {
+    const obs = new MutationObserver((mutations, observer) => {
+        if (!mutations[0].removedNodes.length) {
+            return
+        }
+        observer.disconnect()
+        cb()
+    })
+    obs.observe(document.querySelector("#sidebar_content"), { attributes: true, childList: true })
+}
+
 function addResolveNotesButton() {
     if (!location.pathname.includes("/note")) return
     if (location.pathname.includes("/note/new")) {
@@ -648,6 +659,10 @@ function addResolveNotesButton() {
     }
     insertNoteResolveButtons()
     addAutoComplete()
+    initKostylForSidebarStateChange(() => {
+        setTimeout(setupResolveNotesButton)
+        setTimeout(setupSatelliteLayers)
+    })
 }
 
 function setupResolveNotesButton() {
