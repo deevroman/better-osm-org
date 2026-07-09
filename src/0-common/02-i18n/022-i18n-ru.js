@@ -28,6 +28,10 @@ _translations["ru"] = {
         colorblindFriendlyPalette: "Палитра для дальтоников β",
         customPalette: "Своя палитра β",
         customizePalette: "Изменить цвета",
+        importDefaultPalette: "Импортировать палитру по умолчанию",
+        importColorblindPalette: "Импортировать палитру для дальтоников",
+        importPaletteFromClipboard: "Импортировать палитру из буфера",
+        exportPaletteIntoClipboard: "Экспортировать палитру в буфер",
         betterTagsPaste: "Добавлять = при вставке тегов, разделённых пробелами или табами",
         darkModeForID:
             'Тёмная тема для iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Спасибо AlexPS</a>)',

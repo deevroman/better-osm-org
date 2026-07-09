@@ -28,6 +28,10 @@ _translations["hr"] = {
         colorblindFriendlyPalette: "Paleta prilagođena daltonistima β",
         customPalette: "Prilagođena paleta β",
         customizePalette: "Promijeni boje",
+        importDefaultPalette: "Uvezi zadanu paletu",
+        importColorblindPalette: "Uvezi paletu prilagođenu daltonistima",
+        importPaletteFromClipboard: "Uvezi paletu iz međuspremnika",
+        exportPaletteIntoClipboard: "Izvezi paletu u međuspremnik",
         betterTagsPaste: "Dodaj = pri lijepljenju oznaka odvojenih razmacima ili tabulatorima",
         darkModeForID:
             'Tamni način za iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Hvala AlexPS</a>)',
