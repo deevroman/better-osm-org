@@ -247,6 +247,8 @@ _translations["en"] = {
         sectionOther: "Other",
         darkModeForMap: "Invert map colors in dark mode",
         colorblindFriendlyPalette: "Colorblind-friendly palette β",
+        customPalette: "Custom palette β",
+        customizePalette: "Change colors",
         betterTagsPaste: "Add = when pasting tags separated by spaces or tabs",
         darkModeForID:
             'Dark mode for iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Thanks AlexPS</a>)',
@@ -480,6 +482,7 @@ _translations["en"] = {
     panoramax: {
         blurFaces: "Blur faces",
         loginRequiredAlert: "Please, login to Panoramax",
+        firefoxWarn: "p.s. In Firefox, remember to check that privacy.firstparty.isolate is disabled in about:config",
         uploadPhoto: "Upload photo to Panoramax",
         selectFileAlert: "Select file",
         uploadError: "Error: {message}",
@@ -675,6 +678,8 @@ _translations["tr"] = {
         sectionOther: "Diğer",
         darkModeForMap: "Koyu modda harita renklerini ters çevir",
         colorblindFriendlyPalette: "Renk körlüğüne uygun palet β",
+        customPalette: "Özel palet β",
+        customizePalette: "Renkleri değiştir",
         betterTagsPaste: "Boşluk veya sekmeyle ayrılmış etiketleri yapıştırırken = ekle",
         darkModeForID:
             'iD için koyu mod (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Teşekkürler AlexPS</a>)',
@@ -910,6 +915,7 @@ _translations["tr"] = {
     panoramax: {
         blurFaces: "Yüzleri bulanıklaştır",
         loginRequiredAlert: "Lütfen Panoramax'a giriş yapın",
+        firefoxWarn: "p.s. Firefox'ta about:config içinde privacy.firstparty.isolate ayarının kapalı olduğunu kontrol etmeyi unutmayın",
         uploadPhoto: "Panoramax'a fotoğraf yükle",
         selectFileAlert: "Dosya seçin",
         uploadError: "Hata: {message}",
@@ -1108,6 +1114,8 @@ _translations["ru"] = {
         sectionOther: "Прочее",
         darkModeForMap: "Инвертировать цвета карты в тёмной теме",
         colorblindFriendlyPalette: "Палитра для дальтоников β",
+        customPalette: "Своя палитра β",
+        customizePalette: "Изменить цвета",
         betterTagsPaste: "Добавлять = при вставке тегов, разделённых пробелами или табами",
         darkModeForID:
             'Тёмная тема для iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Спасибо AlexPS</a>)',
@@ -1357,6 +1365,7 @@ _translations["ru"] = {
     panoramax: {
         blurFaces: "Размыть лица",
         loginRequiredAlert: "Пожалуйста, войдите в Panoramax",
+        firefoxWarn: "p.s. В Firefox не забудьте проверить, что в about:config отключен параметр privacy.firstparty.isolate",
         uploadPhoto: "Загрузить фото в Panoramax",
         selectFileAlert: "Выберите файл",
         uploadError: "Ошибка: {message}",
@@ -1553,6 +1562,8 @@ _translations["de"] = {
         sectionOther: "Sonstiges",
         darkModeForMap: "Kartenfarben im Dunkelmodus invertieren",
         colorblindFriendlyPalette: "Farbenblind-freundliche Palette β",
+        customPalette: "Eigene Palette β",
+        customizePalette: "Farben ändern",
         betterTagsPaste: "Beim Einfügen von Tags, die durch Leerzeichen oder Tabs getrennt sind, = hinzufügen",
         darkModeForID:
             'Dunkelmodus für iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Danke AlexPS</a>)',
@@ -1788,6 +1799,7 @@ _translations["de"] = {
     panoramax: {
         blurFaces: "Gesichter verwischen",
         loginRequiredAlert: "Bitte melde dich bei Panoramax an",
+        firefoxWarn: "p.s. In Firefox bitte prüfen, dass privacy.firstparty.isolate in about:config deaktiviert ist",
         uploadPhoto: "Foto zu Panoramax hochladen",
         selectFileAlert: "Datei auswählen",
         uploadError: "Fehler: {message}",
@@ -1987,6 +1999,8 @@ _translations["fr"] = {
         sectionOther: "Autre",
         darkModeForMap: "Inverser les couleurs de la carte en mode sombre",
         colorblindFriendlyPalette: "Palette adaptée au daltonisme β",
+        customPalette: "Palette personnalisée β",
+        customizePalette: "Modifier les couleurs",
         betterTagsPaste: "Ajouter = lors du collage de tags séparés par des espaces ou des tabulations",
         darkModeForID:
             'Mode sombre pour iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Merci AlexPS</a>)',
@@ -2223,6 +2237,7 @@ _translations["fr"] = {
     panoramax: {
         blurFaces: "Flouter les visages",
         loginRequiredAlert: "Veuillez vous connecter à Panoramax",
+        firefoxWarn: "p.s. Dans Firefox, pensez à vérifier que privacy.firstparty.isolate est désactivé dans about:config",
         uploadPhoto: "Téléverser une photo vers Panoramax",
         selectFileAlert: "Sélectionnez un fichier",
         uploadError: "Erreur : {message}",
@@ -2423,6 +2438,8 @@ _translations["hr"] = {
         sectionOther: "Ostalo",
         darkModeForMap: "Invertiraj boje karte u tamnom načinu rada",
         colorblindFriendlyPalette: "Paleta prilagođena daltonistima β",
+        customPalette: "Prilagođena paleta β",
+        customizePalette: "Promijeni boje",
         betterTagsPaste: "Dodaj = pri lijepljenju oznaka odvojenih razmacima ili tabulatorima",
         darkModeForID:
             'Tamni način za iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Hvala AlexPS</a>)',
@@ -2657,6 +2674,7 @@ _translations["hr"] = {
     panoramax: {
         blurFaces: "Zamagli lica",
         loginRequiredAlert: "Prijavite se u Panoramax",
+        firefoxWarn: "p.s. U Firefoxu provjerite je li privacy.firstparty.isolate isključen u about:config",
         uploadPhoto: "Prenesi fotografiju u Panoramax",
         selectFileAlert: "Odaberite datoteku",
         uploadError: "Greška: {message}",
@@ -2854,6 +2872,8 @@ _translations["uk"] = {
         sectionOther: "Інше",
         darkModeForMap: "Інвертувати кольори мапи в темній темі",
         colorblindFriendlyPalette: "Палітра для дальтоніків β",
+        customPalette: "Власна палітра β",
+        customizePalette: "Змінити кольори",
         betterTagsPaste: "Додавати = під час вставлення тегів, розділених пробілами або табуляцією",
         darkModeForID:
             'Темна тема для iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Дякуємо AlexPS</a>)',
@@ -3089,6 +3109,7 @@ _translations["uk"] = {
     panoramax: {
         blurFaces: "Розмити обличчя",
         loginRequiredAlert: "Будь ласка, увійдіть у Panoramax",
+        firefoxWarn: "p.s. У Firefox не забудьте перевірити, що в about:config вимкнено параметр privacy.firstparty.isolate",
         uploadPhoto: "Завантажити фото в Panoramax",
         selectFileAlert: "Виберіть файл",
         uploadError: "Помилка: {message}",
@@ -4027,6 +4048,171 @@ function makeRow(label, text, without_delete = false, placeholder = "comment tha
     return tr
 }
 
+function parseColorPaletteSetting(value) {
+    if (!value || value.trim() === "") {
+        return { enabled: false, colors: {} }
+    }
+    try {
+        return JSON.parse(value)
+    } catch (e) {
+        console.log(e)
+    }
+    return { enabled: false, colors: {} }
+}
+
+function makeColorPalettePreview(value, title) {
+    const preview = document.createElement("span")
+    const fill = document.createElement("span")
+
+    preview.className = "color-palette-preview"
+    preview.title = title
+    fill.className = "color-palette-preview-fill"
+    fill.style.backgroundColor = value
+    if (value === "" || fill.style.backgroundColor === "") {
+        preview.classList.add("color-palette-preview-empty")
+        preview.textContent = "?"
+    } else {
+        preview.appendChild(fill)
+    }
+    return preview
+}
+
+function colorToHexForInput(value) {
+    const colorProbe = document.createElement("span")
+
+    colorProbe.style.color = value
+    if (value === "" || colorProbe.style.color === "") {
+        return null
+    }
+
+    document.documentElement.appendChild(colorProbe)
+    const computedColor = getComputedStyle(colorProbe).color
+    colorProbe.remove()
+
+    const rgb = computedColor.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/)
+    if (!rgb) {
+        return null
+    }
+
+    return rgb
+        .slice(1, 4)
+        .map(channel => Number(channel).toString(16).padStart(2, "0"))
+        .join("")
+        .replace(/^/, "#")
+}
+
+function updateColorPalettePreview(row) {
+    const valueCell = row.querySelector(".color-palette-value")
+    const previewCell = row.querySelector(".color-palette-new-preview")
+    const picker = row.querySelector(".color-palette-picker")
+    const value = valueCell.textContent.trim() || row.dataset.defaultValue
+
+    previewCell.replaceChildren(...[makeColorPalettePreview(value, `Choose new color. Current value: ${value}`), picker].filter(Boolean))
+}
+
+function setColorPaletteValue(row, value) {
+    row.querySelector(".color-palette-value").textContent = value
+    updateColorPalettePreview(row)
+}
+
+function selectColorPaletteColor(row) {
+    const valueCell = row.querySelector(".color-palette-value")
+    const currentValue = valueCell.textContent.trim()
+    const picker = row.querySelector(".color-palette-picker")
+
+    picker.value = colorToHexForInput(currentValue) ?? colorToHexForInput(row.dataset.defaultValue) ?? "#000000"
+    picker.click()
+}
+
+function makeColorPaletteKey(value) {
+    const fragment = document.createDocumentFragment()
+    let chunk = ""
+
+    Array.from(value).forEach((char, index, chars) => {
+        const prev = chars[index - 1]
+        const next = chars[index + 1]
+        const isDecimalPoint = char === "." && /\d/.test(prev) && /\d/.test(next)
+
+        if (char === "." && !isDecimalPoint) {
+            fragment.appendChild(document.createTextNode(chunk))
+            fragment.appendChild(document.createElement("br"))
+            chunk = "."
+            return
+        }
+        chunk += char
+    })
+    fragment.appendChild(document.createTextNode(chunk))
+
+    return fragment
+}
+
+function makeColorPaletteRow(key, defaultValue, colorblindValue, value) {
+    const tr = document.createElement("tr")
+    const sourcePreview = document.createElement("td")
+    const sourceName = document.createElement("td")
+    const newPreview = document.createElement("td")
+    const newValue = document.createElement("td")
+    const colorPicker = document.createElement("input")
+
+    tr.dataset.colorPaletteKey = key
+    tr.dataset.defaultValue = defaultValue
+    if (colorblindValue) {
+        tr.dataset.colorblindValue = colorblindValue
+    }
+
+    sourcePreview.className = "color-palette-source-preview"
+    sourcePreview.title = defaultValue ? `Use original color: ${defaultValue}` : "No original color"
+    sourcePreview.onclick = () => {
+        if (defaultValue) {
+            setColorPaletteValue(tr, defaultValue)
+        }
+    }
+    sourcePreview.appendChild(makeColorPalettePreview(defaultValue, sourcePreview.title))
+
+    sourceName.className = "color-palette-source-name"
+    sourceName.title = key
+    sourceName.appendChild(makeColorPaletteKey(key))
+
+    newPreview.className = "color-palette-new-preview"
+    newPreview.onclick = () => selectColorPaletteColor(tr)
+
+    newValue.className = "color-palette-value"
+    newValue.textContent = value
+    newValue.spellcheck = false
+    newValue.setAttribute("contenteditable", "true")
+    newValue.oninput = () => updateColorPalettePreview(tr)
+
+    colorPicker.className = "color-palette-picker"
+    colorPicker.type = "color"
+    colorPicker.onclick = event => event.stopPropagation()
+    colorPicker.oninput = colorPicker.onchange = () => {
+        setColorPaletteValue(tr, colorPicker.value)
+    }
+    newPreview.appendChild(colorPicker)
+
+    tr.appendChild(sourcePreview)
+    tr.appendChild(sourceName)
+    tr.appendChild(newPreview)
+    tr.appendChild(newValue)
+    updateColorPalettePreview(tr)
+
+    return tr
+}
+
+function fillColorPaletteTable(tbody, overrides) {
+    const renderedKeys = new Set()
+
+    Object.entries(defaultColorsPalette).forEach(([key, defaultValue]) => {
+        renderedKeys.add(key)
+        tbody.appendChild(makeColorPaletteRow(key, defaultValue, colorblindFriendlyPalette[key], overrides[key] ?? defaultValue))
+    })
+    Object.entries(overrides).forEach(([key, value]) => {
+        if (!renderedKeys.has(key)) {
+            tbody.appendChild(makeColorPaletteRow(key, "", colorblindFriendlyPalette[key], value))
+        }
+    })
+}
+
 const copyAnimationStyles = `
     .copied {
       background-color: rgba(9,238,9,0.6);
@@ -4062,6 +4248,11 @@ const configOptions = {
             type: "checkbox",
             default: false,
             labelPos: "right",
+        },
+        ColorPalette: {
+            label: t("config.customPalette"),
+            type: "colors",
+            default: "{enabled: false, colors: {}}",
         },
         BetterTagsPaste: {
             section: [t("config.sectionID")],
@@ -4383,11 +4574,134 @@ const configOptions = {
                 }
             },
         },
+        colors: {
+            default: "{enabled: false, colors: {}}",
+            toNode: function () {
+                const { enabled, colors } = parseColorPaletteSetting(/** @type {string} */ (this.value || this.settings.default))
+                const settingNode = this.create("div", {
+                    className: "config_var",
+                    id: this.configId + "_" + this.id + "_var",
+                })
+
+                this.templates = colors
+
+                settingNode.appendChild(
+                    this.create("input", {
+                        innerHTML: this.settings.label,
+                        id: this.configId + "_" + this.id + "_field",
+                        type: "checkbox",
+                        checked: enabled,
+                    }),
+                )
+
+                const label = this.create("label", {
+                    innerHTML: this.settings.label,
+                    id: this.configId + "_" + this.id + "_field_label",
+                    for: this.configId + "_" + this.id + "_field",
+                    className: "field_label",
+                })
+                settingNode.appendChild(label)
+
+                const details = document.createElement("details")
+                details.className = "color-palette-details"
+                settingNode.appendChild(details)
+
+                const insertDefaultPalette = this.create("button", {
+                    id: "InsertDefaultPalette",
+                    textContent: "Insert default palette",
+                })
+                insertDefaultPalette.onclick = () => {
+                    table.querySelectorAll("#Config_ColorPalette_var tr[data-color-palette-key]").forEach(row => {
+                        row.querySelector(".color-palette-value").textContent = row.dataset.defaultValue
+                        updateColorPalettePreview(row)
+                    })
+                }
+                details.appendChild(insertDefaultPalette)
+
+                const insertColorblindPalette = this.create("button", {
+                    id: "InsertColorblindFriendlyPalette",
+                    textContent: "Insert colorblind-friendly palette",
+                })
+                insertColorblindPalette.onclick = () => {
+                    table.querySelectorAll("#Config_ColorPalette_var tr[data-color-palette-key]").forEach(row => {
+                        if (row.dataset.colorblindValue) {
+                            row.querySelector(".color-palette-value").textContent = row.dataset.colorblindValue
+                            updateColorPalettePreview(row)
+                        }
+                    })
+                }
+                details.appendChild(insertColorblindPalette)
+
+                /*                const reloadSidebar = this.create("button", {
+                    id: "InsertColorblindFriendlyPalette",
+                    textContent: "🔄",
+                })
+                reloadSidebar.onclick = () => {
+                    GM_config.save()
+                    const cur = location.pathname
+                    getWindow().OSM.router.route("/")
+                    getWindow().OSM.router.route(cur)
+                }
+                details.appendChild(reloadSidebar)*/
+
+                const summary = document.createElement("summary")
+                summary.textContent = t("config.customizePalette")
+                details.appendChild(summary)
+
+                const table = document.createElement("table")
+                table.className = "color-palette-table"
+                table.setAttribute("cellspacing", "0")
+                table.setAttribute("cellpadding", "0")
+                table.style.width = "100%"
+                details.appendChild(table)
+
+                const thead = document.createElement("thead")
+                table.appendChild(thead)
+                const headRow = document.createElement("tr")
+                thead.appendChild(headRow)
+                ;["Original", "New"].forEach(headerText => {
+                    const th = document.createElement("th")
+                    th.colSpan = 2
+                    th.textContent = headerText
+                    headRow.appendChild(th)
+                })
+
+                const tbody = document.createElement("tbody")
+                table.appendChild(tbody)
+                fillColorPaletteTable(tbody, colors)
+
+                return settingNode
+            },
+            toValue: function () {
+                const overrides = {
+                    enabled: this.wrapper.querySelector("#" + this.configId + "_" + this.id + "_field").checked,
+                    colors: {},
+                }
+                if (this.wrapper) {
+                    for (let row of this.wrapper.querySelectorAll("tr[data-color-palette-key]")) {
+                        const key = row.dataset.colorPaletteKey
+                        const defaultValue = row.dataset.defaultValue
+                        const value = row.querySelector(".color-palette-value").textContent.trim()
+                        if (value !== "" && value !== defaultValue) {
+                            overrides["colors"][key] = value
+                        }
+                    }
+                }
+                return JSON.stringify(overrides)
+            },
+            reset: function () {
+                if (this.wrapper) {
+                    const tbody = this.wrapper.querySelector(`#${this.configId}_${this.id}_var .color-palette-table tbody`)
+                    tbody.replaceChildren()
+                    fillColorPaletteTable(tbody, parseColorPaletteSetting(/** @type {string} */ (this.settings.default)))
+                }
+            },
+        },
     },
     frameStyle: `
             border: 1px solid #000;
             height: min(85%, 760px);
-            width: max(25%, 380px);
+            width: min(max(25%, 400px), 100vw);
             z-index: 9999;
             opacity: 0;
             position: absolute;
@@ -4395,15 +4709,118 @@ const configOptions = {
             margin-right: auto;
         `,
     css: `
-            #Config_saveBtn {
-                cursor: pointer;
+            .config_var:has(input[type=checkbox]:not(.filler)) {
+                display: flex;
             }
-            #Config_closeBtn {
+            .config_var:has(details) {
+                flex-wrap: wrap;
+            }
+            .config_var > details {
+                flex: 0 0 100%;
+                margin-top: 4px;
+            } 
+            summary {
+                font-size: 12px;
+                font-weight: bold;
+                margin-left: 10px;
+            }
+            input[type=checkbox]:not(.filler) + .field_label {
+                display: flex;
+                align-items: anchor-center;
+            }
+
+            #Config .field_label {
+                font-size: 13px;
+            }
+            
+            #Config_saveBtn, #Config_closeBtn, #InsertDefaultPalette {
                 cursor: pointer;
             }
             #Config_field_ResolveNotesButton {
                 width: 100%;
                 max-width: 100%;
+            }
+            #Config_field_ColorPalette {
+                width: 100%;
+            }
+            #Config .color-palette-table th {
+                padding: 3px 5px;
+                text-align: left;
+            }
+            #Config .color-palette-table td {
+                padding: 2px 5px;
+            }
+            #Config .color-palette-table .color-palette-source-preview,
+            #Config .color-palette-table .color-palette-new-preview {
+                padding: 0;
+            }
+            #Config .color-palette-source-preview,
+            #Config .color-palette-new-preview {
+                text-align: center;
+            }
+            #Config .color-palette-source-preview,
+            #Config .color-palette-new-preview {
+                cursor: pointer;
+            }
+            #Config .color-palette-picker {
+                height: 1px;
+                opacity: 0;
+                padding: 0;
+                position: absolute;
+                width: 1px;
+            }
+            #Config .color-palette-source-name,
+            #Config .color-palette-value {
+                word-break: break-word;
+                overflow-wrap: anywhere;
+            }
+            #Config .color-palette-source-name {
+                font-family: monospace;
+                font-size: 12px;
+            }
+            #Config .color-palette-value {
+                cursor: text;
+                font-family: monospace;
+                font-size: 12px;
+                min-width: 120px;
+            }
+            #Config .color-palette-preview {
+                background-image:
+                    linear-gradient(45deg, #bbb 25%, transparent 25%),
+                    linear-gradient(-45deg, #bbb 25%, transparent 25%),
+                    linear-gradient(45deg, transparent 75%, #bbb 75%),
+                    linear-gradient(-45deg, transparent 75%, #bbb 75%);
+                background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+                background-size: 12px 12px;
+                box-sizing: border-box;
+                display: inline-block;
+                height: 20px;
+                line-height: 16px;
+                overflow: hidden;
+                position: relative;
+                text-align: center;
+                vertical-align: middle;
+                width: 20px;
+            }
+            #Config .color-palette-preview-fill {
+                bottom: 0;
+                display: block;
+                left: 0;
+                position: absolute;
+                right: 0;
+                top: 0;
+            }
+            #Config .color-palette-preview-empty {
+                background-color: transparent;
+                color: #555;
+                font-family: monospace;
+                font-size: 12px;
+            }
+            summary {
+                cursor: pointer;
+            }
+            #Config_ColorPalette_field:not(:checked) ~ details {
+                display: none;
             }
             #Config table {
                 border-collapse: collapse;
@@ -4440,10 +4857,7 @@ const configOptions = {
             #Config_field_OverpassInstance {
                 filter: invert(0.9);
             }
-            #Config_saveBtn {
-                filter: invert(0.9);
-            }
-            #Config_closeBtn {
+            #Config_saveBtn, #Config_closeBtn, #InsertDefaultPalette, #InsertColorblindFriendlyPalette {
                 filter: invert(0.9);
             }
             #Config_resetLink {
@@ -4678,41 +5092,46 @@ const downloadSvg =
 
 // prettier-ignore
 const colorsPalette = {
-    "#ff00e3" : "#ff00e3",
+    "#ff00e3": "#ff00e3",
     "#0022ff": "#0022ff",
 
-    "rgba(17, 238, 9, 0.6)": "rgba(17, 238, 9, 0.6)",              // .quick-look-new-tag
-    "rgba(223, 238, 9, 0.6)": "rgba(223, 238, 9, 0.6)",            // .quick-look-modified-tag
-    "rgba(238, 51, 9, 0.6)": "rgba(238, 51, 9, 0.6)",              // .quick-look-deleted-tag
-    "#000.quick-look-deleted-tag": "#000",                   // color.quick-look-deleted-tag
-    "#fff.quick-look-deleted-tag": "#fff",                   // color.quick-look-deleted-tag
-    "rgba(25, 223, 25, 0.6)": "rgba(25, 223, 25, 0.6)",      // .new-letter
-    "rgba(255, 144, 144, 0.6)": "rgba(255, 144, 144, 0.6)",  // .deleted-letter
+    "rgba(17, 238, 9, 0.6).history-diff-new-tag": "rgba(17, 238, 9, 0.6)",
+    "rgba(223, 238, 9, 0.6).history-diff-modified-tag": "rgba(223, 238, 9, 0.6)",
+    "rgba(238, 51, 9, 0.6).history-diff-deleted-tag": "rgba(238, 51, 9, 0.6)",
 
-    "rgba(17, 238, 9, 0.3)": "rgba(17, 238, 9, 0.3)",              // dark.quick-look-new-tag
-    "rgba(238, 51, 9, 0.4)": "rgba(238, 51, 9, 0.4)",              // dark.quick-look-deleted-tag
-    "rgba(25, 223, 25, 0.9)": "rgba(25, 223, 25, 0.9)",      // dark.new-letter
-    "rgba(253, 83, 83, 0.8)": "rgba(253, 83, 83, 0.8)",      // dark.deleted-letter
+    "rgba(17, 238, 9, 0.6).quick-look-new-tag.background": "rgba(17, 238, 9, 0.6)",
+    "rgba(223, 238, 9, 0.6).quick-look-modified-tag.background": "rgba(223, 238, 9, 0.6)",
+    "rgba(238, 51, 9, 0.6).quick-look-deleted-tag.background": "rgba(238, 51, 9, 0.6)",
+    "#000.quick-look-deleted-tag.color": "#000",
+    "#fff.quick-look-deleted-tag.color": "#fff",
 
-    "rgba(0, 128, 0, 0.6)": "rgba(0, 128, 0, 0.6)",                // displayWay for version 1
-    "rgba(120, 238, 9, 0.6)": "rgba(120, 238, 9, 0.6)",            // displayWay for restored way
-    "#ff0000.deleted-way-geom": "#ff0000",                   // displayWay for deleted
+    "rgba(25, 223, 25, 0.6).new-letter": "rgba(25, 223, 25, 0.6)",
+    "rgba(255, 144, 144, 0.6).deleted-letter": "rgba(255, 144, 144, 0.6)",
 
-    "#00a500.first-node-version": "#00a500",                 // showNodeMarker for version 1
-    "rgba(89, 170, 9, 0.6).restored-node-version": "#00a500",   // showNodeMarker for version 1
-    "#ff0000.deleted-node-geom": "#ff0000",                  // showNodeMarker for deleted
+    "rgba(17, 238, 9, 0.3).quick-look-new-tag.background.dark": "rgba(17, 238, 9, 0.3)",
+    "rgba(238, 51, 9, 0.4).quick-look-deleted-tag.background.dark": "rgba(238, 51, 9, 0.4)",
+    "rgba(25, 223, 25, 0.9).new-letter.dark": "rgba(25, 223, 25, 0.9)",
+    "rgba(253, 83, 83, 0.8).deleted-letter.dark": "rgba(253, 83, 83, 0.8)",
 
-    "rgba(17, 238, 9, 0.3).members-changed-flag": "rgba(17, 238, 9, 0.3)",  // dark
+    "rgba(0, 128, 0, 0.6).first-way-version": "rgba(0, 128, 0, 0.6)",
+    "rgba(120, 238, 9, 0.6).restored-way": "rgba(120, 238, 9, 0.6)",
+    "#ff0000.deleted-way-geom": "#ff0000",
+
+    "#00a500.first-node-version": "#00a500",
+    "rgba(89, 170, 9, 0.6).restored-node-version": "#00a500",
+    "#ff0000.deleted-node-geom": "#ff0000",
+
+    "rgba(17, 238, 9, 0.3).members-changed-flag.dark": "rgba(17, 238, 9, 0.3)",
     "rgba(101, 238, 9, 0.6).members-changed-flag": "rgba(101, 238, 9, 0.6)",
-    "rgba(238, 51, 9, 0.4).members-changed-flag": "rgba(238, 51, 9, 0.4)",  // dark
+    "rgba(238, 51, 9, 0.4).members-changed-flag.dark": "rgba(238, 51, 9, 0.4)",
     "rgba(238, 9, 9, 0.42).members-changed-flag": "rgba(238, 9, 9, 0.42)",
 
     "rgba(17, 238, 9, 0.6).members-changed-row": "rgba(17, 238, 9, 0.6)",
     "rgba(238, 51, 9, 0.6).members-changed-row": "rgba(238, 51, 9, 0.6)",
 
-    "rgba(17, 238, 9, 0.3).nodes-changed-flag": "rgba(17, 238, 9, 0.3)",  // dark
+    "rgba(17, 238, 9, 0.3).nodes-changed-flag.dark": "rgba(17, 238, 9, 0.3)",
     "rgba(101, 238, 9, 0.6).nodes-changed-flag": "rgba(101, 238, 9, 0.6)",
-    "rgba(238, 51, 9, 0.4).nodes-changed-flag": "rgba(238, 51, 9, 0.4)",  // dark
+    "rgba(238, 51, 9, 0.4).nodes-changed-flag.dark": "rgba(238, 51, 9, 0.4)",
     "rgba(238, 9, 9, 0.42).nodes-changed-flag": "rgba(238, 9, 9, 0.42)",
 
     "rgba(17, 238, 9, 0.6).nodes-changed-row": "rgba(17, 238, 9, 0.6)",
@@ -4722,40 +5141,45 @@ const colorsPalette = {
     "rgba(238, 51, 9, 0.4).history-diff-deleted-tag": "rgba(238, 51, 9, 0.4)"
 }
 
+const defaultColorsPalette = { ...colorsPalette }
+
 // prettier-ignore
 const colorblindFriendlyPalette = {
-    "rgba(17, 238, 9, 0.6)": "#0074FF75",            // .quick-look-new-tag
-    "rgba(238, 51, 9, 0.6)": "#F80000",              // .quick-look-deleted-tag
-    "#000.quick-look-deleted-tag": "#fff",           // color.quick-look-deleted-tag
+    "rgba(17, 238, 9, 0.6).history-diff-new-tag": "#0074FF75",
+    "rgba(238, 51, 9, 0.6).history-diff-deleted-tag": "#F80000",
 
-    "rgba(25, 223, 25, 0.6)": "#8EA5FFC4",           // .new-letter
-    "rgba(255, 144, 144, 0.6)": "#FFB7B7",           // .deleted-letter
+    "rgba(17, 238, 9, 0.6).quick-look-new-tag.background": "#0074FF75",
+    "rgba(238, 51, 9, 0.6).quick-look-deleted-tag.background": "#F80000",
+    "#000.quick-look-deleted-tag.color": "#fff",
 
-    "rgba(25, 223, 25, 0.9)": "#8EA5FFC4",           // dark.new-letter
-    "rgba(253, 83, 83, 0.8)": "#FFB7B7",             // dark.deleted-letter
+    "rgba(25, 223, 25, 0.6).new-letter": "#8EA5FFC4",
+    "rgba(255, 144, 144, 0.6).deleted-letter": "#FFB7B7",
 
-    "rgba(17, 238, 9, 0.3)": "#1A385C",              // dark.quick-look-new-tag
-    "rgba(238, 51, 9, 0.4)": "#732a1d",              // dark.quick-look-deleted-tag
+    "rgba(25, 223, 25, 0.9).new-letter.dark": "#8EA5FFC4",
+    "rgba(253, 83, 83, 0.8).deleted-letter.dark": "#FFB7B7",
 
-    "rgba(0, 128, 0, 0.6)": "#0074FF75",                     // displayWay for version 1
-    "rgba(120, 238, 9, 0.6)": "rgba(64,152,255,0.46)",       // displayWay for restored way
-    "#ff0000.deleted-way-geom": "#f34c4c",                   // displayWay for deleted
+    "rgba(17, 238, 9, 0.3).quick-look-new-tag.background.dark": "#1A385C",
+    "rgba(238, 51, 9, 0.4).quick-look-deleted-tag.background.dark": "#732a1d",
 
-    "#00a500.first-node-version": "#0074FF75",                                // showNodeMarker for version 1
-    "rgba(89, 170, 9, 0.6).restored-node-version": "rgba(64,152,255,0.46)",   // showNodeMarker for version 1
-    "#ff0000.deleted-node-geom": "#f34c4c",                                   // showNodeMarker for deleted
+    "rgba(0, 128, 0, 0.6).first-way-version": "#0074FF75",
+    "rgba(120, 238, 9, 0.6).restored-way": "rgba(64,152,255,0.46)",
+    "#ff0000.deleted-way-geom": "#f34c4c",
 
-    "rgba(17, 238, 9, 0.3).members-changed-flag": "#0074FF75",   // dark
+    "#00a500.first-node-version": "#0074FF75",
+    "rgba(89, 170, 9, 0.6).restored-node-version": "rgba(64,152,255,0.46)",
+    "#ff0000.deleted-node-geom": "#f34c4c",
+
+    "rgba(17, 238, 9, 0.3).members-changed-flag.dark": "#0074FF75",
     "rgba(101, 238, 9, 0.6).members-changed-flag": "#0074FF75",
-    "rgba(238, 51, 9, 0.4).members-changed-flag": "#f34c4c",     // dark
+    "rgba(238, 51, 9, 0.4).members-changed-flag.dark": "#f34c4c",
     "rgba(238, 9, 9, 0.42).members-changed-flag": "rgb(242, 0, 0)",
 
     "rgba(17, 238, 9, 0.6).members-changed-row": "#0074FF75",
     "rgba(238, 51, 9, 0.6).members-changed-row": "rgb(242, 0, 0)",
 
-    "rgba(17, 238, 9, 0.3).nodes-changed-flag": "#0074FF75",       // dark
+    "rgba(17, 238, 9, 0.3).nodes-changed-flag.dark": "#0074FF75",
     "rgba(101, 238, 9, 0.6).nodes-changed-flag": "#0074FF75",
-    "rgba(238, 51, 9, 0.4).nodes-changed-flag": "rgb(242, 0, 0)",  // dark
+    "rgba(238, 51, 9, 0.4).nodes-changed-flag.dark": "rgb(242, 0, 0)",
     "rgba(238, 9, 9, 0.42).nodes-changed-flag": "rgb(242, 0, 0)",
 
     "rgba(17, 238, 9, 0.6).nodes-changed-row": "#0074FF75",
@@ -4769,6 +5193,23 @@ function setColorblindFriendlyPalette() {
     Object.entries(colorblindFriendlyPalette).forEach(([k, v]) => {
         colorsPalette[k] = v
     })
+}
+
+function setCustomPalette() {
+    try {
+        const { enabled, colors } = parseColorPaletteSetting(GM_config.get("ColorPalette"))
+        if (!enabled) {
+            return
+        }
+        Object.entries(colors).forEach(([k, v]) => {
+            if (!defaultColorsPalette[k]) {
+                debug_alert(`color ${k} not found in default palette`)
+            }
+            colorsPalette[k] = v
+        })
+    } catch (e) {
+        console.log(e)
+    }
 }
 
 /**
@@ -17669,13 +18110,13 @@ function addDiffInHistoryStyle() {
     }
 
     .history-diff-new-tag {
-      background: ${c("rgba(17, 238, 9, 0.6)")} !important;
+      background: ${c("rgba(17, 238, 9, 0.6)", ".history-diff-new-tag")} !important;
     }
     .history-diff-modified-tag {
-      background: rgba(223, 238, 9, 0.6) !important;
+      background: ${c("rgba(223, 238, 9, 0.6)", ".history-diff-modified-tag")} !important;
     }
     .history-diff-deleted-tag {
-      background: ${c("rgba(238, 51, 9, 0.6)")} !important;
+      background: ${c("rgba(238, 51, 9, 0.6)", ".history-diff-deleted-tag")} !important;
     }
 
     #sidebar_content div.map-hover {
@@ -17683,11 +18124,11 @@ function addDiffInHistoryStyle() {
     }
 
     .new-letter {
-        background: ${c("rgba(25, 223, 25, 0.6)")};
+        background: ${c("rgba(25, 223, 25, 0.6)", ".new-letter")};
     }
 
     .deleted-letter {
-        background: ${c("rgba(255, 144, 144, 0.6)")};
+        background: ${c("rgba(255, 144, 144, 0.6)", ".deleted-letter")};
     }
 
     @media ${mediaQueryForWebsiteTheme} {
@@ -17718,11 +18159,11 @@ function addDiffInHistoryStyle() {
         }
 
         .new-letter {
-            background: ${c("rgba(25, 223, 25, 0.9)")};
+            background: ${c("rgba(25, 223, 25, 0.9)", ".new-letter.dark")};
         }
 
         .deleted-letter {
-            background: ${c("rgba(253, 83, 83, 0.8)")};
+            background: ${c("rgba(253, 83, 83, 0.8)", ".deleted-letter.dark")};
         }
     }
     .non-modified-tag .empty-version {
@@ -19398,13 +19839,13 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         }
         if (haveOnlyInsertion) {
             if (isDarkMode()) {
-                geomChangedFlag.style.background = c("rgba(17, 238, 9, 0.3)", ".nodes-changed-flag")
+                geomChangedFlag.style.background = c("rgba(17, 238, 9, 0.3)", ".nodes-changed-flag.dark")
             } else {
                 geomChangedFlag.style.background = c("rgba(101, 238, 9, 0.6)", ".nodes-changed-flag")
             }
         } else if (haveOnlyDeletion) {
             if (isDarkMode()) {
-                geomChangedFlag.style.background = c("rgba(238, 51, 9, 0.4)", ".nodes-changed-flag")
+                geomChangedFlag.style.background = c("rgba(238, 51, 9, 0.4)", ".nodes-changed-flag.dark")
             } else {
                 geomChangedFlag.style.background = c("rgba(238, 9, 9, 0.42)", ".nodes-changed-flag")
             }
@@ -19650,13 +20091,13 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         function colorizeFlag() {
             if (haveOnlyInsertion && membersChanged && targetVersion.version !== 1) {
                 if (isDarkMode()) {
-                    memChangedFlag.style.background = c("rgba(17, 238, 9, 0.3)", ".members-changed-flag")
+                    memChangedFlag.style.background = c("rgba(17, 238, 9, 0.3)", ".members-changed-flag.dark")
                 } else {
                     memChangedFlag.style.background = c("rgba(101, 238, 9, 0.6)", ".members-changed-flag")
                 }
             } else if (haveOnlyDeletion && membersChanged) {
                 if (isDarkMode()) {
-                    memChangedFlag.style.background = c("rgba(238, 51, 9, 0.4)", ".members-changed-flag")
+                    memChangedFlag.style.background = c("rgba(238, 51, 9, 0.4)", ".members-changed-flag.dark")
                 } else {
                     memChangedFlag.style.background = c("rgba(238, 9, 9, 0.42)", ".members-changed-flag")
                 }
@@ -20383,7 +20824,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             displayWay(
                 currentNodesList,
                 false,
-                c("rgba(0, 128, 0, 0.6)"),
+                c("rgba(0, 128, 0, 0.6)", ".first-way-version"),
                 lineWidth,
                 `${changesetID}w${objID}v${targetVersion.version}`,
                 "customObjects",
@@ -20393,7 +20834,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             displayWay(
                 currentNodesList,
                 false,
-                c("rgba(120, 238, 9, 0.6)"),
+                c("rgba(120, 238, 9, 0.6)", ".restored-way"),
                 lineWidth,
                 `${changesetID}w${objID}v${targetVersion.version}`,
                 "customObjects",
@@ -20742,7 +21183,7 @@ function addQuickLookStyles() {
         }
 
         tr.quick-look-new-tag th {
-            background: ${c("rgba(17, 238, 9, 0.6)")};
+            background: ${c("rgba(17, 238, 9, 0.6)", ".quick-look-new-tag.background")};
         }
 
         table[contenteditable] th:not(.tag-flag) {
@@ -20754,21 +21195,21 @@ function addQuickLookStyles() {
         }
 
         tr.quick-look-modified-tag td:nth-of-type(1){
-            background: ${c("rgba(223, 238, 9, 0.6)")};
+            background: ${c("rgba(223, 238, 9, 0.6)", ".quick-look-modified-tag.background")};
         }
         
         tr.quick-look-deleted-tag th {
-            background: ${c("rgba(238, 51, 9, 0.6)")};
-            color: ${c("#000", ".quick-look-deleted-tag")};
+            background: ${c("rgba(238, 51, 9, 0.6)", ".quick-look-deleted-tag.background")};
+            color: ${c("#000", ".quick-look-deleted-tag.color")};
         }
 
         tr.quick-look-new-tag td:not(.tag-flag) {
-            background: ${c("rgba(17, 238, 9, 0.6)")};
+            background: ${c("rgba(17, 238, 9, 0.6)", ".quick-look-new-tag.background")};
         }
 
         tr.quick-look-deleted-tag td:not(.tag-flag) {
-            background: ${c("rgba(238, 51, 9, 0.6)")};
-            color: ${c("#000", ".quick-look-deleted-tag")};
+            background: ${c("rgba(238, 51, 9, 0.6)", ".quick-look-deleted-tag.background")};
+            color: ${c("#000", ".quick-look-deleted-tag.color")};
         }
 
         table.quick-look.hide-non-modified-tags > tbody > .non-modified-tag-in-quick-view {
@@ -20776,24 +21217,20 @@ function addQuickLookStyles() {
         }
 
         .new-letter {
-            background: ${c("rgba(25, 223, 25, 0.6)")};
+            background: ${c("rgba(25, 223, 25, 0.6)", ".new-letter")};
         }
 
         .deleted-letter {
-            background: ${c("rgba(255, 144, 144, 0.6)")};
+            background: ${c("rgba(255, 144, 144, 0.6)", ".deleted-letter")};
         }
 
         @media ${mediaQueryForWebsiteTheme} {
             tr.quick-look-new-tag th{
-                /*background: #0f540fde;*/
-                background: ${c("rgba(17, 238, 9, 0.3)")};
-                /*background: rgba(87, 171, 90, 0.3);*/
+                background: ${c("rgba(17, 238, 9, 0.3)", ".quick-look-new-tag.background.dark")};
             }
 
             tr.quick-look-new-tag td:not(.tag-flag){
-                /*background: #0f540fde;*/
-                background: ${c("rgba(17, 238, 9, 0.3)")};
-                /*background: rgba(87, 171, 90, 0.3);*/
+                background: ${c("rgba(17, 238, 9, 0.3)", ".quick-look-new-tag.background.dark")};
             }
 
             tr.quick-look-modified-tag td {
@@ -20801,17 +21238,13 @@ function addQuickLookStyles() {
             }
 
             tr.quick-look-deleted-tag th:not(.tag-flag) { /* dirty hack for zebra colors override */
-                /*background: #692113;*/
-                background: ${c("rgba(238, 51, 9, 0.4)")};
-                /*background: rgba(229, 83, 75, 0.3);*/
-                color: ${c("#fff", ".quick-look-deleted-tag")};
+                background: ${c("rgba(238, 51, 9, 0.4)", ".quick-look-deleted-tag.background.dark")};
+                color: ${c("#fff", ".quick-look-deleted-tag.color")};
             }
 
             tr.quick-look-deleted-tag td:not(.tag-flag) {
-                /*background: #692113;*/
-                background: ${c("rgba(238, 51, 9, 0.4)")};
-                /*background: rgba(229, 83, 75, 0.3);*/
-                color: ${c("#fff", ".quick-look-deleted-tag")};
+                background: ${c("rgba(238, 51, 9, 0.4)", ".quick-look-deleted-tag.background.dark")};
+                color: ${c("#fff", ".quick-look-deleted-tag.color")};
             }
 
             tr.quick-look-new-tag th::selection {
@@ -20839,11 +21272,11 @@ function addQuickLookStyles() {
             }
 
             .new-letter {
-                background: ${c("rgba(25, 223, 25, 0.9)")};
+                background: ${c("rgba(25, 223, 25, 0.9)", ".new-letter.dark")};
             }
 
             .deleted-letter {
-                background: ${c("rgba(253, 83, 83, 0.8)")};
+                background: ${c("rgba(253, 83, 83, 0.8)", ".deleted-letter.dark")};
             }
         }
         .edits-wars-tag td:nth-of-type(2)::after{
@@ -22791,7 +23224,7 @@ async function getPanoramaxToken() {
     })
     if (!res.response?.[0]?.links?.[0]?.href) {
         console.error(res.responseText)
-        alert(t("panoramax.loginRequiredAlert"))
+        alert(t("panoramax.loginRequiredAlert") + (isFirefox ? `.\n\n${t("panoramax.firefoxWarn")}` : ""))
         window.open(panoramaxInstance, "_blank")
         return
     }
@@ -33774,6 +34207,7 @@ function _main() {
     if (GM_config.get("ColorblindFriendlyPalette")) {
         setColorblindFriendlyPalette()
     }
+    setCustomPalette()
     if (location.origin === "https://www.hdyc.neis-one.org" || location.origin === "https://hdyc.neis-one.org") {
         simplifyHDCYIframe()
         return

@@ -38,6 +38,171 @@ function makeRow(label, text, without_delete = false, placeholder = "comment tha
     return tr
 }
 
+function parseColorPaletteSetting(value) {
+    if (!value || value.trim() === "") {
+        return { enabled: false, colors: {} }
+    }
+    try {
+        return JSON.parse(value)
+    } catch (e) {
+        console.log(e)
+    }
+    return { enabled: false, colors: {} }
+}
+
+function makeColorPalettePreview(value, title) {
+    const preview = document.createElement("span")
+    const fill = document.createElement("span")
+
+    preview.className = "color-palette-preview"
+    preview.title = title
+    fill.className = "color-palette-preview-fill"
+    fill.style.backgroundColor = value
+    if (value === "" || fill.style.backgroundColor === "") {
+        preview.classList.add("color-palette-preview-empty")
+        preview.textContent = "?"
+    } else {
+        preview.appendChild(fill)
+    }
+    return preview
+}
+
+function colorToHexForInput(value) {
+    const colorProbe = document.createElement("span")
+
+    colorProbe.style.color = value
+    if (value === "" || colorProbe.style.color === "") {
+        return null
+    }
+
+    document.documentElement.appendChild(colorProbe)
+    const computedColor = getComputedStyle(colorProbe).color
+    colorProbe.remove()
+
+    const rgb = computedColor.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/)
+    if (!rgb) {
+        return null
+    }
+
+    return rgb
+        .slice(1, 4)
+        .map(channel => Number(channel).toString(16).padStart(2, "0"))
+        .join("")
+        .replace(/^/, "#")
+}
+
+function updateColorPalettePreview(row) {
+    const valueCell = row.querySelector(".color-palette-value")
+    const previewCell = row.querySelector(".color-palette-new-preview")
+    const picker = row.querySelector(".color-palette-picker")
+    const value = valueCell.textContent.trim() || row.dataset.defaultValue
+
+    previewCell.replaceChildren(...[makeColorPalettePreview(value, `Choose new color. Current value: ${value}`), picker].filter(Boolean))
+}
+
+function setColorPaletteValue(row, value) {
+    row.querySelector(".color-palette-value").textContent = value
+    updateColorPalettePreview(row)
+}
+
+function selectColorPaletteColor(row) {
+    const valueCell = row.querySelector(".color-palette-value")
+    const currentValue = valueCell.textContent.trim()
+    const picker = row.querySelector(".color-palette-picker")
+
+    picker.value = colorToHexForInput(currentValue) ?? colorToHexForInput(row.dataset.defaultValue) ?? "#000000"
+    picker.click()
+}
+
+function makeColorPaletteKey(value) {
+    const fragment = document.createDocumentFragment()
+    let chunk = ""
+
+    Array.from(value).forEach((char, index, chars) => {
+        const prev = chars[index - 1]
+        const next = chars[index + 1]
+        const isDecimalPoint = char === "." && /\d/.test(prev) && /\d/.test(next)
+
+        if (char === "." && !isDecimalPoint) {
+            fragment.appendChild(document.createTextNode(chunk))
+            fragment.appendChild(document.createElement("br"))
+            chunk = "."
+            return
+        }
+        chunk += char
+    })
+    fragment.appendChild(document.createTextNode(chunk))
+
+    return fragment
+}
+
+function makeColorPaletteRow(key, defaultValue, colorblindValue, value) {
+    const tr = document.createElement("tr")
+    const sourcePreview = document.createElement("td")
+    const sourceName = document.createElement("td")
+    const newPreview = document.createElement("td")
+    const newValue = document.createElement("td")
+    const colorPicker = document.createElement("input")
+
+    tr.dataset.colorPaletteKey = key
+    tr.dataset.defaultValue = defaultValue
+    if (colorblindValue) {
+        tr.dataset.colorblindValue = colorblindValue
+    }
+
+    sourcePreview.className = "color-palette-source-preview"
+    sourcePreview.title = defaultValue ? `Use original color: ${defaultValue}` : "No original color"
+    sourcePreview.onclick = () => {
+        if (defaultValue) {
+            setColorPaletteValue(tr, defaultValue)
+        }
+    }
+    sourcePreview.appendChild(makeColorPalettePreview(defaultValue, sourcePreview.title))
+
+    sourceName.className = "color-palette-source-name"
+    sourceName.title = key
+    sourceName.appendChild(makeColorPaletteKey(key))
+
+    newPreview.className = "color-palette-new-preview"
+    newPreview.onclick = () => selectColorPaletteColor(tr)
+
+    newValue.className = "color-palette-value"
+    newValue.textContent = value
+    newValue.spellcheck = false
+    newValue.setAttribute("contenteditable", "true")
+    newValue.oninput = () => updateColorPalettePreview(tr)
+
+    colorPicker.className = "color-palette-picker"
+    colorPicker.type = "color"
+    colorPicker.onclick = event => event.stopPropagation()
+    colorPicker.oninput = colorPicker.onchange = () => {
+        setColorPaletteValue(tr, colorPicker.value)
+    }
+    newPreview.appendChild(colorPicker)
+
+    tr.appendChild(sourcePreview)
+    tr.appendChild(sourceName)
+    tr.appendChild(newPreview)
+    tr.appendChild(newValue)
+    updateColorPalettePreview(tr)
+
+    return tr
+}
+
+function fillColorPaletteTable(tbody, overrides) {
+    const renderedKeys = new Set()
+
+    Object.entries(defaultColorsPalette).forEach(([key, defaultValue]) => {
+        renderedKeys.add(key)
+        tbody.appendChild(makeColorPaletteRow(key, defaultValue, colorblindFriendlyPalette[key], overrides[key] ?? defaultValue))
+    })
+    Object.entries(overrides).forEach(([key, value]) => {
+        if (!renderedKeys.has(key)) {
+            tbody.appendChild(makeColorPaletteRow(key, "", colorblindFriendlyPalette[key], value))
+        }
+    })
+}
+
 const copyAnimationStyles = `
     .copied {
       background-color: rgba(9,238,9,0.6);
@@ -73,6 +238,11 @@ const configOptions = {
             type: "checkbox",
             default: false,
             labelPos: "right",
+        },
+        ColorPalette: {
+            label: t("config.customPalette"),
+            type: "colors",
+            default: "{enabled: false, colors: {}}",
         },
         BetterTagsPaste: {
             section: [t("config.sectionID")],
@@ -394,11 +564,134 @@ const configOptions = {
                 }
             },
         },
+        colors: {
+            default: "{enabled: false, colors: {}}",
+            toNode: function () {
+                const { enabled, colors } = parseColorPaletteSetting(/** @type {string} */ (this.value || this.settings.default))
+                const settingNode = this.create("div", {
+                    className: "config_var",
+                    id: this.configId + "_" + this.id + "_var",
+                })
+
+                this.templates = colors
+
+                settingNode.appendChild(
+                    this.create("input", {
+                        innerHTML: this.settings.label,
+                        id: this.configId + "_" + this.id + "_field",
+                        type: "checkbox",
+                        checked: enabled,
+                    }),
+                )
+
+                const label = this.create("label", {
+                    innerHTML: this.settings.label,
+                    id: this.configId + "_" + this.id + "_field_label",
+                    for: this.configId + "_" + this.id + "_field",
+                    className: "field_label",
+                })
+                settingNode.appendChild(label)
+
+                const details = document.createElement("details")
+                details.className = "color-palette-details"
+                settingNode.appendChild(details)
+
+                const insertDefaultPalette = this.create("button", {
+                    id: "InsertDefaultPalette",
+                    textContent: "Insert default palette",
+                })
+                insertDefaultPalette.onclick = () => {
+                    table.querySelectorAll("#Config_ColorPalette_var tr[data-color-palette-key]").forEach(row => {
+                        row.querySelector(".color-palette-value").textContent = row.dataset.defaultValue
+                        updateColorPalettePreview(row)
+                    })
+                }
+                details.appendChild(insertDefaultPalette)
+
+                const insertColorblindPalette = this.create("button", {
+                    id: "InsertColorblindFriendlyPalette",
+                    textContent: "Insert colorblind-friendly palette",
+                })
+                insertColorblindPalette.onclick = () => {
+                    table.querySelectorAll("#Config_ColorPalette_var tr[data-color-palette-key]").forEach(row => {
+                        if (row.dataset.colorblindValue) {
+                            row.querySelector(".color-palette-value").textContent = row.dataset.colorblindValue
+                            updateColorPalettePreview(row)
+                        }
+                    })
+                }
+                details.appendChild(insertColorblindPalette)
+
+                /*                const reloadSidebar = this.create("button", {
+                    id: "InsertColorblindFriendlyPalette",
+                    textContent: "🔄",
+                })
+                reloadSidebar.onclick = () => {
+                    GM_config.save()
+                    const cur = location.pathname
+                    getWindow().OSM.router.route("/")
+                    getWindow().OSM.router.route(cur)
+                }
+                details.appendChild(reloadSidebar)*/
+
+                const summary = document.createElement("summary")
+                summary.textContent = t("config.customizePalette")
+                details.appendChild(summary)
+
+                const table = document.createElement("table")
+                table.className = "color-palette-table"
+                table.setAttribute("cellspacing", "0")
+                table.setAttribute("cellpadding", "0")
+                table.style.width = "100%"
+                details.appendChild(table)
+
+                const thead = document.createElement("thead")
+                table.appendChild(thead)
+                const headRow = document.createElement("tr")
+                thead.appendChild(headRow)
+                ;["Original", "New"].forEach(headerText => {
+                    const th = document.createElement("th")
+                    th.colSpan = 2
+                    th.textContent = headerText
+                    headRow.appendChild(th)
+                })
+
+                const tbody = document.createElement("tbody")
+                table.appendChild(tbody)
+                fillColorPaletteTable(tbody, colors)
+
+                return settingNode
+            },
+            toValue: function () {
+                const overrides = {
+                    enabled: this.wrapper.querySelector("#" + this.configId + "_" + this.id + "_field").checked,
+                    colors: {},
+                }
+                if (this.wrapper) {
+                    for (let row of this.wrapper.querySelectorAll("tr[data-color-palette-key]")) {
+                        const key = row.dataset.colorPaletteKey
+                        const defaultValue = row.dataset.defaultValue
+                        const value = row.querySelector(".color-palette-value").textContent.trim()
+                        if (value !== "" && value !== defaultValue) {
+                            overrides["colors"][key] = value
+                        }
+                    }
+                }
+                return JSON.stringify(overrides)
+            },
+            reset: function () {
+                if (this.wrapper) {
+                    const tbody = this.wrapper.querySelector(`#${this.configId}_${this.id}_var .color-palette-table tbody`)
+                    tbody.replaceChildren()
+                    fillColorPaletteTable(tbody, parseColorPaletteSetting(/** @type {string} */ (this.settings.default)))
+                }
+            },
+        },
     },
     frameStyle: `
             border: 1px solid #000;
             height: min(85%, 760px);
-            width: max(25%, 380px);
+            width: min(max(25%, 400px), 100vw);
             z-index: 9999;
             opacity: 0;
             position: absolute;
@@ -406,15 +699,118 @@ const configOptions = {
             margin-right: auto;
         `,
     css: `
-            #Config_saveBtn {
-                cursor: pointer;
+            .config_var:has(input[type=checkbox]:not(.filler)) {
+                display: flex;
             }
-            #Config_closeBtn {
+            .config_var:has(details) {
+                flex-wrap: wrap;
+            }
+            .config_var > details {
+                flex: 0 0 100%;
+                margin-top: 4px;
+            } 
+            summary {
+                font-size: 12px;
+                font-weight: bold;
+                margin-left: 10px;
+            }
+            input[type=checkbox]:not(.filler) + .field_label {
+                display: flex;
+                align-items: anchor-center;
+            }
+
+            #Config .field_label {
+                font-size: 13px;
+            }
+            
+            #Config_saveBtn, #Config_closeBtn, #InsertDefaultPalette {
                 cursor: pointer;
             }
             #Config_field_ResolveNotesButton {
                 width: 100%;
                 max-width: 100%;
+            }
+            #Config_field_ColorPalette {
+                width: 100%;
+            }
+            #Config .color-palette-table th {
+                padding: 3px 5px;
+                text-align: left;
+            }
+            #Config .color-palette-table td {
+                padding: 2px 5px;
+            }
+            #Config .color-palette-table .color-palette-source-preview,
+            #Config .color-palette-table .color-palette-new-preview {
+                padding: 0;
+            }
+            #Config .color-palette-source-preview,
+            #Config .color-palette-new-preview {
+                text-align: center;
+            }
+            #Config .color-palette-source-preview,
+            #Config .color-palette-new-preview {
+                cursor: pointer;
+            }
+            #Config .color-palette-picker {
+                height: 1px;
+                opacity: 0;
+                padding: 0;
+                position: absolute;
+                width: 1px;
+            }
+            #Config .color-palette-source-name,
+            #Config .color-palette-value {
+                word-break: break-word;
+                overflow-wrap: anywhere;
+            }
+            #Config .color-palette-source-name {
+                font-family: monospace;
+                font-size: 12px;
+            }
+            #Config .color-palette-value {
+                cursor: text;
+                font-family: monospace;
+                font-size: 12px;
+                min-width: 120px;
+            }
+            #Config .color-palette-preview {
+                background-image:
+                    linear-gradient(45deg, #bbb 25%, transparent 25%),
+                    linear-gradient(-45deg, #bbb 25%, transparent 25%),
+                    linear-gradient(45deg, transparent 75%, #bbb 75%),
+                    linear-gradient(-45deg, transparent 75%, #bbb 75%);
+                background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+                background-size: 12px 12px;
+                box-sizing: border-box;
+                display: inline-block;
+                height: 20px;
+                line-height: 16px;
+                overflow: hidden;
+                position: relative;
+                text-align: center;
+                vertical-align: middle;
+                width: 20px;
+            }
+            #Config .color-palette-preview-fill {
+                bottom: 0;
+                display: block;
+                left: 0;
+                position: absolute;
+                right: 0;
+                top: 0;
+            }
+            #Config .color-palette-preview-empty {
+                background-color: transparent;
+                color: #555;
+                font-family: monospace;
+                font-size: 12px;
+            }
+            summary {
+                cursor: pointer;
+            }
+            #Config_ColorPalette_field:not(:checked) ~ details {
+                display: none;
             }
             #Config table {
                 border-collapse: collapse;
@@ -451,10 +847,7 @@ const configOptions = {
             #Config_field_OverpassInstance {
                 filter: invert(0.9);
             }
-            #Config_saveBtn {
-                filter: invert(0.9);
-            }
-            #Config_closeBtn {
+            #Config_saveBtn, #Config_closeBtn, #InsertDefaultPalette, #InsertColorblindFriendlyPalette {
                 filter: invert(0.9);
             }
             #Config_resetLink {

@@ -26,6 +26,8 @@ _translations["tr"] = {
         sectionOther: "Diğer",
         darkModeForMap: "Koyu modda harita renklerini ters çevir",
         colorblindFriendlyPalette: "Renk körlüğüne uygun palet β",
+        customPalette: "Özel palet β",
+        customizePalette: "Renkleri değiştir",
         betterTagsPaste: "Boşluk veya sekmeyle ayrılmış etiketleri yapıştırırken = ekle",
         darkModeForID:
             'iD için koyu mod (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Teşekkürler AlexPS</a>)',
@@ -261,6 +263,7 @@ _translations["tr"] = {
     panoramax: {
         blurFaces: "Yüzleri bulanıklaştır",
         loginRequiredAlert: "Lütfen Panoramax'a giriş yapın",
+        firefoxWarn: "p.s. Firefox'ta about:config içinde privacy.firstparty.isolate ayarının kapalı olduğunu kontrol etmeyi unutmayın",
         uploadPhoto: "Panoramax'a fotoğraf yükle",
         selectFileAlert: "Dosya seçin",
         uploadError: "Hata: {message}",

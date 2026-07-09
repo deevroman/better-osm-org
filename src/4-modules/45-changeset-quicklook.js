@@ -910,13 +910,13 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         }
         if (haveOnlyInsertion) {
             if (isDarkMode()) {
-                geomChangedFlag.style.background = c("rgba(17, 238, 9, 0.3)", ".nodes-changed-flag")
+                geomChangedFlag.style.background = c("rgba(17, 238, 9, 0.3)", ".nodes-changed-flag.dark")
             } else {
                 geomChangedFlag.style.background = c("rgba(101, 238, 9, 0.6)", ".nodes-changed-flag")
             }
         } else if (haveOnlyDeletion) {
             if (isDarkMode()) {
-                geomChangedFlag.style.background = c("rgba(238, 51, 9, 0.4)", ".nodes-changed-flag")
+                geomChangedFlag.style.background = c("rgba(238, 51, 9, 0.4)", ".nodes-changed-flag.dark")
             } else {
                 geomChangedFlag.style.background = c("rgba(238, 9, 9, 0.42)", ".nodes-changed-flag")
             }
@@ -1162,13 +1162,13 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         function colorizeFlag() {
             if (haveOnlyInsertion && membersChanged && targetVersion.version !== 1) {
                 if (isDarkMode()) {
-                    memChangedFlag.style.background = c("rgba(17, 238, 9, 0.3)", ".members-changed-flag")
+                    memChangedFlag.style.background = c("rgba(17, 238, 9, 0.3)", ".members-changed-flag.dark")
                 } else {
                     memChangedFlag.style.background = c("rgba(101, 238, 9, 0.6)", ".members-changed-flag")
                 }
             } else if (haveOnlyDeletion && membersChanged) {
                 if (isDarkMode()) {
-                    memChangedFlag.style.background = c("rgba(238, 51, 9, 0.4)", ".members-changed-flag")
+                    memChangedFlag.style.background = c("rgba(238, 51, 9, 0.4)", ".members-changed-flag.dark")
                 } else {
                     memChangedFlag.style.background = c("rgba(238, 9, 9, 0.42)", ".members-changed-flag")
                 }
@@ -1895,7 +1895,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             displayWay(
                 currentNodesList,
                 false,
-                c("rgba(0, 128, 0, 0.6)"),
+                c("rgba(0, 128, 0, 0.6)", ".first-way-version"),
                 lineWidth,
                 `${changesetID}w${objID}v${targetVersion.version}`,
                 "customObjects",
@@ -1905,7 +1905,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             displayWay(
                 currentNodesList,
                 false,
-                c("rgba(120, 238, 9, 0.6)"),
+                c("rgba(120, 238, 9, 0.6)", ".restored-way"),
                 lineWidth,
                 `${changesetID}w${objID}v${targetVersion.version}`,
                 "customObjects",
@@ -2254,7 +2254,7 @@ function addQuickLookStyles() {
         }
 
         tr.quick-look-new-tag th {
-            background: ${c("rgba(17, 238, 9, 0.6)")};
+            background: ${c("rgba(17, 238, 9, 0.6)", ".quick-look-new-tag.background")};
         }
 
         table[contenteditable] th:not(.tag-flag) {
@@ -2266,21 +2266,21 @@ function addQuickLookStyles() {
         }
 
         tr.quick-look-modified-tag td:nth-of-type(1){
-            background: ${c("rgba(223, 238, 9, 0.6)")};
+            background: ${c("rgba(223, 238, 9, 0.6)", ".quick-look-modified-tag.background")};
         }
         
         tr.quick-look-deleted-tag th {
-            background: ${c("rgba(238, 51, 9, 0.6)")};
-            color: ${c("#000", ".quick-look-deleted-tag")};
+            background: ${c("rgba(238, 51, 9, 0.6)", ".quick-look-deleted-tag.background")};
+            color: ${c("#000", ".quick-look-deleted-tag.color")};
         }
 
         tr.quick-look-new-tag td:not(.tag-flag) {
-            background: ${c("rgba(17, 238, 9, 0.6)")};
+            background: ${c("rgba(17, 238, 9, 0.6)", ".quick-look-new-tag.background")};
         }
 
         tr.quick-look-deleted-tag td:not(.tag-flag) {
-            background: ${c("rgba(238, 51, 9, 0.6)")};
-            color: ${c("#000", ".quick-look-deleted-tag")};
+            background: ${c("rgba(238, 51, 9, 0.6)", ".quick-look-deleted-tag.background")};
+            color: ${c("#000", ".quick-look-deleted-tag.color")};
         }
 
         table.quick-look.hide-non-modified-tags > tbody > .non-modified-tag-in-quick-view {
@@ -2288,24 +2288,20 @@ function addQuickLookStyles() {
         }
 
         .new-letter {
-            background: ${c("rgba(25, 223, 25, 0.6)")};
+            background: ${c("rgba(25, 223, 25, 0.6)", ".new-letter")};
         }
 
         .deleted-letter {
-            background: ${c("rgba(255, 144, 144, 0.6)")};
+            background: ${c("rgba(255, 144, 144, 0.6)", ".deleted-letter")};
         }
 
         @media ${mediaQueryForWebsiteTheme} {
             tr.quick-look-new-tag th{
-                /*background: #0f540fde;*/
-                background: ${c("rgba(17, 238, 9, 0.3)")};
-                /*background: rgba(87, 171, 90, 0.3);*/
+                background: ${c("rgba(17, 238, 9, 0.3)", ".quick-look-new-tag.background.dark")};
             }
 
             tr.quick-look-new-tag td:not(.tag-flag){
-                /*background: #0f540fde;*/
-                background: ${c("rgba(17, 238, 9, 0.3)")};
-                /*background: rgba(87, 171, 90, 0.3);*/
+                background: ${c("rgba(17, 238, 9, 0.3)", ".quick-look-new-tag.background.dark")};
             }
 
             tr.quick-look-modified-tag td {
@@ -2313,17 +2309,13 @@ function addQuickLookStyles() {
             }
 
             tr.quick-look-deleted-tag th:not(.tag-flag) { /* dirty hack for zebra colors override */
-                /*background: #692113;*/
-                background: ${c("rgba(238, 51, 9, 0.4)")};
-                /*background: rgba(229, 83, 75, 0.3);*/
-                color: ${c("#fff", ".quick-look-deleted-tag")};
+                background: ${c("rgba(238, 51, 9, 0.4)", ".quick-look-deleted-tag.background.dark")};
+                color: ${c("#fff", ".quick-look-deleted-tag.color")};
             }
 
             tr.quick-look-deleted-tag td:not(.tag-flag) {
-                /*background: #692113;*/
-                background: ${c("rgba(238, 51, 9, 0.4)")};
-                /*background: rgba(229, 83, 75, 0.3);*/
-                color: ${c("#fff", ".quick-look-deleted-tag")};
+                background: ${c("rgba(238, 51, 9, 0.4)", ".quick-look-deleted-tag.background.dark")};
+                color: ${c("#fff", ".quick-look-deleted-tag.color")};
             }
 
             tr.quick-look-new-tag th::selection {
@@ -2351,11 +2343,11 @@ function addQuickLookStyles() {
             }
 
             .new-letter {
-                background: ${c("rgba(25, 223, 25, 0.9)")};
+                background: ${c("rgba(25, 223, 25, 0.9)", ".new-letter.dark")};
             }
 
             .deleted-letter {
-                background: ${c("rgba(253, 83, 83, 0.8)")};
+                background: ${c("rgba(253, 83, 83, 0.8)", ".deleted-letter.dark")};
             }
         }
         .edits-wars-tag td:nth-of-type(2)::after{

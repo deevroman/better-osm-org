@@ -7,7 +7,7 @@ async function getPanoramaxToken() {
     })
     if (!res.response?.[0]?.links?.[0]?.href) {
         console.error(res.responseText)
-        alert(t("panoramax.loginRequiredAlert"))
+        alert(t("panoramax.loginRequiredAlert") + (isFirefox ? `.\n\n${t("panoramax.firefoxWarn")}` : ""))
         window.open(panoramaxInstance, "_blank")
         return
     }

@@ -26,6 +26,8 @@ _translations["en"] = {
         sectionOther: "Other",
         darkModeForMap: "Invert map colors in dark mode",
         colorblindFriendlyPalette: "Colorblind-friendly palette β",
+        customPalette: "Custom palette β",
+        customizePalette: "Change colors",
         betterTagsPaste: "Add = when pasting tags separated by spaces or tabs",
         darkModeForID:
             'Dark mode for iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Thanks AlexPS</a>)',
@@ -259,6 +261,7 @@ _translations["en"] = {
     panoramax: {
         blurFaces: "Blur faces",
         loginRequiredAlert: "Please, login to Panoramax",
+        firefoxWarn: "p.s. In Firefox, remember to check that privacy.firstparty.isolate is disabled in about:config",
         uploadPhoto: "Upload photo to Panoramax",
         selectFileAlert: "Select file",
         uploadError: "Error: {message}",
