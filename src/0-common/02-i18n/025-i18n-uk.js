@@ -28,6 +28,10 @@ _translations["uk"] = {
         colorblindFriendlyPalette: "Палітра для дальтоніків β",
         customPalette: "Власна палітра β",
         customizePalette: "Змінити кольори",
+        importDefaultPalette: "Імпортувати типову палітру",
+        importColorblindPalette: "Імпортувати палітру для дальтоніків",
+        importPaletteFromClipboard: "Імпортувати палітру з буфера",
+        exportPaletteIntoClipboard: "Експортувати палітру в буфер",
         betterTagsPaste: "Додавати = під час вставлення тегів, розділених пробілами або табуляцією",
         darkModeForID:
             'Темна тема для iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Дякуємо AlexPS</a>)',

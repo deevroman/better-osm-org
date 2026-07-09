@@ -28,6 +28,10 @@ _translations["fr"] = {
         colorblindFriendlyPalette: "Palette adaptée au daltonisme β",
         customPalette: "Palette personnalisée β",
         customizePalette: "Modifier les couleurs",
+        importDefaultPalette: "Importer la palette par défaut",
+        importColorblindPalette: "Importer la palette adaptée au daltonisme",
+        importPaletteFromClipboard: "Importer la palette depuis le presse-papiers",
+        exportPaletteIntoClipboard: "Exporter la palette vers le presse-papiers",
         betterTagsPaste: "Ajouter = lors du collage de tags séparés par des espaces ou des tabulations",
         darkModeForID:
             'Mode sombre pour iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Merci AlexPS</a>)',

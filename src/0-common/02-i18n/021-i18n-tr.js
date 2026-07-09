@@ -28,6 +28,10 @@ _translations["tr"] = {
         colorblindFriendlyPalette: "Renk körlüğüne uygun palet β",
         customPalette: "Özel palet β",
         customizePalette: "Renkleri değiştir",
+        importDefaultPalette: "Varsayılan paleti içe aktar",
+        importColorblindPalette: "Renk körlüğüne uygun paleti içe aktar",
+        importPaletteFromClipboard: "Paleti panodan içe aktar",
+        exportPaletteIntoClipboard: "Paleti panoya aktar",
         betterTagsPaste: "Boşluk veya sekmeyle ayrılmış etiketleri yapıştırırken = ekle",
         darkModeForID:
             'iD için koyu mod (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Teşekkürler AlexPS</a>)',

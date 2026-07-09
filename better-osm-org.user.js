@@ -249,6 +249,10 @@ _translations["en"] = {
         colorblindFriendlyPalette: "Colorblind-friendly palette β",
         customPalette: "Custom palette β",
         customizePalette: "Change colors",
+        importDefaultPalette: "Import default palette",
+        importColorblindPalette: "Import colorblind-friendly palette",
+        importPaletteFromClipboard: "Import palette from clipboard",
+        exportPaletteIntoClipboard: "Export palette into clipboard",
         betterTagsPaste: "Add = when pasting tags separated by spaces or tabs",
         darkModeForID:
             'Dark mode for iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Thanks AlexPS</a>)',
@@ -680,6 +684,10 @@ _translations["tr"] = {
         colorblindFriendlyPalette: "Renk körlüğüne uygun palet β",
         customPalette: "Özel palet β",
         customizePalette: "Renkleri değiştir",
+        importDefaultPalette: "Varsayılan paleti içe aktar",
+        importColorblindPalette: "Renk körlüğüne uygun paleti içe aktar",
+        importPaletteFromClipboard: "Paleti panodan içe aktar",
+        exportPaletteIntoClipboard: "Paleti panoya aktar",
         betterTagsPaste: "Boşluk veya sekmeyle ayrılmış etiketleri yapıştırırken = ekle",
         darkModeForID:
             'iD için koyu mod (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Teşekkürler AlexPS</a>)',
@@ -1116,6 +1124,10 @@ _translations["ru"] = {
         colorblindFriendlyPalette: "Палитра для дальтоников β",
         customPalette: "Своя палитра β",
         customizePalette: "Изменить цвета",
+        importDefaultPalette: "Импортировать палитру по умолчанию",
+        importColorblindPalette: "Импортировать палитру для дальтоников",
+        importPaletteFromClipboard: "Импортировать палитру из буфера",
+        exportPaletteIntoClipboard: "Экспортировать палитру в буфер",
         betterTagsPaste: "Добавлять = при вставке тегов, разделённых пробелами или табами",
         darkModeForID:
             'Тёмная тема для iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Спасибо AlexPS</a>)',
@@ -1564,6 +1576,10 @@ _translations["de"] = {
         colorblindFriendlyPalette: "Farbenblind-freundliche Palette β",
         customPalette: "Eigene Palette β",
         customizePalette: "Farben ändern",
+        importDefaultPalette: "Standardpalette importieren",
+        importColorblindPalette: "Farbenblind-freundliche Palette importieren",
+        importPaletteFromClipboard: "Palette aus Zwischenablage importieren",
+        exportPaletteIntoClipboard: "Palette in Zwischenablage exportieren",
         betterTagsPaste: "Beim Einfügen von Tags, die durch Leerzeichen oder Tabs getrennt sind, = hinzufügen",
         darkModeForID:
             'Dunkelmodus für iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Danke AlexPS</a>)',
@@ -2001,6 +2017,10 @@ _translations["fr"] = {
         colorblindFriendlyPalette: "Palette adaptée au daltonisme β",
         customPalette: "Palette personnalisée β",
         customizePalette: "Modifier les couleurs",
+        importDefaultPalette: "Importer la palette par défaut",
+        importColorblindPalette: "Importer la palette adaptée au daltonisme",
+        importPaletteFromClipboard: "Importer la palette depuis le presse-papiers",
+        exportPaletteIntoClipboard: "Exporter la palette vers le presse-papiers",
         betterTagsPaste: "Ajouter = lors du collage de tags séparés par des espaces ou des tabulations",
         darkModeForID:
             'Mode sombre pour iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Merci AlexPS</a>)',
@@ -2440,6 +2460,10 @@ _translations["hr"] = {
         colorblindFriendlyPalette: "Paleta prilagođena daltonistima β",
         customPalette: "Prilagođena paleta β",
         customizePalette: "Promijeni boje",
+        importDefaultPalette: "Uvezi zadanu paletu",
+        importColorblindPalette: "Uvezi paletu prilagođenu daltonistima",
+        importPaletteFromClipboard: "Uvezi paletu iz međuspremnika",
+        exportPaletteIntoClipboard: "Izvezi paletu u međuspremnik",
         betterTagsPaste: "Dodaj = pri lijepljenju oznaka odvojenih razmacima ili tabulatorima",
         darkModeForID:
             'Tamni način za iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Hvala AlexPS</a>)',
@@ -2874,6 +2898,10 @@ _translations["uk"] = {
         colorblindFriendlyPalette: "Палітра для дальтоніків β",
         customPalette: "Власна палітра β",
         customizePalette: "Змінити кольори",
+        importDefaultPalette: "Імпортувати типову палітру",
+        importColorblindPalette: "Імпортувати палітру для дальтоніків",
+        importPaletteFromClipboard: "Імпортувати палітру з буфера",
+        exportPaletteIntoClipboard: "Експортувати палітру в буфер",
         betterTagsPaste: "Додавати = під час вставлення тегів, розділених пробілами або табуляцією",
         darkModeForID:
             'Темна тема для iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Дякуємо AlexPS</a>)',
@@ -4213,6 +4241,21 @@ function fillColorPaletteTable(tbody, overrides) {
     })
 }
 
+function getColorPaletteColors(wrapper, exportDefaultColors = false) {
+    const colors = {}
+
+    for (let row of wrapper.querySelectorAll("tr[data-color-palette-key]")) {
+        const key = row.dataset.colorPaletteKey
+        const defaultValue = row.dataset.defaultValue
+        const value = row.querySelector(".color-palette-value").textContent.trim()
+        if (value !== "" && (exportDefaultColors || value !== defaultValue)) {
+            colors[key] = value
+        }
+    }
+
+    return colors
+}
+
 const copyAnimationStyles = `
     .copied {
       background-color: rgba(9,238,9,0.6);
@@ -4589,6 +4632,7 @@ const configOptions = {
                     this.create("input", {
                         innerHTML: this.settings.label,
                         id: this.configId + "_" + this.id + "_field",
+                        className: "color-palette-enabled",
                         type: "checkbox",
                         checked: enabled,
                     }),
@@ -4606,34 +4650,69 @@ const configOptions = {
                 details.className = "color-palette-details"
                 settingNode.appendChild(details)
 
-                const insertDefaultPalette = this.create("button", {
-                    id: "InsertDefaultPalette",
-                    textContent: "Insert default palette",
+                const importDefaultPalette = this.create("button", {
+                    id: "ImportDefaultPalette",
+                    className: "color-palette-action",
+                    textContent: t("config.importDefaultPalette"),
                 })
-                insertDefaultPalette.onclick = () => {
+                importDefaultPalette.onclick = () => {
                     table.querySelectorAll("#Config_ColorPalette_var tr[data-color-palette-key]").forEach(row => {
-                        row.querySelector(".color-palette-value").textContent = row.dataset.defaultValue
-                        updateColorPalettePreview(row)
+                        setColorPaletteValue(row, row.dataset.defaultValue)
                     })
                 }
-                details.appendChild(insertDefaultPalette)
+                details.appendChild(importDefaultPalette)
 
-                const insertColorblindPalette = this.create("button", {
-                    id: "InsertColorblindFriendlyPalette",
-                    textContent: "Insert colorblind-friendly palette",
+                const importColorblindPalette = this.create("button", {
+                    id: "ImportColorblindFriendlyPalette",
+                    className: "color-palette-action",
+                    textContent: t("config.importColorblindPalette"),
                 })
-                insertColorblindPalette.onclick = () => {
+                importColorblindPalette.onclick = () => {
                     table.querySelectorAll("#Config_ColorPalette_var tr[data-color-palette-key]").forEach(row => {
                         if (row.dataset.colorblindValue) {
-                            row.querySelector(".color-palette-value").textContent = row.dataset.colorblindValue
-                            updateColorPalettePreview(row)
+                            setColorPaletteValue(row, row.dataset.colorblindValue)
                         }
                     })
                 }
-                details.appendChild(insertColorblindPalette)
+                details.appendChild(importColorblindPalette)
+
+                const importPalette = this.create("button", {
+                    id: "ImportColorPalette",
+                    className: "color-palette-action",
+                    textContent: t("config.importPaletteFromClipboard"),
+                })
+                importPalette.onclick = async event => {
+                    try {
+                        const colors = JSON.parse(await navigator.clipboard.readText())
+                        const tbody1 = settingNode.querySelector(".color-palette-table tbody")
+
+                        tbody1.replaceChildren()
+                        fillColorPaletteTable(tbody1, colors)
+                        copyAnimation(event, "palette JSON")
+                    } catch (e) {
+                        alert(`Failed to import palette: ${e.message}`)
+                    }
+                }
+                details.appendChild(importPalette)
+
+                const exportPalette = this.create("button", {
+                    id: "ExportColorPalette",
+                    className: "color-palette-action",
+                    textContent: t("config.exportPaletteIntoClipboard"),
+                })
+                exportPalette.onclick = async event => {
+                    const json = JSON.stringify(getColorPaletteColors(settingNode, true), null, 2)
+                    try {
+                        await navigator.clipboard.writeText(json)
+                        copyAnimation(event, "palette JSON")
+                    } catch (e) {
+                        alert(`Failed to export palette: ${e.message}`)
+                    }
+                }
+                details.appendChild(exportPalette)
 
                 /*                const reloadSidebar = this.create("button", {
-                    id: "InsertColorblindFriendlyPalette",
+                    id: "ImportColorblindFriendlyPalette",
                     textContent: "🔄",
                 })
                 reloadSidebar.onclick = () => {
@@ -4673,27 +4752,22 @@ const configOptions = {
                 return settingNode
             },
             toValue: function () {
-                const overrides = {
-                    enabled: this.wrapper.querySelector("#" + this.configId + "_" + this.id + "_field").checked,
-                    colors: {},
-                }
                 if (this.wrapper) {
-                    for (let row of this.wrapper.querySelectorAll("tr[data-color-palette-key]")) {
-                        const key = row.dataset.colorPaletteKey
-                        const defaultValue = row.dataset.defaultValue
-                        const value = row.querySelector(".color-palette-value").textContent.trim()
-                        if (value !== "" && value !== defaultValue) {
-                            overrides["colors"][key] = value
-                        }
-                    }
+                    return JSON.stringify({
+                        enabled: this.wrapper.querySelector(".color-palette-enabled").checked,
+                        colors: getColorPaletteColors(this.wrapper),
+                    })
                 }
-                return JSON.stringify(overrides)
+                return JSON.stringify({ enabled: false, colors: {} })
             },
             reset: function () {
                 if (this.wrapper) {
-                    const tbody = this.wrapper.querySelector(`#${this.configId}_${this.id}_var .color-palette-table tbody`)
+                    const enabledInput = this.wrapper.querySelector(".color-palette-enabled")
+                    const tbody = this.wrapper.querySelector(".color-palette-table tbody")
+
+                    enabledInput.checked = parseColorPaletteSetting(/** @type {string} */ (this.settings.default)).enabled
                     tbody.replaceChildren()
-                    fillColorPaletteTable(tbody, parseColorPaletteSetting(/** @type {string} */ (this.settings.default)))
+                    fillColorPaletteTable(tbody, parseColorPaletteSetting(/** @type {string} */ (this.settings.default)).colors)
                 }
             },
         },
@@ -4733,8 +4807,10 @@ const configOptions = {
                 font-size: 13px;
             }
             
-            #Config_saveBtn, #Config_closeBtn, #InsertDefaultPalette {
+            #Config_saveBtn, #Config_closeBtn, #Config .color-palette-action {
                 cursor: pointer;
+                margin-right: 4px;
+                margin-bottom: 4px;
             }
             #Config_field_ResolveNotesButton {
                 width: 100%;
@@ -4857,7 +4933,7 @@ const configOptions = {
             #Config_field_OverpassInstance {
                 filter: invert(0.9);
             }
-            #Config_saveBtn, #Config_closeBtn, #InsertDefaultPalette, #InsertColorblindFriendlyPalette {
+            #Config_saveBtn, #Config_closeBtn, #Config .color-palette-action {
                 filter: invert(0.9);
             }
             #Config_resetLink {
