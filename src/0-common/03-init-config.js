@@ -766,7 +766,7 @@ const configOptions = {
             }
 
             #Config .field_label {
-                font-size: 13px;
+                font-size: ${isMobile ? "15px" : "13px"};
             }
             
             #Config_saveBtn, #Config_closeBtn, #Config .color-palette-action {
@@ -860,8 +860,16 @@ const configOptions = {
             #Config_ColorPalette_field:not(:checked) ~ details {
                 display: none;
             }
+            .config_var:has(select) {
+                display: flex;
+            }
+            .config_var:has(table) {
+                display: flex;
+                flex-wrap: wrap;
+            }
             #Config table {
                 border-collapse: collapse;
+                flex: 0 0 100%;
             }
             th, td {
                 border: 1px solid black;
