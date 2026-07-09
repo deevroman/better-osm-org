@@ -2970,13 +2970,13 @@ function addDiffInHistoryStyle() {
     }
 
     .history-diff-new-tag {
-      background: ${c("rgba(17, 238, 9, 0.6)")} !important;
+      background: ${c("rgba(17, 238, 9, 0.6)", ".history-diff-new-tag")} !important;
     }
     .history-diff-modified-tag {
-      background: rgba(223, 238, 9, 0.6) !important;
+      background: ${c("rgba(223, 238, 9, 0.6)", ".history-diff-modified-tag")} !important;
     }
     .history-diff-deleted-tag {
-      background: ${c("rgba(238, 51, 9, 0.6)")} !important;
+      background: ${c("rgba(238, 51, 9, 0.6)", ".history-diff-deleted-tag")} !important;
     }
 
     #sidebar_content div.map-hover {
@@ -2984,11 +2984,11 @@ function addDiffInHistoryStyle() {
     }
 
     .new-letter {
-        background: ${c("rgba(25, 223, 25, 0.6)")};
+        background: ${c("rgba(25, 223, 25, 0.6)", ".new-letter")};
     }
 
     .deleted-letter {
-        background: ${c("rgba(255, 144, 144, 0.6)")};
+        background: ${c("rgba(255, 144, 144, 0.6)", ".deleted-letter")};
     }
 
     @media ${mediaQueryForWebsiteTheme} {
@@ -3019,11 +3019,11 @@ function addDiffInHistoryStyle() {
         }
 
         .new-letter {
-            background: ${c("rgba(25, 223, 25, 0.9)")};
+            background: ${c("rgba(25, 223, 25, 0.9)", ".new-letter.dark")};
         }
 
         .deleted-letter {
-            background: ${c("rgba(253, 83, 83, 0.8)")};
+            background: ${c("rgba(253, 83, 83, 0.8)", ".deleted-letter.dark")};
         }
     }
     .non-modified-tag .empty-version {

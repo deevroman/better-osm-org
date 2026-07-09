@@ -26,6 +26,8 @@ _translations["ru"] = {
         sectionOther: "Прочее",
         darkModeForMap: "Инвертировать цвета карты в тёмной теме",
         colorblindFriendlyPalette: "Палитра для дальтоников β",
+        customPalette: "Своя палитра β",
+        customizePalette: "Изменить цвета",
         betterTagsPaste: "Добавлять = при вставке тегов, разделённых пробелами или табами",
         darkModeForID:
             'Тёмная тема для iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Спасибо AlexPS</a>)',
@@ -275,6 +277,7 @@ _translations["ru"] = {
     panoramax: {
         blurFaces: "Размыть лица",
         loginRequiredAlert: "Пожалуйста, войдите в Panoramax",
+        firefoxWarn: "p.s. В Firefox не забудьте проверить, что в about:config отключен параметр privacy.firstparty.isolate",
         uploadPhoto: "Загрузить фото в Panoramax",
         selectFileAlert: "Выберите файл",
         uploadError: "Ошибка: {message}",

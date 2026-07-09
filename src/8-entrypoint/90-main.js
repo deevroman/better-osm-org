@@ -11,6 +11,7 @@ function _main() {
     if (GM_config.get("ColorblindFriendlyPalette")) {
         setColorblindFriendlyPalette()
     }
+    setCustomPalette()
     if (location.origin === "https://www.hdyc.neis-one.org" || location.origin === "https://hdyc.neis-one.org") {
         simplifyHDCYIframe()
         return

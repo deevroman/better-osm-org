@@ -26,6 +26,8 @@ _translations["hr"] = {
         sectionOther: "Ostalo",
         darkModeForMap: "Invertiraj boje karte u tamnom načinu rada",
         colorblindFriendlyPalette: "Paleta prilagođena daltonistima β",
+        customPalette: "Prilagođena paleta β",
+        customizePalette: "Promijeni boje",
         betterTagsPaste: "Dodaj = pri lijepljenju oznaka odvojenih razmacima ili tabulatorima",
         darkModeForID:
             'Tamni način za iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Hvala AlexPS</a>)',
@@ -260,6 +262,7 @@ _translations["hr"] = {
     panoramax: {
         blurFaces: "Zamagli lica",
         loginRequiredAlert: "Prijavite se u Panoramax",
+        firefoxWarn: "p.s. U Firefoxu provjerite je li privacy.firstparty.isolate isključen u about:config",
         uploadPhoto: "Prenesi fotografiju u Panoramax",
         selectFileAlert: "Odaberite datoteku",
         uploadError: "Greška: {message}",
