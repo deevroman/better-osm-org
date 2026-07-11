@@ -14450,13 +14450,18 @@ function makeContactValue(elem, key) {
         const urlParams = new URL(elem.textContent).searchParams
         const warns = []
         ;[
+            "cm_mmc",
+            "cmpid",
             "fbclid",
+            "gad_source",
             "gclid",
             "gclsrc",
             "igsh",
             "igshid",
             "mc_id",
+            "mibextid",
             "si",
+            "srsltid",
             "utm_campaign",
             "utm_content",
             "utm_medium",
