@@ -555,7 +555,6 @@ async function betterUserStat() {
             filterInputByEditor.appendChild(item)
         })
 
-    filterInputByEditor.after(filterInputByEditor)
     console.log("setuping filters finished")
     if (searchByComment.hasAttribute("need-activate-immediately")) {
         searchByComment.dispatchEvent(new Event("input", { bubbles: true }))
