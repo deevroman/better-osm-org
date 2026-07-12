@@ -34142,7 +34142,7 @@ function addLevel0Reborn() {
     const l0export = document.querySelector("#export-editors-level0")
 
     function repairQuery(q) {
-        return q.replace("[out:json]", "[out:xml]").replace("\nout ", "\n(._;>;);\nout ")
+        return q.replace("[out:json]", "[out:xml]").replace("\nout ", "\n(._;>;);\nout meta ")
     }
 
     function makeLevel0Url(query) {
