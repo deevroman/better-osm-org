@@ -14,7 +14,7 @@ function addLevel0Reborn() {
         const server = localStorage.getItem("overpass-ide_server")
 
         const overpassParams = new URLSearchParams()
-        overpassParams.set("data", query.replace("[out:json]", "[out:xml]").replace("\nout ", "(._;>;);\nout "))
+        overpassParams.set("data", query.replace("[out:json]", "[out:xml]").replace("\nout ", "\n(._;>;);\nout "))
         const level0Params = new URLSearchParams()
         level0Params.set("url", server + "interpreter?" + overpassParams.toString())
         return REBORN_LEVEL0_INSTANCE + "?" + level0Params.toString()
