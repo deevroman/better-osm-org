@@ -10,17 +10,25 @@ function addLevel0Reborn() {
     }
     const l0export = document.querySelector("#export-editors-level0")
 
+    function makeLevel0Url(query) {
+        const server = localStorage.getItem("overpass-ide_server")
+
+        const overpassParams = new URLSearchParams()
+        overpassParams.set("data", query.replace("[out:json]", "[out:xml]").replace("\nout ", "(._;>;);\nout "))
+        const level0Params = new URLSearchParams()
+        level0Params.set("url", server + "interpreter?" + overpassParams.toString())
+        return REBORN_LEVEL0_INSTANCE + "?" + level0Params.toString()
+    }
+
     const l0reborn = l0export.cloneNode(true)
     l0reborn.id = "export-editors-level0-reborn"
     l0reborn.textContent += "Reborn β"
     l0reborn.setAttribute("href", "")
     l0reborn.onclick = function () {
-        const originalHref = l0export.getAttribute("href")
-        const newHref = originalHref
-            .replace(LEGACY_MAIN_LEVEL0_INSTANCE, REBORN_LEVEL0_INSTANCE)
-            .replace(MAIN_LEVEL0_INSTANCE, REBORN_LEVEL0_INSTANCE)
         Array.from(document.querySelectorAll(".modal.is-active .modal-card-head .delete")).at(-1).click()
-        l0reborn.setAttribute("href", newHref)
+
+        const query = document.querySelector("#editor > textarea").value
+        l0reborn.setAttribute("href", makeLevel0Url(query))
     }
 
     l0export.after(l0reborn)
@@ -34,26 +42,11 @@ function addLevel0Reborn() {
         const bbox = Array.from(document.querySelectorAll(".modal.is-active .modal-card-body p:has(small)")).at(-1).firstChild.data
         Array.from(document.querySelectorAll(".modal.is-active .modal-card-head .delete")).at(-1).click()
 
-        const originalHref = l0export.getAttribute("href")
-        const originalURL = new URL(originalHref)
-        const params = new URLSearchParams(originalURL.search)
-        const overpassURL = new URL(params.get("url"))
-
-        const bboxedParams = new URLSearchParams(overpassURL.search)
-        if (!bboxedParams.get("data").includes("[bbox:")) {
-            bboxedParams.set("data", `[bbox:${bbox.replaceAll(" ", "")}]` + bboxedParams.get("data"))
+        let query = document.querySelector("#editor > textarea").value
+        if (!query.includes("[bbox:")) {
+            query = `[bbox:${bbox.replaceAll(" ", "")}]` + query
         }
-        bboxedParams.toString()
-
-        overpassURL.search = bboxedParams.toString()
-        params.set("url", overpassURL.toString())
-        originalURL.search = params.toString()
-
-        const newHref = originalURL
-            .toString()
-            .replace(LEGACY_MAIN_LEVEL0_INSTANCE, REBORN_LEVEL0_INSTANCE)
-            .replace(MAIN_LEVEL0_INSTANCE, REBORN_LEVEL0_INSTANCE)
-        l0rebornBbox.setAttribute("href", newHref)
+        l0rebornBbox.setAttribute("href", makeLevel0Url(query))
     }
     l0reborn.after(l0rebornBbox)
     l0reborn.after(document.createTextNode("\xA0"))
