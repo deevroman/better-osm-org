@@ -34141,11 +34141,15 @@ function addLevel0Reborn() {
     }
     const l0export = document.querySelector("#export-editors-level0")
 
+    function repairQuery(q) {
+        return q.replace("[out:json]", "[out:xml]").replace("\nout ", "\n(._;>;);\nout ")
+    }
+
     function makeLevel0Url(query) {
         const server = localStorage.getItem("overpass-ide_server")
 
         const overpassParams = new URLSearchParams()
-        overpassParams.set("data", query.replace("[out:json]", "[out:xml]").replace("\nout ", "\n(._;>;);\nout "))
+        overpassParams.set("data", repairQuery(query))
         const level0Params = new URLSearchParams()
         level0Params.set("url", server + "interpreter?" + overpassParams.toString())
         return REBORN_LEVEL0_INSTANCE + "?" + level0Params.toString()
@@ -34158,7 +34162,7 @@ function addLevel0Reborn() {
     l0reborn.onclick = function () {
         Array.from(document.querySelectorAll(".modal.is-active .modal-card-head .delete")).at(-1).click()
 
-        const query = localStorage.getItem("overpass-ide_code")
+        const query = JSON.parse(localStorage.getItem("overpass-ide_code"))["overpass"]
         l0reborn.setAttribute("href", makeLevel0Url(query))
     }
 
@@ -34173,7 +34177,7 @@ function addLevel0Reborn() {
         const bbox = Array.from(document.querySelectorAll(".modal.is-active .modal-card-body p:has(small)")).at(-1).firstChild.data
         Array.from(document.querySelectorAll(".modal.is-active .modal-card-head .delete")).at(-1).click()
 
-        let query = localStorage.getItem("overpass-ide_code")
+        let query = JSON.parse(localStorage.getItem("overpass-ide_code"))["overpass"]
         if (!query.includes("[bbox:")) {
             query = `[bbox:${bbox.replaceAll(" ", "")}]` + query
         }
