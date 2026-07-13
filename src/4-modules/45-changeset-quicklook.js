@@ -429,6 +429,10 @@ function makeTagRow(key, value, addTd = false) {
 }
 
 function makeLinksInChangesetObjectRowClickable(row, objType) {
+    const keyCell = row.querySelector("th")
+    const rawKey = keyCell.textContent
+    const key = rawKey
+    const valueCell = row.querySelector("td")
     if (row.querySelector("td").textContent.match(/^https?:\/\//)) {
         const a = document.createElement("a")
         a.textContent = row.querySelector("td").textContent
@@ -440,11 +444,10 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
             e.stopImmediatePropagation()
         }
         row.querySelector("td").appendChild(a)
+        if (needValidateTrackingParamsInContact(key)) {
+            makeContactValue(valueCell, key)
+        }
     } else {
-        const keyCell = row.querySelector("th")
-        const rawKey = keyCell.textContent
-        const key = rawKey
-        const valueCell = row.querySelector("td")
         if (key.startsWith("panoramax")) {
             makePanoramaxValue(valueCell)
         } else if (key.startsWith("mapillary")) {
