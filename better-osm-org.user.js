@@ -20001,7 +20001,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         memChangedFlag.classList.add("members-changed")
         memChangedFlag.style.userSelect = "none"
         let membersChanged = false
-        if (JSON.stringify(prevVersion?.members ?? []) !== JSON.stringify(targetVersion.members) && targetVersion.version !== 1) {
+        if (JSON.stringify(prevVersion?.members ?? []) !== JSON.stringify(targetVersion.members ?? []) && targetVersion.version !== 1) {
             memChangedFlag.style.background = "rgba(223, 238, 9, 0.6)"
             memChangedFlag.title = t("changesetQuicklook.relationMembersChanged")
             membersChanged = true
