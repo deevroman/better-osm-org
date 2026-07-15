@@ -9074,6 +9074,7 @@ const compactSidebarStyleText = `
     @media (min-width: 768px) {
         .map-layout #sidebar${isSafari ? ":not(.increased-specificity-for-fucked-safari)" : ""} {
           width: 450px;
+          flex-basis: 450px;
         }
     }
     turbo-frame {
@@ -10764,6 +10765,7 @@ function addStreetCompletePhotos(isClosedNote) {
             }
             document.querySelector("#sidebar").style.resize = "horizontal"
             document.querySelector("#sidebar").style.width = "450px"
+            document.querySelector("#sidebar").style.flexBasis = "450px"
             // hideSearchForm()
         }
     })
