@@ -1314,6 +1314,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
         const locationChangedFlag = document.createElement("span")
         locationChangedFlag.textContent = "◌"
         locationChangedFlag.style.cursor = "help"
+        locationChangedFlag.style.color = "gray"
         // prettier-ignore
         const distInMeters = getDistanceFromLatLonInKm(
             targetVersion.lat,
