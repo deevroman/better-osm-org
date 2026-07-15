@@ -334,6 +334,7 @@ _translations["en"] = {
         pinRelationOnMap: "Pin relation on map",
         unpinRelationFromMap: "Unpin relation from map",
         nodeCoordinatesChanged: "Coordinates of node has been changed",
+        currentLocationDistance: "Current coordinates differ by {distance} m",
         downloadThisRelation: "Download this relation",
         shiftClickZoomVia: 'Click with Shift for zoom to "via" members',
         unableDisplaySomeData: "better-osm-org was unable to display some data",
@@ -770,6 +771,7 @@ _translations["tr"] = {
         pinRelationOnMap: "İlişkiyi haritaya sabitle",
         unpinRelationFromMap: "İlişkinin harita sabitlemesini kaldır",
         nodeCoordinatesChanged: "Düğüm koordinatları değiştirildi",
+        currentLocationDistance: "Geçerli koordinatlar {distance} m farklı",
         downloadThisRelation: "Bu ilişkiyi indir",
         shiftClickZoomVia: '"via" üyelerine yakınlaştırmak için Shift ile tıklayın',
         unableDisplaySomeData: "better-osm-org bazı verileri görüntüleyemedi",
@@ -1216,6 +1218,7 @@ _translations["ru"] = {
         pinRelationOnMap: "Закрепить отношение на карте",
         unpinRelationFromMap: "Убрать отношение с карты",
         nodeCoordinatesChanged: "Координаты точки были изменены",
+        currentLocationDistance: "Текущие координаты отличаются на {distance} м",
         downloadThisRelation: "Скачать это отношение",
         shiftClickZoomVia: "Нажмите с Shift, чтобы приблизить участников с ролью «via»",
         unableDisplaySomeData: "better-osm-org не смог отобразить некоторые данные",
@@ -1661,6 +1664,7 @@ _translations["de"] = {
         pinRelationOnMap: "Relation auf der Karte anheften",
         unpinRelationFromMap: "Relation von der Karte lösen",
         nodeCoordinatesChanged: "Die Koordinaten des Knotens wurden geändert",
+        currentLocationDistance: "Aktuelle Koordinaten weichen um {distance} m ab",
         downloadThisRelation: "Diese Relation herunterladen",
         shiftClickZoomVia: 'Mit Shift klicken, um auf "via"-Mitglieder zu zoomen',
         unableDisplaySomeData: "better-osm-org konnte einige Daten nicht anzeigen",
@@ -2104,6 +2108,7 @@ _translations["fr"] = {
         pinRelationOnMap: "Épingler la relation sur la carte",
         unpinRelationFromMap: "Désépingler la relation de la carte",
         nodeCoordinatesChanged: "Les coordonnées du nœud ont été modifiées",
+        currentLocationDistance: "Les coordonnées actuelles diffèrent de {distance} m",
         downloadThisRelation: "Télécharger cette relation",
         shiftClickZoomVia: 'Maj + clic pour zoomer sur les membres "via"',
         unableDisplaySomeData: "better-osm-org n'a pas pu afficher certaines données",
@@ -2545,6 +2550,7 @@ _translations["hr"] = {
         pinRelationOnMap: "Prikvači relaciju na kartu",
         unpinRelationFromMap: "Otkvači relaciju s karte",
         nodeCoordinatesChanged: "Koordinate čvora su promijenjene",
+        currentLocationDistance: "Trenutačne koordinate razlikuju se za {distance} m",
         downloadThisRelation: "Preuzmi ovu relaciju",
         shiftClickZoomVia: 'Kliknite sa Shift za zumiranje na "via" članove',
         unableDisplaySomeData: "better-osm-org nije mogao prikazati neke podatke",
@@ -2983,6 +2989,7 @@ _translations["uk"] = {
         pinRelationOnMap: "Закріпити відношення на мапі",
         unpinRelationFromMap: "Відкріпити відношення від мапи",
         nodeCoordinatesChanged: "Координати точки було змінено",
+        currentLocationDistance: "Поточні координати відрізняються на {distance} м",
         downloadThisRelation: "Завантажити це відношення",
         shiftClickZoomVia: 'Натисніть із Shift, щоб наблизити учасників "via"',
         unableDisplaySomeData: "better-osm-org не зміг показати деякі дані",
@@ -20324,7 +20331,26 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             pinRelation.after(tagsTable)
         }
     }
-    if (targetVersion.lat && prevVersion.lat && (prevVersion.lat !== targetVersion.lat || prevVersion.lon !== targetVersion.lon)) {
+    if (
+        targetVersion.version === 1 &&
+        lastVersion.version > 1 &&
+        lastVersion.visible !== false &&
+        targetVersion.lat !== lastVersion.lat &&
+        targetVersion.lon !== lastVersion.lon
+    ) {
+        const locationChangedFlag = document.createElement("span")
+        locationChangedFlag.textContent = "◌"
+        locationChangedFlag.style.cursor = "help"
+        // prettier-ignore
+        const distInMeters = getDistanceFromLatLonInKm(
+            targetVersion.lat,
+            targetVersion.lon,
+            lastVersion.lat,
+            lastVersion.lon
+        ) * 1000;
+        locationChangedFlag.title = t("changesetQuicklook.currentLocationDistance", { distance: distInMeters.toFixed(1) })
+        i.appendChild(locationChangedFlag)
+    } else if (targetVersion.lat && prevVersion.lat && (prevVersion.lat !== targetVersion.lat || prevVersion.lon !== targetVersion.lon)) {
         i.parentElement.parentElement.classList.add("location-modified")
         const locationChangedFlag = document.createElement("span")
         // prettier-ignore

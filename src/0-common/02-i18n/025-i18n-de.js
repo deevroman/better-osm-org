@@ -113,6 +113,7 @@ _translations["de"] = {
         pinRelationOnMap: "Relation auf der Karte anheften",
         unpinRelationFromMap: "Relation von der Karte lösen",
         nodeCoordinatesChanged: "Die Koordinaten des Knotens wurden geändert",
+        currentLocationDistance: "Aktuelle Koordinaten weichen um {distance} m ab",
         downloadThisRelation: "Diese Relation herunterladen",
         shiftClickZoomVia: 'Mit Shift klicken, um auf "via"-Mitglieder zu zoomen',
         unableDisplaySomeData: "better-osm-org konnte einige Daten nicht anzeigen",

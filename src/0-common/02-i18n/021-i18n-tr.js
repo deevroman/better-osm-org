@@ -114,6 +114,7 @@ _translations["tr"] = {
         pinRelationOnMap: "İlişkiyi haritaya sabitle",
         unpinRelationFromMap: "İlişkinin harita sabitlemesini kaldır",
         nodeCoordinatesChanged: "Düğüm koordinatları değiştirildi",
+        currentLocationDistance: "Geçerli koordinatlar {distance} m farklı",
         downloadThisRelation: "Bu ilişkiyi indir",
         shiftClickZoomVia: '"via" üyelerine yakınlaştırmak için Shift ile tıklayın',
         unableDisplaySomeData: "better-osm-org bazı verileri görüntüleyemedi",
