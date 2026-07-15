@@ -1065,7 +1065,7 @@ const compactSidebarStyleText = `
     @media (min-width: 768px) {
         .map-layout #sidebar${isSafari ? ":not(.increased-specificity-for-fucked-safari)" : ""} {
           width: 450px;
-          flex-basis: 450px;
+          flex-basis: unset;
         }
     }
     turbo-frame {

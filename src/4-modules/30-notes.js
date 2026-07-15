@@ -522,7 +522,7 @@ function addStreetCompletePhotos(isClosedNote) {
             }
             document.querySelector("#sidebar").style.resize = "horizontal"
             document.querySelector("#sidebar").style.width = "450px"
-            document.querySelector("#sidebar").style.flexBasis = "450px"
+            document.querySelector("#sidebar").style.flexBasis = "unset"
             // hideSearchForm()
         }
     })
