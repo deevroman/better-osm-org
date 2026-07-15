@@ -431,7 +431,7 @@ _translations["ru"] = {
         openObjectHistory: "Нажмите, чтобы открыть страницу истории объекта\nИли нажмите клавишу H",
         photoBy: "Фото: {author}",
         observedBy: "Наблюдал: {user}",
-        invalidPhone: "{value} некорректный номер телефона по версии libphonenumber.js",
+        invalidPhone: "{value} некорректный номер телефона по мнению libphonenumber.js",
         invalidEmail: "{value} некорректный email",
         typeOnlyForRelations: "type=* используется только для отношений",
         suspiciousRelationType: "type={value} используется в базе меньше 50 раз. Скорее всего, это ошибка.",
