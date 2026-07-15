@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.6.6
+// @version         1.6.7
 // @changelog       v1.6.6: Under experimental flag: clickable POIs, full history for relations, level0 reborn links
 // @changelog       v1.6.6: Links to regional Taginfo on taginfo.osm.org and Overpass links on #combinations page
 // @changelog       v1.6.6: Download visible notes as .kml, Nodes restorer, parameters for vector styles
@@ -9074,7 +9074,7 @@ const compactSidebarStyleText = `
     @media (min-width: 768px) {
         .map-layout #sidebar${isSafari ? ":not(.increased-specificity-for-fucked-safari)" : ""} {
           width: 450px;
-          flex-basis: 450px;
+          flex-basis: unset;
         }
     }
     turbo-frame {
@@ -10765,7 +10765,7 @@ function addStreetCompletePhotos(isClosedNote) {
             }
             document.querySelector("#sidebar").style.resize = "horizontal"
             document.querySelector("#sidebar").style.width = "450px"
-            document.querySelector("#sidebar").style.flexBasis = "450px"
+            document.querySelector("#sidebar").style.flexBasis = "unset"
             // hideSearchForm()
         }
     })
