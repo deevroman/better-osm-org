@@ -113,6 +113,7 @@ _translations["hr"] = {
         pinRelationOnMap: "Prikvači relaciju na kartu",
         unpinRelationFromMap: "Otkvači relaciju s karte",
         nodeCoordinatesChanged: "Koordinate čvora su promijenjene",
+        currentLocationDistance: "Trenutačne koordinate razlikuju se za {distance} m",
         downloadThisRelation: "Preuzmi ovu relaciju",
         shiftClickZoomVia: 'Kliknite sa Shift za zumiranje na "via" članove',
         unableDisplaySomeData: "better-osm-org nije mogao prikazati neke podatke",

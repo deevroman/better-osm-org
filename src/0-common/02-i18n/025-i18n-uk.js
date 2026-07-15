@@ -113,6 +113,7 @@ _translations["uk"] = {
         pinRelationOnMap: "Закріпити відношення на мапі",
         unpinRelationFromMap: "Відкріпити відношення від мапи",
         nodeCoordinatesChanged: "Координати точки було змінено",
+        currentLocationDistance: "Поточні координати відрізняються на {distance} м",
         downloadThisRelation: "Завантажити це відношення",
         shiftClickZoomVia: 'Натисніть із Shift, щоб наблизити учасників "via"',
         unableDisplaySomeData: "better-osm-org не зміг показати деякі дані",

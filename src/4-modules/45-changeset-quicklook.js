@@ -1304,7 +1304,26 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             pinRelation.after(tagsTable)
         }
     }
-    if (targetVersion.lat && prevVersion.lat && (prevVersion.lat !== targetVersion.lat || prevVersion.lon !== targetVersion.lon)) {
+    if (
+        targetVersion.version === 1 &&
+        lastVersion.version > 1 &&
+        lastVersion.visible !== false &&
+        targetVersion.lat !== lastVersion.lat &&
+        targetVersion.lon !== lastVersion.lon
+    ) {
+        const locationChangedFlag = document.createElement("span")
+        locationChangedFlag.textContent = "◌"
+        locationChangedFlag.style.cursor = "help"
+        // prettier-ignore
+        const distInMeters = getDistanceFromLatLonInKm(
+            targetVersion.lat,
+            targetVersion.lon,
+            lastVersion.lat,
+            lastVersion.lon
+        ) * 1000;
+        locationChangedFlag.title = t("changesetQuicklook.currentLocationDistance", { distance: distInMeters.toFixed(1) })
+        i.appendChild(locationChangedFlag)
+    } else if (targetVersion.lat && prevVersion.lat && (prevVersion.lat !== targetVersion.lat || prevVersion.lon !== targetVersion.lon)) {
         i.parentElement.parentElement.classList.add("location-modified")
         const locationChangedFlag = document.createElement("span")
         // prettier-ignore

@@ -115,6 +115,7 @@ _translations["fr"] = {
         pinRelationOnMap: "Épingler la relation sur la carte",
         unpinRelationFromMap: "Désépingler la relation de la carte",
         nodeCoordinatesChanged: "Les coordonnées du nœud ont été modifiées",
+        currentLocationDistance: "Les coordonnées actuelles diffèrent de {distance} m",
         downloadThisRelation: "Télécharger cette relation",
         shiftClickZoomVia: 'Maj + clic pour zoomer sur les membres "via"',
         unableDisplaySomeData: "better-osm-org n'a pas pu afficher certaines données",

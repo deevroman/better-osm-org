@@ -120,6 +120,7 @@ _translations["ru"] = {
         pinRelationOnMap: "Закрепить отношение на карте",
         unpinRelationFromMap: "Убрать отношение с карты",
         nodeCoordinatesChanged: "Координаты точки были изменены",
+        currentLocationDistance: "Текущие координаты отличаются на {distance} м",
         downloadThisRelation: "Скачать это отношение",
         shiftClickZoomVia: "Нажмите с Shift, чтобы приблизить участников с ролью «via»",
         unableDisplaySomeData: "better-osm-org не смог отобразить некоторые данные",

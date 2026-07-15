@@ -113,6 +113,7 @@ _translations["en"] = {
         pinRelationOnMap: "Pin relation on map",
         unpinRelationFromMap: "Unpin relation from map",
         nodeCoordinatesChanged: "Coordinates of node has been changed",
+        currentLocationDistance: "Current coordinates differ by {distance} m",
         downloadThisRelation: "Download this relation",
         shiftClickZoomVia: 'Click with Shift for zoom to "via" members',
         unableDisplaySomeData: "better-osm-org was unable to display some data",
