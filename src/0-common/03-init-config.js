@@ -973,8 +973,8 @@ const configOptions = {
 
             const exportBtn = document.createElement("span")
             exportBtn.id = "export_settings"
-            exportBtn.textContent = "Export settings"
-            exportBtn.title = "Export settings to clipboard as JSON"
+            exportBtn.textContent = t("config.exportSettings")
+            exportBtn.title = t("config.exportSettingsTitle")
             exportBtn.onclick = async event => {
                 const json = JSON.stringify(
                     Object.fromEntries(Object.entries(GM_config.fields).map(([id]) => [id, GM_config.get(id)])),
@@ -991,8 +991,8 @@ const configOptions = {
 
             const importBtn = document.createElement("span")
             importBtn.id = "import_settings"
-            importBtn.textContent = "Import settings"
-            importBtn.title = "Import settings from clipboard"
+            importBtn.textContent = t("config.importSettings")
+            importBtn.title = t("config.importSettingsTitle")
             importBtn.onclick = async () => {
                 const text = await navigator.clipboard.readText()
                 try {

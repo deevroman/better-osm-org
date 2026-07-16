@@ -32,6 +32,10 @@ _translations["tr"] = {
         importColorblindPalette: "Renk körlüğüne uygun paleti içe aktar",
         importPaletteFromClipboard: "Paleti panodan içe aktar",
         exportPaletteIntoClipboard: "Paleti panoya aktar",
+        exportSettings: "Ayarları dışa aktar",
+        exportSettingsTitle: "Ayarları JSON olarak panoya aktar",
+        importSettings: "Ayarları içe aktar",
+        importSettingsTitle: "Ayarları panodan içe aktar",
         betterTagsPaste: "Boşluk veya sekmeyle ayrılmış etiketleri yapıştırırken = ekle",
         darkModeForID:
             'iD için koyu mod (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Teşekkürler AlexPS</a>)',

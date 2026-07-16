@@ -32,6 +32,10 @@ _translations["ru"] = {
         importColorblindPalette: "Импортировать палитру для дальтоников",
         importPaletteFromClipboard: "Импортировать палитру из буфера",
         exportPaletteIntoClipboard: "Экспортировать палитру в буфер",
+        exportSettings: "Экспорт настроек",
+        exportSettingsTitle: "Экспортировать настройки в буфер как JSON",
+        importSettings: "Импорт настроек",
+        importSettingsTitle: "Импортировать настройки из буфера",
         betterTagsPaste: "Добавлять = при вставке тегов, разделённых пробелами или табами",
         darkModeForID:
             'Тёмная тема для iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Спасибо AlexPS</a>)',
