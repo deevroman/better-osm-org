@@ -32,6 +32,10 @@ _translations["fr"] = {
         importColorblindPalette: "Importer la palette adaptée au daltonisme",
         importPaletteFromClipboard: "Importer la palette depuis le presse-papiers",
         exportPaletteIntoClipboard: "Exporter la palette vers le presse-papiers",
+        exportSettings: "Exporter les paramètres",
+        exportSettingsTitle: "Exporter les paramètres au format JSON vers le presse-papiers",
+        importSettings: "Importer les paramètres",
+        importSettingsTitle: "Importer les paramètres depuis le presse-papiers",
         betterTagsPaste: "Ajouter = lors du collage de tags séparés par des espaces ou des tabulations",
         darkModeForID:
             'Mode sombre pour iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Merci AlexPS</a>)',

@@ -32,6 +32,10 @@ _translations["en"] = {
         importColorblindPalette: "Import colorblind-friendly palette",
         importPaletteFromClipboard: "Import palette from clipboard",
         exportPaletteIntoClipboard: "Export palette into clipboard",
+        exportSettings: "Export settings",
+        exportSettingsTitle: "Export settings to clipboard as JSON",
+        importSettings: "Import settings",
+        importSettingsTitle: "Import settings from clipboard",
         betterTagsPaste: "Add = when pasting tags separated by spaces or tabs",
         darkModeForID:
             'Dark mode for iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Thanks AlexPS</a>)',

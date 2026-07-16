@@ -253,6 +253,10 @@ _translations["en"] = {
         importColorblindPalette: "Import colorblind-friendly palette",
         importPaletteFromClipboard: "Import palette from clipboard",
         exportPaletteIntoClipboard: "Export palette into clipboard",
+        exportSettings: "Export settings",
+        exportSettingsTitle: "Export settings to clipboard as JSON",
+        importSettings: "Import settings",
+        importSettingsTitle: "Import settings from clipboard",
         betterTagsPaste: "Add = when pasting tags separated by spaces or tabs",
         darkModeForID:
             'Dark mode for iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Thanks AlexPS</a>)',
@@ -689,6 +693,10 @@ _translations["tr"] = {
         importColorblindPalette: "Renk körlüğüne uygun paleti içe aktar",
         importPaletteFromClipboard: "Paleti panodan içe aktar",
         exportPaletteIntoClipboard: "Paleti panoya aktar",
+        exportSettings: "Ayarları dışa aktar",
+        exportSettingsTitle: "Ayarları JSON olarak panoya aktar",
+        importSettings: "Ayarları içe aktar",
+        importSettingsTitle: "Ayarları panodan içe aktar",
         betterTagsPaste: "Boşluk veya sekmeyle ayrılmış etiketleri yapıştırırken = ekle",
         darkModeForID:
             'iD için koyu mod (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Teşekkürler AlexPS</a>)',
@@ -1130,6 +1138,10 @@ _translations["ru"] = {
         importColorblindPalette: "Импортировать палитру для дальтоников",
         importPaletteFromClipboard: "Импортировать палитру из буфера",
         exportPaletteIntoClipboard: "Экспортировать палитру в буфер",
+        exportSettings: "Экспорт настроек",
+        exportSettingsTitle: "Экспортировать настройки в буфер как JSON",
+        importSettings: "Импорт настроек",
+        importSettingsTitle: "Импортировать настройки из буфера",
         betterTagsPaste: "Добавлять = при вставке тегов, разделённых пробелами или табами",
         darkModeForID:
             'Тёмная тема для iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Спасибо AlexPS</a>)',
@@ -1583,6 +1595,10 @@ _translations["de"] = {
         importColorblindPalette: "Farbenblind-freundliche Palette importieren",
         importPaletteFromClipboard: "Palette aus Zwischenablage importieren",
         exportPaletteIntoClipboard: "Palette in Zwischenablage exportieren",
+        exportSettings: "Einstellungen exportieren",
+        exportSettingsTitle: "Einstellungen als JSON in die Zwischenablage exportieren",
+        importSettings: "Einstellungen importieren",
+        importSettingsTitle: "Einstellungen aus der Zwischenablage importieren",
         betterTagsPaste: "Beim Einfügen von Tags, die durch Leerzeichen oder Tabs getrennt sind, = hinzufügen",
         darkModeForID:
             'Dunkelmodus für iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Danke AlexPS</a>)',
@@ -2025,6 +2041,10 @@ _translations["fr"] = {
         importColorblindPalette: "Importer la palette adaptée au daltonisme",
         importPaletteFromClipboard: "Importer la palette depuis le presse-papiers",
         exportPaletteIntoClipboard: "Exporter la palette vers le presse-papiers",
+        exportSettings: "Exporter les paramètres",
+        exportSettingsTitle: "Exporter les paramètres au format JSON vers le presse-papiers",
+        importSettings: "Importer les paramètres",
+        importSettingsTitle: "Importer les paramètres depuis le presse-papiers",
         betterTagsPaste: "Ajouter = lors du collage de tags séparés par des espaces ou des tabulations",
         darkModeForID:
             'Mode sombre pour iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Merci AlexPS</a>)',
@@ -2469,6 +2489,10 @@ _translations["hr"] = {
         importColorblindPalette: "Uvezi paletu prilagođenu daltonistima",
         importPaletteFromClipboard: "Uvezi paletu iz međuspremnika",
         exportPaletteIntoClipboard: "Izvezi paletu u međuspremnik",
+        exportSettings: "Izvezi postavke",
+        exportSettingsTitle: "Izvezi postavke u međuspremnik kao JSON",
+        importSettings: "Uvezi postavke",
+        importSettingsTitle: "Uvezi postavke iz međuspremnika",
         betterTagsPaste: "Dodaj = pri lijepljenju oznaka odvojenih razmacima ili tabulatorima",
         darkModeForID:
             'Tamni način za iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Hvala AlexPS</a>)',
@@ -2908,6 +2932,10 @@ _translations["uk"] = {
         importColorblindPalette: "Імпортувати палітру для дальтоніків",
         importPaletteFromClipboard: "Імпортувати палітру з буфера",
         exportPaletteIntoClipboard: "Експортувати палітру в буфер",
+        exportSettings: "Експорт налаштувань",
+        exportSettingsTitle: "Експортувати налаштування в буфер як JSON",
+        importSettings: "Імпорт налаштувань",
+        importSettingsTitle: "Імпортувати налаштування з буфера",
         betterTagsPaste: "Додавати = під час вставлення тегів, розділених пробілами або табуляцією",
         darkModeForID:
             'Темна тема для iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Дякуємо AlexPS</a>)',
@@ -5018,8 +5046,8 @@ const configOptions = {
 
             const exportBtn = document.createElement("span")
             exportBtn.id = "export_settings"
-            exportBtn.textContent = "Export settings"
-            exportBtn.title = "Export settings to clipboard as JSON"
+            exportBtn.textContent = t("config.exportSettings")
+            exportBtn.title = t("config.exportSettingsTitle")
             exportBtn.onclick = async event => {
                 const json = JSON.stringify(
                     Object.fromEntries(Object.entries(GM_config.fields).map(([id]) => [id, GM_config.get(id)])),
@@ -5036,8 +5064,8 @@ const configOptions = {
 
             const importBtn = document.createElement("span")
             importBtn.id = "import_settings"
-            importBtn.textContent = "Import settings"
-            importBtn.title = "Import settings from clipboard"
+            importBtn.textContent = t("config.importSettings")
+            importBtn.title = t("config.importSettingsTitle")
             importBtn.onclick = async () => {
                 const text = await navigator.clipboard.readText()
                 try {

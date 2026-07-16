@@ -32,6 +32,10 @@ _translations["hr"] = {
         importColorblindPalette: "Uvezi paletu prilagođenu daltonistima",
         importPaletteFromClipboard: "Uvezi paletu iz međuspremnika",
         exportPaletteIntoClipboard: "Izvezi paletu u međuspremnik",
+        exportSettings: "Izvezi postavke",
+        exportSettingsTitle: "Izvezi postavke u međuspremnik kao JSON",
+        importSettings: "Uvezi postavke",
+        importSettingsTitle: "Uvezi postavke iz međuspremnika",
         betterTagsPaste: "Dodaj = pri lijepljenju oznaka odvojenih razmacima ili tabulatorima",
         darkModeForID:
             'Tamni način za iD (<a href="https://userstyles.world/style/15596/openstreetmap-dark-theme" target="_blank">Hvala AlexPS</a>)',
