@@ -887,10 +887,28 @@ const configOptions = {
             #Config .filler {
                 visibility: hidden;
             }
+            #export_import_wrapper {
+                margin-top: 10px;
+                position: absolute;
+                left: 12px;
+                text-align: left;
+                gap: 4px;
+                display: flex;
+                flex-wrap: wrap;
+            }
+            #export_settings, #import_settings {
+                cursor: pointer;
+                color: gray;
+                font-size: small;
+                flex: 0 100%;
+            }
             #version {
                 position: absolute;
                 left: 12;
                 font-size: small;
+            }
+            #Config_OverpassInstance_field_label {
+                align-self: center;
             }
         @media ${mediaQueryForWebsiteTheme} {
             #Config {
@@ -949,6 +967,54 @@ const configOptions = {
             }
             versionSection.appendChild(version)
             doc.querySelector(".reset_holder").prepend(versionSection)
+
+            const wrapper = document.createElement("span")
+            wrapper.id = "export_import_wrapper"
+
+            const exportBtn = document.createElement("span")
+            exportBtn.id = "export_settings"
+            exportBtn.textContent = "Export settings"
+            exportBtn.title = "Export settings to clipboard as JSON"
+            exportBtn.onclick = async event => {
+                const json = JSON.stringify(
+                    Object.fromEntries(Object.entries(GM_config.fields).map(([id]) => [id, GM_config.get(id)])),
+                    null,
+                    2,
+                )
+                try {
+                    await navigator.clipboard.writeText(json)
+                    copyAnimation(event, json)
+                } catch (e) {
+                    alert(`Failed to export settings: ${e.message}`)
+                }
+            }
+
+            const importBtn = document.createElement("span")
+            importBtn.id = "import_settings"
+            importBtn.textContent = "Import settings"
+            importBtn.title = "Import settings from clipboard"
+            importBtn.onclick = async () => {
+                const text = await navigator.clipboard.readText()
+                try {
+                    const settings = JSON.parse(text)
+                    if (!settings || typeof settings !== "object" || Array.isArray(settings)) {
+                        throw new Error("Settings JSON must be an object")
+                    }
+                    for (const [id, value] of Object.entries(settings)) {
+                        if (GM_config.fields[id]) {
+                            GM_config.set(id, value)
+                        }
+                    }
+                    GM_config.close()
+                    GM_config.open()
+                } catch (e) {
+                    alert(`Failed to import settings: ${e.message}\nText: ${text}`)
+                }
+            }
+
+            wrapper.appendChild(exportBtn)
+            wrapper.appendChild(importBtn)
+            doc.querySelector("#Config_buttons_holder").prepend(wrapper)
         },
     },
 }
