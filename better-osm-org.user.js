@@ -1333,7 +1333,7 @@ _translations["ru"] = {
                 return `${editor} (1 правка)`
             }
             if ((count < 10 || count > 20) && [2, 3, 4].includes(count % 10)) {
-                return `${count} правок`
+                return `${editor} (${count} правок)`
             }
             return `${editor} (${count} правка)`
         },
