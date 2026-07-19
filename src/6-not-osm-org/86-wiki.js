@@ -10,7 +10,7 @@ function addToList(list, who, type) {
 }
 
 function setupWiki() {
-    if (!location.pathname.startsWith("/wiki/Proposal:")) {
+    if (!location.pathname.startsWith("/wiki/Proposal:") && !location.pathname.startsWith("/wiki/Proposal%3A")) {
         return
     }
     const supportList = new Set()

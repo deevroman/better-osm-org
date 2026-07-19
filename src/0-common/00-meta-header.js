@@ -64,6 +64,7 @@
 // @exclude      https://opengeofiction.net/diary/*
 // @exclude      https://opengeofiction.net/oauth2/*
 // @match        https://wiki.openstreetmap.org/wiki/Proposal:*
+// @match        https://wiki.openstreetmap.org/wiki/Proposal%3A*
 // @exclude      https://taginfo.openstreetmap.org/embed/*
 // @match        https://github.com/openstreetmap/openstreetmap-website/issues/new*
 // @match        https://github.com/deevroman/better-osm-org/issues/new*
