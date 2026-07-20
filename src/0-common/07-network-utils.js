@@ -34,17 +34,7 @@ async function globalRateLimitByKey(key, ms) {
  * @return {Promise<Tampermonkey.Response>}
  */
 async function externalFetch(details) {
-    if (GM_info.scriptHandler === "FireMonkey" && parseFloat(GM_info.version) < 3.0) {
-        const res = await GM.fetch(details.url, details)
-        if (details["responseType"] === "json") {
-            res.response = res.json
-        } else {
-            res.responseText = res.text
-        }
-        return res
-    } else {
-        return await GM.xmlHttpRequest(details)
-    }
+    return await GM.xmlHttpRequest(details)
 }
 
 /**
@@ -90,17 +80,7 @@ async function abortableXmlHttpRequest(details) {
  * @return {Promise<Tampermonkey.Response>}
  */
 async function externalFetchRetry(details) {
-    if (GM_info.scriptHandler === "FireMonkey" && parseFloat(GM_info.version) < 3.0) {
-        const res = await _fetchRetry(GM.fetch, details.url, details)
-        if (details["responseType"] === "json") {
-            res.response = res.json
-        } else {
-            res.responseText = res.text
-        }
-        return res
-    } else {
-        return await _fetchRetry(abortableXmlHttpRequest, details)
-    }
+    return await _fetchRetry(abortableXmlHttpRequest, details)
 }
 
 /**

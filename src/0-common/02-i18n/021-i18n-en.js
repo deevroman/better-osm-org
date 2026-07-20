@@ -49,6 +49,7 @@ _translations["en"] = {
         imagesAndLinksInTags: "Make some tags clickable, shorter and display photos",
         hideNoteHighlight: "Hide note highlight",
         resolveNotesButton: "Addition resolve buttons:",
+        autoResolveNote: "Insert comment and close note β",
         revertButton: "Revert&Osmcha changeset button",
         deletor: "Button for node deletion",
         oneClickDeletor: "Delete node without confirmation",
@@ -383,7 +384,8 @@ _translations["en"] = {
         downloadVisibleNotesAsKmlTitle: "Download visible notes as .kml file",
         addNewObjectOnMap: "Add new object on map\nPaste tags in textarea\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "Textarea not contains any tag",
-        resolveButtonTitle: 'Add to the comment "{text}" and close the note.\nYou can change emoji in userscript settings',
+        resolveButtonTitle:
+            'Add to the comment "{text}" and close the note.\n\nYou can change emoji in userscript settings\nClick with Alt for insert text without note closing',
     },
     spyGlass: {
         activateSpyGlass: "Activate SpyGlass imitation mode (better-osm-org experiment)",

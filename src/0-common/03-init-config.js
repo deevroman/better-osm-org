@@ -333,6 +333,12 @@ const configOptions = {
             type: "menu",
             default: '[{"label": "👌", "text": ""}]',
         },
+        AutoResolveNote: {
+            label: t("config.autoResolveNote"),
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
         RevertButton: {
             section: [t("config.sectionNewActions")],
             label: t("config.revertButton"),

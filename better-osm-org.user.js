@@ -271,6 +271,7 @@ _translations["en"] = {
         imagesAndLinksInTags: "Make some tags clickable, shorter and display photos",
         hideNoteHighlight: "Hide note highlight",
         resolveNotesButton: "Addition resolve buttons:",
+        autoResolveNote: "Insert comment and close note β",
         revertButton: "Revert&Osmcha changeset button",
         deletor: "Button for node deletion",
         oneClickDeletor: "Delete node without confirmation",
@@ -605,7 +606,8 @@ _translations["en"] = {
         downloadVisibleNotesAsKmlTitle: "Download visible notes as .kml file",
         addNewObjectOnMap: "Add new object on map\nPaste tags in textarea\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "Textarea not contains any tag",
-        resolveButtonTitle: 'Add to the comment "{text}" and close the note.\nYou can change emoji in userscript settings',
+        resolveButtonTitle:
+            'Add to the comment "{text}" and close the note.\n\nYou can change emoji in userscript settings\nClick with Alt for insert text without note closing',
     },
     spyGlass: {
         activateSpyGlass: "Activate SpyGlass imitation mode (better-osm-org experiment)",
@@ -711,6 +713,7 @@ _translations["tr"] = {
         imagesAndLinksInTags: "Bazı etiketleri tıklanabilir ve daha kısa yap, fotoğrafları göster",
         hideNoteHighlight: "Not vurgusunu gizle",
         resolveNotesButton: "Ek çözümleme düğmeleri:",
+        autoResolveNote: "Yorum ekle ve notu kapat β",
         revertButton: "Değişiklik seti için geri al ve OSMCha düğmesi",
         deletor: "Düğüm silme düğmesi",
         oneClickDeletor: "Düğümü onaysız sil",
@@ -1050,7 +1053,8 @@ _translations["tr"] = {
         downloadVisibleNotesAsKmlTitle: "Görünen notları .kml dosyası olarak indir",
         addNewObjectOnMap: "Haritaya yeni nesne ekle\nEtiketleri metin alanına yapıştır\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "Metin alanı hiçbir etiket içermiyor",
-        resolveButtonTitle: 'Yoruma "{text}" ekle ve notu kapat.\nEmoji userscript ayarlarında değiştirilebilir',
+        resolveButtonTitle:
+            'Yoruma "{text}" ekle ve notu kapat.\n\nEmoji userscript ayarlarında değiştirilebilir\nNotu kapatmadan metni eklemek için Alt tuşuna basarak tıklayın',
     },
     spyGlass: {
         activateSpyGlass: "SpyGlass taklit modunu etkinleştir (better-osm-org deneyi)",
@@ -1156,6 +1160,7 @@ _translations["ru"] = {
         imagesAndLinksInTags: "Сделать некоторые теги кликабельными, короче и показывать фотографии",
         hideNoteHighlight: "Скрывать подсветку заметки",
         resolveNotesButton: "Дополнительные кнопки закрытия заметок:",
+        autoResolveNote: "Закрывать заметку после нажатия кнопки β",
         revertButton: "Кнопки отката и открытия OSMCha для пакета правок",
         deletor: "Кнопка удаления узла",
         oneClickDeletor: "Удалять узел без подтверждения",
@@ -1507,7 +1512,8 @@ _translations["ru"] = {
         downloadVisibleNotesAsKmlTitle: "Скачать видимые заметки как .kml файл",
         addNewObjectOnMap: "Добавить новый объект на карту\nВставьте теги в textarea\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "В textarea нет ни одного тега",
-        resolveButtonTitle: 'Добавить в комментарий "{text}" и закрыть заметку.\nВы можете изменить эмодзи в настройках скрипта',
+        resolveButtonTitle:
+            'Добавить в комментарий "{text}" и закрыть заметку.\n\nВы можете изменить эмодзи в настройках скрипта\nНажмите с Alt чтобы вставить текст без закрытия заметки',
     },
     spyGlass: {
         activateSpyGlass: "Включить режим SpyGlass (эксперимент better-osm-org)",
@@ -1613,6 +1619,7 @@ _translations["de"] = {
         imagesAndLinksInTags: "Einige Tags anklickbar und kürzer machen sowie Fotos anzeigen",
         hideNoteHighlight: "Hervorhebung der Notiz ausblenden",
         resolveNotesButton: "Zusätzliche Schließen-Schaltflächen:",
+        autoResolveNote: "Kommentar einfügen und Hinweis schließen β",
         revertButton: "Revert&Osmcha-Changeset-Schaltfläche",
         deletor: "Schaltfläche zum Löschen von Knoten",
         oneClickDeletor: "Knoten ohne Bestätigung löschen",
@@ -1953,7 +1960,7 @@ _translations["de"] = {
         addNewObjectOnMap: "Neues Objekt auf der Karte hinzufügen\nTags in die Textarea einfügen\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "Die Textarea enthält keine Tags",
         resolveButtonTitle:
-            'Zu dem Kommentar "{text}" hinzufügen und den Hinweis schließen.\nDu kannst das Emoji in den Userscript-Einstellungen ändern',
+            'Zu dem Kommentar "{text}" hinzufügen und den Hinweis schließen.\n\nDu kannst das Emoji in den Userscript-Einstellungen ändern\nKlicke mit Alt, um Text ohne Schließen des Hinweises einzufügen',
     },
     spyGlass: {
         activateSpyGlass: "SpyGlass-Imitationsmodus aktivieren (better-osm-org-Experiment)",
@@ -2059,6 +2066,7 @@ _translations["fr"] = {
         imagesAndLinksInTags: "Rendre certains tags cliquables, plus courts et afficher les photos",
         hideNoteHighlight: "Masquer la mise en évidence de la note",
         resolveNotesButton: "Boutons supplémentaires de résolution :",
+        autoResolveNote: "Insérer un commentaire et fermer la note β",
         revertButton: "Bouton de changeset Revert&Osmcha",
         deletor: "Bouton de suppression de nœud",
         oneClickDeletor: "Supprimer le nœud sans confirmation",
@@ -2401,7 +2409,7 @@ _translations["fr"] = {
         addNewObjectOnMap: "Ajouter un nouvel objet sur la carte\nCollez les tags dans la zone de texte\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "La zone de texte ne contient aucun tag",
         resolveButtonTitle:
-            'Ajouter "{text}" au commentaire et fermer la note.\nVous pouvez changer l’emoji dans les paramètres du userscript',
+            'Ajouter "{text}" au commentaire et fermer la note.\n\nVous pouvez changer l’emoji dans les paramètres du userscript\nCliquez avec Alt pour insérer le texte sans fermer la note',
     },
     spyGlass: {
         activateSpyGlass: "Activer le mode d'imitation SpyGlass (expérience better-osm-org)",
@@ -2507,6 +2515,7 @@ _translations["hr"] = {
         imagesAndLinksInTags: "Učini neke oznake klikabilnima, kraćima i prikaži fotografije",
         hideNoteHighlight: "Sakrij isticanje bilješke",
         resolveNotesButton: "Dodatni gumbi za rješavanje:",
+        autoResolveNote: "Umetni komentar i zatvori bilješku β",
         revertButton: "Gumb changeseta Revert&Osmcha",
         deletor: "Gumb za brisanje čvora",
         oneClickDeletor: "Izbriši čvor bez potvrde",
@@ -2844,7 +2853,8 @@ _translations["hr"] = {
         downloadVisibleNotesAsKmlTitle: "Preuzmi vidljive bilješke kao .kml datoteku",
         addNewObjectOnMap: "Dodaj novi objekt na kartu\nZalijepite oznake u textarea\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "Textarea ne sadrži nijednu oznaku",
-        resolveButtonTitle: 'Dodaj "{text}" u komentar i zatvori bilješku.\nEmoji možete promijeniti u postavkama userscripta',
+        resolveButtonTitle:
+            'Dodaj "{text}" u komentar i zatvori bilješku.\n\nEmoji možete promijeniti u postavkama userscripta\nKliknite s tipkom Alt za umetanje teksta bez zatvaranja bilješke',
     },
     spyGlass: {
         activateSpyGlass: "Aktiviraj način imitacije SpyGlass (better-osm-org eksperiment)",
@@ -2950,6 +2960,7 @@ _translations["uk"] = {
         imagesAndLinksInTags: "Зробити деякі теги клікабельними, коротшими та показувати фото",
         hideNoteHighlight: "Приховати підсвічування нотатки",
         resolveNotesButton: "Додаткові кнопки вирішення:",
+        autoResolveNote: "Вставити коментар та закрити замітку β",
         revertButton: "Кнопка набору змін Revert&Osmcha",
         deletor: "Кнопка видалення точки",
         oneClickDeletor: "Видаляти точку без підтвердження",
@@ -3287,7 +3298,8 @@ _translations["uk"] = {
         downloadVisibleNotesAsKmlTitle: "Завантажити видимі нотатки як .kml файл",
         addNewObjectOnMap: "Додати новий об'єкт на мапу\nВставте теги в textarea\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "У textarea немає жодного тега",
-        resolveButtonTitle: 'Додати в коментар "{text}" і закрити нотатку.\nВи можете змінити emoji в налаштуваннях userscript',
+        resolveButtonTitle:
+            'Додати в коментар "{text}" і закрити нотатку.\n\nВи можете змінити emoji в налаштуваннях userscript\nНатисніть з Alt, щоб вставити текст без закриття нотатки',
     },
     spyGlass: {
         activateSpyGlass: "Увімкнути режим імітації SpyGlass (експеримент better-osm-org)",
@@ -3476,8 +3488,12 @@ if (["Userscripts", "Greasemonkey", "Firemonkey", "OrangeMonkey"].includes(GM_in
 }
 
 if (GM_info.scriptHandler === "Greasemonkey") {
-    // prettier-ignore
     alert(t("init.greasemonkeyUnsupportedAlert"))
+    throw ""
+}
+
+if (GM_info.scriptHandler === "FireMonkey" && parseFloat(GM_info.version) < 3.0) {
+    alert("Upgrade to Firemonkey 3.0+")
     throw ""
 }
 
@@ -4405,6 +4421,12 @@ const configOptions = {
             label: t("config.resolveNotesButton"),
             type: "menu",
             default: '[{"label": "👌", "text": ""}]',
+        },
+        AutoResolveNote: {
+            label: t("config.autoResolveNote"),
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
         },
         RevertButton: {
             section: [t("config.sectionNewActions")],
@@ -5431,12 +5453,7 @@ function injectJSIntoPage(text) {
  * @param {string} text
  */
 function injectCSSIntoOSMPage(text) {
-    if (
-        (GM_info.scriptHandler === "FireMonkey" && parseFloat(GM_info.version) < 3.0) ||
-        GM_info.scriptHandler === "Userscripts" ||
-        GM_info.scriptHandler === "Greasemonkey" ||
-        isSafari
-    ) {
+    if (GM_info.scriptHandler === "Userscripts" || GM_info.scriptHandler === "Greasemonkey" || isSafari) {
         const styleElem = document.querySelector("style")
         if (!styleElem) {
             console.trace("<style> elem not found. Try wait this elem")
@@ -5602,7 +5619,7 @@ function escapeHtml(unsafe) {
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+        .replace(/'/g, "&#039;")
 }
 
 /**
@@ -5658,17 +5675,7 @@ async function globalRateLimitByKey(key, ms) {
  * @return {Promise<Tampermonkey.Response>}
  */
 async function externalFetch(details) {
-    if (GM_info.scriptHandler === "FireMonkey" && parseFloat(GM_info.version) < 3.0) {
-        const res = await GM.fetch(details.url, details)
-        if (details["responseType"] === "json") {
-            res.response = res.json
-        } else {
-            res.responseText = res.text
-        }
-        return res
-    } else {
-        return await GM.xmlHttpRequest(details)
-    }
+    return await GM.xmlHttpRequest(details)
 }
 
 /**
@@ -5714,17 +5721,7 @@ async function abortableXmlHttpRequest(details) {
  * @return {Promise<Tampermonkey.Response>}
  */
 async function externalFetchRetry(details) {
-    if (GM_info.scriptHandler === "FireMonkey" && parseFloat(GM_info.version) < 3.0) {
-        const res = await _fetchRetry(GM.fetch, details.url, details)
-        if (details["responseType"] === "json") {
-            res.response = res.json
-        } else {
-            res.responseText = res.text
-        }
-        return res
-    } else {
-        return await _fetchRetry(abortableXmlHttpRequest, details)
-    }
+    return await _fetchRetry(abortableXmlHttpRequest, details)
 }
 
 /**
@@ -10915,7 +10912,10 @@ function insertNoteResolveButtons() {
     }
     initOsmAuth()
     const note_id = location.pathname.match(/note\/(\d+)/)[1]
-    JSON.parse(resolveButtonsText).forEach(row => {
+    JSON.parse(resolveButtonsText).forEach((row, index) => {
+        if (index !== 0) {
+            document.querySelectorAll("form.mb-3")[0].before(document.createTextNode("\xA0"))
+        }
         const label = row["label"]
         let text = label
         if (row["text"] !== "") {
@@ -10926,8 +10926,22 @@ function insertNoteResolveButtons() {
         b.textContent = label
         b.title = t("notes.resolveButtonTitle", { text })
         document.querySelectorAll("form.mb-3")[0].before(b)
-        b.after(document.createTextNode("\xA0"))
-        b.onclick = async () => {
+        b.onclick = async e => {
+            if (!GM_config.get("AutoResolveNote") || e.altKey) {
+                const textarea = document.querySelector("form.mb-3 textarea")
+                const prev = textarea.value
+                const cursor = textarea.selectionEnd
+                textarea.value = prev.substring(0, cursor) + text + prev.substring(cursor)
+
+                const ev = new InputEvent("input", {
+                    bubbles: true,
+                    cancelable: false,
+                    data: textarea.value,
+                    inputType: "insertFromPaste",
+                })
+                textarea.dispatchEvent(ev)
+                return
+            }
             try {
                 await closeNote(note_id, text)
             } catch (err) {

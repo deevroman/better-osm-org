@@ -49,6 +49,7 @@ _translations["tr"] = {
         imagesAndLinksInTags: "Bazı etiketleri tıklanabilir ve daha kısa yap, fotoğrafları göster",
         hideNoteHighlight: "Not vurgusunu gizle",
         resolveNotesButton: "Ek çözümleme düğmeleri:",
+        autoResolveNote: "Yorum ekle ve notu kapat β",
         revertButton: "Değişiklik seti için geri al ve OSMCha düğmesi",
         deletor: "Düğüm silme düğmesi",
         oneClickDeletor: "Düğümü onaysız sil",
@@ -388,7 +389,8 @@ _translations["tr"] = {
         downloadVisibleNotesAsKmlTitle: "Görünen notları .kml dosyası olarak indir",
         addNewObjectOnMap: "Haritaya yeni nesne ekle\nEtiketleri metin alanına yapıştır\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "Metin alanı hiçbir etiket içermiyor",
-        resolveButtonTitle: 'Yoruma "{text}" ekle ve notu kapat.\nEmoji userscript ayarlarında değiştirilebilir',
+        resolveButtonTitle:
+            'Yoruma "{text}" ekle ve notu kapat.\n\nEmoji userscript ayarlarında değiştirilebilir\nNotu kapatmadan metni eklemek için Alt tuşuna basarak tıklayın',
     },
     spyGlass: {
         activateSpyGlass: "SpyGlass taklit modunu etkinleştir (better-osm-org deneyi)",
