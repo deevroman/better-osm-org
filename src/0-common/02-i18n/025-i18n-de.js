@@ -49,6 +49,7 @@ _translations["de"] = {
         imagesAndLinksInTags: "Einige Tags anklickbar und kürzer machen sowie Fotos anzeigen",
         hideNoteHighlight: "Hervorhebung der Notiz ausblenden",
         resolveNotesButton: "Zusätzliche Schließen-Schaltflächen:",
+        autoResolveNote: "Kommentar einfügen und Hinweis schließen β",
         revertButton: "Revert&Osmcha-Changeset-Schaltfläche",
         deletor: "Schaltfläche zum Löschen von Knoten",
         oneClickDeletor: "Knoten ohne Bestätigung löschen",
@@ -389,7 +390,7 @@ _translations["de"] = {
         addNewObjectOnMap: "Neues Objekt auf der Karte hinzufügen\nTags in die Textarea einfügen\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "Die Textarea enthält keine Tags",
         resolveButtonTitle:
-            'Zu dem Kommentar "{text}" hinzufügen und den Hinweis schließen.\nDu kannst das Emoji in den Userscript-Einstellungen ändern',
+            'Zu dem Kommentar "{text}" hinzufügen und den Hinweis schließen.\n\nDu kannst das Emoji in den Userscript-Einstellungen ändern\nKlicke mit Alt, um Text ohne Schließen des Hinweises einzufügen',
     },
     spyGlass: {
         activateSpyGlass: "SpyGlass-Imitationsmodus aktivieren (better-osm-org-Experiment)",

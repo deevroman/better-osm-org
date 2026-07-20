@@ -49,6 +49,7 @@ _translations["ru"] = {
         imagesAndLinksInTags: "Сделать некоторые теги кликабельными, короче и показывать фотографии",
         hideNoteHighlight: "Скрывать подсветку заметки",
         resolveNotesButton: "Дополнительные кнопки закрытия заметок:",
+        autoResolveNote: "Закрывать заметку после нажатия кнопки β",
         revertButton: "Кнопки отката и открытия OSMCha для пакета правок",
         deletor: "Кнопка удаления узла",
         oneClickDeletor: "Удалять узел без подтверждения",
@@ -400,7 +401,8 @@ _translations["ru"] = {
         downloadVisibleNotesAsKmlTitle: "Скачать видимые заметки как .kml файл",
         addNewObjectOnMap: "Добавить новый объект на карту\nВставьте теги в textarea\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "В textarea нет ни одного тега",
-        resolveButtonTitle: 'Добавить в комментарий "{text}" и закрыть заметку.\nВы можете изменить эмодзи в настройках скрипта',
+        resolveButtonTitle:
+            'Добавить в комментарий "{text}" и закрыть заметку.\n\nВы можете изменить эмодзи в настройках скрипта\nНажмите с Alt чтобы вставить текст без закрытия заметки',
     },
     spyGlass: {
         activateSpyGlass: "Включить режим SpyGlass (эксперимент better-osm-org)",

@@ -49,6 +49,7 @@ _translations["uk"] = {
         imagesAndLinksInTags: "Зробити деякі теги клікабельними, коротшими та показувати фото",
         hideNoteHighlight: "Приховати підсвічування нотатки",
         resolveNotesButton: "Додаткові кнопки вирішення:",
+        autoResolveNote: "Вставити коментар та закрити замітку β",
         revertButton: "Кнопка набору змін Revert&Osmcha",
         deletor: "Кнопка видалення точки",
         oneClickDeletor: "Видаляти точку без підтвердження",
@@ -386,7 +387,8 @@ _translations["uk"] = {
         downloadVisibleNotesAsKmlTitle: "Завантажити видимі нотатки як .kml файл",
         addNewObjectOnMap: "Додати новий об'єкт на мапу\nВставте теги в textarea\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "У textarea немає жодного тега",
-        resolveButtonTitle: 'Додати в коментар "{text}" і закрити нотатку.\nВи можете змінити emoji в налаштуваннях userscript',
+        resolveButtonTitle:
+            'Додати в коментар "{text}" і закрити нотатку.\n\nВи можете змінити emoji в налаштуваннях userscript\nНатисніть з Alt, щоб вставити текст без закриття нотатки',
     },
     spyGlass: {
         activateSpyGlass: "Увімкнути режим імітації SpyGlass (експеримент better-osm-org)",

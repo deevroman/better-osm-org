@@ -49,6 +49,7 @@ _translations["fr"] = {
         imagesAndLinksInTags: "Rendre certains tags cliquables, plus courts et afficher les photos",
         hideNoteHighlight: "Masquer la mise en évidence de la note",
         resolveNotesButton: "Boutons supplémentaires de résolution :",
+        autoResolveNote: "Insérer un commentaire et fermer la note β",
         revertButton: "Bouton de changeset Revert&Osmcha",
         deletor: "Bouton de suppression de nœud",
         oneClickDeletor: "Supprimer le nœud sans confirmation",
@@ -391,7 +392,7 @@ _translations["fr"] = {
         addNewObjectOnMap: "Ajouter un nouvel objet sur la carte\nCollez les tags dans la zone de texte\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "La zone de texte ne contient aucun tag",
         resolveButtonTitle:
-            'Ajouter "{text}" au commentaire et fermer la note.\nVous pouvez changer l’emoji dans les paramètres du userscript',
+            'Ajouter "{text}" au commentaire et fermer la note.\n\nVous pouvez changer l’emoji dans les paramètres du userscript\nCliquez avec Alt pour insérer le texte sans fermer la note',
     },
     spyGlass: {
         activateSpyGlass: "Activer le mode d'imitation SpyGlass (expérience better-osm-org)",

@@ -83,8 +83,12 @@ if (["Userscripts", "Greasemonkey", "Firemonkey", "OrangeMonkey"].includes(GM_in
 }
 
 if (GM_info.scriptHandler === "Greasemonkey") {
-    // prettier-ignore
     alert(t("init.greasemonkeyUnsupportedAlert"))
+    throw ""
+}
+
+if (GM_info.scriptHandler === "FireMonkey" && parseFloat(GM_info.version) < 3.0) {
+    alert("Upgrade to Firemonkey 3.0+")
     throw ""
 }
 

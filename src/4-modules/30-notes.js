@@ -571,7 +571,10 @@ function insertNoteResolveButtons() {
     }
     initOsmAuth()
     const note_id = location.pathname.match(/note\/(\d+)/)[1]
-    JSON.parse(resolveButtonsText).forEach(row => {
+    JSON.parse(resolveButtonsText).forEach((row, index) => {
+        if (index !== 0) {
+            document.querySelectorAll("form.mb-3")[0].before(document.createTextNode("\xA0"))
+        }
         const label = row["label"]
         let text = label
         if (row["text"] !== "") {
@@ -582,8 +585,22 @@ function insertNoteResolveButtons() {
         b.textContent = label
         b.title = t("notes.resolveButtonTitle", { text })
         document.querySelectorAll("form.mb-3")[0].before(b)
-        b.after(document.createTextNode("\xA0"))
-        b.onclick = async () => {
+        b.onclick = async e => {
+            if (!GM_config.get("AutoResolveNote") || e.altKey) {
+                const textarea = document.querySelector("form.mb-3 textarea")
+                const prev = textarea.value
+                const cursor = textarea.selectionEnd
+                textarea.value = prev.substring(0, cursor) + text + prev.substring(cursor)
+
+                const ev = new InputEvent("input", {
+                    bubbles: true,
+                    cancelable: false,
+                    data: textarea.value,
+                    inputType: "insertFromPaste",
+                })
+                textarea.dispatchEvent(ev)
+                return
+            }
             try {
                 await closeNote(note_id, text)
             } catch (err) {
