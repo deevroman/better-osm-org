@@ -87,8 +87,8 @@ if (GM_info.scriptHandler === "Greasemonkey") {
     throw ""
 }
 
-if (GM_info.scriptHandler === "FireMonkey" && parseFloat(GM_info.version) < 3.0) {
-    alert("Upgrade to Firemonkey 3.0+")
+if (GM_info.scriptHandler === "FireMonkey" && parseFloat(GM_info.version) < 3.4) {
+    alert("Upgrade to Firemonkey 3.4+")
     throw ""
 }
 
