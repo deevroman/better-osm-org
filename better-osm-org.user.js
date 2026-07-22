@@ -20456,7 +20456,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             targetVersion.lon,
             lastVersion.lat,
             lastVersion.lon
-        ) * 1000;
+        ) * 1000
         locationChangedFlag.title = t("changesetQuicklook.currentLocationDistance", { distance: distInMeters.toFixed(1) })
         i.appendChild(locationChangedFlag)
     } else if (targetVersion.lat && prevVersion.lat && (prevVersion.lat !== targetVersion.lat || prevVersion.lon !== targetVersion.lon)) {
@@ -20468,7 +20468,7 @@ async function processObject(i, objType, prevVersion, targetVersion, lastVersion
             prevVersion.lon,
             targetVersion.lat,
             targetVersion.lon,
-        ) * 1000;
+        ) * 1000
         locationChangedFlag.textContent = ` 📍${distInMeters.toFixed(1)}m`
         locationChangedFlag.title = t("changesetQuicklook.nodeCoordinatesChanged")
         locationChangedFlag.classList.add("location-modified-marker")
@@ -21779,6 +21779,55 @@ function isAbortError(err) {
     return [ABORT_ERROR_PREV, ABORT_ERROR_NEXT, ABORT_ERROR_USER_CHANGESETS, ABORT_ERROR_WHEN_PAGE_CHANGED].includes(err)
 }
 
+function makeGithubIssueLink(text) {
+    const a = document.createElement("a")
+    a.classList.add("crash-report-link")
+    a.href =
+        "https://github.com/deevroman/better-osm-org/issues/new?" +
+        new URLSearchParams({
+            body: text,
+            title: "Crash Report",
+            labels: "bug,crash",
+        }).toString()
+    a.target = "_blank"
+    a.appendChild(document.createTextNode(t("changesetQuicklook.sendBugReport")))
+    a.title = t("changesetQuicklook.unableDisplaySomeData")
+    return a
+}
+
+function handleQuickLookError(err) {
+    // TODO notify user
+    if (err.name === "AbortError") {
+        console.debug("Some requests was aborted")
+    } else {
+        console.error(err)
+        console.log("%cSetup QuickLook finished with error ⚠️", "background: #222; color: #bada55")
+
+        if (!isAbortError(err) && getMap()?.getZoom) {
+            // eslint-disable-next-line no-debugger
+            debugger
+            try {
+                const reportText = makeCrashReportText(err)
+                if (!document.querySelector(".crash-report-link")) {
+                    document.querySelector("#sidebar_content .secondary-actions").appendChild(document.createTextNode(" · "))
+                    document.querySelector("#sidebar_content .secondary-actions").appendChild(makeGithubIssueLink(reportText))
+                }
+                if (isDebug()) {
+                    setAttributionPrefix("⚠️")
+                }
+            } catch {
+                /* empty */
+            }
+            if (isDebug()) {
+                alert(t("changesetQuicklook.debugAlert"))
+            }
+            // eslint-disable-next-line no-debugger
+            debugger
+            throw err
+        }
+    }
+}
+
 async function processQuickLookInSidebar(changesetID) {
     const interceptMapManuallyPromise = interceptMapManually()
     const multipleChangesets = location.search.includes("changesets=")
@@ -22551,52 +22600,7 @@ async function processQuickLookInSidebar(changesetID) {
             }
         }
     } catch (err) {
-        // TODO notify user
-        if (err.name === "AbortError") {
-            console.debug("Some requests was aborted")
-        } else {
-            console.error(err)
-            console.log("%cSetup QuickLook finished with error ⚠️", "background: #222; color: #bada55")
-
-            function makeGithubIssueLink(text) {
-                const a = document.createElement("a")
-                a.classList.add("crash-report-link")
-                a.href =
-                    "https://github.com/deevroman/better-osm-org/issues/new?" +
-                    new URLSearchParams({
-                        body: text,
-                        title: "Crash Report",
-                        labels: "bug,crash",
-                    }).toString()
-                a.target = "_blank"
-                a.appendChild(document.createTextNode(t("changesetQuicklook.sendBugReport")))
-                a.title = t("changesetQuicklook.unableDisplaySomeData")
-                return a
-            }
-
-            if (!isAbortError(err) && getMap()?.getZoom) {
-                // eslint-disable-next-line no-debugger
-                debugger
-                try {
-                    const reportText = makeCrashReportText(err)
-                    if (!document.querySelector(".crash-report-link")) {
-                        document.querySelector("#sidebar_content .secondary-actions").appendChild(document.createTextNode(" · "))
-                        document.querySelector("#sidebar_content .secondary-actions").appendChild(makeGithubIssueLink(reportText))
-                    }
-                    if (isDebug()) {
-                        setAttributionPrefix("⚠️")
-                    }
-                } catch {
-                    /* empty */
-                }
-                if (isDebug()) {
-                    alert(t("changesetQuicklook.debugAlert"))
-                }
-                // eslint-disable-next-line no-debugger
-                debugger
-                throw err
-            }
-        }
+        handleQuickLookError(err)
     } finally {
         quickLookInjectingStarted = false
         console.timeEnd(`QuickLook ${changesetID}`)
@@ -30160,6 +30164,13 @@ function displayCsv(text) {
     }
 }
 
+function displayOsc(xml) {
+    const created = xml.querySelectorAll("create")
+    const modified = xml.querySelectorAll("modify")
+    const deleted = xml.querySelectorAll("deleted")
+    debugger
+}
+
 function handleDroppedFiles(files) {
     const mapWidth = getComputedStyle(document.querySelector("#map")).width
     const mapHeight = getComputedStyle(document.querySelector("#map")).height
@@ -30226,6 +30237,9 @@ function handleDroppedFiles(files) {
             )
         } else if (file.type === "text/csv" || file.name.endsWith(".csv")) {
             displayCsv(await file.text())
+        } else if (file.name.endsWith(".osc") && isDebug()) {
+            const doc = new DOMParser().parseFromString(await file.text(), "application/xml")
+            displayOsc(doc)
         } else {
             console.log(file.type)
         }
