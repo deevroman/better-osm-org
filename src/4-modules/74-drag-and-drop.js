@@ -84,6 +84,8 @@ function displayOsc(xml) {
     const created = xml.querySelectorAll("create")
     const modified = xml.querySelectorAll("modify")
     const deleted = xml.querySelectorAll("deleted")
+
+    const isUploaded = xml.querySelector(":is(node[changeset],way[changeset],relation[changeset])") !== null
     debugger
 }
 
