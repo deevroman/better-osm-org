@@ -80,6 +80,15 @@ function displayCsv(text) {
     }
 }
 
+function displayOsc(xml) {
+    const created = xml.querySelectorAll("create")
+    const modified = xml.querySelectorAll("modify")
+    const deleted = xml.querySelectorAll("deleted")
+
+    const isUploaded = xml.querySelector(":is(node[changeset],way[changeset],relation[changeset])") !== null
+    debugger
+}
+
 function handleDroppedFiles(files) {
     const mapWidth = getComputedStyle(document.querySelector("#map")).width
     const mapHeight = getComputedStyle(document.querySelector("#map")).height
@@ -146,6 +155,9 @@ function handleDroppedFiles(files) {
             )
         } else if (file.type === "text/csv" || file.name.endsWith(".csv")) {
             displayCsv(await file.text())
+        } else if (file.name.endsWith(".osc") && isDebug()) {
+            const doc = new DOMParser().parseFromString(await file.text(), "application/xml")
+            displayOsc(doc)
         } else {
             console.log(file.type)
         }

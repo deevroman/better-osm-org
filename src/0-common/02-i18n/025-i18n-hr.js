@@ -49,6 +49,7 @@ _translations["hr"] = {
         imagesAndLinksInTags: "Učini neke oznake klikabilnima, kraćima i prikaži fotografije",
         hideNoteHighlight: "Sakrij isticanje bilješke",
         resolveNotesButton: "Dodatni gumbi za rješavanje:",
+        autoResolveNote: "Umetni komentar i zatvori bilješku β",
         revertButton: "Gumb changeseta Revert&Osmcha",
         deletor: "Gumb za brisanje čvora",
         oneClickDeletor: "Izbriši čvor bez potvrde",
@@ -386,7 +387,8 @@ _translations["hr"] = {
         downloadVisibleNotesAsKmlTitle: "Preuzmi vidljive bilješke kao .kml datoteku",
         addNewObjectOnMap: "Dodaj novi objekt na kartu\nZalijepite oznake u textarea\nkey=value\nkey2=value2\n...",
         textareaWithoutTagsAlert: "Textarea ne sadrži nijednu oznaku",
-        resolveButtonTitle: 'Dodaj "{text}" u komentar i zatvori bilješku.\nEmoji možete promijeniti u postavkama userscripta',
+        resolveButtonTitle:
+            'Dodaj "{text}" u komentar i zatvori bilješku.\n\nEmoji možete promijeniti u postavkama userscripta\nKliknite s tipkom Alt za umetanje teksta bez zatvaranja bilješke',
     },
     spyGlass: {
         activateSpyGlass: "Aktiviraj način imitacije SpyGlass (better-osm-org eksperiment)",

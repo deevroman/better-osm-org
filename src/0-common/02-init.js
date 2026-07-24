@@ -83,8 +83,12 @@ if (["Userscripts", "Greasemonkey", "Firemonkey", "OrangeMonkey"].includes(GM_in
 }
 
 if (GM_info.scriptHandler === "Greasemonkey") {
-    // prettier-ignore
     alert(t("init.greasemonkeyUnsupportedAlert"))
+    throw ""
+}
+
+if (GM_info.scriptHandler === "FireMonkey" && parseFloat(GM_info.version) < 3.4) {
+    alert("Upgrade to Firemonkey 3.4+")
     throw ""
 }
 
@@ -296,7 +300,6 @@ const OHM_OSM_REVERT_NAME = "ohm-revert"
 const osm_revert_origin = isOHMServer() ? OHM_OSM_REVERT : MAIN_OSM_REVERT
 const osm_revert_name = isOHMServer() ? OHM_OSM_REVERT_NAME : MAIN_OSM_REVERT_NAME
 
-const LEGACY_MAIN_LEVEL0_INSTANCE = "http://level0.osmz.ru"
 const MAIN_LEVEL0_INSTANCE = "https://level0.osmz.ru"
 const REBORN_LEVEL0_INSTANCE = "https://deevroman.github.io/level0-reborn"
 
