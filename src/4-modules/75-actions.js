@@ -1888,7 +1888,7 @@ function actionOpenUserBlocks() {
 function actionToggleEditMenu() {
     document.querySelector("#edit_tab ul").tabIndex = -1
     if (document.querySelector("header").classList.contains("closed")) {
-        document.querySelector("#menu-icon").click()
+        getMenuToggler().click()
         document.querySelector("#edit_tab > button").click()
     } else if (document.querySelector("#edit_tab > .dropdown-menu").classList.contains("show")) {
         document.querySelector("#change-list-btn.closed")?.click()

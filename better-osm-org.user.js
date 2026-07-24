@@ -28089,6 +28089,18 @@ function addDropdownStyle() {
         max-height: min(85vh, 100vh - 75px) !important;
     }
     
+    .navbar-nav .open-dropdown { /* only for new dropdown menu layout */
+        left: -10px !important;    
+    }
+    
+    .navbar-nav:has(.open-dropdown) { /* only for new dropdown menu layout */
+        padding-top: 42px !important;
+    }
+    
+    .collapsing {
+        transition: none;
+    }
+    
     }
     
     .off-hover:hover {
@@ -28637,6 +28649,10 @@ async function setupNewEditorsLinks() {
     await _setupNewEditorsLinks()
 }
 
+function getMenuToggler() {
+    return document.querySelector("#menu-icon") ?? document.querySelector(".navbar-toggler")
+}
+
 async function _setupNewEditorsLinks(mutationsList) {
     if (mutationsList) {
         // little optimization for scroll
@@ -28673,14 +28689,17 @@ async function _setupNewEditorsLinks(mutationsList) {
             function linksMenuClickHandler(e) {
                 e.preventDefault()
                 e.stopPropagation()
-                if (document.querySelector("header").classList.contains("closed")) {
+                if (
+                    document.querySelector("header").classList.contains("closed") ||
+                    document.querySelector(".navbar-toggler")?.getAttribute("aria-expanded") === "false"
+                ) {
                     document.querySelector("#edit_tab > ul").classList.add("open-dropdown")
-                    document.querySelector("#menu-icon").click()
+                    getMenuToggler().click()
                     document.querySelector("#edit_tab > button").click()
                 } else if (document.querySelector("#edit_tab > .dropdown-menu").classList.contains("show")) {
                     document.querySelector("#edit_tab > ul").classList.remove("open-dropdown")
                     document.querySelector("#edit_tab > button").click()
-                    document.querySelector("#menu-icon").click()
+                    getMenuToggler().click()
                 } else {
                     document.querySelector("#edit_tab > ul").classList.add("open-dropdown")
                     document.querySelector("#edit_tab > button").click()
@@ -28689,24 +28708,26 @@ async function _setupNewEditorsLinks(mutationsList) {
 
             linksBtn.addEventListener("click", linksMenuClickHandler)
         })
-        document.querySelectorAll("#menu-icon:not(.listen-click)").forEach(i => {
-            i.classList.add("listen-click")
-            i.addEventListener("click", e => {
-                if (!e.isTrusted) {
-                    return
-                }
-                document.querySelectorAll(".open-dropdown").forEach(d => {
-                    d.classList.remove("open-dropdown")
+        ;[getMenuToggler()]
+            .filter(i => !i.classList.contains("listen-click"))
+            .forEach(i => {
+                i.classList.add("listen-click")
+                i.addEventListener("click", e => {
+                    if (!e.isTrusted) {
+                        return
+                    }
+                    document.querySelectorAll(".open-dropdown").forEach(d => {
+                        d.classList.remove("open-dropdown")
+                    })
                 })
             })
-        })
         const dropdown = document.querySelector("#edit_tab > .dropdown-menu")
         dropdownObserver?.disconnect()
         dropdownObserver = new MutationObserver((mutations, observer) => {
             if (!dropdown.classList.contains("show") && dropdown.classList.contains("open-dropdown")) {
                 observer.disconnect()
                 dropdown.classList.remove("open-dropdown")
-                document.querySelector("#menu-icon").click()
+                getMenuToggler().click()
             }
         })
         try {
@@ -30168,6 +30189,8 @@ function displayOsc(xml) {
     const created = xml.querySelectorAll("create")
     const modified = xml.querySelectorAll("modify")
     const deleted = xml.querySelectorAll("deleted")
+
+    const isUploaded = xml.querySelector(":is(node[changeset],way[changeset],relation[changeset])") !== null
     debugger
 }
 
@@ -32206,7 +32229,7 @@ function actionOpenUserBlocks() {
 function actionToggleEditMenu() {
     document.querySelector("#edit_tab ul").tabIndex = -1
     if (document.querySelector("header").classList.contains("closed")) {
-        document.querySelector("#menu-icon").click()
+        getMenuToggler().click()
         document.querySelector("#edit_tab > button").click()
     } else if (document.querySelector("#edit_tab > .dropdown-menu").classList.contains("show")) {
         document.querySelector("#change-list-btn.closed")?.click()
