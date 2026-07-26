@@ -32845,7 +32845,7 @@ const hotkeyActions = {
     toggleMapLayersVisibility: {
         title: "Toggle objects layers visibility",
         defaultBindings: ["Backquote"],
-        contexts: ["Changeset pages", "Object pages"],
+        contexts: ["Changeset pages", "Object pages", "Main pages"],
         run: actionToggleMapLayersVisibility,
     },
     toggleDarkMapStyle: {
