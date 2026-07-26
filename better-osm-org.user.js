@@ -9170,7 +9170,7 @@ const compactSidebarStyleText = `
     }
     
     @media (min-width: 768px) {
-        .map-layout #sidebar${isSafari ? ":not(.increased-specificity-for-fucked-safari)" : ""} {
+        .map-layout #sidebar:not(.increased-specificity) {
           width: 450px;
           flex-basis: unset;
         }
@@ -32506,6 +32506,7 @@ function actionOpenInJosmOrLevel0(e) {
 }
 
 function actionOpenOwnHistoryPage() {
+    addCompactSidebarStyle()
     const targetURL = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href") + "/history"
     if (targetURL !== location.pathname) {
         try {

@@ -2165,6 +2165,7 @@ function actionOpenInJosmOrLevel0(e) {
 }
 
 function actionOpenOwnHistoryPage() {
+    addCompactSidebarStyle()
     const targetURL = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href") + "/history"
     if (targetURL !== location.pathname) {
         try {
