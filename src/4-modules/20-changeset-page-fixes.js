@@ -1063,7 +1063,7 @@ const compactSidebarStyleText = `
     }
     
     @media (min-width: 768px) {
-        .map-layout #sidebar${isSafari ? ":not(.increased-specificity-for-fucked-safari)" : ""} {
+        .map-layout #sidebar:not(.increased-specificity) {
           width: 450px;
           flex-basis: unset;
         }
