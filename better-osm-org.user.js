@@ -10189,7 +10189,6 @@ async function mapClickHandler(e) {
             return
         }
     }
-    addCompactSidebarStyle()
     const { lat: lat, lng: lng } = e.latlng
 
     /** @type {(NodeVersion|WayVersion|RelationVersion)[]} */
@@ -10294,6 +10293,7 @@ async function mapClickHandler(e) {
             window.open(location.origin + targetURL)
         }
     }
+    addCompactSidebarStyle()
 
     console.log(elements)
 }
