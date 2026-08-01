@@ -13240,6 +13240,25 @@ async function askCustomTileUrl() {
                 ],
             },
         },
+        {
+            label: "FacilMap Overlays",
+            value: "https://tiles.facilmap.org/{type}/{z}/{x}/{y}.png",
+            about: "https://github.com/FacilMap/tiles",
+            forceVector: true,
+            fields: {
+                type: [
+                    { name: "cobblestone", value: "cobblestone" },
+                    { name: "cycling-restrictions", value: "cycling-restrictions" },
+                    { name: "tolls", value: "tolls" },
+                ],
+            },
+        },
+        {
+            label: "FacilMap Public Transport",
+            value: "https://pt.facilmap.org/tile/{z}/{x}/{y}.png",
+            about: "https://github.com/FacilMap/tiles",
+            forceVector: true,
+        },
         // {
         //     label: "OsmAnd HD tiles",
         //     value: "https://tile.osmand.net/hd/{z}/{x}/{y}.png",
