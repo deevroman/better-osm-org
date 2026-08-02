@@ -743,7 +743,7 @@ const configOptions = {
     frameStyle: `
             border: 1px solid #000;
             height: min(85%, 760px);
-            width: min(max(25%, 400px), 100vw);
+            width: min(max(25%, 405px), 100vw);
             z-index: 9999;
             opacity: 0;
             position: absolute;
