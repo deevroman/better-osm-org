@@ -945,6 +945,7 @@ function downloadVisibleLayerAsGeojson(e) {
         return
     }
     e.preventDefault()
+    // TODO respect hidden
     downloadTextFile("overpass.geojson", JSON.stringify(jsonLayer.toGeoJSON()), "application/geo+json")
 }
 
