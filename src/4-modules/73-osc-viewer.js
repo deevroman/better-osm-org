@@ -17,7 +17,6 @@ function makeChangesetSidebar(changesetID) {
     const wrapper = document.createElement("div")
     wrapper.classList.add("mb-3", "border-bottom", "border-secondary-subtle", "pb-3")
     sidebar_content.appendChild(wrapper)
-
     ;["way", "relation", "node"].forEach(type => {
         const turbo_frame = document.createElement("turbo-frame")
         turbo_frame.id = `changeset_${type}s`

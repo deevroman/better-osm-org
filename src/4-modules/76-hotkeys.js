@@ -214,6 +214,13 @@ const hotkeyActions = {
         when: () => !isUserPageWithoutHistory(),
         run: actionDownloadVisibleNotesAsKml,
     },
+    downloadAsGeoJson: {
+        title: "Download visible layer as GeoJSON β",
+        defaultBindings: ["Meta+KeyS", "Ctrl+KeyS"],
+        contexts: ["Main pages"],
+        when: () => !isUserPageWithoutHistory(),
+        run: actionDownloadVisibleLayerAsGeojson,
+    },
     toggleMapDataLayer: {
         title: "Toggle Map Data layer",
         defaultBindings: ["KeyD"],
@@ -438,6 +445,29 @@ const hotkeyActions = {
         when: () => /\/user\/[^\\]+\/history\/?/.test(location.pathname),
         run: actionOpenFirstChangesetPageForCurrentUserHistory,
     },
+    /*
+    openLastObjectVersion: {
+        title: "Open last object version",
+        defaultBindings: ["Shift+Digit1"],
+        contexts: ["Object pages"],
+        when: () => isObjectPage(),
+        run: actionOpenFirstObjectVersion,
+    },
+    openLastChangesetForCurrentPageUser: {
+        title: "Open last changeset for current page user",
+        defaultBindings: ["Shift+Digit1"],
+        contexts: ["Changeset pages"],
+        when: () => location.pathname.startsWith("/changeset"),
+        run: actionOpenFirstChangesetForCurrentPageUser,
+    },
+    openLastChangesetPageForCurrentUserHistory: {
+        title: "Open last changeset page for current user history",
+        defaultBindings: ["Shift+Digit1"],
+        contexts: ["History pages"],
+        when: () => /\/user\/[^\\]+\/history\/?/.test(location.pathname),
+        run: actionOpenFirstChangesetPageForCurrentUserHistory,
+    },
+    */
     zoomOutToWorld: {
         title: "Zoom out to world",
         defaultBindings: ["Digit0"],
@@ -687,7 +717,9 @@ function hotkeyKeydownHandler(e) {
         resetZoomClicks()
     }
     if (e.metaKey || e.ctrlKey) {
-        return
+        if (e.code !== "KeyS") {
+            return
+        }
     }
     runHotkeyActionForEvent(e)
 }

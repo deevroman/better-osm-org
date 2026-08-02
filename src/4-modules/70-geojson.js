@@ -939,4 +939,13 @@ function renderOSMGeoJSON(xml, options = {}) {
     return jsonLayer
 }
 
+function downloadVisibleLayerAsGeojson(e) {
+    if (!jsonLayer) {
+        console.warn("nothingto save")
+        return
+    }
+    e.preventDefault()
+    downloadTextFile("overpass.geojson", JSON.stringify(jsonLayer.toGeoJSON()), "application/geo+json")
+}
+
 //</editor-fold>

@@ -21275,7 +21275,7 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
 
         if (objType === "relation" && objects.length >= 2) {
             for (let i of document.querySelectorAll(
-                `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`,
+                `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div > div`,
             )) {
                 const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
                 const version = parseInt(strVersion)
@@ -21293,7 +21293,7 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
             })
             if (res.status === 404) {
                 for (let i of document.querySelectorAll(
-                    `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`,
+                    `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div > div`,
                 )) {
                     await processObjectInteractions(
                         changesetID,
@@ -21318,7 +21318,7 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
                     )
                 })
                 for (let i of document.querySelectorAll(
-                    `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`,
+                    `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div > div`,
                 )) {
                     const [, , objID, strVersion] = i
                         .querySelector("a:nth-of-type(2)")
@@ -21337,7 +21337,7 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
             await Promise.all(
                 Array.from(
                     document.querySelectorAll(
-                        `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`,
+                        `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div > div`,
                     ),
                 ).map(async function (i) {
                     await processObjectInteractions(
@@ -21967,7 +21967,7 @@ async function processQuickLookInSidebar(changesetID) {
         try {
             if (objType === "relation") {
                 for (let i of document.querySelectorAll(
-                    `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`,
+                    `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div > div`,
                 )) {
                     const [, , objID, strVersion] = i
                         .querySelector("a:nth-of-type(2)")
@@ -21987,7 +21987,7 @@ async function processQuickLookInSidebar(changesetID) {
                 })
                 if (res.status === 404) {
                     for (let i of document.querySelectorAll(
-                        `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`,
+                        `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div > div`,
                     )) {
                         await processObject(i, objType, ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(i))))
                     }
@@ -22006,7 +22006,7 @@ async function processQuickLookInSidebar(changesetID) {
                         )
                     })
                     for (let i of document.querySelectorAll(
-                        `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`,
+                        `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div > div`,
                     )) {
                         const [, , objID, strVersion] = i
                             .querySelector("a:nth-of-type(2)")
@@ -22018,7 +22018,7 @@ async function processQuickLookInSidebar(changesetID) {
             } else {
                 const elems = Array.from(
                     document.querySelectorAll(
-                        `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`,
+                        `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div > div`,
                     ),
                 )
                 for (const elem of arraySplit(elems, elems.length > 520 ? 10 : 1)) {
@@ -29838,6 +29838,15 @@ function renderOSMGeoJSON(xml, options = {}) {
     return jsonLayer
 }
 
+function downloadVisibleLayerAsGeojson(e) {
+    if (!jsonLayer) {
+        console.warn("nothingto save")
+        return
+    }
+    e.preventDefault()
+    downloadTextFile("overpass.geojson", JSON.stringify(jsonLayer.toGeoJSON()), "application/geo+json")
+}
+
 //</editor-fold>
 
 //<editor-fold desc="overpass search" defaultstate="collapsed">
@@ -30144,7 +30153,6 @@ function makeChangesetSidebar(changesetID) {
     const wrapper = document.createElement("div")
     wrapper.classList.add("mb-3", "border-bottom", "border-secondary-subtle", "pb-3")
     sidebar_content.appendChild(wrapper)
-
     ;["way", "relation", "node"].forEach(type => {
         const turbo_frame = document.createElement("turbo-frame")
         turbo_frame.id = `changeset_${type}s`
@@ -32487,6 +32495,10 @@ function actionDownloadVisibleNotesAsKml() {
     downloadVisibleNotesAsKml()
 }
 
+function actionDownloadVisibleLayerAsGeojson(e) {
+    downloadVisibleLayerAsGeojson(e)
+}
+
 function actionToggleMapDataLayer() {
     Array.from(document.querySelectorAll(".overlay-layers label input"))[1].removeAttribute("disabled")
     Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()
@@ -33135,6 +33147,13 @@ const hotkeyActions = {
         when: () => !isUserPageWithoutHistory(),
         run: actionDownloadVisibleNotesAsKml,
     },
+    downloadAsGeoJson: {
+        title: "Download visible layer as GeoJSON β",
+        defaultBindings: ["Meta+KeyS", "Ctrl+KeyS"],
+        contexts: ["Main pages"],
+        when: () => !isUserPageWithoutHistory(),
+        run: actionDownloadVisibleLayerAsGeojson,
+    },
     toggleMapDataLayer: {
         title: "Toggle Map Data layer",
         defaultBindings: ["KeyD"],
@@ -33359,6 +33378,29 @@ const hotkeyActions = {
         when: () => /\/user\/[^\\]+\/history\/?/.test(location.pathname),
         run: actionOpenFirstChangesetPageForCurrentUserHistory,
     },
+    /*
+    openLastObjectVersion: {
+        title: "Open last object version",
+        defaultBindings: ["Shift+Digit1"],
+        contexts: ["Object pages"],
+        when: () => isObjectPage(),
+        run: actionOpenFirstObjectVersion,
+    },
+    openLastChangesetForCurrentPageUser: {
+        title: "Open last changeset for current page user",
+        defaultBindings: ["Shift+Digit1"],
+        contexts: ["Changeset pages"],
+        when: () => location.pathname.startsWith("/changeset"),
+        run: actionOpenFirstChangesetForCurrentPageUser,
+    },
+    openLastChangesetPageForCurrentUserHistory: {
+        title: "Open last changeset page for current user history",
+        defaultBindings: ["Shift+Digit1"],
+        contexts: ["History pages"],
+        when: () => /\/user\/[^\\]+\/history\/?/.test(location.pathname),
+        run: actionOpenFirstChangesetPageForCurrentUserHistory,
+    },
+    */
     zoomOutToWorld: {
         title: "Zoom out to world",
         defaultBindings: ["Digit0"],
@@ -33608,7 +33650,9 @@ function hotkeyKeydownHandler(e) {
         resetZoomClicks()
     }
     if (e.metaKey || e.ctrlKey) {
-        return
+        if (e.code !== "KeyS") {
+            return
+        }
     }
     runHotkeyActionForEvent(e)
 }

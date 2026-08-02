@@ -2029,6 +2029,10 @@ function actionDownloadVisibleNotesAsKml() {
     downloadVisibleNotesAsKml()
 }
 
+function actionDownloadVisibleLayerAsGeojson(e) {
+    downloadVisibleLayerAsGeojson(e)
+}
+
 function actionToggleMapDataLayer() {
     Array.from(document.querySelectorAll(".overlay-layers label input"))[1].removeAttribute("disabled")
     Array.from(document.querySelectorAll(".overlay-layers label"))[1].click()

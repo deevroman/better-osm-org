@@ -2118,7 +2118,7 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
 
         if (objType === "relation" && objects.length >= 2) {
             for (let i of document.querySelectorAll(
-                `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`,
+                `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div > div`,
             )) {
                 const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
                 const version = parseInt(strVersion)
@@ -2136,7 +2136,7 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
             })
             if (res.status === 404) {
                 for (let i of document.querySelectorAll(
-                    `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`,
+                    `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div > div`,
                 )) {
                     await processObjectInteractions(
                         changesetID,
@@ -2161,7 +2161,7 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
                     )
                 })
                 for (let i of document.querySelectorAll(
-                    `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`,
+                    `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div > div`,
                 )) {
                     const [, , objID, strVersion] = i
                         .querySelector("a:nth-of-type(2)")
@@ -2180,7 +2180,7 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
             await Promise.all(
                 Array.from(
                     document.querySelectorAll(
-                        `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`,
+                        `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div > div`,
                     ),
                 ).map(async function (i) {
                     await processObjectInteractions(
@@ -2810,7 +2810,7 @@ async function processQuickLookInSidebar(changesetID) {
         try {
             if (objType === "relation") {
                 for (let i of document.querySelectorAll(
-                    `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`,
+                    `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div > div`,
                 )) {
                     const [, , objID, strVersion] = i
                         .querySelector("a:nth-of-type(2)")
@@ -2830,7 +2830,7 @@ async function processQuickLookInSidebar(changesetID) {
                 })
                 if (res.status === 404) {
                     for (let i of document.querySelectorAll(
-                        `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`,
+                        `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div > div`,
                     )) {
                         await processObject(i, objType, ...getPrevTargetLastVersions(...(await getHistoryAndVersionByElem(i))))
                     }
@@ -2849,7 +2849,7 @@ async function processQuickLookInSidebar(changesetID) {
                         )
                     })
                     for (let i of document.querySelectorAll(
-                        `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`,
+                        `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div > div`,
                     )) {
                         const [, , objID, strVersion] = i
                             .querySelector("a:nth-of-type(2)")
@@ -2861,7 +2861,7 @@ async function processQuickLookInSidebar(changesetID) {
             } else {
                 const elems = Array.from(
                     document.querySelectorAll(
-                        `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div div`,
+                        `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div > div`,
                     ),
                 )
                 for (const elem of arraySplit(elems, elems.length > 520 ? 10 : 1)) {
