@@ -45,6 +45,8 @@
 // @exclude      https://master.apis.dev.openstreetmap.org/diary/*
 // @exclude      https://master.apis.dev.openstreetmap.org/oauth2/*
 // @match        http://localhost:3000/*
+// @match        https://ideditor.netlify.app/*
+// @match        https://ideditor-release.netlify.app/*
 // @match        https://taginfo.openstreetmap.org/*
 // @match        https://taginfo.geofabrik.de/*
 // @match        https://www.hdyc.neis-one.org/*
