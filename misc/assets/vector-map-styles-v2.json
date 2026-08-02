@@ -73,6 +73,11 @@
       "about": "https://map.project-osrm.org/debug"
     },
     {
+      "label": "openwaters.io seascape",
+      "value": "https://github.com/openwatersio/seascape",
+      "about": "https://github.com/openwatersio/seascape"
+    },
+    {
       "label": "wb.ru tiles",
       "value": "https://wb-maps.wb.ru/api/tiles/style/weblight-ru.json?key=Sc2QfP6Ujk2KmDxkeOxA",
       "about": "https://wb-maps.wb.ru"
