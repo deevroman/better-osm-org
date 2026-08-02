@@ -38,6 +38,9 @@ function _main() {
     if (isOsmServer()) {
         setupOSMWebsite()
     }
+    if (location.origin === "https://ideditor.netlify.app" || location.origin === "https://ideditor-release.netlify.app") {
+        setupIDframe()
+    }
     if (location.origin === "https://wiki.openstreetmap.org") {
         setupWiki()
     }

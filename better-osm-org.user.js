@@ -44,6 +44,8 @@
 // @exclude      https://master.apis.dev.openstreetmap.org/messages/*
 // @exclude      https://master.apis.dev.openstreetmap.org/diary/*
 // @exclude      https://master.apis.dev.openstreetmap.org/oauth2/*
+// @match        https://ideditor.netlify.app/*
+// @match        https://ideditor-release.netlify.app/*
 // @match        https://taginfo.openstreetmap.org/*
 // @match        https://taginfo.geofabrik.de/*
 // @match        https://www.hdyc.neis-one.org/*
@@ -34660,6 +34662,9 @@ function _main() {
     }
     if (isOsmServer()) {
         setupOSMWebsite()
+    }
+    if (location.origin === "https://ideditor.netlify.app" || location.origin === "https://ideditor-release.netlify.app") {
+        setupIDframe()
     }
     if (location.origin === "https://wiki.openstreetmap.org") {
         setupWiki()
