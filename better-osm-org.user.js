@@ -25846,8 +25846,7 @@ function makeBottomActionBar() {
         actionBarWrapperLi.style.display = "inline-flex"
         actionBarWrapper.appendChild(actionBarWrapperLi)
 
-        actionBarWrapperLi.classList.add("action-bar-wrapper")
-        actionBarWrapperLi.classList.add("text-center")
+        actionBarWrapperLi.classList.add("action-bar-wrapper", "text-center")
         actionBarWrapperLi.appendChild(copyIds)
         actionBarWrapperLi.appendChild(document.createTextNode("\xA0"))
         actionBarWrapperLi.appendChild(revertButton)
