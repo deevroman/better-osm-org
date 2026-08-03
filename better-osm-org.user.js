@@ -25812,9 +25812,7 @@ function makeBottomActionBar() {
     } else {
         copyIds.textContent = t("changesetsHistory.copyIds")
     }
-    copyIds.classList.add("copy-changesets-ids-btn")
-    copyIds.classList.add("buttom-btn")
-    copyIds.classList.add("page-link")
+    copyIds.classList.add("copy-changesets-ids-btn", "buttom-btn", "page-link")
     copyIds.onclick = onClickByCopyIds
     const revertButton = document.createElement("button")
     revertButton.textContent = "↩️"
