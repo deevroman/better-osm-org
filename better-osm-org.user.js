@@ -8748,7 +8748,7 @@ function addUsernameBadgesOrRestoreAction(changeset_id) {
 
 function addRevertButton() {
     if (!location.pathname.startsWith("/changeset")) return
-    if (document.querySelector("#revert_button_class")) return true
+    if (document.querySelector("#revert_button_class")) return
     const sidebar = document.querySelector("#sidebar_content h2")
     if (sidebar) {
         hideSearchForm()
