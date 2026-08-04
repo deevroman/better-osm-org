@@ -19643,6 +19643,13 @@ function makeLinksInChangesetObjectRowClickable(row, objType) {
     }
 }
 
+/**
+ * @param {NodeVersion|WayVersion|RelationVersion} prevVersion
+ * @param {NodeVersion|WayVersion|RelationVersion} targetVersion
+ * @param {NodeVersion[] | WayVersion[] | RelationVersion[]} objHistory
+ * @param {HTMLTableRowElement} row
+ * @param {string} key
+ */
 function detectEditsWars(prevVersion, targetVersion, objHistory, row, key) {
     let revertsCounter = 0
     const warLog = document.createElement("table")
@@ -19654,9 +19661,9 @@ function detectEditsWars(prevVersion, targetVersion, objHistory, row, key) {
     for (let j = 0; j < objHistory.length; j++) {
         const it = objHistory[j]
 
-        const prevIt = (objHistory[j - 1]?.tags ?? {})[key]
-        const targetIt = (it.tags ?? {})[key]
-        const prevTag = (prevVersion.tags ?? {})[key]
+        const prevIt = getValue(objHistory[j - 1]?.tags ?? {}, key)
+        const targetIt = getValue(it.tags ?? {}, key)
+        const prevTag = getValue(prevVersion.tags ?? {}, key)
         // const targetTag = (targetVersion.tags ?? {})[key]
 
         if (prevIt === targetIt) {
