@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.6.8
+// @version         1.6.8.1
 // @changelog       v1.6.6: Under experimental flag: clickable POIs, full history for relations, level0 reborn links
 // @changelog       v1.6.6: Links to regional Taginfo on taginfo.osm.org and Overpass links on #combinations page
 // @changelog       v1.6.6: Download visible notes as .kml, Nodes restorer, parameters for vector styles
@@ -9116,7 +9116,7 @@ const compactSidebarStyleText = `
       font-size: 14px !important;
       font-synthesis: none;
     }
-    #sidebar_content > div:not(.changesets) .changeset_num_comments {
+    #sidebar_content > :is(div, turbo-frame):not(.changesets) .changeset_num_comments {
         display: none !important;
     }
     @media ${mediaQueryForWebsiteTheme} {
@@ -11846,23 +11846,23 @@ function addDeleteButton() {
     // skip deleted
     if (object_type === "node") {
         if (
-            document.querySelectorAll("#sidebar_content > div:first-of-type h4").length < 2 &&
-            document.querySelector("#sidebar_content > div .latitude") === null
+            document.querySelectorAll("#sidebar_content > :is(div, turbo-frame):first-of-type h4").length < 2 &&
+            document.querySelector("#sidebar_content > :is(div, turbo-frame) .latitude") === null
         ) {
             addRestoreButton(object_type, object_id)
             return
         }
     } else if (object_type === "way") {
     } else if (object_type === "relation") {
-        if (document.querySelectorAll("#sidebar_content > div:first-of-type h4").length < 2) {
+        if (document.querySelectorAll("#sidebar_content > :is(div, turbo-frame):first-of-type h4").length < 2) {
             return
         }
     }
     // skip having a parent
-    if (object_type === "node" && document.querySelectorAll("#sidebar_content > div:first-of-type details").length !== 0) {
+    if (object_type === "node" && document.querySelectorAll("#sidebar_content > :is(div, turbo-frame):first-of-type details").length !== 0) {
         return
     } else if (object_type === "relation") {
-        if (document.querySelectorAll("#sidebar_content > div:first-of-type details").length > 1) {
+        if (document.querySelectorAll("#sidebar_content > :is(div, turbo-frame):first-of-type details").length > 1) {
             return
         }
         if (Array.from(document.querySelectorAll(".browse-tag-list th")).some(i => i.textContent === "wikidata")) {
@@ -11873,7 +11873,7 @@ function addDeleteButton() {
             .find(i => ["route_master", "route", "multipolygon", "public_transport"].includes(i))
         if (dangerousType) {
             if (dangerousType === "multipolygon") {
-                if (document.querySelectorAll("#sidebar_content > div:first-of-type details li").length > 1) {
+                if (document.querySelectorAll("#sidebar_content > :is(div, turbo-frame):first-of-type details li").length > 1) {
                     return
                 }
             } else {
@@ -18152,7 +18152,9 @@ function addCommentsCount() {
         if (isVersionPage()) {
             document.querySelectorAll(".changeset_num_comments").forEach(i => i.style.setProperty("display", "none", "important"))
         }
-        const sectionSelector = isVersionPage() ? "#sidebar_content > div:first-of-type" : "#sidebar_content #element_versions_list > div"
+        const sectionSelector = isVersionPage()
+            ? "#sidebar_content > :is(div, turbo-frame):first-of-type"
+            : "#sidebar_content #element_versions_list > div"
         const links = document.querySelectorAll(
             `${sectionSelector} div a[href^="/changeset"]:not(.comments-loaded):not(.comments-link):not([rel])`,
         )
@@ -24032,7 +24034,7 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type) {
         '  <line x1="12" y1="4" x2="12" y2="20" stroke="currentColor" stroke-width="1"/>\n' +
         '  <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1"/>\n' +
         '  <rect x="4" y="4" width="16" height="16" stroke="red" stroke-width="2"/>\n' +
-        '</svg>\n';
+        '</svg>\n'
     const icon4 = document.createElement("span")
     icon4.innerHTML = svg4
     icon4.style.cursor = "pointer"
@@ -24131,7 +24133,7 @@ async function addHoverForWayNodes() {
         )
         const lineGeometryIssues = validateWayGeometry(wayInfo, nodesMap)
         const affectedNodeIds = collectWayGeometryAffectedNodeIds(lineGeometryIssues)
-        const wayMembersSummary = document.querySelector("#sidebar_content > div:first-of-type details summary")
+        const wayMembersSummary = document.querySelector("#sidebar_content > :is(div, turbo-frame):first-of-type details summary")
         if (wayMembersSummary) {
             showValidationStatus(
                 lineGeometryIssues.map(i => i.description),
@@ -24510,7 +24512,10 @@ async function addHoverForRelationMembers() {
             })
             const errors = validateRestriction(/** @type {ExtendedRelationVersion} */ extendedRelationVersion)
             if (errors.length) {
-                showValidationStatus(errors, document.querySelector("#sidebar_content > div:first-of-type details:last-of-type summary"))
+                showValidationStatus(
+                    errors,
+                    document.querySelector("#sidebar_content > :is(div, turbo-frame):first-of-type details:last-of-type summary"),
+                )
             } else {
                 restrictionArrows = renderRestriction(
                     /** @type {ExtendedRelationVersion} */ extendedRelationVersion,
@@ -24539,9 +24544,11 @@ async function addHoverForRelationMembers() {
                     }
                 }
                 document
-                    .querySelector("#sidebar_content > div:first-of-type details:last-of-type summary")
+                    .querySelector("#sidebar_content > :is(div, turbo-frame):first-of-type details:last-of-type summary")
                     .appendChild(document.createTextNode(" "))
-                document.querySelector("#sidebar_content > div:first-of-type details:last-of-type summary").appendChild(pinSign)
+                document
+                    .querySelector("#sidebar_content > :is(div, turbo-frame):first-of-type details:last-of-type summary")
+                    .appendChild(pinSign)
             }
         }
 
@@ -24880,7 +24887,7 @@ function makeVersionPageBetter() {
     externalizeLinks(document.querySelectorAll("#sidebar_content table a"))
     const browseSectionSelector = document.querySelector("#element_versions_list")
         ? '#element_versions_list > div:not(:has(a[href*="/redactions/"]:not([rel]):not(.unredacted)))'
-        : "#sidebar_content > div:first-of-type"
+        : "#sidebar_content > :is(div, turbo-frame):first-of-type"
     if (!document.querySelector(".find-user-btn")) {
         try {
             const ver = document.querySelector(browseSectionSelector)
@@ -24923,7 +24930,7 @@ function makeVersionPageBetter() {
     void addHoverForRelationMembers()
     addUploadPanoramaxBtn()
     // костыль для KeyK/L и OSM tags editor
-    document.querySelector("#sidebar_content > div:first-of-type")?.classList?.add("browse-section")
+    document.querySelector("#sidebar_content > :is(div, turbo-frame):first-of-type")?.classList?.add("browse-section")
     document.querySelectorAll("#element_versions_list > div").forEach(i => i.classList.add("browse-section"))
 }
 
@@ -26453,7 +26460,10 @@ function addRelationVersionView() {
         const timestamp = document.querySelector("time").getAttribute("datetime")
         try {
             const { restrictionRelationErrors } = await loadRelationVersionMembersViaOverpass(id, timestamp)
-            showValidationStatus(restrictionRelationErrors, document.querySelector("#sidebar_content > div details summary"))
+            showValidationStatus(
+                restrictionRelationErrors,
+                document.querySelector("#sidebar_content > :is(div, turbo-frame) details summary"),
+            )
         } catch (e) {
             btn.style.cursor = "pointer"
             throw e
@@ -26463,7 +26473,7 @@ function addRelationVersionView() {
 
     btn.addEventListener("click", clickForDownloadHandler)
     btn.addEventListener("keypress", clickForDownloadHandler)
-    document.querySelector("#sidebar_content > div h4")?.appendChild(btn)
+    document.querySelector("#sidebar_content > :is(div,turbo-frame) h4")?.appendChild(btn)
 }
 
 function setupRelationVersionViewer() {

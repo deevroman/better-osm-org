@@ -1007,7 +1007,7 @@ const compactSidebarStyleText = `
       font-size: 14px !important;
       font-synthesis: none;
     }
-    #sidebar_content > div:not(.changesets) .changeset_num_comments {
+    #sidebar_content > :is(div, turbo-frame):not(.changesets) .changeset_num_comments {
         display: none !important;
     }
     @media ${mediaQueryForWebsiteTheme} {
