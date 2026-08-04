@@ -637,6 +637,67 @@ function addUsernameBadgesOrRestoreAction(changeset_id) {
     }
 }
 
+function betterChangesetCommentForm(textarea) {
+    textarea.rows = 1
+    const comment = document.querySelector("#sidebar_content button[name=comment]")
+    if (comment) {
+        comment.parentElement.hidden = true
+        textarea.addEventListener("input", () => {
+            comment.hidden = false
+        })
+        textarea.addEventListener(
+            "click",
+            () => {
+                textarea.rows = textarea.rows + 5
+                comment.parentElement.hidden = false
+            },
+            { once: true },
+        )
+        comment.onclick = () => {
+            ;[500, 1000, 2000, 4000, 6000].map(i => setTimeout(setupRevertButton, i))
+        }
+        const templates = /** @type {string} */ (GM_config.get("ChangesetsTemplates"))
+        if (templates) {
+            const buttonsWrapper = document.querySelectorAll("form.mb-3 [name=comment]")[0].parentElement
+            buttonsWrapper.style.display = "flex"
+            buttonsWrapper.style.flexWrap = "wrap"
+            buttonsWrapper.style.gap = "4px"
+            buttonsWrapper.style.rowGap = "4px"
+            JSON.parse(templates).forEach(row => {
+                const label = row["label"]
+                let text = label
+                if (row["text"] !== "") {
+                    text = row["text"]
+                }
+                const b = document.createElement("span")
+                b.classList.add("comment-template", "btn", "btn-primary")
+                b.textContent = label
+                b.title = t("changesetPageFixes.commentTemplateTitle", { text })
+                buttonsWrapper.appendChild(b)
+                b.onmousedown = e => {
+                    e.preventDefault()
+                }
+                b.onclick = e => {
+                    e.preventDefault()
+                    e.stopImmediatePropagation()
+                    const textarea = document.querySelector("form.mb-3 textarea")
+                    const prev = textarea.value
+                    const cursor = textarea.selectionEnd
+                    textarea.value = prev.substring(0, cursor) + text + prev.substring(cursor)
+
+                    const ev = new InputEvent("input", {
+                        bubbles: true,
+                        cancelable: false,
+                        data: textarea.value,
+                        inputType: "insertFromPaste",
+                    })
+                    textarea.dispatchEvent(ev)
+                }
+            })
+        }
+    }
+}
+
 function addRevertButton() {
     if (!location.pathname.startsWith("/changeset")) return
     if (document.querySelector("#revert_button_class")) return
@@ -900,64 +961,7 @@ function addRevertButton() {
     }
     const textarea = document.querySelector("#sidebar_content textarea")
     if (textarea) {
-        textarea.rows = 1
-        const comment = document.querySelector("#sidebar_content button[name=comment]")
-        if (comment) {
-            comment.parentElement.hidden = true
-            textarea.addEventListener("input", () => {
-                comment.hidden = false
-            })
-            textarea.addEventListener(
-                "click",
-                () => {
-                    textarea.rows = textarea.rows + 5
-                    comment.parentElement.hidden = false
-                },
-                { once: true },
-            )
-            comment.onclick = () => {
-                ;[500, 1000, 2000, 4000, 6000].map(i => setTimeout(setupRevertButton, i))
-            }
-            const templates = /** @type {string} */ (GM_config.get("ChangesetsTemplates"))
-            if (templates) {
-                const buttonsWrapper = document.querySelectorAll("form.mb-3 [name=comment]")[0].parentElement
-                buttonsWrapper.style.display = "flex"
-                buttonsWrapper.style.flexWrap = "wrap"
-                buttonsWrapper.style.gap = "4px"
-                buttonsWrapper.style.rowGap = "4px"
-                JSON.parse(templates).forEach(row => {
-                    const label = row["label"]
-                    let text = label
-                    if (row["text"] !== "") {
-                        text = row["text"]
-                    }
-                    const b = document.createElement("span")
-                    b.classList.add("comment-template", "btn", "btn-primary")
-                    b.textContent = label
-                    b.title = t("changesetPageFixes.commentTemplateTitle", { text })
-                    buttonsWrapper.appendChild(b)
-                    b.onmousedown = e => {
-                        e.preventDefault()
-                    }
-                    b.onclick = e => {
-                        e.preventDefault()
-                        e.stopImmediatePropagation()
-                        const textarea = document.querySelector("form.mb-3 textarea")
-                        const prev = textarea.value
-                        const cursor = textarea.selectionEnd
-                        textarea.value = prev.substring(0, cursor) + text + prev.substring(cursor)
-
-                        const ev = new InputEvent("input", {
-                            bubbles: true,
-                            cancelable: false,
-                            data: textarea.value,
-                            inputType: "insertFromPaste",
-                        })
-                        textarea.dispatchEvent(ev)
-                    }
-                })
-            }
-        }
+        betterChangesetCommentForm(textarea)
     }
     const tagsHeader = document.querySelector("#sidebar_content h4")
     if (tagsHeader) {
