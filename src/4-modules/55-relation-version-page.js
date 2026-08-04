@@ -27,7 +27,10 @@ function addRelationVersionView() {
         const timestamp = document.querySelector("time").getAttribute("datetime")
         try {
             const { restrictionRelationErrors } = await loadRelationVersionMembersViaOverpass(id, timestamp)
-            showValidationStatus(restrictionRelationErrors, document.querySelector("#sidebar_content > div details summary"))
+            showValidationStatus(
+                restrictionRelationErrors,
+                document.querySelector("#sidebar_content > :is(div, turbo-frame) details summary"),
+            )
         } catch (e) {
             btn.style.cursor = "pointer"
             throw e
@@ -37,7 +40,7 @@ function addRelationVersionView() {
 
     btn.addEventListener("click", clickForDownloadHandler)
     btn.addEventListener("keypress", clickForDownloadHandler)
-    document.querySelector("#sidebar_content > div h4")?.appendChild(btn)
+    document.querySelector("#sidebar_content > :is(div,turbo-frame) h4")?.appendChild(btn)
 }
 
 function setupRelationVersionViewer() {

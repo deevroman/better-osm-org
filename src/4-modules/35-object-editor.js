@@ -138,23 +138,23 @@ function addDeleteButton() {
     // skip deleted
     if (object_type === "node") {
         if (
-            document.querySelectorAll("#sidebar_content > div:first-of-type h4").length < 2 &&
-            document.querySelector("#sidebar_content > div .latitude") === null
+            document.querySelectorAll("#sidebar_content > :is(div, turbo-frame):first-of-type h4").length < 2 &&
+            document.querySelector("#sidebar_content > :is(div, turbo-frame) .latitude") === null
         ) {
             addRestoreButton(object_type, object_id)
             return
         }
     } else if (object_type === "way") {
     } else if (object_type === "relation") {
-        if (document.querySelectorAll("#sidebar_content > div:first-of-type h4").length < 2) {
+        if (document.querySelectorAll("#sidebar_content > :is(div, turbo-frame):first-of-type h4").length < 2) {
             return
         }
     }
     // skip having a parent
-    if (object_type === "node" && document.querySelectorAll("#sidebar_content > div:first-of-type details").length !== 0) {
+    if (object_type === "node" && document.querySelectorAll("#sidebar_content > :is(div, turbo-frame):first-of-type details").length !== 0) {
         return
     } else if (object_type === "relation") {
-        if (document.querySelectorAll("#sidebar_content > div:first-of-type details").length > 1) {
+        if (document.querySelectorAll("#sidebar_content > :is(div, turbo-frame):first-of-type details").length > 1) {
             return
         }
         if (Array.from(document.querySelectorAll(".browse-tag-list th")).some(i => i.textContent === "wikidata")) {
@@ -165,7 +165,7 @@ function addDeleteButton() {
             .find(i => ["route_master", "route", "multipolygon", "public_transport"].includes(i))
         if (dangerousType) {
             if (dangerousType === "multipolygon") {
-                if (document.querySelectorAll("#sidebar_content > div:first-of-type details li").length > 1) {
+                if (document.querySelectorAll("#sidebar_content > :is(div, turbo-frame):first-of-type details li").length > 1) {
                     return
                 }
             } else {

@@ -2782,7 +2782,9 @@ function addCommentsCount() {
         if (isVersionPage()) {
             document.querySelectorAll(".changeset_num_comments").forEach(i => i.style.setProperty("display", "none", "important"))
         }
-        const sectionSelector = isVersionPage() ? "#sidebar_content > div:first-of-type" : "#sidebar_content #element_versions_list > div"
+        const sectionSelector = isVersionPage()
+            ? "#sidebar_content > :is(div, turbo-frame):first-of-type"
+            : "#sidebar_content #element_versions_list > div"
         const links = document.querySelectorAll(
             `${sectionSelector} div a[href^="/changeset"]:not(.comments-loaded):not(.comments-link):not([rel])`,
         )
