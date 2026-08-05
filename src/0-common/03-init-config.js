@@ -363,8 +363,82 @@ const configOptions = {
             type: "menu",
             default: '[{"label": "👋", "text": ""}]',
         },
+        NavigationViaHotkeys: {
+            section: [t("config.sectionInterfaceNavigation")],
+            label: t("config.navigationViaHotkeys"), // add help button with list
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        ClickableAvatar: {
+            label: t("config.clickableAvatar"),
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        ResetSearchFormFocus: {
+            label: t("config.resetSearchFormFocus"),
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        DefaultZoomKeysBehaviour: {
+            label: t("config.defaultZoomKeysBehaviour"),
+            type: "checkbox",
+            default: false,
+            labelPos: "right",
+        },
+        Swipes: {
+            label: t("config.swipes"),
+            type: "checkbox",
+            default: false,
+            labelPos: "right",
+        },
+        "3DViewerInNewTab": {
+            label: t("config.viewer3DInNewTab"),
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        NewEditorsLinks: {
+            section: [t("config.sectionNewElements")],
+            label: t("config.newEditorsLinks"),
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        SatelliteLayers: {
+            label: t("config.satelliteLayers"),
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        ResizableSidebar: {
+            label: t("config.resizableSidebar"),
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        PanoramaxUploader: {
+            label: t("config.panoramaxUploader"),
+            type: "checkbox",
+            default: false,
+            labelPos: "right",
+        },
+        RoutersTimestamps: {
+            label: t("config.routersTimestamps"),
+            type: "checkbox",
+            default: true,
+            labelPos: "right",
+        },
+        AddLocationFromNominatim: {
+            label: t("config.addLocationFromNominatim"),
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
         HDYCInProfile: {
-            section: [t("config.sectionOther")],
+            section: [t("config.sectionProfiles")],
             label: t("config.hdycInProfile"),
             type: "checkbox",
             default: "checked",
@@ -376,52 +450,11 @@ const configOptions = {
             default: "checked",
             labelPos: "right",
         },
-        NavigationViaHotkeys: {
-            label: t("config.navigationViaHotkeys"), // add help button with list
+        BetterTaginfo: {
+            section: [t("config.sectionOther")],
+            label: t("config.betterTaginfo"),
             type: "checkbox",
             default: "checked",
-            labelPos: "right",
-        },
-        NewEditorsLinks: {
-            label: t("config.newEditorsLinks"),
-            type: "checkbox",
-            default: "checked",
-            labelPos: "right",
-        },
-        ResetSearchFormFocus: {
-            label: t("config.resetSearchFormFocus"),
-            type: "checkbox",
-            default: "checked",
-            labelPos: "right",
-        },
-        SatelliteLayers: {
-            label: t("config.satelliteLayers"),
-            type: "checkbox",
-            default: "checked",
-            labelPos: "right",
-        },
-        Swipes: {
-            label: t("config.swipes"),
-            type: "checkbox",
-            default: false,
-            labelPos: "right",
-        },
-        ResizableSidebar: {
-            label: t("config.resizableSidebar"),
-            type: "checkbox",
-            default: "checked",
-            labelPos: "right",
-        },
-        ClickableAvatar: {
-            label: t("config.clickableAvatar"),
-            type: "checkbox",
-            default: "checked",
-            labelPos: "right",
-        },
-        OverzoomForDataLayer: {
-            label: t("config.overzoomForDataLayer"),
-            type: "checkbox",
-            default: false,
             labelPos: "right",
         },
         DragAndDropViewers: {
@@ -430,28 +463,10 @@ const configOptions = {
             default: "checked",
             labelPos: "right",
         },
-        "3DViewerInNewTab": {
-            label: t("config.viewer3DInNewTab"),
-            type: "checkbox",
-            default: "checked",
-            labelPos: "right",
-        },
-        BetterTaginfo: {
-            label: t("config.betterTaginfo"),
-            type: "checkbox",
-            default: "checked",
-            labelPos: "right",
-        },
-        DefaultZoomKeysBehaviour: {
-            label: t("config.defaultZoomKeysBehaviour"),
+        OverzoomForDataLayer: {
+            label: t("config.overzoomForDataLayer"),
             type: "checkbox",
             default: false,
-            labelPos: "right",
-        },
-        AddLocationFromNominatim: {
-            label: t("config.addLocationFromNominatim"),
-            type: "checkbox",
-            default: "checked",
             labelPos: "right",
         },
         OverpassInstance: {
@@ -465,18 +480,6 @@ const configOptions = {
         //     labelPos: "left",
         //     type: "input",
         // },
-        PanoramaxUploader: {
-            label: t("config.panoramaxUploader"),
-            type: "checkbox",
-            default: false,
-            labelPos: "right",
-        },
-        RoutersTimestamps: {
-            label: t("config.routersTimestamps"),
-            type: "checkbox",
-            default: true,
-            labelPos: "right",
-        },
         ClickableMap: {
             label: t("config.clickableMap"),
             type: "checkbox",
@@ -742,7 +745,7 @@ const configOptions = {
     },
     frameStyle: `
             border: 1px solid #000;
-            height: min(85%, 760px);
+            height: min(90%, 760px);
             width: min(max(25%, 405px), 100vw);
             z-index: 9999;
             opacity: 0;
