@@ -121,6 +121,32 @@ function addRestoreButton(object_type, object_id) {
     }
 }
 
+function prepareReorderingEditTagsAndDeletorButtons() {
+    if (document.querySelector(".secondary-actions .edit_tags_class")) {
+        return
+    }
+    const tagsEditorExtensionWaiter = new MutationObserver(() => {
+        if (document.querySelector(".secondary-actions .edit_tags_class")) {
+            tagsEditorExtensionWaiter.disconnect()
+
+            const tmp = document.createComment("")
+            const node1 = document.querySelector(".delete_object_button_class")
+            const node2 = document.querySelector(".edit_tags_class")
+
+            node2.replaceWith(tmp)
+            node1.replaceWith(node2)
+            tmp.replaceWith(node1)
+
+            console.log("Delete button replaced for Tags editor extension capability")
+        }
+    })
+    tagsEditorExtensionWaiter.observe(document.querySelector(".secondary-actions"), {
+        childList: true,
+        subtree: true,
+    })
+    setTimeout(() => tagsEditorExtensionWaiter.disconnect(), 3000)
+}
+
 function addDeleteButton() {
     if (!location.pathname.startsWith("/node/") && !location.pathname.startsWith("/relation/")) return
     if (location.pathname.includes("/history")) return
@@ -183,28 +209,7 @@ function addDeleteButton() {
     link.after(document.createTextNode("\xA0"))
     link.before(document.createTextNode("\xA0· "))
 
-    if (!document.querySelector(".secondary-actions .edit_tags_class")) {
-        const tagsEditorExtensionWaiter = new MutationObserver(() => {
-            if (document.querySelector(".secondary-actions .edit_tags_class")) {
-                tagsEditorExtensionWaiter.disconnect()
-
-                const tmp = document.createComment("")
-                const node1 = document.querySelector(".delete_object_button_class")
-                const node2 = document.querySelector(".edit_tags_class")
-
-                node2.replaceWith(tmp)
-                node1.replaceWith(node2)
-                tmp.replaceWith(node1)
-
-                console.log("Delete button replaced for Tags editor extension capability")
-            }
-        })
-        tagsEditorExtensionWaiter.observe(document.querySelector(".secondary-actions"), {
-            childList: true,
-            subtree: true,
-        })
-        setTimeout(() => tagsEditorExtensionWaiter.disconnect(), 3000)
-    }
+    prepareReorderingEditTagsAndDeletorButtons()
 
     async function deleteObjectHandler(e) {
         e.preventDefault()
