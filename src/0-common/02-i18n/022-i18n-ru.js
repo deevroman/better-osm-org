@@ -68,7 +68,7 @@ _translations["ru"] = {
         swipes: "Добавить свайпы между страницами правок пользователя",
         resizableSidebar: "Разрешить изменять ширину боковой панели",
         clickableAvatar: "Открывать пакеты правок по клику на аватар",
-        overzoomForDataLayer: "Разрешить оверзум при включённом слое данные или подложке β",
+        overzoomForDataLayer: "Разрешить оверзум при включённом слое данных или подложке β",
         dragAndDropViewers: "Drag&Drop для .geojson, .jpg, .gpx, .osm",
         viewer3DInNewTab: "Открывать 3D-просмотрщики зданий в новой вкладке",
         betterTaginfo: "Добавить новые кнопки в Taginfo",
