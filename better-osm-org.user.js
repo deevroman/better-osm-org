@@ -8485,6 +8485,7 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             span.style.position = "absolute"
             span.style.fontSize = "smaller"
             span.style.color = "gray"
+            span.style.wordWrap = "initial"
             span.textContent = " "
             changesetProps["tags"].forEach(({ id, name }) => {
                 span.textContent += name.replace(" ", " ") + " "
