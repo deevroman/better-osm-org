@@ -54,6 +54,7 @@ _translations["de"] = {
         resolveNotesButton: "Zusätzliche Schließen-Schaltflächen:",
         autoResolveNote: "Kommentar einfügen und Hinweis schließen β",
         revertButton: "Revert&Osmcha-Changeset-Schaltfläche",
+        suggestAddOsmchaTags: "Vorschlagen, einen Grund für den Dislike anzugeben",
         deletor: "Schaltfläche zum Löschen von Knoten",
         oneClickDeletor: "Knoten ohne Bestätigung löschen",
         changesetsTemplates: 'Vorlagen für Changeset-Kommentare <a id="last-comments-link" target="_blank">(deine letzten Kommentare)</a>',

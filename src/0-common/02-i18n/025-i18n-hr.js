@@ -54,6 +54,7 @@ _translations["hr"] = {
         resolveNotesButton: "Dodatni gumbi za rješavanje:",
         autoResolveNote: "Umetni komentar i zatvori bilješku β",
         revertButton: "Gumb changeseta Revert&Osmcha",
+        suggestAddOsmchaTags: "Predloži navođenje razloga za dislike",
         deletor: "Gumb za brisanje točke",
         oneClickDeletor: "Briši točke bez potvrde",
         changesetsTemplates: 'Predlošci komentara changeseta <a id="last-comments-link" target="_blank">(vaši zadnji komentari)</a>',
