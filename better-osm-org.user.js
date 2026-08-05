@@ -21720,25 +21720,6 @@ function addQuickLookStyles() {
     }
 }
 
-function removeEditTagsButton() {
-    if (location.pathname.startsWith("/changeset/")) {
-        if (!document.querySelector(".secondary-actions .edit_tags_class")) {
-            const tagsEditorExtensionWaiter = new MutationObserver(() => {
-                document.querySelector(".edit_tags_class")?.previousSibling?.remove()
-                document.querySelector(".edit_tags_class")?.remove()
-            })
-            tagsEditorExtensionWaiter.observe(document.querySelector(".secondary-actions"), {
-                childList: true,
-                subtree: true,
-            })
-            setTimeout(() => tagsEditorExtensionWaiter.disconnect(), 3000)
-        } else {
-            document.querySelector(".edit_tags_class")?.previousSibling?.remove()
-            document.querySelector(".edit_tags_class")?.remove()
-        }
-    }
-}
-
 async function preloadChangeset(changesetID) {
     console.log(`c${changesetID} preloading`)
     performance.mark("PRELOADING_" + changesetID)
@@ -22984,7 +22965,6 @@ async function addChangesetQuickLook() {
         document.querySelector("#sidebar").style.resize = "horizontal"
     }
     addSwipes()
-    removeEditTagsButton()
 
     const changesetID = location.pathname.match(/changeset\/(\d+)/)[1]
     if (isOGFServer() && !document.querySelector("turbo-frame")) {
