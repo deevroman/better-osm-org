@@ -86,6 +86,18 @@
       "label": "ozon.ru tiles",
       "value": "https://gist.githubusercontent.com/deevroman/fdef5a2bf8412755d5e617618cfb1377/raw/42d4615556e9845847aace26d99625c475ab0d63/style.json",
       "about": "https://www.ozon.ru/geo"
+    },
+    {
+      "label": "maps.vk.com tiles",
+      "value": "https://maps.vk.com/api/styles/{style}_style.json?api_key=047a0e88012b06078a8a4beb038b2da88f0c1e5cb0af885980bcf32a2c352fd3",
+      "about": "https://maps.vk.com",
+      "fields": {
+        "style": [
+          { "name": "main", "value": "main" },
+          { "name": "dark", "value": "dark" },
+          { "name": "light", "value": "light" }
+        ]
+      }
     }
   ]
 }
