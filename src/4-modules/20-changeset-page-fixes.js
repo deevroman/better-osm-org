@@ -293,13 +293,13 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             await uncheck(changeset_id)
             await updateReactions()
         }
-        await osmchaRequest(`${osmcha_server_origin}/api/v1/changesets/${changeset_id}/set-harmful/`, "PUT")
-        await updateReactions()
-        if (isDebug()) {
+        if (GM_config.get("SuggestAddOsmchaTags")) {
             e.stopPropagation()
             e.stopImmediatePropagation()
             contextMenuHandler(e)
         }
+        await osmchaRequest(`${osmcha_server_origin}/api/v1/changesets/${changeset_id}/set-harmful/`, "PUT")
+        await updateReactions()
     }
 
     let changesetProps = null

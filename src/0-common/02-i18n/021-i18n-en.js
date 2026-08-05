@@ -54,6 +54,7 @@ _translations["en"] = {
         resolveNotesButton: "Addition resolve buttons:",
         autoResolveNote: "Insert comment and close note β",
         revertButton: "Revert&Osmcha changeset button",
+        suggestAddOsmchaTags: "Suggest specifying a reason for the dislike",
         deletor: "Button for node deletion",
         oneClickDeletor: "Delete node without confirmation",
         changesetsTemplates: 'Changesets comments templates <a id="last-comments-link" target="_blank">(your last comments)</a>',

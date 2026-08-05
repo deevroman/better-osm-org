@@ -278,6 +278,7 @@ _translations["en"] = {
         resolveNotesButton: "Addition resolve buttons:",
         autoResolveNote: "Insert comment and close note β",
         revertButton: "Revert&Osmcha changeset button",
+        suggestAddOsmchaTags: "Suggest specifying a reason for the dislike",
         deletor: "Button for node deletion",
         oneClickDeletor: "Delete node without confirmation",
         changesetsTemplates: 'Changesets comments templates <a id="last-comments-link" target="_blank">(your last comments)</a>',
@@ -723,6 +724,7 @@ _translations["tr"] = {
         resolveNotesButton: "Ek çözümleme düğmeleri:",
         autoResolveNote: "Yorum ekle ve notu kapat β",
         revertButton: "Değişiklik seti için geri al ve OSMCha düğmesi",
+        suggestAddOsmchaTags: "Beğenmeme nedenini belirtmeyi öner",
         deletor: "Düğüm silme düğmesi",
         oneClickDeletor: "Düğümü onaysız sil",
         changesetsTemplates: 'Değişiklik seti yorum şablonları <a id="last-comments-link" target="_blank">(son yorumlarınız)</a>',
@@ -1174,6 +1176,7 @@ _translations["ru"] = {
         resolveNotesButton: "Дополнительные кнопки закрытия заметок:",
         autoResolveNote: "Закрывать заметку после нажатия кнопки β",
         revertButton: "Кнопки отката и открытия OSMCha для пакета правок",
+        suggestAddOsmchaTags: "Предлагать указать причину дизлайка",
         deletor: "Кнопка удаления точки",
         oneClickDeletor: "Удалять точки без подтверждения",
         changesetsTemplates: 'Шаблоны комментариев к правкам <a id="last-comments-link" target="_blank">(ваши последние комментарии)</a>',
@@ -1636,6 +1639,7 @@ _translations["de"] = {
         resolveNotesButton: "Zusätzliche Schließen-Schaltflächen:",
         autoResolveNote: "Kommentar einfügen und Hinweis schließen β",
         revertButton: "Revert&Osmcha-Changeset-Schaltfläche",
+        suggestAddOsmchaTags: "Vorschlagen, einen Grund für den Dislike anzugeben",
         deletor: "Schaltfläche zum Löschen von Knoten",
         oneClickDeletor: "Knoten ohne Bestätigung löschen",
         changesetsTemplates: 'Vorlagen für Changeset-Kommentare <a id="last-comments-link" target="_blank">(deine letzten Kommentare)</a>',
@@ -2086,6 +2090,7 @@ _translations["fr"] = {
         resolveNotesButton: "Boutons supplémentaires de résolution :",
         autoResolveNote: "Insérer un commentaire et fermer la note β",
         revertButton: "Bouton de changeset Revert&Osmcha",
+        suggestAddOsmchaTags: "Suggérer d'indiquer une raison au dislike",
         deletor: "Bouton de suppression de nœud",
         oneClickDeletor: "Supprimer le nœud sans confirmation",
         changesetsTemplates:
@@ -2538,6 +2543,7 @@ _translations["hr"] = {
         resolveNotesButton: "Dodatni gumbi za rješavanje:",
         autoResolveNote: "Umetni komentar i zatvori bilješku β",
         revertButton: "Gumb changeseta Revert&Osmcha",
+        suggestAddOsmchaTags: "Predloži navođenje razloga za dislike",
         deletor: "Gumb za brisanje točke",
         oneClickDeletor: "Briši točke bez potvrde",
         changesetsTemplates: 'Predlošci komentara changeseta <a id="last-comments-link" target="_blank">(vaši zadnji komentari)</a>',
@@ -2986,6 +2992,7 @@ _translations["uk"] = {
         resolveNotesButton: "Додаткові кнопки вирішення:",
         autoResolveNote: "Вставити коментар та закрити замітку β",
         revertButton: "Кнопка набору змін Revert&Osmcha",
+        suggestAddOsmchaTags: "Пропонувати вказати причину дизлайка",
         deletor: "Кнопка видалення точки",
         oneClickDeletor: "Видаляти точки без підтвердження",
         changesetsTemplates: 'Шаблони коментарів до наборів змін <a id="last-comments-link" target="_blank">(ваші останні коментарі)</a>',
@@ -4455,6 +4462,12 @@ const configOptions = {
         RevertButton: {
             section: [t("config.sectionNewActions")],
             label: t("config.revertButton"),
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        SuggestAddOsmchaTags: {
+            label: t("config.suggestAddOsmchaTags"),
             type: "checkbox",
             default: "checked",
             labelPos: "right",
@@ -8427,13 +8440,13 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             await uncheck(changeset_id)
             await updateReactions()
         }
-        await osmchaRequest(`${osmcha_server_origin}/api/v1/changesets/${changeset_id}/set-harmful/`, "PUT")
-        await updateReactions()
-        if (isDebug()) {
+        if (GM_config.get("SuggestAddOsmchaTags")) {
             e.stopPropagation()
             e.stopImmediatePropagation()
             contextMenuHandler(e)
         }
+        await osmchaRequest(`${osmcha_server_origin}/api/v1/changesets/${changeset_id}/set-harmful/`, "PUT")
+        await updateReactions()
     }
 
     let changesetProps = null

@@ -346,6 +346,12 @@ const configOptions = {
             default: "checked",
             labelPos: "right",
         },
+        SuggestAddOsmchaTags: {
+            label: t("config.suggestAddOsmchaTags"),
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
         Deletor: {
             label: t("config.deletor"),
             type: "checkbox",

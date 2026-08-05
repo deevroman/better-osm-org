@@ -54,6 +54,7 @@ _translations["tr"] = {
         resolveNotesButton: "Ek çözümleme düğmeleri:",
         autoResolveNote: "Yorum ekle ve notu kapat β",
         revertButton: "Değişiklik seti için geri al ve OSMCha düğmesi",
+        suggestAddOsmchaTags: "Beğenmeme nedenini belirtmeyi öner",
         deletor: "Düğüm silme düğmesi",
         oneClickDeletor: "Düğümü onaysız sil",
         changesetsTemplates: 'Değişiklik seti yorum şablonları <a id="last-comments-link" target="_blank">(son yorumlarınız)</a>',

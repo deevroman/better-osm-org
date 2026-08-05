@@ -54,6 +54,7 @@ _translations["fr"] = {
         resolveNotesButton: "Boutons supplémentaires de résolution :",
         autoResolveNote: "Insérer un commentaire et fermer la note β",
         revertButton: "Bouton de changeset Revert&Osmcha",
+        suggestAddOsmchaTags: "Suggérer d'indiquer une raison au dislike",
         deletor: "Bouton de suppression de nœud",
         oneClickDeletor: "Supprimer le nœud sans confirmation",
         changesetsTemplates:
