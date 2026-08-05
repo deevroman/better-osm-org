@@ -1072,9 +1072,11 @@ function makeVersionPageBetter() {
     addCompactSidebarStyle()
     externalizeLinks(document.querySelectorAll("#sidebar_content p a"))
     externalizeLinks(document.querySelectorAll("#sidebar_content table a"))
-    const browseSectionSelector = document.querySelector("#element_versions_list")
-        ? '#element_versions_list > div:not(:has(a[href*="/redactions/"]:not([rel]):not(.unredacted)))'
-        : "#sidebar_content > :is(div, turbo-frame):first-of-type"
+    const browseSectionSelector = document.querySelector("#sidebar_content_frame")
+        ? "#sidebar_content > turbo-frame > div:first-of-type"
+        : document.querySelector("#element_versions_list")
+          ? '#element_versions_list > div:not(:has(a[href*="/redactions/"]:not([rel]):not(.unredacted)))'
+          : "#sidebar_content > div:first-of-type"
     if (!document.querySelector(".find-user-btn")) {
         try {
             const ver = document.querySelector(browseSectionSelector)
