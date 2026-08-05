@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.6.8.1
+// @version         1.6.8.2
 // @changelog       v1.6.6: Under experimental flag: clickable POIs, full history for relations, level0 reborn links
 // @changelog       v1.6.6: Links to regional Taginfo on taginfo.osm.org and Overpass links on #combinations page
 // @changelog       v1.6.6: Download visible notes as .kml, Nodes restorer, parameters for vector styles
@@ -24896,9 +24896,11 @@ function makeVersionPageBetter() {
     addCompactSidebarStyle()
     externalizeLinks(document.querySelectorAll("#sidebar_content p a"))
     externalizeLinks(document.querySelectorAll("#sidebar_content table a"))
-    const browseSectionSelector = document.querySelector("#element_versions_list")
-        ? '#element_versions_list > div:not(:has(a[href*="/redactions/"]:not([rel]):not(.unredacted)))'
-        : "#sidebar_content > :is(div, turbo-frame):first-of-type"
+    const browseSectionSelector = document.querySelector("#sidebar_content_frame")
+        ? "#sidebar_content > turbo-frame > div:first-of-type"
+        : document.querySelector("#element_versions_list")
+          ? '#element_versions_list > div:not(:has(a[href*="/redactions/"]:not([rel]):not(.unredacted)))'
+          : "#sidebar_content > div:first-of-type"
     if (!document.querySelector(".find-user-btn")) {
         try {
             const ver = document.querySelector(browseSectionSelector)
