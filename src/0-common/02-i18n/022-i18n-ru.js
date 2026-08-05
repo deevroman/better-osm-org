@@ -22,6 +22,10 @@ _translations["ru"] = {
         sectionID: "iD",
         sectionViewingEdits: "Просмотр правок",
         sectionWorkingWithNotes: "Работа с заметками",
+
+        sectionInterfaceNavigation: "Перемещение по интерфейсу",
+        sectionNewElements: "Новые кнопки и не только",
+        sectionProfiles: "Страницы профилей",
         sectionNewActions: "Новые действия",
         sectionOther: "Прочее",
         darkModeForMap: "Инвертировать цвета карты в тёмной теме",
