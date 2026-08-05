@@ -24990,6 +24990,9 @@ function initCspBridge() {
         if (e.data.url.startsWith("https://tile.tracestrack.com")) {
             opt.headers = { Referer: "https://www.openstreetmap.org/" }
         }
+        if (e.data.url.startsWith("https://maps.vk.com")) {
+            opt.headers = { Referer: "https://maps.vk.com/" }
+        }
         // fuck TM, need imitate Response
         try {
             const res = await fetchBlobWithCache(e.data.url, opt)
@@ -25162,6 +25165,8 @@ function runInOsmPageCode() {
     // const cache = new Map();
 
     window.mapDataIDsFilter = new Set();
+    
+    window.vk_api_key = ""
 
     console.log('Fetch intercepted');
     window.fetch = async (...args) => {
@@ -25362,8 +25367,14 @@ function runInOsmPageCode() {
                     || window.customVectorStyleLayerOrigin.startsWith("https://raw.githubusercontent.com") 
                     || args?.[0]?.url?.startsWith?.(window.customVectorStyleLayerOrigin)
                     || args?.[0]?.url?.startsWith?.("https://demotiles.maplibre.org/")
-                )) {
-                const resourceUrl = args?.[0]?.url
+                )
+            || window.customVectorStyleLayerOrigin === "https://maps.vk.com" && args?.[0]?.url.startsWith("mmr://")) {
+                if (window.customVectorStyleLayerOrigin === "https://maps.vk.com" && window.vk_api_key === "") {
+                    window.vk_api_key = new URL(args?.[0]?.url).searchParams.get("api_key") ?? ""
+                }
+                const resourceUrl = args?.[0]?.url.startsWith("mmr://") 
+                                    ? args[0].url.replace("mmr://tiles/", "https://tiles.maps.vk.com/tiles/").replace("mmr://", "https://maps.vk.com/") + "?api_key=" + window.vk_api_key 
+                                    : args?.[0]?.url
                 console.log("overridden fetch in page", window.customLayerOrigin, window.customVectorStyleLayerOrigin, resourceUrl)
                 const resultCallback = new Promise((resolve, reject) => {
                     window.addEventListener("message", e => {
