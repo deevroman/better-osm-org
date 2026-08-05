@@ -1076,6 +1076,11 @@ const compactSidebarStyleText = `
     turbo-frame {
         word-wrap: anywhere;
     }
+    
+    .changeset_line {
+        word-wrap: initial;
+    }
+    
     .numbered_pagination {
         word-wrap: initial;
     }
