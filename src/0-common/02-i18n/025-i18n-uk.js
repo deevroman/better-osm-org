@@ -55,7 +55,7 @@ _translations["uk"] = {
         autoResolveNote: "Вставити коментар та закрити замітку β",
         revertButton: "Кнопка набору змін Revert&Osmcha",
         deletor: "Кнопка видалення точки",
-        oneClickDeletor: "Видаляти точку без підтвердження",
+        oneClickDeletor: "Видаляти точки без підтвердження",
         changesetsTemplates: 'Шаблони коментарів до наборів змін <a id="last-comments-link" target="_blank">(ваші останні коментарі)</a>',
         hdycInProfile: "Додати HDYC до профілю користувача",
         betterProfileStat: "Додати фільтри до статистики профілю",
