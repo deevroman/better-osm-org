@@ -352,14 +352,14 @@ const configOptions = {
             default: "checked",
             labelPos: "right",
         },
-        Deletor: {
-            label: t("config.deletor"),
+        TagsEditor: {
+            label: t("config.tagsEditor"),
             type: "checkbox",
             default: "checked",
             labelPos: "right",
         },
-        TagsEditor: {
-            label: t("config.tagsEditor"),
+        Deletor: {
+            label: t("config.deletor"),
             type: "checkbox",
             default: "checked",
             labelPos: "right",
