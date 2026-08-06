@@ -118,11 +118,18 @@ async function uploadChanges(object_type, object_id, object_version, newTags) {
     try {
         objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
 
-        const objectInfoStr = new XMLSerializer().serializeToString(objectInfo).replace(/xmlns="[^"]+"/, "")
-        console.log(objectInfoStr)
-        await osmAuthFetch(osm_server.apiBase + object_type + "/" + object_id, {
-            method: "PUT",
-            body: objectInfoStr,
+        const osmChangeWrapper = new DOMParser().parseFromString(
+            '<osmChange version="0.6" generator="better osm.org"><modify></modify></osmChange>',
+            "text/xml",
+        )
+        osmChangeWrapper.querySelector("modify").appendChild(objectInfo.children[0].children[0])
+
+        const body = new XMLSerializer().serializeToString(osmChangeWrapper).replace(/xmlns="[^"]+"/, "")
+        console.log(body)
+
+        await osmAuthFetch(osm_server.apiBase + "changeset/" + changesetId + "/upload", {
+            method: "POST",
+            body: body,
         }).then(async res => {
             const text = await res.text()
             if (res.ok) return text
