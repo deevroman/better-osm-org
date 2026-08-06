@@ -186,8 +186,13 @@ async function editTagsHandler(e) {
 
     const wrapper = document.createElement("div")
     wrapper.classList.add("better-osm-tags-editor-wrapper")
-    document.querySelector("#sidebar_content h2 + div").setAttribute("hidden", "true")
-    document.querySelector("#sidebar_content h2").after(wrapper)
+
+    const paneForReplace =
+        document.querySelector("#sidebar_content h2 ~ div:not(.openhistoricalmap-inspector-panel)") ??
+        document.querySelector("#sidebar_content h2").parentElement.nextElementSibling
+    paneForReplace.setAttribute("hidden", "true")
+    paneForReplace.classList.add("hidden-via-tags-editor")
+    paneForReplace.before(wrapper)
 
     const ta = document.createElement("textarea")
     ta.classList.add("form-control")
@@ -230,7 +235,7 @@ async function editTagsHandler(e) {
     cancelButton.textContent = "Cancel"
     cancelButton.onclick = () => {
         wrapper.remove()
-        document.querySelector("#sidebar_content h2 + div[hidden]").removeAttribute("hidden")
+        document.querySelector(".hidden-via-tags-editor[hidden]").removeAttribute("hidden")
     }
 
     btnWrapper.appendChild(cancelButton)
