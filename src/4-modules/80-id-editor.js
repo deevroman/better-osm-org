@@ -71,7 +71,12 @@ function setupIDframe() {
                 }`)
     }
     GM_registerMenuCommand("Show iD OAuth token", function () {
-        alert(extractOauthToken())
+        const token = extractOauthToken()
+        if (!token) {
+            alert(t("idEditor.focusIframeAlert"))
+            return
+        }
+        alert(token)
     })
     setupBetterTagsPaste()
     if (isDebug()) {

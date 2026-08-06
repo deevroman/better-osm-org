@@ -1,17 +1,12 @@
 //<editor-fold desc="osm-utils" defaultstate="collapsed">
 
 function extractOauthToken() {
-    const token =
+    return (
         document.querySelector("#id-container")?.getAttribute("data-token") ??
         document.querySelector("#id-embed")?.getAttribute("data-key") ??
         localStorage.getItem(`${osm_server.url}oauth2_access_token`) ??
-        JSON.parse(localStorage.getItem(`${osm_server.url}oauth_token`)) ??
         document.head?.getAttribute("data-oauth-token")
-    if (!token) {
-        alert(t("idEditor.focusIframeAlert"))
-        return
-    }
-    return token
+    )
 }
 
 /**

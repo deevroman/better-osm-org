@@ -6811,17 +6811,12 @@ function drawRay(lat, lon, angle, color) {
 //<editor-fold desc="osm-utils" defaultstate="collapsed">
 
 function extractOauthToken() {
-    const token =
+    return (
         document.querySelector("#id-container")?.getAttribute("data-token") ??
         document.querySelector("#id-embed")?.getAttribute("data-key") ??
         localStorage.getItem(`${osm_server.url}oauth2_access_token`) ??
-        JSON.parse(localStorage.getItem(`${osm_server.url}oauth_token`)) ??
         document.head?.getAttribute("data-oauth-token")
-    if (!token) {
-        alert(t("idEditor.focusIframeAlert"))
-        return
-    }
-    return token
+    )
 }
 
 /**
@@ -11932,8 +11927,13 @@ async function editTagsHandler(e) {
 
     const wrapper = document.createElement("div")
     wrapper.classList.add("better-osm-tags-editor-wrapper")
-    document.querySelector("#sidebar_content h2 + div").setAttribute("hidden", "true")
-    document.querySelector("#sidebar_content h2").after(wrapper)
+
+    const paneForReplace =
+        document.querySelector("#sidebar_content h2 ~ div:not(.openhistoricalmap-inspector-panel)") ??
+        document.querySelector("#sidebar_content h2").parentElement.nextElementSibling
+    paneForReplace.setAttribute("hidden", "true")
+    paneForReplace.classList.add("hidden-via-tags-editor")
+    paneForReplace.before(wrapper)
 
     const ta = document.createElement("textarea")
     ta.classList.add("form-control")
@@ -11976,7 +11976,7 @@ async function editTagsHandler(e) {
     cancelButton.textContent = "Cancel"
     cancelButton.onclick = () => {
         wrapper.remove()
-        document.querySelector("#sidebar_content h2 + div[hidden]").removeAttribute("hidden")
+        document.querySelector(".hidden-via-tags-editor[hidden]").removeAttribute("hidden")
     }
 
     btnWrapper.appendChild(cancelButton)
@@ -34101,7 +34101,12 @@ function setupIDframe() {
                 }`)
     }
     GM_registerMenuCommand("Show iD OAuth token", function () {
-        alert(extractOauthToken())
+        const token = extractOauthToken()
+        if (!token) {
+            alert(t("idEditor.focusIframeAlert"))
+            return
+        }
+        alert(token)
     })
     setupBetterTagsPaste()
     if (isDebug()) {
