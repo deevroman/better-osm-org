@@ -1,5 +1,4 @@
 //<editor-fold desc="globals" defaultstate="collapsed">
-/*global osmAuth*/
 /*global GM*/
 /*global GM_info*/
 /*global GM_config*/

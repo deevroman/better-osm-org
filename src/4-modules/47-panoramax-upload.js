@@ -163,18 +163,15 @@ async function addPanoramaxTag(pictureId, object_type, object_id) {
 
         const objectInfoStr = new XMLSerializer().serializeToString(objectInfo).replace(/xmlns="[^"]+"/, "")
         console.log(objectInfoStr)
-        await osmEditAuth
-            .fetch(osm_server.apiBase + object_type + "/" + object_id, {
-                method: "PUT",
-                prefix: false,
-                body: objectInfoStr,
-            })
-            .then(async res => {
-                const text = await res.text()
-                if (res.ok) return text
-                alert(text)
-                throw new Error(text)
-            })
+        await osmAuthFetch(osm_server.apiBase + object_type + "/" + object_id, {
+            method: "PUT",
+            body: objectInfoStr,
+        }).then(async res => {
+            const text = await res.text()
+            if (res.ok) return text
+            alert(`HTTP ${res.status}\n${text}`)
+            throw new Error(text)
+        })
     } finally {
         await closeOsmChangeset(changesetId)
     }
@@ -245,7 +242,6 @@ function addUploadPanoramaxBtn() {
     uploadImgBtn.style.display = "none"
     uploadImgBtn.style.paddingLeft = "10px"
     uploadImgBtn.onclick = async () => {
-        initOsmAuth()
         new URL(instanceInput.value)
         void GM.setValue("panoramaxInstance", (panoramaxInstance = instanceInput.value))
         if (!fileInput.files.length) {

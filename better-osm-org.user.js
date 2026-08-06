@@ -1,7 +1,8 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.6.8.2
+// @version         1.6.9
+// @changelog       v1.6.9: Tags editor, ctrl + S to Save Overpass results, suggest osmcha tags after dislike
 // @changelog       v1.6.6: Under experimental flag: clickable POIs, full history for relations, level0 reborn links
 // @changelog       v1.6.6: Links to regional Taginfo on taginfo.osm.org and Overpass links on #combinations page
 // @changelog       v1.6.6: Download visible notes as .kml, Nodes restorer, parameters for vector styles
@@ -76,7 +77,6 @@
 // @supportURL   https://github.com/deevroman/better-osm-org/issues
 // @icon         https://www.openstreetmap.org/favicon.ico
 // @require      https://raw.githubusercontent.com/deevroman/GM_config/fixed-for-chromium/gm_config.js#sha256=ea04cb4254619543f8bca102756beee3e45e861077a75a5e74d72a5c131c580b
-// @require      https://raw.githubusercontent.com/deevroman/osm-auth/d83736efcbec64a87d2c31ffdca3e3efc255f823/dist/osm-auth.iife.js#sha256=f9f85ed6209aa413097a5a4e1a4b6870d3a9ee94f267ac7c3ec35cee99b7dec9
 // @require      https://raw.githubusercontent.com/deevroman/exif-js/aad22d0e24726efd1440a008ad08ab704731fcfd/exif.js#sha256=79c449a11e9e485318ca8eff108e1cbcc0ec8b8aa3f0a40294021a2898319147
 // @require      https://raw.githubusercontent.com/deevroman/osmtogeojson/c97381a0c86c0a021641dd47d7bea01fb5514716/osmtogeojson.js#sha256=663bb5bbae47d5d12bff9cf1c87b8f973e85fab4b1f83453810aae99add54592
 // @require      https://raw.githubusercontent.com/deevroman/better-osm-org/5a949d7b1b0897472396758dd5c1aaa514bba6c6/misc/assets/snow-animation.js#sha256=3b6cd76818c5575ea49aceb7bf4dc528eb8a7cb228b701329a41bb50f0800a5d
@@ -182,7 +182,6 @@
 // ==/UserScript==
 
 //<editor-fold desc="globals" defaultstate="collapsed">
-/*global osmAuth*/
 /*global GM*/
 /*global GM_info*/
 /*global GM_config*/
@@ -279,6 +278,7 @@ _translations["en"] = {
         autoResolveNote: "Insert comment and close note β",
         revertButton: "Revert&Osmcha changeset button",
         suggestAddOsmchaTags: "Suggest specifying a reason for the dislike",
+        tagsEditor: "Alternative osmtags-editor implementation",
         deletor: "Button for node deletion",
         oneClickDeletor: "Delete node without confirmation",
         changesetsTemplates: 'Changesets comments templates <a id="last-comments-link" target="_blank">(your last comments)</a>',
@@ -725,6 +725,7 @@ _translations["tr"] = {
         autoResolveNote: "Yorum ekle ve notu kapat β",
         revertButton: "Değişiklik seti için geri al ve OSMCha düğmesi",
         suggestAddOsmchaTags: "Beğenmeme nedenini belirtmeyi öner",
+        tagsEditor: "Alternatif osmtags-editor uygulaması",
         deletor: "Düğüm silme düğmesi",
         oneClickDeletor: "Düğümü onaysız sil",
         changesetsTemplates: 'Değişiklik seti yorum şablonları <a id="last-comments-link" target="_blank">(son yorumlarınız)</a>',
@@ -1177,6 +1178,7 @@ _translations["ru"] = {
         autoResolveNote: "Закрывать заметку после нажатия кнопки β",
         revertButton: "Кнопки отката и открытия OSMCha для пакета правок",
         suggestAddOsmchaTags: "Предлагать указать причину дизлайка",
+        tagsEditor: "Альтернативная реализация osmtags-editor",
         deletor: "Кнопка удаления точки",
         oneClickDeletor: "Удалять точки без подтверждения",
         changesetsTemplates: 'Шаблоны комментариев к правкам <a id="last-comments-link" target="_blank">(ваши последние комментарии)</a>',
@@ -1640,6 +1642,7 @@ _translations["de"] = {
         autoResolveNote: "Kommentar einfügen und Hinweis schließen β",
         revertButton: "Revert&Osmcha-Changeset-Schaltfläche",
         suggestAddOsmchaTags: "Vorschlagen, einen Grund für den Dislike anzugeben",
+        tagsEditor: "Alternative osmtags-editor-Implementierung",
         deletor: "Schaltfläche zum Löschen von Knoten",
         oneClickDeletor: "Knoten ohne Bestätigung löschen",
         changesetsTemplates: 'Vorlagen für Changeset-Kommentare <a id="last-comments-link" target="_blank">(deine letzten Kommentare)</a>',
@@ -2091,6 +2094,7 @@ _translations["fr"] = {
         autoResolveNote: "Insérer un commentaire et fermer la note β",
         revertButton: "Bouton de changeset Revert&Osmcha",
         suggestAddOsmchaTags: "Suggérer d'indiquer une raison au dislike",
+        tagsEditor: "Implémentation alternative d'osmtags-editor",
         deletor: "Bouton de suppression de nœud",
         oneClickDeletor: "Supprimer le nœud sans confirmation",
         changesetsTemplates:
@@ -2544,6 +2548,7 @@ _translations["hr"] = {
         autoResolveNote: "Umetni komentar i zatvori bilješku β",
         revertButton: "Gumb changeseta Revert&Osmcha",
         suggestAddOsmchaTags: "Predloži navođenje razloga za dislike",
+        tagsEditor: "Alternativna implementacija osmtags-editora",
         deletor: "Gumb za brisanje točke",
         oneClickDeletor: "Briši točke bez potvrde",
         changesetsTemplates: 'Predlošci komentara changeseta <a id="last-comments-link" target="_blank">(vaši zadnji komentari)</a>',
@@ -2993,6 +2998,7 @@ _translations["uk"] = {
         autoResolveNote: "Вставити коментар та закрити замітку β",
         revertButton: "Кнопка набору змін Revert&Osmcha",
         suggestAddOsmchaTags: "Пропонувати вказати причину дизлайка",
+        tagsEditor: "Альтернативна реалізація osmtags-editor",
         deletor: "Кнопка видалення точки",
         oneClickDeletor: "Видаляти точки без підтвердження",
         changesetsTemplates: 'Шаблони коментарів до наборів змін <a id="last-comments-link" target="_blank">(ваші останні коментарі)</a>',
@@ -3435,24 +3441,6 @@ function t(key, params = null) {
 //</editor-fold>
 
 //<editor-fold desc="init" defaultstate="collapsed">
-/*global osmAuth*/
-/*global GM*/
-/*global GM_info*/
-/*global GM_config*/
-/*global GM_addElement*/
-/*global GM_getResourceURL*/
-/*global GM_getResourceText*/
-/*global GM_registerMenuCommand*/
-/*global unsafeWindow*/
-/*global exportFunction*/
-/*global cloneInto*/
-/*global EXIF*/
-/*global osmtogeojson*/
-/*global opening_hours*/
-/*global libphonenumber*/
-/*global runSnowAnimation*/
-/*global unzipit*/
-/*global bz2*/
 function tryAddWarnAboutScriptIntoOsmOrgRepo() {
     if (document.querySelector(".better-osm-org-warn")) {
         return
@@ -4474,6 +4462,12 @@ const configOptions = {
         },
         Deletor: {
             label: t("config.deletor"),
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
+        TagsEditor: {
+            label: t("config.tagsEditor"),
             type: "checkbox",
             default: "checked",
             labelPos: "right",
@@ -6816,21 +6810,38 @@ function drawRay(lat, lon, angle, color) {
 
 //<editor-fold desc="osm-utils" defaultstate="collapsed">
 
-/** @type {import("osm-auth").OSMAuth|null}*/
-let osmEditAuth = null
-
-function initOsmAuth() {
-    if (osmEditAuth === null) {
-        osmEditAuth = osmAuth.osmAuth({
-            apiUrl: osm_server.apiUrl,
-            url: osm_server.url,
-            client_id: "FwA",
-            client_secret: "ZUq",
-            redirect_uri: GM_getResourceURL("OAUTH_HTML"),
-            scope: "write_api",
-            auto: true,
-        })
+function extractOauthToken() {
+    const token =
+        document.querySelector("#id-container")?.getAttribute("data-token") ??
+        document.querySelector("#id-embed")?.getAttribute("data-key") ??
+        localStorage.getItem(`${osm_server.url}oauth2_access_token`) ??
+        JSON.parse(localStorage.getItem(`${osm_server.url}oauth_token`)) ??
+        document.head?.getAttribute("data-oauth-token")
+    if (!token) {
+        alert(t("idEditor.focusIframeAlert"))
+        return
     }
+    return token
+}
+
+/**
+ * @param {string} url
+ * @param {{
+ * [method]: "GET"|"POST"|"PUT"|"DELETE",
+ * [body]: string,
+ * [headers]: Record.<string, *>
+ * }=} params
+ */
+async function osmAuthFetch(url, params = {}) {
+    const token = extractOauthToken()
+    if (!token) {
+        throw "Failed to get token"
+    }
+    if (!params.headers) {
+        params.headers = {}
+    }
+    params.headers.Authorization = "Bearer " + token
+    return await fetch(url, params)
 }
 
 /**
@@ -6849,24 +6860,20 @@ async function openOsmChangeset(comment) {
     tagsToXml(changesetPayload, cs, changesetTags)
     const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
 
-    const changesetId = await osmEditAuth
-        .fetch(osm_server.apiBase + "changeset/create", {
-            method: "PUT",
-            prefix: false,
-            body: chPayloadStr,
-        })
-        .then(res => {
-            if (res.ok) return res.text()
-            throw new Error(res)
-        })
+    const changesetId = await osmAuthFetch(osm_server.apiBase + "changeset/create", {
+        method: "PUT",
+        body: chPayloadStr,
+    }).then(res => {
+        if (res.ok) return res.text()
+        throw new Error(res)
+    })
     console.log("Open changeset", changesetId)
     return changesetId
 }
 
 async function closeOsmChangeset(changesetId) {
-    const res = await osmEditAuth.fetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
+    const res = await osmAuthFetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
         method: "PUT",
-        prefix: false,
     })
     if (!res.ok) {
         console.warn(await res.text())
@@ -6874,13 +6881,7 @@ async function closeOsmChangeset(changesetId) {
 }
 
 async function getOsmObjectInfo(object_type, object_id) {
-    // todo drop osmEditAuth
-    const rawObjectInfo = await (
-        await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
-            method: "GET",
-            prefix: false,
-        })
-    ).text()
+    const rawObjectInfo = await (await fetch(osm_server.apiBase + object_type + "/" + object_id)).text()
     const res = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
     const error = res.querySelector("parsererror")
     if (error) {
@@ -6890,13 +6891,7 @@ async function getOsmObjectInfo(object_type, object_id) {
 }
 
 async function getOsmObjectHistory(object_type, object_id) {
-    // todo drop osmEditAuth
-    const rawObjectInfo = await (
-        await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id + "/history", {
-            method: "GET",
-            prefix: false,
-        })
-    ).text()
+    const rawObjectInfo = await (await osmAuthFetch(osm_server.apiBase + object_type + "/" + object_id + "/history")).text()
     const res = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
     const error = res.querySelector("parsererror")
     if (error) {
@@ -6910,9 +6905,8 @@ async function getOsmObjectHistory(object_type, object_id) {
  * @return {Promise<void>}
  */
 async function createOsmNodes(body) {
-    const res = await osmEditAuth.fetch(osm_server.apiBase + "nodes", {
+    const res = await osmAuthFetch(osm_server.apiBase + "nodes", {
         method: "POST",
-        prefix: false,
         body: body,
         headers: { "Content-Type": "application/xml; charset=utf-8" },
     })
@@ -6922,9 +6916,8 @@ async function createOsmNodes(body) {
 }
 
 async function deleteOsmObjectByInfo(object_type, object_id, objectInfo) {
-    const res = await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
+    const res = await osmAuthFetch(osm_server.apiBase + object_type + "/" + object_id, {
         method: "DELETE",
-        prefix: false,
         body: new XMLSerializer().serializeToString(objectInfo),
         headers: { "Content-Type": "application/xml; charset=utf-8" },
     })
@@ -6937,9 +6930,8 @@ async function closeNote(note_id, text) {
     const path = `${osm_server.apiBase}notes/${note_id}/close.json?${new URLSearchParams({
         text: text,
     }).toString()}`
-    const res = await osmEditAuth.fetch(path, {
+    const res = await osmAuthFetch(path, {
         method: "POST",
-        prefix: false,
     })
     if (!res.ok) {
         throw new Error(await res.text())
@@ -10375,7 +10367,7 @@ async function setupClickableMap() {
         "mousedown",
         intoPageWithFun(() => {
             skipClick =
-                document.querySelector("#map-context-menu").checkVisibility() ||
+                document.querySelector("#map-context-menu")?.checkVisibility() ||
                 document.querySelector(".dropdown-menu.show") ||
                 window.getSelection().type === "Range"
         }),
@@ -10429,7 +10421,6 @@ function addCreateNewPOIButton() {
     b.before(document.createTextNode("\xA0"))
     b.onclick = async e => {
         e.stopImmediatePropagation()
-        initOsmAuth()
         console.log("Begin creating node")
 
         let tagsHint = ""
@@ -10961,7 +10952,6 @@ function insertNoteResolveButtons() {
     if (!resolveButtonsText) {
         return
     }
-    initOsmAuth()
     const note_id = location.pathname.match(/note\/(\d+)/)[1]
     JSON.parse(resolveButtonsText).forEach((row, index) => {
         if (index !== 0) {
@@ -11754,6 +11744,286 @@ function setupGPXFiltersButtons() {
 
 //</editor-fold>
 
+//<editor-fold desc="tags-editor" defaultstate="collapsed">
+
+/**
+ * @param {"node"|"way"|"relation"} object_type
+ * @param {number} object_id
+ * @param {Map<string, string>} prevTags
+ * @param {Map<string, string>} newTags
+ * @return {string}
+ */
+function makeComment(object_type, object_id, prevTags, newTags) {
+    const removedKeys = prevTags
+        .entries()
+        .map(([k]) => k)
+        .filter(k => newTags.get(k) === undefined)
+        .toArray()
+    const addedKeys = newTags
+        .entries()
+        .map(([k]) => k)
+        .filter(k => prevTags.get(k) === undefined)
+        .toArray()
+    const modifiedKeys = prevTags
+        .entries()
+        .filter(([k, v]) => newTags.get(k) !== undefined && newTags.get(k) !== v)
+        .map(([k]) => k)
+        .toArray()
+
+    let tagsHint = ""
+    if (addedKeys.length) {
+        tagsHint += "Add " + addedKeys.map(k => `${k}=${newTags.get(k)}`).join(", ") + "; "
+    }
+
+    if (modifiedKeys.length) {
+        tagsHint += "Changed " + modifiedKeys.map(k => `${k}=${prevTags.get(k)}\u200b→\u200b${newTags.get(k)}`).join(", ") + "; "
+    }
+
+    if (removedKeys.length) {
+        tagsHint += "Removed " + removedKeys.map(k => `${k}=${prevTags.get(k)}`).join(", ") + "; "
+    }
+
+    if (tagsHint.length > 200 || modifiedKeys.length > 1) {
+        tagsHint = ""
+        if (addedKeys.length) {
+            tagsHint += "Add " + addedKeys.join(", ") + "; "
+        }
+
+        if (modifiedKeys.length) {
+            tagsHint += "Changed " + modifiedKeys.join(", ") + "; "
+        }
+
+        if (removedKeys.length) {
+            tagsHint += "Removed " + removedKeys.join(", ") + "; "
+        }
+    }
+
+    tagsHint = tagsHint.match(/(.*); /)[1]
+
+    let mainTagsHint = ""
+
+    for (const i of prevTags.entries()) {
+        if (mainTags.includes(i[0]) && !removedKeys.includes(i[0]) && !modifiedKeys.includes(i[0])) {
+            mainTagsHint += ` ${i[0]}=${i[1]}`
+            break
+        }
+    }
+    for (const i of prevTags.entries()) {
+        if (i[0] === "name" && !removedKeys.includes("name") && !modifiedKeys.includes("name")) {
+            mainTagsHint += ` ${i[0]}=${i[1]}`
+            break
+        }
+    }
+
+    if (mainTagsHint !== "") {
+        if (removedKeys.length) {
+            tagsHint += " from" + mainTagsHint
+        } else if (modifiedKeys.length) {
+            tagsHint += " of" + mainTagsHint
+        } else if (addedKeys.length) {
+            tagsHint += " to" + mainTagsHint
+        }
+    } else {
+        tagsHint += ` for ${object_type} ${object_id}`
+    }
+
+    return tagsHint !== "" ? tagsHint.slice(0, 255) : `Update tags of ${object_type} ${object_id}`
+}
+
+/**
+ *
+ * @param {"node"|"way"|"relation"}object_type
+ * @param {number} object_id
+ * @param {number} object_version
+ * @param {Map<string, string>} newTags
+ * @return {Promise<string>}
+ */
+async function uploadChanges(object_type, object_id, object_version, newTags) {
+    const rawObjectInfo = await (await fetch(osm_server.apiBase + object_type + "/" + object_id)).text()
+    const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
+    const lastVersion = parseInt(objectInfo.querySelector("[version]:not(osm)").getAttribute("version"))
+    if (lastVersion !== object_version) {
+        throw "Conflict"
+    }
+
+    const objectXML = objectInfo.querySelector("node,way,relation")
+    /** @type {Map<string, string>} */
+    const prevTags = new Map()
+    objectXML.querySelectorAll("tag").forEach(i => {
+        prevTags.set(i.getAttribute("k"), i.getAttribute("v"))
+        i.remove()
+    })
+    newTags.entries().forEach(([k, v]) => {
+        const tag = objectInfo.createElement("tag")
+        tag.setAttribute("k", k)
+        tag.setAttribute("v", v)
+        objectXML.appendChild(tag)
+    })
+
+    const changesetId = await openOsmChangeset(makeComment(object_type, object_id, prevTags, newTags))
+    try {
+        objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
+
+        const objectInfoStr = new XMLSerializer().serializeToString(objectInfo).replace(/xmlns="[^"]+"/, "")
+        console.log(objectInfoStr)
+        await osmAuthFetch(osm_server.apiBase + object_type + "/" + object_id, {
+            method: "PUT",
+            body: objectInfoStr,
+        }).then(async res => {
+            const text = await res.text()
+            if (res.ok) return text
+            alert(`HTTP ${res.status}\n${text}`)
+            throw new Error(text)
+        })
+    } finally {
+        await closeOsmChangeset(changesetId)
+    }
+    return changesetId
+}
+
+let preloadTimer = null
+let preloadCache = new Map()
+
+function preloadObjectForEditTags() {
+    if (preloadTimer) {
+        return
+    }
+    preloadTimer = setTimeout(async () => {
+        preloadTimer = null
+        const { type, id } = parseCurrentOsmObjectUrl()
+        console.log(`preloading ${type}/${id}`)
+        preloadCache.set(`${type}/${id}`, fetch(`${osm_server.apiBase + type}/${id}`))
+        setTimeout(() => preloadCache.delete(`${type}/${id}`), 5000)
+    }, 50)
+}
+
+function abortPreloadObjectForEditTags() {
+    clearTimeout(preloadTimer)
+    preloadTimer = null
+}
+
+function getFetchObjectPromise(type, id) {
+    if (preloadCache.has(`${type}/${id}`)) {
+        console.log("preload hit!")
+        return preloadCache.get(`${type}/${id}`)
+    } else {
+        console.log("not preloaded :(")
+        return fetch(`${osm_server.apiBase + type}/${id}`)
+    }
+}
+
+async function editTagsHandler(e) {
+    e.preventDefault()
+    if (document.querySelector(".better-osm-org-tags-editor-wrapper")) {
+        return
+    }
+    const { type, id } = parseCurrentOsmObjectUrl()
+    if (!type) {
+        return
+    }
+    const rawObjectInfo = await (await getFetchObjectPromise(type, id)).text()
+    const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
+    const version = parseInt(objectInfo.querySelector(":is(node,way,relation)[version]").getAttribute("version"))
+
+    let taValue = ""
+    objectInfo.querySelectorAll("tag").forEach(i => {
+        taValue += i.getAttribute("k") + " = " + i.getAttribute("v").replaceAll("\\\\", "\n") + "\n"
+    })
+
+    const wrapper = document.createElement("div")
+    wrapper.classList.add("better-osm-tags-editor-wrapper")
+    document.querySelector("#sidebar_content h2 + div").setAttribute("hidden", "true")
+    document.querySelector("#sidebar_content h2").after(wrapper)
+
+    const ta = document.createElement("textarea")
+    ta.classList.add("form-control")
+    ta.style.fontFamily = "monospace"
+    ta.cols = 40
+    ta.rows = 10
+    ta.value = taValue.trimEnd()
+
+    wrapper.appendChild(ta)
+
+    const errorPane = document.createElement("div")
+    errorPane.style.color = "darkred"
+    errorPane.style.paddingBottom = "20px"
+    wrapper.appendChild(errorPane)
+
+    ta.focus()
+
+    const btnWrapper = document.createElement("span")
+    btnWrapper.classList.add("btn-wrapper")
+    btnWrapper.style.display = "flex"
+    wrapper.appendChild(btnWrapper)
+
+    const saveButton = document.createElement("button")
+    saveButton.classList.add("btn", "btn-primary")
+    saveButton.textContent = "Save"
+    saveButton.onclick = async () => {
+        try {
+            await uploadChanges(type, id, version, buildTags(ta.value))
+            tryReloadSidebar()
+        } catch (e) {
+            errorPane.textContent = e
+        }
+    }
+    btnWrapper.appendChild(saveButton)
+
+    btnWrapper.appendChild(document.createTextNode("\xA0"))
+
+    const cancelButton = document.createElement("button")
+    cancelButton.classList.add("btn", "btn-danger")
+    cancelButton.textContent = "Cancel"
+    cancelButton.onclick = () => {
+        wrapper.remove()
+        document.querySelector("#sidebar_content h2 + div[hidden]").removeAttribute("hidden")
+    }
+
+    btnWrapper.appendChild(cancelButton)
+
+    const info = document.createElement("span")
+    info.classList.add("bi", "bi-info-circle")
+    info.style.cursor = "help"
+    info.style.marginLeft = "auto"
+    info.style.alignSelf = "center"
+    info.style.color = "gray"
+    info.title = "better-osm-org implementation of tags editor"
+
+    btnWrapper.appendChild(info)
+}
+
+function addTagsEditorButton() {
+    if (!location.pathname.startsWith("/node/") && !location.pathname.startsWith("/way/") && !location.pathname.startsWith("/relation/")) {
+        return
+    }
+    if (document.querySelector(".better_edit_tags_class")) return
+    if (document.querySelector(".btn.btn-danger") !== null) return
+    if (!document.querySelector(".secondary-actions")) return
+
+    const link = document.createElement("a")
+    link.text = "Edit Tags"
+    link.title = "better-osm-org implementation. You can disable it in settings"
+    link.href = ""
+    link.classList.add("better_edit_tags_class")
+
+    document.querySelector(".secondary-actions").appendChild(link)
+    link.after(document.createTextNode("\xA0"))
+    link.before(document.createTextNode("\xA0· "))
+
+    link.onclick = editTagsHandler
+    link.onmouseenter = preloadObjectForEditTags
+    link.onmouseleave = abortPreloadObjectForEditTags
+}
+
+function setupTagsEditor() {
+    if (!location.pathname.startsWith("/node/") && !location.pathname.startsWith("/way/") && !location.pathname.startsWith("/relation/")) {
+        return
+    }
+    tryApplyModule(addTagsEditorButton, 100, 3000)
+}
+
+//</editor-fold>
+
 //<editor-fold desc="object-editor" defaultstate="collapsed">
 
 async function deleteObject(object_type, object_id) {
@@ -11834,9 +12104,8 @@ async function restoreObject(object_type, object_id) {
         prevVersionInfo.setAttribute("version", parseInt(prevVersionInfo.getAttribute("version")) + 1)
 
         const nodeStr = new XMLSerializer().serializeToString(nodePayload).replace(/xmlns="[^"]+"/, "")
-        await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
+        await osmAuthFetch(osm_server.apiBase + object_type + "/" + object_id, {
             method: "PUT",
-            prefix: false,
             body: nodeStr,
         })
     } finally {
@@ -11916,7 +12185,6 @@ function addDeleteButton() {
     const object_type = match[1]
     const object_id = match[2]
 
-    initOsmAuth()
     // skip deleted
     if (object_type === "node") {
         if (
@@ -12110,7 +12378,6 @@ function addPOIMoverItem(measuringMenuItem) {
         if (!match) return
         const object_type = match[1]
         const object_id = match[2]
-        initOsmAuth()
         if (!confirm("⚠️ move node?")) {
             return
         }
@@ -12142,18 +12409,15 @@ function addPOIMoverItem(measuringMenuItem) {
 
             const objectInfoStr = new XMLSerializer().serializeToString(objectInfo).replace(/xmlns="[^"]+"/, "")
             console.log(objectInfoStr)
-            await osmEditAuth
-                .fetch(osm_server.apiBase + object_type + "/" + object_id, {
-                    method: "PUT",
-                    prefix: false,
-                    body: objectInfoStr,
-                })
-                .then(async res => {
-                    const text = await res.text()
-                    if (res.ok) return text
-                    alert(text)
-                    throw new Error(text)
-                })
+            await osmAuthFetch(osm_server.apiBase + object_type + "/" + object_id, {
+                method: "PUT",
+                body: objectInfoStr,
+            }).then(async res => {
+                const text = await res.text()
+                if (res.ok) return text
+                alert(`HTTP ${res.status}\n${text}`)
+                throw new Error(text)
+            })
         } finally {
             await closeOsmChangeset(changesetId)
             window.location.reload()
@@ -18196,6 +18460,17 @@ function extractChangesetID(s) {
     return s.match(/\/changeset\/([0-9]+)/)[1]
 }
 
+/**
+ * @return {{type: string, id: number}}
+ */
+function parseCurrentOsmObjectUrl() {
+    const [, type, id] = location.pathname.match(/\/(node|way|relation)\/(\d+)/)
+    if (typeof type !== "string") {
+        throw "Current page isn't object page"
+    }
+    return { type: type, id: parseInt(id) }
+}
+
 function isVersionPage() {
     return !!location.pathname.match(/\/(node|way|relation)\/[0-9]+\/?(version\/[0-9]+\/?)?/)
 }
@@ -23679,18 +23954,15 @@ async function addPanoramaxTag(pictureId, object_type, object_id) {
 
         const objectInfoStr = new XMLSerializer().serializeToString(objectInfo).replace(/xmlns="[^"]+"/, "")
         console.log(objectInfoStr)
-        await osmEditAuth
-            .fetch(osm_server.apiBase + object_type + "/" + object_id, {
-                method: "PUT",
-                prefix: false,
-                body: objectInfoStr,
-            })
-            .then(async res => {
-                const text = await res.text()
-                if (res.ok) return text
-                alert(text)
-                throw new Error(text)
-            })
+        await osmAuthFetch(osm_server.apiBase + object_type + "/" + object_id, {
+            method: "PUT",
+            body: objectInfoStr,
+        }).then(async res => {
+            const text = await res.text()
+            if (res.ok) return text
+            alert(`HTTP ${res.status}\n${text}`)
+            throw new Error(text)
+        })
     } finally {
         await closeOsmChangeset(changesetId)
     }
@@ -23761,7 +24033,6 @@ function addUploadPanoramaxBtn() {
     uploadImgBtn.style.display = "none"
     uploadImgBtn.style.paddingLeft = "10px"
     uploadImgBtn.onclick = async () => {
-        initOsmAuth()
         new URL(instanceInput.value)
         void GM.setValue("panoramaxInstance", (panoramaxInstance = instanceInput.value))
         if (!fileInput.files.length) {
@@ -29351,7 +29622,6 @@ function loadBannedVersions() {
 }
 
 function renderOSMGeoJSON(xml, options = {}) {
-    initOsmAuth()
     /**
      * @param {Object.<string, string>} tags
      * @return {HTMLTableSectionElement}
@@ -29565,12 +29835,7 @@ function renderOSMGeoJSON(xml, options = {}) {
             let object_version = parseInt(feature.properties.meta.version)
 
             async function syncTags() {
-                const rawObjectInfo = await (
-                    await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
-                        method: "GET",
-                        prefix: false,
-                    })
-                ).text()
+                const rawObjectInfo = await (await osmAuthFetch(osm_server.apiBase + object_type + "/" + object_id)).text()
                 const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
                 // lastVersionsCache[`${object_type}_${object_id}`] = objectInfo
                 /** @type {Map<string, string>} */
@@ -29655,148 +29920,23 @@ function renderOSMGeoJSON(xml, options = {}) {
                         newTags = buildTags(table.querySelector("textarea").value)
                     }
 
-                    console.log("Opening changeset")
-                    const rawObjectInfo = await (
-                        await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
-                            method: "GET",
-                            prefix: false,
-                        })
-                    ).text()
-                    const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
-                    const lastVersion = parseInt(objectInfo.querySelector("[version]:not(osm)").getAttribute("version"))
-                    if (lastVersion !== object_version) {
-                        startEditEvent.target.textContent = "🔄"
-                        alert(t("geojson.conflict"))
-                        throw ""
-                    }
-
-                    const objectXML = objectInfo.querySelector("node,way,relation")
-                    /** @type {Map<string, string>} */
-                    const prevTags = new Map()
-                    objectXML.querySelectorAll("tag").forEach(i => {
-                        prevTags.set(i.getAttribute("k"), i.getAttribute("v"))
-                        i.remove()
-                    })
-                    newTags.entries().forEach(([k, v]) => {
-                        const tag = objectInfo.createElement("tag")
-                        tag.setAttribute("k", k)
-                        tag.setAttribute("v", v)
-                        objectXML.appendChild(tag)
-                    })
-
-                    /**
-                     * @param {"node"|"way"|"relation"} object_type
-                     * @param {number} object_id
-                     * @param {Map<string, string>} prevTags
-                     * @param {Map<string, string>} newTags
-                     * @return {string|string}
-                     */
-                    function makeComment(object_type, object_id, prevTags, newTags) {
-                        const removedKeys = prevTags
-                            .entries()
-                            .map(([k]) => k)
-                            .filter(k => newTags.get(k) === undefined)
-                            .toArray()
-                        const addedKeys = newTags
-                            .entries()
-                            .map(([k]) => k)
-                            .filter(k => prevTags.get(k) === undefined)
-                            .toArray()
-                        const modifiedKeys = prevTags
-                            .entries()
-                            .filter(([k, v]) => newTags.get(k) !== undefined && newTags.get(k) !== v)
-                            .map(([k]) => k)
-                            .toArray()
-
-                        let tagsHint = ""
-                        if (addedKeys.length) {
-                            tagsHint += "Add " + addedKeys.map(k => `${k}=${newTags.get(k)}`).join(", ") + "; "
-                        }
-
-                        if (modifiedKeys.length) {
-                            tagsHint +=
-                                "Changed " + modifiedKeys.map(k => `${k}=${prevTags.get(k)}\u200b→\u200b${newTags.get(k)}`).join(", ") + "; "
-                        }
-
-                        if (removedKeys.length) {
-                            tagsHint += "Removed " + removedKeys.map(k => `${k}=${prevTags.get(k)}`).join(", ") + "; "
-                        }
-
-                        if (tagsHint.length > 200 || modifiedKeys.length > 1) {
-                            tagsHint = ""
-                            if (addedKeys.length) {
-                                tagsHint += "Add " + addedKeys.join(", ") + "; "
-                            }
-
-                            if (modifiedKeys.length) {
-                                tagsHint += "Changed " + modifiedKeys.join(", ") + "; "
-                            }
-
-                            if (removedKeys.length) {
-                                tagsHint += "Removed " + removedKeys.join(", ") + "; "
-                            }
-                        }
-
-                        tagsHint = tagsHint.match(/(.*); /)[1]
-
-                        let mainTagsHint = ""
-
-                        for (const i of prevTags.entries()) {
-                            if (mainTags.includes(i[0]) && !removedKeys.includes(i[0]) && !modifiedKeys.includes(i[0])) {
-                                mainTagsHint += ` ${i[0]}=${i[1]}`
-                                break
-                            }
-                        }
-                        for (const i of prevTags.entries()) {
-                            if (i[0] === "name" && !removedKeys.includes("name") && !modifiedKeys.includes("name")) {
-                                mainTagsHint += ` ${i[0]}=${i[1]}`
-                                break
-                            }
-                        }
-
-                        if (mainTagsHint !== "") {
-                            if (removedKeys.length) {
-                                tagsHint += " from" + mainTagsHint
-                            } else if (modifiedKeys.length) {
-                                tagsHint += " of" + mainTagsHint
-                            } else if (addedKeys.length) {
-                                tagsHint += " to" + mainTagsHint
-                            }
-                        } else {
-                            tagsHint += ` for ${object_type} ${object_id}`
-                        }
-
-                        return tagsHint !== "" ? tagsHint.slice(0, 255) : `Update tags of ${object_type} ${object_id}`
-                    }
-
-                    const changesetId = await openOsmChangeset(makeComment(object_type, object_id, prevTags, newTags))
                     try {
-                        objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
+                        console.log("Starting changeset upload")
+                        const changesetId = await uploadChanges(object_type, object_id, object_version, newTags)
 
-                        const objectInfoStr = new XMLSerializer().serializeToString(objectInfo).replace(/xmlns="[^"]+"/, "")
-                        console.log(objectInfoStr)
-                        await osmEditAuth
-                            .fetch(osm_server.apiBase + object_type + "/" + object_id, {
-                                method: "PUT",
-                                prefix: false,
-                                body: objectInfoStr,
-                            })
-                            .then(async res => {
-                                const text = await res.text()
-                                if (res.ok) return text
-                                alert(text)
-                                throw new Error(text)
-                            })
+                        startEditEvent.target.textContent = "#" + changesetId
+                        startEditEvent.target.style.color = "green"
+
+                        startEditEvent.target.onclick = () => {
+                            window.open("/changeset/" + changesetId, "_blank")
+                        }
+                    } catch (e) {
+                        if (e === "Conflict") {
+                            startEditEvent.target.textContent = "🔄"
+                            alert(t("geojson.conflict"))
+                        }
                     } finally {
                         startEditEvent.target.style.cursor = ""
-                        await closeOsmChangeset(changesetId)
-                    }
-
-                    startEditEvent.target.textContent = "#" + changesetId
-                    startEditEvent.target.style.color = "green"
-
-                    startEditEvent.target.onclick = () => {
-                        window.open("/changeset/" + changesetId, "_blank")
                     }
 
                     table.addEventListener(
@@ -32651,7 +32791,7 @@ function actionOpenSelectedObjectEditTarget() {
             window.open(firstObjectUrl, "_blank")
         }
     } else {
-        document.querySelector(".edit_tags_class").click()
+        ;(document.querySelector(".better_edit_tags_class") ?? document.querySelector(".edit_tags_class")).click()
     }
 }
 
@@ -33961,15 +34101,7 @@ function setupIDframe() {
                 }`)
     }
     GM_registerMenuCommand("Show iD OAuth token", function () {
-        let token = document.querySelector("#id-container")?.getAttribute("data-token")
-        if (!token) {
-            token = localStorage.getItem(`${osm_server.url}oauth2_access_token`)
-            if (!token) {
-                alert(t("idEditor.focusIframeAlert"))
-                return
-            }
-        }
-        alert(token)
+        alert(extractOauthToken())
     })
     setupBetterTagsPaste()
     if (isDebug()) {
@@ -33996,6 +34128,7 @@ const modules = [
     setupMassChangesetsActions,
     setupRevertButton,
     setupResolveNotesButton,
+    setupTagsEditor,
     setupDeletor,
     setupHideNoteHighlight,
     setupSatelliteLayers,

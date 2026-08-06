@@ -21,7 +21,6 @@ declare function cloneInto<T>(
     },
 ): T
 
-declare const osmAuth: typeof import("osm-auth")
 // declare const GM: Tampermonkey.GM & { fetch: (url: string) => Response }
 // declare const GM_info: Tampermonkey.ScriptInfo
 // declare const GM_config: GM_configStruct

@@ -15,6 +15,7 @@ const modules = [
     setupMassChangesetsActions,
     setupRevertButton,
     setupResolveNotesButton,
+    setupTagsEditor,
     setupDeletor,
     setupHideNoteHighlight,
     setupSatelliteLayers,

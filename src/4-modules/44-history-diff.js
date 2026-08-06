@@ -2773,6 +2773,17 @@ function extractChangesetID(s) {
     return s.match(/\/changeset\/([0-9]+)/)[1]
 }
 
+/**
+ * @return {{type: string, id: number}}
+ */
+function parseCurrentOsmObjectUrl() {
+    const [, type, id] = location.pathname.match(/\/(node|way|relation)\/(\d+)/)
+    if (typeof type !== "string") {
+        throw "Current page isn't object page"
+    }
+    return { type: type, id: parseInt(id) }
+}
+
 function isVersionPage() {
     return !!location.pathname.match(/\/(node|way|relation)\/[0-9]+\/?(version\/[0-9]+\/?)?/)
 }

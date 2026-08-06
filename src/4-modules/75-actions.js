@@ -2122,7 +2122,7 @@ function actionOpenSelectedObjectEditTarget() {
             window.open(firstObjectUrl, "_blank")
         }
     } else {
-        document.querySelector(".edit_tags_class").click()
+        ;(document.querySelector(".better_edit_tags_class") ?? document.querySelector(".edit_tags_class")).click()
     }
 }
 

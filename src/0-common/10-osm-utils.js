@@ -1,20 +1,37 @@
 //<editor-fold desc="osm-utils" defaultstate="collapsed">
 
-/** @type {import("osm-auth").OSMAuth|null}*/
-let osmEditAuth = null
-
-function initOsmAuth() {
-    if (osmEditAuth === null) {
-        osmEditAuth = osmAuth.osmAuth({
-            apiUrl: osm_server.apiUrl,
-            url: osm_server.url,
-            client_id: "FwA",
-            client_secret: "ZUq",
-            redirect_uri: GM_getResourceURL("OAUTH_HTML"),
-            scope: "write_api",
-            auto: true,
-        })
+function extractOauthToken() {
+    const token =
+        document.querySelector("#id-container")?.getAttribute("data-token") ??
+        document.querySelector("#id-embed")?.getAttribute("data-key") ??
+        localStorage.getItem(`${osm_server.url}oauth2_access_token`) ??
+        JSON.parse(localStorage.getItem(`${osm_server.url}oauth_token`)) ??
+        document.head?.getAttribute("data-oauth-token")
+    if (!token) {
+        alert(t("idEditor.focusIframeAlert"))
+        return
     }
+    return token
+}
+
+/**
+ * @param {string} url
+ * @param {{
+ * [method]: "GET"|"POST"|"PUT"|"DELETE",
+ * [body]: string,
+ * [headers]: Record.<string, *>
+ * }=} params
+ */
+async function osmAuthFetch(url, params = {}) {
+    const token = extractOauthToken()
+    if (!token) {
+        throw "Failed to get token"
+    }
+    if (!params.headers) {
+        params.headers = {}
+    }
+    params.headers.Authorization = "Bearer " + token
+    return await fetch(url, params)
 }
 
 /**
@@ -33,24 +50,20 @@ async function openOsmChangeset(comment) {
     tagsToXml(changesetPayload, cs, changesetTags)
     const chPayloadStr = new XMLSerializer().serializeToString(changesetPayload)
 
-    const changesetId = await osmEditAuth
-        .fetch(osm_server.apiBase + "changeset/create", {
-            method: "PUT",
-            prefix: false,
-            body: chPayloadStr,
-        })
-        .then(res => {
-            if (res.ok) return res.text()
-            throw new Error(res)
-        })
+    const changesetId = await osmAuthFetch(osm_server.apiBase + "changeset/create", {
+        method: "PUT",
+        body: chPayloadStr,
+    }).then(res => {
+        if (res.ok) return res.text()
+        throw new Error(res)
+    })
     console.log("Open changeset", changesetId)
     return changesetId
 }
 
 async function closeOsmChangeset(changesetId) {
-    const res = await osmEditAuth.fetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
+    const res = await osmAuthFetch(osm_server.apiBase + "changeset/" + changesetId + "/close", {
         method: "PUT",
-        prefix: false,
     })
     if (!res.ok) {
         console.warn(await res.text())
@@ -58,13 +71,7 @@ async function closeOsmChangeset(changesetId) {
 }
 
 async function getOsmObjectInfo(object_type, object_id) {
-    // todo drop osmEditAuth
-    const rawObjectInfo = await (
-        await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
-            method: "GET",
-            prefix: false,
-        })
-    ).text()
+    const rawObjectInfo = await (await fetch(osm_server.apiBase + object_type + "/" + object_id)).text()
     const res = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
     const error = res.querySelector("parsererror")
     if (error) {
@@ -74,13 +81,7 @@ async function getOsmObjectInfo(object_type, object_id) {
 }
 
 async function getOsmObjectHistory(object_type, object_id) {
-    // todo drop osmEditAuth
-    const rawObjectInfo = await (
-        await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id + "/history", {
-            method: "GET",
-            prefix: false,
-        })
-    ).text()
+    const rawObjectInfo = await (await osmAuthFetch(osm_server.apiBase + object_type + "/" + object_id + "/history")).text()
     const res = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
     const error = res.querySelector("parsererror")
     if (error) {
@@ -94,9 +95,8 @@ async function getOsmObjectHistory(object_type, object_id) {
  * @return {Promise<void>}
  */
 async function createOsmNodes(body) {
-    const res = await osmEditAuth.fetch(osm_server.apiBase + "nodes", {
+    const res = await osmAuthFetch(osm_server.apiBase + "nodes", {
         method: "POST",
-        prefix: false,
         body: body,
         headers: { "Content-Type": "application/xml; charset=utf-8" },
     })
@@ -106,9 +106,8 @@ async function createOsmNodes(body) {
 }
 
 async function deleteOsmObjectByInfo(object_type, object_id, objectInfo) {
-    const res = await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
+    const res = await osmAuthFetch(osm_server.apiBase + object_type + "/" + object_id, {
         method: "DELETE",
-        prefix: false,
         body: new XMLSerializer().serializeToString(objectInfo),
         headers: { "Content-Type": "application/xml; charset=utf-8" },
     })
@@ -121,9 +120,8 @@ async function closeNote(note_id, text) {
     const path = `${osm_server.apiBase}notes/${note_id}/close.json?${new URLSearchParams({
         text: text,
     }).toString()}`
-    const res = await osmEditAuth.fetch(path, {
+    const res = await osmAuthFetch(path, {
         method: "POST",
-        prefix: false,
     })
     if (!res.ok) {
         throw new Error(await res.text())

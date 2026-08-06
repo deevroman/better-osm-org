@@ -78,9 +78,8 @@ async function restoreObject(object_type, object_id) {
         prevVersionInfo.setAttribute("version", parseInt(prevVersionInfo.getAttribute("version")) + 1)
 
         const nodeStr = new XMLSerializer().serializeToString(nodePayload).replace(/xmlns="[^"]+"/, "")
-        await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
+        await osmAuthFetch(osm_server.apiBase + object_type + "/" + object_id, {
             method: "PUT",
-            prefix: false,
             body: nodeStr,
         })
     } finally {
@@ -160,7 +159,6 @@ function addDeleteButton() {
     const object_type = match[1]
     const object_id = match[2]
 
-    initOsmAuth()
     // skip deleted
     if (object_type === "node") {
         if (

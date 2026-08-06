@@ -358,6 +358,12 @@ const configOptions = {
             default: "checked",
             labelPos: "right",
         },
+        TagsEditor: {
+            label: t("config.tagsEditor"),
+            type: "checkbox",
+            default: "checked",
+            labelPos: "right",
+        },
         OneClickDeletor: {
             label: t("config.oneClickDeletor"),
             type: "checkbox",

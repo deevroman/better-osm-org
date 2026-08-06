@@ -56,6 +56,7 @@ _translations["ru"] = {
         autoResolveNote: "Закрывать заметку после нажатия кнопки β",
         revertButton: "Кнопки отката и открытия OSMCha для пакета правок",
         suggestAddOsmchaTags: "Предлагать указать причину дизлайка",
+        tagsEditor: "Альтернативная реализация osmtags-editor",
         deletor: "Кнопка удаления точки",
         oneClickDeletor: "Удалять точки без подтверждения",
         changesetsTemplates: 'Шаблоны комментариев к правкам <a id="last-comments-link" target="_blank">(ваши последние комментарии)</a>',

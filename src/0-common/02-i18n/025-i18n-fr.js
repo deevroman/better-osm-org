@@ -55,6 +55,7 @@ _translations["fr"] = {
         autoResolveNote: "Insérer un commentaire et fermer la note β",
         revertButton: "Bouton de changeset Revert&Osmcha",
         suggestAddOsmchaTags: "Suggérer d'indiquer une raison au dislike",
+        tagsEditor: "Implémentation alternative d'osmtags-editor",
         deletor: "Bouton de suppression de nœud",
         oneClickDeletor: "Supprimer le nœud sans confirmation",
         changesetsTemplates:

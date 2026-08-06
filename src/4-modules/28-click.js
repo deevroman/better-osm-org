@@ -208,7 +208,7 @@ async function setupClickableMap() {
         "mousedown",
         intoPageWithFun(() => {
             skipClick =
-                document.querySelector("#map-context-menu").checkVisibility() ||
+                document.querySelector("#map-context-menu")?.checkVisibility() ||
                 document.querySelector(".dropdown-menu.show") ||
                 window.getSelection().type === "Range"
         }),
