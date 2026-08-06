@@ -55,6 +55,7 @@ _translations["uk"] = {
         autoResolveNote: "Вставити коментар та закрити замітку β",
         revertButton: "Кнопка набору змін Revert&Osmcha",
         suggestAddOsmchaTags: "Пропонувати вказати причину дизлайка",
+        tagsEditor: "Альтернативна реалізація osmtags-editor",
         deletor: "Кнопка видалення точки",
         oneClickDeletor: "Видаляти точки без підтвердження",
         changesetsTemplates: 'Шаблони коментарів до наборів змін <a id="last-comments-link" target="_blank">(ваші останні коментарі)</a>',

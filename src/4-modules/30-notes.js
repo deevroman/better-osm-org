@@ -37,7 +37,6 @@ function addCreateNewPOIButton() {
     b.before(document.createTextNode("\xA0"))
     b.onclick = async e => {
         e.stopImmediatePropagation()
-        initOsmAuth()
         console.log("Begin creating node")
 
         let tagsHint = ""
@@ -569,7 +568,6 @@ function insertNoteResolveButtons() {
     if (!resolveButtonsText) {
         return
     }
-    initOsmAuth()
     const note_id = location.pathname.match(/note\/(\d+)/)[1]
     JSON.parse(resolveButtonsText).forEach((row, index) => {
         if (index !== 0) {

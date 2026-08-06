@@ -55,6 +55,7 @@ _translations["de"] = {
         autoResolveNote: "Kommentar einfügen und Hinweis schließen β",
         revertButton: "Revert&Osmcha-Changeset-Schaltfläche",
         suggestAddOsmchaTags: "Vorschlagen, einen Grund für den Dislike anzugeben",
+        tagsEditor: "Alternative osmtags-editor-Implementierung",
         deletor: "Schaltfläche zum Löschen von Knoten",
         oneClickDeletor: "Knoten ohne Bestätigung löschen",
         changesetsTemplates: 'Vorlagen für Changeset-Kommentare <a id="last-comments-link" target="_blank">(deine letzten Kommentare)</a>',

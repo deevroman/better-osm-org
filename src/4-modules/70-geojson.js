@@ -390,7 +390,6 @@ function loadBannedVersions() {
 }
 
 function renderOSMGeoJSON(xml, options = {}) {
-    initOsmAuth()
     /**
      * @param {Object.<string, string>} tags
      * @return {HTMLTableSectionElement}
@@ -604,12 +603,7 @@ function renderOSMGeoJSON(xml, options = {}) {
             let object_version = parseInt(feature.properties.meta.version)
 
             async function syncTags() {
-                const rawObjectInfo = await (
-                    await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
-                        method: "GET",
-                        prefix: false,
-                    })
-                ).text()
+                const rawObjectInfo = await (await osmAuthFetch(osm_server.apiBase + object_type + "/" + object_id)).text()
                 const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
                 // lastVersionsCache[`${object_type}_${object_id}`] = objectInfo
                 /** @type {Map<string, string>} */
@@ -694,148 +688,23 @@ function renderOSMGeoJSON(xml, options = {}) {
                         newTags = buildTags(table.querySelector("textarea").value)
                     }
 
-                    console.log("Opening changeset")
-                    const rawObjectInfo = await (
-                        await osmEditAuth.fetch(osm_server.apiBase + object_type + "/" + object_id, {
-                            method: "GET",
-                            prefix: false,
-                        })
-                    ).text()
-                    const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
-                    const lastVersion = parseInt(objectInfo.querySelector("[version]:not(osm)").getAttribute("version"))
-                    if (lastVersion !== object_version) {
-                        startEditEvent.target.textContent = "🔄"
-                        alert(t("geojson.conflict"))
-                        throw ""
-                    }
-
-                    const objectXML = objectInfo.querySelector("node,way,relation")
-                    /** @type {Map<string, string>} */
-                    const prevTags = new Map()
-                    objectXML.querySelectorAll("tag").forEach(i => {
-                        prevTags.set(i.getAttribute("k"), i.getAttribute("v"))
-                        i.remove()
-                    })
-                    newTags.entries().forEach(([k, v]) => {
-                        const tag = objectInfo.createElement("tag")
-                        tag.setAttribute("k", k)
-                        tag.setAttribute("v", v)
-                        objectXML.appendChild(tag)
-                    })
-
-                    /**
-                     * @param {"node"|"way"|"relation"} object_type
-                     * @param {number} object_id
-                     * @param {Map<string, string>} prevTags
-                     * @param {Map<string, string>} newTags
-                     * @return {string|string}
-                     */
-                    function makeComment(object_type, object_id, prevTags, newTags) {
-                        const removedKeys = prevTags
-                            .entries()
-                            .map(([k]) => k)
-                            .filter(k => newTags.get(k) === undefined)
-                            .toArray()
-                        const addedKeys = newTags
-                            .entries()
-                            .map(([k]) => k)
-                            .filter(k => prevTags.get(k) === undefined)
-                            .toArray()
-                        const modifiedKeys = prevTags
-                            .entries()
-                            .filter(([k, v]) => newTags.get(k) !== undefined && newTags.get(k) !== v)
-                            .map(([k]) => k)
-                            .toArray()
-
-                        let tagsHint = ""
-                        if (addedKeys.length) {
-                            tagsHint += "Add " + addedKeys.map(k => `${k}=${newTags.get(k)}`).join(", ") + "; "
-                        }
-
-                        if (modifiedKeys.length) {
-                            tagsHint +=
-                                "Changed " + modifiedKeys.map(k => `${k}=${prevTags.get(k)}\u200b→\u200b${newTags.get(k)}`).join(", ") + "; "
-                        }
-
-                        if (removedKeys.length) {
-                            tagsHint += "Removed " + removedKeys.map(k => `${k}=${prevTags.get(k)}`).join(", ") + "; "
-                        }
-
-                        if (tagsHint.length > 200 || modifiedKeys.length > 1) {
-                            tagsHint = ""
-                            if (addedKeys.length) {
-                                tagsHint += "Add " + addedKeys.join(", ") + "; "
-                            }
-
-                            if (modifiedKeys.length) {
-                                tagsHint += "Changed " + modifiedKeys.join(", ") + "; "
-                            }
-
-                            if (removedKeys.length) {
-                                tagsHint += "Removed " + removedKeys.join(", ") + "; "
-                            }
-                        }
-
-                        tagsHint = tagsHint.match(/(.*); /)[1]
-
-                        let mainTagsHint = ""
-
-                        for (const i of prevTags.entries()) {
-                            if (mainTags.includes(i[0]) && !removedKeys.includes(i[0]) && !modifiedKeys.includes(i[0])) {
-                                mainTagsHint += ` ${i[0]}=${i[1]}`
-                                break
-                            }
-                        }
-                        for (const i of prevTags.entries()) {
-                            if (i[0] === "name" && !removedKeys.includes("name") && !modifiedKeys.includes("name")) {
-                                mainTagsHint += ` ${i[0]}=${i[1]}`
-                                break
-                            }
-                        }
-
-                        if (mainTagsHint !== "") {
-                            if (removedKeys.length) {
-                                tagsHint += " from" + mainTagsHint
-                            } else if (modifiedKeys.length) {
-                                tagsHint += " of" + mainTagsHint
-                            } else if (addedKeys.length) {
-                                tagsHint += " to" + mainTagsHint
-                            }
-                        } else {
-                            tagsHint += ` for ${object_type} ${object_id}`
-                        }
-
-                        return tagsHint !== "" ? tagsHint.slice(0, 255) : `Update tags of ${object_type} ${object_id}`
-                    }
-
-                    const changesetId = await openOsmChangeset(makeComment(object_type, object_id, prevTags, newTags))
                     try {
-                        objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
+                        console.log("Starting changeset upload")
+                        const changesetId = await uploadChanges(object_type, object_id, object_version, newTags)
 
-                        const objectInfoStr = new XMLSerializer().serializeToString(objectInfo).replace(/xmlns="[^"]+"/, "")
-                        console.log(objectInfoStr)
-                        await osmEditAuth
-                            .fetch(osm_server.apiBase + object_type + "/" + object_id, {
-                                method: "PUT",
-                                prefix: false,
-                                body: objectInfoStr,
-                            })
-                            .then(async res => {
-                                const text = await res.text()
-                                if (res.ok) return text
-                                alert(text)
-                                throw new Error(text)
-                            })
+                        startEditEvent.target.textContent = "#" + changesetId
+                        startEditEvent.target.style.color = "green"
+
+                        startEditEvent.target.onclick = () => {
+                            window.open("/changeset/" + changesetId, "_blank")
+                        }
+                    } catch (e) {
+                        if (e === "Conflict") {
+                            startEditEvent.target.textContent = "🔄"
+                            alert(t("geojson.conflict"))
+                        }
                     } finally {
                         startEditEvent.target.style.cursor = ""
-                        await closeOsmChangeset(changesetId)
-                    }
-
-                    startEditEvent.target.textContent = "#" + changesetId
-                    startEditEvent.target.style.color = "green"
-
-                    startEditEvent.target.onclick = () => {
-                        window.open("/changeset/" + changesetId, "_blank")
                     }
 
                     table.addEventListener(

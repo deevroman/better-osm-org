@@ -71,15 +71,7 @@ function setupIDframe() {
                 }`)
     }
     GM_registerMenuCommand("Show iD OAuth token", function () {
-        let token = document.querySelector("#id-container")?.getAttribute("data-token")
-        if (!token) {
-            token = localStorage.getItem(`${osm_server.url}oauth2_access_token`)
-            if (!token) {
-                alert(t("idEditor.focusIframeAlert"))
-                return
-            }
-        }
-        alert(token)
+        alert(extractOauthToken())
     })
     setupBetterTagsPaste()
     if (isDebug()) {

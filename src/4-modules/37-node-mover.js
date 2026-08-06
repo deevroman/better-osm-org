@@ -32,7 +32,6 @@ function addPOIMoverItem(measuringMenuItem) {
         if (!match) return
         const object_type = match[1]
         const object_id = match[2]
-        initOsmAuth()
         if (!confirm("⚠️ move node?")) {
             return
         }
@@ -64,18 +63,15 @@ function addPOIMoverItem(measuringMenuItem) {
 
             const objectInfoStr = new XMLSerializer().serializeToString(objectInfo).replace(/xmlns="[^"]+"/, "")
             console.log(objectInfoStr)
-            await osmEditAuth
-                .fetch(osm_server.apiBase + object_type + "/" + object_id, {
-                    method: "PUT",
-                    prefix: false,
-                    body: objectInfoStr,
-                })
-                .then(async res => {
-                    const text = await res.text()
-                    if (res.ok) return text
-                    alert(text)
-                    throw new Error(text)
-                })
+            await osmAuthFetch(osm_server.apiBase + object_type + "/" + object_id, {
+                method: "PUT",
+                body: objectInfoStr,
+            }).then(async res => {
+                const text = await res.text()
+                if (res.ok) return text
+                alert(`HTTP ${res.status}\n${text}`)
+                throw new Error(text)
+            })
         } finally {
             await closeOsmChangeset(changesetId)
             window.location.reload()
