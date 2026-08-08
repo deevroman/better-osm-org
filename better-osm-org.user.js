@@ -69,6 +69,7 @@
 // @match        https://wiki.openstreetmap.org/wiki/Proposal%3A*
 // @exclude      https://taginfo.openstreetmap.org/embed/*
 // @match        https://github.com/openstreetmap/openstreetmap-website/issues/new*
+// @match        https://github.com/Zverik/osmtags-editor/issues/new*
 // @match        https://github.com/deevroman/better-osm-org/issues/new*
 // @license      WTFPL
 // @namespace    https://github.com/deevroman/better-osm-org
@@ -3463,7 +3464,10 @@ function tryAddWarnAboutScriptIntoOsmOrgRepo() {
     }
 }
 
-if ((location.origin + location.pathname).startsWith("https://github.com/openstreetmap/openstreetmap-website/issues/new")) {
+if (
+    (location.origin + location.pathname).startsWith("https://github.com/openstreetmap/openstreetmap-website/issues/new") ||
+    (location.origin + location.pathname).startsWith("https://github.com/Zverik/osmtags-editor/issues/new")
+) {
     setInterval(tryAddWarnAboutScriptIntoOsmOrgRepo, 3000)
     setTimeout(tryAddWarnAboutScriptIntoOsmOrgRepo, 100)
     throw "skip better-osm-org run on GitHub"
@@ -3660,6 +3664,10 @@ function isOGFServer() {
 
 function isOsmServer() {
     return !!osm_server
+}
+
+function isIdeditorInstance() {
+    return location.origin === "https://ideditor.netlify.app" || location.origin === "https://ideditor-release.netlify.app"
 }
 
 const storagePrefix = isOHMServer() ? "ohm-" : location.origin === dev_server.origin ? "dev-" : isOGFServer() ? "ogf-" : ""
@@ -34098,7 +34106,49 @@ function addImageryOffsetsDB() {
 function setupImageryOffsetsDB() {
     tryApplyModule(addImageryOffsetsDB, 2000, 10000)
 }
+/*
+let _iD_Context = null
 
+function getCoreContext() {
+    return _iD_Context
+}
+
+function setCoreContext(c) {
+    _iD_Context = c
+}
+
+if (isOsmServer() || isIdeditorInstance()) {
+    try {
+        let value = getWindow().iD
+        Object.defineProperty(getWindow(), "iD", {
+            configurable: true,
+            enumerable: true,
+            get() {
+                return value
+            },
+            set(newValue) {
+                const cc = newValue.coreContext
+                value = {
+                    ...newValue,
+                    coreContext: () => {
+                        const context = cc()
+                        const originalInit = context.init
+
+                        context.init = () => {
+                            originalInit()
+                            setCoreContext(context)
+                            return context
+                        }
+                        return context
+                    },
+                }
+            },
+        })
+    } catch (e) {
+        console.error(e)
+    }
+}
+*/
 function setupIDframe() {
     if (GM_config.get("DarkModeForID")) {
         injectCSSIntoOSMPage(`
@@ -34114,6 +34164,10 @@ function setupIDframe() {
         }
         alert(token)
     })
+    // GM_registerMenuCommand("Create point with coordinates", function () {
+    //     console.log(getCoreContext())
+    //     debugger
+    // })
     setupBetterTagsPaste()
     if (isDebug()) {
         setupImageryOffsetsDB()
@@ -34867,7 +34921,7 @@ function _main() {
     if (isOsmServer()) {
         setupOSMWebsite()
     }
-    if (location.origin === "https://ideditor.netlify.app" || location.origin === "https://ideditor-release.netlify.app") {
+    if (isIdeditorInstance()) {
         setupIDframe()
     }
     if (location.origin === "https://wiki.openstreetmap.org") {

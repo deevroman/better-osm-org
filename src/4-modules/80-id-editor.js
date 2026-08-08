@@ -62,7 +62,49 @@ function addImageryOffsetsDB() {
 function setupImageryOffsetsDB() {
     tryApplyModule(addImageryOffsetsDB, 2000, 10000)
 }
+/*
+let _iD_Context = null
 
+function getCoreContext() {
+    return _iD_Context
+}
+
+function setCoreContext(c) {
+    _iD_Context = c
+}
+
+if (isOsmServer() || isIdeditorInstance()) {
+    try {
+        let value = getWindow().iD
+        Object.defineProperty(getWindow(), "iD", {
+            configurable: true,
+            enumerable: true,
+            get() {
+                return value
+            },
+            set(newValue) {
+                const cc = newValue.coreContext
+                value = {
+                    ...newValue,
+                    coreContext: () => {
+                        const context = cc()
+                        const originalInit = context.init
+
+                        context.init = () => {
+                            originalInit()
+                            setCoreContext(context)
+                            return context
+                        }
+                        return context
+                    },
+                }
+            },
+        })
+    } catch (e) {
+        console.error(e)
+    }
+}
+*/
 function setupIDframe() {
     if (GM_config.get("DarkModeForID")) {
         injectCSSIntoOSMPage(`
@@ -78,6 +120,10 @@ function setupIDframe() {
         }
         alert(token)
     })
+    // GM_registerMenuCommand("Create point with coordinates", function () {
+    //     console.log(getCoreContext())
+    //     debugger
+    // })
     setupBetterTagsPaste()
     if (isDebug()) {
         setupImageryOffsetsDB()
