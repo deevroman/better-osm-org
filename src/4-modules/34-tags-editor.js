@@ -277,7 +277,7 @@ function addTagsEditorButton() {
     link.before(document.createTextNode("\xA0· "))
 
     link.onclick = editTagsHandler
-    link.onmouseenter = preloadObjectForEditTags
+    link.onmouseenter = preloadObjectForEditTags // todo onfocus
     link.onmouseleave = abortPreloadObjectForEditTags
 }
 
