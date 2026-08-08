@@ -253,7 +253,7 @@ async function editTagsHandler(e) {
     info.style.marginLeft = "auto"
     info.style.alignSelf = "center"
     info.style.color = "gray"
-    info.title = "better-osm-org implementation of tags editor"
+    info.title = "better-osm-org implementation of tags editor.\n Hotkey: alt + E"
 
     btnWrapper.appendChild(info)
 }

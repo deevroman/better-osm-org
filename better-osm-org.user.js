@@ -9387,6 +9387,10 @@ function setupCompactChangesetsHistory() {
         if (!location.pathname.includes("/history")) {
             return
         }
+        if (!document.querySelector(".changesets")) {
+            // workaround for osm.org bug
+            return
+        }
         // remove useless
         document.querySelectorAll("#sidebar ol > li > .overflow-hidden:not(.better)").forEach(e => {
             e.classList.add("better")
@@ -12001,7 +12005,7 @@ async function editTagsHandler(e) {
     info.style.marginLeft = "auto"
     info.style.alignSelf = "center"
     info.style.color = "gray"
-    info.title = "better-osm-org implementation of tags editor"
+    info.title = "better-osm-org implementation of tags editor.\n Hotkey: alt + E"
 
     btnWrapper.appendChild(info)
 }
@@ -12161,7 +12165,7 @@ function addRestoreButton(object_type, object_id) {
 }
 
 function prepareReorderingEditTagsAndDeletorButtons() {
-    if (document.querySelector(".secondary-actions .edit_tags_class")) {
+    if (document.querySelector(".secondary-actions :is(.edit_tags_class, .better-osm-tags-editor-wrapper)")) {
         return
     }
     const tagsEditorExtensionWaiter = new MutationObserver(() => {
@@ -12177,6 +12181,19 @@ function prepareReorderingEditTagsAndDeletorButtons() {
             tmp.replaceWith(node1)
 
             console.log("Delete button replaced for Tags editor extension capability")
+        }
+        if (document.querySelector(".secondary-actions .better-osm-tags-editor-wrapper")) {
+            tagsEditorExtensionWaiter.disconnect()
+
+            const tmp = document.createComment("")
+            const node1 = document.querySelector(".delete_object_button_class")
+            const node2 = document.querySelector(".better-osm-tags-editor-wrapper")
+
+            node2.replaceWith(tmp)
+            node1.replaceWith(node2)
+            tmp.replaceWith(node1)
+
+            console.log("Delete button replaced for Tags editor")
         }
     })
     tagsEditorExtensionWaiter.observe(document.querySelector(".secondary-actions"), {
