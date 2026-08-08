@@ -121,7 +121,7 @@ function addRestoreButton(object_type, object_id) {
 }
 
 function prepareReorderingEditTagsAndDeletorButtons() {
-    if (document.querySelector(".secondary-actions .edit_tags_class")) {
+    if (document.querySelector(".secondary-actions :is(.edit_tags_class, .better-osm-tags-editor-wrapper)")) {
         return
     }
     const tagsEditorExtensionWaiter = new MutationObserver(() => {
@@ -137,6 +137,19 @@ function prepareReorderingEditTagsAndDeletorButtons() {
             tmp.replaceWith(node1)
 
             console.log("Delete button replaced for Tags editor extension capability")
+        }
+        if (document.querySelector(".secondary-actions .better-osm-tags-editor-wrapper")) {
+            tagsEditorExtensionWaiter.disconnect()
+
+            const tmp = document.createComment("")
+            const node1 = document.querySelector(".delete_object_button_class")
+            const node2 = document.querySelector(".better-osm-tags-editor-wrapper")
+
+            node2.replaceWith(tmp)
+            node1.replaceWith(node2)
+            tmp.replaceWith(node1)
+
+            console.log("Delete button replaced for Tags editor")
         }
     })
     tagsEditorExtensionWaiter.observe(document.querySelector(".secondary-actions"), {

@@ -1245,6 +1245,10 @@ function setupCompactChangesetsHistory() {
         if (!location.pathname.includes("/history")) {
             return
         }
+        if (!document.querySelector(".changesets")) {
+            // workaround for osm.org bug
+            return
+        }
         // remove useless
         document.querySelectorAll("#sidebar ol > li > .overflow-hidden:not(.better)").forEach(e => {
             e.classList.add("better")
