@@ -12005,7 +12005,7 @@ async function editTagsHandler(e) {
     info.style.marginLeft = "auto"
     info.style.alignSelf = "center"
     info.style.color = "gray"
-    info.title = "better-osm-org implementation of tags editor.\n Hotkey: alt + E"
+    info.title = "better-osm-org implementation of tags editor.\n\nHotkey: alt + E"
 
     btnWrapper.appendChild(info)
 }
@@ -12020,7 +12020,7 @@ function addTagsEditorButton() {
 
     const link = document.createElement("a")
     link.text = "Edit Tags"
-    link.title = "better-osm-org implementation. You can disable it in settings"
+    link.title = "better-osm-org implementation.\nYou can disable it in settings\n\nHotkey: alt + E"
     link.href = ""
     link.classList.add("better_edit_tags_class")
 
