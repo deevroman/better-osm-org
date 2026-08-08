@@ -10899,8 +10899,7 @@ function addStreetCompletePhotos(isClosedNote) {
                 i.after(img)
             }
             document.querySelector("#sidebar").style.resize = "horizontal"
-            document.querySelector("#sidebar").style.width = "450px"
-            document.querySelector("#sidebar").style.flexBasis = "unset"
+            addCompactSidebarStyle()
             // hideSearchForm()
         }
     })
