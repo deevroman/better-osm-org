@@ -21,7 +21,10 @@ function tryAddWarnAboutScriptIntoOsmOrgRepo() {
     }
 }
 
-if ((location.origin + location.pathname).startsWith("https://github.com/openstreetmap/openstreetmap-website/issues/new")) {
+if (
+    (location.origin + location.pathname).startsWith("https://github.com/openstreetmap/openstreetmap-website/issues/new") ||
+    (location.origin + location.pathname).startsWith("https://github.com/Zverik/osmtags-editor/issues/new")
+) {
     setInterval(tryAddWarnAboutScriptIntoOsmOrgRepo, 3000)
     setTimeout(tryAddWarnAboutScriptIntoOsmOrgRepo, 100)
     throw "skip better-osm-org run on GitHub"
@@ -218,6 +221,10 @@ function isOGFServer() {
 
 function isOsmServer() {
     return !!osm_server
+}
+
+function isIdeditorInstance() {
+    return location.origin === "https://ideditor.netlify.app" || location.origin === "https://ideditor-release.netlify.app"
 }
 
 const storagePrefix = isOHMServer() ? "ohm-" : location.origin === dev_server.origin ? "dev-" : isOGFServer() ? "ogf-" : ""
