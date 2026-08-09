@@ -251,4 +251,13 @@ function setupDeletor() {
     tryApplyModule(addDeleteButton, 100, 3000)
 }
 
+function setupSecondaryActions() {
+    if (GM_config.get("TagsEditor")) {
+        setupTagsEditor()
+    }
+    if (GM_config.get("Deletor")) {
+        setupDeletor()
+    }
+}
+
 //</editor-fold>

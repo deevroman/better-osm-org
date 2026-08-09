@@ -15,8 +15,6 @@ const modules = [
     setupMassChangesetsActions,
     setupRevertButton,
     setupResolveNotesButton,
-    setupTagsEditor,
-    setupDeletor,
     setupHideNoteHighlight,
     setupSatelliteLayers,
     setupVersionsDiff,
@@ -31,6 +29,7 @@ const modules = [
 ]
 /***@type {((function(): Promise<void>|void))[]}*/
 const alwaysEnabledModules = [
+    setupSecondaryActions,
     setupRelationVersionViewer,
     setupMakeVersionPageBetter,
     setupNotesFiltersButtons,
