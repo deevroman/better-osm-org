@@ -12295,6 +12295,15 @@ function setupDeletor() {
     tryApplyModule(addDeleteButton, 100, 3000)
 }
 
+function setupSecondaryActions() {
+    if (GM_config.get("TagsEditor")) {
+        setupTagsEditor()
+    }
+    if (GM_config.get("Deletor")) {
+        setupDeletor()
+    }
+}
+
 //</editor-fold>
 
 //<editor-fold desc="copy-coordinates" defaultstate="collapsed">
@@ -34210,8 +34219,6 @@ const modules = [
     setupMassChangesetsActions,
     setupRevertButton,
     setupResolveNotesButton,
-    setupTagsEditor,
-    setupDeletor,
     setupHideNoteHighlight,
     setupSatelliteLayers,
     setupVersionsDiff,
@@ -34226,6 +34233,7 @@ const modules = [
 ]
 /***@type {((function(): Promise<void>|void))[]}*/
 const alwaysEnabledModules = [
+    setupSecondaryActions,
     setupRelationVersionViewer,
     setupMakeVersionPageBetter,
     setupNotesFiltersButtons,
