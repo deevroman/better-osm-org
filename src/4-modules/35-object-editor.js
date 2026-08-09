@@ -163,8 +163,8 @@ function addDeleteButton() {
     if (!location.pathname.startsWith("/node/") && !location.pathname.startsWith("/relation/")) return
     if (location.pathname.includes("/history")) return
 
-    if (document.querySelector(".delete_object_button_class")) return true
-    if (document.querySelector(".restore_object_button_class")) return true
+    if (document.querySelector(".delete_object_button_class")) return
+    if (document.querySelector(".restore_object_button_class")) return
     if (document.querySelector(".btn.btn-danger") !== null) return
 
     const match = location.pathname.match(/(node|relation)\/(\d+)/)
