@@ -76,6 +76,7 @@ _translations["hr"] = {
         addLocationFromNominatim: "Dodaj lokaciju iz Nominatima za changesete i bilješke",
         overpassInstance:
             '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass API poslužitelj</a>',
+        customOverpassInstance: "Postavi vlastiti Overpass API poslužitelj",
         panoramaxUploader: "Dodaj obrazac za prijenos fotografija u Panoramax",
         routersTimestamps: "Dodaj datum routing podataka",
         clickableMap: "Učini kartu klikabilnom β",

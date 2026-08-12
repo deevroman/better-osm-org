@@ -360,38 +360,67 @@ function resourceCacher(url, storageKey, name, dateDelta, type) {
     }
 }
 
+function getOverpassApiInterpreterEndpoint(query = "") {
+    let apiURL = overpass_server.apiUrl
+    const customServer = JSON.parse(GM_config.get("CustomOverpassInstance") ?? "")
+    if (osm_server === prod_server && customServer?.URL) {
+        if (
+            query.includes("[date:") ||
+            query.includes("[adiff:") ||
+            query.includes("[diff:") ||
+            query.includes("timeline(") ||
+            query.includes("retro(")
+        ) {
+            if (customServer["attic-data"]) {
+                apiURL = customServer.URL
+            }
+        }
+        apiURL = customServer.URL
+    }
+    console.log("Used Overpass API", apiURL + "/interpreter")
+    return apiURL + "/interpreter"
+}
+
 /**
  * @param {string} query
  * @param {"json"|"xml"} responseType
+ * @param {boolean} withRetry
  * @return {Promise<Tampermonkey.Response<unknown>>}
  */
-async function overpassRequest(query, responseType = "json") {
+async function overpassRequest(query, responseType = "json", withRetry = true) {
+    console.time("download overpass data " + query)
     console.log("overpass request", query)
     console.count("kek")
     const rateLimiter = {
         key: "overpass",
         minDelay: 1000,
     }
-    if (overpass_server.referer) {
-        return await externalFetchRetry({
+    const url = getOverpassApiInterpreterEndpoint()
+    const fetchImpl = withRetry ? externalFetchRetry : externalFetch
+    try {
+        if (overpass_server.referer) {
+            return await fetchImpl({
+                method: "POST",
+                url: url,
+                data: query,
+                headers: {
+                    Referer: overpass_server.referer,
+                    Origin: overpass_server.origin,
+                },
+                responseType: responseType,
+                rateLimiter: rateLimiter,
+            })
+        }
+        return await fetchImpl({
             method: "POST",
-            url: overpass_server.apiUrl + "/interpreter",
+            url: url,
             data: query,
-            headers: {
-                Referer: overpass_server.referer,
-                Origin: overpass_server.origin,
-            },
             responseType: responseType,
             rateLimiter: rateLimiter,
         })
+    } finally {
+        console.timeEnd("download overpass data " + query)
     }
-    return await externalFetchRetry({
-        method: "POST",
-        url: overpass_server.apiUrl + "/interpreter",
-        data: query,
-        responseType: responseType,
-        rateLimiter: rateLimiter,
-    })
 }
 
 //</editor-fold>

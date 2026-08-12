@@ -75,6 +75,7 @@ _translations["en"] = {
         defaultZoomKeysBehaviour: "Do not double the zoom step of the buttons +/-",
         addLocationFromNominatim: "Add location from Nominatim for changesets and notes",
         overpassInstance: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass API server</a>',
+        customOverpassInstance: "Set a custom Overpass API server",
         panoramaxUploader: "Add form for uploading photos into Panoramax",
         routersTimestamps: "Add routing data date",
         clickableMap: "Clickable map β",

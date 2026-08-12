@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.6.9
+// @version         1.6.9.1
 // @changelog       v1.6.9: Tags editor, ctrl + S to save Overpass results, suggest Osmcha tags after dislike
 // @changelog       v1.6.6: Under experimental flag: clickable POIs, full history for relations, level0 reborn links
 // @changelog       v1.6.6: Links to regional Taginfo on taginfo.osm.org and Overpass links on #combinations page
@@ -299,6 +299,7 @@ _translations["en"] = {
         defaultZoomKeysBehaviour: "Do not double the zoom step of the buttons +/-",
         addLocationFromNominatim: "Add location from Nominatim for changesets and notes",
         overpassInstance: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass API server</a>',
+        customOverpassInstance: "Set a custom Overpass API server",
         panoramaxUploader: "Add form for uploading photos into Panoramax",
         routersTimestamps: "Add routing data date",
         clickableMap: "Clickable map β",
@@ -748,6 +749,7 @@ _translations["tr"] = {
         addLocationFromNominatim: "Değişiklik setleri ve notlar için Nominatim'den konum ekle",
         overpassInstance:
             '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass API sunucusu</a>',
+        customOverpassInstance: "Özel Overpass API sunucusu ayarla",
         panoramaxUploader: "Panoramax'a fotoğraf yükleme formu ekle",
         routersTimestamps: "Rota verisi tarihini ekle",
         clickableMap: "Haritayı tıklanabilir yap β",
@@ -1200,6 +1202,7 @@ _translations["ru"] = {
         defaultZoomKeysBehaviour: "Не удваивать шаг зума для кнопок +/-",
         addLocationFromNominatim: "Отображать адрес из Nominatim для правок и заметок",
         overpassInstance: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Сервер Overpass API</a>',
+        customOverpassInstance: "Задать свой Overpass API сервер",
         panoramaxUploader: "Добавить форму загрузки фотографий в Panoramax",
         routersTimestamps: "Показывать дату данных для GraphHopper, OSRM, Valhalla",
         clickableMap: "Сделать карту кликабельной β",
@@ -1664,6 +1667,7 @@ _translations["de"] = {
         defaultZoomKeysBehaviour: "Zoomschritt der +/- Schaltflächen nicht verdoppeln",
         addLocationFromNominatim: "Standort aus Nominatim für Changesets und Hinweise hinzufügen",
         overpassInstance: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass-API-Server</a>',
+        customOverpassInstance: "Eigenen Overpass-API-Server festlegen",
         panoramaxUploader: "Formular zum Hochladen von Fotos nach Panoramax hinzufügen",
         routersTimestamps: "Datum der Routing-Daten hinzufügen",
         clickableMap: "Karte anklickbar machen β",
@@ -2117,6 +2121,7 @@ _translations["fr"] = {
         defaultZoomKeysBehaviour: "Ne pas doubler le pas de zoom des boutons +/-",
         addLocationFromNominatim: "Ajouter l'emplacement depuis Nominatim pour les changesets et les notes",
         overpassInstance: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Serveur Overpass API</a>',
+        customOverpassInstance: "Définir un serveur Overpass API personnalisé",
         panoramaxUploader: "Ajouter un formulaire d'envoi de photos vers Panoramax",
         routersTimestamps: "Ajouter la date des données de routage",
         clickableMap: "Rendre la carte cliquable β",
@@ -2570,6 +2575,7 @@ _translations["hr"] = {
         addLocationFromNominatim: "Dodaj lokaciju iz Nominatima za changesete i bilješke",
         overpassInstance:
             '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass API poslužitelj</a>',
+        customOverpassInstance: "Postavi vlastiti Overpass API poslužitelj",
         panoramaxUploader: "Dodaj obrazac za prijenos fotografija u Panoramax",
         routersTimestamps: "Dodaj datum routing podataka",
         clickableMap: "Učini kartu klikabilnom β",
@@ -3020,6 +3026,7 @@ _translations["uk"] = {
         defaultZoomKeysBehaviour: "Не подвоювати крок масштабування для кнопок +/-",
         addLocationFromNominatim: "Додати локацію з Nominatim для наборів змін і нотаток",
         overpassInstance: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Сервер Overpass API</a>',
+        customOverpassInstance: "Задати власний сервер Overpass API",
         panoramaxUploader: "Додати форму для завантаження фото в Panoramax",
         routersTimestamps: "Додати дату маршрутизаційних даних",
         clickableMap: "Зробити мапу клікабельною β",
@@ -4603,11 +4610,13 @@ const configOptions = {
             type: "select",
             options: [MAIN_OVERPASS_INSTANCE.name, MAILRU_OVERPASS_INSTANCE.name, PRIVATECOFFEE_OVERPASS_INSTANCE.name],
         },
-        // CustomOverpassInstance: {
-        //     label: 'Custom Overpass API</a>',
-        //     labelPos: "left",
-        //     type: "input",
-        // },
+        CustomOverpassInstance: {
+            label: "Custom Overpass API endpoint",
+            labelPos: "left",
+            type: "overpass",
+            default: '{ "URL": "", "attic-data": false }',
+            placeholder: "example: https://overpass-api.de/api",
+        },
         ClickableMap: {
             label: t("config.clickableMap"),
             type: "checkbox",
@@ -4704,16 +4713,17 @@ const configOptions = {
                 return JSON.stringify(templates)
             },
             reset: function () {
-                if (this.wrapper) {
-                    for (let row of Array.from(this.wrapper.getElementsByTagName("tr")).slice(0, -1)) {
-                        row.remove()
-                    }
-                    JSON.parse(/** @type {string} */ (this.settings.default)).forEach(i => {
-                        this.wrapper
-                            .querySelector(`#${this.configId}_${this.id}_var table`)
-                            .lastElementChild.before(makeRow(i["label"], i["text"]))
-                    })
+                if (!this.wrapper) {
+                    return
                 }
+                for (let row of Array.from(this.wrapper.getElementsByTagName("tr")).slice(0, -1)) {
+                    row.remove()
+                }
+                JSON.parse(/** @type {string} */ (this.settings.default)).forEach(i => {
+                    this.wrapper
+                        .querySelector(`#${this.configId}_${this.id}_var table`)
+                        .lastElementChild.before(makeRow(i["label"], i["text"]))
+                })
             },
         },
         colors: {
@@ -4860,14 +4870,242 @@ const configOptions = {
                 return JSON.stringify({ enabled: false, colors: {} })
             },
             reset: function () {
-                if (this.wrapper) {
-                    const enabledInput = this.wrapper.querySelector(".color-palette-enabled")
-                    const tbody = this.wrapper.querySelector(".color-palette-table tbody")
-
-                    enabledInput.checked = parseColorPaletteSetting(/** @type {string} */ (this.settings.default)).enabled
-                    tbody.replaceChildren()
-                    fillColorPaletteTable(tbody, parseColorPaletteSetting(/** @type {string} */ (this.settings.default)).colors)
+                if (!this.wrapper) {
+                    return
                 }
+                const enabledInput = this.wrapper.querySelector(".color-palette-enabled")
+                const tbody = this.wrapper.querySelector(".color-palette-table tbody")
+                enabledInput.checked = parseColorPaletteSetting(/** @type {string} */ (this.settings.default)).enabled
+                tbody.replaceChildren()
+                fillColorPaletteTable(tbody, parseColorPaletteSetting(/** @type {string} */ (this.settings.default)).colors)
+            },
+        },
+        overpass: {
+            default: '{ "URL": "", "attic-data": false }',
+            toNode: function () {
+                const value = JSON.parse(/** @type {string} */ (this.value || this.settings.default))
+
+                const settingNode = this.create("details", {
+                    className: "config_var",
+                    id: this.configId + "_" + this.id + "_var",
+                })
+                if (value.URL) {
+                    settingNode.setAttribute("open", "true")
+                }
+                const summary = this.create("summary", {
+                    textContent: this.settings.label,
+                })
+                settingNode.appendChild(summary)
+
+                settingNode.dataset.statusChecked = value.URL ? "true" : "false"
+                settingNode.dataset.atticData = String(value["attic-data"])
+
+                const fieldWrapper = document.createElement("div")
+                settingNode.appendChild(fieldWrapper)
+
+                const datalistId = this.configId + "_" + this.id + "_endpoint_suggestions"
+                const input = this.create("input", {
+                    id: this.configId + "_field_" + this.id,
+                    className: "overpass-endpoint-field",
+                    type: "text",
+                    value: value.URL,
+                    placeholder: this.settings.placeholder,
+                })
+                input.setAttribute("list", datalistId)
+                input.style.width = "100%"
+                fieldWrapper.appendChild(input)
+
+                const datalist = this.create("datalist", {
+                    id: datalistId,
+                })
+                ;[
+                    "https://api.fairwaymapper.com/k/YOUR_API_KEY/api",
+                    "https://overpass.geofabrik.de/YOUR_API_KEY/api",
+                    "https://api.tracestrack.com/overpass/YOUR_API_KEY",
+                ].forEach(instance => {
+                    datalist.appendChild(
+                        this.create("option", {
+                            value: instance.replace(/\/+$/, ""),
+                        }),
+                    )
+                })
+                fieldWrapper.appendChild(datalist)
+
+                const buttonsWrapper = this.create("div", {})
+                buttonsWrapper.style.display = "flex"
+                buttonsWrapper.style.gap = "5px"
+                fieldWrapper.appendChild(buttonsWrapper)
+
+                const checkButton = this.create("button", {
+                    className: "overpass-endpoint-check",
+                    type: "button",
+                    textContent: "Check",
+                })
+                checkButton.style.flex = "1"
+                checkButton.style.marginTop = "5px"
+                buttonsWrapper.appendChild(checkButton)
+
+                const resetButton = this.create("button", {
+                    className: "overpass-endpoint-reset",
+                    type: "button",
+                    textContent: "Reset",
+                })
+                resetButton.style.flex = "1"
+                resetButton.style.marginTop = "5px"
+                resetButton.onclick = () => {
+                    input.value = ""
+                    settingNode.dataset.statusChecked = "true"
+                    settingNode.dataset.atticData = "false"
+                }
+                buttonsWrapper.appendChild(resetButton)
+
+                const statusNode = this.create("div", {
+                    className: "overpass-endpoint-status",
+                })
+                statusNode.style.fontSize = "13px"
+                statusNode.style.fontWeight = "bold"
+                fieldWrapper.after(statusNode)
+
+                const atticStatusNode = this.create("div", {
+                    className: "overpass-attic-status",
+                    textContent: value["attic-data"] ? "Attic data: available" : "",
+                })
+                atticStatusNode.style.fontSize = "13px"
+                atticStatusNode.style.fontWeight = "bold"
+                fieldWrapper.after(atticStatusNode)
+
+                const setStatus = (message, color) => {
+                    statusNode.textContent = message
+                    statusNode.style.color = color
+                }
+                const setAtticStatus = (message, color = "") => {
+                    atticStatusNode.textContent = message
+                    atticStatusNode.style.color = color
+                }
+                input.addEventListener("input", () => {
+                    settingNode.dataset.statusChecked = "false"
+                    settingNode.dataset.atticData = "false"
+                    setStatus(input.value ? "not checked" : "", "")
+                    setAtticStatus("")
+                })
+
+                checkButton.onclick = async () => {
+                    settingNode.dataset.statusChecked = "false"
+                    settingNode.dataset.atticData = "false"
+                    setStatus("")
+                    setAtticStatus("")
+
+                    const endpoint = input.value.trim()
+                    if (!endpoint) {
+                        setStatus("empty endpoint", "")
+                        return
+                    }
+
+                    let normalizedEndpoint
+                    try {
+                        normalizedEndpoint = new URL(endpoint).href.replace(/\/interpreter$/, "").replace(/\/+$/, "")
+                        input.value = normalizedEndpoint
+                    } catch {
+                        setStatus("invalid URL", "red")
+                        return
+                    }
+
+                    checkButton.disabled = true
+                    setAtticStatus("checking attic data...")
+                    try {
+                        const res = await externalFetch({
+                            method: "POST",
+                            url: normalizedEndpoint + "/interpreter",
+                            data: `[out:json][date:"2020-01-01T00:00:00Z"];node(id:1);out;`,
+                        })
+                        console.log(res)
+                        if (res.status !== 200) {
+                            throw `HTTP ${res.status}`
+                        }
+                        if (JSON.parse(res.responseText).elements[0]?.id !== 1) {
+                            throw `response without info about node/1`
+                        }
+                        settingNode.dataset.atticData = String(true)
+                        settingNode.dataset.statusChecked = "true"
+                        setAtticStatus("Attic data: available", "green")
+                        setStatus("All queries should works", "green")
+                        checkButton.disabled = false
+                        return
+                    } catch (e) {
+                        settingNode.dataset.atticData = "false"
+                        setAtticStatus(`Attic data: not available. ${e.message || e}`, "red")
+                        if (e === "HTTP 504" || e === "HTTP 429") {
+                            checkButton.disabled = false
+                            return
+                        }
+                    }
+                    setStatus("checking simple query...")
+                    try {
+                        const res = await externalFetch({
+                            method: "POST",
+                            url: normalizedEndpoint + "/interpreter",
+                            data: `[out:json];node(id:1);out;`,
+                        })
+                        console.log(res)
+                        if (res.status !== 200) {
+                            throw `HTTP ${res.status}`
+                        }
+                        if (JSON.parse(res.responseText).elements[0]?.id !== 1) {
+                            throw `response without info about node/1`
+                        }
+                        setStatus("Simple queries works", "green")
+                    } catch (e) {
+                        settingNode.dataset.atticData = "false"
+                        setStatus(`Error when getting info for node/1: ${e.message || e}`, "red")
+                    } finally {
+                        checkButton.disabled = false
+                    }
+                }
+
+                return settingNode
+            },
+            toValue: function () {
+                if (!this.wrapper) {
+                    return this.settings.default
+                }
+
+                const input = this.wrapper.querySelector(".overpass-endpoint-field")
+                const endpoint = input?.value.trim() ?? ""
+                if (!endpoint) {
+                    return this.settings.default
+                }
+
+                if (this.wrapper.dataset.statusChecked === "true") {
+                    return JSON.stringify({
+                        URL: endpoint,
+                        "attic-data": this.wrapper.dataset.atticData === "true",
+                    })
+                }
+
+                try {
+                    const storedValue = JSON.parse(/** @type {string} */ (this.value || this.settings.default))
+                    return JSON.stringify({
+                        URL: storedValue.URL || "",
+                        "attic-data": Boolean(storedValue["attic-data"]),
+                    })
+                } catch {
+                    return this.settings.default
+                }
+            },
+            reset: function () {
+                if (!this.wrapper) {
+                    return
+                }
+                const input = this.wrapper.querySelector(".overpass-endpoint-field")
+                const statusNode = this.wrapper.querySelector(".overpass-endpoint-status")
+                const atticStatusNode = this.wrapper.querySelector(".overpass-attic-status")
+                input.value = ""
+                this.wrapper.dataset.statusChecked = "false"
+                this.wrapper.dataset.atticData = String(false)
+                statusNode.textContent = ""
+                statusNode.style.color = ""
+                atticStatusNode.textContent = ""
+                atticStatusNode.style.color = ""
             },
         },
     },
@@ -5055,7 +5293,10 @@ const configOptions = {
             #Config a {
                 color: darkgray;
             }
-            #Config_field_OverpassInstance {
+            #Config_field_OverpassInstance, #Config_field_CustomOverpassInstance {
+                filter: invert(0.9);
+            }
+            .overpass-endpoint-check, .overpass-endpoint-reset {
                 filter: invert(0.9);
             }
             #Config_saveBtn, #Config_closeBtn, #Config .color-palette-action {
@@ -6043,38 +6284,67 @@ function resourceCacher(url, storageKey, name, dateDelta, type) {
     }
 }
 
+function getOverpassApiInterpreterEndpoint(query = "") {
+    let apiURL = overpass_server.apiUrl
+    const customServer = JSON.parse(GM_config.get("CustomOverpassInstance") ?? "")
+    if (osm_server === prod_server && customServer?.URL) {
+        if (
+            query.includes("[date:") ||
+            query.includes("[adiff:") ||
+            query.includes("[diff:") ||
+            query.includes("timeline(") ||
+            query.includes("retro(")
+        ) {
+            if (customServer["attic-data"]) {
+                apiURL = customServer.URL
+            }
+        }
+        apiURL = customServer.URL
+    }
+    console.log("Used Overpass API", apiURL + "/interpreter")
+    return apiURL + "/interpreter"
+}
+
 /**
  * @param {string} query
  * @param {"json"|"xml"} responseType
+ * @param {boolean} withRetry
  * @return {Promise<Tampermonkey.Response<unknown>>}
  */
-async function overpassRequest(query, responseType = "json") {
+async function overpassRequest(query, responseType = "json", withRetry = true) {
+    console.time("download overpass data " + query)
     console.log("overpass request", query)
     console.count("kek")
     const rateLimiter = {
         key: "overpass",
         minDelay: 1000,
     }
-    if (overpass_server.referer) {
-        return await externalFetchRetry({
+    const url = getOverpassApiInterpreterEndpoint()
+    const fetchImpl = withRetry ? externalFetchRetry : externalFetch
+    try {
+        if (overpass_server.referer) {
+            return await fetchImpl({
+                method: "POST",
+                url: url,
+                data: query,
+                headers: {
+                    Referer: overpass_server.referer,
+                    Origin: overpass_server.origin,
+                },
+                responseType: responseType,
+                rateLimiter: rateLimiter,
+            })
+        }
+        return await fetchImpl({
             method: "POST",
-            url: overpass_server.apiUrl + "/interpreter",
+            url: url,
             data: query,
-            headers: {
-                Referer: overpass_server.referer,
-                Origin: overpass_server.origin,
-            },
             responseType: responseType,
             rateLimiter: rateLimiter,
         })
+    } finally {
+        console.timeEnd("download overpass data " + query)
     }
-    return await externalFetchRetry({
-        method: "POST",
-        url: overpass_server.apiUrl + "/interpreter",
-        data: query,
-        responseType: responseType,
-        rateLimiter: rateLimiter,
-    })
 }
 
 //</editor-fold>
@@ -30261,21 +30531,7 @@ ${yetAnotherWizard(query)}
 //(._;>;);
 out geom;
 `
-        console.log(overpassQuery)
-
-        console.time("download overpass data " + query)
-        const res = await externalFetch({
-            // todo switcher
-            method: "POST",
-            headers: {
-                Referer: "https://overpass-turbo.eu/",
-                Origin: "https://overpass-turbo.eu",
-            },
-            url: overpass_server.apiUrl + "/interpreter",
-            data: overpassQuery,
-            responseType: "xml",
-        })
-        console.timeEnd("download overpass data " + query)
+        const res = await overpassRequest(overpassQuery, "xml", false)
         const xml = new DOMParser().parseFromString(res.response, "text/xml")
         if (res.status !== 200) {
             if (xml.querySelector("parsererror")) {
@@ -34870,6 +35126,10 @@ function setupOhmOsmcha() {
         await storeOsmchaTokenWithOwner("https://osmcha.openhistoricalmap.org", token, "OHM_OSMCHA_TOKENS")
     }, 1000)
 }
+
+//</editor-fold>
+
+//<editor-fold desc="osm-revert" defaultstate="collapsed">
 
 //</editor-fold>
 

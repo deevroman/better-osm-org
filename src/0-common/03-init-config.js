@@ -487,11 +487,13 @@ const configOptions = {
             type: "select",
             options: [MAIN_OVERPASS_INSTANCE.name, MAILRU_OVERPASS_INSTANCE.name, PRIVATECOFFEE_OVERPASS_INSTANCE.name],
         },
-        // CustomOverpassInstance: {
-        //     label: 'Custom Overpass API</a>',
-        //     labelPos: "left",
-        //     type: "input",
-        // },
+        CustomOverpassInstance: {
+            label: "Custom Overpass API endpoint",
+            labelPos: "left",
+            type: "overpass",
+            default: '{ "URL": "", "attic-data": false }',
+            placeholder: "example: https://overpass-api.de/api",
+        },
         ClickableMap: {
             label: t("config.clickableMap"),
             type: "checkbox",
@@ -588,16 +590,17 @@ const configOptions = {
                 return JSON.stringify(templates)
             },
             reset: function () {
-                if (this.wrapper) {
-                    for (let row of Array.from(this.wrapper.getElementsByTagName("tr")).slice(0, -1)) {
-                        row.remove()
-                    }
-                    JSON.parse(/** @type {string} */ (this.settings.default)).forEach(i => {
-                        this.wrapper
-                            .querySelector(`#${this.configId}_${this.id}_var table`)
-                            .lastElementChild.before(makeRow(i["label"], i["text"]))
-                    })
+                if (!this.wrapper) {
+                    return
                 }
+                for (let row of Array.from(this.wrapper.getElementsByTagName("tr")).slice(0, -1)) {
+                    row.remove()
+                }
+                JSON.parse(/** @type {string} */ (this.settings.default)).forEach(i => {
+                    this.wrapper
+                        .querySelector(`#${this.configId}_${this.id}_var table`)
+                        .lastElementChild.before(makeRow(i["label"], i["text"]))
+                })
             },
         },
         colors: {
@@ -744,14 +747,242 @@ const configOptions = {
                 return JSON.stringify({ enabled: false, colors: {} })
             },
             reset: function () {
-                if (this.wrapper) {
-                    const enabledInput = this.wrapper.querySelector(".color-palette-enabled")
-                    const tbody = this.wrapper.querySelector(".color-palette-table tbody")
-
-                    enabledInput.checked = parseColorPaletteSetting(/** @type {string} */ (this.settings.default)).enabled
-                    tbody.replaceChildren()
-                    fillColorPaletteTable(tbody, parseColorPaletteSetting(/** @type {string} */ (this.settings.default)).colors)
+                if (!this.wrapper) {
+                    return
                 }
+                const enabledInput = this.wrapper.querySelector(".color-palette-enabled")
+                const tbody = this.wrapper.querySelector(".color-palette-table tbody")
+                enabledInput.checked = parseColorPaletteSetting(/** @type {string} */ (this.settings.default)).enabled
+                tbody.replaceChildren()
+                fillColorPaletteTable(tbody, parseColorPaletteSetting(/** @type {string} */ (this.settings.default)).colors)
+            },
+        },
+        overpass: {
+            default: '{ "URL": "", "attic-data": false }',
+            toNode: function () {
+                const value = JSON.parse(/** @type {string} */ (this.value || this.settings.default))
+
+                const settingNode = this.create("details", {
+                    className: "config_var",
+                    id: this.configId + "_" + this.id + "_var",
+                })
+                if (value.URL) {
+                    settingNode.setAttribute("open", "true")
+                }
+                const summary = this.create("summary", {
+                    textContent: this.settings.label,
+                })
+                settingNode.appendChild(summary)
+
+                settingNode.dataset.statusChecked = value.URL ? "true" : "false"
+                settingNode.dataset.atticData = String(value["attic-data"])
+
+                const fieldWrapper = document.createElement("div")
+                settingNode.appendChild(fieldWrapper)
+
+                const datalistId = this.configId + "_" + this.id + "_endpoint_suggestions"
+                const input = this.create("input", {
+                    id: this.configId + "_field_" + this.id,
+                    className: "overpass-endpoint-field",
+                    type: "text",
+                    value: value.URL,
+                    placeholder: this.settings.placeholder,
+                })
+                input.setAttribute("list", datalistId)
+                input.style.width = "100%"
+                fieldWrapper.appendChild(input)
+
+                const datalist = this.create("datalist", {
+                    id: datalistId,
+                })
+                ;[
+                    "https://api.fairwaymapper.com/k/YOUR_API_KEY/api",
+                    "https://overpass.geofabrik.de/YOUR_API_KEY/api",
+                    "https://api.tracestrack.com/overpass/YOUR_API_KEY",
+                ].forEach(instance => {
+                    datalist.appendChild(
+                        this.create("option", {
+                            value: instance.replace(/\/+$/, ""),
+                        }),
+                    )
+                })
+                fieldWrapper.appendChild(datalist)
+
+                const buttonsWrapper = this.create("div", {})
+                buttonsWrapper.style.display = "flex"
+                buttonsWrapper.style.gap = "5px"
+                fieldWrapper.appendChild(buttonsWrapper)
+
+                const checkButton = this.create("button", {
+                    className: "overpass-endpoint-check",
+                    type: "button",
+                    textContent: "Check",
+                })
+                checkButton.style.flex = "1"
+                checkButton.style.marginTop = "5px"
+                buttonsWrapper.appendChild(checkButton)
+
+                const resetButton = this.create("button", {
+                    className: "overpass-endpoint-reset",
+                    type: "button",
+                    textContent: "Reset",
+                })
+                resetButton.style.flex = "1"
+                resetButton.style.marginTop = "5px"
+                resetButton.onclick = () => {
+                    input.value = ""
+                    settingNode.dataset.statusChecked = "true"
+                    settingNode.dataset.atticData = "false"
+                }
+                buttonsWrapper.appendChild(resetButton)
+
+                const statusNode = this.create("div", {
+                    className: "overpass-endpoint-status",
+                })
+                statusNode.style.fontSize = "13px"
+                statusNode.style.fontWeight = "bold"
+                fieldWrapper.after(statusNode)
+
+                const atticStatusNode = this.create("div", {
+                    className: "overpass-attic-status",
+                    textContent: value["attic-data"] ? "Attic data: available" : "",
+                })
+                atticStatusNode.style.fontSize = "13px"
+                atticStatusNode.style.fontWeight = "bold"
+                fieldWrapper.after(atticStatusNode)
+
+                const setStatus = (message, color) => {
+                    statusNode.textContent = message
+                    statusNode.style.color = color
+                }
+                const setAtticStatus = (message, color = "") => {
+                    atticStatusNode.textContent = message
+                    atticStatusNode.style.color = color
+                }
+                input.addEventListener("input", () => {
+                    settingNode.dataset.statusChecked = "false"
+                    settingNode.dataset.atticData = "false"
+                    setStatus(input.value ? "not checked" : "", "")
+                    setAtticStatus("")
+                })
+
+                checkButton.onclick = async () => {
+                    settingNode.dataset.statusChecked = "false"
+                    settingNode.dataset.atticData = "false"
+                    setStatus("")
+                    setAtticStatus("")
+
+                    const endpoint = input.value.trim()
+                    if (!endpoint) {
+                        setStatus("empty endpoint", "")
+                        return
+                    }
+
+                    let normalizedEndpoint
+                    try {
+                        normalizedEndpoint = new URL(endpoint).href.replace(/\/interpreter$/, "").replace(/\/+$/, "")
+                        input.value = normalizedEndpoint
+                    } catch {
+                        setStatus("invalid URL", "red")
+                        return
+                    }
+
+                    checkButton.disabled = true
+                    setAtticStatus("checking attic data...")
+                    try {
+                        const res = await externalFetch({
+                            method: "POST",
+                            url: normalizedEndpoint + "/interpreter",
+                            data: `[out:json][date:"2020-01-01T00:00:00Z"];node(id:1);out;`,
+                        })
+                        console.log(res)
+                        if (res.status !== 200) {
+                            throw `HTTP ${res.status}`
+                        }
+                        if (JSON.parse(res.responseText).elements[0]?.id !== 1) {
+                            throw `response without info about node/1`
+                        }
+                        settingNode.dataset.atticData = String(true)
+                        settingNode.dataset.statusChecked = "true"
+                        setAtticStatus("Attic data: available", "green")
+                        setStatus("All queries should works", "green")
+                        checkButton.disabled = false
+                        return
+                    } catch (e) {
+                        settingNode.dataset.atticData = "false"
+                        setAtticStatus(`Attic data: not available. ${e.message || e}`, "red")
+                        if (e === "HTTP 504" || e === "HTTP 429") {
+                            checkButton.disabled = false
+                            return
+                        }
+                    }
+                    setStatus("checking simple query...")
+                    try {
+                        const res = await externalFetch({
+                            method: "POST",
+                            url: normalizedEndpoint + "/interpreter",
+                            data: `[out:json];node(id:1);out;`,
+                        })
+                        console.log(res)
+                        if (res.status !== 200) {
+                            throw `HTTP ${res.status}`
+                        }
+                        if (JSON.parse(res.responseText).elements[0]?.id !== 1) {
+                            throw `response without info about node/1`
+                        }
+                        setStatus("Simple queries works", "green")
+                    } catch (e) {
+                        settingNode.dataset.atticData = "false"
+                        setStatus(`Error when getting info for node/1: ${e.message || e}`, "red")
+                    } finally {
+                        checkButton.disabled = false
+                    }
+                }
+
+                return settingNode
+            },
+            toValue: function () {
+                if (!this.wrapper) {
+                    return this.settings.default
+                }
+
+                const input = this.wrapper.querySelector(".overpass-endpoint-field")
+                const endpoint = input?.value.trim() ?? ""
+                if (!endpoint) {
+                    return this.settings.default
+                }
+
+                if (this.wrapper.dataset.statusChecked === "true") {
+                    return JSON.stringify({
+                        URL: endpoint,
+                        "attic-data": this.wrapper.dataset.atticData === "true",
+                    })
+                }
+
+                try {
+                    const storedValue = JSON.parse(/** @type {string} */ (this.value || this.settings.default))
+                    return JSON.stringify({
+                        URL: storedValue.URL || "",
+                        "attic-data": Boolean(storedValue["attic-data"]),
+                    })
+                } catch {
+                    return this.settings.default
+                }
+            },
+            reset: function () {
+                if (!this.wrapper) {
+                    return
+                }
+                const input = this.wrapper.querySelector(".overpass-endpoint-field")
+                const statusNode = this.wrapper.querySelector(".overpass-endpoint-status")
+                const atticStatusNode = this.wrapper.querySelector(".overpass-attic-status")
+                input.value = ""
+                this.wrapper.dataset.statusChecked = "false"
+                this.wrapper.dataset.atticData = String(false)
+                statusNode.textContent = ""
+                statusNode.style.color = ""
+                atticStatusNode.textContent = ""
+                atticStatusNode.style.color = ""
             },
         },
     },
@@ -939,7 +1170,10 @@ const configOptions = {
             #Config a {
                 color: darkgray;
             }
-            #Config_field_OverpassInstance {
+            #Config_field_OverpassInstance, #Config_field_CustomOverpassInstance {
+                filter: invert(0.9);
+            }
+            .overpass-endpoint-check, .overpass-endpoint-reset {
                 filter: invert(0.9);
             }
             #Config_saveBtn, #Config_closeBtn, #Config .color-palette-action {
