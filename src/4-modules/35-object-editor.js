@@ -245,19 +245,20 @@ function addDeleteButton() {
     }
 }
 
-function setupDeletor() {
-    if (!location.pathname.startsWith("/node/") && /*!location.pathname.startsWith("/way/") &&*/ location.pathname.startsWith("/relation/"))
-        return
-    tryApplyModule(addDeleteButton, 100, 3000)
+function addSecondaryActions() {
+    if (GM_config.get("TagsEditor")) {
+        addTagsEditorButton()
+    }
+    if (GM_config.get("Deletor")) {
+        addDeleteButton()
+    }
 }
 
 function setupSecondaryActions() {
-    if (GM_config.get("TagsEditor")) {
-        setupTagsEditor()
+    if (!location.pathname.startsWith("/node/") && !location.pathname.startsWith("/way/") && !location.pathname.startsWith("/relation/")) {
+        return
     }
-    if (GM_config.get("Deletor")) {
-        setupDeletor()
-    }
+    tryApplyModule(addSecondaryActions, 100, 3000)
 }
 
 //</editor-fold>

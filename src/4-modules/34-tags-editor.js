@@ -281,11 +281,4 @@ function addTagsEditorButton() {
     link.onmouseleave = abortPreloadObjectForEditTags
 }
 
-function setupTagsEditor() {
-    if (!location.pathname.startsWith("/node/") && !location.pathname.startsWith("/way/") && !location.pathname.startsWith("/relation/")) {
-        return
-    }
-    tryApplyModule(addTagsEditorButton, 100, 3000)
-}
-
 //</editor-fold>
