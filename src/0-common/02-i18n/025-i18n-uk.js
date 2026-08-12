@@ -76,6 +76,7 @@ _translations["uk"] = {
         defaultZoomKeysBehaviour: "Не подвоювати крок масштабування для кнопок +/-",
         addLocationFromNominatim: "Додати локацію з Nominatim для наборів змін і нотаток",
         overpassInstance: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Сервер Overpass API</a>',
+        customOverpassInstance: "Задати власний сервер Overpass API",
         panoramaxUploader: "Додати форму для завантаження фото в Panoramax",
         routersTimestamps: "Додати дату маршрутизаційних даних",
         clickableMap: "Зробити мапу клікабельною β",

@@ -77,6 +77,7 @@ _translations["fr"] = {
         defaultZoomKeysBehaviour: "Ne pas doubler le pas de zoom des boutons +/-",
         addLocationFromNominatim: "Ajouter l'emplacement depuis Nominatim pour les changesets et les notes",
         overpassInstance: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Serveur Overpass API</a>',
+        customOverpassInstance: "Définir un serveur Overpass API personnalisé",
         panoramaxUploader: "Ajouter un formulaire d'envoi de photos vers Panoramax",
         routersTimestamps: "Ajouter la date des données de routage",
         clickableMap: "Rendre la carte cliquable β",

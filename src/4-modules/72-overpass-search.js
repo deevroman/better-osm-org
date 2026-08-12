@@ -167,21 +167,7 @@ ${yetAnotherWizard(query)}
 //(._;>;);
 out geom;
 `
-        console.log(overpassQuery)
-
-        console.time("download overpass data " + query)
-        const res = await externalFetch({
-            // todo switcher
-            method: "POST",
-            headers: {
-                Referer: "https://overpass-turbo.eu/",
-                Origin: "https://overpass-turbo.eu",
-            },
-            url: overpass_server.apiUrl + "/interpreter",
-            data: overpassQuery,
-            responseType: "xml",
-        })
-        console.timeEnd("download overpass data " + query)
+        const res = await overpassRequest(overpassQuery, "xml", false)
         const xml = new DOMParser().parseFromString(res.response, "text/xml")
         if (res.status !== 200) {
             if (xml.querySelector("parsererror")) {
