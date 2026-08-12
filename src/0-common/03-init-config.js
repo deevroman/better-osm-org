@@ -488,7 +488,7 @@ const configOptions = {
             options: [MAIN_OVERPASS_INSTANCE.name, MAILRU_OVERPASS_INSTANCE.name, PRIVATECOFFEE_OVERPASS_INSTANCE.name],
         },
         CustomOverpassInstance: {
-            label: "Custom Overpass API endpoint",
+            label: t("config.customOverpassInstance"),
             labelPos: "left",
             type: "overpass",
             default: '{ "URL": "", "attic-data": false }',
