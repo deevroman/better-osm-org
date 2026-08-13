@@ -10503,7 +10503,7 @@ async function mapClickHandler(e) {
     if (location.pathname === "/export" || location.pathname === "/note/new") {
         return
     }
-    if (e.originalEvent.explicitOriginalTarget.id !== "map") {
+    if (e.originalEvent.explicitOriginalTarget && e.originalEvent.explicitOriginalTarget.id !== "map") {
         if (e.originalEvent.explicitOriginalTarget.nodeName !== "path") {
             return
         }
