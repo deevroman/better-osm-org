@@ -34252,6 +34252,45 @@ function fixTagsPaste() {
             .join("\n")
     }
 
+    function fixPasteIntoSelectionWithEndl(e, t, raw) {
+        const selection = t.value.substring(t.selectionStart, t.selectionEnd)
+        if (selection.at(-1) === "\n" && raw.at(-1) !== "\n") {
+            e.preventDefault()
+
+            t.focus()
+            const start = t.selectionStart
+            const firstEnd = t.selectionEnd
+            t.setSelectionRange(start, firstEnd)
+            pasteText(t, raw + "\n", start, firstEnd)
+
+            console.log("added \\n into pasted text")
+        }
+    }
+
+    function pasteText(t, text, start, end) {
+        let ok = false
+        try {
+            ok = document.execCommand("insertText", false, text)
+        } catch (_) {}
+        if (!ok) {
+            t.setRangeText(text, start, end, "end")
+            const ev = new InputEvent("input", { bubbles: true, cancelable: false, data: text, inputType: "insertFromPaste" })
+            t.dispatchEvent(ev)
+        }
+    }
+
+    function cancelablePaste(t, raw, fixedText) {
+        // сначала вставляем без изменений,
+        t.focus()
+        const start = t.selectionStart
+        const firstEnd = t.selectionEnd
+        t.setSelectionRange(start, firstEnd)
+        pasteText(t, raw, start, firstEnd)
+        // потом с, чтобы ctrl + Z мог откатить исправление
+        t.setSelectionRange(start, start + raw.length)
+        pasteText(t, fixedText, start, start + raw.length)
+    }
+
     document.addEventListener("paste", e => {
         console.log("checking paste event")
         const t = e.target
@@ -34273,43 +34312,25 @@ function fixTagsPaste() {
             }
             context = "osm.org tags editor"
         }
+        const raw = e.clipboardData.getData("text")
         const pos = t.selectionStart
         const textBefore = t.value.slice(0, pos)
         const line = textBefore.split(/\r?\n/).pop() ?? ""
         if (line.includes("=") || line.trim() !== "") {
+            fixPasteIntoSelectionWithEndl(e, t, raw)
             return
         }
-        const raw = e.clipboardData.getData("text")
         if (!raw.trim().match(/^[0-9_:a-zA-Z]+\s/)) {
+            fixPasteIntoSelectionWithEndl(e, t, raw)
             return
         }
-        const fixedText = repairTags(raw)
+        const fixedText = raw.at(-1) === "\n" ? repairTags(raw) : repairTags(raw) + "\n"
         if (raw === fixedText) {
+            fixPasteIntoSelectionWithEndl(e, t, raw)
             return
         }
         e.preventDefault()
-
-        function pasteText(text, start, end) {
-            let ok = false
-            try {
-                ok = document.execCommand("insertText", false, text)
-            } catch (_) {}
-            if (!ok) {
-                t.setRangeText(text, start, end, "end")
-                const ev = new InputEvent("input", { bubbles: true, cancelable: false, data: text, inputType: "insertFromPaste" })
-                t.dispatchEvent(ev)
-            }
-        }
-
-        // сначала вставляем без изменений,
-        t.focus()
-        const start = t.selectionStart
-        const firstEnd = t.selectionEnd
-        t.setSelectionRange(start, firstEnd)
-        pasteText(raw, start, firstEnd)
-        // потом с, чтобы ctrl + Z мог откатить исправление
-        t.setSelectionRange(start, start + raw.length)
-        pasteText(fixedText, start, start + raw.length)
+        cancelablePaste(t, raw, fixedText)
     })
 }
 
