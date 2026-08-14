@@ -4922,6 +4922,7 @@ const configOptions = {
                     "https://api.fairwaymapper.com/k/YOUR_API_KEY/api",
                     "https://overpass.geofabrik.de/YOUR_API_KEY/api",
                     "https://api.tracestrack.com/overpass/YOUR_API_KEY",
+                    "https://api.overspan.dev/YOUR_API_KEY/api",
                 ].forEach(instance => {
                     datalist.appendChild(
                         this.create("option", {
@@ -25972,7 +25973,8 @@ function runInOsmPageCode() {
                     || args?.[0]?.url?.startsWith?.(window.customVectorStyleLayerOrigin)
                     || args?.[0]?.url?.startsWith?.("https://demotiles.maplibre.org/")
                 )
-            || window.customVectorStyleLayerOrigin === "https://maps.vk.com" && args?.[0]?.url.startsWith("mmr://")) {
+            || window.customVectorStyleLayerOrigin === "https://maps.vk.com" && args?.[0]?.url.startsWith("mmr://")
+            || window.customVectorStyleLayerOrigin === "https://styles.maptoolkit.org") {
                 if (window.customVectorStyleLayerOrigin === "https://maps.vk.com" && window.vk_api_key === "") {
                     window.vk_api_key = new URL(args?.[0]?.url).searchParams.get("api_key") ?? ""
                 }

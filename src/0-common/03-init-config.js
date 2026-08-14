@@ -799,6 +799,7 @@ const configOptions = {
                     "https://api.fairwaymapper.com/k/YOUR_API_KEY/api",
                     "https://overpass.geofabrik.de/YOUR_API_KEY/api",
                     "https://api.tracestrack.com/overpass/YOUR_API_KEY",
+                    "https://api.overspan.dev/YOUR_API_KEY/api",
                 ].forEach(instance => {
                     datalist.appendChild(
                         this.create("option", {
