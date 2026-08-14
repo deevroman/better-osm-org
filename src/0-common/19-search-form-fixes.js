@@ -24,24 +24,35 @@ function hideSearchForm() {
     document.querySelector("h1 .icon-link:not(.hotkeyed)")?.classList?.add("hotkeyed")
 }
 
+const blurSearchTimers = new Set()
+
 function blurSearchField() {
-    if (document.querySelector("#sidebar #query") && !document.querySelector("#sidebar #query").getAttribute("blured")) {
-        document.querySelector("#sidebar #query").setAttribute("blured", "true")
-        document.querySelector("#sidebar #query").removeAttribute("autofocus")
-        if (document.activeElement?.nodeName === "INPUT") {
-            document.activeElement?.blur()
-        }
-        // dirty hack. If your one multiple tabs focus would reseted only on active tab
-        // In the case of Safari, this is generally a necessity.
-        // Sometimes it still doesn't help
-        ;[50, 100, 250, 500].forEach(ms => {
-            setTimeout(() => {
-                if (document.activeElement?.nodeName === "INPUT" && document.activeElement.getAttribute("type") !== "radio") {
-                    document.activeElement?.blur()
-                }
-            }, ms)
-        })
+    const queryField = document.querySelector("#sidebar #query")
+    if (!queryField || queryField.getAttribute("blured")) {
+        return
     }
+    queryField.setAttribute("blured", "true")
+    queryField.removeAttribute("autofocus")
+    if (document.activeElement?.nodeName === "INPUT") {
+        document.activeElement?.blur()
+    }
+    ;[50, 100, 250, 500].forEach(ms => {
+        const timerId = setTimeout(() => {
+            if (document.activeElement?.nodeName === "INPUT" && document.activeElement.getAttribute("type") !== "radio") {
+                document.activeElement?.blur()
+            }
+            blurSearchTimers.delete(timerId)
+        }, ms)
+        blurSearchTimers.add(timerId)
+    })
+    queryField.addEventListener(
+        "click",
+        () => {
+            blurSearchTimers.forEach(t => clearTimeout(t))
+            blurSearchTimers.clear()
+        },
+        { once: true },
+    )
 }
 
 function resetSearchFormFocus() {
