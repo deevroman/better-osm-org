@@ -98,6 +98,22 @@
           { "name": "light", "value": "light" }
         ]
       }
+    },
+    {
+      "label": "Maptoolkit",
+      "value": "https://styles.maptoolkit.org/{style}.json",
+      "about": "https://www.maptoolkit.org",
+      "fields": {
+        "style": [
+          { "name": "summer", "value": "summer" },
+          { "name": "light", "value": "light" },
+          { "name": "hiking", "value": "hiking" },
+          { "name": "cycling", "value": "cycling" },
+          { "name": "winter", "value": "winter" },
+          { "name": "dark", "value": "dark" },
+          { "name": "street", "value": "street" }
+        ]
+      }
     }
   ]
 }

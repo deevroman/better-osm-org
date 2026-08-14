@@ -409,7 +409,8 @@ function runInOsmPageCode() {
                     || args?.[0]?.url?.startsWith?.(window.customVectorStyleLayerOrigin)
                     || args?.[0]?.url?.startsWith?.("https://demotiles.maplibre.org/")
                 )
-            || window.customVectorStyleLayerOrigin === "https://maps.vk.com" && args?.[0]?.url.startsWith("mmr://")) {
+            || window.customVectorStyleLayerOrigin === "https://maps.vk.com" && args?.[0]?.url.startsWith("mmr://")
+            || window.customVectorStyleLayerOrigin === "https://styles.maptoolkit.org") {
                 if (window.customVectorStyleLayerOrigin === "https://maps.vk.com" && window.vk_api_key === "") {
                     window.vk_api_key = new URL(args?.[0]?.url).searchParams.get("api_key") ?? ""
                 }
