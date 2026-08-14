@@ -3786,13 +3786,13 @@ const instancesOf3DViewers = [
             return `${this.url}#lat=${x}&lon=${y}&zoom=${z}`
         },
     },
-    {
-        name: "streets.gl",
-        url: "https://streets.gl/",
-        makeURL: function ({ x: x, y: y }) {
-            return `${this.url}#${x},${y},45.00,0.00,2000.00`
-        },
-    },
+    // {
+    //     name: "streets.gl (2023)",
+    //     url: "https://streets.gl/",
+    //     makeURL: function ({ x: x, y: y }) {
+    //         return `${this.url}#${x},${y},45.00,0.00,2000.00`
+    //     },
+    // },
     {
         name: "OSM go",
         url: "https://www.osmgo.org/go.html",
@@ -3824,7 +3824,7 @@ const instancesOf3DViewers = [
     },
     {
         name: "OSM Building Inspector",
-        url: "https://www.osmgo.org/bevy.html",
+        url: "https://www.osmgo.org/obi",
         makeURL: function ({ type: type, id: id }) {
             return `${this.url}?${type}=${id}` // todo relation don't work?
         },
