@@ -269,7 +269,7 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type, fullData, id) {
             areaElem.textContent = t("objectVersionPage.area", { value: areaText })
             infos.appendChild(areaElem)
         }
-    } else if (osm_type === "relation" && isDebug()) {
+    } else if (osm_type === "relation") {
         const relationVersion = fullData.elements.find(i => i.id === id && i.type === "relation")
         if (["multipolygon", "boundary"].includes(relationVersion.tags["type"])) {
             try {
