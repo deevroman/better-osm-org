@@ -1,6 +1,11 @@
 # Changelog archive
 
 [Changelog with illustrations on OSM Community Forum](https://c.osm.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670)
+- v1.7.0: Calculating the area for multipolygons and boundaries, customizable overpass api server
+- v1.6.9: Tags editor, ctrl + S to save Overpass results, suggest Osmcha tags after dislike
+- v1.6.6: Under experimental flag: clickable POIs, full history for relations, level0 reborn links
+- v1.6.6: Links to regional Taginfo on taginfo.osm.org and Overpass links on #combinations page
+- v1.6.6: Download visible notes as .kml, Nodes restorer, parameters for vector styles
 - v1.6.5: Warn about tracking params in website=* ans similar tags
 - v1.6.5: Add translations for Russian, Ukrainian, German, French, Croatian, Turkish
 - v1.6.3: F1 hotkey for hotkeys list, preview Panoramax photos in Overpass search results, CSV reader
