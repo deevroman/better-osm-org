@@ -250,6 +250,30 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type, fullData, id) {
     infos.style.display = "none"
     infos.style.paddingBottom = "5px"
 
+    function formatLength(len) {
+        if (len < 1000) {
+            return len.toFixed(2) + " m"
+        } else {
+            return Number(len.toFixed(0)).toLocaleString() + " m"
+        }
+    }
+
+    function formatArea(area) {
+        if (area < 1000000) {
+            if (area < 1000) {
+                return area.toFixed(2) + " m²"
+            } else {
+                return Number(area.toFixed(0)).toLocaleString() + " m²"
+            }
+        } else {
+            if (area < 100000000) {
+                return (area / 1000000).toFixed(2) + " km²"
+            } else {
+                return Number((area / 1000000).toFixed(0)).toLocaleString() + " km²"
+            }
+        }
+    }
+
     if (osm_type === "way") {
         let wayLength = 0.0
         for (let i = 1; i < nodes.length; i++) {
@@ -258,15 +282,13 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type, fullData, id) {
         wayLength *= 1000
 
         const lengthElem = document.createElement("span")
-        const lengthText = wayLength < 1000 ? wayLength.toFixed(2) + " m" : wayLength.toFixed(0) + " m"
-        lengthElem.textContent = t("objectVersionPage.length", { value: lengthText })
+        lengthElem.textContent = t("objectVersionPage.length", { value: formatLength(wayLength) })
         infos.appendChild(lengthElem)
 
         if (polygonArea !== null) {
             infos.appendChild(document.createTextNode(",\xA0"))
-            const areaText = polygonArea < 1000 ? polygonArea.toFixed(2) + " m²" : polygonArea.toFixed(0) + " m²"
             const areaElem = document.createElement("span")
-            areaElem.textContent = t("objectVersionPage.area", { value: areaText })
+            areaElem.textContent = t("objectVersionPage.area", { value: formatArea(polygonArea) })
             infos.appendChild(areaElem)
         }
     } else if (osm_type === "relation") {
@@ -282,22 +304,15 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type, fullData, id) {
                 }
                 wayLength *= 1000
                 const lengthElem = document.createElement("span")
-                const lengthText = wayLength < 1000 ? wayLength.toFixed(2) + " m" : wayLength.toFixed(0) + " m"
-                lengthElem.textContent = t("objectVersionPage.fullLength", { value: lengthText })
+                lengthElem.textContent = t("objectVersionPage.fullLength", { value: formatLength(wayLength) })
                 infos.appendChild(lengthElem)
                 infos.appendChild(document.createTextNode(",\xA0"))
 
                 const outersArea = rings.outer.map(i => Math.abs(ringArea(i))).reduce((a, i) => a + i, 0)
                 const innersArea = rings.inner.map(i => Math.abs(ringArea(i))).reduce((a, i) => a + i, 0)
                 const polygonArea = outersArea - innersArea
-                const areaText =
-                    polygonArea < 1000000
-                        ? polygonArea < 1000
-                            ? polygonArea.toFixed(2) + " m²"
-                            : polygonArea.toFixed(0) + " m²"
-                        : (polygonArea / 1000000).toFixed(2) + " km²"
                 const areaElem = document.createElement("span")
-                areaElem.textContent = t("objectVersionPage.area", { value: areaText })
+                areaElem.textContent = t("objectVersionPage.area", { value: formatArea(polygonArea) })
                 infos.appendChild(areaElem)
             } catch (e) {
                 console.error(e)
