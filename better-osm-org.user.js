@@ -8415,7 +8415,7 @@ function blurSearchField() {
         blurSearchTimers.add(timerId)
     })
     queryField.addEventListener(
-        "click",
+        "mousedown",
         () => {
             blurSearchTimers.forEach(t => clearTimeout(t))
             blurSearchTimers.clear()
