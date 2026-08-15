@@ -214,6 +214,7 @@ _translations["ru"] = {
     },
     objectVersionPage: {
         length: "Длина: {value}",
+        fullLength: "Длина линий: {value}",
         area: "Площадь: {value}",
         pinRestrictionSign:
             "Закрепить знак restriction на карте.\nВы можете скрыть все объекты, которые добавляет better-osm-org, нажав ` или ~",

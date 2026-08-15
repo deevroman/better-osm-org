@@ -206,6 +206,7 @@ _translations["hr"] = {
     },
     objectVersionPage: {
         length: "Duljina: {value}",
+        fullLength: "Duljina puteva: {value}",
         area: "Površina: {value}",
         pinRestrictionSign: "Prikvači restriction znak na kartu.\nMožete sakriti sve objekte koje better-osm-org dodaje pritiskom na ` ili ~",
         hideRestrictionSign: "Sakrij restriction znak",
