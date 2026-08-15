@@ -34432,10 +34432,17 @@ function setupPrometheusLink() {
 
 //<editor-fold desc="better-tags-paste" defaultstate="collapsed">
 
+let pasteLinterAdded = false
+
 function fixTagsPaste() {
     if (!GM_config.get("BetterTagsPaste")) {
         return
     }
+    if (pasteLinterAdded) {
+        return
+    }
+    pasteLinterAdded = true
+
     function repairTags(text, context) {
         return text
             .split("\n")
