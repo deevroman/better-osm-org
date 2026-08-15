@@ -206,6 +206,7 @@ _translations["en"] = {
     },
     objectVersionPage: {
         length: "Length: {value}",
+        fullLength: "Ways length: {value}",
         area: "Area: {value}",
         pinRestrictionSign: "Pin restriction sign on map.\nYou can hide all the objects that better-osm-org adds by pressing ` or ~",
         hideRestrictionSign: "Hide restriction sign",

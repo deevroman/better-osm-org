@@ -96,12 +96,139 @@ function showBboxMenu(e, bbox) {
 }
 
 /**
+ *
+ * @param {{elements: (NodeVersion|WayVersion|RelationVersion)[]}} fullData
+ * @param {number} id
+ * @param {RelationVersion} relationVersion
+ * @return {{outer: NodeVersion[][], inner: NodeVersion[][]}}
+ */
+function makeRings(fullData, id, relationVersion) {
+    // todo validate
+    // only ways, only outer/inner, ...
+
+    /** @type {Map<number, NodeVersion>}*/
+    const nodesIndex = new Map()
+    /** @type {Map<number, WayVersion>}*/
+    const waysIndex = new Map()
+    fullData.elements.forEach(i => {
+        if (i.type === "way") {
+            waysIndex.set(i.id, i)
+        } else if (i.type === "node") {
+            nodesIndex.set(i.id, i)
+        }
+    })
+    const rings = { outer: [], inner: [] }
+    /** @type {Map<number, WayVersion[]>} */
+    const waysBegins = new Map()
+    /** @type {Map<number, WayVersion[]>} */
+    const waysEnds = new Map()
+    for (let member of relationVersion.members) {
+        if (member.type !== "way") {
+            console.trace('member.type !== "way"')
+            continue
+        }
+        const w = waysIndex.get(member.ref)
+        if (waysBegins.has(w.nodes.at(0))) {
+            waysBegins.get(w.nodes.at(0)).push(w)
+        } else {
+            waysBegins.set(w.nodes.at(0), [w])
+        }
+        if (waysEnds.has(w.nodes.at(-1))) {
+            waysEnds.get(w.nodes.at(-1)).push(w)
+        } else {
+            waysEnds.set(w.nodes.at(-1), [w])
+        }
+    }
+    const usedWays = new Set()
+
+    for (let member of relationVersion.members) {
+        if (member.type !== "way") {
+            console.trace('member.type !== "way"')
+            continue
+        }
+        const w = waysIndex.get(member.ref)
+        if (!w.nodes || w.nodes.length < 2) {
+            console.trace("w.nodes.length < 2")
+            continue
+        }
+        if (usedWays.has(member.ref)) {
+            continue
+        }
+        if (w.nodes.at(0).id === w.nodes.at(-1)) {
+            rings[member.role].push(w)
+            usedWays.add(w.id)
+            continue
+        }
+
+        /**
+         * @param {number[][]} currentRingWays
+         * @return {number[][]}
+         */
+        function tryMakeRing(currentRingWays) {
+            const lastNode = currentRingWays.at(-1).at(-1)
+            if (currentRingWays.at(0).at(0) === lastNode) {
+                return currentRingWays
+            }
+            for (const nextWay of waysBegins.get(lastNode) ?? []) {
+                if (usedWays.has(nextWay.id)) {
+                    continue
+                }
+                usedWays.add(nextWay.id)
+                currentRingWays.push(nextWay.nodes)
+                if (tryMakeRing(currentRingWays).length) {
+                    return currentRingWays
+                }
+                currentRingWays.pop()
+                usedWays.delete(nextWay.id)
+            }
+            for (const nextWay of waysEnds.get(lastNode) ?? []) {
+                if (usedWays.has(nextWay.id)) {
+                    continue
+                }
+                usedWays.add(nextWay.id)
+                currentRingWays.push(nextWay.nodes.toReversed())
+                if (tryMakeRing(currentRingWays).length) {
+                    return currentRingWays
+                }
+                currentRingWays.pop()
+                usedWays.delete(nextWay.id)
+            }
+            return []
+        }
+
+        /**
+         * @param {number[][]} arr
+         * @return {number[]}
+         */
+        function joinWays(arr) {
+            const result = [...arr[0]]
+            for (let i = 1; i < arr.length; i++) {
+                result.push(...arr[i].slice(1))
+            }
+            return result
+        }
+
+        usedWays.add(w.id)
+        const ring = tryMakeRing([w.nodes])
+        if (ring.length) {
+            rings[member.role].push(joinWays(ring))
+        }
+    }
+    return {
+        outer: rings.outer.map(r => r.map(n => nodesIndex.get(n))),
+        inner: rings.inner.map(r => r.map(n => nodesIndex.get(n))),
+    }
+}
+
+/**
  * @param {number[]} nodesIds
  * @param {Map} nodesMap
  * @param {"way"|"relation"} osm_type
+ * @param {{elements: (NodeVersion|WayVersion|RelationVersion)[]}} fullData
+ * @param {number} id
  * @return {HTMLDivElement}
  */
-function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type) {
+function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type, fullData, id) {
     const nodes = nodesIds.map(i => nodesMap.get(i.toString()) ?? nodesMap.get(i)) // todo dirty hack
     const bbox = {
         min_lat: Math.min(...nodes.map(i => i.lat)),
@@ -110,15 +237,9 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type) {
         max_lon: Math.max(...nodes.map(i => i.lon)),
     }
 
-    let wayLength = 0.0
-    for (let i = 1; i < nodes.length; i++) {
-        wayLength += getDistanceFromLatLonInKm(nodes[i - 1].lat, nodes[i - 1].lon, nodes[i].lat, nodes[i].lon)
-    }
-    wayLength *= 1000
-
-    let wayArea = null
+    let polygonArea = null
     if (nodesIds.length > 2 && nodesIds[0] === nodesIds.at(-1)) {
-        wayArea = Math.abs(ringArea(nodes))
+        polygonArea = Math.abs(ringArea(nodes))
     }
 
     const center = { lat: (bbox.max_lat + bbox.min_lat) / 2, lng: (bbox.max_lon + bbox.min_lon) / 2 }
@@ -130,17 +251,57 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type) {
     infos.style.paddingBottom = "5px"
 
     if (osm_type === "way") {
+        let wayLength = 0.0
+        for (let i = 1; i < nodes.length; i++) {
+            wayLength += getDistanceFromLatLonInKm(nodes[i - 1].lat, nodes[i - 1].lon, nodes[i].lat, nodes[i].lon)
+        }
+        wayLength *= 1000
+
         const lengthElem = document.createElement("span")
         const lengthText = wayLength < 1000 ? wayLength.toFixed(2) + " m" : wayLength.toFixed(0) + " m"
         lengthElem.textContent = t("objectVersionPage.length", { value: lengthText })
         infos.appendChild(lengthElem)
 
-        if (wayArea !== null) {
+        if (polygonArea !== null) {
             infos.appendChild(document.createTextNode(",\xA0"))
+            const areaText = polygonArea < 1000 ? polygonArea.toFixed(2) + " m²" : polygonArea.toFixed(0) + " m²"
             const areaElem = document.createElement("span")
-            const areaText = wayLength < 1000 ? wayArea.toFixed(2) + " m²" : wayArea.toFixed(0) + " m²"
             areaElem.textContent = t("objectVersionPage.area", { value: areaText })
             infos.appendChild(areaElem)
+        }
+    } else if (osm_type === "relation" && isDebug()) {
+        const relationVersion = fullData.elements.find(i => i.id === id && i.type === "relation")
+        if (["multipolygon", "boundary"].includes(relationVersion.tags["type"])) {
+            try {
+                const rings = makeRings(fullData, id, relationVersion)
+                let wayLength = 0.0
+                for (let ring of [...rings.outer, ...rings.inner]) {
+                    for (let i = 1; i < ring.length; i++) {
+                        wayLength += getDistanceFromLatLonInKm(ring[i - 1].lat, ring[i - 1].lon, ring[i].lat, ring[i].lon)
+                    }
+                }
+                wayLength *= 1000
+                const lengthElem = document.createElement("span")
+                const lengthText = wayLength < 1000 ? wayLength.toFixed(2) + " m" : wayLength.toFixed(0) + " m"
+                lengthElem.textContent = t("objectVersionPage.fullLength", { value: lengthText })
+                infos.appendChild(lengthElem)
+                infos.appendChild(document.createTextNode(",\xA0"))
+
+                const outersArea = rings.outer.map(i => Math.abs(ringArea(i))).reduce((a, i) => a + i, 0)
+                const innersArea = rings.inner.map(i => Math.abs(ringArea(i))).reduce((a, i) => a + i, 0)
+                const polygonArea = outersArea - innersArea
+                const areaText =
+                    polygonArea < 1000000
+                        ? polygonArea < 1000
+                            ? polygonArea.toFixed(2) + " m²"
+                            : polygonArea.toFixed(0) + " m²"
+                        : (polygonArea / 1000000).toFixed(2) + " km²"
+                const areaElem = document.createElement("span")
+                areaElem.textContent = t("objectVersionPage.area", { value: areaText })
+                infos.appendChild(areaElem)
+            } catch (e) {
+                console.error(e)
+            }
         }
     }
 
@@ -302,8 +463,8 @@ async function addHoverForWayNodes() {
             }
             return
         }
-        const wayInfo = wayData.elements.find(i => i.type === "way")
-        if (!wayInfo) {
+        const wayFullInfo = wayData.elements.find(i => i.type === "way")
+        if (!wayFullInfo) {
             if (infoBtn) {
                 infoBtn.style.display = "none"
             }
@@ -318,7 +479,7 @@ async function addHoverForWayNodes() {
                 ),
             ).map(([k, v]) => [k, v[0]]),
         )
-        const lineGeometryIssues = validateWayGeometry(wayInfo, nodesMap)
+        const lineGeometryIssues = validateWayGeometry(wayFullInfo, nodesMap)
         const affectedNodeIds = collectWayGeometryAffectedNodeIds(lineGeometryIssues)
         const wayMembersSummary = document.querySelector("#sidebar_content > :is(div, turbo-frame):first-of-type details summary")
         if (wayMembersSummary) {
@@ -363,8 +524,8 @@ async function addHoverForWayNodes() {
         })
 
         if (infoBtn) {
-            const nodesIds = wayInfo.nodes
-            const infos = makePolygonMeasureButtons(nodesIds, nodesMap, "way")
+            const nodesIds = wayFullInfo.nodes
+            const infos = makePolygonMeasureButtons(nodesIds, nodesMap, "way", wayFullInfo)
             document.querySelector("#sidebar_content h4:last-of-type").after(infos)
 
             infoBtn.onclick = () => {
@@ -420,9 +581,9 @@ async function addHoverForRelationMembers() {
             document.querySelector("#sidebar_content h4:last-of-type").appendChild(infoBtn)
         }
         /** @type {{elements: (NodeVersion|WayVersion|RelationVersion)[]}} */
-        const topRelationData = await fetchJSONWithCache(osm_server.apiBase + "relation" + "/" + relation_id + "/full.json")
+        const topRelationFullData = await fetchJSONWithCache(osm_server.apiBase + "relation" + "/" + relation_id + "/full.json")
 
-        if (!topRelationData) return
+        if (!topRelationFullData) return
         while (document.querySelector("details turbo-frame .spinner-border")) {
             console.log("wait members list loading")
             await sleep(1000)
@@ -431,7 +592,7 @@ async function addHoverForRelationMembers() {
         const nodesMap = new Map(
             Object.entries(
                 Object.groupBy(
-                    topRelationData.elements.filter(i => i.type === "node"),
+                    topRelationFullData.elements.filter(i => i.type === "node"),
                     i => i.id,
                 ),
             ).map(([k, v]) => [parseInt(k), v[0]]),
@@ -440,7 +601,7 @@ async function addHoverForRelationMembers() {
         const waysMap = new Map(
             Object.entries(
                 Object.groupBy(
-                    topRelationData.elements.filter(i => i.type === "way"),
+                    topRelationFullData.elements.filter(i => i.type === "way"),
                     i => i.id,
                 ),
             ).map(([k, v]) => [parseInt(k), v[0]]),
@@ -528,7 +689,7 @@ async function addHoverForRelationMembers() {
         })
 
         /** @type {RelationVersion[]}*/
-        const childRelations = topRelationData.elements.filter(i => i.type === "relation")
+        const childRelations = topRelationFullData.elements.filter(i => i.type === "relation")
         /*** @type {Map<number, RelationVersion>}*/
         const relationsMap = new Map(Object.entries(Object.groupBy(childRelations, i => i.id)).map(([k, v]) => [parseInt(k), v[0]]))
         const downloadedRelations = new Set([relation_id])
@@ -740,8 +901,8 @@ async function addHoverForRelationMembers() {
         }
 
         if (infoBtn) {
-            const nodesIds = topRelationData.elements.filter(i => i.type === "way").flatMap(i => i.nodes)
-            const infos = makePolygonMeasureButtons(nodesIds, nodesMap, "relation")
+            const nodesIds = topRelationFullData.elements.filter(i => i.type === "way").flatMap(i => i.nodes)
+            const infos = makePolygonMeasureButtons(nodesIds, nodesMap, "relation", topRelationFullData, relation_id)
             document.querySelector("#sidebar_content h4:last-of-type").after(infos)
 
             infoBtn.onclick = () => {

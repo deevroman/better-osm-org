@@ -206,6 +206,7 @@ _translations["de"] = {
     },
     objectVersionPage: {
         length: "Länge: {value}",
+        fullLength: "Länge der Wege: {value}",
         area: "Fläche: {value}",
         pinRestrictionSign:
             "restriction-Schild auf der Karte anheften.\nDu kannst alle von better-osm-org hinzugefügten Objekte mit ` oder ~ ausblenden",

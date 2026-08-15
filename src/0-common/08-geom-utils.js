@@ -76,6 +76,10 @@ function rotateSegment(lat1, lon1, lat2, lon2, angleDeg, lengthMeters) {
 }
 
 // based on https://github.com/eatgrass/geo-area
+/**
+ * @param {{lat: number, lon: number}[]}points
+ * @return {number}
+ */
 function ringArea(points) {
     const RADIUS = 6378137
     const rad = coord => (coord * Math.PI) / 180

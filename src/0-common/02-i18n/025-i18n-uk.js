@@ -206,6 +206,7 @@ _translations["uk"] = {
     },
     objectVersionPage: {
         length: "Довжина: {value}",
+        fullLength: "Довжина ліній: {value}",
         area: "Площа: {value}",
         pinRestrictionSign:
             "Закріпити знак restriction на мапі.\nВи можете приховати всі об'єкти, які додає better-osm-org, натиснувши ` або ~",
