@@ -2,7 +2,7 @@
 
 Userscript adding several improvements for experienced osm.org users
 
-1. Install [Violentmonkey](https://violentmonkey.github.io/) (FOSS, but only in Firefox) or [Tampermonkey](https://www.tampermonkey.net) (proprietary)
+1. Install [Violentmonkey](https://violentmonkey.github.io/) (FOSS) or [Tampermonkey](https://www.tampermonkey.net) (proprietary)
 2. [Install](https://raw.githubusercontent.com/deevroman/better-osm-org/master/better-osm-org.user.js) script
 
 Also works in Firefox for Android
@@ -23,9 +23,11 @@ Also works in Firefox for Android
 
 <img src="misc/img/changesets-filter.png">
 
-### Node deletion
+### Node deletion / Tags editor
 
   <img src="misc/img/delete.png" width="50%">
+
+Tags editor impressed by https://github.com/Zverik/osmtags-editor
 
 ### Satellite layer
 
@@ -47,7 +49,7 @@ Also works in Firefox for Android
 
 <img src="misc/img/photos-and-traces-in-notes.png" width="50%">
 
-Photos are also displayed in the tags `panoramax=*` and `wikimedia_commons=*`
+Photos are also displayed in the tags `panoramax=*`, `mapillary` and `wikimedia_commons=*`
 
 ### Customizable external links
 
@@ -125,9 +127,8 @@ Experimental hotkeys:
 - + [x] Hashtags in changeset comment
 - + [x] Changeset IDs in comments
 - + [x] `revert:id`, `redacted_changesets` key in changeset
-- + [x] `panoramax=*`, `mapillary=*` tags
 - [x] Display GPS photos and tracks in StreetComplete notes
-- [x] Display photos from Panoramax and Wikimedia Commons in tags
+- [x] Display photos from Panoramax, Mapillary, iNaturalist and Wikimedia Commons in tags
 - [x] Display GPS-tracks
 - [x] Shortening long URLs in comments: https://www.openstreetmap.org → osm.org
 - [x] Shortening `v:`, `ideditor:` keys in changesets tags and hide `host=https://www.openstreetmap.org/edit`
@@ -156,7 +157,7 @@ Experimental hotkeys:
 - + [x] Ruler
 - + [x] Copy coordinates in multiple formats
 - + [x] Calc polygon area
-- + [ ] Calc multipolygon area
+- + [x] Calc multipolygon area
 - [x] Custom layers and overlays
 - [x] Support OpenHistoricalMap β
 - [x] Support OpenGeoFiction β
@@ -169,7 +170,6 @@ Experimental hotkeys:
 - [ ] Mark reviewed changesets
 - [ ] Public transport viewer and validator
 - [ ] Collapse name tags
-- [ ] Integrate https://github.com/Zverik/osmtags-editor
 - Overpass Turbo (maybe in [Overpass beta](https://github.com/deevroman/overpass-beta))
 - + [ ] Edit tags in Overpass Turbo
 - + [ ] {{bbox}} on/off in Overpass Turbo
@@ -233,7 +233,6 @@ Maybe
 - [OpenStreetMap Statistics](https://github.com/piebro/openstreetmap-statistics) — The script uses the rules from this project to normalize the names of OSM editors and list of the list of organised teams contributors
 - [OSMBuilding](https://github.com/Beakerboy/OSMBuilding) — 3D viewer for buildings
 - [osmtogeojson](https://github.com/tyrasd/osmtogeojson) — converts OSM data to GeoJSON
-- [osm-auth](https://github.com/osmlab/osm-auth) — for authentication with OpenStreetMap
 - [SVG Spinners](https://github.com/n3r4zzurr0/svg-spinners) — for more beautiful spinner when you upload edits in iD in dark mode
 - [Wikimedia Commons](https://wiki.openstreetmap.org/wiki/Relation:restriction#Road_signs) — source for road signs SVGs
 - ...

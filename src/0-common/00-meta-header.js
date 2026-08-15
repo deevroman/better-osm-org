@@ -1,7 +1,8 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.6.9.2
+// @version         1.7.0
+// @changelog       v1.7.0: Calculating the area for multipolygons and boundaries, customizable overpass api server
 // @changelog       v1.6.9: Tags editor, ctrl + S to save Overpass results, suggest Osmcha tags after dislike
 // @changelog       v1.6.6: Under experimental flag: clickable POIs, full history for relations, level0 reborn links
 // @changelog       v1.6.6: Links to regional Taginfo on taginfo.osm.org and Overpass links on #combinations page
@@ -22,7 +23,7 @@
 // @changelog       v1.4.6: Copy coordinates button in map context menu, copy coordinates button for relations
 // @changelog       v1.4.0: More links in Edit menu, the ability to add custom links (like OSM Smart Menu)
 // @changelog       Changelog archive: https://github.com/deevroman/better-osm-org/blob/master/misc/CHANGELOG.md
-// @changelog       Changelog with illustrations: https://c.osm.org/t/121670/207
+// @changelog       Changelog with illustrations: https://c.osm.org/t/121670/268
 // @changelog       OSM Wiki: https://osm.wiki/Better-osm-org
 // @description     Several improvements for advanced users of openstreetmap.org
 // @description:ru  Скрипт, добавляющий на openstreetmap.org полезные картографам функции
