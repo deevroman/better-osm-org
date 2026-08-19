@@ -101,7 +101,7 @@
     },
     {
       "name": "Google Street View",
-      "template": "https://www.google.com.tw/maps/?layer=c&cbll={latitude},{longitude}",
+      "template": "https://www.google.com/maps/?layer=c&cbll={latitude},{longitude}",
       "description": "",
       "warn": "don't use for mapping"
     },
