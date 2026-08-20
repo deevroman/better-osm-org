@@ -252,6 +252,8 @@ const noteHashtags = [
     "#notenoughinfo",
     "#inacurratelocation",
     "#needconfirmation",
+    "#remindme",
+    "#softremindme",
 ]
 
 function addAutoComplete() {
