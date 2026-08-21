@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.7.0
+// @version         1.7.1
 // @changelog       v1.7.0: Calculating the area for multipolygons and boundaries, customizable overpass api server
 // @changelog       v1.6.9: Tags editor, ctrl + S to save Overpass results, suggest Osmcha tags after dislike
 // @changelog       v1.6.6: Under experimental flag: clickable POIs, full history for relations, level0 reborn links
