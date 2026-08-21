@@ -89,7 +89,7 @@ jobs:
         run: |
           mkdir -p src/tests/e2e/artifacts
           chmod 0777 src/tests/e2e/artifacts
-          curl -fL "${{ matrix.manager_xpi_url }}" -o src/tests/e2e/artifacts/manager.xpi
+          curl -fL --retry 3 --retry-delay 10 "${{ matrix.manager_xpi_url }}" -o src/tests/e2e/artifacts/manager.xpi
           ls -lh src/tests/e2e/artifacts/manager.xpi
 
       - name: Build E2E image

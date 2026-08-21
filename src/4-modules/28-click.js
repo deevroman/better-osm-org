@@ -67,6 +67,10 @@ async function mapClickHandler(e) {
     if (location.pathname === "/export" || location.pathname === "/note/new") {
         return
     }
+    if (document.querySelector(".better-osm-tags-editor-wrapper")) {
+        // todo prompt?
+        return
+    }
     if (e.originalEvent.explicitOriginalTarget && e.originalEvent.explicitOriginalTarget.id !== "map") {
         if (e.originalEvent.explicitOriginalTarget.nodeName !== "path") {
             return

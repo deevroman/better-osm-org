@@ -1,15 +1,15 @@
 //<editor-fold desc="better-tags-paste" defaultstate="collapsed">
 
-let pasteLinterAdded = false
+let pasteListenerAdded = false
 
 function fixTagsPaste() {
     if (!GM_config.get("BetterTagsPaste")) {
         return
     }
-    if (pasteLinterAdded) {
+    if (pasteListenerAdded) {
         return
     }
-    pasteLinterAdded = true
+    pasteListenerAdded = true
 
     function repairTags(text, context) {
         return text

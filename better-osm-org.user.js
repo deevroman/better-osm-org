@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.7.0
+// @version         1.7.1
 // @changelog       v1.7.0: Calculating the area for multipolygons and boundaries, customizable overpass api server
 // @changelog       v1.6.9: Tags editor, ctrl + S to save Overpass results, suggest Osmcha tags after dislike
 // @changelog       v1.6.6: Under experimental flag: clickable POIs, full history for relations, level0 reborn links
@@ -10530,6 +10530,10 @@ async function mapClickHandler(e) {
     if (location.pathname === "/export" || location.pathname === "/note/new") {
         return
     }
+    if (document.querySelector(".better-osm-tags-editor-wrapper")) {
+        // todo prompt?
+        return
+    }
     if (e.originalEvent.explicitOriginalTarget && e.originalEvent.explicitOriginalTarget.id !== "map") {
         if (e.originalEvent.explicitOriginalTarget.nodeName !== "path") {
             return
@@ -10940,6 +10944,8 @@ const noteHashtags = [
     "#notenoughinfo",
     "#inacurratelocation",
     "#needconfirmation",
+    "#remindme",
+    "#softremindme",
 ]
 
 function addAutoComplete() {
@@ -12075,15 +12081,39 @@ function makeComment(object_type, object_id, prevTags, newTags) {
 
     let tagsHint = ""
     if (addedKeys.length) {
-        tagsHint += "Add " + addedKeys.map(k => `${k}=${newTags.get(k)}`).join(", ") + "; "
+        tagsHint +=
+            "Add " +
+            addedKeys
+                .map(k => {
+                    const value = newTags.get(k)
+                    if (value.includes(" ")) {
+                        return `${k} = ${value}`
+                    } else {
+                        return `${k}=${value}`
+                    }
+                })
+                .join(", ") +
+            "; "
     }
 
     if (modifiedKeys.length) {
-        tagsHint += "Changed " + modifiedKeys.map(k => `${k}=${prevTags.get(k)}\u200b→\u200b${newTags.get(k)}`).join(", ") + "; "
+        tagsHint += "Changed " + modifiedKeys.map(k => `${k}=${prevTags.get(k)} → ${newTags.get(k)}`).join(", ") + "; "
     }
 
     if (removedKeys.length) {
-        tagsHint += "Removed " + removedKeys.map(k => `${k}=${prevTags.get(k)}`).join(", ") + "; "
+        tagsHint +=
+            "Removed " +
+            removedKeys
+                .map(k => {
+                    const value = prevTags.get(k)
+                    if (value.includes(" ")) {
+                        return `${k} = ${value}`
+                    } else {
+                        return `${k}=${value}`
+                    }
+                })
+                .join(", ") +
+            "; "
     }
 
     if (tagsHint.length > 200 || modifiedKeys.length > 1) {
@@ -34432,16 +34462,16 @@ function setupPrometheusLink() {
 
 //<editor-fold desc="better-tags-paste" defaultstate="collapsed">
 
-let pasteLinterAdded = false
+let pasteListenerAdded = false
 
 function fixTagsPaste() {
     if (!GM_config.get("BetterTagsPaste")) {
         return
     }
-    if (pasteLinterAdded) {
+    if (pasteListenerAdded) {
         return
     }
-    pasteLinterAdded = true
+    pasteListenerAdded = true
 
     function repairTags(text, context) {
         return text
