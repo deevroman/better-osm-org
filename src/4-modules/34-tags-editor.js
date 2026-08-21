@@ -26,15 +26,39 @@ function makeComment(object_type, object_id, prevTags, newTags) {
 
     let tagsHint = ""
     if (addedKeys.length) {
-        tagsHint += "Add " + addedKeys.map(k => `${k}=${newTags.get(k)}`).join(", ") + "; "
+        tagsHint +=
+            "Add " +
+            addedKeys
+                .map(k => {
+                    const value = newTags.get(k)
+                    if (value.includes(" ")) {
+                        return `${k} = ${value}`
+                    } else {
+                        return `${k}=${value}`
+                    }
+                })
+                .join(", ") +
+            "; "
     }
 
     if (modifiedKeys.length) {
-        tagsHint += "Changed " + modifiedKeys.map(k => `${k}=${prevTags.get(k)}\u200b→\u200b${newTags.get(k)}`).join(", ") + "; "
+        tagsHint += "Changed " + modifiedKeys.map(k => `${k}=${prevTags.get(k)} → ${newTags.get(k)}`).join(", ") + "; "
     }
 
     if (removedKeys.length) {
-        tagsHint += "Removed " + removedKeys.map(k => `${k}=${prevTags.get(k)}`).join(", ") + "; "
+        tagsHint +=
+            "Removed " +
+            removedKeys
+                .map(k => {
+                    const value = prevTags.get(k)
+                    if (value.includes(" ")) {
+                        return `${k} = ${value}`
+                    } else {
+                        return `${k}=${value}`
+                    }
+                })
+                .join(", ") +
+            "; "
     }
 
     if (tagsHint.length > 200 || modifiedKeys.length > 1) {
