@@ -560,10 +560,11 @@ function injectMapHooks() {
                         boGlobalThis.map = this
                         boGlobalThis.mapIntercepted = true
                         console.log("%cMap intercepted", "background: #000; color: #0f0")
+                        const scriptInstance = `${GM_info.scriptHandler} v${GM_info.version}`
                         if (!boGlobalThis.scriptInstance) {
-                            boGlobalThis.scriptInstance = GM_info.scriptHandler
-                        } else if (boGlobalThis.scriptInstance !== GM_info.scriptHandler) {
-                            const err = `Two copies of the script were running simultaneously via ${boGlobalThis.scriptInstance} and ${GM_info.scriptHandler}. Turn off one of them`
+                            boGlobalThis.scriptInstance = scriptInstance
+                        } else if (boGlobalThis.scriptInstance !== scriptInstance) {
+                            const err = `Two copies of the script were running simultaneously via ${boGlobalThis.scriptInstance} and ${scriptInstance}. Turn off one of them`
                             console.error(err)
                             alert(err)
                         }
