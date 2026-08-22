@@ -257,7 +257,7 @@ const configOptions = {
         ColorPalette: {
             label: t("config.customPalette"),
             type: "colors",
-            default: "{enabled: false, colors: {}}",
+            default: '{ "enabled": false, "colors": {} }',
         },
         BetterTagsPaste: {
             section: [t("config.sectionID")],
@@ -604,7 +604,7 @@ const configOptions = {
             },
         },
         colors: {
-            default: "{enabled: false, colors: {}}",
+            default: '{ "enabled": false, "colors": {} }',
             toNode: function () {
                 const { enabled, colors } = parseColorPaletteSetting(/** @type {string} */ (this.value || this.settings.default))
                 const settingNode = this.create("div", {
