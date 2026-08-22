@@ -6360,6 +6360,17 @@ async function overpassRequest(query, responseType = "json", withRetry = true) {
 
 //<editor-fold desc="geom utils" defaultstate="collapsed">
 
+const _defaultBboxValue = 10000000
+
+function makeDefaultBbox() {
+    return {
+        min_lat: _defaultBboxValue,
+        min_lon: _defaultBboxValue,
+        max_lat: -_defaultBboxValue,
+        max_lon: -_defaultBboxValue,
+    }
+}
+
 /**
  * @param {number} lat1
  * @param {number} lon1
@@ -17567,8 +17578,8 @@ out geom;
         /** @type {{bbox: BBOX, nodesBbox: BBOX}} */
         const relationInfo = {
             // prettier-ignore
-            bbox:      { min_lat: 10000000, min_lon: 10000000, max_lat: -10000000, max_lon: -100000000 },
-            nodesBbox: { min_lat: 10000000, min_lon: 10000000, max_lat: -10000000, max_lon: -100000000 },
+            bbox:      makeDefaultBbox(),
+            nodesBbox: makeDefaultBbox(),
         }
 
         const nodesBag = []
@@ -29806,12 +29817,7 @@ function displayGPXTrack(xml, color = null) {
     const max = Math.max
     const trackColor = color ?? trackColors[tracksCounter % trackColors.length]
     tracksCounter++
-    trackMetadata = {
-        min_lat: 10000000,
-        min_lon: 10000000,
-        max_lat: -10000000,
-        max_lon: -100000000,
-    }
+    trackMetadata = makeDefaultBbox()
     doc.querySelectorAll("gpx trk").forEach(trk => {
         const nodesList = []
         trk.querySelectorAll("trkseg trkpt").forEach(i => {
@@ -29887,12 +29893,7 @@ function displayKMLTrack(xml) {
     const max = Math.max
     const trackColor = trackColors[tracksCounter % trackColors.length]
     tracksCounter++
-    trackMetadata = {
-        min_lat: 10000000,
-        min_lon: 10000000,
-        max_lat: -10000000,
-        max_lon: -100000000,
-    }
+    trackMetadata = makeDefaultBbox()
     doc.querySelectorAll("Document Placemark:has(LineString)").forEach(trk => {
         const nodesList = []
         trk.querySelectorAll("LineString coordinates").forEach(i => {
@@ -30804,7 +30805,7 @@ out geom;
             bbox.max_lon = max(bbox.max_lon, lon)
         })
         console.log(bbox)
-        if (bbox.min_lon === 10000000) {
+        if (bbox.min_lon === _defaultBboxValue) {
             alert(t("overpassSearch.invalidQuery"))
             return
         }
@@ -31881,12 +31882,7 @@ function goToNextObjectVersion() {
 }
 
 function combineBBOXes(bboxes) {
-    const bbox = {
-        min_lat: 10000000,
-        min_lon: 10000000,
-        max_lat: -10000000,
-        max_lon: -100000000,
-    }
+    const bbox = makeDefaultBbox()
     for (const i of bboxes) {
         if (i?.min_lat) {
             bbox.min_lat = min(bbox.min_lat, i.min_lat)

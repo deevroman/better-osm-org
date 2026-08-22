@@ -212,7 +212,7 @@ out geom;
             bbox.max_lon = max(bbox.max_lon, lon)
         })
         console.log(bbox)
-        if (bbox.min_lon === 10000000) {
+        if (bbox.min_lon === _defaultBboxValue) {
             alert(t("overpassSearch.invalidQuery"))
             return
         }

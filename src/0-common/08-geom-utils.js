@@ -1,5 +1,16 @@
 //<editor-fold desc="geom utils" defaultstate="collapsed">
 
+const _defaultBboxValue = 10000000
+
+function makeDefaultBbox() {
+    return {
+        min_lat: _defaultBboxValue,
+        min_lon: _defaultBboxValue,
+        max_lat: -_defaultBboxValue,
+        max_lon: -_defaultBboxValue,
+    }
+}
+
 /**
  * @param {number} lat1
  * @param {number} lon1
