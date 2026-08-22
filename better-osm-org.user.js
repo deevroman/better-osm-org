@@ -24726,11 +24726,12 @@ function makeRings(fullData, id, relationVersion) {
  */
 function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type, fullData, id) {
     const nodes = nodesIds.map(i => nodesMap.get(i.toString()) ?? nodesMap.get(i)) // todo dirty hack
-    const bbox = {
-        min_lat: Math.min(...nodes.map(i => i.lat)),
-        min_lon: Math.min(...nodes.map(i => i.lon)),
-        max_lat: Math.max(...nodes.map(i => i.lat)),
-        max_lon: Math.max(...nodes.map(i => i.lon)),
+    const bbox = makeDefaultBbox()
+    for (const n of nodes) {
+        bbox.min_lat = min(bbox.lat, n.lat)
+        bbox.min_lon = min(bbox.lon, n.lon)
+        bbox.max_lat = max(bbox.lat, n.lat)
+        bbox.max_lon = max(bbox.lon, n.lon)
     }
 
     let polygonArea = null
