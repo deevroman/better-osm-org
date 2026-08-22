@@ -36,12 +36,7 @@ function displayGPXTrack(xml, color = null) {
     const max = Math.max
     const trackColor = color ?? trackColors[tracksCounter % trackColors.length]
     tracksCounter++
-    trackMetadata = {
-        min_lat: 10000000,
-        min_lon: 10000000,
-        max_lat: -10000000,
-        max_lon: -100000000,
-    }
+    trackMetadata = makeDefaultBbox()
     doc.querySelectorAll("gpx trk").forEach(trk => {
         const nodesList = []
         trk.querySelectorAll("trkseg trkpt").forEach(i => {
@@ -117,12 +112,7 @@ function displayKMLTrack(xml) {
     const max = Math.max
     const trackColor = trackColors[tracksCounter % trackColors.length]
     tracksCounter++
-    trackMetadata = {
-        min_lat: 10000000,
-        min_lon: 10000000,
-        max_lat: -10000000,
-        max_lon: -100000000,
-    }
+    trackMetadata = makeDefaultBbox()
     doc.querySelectorAll("Document Placemark:has(LineString)").forEach(trk => {
         const nodesList = []
         trk.querySelectorAll("LineString coordinates").forEach(i => {

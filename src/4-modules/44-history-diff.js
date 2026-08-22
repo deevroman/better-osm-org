@@ -1519,8 +1519,8 @@ out geom;
         /** @type {{bbox: BBOX, nodesBbox: BBOX}} */
         const relationInfo = {
             // prettier-ignore
-            bbox:      { min_lat: 10000000, min_lon: 10000000, max_lat: -10000000, max_lon: -100000000 },
-            nodesBbox: { min_lat: 10000000, min_lon: 10000000, max_lat: -10000000, max_lon: -100000000 },
+            bbox:      makeDefaultBbox(),
+            nodesBbox: makeDefaultBbox(),
         }
 
         const nodesBag = []

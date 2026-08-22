@@ -688,12 +688,7 @@ function goToNextObjectVersion() {
 }
 
 function combineBBOXes(bboxes) {
-    const bbox = {
-        min_lat: 10000000,
-        min_lon: 10000000,
-        max_lat: -10000000,
-        max_lon: -100000000,
-    }
+    const bbox = makeDefaultBbox()
     for (const i of bboxes) {
         if (i?.min_lat) {
             bbox.min_lat = min(bbox.min_lat, i.min_lat)
