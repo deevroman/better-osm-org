@@ -12155,7 +12155,11 @@ function makeComment(object_type, object_id, prevTags, newTags) {
     }
     for (const i of prevTags.entries()) {
         if (i[0] === "name" && !removedKeys.includes("name") && !modifiedKeys.includes("name")) {
-            mainTagsHint += ` ${i[0]}=${i[1]}`
+            if (i[1].includes(" ")) {
+                mainTagsHint += ` ${i[0]} = ${i[1]}`
+            } else {
+                mainTagsHint += ` ${i[0]}=${i[1]}`
+            }
             break
         }
     }
