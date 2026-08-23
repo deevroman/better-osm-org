@@ -309,11 +309,14 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type, fullData, id) {
                 infos.appendChild(lengthElem)
                 infos.appendChild(document.createTextNode(",\xA0"))
 
-                const outersArea = rings.outer.map(i => Math.abs(ringArea(i))).reduce((a, i) => a + i, 0)
-                const innersArea = rings.inner.map(i => Math.abs(ringArea(i))).reduce((a, i) => a + i, 0)
-                const polygonArea = outersArea - innersArea
+                const outersArea = rings.outer.map(i => Math.abs(ringArea(i))).reduce((a, i) => a + i, 0.0)
+                const innersArea = rings.inner.map(i => Math.abs(ringArea(i))).reduce((a, i) => a + i, 0.0)
                 const areaElem = document.createElement("span")
-                areaElem.textContent = t("objectVersionPage.area", { value: formatArea(polygonArea) })
+                areaElem.style.whiteSpace = "pre"
+                areaElem.textContent = t("objectVersionPage.area", { value: formatArea(outersArea - innersArea) })
+                if (innersArea !== 0.0) {
+                    areaElem.textContent += "\n" + t("objectVersionPage.areaWithoutInners", { value: formatArea(outersArea) })
+                }
                 infos.appendChild(areaElem)
             } catch (e) {
                 console.error(e)

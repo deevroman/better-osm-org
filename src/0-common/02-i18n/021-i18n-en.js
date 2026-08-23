@@ -208,6 +208,7 @@ _translations["en"] = {
         length: "Length: {value}",
         fullLength: "Ways length: {value}",
         area: "Area: {value}",
+        areaWithoutInners: "Area without inner members: {value}",
         pinRestrictionSign: "Pin restriction sign on map.\nYou can hide all the objects that better-osm-org adds by pressing ` or ~",
         hideRestrictionSign: "Hide restriction sign",
         selectCoordinatesFormat: "Select coordinates format for copy.\nTo copy just click by coordinates",

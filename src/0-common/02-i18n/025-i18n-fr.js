@@ -210,6 +210,7 @@ _translations["fr"] = {
         length: "Longueur : {value}",
         fullLength: "Longueur des chemins : {value}",
         area: "Surface : {value}",
+        areaWithoutInners: "Surface sans membres inner : {value}",
         pinRestrictionSign:
             "Épingler le panneau restriction sur la carte.\nVous pouvez masquer tous les objets ajoutés par better-osm-org en appuyant sur ` ou ~",
         hideRestrictionSign: "Masquer le panneau restriction",

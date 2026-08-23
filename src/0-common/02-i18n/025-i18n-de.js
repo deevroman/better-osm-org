@@ -208,6 +208,7 @@ _translations["de"] = {
         length: "Länge: {value}",
         fullLength: "Länge der Wege: {value}",
         area: "Fläche: {value}",
+        areaWithoutInners: "Fläche ohne inner-Mitglieder: {value}",
         pinRestrictionSign:
             "restriction-Schild auf der Karte anheften.\nDu kannst alle von better-osm-org hinzugefügten Objekte mit ` oder ~ ausblenden",
         hideRestrictionSign: "restriction-Schild ausblenden",

@@ -208,6 +208,7 @@ _translations["uk"] = {
         length: "Довжина: {value}",
         fullLength: "Довжина ліній: {value}",
         area: "Площа: {value}",
+        areaWithoutInners: "Площа без inner-учасників: {value}",
         pinRestrictionSign:
             "Закріпити знак restriction на мапі.\nВи можете приховати всі об'єкти, які додає better-osm-org, натиснувши ` або ~",
         hideRestrictionSign: "Приховати знак restriction",

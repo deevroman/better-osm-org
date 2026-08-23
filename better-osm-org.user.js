@@ -433,6 +433,7 @@ _translations["en"] = {
         length: "Length: {value}",
         fullLength: "Ways length: {value}",
         area: "Area: {value}",
+        areaWithoutInners: "Area without inner members: {value}",
         pinRestrictionSign: "Pin restriction sign on map.\nYou can hide all the objects that better-osm-org adds by pressing ` or ~",
         hideRestrictionSign: "Hide restriction sign",
         selectCoordinatesFormat: "Select coordinates format for copy.\nTo copy just click by coordinates",
@@ -883,6 +884,7 @@ _translations["tr"] = {
         length: "Uzunluk: {value}",
         fullLength: "Yolların uzunluğu: {value}",
         area: "Alan: {value}",
+        areaWithoutInners: "inner üyeleri hariç alan: {value}",
         pinRestrictionSign:
             "Kısıtlama işaretini haritaya sabitle.\n` veya ~ tuşuna basarak better-osm-org'un eklediği tüm nesneleri gizleyebilirsiniz",
         hideRestrictionSign: "Kısıtlama işaretini gizle",
@@ -1344,6 +1346,7 @@ _translations["ru"] = {
         length: "Длина: {value}",
         fullLength: "Длина линий: {value}",
         area: "Площадь: {value}",
+        areaWithoutInners: "Площадь без inner-участников: {value}",
         pinRestrictionSign:
             "Закрепить знак restriction на карте.\nВы можете скрыть все объекты, которые добавляет better-osm-org, нажав ` или ~",
         hideRestrictionSign: "Скрыть знак restriction",
@@ -1803,6 +1806,7 @@ _translations["de"] = {
         length: "Länge: {value}",
         fullLength: "Länge der Wege: {value}",
         area: "Fläche: {value}",
+        areaWithoutInners: "Fläche ohne inner-Mitglieder: {value}",
         pinRestrictionSign:
             "restriction-Schild auf der Karte anheften.\nDu kannst alle von better-osm-org hinzugefügten Objekte mit ` oder ~ ausblenden",
         hideRestrictionSign: "restriction-Schild ausblenden",
@@ -2259,6 +2263,7 @@ _translations["fr"] = {
         length: "Longueur : {value}",
         fullLength: "Longueur des chemins : {value}",
         area: "Surface : {value}",
+        areaWithoutInners: "Surface sans membres inner : {value}",
         pinRestrictionSign:
             "Épingler le panneau restriction sur la carte.\nVous pouvez masquer tous les objets ajoutés par better-osm-org en appuyant sur ` ou ~",
         hideRestrictionSign: "Masquer le panneau restriction",
@@ -2713,6 +2718,7 @@ _translations["hr"] = {
         length: "Duljina: {value}",
         fullLength: "Duljina puteva: {value}",
         area: "Površina: {value}",
+        areaWithoutInners: "Površina bez inner članova: {value}",
         pinRestrictionSign: "Prikvači restriction znak na kartu.\nMožete sakriti sve objekte koje better-osm-org dodaje pritiskom na ` ili ~",
         hideRestrictionSign: "Sakrij restriction znak",
         selectCoordinatesFormat: "Odaberite format koordinata za kopiranje.\nZa kopiranje samo kliknite na koordinate",
@@ -3165,6 +3171,7 @@ _translations["uk"] = {
         length: "Довжина: {value}",
         fullLength: "Довжина ліній: {value}",
         area: "Площа: {value}",
+        areaWithoutInners: "Площа без inner-учасників: {value}",
         pinRestrictionSign:
             "Закріпити знак restriction на мапі.\nВи можете приховати всі об'єкти, які додає better-osm-org, натиснувши ` або ~",
         hideRestrictionSign: "Приховати знак restriction",
@@ -24810,11 +24817,14 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type, fullData, id) {
                 infos.appendChild(lengthElem)
                 infos.appendChild(document.createTextNode(",\xA0"))
 
-                const outersArea = rings.outer.map(i => Math.abs(ringArea(i))).reduce((a, i) => a + i, 0)
-                const innersArea = rings.inner.map(i => Math.abs(ringArea(i))).reduce((a, i) => a + i, 0)
-                const polygonArea = outersArea - innersArea
+                const outersArea = rings.outer.map(i => Math.abs(ringArea(i))).reduce((a, i) => a + i, 0.0)
+                const innersArea = rings.inner.map(i => Math.abs(ringArea(i))).reduce((a, i) => a + i, 0.0)
                 const areaElem = document.createElement("span")
-                areaElem.textContent = t("objectVersionPage.area", { value: formatArea(polygonArea) })
+                areaElem.style.whiteSpace = "pre"
+                areaElem.textContent = t("objectVersionPage.area", { value: formatArea(outersArea - innersArea) })
+                if (innersArea !== 0.0) {
+                    areaElem.textContent += "\n" + t("objectVersionPage.areaWithoutInners", { value: formatArea(outersArea) })
+                }
                 infos.appendChild(areaElem)
             } catch (e) {
                 console.error(e)
