@@ -232,10 +232,10 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type, fullData, id) {
     const nodes = nodesIds.map(i => nodesMap.get(i.toString()) ?? nodesMap.get(i)) // todo dirty hack
     const bbox = makeDefaultBbox()
     for (const n of nodes) {
-        bbox.min_lat = min(bbox.lat, n.lat)
-        bbox.min_lon = min(bbox.lon, n.lon)
-        bbox.max_lat = max(bbox.lat, n.lat)
-        bbox.max_lon = max(bbox.lon, n.lon)
+        bbox.min_lat = min(bbox.min_lat, n.lat)
+        bbox.min_lon = min(bbox.min_lon, n.lon)
+        bbox.max_lat = max(bbox.max_lat, n.lat)
+        bbox.max_lon = max(bbox.max_lon, n.lon)
     }
 
     let polygonArea = null
