@@ -108,6 +108,7 @@
 // @connect      overpass-api.openhistoricalmap.org
 // @connect      overpass.opengeofiction.net
 // @connect      overpass-api.de
+// @connect      api.fairwaymapper.com
 // @connect      www.hdyc.neis-one.org
 // @connect      hdyc.neis-one.org
 // @connect      resultmaps.neis-one.org
