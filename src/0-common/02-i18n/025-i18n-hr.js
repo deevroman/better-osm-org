@@ -208,6 +208,7 @@ _translations["hr"] = {
         length: "Duljina: {value}",
         fullLength: "Duljina puteva: {value}",
         area: "Površina: {value}",
+        areaWithoutInners: "Površina bez inner članova: {value}",
         pinRestrictionSign: "Prikvači restriction znak na kartu.\nMožete sakriti sve objekte koje better-osm-org dodaje pritiskom na ` ili ~",
         hideRestrictionSign: "Sakrij restriction znak",
         selectCoordinatesFormat: "Odaberite format koordinata za kopiranje.\nZa kopiranje samo kliknite na koordinate",

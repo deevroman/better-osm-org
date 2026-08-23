@@ -209,6 +209,7 @@ _translations["tr"] = {
         length: "Uzunluk: {value}",
         fullLength: "Yolların uzunluğu: {value}",
         area: "Alan: {value}",
+        areaWithoutInners: "inner üyeleri hariç alan: {value}",
         pinRestrictionSign:
             "Kısıtlama işaretini haritaya sabitle.\n` veya ~ tuşuna basarak better-osm-org'un eklediği tüm nesneleri gizleyebilirsiniz",
         hideRestrictionSign: "Kısıtlama işaretini gizle",
