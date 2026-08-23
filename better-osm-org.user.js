@@ -29222,7 +29222,7 @@ function makeUrlFromTemplate(template) {
         if (res !== undefined) {
             return res
         }
-        throw `failed to substitute "${m1}" on current page`
+        throw `failed to substitute "${m1}" on current page` // todo избавиться от throw
     })
 }
 
