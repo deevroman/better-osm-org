@@ -4015,6 +4015,8 @@ function printScriptDebugInfo() {
 
 setTimeout(printScriptDebugInfo, 2000)
 
+const currentScriptInstance = `${GM_info.scriptHandler} v${GM_info.version}`
+
 function injectMapHooks() {
     console.log("injectMapHooks called")
     function mapHook() {
@@ -4026,11 +4028,10 @@ function injectMapHooks() {
                         boGlobalThis.map = this
                         boGlobalThis.mapIntercepted = true
                         console.log("%cMap intercepted", "background: #000; color: #0f0")
-                        const scriptInstance = `${GM_info.scriptHandler} v${GM_info.version}`
                         if (!boGlobalThis.scriptInstance) {
-                            boGlobalThis.scriptInstance = scriptInstance
-                        } else if (boGlobalThis.scriptInstance !== scriptInstance) {
-                            const err = `Two copies of the script were running simultaneously via ${boGlobalThis.scriptInstance} and ${scriptInstance}. Turn off one of them`
+                            boGlobalThis.scriptInstance = currentScriptInstance
+                        } else if (boGlobalThis.scriptInstance !== currentScriptInstance) {
+                            const err = `Two copies of the script were running simultaneously via ${boGlobalThis.scriptInstance} and ${currentScriptInstance}. Turn off one of them`
                             console.error(err)
                             alert(err)
                         }
@@ -4134,6 +4135,12 @@ if (isOsmServer() && location.pathname !== "/id" && !document.querySelector("#id
         })
         document.querySelector("#id-embed").replaceWith(iframe)
     })
+}
+
+if (boGlobalThis.scriptInstance) {
+    const err = `Two copies of the script were running simultaneously via ${boGlobalThis.scriptInstance} and ${currentScriptInstance}. Turn off one of them or reload tab`
+    alert(err)
+    throw err
 }
 
 //</editor-fold>
@@ -23563,7 +23570,7 @@ async function interceptMapManually() {
     if (getWindow().mapIntercepted) return
     try {
         console.warn("try intercept map manually")
-        getWindow().scriptHandler = `${GM_info.scriptHandler} v${GM_info.version}`
+        getWindow().scriptHandler = currentScriptInstance
         injectJSIntoPage(`
         L.Layer.addInitHook(function () {
                 if (window.mapIntercepted) return
@@ -29333,7 +29340,8 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink, index) {
     }
     let actualHref
     try {
-        actualHref = makeUrlFromTemplate(newElem.getAttribute("url-template"))
+        // href needs to be normalized
+        actualHref = new URL(makeUrlFromTemplate(newElem.getAttribute("url-template"))).toString()
     } catch (e) {
         if (newElem) {
             newElem.classList.add("invalid-external-link")

@@ -3689,7 +3689,7 @@ async function interceptMapManually() {
     if (getWindow().mapIntercepted) return
     try {
         console.warn("try intercept map manually")
-        getWindow().scriptHandler = `${GM_info.scriptHandler} v${GM_info.version}`
+        getWindow().scriptHandler = currentScriptInstance
         injectJSIntoPage(`
         L.Layer.addInitHook(function () {
                 if (window.mapIntercepted) return
