@@ -59,7 +59,11 @@ function makeRevertViaOsmRevertButton() {
         const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked"))
             .map(i => i.value)
             .join(",")
-        open(`${osm_revert_origin}/?changesets=` + ids, "_blank")
+        if (ids === "") {
+            alert("Select changesets")
+        } else {
+            open(`${osm_revert_origin}/?changesets=` + ids, "_blank")
+        }
     }
     return revertButton
 }
@@ -71,7 +75,11 @@ function makeRevertViaJosmButton() {
         const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked"))
             .map(i => i.value)
             .join(",")
-        open("http://127.0.0.1:8111/revert_changeset?id=" + ids, "_blank")
+        if (ids === "") {
+            alert("Select changesets")
+        } else {
+            open("http://127.0.0.1:8111/revert_changeset?id=" + ids, "_blank")
+        }
     }
     return revertViaJOSMButton
 }
