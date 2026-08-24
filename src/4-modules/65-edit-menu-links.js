@@ -474,7 +474,8 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink, index) {
     }
     let actualHref
     try {
-        actualHref = makeUrlFromTemplate(newElem.getAttribute("url-template"))
+        // href needs to be normalized
+        actualHref = new URL(makeUrlFromTemplate(newElem.getAttribute("url-template"))).toString()
     } catch (e) {
         if (newElem) {
             newElem.classList.add("invalid-external-link")
