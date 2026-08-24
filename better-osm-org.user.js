@@ -26668,13 +26668,7 @@ function onClickByCopyIds() {
     }
 }
 
-function makeTopActionBar() {
-    const actionsBar = document.createElement("div")
-    actionsBar.classList.add("actions-bar")
-    const copyIds = document.createElement("button")
-    copyIds.textContent = t("changesetsHistory.copyIds")
-    copyIds.classList.add("copy-changesets-ids-btn")
-    copyIds.onclick = onClickByCopyIds
+function makeRevertViaOsmRevertButton() {
     const revertButton = document.createElement("button")
     revertButton.textContent = "↩️"
     revertButton.title = t("changesetsHistory.revertViaOsmRevert", { name: osm_revert_name })
@@ -26684,6 +26678,10 @@ function makeTopActionBar() {
             .join(",")
         open(`${osm_revert_origin}/?changesets=` + ids, "_blank")
     }
+    return revertButton
+}
+
+function makeRevertViaJosmButton() {
     const revertViaJOSMButton = document.createElement("button")
     revertViaJOSMButton.textContent = "↩️ via JOSM"
     revertViaJOSMButton.onclick = () => {
@@ -26692,6 +26690,18 @@ function makeTopActionBar() {
             .join(",")
         open("http://127.0.0.1:8111/revert_changeset?id=" + ids, "_blank")
     }
+    return revertViaJOSMButton
+}
+
+function makeTopActionBar() {
+    const actionsBar = document.createElement("div")
+    actionsBar.classList.add("actions-bar")
+    const copyIds = document.createElement("button")
+    copyIds.textContent = t("changesetsHistory.copyIds")
+    copyIds.classList.add("copy-changesets-ids-btn")
+    copyIds.onclick = onClickByCopyIds
+    const revertButton = makeRevertViaOsmRevertButton()
+    const revertViaJOSMButton = makeRevertViaJosmButton()
     const viewChangesetsButton = document.createElement("button")
     viewChangesetsButton.textContent = "🔍"
     viewChangesetsButton.title = t("changesetsHistory.displayOnOneMapAll")
@@ -26718,16 +26728,10 @@ function makeBottomActionBar() {
     }
     copyIds.classList.add("copy-changesets-ids-btn", "buttom-btn", "page-link")
     copyIds.onclick = onClickByCopyIds
-    const revertButton = document.createElement("button")
-    revertButton.textContent = "↩️"
-    revertButton.title = t("changesetsHistory.revertViaOsmRevert", { name: osm_revert_name })
-    revertButton.onclick = () => {
-        const ids = Array.from(document.querySelectorAll(".mass-action-checkbox:checked"))
-            .map(i => i.value)
-            .join(",")
-        window.location = `${osm_revert_origin}/?changesets=` + ids
-    }
+    const revertButton = makeRevertViaOsmRevertButton()
     revertButton.classList.add("page-link")
+    const revertViaJOSMButton = makeRevertViaJosmButton()
+    revertViaJOSMButton.classList.add("page-link")
     const viewChangesetsButton = document.createElement("button")
     viewChangesetsButton.textContent = "🔍"
     viewChangesetsButton.title = t("changesetsHistory.displayOnOneMap")
@@ -26735,10 +26739,21 @@ function makeBottomActionBar() {
     viewChangesetsButton.classList.add("page-link")
     const changesetMore = document.querySelector('#sidebar_content div.changeset_more:has([href*="before"]) li')
     if (changesetMore) {
-        changesetMore.style.display = "inline-flex"
+        changesetMore.style.display = "flex"
+        changesetMore.style.flexWrap = "wrap"
+        changesetMore.style.rowGap = "3px"
+        changesetMore.style.justifyContent = "center"
+
+        const br = document.createElement("div")
+        br.style.flexBasis = "100%"
+        br.style.height = "0"
+        changesetMore.appendChild(br)
+
         changesetMore.appendChild(copyIds)
         changesetMore.appendChild(document.createTextNode("\xA0"))
         changesetMore.appendChild(revertButton)
+        changesetMore.appendChild(document.createTextNode("\xA0"))
+        changesetMore.appendChild(revertViaJOSMButton)
         changesetMore.appendChild(document.createTextNode("\xA0"))
         changesetMore.appendChild(viewChangesetsButton)
     } else {
@@ -26754,6 +26769,8 @@ function makeBottomActionBar() {
         actionBarWrapperLi.appendChild(copyIds)
         actionBarWrapperLi.appendChild(document.createTextNode("\xA0"))
         actionBarWrapperLi.appendChild(revertButton)
+        actionBarWrapperLi.appendChild(document.createTextNode("\xA0"))
+        actionBarWrapperLi.appendChild(revertViaJOSMButton)
         actionBarWrapperLi.appendChild(document.createTextNode("\xA0"))
         actionBarWrapperLi.appendChild(viewChangesetsButton)
         changesetsList.after(actionBarWrapper)
