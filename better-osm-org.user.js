@@ -1,7 +1,8 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.7.1
+// @version         1.7.2
+// @changelog       v1.7.2: Retries for osm-revert
 // @changelog       v1.7.0: Calculating the area for multipolygons and boundaries, customizable overpass api server
 // @changelog       v1.6.9: Tags editor, ctrl + S to save Overpass results, suggest Osmcha tags after dislike
 // @changelog       v1.6.6: Under experimental flag: clickable POIs, full history for relations, level0 reborn links
@@ -56,6 +57,7 @@
 // @match        https://osmcha.openhistoricalmap.org/*
 // @match        https://overpass-turbo.eu/*
 // @match        https://maps.mail.ru/osm/tools/overpass/*
+// @match        https://revert.monicz.dev/*
 // @exclude      https://www.openhistoricalmap.org/api*
 // @exclude      https://www.openhistoricalmap.org/account*
 // @exclude      https://www.openhistoricalmap.org/messages/*
@@ -35432,6 +35434,48 @@ function setupOhmOsmcha() {
 //</editor-fold>
 
 //<editor-fold desc="osm-revert" defaultstate="collapsed">
+
+if (location.origin === "https://revert.monicz.dev") {
+    injectJSIntoPage(`
+    const originalFetch = window.fetch;
+
+    window.fetch = async (...args) => {
+        async function sleep(ms) {
+            console.debug("sleep " + ms + "ms")
+            await new Promise(r => setTimeout(r, ms))
+        }
+        
+        try {
+            if (args[0].endsWith("/interpreter")) {
+                const data = args[1].body.get("data")
+                args[1].body.set("data", data.replace("[timeout:180][bbox", "[timeout:180][maxsize:64Mi][bbox"))
+                for (let i = 0; i < 3; i++) {
+                    const res = await originalFetch(...args)
+                    if (res.ok) {
+                        return res
+                    }
+                    if (res.status === 504) {
+                        window.log.value += "better-osm-org: Overpass return 504, wait for retry...\\n"
+                        await sleep(10 * 1000)
+                    } else if (res.status === 429) {
+                        window.log.value += "better-osm-org: Overpass return 429, wait 30s for retry...\\n"
+                        await sleep(31 * 1000)
+                    } else {
+                        await sleep(15 * 1000)
+                    }
+                }
+                args[1].body.set("data", data)
+                return await originalFetch(...args)
+            }
+        } catch (e) {
+            console.error(e)
+            return originalFetch(...args);
+        }
+        return originalFetch(...args);
+    }
+
+    `)
+}
 
 //</editor-fold>
 
