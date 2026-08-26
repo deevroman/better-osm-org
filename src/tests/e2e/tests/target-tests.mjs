@@ -81,6 +81,53 @@ function toArtifactSlug(value) {
     )
 }
 
+function formatError(error) {
+    if (!error) {
+        return "<unknown error>"
+    }
+    return `${error.name || "Error"}: ${error.message || String(error)}`
+}
+
+function formatPageDebugState(state) {
+    if (!state || typeof state !== "object") {
+        return "state=<unavailable>"
+    }
+    const url = state.url || state.href || "<unknown>"
+    const readyState = state.readyState || "<unknown>"
+    const visibilityState = state.visibilityState || "<unknown>"
+    const startCount = Number.isFinite(state.startCount) ? state.startCount : "<unknown>"
+    const endCount = Number.isFinite(state.endCount) ? state.endCount : "<unknown>"
+    return `url=${url}, readyState=${readyState}, visibilityState=${visibilityState}, BETTER_OSM_START=${startCount}, BETTER_OSM_END=${endCount}`
+}
+
+async function readPageDebugState(driver) {
+    let url = ""
+    try {
+        url = await driver.getCurrentUrl()
+    } catch {
+        // ignored
+    }
+
+    try {
+        const state = await driver.executeScript(() => ({
+            href: window.location?.href || "",
+            readyState: document.readyState,
+            visibilityState: document.visibilityState,
+            startCount:
+                typeof performance !== "undefined" && typeof performance.getEntriesByName === "function"
+                    ? performance.getEntriesByName("BETTER_OSM_START").length
+                    : null,
+            endCount:
+                typeof performance !== "undefined" && typeof performance.getEntriesByName === "function"
+                    ? performance.getEntriesByName("BETTER_OSM_END").length
+                    : null,
+        }))
+        return { ...state, url: url || state?.href || "" }
+    } catch {
+        return { url }
+    }
+}
+
 /**
  * Executes one discovered test with prepared runtime helpers.
  * @param {import("selenium-webdriver").WebDriver} driver
@@ -112,6 +159,8 @@ async function runTargetTest(driver, testCase, testIndex, context) {
         log(
             `[test:${slug}] Target page did not reach expected loaded state within ${targetLoadTimeoutMs}ms (last readyState=${loadInfo.readyState}, last url=${loadInfo.url || "<unknown>"})`,
         )
+    } else {
+        log(`[test:${slug}] Target page loaded: readyState=${loadInfo.readyState}, url=${loadInfo.url || "<unknown>"}`)
     }
     await savePageArtifacts(driver, `target-loaded-${slug}`)
     if (testIndex === 0) {
@@ -135,25 +184,55 @@ async function runTargetTest(driver, testCase, testIndex, context) {
         return false
     }
 
+    const lastPerformanceReadIssueLogAt = new Map()
+    const logPerformanceReadIssue = async (markName, message) => {
+        const now = Date.now()
+        const lastLogAt = lastPerformanceReadIssueLogAt.get(markName) || 0
+        if (now - lastLogAt < 5000) {
+            return
+        }
+        lastPerformanceReadIssueLogAt.set(markName, now)
+        const state = await readPageDebugState(driver)
+        log(`[test:${slug}] ${message}; mark=${markName}; ${formatPageDebugState(state)}`)
+    }
+
     const getPerformanceMarkCount = async markName => {
         try {
-            return await driver.executeScript("return performance.getEntriesByName(arguments[0]).length", markName)
-        } catch {
+            const count = await driver.executeScript(
+                "return performance.getEntriesByName(arguments[0]).length",
+                markName,
+            )
+            if (Number.isFinite(count)) {
+                return count
+            }
+            await logPerformanceReadIssue(
+                markName,
+                `Unexpected performance mark count payload: ${typeof count}(${String(count)})`,
+            )
+        } catch (error) {
+            await logPerformanceReadIssue(markName, `Failed to read performance mark count: ${formatError(error)}`)
             return -1
         }
+        return -1
     }
 
     const waitForPerformanceMark = async (markName, timeoutMs = assertTimeoutMs) => {
         const deadline = Date.now() + timeoutMs
         let lastCount = -1
+        log(`[test:${slug}] Waiting for performance mark "${markName}" for up to ${timeoutMs}ms`)
         while (Date.now() < deadline) {
             lastCount = await getPerformanceMarkCount(markName)
             await flushConsoleCapture(driver, `target:${slug}`)
             if (lastCount > 0) {
+                log(`[test:${slug}] Performance mark "${markName}" found: count=${lastCount}`)
                 return lastCount
             }
             await sleep(500)
         }
+        const state = await readPageDebugState(driver)
+        log(
+            `[test:${slug}] Timed out waiting for performance mark "${markName}": lastCount=${lastCount}; ${formatPageDebugState(state)}`,
+        )
         return lastCount
     }
 
