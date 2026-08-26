@@ -12410,17 +12410,21 @@ async function deleteObject(object_type, object_id) {
     }
     for (const i of tags) {
         if (i.getAttribute("k") === "type") {
-            tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
+            tagsHint += ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
         }
     }
     for (const i of tags) {
         if (i.getAttribute("k") === "restriction") {
-            tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
+            tagsHint += ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
         }
     }
     for (const i of tags) {
         if (i.getAttribute("k") === "name") {
-            tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
+            if (i.getAttribute("v").includes(" ")) {
+                tagsHint += ` ${i.getAttribute("k")} = ${i.getAttribute("v")}`
+            } else {
+                tagsHint += ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
+            }
             break
         }
     }
