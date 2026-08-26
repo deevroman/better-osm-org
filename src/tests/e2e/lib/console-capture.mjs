@@ -1,5 +1,53 @@
 import { log } from "./runtime-utils.mjs"
 
+function formatError(error) {
+    if (!error) {
+        return "<unknown error>"
+    }
+    return `${error.name || "Error"}: ${error.message || String(error)}`
+}
+
+function summarizeValue(value) {
+    if (value === null) {
+        return "null"
+    }
+    if (Array.isArray(value)) {
+        return `array(length=${value.length})`
+    }
+    const type = typeof value
+    if (type !== "object") {
+        return `${type}(${String(value)})`
+    }
+    const keys = Object.keys(value).slice(0, 8).join(",")
+    const ctor = value.constructor?.name || "Object"
+    return `${ctor}{${keys}}`
+}
+
+function formatCaptureState(state) {
+    if (!state || typeof state !== "object") {
+        return "state=<unavailable>"
+    }
+    const url = state.url || "<unknown>"
+    const readyState = state.readyState || "<unknown>"
+    const bufferType = state.bufferType || "<unknown>"
+    const bufferLength = Number.isFinite(state.bufferLength) ? state.bufferLength : "<unknown>"
+    return `url=${url}, readyState=${readyState}, captureInstalled=${Boolean(state.captureInstalled)}, bufferType=${bufferType}, bufferLength=${bufferLength}`
+}
+
+async function readPageCaptureState(driver) {
+    try {
+        return await driver.executeScript(() => ({
+            url: window.location?.href || "",
+            readyState: document.readyState,
+            captureInstalled: Boolean(window.__e2eConsoleCaptureInstalled),
+            bufferType: Object.prototype.toString.call(window.__e2eConsoleBuffer),
+            bufferLength: Array.isArray(window.__e2eConsoleBuffer) ? window.__e2eConsoleBuffer.length : null,
+        }))
+    } catch {
+        return null
+    }
+}
+
 /**
  * Installs browser-side console/event capture hook in current tab.
  * @param {import("selenium-webdriver").WebDriver} driver
@@ -63,11 +111,43 @@ export async function installConsoleCapture(driver) {
  * @returns {Promise<void>}
  */
 export async function flushConsoleCapture(driver, label, logFn = log) {
-    const entries = await driver.executeScript(() => {
-        const buffer = Array.isArray(window.__e2eConsoleBuffer) ? window.__e2eConsoleBuffer : []
-        window.__e2eConsoleBuffer = []
-        return buffer
-    })
+    let result
+    try {
+        result = await driver.executeScript(() => {
+            const rawBuffer = window.__e2eConsoleBuffer
+            const entries = Array.isArray(rawBuffer) ? rawBuffer : []
+            window.__e2eConsoleBuffer = []
+            return {
+                entries,
+                state: {
+                    url: window.location?.href || "",
+                    readyState: document.readyState,
+                    captureInstalled: Boolean(window.__e2eConsoleCaptureInstalled),
+                    bufferType: Object.prototype.toString.call(rawBuffer),
+                    bufferLength: Array.isArray(rawBuffer) ? rawBuffer.length : null,
+                },
+            }
+        })
+    } catch (error) {
+        const state = await readPageCaptureState(driver)
+        logFn(
+            `[browser:${label}:warn] console capture flush failed: ${formatError(error)}; ${formatCaptureState(state)}`,
+        )
+        return
+    }
+
+    const entries = Array.isArray(result?.entries) ? result.entries : Array.isArray(result) ? result : []
+    if (!Array.isArray(result?.entries) && !Array.isArray(result)) {
+        const state = result?.state || (await readPageCaptureState(driver))
+        logFn(
+            `[browser:${label}:warn] console capture returned unexpected payload: ${summarizeValue(result)}; ${formatCaptureState(state)}`,
+        )
+    } else if (result?.state && result.state.bufferType !== "[object Array]") {
+        logFn(
+            `[browser:${label}:warn] console capture buffer was reset from ${result.state.bufferType}; ${formatCaptureState(result.state)}`,
+        )
+    }
+
     for (const entry of entries) {
         const level = entry?.level || "log"
         const text = entry?.text || ""
