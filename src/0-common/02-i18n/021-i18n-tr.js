@@ -59,6 +59,7 @@ _translations["tr"] = {
         deletor: "Düğüm silme düğmesi",
         oneClickDeletor: "Düğümü onaysız sil",
         changesetsTemplates: 'Değişiklik seti yorum şablonları <a id="last-comments-link" target="_blank">(son yorumlarınız)</a>',
+        messagesTemplates: "Doğrudan mesaj şablonları:",
         hdycInProfile: "Kullanıcı profiline HDYC ekle",
         betterProfileStat: "Profil istatistiklerine filtreler ekle",
         navigationViaHotkeys:
@@ -450,5 +451,9 @@ _translations["tr"] = {
     },
     relationVersionPage: {
         loadViaOverpass: "İlişki sürümünü Overpass API üzerinden yükle",
+    },
+    messages: {
+        templatesHeader: "Şablonlar:",
+        commentTemplateTitle: '"{text}" yoruma eklenecek.\nBu metni script ayarlarında değiştirebilirsiniz',
     },
 }

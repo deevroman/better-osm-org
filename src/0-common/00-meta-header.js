@@ -31,10 +31,8 @@
 // @author       deevroman
 // @match        https://www.openstreetmap.org/*
 // @exclude      https://www.openstreetmap.org/api*
-// @exclude      https://www.openstreetmap.org/message/new/*
 // @exclude      https://www.openstreetmap.org/reports/new/*
 // @exclude      https://www.openstreetmap.org/profile/*
-// @exclude      https://www.openstreetmap.org/messages/*
 // @exclude      https://www.openstreetmap.org/diary/*
 // @exclude      https://www.openstreetmap.org/account*
 // @exclude      https://www.openstreetmap.org/oauth2/*
@@ -44,7 +42,6 @@
 // @match        https://master.apis.dev.openstreetmap.org/*
 // @exclude      https://master.apis.dev.openstreetmap.org/api/*
 // @exclude      https://master.apis.dev.openstreetmap.org/account*
-// @exclude      https://master.apis.dev.openstreetmap.org/messages/*
 // @exclude      https://master.apis.dev.openstreetmap.org/diary/*
 // @exclude      https://master.apis.dev.openstreetmap.org/oauth2/*
 // @match        http://localhost:3000/*
@@ -61,12 +58,10 @@
 // @match        https://revert.monicz.dev/*
 // @exclude      https://www.openhistoricalmap.org/api*
 // @exclude      https://www.openhistoricalmap.org/account*
-// @exclude      https://www.openhistoricalmap.org/messages/*
 // @exclude      https://www.openhistoricalmap.org/diary/*
 // @exclude      https://www.openhistoricalmap.org/oauth2/*
 // @exclude      https://opengeofiction.net/api*
 // @exclude      https://opengeofiction.net/account*
-// @exclude      https://opengeofiction.net/messages/*
 // @exclude      https://opengeofiction.net/diary/*
 // @exclude      https://opengeofiction.net/oauth2/*
 // @match        https://wiki.openstreetmap.org/wiki/Proposal:*

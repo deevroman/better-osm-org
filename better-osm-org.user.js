@@ -31,10 +31,8 @@
 // @author       deevroman
 // @match        https://www.openstreetmap.org/*
 // @exclude      https://www.openstreetmap.org/api*
-// @exclude      https://www.openstreetmap.org/message/new/*
 // @exclude      https://www.openstreetmap.org/reports/new/*
 // @exclude      https://www.openstreetmap.org/profile/*
-// @exclude      https://www.openstreetmap.org/messages/*
 // @exclude      https://www.openstreetmap.org/diary/*
 // @exclude      https://www.openstreetmap.org/account*
 // @exclude      https://www.openstreetmap.org/oauth2/*
@@ -44,7 +42,6 @@
 // @match        https://master.apis.dev.openstreetmap.org/*
 // @exclude      https://master.apis.dev.openstreetmap.org/api/*
 // @exclude      https://master.apis.dev.openstreetmap.org/account*
-// @exclude      https://master.apis.dev.openstreetmap.org/messages/*
 // @exclude      https://master.apis.dev.openstreetmap.org/diary/*
 // @exclude      https://master.apis.dev.openstreetmap.org/oauth2/*
 // @match        https://ideditor.netlify.app/*
@@ -60,12 +57,10 @@
 // @match        https://revert.monicz.dev/*
 // @exclude      https://www.openhistoricalmap.org/api*
 // @exclude      https://www.openhistoricalmap.org/account*
-// @exclude      https://www.openhistoricalmap.org/messages/*
 // @exclude      https://www.openhistoricalmap.org/diary/*
 // @exclude      https://www.openhistoricalmap.org/oauth2/*
 // @exclude      https://opengeofiction.net/api*
 // @exclude      https://opengeofiction.net/account*
-// @exclude      https://opengeofiction.net/messages/*
 // @exclude      https://opengeofiction.net/diary/*
 // @exclude      https://opengeofiction.net/oauth2/*
 // @match        https://wiki.openstreetmap.org/wiki/Proposal:*
@@ -287,6 +282,7 @@ _translations["en"] = {
         deletor: "Button for node deletion",
         oneClickDeletor: "Delete node without confirmation",
         changesetsTemplates: 'Changesets comments templates <a id="last-comments-link" target="_blank">(your last comments)</a>',
+        messagesTemplates: "Direct messages templates:",
         hdycInProfile: "Add HDYC to user profile",
         betterProfileStat: "Add filters to profile statistics",
         navigationViaHotkeys: 'Add hotkeys <a href="https://github.com/deevroman/better-osm-org#Hotkeys" target="_blank">(List)</a>',
@@ -674,6 +670,10 @@ _translations["en"] = {
     relationVersionPage: {
         loadViaOverpass: "Load relation version via Overpass API",
     },
+    messages: {
+        templatesHeader: "Templates:",
+        commentTemplateTitle: '"{text}" will be added to the comment.\nYou can change this text in the script settings',
+    },
 }
 
 _translations["tr"] = {
@@ -737,6 +737,7 @@ _translations["tr"] = {
         deletor: "Düğüm silme düğmesi",
         oneClickDeletor: "Düğümü onaysız sil",
         changesetsTemplates: 'Değişiklik seti yorum şablonları <a id="last-comments-link" target="_blank">(son yorumlarınız)</a>',
+        messagesTemplates: "Doğrudan mesaj şablonları:",
         hdycInProfile: "Kullanıcı profiline HDYC ekle",
         betterProfileStat: "Profil istatistiklerine filtreler ekle",
         navigationViaHotkeys:
@@ -1129,6 +1130,10 @@ _translations["tr"] = {
     relationVersionPage: {
         loadViaOverpass: "İlişki sürümünü Overpass API üzerinden yükle",
     },
+    messages: {
+        templatesHeader: "Şablonlar:",
+        commentTemplateTitle: '"{text}" yoruma eklenecek.\nBu metni script ayarlarında değiştirebilirsiniz',
+    },
 }
 
 _translations["ru"] = {
@@ -1193,6 +1198,7 @@ _translations["ru"] = {
         deletor: "Кнопка удаления точки",
         oneClickDeletor: "Удалять точки без подтверждения",
         changesetsTemplates: 'Шаблоны комментариев к правкам <a id="last-comments-link" target="_blank">(ваши последние комментарии)</a>',
+        messagesTemplates: "Шаблоны личных сообщений:",
         hdycInProfile: "Добавить HDYC в профиль пользователя",
         betterProfileStat: "Добавить фильтры в статистику профиля",
         navigationViaHotkeys:
@@ -1597,6 +1603,10 @@ _translations["ru"] = {
     relationVersionPage: {
         loadViaOverpass: "Загрузить версию отношения через Overpass API",
     },
+    messages: {
+        templatesHeader: "Шаблоны:",
+        commentTemplateTitle: 'Текст "{text}" будет добавлен в комментарий.\nВы можете изменить этот текст в настройках скрипта',
+    },
 }
 
 _translations["de"] = {
@@ -1660,6 +1670,7 @@ _translations["de"] = {
         deletor: "Schaltfläche zum Löschen von Knoten",
         oneClickDeletor: "Knoten ohne Bestätigung löschen",
         changesetsTemplates: 'Vorlagen für Changeset-Kommentare <a id="last-comments-link" target="_blank">(deine letzten Kommentare)</a>',
+        messagesTemplates: "Vorlagen für Direktnachrichten:",
         hdycInProfile: "HDYC zum Benutzerprofil hinzufügen",
         betterProfileStat: "Filter zur Profilstatistik hinzufügen",
         navigationViaHotkeys:
@@ -2052,6 +2063,10 @@ _translations["de"] = {
     relationVersionPage: {
         loadViaOverpass: "Relationsversion über die Overpass API laden",
     },
+    messages: {
+        templatesHeader: "Vorlagen:",
+        commentTemplateTitle: '"{text}" wird dem Kommentar hinzugefügt.\nDu kannst diesen Text in den Skript-Einstellungen ändern',
+    },
 }
 
 _translations["fr"] = {
@@ -2116,6 +2131,7 @@ _translations["fr"] = {
         oneClickDeletor: "Supprimer le nœud sans confirmation",
         changesetsTemplates:
             'Modèles de commentaires de changeset <a id="last-comments-link" target="_blank">(vos derniers commentaires)</a>',
+        messagesTemplates: "Modèles de messages directs :",
         hdycInProfile: "Ajouter HDYC au profil utilisateur",
         betterProfileStat: "Ajouter des filtres aux statistiques du profil",
         navigationViaHotkeys:
@@ -2509,6 +2525,10 @@ _translations["fr"] = {
     relationVersionPage: {
         loadViaOverpass: "Charger la version de la relation via l'API Overpass",
     },
+    messages: {
+        templatesHeader: "Modèles :",
+        commentTemplateTitle: 'Le texte "{text}" sera ajouté au commentaire.\nVous pouvez modifier ce texte dans les paramètres du script',
+    },
 }
 
 _translations["hr"] = {
@@ -2572,6 +2592,7 @@ _translations["hr"] = {
         deletor: "Gumb za brisanje točke",
         oneClickDeletor: "Briši točke bez potvrde",
         changesetsTemplates: 'Predlošci komentara changeseta <a id="last-comments-link" target="_blank">(vaši zadnji komentari)</a>',
+        messagesTemplates: "Predlošci izravnih poruka:",
         hdycInProfile: "Dodaj HDYC u korisnički profil",
         betterProfileStat: "Dodaj filtre u statistiku profila",
         navigationViaHotkeys: 'Dodaj prečace <a href="https://github.com/deevroman/better-osm-org#Hotkeys" target="_blank">(Popis)</a>',
@@ -2962,6 +2983,10 @@ _translations["hr"] = {
     relationVersionPage: {
         loadViaOverpass: "Učitaj verziju relacije putem Overpass API-ja",
     },
+    messages: {
+        templatesHeader: "Predlošci:",
+        commentTemplateTitle: 'Tekst "{text}" bit će dodan u komentar.\nOvaj tekst možete promijeniti u postavkama skripte',
+    },
 }
 
 _translations["uk"] = {
@@ -3025,6 +3050,7 @@ _translations["uk"] = {
         deletor: "Кнопка видалення точки",
         oneClickDeletor: "Видаляти точки без підтвердження",
         changesetsTemplates: 'Шаблони коментарів до наборів змін <a id="last-comments-link" target="_blank">(ваші останні коментарі)</a>',
+        messagesTemplates: "Шаблони особистих повідомлень:",
         hdycInProfile: "Додати HDYC до профілю користувача",
         betterProfileStat: "Додати фільтри до статистики профілю",
         navigationViaHotkeys:
@@ -3414,6 +3440,10 @@ _translations["uk"] = {
     },
     relationVersionPage: {
         loadViaOverpass: "Завантажити версію відношення через Overpass API",
+    },
+    messages: {
+        templatesHeader: "Шаблони:",
+        commentTemplateTitle: 'Текст "{text}" буде додано в коментар.\nВи можете змінити цей текст у налаштуваннях скрипта',
     },
 }
 
@@ -4159,7 +4189,7 @@ function makeRow(label, text, without_delete = false, placeholder = "comment tha
     td.setAttribute("contenteditable", "true")
 
     th.textContent = label
-    td.textContent = text
+    td.innerText = text
     td.style.paddingLeft = "4px"
     td.style.paddingRight = "4px"
     td.style.wordWrap = "anywhere"
@@ -4524,6 +4554,11 @@ const configOptions = {
             type: "menu",
             default: '[{"label": "👋", "text": ""}]',
         },
+        MessagesTemplates: {
+            label: t("config.messagesTemplates"),
+            type: "menu",
+            default: '[{"label": "👋", "title": "", "text": ""}]',
+        },
         NavigationViaHotkeys: {
             section: [t("config.sectionInterfaceNavigation")],
             label: t("config.navigationViaHotkeys"), // add help button with list
@@ -4729,7 +4764,7 @@ const configOptions = {
                     for (let row of Array.from(this.wrapper.getElementsByTagName("tr")).slice(0, -1)) {
                         const forPush = {
                             label: row.querySelector("th").textContent,
-                            text: row.querySelector("td").textContent,
+                            text: row.querySelector("td").innerText,
                         }
                         if (!(forPush.label.trim() === "" && forPush.text.trim() === "")) {
                             templates.push(forPush)
@@ -6682,6 +6717,9 @@ function setZoom(zoomLevel) {
 }
 
 function setAttributionPrefix(prefix) {
+    if (!document.getElementById("map")) {
+        return
+    }
     console.trace("New prefix:", prefix) // todo -> .log
     getMap?.()?.attributionControl?.setPrefix(prefix)
 }
@@ -10683,6 +10721,9 @@ let skipClick = false
 
 async function setupClickableMap() {
     if (!isDebug() && !GM_config.get("ClickableMap")) {
+        return
+    }
+    if (!document.getElementById("map")) {
         return
     }
     await interceptMapManually()
@@ -28810,6 +28851,81 @@ function simplifyHDCYIframe() {
 
 //</editor-fold>
 
+//<editor-fold desc="messages" defaultstate="collapsed">
+
+function setupMessagesTemplates() {
+    if (!location.pathname.startsWith("/messages/new/")) {
+        return
+    }
+    const templates = /** @type {string} */ (GM_config.get("MessagesTemplates"))
+    if (!templates) {
+        return
+    }
+    const buttonsWrapper = document.querySelector(".richtext_container ul")
+
+    const li = document.createElement("li")
+    li.classList.add("nav-item")
+    buttonsWrapper.appendChild(li)
+    const b = document.createElement("button")
+    b.classList.add("comment-template", "nav-link")
+    b.setAttribute("disabled", "true")
+    b.textContent = t("messages.templatesHeader")
+    li.appendChild(b)
+
+    JSON.parse(templates).forEach(row => {
+        const label = row["label"]
+        let text = label
+        if (row["text"] !== "") {
+            text = row["text"]
+        }
+        text = text.replace("{{ mapper.displayName }}", decodeURI(location.pathname.match(/\/messages\/new\/([^\/]*)/)[1]))
+        const li = document.createElement("li")
+        li.classList.add("nav-item")
+        buttonsWrapper.appendChild(li)
+
+        const b = document.createElement("button")
+        b.classList.add("comment-template", "nav-link")
+        b.textContent = label
+        b.title = t("messages.commentTemplateTitle", { text })
+        li.appendChild(b)
+        b.onmousedown = e => {
+            e.preventDefault()
+        }
+        b.onclick = e => {
+            e.preventDefault()
+            e.stopImmediatePropagation()
+            const textarea = document.querySelector("textarea#message_body")
+            const prev = textarea.value
+            const cursor = textarea.selectionEnd
+            textarea.value = prev.substring(0, cursor) + text + prev.substring(cursor)
+
+            const ev = new InputEvent("input", {
+                bubbles: true,
+                cancelable: false,
+                data: textarea.value,
+                inputType: "insertFromPaste",
+            })
+            textarea.dispatchEvent(ev)
+            textarea.setSelectionRange(cursor + text.length, cursor + text.length)
+        }
+    })
+
+    const liSettings = document.createElement("li")
+    liSettings.classList.add("nav-item")
+    liSettings.style.marginLeft = "auto"
+    buttonsWrapper.appendChild(liSettings)
+    const bSettings = document.createElement("button")
+    bSettings.classList.add("comment-template", "nav-link", "bi", "bi-gear")
+    bSettings.style.color = "revert"
+    bSettings.onclick = e => {
+        e.preventDefault()
+        GM_config.open()
+    }
+    liSettings.appendChild(bSettings)
+}
+
+//</editor-fold>
+
 //<editor-fold desc="routers" defaultstate="collapsed">
 
 window.addEventListener("message", async e => {
@@ -34803,6 +34919,7 @@ const alwaysEnabledModules = [
     setupNotesFiltersButtons,
     setupGPXFiltersButtons,
     setupSpyGlassButtons,
+    setupMessagesTemplates,
     setupNewContextMenuItems,
     setupPrometheusLink,
 ]
@@ -34894,6 +35011,7 @@ function setupOSMWebsite() {
 
     setTimeout(async () => {
         if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) return
+        if (!document.getElementById("map")) return
         if (getWindow && !getWindow().mapIntercepted) {
             console.log("map not intercepted after 900ms")
             document.querySelector(".control-share a").click()

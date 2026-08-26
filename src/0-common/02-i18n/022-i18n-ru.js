@@ -60,6 +60,7 @@ _translations["ru"] = {
         deletor: "Кнопка удаления точки",
         oneClickDeletor: "Удалять точки без подтверждения",
         changesetsTemplates: 'Шаблоны комментариев к правкам <a id="last-comments-link" target="_blank">(ваши последние комментарии)</a>',
+        messagesTemplates: "Шаблоны личных сообщений:",
         hdycInProfile: "Добавить HDYC в профиль пользователя",
         betterProfileStat: "Добавить фильтры в статистику профиля",
         navigationViaHotkeys:
@@ -463,5 +464,9 @@ _translations["ru"] = {
     },
     relationVersionPage: {
         loadViaOverpass: "Загрузить версию отношения через Overpass API",
+    },
+    messages: {
+        templatesHeader: "Шаблоны:",
+        commentTemplateTitle: 'Текст "{text}" будет добавлен в комментарий.\nВы можете изменить этот текст в настройках скрипта',
     },
 }

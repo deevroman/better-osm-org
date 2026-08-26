@@ -193,6 +193,9 @@ async function setupClickableMap() {
     if (!isDebug() && !GM_config.get("ClickableMap")) {
         return
     }
+    if (!document.getElementById("map")) {
+        return
+    }
     await interceptMapManually()
     if (clickableMapSetuped) {
         return
