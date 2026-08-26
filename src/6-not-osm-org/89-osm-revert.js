@@ -9,15 +9,26 @@ if (location.origin === "https://revert.monicz.dev") {
             console.debug("sleep " + ms + "ms")
             await new Promise(r => setTimeout(r, ms))
         }
-        
+
         try {
             if (args[0].endsWith("/interpreter")) {
                 const data = args[1].body.get("data")
-                args[1].body.set("data", data.replace("[timeout:180][bbox", "[timeout:180][maxsize:64Mi][bbox"))
+                args[1].body.set("data", data.replace("[timeout:180][bbox", "[timeout:60][maxsize:64Mi][bbox"))
                 for (let i = 0; i < 3; i++) {
-                    const res = await originalFetch(...args)
-                    if (res.ok) {
-                        return res
+                    let res
+                    try {
+                        res = await originalFetch(...args)
+                        if (res.ok) {
+                            return res
+                        }
+                    } catch (e) {
+                        if (e?.message?.includes("NetworkError")) {
+                            window.log.value += "better-osm-org: " + e + " wait for retry...\\n"
+                            await sleep(10 * 1000)
+                            continue
+                        } else {
+                            throw e
+                        }
                     }
                     if (res.status === 504) {
                         window.log.value += "better-osm-org: Overpass return 504, wait for retry...\\n"
