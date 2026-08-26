@@ -105,6 +105,9 @@ function setZoom(zoomLevel) {
 }
 
 function setAttributionPrefix(prefix) {
+    if (!document.getElementById("map")) {
+        return
+    }
     console.trace("New prefix:", prefix) // todo -> .log
     getMap?.()?.attributionControl?.setPrefix(prefix)
 }

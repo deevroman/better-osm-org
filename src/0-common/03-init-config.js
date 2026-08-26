@@ -10,7 +10,7 @@ function makeRow(label, text, without_delete = false, placeholder = "comment tha
     td.setAttribute("contenteditable", "true")
 
     th.textContent = label
-    td.textContent = text
+    td.innerText = text
     td.style.paddingLeft = "4px"
     td.style.paddingRight = "4px"
     td.style.wordWrap = "anywhere"
@@ -375,6 +375,11 @@ const configOptions = {
             type: "menu",
             default: '[{"label": "👋", "text": ""}]',
         },
+        MessagesTemplates: {
+            label: t("config.messagesTemplates"),
+            type: "menu",
+            default: '[{"label": "👋", "title": "", "text": ""}]',
+        },
         NavigationViaHotkeys: {
             section: [t("config.sectionInterfaceNavigation")],
             label: t("config.navigationViaHotkeys"), // add help button with list
@@ -580,7 +585,7 @@ const configOptions = {
                     for (let row of Array.from(this.wrapper.getElementsByTagName("tr")).slice(0, -1)) {
                         const forPush = {
                             label: row.querySelector("th").textContent,
-                            text: row.querySelector("td").textContent,
+                            text: row.querySelector("td").innerText,
                         }
                         if (!(forPush.label.trim() === "" && forPush.text.trim() === "")) {
                             templates.push(forPush)

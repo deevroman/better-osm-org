@@ -35,6 +35,7 @@ const alwaysEnabledModules = [
     setupNotesFiltersButtons,
     setupGPXFiltersButtons,
     setupSpyGlassButtons,
+    setupMessagesTemplates,
     setupNewContextMenuItems,
     setupPrometheusLink,
 ]
@@ -126,6 +127,7 @@ function setupOSMWebsite() {
 
     setTimeout(async () => {
         if (location.pathname.includes("/user/") && !location.pathname.includes("/history")) return
+        if (!document.getElementById("map")) return
         if (getWindow && !getWindow().mapIntercepted) {
             console.log("map not intercepted after 900ms")
             document.querySelector(".control-share a").click()

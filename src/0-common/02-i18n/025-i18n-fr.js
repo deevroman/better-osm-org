@@ -60,6 +60,7 @@ _translations["fr"] = {
         oneClickDeletor: "Supprimer le nœud sans confirmation",
         changesetsTemplates:
             'Modèles de commentaires de changeset <a id="last-comments-link" target="_blank">(vos derniers commentaires)</a>',
+        messagesTemplates: "Modèles de messages directs :",
         hdycInProfile: "Ajouter HDYC au profil utilisateur",
         betterProfileStat: "Ajouter des filtres aux statistiques du profil",
         navigationViaHotkeys:
@@ -452,5 +453,9 @@ _translations["fr"] = {
     },
     relationVersionPage: {
         loadViaOverpass: "Charger la version de la relation via l'API Overpass",
+    },
+    messages: {
+        templatesHeader: "Modèles :",
+        commentTemplateTitle: 'Le texte "{text}" sera ajouté au commentaire.\nVous pouvez modifier ce texte dans les paramètres du script',
     },
 }

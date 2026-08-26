@@ -59,6 +59,7 @@ _translations["hr"] = {
         deletor: "Gumb za brisanje točke",
         oneClickDeletor: "Briši točke bez potvrde",
         changesetsTemplates: 'Predlošci komentara changeseta <a id="last-comments-link" target="_blank">(vaši zadnji komentari)</a>',
+        messagesTemplates: "Predlošci izravnih poruka:",
         hdycInProfile: "Dodaj HDYC u korisnički profil",
         betterProfileStat: "Dodaj filtre u statistiku profila",
         navigationViaHotkeys: 'Dodaj prečace <a href="https://github.com/deevroman/better-osm-org#Hotkeys" target="_blank">(Popis)</a>',
@@ -448,5 +449,9 @@ _translations["hr"] = {
     },
     relationVersionPage: {
         loadViaOverpass: "Učitaj verziju relacije putem Overpass API-ja",
+    },
+    messages: {
+        templatesHeader: "Predlošci:",
+        commentTemplateTitle: 'Tekst "{text}" bit će dodan u komentar.\nOvaj tekst možete promijeniti u postavkama skripte',
     },
 }

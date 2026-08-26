@@ -59,6 +59,7 @@ _translations["de"] = {
         deletor: "Schaltfläche zum Löschen von Knoten",
         oneClickDeletor: "Knoten ohne Bestätigung löschen",
         changesetsTemplates: 'Vorlagen für Changeset-Kommentare <a id="last-comments-link" target="_blank">(deine letzten Kommentare)</a>',
+        messagesTemplates: "Vorlagen für Direktnachrichten:",
         hdycInProfile: "HDYC zum Benutzerprofil hinzufügen",
         betterProfileStat: "Filter zur Profilstatistik hinzufügen",
         navigationViaHotkeys:
@@ -450,5 +451,9 @@ _translations["de"] = {
     },
     relationVersionPage: {
         loadViaOverpass: "Relationsversion über die Overpass API laden",
+    },
+    messages: {
+        templatesHeader: "Vorlagen:",
+        commentTemplateTitle: '"{text}" wird dem Kommentar hinzugefügt.\nDu kannst diesen Text in den Skript-Einstellungen ändern',
     },
 }

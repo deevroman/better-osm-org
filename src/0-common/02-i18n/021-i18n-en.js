@@ -59,6 +59,7 @@ _translations["en"] = {
         deletor: "Button for node deletion",
         oneClickDeletor: "Delete node without confirmation",
         changesetsTemplates: 'Changesets comments templates <a id="last-comments-link" target="_blank">(your last comments)</a>',
+        messagesTemplates: "Direct messages templates:",
         hdycInProfile: "Add HDYC to user profile",
         betterProfileStat: "Add filters to profile statistics",
         navigationViaHotkeys: 'Add hotkeys <a href="https://github.com/deevroman/better-osm-org#Hotkeys" target="_blank">(List)</a>',
@@ -445,5 +446,9 @@ _translations["en"] = {
     },
     relationVersionPage: {
         loadViaOverpass: "Load relation version via Overpass API",
+    },
+    messages: {
+        templatesHeader: "Templates:",
+        commentTemplateTitle: '"{text}" will be added to the comment.\nYou can change this text in the script settings',
     },
 }

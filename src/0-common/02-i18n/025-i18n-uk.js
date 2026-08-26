@@ -59,6 +59,7 @@ _translations["uk"] = {
         deletor: "Кнопка видалення точки",
         oneClickDeletor: "Видаляти точки без підтвердження",
         changesetsTemplates: 'Шаблони коментарів до наборів змін <a id="last-comments-link" target="_blank">(ваші останні коментарі)</a>',
+        messagesTemplates: "Шаблони особистих повідомлень:",
         hdycInProfile: "Додати HDYC до профілю користувача",
         betterProfileStat: "Додати фільтри до статистики профілю",
         navigationViaHotkeys:
@@ -448,5 +449,9 @@ _translations["uk"] = {
     },
     relationVersionPage: {
         loadViaOverpass: "Завантажити версію відношення через Overpass API",
+    },
+    messages: {
+        templatesHeader: "Шаблони:",
+        commentTemplateTitle: 'Текст "{text}" буде додано в коментар.\nВи можете змінити цей текст у налаштуваннях скрипта',
     },
 }
