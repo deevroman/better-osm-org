@@ -12167,7 +12167,18 @@ function makeComment(object_type, object_id, prevTags, newTags) {
     }
 
     if (modifiedKeys.length) {
-        tagsHint += "Changed " + modifiedKeys.map(k => `${k}=${prevTags.get(k)} → ${newTags.get(k)}`).join(", ") + "; "
+        tagsHint +=
+            "Changed " +
+            modifiedKeys
+                .map(k => {
+                    if (prevTags.get(k).includes(" ")) {
+                        return `${k} = ${prevTags.get(k)} → ${newTags.get(k)}`
+                    } else {
+                        return `${k}=${prevTags.get(k)} → ${newTags.get(k)}`
+                    }
+                })
+                .join(", ") +
+            "; "
     }
 
     if (removedKeys.length) {
