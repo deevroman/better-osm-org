@@ -65,6 +65,11 @@ async function closeOsmChangeset(changesetId) {
     }
 }
 
+/**
+ * @param object_type
+ * @param object_id
+ * @return {Promise<Document>}
+ */
 async function getOsmObjectInfo(object_type, object_id) {
     const rawObjectInfo = await (await fetch(osm_server.apiBase + object_type + "/" + object_id)).text()
     const res = new DOMParser().parseFromString(rawObjectInfo, "text/xml")

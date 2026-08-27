@@ -7233,6 +7233,11 @@ async function closeOsmChangeset(changesetId) {
     }
 }
 
+/**
+ * @param object_type
+ * @param object_id
+ * @return {Promise<Document>}
+ */
 async function getOsmObjectInfo(object_type, object_id) {
     const rawObjectInfo = await (await fetch(osm_server.apiBase + object_type + "/" + object_id)).text()
     const res = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
@@ -10823,7 +10828,11 @@ function addCreateNewPOIButton() {
         }
         for (const i of tags.entries()) {
             if (i[0] === "name") {
-                tagsHint = tagsHint + ` ${i[0]}=${i[1]}`
+                if (i[0].includes(" ")) {
+                    tagsHint = tagsHint + ` ${i[0]} = ${i[1]}`
+                } else {
+                    tagsHint = tagsHint + ` ${i[0]}=${i[1]}`
+                }
                 break
             }
         }
@@ -12449,11 +12458,9 @@ function addTagsEditorButton() {
 
 //<editor-fold desc="object-editor" defaultstate="collapsed">
 
-async function deleteObject(object_type, object_id) {
-    const objectInfo = await getOsmObjectInfo(object_type, object_id)
-
+function makeDeletionComment(objectInfo, object_type, object_id) {
     let tagsHint = ""
-    const tags = Array.from(objectInfo.children[0].children[0]?.children)
+    const tags = Array.from(objectInfo.querySelectorAll("tag"))
     for (const i of tags) {
         if (mainTags.includes(i.getAttribute("k"))) {
             tagsHint = tagsHint + ` ${i.getAttribute("k")}=${i.getAttribute("v")}`
@@ -12480,16 +12487,76 @@ async function deleteObject(object_type, object_id) {
             break
         }
     }
-    const comment = tagsHint !== "" ? `Delete${tagsHint}` : `Delete ${object_type} ${object_id}`
+    return tagsHint !== "" ? `Delete${tagsHint}` : `Delete ${object_type} ${object_id}`
+}
 
-    if (object_type === "relation" && !prompt("⚠️ Delete relation?\n\nChangeset comment:", comment)) {
-        return
+/**
+ *
+ * @param {"node"|"way"|"relation"}object_type
+ * @param {number} object_id
+ * @param changesetId
+ * @return {Promise<string>}
+ */
+async function fullWayDelete(object_type, object_id, changesetId) {
+    const xmlString = await (await fetchRetry(osm_server.apiBase + "way" + "/" + object_id + "/full.xml")).text()
+    const fullInfo = new DOMParser().parseFromString(xmlString, "application/xml")
+    const objectInfo = fullInfo.querySelector("way")
+
+    try {
+        objectInfo.setAttribute("changeset", changesetId)
+
+        const osmChangeWrapper = new DOMParser().parseFromString(
+            '<osmChange version="0.6" generator="better osm.org"><delete if-unused="true"></delete></osmChange>',
+            "text/xml",
+        )
+        osmChangeWrapper.querySelector("delete").appendChild(objectInfo)
+        fullInfo.querySelectorAll("node").forEach(n => {
+            n.setAttribute("changeset", changesetId)
+            osmChangeWrapper.querySelector("delete").appendChild(n)
+        })
+
+        const body = new XMLSerializer().serializeToString(osmChangeWrapper).replace(/xmlns="[^"]+"/, "")
+        console.log(body)
+
+        await osmAuthFetch(osm_server.apiBase + "changeset/" + changesetId + "/upload", {
+            method: "POST",
+            body: body,
+        }).then(async res => {
+            const text = await res.text()
+            if (res.ok) return text
+            alert(`HTTP ${res.status}\n${text}`)
+            throw new Error(text)
+        })
+    } finally {
+        await closeOsmChangeset(changesetId)
+    }
+    return changesetId
+}
+
+async function deleteObject(object_type, object_id) {
+    const objectInfo = await getOsmObjectInfo(object_type, object_id)
+    let comment = makeDeletionComment(objectInfo, object_type, object_id)
+
+    if (object_type === "relation") {
+        comment = !prompt("⚠️ Delete relation?\n\nChangeset comment:", comment)
+        if (!comment) {
+            return
+        }
+    } else if (object_type === "way") {
+        comment = prompt("⚠️ Delete way?\n\nChangeset comment:", comment)
+        if (!comment) {
+            return
+        }
     }
 
     const changesetId = await openOsmChangeset(comment)
     objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
     try {
-        await deleteOsmObjectByInfo(object_type, object_id, objectInfo)
+        if (object_type === "way") {
+            await fullWayDelete(object_type, object_id, changesetId)
+        } else {
+            await deleteOsmObjectByInfo(object_type, object_id, objectInfo)
+        }
     } finally {
         try {
             await closeOsmChangeset(changesetId)
@@ -12613,14 +12680,16 @@ function prepareReorderingEditTagsAndDeletorButtons() {
 }
 
 function addDeleteButton() {
-    if (!location.pathname.startsWith("/node/") && !location.pathname.startsWith("/relation/")) return
+    if (!location.pathname.startsWith("/node/") && !location.pathname.startsWith("/way/") && !location.pathname.startsWith("/relation/")) {
+        return
+    }
     if (location.pathname.includes("/history")) return
 
     if (document.querySelector(".delete_object_button_class")) return
     if (document.querySelector(".restore_object_button_class")) return
     if (document.querySelector(".btn.btn-danger") !== null) return
 
-    const match = location.pathname.match(/(node|relation)\/(\d+)/)
+    const match = location.pathname.match(/(node|way|relation)\/(\d+)/)
     if (!match) return
     const object_type = match[1]
     const object_id = match[2]
@@ -12635,6 +12704,13 @@ function addDeleteButton() {
             return
         }
     } else if (object_type === "way") {
+        // skip having a parent
+        if (document.querySelectorAll("#sidebar_content > :is(div, turbo-frame):first-of-type details").length > 1) {
+            return
+        }
+        if (Array.from(document.querySelectorAll(".browse-tag-list th")).some(i => i.textContent === "wikidata")) {
+            return
+        }
     } else if (object_type === "relation") {
         if (document.querySelectorAll("#sidebar_content > :is(div, turbo-frame):first-of-type h4").length < 2) {
             return

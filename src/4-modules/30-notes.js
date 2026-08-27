@@ -61,7 +61,11 @@ function addCreateNewPOIButton() {
         }
         for (const i of tags.entries()) {
             if (i[0] === "name") {
-                tagsHint = tagsHint + ` ${i[0]}=${i[1]}`
+                if (i[0].includes(" ")) {
+                    tagsHint = tagsHint + ` ${i[0]} = ${i[1]}`
+                } else {
+                    tagsHint = tagsHint + ` ${i[0]}=${i[1]}`
+                }
                 break
             }
         }
