@@ -505,6 +505,12 @@ const configOptions = {
             default: false,
             labelPos: "right",
         },
+        ReorderOldTags: {
+            label: t("config.reorderOldTags"),
+            type: "checkbox",
+            default: false,
+            labelPos: "right",
+        },
         DebugMode: {
             label: t("config.debugMode"),
             type: "checkbox",

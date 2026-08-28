@@ -80,6 +80,7 @@ _translations["en"] = {
         panoramaxUploader: "Add form for uploading photos into Panoramax",
         routersTimestamps: "Add routing data date",
         clickableMap: "Clickable map β",
+        reorderOldTags: "Move tags like was:*, old_*, ... to the end of the tags list β",
         debugMode: "Enable debug and experimental features",
     },
     objectEditor: {

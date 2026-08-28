@@ -82,6 +82,7 @@ _translations["ru"] = {
         panoramaxUploader: "Добавить форму загрузки фотографий в Panoramax",
         routersTimestamps: "Показывать дату данных для GraphHopper, OSRM, Valhalla",
         clickableMap: "Сделать карту кликабельной β",
+        reorderOldTags: "Перемещать теги was:*, old_*, ... в конец списка тегов β",
         debugMode: "Включить отладочные и экспериментальные фичи",
     },
     objectEditor: {
