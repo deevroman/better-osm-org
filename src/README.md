@@ -12,6 +12,10 @@ Open in browser.
 
 Use ViolentMonkey for tracking changes in code and automatically apply them.
 
+### i18n
+
+Translation located in [/src/0-common/02-i18n](0-common/02-i18n)
+
 ### IDE
 
 This is optional. But if you want type hints to work in your IDE, you need several npm packages.
