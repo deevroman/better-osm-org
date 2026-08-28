@@ -176,10 +176,10 @@ _translations["uk"] = {
         pasteStyleJsonPlaceholder: "Вставте style.json",
         tileUrlPlaceholder: "приклад: https://tile.openstreetmap.org/{z}/{x}/{y}.png",
         customStyleSetupHelpAlert:
-            "Спробуйте перезавантажити сторінку без кешу за допомогою Ctrl + F5.\n" +
+            "Спробуйте перезавантажити сторінку без кешу Ctrl + F5.\n" +
             "Або:\n" +
-            "1. У налаштуваннях TamperMonkey увімкніть Advanced Config Mode\n" +
-            '2. У налаштуваннях TamperMonkey змініть "Content Script API" на "UserScript API Dynamic"\n' +
+            "1. У налаштуваннях TamperMonkey переключіть Config Mode на Advanced\n" +
+            '2. На тій самій сторінці налаштувань переключіть "Content Script API" на "UserScript API Dynamic"\n' +
             "Докладніше: https://c.osm.org/t/121670/208\n\n" +
             "Або закрийте цю вкладку й відкрийте нову\n" +
             "Або вимкніть і ввімкніть скрипт\n" +

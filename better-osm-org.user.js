@@ -399,14 +399,14 @@ _translations["en"] = {
         pasteStyleJsonPlaceholder: "Paste style.json",
         tileUrlPlaceholder: "example: https://tile.openstreetmap.org/{z}/{x}/{y}.png",
         customStyleSetupHelpAlert:
-            "Try reload page page without cache Ctrl + F5.\n" +
+            "Try reloading the page without cache: Ctrl + F5.\n" +
             "Or:\n" +
-            "1. In TamperMonkey settings enable Advanced Config Mode\n" +
-            '2. In TamperMonkey settings change "Content Script API" to "UserScript API Dynamic"\n' +
+            "1. In TamperMonkey settings, switch Config Mode to Advanced\n" +
+            '2. On the same settings page, switch "Content Script API" to "UserScript API Dynamic"\n' +
             "More info: https://c.osm.org/t/121670/208\n\n" +
-            "Or close this tab and open new tab\n" +
-            "Or switch on/off script\n" +
-            "Or try to use Firefox with ViolentMonkey",
+            "Or close this tab and open a new one\n" +
+            "Or disable and enable the script\n" +
+            "Or try Firefox with ViolentMonkey",
     },
     geojson: {
         metainfo: "metainfo",
@@ -858,8 +858,8 @@ _translations["tr"] = {
         customStyleSetupHelpAlert:
             "Sayfayı önbelleksiz yeniden yüklemeyi deneyin: Ctrl + F5.\n" +
             "Veya:\n" +
-            "1. TamperMonkey ayarlarında Advanced Config Mode'u etkinleştirin\n" +
-            '2. TamperMonkey ayarlarında "Content Script API" değerini "UserScript API Dynamic" olarak değiştirin\n' +
+            "1. TamperMonkey ayarlarında Config Mode'u Advanced olarak değiştirin\n" +
+            '2. Aynı ayarlar sayfasında "Content Script API" değerini "UserScript API Dynamic" olarak değiştirin\n' +
             "Daha fazla bilgi: https://c.osm.org/t/121670/208\n\n" +
             "Veya bu sekmeyi kapatıp yeni bir sekme açın\n" +
             "Veya betiği kapatıp açın\n" +
@@ -1326,8 +1326,8 @@ _translations["ru"] = {
         customStyleSetupHelpAlert:
             "Попробуйте перезагрузить страницу без кеша Ctrl + F5.\n" +
             "Или:\n" +
-            "1. В настройках TamperMonkey включите Advanced Config Mode\n" +
-            '2. В настройках TamperMonkey переключите "Content Script API" на "UserScript API Dynamic"\n' +
+            "1. В настройках TamperMonkey переключите Config Mode в Advanced\n" +
+            '2. На той же странице настроек переключите "Content Script API" на "UserScript API Dynamic"\n' +
             "Подробнее: https://c.osm.org/t/121670/208\n\n" +
             "Или закройте эту вкладку и откройте новую\n" +
             "Или выключите и включите скрипт\n" +
@@ -1792,12 +1792,12 @@ _translations["de"] = {
         customStyleSetupHelpAlert:
             "Versuche, die Seite ohne Cache mit Strg + F5 neu zu laden.\n" +
             "Oder:\n" +
-            "1. Aktiviere in den TamperMonkey-Einstellungen den Advanced Config Mode\n" +
-            '2. Stelle in den TamperMonkey-Einstellungen "Content Script API" auf "UserScript API Dynamic"\n' +
+            "1. Stelle in den TamperMonkey-Einstellungen den Config Mode auf Advanced\n" +
+            '2. Stelle auf derselben Einstellungsseite "Content Script API" auf "UserScript API Dynamic"\n' +
             "Mehr Infos: https://c.osm.org/t/121670/208\n\n" +
             "Oder schließe diesen Tab und öffne einen neuen\n" +
             "Oder schalte das Skript aus und wieder ein\n" +
-            "Oder versuche Firefox mit ViolentMonkey zu verwenden",
+            "Oder versuche Firefox mit ViolentMonkey",
     },
     geojson: {
         metainfo: "Metainformationen",
@@ -2255,11 +2255,11 @@ _translations["fr"] = {
         customStyleSetupHelpAlert:
             "Essayez de recharger la page sans le cache avec Ctrl + F5.\n" +
             "Ou :\n" +
-            "1. Dans les paramètres de TamperMonkey, activez Advanced Config Mode\n" +
-            '2. Dans les paramètres de TamperMonkey, remplacez "Content Script API" par "UserScript API Dynamic"\n' +
+            "1. Dans les paramètres de TamperMonkey, passez Config Mode à Advanced\n" +
+            '2. Sur la même page de paramètres, passez "Content Script API" à "UserScript API Dynamic"\n' +
             "Plus d'infos : https://c.osm.org/t/121670/208\n\n" +
             "Ou fermez cet onglet et ouvrez-en un nouveau\n" +
-            "Ou désactivez/réactivez le script\n" +
+            "Ou désactivez puis réactivez le script\n" +
             "Ou essayez Firefox avec ViolentMonkey",
     },
     geojson: {
@@ -2716,12 +2716,12 @@ _translations["hr"] = {
         customStyleSetupHelpAlert:
             "Pokušajte ponovno učitati stranicu bez predmemorije pomoću Ctrl + F5.\n" +
             "Ili:\n" +
-            "1. U postavkama TamperMonkeyja uključite Advanced Config Mode\n" +
-            '2. U postavkama TamperMonkeyja promijenite "Content Script API" u "UserScript API Dynamic"\n' +
+            "1. U postavkama TamperMonkeyja prebacite Config Mode na Advanced\n" +
+            '2. Na istoj stranici postavki prebacite "Content Script API" na "UserScript API Dynamic"\n' +
             "Više informacija: https://c.osm.org/t/121670/208\n\n" +
             "Ili zatvorite ovu karticu i otvorite novu\n" +
             "Ili isključite pa uključite skriptu\n" +
-            "Ili pokušajte koristiti Firefox s ViolentMonkeyjem",
+            "Ili pokušajte Firefox s ViolentMonkeyjem",
     },
     geojson: {
         metainfo: "metapodaci",
@@ -3173,10 +3173,10 @@ _translations["uk"] = {
         pasteStyleJsonPlaceholder: "Вставте style.json",
         tileUrlPlaceholder: "приклад: https://tile.openstreetmap.org/{z}/{x}/{y}.png",
         customStyleSetupHelpAlert:
-            "Спробуйте перезавантажити сторінку без кешу за допомогою Ctrl + F5.\n" +
+            "Спробуйте перезавантажити сторінку без кешу Ctrl + F5.\n" +
             "Або:\n" +
-            "1. У налаштуваннях TamperMonkey увімкніть Advanced Config Mode\n" +
-            '2. У налаштуваннях TamperMonkey змініть "Content Script API" на "UserScript API Dynamic"\n' +
+            "1. У налаштуваннях TamperMonkey переключіть Config Mode на Advanced\n" +
+            '2. На тій самій сторінці налаштувань переключіть "Content Script API" на "UserScript API Dynamic"\n' +
             "Докладніше: https://c.osm.org/t/121670/208\n\n" +
             "Або закрийте цю вкладку й відкрийте нову\n" +
             "Або вимкніть і ввімкніть скрипт\n" +

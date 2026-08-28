@@ -179,8 +179,8 @@ _translations["tr"] = {
         customStyleSetupHelpAlert:
             "Sayfayı önbelleksiz yeniden yüklemeyi deneyin: Ctrl + F5.\n" +
             "Veya:\n" +
-            "1. TamperMonkey ayarlarında Advanced Config Mode'u etkinleştirin\n" +
-            '2. TamperMonkey ayarlarında "Content Script API" değerini "UserScript API Dynamic" olarak değiştirin\n' +
+            "1. TamperMonkey ayarlarında Config Mode'u Advanced olarak değiştirin\n" +
+            '2. Aynı ayarlar sayfasında "Content Script API" değerini "UserScript API Dynamic" olarak değiştirin\n' +
             "Daha fazla bilgi: https://c.osm.org/t/121670/208\n\n" +
             "Veya bu sekmeyi kapatıp yeni bir sekme açın\n" +
             "Veya betiği kapatıp açın\n" +
