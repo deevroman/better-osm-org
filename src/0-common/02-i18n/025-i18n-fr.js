@@ -180,11 +180,11 @@ _translations["fr"] = {
         customStyleSetupHelpAlert:
             "Essayez de recharger la page sans le cache avec Ctrl + F5.\n" +
             "Ou :\n" +
-            "1. Dans les paramètres de TamperMonkey, activez Advanced Config Mode\n" +
-            '2. Dans les paramètres de TamperMonkey, remplacez "Content Script API" par "UserScript API Dynamic"\n' +
+            "1. Dans les paramètres de TamperMonkey, passez Config Mode à Advanced\n" +
+            '2. Sur la même page de paramètres, passez "Content Script API" à "UserScript API Dynamic"\n' +
             "Plus d'infos : https://c.osm.org/t/121670/208\n\n" +
             "Ou fermez cet onglet et ouvrez-en un nouveau\n" +
-            "Ou désactivez/réactivez le script\n" +
+            "Ou désactivez puis réactivez le script\n" +
             "Ou essayez Firefox avec ViolentMonkey",
     },
     geojson: {

@@ -178,12 +178,12 @@ _translations["hr"] = {
         customStyleSetupHelpAlert:
             "Pokušajte ponovno učitati stranicu bez predmemorije pomoću Ctrl + F5.\n" +
             "Ili:\n" +
-            "1. U postavkama TamperMonkeyja uključite Advanced Config Mode\n" +
-            '2. U postavkama TamperMonkeyja promijenite "Content Script API" u "UserScript API Dynamic"\n' +
+            "1. U postavkama TamperMonkeyja prebacite Config Mode na Advanced\n" +
+            '2. Na istoj stranici postavki prebacite "Content Script API" na "UserScript API Dynamic"\n' +
             "Više informacija: https://c.osm.org/t/121670/208\n\n" +
             "Ili zatvorite ovu karticu i otvorite novu\n" +
             "Ili isključite pa uključite skriptu\n" +
-            "Ili pokušajte koristiti Firefox s ViolentMonkeyjem",
+            "Ili pokušajte Firefox s ViolentMonkeyjem",
     },
     geojson: {
         metainfo: "metapodaci",

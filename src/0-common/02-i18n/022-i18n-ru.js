@@ -186,8 +186,8 @@ _translations["ru"] = {
         customStyleSetupHelpAlert:
             "Попробуйте перезагрузить страницу без кеша Ctrl + F5.\n" +
             "Или:\n" +
-            "1. В настройках TamperMonkey включите Advanced Config Mode\n" +
-            '2. В настройках TamperMonkey переключите "Content Script API" на "UserScript API Dynamic"\n' +
+            "1. В настройках TamperMonkey переключите Config Mode в Advanced\n" +
+            '2. На той же странице настроек переключите "Content Script API" на "UserScript API Dynamic"\n' +
             "Подробнее: https://c.osm.org/t/121670/208\n\n" +
             "Или закройте эту вкладку и откройте новую\n" +
             "Или выключите и включите скрипт\n" +

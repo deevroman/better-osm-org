@@ -176,14 +176,14 @@ _translations["en"] = {
         pasteStyleJsonPlaceholder: "Paste style.json",
         tileUrlPlaceholder: "example: https://tile.openstreetmap.org/{z}/{x}/{y}.png",
         customStyleSetupHelpAlert:
-            "Try reload page page without cache Ctrl + F5.\n" +
+            "Try reloading the page without cache: Ctrl + F5.\n" +
             "Or:\n" +
-            "1. In TamperMonkey settings enable Advanced Config Mode\n" +
-            '2. In TamperMonkey settings change "Content Script API" to "UserScript API Dynamic"\n' +
+            "1. In TamperMonkey settings, switch Config Mode to Advanced\n" +
+            '2. On the same settings page, switch "Content Script API" to "UserScript API Dynamic"\n' +
             "More info: https://c.osm.org/t/121670/208\n\n" +
-            "Or close this tab and open new tab\n" +
-            "Or switch on/off script\n" +
-            "Or try to use Firefox with ViolentMonkey",
+            "Or close this tab and open a new one\n" +
+            "Or disable and enable the script\n" +
+            "Or try Firefox with ViolentMonkey",
     },
     geojson: {
         metainfo: "metainfo",
