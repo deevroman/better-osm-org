@@ -12704,6 +12704,9 @@ function addDeleteButton() {
             return
         }
     } else if (object_type === "way") {
+        if (!isDebug()) {
+            return
+        }
         // skip having a parent
         if (document.querySelectorAll("#sidebar_content > :is(div, turbo-frame):first-of-type details").length > 1) {
             return
