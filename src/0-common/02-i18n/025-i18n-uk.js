@@ -81,6 +81,7 @@ _translations["uk"] = {
         panoramaxUploader: "Додати форму для завантаження фото в Panoramax",
         routersTimestamps: "Додати дату маршрутизаційних даних",
         clickableMap: "Зробити мапу клікабельною β",
+        reorderOldTags: "Переміщувати теги was:*, old_*, ... в кінець списку тегів β",
         debugMode: "Увімкнути режим налагодження та експериментальні функції",
     },
     objectEditor: {

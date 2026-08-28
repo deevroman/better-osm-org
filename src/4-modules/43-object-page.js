@@ -1166,6 +1166,11 @@ function makeLinksInVersionTagClickable(row, objType) {
         }
     } else if (key === "ref:inaturalist.org") {
         makeRefInaturalistValue(valueCell)
+    } else if (key.startsWith("was:") || key.startsWith("disused:") || key.startsWith("old_")) {
+        if (GM_config.get("ReorderOldTags") && !location.pathname.endsWith("/history")) {
+            keyCell.classList.add("old-tags-key")
+            valueCell.classList.add("old-tags-value")
+        }
     } else if (key.length <= 2 && key !== "to" && key !== "tv" && key !== "it") {
         keyCell.classList.add("fixme-tag")
         keyCell.title = t("objectPage.keyTooShort")
@@ -1183,6 +1188,18 @@ function makeLinksInVersionTagsClickable() {
     if (tagsTable) {
         tagsTable.parentElement.previousElementSibling.title = t("historyDiff.tagsCount", {
             count: tagsTable.querySelectorAll("tr th").length,
+        })
+    }
+    if (GM_config.get("ReorderOldTags") && !location.pathname.endsWith("/history")) {
+        // move old tags to end list
+        Array.from(document.querySelectorAll(".browse-tag-list tr")).forEach(row => {
+            const keyCell = row.querySelector("th")
+            if (!keyCell) return
+            const rawKey = keyCell.textContent
+            const key = rawKey.toLowerCase()
+            if (key.startsWith("was:") || key.startsWith("disused:") || key.startsWith("old_")) {
+                row.parentElement.appendChild(row)
+            }
         })
     }
 }

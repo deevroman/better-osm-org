@@ -1117,6 +1117,10 @@ ${copyAnimationStyles}
     .note-tag {
       font-weight: bold;
     }
+    
+    .old-tags-key, .old-tags-value  {
+        background: aqua !important;
+    }
 
     @media ${mediaQueryForWebsiteTheme} {
       .fixme-tag {
@@ -1132,6 +1136,10 @@ ${copyAnimationStyles}
       .note-tag:not(.current-value-span):not(.history-diff-new-tag):not(.history-diff-deleted-tag) {
         background: black !important;
         font-weight: unset;
+      }
+      
+      .old-tags-key, .old-tags-value  {
+          background: #194545 !important;
       }
     }
 

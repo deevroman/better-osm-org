@@ -82,6 +82,7 @@ _translations["fr"] = {
         panoramaxUploader: "Ajouter un formulaire d'envoi de photos vers Panoramax",
         routersTimestamps: "Ajouter la date des données de routage",
         clickableMap: "Rendre la carte cliquable β",
+        reorderOldTags: "Déplacer les tags was:*, old_*, ... à la fin de la liste des tags β",
         debugMode: "Activer le débogage et les fonctionnalités expérimentales",
     },
     objectEditor: {

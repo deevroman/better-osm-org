@@ -303,6 +303,7 @@ _translations["en"] = {
         panoramaxUploader: "Add form for uploading photos into Panoramax",
         routersTimestamps: "Add routing data date",
         clickableMap: "Clickable map β",
+        reorderOldTags: "Move tags like was:*, old_*, ... to the end of the tags list β",
         debugMode: "Enable debug and experimental features",
     },
     objectEditor: {
@@ -760,6 +761,7 @@ _translations["tr"] = {
         panoramaxUploader: "Panoramax'a fotoğraf yükleme formu ekle",
         routersTimestamps: "Rota verisi tarihini ekle",
         clickableMap: "Haritayı tıklanabilir yap β",
+        reorderOldTags: "was:*, old_*, ... gibi etiketleri etiket listesi sonuna taşı β",
         debugMode: "Hata ayıklama ve deneysel özellikleri etkinleştir",
     },
     objectEditor: {
@@ -1220,6 +1222,7 @@ _translations["ru"] = {
         panoramaxUploader: "Добавить форму загрузки фотографий в Panoramax",
         routersTimestamps: "Показывать дату данных для GraphHopper, OSRM, Valhalla",
         clickableMap: "Сделать карту кликабельной β",
+        reorderOldTags: "Перемещать теги was:*, old_*, ... в конец списка тегов β",
         debugMode: "Включить отладочные и экспериментальные фичи",
     },
     objectEditor: {
@@ -1692,6 +1695,7 @@ _translations["de"] = {
         panoramaxUploader: "Formular zum Hochladen von Fotos nach Panoramax hinzufügen",
         routersTimestamps: "Datum der Routing-Daten hinzufügen",
         clickableMap: "Karte anklickbar machen β",
+        reorderOldTags: "Tags wie was:*, old_*, ... ans Ende der Tagliste verschieben β",
         debugMode: "Debug- und experimentelle Funktionen aktivieren",
     },
     objectEditor: {
@@ -2153,6 +2157,7 @@ _translations["fr"] = {
         panoramaxUploader: "Ajouter un formulaire d'envoi de photos vers Panoramax",
         routersTimestamps: "Ajouter la date des données de routage",
         clickableMap: "Rendre la carte cliquable β",
+        reorderOldTags: "Déplacer les tags was:*, old_*, ... à la fin de la liste des tags β",
         debugMode: "Activer le débogage et les fonctionnalités expérimentales",
     },
     objectEditor: {
@@ -2614,6 +2619,7 @@ _translations["hr"] = {
         panoramaxUploader: "Dodaj obrazac za prijenos fotografija u Panoramax",
         routersTimestamps: "Dodaj datum routing podataka",
         clickableMap: "Učini kartu klikabilnom β",
+        reorderOldTags: "Premjestiti tagove was:*, old_*, ... na kraj liste tagova β",
         debugMode: "Omogući debug i eksperimentalne značajke",
     },
     objectEditor: {
@@ -3072,6 +3078,7 @@ _translations["uk"] = {
         panoramaxUploader: "Додати форму для завантаження фото в Panoramax",
         routersTimestamps: "Додати дату маршрутизаційних даних",
         clickableMap: "Зробити мапу клікабельною β",
+        reorderOldTags: "Переміщувати теги was:*, old_*, ... в кінець списку тегів β",
         debugMode: "Увімкнути режим налагодження та експериментальні функції",
     },
     objectEditor: {
@@ -4680,6 +4687,12 @@ const configOptions = {
         },
         ClickableMap: {
             label: t("config.clickableMap"),
+            type: "checkbox",
+            default: false,
+            labelPos: "right",
+        },
+        ReorderOldTags: {
+            label: t("config.reorderOldTags"),
             type: "checkbox",
             default: false,
             labelPos: "right",
@@ -9625,6 +9638,10 @@ ${copyAnimationStyles}
     .note-tag {
       font-weight: bold;
     }
+    
+    .old-tags-key, .old-tags-value  {
+        background: aqua !important;
+    }
 
     @media ${mediaQueryForWebsiteTheme} {
       .fixme-tag {
@@ -9640,6 +9657,10 @@ ${copyAnimationStyles}
       .note-tag:not(.current-value-span):not(.history-diff-new-tag):not(.history-diff-deleted-tag) {
         background: black !important;
         font-weight: unset;
+      }
+      
+      .old-tags-key, .old-tags-value  {
+          background: #194545 !important;
       }
     }
 
@@ -16156,6 +16177,11 @@ function makeLinksInVersionTagClickable(row, objType) {
         }
     } else if (key === "ref:inaturalist.org") {
         makeRefInaturalistValue(valueCell)
+    } else if (key.startsWith("was:") || key.startsWith("disused:") || key.startsWith("old_")) {
+        if (GM_config.get("ReorderOldTags") && !location.pathname.endsWith("/history")) {
+            keyCell.classList.add("old-tags-key")
+            valueCell.classList.add("old-tags-value")
+        }
     } else if (key.length <= 2 && key !== "to" && key !== "tv" && key !== "it") {
         keyCell.classList.add("fixme-tag")
         keyCell.title = t("objectPage.keyTooShort")
@@ -16173,6 +16199,18 @@ function makeLinksInVersionTagsClickable() {
     if (tagsTable) {
         tagsTable.parentElement.previousElementSibling.title = t("historyDiff.tagsCount", {
             count: tagsTable.querySelectorAll("tr th").length,
+        })
+    }
+    if (GM_config.get("ReorderOldTags") && !location.pathname.endsWith("/history")) {
+        // move old tags to end list
+        Array.from(document.querySelectorAll(".browse-tag-list tr")).forEach(row => {
+            const keyCell = row.querySelector("th")
+            if (!keyCell) return
+            const rawKey = keyCell.textContent
+            const key = rawKey.toLowerCase()
+            if (key.startsWith("was:") || key.startsWith("disused:") || key.startsWith("old_")) {
+                row.parentElement.appendChild(row)
+            }
         })
     }
 }
