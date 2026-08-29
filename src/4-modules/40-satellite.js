@@ -753,6 +753,25 @@ async function askCustomTileUrl() {
             },
         },
         {
+            label: "Strava Heatmap via nakarte.me",
+            value: "https://proxy.nakarte.me/https/content-a.strava.com/identified/globalheat/{sport}/{color}/{z}/{x}/{y}.png?px=512",
+            about: "https://nakarte.me",
+            forceVector: true,
+            fields: {
+                sport: [
+                    { name: "all", value: "all" },
+                    { name: "run", value: "run" },
+                    { name: "ride", value: "ride" },
+                    { name: "water", value: "water" },
+                    { name: "winter", value: "winter" },
+                ],
+                color: [
+                    { name: "hot", value: "hot" },
+                    { name: "blue", value: "blue" },
+                ],
+            },
+        },
+        {
             label: "Waymarked Trails",
             value: "https://tile.waymarkedtrails.org/{type}/{z}/{x}/{y}.png",
             about: "https://waymarkedtrails.org",

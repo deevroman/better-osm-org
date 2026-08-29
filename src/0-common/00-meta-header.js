@@ -172,6 +172,7 @@
 // @connect      whosthat.osmz.ru
 // @connect      content-a.strava.com
 // @connect      strava-heatmap.tiles.freemap.sk
+// @connect      proxy.nakarte.me
 // @note         for downloading routers data age
 // @connect      map.project-osrm.org
 // @connect      valhalla1.openstreetmap.de

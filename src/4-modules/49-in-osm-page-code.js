@@ -34,6 +34,9 @@ function initCspBridge() {
         if (e.data.url.startsWith("https://maps.vk.com")) {
             opt.headers = { Referer: "https://maps.vk.com/" }
         }
+        if (e.data.url.startsWith("https://proxy.nakarte.me")) {
+            opt.headers = { Referer: "https://nakarte.me/" }
+        }
         // fuck TM, need imitate Response
         try {
             const res = await fetchBlobWithCache(e.data.url, opt)
