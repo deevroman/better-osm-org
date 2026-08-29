@@ -1001,7 +1001,7 @@ const configOptions = {
     frameStyle: `
             border: 1px solid #000;
             height: min(90%, 760px);
-            width: min(max(25%, 405px), 100vw);
+            width: min(max(25%, 505px), 100vw);
             z-index: 9999;
             opacity: 0;
             position: absolute;
