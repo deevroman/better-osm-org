@@ -74,7 +74,7 @@
     },
     {
       "label": "openwaters.io seascape",
-      "value": "https://github.com/openwatersio/seascape",
+      "value": "https://tiles.openwaters.io/seascape/style.json",
       "about": "https://github.com/openwatersio/seascape"
     },
     {
