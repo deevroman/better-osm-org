@@ -171,6 +171,7 @@
 // @connect      whosthat.osmz.ru
 // @connect      content-a.strava.com
 // @connect      strava-heatmap.tiles.freemap.sk
+// @connect      proxy.nakarte.me
 // @note         for downloading routers data age
 // @connect      map.project-osrm.org
 // @connect      valhalla1.openstreetmap.de
@@ -14094,6 +14095,25 @@ async function askCustomTileUrl() {
             },
         },
         {
+            label: "Strava Heatmap via nakarte.me",
+            value: "https://proxy.nakarte.me/https/content-a.strava.com/identified/globalheat/{sport}/{color}/{z}/{x}/{y}.png?px=512",
+            about: "https://nakarte.me",
+            forceVector: true,
+            fields: {
+                sport: [
+                    { name: "all", value: "all" },
+                    { name: "run", value: "run" },
+                    { name: "ride", value: "ride" },
+                    { name: "water", value: "water" },
+                    { name: "winter", value: "winter" },
+                ],
+                color: [
+                    { name: "hot", value: "hot" },
+                    { name: "blue", value: "blue" },
+                ],
+            },
+        },
+        {
             label: "Waymarked Trails",
             value: "https://tile.waymarkedtrails.org/{type}/{z}/{x}/{y}.png",
             about: "https://waymarkedtrails.org",
@@ -26039,6 +26059,9 @@ function initCspBridge() {
         }
         if (e.data.url.startsWith("https://maps.vk.com")) {
             opt.headers = { Referer: "https://maps.vk.com/" }
+        }
+        if (e.data.url.startsWith("https://proxy.nakarte.me")) {
+            opt.headers = { Referer: "https://nakarte.me/" }
         }
         // fuck TM, need imitate Response
         try {
