@@ -14228,6 +14228,10 @@ async function askCustomTileUrl() {
                     nextVectorLayer()
                     await sleep(100)
                 }
+                if (forceVector && !initCustomFetch) {
+                    alert(t("satellite.customStyleSetupHelpAlert"))
+                    // return
+                }
                 abortTilesAbortController(customLayerUrlOrigin)
                 const { url, fieldsValues } = applyFields(input.value, fields, wrapper)
                 applyCustomLayer({ url: url, url_template: input.value, label: label, fieldsValues: fieldsValues, forceVector: forceVector })
