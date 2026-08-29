@@ -798,14 +798,29 @@ function renderOSMGeoJSON(xml, options = {}) {
     return jsonLayer
 }
 
+async function downloadOsmObjectAsGeojson(object_type, object_id) {
+    const res = await fetch(`/api/0.6/${object_type}/${object_id}${object_type === "node" ? "" : "/full"}.xml`)
+    const xml = new DOMParser().parseFromString(await res.text(), "application/xml")
+    downloadTextFile(
+        `${object_type}${object_id}.geojson`,
+        JSON.stringify(osmtogeojson(xml, { flatProperties: false })),
+        "application/geo+json",
+    )
+}
+
 function downloadVisibleLayerAsGeojson(e) {
-    if (!jsonLayer) {
-        console.warn("nothingto save")
+    if (jsonLayer) {
+        e.preventDefault()
+        downloadTextFile("overpass.geojson", JSON.stringify(jsonLayer.toGeoJSON()), "application/geo+json")
+        return
+    }
+    const match = location.pathname.match(/(node|way|relation)\/(\d+)(\/?$|\/history\/?$)/)
+    if (!match) {
+        console.warn("nothing to save")
         return
     }
     e.preventDefault()
-    // TODO respect hidden
-    downloadTextFile("overpass.geojson", JSON.stringify(jsonLayer.toGeoJSON()), "application/geo+json")
+    void downloadOsmObjectAsGeojson(match[1], match[2])
 }
 
 //</editor-fold>
