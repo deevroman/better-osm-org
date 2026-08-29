@@ -30553,6 +30553,9 @@ function renderOSMGeoJSON(xml, options = {}) {
         editButton.id = feature.properties.type + "-" + feature.properties.id + "-" + feature.properties.meta.version
         editButton.classList.add("edit-tags-btn")
         editButton.textContent = "🖊"
+        if (feature.properties.id < 0) {
+            editButton.setAttribute("disabled", "true")
+        }
 
         popupBody.appendChild(document.createTextNode("\xA0"))
         popupBody.appendChild(editButton)
