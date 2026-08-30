@@ -947,7 +947,7 @@ function makeLinksInVersionTagClickable(row, objType) {
         injectCSSIntoOSMPage(
             `
                     #building-3d-view {
-                        position: absolute !important;
+                        /* position: absolute !important; */
                         height: 120% !important;
                         z-index: 9999 !important;
                     }
