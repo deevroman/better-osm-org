@@ -94,8 +94,8 @@
 // @grant        GM_getResourceText
 // @grant        GM_addElement
 // @grant        GM.xmlHttpRequest
-// @grant        GM.fetch
 // @grant        GM_info
+// @grant        GM_openInTab
 // @note         for get diffs for finding deleted users
 // @connect      planet.openstreetmap.org
 // @connect      planet.maps.mail.ru

@@ -93,8 +93,8 @@
 // @grant        GM_getResourceText
 // @grant        GM_addElement
 // @grant        GM.xmlHttpRequest
-// @grant        GM.fetch
 // @grant        GM_info
+// @grant        GM_openInTab
 // @note         for get diffs for finding deleted users
 // @connect      planet.openstreetmap.org
 // @connect      planet.maps.mail.ru
@@ -13444,7 +13444,7 @@ function stravaAuthNotify() {
         alert(t("satellite.stravaLoginRequiredAlert"))
         const [x, y, z] = getCurrentXYZ()
         const hash = `#${z}/${x}/${y}`
-        window.open("https://www.strava.com/maps/global-heatmap" + hash, "_blank")
+        GM_openInTab("https://www.strava.com/maps/global-heatmap" + hash, { active: true, setParent: true })
     }
 }
 
