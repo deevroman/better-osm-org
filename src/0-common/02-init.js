@@ -491,7 +491,7 @@ let getMap = null
  *  },
  *  mapIntercepted: boolean,
  *  scriptInstance: string|undefined,
- *  map: import('leaflet').Map,
+ *  interceptedMapObject: import('leaflet').Map,
  * }} windowOSM
  */
 
@@ -559,7 +559,7 @@ function injectMapHooks() {
             boWindowObject.L.Map.addInitHook(
                 exportFunction(function () {
                     if (this._container?.id === "map") {
-                        boGlobalThis.map = this
+                        boGlobalThis.interceptedMapObject = this
                         boGlobalThis.mapIntercepted = true
                         console.log("%cMap intercepted", "background: #000; color: #0f0")
                         if (!boGlobalThis.scriptInstance) {
@@ -600,15 +600,12 @@ function injectMapHooks() {
     } else {
         boWindowObject.mapHook = exportFunction(mapHook, boWindowObject)
         boWindowObject.mapHook()
-        if (boWindowObject.map instanceof HTMLElement) {
+        if (!boWindowObject.interceptedMapObject) {
             console.error("Please, reload page, if something doesn't work")
             // todo
-            // getMap = () => null
-            // } else {
-            //     getMap = () => boWindowObject.map
         }
 
-        getMap = () => boWindowObject.map
+        getMap = () => boWindowObject.interceptedMapObject
     }
 }
 

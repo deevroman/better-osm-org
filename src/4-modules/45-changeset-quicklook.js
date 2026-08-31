@@ -3698,7 +3698,7 @@ async function interceptMapManually() {
                         if (window.mapIntercepted) return;
                         console.log("%cMap intercepted with workaround", 'background: #000; color: #0f0')
                         window.mapIntercepted = true
-                        window.map = e.target._map;
+                        window.interceptedMapObject = e.target._map;
                         if (!window.scriptInstance) {
                             window.scriptInstance = window.scriptHandler;
                         } else if (window.scriptInstance !== window.scriptHandler) {
