@@ -2436,11 +2436,11 @@ function actionGoToNextChangesetListPage() {
 }
 
 function actionOpenScriptUpdateUrl() {
-    window.open(`${SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`, "_blank")
+    openNewTab(`${SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`)
 }
 
 function actionOpenDevScriptUpdateUrl() {
-    window.open(`${DEV_SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`, "_blank")
+    openNewTab(`${DEV_SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`)
 }
 
 function actionOpenLocalFilePicker() {

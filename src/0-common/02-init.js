@@ -161,6 +161,15 @@ if (
     initGmApiPolyfills()
 }
 
+function openNewTab(url) {
+    try {
+        GM_openInTab(url, { active: true, setParent: true })
+    } catch (e) {
+        console.log(e)
+        window.open(url, "_blank")
+    }
+}
+
 const isRTLLayout = document.querySelector("html").dir === "rtl"
 const arrowSymbolForChanges = !isRTLLayout ? " → " : " ← "
 
