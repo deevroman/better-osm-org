@@ -3667,6 +3667,15 @@ if (
     initGmApiPolyfills()
 }
 
+function openNewTab(url) {
+    try {
+        GM_openInTab(url, { active: true, setParent: true })
+    } catch (e) {
+        console.log(e)
+        window.open(url, "_blank")
+    }
+}
+
 const isRTLLayout = document.querySelector("html").dir === "rtl"
 const arrowSymbolForChanges = !isRTLLayout ? " → " : " ← "
 
@@ -13442,7 +13451,7 @@ function stravaAuthNotify() {
         alert(t("satellite.stravaLoginRequiredAlert"))
         const [x, y, z] = getCurrentXYZ()
         const hash = `#${z}/${x}/${y}`
-        GM_openInTab("https://www.strava.com/maps/global-heatmap" + hash, { active: true, setParent: true })
+        openNewTab("https://www.strava.com/maps/global-heatmap" + hash)
     }
 }
 
@@ -33973,11 +33982,11 @@ function actionGoToNextChangesetListPage() {
 }
 
 function actionOpenScriptUpdateUrl() {
-    window.open(`${SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`, "_blank")
+    openNewTab(`${SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`)
 }
 
 function actionOpenDevScriptUpdateUrl() {
-    window.open(`${DEV_SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`, "_blank")
+    openNewTab(`${DEV_SCRIPT_UPDATE_URL}?bypasscache=${Math.random()}`)
 }
 
 function actionOpenLocalFilePicker() {

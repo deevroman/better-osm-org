@@ -102,7 +102,7 @@ function stravaAuthNotify() {
         alert(t("satellite.stravaLoginRequiredAlert"))
         const [x, y, z] = getCurrentXYZ()
         const hash = `#${z}/${x}/${y}`
-        GM_openInTab("https://www.strava.com/maps/global-heatmap" + hash, { active: true, setParent: true })
+        openNewTab("https://www.strava.com/maps/global-heatmap" + hash)
     }
 }
 
