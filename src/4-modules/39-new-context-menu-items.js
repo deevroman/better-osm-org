@@ -21,11 +21,12 @@ async function setupNewContextMenuItems() {
     makeMeasureMouseHandlers()
     contextMenuObserver = new MutationObserver((mutationList, observer) => {
         observer.disconnect()
-        const customSeparator = addMenuSeparator(menu)
-        addMeasureMenuItem(customSeparator)
-        addCopyCoordinatesMenuItem(measuringCleanMenuItem ?? measuringMenuItem)
-        addPOIMoverItem(copyCoordinatesMenuItem ?? measuringCleanMenuItem ?? measuringMenuItem)
-
+        if (getMap()) {
+            const customSeparator = addMenuSeparator(menu)
+            addMeasureMenuItem(customSeparator)
+            addCopyCoordinatesMenuItem(measuringCleanMenuItem ?? measuringMenuItem)
+            addPOIMoverItem(copyCoordinatesMenuItem ?? measuringCleanMenuItem ?? measuringMenuItem)
+        }
         contextMenuObserver.observe(menu, { childList: true, subtree: true, attributes: true })
     })
     contextMenuObserver.observe(menu, { childList: true, subtree: true, attributes: true })
