@@ -35801,9 +35801,7 @@ function makeCommandsMenu() {
                 actionOpenSettings()
             }
         })
-        if (isMobile || isDebug()) {
-            GM_registerMenuCommand(t("scriptMenu.checkScriptUpdates"), actionOpenScriptUpdateUrl)
-        }
+        GM_registerMenuCommand(t("scriptMenu.checkScriptUpdates"), actionOpenScriptUpdateUrl)
         if (isDebug()) {
             GM_registerMenuCommand(t("scriptMenu.checkDevScriptUpdates"), actionOpenDevScriptUpdateUrl)
         }
@@ -35816,7 +35814,7 @@ function makeCommandsMenu() {
 
         GM_registerMenuCommand(t("scriptMenu.listOfHotkeys"), actionShowHotkeysHelp)
         // GM_registerMenuCommand("Ask question on forum", function () {
-        //     window.open("https://community.openstreetmap.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670")
+        //     openNewTab("https://community.openstreetmap.org/t/better-osm-org-a-script-that-adds-useful-little-things-to-osm-org/121670")
         // });
     } catch (e) {
         console.error(e)
