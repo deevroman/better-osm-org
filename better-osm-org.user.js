@@ -35821,6 +35821,7 @@ function setupOhmOsmcha() {
 if (location.origin === "https://revert.monicz.dev") {
     injectJSIntoPage(`
     const originalFetch = window.fetch;
+    let overpassRequestsLimiter = 0 
 
     window.fetch = async (...args) => {
         async function sleep(ms) {
@@ -35835,6 +35836,12 @@ if (location.origin === "https://revert.monicz.dev") {
                 for (let i = 0; i < 3; i++) {
                     let res
                     try {
+                        overpassRequestsLimiter++
+                        if (overpassRequestsLimiter >= 2 && args[0].includes("overpass-api.de")) {
+                            overpassRequestsLimiter = 0
+                            window.log.value += "better-osm-org: wait after second request...\\n"
+                            await sleep(1000)
+                        }
                         res = await originalFetch(...args)
                         if (res.ok) {
                             return res
