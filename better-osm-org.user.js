@@ -9992,7 +9992,7 @@ function setupCompactChangesetsHistory() {
                     if (!source) {
                         return false
                     }
-                    const filteredSource = excludeWords.reduce((res, ex) => res.replace(ex, ""), source)
+                    const filteredSource = excludeWords.reduce((res, ex) => res.replace(ex, ""), source.toLowerCase())
                     for (const i of suspectWordsInSource) {
                         if (filteredSource.toLowerCase().includes(i)) {
                             return i
@@ -10010,6 +10010,30 @@ function setupCompactChangesetsHistory() {
                     sourceElem.style.color = "orange"
                     sourceElem.textContent = `source = ${source}`
                     sourceElem.title = sourceCheckRes
+                    elem.appendChild(sourceElem)
+                }
+
+                function isSuspectImagery(source) {
+                    if (!source) {
+                        return false
+                    }
+                    for (const i of ["localhost", "127.0.0.1", "yandex", "google", "2gis"]) {
+                        if (source.toLowerCase().includes(i)) {
+                            return i
+                        }
+                    }
+                    return false
+                }
+
+                const imagery_used = changesetMetadatas[changesetId]?.tags?.["imagery_used"]
+                const imageryCheckRes = isSuspectImagery(imagery_used)
+                if (imageryCheckRes) {
+                    const sourceElem = document.createElement("div")
+                    sourceElem.classList.add("imagery-used-warn")
+                    sourceElem.style.fontSize = "0.7rem"
+                    sourceElem.style.color = "orange"
+                    sourceElem.textContent = `imagery_used = ${imagery_used}`
+                    sourceElem.title = imageryCheckRes
                     elem.appendChild(sourceElem)
                 }
 
