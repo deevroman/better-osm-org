@@ -440,6 +440,7 @@ _translations["hr"] = {
         suspiciousRelationType: "type={value} koristi se manje od 50 puta. To je vjerojatno greška.",
         openWebsite: "Otvori {host}",
         editWithWebsite: "Uredi pomoću {host}",
+        minLevelIsNotNumber: "Vrijednost mora biti broj",
     },
     taginfo: {
         searchWithOverpass: "pretraži pomoću Overpassa",

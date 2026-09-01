@@ -442,6 +442,7 @@ _translations["tr"] = {
         suspiciousRelationType: "type={value} < 50 kez kullanılmış. Bu muhtemelen bir hata.",
         openWebsite: "{host} aç",
         editWithWebsite: "{host} ile düzenle",
+        minLevelIsNotNumber: "Değer bir sayı olmalı",
     },
     taginfo: {
         searchWithOverpass: "Overpass ile ara",

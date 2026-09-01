@@ -437,6 +437,7 @@ _translations["en"] = {
         suspiciousRelationType: "type={value} used < 50 times. This is probably a mistake.",
         openWebsite: "Open {host}",
         editWithWebsite: "Edit with {host}",
+        minLevelIsNotNumber: "Value must be a number",
     },
     taginfo: {
         searchWithOverpass: "search with Overpass",
