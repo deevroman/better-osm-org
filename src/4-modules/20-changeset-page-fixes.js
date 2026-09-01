@@ -1228,6 +1228,23 @@ function externalizeLinks(links) {
 
 let sidebarObserver = null
 
+// prettier-ignore
+const suspectWordsInSource = [
+    "google", "goo.gl", "гугл",
+    "nokia", "waze",
+    "apple", "tomtom",
+    "wikimapia", "викимапия",
+    "navteq", "teleatlas", "yelp",
+    "yandex", "яндекс",
+    "2gis", "2гис", "2 гис",
+]
+
+// prettier-ignore
+const excludeWords = [
+    "yandex panorama", "яндекс панорам", "яндекс.панорам",
+    "yandexpanorama", "яндекспанорам"
+]
+
 function setupCompactChangesetsHistory() {
     if (!location.pathname.includes("/history") && !location.pathname.startsWith("/changeset")) {
         // prettier-ignore
@@ -1435,6 +1452,32 @@ function setupCompactChangesetsHistory() {
                         })
                     }
                 }
+
+                function isSuspectSource(source) {
+                    if (!source) {
+                        return false
+                    }
+                    const filteredSource = excludeWords.reduce((res, ex) => res.replace(ex, ""), source)
+                    for (const i of suspectWordsInSource) {
+                        if (filteredSource.toLowerCase().includes(i)) {
+                            return i
+                        }
+                    }
+                    return false
+                }
+
+                const source = changesetMetadatas[changesetId]?.tags?.["source"]
+                const sourceCheckRes = isSuspectSource(source)
+                if (sourceCheckRes) {
+                    const sourceElem = document.createElement("div")
+                    sourceElem.classList.add("source-warn")
+                    sourceElem.style.fontSize = "0.7rem"
+                    sourceElem.style.color = "orange"
+                    sourceElem.textContent = `source = ${source}`
+                    sourceElem.title = sourceCheckRes
+                    elem.appendChild(sourceElem)
+                }
+
                 if (li.title !== "") {
                     li.title += "\n"
                 }
