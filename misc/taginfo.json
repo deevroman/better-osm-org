@@ -75,6 +75,10 @@
       "object_types": ["area"]
     },
     {
+      "key": "building:min_level",
+      "description": "tag validation"
+    },
+    {
       "key": "ref:belpost",
       "description": "linkify tag value"
     },

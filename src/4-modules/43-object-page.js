@@ -1117,6 +1117,13 @@ function makeLinksInVersionTagClickable(row, objType) {
         relationViewer.rel = "noreferrer"
 
         document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(relationViewer)
+    } else if (key.startsWith("building:")) {
+        if (key === "building:min_level") {
+            if (!Number.isFinite(Number(valueCell.textContent))) {
+                valueCell.classList.add("fixme-tag")
+                valueCell.title = t("objectPage.minLevelIsNotNumber")
+            }
+        }
     } else if (
         key === "route" /*|| key === "route_master"*/ &&
         ["bus", "trolleybus", "minibus", "share_taxi", /*"train",*/ "light_rail", "subway", "tram", "ferry"].includes(valueCell.textContent)

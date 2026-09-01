@@ -440,6 +440,7 @@ _translations["uk"] = {
         suspiciousRelationType: "type={value} використовується менше 50 разів. Найімовірніше, це помилка.",
         openWebsite: "Відкрити {host}",
         editWithWebsite: "Редагувати через {host}",
+        minLevelIsNotNumber: "Значення має бути числом",
     },
     taginfo: {
         searchWithOverpass: "шукати через Overpass",

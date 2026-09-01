@@ -661,6 +661,7 @@ _translations["en"] = {
         suspiciousRelationType: "type={value} used < 50 times. This is probably a mistake.",
         openWebsite: "Open {host}",
         editWithWebsite: "Edit with {host}",
+        minLevelIsNotNumber: "Value must be a number",
     },
     taginfo: {
         searchWithOverpass: "search with Overpass",
@@ -1122,6 +1123,7 @@ _translations["tr"] = {
         suspiciousRelationType: "type={value} < 50 kez kullanılmış. Bu muhtemelen bir hata.",
         openWebsite: "{host} aç",
         editWithWebsite: "{host} ile düzenle",
+        minLevelIsNotNumber: "Değer bir sayı olmalı",
     },
     taginfo: {
         searchWithOverpass: "Overpass ile ara",
@@ -1596,6 +1598,7 @@ _translations["ru"] = {
         suspiciousRelationType: "type={value} используется в базе меньше 50 раз. Скорее всего, это ошибка.",
         openWebsite: "Открыть {host}",
         editWithWebsite: "Редактировать через {host}",
+        minLevelIsNotNumber: "Значение должно быть числом",
     },
     taginfo: {
         searchWithOverpass: "Поиск через Overpass",
@@ -2057,6 +2060,7 @@ _translations["de"] = {
         suspiciousRelationType: "type={value} wird seltener als 50 Mal verwendet. Das ist wahrscheinlich ein Fehler.",
         openWebsite: "{host} öffnen",
         editWithWebsite: "Mit {host} bearbeiten",
+        minLevelIsNotNumber: "Der Wert muss eine Zahl sein",
     },
     taginfo: {
         searchWithOverpass: "mit Overpass suchen",
@@ -2520,6 +2524,7 @@ _translations["fr"] = {
         suspiciousRelationType: "type={value} est utilisé moins de 50 fois. C'est probablement une erreur.",
         openWebsite: "Ouvrir {host}",
         editWithWebsite: "Modifier avec {host}",
+        minLevelIsNotNumber: "La valeur doit être un nombre",
     },
     taginfo: {
         searchWithOverpass: "rechercher avec Overpass",
@@ -2979,6 +2984,7 @@ _translations["hr"] = {
         suspiciousRelationType: "type={value} koristi se manje od 50 puta. To je vjerojatno greška.",
         openWebsite: "Otvori {host}",
         editWithWebsite: "Uredi pomoću {host}",
+        minLevelIsNotNumber: "Vrijednost mora biti broj",
     },
     taginfo: {
         searchWithOverpass: "pretraži pomoću Overpassa",
@@ -3438,6 +3444,7 @@ _translations["uk"] = {
         suspiciousRelationType: "type={value} використовується менше 50 разів. Найімовірніше, це помилка.",
         openWebsite: "Відкрити {host}",
         editWithWebsite: "Редагувати через {host}",
+        minLevelIsNotNumber: "Значення має бути числом",
     },
     taginfo: {
         searchWithOverpass: "шукати через Overpass",
@@ -16159,6 +16166,13 @@ function makeLinksInVersionTagClickable(row, objType) {
         relationViewer.rel = "noreferrer"
 
         document.querySelector(".browse-tag-list").parentElement.previousElementSibling.appendChild(relationViewer)
+    } else if (key.startsWith("building:")) {
+        if (key === "building:min_level") {
+            if (!Number.isFinite(Number(valueCell.textContent))) {
+                valueCell.classList.add("fixme-tag")
+                valueCell.title = t("objectPage.minLevelIsNotNumber")
+            }
+        }
     } else if (
         key === "route" /*|| key === "route_master"*/ &&
         ["bus", "trolleybus", "minibus", "share_taxi", /*"train",*/ "light_rail", "subway", "tram", "ferry"].includes(valueCell.textContent)

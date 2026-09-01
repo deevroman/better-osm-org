@@ -455,6 +455,7 @@ _translations["ru"] = {
         suspiciousRelationType: "type={value} используется в базе меньше 50 раз. Скорее всего, это ошибка.",
         openWebsite: "Открыть {host}",
         editWithWebsite: "Редактировать через {host}",
+        minLevelIsNotNumber: "Значение должно быть числом",
     },
     taginfo: {
         searchWithOverpass: "Поиск через Overpass",

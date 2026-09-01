@@ -444,6 +444,7 @@ _translations["fr"] = {
         suspiciousRelationType: "type={value} est utilisé moins de 50 fois. C'est probablement une erreur.",
         openWebsite: "Ouvrir {host}",
         editWithWebsite: "Modifier avec {host}",
+        minLevelIsNotNumber: "La valeur doit être un nombre",
     },
     taginfo: {
         searchWithOverpass: "rechercher avec Overpass",

@@ -442,6 +442,7 @@ _translations["de"] = {
         suspiciousRelationType: "type={value} wird seltener als 50 Mal verwendet. Das ist wahrscheinlich ein Fehler.",
         openWebsite: "{host} öffnen",
         editWithWebsite: "Mit {host} bearbeiten",
+        minLevelIsNotNumber: "Der Wert muss eine Zahl sein",
     },
     taginfo: {
         searchWithOverpass: "mit Overpass suchen",
