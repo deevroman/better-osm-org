@@ -81,6 +81,7 @@ _translations["fr"] = {
         customOverpassInstance: "Définir un serveur Overpass API personnalisé",
         panoramaxUploader: "Ajouter un formulaire d'envoi de photos vers Panoramax",
         routersTimestamps: "Ajouter la date des données de routage",
+        retriesForOsmRevert: "Réessayer les requêtes Overpass API dans osm-revert",
         clickableMap: "Rendre la carte cliquable β",
         reorderOldTags: "Déplacer les tags was:*, old_*, ... à la fin de la liste des tags β",
         debugMode: "Activer le débogage et les fonctionnalités expérimentales",

@@ -81,6 +81,7 @@ _translations["tr"] = {
         customOverpassInstance: "Özel Overpass API sunucusu ayarla",
         panoramaxUploader: "Panoramax'a fotoğraf yükleme formu ekle",
         routersTimestamps: "Rota verisi tarihini ekle",
+        retriesForOsmRevert: "osm-revert içinde Overpass API isteklerini yeniden dene",
         clickableMap: "Haritayı tıklanabilir yap β",
         reorderOldTags: "was:*, old_*, ... gibi etiketleri etiket listesi sonuna taşı β",
         debugMode: "Hata ayıklama ve deneysel özellikleri etkinleştir",
