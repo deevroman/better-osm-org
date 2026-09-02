@@ -34495,7 +34495,7 @@ const hotkeyActions = {
     },
     openInLevel0WithFullGeometry: {
         title: "Open object in Level0 with full geometry",
-        defaultBindings: ["Shift+Alt+KeyJ"],
+        defaultBindings: ["Alt+Shift+KeyJ"],
         contexts: ["Changeset pages", "Object pages"],
         run: actionOpenInJosmOrLevel0,
     },
