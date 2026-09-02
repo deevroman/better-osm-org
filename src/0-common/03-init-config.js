@@ -499,6 +499,12 @@ const configOptions = {
             default: '{ "URL": "", "attic-data": false }',
             placeholder: "example: https://overpass-api.de/api",
         },
+        RetriesForOsmRevert: {
+            label: t("config.retriesForOsmRevert"),
+            type: "checkbox",
+            default: true,
+            labelPos: "right",
+        },
         ClickableMap: {
             label: t("config.clickableMap"),
             type: "checkbox",

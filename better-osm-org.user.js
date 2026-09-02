@@ -303,6 +303,7 @@ _translations["en"] = {
         customOverpassInstance: "Set a custom Overpass API server",
         panoramaxUploader: "Add form for uploading photos into Panoramax",
         routersTimestamps: "Add routing data date",
+        retriesForOsmRevert: "Retry Overpass API requests in osm-revert",
         clickableMap: "Clickable map β",
         reorderOldTags: "Move tags like was:*, old_*, ... to the end of the tags list β",
         debugMode: "Enable debug and experimental features",
@@ -762,6 +763,7 @@ _translations["tr"] = {
         customOverpassInstance: "Özel Overpass API sunucusu ayarla",
         panoramaxUploader: "Panoramax'a fotoğraf yükleme formu ekle",
         routersTimestamps: "Rota verisi tarihini ekle",
+        retriesForOsmRevert: "osm-revert içinde Overpass API isteklerini yeniden dene",
         clickableMap: "Haritayı tıklanabilir yap β",
         reorderOldTags: "was:*, old_*, ... gibi etiketleri etiket listesi sonuna taşı β",
         debugMode: "Hata ayıklama ve deneysel özellikleri etkinleştir",
@@ -1222,6 +1224,7 @@ _translations["ru"] = {
         addLocationFromNominatim: "Отображать адрес из Nominatim для правок и заметок",
         overpassInstance: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Сервер Overpass API</a>',
         customOverpassInstance: "Задать свой Overpass API сервер",
+        retriesForOsmRevert: "Пытаться повторять запросы к Overpass API в osm-revert",
         panoramaxUploader: "Добавить форму загрузки фотографий в Panoramax",
         routersTimestamps: "Показывать дату данных для GraphHopper, OSRM, Valhalla",
         clickableMap: "Сделать карту кликабельной β",
@@ -1698,6 +1701,7 @@ _translations["de"] = {
         customOverpassInstance: "Eigenen Overpass-API-Server festlegen",
         panoramaxUploader: "Formular zum Hochladen von Fotos nach Panoramax hinzufügen",
         routersTimestamps: "Datum der Routing-Daten hinzufügen",
+        retriesForOsmRevert: "Overpass-API-Anfragen in osm-revert erneut versuchen",
         clickableMap: "Karte anklickbar machen β",
         reorderOldTags: "Tags wie was:*, old_*, ... ans Ende der Tagliste verschieben β",
         debugMode: "Debug- und experimentelle Funktionen aktivieren",
@@ -2161,6 +2165,7 @@ _translations["fr"] = {
         customOverpassInstance: "Définir un serveur Overpass API personnalisé",
         panoramaxUploader: "Ajouter un formulaire d'envoi de photos vers Panoramax",
         routersTimestamps: "Ajouter la date des données de routage",
+        retriesForOsmRevert: "Réessayer les requêtes Overpass API dans osm-revert",
         clickableMap: "Rendre la carte cliquable β",
         reorderOldTags: "Déplacer les tags was:*, old_*, ... à la fin de la liste des tags β",
         debugMode: "Activer le débogage et les fonctionnalités expérimentales",
@@ -2624,6 +2629,7 @@ _translations["hr"] = {
         customOverpassInstance: "Postavi vlastiti Overpass API poslužitelj",
         panoramaxUploader: "Dodaj obrazac za prijenos fotografija u Panoramax",
         routersTimestamps: "Dodaj datum routing podataka",
+        retriesForOsmRevert: "Ponovno pokušaj Overpass API zahtjeve u osm-revert",
         clickableMap: "Učini kartu klikabilnom β",
         reorderOldTags: "Premjestiti tagove was:*, old_*, ... na kraj liste tagova β",
         debugMode: "Omogući debug i eksperimentalne značajke",
@@ -3084,6 +3090,7 @@ _translations["uk"] = {
         customOverpassInstance: "Задати власний сервер Overpass API",
         panoramaxUploader: "Додати форму для завантаження фото в Panoramax",
         routersTimestamps: "Додати дату маршрутизаційних даних",
+        retriesForOsmRevert: "Повторювати запити Overpass API в osm-revert",
         clickableMap: "Зробити мапу клікабельною β",
         reorderOldTags: "Переміщувати теги was:*, old_*, ... в кінець списку тегів β",
         debugMode: "Увімкнути режим налагодження та експериментальні функції",
@@ -4698,6 +4705,12 @@ const configOptions = {
             type: "overpass",
             default: '{ "URL": "", "attic-data": false }',
             placeholder: "example: https://overpass-api.de/api",
+        },
+        RetriesForOsmRevert: {
+            label: t("config.retriesForOsmRevert"),
+            type: "checkbox",
+            default: true,
+            labelPos: "right",
         },
         ClickableMap: {
             label: t("config.clickableMap"),
@@ -35824,6 +35837,9 @@ if (location.origin === "https://revert.monicz.dev") {
     let overpassRequestsLimiter = 0 
 
     window.fetch = async (...args) => {
+        if (window.disableRetriesForOsmRevert) {
+            return await originalFetch(...args)
+        }
         async function sleep(ms) {
             console.debug("sleep " + ms + "ms")
             await new Promise(r => setTimeout(r, ms))
@@ -35837,7 +35853,7 @@ if (location.origin === "https://revert.monicz.dev") {
                     let res
                     try {
                         overpassRequestsLimiter++
-                        if (overpassRequestsLimiter >= 2 && args[0].includes("overpass-api.de")) {
+                        if (overpassRequestsLimiter > 2 && args[0].includes("overpass-api.de")) {
                             overpassRequestsLimiter = 0
                             window.log.value += "better-osm-org: wait after second request...\\n"
                             await sleep(1000)
@@ -35962,6 +35978,11 @@ function _main() {
         (location.origin === "https://maps.mail.ru" && location.pathname === "/osm/tools/overpass/")
     ) {
         setupOverpass()
+    }
+    if (location.origin === "https://revert.monicz.dev") {
+        if (!GM_config.get("RetriesForOsmRevert")) {
+            getWindow().disableRetriesForOsmRevert = true
+        }
     }
 }
 

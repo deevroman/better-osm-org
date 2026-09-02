@@ -50,6 +50,11 @@ function _main() {
     ) {
         setupOverpass()
     }
+    if (location.origin === "https://revert.monicz.dev") {
+        if (!GM_config.get("RetriesForOsmRevert")) {
+            getWindow().disableRetriesForOsmRevert = true
+        }
+    }
 }
 
 function main() {

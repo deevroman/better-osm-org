@@ -6,6 +6,9 @@ if (location.origin === "https://revert.monicz.dev") {
     let overpassRequestsLimiter = 0 
 
     window.fetch = async (...args) => {
+        if (window.disableRetriesForOsmRevert) {
+            return await originalFetch(...args)
+        }
         async function sleep(ms) {
             console.debug("sleep " + ms + "ms")
             await new Promise(r => setTimeout(r, ms))
@@ -19,7 +22,7 @@ if (location.origin === "https://revert.monicz.dev") {
                     let res
                     try {
                         overpassRequestsLimiter++
-                        if (overpassRequestsLimiter >= 2 && args[0].includes("overpass-api.de")) {
+                        if (overpassRequestsLimiter > 2 && args[0].includes("overpass-api.de")) {
                             overpassRequestsLimiter = 0
                             window.log.value += "better-osm-org: wait after second request...\\n"
                             await sleep(1000)

@@ -80,6 +80,7 @@ _translations["hr"] = {
         customOverpassInstance: "Postavi vlastiti Overpass API poslužitelj",
         panoramaxUploader: "Dodaj obrazac za prijenos fotografija u Panoramax",
         routersTimestamps: "Dodaj datum routing podataka",
+        retriesForOsmRevert: "Ponovno pokušaj Overpass API zahtjeve u osm-revert",
         clickableMap: "Učini kartu klikabilnom β",
         reorderOldTags: "Premjestiti tagove was:*, old_*, ... na kraj liste tagova β",
         debugMode: "Omogući debug i eksperimentalne značajke",

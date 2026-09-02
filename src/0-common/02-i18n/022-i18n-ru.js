@@ -79,6 +79,7 @@ _translations["ru"] = {
         addLocationFromNominatim: "Отображать адрес из Nominatim для правок и заметок",
         overpassInstance: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Сервер Overpass API</a>',
         customOverpassInstance: "Задать свой Overpass API сервер",
+        retriesForOsmRevert: "Пытаться повторять запросы к Overpass API в osm-revert",
         panoramaxUploader: "Добавить форму загрузки фотографий в Panoramax",
         routersTimestamps: "Показывать дату данных для GraphHopper, OSRM, Valhalla",
         clickableMap: "Сделать карту кликабельной β",

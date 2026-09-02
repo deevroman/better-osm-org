@@ -80,6 +80,7 @@ _translations["uk"] = {
         customOverpassInstance: "Задати власний сервер Overpass API",
         panoramaxUploader: "Додати форму для завантаження фото в Panoramax",
         routersTimestamps: "Додати дату маршрутизаційних даних",
+        retriesForOsmRevert: "Повторювати запити Overpass API в osm-revert",
         clickableMap: "Зробити мапу клікабельною β",
         reorderOldTags: "Переміщувати теги was:*, old_*, ... в кінець списку тегів β",
         debugMode: "Увімкнути режим налагодження та експериментальні функції",
