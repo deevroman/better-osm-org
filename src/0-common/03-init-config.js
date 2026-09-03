@@ -238,6 +238,66 @@ const copyAnimationStyles = `
         }
     }
 `
+
+function makeMenuItem(row) {
+    const item = document.createElement("div")
+    item.classList.add("template-item")
+    const header = document.createElement("div")
+    header.style.display = "flex"
+    header.style.flex = "1 1 1"
+    header.style.width = "100%"
+
+    const button = document.createElement("div")
+    button.style.borderTopLeftRadius = "5px"
+    button.classList.add("table-cell")
+    button.textContent = row["label"]
+    button.classList.add("item-label")
+    button.setAttribute("contenteditable", "true")
+    header.appendChild(button)
+
+    const title = document.createElement("span")
+    title.classList.add("table-cell")
+    title.style.width = "inherit"
+    title.textContent = row["title"]
+    title.classList.add("item-title")
+    title.setAttribute("placeholder", t("config.titlePlaceholder"))
+    title.setAttribute("contenteditable", "true")
+    header.appendChild(title)
+
+    const remove = document.createElement("span")
+    remove.classList.add("table-cell")
+    remove.textContent = "🗑"
+    remove.title = t("actions.remove")
+    remove.style.width = "21px"
+    remove.style.cursor = "pointer"
+    remove.style.textAlign = "center"
+    remove.style.borderTopRightRadius = "5px"
+    remove.onclick = () => {
+        if ((row["label"] === "" && text === "") || confirm(`Remove "${row["label"]}"?`)) {
+            item.remove()
+        }
+    }
+    header.appendChild(remove)
+
+    item.appendChild(header)
+
+    const text = document.createElement("div")
+    text.classList.add("table-cell")
+    text.style.minHeight = "60px"
+    text.style.borderBottomLeftRadius = "5px"
+    text.style.borderBottomRightRadius = "5px"
+    text.textContent = row["text"]
+    text.classList.add("item-text")
+    text.setAttribute("placeholder", t("config.textPlaceholder"))
+    text.setAttribute("contenteditable", "true")
+    item.appendChild(text)
+
+    item.appendChild(document.createElement("p"))
+
+    return item
+}
+
+/** @type {import('../GM_config.d.ts').InitOptionsCustom} */
 const configOptions = {
     id: "Config",
     title: " ",
@@ -377,7 +437,7 @@ const configOptions = {
         },
         MessagesTemplates: {
             label: t("config.messagesTemplates"),
-            type: "menu",
+            type: "menuWithTitles",
             default: '[{"label": "👋", "title": "", "text": ""}]',
         },
         NavigationViaHotkeys: {
@@ -617,6 +677,90 @@ const configOptions = {
                     this.wrapper
                         .querySelector(`#${this.configId}_${this.id}_var table`)
                         .lastElementChild.before(makeRow(i["label"], i["text"]))
+                })
+            },
+        },
+        menuWithTitles: {
+            default: "",
+
+            toNode: function () {
+                const templates = /** @type {string} */ (this.value || this.settings.default)
+                const settingNode = this.create("div", {
+                    className: "config_var",
+                    id: this.configId + "_" + this.id + "_var",
+                })
+
+                this.templates = templates
+
+                settingNode.appendChild(
+                    this.create("input", {
+                        innerHTML: this.settings.label,
+                        id: this.configId + "_" + this.id + "_field_filler",
+                        className: "filler",
+                        type: "checkbox",
+                    }),
+                )
+
+                const label = this.create("label", {
+                    innerHTML: this.settings.label,
+                    id: this.configId + "_" + this.id + "_field_label",
+                    for: this.configId + "_field_" + this.id,
+                    className: "field_label",
+                })
+                settingNode.appendChild(label)
+
+                const list = document.createElement("div")
+                list.classList.add("list-of-items")
+                list.style.width = "100%"
+                settingNode.appendChild(list)
+
+                JSON.parse(templates).forEach(row => {
+                    list.appendChild(makeMenuItem(row))
+                })
+
+                const tr = document.createElement("div")
+                tr.classList.add("add-tag-row")
+                tr.style.display = "flex"
+                list.appendChild(tr)
+                const th = document.createElement("th")
+                th.textContent = "+"
+                th.colSpan = 3
+                th.style.textAlign = "center"
+                th.style.cursor = "pointer"
+                th.style.width = "100%"
+                tr.appendChild(th)
+                th.onclick = () => {
+                    list.lastElementChild.before(makeMenuItem({ label: "ℹ️", title: "", text: "" }))
+                }
+
+                return settingNode
+            },
+            toValue: function () {
+                const templates = []
+                if (this.wrapper) {
+                    for (let row of Array.from(this.wrapper.querySelectorAll(".template-item"))) {
+                        const forPush = {
+                            label: row.querySelector(".item-label").textContent,
+                            title: row.querySelector(".item-title").textContent,
+                            text: row.querySelector(".item-text").innerText,
+                        }
+                        if (!(forPush.label.trim() === "" && forPush.text.trim() === "")) {
+                            templates.push(forPush)
+                        }
+                    }
+                }
+                return JSON.stringify(templates)
+            },
+            reset: function () {
+                if (!this.wrapper) {
+                    return
+                }
+                for (let row of Array.from(this.wrapper.querySelectorAll(".template-item"))) {
+                    row.remove()
+                }
+                const list = document.querySelector(".list-of-items")
+                JSON.parse(/** @type {string} */ (this.settings.default)).forEach(row => {
+                    list.appendChild(this.makeItem(row))
                 })
             },
         },
@@ -1006,6 +1150,7 @@ const configOptions = {
     },
     frameStyle: `
             border: 1px solid #000;
+            border-radius: 5px;
             height: min(90%, 760px);
             width: min(max(25%, 505px), 100vw);
             z-index: 9999;
@@ -1032,7 +1177,7 @@ const configOptions = {
             }
             input[type=checkbox]:not(.filler) + .field_label {
                 display: flex;
-                align-items: anchor-center;
+                align-self: anchor-center;
             }
 
             #Config .field_label {
@@ -1180,6 +1325,16 @@ const configOptions = {
             #Config_OverpassInstance_field_label {
                 align-self: center;
             }
+            .table-cell {
+                word-break: break-word;
+                border-style: solid;
+                border-width: 1px;
+                padding: 5px;
+            }
+            .table-cell[placeholder]:empty::before {
+                content: attr(placeholder);
+                color: #555; 
+            }
         @media ${mediaQueryForWebsiteTheme} {
             #Config {
                 background: #232528;
@@ -1214,6 +1369,9 @@ const configOptions = {
                 outline-style: none;
             }
             th, td {
+                border-color: white;
+            }
+            .table-cell {
                 border-color: white;
             }
             #version {

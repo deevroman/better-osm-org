@@ -60,6 +60,8 @@ _translations["tr"] = {
         oneClickDeletor: "Düğümü onaysız sil",
         changesetsTemplates: 'Değişiklik seti yorum şablonları <a id="last-comments-link" target="_blank">(son yorumlarınız)</a>',
         messagesTemplates: "Doğrudan mesaj şablonları:",
+        titlePlaceholder: "Doğrudan mesaj başlığı",
+        textPlaceholder: "Doğrudan mesaj metni.\n{{ mapper.displayName }} kullanılarak alıcı adı yerleştirmesi desteklenir",
         hdycInProfile: "Kullanıcı profiline HDYC ekle",
         betterProfileStat: "Profil istatistiklerine filtreler ekle",
         navigationViaHotkeys:
@@ -77,7 +79,7 @@ _translations["tr"] = {
         defaultZoomKeysBehaviour: "+/- düğmelerinin yakınlaştırma adımını ikiye katlamaz",
         addLocationFromNominatim: "Değişiklik setleri ve notlar için Nominatim'den konum ekle",
         overpassInstance:
-            '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass API sunucusu</a>',
+            '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances" target="_blank">Overpass API sunucusu</a>',
         customOverpassInstance: "Özel Overpass API sunucusu ayarla",
         panoramaxUploader: "Panoramax'a fotoğraf yükleme formu ekle",
         routersTimestamps: "Rota verisi tarihini ekle",
