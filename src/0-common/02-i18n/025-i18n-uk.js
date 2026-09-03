@@ -60,6 +60,8 @@ _translations["uk"] = {
         oneClickDeletor: "Видаляти точки без підтвердження",
         changesetsTemplates: 'Шаблони коментарів до наборів змін <a id="last-comments-link" target="_blank">(ваші останні коментарі)</a>',
         messagesTemplates: "Шаблони особистих повідомлень:",
+        titlePlaceholder: "Заголовок особистого повідомлення",
+        textPlaceholder: "Текст особистого повідомлення.\nПідтримується підстановка імені адресата за допомогою {{ mapper.displayName }}",
         hdycInProfile: "Додати HDYC до профілю користувача",
         betterProfileStat: "Додати фільтри до статистики профілю",
         navigationViaHotkeys:
@@ -76,7 +78,8 @@ _translations["uk"] = {
         betterTaginfo: "Додати нові кнопки в Taginfo",
         defaultZoomKeysBehaviour: "Не подвоювати крок масштабування для кнопок +/-",
         addLocationFromNominatim: "Додати локацію з Nominatim для наборів змін і нотаток",
-        overpassInstance: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Сервер Overpass API</a>',
+        overpassInstance:
+            '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances" target="_blank">Сервер Overpass API</a>',
         customOverpassInstance: "Задати власний сервер Overpass API",
         panoramaxUploader: "Додати форму для завантаження фото в Panoramax",
         routersTimestamps: "Додати дату маршрутизаційних даних",

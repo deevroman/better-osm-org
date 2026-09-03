@@ -60,6 +60,8 @@ _translations["hr"] = {
         oneClickDeletor: "Briši točke bez potvrde",
         changesetsTemplates: 'Predlošci komentara changeseta <a id="last-comments-link" target="_blank">(vaši zadnji komentari)</a>',
         messagesTemplates: "Predlošci izravnih poruka:",
+        titlePlaceholder: "Naslov izravne poruke",
+        textPlaceholder: "Tekst izravne poruke.\nPodržana je zamjena imena primatelja pomoću {{ mapper.displayName }}",
         hdycInProfile: "Dodaj HDYC u korisnički profil",
         betterProfileStat: "Dodaj filtre u statistiku profila",
         navigationViaHotkeys: 'Dodaj prečace <a href="https://github.com/deevroman/better-osm-org#Hotkeys" target="_blank">(Popis)</a>',
@@ -76,7 +78,7 @@ _translations["hr"] = {
         defaultZoomKeysBehaviour: "Nemoj udvostručiti korak zumiranja gumba +/-",
         addLocationFromNominatim: "Dodaj lokaciju iz Nominatima za changesete i bilješke",
         overpassInstance:
-            '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass API poslužitelj</a>',
+            '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances" target="_blank">Overpass API poslužitelj</a>',
         customOverpassInstance: "Postavi vlastiti Overpass API poslužitelj",
         panoramaxUploader: "Dodaj obrazac za prijenos fotografija u Panoramax",
         routersTimestamps: "Dodaj datum routing podataka",

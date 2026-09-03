@@ -284,6 +284,8 @@ _translations["en"] = {
         oneClickDeletor: "Delete node without confirmation",
         changesetsTemplates: 'Changesets comments templates <a id="last-comments-link" target="_blank">(your last comments)</a>',
         messagesTemplates: "Direct messages templates:",
+        titlePlaceholder: "Direct message title",
+        textPlaceholder: "Direct message text.\nRecipient name substitution using {{ mapper.displayName }} is supported",
         hdycInProfile: "Add HDYC to user profile",
         betterProfileStat: "Add filters to profile statistics",
         navigationViaHotkeys: 'Add hotkeys <a href="https://github.com/deevroman/better-osm-org#Hotkeys" target="_blank">(List)</a>',
@@ -299,7 +301,8 @@ _translations["en"] = {
         betterTaginfo: "Add new buttons in Taginfo",
         defaultZoomKeysBehaviour: "Do not double the zoom step of the buttons +/-",
         addLocationFromNominatim: "Add location from Nominatim for changesets and notes",
-        overpassInstance: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass API server</a>',
+        overpassInstance:
+            '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances" target="_blank">Overpass API server</a>',
         customOverpassInstance: "Set a custom Overpass API server",
         panoramaxUploader: "Add form for uploading photos into Panoramax",
         routersTimestamps: "Add routing data date",
@@ -742,6 +745,8 @@ _translations["tr"] = {
         oneClickDeletor: "Düğümü onaysız sil",
         changesetsTemplates: 'Değişiklik seti yorum şablonları <a id="last-comments-link" target="_blank">(son yorumlarınız)</a>',
         messagesTemplates: "Doğrudan mesaj şablonları:",
+        titlePlaceholder: "Doğrudan mesaj başlığı",
+        textPlaceholder: "Doğrudan mesaj metni.\n{{ mapper.displayName }} kullanılarak alıcı adı yerleştirmesi desteklenir",
         hdycInProfile: "Kullanıcı profiline HDYC ekle",
         betterProfileStat: "Profil istatistiklerine filtreler ekle",
         navigationViaHotkeys:
@@ -759,7 +764,7 @@ _translations["tr"] = {
         defaultZoomKeysBehaviour: "+/- düğmelerinin yakınlaştırma adımını ikiye katlamaz",
         addLocationFromNominatim: "Değişiklik setleri ve notlar için Nominatim'den konum ekle",
         overpassInstance:
-            '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass API sunucusu</a>',
+            '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances" target="_blank">Overpass API sunucusu</a>',
         customOverpassInstance: "Özel Overpass API sunucusu ayarla",
         panoramaxUploader: "Panoramax'a fotoğraf yükleme formu ekle",
         routersTimestamps: "Rota verisi tarihini ekle",
@@ -1205,7 +1210,10 @@ _translations["ru"] = {
         deletor: "Кнопка удаления точки",
         oneClickDeletor: "Удалять точки без подтверждения",
         changesetsTemplates: 'Шаблоны комментариев к правкам <a id="last-comments-link" target="_blank">(ваши последние комментарии)</a>',
-        messagesTemplates: "Шаблоны личных сообщений:",
+        messagesTemplates:
+            "Шаблоны личных сообщений (<a target='_blank' href='https://github.com/osmbe/osm-welcome-tool/tree/2.x/templates/messages'>примеры из welcome.osm.be</a>):",
+        titlePlaceholder: "Заголовок личного сообщения",
+        textPlaceholder: "Текст личного сообщения.\nПоддерживается подстановка имени адресата с помощью {{ mapper.displayName }}",
         hdycInProfile: "Добавить HDYC в профиль пользователя",
         betterProfileStat: "Добавить фильтры в статистику профиля",
         navigationViaHotkeys:
@@ -1222,7 +1230,8 @@ _translations["ru"] = {
         betterTaginfo: "Добавить новые кнопки в Taginfo",
         defaultZoomKeysBehaviour: "Не удваивать шаг зума для кнопок +/-",
         addLocationFromNominatim: "Отображать адрес из Nominatim для правок и заметок",
-        overpassInstance: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Сервер Overpass API</a>',
+        overpassInstance:
+            '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances" target="_blank">Сервер Overpass API</a>',
         customOverpassInstance: "Задать свой Overpass API сервер",
         panoramaxUploader: "Добавить форму загрузки фотографий в Panoramax",
         routersTimestamps: "Показывать дату данных для GraphHopper, OSRM, Valhalla",
@@ -1681,6 +1690,9 @@ _translations["de"] = {
         oneClickDeletor: "Knoten ohne Bestätigung löschen",
         changesetsTemplates: 'Vorlagen für Changeset-Kommentare <a id="last-comments-link" target="_blank">(deine letzten Kommentare)</a>',
         messagesTemplates: "Vorlagen für Direktnachrichten:",
+        titlePlaceholder: "Titel der Direktnachricht",
+        textPlaceholder:
+            "Text der Direktnachricht.\nDie Platzhalterersetzung für den Empfängernamen mit {{ mapper.displayName }} wird unterstützt",
         hdycInProfile: "HDYC zum Benutzerprofil hinzufügen",
         betterProfileStat: "Filter zur Profilstatistik hinzufügen",
         navigationViaHotkeys:
@@ -1697,7 +1709,8 @@ _translations["de"] = {
         betterTaginfo: "Neue Schaltflächen in Taginfo hinzufügen",
         defaultZoomKeysBehaviour: "Zoomschritt der +/- Schaltflächen nicht verdoppeln",
         addLocationFromNominatim: "Standort aus Nominatim für Changesets und Hinweise hinzufügen",
-        overpassInstance: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass-API-Server</a>',
+        overpassInstance:
+            '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances" target="_blank">Overpass-API-Server</a>',
         customOverpassInstance: "Eigenen Overpass-API-Server festlegen",
         panoramaxUploader: "Formular zum Hochladen von Fotos nach Panoramax hinzufügen",
         routersTimestamps: "Datum der Routing-Daten hinzufügen",
@@ -2145,6 +2158,8 @@ _translations["fr"] = {
         changesetsTemplates:
             'Modèles de commentaires de changeset <a id="last-comments-link" target="_blank">(vos derniers commentaires)</a>',
         messagesTemplates: "Modèles de messages directs :",
+        titlePlaceholder: "Titre du message direct",
+        textPlaceholder: "Texte du message direct.\nLe remplacement du nom du destinataire avec {{ mapper.displayName }} est pris en charge",
         hdycInProfile: "Ajouter HDYC au profil utilisateur",
         betterProfileStat: "Ajouter des filtres aux statistiques du profil",
         navigationViaHotkeys:
@@ -2161,7 +2176,8 @@ _translations["fr"] = {
         betterTaginfo: "Ajouter de nouveaux boutons dans Taginfo",
         defaultZoomKeysBehaviour: "Ne pas doubler le pas de zoom des boutons +/-",
         addLocationFromNominatim: "Ajouter l'emplacement depuis Nominatim pour les changesets et les notes",
-        overpassInstance: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Serveur Overpass API</a>',
+        overpassInstance:
+            '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances" target="_blank">Serveur Overpass API</a>',
         customOverpassInstance: "Définir un serveur Overpass API personnalisé",
         panoramaxUploader: "Ajouter un formulaire d'envoi de photos vers Panoramax",
         routersTimestamps: "Ajouter la date des données de routage",
@@ -2609,6 +2625,8 @@ _translations["hr"] = {
         oneClickDeletor: "Briši točke bez potvrde",
         changesetsTemplates: 'Predlošci komentara changeseta <a id="last-comments-link" target="_blank">(vaši zadnji komentari)</a>',
         messagesTemplates: "Predlošci izravnih poruka:",
+        titlePlaceholder: "Naslov izravne poruke",
+        textPlaceholder: "Tekst izravne poruke.\nPodržana je zamjena imena primatelja pomoću {{ mapper.displayName }}",
         hdycInProfile: "Dodaj HDYC u korisnički profil",
         betterProfileStat: "Dodaj filtre u statistiku profila",
         navigationViaHotkeys: 'Dodaj prečace <a href="https://github.com/deevroman/better-osm-org#Hotkeys" target="_blank">(Popis)</a>',
@@ -2625,7 +2643,7 @@ _translations["hr"] = {
         defaultZoomKeysBehaviour: "Nemoj udvostručiti korak zumiranja gumba +/-",
         addLocationFromNominatim: "Dodaj lokaciju iz Nominatima za changesete i bilješke",
         overpassInstance:
-            '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Overpass API poslužitelj</a>',
+            '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances" target="_blank">Overpass API poslužitelj</a>',
         customOverpassInstance: "Postavi vlastiti Overpass API poslužitelj",
         panoramaxUploader: "Dodaj obrazac za prijenos fotografija u Panoramax",
         routersTimestamps: "Dodaj datum routing podataka",
@@ -3070,6 +3088,8 @@ _translations["uk"] = {
         oneClickDeletor: "Видаляти точки без підтвердження",
         changesetsTemplates: 'Шаблони коментарів до наборів змін <a id="last-comments-link" target="_blank">(ваші останні коментарі)</a>',
         messagesTemplates: "Шаблони особистих повідомлень:",
+        titlePlaceholder: "Заголовок особистого повідомлення",
+        textPlaceholder: "Текст особистого повідомлення.\nПідтримується підстановка імені адресата за допомогою {{ mapper.displayName }}",
         hdycInProfile: "Додати HDYC до профілю користувача",
         betterProfileStat: "Додати фільтри до статистики профілю",
         navigationViaHotkeys:
@@ -3086,7 +3106,8 @@ _translations["uk"] = {
         betterTaginfo: "Додати нові кнопки в Taginfo",
         defaultZoomKeysBehaviour: "Не подвоювати крок масштабування для кнопок +/-",
         addLocationFromNominatim: "Додати локацію з Nominatim для наборів змін і нотаток",
-        overpassInstance: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Сервер Overpass API</a>',
+        overpassInstance:
+            '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances" target="_blank">Сервер Overpass API</a>',
         customOverpassInstance: "Задати власний сервер Overpass API",
         panoramaxUploader: "Додати форму для завантаження фото в Panoramax",
         routersTimestamps: "Додати дату маршрутизаційних даних",
@@ -4445,6 +4466,66 @@ const copyAnimationStyles = `
         }
     }
 `
+
+function makeMenuItem(row) {
+    const item = document.createElement("div")
+    item.classList.add("template-item")
+    const header = document.createElement("div")
+    header.style.display = "flex"
+    header.style.flex = "1 1 1"
+    header.style.width = "100%"
+
+    const button = document.createElement("div")
+    button.style.borderTopLeftRadius = "5px"
+    button.classList.add("table-cell")
+    button.textContent = row["label"]
+    button.classList.add("item-label")
+    button.setAttribute("contenteditable", "true")
+    header.appendChild(button)
+
+    const title = document.createElement("span")
+    title.classList.add("table-cell")
+    title.style.width = "inherit"
+    title.textContent = row["title"]
+    title.classList.add("item-title")
+    title.setAttribute("placeholder", t("config.titlePlaceholder"))
+    title.setAttribute("contenteditable", "true")
+    header.appendChild(title)
+
+    const remove = document.createElement("span")
+    remove.classList.add("table-cell")
+    remove.textContent = "🗑"
+    remove.title = t("actions.remove")
+    remove.style.width = "21px"
+    remove.style.cursor = "pointer"
+    remove.style.textAlign = "center"
+    remove.style.borderTopRightRadius = "5px"
+    remove.onclick = () => {
+        if ((row["label"] === "" && text === "") || confirm(`Remove "${row["label"]}"?`)) {
+            item.remove()
+        }
+    }
+    header.appendChild(remove)
+
+    item.appendChild(header)
+
+    const text = document.createElement("div")
+    text.classList.add("table-cell")
+    text.style.minHeight = "60px"
+    text.style.borderBottomLeftRadius = "5px"
+    text.style.borderBottomRightRadius = "5px"
+    text.textContent = row["text"]
+    text.classList.add("item-text")
+    text.setAttribute("placeholder", t("config.textPlaceholder"))
+    text.setAttribute("contenteditable", "true")
+    item.appendChild(text)
+
+    item.appendChild(document.createElement("p"))
+
+    return item
+}
+
+/** @type {import('../GM_config.d.ts').InitOptionsCustom} */
 const configOptions = {
     id: "Config",
     title: " ",
@@ -4584,7 +4665,7 @@ const configOptions = {
         },
         MessagesTemplates: {
             label: t("config.messagesTemplates"),
-            type: "menu",
+            type: "menuWithTitles",
             default: '[{"label": "👋", "title": "", "text": ""}]',
         },
         NavigationViaHotkeys: {
@@ -4824,6 +4905,90 @@ const configOptions = {
                     this.wrapper
                         .querySelector(`#${this.configId}_${this.id}_var table`)
                         .lastElementChild.before(makeRow(i["label"], i["text"]))
+                })
+            },
+        },
+        menuWithTitles: {
+            default: "",
+
+            toNode: function () {
+                const templates = /** @type {string} */ (this.value || this.settings.default)
+                const settingNode = this.create("div", {
+                    className: "config_var",
+                    id: this.configId + "_" + this.id + "_var",
+                })
+
+                this.templates = templates
+
+                settingNode.appendChild(
+                    this.create("input", {
+                        innerHTML: this.settings.label,
+                        id: this.configId + "_" + this.id + "_field_filler",
+                        className: "filler",
+                        type: "checkbox",
+                    }),
+                )
+
+                const label = this.create("label", {
+                    innerHTML: this.settings.label,
+                    id: this.configId + "_" + this.id + "_field_label",
+                    for: this.configId + "_field_" + this.id,
+                    className: "field_label",
+                })
+                settingNode.appendChild(label)
+
+                const list = document.createElement("div")
+                list.classList.add("list-of-items")
+                list.style.width = "100%"
+                settingNode.appendChild(list)
+
+                JSON.parse(templates).forEach(row => {
+                    list.appendChild(makeMenuItem(row))
+                })
+
+                const tr = document.createElement("div")
+                tr.classList.add("add-tag-row")
+                tr.style.display = "flex"
+                list.appendChild(tr)
+                const th = document.createElement("th")
+                th.textContent = "+"
+                th.colSpan = 3
+                th.style.textAlign = "center"
+                th.style.cursor = "pointer"
+                th.style.width = "100%"
+                tr.appendChild(th)
+                th.onclick = () => {
+                    list.lastElementChild.before(makeMenuItem({ label: "ℹ️", title: "", text: "" }))
+                }
+
+                return settingNode
+            },
+            toValue: function () {
+                const templates = []
+                if (this.wrapper) {
+                    for (let row of Array.from(this.wrapper.querySelectorAll(".template-item"))) {
+                        const forPush = {
+                            label: row.querySelector(".item-label").textContent,
+                            title: row.querySelector(".item-title").textContent,
+                            text: row.querySelector(".item-text").innerText,
+                        }
+                        if (!(forPush.label.trim() === "" && forPush.text.trim() === "")) {
+                            templates.push(forPush)
+                        }
+                    }
+                }
+                return JSON.stringify(templates)
+            },
+            reset: function () {
+                if (!this.wrapper) {
+                    return
+                }
+                for (let row of Array.from(this.wrapper.querySelectorAll(".template-item"))) {
+                    row.remove()
+                }
+                const list = document.querySelector(".list-of-items")
+                JSON.parse(/** @type {string} */ (this.settings.default)).forEach(row => {
+                    list.appendChild(this.makeItem(row))
                 })
             },
         },
@@ -5213,6 +5378,7 @@ const configOptions = {
     },
     frameStyle: `
             border: 1px solid #000;
+            border-radius: 5px;
             height: min(90%, 760px);
             width: min(max(25%, 505px), 100vw);
             z-index: 9999;
@@ -5239,7 +5405,7 @@ const configOptions = {
             }
             input[type=checkbox]:not(.filler) + .field_label {
                 display: flex;
-                align-items: anchor-center;
+                align-self: anchor-center;
             }
 
             #Config .field_label {
@@ -5387,6 +5553,16 @@ const configOptions = {
             #Config_OverpassInstance_field_label {
                 align-self: center;
             }
+            .table-cell {
+                word-break: break-word;
+                border-style: solid;
+                border-width: 1px;
+                padding: 5px;
+            }
+            .table-cell[placeholder]:empty::before {
+                content: attr(placeholder);
+                color: #555; 
+            }
         @media ${mediaQueryForWebsiteTheme} {
             #Config {
                 background: #232528;
@@ -5421,6 +5597,9 @@ const configOptions = {
                 outline-style: none;
             }
             th, td {
+                border-color: white;
+            }
+            .table-cell {
                 border-color: white;
             }
             #version {

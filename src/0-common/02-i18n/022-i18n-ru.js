@@ -60,7 +60,10 @@ _translations["ru"] = {
         deletor: "Кнопка удаления точки",
         oneClickDeletor: "Удалять точки без подтверждения",
         changesetsTemplates: 'Шаблоны комментариев к правкам <a id="last-comments-link" target="_blank">(ваши последние комментарии)</a>',
-        messagesTemplates: "Шаблоны личных сообщений:",
+        messagesTemplates:
+            "Шаблоны личных сообщений (<a target='_blank' href='https://github.com/osmbe/osm-welcome-tool/tree/2.x/templates/messages'>примеры из welcome.osm.be</a>):",
+        titlePlaceholder: "Заголовок личного сообщения",
+        textPlaceholder: "Текст личного сообщения.\nПоддерживается подстановка имени адресата с помощью {{ mapper.displayName }}",
         hdycInProfile: "Добавить HDYC в профиль пользователя",
         betterProfileStat: "Добавить фильтры в статистику профиля",
         navigationViaHotkeys:
@@ -77,7 +80,8 @@ _translations["ru"] = {
         betterTaginfo: "Добавить новые кнопки в Taginfo",
         defaultZoomKeysBehaviour: "Не удваивать шаг зума для кнопок +/-",
         addLocationFromNominatim: "Отображать адрес из Nominatim для правок и заметок",
-        overpassInstance: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Сервер Overpass API</a>',
+        overpassInstance:
+            '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances" target="_blank">Сервер Overpass API</a>',
         customOverpassInstance: "Задать свой Overpass API сервер",
         panoramaxUploader: "Добавить форму загрузки фотографий в Panoramax",
         routersTimestamps: "Показывать дату данных для GraphHopper, OSRM, Valhalla",

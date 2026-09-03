@@ -61,6 +61,8 @@ _translations["fr"] = {
         changesetsTemplates:
             'Modèles de commentaires de changeset <a id="last-comments-link" target="_blank">(vos derniers commentaires)</a>',
         messagesTemplates: "Modèles de messages directs :",
+        titlePlaceholder: "Titre du message direct",
+        textPlaceholder: "Texte du message direct.\nLe remplacement du nom du destinataire avec {{ mapper.displayName }} est pris en charge",
         hdycInProfile: "Ajouter HDYC au profil utilisateur",
         betterProfileStat: "Ajouter des filtres aux statistiques du profil",
         navigationViaHotkeys:
@@ -77,7 +79,8 @@ _translations["fr"] = {
         betterTaginfo: "Ajouter de nouveaux boutons dans Taginfo",
         defaultZoomKeysBehaviour: "Ne pas doubler le pas de zoom des boutons +/-",
         addLocationFromNominatim: "Ajouter l'emplacement depuis Nominatim pour les changesets et les notes",
-        overpassInstance: '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances">Serveur Overpass API</a>',
+        overpassInstance:
+            '<a href="https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances" target="_blank">Serveur Overpass API</a>',
         customOverpassInstance: "Définir un serveur Overpass API personnalisé",
         panoramaxUploader: "Ajouter un formulaire d'envoi de photos vers Panoramax",
         routersTimestamps: "Ajouter la date des données de routage",
