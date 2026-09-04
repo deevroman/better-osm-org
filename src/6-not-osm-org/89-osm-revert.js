@@ -25,7 +25,7 @@ if (location.origin === "https://revert.monicz.dev") {
                         if (overpassRequestsLimiter > 2 && args[0].includes("overpass-api.de")) {
                             overpassRequestsLimiter = 0
                             window.log.value += "better-osm-org: wait after second request...\\n"
-                            await sleep(1000)
+                            await sleep(2000)
                         }
                         res = await originalFetch(...args)
                         if (res.ok) {
