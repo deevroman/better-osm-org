@@ -4956,6 +4956,7 @@ const configOptions = {
                 th.style.textAlign = "center"
                 th.style.cursor = "pointer"
                 th.style.width = "100%"
+                th.style.borderRadius = "5px"
                 tr.appendChild(th)
                 th.onclick = () => {
                     list.lastElementChild.before(makeMenuItem({ label: "ℹ️", title: "", text: "" }))
@@ -5674,6 +5675,10 @@ const configOptions = {
             wrapper.appendChild(exportBtn)
             wrapper.appendChild(importBtn)
             doc.querySelector("#Config_buttons_holder").prepend(wrapper)
+
+            if (GM_config.frame.getAttribute("anchor")) {
+                GM_config.frame.contentWindow.location.hash = GM_config.frame.getAttribute("anchor")
+            }
         },
     },
 }
@@ -29355,6 +29360,7 @@ function setupMessagesTemplates() {
     bSettings.onclick = e => {
         e.preventDefault()
         GM_config.open()
+        GM_config.frame.setAttribute("anchor", "#Config_MessagesTemplates_var")
     }
     liSettings.appendChild(bSettings)
 }

@@ -67,6 +67,7 @@ function setupMessagesTemplates() {
     bSettings.onclick = e => {
         e.preventDefault()
         GM_config.open()
+        GM_config.frame.setAttribute("anchor", "#Config_MessagesTemplates_var")
     }
     liSettings.appendChild(bSettings)
 }
