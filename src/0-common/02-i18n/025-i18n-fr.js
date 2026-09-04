@@ -60,7 +60,8 @@ _translations["fr"] = {
         oneClickDeletor: "Supprimer le nœud sans confirmation",
         changesetsTemplates:
             'Modèles de commentaires de changeset <a id="last-comments-link" target="_blank">(vos derniers commentaires)</a>',
-        messagesTemplates: "Modèles de messages directs :",
+        messagesTemplates:
+            "Modèles de messages directs (<a target='_blank' href='https://github.com/osmbe/osm-welcome-tool/tree/2.x/templates/messages'>exemples de welcome.osm.be</a>) :",
         titlePlaceholder: "Titre du message direct",
         textPlaceholder: "Texte du message direct.\nLe remplacement du nom du destinataire avec {{ mapper.displayName }} est pris en charge",
         hdycInProfile: "Ajouter HDYC au profil utilisateur",

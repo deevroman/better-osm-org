@@ -59,7 +59,8 @@ _translations["hr"] = {
         deletor: "Gumb za brisanje točke",
         oneClickDeletor: "Briši točke bez potvrde",
         changesetsTemplates: 'Predlošci komentara changeseta <a id="last-comments-link" target="_blank">(vaši zadnji komentari)</a>',
-        messagesTemplates: "Predlošci izravnih poruka:",
+        messagesTemplates:
+            "Predlošci izravnih poruka (<a target='_blank' href='https://github.com/osmbe/osm-welcome-tool/tree/2.x/templates/messages'>primjeri iz welcome.osm.be</a>):",
         titlePlaceholder: "Naslov izravne poruke",
         textPlaceholder: "Tekst izravne poruke.\nPodržana je zamjena imena primatelja pomoću {{ mapper.displayName }}",
         hdycInProfile: "Dodaj HDYC u korisnički profil",

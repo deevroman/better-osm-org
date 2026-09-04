@@ -59,7 +59,8 @@ _translations["uk"] = {
         deletor: "Кнопка видалення точки",
         oneClickDeletor: "Видаляти точки без підтвердження",
         changesetsTemplates: 'Шаблони коментарів до наборів змін <a id="last-comments-link" target="_blank">(ваші останні коментарі)</a>',
-        messagesTemplates: "Шаблони особистих повідомлень:",
+        messagesTemplates:
+            "Шаблони особистих повідомлень (<a target='_blank' href='https://github.com/osmbe/osm-welcome-tool/tree/2.x/templates/messages'>приклади з welcome.osm.be</a>):",
         titlePlaceholder: "Заголовок особистого повідомлення",
         textPlaceholder: "Текст особистого повідомлення.\nПідтримується підстановка імені адресата за допомогою {{ mapper.displayName }}",
         hdycInProfile: "Додати HDYC до профілю користувача",

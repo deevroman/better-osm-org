@@ -59,7 +59,8 @@ _translations["en"] = {
         deletor: "Button for node deletion",
         oneClickDeletor: "Delete node without confirmation",
         changesetsTemplates: 'Changesets comments templates <a id="last-comments-link" target="_blank">(your last comments)</a>',
-        messagesTemplates: "Direct messages templates:",
+        messagesTemplates:
+            "Direct messages templates (<a target='_blank' href='https://github.com/osmbe/osm-welcome-tool/tree/2.x/templates/messages'>examples from welcome.osm.be</a>):",
         titlePlaceholder: "Direct message title",
         textPlaceholder: "Direct message text.\nRecipient name substitution using {{ mapper.displayName }} is supported",
         hdycInProfile: "Add HDYC to user profile",
