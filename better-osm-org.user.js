@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.7.2
+// @version         1.7.3
 // @changelog       v1.7.2: Direct messages templates, retries for osm-revert, ctrl + S to save active object
 // @changelog       v1.7.2: Validate building:min_level, highlight suspect words in source=*, and imagery_used=
 // @changelog       v1.7.0: Calculating the area for multipolygons and boundaries, customizable overpass api server
@@ -35990,9 +35990,15 @@ function addLevel0Reborn() {
     l0reborn.textContent += "Reborn β"
     l0reborn.setAttribute("href", "")
     l0reborn.onclick = function () {
-        Array.from(document.querySelectorAll(".modal.is-active .modal-card-head .delete")).at(-1).click()
+        let query = JSON.parse(localStorage.getItem("overpass-ide_code"))["overpass"]
 
-        const query = JSON.parse(localStorage.getItem("overpass-ide_code"))["overpass"]
+        if (query.includes("{{bbox}}")) {
+            document.querySelector("#export-map-state").click()
+            const bbox = Array.from(document.querySelectorAll(".modal.is-active .modal-card-body p:has(small)")).at(-1).firstChild.data
+            query = query.replaceAll("{{bbox}}", bbox.replaceAll(" ", ""))
+        }
+
+        Array.from(document.querySelectorAll(".modal.is-active .modal-card-head .delete")).at(-1).click()
         l0reborn.setAttribute("href", makeLevel0Url(query))
     }
 
@@ -36010,6 +36016,9 @@ function addLevel0Reborn() {
         let query = JSON.parse(localStorage.getItem("overpass-ide_code"))["overpass"]
         if (!query.includes("[bbox:")) {
             query = `[bbox:${bbox.replaceAll(" ", "")}]` + query
+        }
+        if (query.includes("{{bbox}}")) {
+            query = query.replaceAll("{{bbox}}", bbox.replaceAll(" ", ""))
         }
         l0rebornBbox.setAttribute("href", makeLevel0Url(query))
     }
