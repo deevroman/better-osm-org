@@ -10,6 +10,8 @@ function setupMessagesTemplates() {
     }
     const buttonsWrapper = document.querySelector(".richtext_container ul")
 
+    const parsedTemplates = JSON.parse(templates)
+
     const li = document.createElement("li")
     li.classList.add("nav-item")
     buttonsWrapper.appendChild(li)
@@ -17,9 +19,11 @@ function setupMessagesTemplates() {
     b.classList.add("comment-template", "nav-link")
     b.setAttribute("disabled", "true")
     b.textContent = t("messages.templatesHeader")
-    li.appendChild(b)
+    if (parsedTemplates.length) {
+        li.appendChild(b)
+    }
 
-    JSON.parse(templates).forEach(row => {
+    parsedTemplates.forEach(row => {
         const title = row["title"]
         const label = row["label"]
         let text = label
