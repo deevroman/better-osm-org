@@ -5530,7 +5530,6 @@ const configOptions = {
                 min-height: 21px;
             }
             #Config [placeholder]:empty::before {
-                white-space: pre;
                 content: attr(placeholder);
                 color: #555;
             }
