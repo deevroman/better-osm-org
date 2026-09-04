@@ -1230,7 +1230,7 @@ let sidebarObserver = null
 
 // prettier-ignore
 const suspectWordsInSource = [
-    "google", "goo.gl", "гугл",
+    "google", "goo.gl", "гугл", "구글",
     "nokia", "waze",
     "apple", "tomtom",
     "wikimapia", "викимапия",
@@ -1244,6 +1244,8 @@ const excludeWords = [
     "yandex panorama", "яндекс панорам", "яндекс.панорам",
     "yandexpanorama", "яндекспанорам"
 ]
+
+const suspectImageryUsed = ["localhost", "127.0.0.1", "google", "구글", "yandex", "2gis"]
 
 function setupCompactChangesetsHistory() {
     if (!location.pathname.includes("/history") && !location.pathname.startsWith("/changeset")) {
@@ -1482,7 +1484,7 @@ function setupCompactChangesetsHistory() {
                     if (!source) {
                         return false
                     }
-                    for (const i of ["localhost", "127.0.0.1", "yandex", "google", "2gis"]) {
+                    for (const i of suspectImageryUsed) {
                         if (source.toLowerCase().includes(i)) {
                             return i
                         }
