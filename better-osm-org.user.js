@@ -4490,6 +4490,11 @@ function makeMenuItem(row) {
     title.classList.add("item-title")
     title.setAttribute("placeholder", t("config.titlePlaceholder"))
     title.setAttribute("contenteditable", "true")
+    title.addEventListener("input", () => {
+        if (title.textContent === "") {
+            title.innerHTML = ""
+        }
+    })
     header.appendChild(title)
 
     const remove = document.createElement("span")
@@ -4518,6 +4523,11 @@ function makeMenuItem(row) {
     text.classList.add("item-text")
     text.setAttribute("placeholder", t("config.textPlaceholder"))
     text.setAttribute("contenteditable", "true")
+    text.addEventListener("input", () => {
+        if (text.textContent === "") {
+            text.innerHTML = ""
+        }
+    })
     item.appendChild(text)
 
     item.appendChild(document.createElement("p"))
@@ -5520,12 +5530,9 @@ const configOptions = {
                 min-height: 21px;
             }
             #Config [placeholder]:empty::before {
+                white-space: pre;
                 content: attr(placeholder);
                 color: #555;
-            }
-
-            #Config [placeholder]:empty:focus::before {
-                content: "";
             }
 
             #Config .filler {
