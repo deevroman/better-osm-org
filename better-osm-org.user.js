@@ -2,7 +2,8 @@
 // @name            Better osm.org
 // @name:ru         Better osm.org
 // @version         1.7.2
-// @changelog       v1.7.2: Retries for osm-revert, direct messages templates, ctrl + S to save active object
+// @changelog       v1.7.2: Direct messages templates, retries for osm-revert, ctrl + S to save active object
+// @changelog       v1.7.2: Validate building:min_level, highlight suspect words in source=*, and imagery_used=
 // @changelog       v1.7.0: Calculating the area for multipolygons and boundaries, customizable overpass api server
 // @changelog       v1.6.9: Tags editor, ctrl + S to save Overpass results, suggest Osmcha tags after dislike
 // @changelog       v1.6.6: Under experimental flag: clickable POIs, full history for relations, level0 reborn links
@@ -32763,9 +32764,50 @@ function nextVectorLayer() {
     location.hash = hashParams.toString()
 }
 
+function openJsonLayerInLevel0(jsonLayer, withGeom) {
+    const nodes = Object.values(jsonLayer._layers)
+        .map(i => i.feature.id)
+        .filter(i => i.startsWith("node"))
+        .map(i => parseInt(i.match(/node\/([0-9]+)/)[1]))
+    const ways = Object.values(jsonLayer._layers)
+        .map(i => i.feature.id)
+        .filter(i => i.startsWith("way"))
+        .map(i => parseInt(i.match(/way\/([0-9]+)/)[1]))
+    const relations = Object.values(jsonLayer._layers)
+        .map(i => i.feature.id)
+        .filter(i => i.startsWith("relation"))
+        .map(i => parseInt(i.match(/relation\/([0-9]+)/)[1]))
+    openNewTab(
+        level0Instance +
+            "/?" +
+            new URLSearchParams({
+                url: [
+                    Array.from(nodes)
+                        .map(i => "n" + i)
+                        .join(","),
+                    Array.from(ways)
+                        .map(i => "w" + i + (withGeom ? "!" : ""))
+                        .join(","),
+                    Array.from(relations)
+                        .map(i => "r" + i)
+                        .join(","),
+                ]
+                    .join(",")
+                    .replace(/,,/, ",")
+                    .replace(/,$/, "")
+                    .replace(/^,/, ""),
+            }).toString(),
+    )
+}
+
 async function openObjectInJosmOrLevel0(e) {
     const m = location.pathname.match(/\/(node|way|relation)\/([0-9]+)/)
-    if (!m) return
+    if (!m) {
+        if (jsonLayer) {
+            openJsonLayerInLevel0(jsonLayer, e.shiftKey)
+        }
+        return
+    }
     const [, type, id] = m
     const shortType = type === "node" ? "n" : type === "way" ? "w" : "r"
     if (e.altKey) {
@@ -32773,7 +32815,7 @@ async function openObjectInJosmOrLevel0(e) {
             alert(t("actions.level0WorksOnlyOnOsmOrg"))
             return
         }
-        window.open(
+        openNewTab(
             level0Instance +
                 "/?" +
                 new URLSearchParams({
@@ -32784,7 +32826,7 @@ async function openObjectInJosmOrLevel0(e) {
         if (!(await validateOsmServerInJOSM())) {
             return
         }
-        window.open(
+        openNewTab(
             "http://localhost:8111/load_object?" +
                 new URLSearchParams({
                     objects: [shortType + id],
