@@ -59,7 +59,8 @@ _translations["tr"] = {
         deletor: "Düğüm silme düğmesi",
         oneClickDeletor: "Düğümü onaysız sil",
         changesetsTemplates: 'Değişiklik seti yorum şablonları <a id="last-comments-link" target="_blank">(son yorumlarınız)</a>',
-        messagesTemplates: "Doğrudan mesaj şablonları:",
+        messagesTemplates:
+            "Doğrudan mesaj şablonları (<a target='_blank' href='https://github.com/osmbe/osm-welcome-tool/tree/2.x/templates/messages'>welcome.osm.be örnekleri</a>):",
         titlePlaceholder: "Doğrudan mesaj başlığı",
         textPlaceholder: "Doğrudan mesaj metni.\n{{ mapper.displayName }} kullanılarak alıcı adı yerleştirmesi desteklenir",
         hdycInProfile: "Kullanıcı profiline HDYC ekle",

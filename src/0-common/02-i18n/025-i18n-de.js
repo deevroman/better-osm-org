@@ -59,7 +59,8 @@ _translations["de"] = {
         deletor: "Schaltfläche zum Löschen von Knoten",
         oneClickDeletor: "Knoten ohne Bestätigung löschen",
         changesetsTemplates: 'Vorlagen für Changeset-Kommentare <a id="last-comments-link" target="_blank">(deine letzten Kommentare)</a>',
-        messagesTemplates: "Vorlagen für Direktnachrichten:",
+        messagesTemplates:
+            "Vorlagen für Direktnachrichten (<a target='_blank' href='https://github.com/osmbe/osm-welcome-tool/tree/2.x/templates/messages'>Beispiele von welcome.osm.be</a>):",
         titlePlaceholder: "Titel der Direktnachricht",
         textPlaceholder:
             "Text der Direktnachricht.\nDie Platzhalterersetzung für den Empfängernamen mit {{ mapper.displayName }} wird unterstützt",

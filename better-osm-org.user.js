@@ -284,7 +284,8 @@ _translations["en"] = {
         deletor: "Button for node deletion",
         oneClickDeletor: "Delete node without confirmation",
         changesetsTemplates: 'Changesets comments templates <a id="last-comments-link" target="_blank">(your last comments)</a>',
-        messagesTemplates: "Direct messages templates:",
+        messagesTemplates:
+            "Direct messages templates (<a target='_blank' href='https://github.com/osmbe/osm-welcome-tool/tree/2.x/templates/messages'>examples from welcome.osm.be</a>):",
         titlePlaceholder: "Direct message title",
         textPlaceholder: "Direct message text.\nRecipient name substitution using {{ mapper.displayName }} is supported",
         hdycInProfile: "Add HDYC to user profile",
@@ -745,7 +746,8 @@ _translations["tr"] = {
         deletor: "Düğüm silme düğmesi",
         oneClickDeletor: "Düğümü onaysız sil",
         changesetsTemplates: 'Değişiklik seti yorum şablonları <a id="last-comments-link" target="_blank">(son yorumlarınız)</a>',
-        messagesTemplates: "Doğrudan mesaj şablonları:",
+        messagesTemplates:
+            "Doğrudan mesaj şablonları (<a target='_blank' href='https://github.com/osmbe/osm-welcome-tool/tree/2.x/templates/messages'>welcome.osm.be örnekleri</a>):",
         titlePlaceholder: "Doğrudan mesaj başlığı",
         textPlaceholder: "Doğrudan mesaj metni.\n{{ mapper.displayName }} kullanılarak alıcı adı yerleştirmesi desteklenir",
         hdycInProfile: "Kullanıcı profiline HDYC ekle",
@@ -1690,7 +1692,8 @@ _translations["de"] = {
         deletor: "Schaltfläche zum Löschen von Knoten",
         oneClickDeletor: "Knoten ohne Bestätigung löschen",
         changesetsTemplates: 'Vorlagen für Changeset-Kommentare <a id="last-comments-link" target="_blank">(deine letzten Kommentare)</a>',
-        messagesTemplates: "Vorlagen für Direktnachrichten:",
+        messagesTemplates:
+            "Vorlagen für Direktnachrichten (<a target='_blank' href='https://github.com/osmbe/osm-welcome-tool/tree/2.x/templates/messages'>Beispiele von welcome.osm.be</a>):",
         titlePlaceholder: "Titel der Direktnachricht",
         textPlaceholder:
             "Text der Direktnachricht.\nDie Platzhalterersetzung für den Empfängernamen mit {{ mapper.displayName }} wird unterstützt",
@@ -2158,7 +2161,8 @@ _translations["fr"] = {
         oneClickDeletor: "Supprimer le nœud sans confirmation",
         changesetsTemplates:
             'Modèles de commentaires de changeset <a id="last-comments-link" target="_blank">(vos derniers commentaires)</a>',
-        messagesTemplates: "Modèles de messages directs :",
+        messagesTemplates:
+            "Modèles de messages directs (<a target='_blank' href='https://github.com/osmbe/osm-welcome-tool/tree/2.x/templates/messages'>exemples de welcome.osm.be</a>) :",
         titlePlaceholder: "Titre du message direct",
         textPlaceholder: "Texte du message direct.\nLe remplacement du nom du destinataire avec {{ mapper.displayName }} est pris en charge",
         hdycInProfile: "Ajouter HDYC au profil utilisateur",
@@ -2625,7 +2629,8 @@ _translations["hr"] = {
         deletor: "Gumb za brisanje točke",
         oneClickDeletor: "Briši točke bez potvrde",
         changesetsTemplates: 'Predlošci komentara changeseta <a id="last-comments-link" target="_blank">(vaši zadnji komentari)</a>',
-        messagesTemplates: "Predlošci izravnih poruka:",
+        messagesTemplates:
+            "Predlošci izravnih poruka (<a target='_blank' href='https://github.com/osmbe/osm-welcome-tool/tree/2.x/templates/messages'>primjeri iz welcome.osm.be</a>):",
         titlePlaceholder: "Naslov izravne poruke",
         textPlaceholder: "Tekst izravne poruke.\nPodržana je zamjena imena primatelja pomoću {{ mapper.displayName }}",
         hdycInProfile: "Dodaj HDYC u korisnički profil",
@@ -3088,7 +3093,8 @@ _translations["uk"] = {
         deletor: "Кнопка видалення точки",
         oneClickDeletor: "Видаляти точки без підтвердження",
         changesetsTemplates: 'Шаблони коментарів до наборів змін <a id="last-comments-link" target="_blank">(ваші останні коментарі)</a>',
-        messagesTemplates: "Шаблони особистих повідомлень:",
+        messagesTemplates:
+            "Шаблони особистих повідомлень (<a target='_blank' href='https://github.com/osmbe/osm-welcome-tool/tree/2.x/templates/messages'>приклади з welcome.osm.be</a>):",
         titlePlaceholder: "Заголовок особистого повідомлення",
         textPlaceholder: "Текст особистого повідомлення.\nПідтримується підстановка імені адресата за допомогою {{ mapper.displayName }}",
         hdycInProfile: "Додати HDYC до профілю користувача",
