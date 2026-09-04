@@ -29313,6 +29313,7 @@ function setupMessagesTemplates() {
     li.appendChild(b)
 
     JSON.parse(templates).forEach(row => {
+        const title = row["title"]
         const label = row["label"]
         let text = label
         if (row["text"] !== "") {
@@ -29334,19 +29335,24 @@ function setupMessagesTemplates() {
         b.onclick = e => {
             e.preventDefault()
             e.stopImmediatePropagation()
-            const textarea = document.querySelector("textarea#message_body")
-            const prev = textarea.value
-            const cursor = textarea.selectionEnd
-            textarea.value = prev.substring(0, cursor) + text + prev.substring(cursor)
 
-            const ev = new InputEvent("input", {
-                bubbles: true,
-                cancelable: false,
-                data: textarea.value,
-                inputType: "insertFromPaste",
-            })
-            textarea.dispatchEvent(ev)
-            textarea.setSelectionRange(cursor + text.length, cursor + text.length)
+            function insertText(textarea, text) {
+                const prev = textarea.value
+                const cursor = textarea.selectionEnd
+                textarea.value = prev.substring(0, cursor) + text + prev.substring(cursor)
+
+                const ev = new InputEvent("input", {
+                    bubbles: true,
+                    cancelable: false,
+                    data: textarea.value,
+                    inputType: "insertFromPaste",
+                })
+                textarea.dispatchEvent(ev)
+                textarea.setSelectionRange(cursor + text.length, cursor + text.length)
+            }
+
+            insertText(document.querySelector("input#message_title"), title)
+            insertText(document.querySelector("textarea#message_body"), text)
         }
     })
 
