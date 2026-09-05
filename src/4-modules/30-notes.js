@@ -574,10 +574,15 @@ function insertNoteResolveButtons() {
         return
     }
     const note_id = location.pathname.match(/note\/(\d+)/)[1]
+
+    const buttonsWrapper = document.createElement("span")
+    buttonsWrapper.style.display = "flex"
+    buttonsWrapper.style.flexWrap = "wrap"
+    buttonsWrapper.style.gap = "4px"
+    buttonsWrapper.style.rowGap = "4px"
+    document.querySelectorAll("form.mb-3")[0].before(buttonsWrapper)
+
     JSON.parse(resolveButtonsText).forEach((row, index) => {
-        if (index !== 0) {
-            document.querySelectorAll("form.mb-3")[0].before(document.createTextNode("\xA0"))
-        }
         const label = row["label"]
         let text = label
         if (row["text"] !== "") {
@@ -587,7 +592,7 @@ function insertNoteResolveButtons() {
         b.classList.add("resolve-note-done", "btn", "btn-primary")
         b.textContent = label
         b.title = t("notes.resolveButtonTitle", { text })
-        document.querySelectorAll("form.mb-3")[0].before(b)
+        buttonsWrapper.appendChild(b)
         b.onclick = async e => {
             if (!GM_config.get("AutoResolveNote") || e.altKey) {
                 const textarea = document.querySelector("form.mb-3 textarea")
