@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.7.2
+// @version         1.7.3
 // @changelog       v1.7.2: Direct messages templates, retries for osm-revert, ctrl + S to save active object
 // @changelog       v1.7.2: Validate building:min_level, highlight suspect words in source=*, and imagery_used=
 // @changelog       v1.7.0: Calculating the area for multipolygons and boundaries, customizable overpass api server
@@ -9975,7 +9975,7 @@ let sidebarObserver = null
 
 // prettier-ignore
 const suspectWordsInSource = [
-    "google", "goo.gl", "гугл",
+    "google", "goo.gl", "гугл", "구글",
     "nokia", "waze",
     "apple", "tomtom",
     "wikimapia", "викимапия",
@@ -9989,6 +9989,8 @@ const excludeWords = [
     "yandex panorama", "яндекс панорам", "яндекс.панорам",
     "yandexpanorama", "яндекспанорам"
 ]
+
+const suspectImageryUsed = ["localhost", "127.0.0.1", "google", "구글", "yandex", "2gis"]
 
 function setupCompactChangesetsHistory() {
     if (!location.pathname.includes("/history") && !location.pathname.startsWith("/changeset")) {
@@ -10227,7 +10229,7 @@ function setupCompactChangesetsHistory() {
                     if (!source) {
                         return false
                     }
-                    for (const i of ["localhost", "127.0.0.1", "yandex", "google", "2gis"]) {
+                    for (const i of suspectImageryUsed) {
                         if (source.toLowerCase().includes(i)) {
                             return i
                         }
@@ -11653,10 +11655,15 @@ function insertNoteResolveButtons() {
         return
     }
     const note_id = location.pathname.match(/note\/(\d+)/)[1]
+
+    const buttonsWrapper = document.createElement("span")
+    buttonsWrapper.style.display = "flex"
+    buttonsWrapper.style.flexWrap = "wrap"
+    buttonsWrapper.style.gap = "4px"
+    buttonsWrapper.style.rowGap = "4px"
+    document.querySelectorAll("form.mb-3")[0].before(buttonsWrapper)
+
     JSON.parse(resolveButtonsText).forEach((row, index) => {
-        if (index !== 0) {
-            document.querySelectorAll("form.mb-3")[0].before(document.createTextNode("\xA0"))
-        }
         const label = row["label"]
         let text = label
         if (row["text"] !== "") {
@@ -11666,7 +11673,7 @@ function insertNoteResolveButtons() {
         b.classList.add("resolve-note-done", "btn", "btn-primary")
         b.textContent = label
         b.title = t("notes.resolveButtonTitle", { text })
-        document.querySelectorAll("form.mb-3")[0].before(b)
+        buttonsWrapper.appendChild(b)
         b.onclick = async e => {
             if (!GM_config.get("AutoResolveNote") || e.altKey) {
                 const textarea = document.querySelector("form.mb-3 textarea")
@@ -35990,9 +35997,15 @@ function addLevel0Reborn() {
     l0reborn.textContent += "Reborn β"
     l0reborn.setAttribute("href", "")
     l0reborn.onclick = function () {
-        Array.from(document.querySelectorAll(".modal.is-active .modal-card-head .delete")).at(-1).click()
+        let query = JSON.parse(localStorage.getItem("overpass-ide_code"))["overpass"]
 
-        const query = JSON.parse(localStorage.getItem("overpass-ide_code"))["overpass"]
+        if (query.includes("{{bbox}}")) {
+            document.querySelector("#export-map-state").click()
+            const bbox = Array.from(document.querySelectorAll(".modal.is-active .modal-card-body p:has(small)")).at(-1).firstChild.data
+            query = query.replaceAll("{{bbox}}", bbox.replaceAll(" ", ""))
+        }
+
+        Array.from(document.querySelectorAll(".modal.is-active .modal-card-head .delete")).at(-1).click()
         l0reborn.setAttribute("href", makeLevel0Url(query))
     }
 
@@ -36010,6 +36023,9 @@ function addLevel0Reborn() {
         let query = JSON.parse(localStorage.getItem("overpass-ide_code"))["overpass"]
         if (!query.includes("[bbox:")) {
             query = `[bbox:${bbox.replaceAll(" ", "")}]` + query
+        }
+        if (query.includes("{{bbox}}")) {
+            query = query.replaceAll("{{bbox}}", bbox.replaceAll(" ", ""))
         }
         l0rebornBbox.setAttribute("href", makeLevel0Url(query))
     }
