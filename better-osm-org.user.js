@@ -29409,7 +29409,7 @@ function setupMessagesTemplates() {
 
 //<editor-fold desc="routers" defaultstate="collapsed">
 
-window.addEventListener("message", async e => {
+async function routersRequestsMessagesHandler(e) {
     if (e.origin !== location.origin) return
     if (e.data.type !== "add_router_data_date") return
     if (!GM_config.get("RoutersTimestamps")) return
@@ -29488,7 +29488,11 @@ window.addEventListener("message", async e => {
     } else {
         document.querySelectorAll(".routing-timestamp").forEach(i => i.remove())
     }
-})
+}
+
+if ([prod_server.origin, dev_server.origin, local_server.origin].includes(location.origin)) {
+    window.addEventListener("message", routersRequestsMessagesHandler)
+}
 
 //</editor-fold>
 
