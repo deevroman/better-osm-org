@@ -34091,6 +34091,11 @@ function actionOpenInJosmOrLevel0(e) {
 }
 
 function actionOpenInVespucci() {
+    const match = location.pathname.match(/(node|way|relation)\/(\d+)(\/?$|\/history\/?$)/)
+    if (match) {
+        openNewTab(`josm:/load_object?objects=${match[1][0]}${match[2]}`)
+        return
+    }
     if (jsonLayer) {
         const { nodes, ways, relations } = splitJsonLayerByOsmType(jsonLayer)
         openNewTab(
@@ -34103,12 +34108,7 @@ function actionOpenInVespucci() {
         )
         return
     }
-    const match = location.pathname.match(/(node|way|relation)\/(\d+)(\/?$|\/history\/?$)/)
-    if (!match) {
-        console.warn("nothing to open")
-        return
-    }
-    openNewTab(`josm:/load_object?objects=${match[1][0]}${match[2]}`)
+    console.warn("nothing to open")
 }
 
 function actionOpenOwnHistoryPage() {
