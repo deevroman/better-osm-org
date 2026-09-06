@@ -11341,9 +11341,7 @@ const noteHashtags = [
     "#softremindme",
 ]
 
-function addAutoComplete() {
-    const container = document.querySelector("#sidebar")
-    const ta = document.querySelector("form.mb-3 .form-control")
+function addAutoComplete(ta, container) {
     let anchorPos = null // { left, top }
     let anchorStart = null
 
@@ -11475,6 +11473,18 @@ function addAutoComplete() {
             box.style.display = "none"
         }
     })
+}
+
+function addAutoCompleteOnOsmOrg() {
+    addAutoComplete(document.querySelector("form.mb-3 .form-control"), document.querySelector("#sidebar"))
+}
+
+function addAutoCompleteOnIdEditor() {
+    try {
+        addAutoComplete(document.querySelector(".note-save.save-section textarea.new-comment-input"), document.querySelector(".sidebar"))
+    } catch (e) {
+        console.error(e)
+    }
 }
 
 function tryReloadSidebar() {
@@ -11765,7 +11775,7 @@ function addResolveNotesButton() {
         return
     }
     insertNoteResolveButtons()
-    addAutoComplete()
+    addAutoCompleteOnOsmOrg()
     initKostylForSidebarStateChange(() => {
         setTimeout(setupResolveNotesButton)
         setTimeout(setupSatelliteLayers)
@@ -35388,6 +35398,7 @@ function addResolveNotesButtonInId() {
     if (document.querySelector(".notes-buttons-wrapper")) {
         return true
     }
+    addAutoCompleteOnIdEditor()
     if (document.querySelector(".note-header-icon.closed")) {
         return true
     }

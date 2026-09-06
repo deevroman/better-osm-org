@@ -108,6 +108,7 @@ function addResolveNotesButtonInId() {
     if (document.querySelector(".notes-buttons-wrapper")) {
         return true
     }
+    addAutoCompleteOnIdEditor()
     if (document.querySelector(".note-header-icon.closed")) {
         return true
     }
