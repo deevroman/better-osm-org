@@ -15,6 +15,7 @@ import {
     applyViewportSize,
     createFirefoxBuilder,
     createFirefoxOptions,
+    grantFirefoxExtensionPermissions,
     resolveFirefoxBinary,
 } from "./lib/firefox-runner.mjs"
 
@@ -57,6 +58,11 @@ function printHelp() {
     console.log(
         `
 Firefox userscript manager E2E runner
+
+The test Firefox profile enables extensions.webextensions.userScripts.enabled
+and grants the installed manager extension the userScripts permission.
+geckodriver must be started with --allow-system-access; the Docker image
+injects it through a geckodriver wrapper, not WebDriver capabilities.
 
 Required env:
   E2E_SCRIPT_MANAGER_XPI=/absolute/path/to/manager.xpi
@@ -146,9 +152,16 @@ async function run() {
         driver = await builder.build()
 
         log(`Installing ${scriptManagerName} addon`)
-        await driver.installAddon(scriptManagerXpi, true)
+        const scriptManagerAddonId = await driver.installAddon(scriptManagerXpi, true)
         await safeFlushConsoleCapture(driver, "after-addon-install", log)
         await maybePause("install-addon")
+
+        await grantFirefoxExtensionPermissions(driver, scriptManagerAddonId, {
+            permissions: ["userScripts"],
+            logFn: log,
+        })
+        await safeFlushConsoleCapture(driver, "after-grant-userscripts-permission", log)
+        await maybePause("grant-userscripts-permission")
 
         log(`Opening userscript URL: ${userscriptUrl}`)
         await driver.get(userscriptUrl)
