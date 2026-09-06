@@ -23267,7 +23267,12 @@ async function processQuickLookInSidebar(changesetID) {
 
         // reorder non-interesting-objects
         // todo potential crash
-        const objectsList = document.querySelector(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li`).parentElement
+        const tmp = document.querySelector(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li`)
+        if (!tmp) {
+            console.log(changesetID, location.pathname)
+            // debugger
+        }
+        const objectsList = tmp.parentElement
         Array.from(
             document.querySelectorAll(
                 `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li.tags-uninterested-modified.location-modified`,
@@ -24203,9 +24208,14 @@ async function addChangesetQuickLook() {
     if (isOGFServer() && !document.querySelector("turbo-frame")) {
         ogfFixes(changesetID)
     }
-    document
-        .querySelectorAll("turbo-frame:is(#changeset_nodes,#changeset_ways,#changeset_relations)")
-        .forEach(i => i.setAttribute("changeset-id", changesetID))
+
+    const frames = document.querySelectorAll("turbo-frame:is(#changeset_nodes,#changeset_ways,#changeset_relations)")
+    console.log("RACE", frames[0].getAttribute("changeset-id"), changesetID)
+    if (frames[0].hasAttribute("changeset-id") && frames[0].getAttribute("changeset-id") !== changesetID) {
+        // debugger
+    }
+
+    frames.forEach(i => i.setAttribute("changeset-id", changesetID))
 
     const params = new URLSearchParams(location.search)
     let changesetIDs = []
@@ -32795,7 +32805,11 @@ function nextVectorLayer() {
     location.hash = hashParams.toString()
 }
 
-function openJsonLayerInLevel0(jsonLayer, withGeom) {
+/**
+ * @param jsonLayer
+ * @return {{nodes: number[], ways: number[], relations: number[]}}
+ */
+function splitJsonLayerByOsmType(jsonLayer) {
     const nodes = Object.values(jsonLayer._layers)
         .map(i => i.feature.id)
         .filter(i => i.startsWith("node"))
@@ -32808,20 +32822,19 @@ function openJsonLayerInLevel0(jsonLayer, withGeom) {
         .map(i => i.feature.id)
         .filter(i => i.startsWith("relation"))
         .map(i => parseInt(i.match(/relation\/([0-9]+)/)[1]))
+    return { nodes, ways, relations }
+}
+
+function openJsonLayerInLevel0(jsonLayer, withGeom) {
+    const { nodes, ways, relations } = splitJsonLayerByOsmType(jsonLayer)
     openNewTab(
         level0Instance +
             "/?" +
             new URLSearchParams({
                 url: [
-                    Array.from(nodes)
-                        .map(i => "n" + i)
-                        .join(","),
-                    Array.from(ways)
-                        .map(i => "w" + i + (withGeom ? "!" : ""))
-                        .join(","),
-                    Array.from(relations)
-                        .map(i => "r" + i)
-                        .join(","),
+                    nodes.map(i => "n" + i).join(","),
+                    ways.map(i => "w" + i + (withGeom ? "!" : "")).join(","),
+                    relations.map(i => "r" + i).join(","),
                 ]
                     .join(",")
                     .replace(/,,/, ",")
@@ -34077,6 +34090,27 @@ function actionOpenInJosmOrLevel0(e) {
     })
 }
 
+function actionOpenInVespucci() {
+    if (jsonLayer) {
+        const { nodes, ways, relations } = splitJsonLayerByOsmType(jsonLayer)
+        openNewTab(
+            "josm:/load_object?objects=" +
+                [nodes.map(i => "n" + i).join(","), ways.map(i => "w" + i).join(","), relations.map(i => "r" + i).join(",")]
+                    .join(",")
+                    .replace(/,,/, ",")
+                    .replace(/,$/, "")
+                    .replace(/^,/, ""),
+        )
+        return
+    }
+    const match = location.pathname.match(/(node|way|relation)\/(\d+)(\/?$|\/history\/?$)/)
+    if (!match) {
+        console.warn("nothing to open")
+        return
+    }
+    openNewTab(`josm:/load_object?objects=${match[1][0]}${match[2]}`)
+}
+
 function actionOpenOwnHistoryPage() {
     addCompactSidebarStyle()
     const targetURL = document.querySelector('.dropdown-item[href^="/user/"]').getAttribute("href") + "/history"
@@ -34772,6 +34806,12 @@ const hotkeyActions = {
         defaultBindings: ["Alt+Shift+KeyJ"],
         contexts: ["Changeset pages", "Object pages"],
         run: actionOpenInJosmOrLevel0,
+    },
+    openInVespucci: {
+        title: "Open active objects Vespucci",
+        defaultBindings: [],
+        contexts: ["Main pages", "Object pages"],
+        run: actionOpenInVespucci,
     },
     openOwnHistoryPage: {
         title: "Open your changesets history",

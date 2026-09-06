@@ -2868,7 +2868,12 @@ async function processQuickLookInSidebar(changesetID) {
 
         // reorder non-interesting-objects
         // todo potential crash
-        const objectsList = document.querySelector(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li`).parentElement
+        const tmp = document.querySelector(`[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li`)
+        if (!tmp) {
+            console.log(changesetID, location.pathname)
+            // debugger
+        }
+        const objectsList = tmp.parentElement
         Array.from(
             document.querySelectorAll(
                 `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li.tags-uninterested-modified.location-modified`,
@@ -3804,9 +3809,14 @@ async function addChangesetQuickLook() {
     if (isOGFServer() && !document.querySelector("turbo-frame")) {
         ogfFixes(changesetID)
     }
-    document
-        .querySelectorAll("turbo-frame:is(#changeset_nodes,#changeset_ways,#changeset_relations)")
-        .forEach(i => i.setAttribute("changeset-id", changesetID))
+
+    const frames = document.querySelectorAll("turbo-frame:is(#changeset_nodes,#changeset_ways,#changeset_relations)")
+    console.log("RACE", frames[0].getAttribute("changeset-id"), changesetID)
+    if (frames[0].hasAttribute("changeset-id") && frames[0].getAttribute("changeset-id") !== changesetID) {
+        // debugger
+    }
+
+    frames.forEach(i => i.setAttribute("changeset-id", changesetID))
 
     const params = new URLSearchParams(location.search)
     let changesetIDs = []
