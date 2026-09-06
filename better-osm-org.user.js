@@ -35388,6 +35388,9 @@ function addResolveNotesButtonInId() {
     if (document.querySelector(".notes-buttons-wrapper")) {
         return true
     }
+    if (document.querySelector(".note-header-icon.closed")) {
+        return true
+    }
 
     const buttonsWrapper = document.createElement("span")
     buttonsWrapper.classList.add("notes-buttons-wrapper")
