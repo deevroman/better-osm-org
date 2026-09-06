@@ -35435,7 +35435,7 @@ function addResolveNotesButtonInId() {
 }
 
 function setupResolveNotesButtonInId() {
-    tryApplyModule(addResolveNotesButtonInId, 2000, 10000)
+    tryApplyModule(addResolveNotesButtonInId, 1000, 10000)
 }
 
 /*
