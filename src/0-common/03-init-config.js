@@ -291,7 +291,7 @@ function makeMenuItem(row) {
     text.style.minHeight = "60px"
     text.style.borderBottomLeftRadius = "5px"
     text.style.borderBottomRightRadius = "5px"
-    text.textContent = row["text"]
+    text.innerText = row["text"]
     text.classList.add("item-text")
     text.setAttribute("placeholder", t("config.textPlaceholder"))
     text.setAttribute("contenteditable", "true")
