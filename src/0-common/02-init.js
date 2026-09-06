@@ -236,6 +236,10 @@ function isIdeditorInstance() {
     return location.origin === "https://ideditor.netlify.app" || location.origin === "https://ideditor-release.netlify.app"
 }
 
+function isOsmRevertServer() {
+    return location.origin === "https://revert.monicz.dev"
+}
+
 const storagePrefix = isOHMServer() ? "ohm-" : location.origin === dev_server.origin ? "dev-" : isOGFServer() ? "ogf-" : ""
 
 const accountForceLightTheme = document.querySelector("html")?.getAttribute("data-bs-theme") === "light" || isOGFServer()

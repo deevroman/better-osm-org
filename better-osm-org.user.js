@@ -3784,6 +3784,10 @@ function isIdeditorInstance() {
     return location.origin === "https://ideditor.netlify.app" || location.origin === "https://ideditor-release.netlify.app"
 }
 
+function isOsmRevertServer() {
+    return location.origin === "https://revert.monicz.dev"
+}
+
 const storagePrefix = isOHMServer() ? "ohm-" : location.origin === dev_server.origin ? "dev-" : isOGFServer() ? "ogf-" : ""
 
 const accountForceLightTheme = document.querySelector("html")?.getAttribute("data-bs-theme") === "light" || isOGFServer()
@@ -36211,7 +36215,7 @@ function setupOhmOsmcha() {
 
 //<editor-fold desc="osm-revert" defaultstate="collapsed">
 
-if (location.origin === "https://revert.monicz.dev") {
+function runInOsmRevertPageCode() {
     injectJSIntoPage(`
     const originalFetch = window.fetch;
     let overpassRequestsLimiter = 0 
@@ -36270,8 +36274,11 @@ if (location.origin === "https://revert.monicz.dev") {
         }
         return originalFetch(...args);
     }
-
     `)
+}
+
+if (isOsmRevertServer()) {
+    runInOsmRevertPageCode()
 }
 
 //</editor-fold>
@@ -36359,7 +36366,7 @@ function _main() {
     ) {
         setupOverpass()
     }
-    if (location.origin === "https://revert.monicz.dev") {
+    if (isOsmRevertServer()) {
         if (!GM_config.get("RetriesForOsmRevert")) {
             getWindow().disableRetriesForOsmRevert = true
         }
