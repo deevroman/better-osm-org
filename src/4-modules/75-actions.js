@@ -922,7 +922,11 @@ function nextVectorLayer() {
     location.hash = hashParams.toString()
 }
 
-function openJsonLayerInLevel0(jsonLayer, withGeom) {
+/**
+ * @param jsonLayer
+ * @return {{nodes: number[], ways: number[], relations: number[]}}
+ */
+function splitJsonLayerByOsmType(jsonLayer) {
     const nodes = Object.values(jsonLayer._layers)
         .map(i => i.feature.id)
         .filter(i => i.startsWith("node"))
@@ -935,20 +939,19 @@ function openJsonLayerInLevel0(jsonLayer, withGeom) {
         .map(i => i.feature.id)
         .filter(i => i.startsWith("relation"))
         .map(i => parseInt(i.match(/relation\/([0-9]+)/)[1]))
+    return { nodes, ways, relations }
+}
+
+function openJsonLayerInLevel0(jsonLayer, withGeom) {
+    const { nodes, ways, relations } = splitJsonLayerByOsmType(jsonLayer)
     openNewTab(
         level0Instance +
             "/?" +
             new URLSearchParams({
                 url: [
-                    Array.from(nodes)
-                        .map(i => "n" + i)
-                        .join(","),
-                    Array.from(ways)
-                        .map(i => "w" + i + (withGeom ? "!" : ""))
-                        .join(","),
-                    Array.from(relations)
-                        .map(i => "r" + i)
-                        .join(","),
+                    nodes.map(i => "n" + i).join(","),
+                    ways.map(i => "w" + i + (withGeom ? "!" : "")).join(","),
+                    relations.map(i => "r" + i).join(","),
                 ]
                     .join(",")
                     .replace(/,,/, ",")
@@ -2202,6 +2205,27 @@ function actionOpenInJosmOrLevel0(e) {
             await openObjectInJosmOrLevel0(e)
         }
     })
+}
+
+function actionOpenInVespucci() {
+    if (jsonLayer) {
+        const { nodes, ways, relations } = splitJsonLayerByOsmType(jsonLayer)
+        openNewTab(
+            "josm:/load_object?objects=" +
+                [nodes.map(i => "n" + i).join(","), ways.map(i => "w" + i).join(","), relations.map(i => "r" + i).join(",")]
+                    .join(",")
+                    .replace(/,,/, ",")
+                    .replace(/,$/, "")
+                    .replace(/^,/, ""),
+        )
+        return
+    }
+    const match = location.pathname.match(/(node|way|relation)\/(\d+)(\/?$|\/history\/?$)/)
+    if (!match) {
+        console.warn("nothing to open")
+        return
+    }
+    openNewTab(`josm:/load_object?objects=${match[1][0]}${match[2]}`)
 }
 
 function actionOpenOwnHistoryPage() {
