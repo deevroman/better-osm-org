@@ -34090,6 +34090,17 @@ function actionOpenInJosmOrLevel0(e) {
     })
 }
 
+function makeVespucciMultiUrl(nodes, ways, relations) {
+    return (
+        "josm:/load_object?objects=" +
+        [nodes.map(i => "n" + i).join(","), ways.map(i => "w" + i).join(","), relations.map(i => "r" + i).join(",")]
+            .join(",")
+            .replace(/,,/, ",")
+            .replace(/,$/, "")
+            .replace(/^,/, "")
+    )
+}
+
 function actionOpenInVespucci() {
     const match = location.pathname.match(/(node|way|relation)\/(\d+)(\/?$|\/history\/?$)/)
     if (match) {
@@ -34098,14 +34109,7 @@ function actionOpenInVespucci() {
     }
     if (jsonLayer) {
         const { nodes, ways, relations } = splitJsonLayerByOsmType(jsonLayer)
-        openNewTab(
-            "josm:/load_object?objects=" +
-                [nodes.map(i => "n" + i).join(","), ways.map(i => "w" + i).join(","), relations.map(i => "r" + i).join(",")]
-                    .join(",")
-                    .replace(/,,/, ",")
-                    .replace(/,$/, "")
-                    .replace(/^,/, ""),
-        )
+        openNewTab(makeVespucciMultiUrl(nodes, ways, relations))
         return
     }
     console.warn("nothing to open")
@@ -36190,6 +36194,36 @@ function addLevel0Reborn() {
     }
     l0reborn.after(l0rebornBbox)
     l0reborn.after(document.createTextNode("\xA0"))
+    /*
+    const vespucci = l0export.cloneNode(true)
+    vespucci.id = "export-editors-vespucci"
+    vespucci.textContent = "Vespucci"
+    vespucci.setAttribute("href", "")
+    vespucci.onclick = function () {
+        function extractIds() {
+            const text = document.querySelector("#dataviewer .CodeMirror-lines").textContent
+            try {
+                const json = JSON.parse(text)
+                return {
+                    nodes: json.elements.filter(i => i.type === "node").map(i => i.id),
+                    ways: json.elements.filter(i => i.type === "way").map(i => i.id),
+                    relations: json.elements.filter(i => i.type === "relation").map(i => i.id),
+                }
+            } catch (e) {
+                const xml = new DOMParser().parseFromString(text, "text/xml")
+                return {
+                    nodes: Array.from(xml.querySelectorAll("node")).map(i => i.getAttribute("id")),
+                    ways: Array.from(xml.querySelectorAll("way")).map(i => i.getAttribute("id")),
+                    relations: Array.from(xml.querySelectorAll("relation")).map(i => i.getAttribute("id")),
+                }
+            }
+        }
+        const { nodes, ways, relations } = extractIds()
+        vespucci.setAttribute("href", makeVespucciMultiUrl(nodes, ways, relations))
+    }
+    l0rebornBbox.after(vespucci)
+    l0rebornBbox.after(document.createTextNode("\xA0"))
+*/
 }
 
 function setupOverpass() {
