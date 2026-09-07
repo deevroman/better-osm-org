@@ -35481,9 +35481,13 @@ function addResolveNotesButtonInId() {
         buttonsWrapper.appendChild(b)
         b.onclick = async e => {
             const textarea = saveSection.querySelector("textarea.new-comment-input")
-            const prev = textarea.value
-            const cursor = textarea.selectionEnd
-            textarea.value = prev.substring(0, cursor) + text + prev.substring(cursor)
+            if (GM_config.get("AutoResolveNote")) {
+                textarea.value = text
+            } else {
+                const prev = textarea.value
+                const cursor = textarea.selectionEnd
+                textarea.value = prev.substring(0, cursor) + text + prev.substring(cursor)
+            }
 
             const ev = new InputEvent("input", {
                 bubbles: true,
