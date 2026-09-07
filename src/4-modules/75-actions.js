@@ -2207,6 +2207,17 @@ function actionOpenInJosmOrLevel0(e) {
     })
 }
 
+function makeVespucciMultiUrl(nodes, ways, relations) {
+    return (
+        "josm:/load_object?objects=" +
+        [nodes.map(i => "n" + i).join(","), ways.map(i => "w" + i).join(","), relations.map(i => "r" + i).join(",")]
+            .join(",")
+            .replace(/,,/, ",")
+            .replace(/,$/, "")
+            .replace(/^,/, "")
+    )
+}
+
 function actionOpenInVespucci() {
     const match = location.pathname.match(/(node|way|relation)\/(\d+)(\/?$|\/history\/?$)/)
     if (match) {
@@ -2215,14 +2226,7 @@ function actionOpenInVespucci() {
     }
     if (jsonLayer) {
         const { nodes, ways, relations } = splitJsonLayerByOsmType(jsonLayer)
-        openNewTab(
-            "josm:/load_object?objects=" +
-                [nodes.map(i => "n" + i).join(","), ways.map(i => "w" + i).join(","), relations.map(i => "r" + i).join(",")]
-                    .join(",")
-                    .replace(/,,/, ",")
-                    .replace(/,$/, "")
-                    .replace(/^,/, ""),
-        )
+        openNewTab(makeVespucciMultiUrl(nodes, ways, relations))
         return
     }
     console.warn("nothing to open")
