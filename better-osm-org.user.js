@@ -11978,10 +11978,25 @@ function addNotesFiltersButtons() {
     const inverterForFilterByUsername = document.createElement("span")
 
     function makeFilterByUsernameWrapper() {
+        const currentUser = getCurrentUser()
+        const datalist = document.createElement("datalist")
+        datalist.id = "usernames-in-notes-filter"
+        {
+            const option = document.createElement("option")
+            option.value = "anon"
+            datalist.appendChild(option)
+        }
+        if (currentUser) {
+            const option = document.createElement("option")
+            option.value = currentUser
+            datalist.appendChild(option)
+        }
+
         filterByUsername.type = "input"
         filterByUsername.placeholder = t("notes.usernamePlaceholder")
         filterByUsername.title = t("notes.commaSeparatedUsernames")
         filterByUsername.id = "filter-notes-by-username"
+        filterByUsername.setAttribute("list", datalist.id)
         filterByUsername.style.width = "100%"
         filterByUsername.addEventListener("keypress", function (event) {
             if (event.key === "Enter") {
@@ -12031,6 +12046,7 @@ function addNotesFiltersButtons() {
         wrapper.appendChild(inverterForFilterByUsername)
         wrapper.appendChild(filterByUsername)
         wrapper.appendChild(resetFilter)
+        wrapper.appendChild(datalist)
 
         return wrapper
     }
