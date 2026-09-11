@@ -734,7 +734,7 @@ function addRevertButton() {
                         "node(id:" +
                         nodes
                             .map(n => {
-                                return n.parentElement.nextElementSibling.id.match(/[0-9]+n([0-9]+)/)[1]
+                                return n.parentElement.nextElementSibling.id.match(/[0-9]+n(-?[0-9]+)/)[1]
                             })
                             .join(",") +
                         ");\n"
@@ -745,7 +745,7 @@ function addRevertButton() {
                         "way(id:" +
                         ways
                             .map(w => {
-                                return w.parentElement.nextElementSibling.id.match(/[0-9]+w([0-9]+)/)[1]
+                                return w.parentElement.nextElementSibling.id.match(/[0-9]+w(-?[0-9]+)/)[1]
                             })
                             .join(",") +
                         ");\n"
@@ -756,7 +756,7 @@ function addRevertButton() {
                         "rel(id:" +
                         relations
                             .map(r => {
-                                return r.parentElement.nextElementSibling.id.match(/[0-9]+r([0-9]+)/)[1]
+                                return r.parentElement.nextElementSibling.id.match(/[0-9]+r(-?[0-9]+)/)[1]
                             })
                             .join(",") +
                         ");"

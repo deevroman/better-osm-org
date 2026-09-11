@@ -9483,7 +9483,7 @@ function addRevertButton() {
                         "node(id:" +
                         nodes
                             .map(n => {
-                                return n.parentElement.nextElementSibling.id.match(/[0-9]+n([0-9]+)/)[1]
+                                return n.parentElement.nextElementSibling.id.match(/[0-9]+n(-?[0-9]+)/)[1]
                             })
                             .join(",") +
                         ");\n"
@@ -9494,7 +9494,7 @@ function addRevertButton() {
                         "way(id:" +
                         ways
                             .map(w => {
-                                return w.parentElement.nextElementSibling.id.match(/[0-9]+w([0-9]+)/)[1]
+                                return w.parentElement.nextElementSibling.id.match(/[0-9]+w(-?[0-9]+)/)[1]
                             })
                             .join(",") +
                         ");\n"
@@ -9505,7 +9505,7 @@ function addRevertButton() {
                         "rel(id:" +
                         relations
                             .map(r => {
-                                return r.parentElement.nextElementSibling.id.match(/[0-9]+r([0-9]+)/)[1]
+                                return r.parentElement.nextElementSibling.id.match(/[0-9]+r(-?[0-9]+)/)[1]
                             })
                             .join(",") +
                         ");"
@@ -16662,6 +16662,19 @@ const histories = {
 }
 
 /**
+ * @type {{
+ * node: Object.<string|number, NodeHistory>,
+ * way: Object.<string|number, WayHistory>,
+ * relation: Object.<string|number, RelationHistory>
+ * }}
+ */
+const fake_histories = {
+    node: {},
+    way: {},
+    relation: {},
+}
+
+/**
  *
  * @type {Object.<number, {
  * data: XMLDocument,
@@ -16677,6 +16690,9 @@ const changesetsCache = {}
 async function getChangeset(id) {
     if (changesetsCache[id]) {
         return changesetsCache[id]
+    }
+    if (parseInt(id) === 0) {
+        throw "Unexpected"
     }
     const text = await originalFetchTextWithCache(osm_server.apiBase + "changeset" + "/" + id + "/download", {
         signal: getAbortController().signal,
@@ -16764,8 +16780,16 @@ async function getNodeHistory(nodeID) {
     if (nodesHistories[nodeID]) {
         return nodesHistories[nodeID]
     } else {
+        if (parseInt(nodeID) < 0) {
+            return (nodesHistories[nodeID] = fake_histories["node"][nodeID])
+        }
         const res = await fetchRetry(osm_server.apiBase + "node" + "/" + nodeID + "/history.json", { signal: getAbortController().signal })
         const apiHistory = (await res.json()).elements
+        if (fake_histories["node"][nodeID]) {
+            const fake = fake_histories["node"][nodeID]
+            // todo add check
+            apiHistory.push(...fake)
+        }
         // todo it's dirty
         if (apiHistory[0].version === 1 && !apiHistory.every(n => n.visible === false)) {
             return (nodesHistories[nodeID] = apiHistory)
@@ -16839,9 +16863,17 @@ async function getWayHistory(wayID) {
     if (waysHistories[wayID]) {
         return waysHistories[wayID]
     } else {
+        if (parseInt(wayID) < 0) {
+            return (waysHistories[wayID] = fake_histories["way"][wayID])
+        }
         const res = await fetchRetry(osm_server.apiBase + "way" + "/" + wayID + "/history.json", { signal: getAbortController().signal })
         const apiHistory = (await res.json()).elements
         // todo it's dirty
+        if (fake_histories["way"][wayID]) {
+            const fake = fake_histories["way"][wayID]
+            // todo add check
+            apiHistory.push(...fake)
+        }
         if (apiHistory[0].version === 1 && !apiHistory.every(w => w.visible === false)) {
             return (waysHistories[wayID] = apiHistory)
         }
@@ -16970,7 +17002,10 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
     if (!targetVersion.nodes || targetVersion.nodes.length === 0) {
         return [targetVersion, []]
     }
-    const notCached = targetVersion.nodes.filter(nodeID => !nodesHistories[nodeID])
+    for (let id of targetVersion.nodes.filter(id => id < 0)) {
+        await getNodeHistory(id)
+    }
+    const notCached = targetVersion.nodes.filter(nodeID => !nodesHistories[nodeID] && nodeID > 0)
     // console.debug("Not cached nodes histories for download:", notCached.length, "/", targetVersion.nodes)
     if (notCached.length < 2 || osm_server === local_server) {
         // https://github.com/openstreetmap/openstreetmap-website/issues/5183
@@ -16997,7 +17032,13 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
             lastVersions.push(...nodes)
             nodes.forEach(n => {
                 if (n.version === 1) {
-                    nodesHistories[n.id] = [n]
+                    if (!nodesHistories[n.id]) {
+                        if (fake_histories["node"][n.id]) {
+                            nodesHistories[n.id] = [n, ...fake_histories["node"][n.id]]
+                        } else {
+                            nodesHistories[n.id] = [n]
+                        }
+                    }
                 }
             })
         }),
@@ -17082,6 +17123,9 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
         })
         if (history.length && history[history.length - 1].version !== lastVersionsMap[id][0].version) {
             history.push(lastVersionsMap[id][0])
+        }
+        if (fake_histories["node"][id]) {
+            history.push(...fake_histories["node"][id])
         }
         nodesHistories[id] = history
     })
@@ -18015,8 +18059,17 @@ async function getRelationHistory(relationID) {
     if (relationsHistories[relationID]) {
         return relationsHistories[relationID]
     } else {
+        if (parseInt(relationID) < 0) {
+            return (relationsHistories[relationID] = fake_histories["relation"][relationID])
+        }
         const res = await fetchRetry(osm_server.apiBase + "relation" + "/" + relationID + "/history.json")
-        return (relationsHistories[relationID] = (await res.json()).elements)
+        const apiHistory = (await res.json()).elements
+        if (fake_histories["relation"][relationID]) {
+            const fake = fake_histories["relation"][relationID]
+            // todo add check
+            apiHistory.push(...fake)
+        }
+        return (relationsHistories[relationID] = apiHistory)
     }
 }
 
@@ -18695,7 +18748,7 @@ async function replaceRealRelationVersion(it, objectStates, current) {
         ulMembers.parentElement.classList.add("way-version-nodes")
         ulMembers.querySelectorAll("li").forEach(li => {
             li.style.display = "none"
-            const [, type, id] = li.querySelector("div div a").href.match(/(node|way|relation)\/(\d+)/)
+            const [, type, id] = li.querySelector("div div a").href.match(/(node|way|relation)\/(-?[0-9]+)/)
             currentMembers.push([li.querySelector("img"), objectStates[`${type} ${id}`]])
         })
         if (it.version !== 1) {
@@ -20430,6 +20483,7 @@ function setupVersionsDiff() {
 let quickLookInjectingStarted = false
 let allTagsOfObjectsVisible = true
 
+// .type ?
 /**
  * @typedef {{
  * closed_at: string,
@@ -20467,7 +20521,7 @@ const changesetMetadatas = {}
  */
 async function loadChangesetMetadata(changeset_id = null) {
     console.debug(`Loading changeset metadata`)
-    if (!changeset_id) {
+    if (!changeset_id && changeset_id !== 0) {
         const match = location.pathname.match(/changeset\/(\d+)/)
         if (!match) {
             // console.trace("loadChangesetMetadata called without changeset_id and on not /changeset page")
@@ -21917,7 +21971,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
     /**
      * @type {[string, string, string, string]}
      */
-    const m = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
+    const m = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(-?[0-9]+)\/history\/(-?[0-9]+)$/)
     const [, , objID, strVersion] = m
     const version = parseInt(strVersion)
     i.parentElement.parentElement.ondblclick = e => {
@@ -22114,15 +22168,33 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
         }
     }
 
+    /**
+     * @param {number} wayID
+     * @return {Promise<Object|Response|*|undefined>}
+     */
+    async function getWayFullWithCache(wayID) {
+        if (wayID < 0) {
+            const lastVer = (await getWayHistory(wayID)).at(-1)
+            const res = {
+                elements: [],
+            }
+            for (let node of lastVer.nodes) {
+                res.elements.push((await getNodeHistory(node)).at(-1))
+            }
+            return res
+        }
+        return await fetchJSONorResWithCache(osm_server.apiBase + "way" + "/" + wayID + "/full.json", {
+            signal: getAbortController().signal,
+        })
+    }
+
     // old changeset with redactions https://osm.org/changeset/10934800
     async function processWay() {
         i.id = `${changesetID}w${objID}v${version}`
 
         // TODO для полной истории кеш нужен, а вот для правок сомнительно, если нужно перемещаться между ними
         // хотя при отображении нескольких правок разом тоже полезно
-        const res = await fetchJSONorResWithCache(osm_server.apiBase + objType + "/" + objID + "/full.json", {
-            signal: getAbortController().signal,
-        })
+        const res = await getWayFullWithCache(parseInt(objID))
         // todo по-хорошему нужно проверять, а не успела ли измениться история линии
         // будет более актуально после добавление предзагрузки
         let changesetMetadata = changesetMetadatas[targetVersion.changeset]
@@ -22135,7 +22207,13 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             lastElements.forEach(n => {
                 if (n.type !== "node") return
                 if (n.version === 1) {
-                    nodesHistories[n.id] = [n]
+                    if (!nodesHistories[n.id]) {
+                        if (fake_histories["node"][n.id]) {
+                            nodesHistories[n.id] = [n, ...fake_histories["node"][n.id]]
+                        } else {
+                            nodesHistories[n.id] = [n]
+                        }
+                    }
                 }
             })
             if (!changesetMetadata) {
@@ -22427,6 +22505,9 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             } else if (e.type === "keypress") {
                 return
             }
+            if (objID < 0) {
+                return
+            }
             e.preventDefault()
 
             document.querySelector("#element_versions_list > div.active-object")?.classList?.remove()
@@ -22542,7 +22623,9 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
             for (let i of document.querySelectorAll(
                 `[changeset-id="${changesetID}"]#changeset_${objType}s .list-unstyled li:not(.processed-object) div > div`,
             )) {
-                const [, , objID, strVersion] = i.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
+                const [, , objID, strVersion] = i
+                    .querySelector("a:nth-of-type(2)")
+                    .href.match(/(node|way|relation)\/(-?[0-9]+)\/history\/(-?[0-9]+)$/)
                 const version = parseInt(strVersion)
                 if (version === 1) {
                     needFetch.push(objID + "v" + version)
@@ -22587,7 +22670,7 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
                 )) {
                     const [, , objID, strVersion] = i
                         .querySelector("a:nth-of-type(2)")
-                        .href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
+                        .href.match(/(node|way|relation)\/(-?[0-9]+)\/history\/(-?[0-9]+)$/)
                     const version = parseInt(strVersion)
                     await processObjectInteractions(
                         changesetID,
@@ -22629,7 +22712,9 @@ async function processObjectsInteractions(objType, uniqTypes, changesetID) {
  * @return {Promise<[NodeHistory|WayHistory|RelationHistory, number]>}
  */
 async function getHistoryAndVersionByElem(elem) {
-    const [, objType, objID, versionStr] = elem.querySelector("a:nth-of-type(2)").href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
+    const [, objType, objID, versionStr] = elem
+        .querySelector("a:nth-of-type(2)")
+        .href.match(/(node|way|relation)\/(-?[0-9]+)\/history\/(-?[0-9]+)$/)
     const version = parseInt(versionStr)
     if (histories[objType][objID]) {
         return [histories[objType][objID], version]
@@ -22642,7 +22727,7 @@ async function getHistoryAndVersionByElem(elem) {
     } else if (objType === "relation") {
         history = await getRelationHistory(objID)
     }
-    if (history[version - 1]?.version === version) {
+    if (history[version - 1]?.version === version || parseInt(objID) < 0) {
         return [history, version]
     }
     for (let i = min(version - 1, history.length - 1); i > 0; i--) {
@@ -23217,7 +23302,7 @@ async function processQuickLookInSidebar(changesetID) {
                 )) {
                     const [, , objID, strVersion] = i
                         .querySelector("a:nth-of-type(2)")
-                        .href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
+                        .href.match(/(node|way|relation)\/(-?[0-9]+)\/history\/(-?[0-9]+)$/)
                     const version = parseInt(strVersion)
                     if (version === 1) {
                         needFetch.push(objID + "v" + version)
@@ -23256,7 +23341,7 @@ async function processQuickLookInSidebar(changesetID) {
                     )) {
                         const [, , objID, strVersion] = i
                             .querySelector("a:nth-of-type(2)")
-                            .href.match(/(node|way|relation)\/(\d+)\/history\/(\d+)$/)
+                            .href.match(/(node|way|relation)\/(-?[0-9]+)\/history\/(-?[0-9]+)$/)
                         const version = parseInt(strVersion)
                         await processObject(i, objType, ...getPrevTargetLastVersions(Object.values(objectsVersions[objID]), version))
                     }
@@ -23358,39 +23443,65 @@ async function processQuickLookInSidebar(changesetID) {
         const paginationSelector = document.querySelector(".numbered_pagination") ? ".numbered_pagination" : ".pagination"
 
         // osm.org/changeset/170309417
-        function dropNodesPagination(changesetData) {
+        /**
+         * @param changesetData
+         * @param {"node"|"way"|"relation"} type
+         * @return {{objects: unknown[], objectsUl: Element}|boolean}
+         */
+        function dropOsmObjectsPagination(changesetData, type) {
             const pagination = Array.from(
-                document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_nodes ${paginationSelector}`),
+                document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_${type}s ${paginationSelector}`),
             ).find(i => {
-                return Array.from(i.querySelectorAll("a.page-link")).some(a => a.href?.includes("node"))
+                return Array.from(i.querySelectorAll("a.page-link")).some(a => a.href?.includes(type))
             })
             if (!pagination) {
                 return false
             }
-            const nodesUl =
+            const objectsUl =
                 pagination.parentElement.querySelector("ul.list-unstyled") ??
                 pagination.parentElement.parentElement.querySelector("ul.list-unstyled")
-            const nodes = Array.from(changesetData.querySelectorAll("node"))
-            const other = changesetData.querySelectorAll("way,relation").length
-            if (nodes.length > 1200 && !isDebug()) {
-                if (other > 20 || isMobile) {
-                    // fixme bump
-                    return false
+            const objects = Array.from(changesetData.querySelectorAll(type))
+            if (type === "node") {
+                const other = changesetData.querySelectorAll("node,way,relation").length - objects.length
+                if (objects.length > 1200 && !isDebug()) {
+                    if (other > 20 || isMobile) {
+                        // fixme bump
+                        return false
+                    }
+                    if (objects.length > 3500 && isMobile) {
+                        return false
+                    }
+                    if (objects.length > 6000) {
+                        return false
+                    }
                 }
-                if (nodes.length > 3500 && isMobile) {
-                    return false
+            } else if (type === "way") {
+                if (objects.length > 50 && !isDebug()) {
+                    if (objects.length > 200 && changesetData.querySelectorAll("node") > 40) {
+                        return false
+                    }
+                    if (objects.length > 520 && isMobile) {
+                        return false
+                    }
+                    if (objects.length > 5000) {
+                        return false
+                    }
                 }
-                if (nodes.length > 6000) {
+            } else if (type === "relation") {
+                // todo now only for .osc
+                if (changesetID !== 0) {
                     return false
                 }
             }
+
             pagination.remove()
             try {
-                document.querySelector(`[changeset-id="${changesetID}"]#changeset_nodes h4 .count-number`).textContent = `1-${nodes.length}`
+                document.querySelector(`[changeset-id="${changesetID}"]#changeset_${type}s h4 .count-number`).textContent =
+                    `1-${objects.length}`
             } catch (e) {
                 console.error(e)
             }
-            return { nodes, nodesUl }
+            return { objects, objectsUl }
         }
 
         function insertPOIIcon(parentElem, objType, tags) {
@@ -23430,9 +23541,10 @@ async function processQuickLookInSidebar(changesetID) {
             }
         }
 
-        function replaceNodes(nodes, nodesUl) {
-            nodes.forEach(node => {
-                if (document.getElementById(`${changesetID}n${node.id}v${node.getAttribute("version")}`)) {
+        function replaceObjects(type, objects, objectsUl) {
+            const firstLetter = type[0]
+            objects.forEach(object => {
+                if (document.getElementById(`${changesetID}${firstLetter}${object.id}v${object.getAttribute("version")}`)) {
                     return
                 }
                 const ulItem = document.createElement("li")
@@ -23442,36 +23554,36 @@ async function processQuickLookInSidebar(changesetID) {
 
                 insertPOIIcon(
                     div1,
-                    "node",
-                    Array.from(node.querySelectorAll("tag[k]")).map(i => [i.getAttribute("k"), i.getAttribute("v")]),
+                    type,
+                    Array.from(object.querySelectorAll("tag[k]")).map(i => [i.getAttribute("k"), i.getAttribute("v")]),
                 )
 
                 const div2 = document.createElement("div")
                 div2.classList.add("align-self-center")
                 div1.appendChild(div2)
 
-                div2.classList.add("node")
-                div2.id = `${changesetID}n${node.id}v${node.getAttribute("version")}`
+                div2.classList.add(type)
+                div2.id = `${changesetID}${firstLetter}${object.id}v${object.getAttribute("version")}`
 
-                const nodeLink = document.createElement("a")
-                nodeLink.rel = "nofollow"
-                nodeLink.href = `/node/${node.id}`
-                if (node.querySelector('tag[k="name"]')?.getAttribute("v")) {
-                    nodeLink.textContent = `${node.querySelector('tag[k="name"]')?.getAttribute("v")} (${node.id})`
+                const objectLink = document.createElement("a")
+                objectLink.rel = "nofollow"
+                objectLink.href = `/${type}/${object.id}`
+                if (object.querySelector('tag[k="name"]')?.getAttribute("v")) {
+                    objectLink.textContent = `${object.querySelector('tag[k="name"]')?.getAttribute("v")} (${object.id})`
                 } else {
-                    nodeLink.textContent = node.id
+                    objectLink.textContent = object.id
                 }
-                div2.appendChild(nodeLink)
+                div2.appendChild(objectLink)
 
                 div2.appendChild(document.createTextNode(", "))
 
                 const versionLink = document.createElement("a")
                 versionLink.rel = "nofollow"
-                versionLink.href = `/node/${node.id}/history/${node.getAttribute("version")}`
-                versionLink.textContent = "v" + node.getAttribute("version")
+                versionLink.href = `/${type}/${object.id}/history/${object.getAttribute("version")}`
+                versionLink.textContent = "v" + object.getAttribute("version")
                 div2.appendChild(versionLink)
 
-                Array.from(node.children).forEach(i => {
+                Array.from(object.children).forEach(i => {
                     // todo
                     if (mainTags.includes(i.getAttribute("k"))) {
                         div2.classList.add(i.getAttribute("k"))
@@ -23482,102 +23594,10 @@ async function processQuickLookInSidebar(changesetID) {
                         }
                     }
                 })
-                if (node.getAttribute("visible") === "false") {
+                if (object.getAttribute("visible") === "false") {
                     div2.innerHTML = "<s>" + div2.innerHTML + "</s>"
                 }
-                nodesUl.appendChild(ulItem)
-            })
-        }
-
-        function dropWaysPagination(changesetData) {
-            const pagination = Array.from(
-                document.querySelectorAll(`[changeset-id="${changesetID}"]#changeset_ways ${paginationSelector}`),
-            ).find(i => {
-                return Array.from(i.querySelectorAll("a.page-link")).some(a => a.href?.includes("way"))
-            })
-            if (!pagination) {
-                return false
-            }
-            const waysUl =
-                pagination.parentElement.querySelector("ul.list-unstyled") ??
-                pagination.parentElement.parentElement.querySelector("ul.list-unstyled")
-            const ways = Array.from(changesetData.querySelectorAll("way"))
-            if (ways.length > 50 && !isDebug()) {
-                if (ways.length > 200 && changesetData.querySelectorAll("node") > 40) {
-                    return false
-                }
-                if (ways.length > 520 && isMobile) {
-                    return false
-                }
-                if (ways.length > 5000) {
-                    return false
-                }
-            }
-            pagination.remove()
-            try {
-                document.querySelector(`[changeset-id="${changesetID}"]#changeset_ways h4 .count-number`).textContent = `1-${ways.length}`
-            } catch (e) {
-                console.error(e)
-            }
-            return { ways, waysUl }
-        }
-
-        // todo unify
-        function replaceWays(ways, waysUl) {
-            ways.forEach(way => {
-                if (document.getElementById(`${changesetID}w${way.id}v${way.getAttribute("version")}`)) {
-                    return
-                }
-                const ulItem = document.createElement("li")
-                const div1 = document.createElement("div")
-                div1.classList.add("d-flex", "gap-1")
-                ulItem.appendChild(div1)
-
-                insertPOIIcon(
-                    div1,
-                    "way",
-                    Array.from(way.querySelectorAll("tag[k]")).map(i => [i.getAttribute("k"), i.getAttribute("v")]),
-                )
-
-                const div2 = document.createElement("div")
-                div2.classList.add("align-self-center")
-                div1.appendChild(div2)
-
-                div2.classList.add("way")
-                div2.id = `${changesetID}w${way.id}v${way.getAttribute("version")}`
-
-                const wayLink = document.createElement("a")
-                wayLink.rel = "nofollow"
-                wayLink.href = `/way/${way.id}`
-                if (way.querySelector('tag[k="name"]')?.getAttribute("v")) {
-                    wayLink.textContent = `${way.querySelector('tag[k="name"]')?.getAttribute("v")} (${way.id})`
-                } else {
-                    wayLink.textContent = way.id
-                }
-                div2.appendChild(wayLink)
-
-                div2.appendChild(document.createTextNode(", "))
-
-                const versionLink = document.createElement("a")
-                versionLink.rel = "nofollow"
-                versionLink.href = `/way/${way.id}/history/${way.getAttribute("version")}`
-                versionLink.textContent = "v" + way.getAttribute("version")
-                div2.appendChild(versionLink)
-
-                Array.from(way.children).forEach(i => {
-                    if (mainTags.includes(i.getAttribute("k"))) {
-                        div2.classList.add(i.getAttribute("k"))
-                        try {
-                            div2.classList.add(i.getAttribute("v"))
-                        } catch {
-                            console.log(`skip tag with value: ${i.getAttribute("v")}`)
-                        }
-                    }
-                })
-                if (way.getAttribute("visible") === "false") {
-                    div2.innerHTML = "<s>" + div2.innerHTML + "</s>"
-                }
-                waysUl.appendChild(ulItem)
+                objectsUl.appendChild(ulItem)
             })
         }
 
@@ -23588,30 +23608,25 @@ async function processQuickLookInSidebar(changesetID) {
             console.trace()
         }
 
-        const waysRes = dropWaysPagination(changesetData)
-        if (waysRes) {
-            const batchSize = 300
-            for (let i = 0; i < waysRes.ways.length; i += batchSize) {
-                console.log(`Ways batch ${i}-${i + batchSize} / ${waysRes.ways.length}`)
-                replaceWays(waysRes.ways.slice(i, i + batchSize), waysRes.waysUl)
-                await processObjects("way", uniqTypes)
-                await safeCallForSafari(async () => {
-                    await processObjectsInteractions("way", uniqTypes, changesetID)
-                })
+        async function replacePagination(type, batchSize) {
+            const objRes = dropOsmObjectsPagination(changesetData, type)
+            if (objRes) {
+                for (let i = 0; i < objRes.objects.length; i += batchSize) {
+                    console.log(`${type}s batch ${i}-${i + batchSize} / ${objRes.objects.length}`)
+                    replaceObjects(type, objRes.objects.slice(i, i + batchSize), objRes.objectsUl)
+                    await processObjects(type, uniqTypes)
+                    await safeCallForSafari(async () => {
+                        await processObjectsInteractions(type, uniqTypes, changesetID)
+                    })
+                }
             }
         }
 
-        const nodesRes = dropNodesPagination(changesetData)
-        if (nodesRes) {
-            const batchSize = 3000
-            for (let i = 0; i < nodesRes.nodes.length; i += batchSize) {
-                console.log(`Nodes batch ${i}-${i + batchSize} / ${nodesRes.nodes.length}`)
-                replaceNodes(nodesRes.nodes.slice(i, i + batchSize), nodesRes.nodesUl)
-                await processObjects("node", uniqTypes)
-                await safeCallForSafari(async () => {
-                    await processObjectsInteractions("node", uniqTypes, changesetID)
-                })
-            }
+        await replacePagination("way", 300)
+        await replacePagination("node", 3000)
+        // todo
+        if (changesetID === 0) {
+            await replacePagination("relation", 300)
         }
 
         function observePagination(obs) {
@@ -23655,7 +23670,7 @@ async function processQuickLookInSidebar(changesetID) {
             document
                 .querySelectorAll(`[changeset-id="${changesetID}"]#changeset_nodes li:has(a[href^="/node/"]) > div > div`)
                 .forEach(div => {
-                    const prefix = div.id.match(/^([0-9]+n[0-9]+)/)[1]
+                    const prefix = div.id.match(/^([0-9]+n-?[0-9]+)/)[1]
                     if (!nodesInChangesets[prefix]) {
                         nodesInChangesets[prefix] = div
                     }
@@ -23717,7 +23732,13 @@ async function processQuickLookInSidebar(changesetID) {
                             lastElements.forEach(n => {
                                 if (n.type !== "node") return
                                 if (n.version === 1) {
-                                    nodesHistories[n.id] = [n]
+                                    if (!nodesHistories[n.id]) {
+                                        if (fake_histories["node"][n.id]) {
+                                            nodesHistories[n.id] = [n, ...fake_histories["node"][n.id]]
+                                        } else {
+                                            nodesHistories[n.id] = [n]
+                                        }
+                                    }
                                 }
                             })
 
@@ -31628,9 +31649,38 @@ async function displayOsc(xml) {
     xml.querySelectorAll(":is(node[changeset],way[changeset],relation[changeset])").forEach(i => {
         changesetsSet.add(parseInt(i.getAttribute("changeset")))
     })
+    // TODO check non-exits negative IDs in refs
+    const fakeDate = new Date()
+    fakeDate.setFullYear(fakeDate.getFullYear() + 1)
+    const fakeDateString = fakeDate.toString()
+    changesetMetadatas["0"] = {
+        closed_at: fakeDateString,
+        created_at: fakeDateString,
+        // changes_count: number,
+        // tags: {},
+        id: 0,
+        open: false,
+    }
+
+    xml.querySelectorAll(":is(node, way, relation)").forEach(i => {
+        const version = convertXmlVersionToObject(i)
+        if (!i.getAttribute("changeset")) {
+            i.setAttribute("changeset", (version.changeset = 0))
+        }
+
+        i.setAttribute("version", (version.version = parseInt(i.getAttribute("version") ?? "0") + 1))
+        i.setAttribute("timestamp", (version.timestamp = fakeDateString))
+        if (i.parentElement.nodeName === "delete") {
+            version.visible = false
+            i.setAttribute("visible", false)
+        }
+
+        fake_histories[i.nodeName][i.getAttribute("id")] = [convertXmlVersionToObject(i)]
+    })
+
     const changesets = Array.from(changesetsSet)
     if (changesetsSet.size === 0 || changesetsSet.size === 1) {
-        const changesetID = changesets.size === 0 ? 0 : changesets[0]
+        const changesetID = changesets.length === 0 ? 0 : changesets[0]
         makeChangesetSidebar(changesetID)
         changesetsCache[changesetID] = {
             data: xml,
@@ -32907,13 +32957,13 @@ async function openSelectedObjectsOnChangesetPage(e) {
     function processChangeset(data) {
         if (changesetObjectsSelectionModeEnabled) {
             document.querySelectorAll("#changeset_nodes input[type=checkbox]:checked").forEach(n => {
-                nodes.add(parseInt(n.parentElement.nextElementSibling.id.match(/[0-9]+n([0-9]+)/)[1]))
+                nodes.add(parseInt(n.parentElement.nextElementSibling.id.match(/[0-9]+n(-?[0-9]+)/)[1]))
             })
             document.querySelectorAll("#changeset_ways input[type=checkbox]:checked").forEach(w => {
-                ways.add(parseInt(w.parentElement.nextElementSibling.id.match(/[0-9]+w([0-9]+)/)[1]))
+                ways.add(parseInt(w.parentElement.nextElementSibling.id.match(/[0-9]+w(-?[0-9]+)/)[1]))
             })
             document.querySelectorAll("#changeset_relations input[type=checkbox]:checked").forEach(r => {
-                relations.add(parseInt(r.parentElement.nextElementSibling.id.match(/[0-9]+r([0-9]+)/)[1]))
+                relations.add(parseInt(r.parentElement.nextElementSibling.id.match(/[0-9]+r(-?[0-9]+)/)[1]))
             })
         } else {
             Array.from(data.querySelectorAll("node")).map(i => nodes.add(parseInt(i.getAttribute("id"))))
@@ -33111,6 +33161,15 @@ function actionToggleCompactMode() {
     actionToggleSwitchableTime()
 }
 
+function getCurrentUser() {
+    return decodeURI(
+        document
+            .querySelector('.user-menu [href^="/user/"]')
+            ?.getAttribute("href")
+            ?.match(/\/user\/(.*)$/)?.[1] ?? "",
+    )
+}
+
 function actionOpenOverpassSearch() {
     setTimeout(async () => {
         await interceptMapManually()
@@ -33128,12 +33187,7 @@ function actionOpenOverpassSearch() {
 \t~key1|key2|...
 
 `
-        const currentUser = decodeURI(
-            document
-                .querySelector('.user-menu [href^="/user/"]')
-                ?.getAttribute("href")
-                ?.match(/\/user\/(.*)$/)?.[1] ?? "",
-        )
+        const currentUser = getCurrentUser()
         if (currentUser) {
             message += currentUser.match(/^[a-zA-Z0-9_]+$/) ? `\n\tnode(user:${currentUser})` : `\n\tnode(user:"${currentUser}")`
         }

@@ -1008,13 +1008,13 @@ async function openSelectedObjectsOnChangesetPage(e) {
     function processChangeset(data) {
         if (changesetObjectsSelectionModeEnabled) {
             document.querySelectorAll("#changeset_nodes input[type=checkbox]:checked").forEach(n => {
-                nodes.add(parseInt(n.parentElement.nextElementSibling.id.match(/[0-9]+n([0-9]+)/)[1]))
+                nodes.add(parseInt(n.parentElement.nextElementSibling.id.match(/[0-9]+n(-?[0-9]+)/)[1]))
             })
             document.querySelectorAll("#changeset_ways input[type=checkbox]:checked").forEach(w => {
-                ways.add(parseInt(w.parentElement.nextElementSibling.id.match(/[0-9]+w([0-9]+)/)[1]))
+                ways.add(parseInt(w.parentElement.nextElementSibling.id.match(/[0-9]+w(-?[0-9]+)/)[1]))
             })
             document.querySelectorAll("#changeset_relations input[type=checkbox]:checked").forEach(r => {
-                relations.add(parseInt(r.parentElement.nextElementSibling.id.match(/[0-9]+r([0-9]+)/)[1]))
+                relations.add(parseInt(r.parentElement.nextElementSibling.id.match(/[0-9]+r(-?[0-9]+)/)[1]))
             })
         } else {
             Array.from(data.querySelectorAll("node")).map(i => nodes.add(parseInt(i.getAttribute("id"))))
@@ -1212,6 +1212,15 @@ function actionToggleCompactMode() {
     actionToggleSwitchableTime()
 }
 
+function getCurrentUser() {
+    return decodeURI(
+        document
+            .querySelector('.user-menu [href^="/user/"]')
+            ?.getAttribute("href")
+            ?.match(/\/user\/(.*)$/)?.[1] ?? "",
+    )
+}
+
 function actionOpenOverpassSearch() {
     setTimeout(async () => {
         await interceptMapManually()
@@ -1229,12 +1238,7 @@ function actionOpenOverpassSearch() {
 \t~key1|key2|...
 
 `
-        const currentUser = decodeURI(
-            document
-                .querySelector('.user-menu [href^="/user/"]')
-                ?.getAttribute("href")
-                ?.match(/\/user\/(.*)$/)?.[1] ?? "",
-        )
+        const currentUser = getCurrentUser()
         if (currentUser) {
             message += currentUser.match(/^[a-zA-Z0-9_]+$/) ? `\n\tnode(user:${currentUser})` : `\n\tnode(user:"${currentUser}")`
         }
