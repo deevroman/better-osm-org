@@ -31590,7 +31590,7 @@ out geom;
 
 //<editor-fold desc="osc-viewer" defaultstate="collapsed">
 
-function makeChangesetSidebar(changesetID) {
+function makeChangesetSidebar(changesetID, stat) {
     addCompactSidebarStyle()
     addQuickLookStyles()
 
@@ -31608,6 +31608,9 @@ function makeChangesetSidebar(changesetID) {
     wrapper.classList.add("mb-3", "border-bottom", "border-secondary-subtle", "pb-3")
     sidebar_content.appendChild(wrapper)
     ;["way", "relation", "node"].forEach(type => {
+        if (stat[type] === 0) {
+            return
+        }
         const turbo_frame = document.createElement("turbo-frame")
         turbo_frame.id = `changeset_${type}s`
         turbo_frame.setAttribute("changeset-id", changesetID)
@@ -31661,8 +31664,14 @@ async function displayOsc(xml) {
         id: 0,
         open: false,
     }
+    const stat = {
+        nodes: 0,
+        ways: 0,
+        relation: 0,
+    }
 
     xml.querySelectorAll(":is(node, way, relation)").forEach(i => {
+        ++stat[i.nodeName]
         const version = convertXmlVersionToObject(i)
         if (!i.getAttribute("changeset")) {
             i.setAttribute("changeset", (version.changeset = 0))
@@ -31681,7 +31690,7 @@ async function displayOsc(xml) {
     const changesets = Array.from(changesetsSet)
     if (changesetsSet.size === 0 || changesetsSet.size === 1) {
         const changesetID = changesets.length === 0 ? 0 : changesets[0]
-        makeChangesetSidebar(changesetID)
+        makeChangesetSidebar(changesetID, stat)
         changesetsCache[changesetID] = {
             data: xml,
             nodesWithParentWays: new Set(Array.from(xml.querySelectorAll("way > nd")).map(i => parseInt(i.getAttribute("ref")))),
@@ -31693,7 +31702,7 @@ async function displayOsc(xml) {
         return
     }
 
-    makeChangesetSidebar(changesets[0])
+    makeChangesetSidebar(changesets[0], stat)
 
     function extractChangesetData(xml, id) {
         const res = xml.cloneNode(true)
