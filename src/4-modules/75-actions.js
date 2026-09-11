@@ -922,7 +922,11 @@ function nextVectorLayer() {
     location.hash = hashParams.toString()
 }
 
-function openJsonLayerInLevel0(jsonLayer, withGeom) {
+/**
+ * @param jsonLayer
+ * @return {{nodes: number[], ways: number[], relations: number[]}}
+ */
+function splitJsonLayerByOsmType(jsonLayer) {
     const nodes = Object.values(jsonLayer._layers)
         .map(i => i.feature.id)
         .filter(i => i.startsWith("node"))
@@ -935,20 +939,19 @@ function openJsonLayerInLevel0(jsonLayer, withGeom) {
         .map(i => i.feature.id)
         .filter(i => i.startsWith("relation"))
         .map(i => parseInt(i.match(/relation\/([0-9]+)/)[1]))
+    return { nodes, ways, relations }
+}
+
+function openJsonLayerInLevel0(jsonLayer, withGeom) {
+    const { nodes, ways, relations } = splitJsonLayerByOsmType(jsonLayer)
     openNewTab(
         level0Instance +
             "/?" +
             new URLSearchParams({
                 url: [
-                    Array.from(nodes)
-                        .map(i => "n" + i)
-                        .join(","),
-                    Array.from(ways)
-                        .map(i => "w" + i + (withGeom ? "!" : ""))
-                        .join(","),
-                    Array.from(relations)
-                        .map(i => "r" + i)
-                        .join(","),
+                    nodes.map(i => "n" + i).join(","),
+                    ways.map(i => "w" + i + (withGeom ? "!" : "")).join(","),
+                    relations.map(i => "r" + i).join(","),
                 ]
                     .join(",")
                     .replace(/,,/, ",")
@@ -1005,13 +1008,13 @@ async function openSelectedObjectsOnChangesetPage(e) {
     function processChangeset(data) {
         if (changesetObjectsSelectionModeEnabled) {
             document.querySelectorAll("#changeset_nodes input[type=checkbox]:checked").forEach(n => {
-                nodes.add(parseInt(n.parentElement.nextElementSibling.id.match(/[0-9]+n([0-9]+)/)[1]))
+                nodes.add(parseInt(n.parentElement.nextElementSibling.id.match(/[0-9]+n(-?[0-9]+)/)[1]))
             })
             document.querySelectorAll("#changeset_ways input[type=checkbox]:checked").forEach(w => {
-                ways.add(parseInt(w.parentElement.nextElementSibling.id.match(/[0-9]+w([0-9]+)/)[1]))
+                ways.add(parseInt(w.parentElement.nextElementSibling.id.match(/[0-9]+w(-?[0-9]+)/)[1]))
             })
             document.querySelectorAll("#changeset_relations input[type=checkbox]:checked").forEach(r => {
-                relations.add(parseInt(r.parentElement.nextElementSibling.id.match(/[0-9]+r([0-9]+)/)[1]))
+                relations.add(parseInt(r.parentElement.nextElementSibling.id.match(/[0-9]+r(-?[0-9]+)/)[1]))
             })
         } else {
             Array.from(data.querySelectorAll("node")).map(i => nodes.add(parseInt(i.getAttribute("id"))))
@@ -1209,6 +1212,15 @@ function actionToggleCompactMode() {
     actionToggleSwitchableTime()
 }
 
+function getCurrentUser() {
+    return decodeURI(
+        document
+            .querySelector('.user-menu [href^="/user/"]')
+            ?.getAttribute("href")
+            ?.match(/\/user\/(.*)$/)?.[1] ?? "",
+    )
+}
+
 function actionOpenOverpassSearch() {
     setTimeout(async () => {
         await interceptMapManually()
@@ -1226,12 +1238,7 @@ function actionOpenOverpassSearch() {
 \t~key1|key2|...
 
 `
-        const currentUser = decodeURI(
-            document
-                .querySelector('.user-menu [href^="/user/"]')
-                ?.getAttribute("href")
-                ?.match(/\/user\/(.*)$/)?.[1] ?? "",
-        )
+        const currentUser = getCurrentUser()
         if (currentUser) {
             message += currentUser.match(/^[a-zA-Z0-9_]+$/) ? `\n\tnode(user:${currentUser})` : `\n\tnode(user:"${currentUser}")`
         }
@@ -2202,6 +2209,31 @@ function actionOpenInJosmOrLevel0(e) {
             await openObjectInJosmOrLevel0(e)
         }
     })
+}
+
+function makeVespucciMultiUrl(nodes, ways, relations) {
+    return (
+        "josm:/load_object?objects=" +
+        [nodes.map(i => "n" + i).join(","), ways.map(i => "w" + i).join(","), relations.map(i => "r" + i).join(",")]
+            .join(",")
+            .replace(/,,/, ",")
+            .replace(/,$/, "")
+            .replace(/^,/, "")
+    )
+}
+
+function actionOpenInVespucci() {
+    const match = location.pathname.match(/(node|way|relation)\/(\d+)(\/?$|\/history\/?$)/)
+    if (match) {
+        openNewTab(`josm:/load_object?objects=${match[1][0]}${match[2]}`)
+        return
+    }
+    if (jsonLayer) {
+        const { nodes, ways, relations } = splitJsonLayerByOsmType(jsonLayer)
+        openNewTab(makeVespucciMultiUrl(nodes, ways, relations))
+        return
+    }
+    console.warn("nothing to open")
 }
 
 function actionOpenOwnHistoryPage() {

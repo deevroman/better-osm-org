@@ -49,6 +49,19 @@ const histories = {
 }
 
 /**
+ * @type {{
+ * node: Object.<string|number, NodeHistory>,
+ * way: Object.<string|number, WayHistory>,
+ * relation: Object.<string|number, RelationHistory>
+ * }}
+ */
+const fake_histories = {
+    node: {},
+    way: {},
+    relation: {},
+}
+
+/**
  *
  * @type {Object.<number, {
  * data: XMLDocument,
@@ -64,6 +77,9 @@ const changesetsCache = {}
 async function getChangeset(id) {
     if (changesetsCache[id]) {
         return changesetsCache[id]
+    }
+    if (parseInt(id) === 0) {
+        throw "Unexpected"
     }
     const text = await originalFetchTextWithCache(osm_server.apiBase + "changeset" + "/" + id + "/download", {
         signal: getAbortController().signal,
@@ -151,8 +167,16 @@ async function getNodeHistory(nodeID) {
     if (nodesHistories[nodeID]) {
         return nodesHistories[nodeID]
     } else {
+        if (parseInt(nodeID) < 0) {
+            return (nodesHistories[nodeID] = fake_histories["node"][nodeID])
+        }
         const res = await fetchRetry(osm_server.apiBase + "node" + "/" + nodeID + "/history.json", { signal: getAbortController().signal })
         const apiHistory = (await res.json()).elements
+        if (fake_histories["node"][nodeID]) {
+            const fake = fake_histories["node"][nodeID]
+            // todo add check
+            apiHistory.push(...fake)
+        }
         // todo it's dirty
         if (apiHistory[0].version === 1 && !apiHistory.every(n => n.visible === false)) {
             return (nodesHistories[nodeID] = apiHistory)
@@ -226,9 +250,17 @@ async function getWayHistory(wayID) {
     if (waysHistories[wayID]) {
         return waysHistories[wayID]
     } else {
+        if (parseInt(wayID) < 0) {
+            return (waysHistories[wayID] = fake_histories["way"][wayID])
+        }
         const res = await fetchRetry(osm_server.apiBase + "way" + "/" + wayID + "/history.json", { signal: getAbortController().signal })
         const apiHistory = (await res.json()).elements
         // todo it's dirty
+        if (fake_histories["way"][wayID]) {
+            const fake = fake_histories["way"][wayID]
+            // todo add check
+            apiHistory.push(...fake)
+        }
         if (apiHistory[0].version === 1 && !apiHistory.every(w => w.visible === false)) {
             return (waysHistories[wayID] = apiHistory)
         }
@@ -357,7 +389,10 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
     if (!targetVersion.nodes || targetVersion.nodes.length === 0) {
         return [targetVersion, []]
     }
-    const notCached = targetVersion.nodes.filter(nodeID => !nodesHistories[nodeID])
+    for (let id of targetVersion.nodes.filter(id => id < 0)) {
+        await getNodeHistory(id)
+    }
+    const notCached = targetVersion.nodes.filter(nodeID => !nodesHistories[nodeID] && nodeID > 0)
     // console.debug("Not cached nodes histories for download:", notCached.length, "/", targetVersion.nodes)
     if (notCached.length < 2 || osm_server === local_server) {
         // https://github.com/openstreetmap/openstreetmap-website/issues/5183
@@ -384,7 +419,13 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
             lastVersions.push(...nodes)
             nodes.forEach(n => {
                 if (n.version === 1) {
-                    nodesHistories[n.id] = [n]
+                    if (!nodesHistories[n.id]) {
+                        if (fake_histories["node"][n.id]) {
+                            nodesHistories[n.id] = [n, ...fake_histories["node"][n.id]]
+                        } else {
+                            nodesHistories[n.id] = [n]
+                        }
+                    }
                 }
             })
         }),
@@ -469,6 +510,9 @@ async function loadWayVersionNodes(wayID, version, changesetID = null) {
         })
         if (history.length && history[history.length - 1].version !== lastVersionsMap[id][0].version) {
             history.push(lastVersionsMap[id][0])
+        }
+        if (fake_histories["node"][id]) {
+            history.push(...fake_histories["node"][id])
         }
         nodesHistories[id] = history
     })
@@ -1402,8 +1446,17 @@ async function getRelationHistory(relationID) {
     if (relationsHistories[relationID]) {
         return relationsHistories[relationID]
     } else {
+        if (parseInt(relationID) < 0) {
+            return (relationsHistories[relationID] = fake_histories["relation"][relationID])
+        }
         const res = await fetchRetry(osm_server.apiBase + "relation" + "/" + relationID + "/history.json")
-        return (relationsHistories[relationID] = (await res.json()).elements)
+        const apiHistory = (await res.json()).elements
+        if (fake_histories["relation"][relationID]) {
+            const fake = fake_histories["relation"][relationID]
+            // todo add check
+            apiHistory.push(...fake)
+        }
+        return (relationsHistories[relationID] = apiHistory)
     }
 }
 
@@ -2082,7 +2135,7 @@ async function replaceRealRelationVersion(it, objectStates, current) {
         ulMembers.parentElement.classList.add("way-version-nodes")
         ulMembers.querySelectorAll("li").forEach(li => {
             li.style.display = "none"
-            const [, type, id] = li.querySelector("div div a").href.match(/(node|way|relation)\/(\d+)/)
+            const [, type, id] = li.querySelector("div div a").href.match(/(node|way|relation)\/(-?[0-9]+)/)
             currentMembers.push([li.querySelector("img"), objectStates[`${type} ${id}`]])
         })
         if (it.version !== 1) {

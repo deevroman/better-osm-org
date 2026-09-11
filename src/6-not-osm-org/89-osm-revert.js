@@ -1,6 +1,6 @@
 //<editor-fold desc="osm-revert" defaultstate="collapsed">
 
-if (location.origin === "https://revert.monicz.dev") {
+function runInOsmRevertPageCode() {
     injectJSIntoPage(`
     const originalFetch = window.fetch;
     let overpassRequestsLimiter = 0 
@@ -59,8 +59,11 @@ if (location.origin === "https://revert.monicz.dev") {
         }
         return originalFetch(...args);
     }
-
     `)
+}
+
+if (isOsmRevertServer()) {
+    runInOsmRevertPageCode()
 }
 
 //</editor-fold>

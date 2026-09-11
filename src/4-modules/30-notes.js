@@ -260,9 +260,7 @@ const noteHashtags = [
     "#softremindme",
 ]
 
-function addAutoComplete() {
-    const container = document.querySelector("#sidebar")
-    const ta = document.querySelector("form.mb-3 .form-control")
+function addAutoComplete(ta, container) {
     let anchorPos = null // { left, top }
     let anchorStart = null
 
@@ -394,6 +392,18 @@ function addAutoComplete() {
             box.style.display = "none"
         }
     })
+}
+
+function addAutoCompleteOnOsmOrg() {
+    addAutoComplete(document.querySelector("form.mb-3 .form-control"), document.querySelector("#sidebar"))
+}
+
+function addAutoCompleteOnIdEditor() {
+    try {
+        addAutoComplete(document.querySelector(".note-save.save-section textarea.new-comment-input"), document.querySelector(".sidebar"))
+    } catch (e) {
+        console.error(e)
+    }
 }
 
 function tryReloadSidebar() {
@@ -574,10 +584,15 @@ function insertNoteResolveButtons() {
         return
     }
     const note_id = location.pathname.match(/note\/(\d+)/)[1]
+
+    const buttonsWrapper = document.createElement("span")
+    buttonsWrapper.style.display = "flex"
+    buttonsWrapper.style.flexWrap = "wrap"
+    buttonsWrapper.style.gap = "4px"
+    buttonsWrapper.style.rowGap = "4px"
+    document.querySelectorAll("form.mb-3")[0].before(buttonsWrapper)
+
     JSON.parse(resolveButtonsText).forEach((row, index) => {
-        if (index !== 0) {
-            document.querySelectorAll("form.mb-3")[0].before(document.createTextNode("\xA0"))
-        }
         const label = row["label"]
         let text = label
         if (row["text"] !== "") {
@@ -587,7 +602,7 @@ function insertNoteResolveButtons() {
         b.classList.add("resolve-note-done", "btn", "btn-primary")
         b.textContent = label
         b.title = t("notes.resolveButtonTitle", { text })
-        document.querySelectorAll("form.mb-3")[0].before(b)
+        buttonsWrapper.appendChild(b)
         b.onclick = async e => {
             if (!GM_config.get("AutoResolveNote") || e.altKey) {
                 const textarea = document.querySelector("form.mb-3 textarea")
@@ -679,7 +694,7 @@ function addResolveNotesButton() {
         return
     }
     insertNoteResolveButtons()
-    addAutoComplete()
+    addAutoCompleteOnOsmOrg()
     initKostylForSidebarStateChange(() => {
         setTimeout(setupResolveNotesButton)
         setTimeout(setupSatelliteLayers)
@@ -878,10 +893,25 @@ function addNotesFiltersButtons() {
     const inverterForFilterByUsername = document.createElement("span")
 
     function makeFilterByUsernameWrapper() {
+        const currentUser = getCurrentUser()
+        const datalist = document.createElement("datalist")
+        datalist.id = "usernames-in-notes-filter"
+        {
+            const option = document.createElement("option")
+            option.value = "anon"
+            datalist.appendChild(option)
+        }
+        if (currentUser) {
+            const option = document.createElement("option")
+            option.value = currentUser
+            datalist.appendChild(option)
+        }
+
         filterByUsername.type = "input"
         filterByUsername.placeholder = t("notes.usernamePlaceholder")
         filterByUsername.title = t("notes.commaSeparatedUsernames")
         filterByUsername.id = "filter-notes-by-username"
+        filterByUsername.setAttribute("list", datalist.id)
         filterByUsername.style.width = "100%"
         filterByUsername.addEventListener("keypress", function (event) {
             if (event.key === "Enter") {
@@ -931,6 +961,7 @@ function addNotesFiltersButtons() {
         wrapper.appendChild(inverterForFilterByUsername)
         wrapper.appendChild(filterByUsername)
         wrapper.appendChild(resetFilter)
+        wrapper.appendChild(datalist)
 
         return wrapper
     }

@@ -59,9 +59,38 @@ async function displayOsc(xml) {
     xml.querySelectorAll(":is(node[changeset],way[changeset],relation[changeset])").forEach(i => {
         changesetsSet.add(parseInt(i.getAttribute("changeset")))
     })
+    // TODO check non-exits negative IDs in refs
+    const fakeDate = new Date()
+    fakeDate.setFullYear(fakeDate.getFullYear() + 1)
+    const fakeDateString = fakeDate.toString()
+    changesetMetadatas["0"] = {
+        closed_at: fakeDateString,
+        created_at: fakeDateString,
+        // changes_count: number,
+        // tags: {},
+        id: 0,
+        open: false,
+    }
+
+    xml.querySelectorAll(":is(node, way, relation)").forEach(i => {
+        const version = convertXmlVersionToObject(i)
+        if (!i.getAttribute("changeset")) {
+            i.setAttribute("changeset", (version.changeset = 0))
+        }
+
+        i.setAttribute("version", (version.version = parseInt(i.getAttribute("version") ?? "0") + 1))
+        i.setAttribute("timestamp", (version.timestamp = fakeDateString))
+        if (i.parentElement.nodeName === "delete") {
+            version.visible = false
+            i.setAttribute("visible", false)
+        }
+
+        fake_histories[i.nodeName][i.getAttribute("id")] = [convertXmlVersionToObject(i)]
+    })
+
     const changesets = Array.from(changesetsSet)
     if (changesetsSet.size === 0 || changesetsSet.size === 1) {
-        const changesetID = changesets.size === 0 ? 0 : changesets[0]
+        const changesetID = changesets.length === 0 ? 0 : changesets[0]
         makeChangesetSidebar(changesetID)
         changesetsCache[changesetID] = {
             data: xml,

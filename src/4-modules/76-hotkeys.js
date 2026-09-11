@@ -397,6 +397,12 @@ const hotkeyActions = {
         contexts: ["Changeset pages", "Object pages"],
         run: actionOpenInJosmOrLevel0,
     },
+    openInVespucci: {
+        title: "Open active objects Vespucci",
+        defaultBindings: [],
+        contexts: ["Main pages", "Object pages"],
+        run: actionOpenInVespucci,
+    },
     openOwnHistoryPage: {
         title: "Open your changesets history",
         defaultBindings: ["Shift+KeyH"],
