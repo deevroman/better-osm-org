@@ -264,7 +264,7 @@ function makeMenuItem(row) {
     title.setAttribute("contenteditable", "true")
     title.addEventListener("input", () => {
         if (title.textContent === "") {
-            title.innerHTML = ""
+            title.replaceChildren()
         }
     })
     header.appendChild(title)
@@ -297,7 +297,7 @@ function makeMenuItem(row) {
     text.setAttribute("contenteditable", "true")
     text.addEventListener("input", () => {
         if (text.textContent === "") {
-            text.innerHTML = ""
+            text.replaceChildren()
         }
     })
     item.appendChild(text)
