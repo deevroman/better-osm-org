@@ -83,6 +83,9 @@ function cleanupBeforeNewLocation(path) {
         abortPrevControllers(ABORT_ERROR_WHEN_PAGE_CHANGED)
         tracksCounter = 0
         cleanAllObjects()
+        // setTimeout(() => {
+        //     document.querySelectorAll(".fake-sidebar-data").forEach(i => i.remove())
+        // }, 1000)
         setAttributionPrefix("")
         addSwipes()
         document.querySelector("#fixed-rss-feed")?.remove()
