@@ -4503,7 +4503,7 @@ function makeMenuItem(row) {
     title.setAttribute("contenteditable", "true")
     title.addEventListener("input", () => {
         if (title.textContent === "") {
-            title.innerHTML = ""
+            title.replaceChildren()
         }
     })
     header.appendChild(title)
@@ -4536,7 +4536,7 @@ function makeMenuItem(row) {
     text.setAttribute("contenteditable", "true")
     text.addEventListener("input", () => {
         if (text.textContent === "") {
-            text.innerHTML = ""
+            text.replaceChildren()
         }
     })
     item.appendChild(text)
@@ -9338,7 +9338,7 @@ function addUsernameBadgesOrRestoreAction(changeset_id) {
     const time = metainfoHTML.querySelector("time") ?? (isOGFServer() && metainfoHTML.querySelector("abbr"))
     if (metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')) {
         const usernameA = metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')
-        metainfoHTML.innerHTML = ""
+        metainfoHTML.replaceChildren()
         metainfoHTML.appendChild(time)
         metainfoHTML.appendChild(document.createTextNode(" "))
         metainfoHTML.appendChild(usernameA)
@@ -9372,7 +9372,7 @@ function addUsernameBadgesOrRestoreAction(changeset_id) {
         })
         addUserChangesetRssLink(usernameA.textContent)
     } else {
-        metainfoHTML.innerHTML = ""
+        metainfoHTML.replaceChildren()
         metainfoHTML.appendChild(time)
         const findBtn = document.createElement("span")
         findBtn.title = t("deletedUsers.tryFindDeletedUser")
@@ -11399,7 +11399,7 @@ function addAutoComplete(ta, container) {
     }
 
     function render() {
-        box.innerHTML = ""
+        box.replaceChildren()
         items.forEach((t, i) => {
             const d = document.createElement("div")
             d.textContent = t
@@ -19947,13 +19947,13 @@ function transformDiffWithColors() {
 
         if (metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')) {
             const a = metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')
-            metainfoHTML.innerHTML = ""
+            metainfoHTML.replaceChildren()
             metainfoHTML.appendChild(time)
             metainfoHTML.appendChild(document.createTextNode(" "))
             metainfoHTML.appendChild(a)
             metainfoHTML.appendChild(document.createTextNode(" "))
         } else {
-            metainfoHTML.innerHTML = ""
+            metainfoHTML.replaceChildren()
             metainfoHTML.appendChild(time)
             const findBtn = document.createElement("span")
             findBtn.classList.add("find-user-btn")
@@ -19966,7 +19966,7 @@ function transformDiffWithColors() {
             metainfoHTML.appendChild(findBtn)
         }
 
-        changesetHTML.innerHTML = ""
+        changesetHTML.replaceChildren()
         const hashtag = document.createTextNode("#")
         metainfoHTML.appendChild(hashtag)
         const changesetWrapper = document.createElement("span")
@@ -19977,7 +19977,7 @@ function transformDiffWithColors() {
 
         if (isNode) {
             if (coordinates) {
-                locationHTML.innerHTML = ""
+                locationHTML.replaceChildren()
                 locationHTML.appendChild(locationA)
                 metainfoHTML.appendChild(locationHTML)
             } else {
@@ -28408,7 +28408,7 @@ async function betterUserStat() {
             if (newData) {
                 day.setAttribute("data-count", newData[0])
                 day.setAttribute("href", hrefPrefix + "/history?before=" + (newData[1] + 1))
-                day.innerHTML = ""
+                day.replaceChildren()
                 const colorDiff = document.createElement("span")
                 if (banInfo) {
                     colorDiff.style.opacity = "1"
@@ -28458,7 +28458,7 @@ async function betterUserStat() {
             } else {
                 day.removeAttribute("data-count")
                 day.setAttribute("href", "")
-                day.innerHTML = ""
+                day.replaceChildren()
                 if (day.nodeName === "A") {
                     day = replaceElementTag(day, "span")
                 }

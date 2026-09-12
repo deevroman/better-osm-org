@@ -589,7 +589,7 @@ function addUsernameBadgesOrRestoreAction(changeset_id) {
     const time = metainfoHTML.querySelector("time") ?? (isOGFServer() && metainfoHTML.querySelector("abbr"))
     if (metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')) {
         const usernameA = metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')
-        metainfoHTML.innerHTML = ""
+        metainfoHTML.replaceChildren()
         metainfoHTML.appendChild(time)
         metainfoHTML.appendChild(document.createTextNode(" "))
         metainfoHTML.appendChild(usernameA)
@@ -623,7 +623,7 @@ function addUsernameBadgesOrRestoreAction(changeset_id) {
         })
         addUserChangesetRssLink(usernameA.textContent)
     } else {
-        metainfoHTML.innerHTML = ""
+        metainfoHTML.replaceChildren()
         metainfoHTML.appendChild(time)
         const findBtn = document.createElement("span")
         findBtn.title = t("deletedUsers.tryFindDeletedUser")

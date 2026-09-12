@@ -314,7 +314,7 @@ function addAutoComplete(ta, container) {
     }
 
     function render() {
-        box.innerHTML = ""
+        box.replaceChildren()
         items.forEach((t, i) => {
             const d = document.createElement("div")
             d.textContent = t

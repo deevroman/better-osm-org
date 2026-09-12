@@ -412,7 +412,7 @@ async function betterUserStat() {
             if (newData) {
                 day.setAttribute("data-count", newData[0])
                 day.setAttribute("href", hrefPrefix + "/history?before=" + (newData[1] + 1))
-                day.innerHTML = ""
+                day.replaceChildren()
                 const colorDiff = document.createElement("span")
                 if (banInfo) {
                     colorDiff.style.opacity = "1"
@@ -462,7 +462,7 @@ async function betterUserStat() {
             } else {
                 day.removeAttribute("data-count")
                 day.setAttribute("href", "")
-                day.innerHTML = ""
+                day.replaceChildren()
                 if (day.nodeName === "A") {
                     day = replaceElementTag(day, "span")
                 }

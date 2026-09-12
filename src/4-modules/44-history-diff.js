@@ -3334,13 +3334,13 @@ function transformDiffWithColors() {
 
         if (metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')) {
             const a = metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')
-            metainfoHTML.innerHTML = ""
+            metainfoHTML.replaceChildren()
             metainfoHTML.appendChild(time)
             metainfoHTML.appendChild(document.createTextNode(" "))
             metainfoHTML.appendChild(a)
             metainfoHTML.appendChild(document.createTextNode(" "))
         } else {
-            metainfoHTML.innerHTML = ""
+            metainfoHTML.replaceChildren()
             metainfoHTML.appendChild(time)
             const findBtn = document.createElement("span")
             findBtn.classList.add("find-user-btn")
@@ -3353,7 +3353,7 @@ function transformDiffWithColors() {
             metainfoHTML.appendChild(findBtn)
         }
 
-        changesetHTML.innerHTML = ""
+        changesetHTML.replaceChildren()
         const hashtag = document.createTextNode("#")
         metainfoHTML.appendChild(hashtag)
         const changesetWrapper = document.createElement("span")
@@ -3364,7 +3364,7 @@ function transformDiffWithColors() {
 
         if (isNode) {
             if (coordinates) {
-                locationHTML.innerHTML = ""
+                locationHTML.replaceChildren()
                 locationHTML.appendChild(locationA)
                 metainfoHTML.appendChild(locationHTML)
             } else {
