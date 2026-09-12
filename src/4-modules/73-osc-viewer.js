@@ -10,12 +10,12 @@ function makeChangesetSidebar(changesetID, stat) {
     if (changesetID !== 0) {
         const h2 = document.createElement("h2")
         h2.textContent = `Changeset: ${changesetID}`
-        h2.classList.add("me-4", "text-break")
+        h2.classList.add("me-4", "text-break", "fake-sidebar-data")
         sidebar_content.appendChild(h2)
     }
 
     const wrapper = document.createElement("div")
-    wrapper.classList.add("mb-3", "border-bottom", "border-secondary-subtle", "pb-3")
+    wrapper.classList.add("mb-3", "border-bottom", "border-secondary-subtle", "pb-3", "fake-sidebar-data")
     sidebar_content.appendChild(wrapper)
     ;["way", "relation", "node"].forEach(type => {
         if (stat[type] === 0) {
@@ -74,33 +74,48 @@ async function displayOsc(xml) {
         id: 0,
         open: false,
     }
-    const stat = {
-        nodes: 0,
-        ways: 0,
-        relation: 0,
+    const changesets = Array.from(changesetsSet)
+
+    function makeEmptyStat() {
+        return {
+            node: 0,
+            way: 0,
+            relation: 0,
+        }
     }
-
+    const stat = {}
     xml.querySelectorAll(":is(node, way, relation)").forEach(i => {
-        ++stat[i.nodeName]
-        const version = convertXmlVersionToObject(i)
-        if (!i.getAttribute("changeset")) {
-            i.setAttribute("changeset", (version.changeset = 0))
+        const chId = i.getAttribute("changeset") ?? "0"
+        if (!stat[chId]) {
+            stat[chId] = makeEmptyStat()
         }
+        ++stat[chId][i.nodeName]
+        if (changesetsSet.size === 0) {
+            const version = convertXmlVersionToObject(i)
+            if (!i.getAttribute("changeset")) {
+                // need patch XML because it's will be used in QuickLook builder
+                i.setAttribute("changeset", (version.changeset = 0))
+            }
 
-        i.setAttribute("version", (version.version = parseInt(i.getAttribute("version") ?? "0") + 1))
-        i.setAttribute("timestamp", (version.timestamp = fakeDateString))
-        if (i.parentElement.nodeName === "delete") {
-            version.visible = false
-            i.setAttribute("visible", false)
+            if (i.parentElement.nodeName === "create") {
+                i.setAttribute("version", (version.version = 1))
+            } else {
+                i.setAttribute("version", (version.version = parseInt(i.getAttribute("version") ?? "0") + 1))
+            }
+            i.setAttribute("timestamp", (version.timestamp = fakeDateString))
+            if (i.parentElement.nodeName === "delete") {
+                version.visible = false
+                i.setAttribute("visible", false)
+            }
+
+            fake_histories[i.nodeName][i.getAttribute("id")] = [version]
         }
-
-        fake_histories[i.nodeName][i.getAttribute("id")] = [convertXmlVersionToObject(i)]
     })
 
-    const changesets = Array.from(changesetsSet)
     if (changesetsSet.size === 0 || changesetsSet.size === 1) {
+        // uploaded .osc or not-uploaded
         const changesetID = changesets.length === 0 ? 0 : changesets[0]
-        makeChangesetSidebar(changesetID, stat)
+        makeChangesetSidebar(changesetID, stat[changesetID])
         changesetsCache[changesetID] = {
             data: xml,
             nodesWithParentWays: new Set(Array.from(xml.querySelectorAll("way > nd")).map(i => parseInt(i.getAttribute("ref")))),
@@ -108,11 +123,11 @@ async function displayOsc(xml) {
                 Array.from(xml.querySelectorAll("way:not([version='1']) > nd")).map(i => parseInt(i.getAttribute("ref"))),
             ),
         }
-        await processQuickLookInSidebar(changesetID)
+        await processQuickLookInSidebar(changesetID.toString())
         return
     }
-
-    makeChangesetSidebar(changesets[0], stat)
+    // .osc with planet diff
+    makeChangesetSidebar(changesets[0], stat[changesets[0]])
 
     function extractChangesetData(xml, id) {
         const res = xml.cloneNode(true)

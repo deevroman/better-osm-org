@@ -1543,7 +1543,6 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
             }
             resetMapHover()
         }
-
         i.parentElement.parentElement.onmouseover = mouseoverHandler
         if ((prevVersion.tags && Object.keys(prevVersion.tags).length) || (targetVersion.tags && Object.keys(targetVersion.tags).length)) {
             // todo temp hack for potential speed up // fixme remove comment
@@ -1637,7 +1636,7 @@ async function processObjectInteractions(changesetID, objType, objectsInComments
                 }
             }
         }
-        if (!location.pathname.includes("changeset")) {
+        if (parseInt(changesetID) !== 0 && !location.pathname.includes("changeset")) {
             return
         }
         if (targetVersion.visible === false) {
@@ -2713,6 +2712,10 @@ function handleQuickLookError(err) {
     }
 }
 
+/**
+ * @param {string} changesetID
+ * @return {Promise<void>}
+ */
 async function processQuickLookInSidebar(changesetID) {
     const interceptMapManuallyPromise = interceptMapManually()
     const multipleChangesets = location.search.includes("changesets=")
@@ -3105,6 +3108,12 @@ async function processQuickLookInSidebar(changesetID) {
                 } else {
                     objectLink.textContent = object.id
                 }
+                if (object.id < 0) {
+                    objectLink.onclick = e => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                    }
+                }
                 div2.appendChild(objectLink)
 
                 div2.appendChild(document.createTextNode(", "))
@@ -3112,6 +3121,12 @@ async function processQuickLookInSidebar(changesetID) {
                 const versionLink = document.createElement("a")
                 versionLink.rel = "nofollow"
                 versionLink.href = `/${type}/${object.id}/history/${object.getAttribute("version")}`
+                if (object.id < 0) {
+                    versionLink.onclick = e => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                    }
+                }
                 versionLink.textContent = "v" + object.getAttribute("version")
                 div2.appendChild(versionLink)
 
@@ -3484,6 +3499,7 @@ function drawBBox(bbox, options = { color: "#ff7800", weight: 1, fillOpacity: 0 
 }
 
 async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) {
+    console.log("changesetIDs", changesetIDs)
     await loadChangesetMetadatas(changesetIDs)
     await zoomToChangesets()
     for (let curID of changesetIDs) {
@@ -3537,11 +3553,13 @@ async function processQuickLookForCombinedChangesets(changesetID, changesetIDs) 
         const newPrevLink = getPrevChangesetLink(doc)
         if (newPrevLink) {
             const prevLink = getPrevChangesetLink()
-            const prevID = extractChangesetID(prevLink.href)
+            if (prevLink) {
+                const prevID = extractChangesetID(prevLink.href)
 
-            const newPrevID = extractChangesetID(newPrevLink.href)
-            prevLink.childNodes[2].textContent = prevLink.childNodes[2].textContent.replace(prevID, newPrevID)
-            prevLink.href = "/changeset/" + newPrevID
+                const newPrevID = extractChangesetID(newPrevLink.href)
+                prevLink.childNodes[2].textContent = prevLink.childNodes[2].textContent.replace(prevID, newPrevID)
+                prevLink.href = "/changeset/" + newPrevID
+            }
         }
 
         const divID = document.createElement("a")
