@@ -20130,7 +20130,12 @@ function transformDiffWithColors() {
                             valCell.dir = ""
                         }
                         valCell.classList.add("history-diff-modified-tag")
-                        valCell.innerHTML = "<span class='current-value-span'>" + valCell.innerHTML + "</span>"
+
+                        const currentValueSpan = document.createElement("span")
+                        currentValueSpan.classList.add("current-value-span")
+                        currentValueSpan.append(...valCell.childNodes)
+                        valCell.replaceChildren(currentValueSpan)
+
                         valCell.onclick = e => {
                             if (e.altKey) return
                             if (window.getSelection().type === "Range") return
@@ -20145,7 +20150,6 @@ function transformDiffWithColors() {
                             }
                         }
 
-                        const currentValueSpan = i.querySelector("td .current-value-span")
                         const prevValueSpan = document.createElement("span")
                         prevValueSpan.classList.add("prev-value-span")
 
