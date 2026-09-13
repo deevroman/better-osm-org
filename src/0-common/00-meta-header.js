@@ -2,7 +2,7 @@
 // @name            Better osm.org
 // @name:ru         Better osm.org
 // @version         1.7.3
-// @changelog       v1.7.3: Notes resolve buttons in iD, Open in Vespucci action for active objects
+// @changelog       v1.7.3: Notes resolve buttons in iD, Open in Vespucci action, Drag&Drop for JSON array and .osc β
 // @changelog       v1.7.2: Direct messages templates, retries for osm-revert, ctrl + S to save active object
 // @changelog       v1.7.2: Validate building:min_level, highlight suspect words in source=*, and imagery_used=
 // @changelog       v1.7.0: Calculating the area for multipolygons and boundaries, customizable overpass api server

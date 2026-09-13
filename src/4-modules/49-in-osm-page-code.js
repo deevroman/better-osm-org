@@ -731,16 +731,16 @@ function runInOsmPageCode() {
 
                     attachMouseHandlers(layer)
                     if (feature.type === "node") {
-                        layerShadow.addTo(map);
+                        layerShadow.addTo(interceptedMapObject);
                         queueMicrotask(() => {
-                            layer.addTo(map);
+                            layer.addTo(interceptedMapObject);
                             layer.feature = feature;
                             layerShadow.feature = feature;
                             layer._path.classList.add("spy-glass-" + feature.type)
                             layer.bringToFront()
                         })
                     } else {
-                        layer.addTo(map);
+                        layer.addTo(interceptedMapObject);
                         layer.feature = feature;
                         layer._path.classList.add("spy-glass-" + feature.type)
                     }
