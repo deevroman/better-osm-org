@@ -2,7 +2,7 @@
 // @name            Better osm.org
 // @name:ru         Better osm.org
 // @version         1.7.3
-// @changelog       v1.7.3: Notes resolve buttons in iD, Open in Vespucci action for active objects
+// @changelog       v1.7.3: Notes resolve buttons in iD, Open in Vespucci action, Drag&Drop for JSON array and .osc β
 // @changelog       v1.7.2: Direct messages templates, retries for osm-revert, ctrl + S to save active object
 // @changelog       v1.7.2: Validate building:min_level, highlight suspect words in source=*, and imagery_used=
 // @changelog       v1.7.0: Calculating the area for multipolygons and boundaries, customizable overpass api server
@@ -27215,16 +27215,16 @@ function runInOsmPageCode() {
 
                     attachMouseHandlers(layer)
                     if (feature.type === "node") {
-                        layerShadow.addTo(map);
+                        layerShadow.addTo(interceptedMapObject);
                         queueMicrotask(() => {
-                            layer.addTo(map);
+                            layer.addTo(interceptedMapObject);
                             layer.feature = feature;
                             layerShadow.feature = feature;
                             layer._path.classList.add("spy-glass-" + feature.type)
                             layer.bringToFront()
                         })
                     } else {
-                        layer.addTo(map);
+                        layer.addTo(interceptedMapObject);
                         layer.feature = feature;
                         layer._path.classList.add("spy-glass-" + feature.type)
                     }
@@ -30827,7 +30827,7 @@ function renderGeoJSONwrapper(geojson) {
                 return L.circleMarker(latlng)
             }
         });
-        jsonLayer.addTo(map);
+        jsonLayer.addTo(interceptedMapObject);
     }
     `)
     getWindow().renderGeoJSON(intoPage(geojson))
@@ -31927,6 +31927,36 @@ function displayCsv(text) {
     }
 }
 
+function displayJsonArray(json) {
+    /** @type {import("geojson").GeoJSON} */
+    const geojson = {
+        type: "FeatureCollection",
+        features: [],
+    }
+    for (const i of json) {
+        /** @type {import("geojson").Feature} */
+        const feature = {
+            type: "Feature",
+            geometry: {
+                type: "Point",
+                coordinates: [null, null],
+            },
+            properties: {},
+        }
+        for (let [k, v] of Object.entries(i)) {
+            if (k === "lon" || k === "longitude") {
+                feature.geometry.coordinates[0] = v
+            } else if (k === "lat" || k === "latitude") {
+                feature.geometry.coordinates[1] = v
+            }
+            feature.properties[k] = v
+        }
+        geojson.features.push(feature)
+    }
+    debugger
+    renderGeoJSONwrapper(geojson)
+}
+
 function handleDroppedFiles(files) {
     const mapWidth = getComputedStyle(document.querySelector("#map")).width
     const mapHeight = getComputedStyle(document.querySelector("#map")).height
@@ -31975,7 +32005,11 @@ function handleDroppedFiles(files) {
             file.name.endsWith(".json")
         ) {
             const geojson = JSON.parse(await file.text())
-            renderGeoJSONwrapper(geojson)
+            if (Array.isArray(geojson)) {
+                displayJsonArray(geojson)
+            } else {
+                renderGeoJSONwrapper(geojson)
+            }
         } else if (file.type === "application/gpx+xml" || file.name.endsWith(".gpx")) {
             displayGPXTrack(await file.text())
         } else if (file.type === "application/vnd.openstreetmap.data+xml" || file.name.endsWith(".osm")) {

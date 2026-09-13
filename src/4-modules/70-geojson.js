@@ -237,7 +237,7 @@ function renderGeoJSONwrapper(geojson) {
                 return L.circleMarker(latlng)
             }
         });
-        jsonLayer.addTo(map);
+        jsonLayer.addTo(interceptedMapObject);
     }
     `)
     getWindow().renderGeoJSON(intoPage(geojson))
