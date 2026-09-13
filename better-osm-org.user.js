@@ -29973,14 +29973,28 @@ async function loadCurrentLinksList() {
     })
 }
 
+/**
+ * @param template
+ * @return {{url: string, error: null}|{url: null, error: string}}
+ */
 function makeUrlFromTemplate(template) {
-    return template.replaceAll(/\{([a-z_]+)}/g, (match, m1) => {
+    let error = null
+    let url = template.replaceAll(/\{([a-z_]+)}/g, (match, m1) => {
         const res = urlTemplateContext[m1]
         if (res !== undefined) {
             return res
         }
-        throw `failed to substitute "${m1}" on current page` // todo избавиться от throw
+        error = `failed to substitute "${m1}" on current page`
     })
+    if (error) {
+        return { url: null, error }
+    }
+    try {
+        url = new URL(url).toString()
+    } catch (err) {
+        return { url: null, error }
+    }
+    return { url: url, error: null }
 }
 
 function processExternalLink(link, firstRun, editorsListUl, isUserLink, index) {
@@ -30077,40 +30091,39 @@ function processExternalLink(link, firstRun, editorsListUl, isUserLink, index) {
             }
         }
     }
-    let actualHref
-    try {
-        // href needs to be normalized
-        actualHref = new URL(makeUrlFromTemplate(newElem.getAttribute("url-template"))).toString()
-    } catch (e) {
+
+    const { url: actualHref, error } = makeUrlFromTemplate(newElem.getAttribute("url-template"))
+    if (error) {
         if (newElem) {
             newElem.classList.add("invalid-external-link")
         }
         if (isMobile) {
             newElem.style.overflowY = "scroll"
         }
-        const errorText = ` (${e})`
+        const errorText = ` (${error})`
         if (resultBox && resultBox.textContent !== errorText) {
-            resultBox.textContent = ` (${e})`
+            resultBox.textContent = ` (${error})`
         }
         newElem.onclick = e => {
             if (newElem.classList.contains("invalid-external-link")) {
                 e.preventDefault()
             }
         }
-        return
-    } finally {
-        if (!alreadyAdded) {
-            if (isUserLink) {
-                const lastLink = Array.from(editorsListUl.querySelectorAll(".user-external-link")).at(-1)
-                if (lastLink) {
-                    lastLink.after(newElem)
-                } else {
-                    editorsListUl.appendChild(newElem)
-                }
+    }
+    if (!alreadyAdded) {
+        if (isUserLink) {
+            const lastLink = Array.from(editorsListUl.querySelectorAll(".user-external-link")).at(-1)
+            if (lastLink) {
+                lastLink.after(newElem)
             } else {
                 editorsListUl.appendChild(newElem)
             }
+        } else {
+            editorsListUl.appendChild(newElem)
         }
+    }
+    if (error) {
+        return
     }
     newElem.classList.remove("invalid-external-link")
     const a = newElem.querySelector("a")
