@@ -740,7 +740,7 @@ function addButtonIntoRightButtonsList(linksMenuClickHandler) {
             const actionsBtn = document.querySelector(".control-query").cloneNode(true)
             actionsBtn.classList.remove("control-query")
             actionsBtn.id = "open-external-panel-btn"
-            actionsBtn.querySelector("a").innerHTML = toolsIconSvg
+            insertSvg(actionsBtn.querySelector("a"), "tools")
             actionsBtn.querySelector("svg").setAttribute("stroke-width", "1.75")
             actionsBtn.querySelector("svg").setAttribute("width", 20)
             actionsBtn.querySelector("svg").setAttribute("height", 20)

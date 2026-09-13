@@ -1053,7 +1053,7 @@ function addNotesFiltersButtons() {
     const downloadNotes = document.createElement("span")
     downloadNotes.id = "download-notes"
     downloadNotes.title = t("notes.downloadVisibleNotesAsKmlTitle")
-    downloadNotes.innerHTML = downloadSvg
+    insertSvg(downloadNotes, "download")
     downloadNotes.querySelector("svg").style.marginTop = "-3px"
     downloadNotes.style.opacity = "0.5"
     downloadNotes.style.cursor = "pointer"

@@ -204,7 +204,7 @@ function addMassActionForUserChangesets() {
     }
     const username = decodeURI(location.pathname.match(/\/user\/(.*)\/history$/)[1])
     const osmchaLink = document.createElement("a")
-    osmchaLink.innerHTML = osmchaSvgLogo
+    insertSvg(osmchaLink, "osmchaLogo")
     osmchaLink.id = "osmcha_link"
     osmchaLink.title = t("osmcha.openProfileInOsmcha")
     osmchaLink.href = makeOsmchaLinkForUsername(username)
@@ -439,7 +439,7 @@ function makeUsernamesFilterable(usernameLink) {
     usernameLink.classList.add("listen-for-filters")
 
     const filterIcon = document.createElement("span")
-    filterIcon.innerHTML = filterIconSvg
+    insertSvg(filterIcon, "filterIcon")
     filterIcon.classList.add("filter-username-btn")
     filterIcon.style.cursor = "pointer"
     filterIcon.style.position = "relative"

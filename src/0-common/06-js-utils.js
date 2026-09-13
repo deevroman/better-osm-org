@@ -13,6 +13,18 @@ function injectJSIntoPage(text) {
 }
 
 /**
+ * @param {Element} elem
+ * @param {keyof typeof svg} name
+ */
+function insertSvg(elem, name) {
+    if (!Object.hasOwn(svg, name)) {
+        throw new TypeError(`Unknown SVG: ${name}`)
+    }
+
+    elem.innerHTML = svg[name]
+}
+
+/**
  * @param {string} text
  */
 function injectCSSIntoOSMPage(text) {

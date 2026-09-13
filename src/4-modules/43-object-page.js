@@ -18,7 +18,7 @@ function makeElementHistoryCompact(forceState = null) {
         i.classList.toggle("d-none", shouldBeCompact)
     })
     document.querySelector(".compact-toggle-btn").setAttribute("value", shouldBeCompact ? "<>" : "><")
-    document.querySelector(".compact-toggle-btn").innerHTML = shouldBeCompact ? expandModeSvg : compactModeSvg
+    insertSvg(document.querySelector(".compact-toggle-btn"), shouldBeCompact ? "expandMode" : "compactMode")
 }
 
 function drawPanoramaxCapturePlace(feature) {
@@ -1104,7 +1104,7 @@ function makeLinksInVersionTagClickable(row, objType) {
             piste: "slopes",
         }[value]
         const relationViewer = document.createElement("a")
-        relationViewer.innerHTML = externalLinkSvg
+        insertSvg(relationViewer, "externalLink")
         relationViewer.classList.add("route-viewer-link")
         relationViewer.style.cursor = "pointer"
         relationViewer.style.paddingLeft = "5px"
@@ -1140,7 +1140,7 @@ function makeLinksInVersionTagClickable(row, objType) {
             return
         }
         const relationViewer = document.createElement("a")
-        relationViewer.innerHTML = externalLinkSvg
+        insertSvg(relationViewer, "externalLink")
         relationViewer.classList.add("route-viewer-link")
         relationViewer.style.cursor = "pointer"
         relationViewer.style.paddingLeft = "8px"
@@ -1152,7 +1152,7 @@ function makeLinksInVersionTagClickable(row, objType) {
         relationViewer.rel = "noreferrer"
 
         const relationEditor = document.createElement("a")
-        relationEditor.innerHTML = pencilLinkSvg
+        insertSvg(relationEditor, "pencilLink")
         relationEditor.classList.add("route-viewer-link")
         relationEditor.style.cursor = "pointer"
         relationEditor.style.paddingLeft = "5px"

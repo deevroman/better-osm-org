@@ -554,9 +554,9 @@ function renderOSMGeoJSON(xml, options = {}) {
             modeBtn.classList.add("visible")
 
             if (lastEditMode === "table") {
-                modeBtn.innerHTML = rawEditSvg
+                insertSvg(modeBtn, "rawEdit")
             } else {
-                modeBtn.innerHTML = tableEditSvg
+                insertSvg(modeBtn, "tableEdit")
                 const textarea = table.querySelector("textarea")
                 textarea.setAttribute("disabled", "true")
                 textarea.value = ""
@@ -571,14 +571,14 @@ function renderOSMGeoJSON(xml, options = {}) {
             modeBtn.onclick = async e => {
                 e.stopPropagation()
                 if (lastEditMode === "table") {
-                    modeBtn.innerHTML = tableEditSvg
+                    insertSvg(modeBtn, "tableEdit")
                     lastEditMode = "raw"
                     await GM.setValue("lastEditMode", lastEditMode)
 
                     table.appendChild(makeTextareaFromTagsTable(table))
                     table.querySelector("tbody")?.remove()
                 } else {
-                    modeBtn.innerHTML = rawEditSvg
+                    insertSvg(modeBtn, "rawEdit")
                     lastEditMode = "table"
                     await GM.setValue("lastEditMode", lastEditMode)
 

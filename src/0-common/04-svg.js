@@ -174,4 +174,32 @@ const downloadSvg =
     'class="lucide lucide-arrow-down-to-line-icon lucide-arrow-down-to-line">' +
     '<path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/></svg>'
 
+const svg = Object.freeze({
+    filterIcon: filterIconSvg,
+    tag: tagSvg,
+    osmchaLogo: osmchaSvgLogo,
+    comment: commentSvg,
+    diff: diffSvg,
+    fitToObject: fitToObjectSvg,
+    externalLink: externalLinkSvg,
+    pencilLink: pencilLinkSvg,
+    compactMode: compactModeSvg,
+    expandMode: expandModeSvg,
+    copyBtn: copyBtnSvg,
+    tools: toolsIconSvg,
+    rawEdit: rawEditSvg,
+    tableEdit: tableEditSvg,
+    download: downloadSvg,
+    moderatorBadge:
+        '<svg width="20" height="20">' +
+        '<path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#447eff"' +
+        ' stroke="#447eff" stroke-width="2" stroke-linejoin="round"></path>' +
+        "</svg>",
+    importerBadge:
+        '<svg width="20" height="20">' +
+        '<path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#38e13a"' +
+        ' stroke="#38e13a" stroke-width="2" stroke-linejoin="round"></path>' +
+        "</svg>",
+})
+
 //</editor-fold>
