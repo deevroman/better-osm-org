@@ -174,6 +174,12 @@ const downloadSvg =
     'class="lucide lucide-arrow-down-to-line-icon lucide-arrow-down-to-line">' +
     '<path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/></svg>'
 
+const closeBtnSvg =
+    '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">' +
+    '  <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 ' +
+    '0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>' +
+    "</svg>"
+
 const svg = Object.freeze({
     filterIcon: filterIconSvg,
     tag: tagSvg,
@@ -190,6 +196,7 @@ const svg = Object.freeze({
     rawEdit: rawEditSvg,
     tableEdit: tableEditSvg,
     download: downloadSvg,
+    close: closeBtnSvg,
     moderatorBadge:
         '<svg width="20" height="20">' +
         '<path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#447eff"' +
@@ -207,8 +214,20 @@ const svg = Object.freeze({
  * "filterIcon" | "tag" | "osmchaLogo" | "comment" | "diff" |
  * "fitToObject" | "externalLink" | "pencilLink" | "compactMode" |
  * "expandMode" | "copyBtn" | "tools" | "rawEdit" | "tableEdit" |
- * "download" | "moderatorBadge" | "importerBadge"
+ * "download" | "moderatorBadge" | "importerBadge" | "close"
  * } SvgName
  */
+
+/**
+ * @param {Element} elem
+ * @param {SvgName} name
+ */
+function insertSvg(elem, name) {
+    if (!Object.hasOwn(svg, name)) {
+        throw new TypeError(`Unknown SVG: ${name}`)
+    }
+
+    elem.innerHTML = svg[name]
+}
 
 //</editor-fold>
