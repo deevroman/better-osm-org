@@ -21,7 +21,8 @@ function setupWiki() {
     const opposeSymbolQuery = '[href="/wiki/File:Symbol_oppose_vote.svg"]'
     const abstainSymbolQuery = '[href="/wiki/File:Symbol_abstain_vote.svg"]'
     let hasDupeVotes = false
-    for (const ul of document.querySelectorAll(":is(h1,h2):has(#Voting) ~ ul")) {
+    let invalidVotes = 0
+    for (const ul of document.querySelectorAll(".mw-heading:has(:is(h1,h2)#Voting) ~ ul")) {
         for (const li of ul.querySelectorAll('li:has([typeof="mw:File"])')) {
             const anchors = Array.from(li.querySelectorAll(":scope > a"))
             const who = (anchors.at(-2) ?? anchors.at(-1)).textContent
@@ -32,8 +33,8 @@ function setupWiki() {
             } else if (li.querySelectorAll(abstainSymbolQuery).length === 1) {
                 hasDupeVotes |= !addToList(abstainList, who, "abstain")
             } else {
+                invalidVotes++
                 console.error("invalid data for", li)
-                return
             }
         }
     }
@@ -77,7 +78,14 @@ function setupWiki() {
     abstain.insertCell().appendChild(document.createTextNode(`${abstainList.size}`))
     abstain.insertCell().appendChild(document.createTextNode(``))
 
-    Array.from(document.querySelectorAll(":is(h2,h1):has(#Voting) ~ :is(ul,dl)")).at(-1).after(results)
+    if (invalidVotes) {
+        const invalid = results.insertRow()
+        invalid.insertCell().appendChild(document.createTextNode(`⚠️`))
+        invalid.insertCell().appendChild(document.createTextNode(`${invalidVotes}`))
+        invalid.insertCell().appendChild(document.createTextNode(``))
+    }
+
+    Array.from(document.querySelectorAll(".mw-heading2:has(:is(h2,h1)#Voting) ~ :is(ul,dl)")).at(-1).after(results)
     results.before(document.createElement("br"))
     results.before(document.createTextNode(t("wiki.interimResults")))
 }
