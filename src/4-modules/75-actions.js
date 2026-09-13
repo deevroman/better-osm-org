@@ -59,10 +59,10 @@ function enableOverzoom() {
 
     injectJSIntoPage(`
     (function () {
-        if (map && map.options) {
-            map.options.maxZoom = 22
+        if (interceptedMapObject && interceptedMapObject.options) {
+            interceptedMapObject.options.maxZoom = 22
             const layers = [];
-            map.eachLayer(i => layers.push(i))
+            interceptedMapObject.eachLayer(i => layers.push(i))
             layers[0].options.maxZoom = 22
         } else {
             console.warn("overzoom not enabled")
@@ -100,9 +100,9 @@ function disableOverzoom() {
     ESRIBetaTemplate = ESRIBetaPrefix + "{z}/{y}/{x}"
     injectJSIntoPage(`
     (function () {
-        map.options.maxZoom = 19
+        interceptedMapObject.options.maxZoom = 19
         const layers = [];
-        map.eachLayer(i => layers.push(i))
+        interceptedMapObject.eachLayer(i => layers.push(i))
         layers[0].options.maxZoom = 19
     })()
     `)
