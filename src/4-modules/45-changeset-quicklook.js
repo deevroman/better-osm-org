@@ -3142,7 +3142,9 @@ async function processQuickLookInSidebar(changesetID) {
                     }
                 })
                 if (object.getAttribute("visible") === "false") {
-                    div2.innerHTML = "<s>" + div2.innerHTML + "</s>"
+                    const strike = document.createElement("s")
+                    strike.append(...div2.childNodes)
+                    div2.replaceChildren(strike)
                 }
                 objectsUl.appendChild(ulItem)
             })
