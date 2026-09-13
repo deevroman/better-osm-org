@@ -501,7 +501,7 @@ function runInOsmPageCode() {
                     originalJSON.elements?.forEach(i => {
                         reverseIndex[i.type + i.id] = i
                     })
-                    map.dataLayer.on('layeradd', e => {
+                    interceptedMapObject.dataLayer.on('layeradd', e => {
                         // if (e.layer.feature.tags["name"] && e.layer.feature.tags["landuse"]) {
                         //     e.layer.bindTooltip(
                         //         e.layer.feature.tags["name"],
@@ -595,9 +595,9 @@ function runInOsmPageCode() {
                 }
                 rightPopup.style.zIndex = "99"
                 // todo clean prev handler
-                map.dataLayer.clearLayers()
+                interceptedMapObject.dataLayer.clearLayers()
 
-                const features = map.dataLayer.buildFeatures(originalJSON)
+                const features = interceptedMapObject.dataLayer.buildFeatures(originalJSON)
                 const nodes = features.filter(i => i.type === "node")
                 const other = features.filter(i => i.type !== "node")
                 for (const feature of [...other, ...nodes]) {
@@ -628,7 +628,7 @@ function runInOsmPageCode() {
                             latLngs[j] = feature.nodes[j].latLng;
                         }
 
-                        if (map.dataLayer.isWayArea(feature)) {
+                        if (interceptedMapObject.dataLayer.isWayArea(feature)) {
                             latLngs.pop();
                             layer = L.polygon(latLngs, {
                                 color: "black",

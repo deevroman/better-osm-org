@@ -26985,7 +26985,7 @@ function runInOsmPageCode() {
                     originalJSON.elements?.forEach(i => {
                         reverseIndex[i.type + i.id] = i
                     })
-                    map.dataLayer.on('layeradd', e => {
+                    interceptedMapObject.dataLayer.on('layeradd', e => {
                         // if (e.layer.feature.tags["name"] && e.layer.feature.tags["landuse"]) {
                         //     e.layer.bindTooltip(
                         //         e.layer.feature.tags["name"],
@@ -27079,9 +27079,9 @@ function runInOsmPageCode() {
                 }
                 rightPopup.style.zIndex = "99"
                 // todo clean prev handler
-                map.dataLayer.clearLayers()
+                interceptedMapObject.dataLayer.clearLayers()
 
-                const features = map.dataLayer.buildFeatures(originalJSON)
+                const features = interceptedMapObject.dataLayer.buildFeatures(originalJSON)
                 const nodes = features.filter(i => i.type === "node")
                 const other = features.filter(i => i.type !== "node")
                 for (const feature of [...other, ...nodes]) {
@@ -27112,7 +27112,7 @@ function runInOsmPageCode() {
                             latLngs[j] = feature.nodes[j].latLng;
                         }
 
-                        if (map.dataLayer.isWayArea(feature)) {
+                        if (interceptedMapObject.dataLayer.isWayArea(feature)) {
                             latLngs.pop();
                             layer = L.polygon(latLngs, {
                                 color: "black",
@@ -32167,10 +32167,10 @@ function enableOverzoom() {
 
     injectJSIntoPage(`
     (function () {
-        if (map && map.options) {
-            map.options.maxZoom = 22
+        if (interceptedMapObject && interceptedMapObject.options) {
+            interceptedMapObject.options.maxZoom = 22
             const layers = [];
-            map.eachLayer(i => layers.push(i))
+            interceptedMapObject.eachLayer(i => layers.push(i))
             layers[0].options.maxZoom = 22
         } else {
             console.warn("overzoom not enabled")
@@ -32208,9 +32208,9 @@ function disableOverzoom() {
     ESRIBetaTemplate = ESRIBetaPrefix + "{z}/{y}/{x}"
     injectJSIntoPage(`
     (function () {
-        map.options.maxZoom = 19
+        interceptedMapObject.options.maxZoom = 19
         const layers = [];
-        map.eachLayer(i => layers.push(i))
+        interceptedMapObject.eachLayer(i => layers.push(i))
         layers[0].options.maxZoom = 19
     })()
     `)
