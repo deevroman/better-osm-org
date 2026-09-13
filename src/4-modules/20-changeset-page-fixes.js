@@ -27,7 +27,7 @@ function makeUsernameInNotesFilterable() {
     usernameLink.classList.add("filterable")
     const username = decodeURI(usernameLink.getAttribute("href").match(/\/user\/(.*)$/)[1])
     const filterIcon = document.createElement("span")
-    filterIcon.innerHTML = filterIconSvg
+    insertSvg(filterIcon, "filterIcon")
     filterIcon.style.cursor = "pointer"
     filterIcon.style.position = "relative"
     filterIcon.style.top = "-2px"
@@ -363,12 +363,12 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             spanWrapper.title = t("changesetPageFixes.osmchaReviewTag")
             spanWrapper.style.marginBottom = "3px"
             spanWrapper.style.position = "relative"
-            spanWrapper.innerHTML = tagSvg
-            const svg = spanWrapper.querySelector("svg")
-            svg.style.position = "absolute"
-            svg.style.top = json["properties"]["check_user"] ? "24px" : "24px"
-            svg.style.left = "-10px"
-            svg.style.color = "gray"
+            insertSvg(spanWrapper, "tag")
+            const svgElem = spanWrapper.querySelector("svg")
+            svgElem.style.position = "absolute"
+            svgElem.style.top = json["properties"]["check_user"] ? "24px" : "24px"
+            svgElem.style.left = "-10px"
+            svgElem.style.color = "gray"
 
             const span = document.createElement("span")
             span.style.top = json["properties"]["check_user"] ? "24px" : "24px"
@@ -711,7 +711,7 @@ function addRevertButton() {
         // prettier-ignore
         sidebar.innerHTML +=
             ` <a href="${osm_revert_origin}/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="${reverterTitle}">↩️</a>
-              <a href="${osmcha_server_origin}/changesets/${changeset_id}" id="osmcha_link" target="_blank" rel="noreferrer">${osmchaSvgLogo}</a>`
+              <a href="${osmcha_server_origin}/changesets/${changeset_id}" id="osmcha_link" target="_blank" rel="noreferrer">${svg.osmchaLogo}</a>`
         changesetObjectsSelectionModeEnabled = false
         document.querySelector("#revert_button_class").onclick = async e => {
             if (changesetObjectsSelectionModeEnabled) {
@@ -1301,7 +1301,7 @@ function setupCompactChangesetsHistory() {
             }
             const changesBadge = badgesDiv.querySelector("span:not(.changeset_num_comments) svg")
             if (changesBadge && !changesBadge.classList.contains("better-diff-icon")) {
-                changesBadge.outerHTML = diffSvg
+                changesBadge.outerHTML = svg.diff
                 changesBadge.style.position = "relative"
                 changesBadge.style.top = "3px"
             }
@@ -1326,7 +1326,7 @@ function setupCompactChangesetsHistory() {
         for (const elem of document.querySelectorAll("ol li:not(:has(.comment)):not(.comments-loaded)")) {
             elem.classList.add("comments-loaded")
             const commentsBadge = elem.querySelector(".changeset_num_comments")
-            commentsBadge.querySelector("i").outerHTML = commentSvg
+            commentsBadge.querySelector("i").outerHTML = svg.comment
             const commentsCount = parseInt(commentsBadge.firstChild.textContent.trim())
             if (commentsCount) {
                 if (commentsCount > 3) {
@@ -1357,12 +1357,12 @@ function setupCompactChangesetsHistory() {
                         commentElem.appendChild(userLink)
                         getCachedUserInfo(comment["user"]).then(res => {
                             const badge = makeBadge(res /* fixme */)
-                            const svg = badge.querySelector("svg")
-                            if (svg) {
+                            const svgElem = badge.querySelector("svg")
+                            if (svgElem) {
                                 badge.style.marginLeft = "-4px"
                                 badge.style.height = "1rem"
                                 badge.style.float = "left"
-                                svg.style.transform = "scale(0.7)"
+                                svgElem.style.transform = "scale(0.7)"
                             }
                             userLink.before(badge)
                         })

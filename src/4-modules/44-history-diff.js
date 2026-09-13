@@ -3790,7 +3790,7 @@ function addDiffInHistory(reason = "url_change") {
         const compactToggle = document.createElement("button")
         compactToggle.title = t("historyDiff.toggleCompactTagsDiff")
         compactToggle.setAttribute("value", "><")
-        compactToggle.innerHTML = compactModeSvg
+        insertSvg(compactToggle, "compactMode")
         compactToggle.classList.add("compact-toggle-btn")
         compactToggle.classList.add("btn", "btn-primary", "btn-sm")
         compactToggle.onclick = () => makeElementHistoryCompact()

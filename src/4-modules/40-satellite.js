@@ -903,7 +903,7 @@ async function askCustomTileUrl() {
         const externalLink = document.createElement("a")
         externalLink.title = t("satellite.openMapLayerHomePage")
         externalLink.setAttribute("href", about)
-        externalLink.innerHTML = externalLinkSvg
+        insertSvg(externalLink, "externalLink")
         externalLink.style.marginLeft = "auto"
         externalLink.style.marginRight = "2px"
         externalLink.style.color = "gray"

@@ -166,7 +166,7 @@ function addGPXFiltersButtons() {
                             downloadBtn.onmouseenter = hoverHandler
 
                             downloadBtn.textContent = "⧈"
-                            downloadBtn.innerHTML = fitToObjectSvg
+                            insertSvg(downloadBtn, "fitToObject")
                             downloadBtn.style.cursor = "pointer"
                             downloadBtn.title = t("gpxFilter.clickToZoomTrack")
                             downloadBtn.onclick = () => {

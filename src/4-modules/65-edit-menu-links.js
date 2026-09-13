@@ -743,10 +743,10 @@ async function _setupNewEditorsLinks(mutationsList) {
             linksBtn.removeAttribute("data-bs-target")
             linksBtn.removeAttribute("data-bs-toggle")
             linksBtn.title = t("editMenuLinks.openPlaceExternalWebsite")
-            linksBtn.innerHTML = externalLinkSvg
-            const svg = linksBtn.querySelector("svg")
-            svg.setAttribute("width", 20)
-            svg.setAttribute("height", 20)
+            insertSvg(linksBtn, "externalLink")
+            const svgElem = linksBtn.querySelector("svg")
+            svgElem.setAttribute("width", 20)
+            svgElem.setAttribute("height", 20)
             langSwitchBtn.before(linksBtn)
 
             function linksMenuClickHandler(e) {

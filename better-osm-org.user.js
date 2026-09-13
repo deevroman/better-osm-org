@@ -5879,6 +5879,34 @@ const downloadSvg =
     'class="lucide lucide-arrow-down-to-line-icon lucide-arrow-down-to-line">' +
     '<path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/></svg>'
 
+const svg = Object.freeze({
+    filterIcon: filterIconSvg,
+    tag: tagSvg,
+    osmchaLogo: osmchaSvgLogo,
+    comment: commentSvg,
+    diff: diffSvg,
+    fitToObject: fitToObjectSvg,
+    externalLink: externalLinkSvg,
+    pencilLink: pencilLinkSvg,
+    compactMode: compactModeSvg,
+    expandMode: expandModeSvg,
+    copyBtn: copyBtnSvg,
+    tools: toolsIconSvg,
+    rawEdit: rawEditSvg,
+    tableEdit: tableEditSvg,
+    download: downloadSvg,
+    moderatorBadge:
+        '<svg width="20" height="20">' +
+        '<path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#447eff"' +
+        ' stroke="#447eff" stroke-width="2" stroke-linejoin="round"></path>' +
+        "</svg>",
+    importerBadge:
+        '<svg width="20" height="20">' +
+        '<path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#38e13a"' +
+        ' stroke="#38e13a" stroke-width="2" stroke-linejoin="round"></path>' +
+        "</svg>",
+})
+
 //</editor-fold>
 
 //<editor-fold desc="colors" defaultstate="collapsed">
@@ -6033,6 +6061,18 @@ function injectJSIntoPage(text) {
     GM_addElement("script", {
         textContent: text,
     })
+}
+
+/**
+ * @param {Element} elem
+ * @param {keyof typeof svg} name
+ */
+function insertSvg(elem, name) {
+    if (!Object.hasOwn(svg, name)) {
+        throw new TypeError(`Unknown SVG: ${name}`)
+    }
+
+    elem.innerHTML = svg[name]
 }
 
 /**
@@ -8776,7 +8816,7 @@ function makeUsernameInNotesFilterable() {
     usernameLink.classList.add("filterable")
     const username = decodeURI(usernameLink.getAttribute("href").match(/\/user\/(.*)$/)[1])
     const filterIcon = document.createElement("span")
-    filterIcon.innerHTML = filterIconSvg
+    insertSvg(filterIcon, "filterIcon")
     filterIcon.style.cursor = "pointer"
     filterIcon.style.position = "relative"
     filterIcon.style.top = "-2px"
@@ -9112,12 +9152,12 @@ function addOsmchaButtons(changeset_id, reactionsContainer) {
             spanWrapper.title = t("changesetPageFixes.osmchaReviewTag")
             spanWrapper.style.marginBottom = "3px"
             spanWrapper.style.position = "relative"
-            spanWrapper.innerHTML = tagSvg
-            const svg = spanWrapper.querySelector("svg")
-            svg.style.position = "absolute"
-            svg.style.top = json["properties"]["check_user"] ? "24px" : "24px"
-            svg.style.left = "-10px"
-            svg.style.color = "gray"
+            insertSvg(spanWrapper, "tag")
+            const svgElem = spanWrapper.querySelector("svg")
+            svgElem.style.position = "absolute"
+            svgElem.style.top = json["properties"]["check_user"] ? "24px" : "24px"
+            svgElem.style.left = "-10px"
+            svgElem.style.color = "gray"
 
             const span = document.createElement("span")
             span.style.top = json["properties"]["check_user"] ? "24px" : "24px"
@@ -9460,7 +9500,7 @@ function addRevertButton() {
         // prettier-ignore
         sidebar.innerHTML +=
             ` <a href="${osm_revert_origin}/?changesets=${changeset_id}" target=_blank rel="noreferrer" id=revert_button_class title="${reverterTitle}">↩️</a>
-              <a href="${osmcha_server_origin}/changesets/${changeset_id}" id="osmcha_link" target="_blank" rel="noreferrer">${osmchaSvgLogo}</a>`
+              <a href="${osmcha_server_origin}/changesets/${changeset_id}" id="osmcha_link" target="_blank" rel="noreferrer">${svg.osmchaLogo}</a>`
         changesetObjectsSelectionModeEnabled = false
         document.querySelector("#revert_button_class").onclick = async e => {
             if (changesetObjectsSelectionModeEnabled) {
@@ -10050,7 +10090,7 @@ function setupCompactChangesetsHistory() {
             }
             const changesBadge = badgesDiv.querySelector("span:not(.changeset_num_comments) svg")
             if (changesBadge && !changesBadge.classList.contains("better-diff-icon")) {
-                changesBadge.outerHTML = diffSvg
+                changesBadge.outerHTML = svg.diff
                 changesBadge.style.position = "relative"
                 changesBadge.style.top = "3px"
             }
@@ -10075,7 +10115,7 @@ function setupCompactChangesetsHistory() {
         for (const elem of document.querySelectorAll("ol li:not(:has(.comment)):not(.comments-loaded)")) {
             elem.classList.add("comments-loaded")
             const commentsBadge = elem.querySelector(".changeset_num_comments")
-            commentsBadge.querySelector("i").outerHTML = commentSvg
+            commentsBadge.querySelector("i").outerHTML = svg.comment
             const commentsCount = parseInt(commentsBadge.firstChild.textContent.trim())
             if (commentsCount) {
                 if (commentsCount > 3) {
@@ -10106,12 +10146,12 @@ function setupCompactChangesetsHistory() {
                         commentElem.appendChild(userLink)
                         getCachedUserInfo(comment["user"]).then(res => {
                             const badge = makeBadge(res /* fixme */)
-                            const svg = badge.querySelector("svg")
-                            if (svg) {
+                            const svgElem = badge.querySelector("svg")
+                            if (svgElem) {
                                 badge.style.marginLeft = "-4px"
                                 badge.style.height = "1rem"
                                 badge.style.float = "left"
-                                svg.style.transform = "scale(0.7)"
+                                svgElem.style.transform = "scale(0.7)"
                             }
                             userLink.before(badge)
                         })
@@ -10418,17 +10458,6 @@ const BAN_EMOJI = "⛔️"
 const REVIEW_REQUESTED_EMOJI = "🙏"
 const NEWBIE_EMOJI = "🍼"
 
-const moderatorBadgeSvg =
-    '<svg width="20" height="20">' +
-    '<path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#447eff"' +
-    ' stroke="#447eff" stroke-width="2" stroke-linejoin="round"></path>' +
-    "</svg>"
-const importerBadgeSvg =
-    '<svg width="20" height="20">' +
-    '<path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#38e13a"' +
-    ' stroke="#38e13a" stroke-width="2" stroke-linejoin="round"></path>' +
-    "</svg>"
-
 async function loadFriends() {
     console.debug("Loading friends list")
     const res = await (await fetch(osm_server.url + "/dashboard")).text()
@@ -10470,7 +10499,7 @@ function makeBadge(userInfo, changesetDate = new Date()) {
         userBadge.style.position = "relative"
         userBadge.style.bottom = "2px"
         userBadge.title = t("userBadges.userModerator")
-        userBadge.innerHTML = moderatorBadgeSvg
+        insertSvg(userBadge, "moderatorBadge")
         userBadge.querySelector("svg").style.transform = "scale(0.9)"
     }
 
@@ -10478,7 +10507,7 @@ function makeBadge(userInfo, changesetDate = new Date()) {
         userBadge.style.position = "relative"
         userBadge.style.bottom = "2px"
         userBadge.title = t("userBadges.userImporter")
-        userBadge.innerHTML = importerBadgeSvg
+        insertSvg(userBadge, "importerBadge")
         userBadge.querySelector("svg").style.transform = "scale(0.9)"
     }
 
@@ -12138,7 +12167,7 @@ function addNotesFiltersButtons() {
     const downloadNotes = document.createElement("span")
     downloadNotes.id = "download-notes"
     downloadNotes.title = t("notes.downloadVisibleNotesAsKmlTitle")
-    downloadNotes.innerHTML = downloadSvg
+    insertSvg(downloadNotes, "download")
     downloadNotes.querySelector("svg").style.marginTop = "-3px"
     downloadNotes.style.opacity = "0.5"
     downloadNotes.style.cursor = "pointer"
@@ -12430,7 +12459,7 @@ function addGPXFiltersButtons() {
                             downloadBtn.onmouseenter = hoverHandler
 
                             downloadBtn.textContent = "⧈"
-                            downloadBtn.innerHTML = fitToObjectSvg
+                            insertSvg(downloadBtn, "fitToObject")
                             downloadBtn.style.cursor = "pointer"
                             downloadBtn.title = t("gpxFilter.clickToZoomTrack")
                             downloadBtn.onclick = () => {
@@ -14573,7 +14602,7 @@ async function askCustomTileUrl() {
         const externalLink = document.createElement("a")
         externalLink.title = t("satellite.openMapLayerHomePage")
         externalLink.setAttribute("href", about)
-        externalLink.innerHTML = externalLinkSvg
+        insertSvg(externalLink, "externalLink")
         externalLink.style.marginLeft = "auto"
         externalLink.style.marginRight = "2px"
         externalLink.style.color = "gray"
@@ -15381,7 +15410,7 @@ function makeElementHistoryCompact(forceState = null) {
         i.classList.toggle("d-none", shouldBeCompact)
     })
     document.querySelector(".compact-toggle-btn").setAttribute("value", shouldBeCompact ? "<>" : "><")
-    document.querySelector(".compact-toggle-btn").innerHTML = shouldBeCompact ? expandModeSvg : compactModeSvg
+    insertSvg(document.querySelector(".compact-toggle-btn"), shouldBeCompact ? "expandMode" : "compactMode")
 }
 
 function drawPanoramaxCapturePlace(feature) {
@@ -16467,7 +16496,7 @@ function makeLinksInVersionTagClickable(row, objType) {
             piste: "slopes",
         }[value]
         const relationViewer = document.createElement("a")
-        relationViewer.innerHTML = externalLinkSvg
+        insertSvg(relationViewer, "externalLink")
         relationViewer.classList.add("route-viewer-link")
         relationViewer.style.cursor = "pointer"
         relationViewer.style.paddingLeft = "5px"
@@ -16503,7 +16532,7 @@ function makeLinksInVersionTagClickable(row, objType) {
             return
         }
         const relationViewer = document.createElement("a")
-        relationViewer.innerHTML = externalLinkSvg
+        insertSvg(relationViewer, "externalLink")
         relationViewer.classList.add("route-viewer-link")
         relationViewer.style.cursor = "pointer"
         relationViewer.style.paddingLeft = "8px"
@@ -16515,7 +16544,7 @@ function makeLinksInVersionTagClickable(row, objType) {
         relationViewer.rel = "noreferrer"
 
         const relationEditor = document.createElement("a")
-        relationEditor.innerHTML = pencilLinkSvg
+        insertSvg(relationEditor, "pencilLink")
         relationEditor.classList.add("route-viewer-link")
         relationEditor.style.cursor = "pointer"
         relationEditor.style.paddingLeft = "5px"
@@ -20403,7 +20432,7 @@ function addDiffInHistory(reason = "url_change") {
         const compactToggle = document.createElement("button")
         compactToggle.title = t("historyDiff.toggleCompactTagsDiff")
         compactToggle.setAttribute("value", "><")
-        compactToggle.innerHTML = compactModeSvg
+        insertSvg(compactToggle, "compactMode")
         compactToggle.classList.add("compact-toggle-btn")
         compactToggle.classList.add("btn", "btn-primary", "btn-sm")
         compactToggle.onclick = () => makeElementHistoryCompact()
@@ -26155,7 +26184,7 @@ function addCopyCoordinatesButtons() {
         copyButton.classList.add("copy-coords-btn")
         copyButton.textContent = "📄"
         copyButton.title = t("objectVersionPage.selectCoordinatesFormat")
-        copyButton.innerHTML = copyBtnSvg
+        insertSvg(copyButton, "copyBtn")
         copyButton.style.height = "0.9rem"
         copyButton.style.position = "relative"
         if (location.pathname.endsWith("/history")) {
@@ -26268,7 +26297,7 @@ function addRelationHistoryViewerLinks() {
     injectCSSIntoOSMPage(contextMenuCSS)
     const viewInExternal = document.createElement("a")
     viewInExternal.classList.add("relation-viewer-link")
-    viewInExternal.innerHTML = externalLinkSvg
+    insertSvg(viewInExternal, "externalLink")
     viewInExternal.style.cursor = "pointer"
     viewInExternal.style.position = "relative"
     viewInExternal.style.top = "-2px"
@@ -27407,7 +27436,7 @@ function addMassActionForUserChangesets() {
     }
     const username = decodeURI(location.pathname.match(/\/user\/(.*)\/history$/)[1])
     const osmchaLink = document.createElement("a")
-    osmchaLink.innerHTML = osmchaSvgLogo
+    insertSvg(osmchaLink, "osmchaLogo")
     osmchaLink.id = "osmcha_link"
     osmchaLink.title = t("osmcha.openProfileInOsmcha")
     osmchaLink.href = makeOsmchaLinkForUsername(username)
@@ -27642,7 +27671,7 @@ function makeUsernamesFilterable(usernameLink) {
     usernameLink.classList.add("listen-for-filters")
 
     const filterIcon = document.createElement("span")
-    filterIcon.innerHTML = filterIconSvg
+    insertSvg(filterIcon, "filterIcon")
     filterIcon.classList.add("filter-username-btn")
     filterIcon.style.cursor = "pointer"
     filterIcon.style.position = "relative"
@@ -30310,10 +30339,10 @@ async function _setupNewEditorsLinks(mutationsList) {
             linksBtn.removeAttribute("data-bs-target")
             linksBtn.removeAttribute("data-bs-toggle")
             linksBtn.title = t("editMenuLinks.openPlaceExternalWebsite")
-            linksBtn.innerHTML = externalLinkSvg
-            const svg = linksBtn.querySelector("svg")
-            svg.setAttribute("width", 20)
-            svg.setAttribute("height", 20)
+            insertSvg(linksBtn, "externalLink")
+            const svgElem = linksBtn.querySelector("svg")
+            svgElem.setAttribute("width", 20)
+            svgElem.setAttribute("height", 20)
             langSwitchBtn.before(linksBtn)
 
             function linksMenuClickHandler(e) {
@@ -31061,9 +31090,9 @@ function renderOSMGeoJSON(xml, options = {}) {
             modeBtn.classList.add("visible")
 
             if (lastEditMode === "table") {
-                modeBtn.innerHTML = rawEditSvg
+                insertSvg(modeBtn, "rawEdit")
             } else {
-                modeBtn.innerHTML = tableEditSvg
+                insertSvg(modeBtn, "tableEdit")
                 const textarea = table.querySelector("textarea")
                 textarea.setAttribute("disabled", "true")
                 textarea.value = ""
@@ -31078,14 +31107,14 @@ function renderOSMGeoJSON(xml, options = {}) {
             modeBtn.onclick = async e => {
                 e.stopPropagation()
                 if (lastEditMode === "table") {
-                    modeBtn.innerHTML = tableEditSvg
+                    insertSvg(modeBtn, "tableEdit")
                     lastEditMode = "raw"
                     await GM.setValue("lastEditMode", lastEditMode)
 
                     table.appendChild(makeTextareaFromTagsTable(table))
                     table.querySelector("tbody")?.remove()
                 } else {
-                    modeBtn.innerHTML = rawEditSvg
+                    insertSvg(modeBtn, "rawEdit")
                     lastEditMode = "table"
                     await GM.setValue("lastEditMode", lastEditMode)
 
@@ -35266,7 +35295,7 @@ function addButtonIntoRightButtonsList(linksMenuClickHandler) {
             const actionsBtn = document.querySelector(".control-query").cloneNode(true)
             actionsBtn.classList.remove("control-query")
             actionsBtn.id = "open-external-panel-btn"
-            actionsBtn.querySelector("a").innerHTML = toolsIconSvg
+            insertSvg(actionsBtn.querySelector("a"), "tools")
             actionsBtn.querySelector("svg").setAttribute("stroke-width", "1.75")
             actionsBtn.querySelector("svg").setAttribute("width", 20)
             actionsBtn.querySelector("svg").setAttribute("height", 20)

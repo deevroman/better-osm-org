@@ -1056,7 +1056,7 @@ function addCopyCoordinatesButtons() {
         copyButton.classList.add("copy-coords-btn")
         copyButton.textContent = "📄"
         copyButton.title = t("objectVersionPage.selectCoordinatesFormat")
-        copyButton.innerHTML = copyBtnSvg
+        insertSvg(copyButton, "copyBtn")
         copyButton.style.height = "0.9rem"
         copyButton.style.position = "relative"
         if (location.pathname.endsWith("/history")) {
@@ -1169,7 +1169,7 @@ function addRelationHistoryViewerLinks() {
     injectCSSIntoOSMPage(contextMenuCSS)
     const viewInExternal = document.createElement("a")
     viewInExternal.classList.add("relation-viewer-link")
-    viewInExternal.innerHTML = externalLinkSvg
+    insertSvg(viewInExternal, "externalLink")
     viewInExternal.style.cursor = "pointer"
     viewInExternal.style.position = "relative"
     viewInExternal.style.top = "-2px"
