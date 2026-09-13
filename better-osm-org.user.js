@@ -14277,7 +14277,11 @@ async function askCustomStyleUrl() {
         externalLink.title = t("satellite.openMapStyleHomePage")
         externalLink.setAttribute("href", about)
         externalLink.setAttribute("target", "_blank")
-        externalLink.innerHTML = '<i class="bi bi-box-arrow-up-right"></i>'
+
+        const externalLinkIcon = document.createElement("i")
+        externalLinkIcon.classList.add("bi", "bi-box-arrow-up-right")
+        externalLink.appendChild(externalLinkIcon)
+
         externalLink.style.marginRight = "2px"
         externalLink.style.color = "gray"
         externalLink.tabIndex = -1
