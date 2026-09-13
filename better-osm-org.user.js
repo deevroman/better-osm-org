@@ -5907,6 +5907,15 @@ const svg = Object.freeze({
         "</svg>",
 })
 
+/**
+ * @typedef {
+ * "filterIcon" | "tag" | "osmchaLogo" | "comment" | "diff" |
+ * "fitToObject" | "externalLink" | "pencilLink" | "compactMode" |
+ * "expandMode" | "copyBtn" | "tools" | "rawEdit" | "tableEdit" |
+ * "download" | "moderatorBadge" | "importerBadge"
+ * } SvgName
+ */
+
 //</editor-fold>
 
 //<editor-fold desc="colors" defaultstate="collapsed">
@@ -6065,7 +6074,7 @@ function injectJSIntoPage(text) {
 
 /**
  * @param {Element} elem
- * @param {keyof typeof svg} name
+ * @param {SvgName} name
  */
 function insertSvg(elem, name) {
     if (!Object.hasOwn(svg, name)) {
