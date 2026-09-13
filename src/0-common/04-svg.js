@@ -202,4 +202,13 @@ const svg = Object.freeze({
         "</svg>",
 })
 
+/**
+ * @typedef {
+ * "filterIcon" | "tag" | "osmchaLogo" | "comment" | "diff" |
+ * "fitToObject" | "externalLink" | "pencilLink" | "compactMode" |
+ * "expandMode" | "copyBtn" | "tools" | "rawEdit" | "tableEdit" |
+ * "download" | "moderatorBadge" | "importerBadge"
+ * } SvgName
+ */
+
 //</editor-fold>

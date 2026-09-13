@@ -14,7 +14,7 @@ function injectJSIntoPage(text) {
 
 /**
  * @param {Element} elem
- * @param {keyof typeof svg} name
+ * @param {SvgName} name
  */
 function insertSvg(elem, name) {
     if (!Object.hasOwn(svg, name)) {
