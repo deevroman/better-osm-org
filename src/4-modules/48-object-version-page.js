@@ -324,19 +324,8 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type, fullData, id) {
         }
     }
 
-    const svg1 =
-        '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none" stroke-width="1">\n' +
-        "  <!-- Внешний квадрат -->\n" +
-        '  <rect x="4" y="4" width="16" height="16" stroke-width="1"/>\n' +
-        "  <!-- Центральные линии -->\n" +
-        '  <line x1="12" y1="4" x2="12" y2="20" stroke="currentColor" stroke-width="1"/>\n' +
-        '  <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1"/>\n' +
-        "  <!-- Толстые верхняя и левая стороны -->\n" +
-        '  <line x1="3" y1="4" x2="20.5" y2="4" stroke="red" stroke-width="2"/>\n' +
-        '  <line x1="4" y1="3" x2="4" y2="20.5" stroke="red" stroke-width="2"/>\n' +
-        "</svg>\n"
     const icon1 = document.createElement("span")
-    icon1.innerHTML = svg1
+    insertSvg(icon1, "measureGeom1")
     icon1.style.cursor = "pointer"
     const text1 = `${bbox.max_lat.toString()} ${bbox.min_lon.toString()}`
     icon1.title = t("objectVersionPage.clickToCopyTopLeft", { value: text1 })
@@ -348,18 +337,8 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type, fullData, id) {
         navigator.clipboard.writeText(text1).then(() => copyAnimation(e, text1))
     }
 
-    const svg2 =
-        '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none" stroke-width="1">\n' +
-        "  <!-- Внешний квадрат -->\n" +
-        '  <rect x="4" y="4" width="16" height="16" stroke-width="1"/>\n' +
-        "  <!-- Центральные линии -->\n" +
-        '  <line x1="12" y1="4" x2="12" y2="20" stroke="currentColor" stroke-width="1"/>\n' +
-        '  <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1"/>\n' +
-        "  <!-- Жирная точка в центре -->\n" +
-        '  <circle cx="12" cy="12" r="2" fill="red" stroke="red"/>\n' +
-        "</svg>\n"
     const icon2 = document.createElement("span")
-    icon2.innerHTML = svg2
+    insertSvg(icon2, "measureGeom2")
     icon2.style.cursor = "pointer"
     const text2 = `${center.lat.toFixed(6)} ${center.lng.toFixed(6)}`
     icon2.title = t("objectVersionPage.clickToCopyCenter", { value: text2 })
@@ -371,19 +350,8 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type, fullData, id) {
         navigator.clipboard.writeText(text2).then(() => copyAnimation(e, text2))
     }
 
-    const svg3 =
-        '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none" stroke-width="1">\n' +
-        "  <!-- Внешний квадрат -->\n" +
-        '  <rect x="4" y="4" width="16" height="16" stroke-width="1"/>\n' +
-        "  <!-- Центральные линии -->\n" +
-        '  <line x1="12" y1="4" x2="12" y2="20" stroke="currentColor" stroke-width="1"/>\n' +
-        '  <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1"/>\n' +
-        "  <!-- Толстые правая и нижняя стороны -->\n" +
-        '  <line x1="3.5" y1="20" x2="21" y2="20" stroke="red" stroke-width="2"/>\n' +
-        '  <line x1="20" y1="3.5" x2="20" y2="20.5" stroke="red" stroke-width="2"/>\n' +
-        "</svg>\n"
     const icon3 = document.createElement("span")
-    icon3.innerHTML = svg3
+    insertSvg(icon3, "measureGeom3")
     icon3.style.cursor = "pointer"
     const text3 = `${bbox.min_lat.toString()} ${bbox.max_lon.toString()}`
     icon3.title = t("objectVersionPage.clickToCopyRightBottom", { value: text3 })
@@ -394,16 +362,9 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type, fullData, id) {
     icon3.onclick = e => {
         navigator.clipboard.writeText(text3).then(() => copyAnimation(e, text3))
     }
-    // prettier-ignore
-    const svg4 = '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none">\n' +
-        '  <!-- Внешний прямоугольник жирный -->\n' +
-        '  <!-- Центральные линии -->\n' +
-        '  <line x1="12" y1="4" x2="12" y2="20" stroke="currentColor" stroke-width="1"/>\n' +
-        '  <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1"/>\n' +
-        '  <rect x="4" y="4" width="16" height="16" stroke="red" stroke-width="2"/>\n' +
-        '</svg>\n'
+
     const icon4 = document.createElement("span")
-    icon4.innerHTML = svg4
+    insertSvg(icon4, "measureGeom4")
     icon4.style.cursor = "pointer"
     icon4.title = t("objectVersionPage.clickToCopyBbox")
     icon4.onmouseenter = () => {

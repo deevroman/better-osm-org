@@ -180,6 +180,50 @@ const closeBtnSvg =
     '0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>' +
     "</svg>"
 
+const measureGeomSvg1 =
+    '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none" stroke-width="1">\n' +
+    "  <!-- Внешний квадрат -->\n" +
+    '  <rect x="4" y="4" width="16" height="16" stroke-width="1"/>\n' +
+    "  <!-- Центральные линии -->\n" +
+    '  <line x1="12" y1="4" x2="12" y2="20" stroke="currentColor" stroke-width="1"/>\n' +
+    '  <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1"/>\n' +
+    "  <!-- Толстые верхняя и левая стороны -->\n" +
+    '  <line x1="3" y1="4" x2="20.5" y2="4" stroke="red" stroke-width="2"/>\n' +
+    '  <line x1="4" y1="3" x2="4" y2="20.5" stroke="red" stroke-width="2"/>\n' +
+    "</svg>\n"
+
+const measureGeomSvg2 =
+    '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none" stroke-width="1">\n' +
+    "  <!-- Внешний квадрат -->\n" +
+    '  <rect x="4" y="4" width="16" height="16" stroke-width="1"/>\n' +
+    "  <!-- Центральные линии -->\n" +
+    '  <line x1="12" y1="4" x2="12" y2="20" stroke="currentColor" stroke-width="1"/>\n' +
+    '  <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1"/>\n' +
+    "  <!-- Жирная точка в центре -->\n" +
+    '  <circle cx="12" cy="12" r="2" fill="red" stroke="red"/>\n' +
+    "</svg>\n"
+
+const measureGeomSvg3 =
+    '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none" stroke-width="1">\n' +
+    "  <!-- Внешний квадрат -->\n" +
+    '  <rect x="4" y="4" width="16" height="16" stroke-width="1"/>\n' +
+    "  <!-- Центральные линии -->\n" +
+    '  <line x1="12" y1="4" x2="12" y2="20" stroke="currentColor" stroke-width="1"/>\n' +
+    '  <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1"/>\n' +
+    "  <!-- Толстые правая и нижняя стороны -->\n" +
+    '  <line x1="3.5" y1="20" x2="21" y2="20" stroke="red" stroke-width="2"/>\n' +
+    '  <line x1="20" y1="3.5" x2="20" y2="20.5" stroke="red" stroke-width="2"/>\n' +
+    "</svg>\n"
+
+const measureGeomSvg4 =
+    '<svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" fill="none">\n' +
+    "  <!-- Внешний прямоугольник жирный -->\n" +
+    "  <!-- Центральные линии -->\n" +
+    '  <line x1="12" y1="4" x2="12" y2="20" stroke="currentColor" stroke-width="1"/>\n' +
+    '  <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1"/>\n' +
+    '  <rect x="4" y="4" width="16" height="16" stroke="red" stroke-width="2"/>\n' +
+    "</svg>\n"
+
 const svg = Object.freeze({
     filterIcon: filterIconSvg,
     tag: tagSvg,
@@ -197,6 +241,10 @@ const svg = Object.freeze({
     tableEdit: tableEditSvg,
     download: downloadSvg,
     close: closeBtnSvg,
+    measureGeom1: measureGeomSvg1,
+    measureGeom2: measureGeomSvg2,
+    measureGeom3: measureGeomSvg3,
+    measureGeom4: measureGeomSvg4,
     moderatorBadge:
         '<svg width="20" height="20">' +
         '<path d="M 10,2 8.125,8 2,8 6.96875,11.71875 5,18 10,14 15,18 13.03125,11.71875 18,8 11.875,8 10,2 z" fill="#447eff"' +
@@ -214,7 +262,8 @@ const svg = Object.freeze({
  * "filterIcon" | "tag" | "osmchaLogo" | "comment" | "diff" |
  * "fitToObject" | "externalLink" | "pencilLink" | "compactMode" |
  * "expandMode" | "copyBtn" | "tools" | "rawEdit" | "tableEdit" |
- * "download" | "moderatorBadge" | "importerBadge" | "close"
+ * "download" | "moderatorBadge" | "importerBadge" | "close" |
+ * "measureGeom1" | "measureGeom2" | "measureGeom3" | "measureGeom4"
  * } SvgName
  */
 
