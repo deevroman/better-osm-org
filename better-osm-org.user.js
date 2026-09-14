@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.7.3
+// @version         1.7.4
 // @changelog       v1.7.3: Notes resolve buttons in iD, Open in Vespucci action, Drag&Drop for JSON array and .osc β
 // @changelog       v1.7.2: Direct messages templates, retries for osm-revert, ctrl + S to save active object
 // @changelog       v1.7.2: Validate building:min_level, highlight suspect words in source=*, and imagery_used=
@@ -36563,7 +36563,7 @@ function runInOsmRevertPageCode() {
                         if (overpassRequestsLimiter > 2 && args[0].includes("overpass-api.de")) {
                             overpassRequestsLimiter = 0
                             window.log.value += "better-osm-org: wait after second request...\\n"
-                            await sleep(2000)
+                            await sleep(4000)
                         }
                         res = await originalFetch(...args)
                         if (res.ok) {
@@ -36572,7 +36572,7 @@ function runInOsmRevertPageCode() {
                     } catch (e) {
                         if (e?.message?.includes("NetworkError")) {
                             window.log.value += "better-osm-org: " + e + " wait for retry...\\n"
-                            await sleep(10 * 1000)
+                            await sleep(26 * 1000)
                             continue
                         } else {
                             throw e
@@ -36580,12 +36580,12 @@ function runInOsmRevertPageCode() {
                     }
                     if (res.status === 504) {
                         window.log.value += "better-osm-org: Overpass return 504, wait for retry...\\n"
-                        await sleep(10 * 1000)
+                        await sleep(15 * 1000)
                     } else if (res.status === 429) {
                         window.log.value += "better-osm-org: Overpass return 429, wait 30s for retry...\\n"
-                        await sleep(31 * 1000)
+                        await sleep(32 * 1000)
                     } else {
-                        await sleep(15 * 1000)
+                        await sleep(20 * 1000)
                     }
                 }
                 args[1].body.set("data", data)
