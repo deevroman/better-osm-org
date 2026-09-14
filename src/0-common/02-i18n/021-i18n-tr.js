@@ -454,6 +454,7 @@ _translations["tr"] = {
     wiki: {
         needMoreVotes: "75 % için {count} oy daha gerekli",
         interimResults: "better-osm-org tarafından hesaplanan ara sonuçlar:",
+        invalidVote: "Kategori tespit edilemeyen oylar",
     },
     relationVersionPage: {
         loadViaOverpass: "İlişki sürümünü Overpass API üzerinden yükle",

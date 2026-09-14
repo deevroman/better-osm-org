@@ -468,6 +468,7 @@ _translations["ru"] = {
     wiki: {
         needMoreVotes: "нужно ещё {count} голосов до 75 %",
         interimResults: "Промежуточные результаты, рассчитанные better-osm-org:",
+        invalidVote: "Голоса, для которых не удалось опознать категорию",
     },
     relationVersionPage: {
         loadViaOverpass: "Загрузить версию отношения через Overpass API",

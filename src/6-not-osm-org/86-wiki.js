@@ -83,6 +83,7 @@ function setupWiki() {
         invalid.insertCell().appendChild(document.createTextNode(`⚠️`))
         invalid.insertCell().appendChild(document.createTextNode(`${invalidVotes}`))
         invalid.insertCell().appendChild(document.createTextNode(``))
+        invalid.title = t("wiki.invalidVote")
     }
 
     Array.from(document.querySelectorAll(".mw-heading2:has(:is(h2,h1)#Voting) ~ :is(ul,dl)")).at(-1).after(results)
