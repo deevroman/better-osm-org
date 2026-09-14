@@ -676,6 +676,7 @@ _translations["en"] = {
     wiki: {
         needMoreVotes: "need {count} more votes up to 75 %",
         interimResults: "Interim results calculated by better-osm-org:",
+        invalidVote: "Votes for which the category couldn't be detected",
     },
     relationVersionPage: {
         loadViaOverpass: "Load relation version via Overpass API",
@@ -1142,6 +1143,7 @@ _translations["tr"] = {
     wiki: {
         needMoreVotes: "75 % için {count} oy daha gerekli",
         interimResults: "better-osm-org tarafından hesaplanan ara sonuçlar:",
+        invalidVote: "Kategori tespit edilemeyen oylar",
     },
     relationVersionPage: {
         loadViaOverpass: "İlişki sürümünü Overpass API üzerinden yükle",
@@ -1622,6 +1624,7 @@ _translations["ru"] = {
     wiki: {
         needMoreVotes: "нужно ещё {count} голосов до 75 %",
         interimResults: "Промежуточные результаты, рассчитанные better-osm-org:",
+        invalidVote: "Голоса, для которых не удалось опознать категорию",
     },
     relationVersionPage: {
         loadViaOverpass: "Загрузить версию отношения через Overpass API",
@@ -2090,6 +2093,7 @@ _translations["de"] = {
     wiki: {
         needMoreVotes: "noch {count} Stimmen bis 75 % nötig",
         interimResults: "Von better-osm-org berechnete Zwischenergebnisse:",
+        invalidVote: "Stimmen, deren Kategorie nicht identifiziert werden konnte",
     },
     relationVersionPage: {
         loadViaOverpass: "Relationsversion über die Overpass API laden",
@@ -2559,6 +2563,7 @@ _translations["fr"] = {
     wiki: {
         needMoreVotes: "encore {count} votes nécessaires pour atteindre 75 %",
         interimResults: "Résultats intermédiaires calculés par better-osm-org :",
+        invalidVote: "Votes dont la catégorie n'a pas pu être identifiée",
     },
     relationVersionPage: {
         loadViaOverpass: "Charger la version de la relation via l'API Overpass",
@@ -3023,6 +3028,7 @@ _translations["hr"] = {
     wiki: {
         needMoreVotes: "potrebno je još {count} glasova do 75 %",
         interimResults: "Privremeni rezultati izračunati pomoću better-osm-org:",
+        invalidVote: "Glasovi za koje se nije mogla prepoznati kategorija",
     },
     relationVersionPage: {
         loadViaOverpass: "Učitaj verziju relacije putem Overpass API-ja",
@@ -3488,6 +3494,7 @@ _translations["uk"] = {
     wiki: {
         needMoreVotes: "потрібно ще {count} голосів до 75 %",
         interimResults: "Проміжні результати, розраховані better-osm-org:",
+        invalidVote: "Голоси, для яких не вдалося визначити категорію",
     },
     relationVersionPage: {
         loadViaOverpass: "Завантажити версію відношення через Overpass API",
@@ -36361,6 +36368,7 @@ function setupWiki() {
         invalid.insertCell().appendChild(document.createTextNode(`⚠️`))
         invalid.insertCell().appendChild(document.createTextNode(`${invalidVotes}`))
         invalid.insertCell().appendChild(document.createTextNode(``))
+        invalid.title = t("wiki.invalidVote")
     }
 
     Array.from(document.querySelectorAll(".mw-heading2:has(:is(h2,h1)#Voting) ~ :is(ul,dl)")).at(-1).after(results)

@@ -452,6 +452,7 @@ _translations["hr"] = {
     wiki: {
         needMoreVotes: "potrebno je još {count} glasova do 75 %",
         interimResults: "Privremeni rezultati izračunati pomoću better-osm-org:",
+        invalidVote: "Glasovi za koje se nije mogla prepoznati kategorija",
     },
     relationVersionPage: {
         loadViaOverpass: "Učitaj verziju relacije putem Overpass API-ja",

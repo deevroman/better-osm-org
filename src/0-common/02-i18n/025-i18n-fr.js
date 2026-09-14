@@ -457,6 +457,7 @@ _translations["fr"] = {
     wiki: {
         needMoreVotes: "encore {count} votes nécessaires pour atteindre 75 %",
         interimResults: "Résultats intermédiaires calculés par better-osm-org :",
+        invalidVote: "Votes dont la catégorie n'a pas pu être identifiée",
     },
     relationVersionPage: {
         loadViaOverpass: "Charger la version de la relation via l'API Overpass",

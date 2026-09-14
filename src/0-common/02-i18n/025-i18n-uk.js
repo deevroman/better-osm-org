@@ -453,6 +453,7 @@ _translations["uk"] = {
     wiki: {
         needMoreVotes: "потрібно ще {count} голосів до 75 %",
         interimResults: "Проміжні результати, розраховані better-osm-org:",
+        invalidVote: "Голоси, для яких не вдалося визначити категорію",
     },
     relationVersionPage: {
         loadViaOverpass: "Завантажити версію відношення через Overpass API",
