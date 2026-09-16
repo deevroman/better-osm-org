@@ -69,6 +69,7 @@
 // @match        https://wiki.openstreetmap.org/wiki/Proposal%3A*
 // @exclude      https://taginfo.openstreetmap.org/embed/*
 // @match        https://github.com/openstreetmap/openstreetmap-website/issues/new*
+// @match        https://github.com/openstreetmap/id/issues/new*
 // @match        https://github.com/Zverik/osmtags-editor/issues/new*
 // @match        https://github.com/deevroman/better-osm-org/issues/new*
 // @license      WTFPL
@@ -3578,8 +3579,9 @@ function tryAddWarnAboutScriptIntoOsmOrgRepo() {
 }
 
 if (
-    (location.origin + location.pathname).startsWith("https://github.com/openstreetmap/openstreetmap-website/issues/new") ||
-    (location.origin + location.pathname).startsWith("https://github.com/Zverik/osmtags-editor/issues/new")
+    (location.origin + location.pathname).toLowerCase().startsWith("https://github.com/openstreetmap/openstreetmap-website/issues/new") ||
+    (location.origin + location.pathname).toLowerCase().startsWith("https://github.com/openstreetmap/id/issues/new") ||
+    (location.origin + location.pathname).toLowerCase().startsWith("https://github.com/Zverik/osmtags-editor/issues/new")
 ) {
     setInterval(tryAddWarnAboutScriptIntoOsmOrgRepo, 3000)
     setTimeout(tryAddWarnAboutScriptIntoOsmOrgRepo, 100)

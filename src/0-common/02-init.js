@@ -22,8 +22,9 @@ function tryAddWarnAboutScriptIntoOsmOrgRepo() {
 }
 
 if (
-    (location.origin + location.pathname).startsWith("https://github.com/openstreetmap/openstreetmap-website/issues/new") ||
-    (location.origin + location.pathname).startsWith("https://github.com/Zverik/osmtags-editor/issues/new")
+    (location.origin + location.pathname).toLowerCase().startsWith("https://github.com/openstreetmap/openstreetmap-website/issues/new") ||
+    (location.origin + location.pathname).toLowerCase().startsWith("https://github.com/openstreetmap/id/issues/new") ||
+    (location.origin + location.pathname).toLowerCase().startsWith("https://github.com/Zverik/osmtags-editor/issues/new")
 ) {
     setInterval(tryAddWarnAboutScriptIntoOsmOrgRepo, 3000)
     setTimeout(tryAddWarnAboutScriptIntoOsmOrgRepo, 100)
