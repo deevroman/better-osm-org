@@ -29000,7 +29000,7 @@ async function makeProfileForDeletedUser(user) {
                 await overpassRequest(
                     `
 [out:json];
-node(user:"${user.replace('"', '\\"')}")->.b;
+node(user:"${decodeURI(user).replace('"', '\\"')}")->.b;
 node.b(if:lat() == b.min(lat()));
 out meta;
 `,
