@@ -4,13 +4,13 @@ async function runGC() {
     const USER_ID_INFO_PREFIXES = ["useridinfo-", "ohm-useridinfo-", "ogf-useridinfo-", "dev-useridinfo-"]
     const USER_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 14
 
-    async function deleteIfExpiredCache(key) {
+    async function deleteIfExpiredCache(key, ttl_ms) {
         try {
             const cacheData = JSON.parse(await GM.getValue(key))
             if (!cacheData.cacheTime) return
 
             const cacheTime = new Date(cacheData.cacheTime).getTime()
-            if (isNaN(cacheTime) || cacheTime + USER_CACHE_TTL_MS < Date.now()) {
+            if (isNaN(cacheTime) || cacheTime + ttl_ms < Date.now()) {
                 await GM.deleteValue(key)
             }
         } catch {
@@ -27,8 +27,10 @@ async function runGC() {
 
     const keys = await GM.listValues()
     for (const i of keys) {
-        if ([...USERINFO_PREFIXES, ...USER_ID_INFO_PREFIXES].some(prefix => i.startsWith(prefix))) {
-            await deleteIfExpiredCache(i)
+        if ([...USERINFO_PREFIXES].some(prefix => i.startsWith(prefix))) {
+            await deleteIfExpiredCache(i, USER_CACHE_TTL_MS)
+        } else if ([...USER_ID_INFO_PREFIXES].some(prefix => i.startsWith(prefix))) {
+            await deleteIfExpiredCache(i, USER_CACHE_TTL_MS * 2)
         }
     }
     console.log("Old cache cleaned")

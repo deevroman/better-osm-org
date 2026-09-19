@@ -921,7 +921,7 @@ async function makeProfileForDeletedUser(user) {
                 await overpassRequest(
                     `
 [out:json];
-node(user:"${user.replace('"', '\\"')}")->.b;
+node(user:"${decodeURI(user).replace('"', '\\"')}")->.b;
 node.b(if:lat() == b.min(lat()));
 out meta;
 `,
@@ -1118,7 +1118,35 @@ async function setupHDYCInProfile() {
             }
         }
 
+        function addUserID() {
+            if (!document.querySelector('[href^="/api/0.6/user"]')) {
+                const dt = document.createElement("dt")
+                dt.textContent = t("userProfile.userIdLabel")
+                dt.classList.add("list-inline-item", "m-0")
+                const dd = document.createElement("dd")
+                dd.classList.add("list-inline-item", "user-id")
+                dd.textContent = userID
+                dd.title = t("copying.clickForCopy")
+                dd.style.cursor = "pointer"
+                dd.onclick = e => {
+                    navigator.clipboard.writeText(userID).then(() => copyAnimation(e, userID))
+                }
+                userDetails.appendChild(dt)
+                userDetails.appendChild(document.createTextNode("\xA0"))
+                userDetails.appendChild(dd)
+                injectCSSIntoOSMPage(copyAnimationStyles)
+            }
+        }
+
+        addUserID()
+
         async function addUsernames() {
+            async function fallbackMethod(userID) {
+                // const info = await updateUserInfo(decodeURI(user))
+                // const = findChangesetInDiff()info.firstChangesetID
+                debugger
+            }
+
             async function updateUserIDInfo(userID) {
                 const res = await externalFetchRetry({
                     url: "https://whosthat.osmz.ru/whosthat.php?action=names&id=" + userID,
@@ -1128,6 +1156,9 @@ async function setupHDYCInProfile() {
                 // but here need resolve problem with return promise
                 const userInfo = {
                     data: structuredClone(res.response),
+                }
+                if (!userInfo.data?.[0]) {
+                    return await fallbackMethod(userID)
                 }
                 if (userInfo.data[0]["names"].length > 1) {
                     userInfo["cacheTime"] = new Date()
@@ -1169,29 +1200,11 @@ async function setupHDYCInProfile() {
             userDetails.appendChild(dd)
         }
 
-        await addUsernames()
-
-        function addUserID() {
-            if (!document.querySelector('[href^="/api/0.6/user"]')) {
-                const dt = document.createElement("dt")
-                dt.textContent = t("userProfile.userIdLabel")
-                dt.classList.add("list-inline-item", "m-0")
-                const dd = document.createElement("dd")
-                dd.classList.add("list-inline-item", "user-id")
-                dd.textContent = userID
-                dd.title = t("copying.clickForCopy")
-                dd.style.cursor = "pointer"
-                dd.onclick = e => {
-                    navigator.clipboard.writeText(userID).then(() => copyAnimation(e, userID))
-                }
-                userDetails.appendChild(dt)
-                userDetails.appendChild(document.createTextNode("\xA0"))
-                userDetails.appendChild(dd)
-                injectCSSIntoOSMPage(copyAnimationStyles)
-            }
+        try {
+            await addUsernames()
+        } catch (err) {
+            console.log(err)
         }
-
-        addUserID()
     })
     if (osm_server === prod_server) {
         const iframe = document.getElementById("hdyc-iframe")

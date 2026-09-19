@@ -392,6 +392,10 @@ function addAutoComplete(ta, container) {
             box.style.display = "none"
         }
     })
+
+    ta.addEventListener("blur", () => {
+        box.style.display = "none"
+    })
 }
 
 function addAutoCompleteOnOsmOrg() {
