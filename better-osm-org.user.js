@@ -10897,6 +10897,9 @@ function addSwipes() {
     let startY = 0
     let direction = null
     const sidebar = document.querySelector("#sidebar_content")
+    if (!sidebar) {
+        return
+    }
     sidebar.style.transform = "translateX(var(--touch-diff, 0px))"
 
     if (!location.pathname.startsWith("/changeset/")) {
@@ -29197,7 +29200,35 @@ async function setupHDYCInProfile() {
             }
         }
 
+        function addUserID() {
+            if (!document.querySelector('[href^="/api/0.6/user"]')) {
+                const dt = document.createElement("dt")
+                dt.textContent = t("userProfile.userIdLabel")
+                dt.classList.add("list-inline-item", "m-0")
+                const dd = document.createElement("dd")
+                dd.classList.add("list-inline-item", "user-id")
+                dd.textContent = userID
+                dd.title = t("copying.clickForCopy")
+                dd.style.cursor = "pointer"
+                dd.onclick = e => {
+                    navigator.clipboard.writeText(userID).then(() => copyAnimation(e, userID))
+                }
+                userDetails.appendChild(dt)
+                userDetails.appendChild(document.createTextNode("\xA0"))
+                userDetails.appendChild(dd)
+                injectCSSIntoOSMPage(copyAnimationStyles)
+            }
+        }
+
+        addUserID()
+
         async function addUsernames() {
+            async function fallbackMethod(userID) {
+                // const info = await updateUserInfo(decodeURI(user))
+                // const = findChangesetInDiff()info.firstChangesetID
+                debugger
+            }
+
             async function updateUserIDInfo(userID) {
                 const res = await externalFetchRetry({
                     url: "https://whosthat.osmz.ru/whosthat.php?action=names&id=" + userID,
@@ -29207,6 +29238,9 @@ async function setupHDYCInProfile() {
                 // but here need resolve problem with return promise
                 const userInfo = {
                     data: structuredClone(res.response),
+                }
+                if (!userInfo.data?.[0]) {
+                    return await fallbackMethod(userID)
                 }
                 if (userInfo.data[0]["names"].length > 1) {
                     userInfo["cacheTime"] = new Date()
@@ -29248,29 +29282,11 @@ async function setupHDYCInProfile() {
             userDetails.appendChild(dd)
         }
 
-        await addUsernames()
-
-        function addUserID() {
-            if (!document.querySelector('[href^="/api/0.6/user"]')) {
-                const dt = document.createElement("dt")
-                dt.textContent = t("userProfile.userIdLabel")
-                dt.classList.add("list-inline-item", "m-0")
-                const dd = document.createElement("dd")
-                dd.classList.add("list-inline-item", "user-id")
-                dd.textContent = userID
-                dd.title = t("copying.clickForCopy")
-                dd.style.cursor = "pointer"
-                dd.onclick = e => {
-                    navigator.clipboard.writeText(userID).then(() => copyAnimation(e, userID))
-                }
-                userDetails.appendChild(dt)
-                userDetails.appendChild(document.createTextNode("\xA0"))
-                userDetails.appendChild(dd)
-                injectCSSIntoOSMPage(copyAnimationStyles)
-            }
+        try {
+            await addUsernames()
+        } catch (err) {
+            console.log(err)
         }
-
-        addUserID()
     })
     if (osm_server === prod_server) {
         const iframe = document.getElementById("hdyc-iframe")
@@ -36714,13 +36730,13 @@ async function runGC() {
     const USER_ID_INFO_PREFIXES = ["useridinfo-", "ohm-useridinfo-", "ogf-useridinfo-", "dev-useridinfo-"]
     const USER_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 14
 
-    async function deleteIfExpiredCache(key) {
+    async function deleteIfExpiredCache(key, ttl_ms) {
         try {
             const cacheData = JSON.parse(await GM.getValue(key))
             if (!cacheData.cacheTime) return
 
             const cacheTime = new Date(cacheData.cacheTime).getTime()
-            if (isNaN(cacheTime) || cacheTime + USER_CACHE_TTL_MS < Date.now()) {
+            if (isNaN(cacheTime) || cacheTime + ttl_ms < Date.now()) {
                 await GM.deleteValue(key)
             }
         } catch {
@@ -36737,8 +36753,10 @@ async function runGC() {
 
     const keys = await GM.listValues()
     for (const i of keys) {
-        if ([...USERINFO_PREFIXES, ...USER_ID_INFO_PREFIXES].some(prefix => i.startsWith(prefix))) {
-            await deleteIfExpiredCache(i)
+        if ([...USERINFO_PREFIXES].some(prefix => i.startsWith(prefix))) {
+            await deleteIfExpiredCache(i, USER_CACHE_TTL_MS)
+        } else if ([...USER_ID_INFO_PREFIXES].some(prefix => i.startsWith(prefix))) {
+            await deleteIfExpiredCache(i, USER_CACHE_TTL_MS * 2)
         }
     }
     console.log("Old cache cleaned")

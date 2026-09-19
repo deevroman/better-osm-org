@@ -12,6 +12,9 @@ function addSwipes() {
     let startY = 0
     let direction = null
     const sidebar = document.querySelector("#sidebar_content")
+    if (!sidebar) {
+        return
+    }
     sidebar.style.transform = "translateX(var(--touch-diff, 0px))"
 
     if (!location.pathname.startsWith("/changeset/")) {
