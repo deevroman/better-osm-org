@@ -9520,7 +9520,7 @@ function addUserChangesetRssLink(username) {
  */
 function addUsernameBadgesOrRestoreAction(changeset_id) {
     const metainfoHTML = document.querySelector("#sidebar_content .details")
-    const time = metainfoHTML.querySelector("time") ?? (isOGFServer() && metainfoHTML.querySelector("abbr"))
+    const time = metainfoHTML.querySelector("time")
     if (metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')) {
         const usernameA = metainfoHTML.querySelector('a[href*="/user/"]:not([rel])')
         metainfoHTML.replaceChildren()
@@ -10780,69 +10780,12 @@ function makeBadge(userInfo, changesetDate = new Date()) {
 //</editor-fold>
 
 //<editor-fold desc="user-utils" defaultstate="collapsed">
-function osmXmlToJson(xmlString) {
-    const doc = new DOMParser().parseFromString(xmlString, "application/xml")
-
-    if (doc.querySelector("parsererror")) {
-        throw new Error("Invalid XML")
-    }
-
-    const osm = doc.querySelector("osm")
-    if (!osm) {
-        throw new Error("No <osm> root element found")
-    }
-
-    const toValue = v => {
-        if (v === "true") return true
-        if (v === "false") return false
-        if (/^-?\d+$/.test(v)) return Number(v) // int
-        if (/^-?\d*\.\d+$/.test(v)) return Number(v) // float
-        return v // string
-    }
-
-    const result = {}
-
-    for (const attr of osm.attributes) {
-        result[attr.name] = attr.value
-    }
-
-    result.changesets = Array.from(osm.querySelectorAll("changeset")).map(cs => {
-        const obj = {}
-
-        for (const attr of cs.attributes) {
-            obj[attr.name] = toValue(attr.value)
-        }
-
-        const tags = {}
-        for (const tag of cs.querySelectorAll("tag")) {
-            const k = tag.getAttribute("k")
-            const v = tag.getAttribute("v")
-            if (k != null && v != null) tags[k] = v
-        }
-        if (Object.keys(tags).length) obj.tags = tags
-
-        return obj
-    })
-
-    return result
-}
 
 /**
  * @param username {string}
  * @return {Promise<Object|*>}
  */
 async function getFirstUserChangeset(username) {
-    /*if (isOGFServer()) {
-        return await fetchTextWithCache(
-            osm_server.apiBase +
-                "changesets?" +
-                new URLSearchParams({
-                    display_name: username,
-                    limit: 1,
-                    order: "oldest", // это не работает
-                }).toString(),
-        ).then(osmXmlToJson)
-    }*/
     return await fetchJSONWithCache(
         osm_server.apiBase +
             "changesets.json?" +
@@ -20035,41 +19978,7 @@ function historyPaginationClick() {
     paginationBtn?.click()
 }
 
-function ogfHistoryFixes() {
-    const wrapper = document.createElement("div")
-    wrapper.setAttribute("id", "element_versions_list")
-    document.querySelector(".browse-section").before(wrapper)
-    document.querySelectorAll(".browse-section").forEach(i => {
-        wrapper.appendChild(i)
-        const versionH = i.querySelector(".details")
-        const [, versionNum] = versionH.textContent.match(/#([0-9]+)/)
-        versionH.textContent = versionH.textContent.replace(/(#[0-9]+)/, "")
-        const a = document.createElement("a")
-        a.href = `${location.pathname}/history/${versionNum}`
-        a.textContent = `#${versionNum}`
-        versionH.appendChild(a)
-
-        const changesetA = i.querySelector('a[href^="/changeset/"]:not([rel])')
-
-        const changesetDiv = document.createElement("div")
-        changesetA.parentElement.appendChild(changesetDiv)
-
-        const changesetDiv2 = document.createElement("div")
-        changesetDiv2.classList.add("changeset_line")
-        changesetDiv.appendChild(changesetDiv2)
-
-        const changesetSpan = document.createElement("span")
-        changesetDiv2.appendChild(changesetSpan)
-
-        changesetSpan.appendChild(changesetA.previousSibling)
-        changesetSpan.appendChild(changesetA)
-    })
-}
-
 function transformDiffWithColors() {
-    if (isOGFServer()) {
-        ogfHistoryFixes()
-    }
     const isNode = location.pathname.startsWith("/node")
     const isWay = location.pathname.startsWith("/way")
     const isRelation = location.pathname.startsWith("/relation")
@@ -20118,13 +20027,13 @@ function transformDiffWithColors() {
         const kv = ver.querySelectorAll("tbody > tr") ?? []
         const tags = []
 
-        const metainfoHTML = ver.querySelector("div:nth-of-type(1):has(:is(time,abbr))")
+        const metainfoHTML = ver.querySelector("div:nth-of-type(1):has(time)")
 
         const changesetA = ver.querySelector('div > div a[href^="/changeset/"]:not([rel])')
         const changesetHTML = changesetA?.parentElement
         const changesetID = changesetA.textContent
 
-        const time = metainfoHTML.querySelector("time") ?? metainfoHTML.querySelector("abbr")
+        const time = metainfoHTML.querySelector("time")
 
         const coordinates = ver.querySelector("div a:has(.latitude)")
         const locationHTML = coordinates?.parentElement
@@ -24386,43 +24295,6 @@ async function interceptMapManually() {
     }
 }
 
-function ogfFixes(changeset_id) {
-    for (let type of ["node", "way", "relation"]) {
-        const wrapper = document.createElement("turbo-frame")
-        wrapper.setAttribute("id", `changeset_${type}s`)
-        const ul = document.querySelector(`ul:has(.${type})`)
-        if (!ul) {
-            continue
-        }
-        ul.before(wrapper)
-        wrapper.appendChild(ul)
-        wrapper.prepend(wrapper.previousElementSibling)
-
-        wrapper.querySelectorAll(`li a[href^="/${type}"]`).forEach(a => {
-            const div1 = document.createElement("div")
-            const div2 = document.createElement("div")
-            div1.appendChild(div2)
-            a.parentElement.prepend(div1)
-            div2.appendChild(a)
-            const [, id] = a.getAttribute("href").match(/\/([0-9]+)/)
-            const [, v] = a.textContent.match(/v([0-9]+)/)
-            div2.setAttribute("id", `${changeset_id}${type.slice(0, 1)}${id}v${v}`)
-
-            const versionLink = document.createElement("a")
-            versionLink.setAttribute("href", `/${type}/${id}/history/${v}`)
-            versionLink.textContent = `v${v}`
-            a.after(versionLink)
-
-            a.textContent = a.textContent.replace(`v${v}`, "")
-        })
-
-        wrapper.querySelector(".paginate")?.classList?.add("pagination")
-        wrapper.querySelectorAll(`.paginate a[href*="?${type}_page"]`).forEach(a => {
-            a.classList.add("page-link")
-        })
-    }
-}
-
 async function addChangesetQuickLook() {
     if (quickLookInjectingStarted) return
     if (!location.pathname.startsWith("/changeset")) {
@@ -24436,10 +24308,8 @@ async function addChangesetQuickLook() {
         return
     }
     if (!document.querySelector("turbo-frame:is(#changeset_nodes,#changeset_ways,#changeset_relations)")) {
-        if (!isOGFServer()) {
-            console.log("changeset is empty")
-            return
-        }
+        console.log("changeset is empty")
+        return
     }
     quickLookInjectingStarted = true
     resetSearchFormFocus()
@@ -24451,9 +24321,6 @@ async function addChangesetQuickLook() {
     addSwipes()
 
     const changesetID = location.pathname.match(/changeset\/(\d+)/)[1]
-    if (isOGFServer() && !document.querySelector("turbo-frame")) {
-        ogfFixes(changesetID)
-    }
 
     const frames = document.querySelectorAll("turbo-frame:is(#changeset_nodes,#changeset_ways,#changeset_relations)")
     console.log("RACE", frames[0].getAttribute("changeset-id"), changesetID)
