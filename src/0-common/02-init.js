@@ -311,6 +311,8 @@ let level0Instance = REBORN_LEVEL0_INSTANCE
 const MAIN_PANORAMAX_DISCOVERY_SERVER = "https://api.panoramax.xyz"
 const panoramaxDiscoveryServer = MAIN_PANORAMAX_DISCOVERY_SERVER
 
+const WHOSTHAT_ENDPOINT = "https://whosthat.osmz.ru/whosthat.php"
+
 /**
  * @typedef {{
  *     [type]: "node"|"way"|"relation",

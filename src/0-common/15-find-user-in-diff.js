@@ -127,11 +127,9 @@ async function checkAAA(AAA, targetTime, targetChangesetID) {
 }
 
 /**
- * @param {string} datetime
- * @return {Promise<{user: string|null, uid: string|null}>}
+ * @return {Promise<{type: "node"|"way"|"relation"|"changeset", objID: string}>}
  */
-async function tryFindDeletedChangesetAuthorViaOverpass(datetime) {
-    let foundedChangesetXml
+async function getEntityForOverpassSearch() {
     const match = location.pathname.match(/\/(node|way|relation|changeset)\/(\d+)/)
     let [, type, objID] = match
     if (type === "changeset") {
@@ -139,6 +137,17 @@ async function tryFindDeletedChangesetAuthorViaOverpass(datetime) {
         type = ch.querySelector(`[changeset="${objID}"]`).nodeName
         objID = ch.querySelector(`[changeset="${objID}"]`).getAttribute("id")
     }
+    return { type, objID }
+}
+
+/**
+ * @param {string} datetime
+ * @param type
+ * @param objID
+ * @return {Promise<{user: string|null, uid: string|null}>}
+ */
+async function tryFindDeletedChangesetAuthorViaOverpass(datetime, type, objID) {
+    let foundedChangesetXml
     if (new Date(datetime) > OVERPASS_NEW_ERA_DATE) {
         if (type === "node") {
             foundedChangesetXml = await getNodeViaOverpassXML(objID, datetime)
@@ -199,25 +208,85 @@ async function tryFindDeletedChangesetAuthorViaDiffs(datetime, targetChangesetID
 }
 
 /**
+ * @param {number|string} userId
+ * @return {Promise<[{names: []}]|{error: string}>}
+ */
+async function whosthatNamesRequest(userId) {
+    const res = await externalFetchRetry({
+        url: WHOSTHAT_ENDPOINT + "?action=names&id=" + userId,
+        responseType: "json",
+    })
+    // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
+    // but here need to resolve problem with return promise
+    return structuredClone(res.response)
+}
+
+/**
+ * @param {number} userId
+ * @return {Promise<string[]>}
+ */
+async function findUsernamesById(userId) {
+    const names = []
+    const res = await whosthatNamesRequest(userId)
+    if (res?.[0]?.names) {
+        names.push(...res[0].names)
+    } else {
+        console.warn("no data from whosthat")
+    }
+    return
+}
+
+/**
+ * @param {string} user
+ * @return {Promise<[{names: []}]|{error: string}>}
+ */
+async function whosthatInfoRequest(user) {
+    const res = await externalFetchRetry({
+        url: WHOSTHAT_ENDPOINT + "?action=info&name=" + user,
+        responseType: "json",
+    })
+    // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
+    // but here need to resolve problem with return promise
+    return structuredClone(res.response)
+}
+
+/**
  * @param {string} datetime
  * @param {number} targetChangesetID
- * @return {Promise<{user: string|null, uid: string|null}>}
+ * @return {Promise<{user: string|null, uid: number|null}>}
  */
 async function tryFindDeletedChangesetAuthorViaWhosthat(datetime, targetChangesetID) {
     const userID = (await loadChangesetMetadata(targetChangesetID)).uid
 
-    const res = await externalFetchRetry({
-        url: "https://whosthat.osmz.ru/whosthat.php?action=names&id=" + userID,
-        responseType: "json",
-    })
-    // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
-    // but here need resolve problem with return promise
-    const userInfo = structuredClone(res.response)
+    const userInfo = await whosthatNamesRequest(userID)
     if (userInfo?.[0]?.["names"]?.length > 1) {
         // todo what if multiple names?
         return { user: userInfo[0]["names"][0], uid: userID }
     }
     return { user: null, uid: null }
+}
+
+/**
+ * @param changesetID
+ * @param datetime
+ * @param type
+ * @param objID
+ * @return {Promise<{user: (string|null), uid: (number|null)}>}
+ */
+async function tryFindDeletedChangesetAuthor(changesetID, datetime, type, objID) {
+    if (type === "changeset") {
+        const ch = (await getChangeset(objID)).data
+        type = ch.querySelector(`[changeset="${objID}"]`).nodeName
+        objID = ch.querySelector(`[changeset="${objID}"]`).getAttribute("id")
+    }
+    let foundedInfo = await tryFindDeletedChangesetAuthorViaOverpass(datetime, type, objID)
+    if (!foundedInfo.user) {
+        foundedInfo = await tryFindDeletedChangesetAuthorViaDiffs(datetime, changesetID)
+        if (!foundedInfo.user) {
+            return await tryFindDeletedChangesetAuthorViaWhosthat(datetime, changesetID)
+        }
+    }
+    return foundedInfo
 }
 
 // tests
@@ -234,17 +303,12 @@ async function findChangesetInDiff(e) {
     e.target.style.cursor = "progress"
 
     const changesetID = parseInt(e.target.value)
-    let foundedInfo = await tryFindDeletedChangesetAuthorViaOverpass(e.target.datetime)
+    const { type, objID } = await getEntityForOverpassSearch()
+    const foundedInfo = await tryFindDeletedChangesetAuthor(changesetID, e.target.datetime, type, objID)
     if (!foundedInfo.user) {
-        foundedInfo = await tryFindDeletedChangesetAuthorViaDiffs(e.target.datetime, changesetID)
-        if (!foundedInfo.user) {
-            foundedInfo = await tryFindDeletedChangesetAuthorViaWhosthat(e.target.datetime, changesetID)
-            if (!foundedInfo.user) {
-                alert(t("findUserInDiff.notFoundAlert"))
-                e.target.style.cursor = "pointer"
-                return
-            }
-        }
+        alert(t("findUserInDiff.notFoundAlert"))
+        e.target.style.cursor = "pointer"
+        return
     }
     let { user: foundedUser, uid: foundedUserUid } = foundedInfo
     const userInfo = document.createElement("a")
