@@ -12598,6 +12598,9 @@ function addGPXFiltersButtons() {
 }
 
 function setupGPXFiltersButtons() {
+    if (isOGFServer()) {
+        return
+    }
     if (document.getElementById("map")) {
         tryApplyModule(addGPXFiltersButtons, 100, 3000)
     }
@@ -15265,15 +15268,17 @@ function createCustomLayerBtn() {
 }
 
 function addSwitchTilesButtonsOnPane() {
-    if (document.querySelector(".turn-on-satellite-from-pane")) {
+    if (document.querySelector(":is(.turn-on-satellite-from-pane, .turn-on-custom-vector-from-pane)")) {
         return
     }
     const layers = Array.from(document.querySelectorAll(".layers-ui .base-layers label span"))
     const mapnikBtn = layers[0]
     if (mapnikBtn) {
-        const btnOnPane = createSwitchTilesBtn()
-        mapnikBtn.appendChild(document.createTextNode("\xA0"))
-        mapnikBtn.appendChild(btnOnPane)
+        if (!isOGFServer()) {
+            const btnOnPane = createSwitchTilesBtn()
+            mapnikBtn.appendChild(document.createTextNode("\xA0"))
+            mapnikBtn.appendChild(btnOnPane)
+        }
     }
     const h2 = document.querySelector(".layers-ui h2")
     if (h2 && !document.querySelector(".set-custom-layer-btn")) {
@@ -15282,6 +15287,7 @@ function addSwitchTilesButtonsOnPane() {
     const omtBtn = layers.at(-1)
     if (omtBtn) {
         const btnOnPane = document.createElement("span")
+        btnOnPane.classList.add("turn-on-custom-vector-from-pane")
         btnOnPane.style.cursor = "pointer"
         btnOnPane.textContent = "🎨"
         btnOnPane.title = t("satellite.setCustomVectorStyle")
