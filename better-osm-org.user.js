@@ -8453,7 +8453,7 @@ async function findChangesetInDiff(e) {
     const webArchiveLink = document.createElement("a")
     webArchiveLink.textContent = t("links.webArchive")
     webArchiveLink.target = "_blank"
-    webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + foundedUser
+    webArchiveLink.href = `https://web.archive.org/web/*/${osm_server.url}/user/${foundedUser}`
     e.target.before(webArchiveLink)
     e.target.before(document.createTextNode("\xA0"))
 
@@ -28609,7 +28609,7 @@ async function makeProfileForDeletedUser(user) {
     const webArchiveLink = document.createElement("a")
     webArchiveLink.textContent = t("links.webArchive")
     webArchiveLink.target = "_blank"
-    webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + decodeURI(user)
+    webArchiveLink.href = `https://web.archive.org/web/*/${osm_server.url}/user/${decodeURI(user)}`
     div.appendChild(webArchiveLink)
     div.appendChild(document.createElement("br"))
 
@@ -28669,7 +28669,7 @@ async function makeProfileForDeletedUser(user) {
                         const webArchiveLink = document.createElement("a")
                         webArchiveLink.textContent = "[WA] "
                         webArchiveLink.target = "_blank"
-                        webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + name
+                        webArchiveLink.href = `https://web.archive.org/web/*/${osm_server.url}/user/${name}`
                         p.appendChild(webArchiveLink)
 
                         p.appendChild(makeOSMChaLink(name))
@@ -28999,7 +28999,7 @@ out meta;
                     const webArchiveLink = document.createElement("a")
                     webArchiveLink.textContent = "[WA] "
                     webArchiveLink.target = "_blank"
-                    webArchiveLink.href = "https://web.archive.org/web/*/https://www.openstreetmap.org/user/" + name
+                    webArchiveLink.href = `https://web.archive.org/web/*/${osm_server.url}/user/${name}`
                     userNamesP.appendChild(webArchiveLink)
 
                     userNamesP.appendChild(makeOSMChaLink(name))
