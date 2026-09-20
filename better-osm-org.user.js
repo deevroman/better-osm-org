@@ -3868,6 +3868,8 @@ let level0Instance = REBORN_LEVEL0_INSTANCE
 const MAIN_PANORAMAX_DISCOVERY_SERVER = "https://api.panoramax.xyz"
 const panoramaxDiscoveryServer = MAIN_PANORAMAX_DISCOVERY_SERVER
 
+const WHOSTHAT_ENDPOINT = "https://whosthat.osmz.ru/whosthat.php"
+
 /**
  * @typedef {{
  *     [type]: "node"|"way"|"relation",
@@ -8242,11 +8244,9 @@ async function checkAAA(AAA, targetTime, targetChangesetID) {
 }
 
 /**
- * @param {string} datetime
- * @return {Promise<{user: string|null, uid: string|null}>}
+ * @return {Promise<{type: "node"|"way"|"relation"|"changeset", objID: string}>}
  */
-async function tryFindDeletedChangesetAuthorViaOverpass(datetime) {
-    let foundedChangesetXml
+async function getEntityForOverpassSearch() {
     const match = location.pathname.match(/\/(node|way|relation|changeset)\/(\d+)/)
     let [, type, objID] = match
     if (type === "changeset") {
@@ -8254,6 +8254,17 @@ async function tryFindDeletedChangesetAuthorViaOverpass(datetime) {
         type = ch.querySelector(`[changeset="${objID}"]`).nodeName
         objID = ch.querySelector(`[changeset="${objID}"]`).getAttribute("id")
     }
+    return { type, objID }
+}
+
+/**
+ * @param {string} datetime
+ * @param type
+ * @param objID
+ * @return {Promise<{user: string|null, uid: string|null}>}
+ */
+async function tryFindDeletedChangesetAuthorViaOverpass(datetime, type, objID) {
+    let foundedChangesetXml
     if (new Date(datetime) > OVERPASS_NEW_ERA_DATE) {
         if (type === "node") {
             foundedChangesetXml = await getNodeViaOverpassXML(objID, datetime)
@@ -8314,25 +8325,85 @@ async function tryFindDeletedChangesetAuthorViaDiffs(datetime, targetChangesetID
 }
 
 /**
+ * @param {number|string} userId
+ * @return {Promise<[{names: []}]|{error: string}>}
+ */
+async function whosthatNamesRequest(userId) {
+    const res = await externalFetchRetry({
+        url: WHOSTHAT_ENDPOINT + "?action=names&id=" + userId,
+        responseType: "json",
+    })
+    // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
+    // but here need to resolve problem with return promise
+    return structuredClone(res.response)
+}
+
+/**
+ * @param {number} userId
+ * @return {Promise<string[]>}
+ */
+async function findUsernamesById(userId) {
+    const names = []
+    const res = await whosthatNamesRequest(userId)
+    if (res?.[0]?.names) {
+        names.push(...res[0].names)
+    } else {
+        console.warn("no data from whosthat")
+    }
+    return
+}
+
+/**
+ * @param {string} user
+ * @return {Promise<[{names: []}]|{error: string}>}
+ */
+async function whosthatInfoRequest(user) {
+    const res = await externalFetchRetry({
+        url: WHOSTHAT_ENDPOINT + "?action=info&name=" + user,
+        responseType: "json",
+    })
+    // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
+    // but here need to resolve problem with return promise
+    return structuredClone(res.response)
+}
+
+/**
  * @param {string} datetime
  * @param {number} targetChangesetID
- * @return {Promise<{user: string|null, uid: string|null}>}
+ * @return {Promise<{user: string|null, uid: number|null}>}
  */
 async function tryFindDeletedChangesetAuthorViaWhosthat(datetime, targetChangesetID) {
     const userID = (await loadChangesetMetadata(targetChangesetID)).uid
 
-    const res = await externalFetchRetry({
-        url: "https://whosthat.osmz.ru/whosthat.php?action=names&id=" + userID,
-        responseType: "json",
-    })
-    // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
-    // but here need resolve problem with return promise
-    const userInfo = structuredClone(res.response)
+    const userInfo = await whosthatNamesRequest(userID)
     if (userInfo?.[0]?.["names"]?.length > 1) {
         // todo what if multiple names?
         return { user: userInfo[0]["names"][0], uid: userID }
     }
     return { user: null, uid: null }
+}
+
+/**
+ * @param changesetID
+ * @param datetime
+ * @param type
+ * @param objID
+ * @return {Promise<{user: (string|null), uid: (number|null)}>}
+ */
+async function tryFindDeletedChangesetAuthor(changesetID, datetime, type, objID) {
+    if (type === "changeset") {
+        const ch = (await getChangeset(objID)).data
+        type = ch.querySelector(`[changeset="${objID}"]`).nodeName
+        objID = ch.querySelector(`[changeset="${objID}"]`).getAttribute("id")
+    }
+    let foundedInfo = await tryFindDeletedChangesetAuthorViaOverpass(datetime, type, objID)
+    if (!foundedInfo.user) {
+        foundedInfo = await tryFindDeletedChangesetAuthorViaDiffs(datetime, changesetID)
+        if (!foundedInfo.user) {
+            return await tryFindDeletedChangesetAuthorViaWhosthat(datetime, changesetID)
+        }
+    }
+    return foundedInfo
 }
 
 // tests
@@ -8349,17 +8420,12 @@ async function findChangesetInDiff(e) {
     e.target.style.cursor = "progress"
 
     const changesetID = parseInt(e.target.value)
-    let foundedInfo = await tryFindDeletedChangesetAuthorViaOverpass(e.target.datetime)
+    const { type, objID } = await getEntityForOverpassSearch()
+    const foundedInfo = await tryFindDeletedChangesetAuthor(changesetID, e.target.datetime, type, objID)
     if (!foundedInfo.user) {
-        foundedInfo = await tryFindDeletedChangesetAuthorViaDiffs(e.target.datetime, changesetID)
-        if (!foundedInfo.user) {
-            foundedInfo = await tryFindDeletedChangesetAuthorViaWhosthat(e.target.datetime, changesetID)
-            if (!foundedInfo.user) {
-                alert(t("findUserInDiff.notFoundAlert"))
-                e.target.style.cursor = "pointer"
-                return
-            }
-        }
+        alert(t("findUserInDiff.notFoundAlert"))
+        e.target.style.cursor = "pointer"
+        return
     }
     let { user: foundedUser, uid: foundedUserUid } = foundedInfo
     const userInfo = document.createElement("a")
@@ -28100,7 +28166,7 @@ async function loadChangesetsBetween(user, fromTime, toTime) {
                     to: toTime.toISOString(),
                 }).toString(),
         )
-        console.log(res)
+        console.debug(res)
 
         res.changesets = res.changesets.filter(i => !processedChangesets.has(i.id))
         if (res.changesets.length === 0) break
@@ -28983,13 +29049,7 @@ async function makeProfileForDeletedUser(user) {
         }
     }
 
-    const res = await externalFetchRetry({
-        url: "https://whosthat.osmz.ru/whosthat.php?action=info&name=" + user,
-        responseType: "json",
-    })
-    // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
-    // but here need resolve problem with return promise
-    const data = structuredClone(res.response)
+    const data = await whosthatInfoRequest(user)
     if (data.length) {
         webArchiveLink.after(makeOSMChaLink(decodeURI(user)))
 
@@ -29023,14 +29083,9 @@ out meta;
 
     if (user.match(/^user_[0-9]+$/)) {
         const userID = parseInt(user.match(/user_([0-9]+)/)[1])
-        const res = await externalFetchRetry({
-            url: "https://whosthat.osmz.ru/whosthat.php?action=names&id=" + userID,
-            responseType: "json",
-        })
-        // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
-        // but here need resolve problem with return promise
-        const data = structuredClone(res.response)
-        let names = data[0]["names"]
+
+        const data = await whosthatNamesRequest(userID)
+        let names = data?.[0]?.["names"] ?? []
 
         const userNamesP = document.createElement("p")
         div.appendChild(userNamesP)
@@ -29107,6 +29162,176 @@ function addColorForActiveBlock(user) {
     }
 }
 
+async function addUsernameInfo(user) {
+    if (document.querySelector(".prev-usernames")) return
+    const userDetails = document.querySelector(".content-inner small dl")
+    if (!userDetails) return
+    // https://www.openstreetmap.org/reports/new?reportable_id=12345&reportable_type=User
+    let userID = document
+        .querySelector('[href*="reportable_id="]')
+        ?.getAttribute("href")
+        ?.match(/reportable_id=(\d+)/)?.[1]
+    userID = userID ?? document.head.getAttribute("data-user")
+    if (!userID) {
+        const res = await fetchJSONWithCache(
+            osm_server.apiBase +
+                "changesets.json?" +
+                new URLSearchParams({
+                    display_name: decodeURI(user),
+                    limit: 1,
+                    order: "oldest",
+                }).toString(),
+        )
+        if (res["changesets"].length === 0) {
+            const res = await fetchJSONWithCache(
+                osm_server.apiBase +
+                    "notes/search.json?" +
+                    new URLSearchParams({
+                        display_name: decodeURI(user),
+                        limit: 1,
+                        closed: -1,
+                        order: "oldest",
+                    }).toString(),
+            )
+            userID = res?.["features"]?.[0]?.["properties"]?.["comments"]?.find(i => i["user"] === decodeURI(user))?.["uid"]
+            if (!userID) {
+                return
+            }
+        } else {
+            userID = res["changesets"][0]["uid"]
+        }
+    }
+
+    function addUserID() {
+        if (!document.querySelector('[href^="/api/0.6/user"]')) {
+            const dt = document.createElement("dt")
+            dt.textContent = t("userProfile.userIdLabel")
+            dt.classList.add("list-inline-item", "m-0")
+            const dd = document.createElement("dd")
+            dd.classList.add("list-inline-item", "user-id")
+            dd.textContent = userID
+            dd.title = t("copying.clickForCopy")
+            dd.style.cursor = "pointer"
+            dd.onclick = e => {
+                navigator.clipboard.writeText(userID).then(() => copyAnimation(e, userID))
+            }
+            userDetails.appendChild(dt)
+            userDetails.appendChild(document.createTextNode("\xA0"))
+            userDetails.appendChild(dd)
+            injectCSSIntoOSMPage(copyAnimationStyles)
+        }
+    }
+
+    addUserID()
+
+    async function addUsernames() {
+        async function fallbackMethod(userID) {
+            const info = await updateUserInfo(decodeURI(user))
+            if (new Date(info.firstChangesetCreationTime) < OVERPASS_NEW_ERA_DATE) {
+                debugger
+                const ch = await fetchJSONWithCache(
+                    osm_server.apiBase +
+                        "changesets.json?" +
+                        new URLSearchParams({
+                            user: userID,
+                            order: "oldest",
+                            to: new Date().toISOString(),
+                            from: OVERPASS_NEW_ERA_DATE.toISOString().slice(0, -5) + "Z",
+                        }).toString(),
+                )
+                const res = await tryFindDeletedChangesetAuthor(
+                    ch.changesets[0].id,
+                    ch.changesets[0].created_at,
+                    "changeset",
+                    ch.changesets[0].id,
+                )
+                if (!res.user) {
+                    return []
+                }
+                return [res.user]
+                // todo (more usernames)
+            }
+            const res = await tryFindDeletedChangesetAuthor(
+                info.firstChangesetID,
+                info.firstChangesetCreationTime,
+                "changeset",
+                info.firstChangesetID,
+            )
+            if (!res.user) {
+                return []
+            }
+            return [res.user]
+        }
+
+        async function updateUserIDInfo(userID, username) {
+            const userInfo = {
+                data: await whosthatNamesRequest(userID),
+            }
+            if (!userInfo.data?.[0]) {
+                const names = await fallbackMethod(userID)
+                if (!names.includes(username)) {
+                    names.push(username)
+                }
+                userInfo.data = [{ names: names, partial: true }]
+            }
+            userInfo["cacheTime"] = new Date()
+            await GM.setValue(storagePrefix + "useridinfo-" + userID, JSON.stringify(userInfo))
+            if (userInfo.data[0]["names"].length > 1) {
+                let usernames = userInfo.data[0]["names"].filter(i => i !== decodeURI(user)).join(", ")
+                if (usernames.length > 0 && userInfo.data[0]["partial"]) {
+                    usernames += ", ..."
+                }
+                if (document.querySelector(".prev-usernames")) {
+                    document.querySelector(".prev-usernames").textContent = usernames
+                }
+            }
+            return userInfo
+        }
+
+        async function getCachedUserIDInfo(userID, username) {
+            const localUserInfo = await GM.getValue(storagePrefix + "useridinfo-" + userID, "")
+            if (localUserInfo) {
+                const json = JSON.parse(localUserInfo)
+                const cacheTime = new Date(json["cacheTime"])
+                const timeLater = new Date(cacheTime.getTime() + 14 * 24 * 60 * 60 * 1000)
+                if (timeLater < new Date()) {
+                    console.log("but cache outdated")
+                    setTimeout(updateUserIDInfo, 0, userID, username)
+                }
+                return json
+            }
+            return await updateUserIDInfo(userID, username)
+        }
+
+        const userIDInfo = await getCachedUserIDInfo(userID, decodeURI(user))
+        if (userIDInfo.data[0]["names"].length <= 1) {
+            console.log("prev user's usernames not found")
+            return
+        }
+        let usernames = userIDInfo.data[0]["names"].filter(i => i !== decodeURI(user)).join(", ")
+        if (usernames.length > 0 && userIDInfo.data[0]["partial"]) {
+            usernames += ", ..."
+        }
+        const dt = document.createElement("dt")
+        dt.textContent = t("userProfile.pastUsernames")
+        dt.title = t("betterOsmOrg.addedByBetterOsmOrg")
+        dt.classList.add("list-inline-item", "m-0", "prev-usernames-label")
+        const dd = document.createElement("dd")
+        dd.classList.add("list-inline-item", "prev-usernames")
+        dd.textContent = usernames
+        dd.title = t("betterOsmOrg.addedByBetterOsmOrg")
+        userDetails.appendChild(dt)
+        userDetails.appendChild(document.createTextNode("\xA0"))
+        userDetails.appendChild(dd)
+    }
+
+    try {
+        await addUsernames()
+    } catch (err) {
+        console.log(err)
+    }
+}
+
 async function setupHDYCInProfile() {
     const match = location.pathname.match(/^\/user\/([^/]+)(\/|\/notes)?$/)
     if (!match || location.pathname.includes("/history")) {
@@ -29160,134 +29385,7 @@ async function setupHDYCInProfile() {
         usernameHeader.replaceWith(span)
         injectCSSIntoOSMPage(copyAnimationStyles)
     }
-    queueMicrotask(async () => {
-        if (document.querySelector(".prev-usernames")) return
-        const userDetails = document.querySelector(".content-inner small dl")
-        if (!userDetails) return
-        // https://www.openstreetmap.org/reports/new?reportable_id=12345&reportable_type=User
-        let userID = document
-            .querySelector('[href*="reportable_id="]')
-            ?.getAttribute("href")
-            ?.match(/reportable_id=(\d+)/)?.[1]
-        userID = userID ?? document.head.getAttribute("data-user")
-        if (!userID) {
-            const res = await fetchJSONWithCache(
-                osm_server.apiBase +
-                    "changesets.json?" +
-                    new URLSearchParams({
-                        display_name: decodeURI(user),
-                        limit: 1,
-                        order: "oldest",
-                    }).toString(),
-            )
-            if (res["changesets"].length === 0) {
-                const res = await fetchJSONWithCache(
-                    osm_server.apiBase +
-                        "notes/search.json?" +
-                        new URLSearchParams({
-                            display_name: decodeURI(user),
-                            limit: 1,
-                            closed: -1,
-                            order: "oldest",
-                        }).toString(),
-                )
-                userID = res?.["features"]?.[0]?.["properties"]?.["comments"]?.find(i => i["user"] === decodeURI(user))?.["uid"]
-                if (!userID) {
-                    return
-                }
-            } else {
-                userID = res["changesets"][0]["uid"]
-            }
-        }
-
-        function addUserID() {
-            if (!document.querySelector('[href^="/api/0.6/user"]')) {
-                const dt = document.createElement("dt")
-                dt.textContent = t("userProfile.userIdLabel")
-                dt.classList.add("list-inline-item", "m-0")
-                const dd = document.createElement("dd")
-                dd.classList.add("list-inline-item", "user-id")
-                dd.textContent = userID
-                dd.title = t("copying.clickForCopy")
-                dd.style.cursor = "pointer"
-                dd.onclick = e => {
-                    navigator.clipboard.writeText(userID).then(() => copyAnimation(e, userID))
-                }
-                userDetails.appendChild(dt)
-                userDetails.appendChild(document.createTextNode("\xA0"))
-                userDetails.appendChild(dd)
-                injectCSSIntoOSMPage(copyAnimationStyles)
-            }
-        }
-
-        addUserID()
-
-        async function addUsernames() {
-            async function fallbackMethod(userID) {
-                // const info = await updateUserInfo(decodeURI(user))
-                // const = findChangesetInDiff()info.firstChangesetID
-                debugger
-            }
-
-            async function updateUserIDInfo(userID) {
-                const res = await externalFetchRetry({
-                    url: "https://whosthat.osmz.ru/whosthat.php?action=names&id=" + userID,
-                    responseType: "json",
-                })
-                // FireMonkey compatibility https://github.com/erosman/firemonkey/issues/8
-                // but here need resolve problem with return promise
-                const userInfo = {
-                    data: structuredClone(res.response),
-                }
-                if (!userInfo.data?.[0]) {
-                    return await fallbackMethod(userID)
-                }
-                if (userInfo.data[0]["names"].length > 1) {
-                    userInfo["cacheTime"] = new Date()
-                    await GM.setValue(storagePrefix + "useridinfo-" + userID, JSON.stringify(userInfo))
-
-                    const usernames = userInfo.data[0]["names"].filter(i => i !== decodeURI(user)).join(", ")
-                    if (document.querySelector(".prev-usernames")) {
-                        document.querySelector(".prev-usernames").textContent = usernames
-                    }
-                }
-                return userInfo
-            }
-
-            async function getCachedUserIDInfo(userID) {
-                const localUserInfo = await GM.getValue(storagePrefix + "useridinfo-" + userID, "")
-                if (localUserInfo) {
-                    setTimeout(updateUserIDInfo, 0, userID)
-                    return JSON.parse(localUserInfo)
-                }
-                return await updateUserIDInfo(userID)
-            }
-
-            const userIDInfo = await getCachedUserIDInfo(userID)
-            if (userIDInfo.data[0]["names"].length <= 1) {
-                console.log("prev user's usernames not found")
-                return
-            }
-            const usernames = userIDInfo.data[0]["names"].filter(i => i !== decodeURI(user)).join(", ")
-            const dt = document.createElement("dt")
-            dt.textContent = t("userProfile.pastUsernames")
-            dt.title = t("betterOsmOrg.addedByBetterOsmOrg")
-            dt.classList.add("list-inline-item", "m-0", "prev-usernames-label")
-            const dd = document.createElement("dd")
-            dd.classList.add("list-inline-item", "prev-usernames")
-            dd.textContent = usernames
-            dd.title = t("betterOsmOrg.addedByBetterOsmOrg")
-            userDetails.appendChild(dt)
-            userDetails.appendChild(document.createTextNode("\xA0"))
-            userDetails.appendChild(dd)
-        }
-
-        try {
-            await addUsernames()
-        } catch (err) {
-            console.log(err)
-        }
-    })
+    queueMicrotask(() => addUsernameInfo(user))
     if (osm_server === prod_server) {
         const iframe = document.getElementById("hdyc-iframe")
         window.addEventListener("message", function (event) {
