@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.7.4
+// @version         1.7.5
 // @changelog       v1.7.3: Notes resolve buttons in iD, Open in Vespucci action, Drag&Drop for JSON array and .osc β
 // @changelog       v1.7.2: Direct messages templates, retries for osm-revert, ctrl + S to save active object
 // @changelog       v1.7.2: Validate building:min_level, highlight suspect words in source=*, and imagery_used=
@@ -29199,7 +29199,10 @@ async function addUsernameInfo(user) {
     }
 
     try {
-        await addUsernames()
+        if (isDebug()) {
+            // todo check that non zero changeset
+            await addUsernames()
+        }
     } catch (err) {
         console.log(err)
     }

@@ -1178,7 +1178,10 @@ async function addUsernameInfo(user) {
     }
 
     try {
-        await addUsernames()
+        if (isDebug()) {
+            // todo check that non zero changeset
+            await addUsernames()
+        }
     } catch (err) {
         console.log(err)
     }
