@@ -1,67 +1,10 @@
 //<editor-fold desc="user-utils" defaultstate="collapsed">
-function osmXmlToJson(xmlString) {
-    const doc = new DOMParser().parseFromString(xmlString, "application/xml")
-
-    if (doc.querySelector("parsererror")) {
-        throw new Error("Invalid XML")
-    }
-
-    const osm = doc.querySelector("osm")
-    if (!osm) {
-        throw new Error("No <osm> root element found")
-    }
-
-    const toValue = v => {
-        if (v === "true") return true
-        if (v === "false") return false
-        if (/^-?\d+$/.test(v)) return Number(v) // int
-        if (/^-?\d*\.\d+$/.test(v)) return Number(v) // float
-        return v // string
-    }
-
-    const result = {}
-
-    for (const attr of osm.attributes) {
-        result[attr.name] = attr.value
-    }
-
-    result.changesets = Array.from(osm.querySelectorAll("changeset")).map(cs => {
-        const obj = {}
-
-        for (const attr of cs.attributes) {
-            obj[attr.name] = toValue(attr.value)
-        }
-
-        const tags = {}
-        for (const tag of cs.querySelectorAll("tag")) {
-            const k = tag.getAttribute("k")
-            const v = tag.getAttribute("v")
-            if (k != null && v != null) tags[k] = v
-        }
-        if (Object.keys(tags).length) obj.tags = tags
-
-        return obj
-    })
-
-    return result
-}
 
 /**
  * @param username {string}
  * @return {Promise<Object|*>}
  */
 async function getFirstUserChangeset(username) {
-    /*if (isOGFServer()) {
-        return await fetchTextWithCache(
-            osm_server.apiBase +
-                "changesets?" +
-                new URLSearchParams({
-                    display_name: username,
-                    limit: 1,
-                    order: "oldest", // это не работает
-                }).toString(),
-        ).then(osmXmlToJson)
-    }*/
     return await fetchJSONWithCache(
         osm_server.apiBase +
             "changesets.json?" +
