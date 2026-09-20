@@ -210,6 +210,9 @@ function addGPXFiltersButtons() {
 }
 
 function setupGPXFiltersButtons() {
+    if (isOGFServer()) {
+        return
+    }
     if (document.getElementById("map")) {
         tryApplyModule(addGPXFiltersButtons, 100, 3000)
     }
