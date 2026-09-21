@@ -4,13 +4,15 @@
       "name": "Edit with Rapid",
       "template": "https://rapideditor.org/rapid#poweruser=true&map={zoom}/{latitude}/{longitude}",
       "description": "",
-      "default": true
+      "default": true,
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "Edit with OSM Perfect Intersection Editor β",
       "template": "https://osmpie.org/app/?pos={longitude}&pos={latitude}&zoom={zoom}",
       "description": "",
-      "default": true
+      "default": true,
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "Vespucci",
@@ -30,13 +32,15 @@
       "name": "Panoramax",
       "template": "https://explore.panoramax.fr/?background=streets&focus=map&map={zoom}/{latitude}/{longitude}",
       "description": "Federated field photos database",
-      "default": true
+      "default": true,
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "Mapillary",
       "template": "https://www.mapillary.com/app/?lat={lat}&lng={lon}&z={zoom}",
       "description": "Field photos database",
-      "default": true
+      "default": true,
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "OSM Latest Changes rene78",
@@ -48,19 +52,22 @@
       "name": "nakarte.me",
       "template": "https://nakarte.me/#m={zoom}/{latitude}/{longitude}&l=O",
       "description": "",
-      "default": true
+      "default": true,
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "World Imagery Wayback",
       "template": "https://livingatlas.arcgis.com/wayback/#mapCenter={longitude}%2C{latitude}%2C{zoom}",
       "description": "",
-      "default": true
+      "default": true,
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "F4map",
       "template": "https://demo.f4map.com/#lat={latitude}&lon={longitude}&zoom={zoom}",
       "description": "",
-      "default": true
+      "default": true,
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "indoor=",
@@ -79,14 +86,16 @@
       "template": "om://map?v=1&ll={latitude},{longitude}",
       "description": "Router",
       "default": true,
-      "onlyMobile": true
+      "onlyMobile": true,
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "Osmand",
       "template": "https://osmand.net/go.html?lat={latitude}&lon={longitude}&z={zoom}",
       "description": "Router",
       "default": true,
-      "onlyMobile": true
+      "onlyMobile": true,
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "Overpass",
@@ -103,18 +112,21 @@
       "name": "Google Street View",
       "template": "https://www.google.com/maps/?layer=c&cbll={latitude},{longitude}",
       "description": "",
-      "warn": "don't use for mapping"
+      "warn": "don't use for mapping",
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "Yandex Panoramas",
       "template": "https://yandex.ru/maps/?l=stv,sta&ll={longitude},{latitude}&z={zoom}",
-      "description": ""
+      "description": "",
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "Yandex Maps (search selection text)",
       "template": "https://yandex.ru/maps/?l=stv,sta&ll={longitude},{latitude}&z={zoom}&text={selected_text}",
       "description": "",
-      "disabled": true
+      "disabled": true,
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "geo:",
@@ -124,7 +136,8 @@
     {
       "name": "Wikimedia Commons Images",
       "template": "https://wikimap.toolforge.org/?wp=false&basemap=2&cluster=false&zoom={zoom}&lat={latitude}&lon={longitude}",
-      "description": "Pictures"
+      "description": "Pictures",
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "Achavi",
@@ -146,77 +159,91 @@
     {
       "name": "Nominatim QA",
       "template": "https://nominatim.org/qa/#map={zoom}/{latitude}/{longitude}",
-      "description": "QA"
+      "description": "QA",
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "Osmose",
       "template": "https://osmose.openstreetmap.fr/map/#loc={zoom}/{latitude}/{longitude}",
-      "description": "QA"
+      "description": "QA",
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "Strava Heatmap",
       "template": "https://strava.com/maps/global-heatmap/#{zoom}/{latitude}/{longitude}",
-      "description": ""
+      "description": "",
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "FacilMap",
       "template": "https://facilmap.org/#{zoom}/{latitude}/{longitude}/Mpnk",
-      "description": ""
+      "description": "",
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "Apple Maps",
       "template": "https://beta.maps.apple.com/?ll={latitude}%2C{longitude}",
       "description": "",
-      "warn": "don't use for mapping"
+      "warn": "don't use for mapping",
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "2GIS",
       "template": "https://2gis.ru/?m={longitude}%2C{latitude}%2F{zoom}",
       "description": "",
-      "warn": "don't use for mapping"
+      "warn": "don't use for mapping",
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "Mapy.com",
       "template": "https://mapy.com?x={longitude}&y={latitude}&z={zoom}",
       "description": "",
-      "warn": "don't use for mapping"
+      "warn": "don't use for mapping",
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "wikimapia",
       "template": "https://wikimapia.org/#lang=ru&lat={latitude}&lon={longitude}&z={zoom}",
       "description": "",
-      "warn": "don't use for mapping"
+      "warn": "don't use for mapping",
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "pastvu (retro photos)",
       "template": "https://pastvu.com/?g={latitude},{longitude}z={zoom}&s=osm&t=openstreetmap&type=1",
-      "description": ""
+      "description": "",
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "OpenHistoricalMap",
       "template": "https://www.openhistoricalmap.org/#map={zoom}/{latitude}/{longitude}",
       "description": "",
-      "disableOnOpenHistoricalMap": true
+      "disableOnOpenHistoricalMap": true,
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "Bikerouter",
       "template": "https://bikerouter.de/#map={zoom}/{latitude}/{longitude}",
-      "description": "Router (biking and hiking)"
+      "description": "Router (biking and hiking)",
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "Brouter Navigation",
       "template": "https://brouter.de/brouter-web/#map={zoom}/{latitude}/{longitude}/standard",
-      "description": "Router (biking and hiking)"
+      "description": "Router (biking and hiking)",
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "OpenRouteService",
       "template": "https://maps.openrouteservice.org/directions?n1={latitude}&n2={longitude}&n3={zoom}&b=0&k1=en-US&k2=km",
-      "description": ""
+      "description": "",
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "OSRM Debug Map",
       "template": "https://map.project-osrm.org/debug/#{zoom}/{latitude}/{longitude}",
-      "description": ""
+      "description": "",
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "Opening hours",
@@ -226,32 +253,38 @@
     {
       "name": "WaymarkedTrails",
       "template": "https://hiking.waymarkedtrails.org/#?map={zoom}!{latitude}!{longitude}",
-      "description": ""
+      "description": "",
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "OpenSkiMap",
       "template": "https://openskimap.org/#{zoom}/{latitude}/{longitude}",
-      "description": ""
+      "description": "",
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "OpenSnowMap",
       "template": "https://www.opensnowmap.org/#map={zoom}/{longitude}/{latitude}&b=snowmap&m=false&h=false",
-      "description": ""
+      "description": "",
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "OpenTopoMap",
       "template": "https://opentopomap.org/#map={zoom}/{latitude}/{longitude}",
-      "description": ""
+      "description": "",
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "Map of turn restrictions",
       "template": "https://ahorn.lima-city.de/tr/?zoom={zoom}&lat={latitude}&lon={longitude}&layer=Grayscale&overlays=TTT",
-      "description": "QA"
+      "description": "QA",
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "Maxspeed (OpenStreetBrowser)",
       "template": "https://www.openstreetbrowser.org/#map={zoom}/{latitude}/{longitude}&categories=car_maxspeed",
-      "description": "QA"
+      "description": "QA",
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "OSM Lane Visualizer",
@@ -268,7 +301,8 @@
       "name": "Changeset by Comparison Visualization (Neis)",
       "template": "https://resultmaps.neis-one.org/osm-change-viz?c={osm_changeset_id}",
       "description": "Changeset-viewer",
-      "disableOnOpenHistoricalMap": true
+      "disableOnOpenHistoricalMap": true,
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "Level0",
@@ -280,22 +314,26 @@
       "name": "Lanes Map",
       "template": "https://osm-tiles.james-ross.co.uk/?map={zoom}/{latitude}/{longitude}&layer=standard&layer=overlay&layer=roads",
       "description": "QA",
-      "disabled": true
+      "disabled": true,
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "Parking lanes Map",
       "template": "https://zlant.github.io/parking-lanes/#{zoom}/{latitude}/{longitude}",
-      "description": "QA"
+      "description": "QA",
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "Bus lanes Map",
       "template": "https://zlant.github.io/bus-lanes/#{zoom}/{latitude}/{longitude}",
-      "description": "QA"
+      "description": "QA",
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "Maptiler VectorMap",
       "template": "https://www.maptiler.com/maps/#streets//vector/{zoom}/{longitude}/{latitude}",
-      "description": "Map"
+      "description": "Map",
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "iD dev version",
@@ -306,7 +344,8 @@
     {
       "name": "Geoscribbles map",
       "template": "https://geoscribble.osmz.ru/map#{zoom}/{latitude}/{longitude}",
-      "description": "Map"
+      "description": "Map",
+      "disableOnOpenGeofiction": true
     },
     {
       "name": "OSM 411",
