@@ -7,6 +7,7 @@
  *  warn: string|undefined,
  *  onlyMobile: boolean|undefined,
  *  disableOnOpenHistoricalMap: boolean|undefined,
+ *  disableOnOpenGeofiction: boolean|undefined,
  *  default: boolean|undefined,
  *  } } externalLink
  *  */
@@ -544,6 +545,9 @@ function addOtherExternalLinks(editorsListUl) {
             return
         }
         if (link.disableOnOpenHistoricalMap && isOHMServer()) {
+            return
+        }
+        if (link.disableOnOpenGeofiction && isOGFServer()) {
             return
         }
         processExternalLink(link, false, editorsListUl, false)
