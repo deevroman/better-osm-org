@@ -38,6 +38,7 @@ const alwaysEnabledModules = [
     setupMessagesTemplates,
     setupNewContextMenuItems,
     setupPrometheusLink,
+    setupLanguageSwitcher,
 ]
 
 function selectOverpassServer() {

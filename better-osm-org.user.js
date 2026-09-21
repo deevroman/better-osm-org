@@ -30553,6 +30553,25 @@ async function _setupNewEditorsLinks(mutationsList) {
 
 //<editor-fold desc="" defaultstate="collapsed">
 
+function setupLanguageSwitcher() {
+    const langSwitch = document.querySelector("#header-nav .bi-translate").parentElement
+    if (!langSwitch || langSwitch.classList.contains("better-lang-switch")) {
+        return
+    }
+    langSwitch.classList.add("better-lang-switch")
+    langSwitch.addEventListener("click", e => {
+        if (e.ctrlKey || e.metaKey) {
+            setTimeout(() => {
+                document.querySelector('[href*="locale=en"]').click()
+            }, 1000)
+        }
+    })
+}
+
+//</editor-fold>
+
+//<editor-fold desc="" defaultstate="collapsed">
+
 function setupClickableAvatar() {
     const miniAvatar = document.querySelector(".user_thumbnail_tiny:not([patched-for-click])")
     if (!miniAvatar || miniAvatar.setAttribute("patched-for-click", "true")) {
@@ -35848,6 +35867,7 @@ const alwaysEnabledModules = [
     setupMessagesTemplates,
     setupNewContextMenuItems,
     setupPrometheusLink,
+    setupLanguageSwitcher,
 ]
 
 function selectOverpassServer() {
