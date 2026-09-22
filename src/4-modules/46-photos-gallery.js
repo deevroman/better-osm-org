@@ -231,6 +231,7 @@ function renderPhotosPreview(withPhotos) {
             overscrollBehaviorX: "contain",
             WebkitOverflowScrolling: "touch",
         })
+        document.querySelectorAll(".leaflet-control-container .leaflet-top.leaflet-right").forEach(i => (i.style.zIndex = "999999"))
         photosPreviewGallery.addEventListener(
             "wheel",
             e => {

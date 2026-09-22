@@ -123,7 +123,7 @@ function initMaplibreWorkerOverrider() {
         // лучше убрать воркер из глобального скоупа
     })
 }
-if ([prod_server.origin, dev_server.origin, local_server.origin, ohm_prod_server.origin].includes(location.origin)) {
+if ([prod_server.origin, dev_server.origin, local_server.origin, ohm_prod_server.origin, ogf_prod_server.origin].includes(location.origin)) {
     initCspBridge()
     initMaplibreWorkerOverrider()
 }

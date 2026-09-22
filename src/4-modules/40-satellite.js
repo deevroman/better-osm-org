@@ -1,6 +1,6 @@
 //<editor-fold desc="satellite switching">
 const OSMPrefix = "https://tile.openstreetmap.org/"
-const OGFPrefix = "https://tiles05.opengeofiction.net/ogf-carto/"
+const OGFPrefix = "https://tile.opengeofiction.net/ogf-carto/"
 const BaseLayerPrefix = isOGFServer() ? OGFPrefix : OSMPrefix
 
 const ESRIPrefix = "https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/"

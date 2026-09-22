@@ -172,6 +172,9 @@ async function tryFindDeletedChangesetAuthorViaOverpass(datetime, type, objID) {
  * @return {Promise<{user: string|null, uid: string|null}>}
  */
 async function tryFindDeletedChangesetAuthorViaDiffs(datetime, targetChangesetID) {
+    if (osm_server !== prod_server) {
+        throw "Search via diffs only for prod server"
+    }
     if (new Date(datetime) < OVERPASS_NEW_ERA_DATE) {
         return { user: null, uid: null }
     }
@@ -212,6 +215,9 @@ async function tryFindDeletedChangesetAuthorViaDiffs(datetime, targetChangesetID
  * @return {Promise<[{names: []}]|{error: string}>}
  */
 async function whosthatNamesRequest(userId) {
+    if (osm_server !== prod_server) {
+        throw "WhosThat only for prod server"
+    }
     const res = await externalFetchRetry({
         url: WHOSTHAT_ENDPOINT + "?action=names&id=" + userId,
         responseType: "json",
