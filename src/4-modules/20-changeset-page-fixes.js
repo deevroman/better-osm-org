@@ -1241,7 +1241,7 @@ const suspectWordsInSource = [
 
 // prettier-ignore
 const excludeWords = [
-    "yandex panorama", "яндекс панорам", "яндекс.панорам",
+    "yandex panorama", "яндекс панорам", "яндекс.панорам", "яндекс-панорам",
     "yandexpanorama", "яндекспанорам"
 ]
 
