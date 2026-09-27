@@ -348,6 +348,12 @@
       "disableOnOpenGeofiction": true
     },
     {
+      "name": "OsmInEdit",
+      "template": "https://osminedit.pavie.info/#{zoom}/{latitude}/{longitude}/0",
+      "description": "Editor",
+      "disableOnOpenGeofiction": true
+    },
+    {
       "name": "OSM 411",
       "template": "https://osm411.org/#map={zoom}/{latitude}/{longitude}",
       "description": ""
