@@ -16,7 +16,7 @@ function displayCsv(text) {
     columns.forEach((col, i) => {
         if (col.match(/(lat|широта)/i)) {
             latColumIndex = i
-        } else if (col.match(/(lon|догота)/i)) {
+        } else if (col.match(/(lon|долгота)/i)) {
             lonColumIndex = i
         }
     })
