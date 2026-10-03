@@ -16379,7 +16379,7 @@ function makeLinksInVersionTagClickable(row, objType) {
     const rawKey = keyCell.textContent
     const key = rawKey.toLowerCase()
     const valueCell = row.querySelector("td .current-value-span") ? row.querySelector("td .current-value-span") : row.querySelector("td")
-    if (key === "fixme") {
+    if (key.startsWith("fixme")) {
         valueCell.classList.add("fixme-tag")
     } else if (key === "note") {
         valueCell.classList.add("note-tag")
