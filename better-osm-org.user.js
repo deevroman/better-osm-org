@@ -33114,7 +33114,7 @@ async function openObjectInJosmOrLevel0(e) {
     }
     const [, type, id] = m
     const shortType = type === "node" ? "n" : type === "way" ? "w" : "r"
-    if (e.altKey) {
+    if (e.altKey || e.shiftKey) {
         if (osm_server !== prod_server) {
             alert(t("actions.level0WorksOnlyOnOsmOrg"))
             return
