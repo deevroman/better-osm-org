@@ -3903,6 +3903,13 @@ const instancesOf3DViewers = [
         },
     },
     {
+        name: "OSM Simple 3D editor",
+        url: "https://felispimeja.github.io/osm-simple3d-editor/",
+        makeURL: function ({ x: x, y: y, z: z, id: id, osm_type_first_letter: osm_type_first_letter }) {
+            return `${this.url}?edit=${osm_type_first_letter}${id}#${z}/${x}/${y}/0/60`
+        },
+    },
+    {
         name: "F4Map",
         url: "https://demo.f4map.com/",
         makeURL: function ({ x: x, y: y, z: z }) {
@@ -16505,7 +16512,7 @@ function makeLinksInVersionTagClickable(row, objType) {
                 const listItem = document.createElement("div")
                 const a = document.createElement("a")
                 const [x, y, z] = getCurrentXYZ()
-                a.href = i.makeURL({ x, y, z, type, id })
+                a.href = i.makeURL({ x, y, z, type, id, osm_type_first_letter: type[0] })
                 a.textContent = i.name
                 a.target = "_blank"
                 a.style.width = "100%"
@@ -16568,7 +16575,7 @@ function makeLinksInVersionTagClickable(row, objType) {
             const [x, y, z] = getCurrentXYZ()
             const buildingViewer = (await GM.getValue("3DViewer")) ?? "OSM Building Viewer"
             const viewer = instancesOf3DViewers.find(i => i.name === buildingViewer)
-            const url = viewer.makeURL({ x, y, z, type, id })
+            const url = viewer.makeURL({ x, y, z, type, id, osm_type_first_letter: type[0] })
             if (isMobile || e.ctrlKey || e.metaKey || e.which === 2 || GM_config.get("3DViewerInNewTab")) {
                 window.open(url, "_blank")
                 return
