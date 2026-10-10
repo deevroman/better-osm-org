@@ -349,7 +349,7 @@ const instancesOf3DViewers = [
         name: "OSM Simple 3D editor",
         url: "https://felispimeja.github.io/osm-simple3d-editor/",
         makeURL: function ({ x: x, y: y, z: z, id: id, osm_type_first_letter: osm_type_first_letter }) {
-            return `${this.url}?edit=${osm_type_first_letter}${id}#${z}/${x}/${y}/0/60`
+            return `${this.url}#${z}/${x}/${y}/0/60`
         },
     },
     {
