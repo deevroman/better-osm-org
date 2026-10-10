@@ -657,7 +657,7 @@ function addResolveNotesButton() {
     if (document.querySelector(".resolve-note-done")) return
     if (document.querySelector("#timeback-btn")) return
     resetSearchFormFocus()
-    void geocodeCurrentView()
+    trickyGeocoder()
 
     document.querySelectorAll('#sidebar_content a[href^="/user/"]').forEach(elem => {
         getCachedUserInfo(elem.textContent).then(info => {

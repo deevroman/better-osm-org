@@ -224,7 +224,8 @@ async function geocodeCurrentView(attempts = 5) {
         setAttributionPrefix("")
         if (attempts > 0) {
             console.log(`Attempt №${7 - attempts} for geocoding`)
-            setTimeout(geocodeCurrentView, 100, attempts - 1)
+            await sleep(100)
+            await geocodeCurrentView(attempts - 1)
         } else {
             console.log("Skip geocoding")
         }
@@ -243,7 +244,7 @@ async function geocodeCurrentView(attempts = 5) {
         console.debug(`%c${url} should be cached`, "background: #222; color: #00ff00")
     }
 
-    fetchJSONWithCache(url, {
+    await fetchJSONWithCache(url, {
         signal: getAbortController().signal,
         retryCount: 5,
     })
@@ -3729,6 +3730,21 @@ async function interceptMapManually() {
     }
 }
 
+function trickyGeocoder() {
+    geocodeCurrentView().then(() => {
+        try {
+            getMap().once(
+                "moveend",
+                intoPageWithFun(function () {
+                    void geocodeCurrentView(1)
+                }),
+            )
+        } catch (err) {
+            console.error(err)
+        }
+    })
+}
+
 async function addChangesetQuickLook() {
     if (quickLookInjectingStarted) return
     if (!location.pathname.startsWith("/changeset")) {
@@ -3747,7 +3763,7 @@ async function addChangesetQuickLook() {
     }
     quickLookInjectingStarted = true
     resetSearchFormFocus()
-    void geocodeCurrentView()
+    trickyGeocoder()
     makeTimesSwitchable()
     if (GM_config.get("ResizableSidebar")) {
         document.querySelector("#sidebar").style.resize = "horizontal"
