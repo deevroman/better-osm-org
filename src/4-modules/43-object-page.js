@@ -876,7 +876,7 @@ function makeLinksInVersionTagClickable(row, objType) {
     const rawKey = keyCell.textContent
     const key = rawKey.toLowerCase()
     const valueCell = row.querySelector("td .current-value-span") ? row.querySelector("td .current-value-span") : row.querySelector("td")
-    if (key === "fixme") {
+    if (key.startsWith("fixme")) {
         valueCell.classList.add("fixme-tag")
     } else if (key === "note") {
         valueCell.classList.add("note-tag")
@@ -983,7 +983,7 @@ function makeLinksInVersionTagClickable(row, objType) {
                 const listItem = document.createElement("div")
                 const a = document.createElement("a")
                 const [x, y, z] = getCurrentXYZ()
-                a.href = i.makeURL({ x, y, z, type, id })
+                a.href = i.makeURL({ x, y, z, type, id, osm_type_first_letter: type[0] })
                 a.textContent = i.name
                 a.target = "_blank"
                 a.style.width = "100%"
@@ -1046,7 +1046,7 @@ function makeLinksInVersionTagClickable(row, objType) {
             const [x, y, z] = getCurrentXYZ()
             const buildingViewer = (await GM.getValue("3DViewer")) ?? "OSM Building Viewer"
             const viewer = instancesOf3DViewers.find(i => i.name === buildingViewer)
-            const url = viewer.makeURL({ x, y, z, type, id })
+            const url = viewer.makeURL({ x, y, z, type, id, osm_type_first_letter: type[0] })
             if (isMobile || e.ctrlKey || e.metaKey || e.which === 2 || GM_config.get("3DViewerInNewTab")) {
                 window.open(url, "_blank")
                 return

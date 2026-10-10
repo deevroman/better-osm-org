@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Better osm.org
 // @name:ru         Better osm.org
-// @version         1.7.6
+// @version         1.7.7
 // @changelog       v1.7.3: Notes resolve buttons in iD, Open in Vespucci action, Drag&Drop for JSON array and .osc β
 // @changelog       v1.7.2: Direct messages templates, retries for osm-revert, ctrl + S to save active object
 // @changelog       v1.7.2: Validate building:min_level, highlight suspect words in source=*, and imagery_used=
@@ -3900,6 +3900,13 @@ const instancesOf3DViewers = [
             } else {
                 return `${this.url}?id=${id}&type=${type}&osmApiUrl=${osm_server.apiUrl}`
             }
+        },
+    },
+    {
+        name: "OSM Simple 3D editor",
+        url: "https://felispimeja.github.io/osm-simple3d-editor/",
+        makeURL: function ({ x: x, y: y, z: z, id: id, osm_type_first_letter: osm_type_first_letter }) {
+            return `${this.url}#${z}/${x}/${y}/0/60`
         },
     },
     {
@@ -11868,7 +11875,7 @@ function addResolveNotesButton() {
     if (document.querySelector(".resolve-note-done")) return
     if (document.querySelector("#timeback-btn")) return
     resetSearchFormFocus()
-    void geocodeCurrentView()
+    trickyGeocoder()
 
     document.querySelectorAll('#sidebar_content a[href^="/user/"]').forEach(elem => {
         getCachedUserInfo(elem.textContent).then(info => {
@@ -12745,9 +12752,10 @@ function makeComment(object_type, object_id, prevTags, newTags) {
  * @param {number} object_id
  * @param {number} object_version
  * @param {Map<string, string>} newTags
+ * @param {boolean} confirmComment
  * @return {Promise<string>}
  */
-async function uploadChanges(object_type, object_id, object_version, newTags) {
+async function uploadChanges(object_type, object_id, object_version, newTags, confirmComment) {
     const rawObjectInfo = await (await fetch(osm_server.apiBase + object_type + "/" + object_id)).text()
     const objectInfo = new DOMParser().parseFromString(rawObjectInfo, "text/xml")
     const lastVersion = parseInt(objectInfo.querySelector("[version]:not(osm)").getAttribute("version"))
@@ -12769,7 +12777,14 @@ async function uploadChanges(object_type, object_id, object_version, newTags) {
         objectXML.appendChild(tag)
     })
 
-    const changesetId = await openOsmChangeset(makeComment(object_type, object_id, prevTags, newTags))
+    let comment = makeComment(object_type, object_id, prevTags, newTags)
+    if (confirmComment) {
+        comment = prompt("Upload edits with this comment?", comment)
+        if (!comment) {
+            throw ""
+        }
+    }
+    const changesetId = await openOsmChangeset(comment)
     try {
         objectInfo.children[0].children[0].setAttribute("changeset", changesetId)
 
@@ -12882,7 +12897,7 @@ async function editTagsHandler(e) {
     saveButton.textContent = "Save"
     saveButton.onclick = async () => {
         try {
-            await uploadChanges(type, id, version, buildTags(ta.value))
+            await uploadChanges(type, id, version, buildTags(ta.value), false)
             tryReloadSidebar()
         } catch (e) {
             errorPane.textContent = e
@@ -12902,15 +12917,26 @@ async function editTagsHandler(e) {
 
     btnWrapper.appendChild(cancelButton)
 
-    const info = document.createElement("span")
-    info.classList.add("bi", "bi-info-circle")
-    info.style.cursor = "help"
-    info.style.marginLeft = "auto"
-    info.style.alignSelf = "center"
-    info.style.color = "gray"
-    info.title = "better-osm-org implementation of tags editor.\n\nHotkey: alt + E"
+    const comment = document.createElement("button")
+    comment.classList.add("bi", "bi-chat-left-text-fill")
+    comment.style.border = "none"
+    comment.style.background = "transparent"
+    comment.style.cursor = "pointer"
+    comment.style.marginLeft = "auto"
+    comment.style.alignSelf = "center"
+    comment.style.color = "gray"
+    comment.title = "Click to upload with custom comment\n\nbetter-osm-org implementation of tags editor"
 
-    btnWrapper.appendChild(info)
+    comment.onclick = async () => {
+        try {
+            await uploadChanges(type, id, version, buildTags(ta.value), true)
+            tryReloadSidebar()
+        } catch (e) {
+            errorPane.textContent = e
+        }
+    }
+
+    btnWrapper.appendChild(comment)
 }
 
 function addTagsEditorButton() {
@@ -16379,7 +16405,7 @@ function makeLinksInVersionTagClickable(row, objType) {
     const rawKey = keyCell.textContent
     const key = rawKey.toLowerCase()
     const valueCell = row.querySelector("td .current-value-span") ? row.querySelector("td .current-value-span") : row.querySelector("td")
-    if (key === "fixme") {
+    if (key.startsWith("fixme")) {
         valueCell.classList.add("fixme-tag")
     } else if (key === "note") {
         valueCell.classList.add("note-tag")
@@ -16486,7 +16512,7 @@ function makeLinksInVersionTagClickable(row, objType) {
                 const listItem = document.createElement("div")
                 const a = document.createElement("a")
                 const [x, y, z] = getCurrentXYZ()
-                a.href = i.makeURL({ x, y, z, type, id })
+                a.href = i.makeURL({ x, y, z, type, id, osm_type_first_letter: type[0] })
                 a.textContent = i.name
                 a.target = "_blank"
                 a.style.width = "100%"
@@ -16549,7 +16575,7 @@ function makeLinksInVersionTagClickable(row, objType) {
             const [x, y, z] = getCurrentXYZ()
             const buildingViewer = (await GM.getValue("3DViewer")) ?? "OSM Building Viewer"
             const viewer = instancesOf3DViewers.find(i => i.name === buildingViewer)
-            const url = viewer.makeURL({ x, y, z, type, id })
+            const url = viewer.makeURL({ x, y, z, type, id, osm_type_first_letter: type[0] })
             if (isMobile || e.ctrlKey || e.metaKey || e.which === 2 || GM_config.get("3DViewerInNewTab")) {
                 window.open(url, "_blank")
                 return
@@ -20802,7 +20828,8 @@ async function geocodeCurrentView(attempts = 5) {
         setAttributionPrefix("")
         if (attempts > 0) {
             console.log(`Attempt №${7 - attempts} for geocoding`)
-            setTimeout(geocodeCurrentView, 100, attempts - 1)
+            await sleep(100)
+            await geocodeCurrentView(attempts - 1)
         } else {
             console.log("Skip geocoding")
         }
@@ -20821,7 +20848,7 @@ async function geocodeCurrentView(attempts = 5) {
         console.debug(`%c${url} should be cached`, "background: #222; color: #00ff00")
     }
 
-    fetchJSONWithCache(url, {
+    await fetchJSONWithCache(url, {
         signal: getAbortController().signal,
         retryCount: 5,
     })
@@ -24307,6 +24334,21 @@ async function interceptMapManually() {
     }
 }
 
+function trickyGeocoder() {
+    geocodeCurrentView().then(() => {
+        try {
+            getMap().once(
+                "moveend",
+                intoPageWithFun(function () {
+                    void geocodeCurrentView(1)
+                }),
+            )
+        } catch (err) {
+            console.error(err)
+        }
+    })
+}
+
 async function addChangesetQuickLook() {
     if (quickLookInjectingStarted) return
     if (!location.pathname.startsWith("/changeset")) {
@@ -24325,7 +24367,7 @@ async function addChangesetQuickLook() {
     }
     quickLookInjectingStarted = true
     resetSearchFormFocus()
-    void geocodeCurrentView()
+    trickyGeocoder()
     makeTimesSwitchable()
     if (GM_config.get("ResizableSidebar")) {
         document.querySelector("#sidebar").style.resize = "horizontal"
@@ -31308,7 +31350,7 @@ function renderOSMGeoJSON(xml, options = {}) {
 
                     try {
                         console.log("Starting changeset upload")
-                        const changesetId = await uploadChanges(object_type, object_id, object_version, newTags)
+                        const changesetId = await uploadChanges(object_type, object_id, object_version, newTags, false)
 
                         startEditEvent.target.textContent = "#" + changesetId
                         startEditEvent.target.style.color = "green"
@@ -33114,7 +33156,7 @@ async function openObjectInJosmOrLevel0(e) {
     }
     const [, type, id] = m
     const shortType = type === "node" ? "n" : type === "way" ? "w" : "r"
-    if (e.altKey) {
+    if (e.altKey || e.shiftKey) {
         if (osm_server !== prod_server) {
             alert(t("actions.level0WorksOnlyOnOsmOrg"))
             return

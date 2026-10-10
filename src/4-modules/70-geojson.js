@@ -683,7 +683,7 @@ function renderOSMGeoJSON(xml, options = {}) {
 
                     try {
                         console.log("Starting changeset upload")
-                        const changesetId = await uploadChanges(object_type, object_id, object_version, newTags)
+                        const changesetId = await uploadChanges(object_type, object_id, object_version, newTags, false)
 
                         startEditEvent.target.textContent = "#" + changesetId
                         startEditEvent.target.style.color = "green"
