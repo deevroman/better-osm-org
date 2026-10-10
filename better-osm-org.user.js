@@ -11875,7 +11875,7 @@ function addResolveNotesButton() {
     if (document.querySelector(".resolve-note-done")) return
     if (document.querySelector("#timeback-btn")) return
     resetSearchFormFocus()
-    void geocodeCurrentView()
+    trickyGeocoder()
 
     document.querySelectorAll('#sidebar_content a[href^="/user/"]').forEach(elem => {
         getCachedUserInfo(elem.textContent).then(info => {
@@ -20828,7 +20828,8 @@ async function geocodeCurrentView(attempts = 5) {
         setAttributionPrefix("")
         if (attempts > 0) {
             console.log(`Attempt №${7 - attempts} for geocoding`)
-            setTimeout(geocodeCurrentView, 100, attempts - 1)
+            await sleep(100)
+            await geocodeCurrentView(attempts - 1)
         } else {
             console.log("Skip geocoding")
         }
@@ -20847,7 +20848,7 @@ async function geocodeCurrentView(attempts = 5) {
         console.debug(`%c${url} should be cached`, "background: #222; color: #00ff00")
     }
 
-    fetchJSONWithCache(url, {
+    await fetchJSONWithCache(url, {
         signal: getAbortController().signal,
         retryCount: 5,
     })
@@ -24333,6 +24334,21 @@ async function interceptMapManually() {
     }
 }
 
+function trickyGeocoder() {
+    geocodeCurrentView().then(() => {
+        try {
+            getMap().once(
+                "moveend",
+                intoPageWithFun(function () {
+                    void geocodeCurrentView(1)
+                }),
+            )
+        } catch (err) {
+            console.error(err)
+        }
+    })
+}
+
 async function addChangesetQuickLook() {
     if (quickLookInjectingStarted) return
     if (!location.pathname.startsWith("/changeset")) {
@@ -24351,7 +24367,7 @@ async function addChangesetQuickLook() {
     }
     quickLookInjectingStarted = true
     resetSearchFormFocus()
-    void geocodeCurrentView()
+    trickyGeocoder()
     makeTimesSwitchable()
     if (GM_config.get("ResizableSidebar")) {
         document.querySelector("#sidebar").style.resize = "horizontal"
