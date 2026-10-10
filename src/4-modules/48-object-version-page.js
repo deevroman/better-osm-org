@@ -321,6 +321,8 @@ function makePolygonMeasureButtons(nodesIds, nodesMap, osm_type, fullData, id) {
             } catch (e) {
                 console.error(e)
             }
+        } else if (["waterway", "route"].includes(relationVersion.tags["type"])) {
+            // todo
         }
     }
 
