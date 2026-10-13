@@ -196,6 +196,7 @@ function runInOsmPageCode() {
     window.hiddenChangesetsCount = null;
     window.spyGlassMode = false;
     window.photosMode = false;
+    window.view3DModelsMode = false;
 
     window.notesDisplayName = "";
     window.notesQFilter = "";
@@ -215,10 +216,9 @@ function runInOsmPageCode() {
     console.log('Fetch intercepted');
     window.fetch = async (...args) => {
         try {
-            // TODO check
-            if (args[0]?.startsWith?.("blob:https://www.openstreetmap.org/")) {
+            if (window.view3DModelsMode && window.mapGLIntercepted && args[0]?.startsWith?.("blob:https://www.openstreetmap.org/")) {
                 const resourceUrl = args[0] 
-                console.log("overridden fetch in page", window.customLayerOrigin, window.customVectorStyleLayerOrigin, resourceUrl)
+                console.log("overridden fetch in page", resourceUrl)
                 const resultCallback = new Promise((resolve, reject) => {
                     window.addEventListener("message", e => {
                         if (e.origin !== location.origin) return
