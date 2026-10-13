@@ -27,7 +27,7 @@ const hotkeyActions = {
         run: actionShowHotkeysHelp,
     },
     prepare3dmrModel: {
-        title: "Download 3DMR model",
+        title: "Download and display 3DMR model",
         defaultBindings: ["F2"],
         contexts: ["Main pages"],
         preventDefault: true,
