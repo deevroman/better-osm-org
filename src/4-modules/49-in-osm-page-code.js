@@ -215,7 +215,33 @@ function runInOsmPageCode() {
     console.log('Fetch intercepted');
     window.fetch = async (...args) => {
         try {
-            if (args[0]?.includes?.("notes.json")) {
+            // TODO check
+            if (args[0]?.startsWith?.("blob:https://www.openstreetmap.org/")) {
+                const resourceUrl = args[0] 
+                console.log("overridden fetch in page", window.customLayerOrigin, window.customVectorStyleLayerOrigin, resourceUrl)
+                const resultCallback = new Promise((resolve, reject) => {
+                    window.addEventListener("message", e => {
+                        if (e.origin !== location.origin) return
+                        if (e.data.type !== "bypass_csp_response") {
+                            return
+                        }
+                        if (e.data.url !== resourceUrl) {
+                            return
+                        }
+                        resolve(e.data.data)
+                    })
+                })
+                window.postMessage({ "type": "bypass_csp", url: resourceUrl }, location.origin)
+                const res = await resultCallback
+                if (res.aborted) {
+                    throw "AbortError"
+                } else {
+                    return new Response(res.status === 204 ? null : res.response, {
+                        status: res.status,
+                        statusText: res.statusText,
+                    });
+                }
+            } else if (args[0]?.includes?.("notes.json")) {
                 if (!(window.notesDisplayName !== ""
                     || window.notesQFilter !== ""
                     || (window.notesClosedFilter !== "" && window.notesClosedFilter !== "7")
