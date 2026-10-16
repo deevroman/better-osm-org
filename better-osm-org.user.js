@@ -3913,7 +3913,13 @@ const instancesOf3DViewers = [
         name: "OSM Simple 3D editor",
         url: "https://felispimeja.github.io/osm-simple3d-editor/",
         makeURL: function ({ x: x, y: y, z: z, id: id, osm_type_first_letter: osm_type_first_letter }) {
-            return `${this.url}#${z}/${x}/${y}/0/60`
+            if (osm_server === ohm_prod_server) {
+                return `${this.url}?server=ohm#${z}/${x}/${y}/0/60`
+            } else if (osm_server === ogf_prod_server) {
+                return `${this.url}?server=ogf#${z}/${x}/${y}/0/60`
+            } else {
+                return `${this.url}#${z}/${x}/${y}/0/60`
+            }
         },
     },
     {
@@ -4002,7 +4008,13 @@ const instancesOfIndoorViewers = [
         name: "OSM Simple 3D editor",
         url: "https://felispimeja.github.io/osm-simple3d-editor/",
         makeURL: function ({ x: x, y: y, z: z, id: id, osm_type_first_letter: osm_type_first_letter }) {
-            return `${this.url}#${z}/${x}/${y}/0/60`
+            if (osm_server === ohm_prod_server) {
+                return `${this.url}?server=ohm#${z}/${x}/${y}`
+            } else if (osm_server === ogf_prod_server) {
+                return `${this.url}?server=ogf#${z}/${x}/${y}`
+            } else {
+                return `${this.url}#${z}/${x}/${y}`
+            }
         },
     },
 ]
@@ -16585,7 +16597,13 @@ function makeViewerValue(valueCell, key) {
         const selectedViewer = (await GM.getValue(viewerConfig.storageKey)) ?? viewerConfig.defaultViewer
         const viewer = viewerConfig.viewers.find(i => i.name === selectedViewer)
         const url = viewer.makeURL({ x, y, z, type, id, osm_type_first_letter: type[0] })
-        if (isMobile || e.ctrlKey || e.metaKey || e.which === 2 || (viewerConfig.openInNewTabConfig && GM_config.get(viewerConfig.openInNewTabConfig))) {
+        if (
+            isMobile ||
+            e.ctrlKey ||
+            e.metaKey ||
+            e.which === 2 ||
+            (viewerConfig.openInNewTabConfig && GM_config.get(viewerConfig.openInNewTabConfig))
+        ) {
             window.open(url, "_blank")
             return
         }

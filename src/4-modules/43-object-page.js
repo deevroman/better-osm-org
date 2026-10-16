@@ -1024,7 +1024,13 @@ function makeViewerValue(valueCell, key) {
         const selectedViewer = (await GM.getValue(viewerConfig.storageKey)) ?? viewerConfig.defaultViewer
         const viewer = viewerConfig.viewers.find(i => i.name === selectedViewer)
         const url = viewer.makeURL({ x, y, z, type, id, osm_type_first_letter: type[0] })
-        if (isMobile || e.ctrlKey || e.metaKey || e.which === 2 || (viewerConfig.openInNewTabConfig && GM_config.get(viewerConfig.openInNewTabConfig))) {
+        if (
+            isMobile ||
+            e.ctrlKey ||
+            e.metaKey ||
+            e.which === 2 ||
+            (viewerConfig.openInNewTabConfig && GM_config.get(viewerConfig.openInNewTabConfig))
+        ) {
             window.open(url, "_blank")
             return
         }
