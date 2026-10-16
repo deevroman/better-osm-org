@@ -16682,7 +16682,7 @@ function makeLinksInVersionTagClickable(row, objType) {
         makeConditionalValue(valueCell)
     } else if (needValidateOpeningHoursKey(key)) {
         makeOpeningHoursValue(valueCell, key, true)
-    } else if (key === "indoor" || (key === "shop" && value === "mall")) {
+    } else if (key === "indoor" || (key === "shop" && valueCell.textContent === "mall")) {
         makeViewerValue(valueCell, key)
     } else if (["building", "building:part"].includes(key) || (key === "type" && valueCell.textContent === "building")) {
         makeViewerValue(valueCell, key)
