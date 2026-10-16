@@ -874,6 +874,159 @@ function makeRoofDirectionValue(valueCell, row, isVersionPage) {
     })
 }
 
+function makeBuildingViewerValue(valueCell, key) {
+    if (location.pathname.includes("/history") || document.querySelector(".view-3d-link")) {
+        return
+    }
+    const m = location.pathname.match(/\/(way|relation)\/(\d+)/)
+    if (!m) {
+        return
+    }
+    const [, type, id] = m
+    if (!type) {
+        return
+    }
+    if (type === "way" && ["building", "building:part"].includes(key)) {
+        const has3DTags = !Array.from(document.querySelectorAll(".browse-tag-list tr th")).some(i => {
+            return (
+                i.textContent.includes("level") ||
+                i.textContent.includes("height") ||
+                i.textContent.includes("roof") ||
+                i.textContent.includes("wikidata")
+            )
+        })
+        if (has3DTags) {
+            if (document.querySelectorAll('a[href^="/node/"]').length <= 5) {
+                return
+            }
+        }
+    }
+    injectContextMenuCSS()
+    const parent = document.querySelector(".browse-tag-list").parentElement.previousElementSibling
+    parent.style.display = "flex"
+
+    const wrapper = document.createElement("span")
+    wrapper.classList.add("btn-group")
+    wrapper.style.marginLeft = "auto"
+    parent.appendChild(wrapper)
+
+    const viewIn3D = document.createElement("span")
+    viewIn3D.classList.add("view-3d-link", "btn", "btn-outline-primary")
+    viewIn3D.textContent = "3D"
+    viewIn3D.style.cursor = "pointer"
+    viewIn3D.style.paddingTop = "3px"
+    viewIn3D.style.paddingBottom = "3px"
+    viewIn3D.title = t("objectPage.clickShowEmbedded3d")
+
+    async function contextMenuHandler(e) {
+        const buildingViewer = (await GM.getValue("3DViewer")) ?? "OSM Building Viewer"
+        e.preventDefault()
+        e.stopPropagation()
+
+        const menu = makeContextMenuElem({
+            ...e,
+            pageX: e.target.getBoundingClientRect().right,
+            pageY: e.target.getBoundingClientRect().bottom,
+        })
+        instancesOf3DViewers.forEach(i => {
+            const listItem = document.createElement("div")
+            const a = document.createElement("a")
+            const [x, y, z] = getCurrentXYZ()
+            a.href = i.makeURL({ x, y, z, type, id, osm_type_first_letter: type[0] })
+            a.textContent = i.name
+            a.target = "_blank"
+            a.style.width = "100%"
+
+            const pin = document.createElement("input")
+            pin.id = i.name
+            pin.type = "radio"
+            pin.classList.add("pin")
+            pin.setAttribute("name", "viewer-selector")
+            const pinLabel = document.createElement("label")
+            pinLabel.setAttribute("for", i.name)
+            pinLabel.classList.add("pin-label")
+            pinLabel.textContent = "📌"
+            pinLabel.title = t("objectPage.setAsDefaultForClick")
+            if (i.name === buildingViewer) {
+                pin.checked = true
+                pinLabel.title = t("objectPage.defaultViewer")
+            }
+            pin.onchange = async () => {
+                if (pin.checked) {
+                    await GM.setValue("3DViewer", i.name)
+                    if (viewIn3D.classList.contains("active")) {
+                        viewIn3D.click()
+                        viewIn3D.click()
+                    }
+                }
+            }
+            listItem.appendChild(pin)
+            listItem.appendChild(pinLabel)
+            listItem.appendChild(a)
+            document.addEventListener(
+                "click",
+                function fn(e) {
+                    if (!e.isTrusted) {
+                        document.addEventListener("click", fn, { once: true })
+                        return
+                    }
+                    if (e.target.classList.contains("pin-label") || e.target.classList.contains("pin")) {
+                        document.addEventListener("click", fn, { once: true })
+                        return
+                    }
+                    menu.remove()
+                },
+                { once: true },
+            )
+            menu.appendChild(listItem)
+        })
+        document.body.appendChild(menu)
+    }
+
+    viewIn3D.addEventListener("contextmenu", contextMenuHandler)
+
+    async function clickHandler(e) {
+        if (buildingViewerIframe) {
+            buildingViewerIframe.remove()
+            buildingViewerIframe = null
+            viewIn3D.classList.toggle("active")
+            return
+        }
+        const [x, y, z] = getCurrentXYZ()
+        const buildingViewer = (await GM.getValue("3DViewer")) ?? "OSM Building Viewer"
+        const viewer = instancesOf3DViewers.find(i => i.name === buildingViewer)
+        const url = viewer.makeURL({ x, y, z, type, id, osm_type_first_letter: type[0] })
+        if (isMobile || e.ctrlKey || e.metaKey || e.which === 2 || GM_config.get("3DViewerInNewTab")) {
+            window.open(url, "_blank")
+            return
+        }
+        viewIn3D.classList.toggle("active")
+
+        buildingViewerIframe = GM_addElement("iframe", {
+            src: url,
+            width: document.querySelector("#map").clientWidth,
+            height: "100%",
+            id: "building-3d-view",
+        })
+        document.querySelector("#map").before(buildingViewerIframe)
+    }
+
+    viewIn3D.addEventListener("click", clickHandler)
+    viewIn3D.addEventListener("auxclick", e => {
+        if (e.which !== 2) return
+        clickHandler(e)
+    })
+    wrapper.appendChild(viewIn3D)
+
+    const expand = document.createElement("span")
+    expand.classList.add("dropdown-toggle", "dropdown-toggle-split", "btn", "btn-outline-primary")
+    expand.style.cursor = "pointer"
+    expand.style.paddingTop = "3px"
+    expand.style.paddingBottom = "3px"
+    wrapper.appendChild(expand)
+    expand.onclick = contextMenuHandler
+}
+
 // example https://osm.org/node/6506618057
 function makeLinksInVersionTagClickable(row, objType) {
     const keyCell = row.querySelector("th")
@@ -923,156 +1076,7 @@ function makeLinksInVersionTagClickable(row, objType) {
     } else if (needValidateOpeningHoursKey(key)) {
         makeOpeningHoursValue(valueCell, key, true)
     } else if (["building", "building:part"].includes(key) || (key === "type" && valueCell.textContent === "building")) {
-        if (location.pathname.includes("/history") || document.querySelector(".view-3d-link")) {
-            return
-        }
-        const m = location.pathname.match(/\/(way|relation)\/(\d+)/)
-        if (!m) {
-            return
-        }
-        const [, type, id] = m
-        if (!type) {
-            return
-        }
-        if (type === "way" && ["building", "building:part"].includes(key)) {
-            const has3DTags = !Array.from(document.querySelectorAll(".browse-tag-list tr th")).some(i => {
-                return (
-                    i.textContent.includes("level") ||
-                    i.textContent.includes("height") ||
-                    i.textContent.includes("roof") ||
-                    i.textContent.includes("wikidata")
-                )
-            })
-            if (has3DTags) {
-                if (document.querySelectorAll('a[href^="/node/"]').length <= 5) {
-                    return
-                }
-            }
-        }
-        injectContextMenuCSS()
-        const parent = document.querySelector(".browse-tag-list").parentElement.previousElementSibling
-        parent.style.display = "flex"
-
-        const wrapper = document.createElement("span")
-        wrapper.classList.add("btn-group")
-        wrapper.style.marginLeft = "auto"
-        parent.appendChild(wrapper)
-
-        const viewIn3D = document.createElement("span")
-        viewIn3D.classList.add("view-3d-link", "btn", "btn-outline-primary")
-        viewIn3D.textContent = "3D"
-        viewIn3D.style.cursor = "pointer"
-        viewIn3D.style.paddingTop = "3px"
-        viewIn3D.style.paddingBottom = "3px"
-        viewIn3D.title = t("objectPage.clickShowEmbedded3d")
-
-        async function contextMenuHandler(e) {
-            const buildingViewer = (await GM.getValue("3DViewer")) ?? "OSM Building Viewer"
-            e.preventDefault()
-            e.stopPropagation()
-
-            const menu = makeContextMenuElem({
-                ...e,
-                pageX: e.target.getBoundingClientRect().right,
-                pageY: e.target.getBoundingClientRect().bottom,
-            })
-            instancesOf3DViewers.forEach(i => {
-                const listItem = document.createElement("div")
-                const a = document.createElement("a")
-                const [x, y, z] = getCurrentXYZ()
-                a.href = i.makeURL({ x, y, z, type, id, osm_type_first_letter: type[0] })
-                a.textContent = i.name
-                a.target = "_blank"
-                a.style.width = "100%"
-
-                const pin = document.createElement("input")
-                pin.id = i.name
-                pin.type = "radio"
-                pin.classList.add("pin")
-                pin.setAttribute("name", "viewer-selector")
-                const pinLabel = document.createElement("label")
-                pinLabel.setAttribute("for", i.name)
-                pinLabel.classList.add("pin-label")
-                pinLabel.textContent = "📌"
-                pinLabel.title = t("objectPage.setAsDefaultForClick")
-                if (i.name === buildingViewer) {
-                    pin.checked = true
-                    pinLabel.title = t("objectPage.defaultViewer")
-                }
-                pin.onchange = async () => {
-                    if (pin.checked) {
-                        await GM.setValue("3DViewer", i.name)
-                        if (viewIn3D.classList.contains("active")) {
-                            viewIn3D.click()
-                            viewIn3D.click()
-                        }
-                    }
-                }
-                listItem.appendChild(pin)
-                listItem.appendChild(pinLabel)
-                listItem.appendChild(a)
-                document.addEventListener(
-                    "click",
-                    function fn(e) {
-                        if (!e.isTrusted) {
-                            document.addEventListener("click", fn, { once: true })
-                            return
-                        }
-                        if (e.target.classList.contains("pin-label") || e.target.classList.contains("pin")) {
-                            document.addEventListener("click", fn, { once: true })
-                            return
-                        }
-                        menu.remove()
-                    },
-                    { once: true },
-                )
-                menu.appendChild(listItem)
-            })
-            document.body.appendChild(menu)
-        }
-
-        viewIn3D.addEventListener("contextmenu", contextMenuHandler)
-
-        async function clickHandler(e) {
-            if (buildingViewerIframe) {
-                buildingViewerIframe.remove()
-                buildingViewerIframe = null
-                viewIn3D.classList.toggle("active")
-                return
-            }
-            const [x, y, z] = getCurrentXYZ()
-            const buildingViewer = (await GM.getValue("3DViewer")) ?? "OSM Building Viewer"
-            const viewer = instancesOf3DViewers.find(i => i.name === buildingViewer)
-            const url = viewer.makeURL({ x, y, z, type, id, osm_type_first_letter: type[0] })
-            if (isMobile || e.ctrlKey || e.metaKey || e.which === 2 || GM_config.get("3DViewerInNewTab")) {
-                window.open(url, "_blank")
-                return
-            }
-            viewIn3D.classList.toggle("active")
-
-            buildingViewerIframe = GM_addElement("iframe", {
-                src: url,
-                width: document.querySelector("#map").clientWidth,
-                height: "100%",
-                id: "building-3d-view",
-            })
-            document.querySelector("#map").before(buildingViewerIframe)
-        }
-
-        viewIn3D.addEventListener("click", clickHandler)
-        viewIn3D.addEventListener("auxclick", e => {
-            if (e.which !== 2) return
-            clickHandler(e)
-        })
-        wrapper.appendChild(viewIn3D)
-
-        const expand = document.createElement("span")
-        expand.classList.add("dropdown-toggle", "dropdown-toggle-split", "btn", "btn-outline-primary")
-        expand.style.cursor = "pointer"
-        expand.style.paddingTop = "3px"
-        expand.style.paddingBottom = "3px"
-        wrapper.appendChild(expand)
-        expand.onclick = contextMenuHandler
+        makeBuildingViewerValue(valueCell, key)
     } else if (
         // prettier-ignore
         (key === "route" || key === "superroute") &&
