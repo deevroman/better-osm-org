@@ -90,8 +90,8 @@ function cleanupBeforeNewLocation(path) {
         setAttributionPrefix("")
         addSwipes()
         document.querySelector("#fixed-rss-feed")?.remove()
-        buildingViewerIframe?.remove()
-        buildingViewerIframe = null
+        viewerIframe?.remove()
+        viewerIframe = null
         historyPagePaginationDeletingObserver?.disconnect()
         historyPagePaginationDeletingObserver = null
         paginationInHistoryStepObserver?.disconnect()

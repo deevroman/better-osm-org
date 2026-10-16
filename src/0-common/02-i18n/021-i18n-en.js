@@ -429,6 +429,7 @@ _translations["en"] = {
         needRoofOrientation: "it seems to need to be changed to roof:orientation",
         clickShowEmbedded3d:
             "Click to show the embedded 3D Viewer.\nIn the script settings, you can set it to open on the OSM page by default",
+        clickShowEmbeddedIndoor: "Click to show the embedded indoor viewer.",
         setAsDefaultForClick: "Set as default for click",
         defaultViewer: "It's default viewer",
         keyTooShort: "The key is too short",

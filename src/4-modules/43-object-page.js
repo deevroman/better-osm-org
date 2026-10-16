@@ -688,12 +688,13 @@ function makeXmasFeatureEasterEgg() {
     }
 }
 
-let buildingViewerIframe = null
+let viewerIframe = null
 
 let contextMenuCSSInjected = false
 
 const contextMenuCSS = `
-    #building-3d-view {
+    #building-3d-view,
+    #building-indoor-view {
         height: 120% !important;
         z-index: 9999 !important;
     }
@@ -874,8 +875,31 @@ function makeRoofDirectionValue(valueCell, row, isVersionPage) {
     })
 }
 
-function makeBuildingViewerValue(valueCell, key) {
-    if (location.pathname.includes("/history") || document.querySelector(".view-3d-link")) {
+function makeViewerValue(valueCell, key) {
+    const isIndoorViewer = key === "indoor" || (key === "shop" && valueCell.textContent === "mall")
+    const viewerConfig = isIndoorViewer
+        ? {
+              viewers: instancesOfIndoorViewers,
+              storageKey: "IndoorViewer",
+              defaultViewer: "OSM Simple 3D editor",
+              linkClass: "view-indoor-link",
+              buttonText: "indoor",
+              title: "objectPage.clickShowEmbeddedIndoor",
+              iframeId: "building-indoor-view",
+              openInNewTabConfig: null,
+          }
+        : {
+              viewers: instancesOf3DViewers,
+              storageKey: "3DViewer",
+              defaultViewer: "OSM Building Viewer",
+              linkClass: "view-3d-link",
+              buttonText: "3D",
+              title: "objectPage.clickShowEmbedded3d",
+              iframeId: "building-3d-view",
+              openInNewTabConfig: "3DViewerInNewTab",
+          }
+
+    if (location.pathname.includes("/history") || document.querySelector(`.${viewerConfig.linkClass}`)) {
         return
     }
     const m = location.pathname.match(/\/(way|relation)\/(\d+)/)
@@ -886,7 +910,7 @@ function makeBuildingViewerValue(valueCell, key) {
     if (!type) {
         return
     }
-    if (type === "way" && ["building", "building:part"].includes(key)) {
+    if (!isIndoorViewer && type === "way" && ["building", "building:part"].includes(key)) {
         const has3DTags = !Array.from(document.querySelectorAll(".browse-tag-list tr th")).some(i => {
             return (
                 i.textContent.includes("level") ||
@@ -910,20 +934,20 @@ function makeBuildingViewerValue(valueCell, key) {
     wrapper.style.marginLeft = "auto"
     parent.appendChild(wrapper)
 
-    const viewIn3D = document.createElement("span")
-    viewIn3D.classList.add("view-3d-link", "btn", "btn-outline-primary")
-    viewIn3D.textContent = "3D"
-    viewIn3D.style.cursor = "pointer"
-    viewIn3D.style.paddingTop = "3px"
-    viewIn3D.style.paddingBottom = "3px"
-    viewIn3D.title = t("objectPage.clickShowEmbedded3d")
+    const viewInViewer = document.createElement("span")
+    viewInViewer.classList.add(viewerConfig.linkClass, "btn", "btn-outline-primary")
+    viewInViewer.textContent = viewerConfig.buttonText
+    viewInViewer.style.cursor = "pointer"
+    viewInViewer.style.paddingTop = "3px"
+    viewInViewer.style.paddingBottom = "3px"
+    viewInViewer.title = t(viewerConfig.title)
 
     async function contextMenuHandler(e) {
         if (document.querySelector(".betterOsmContextMenu")) {
             document.querySelector(".betterOsmContextMenu").remove()
             return
         }
-        const buildingViewer = (await GM.getValue("3DViewer")) ?? "OSM Building Viewer"
+        const selectedViewer = (await GM.getValue(viewerConfig.storageKey)) ?? viewerConfig.defaultViewer
         e.preventDefault()
         e.stopPropagation()
 
@@ -932,7 +956,7 @@ function makeBuildingViewerValue(valueCell, key) {
             pageX: e.target.getBoundingClientRect().right,
             pageY: e.target.getBoundingClientRect().bottom,
         })
-        instancesOf3DViewers.forEach(i => {
+        viewerConfig.viewers.forEach(i => {
             const listItem = document.createElement("div")
             const a = document.createElement("a")
             const [x, y, z] = getCurrentXYZ()
@@ -951,16 +975,16 @@ function makeBuildingViewerValue(valueCell, key) {
             pinLabel.classList.add("pin-label")
             pinLabel.textContent = "📌"
             pinLabel.title = t("objectPage.setAsDefaultForClick")
-            if (i.name === buildingViewer) {
+            if (i.name === selectedViewer) {
                 pin.checked = true
                 pinLabel.title = t("objectPage.defaultViewer")
             }
             pin.onchange = async () => {
                 if (pin.checked) {
-                    await GM.setValue("3DViewer", i.name)
-                    if (viewIn3D.classList.contains("active")) {
-                        viewIn3D.click()
-                        viewIn3D.click()
+                    await GM.setValue(viewerConfig.storageKey, i.name)
+                    if (viewInViewer.classList.contains("active")) {
+                        viewInViewer.click()
+                        viewInViewer.click()
                     }
                 }
             }
@@ -987,40 +1011,40 @@ function makeBuildingViewerValue(valueCell, key) {
         document.body.appendChild(menu)
     }
 
-    viewIn3D.addEventListener("contextmenu", contextMenuHandler)
+    viewInViewer.addEventListener("contextmenu", contextMenuHandler)
 
     async function clickHandler(e) {
-        if (buildingViewerIframe) {
-            buildingViewerIframe.remove()
-            buildingViewerIframe = null
-            viewIn3D.classList.toggle("active")
+        if (viewerIframe) {
+            viewerIframe.remove()
+            viewerIframe = null
+            viewInViewer.classList.toggle("active")
             return
         }
         const [x, y, z] = getCurrentXYZ()
-        const buildingViewer = (await GM.getValue("3DViewer")) ?? "OSM Building Viewer"
-        const viewer = instancesOf3DViewers.find(i => i.name === buildingViewer)
+        const selectedViewer = (await GM.getValue(viewerConfig.storageKey)) ?? viewerConfig.defaultViewer
+        const viewer = viewerConfig.viewers.find(i => i.name === selectedViewer)
         const url = viewer.makeURL({ x, y, z, type, id, osm_type_first_letter: type[0] })
-        if (isMobile || e.ctrlKey || e.metaKey || e.which === 2 || GM_config.get("3DViewerInNewTab")) {
+        if (isMobile || e.ctrlKey || e.metaKey || e.which === 2 || (viewerConfig.openInNewTabConfig && GM_config.get(viewerConfig.openInNewTabConfig))) {
             window.open(url, "_blank")
             return
         }
-        viewIn3D.classList.toggle("active")
+        viewInViewer.classList.toggle("active")
 
-        buildingViewerIframe = GM_addElement("iframe", {
+        viewerIframe = GM_addElement("iframe", {
             src: url,
             width: document.querySelector("#map").clientWidth,
             height: "100%",
-            id: "building-3d-view",
+            id: viewerConfig.iframeId,
         })
-        document.querySelector("#map").before(buildingViewerIframe)
+        document.querySelector("#map").before(viewerIframe)
     }
 
-    viewIn3D.addEventListener("click", clickHandler)
-    viewIn3D.addEventListener("auxclick", e => {
+    viewInViewer.addEventListener("click", clickHandler)
+    viewInViewer.addEventListener("auxclick", e => {
         if (e.which !== 2) return
         clickHandler(e)
     })
-    wrapper.appendChild(viewIn3D)
+    wrapper.appendChild(viewInViewer)
 
     const expand = document.createElement("span")
     expand.classList.add("dropdown-toggle", "dropdown-toggle-split", "btn", "btn-outline-primary")
@@ -1079,8 +1103,10 @@ function makeLinksInVersionTagClickable(row, objType) {
         makeConditionalValue(valueCell)
     } else if (needValidateOpeningHoursKey(key)) {
         makeOpeningHoursValue(valueCell, key, true)
+    } else if (key === "indoor" || (key === "shop" && value === "mall")) {
+        makeViewerValue(valueCell, key)
     } else if (["building", "building:part"].includes(key) || (key === "type" && valueCell.textContent === "building")) {
-        makeBuildingViewerValue(valueCell, key)
+        makeViewerValue(valueCell, key)
     } else if (
         // prettier-ignore
         (key === "route" || key === "superroute") &&
