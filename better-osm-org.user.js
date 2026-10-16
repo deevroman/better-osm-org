@@ -656,6 +656,7 @@ _translations["en"] = {
         needRoofOrientation: "it seems to need to be changed to roof:orientation",
         clickShowEmbedded3d:
             "Click to show the embedded 3D Viewer.\nIn the script settings, you can set it to open on the OSM page by default",
+        clickShowEmbeddedIndoor: "Click to show the embedded indoor viewer.",
         setAsDefaultForClick: "Set as default for click",
         defaultViewer: "It's default viewer",
         keyTooShort: "The key is too short",
@@ -1123,6 +1124,7 @@ _translations["tr"] = {
         needRoofOrientation: "bunun roof:orientation olarak değiştirilmesi gerekiyor gibi görünüyor",
         clickShowEmbedded3d:
             "Gömülü 3B Görüntüleyiciyi göstermek için tıklayın.\nScript ayarlarında varsayılan olarak OSM sayfasında açılmasını ayarlayabilirsiniz",
+        clickShowEmbeddedIndoor: "Gömülü indoor görüntüleyiciyi göstermek için tıklayın.",
         setAsDefaultForClick: "Tıklama için varsayılan yap",
         defaultViewer: "Bu varsayılan görüntüleyici",
         keyTooShort: "Anahtar çok kısa",
@@ -1604,6 +1606,7 @@ _translations["ru"] = {
         needRoofOrientation: "похоже, это нужно заменить на roof:orientation",
         clickShowEmbedded3d:
             "Нажмите, чтобы показать встроенный 3D Viewer.\nВ настройках скрипта можно задать открытие на странице OSM по умолчанию",
+        clickShowEmbeddedIndoor: "Нажмите, чтобы показать встроенный indoor-просмотрщик.",
         setAsDefaultForClick: "Установить по умолчанию для клика",
         defaultViewer: "Это просмотрщик по умолчанию",
         keyTooShort: "Ключ слишком короткий",
@@ -2073,6 +2076,7 @@ _translations["de"] = {
         needRoofOrientation: "es sieht so aus, als müsste das zu roof:orientation geändert werden",
         clickShowEmbedded3d:
             "Klicken, um den eingebetteten 3D-Viewer anzuzeigen.\nIn den Skript-Einstellungen kannst du festlegen, dass er standardmäßig auf der OSM-Seite geöffnet wird",
+        clickShowEmbeddedIndoor: "Klicken, um den eingebetteten Indoor-Viewer anzuzeigen.",
         setAsDefaultForClick: "Als Standard für Klick setzen",
         defaultViewer: "Dies ist der Standard-Viewer",
         keyTooShort: "Der Schlüssel ist zu kurz",
@@ -2543,6 +2547,7 @@ _translations["fr"] = {
         needRoofOrientation: "il semble qu'il faut le remplacer par roof:orientation",
         clickShowEmbedded3d:
             "Cliquer pour afficher le visualiseur 3D intégré.\nDans les paramètres du script, vous pouvez définir l'ouverture par défaut sur la page OSM",
+        clickShowEmbeddedIndoor: "Cliquer pour afficher le visualiseur indoor intégré.",
         setAsDefaultForClick: "Définir par défaut au clic",
         defaultViewer: "C'est le visualiseur par défaut",
         keyTooShort: "La clé est trop courte",
@@ -3008,6 +3013,7 @@ _translations["hr"] = {
         needRoofOrientation: "izgleda da ovo treba promijeniti u roof:orientation",
         clickShowEmbedded3d:
             "Kliknite za prikaz ugrađenog 3D preglednika.\nU postavkama skripte možete postaviti otvaranje na OSM stranici kao zadano",
+        clickShowEmbeddedIndoor: "Kliknite za prikaz ugrađenog indoor preglednika.",
         setAsDefaultForClick: "Postavi kao zadano za klik",
         defaultViewer: "Ovo je zadani preglednik",
         keyTooShort: "Ključ je prekratak",
@@ -3474,6 +3480,7 @@ _translations["uk"] = {
         needRoofOrientation: "схоже, це потрібно змінити на roof:orientation",
         clickShowEmbedded3d:
             "Натисніть, щоб показати вбудований 3D-переглядач.\nУ налаштуваннях скрипта можна задати відкриття на сторінці OSM за замовчуванням",
+        clickShowEmbeddedIndoor: "Натисніть, щоб показати вбудований indoor-переглядач.",
         setAsDefaultForClick: "Установити за замовчуванням для кліку",
         defaultViewer: "Це переглядач за замовчуванням",
         keyTooShort: "Ключ надто короткий",
@@ -3973,6 +3980,31 @@ const instancesOf3DViewers = [
     //         return `${this.url}/?id=${id}&type=${type}`
     //     }
     // }
+]
+
+/** @type {externalURL[]} */
+const instancesOfIndoorViewers = [
+    {
+        name: "indoor=",
+        url: "https://indoorequal.org/",
+        makeURL: function ({ x: x, y: y, z: z }) {
+            return `${this.url}#map=${z}/${x}/${y}`
+        },
+    },
+    {
+        name: "openlevelup",
+        url: "https://openlevelup.net/",
+        makeURL: function ({ x: x, y: y, z: z }) {
+            return `${this.url}#map=${z}/${x}/${y}`
+        },
+    },
+    {
+        name: "OSM Simple 3D editor",
+        url: "https://felispimeja.github.io/osm-simple3d-editor/",
+        makeURL: function ({ x: x, y: y, z: z, id: id, osm_type_first_letter: osm_type_first_letter }) {
+            return `${this.url}#${z}/${x}/${y}/0/60`
+        },
+    },
 ]
 
 /** @type {externalURL} */
@@ -16217,12 +16249,13 @@ function makeXmasFeatureEasterEgg() {
     }
 }
 
-let buildingViewerIframe = null
+let viewerIframe = null
 
 let contextMenuCSSInjected = false
 
 const contextMenuCSS = `
-    #building-3d-view {
+    #building-3d-view,
+    #building-indoor-view {
         height: 120% !important;
         z-index: 9999 !important;
     }
@@ -16403,8 +16436,31 @@ function makeRoofDirectionValue(valueCell, row, isVersionPage) {
     })
 }
 
-function makeBuildingViewerValue(valueCell, key) {
-    if (location.pathname.includes("/history") || document.querySelector(".view-3d-link")) {
+function makeViewerValue(valueCell, key) {
+    const isIndoorViewer = key === "indoor" || (key === "shop" && valueCell.textContent === "mall")
+    const viewerConfig = isIndoorViewer
+        ? {
+              viewers: instancesOfIndoorViewers,
+              storageKey: "IndoorViewer",
+              defaultViewer: "OSM Simple 3D editor",
+              linkClass: "view-indoor-link",
+              buttonText: "indoor",
+              title: "objectPage.clickShowEmbeddedIndoor",
+              iframeId: "building-indoor-view",
+              openInNewTabConfig: null,
+          }
+        : {
+              viewers: instancesOf3DViewers,
+              storageKey: "3DViewer",
+              defaultViewer: "OSM Building Viewer",
+              linkClass: "view-3d-link",
+              buttonText: "3D",
+              title: "objectPage.clickShowEmbedded3d",
+              iframeId: "building-3d-view",
+              openInNewTabConfig: "3DViewerInNewTab",
+          }
+
+    if (location.pathname.includes("/history") || document.querySelector(`.${viewerConfig.linkClass}`)) {
         return
     }
     const m = location.pathname.match(/\/(way|relation)\/(\d+)/)
@@ -16415,7 +16471,7 @@ function makeBuildingViewerValue(valueCell, key) {
     if (!type) {
         return
     }
-    if (type === "way" && ["building", "building:part"].includes(key)) {
+    if (!isIndoorViewer && type === "way" && ["building", "building:part"].includes(key)) {
         const has3DTags = !Array.from(document.querySelectorAll(".browse-tag-list tr th")).some(i => {
             return (
                 i.textContent.includes("level") ||
@@ -16439,20 +16495,20 @@ function makeBuildingViewerValue(valueCell, key) {
     wrapper.style.marginLeft = "auto"
     parent.appendChild(wrapper)
 
-    const viewIn3D = document.createElement("span")
-    viewIn3D.classList.add("view-3d-link", "btn", "btn-outline-primary")
-    viewIn3D.textContent = "3D"
-    viewIn3D.style.cursor = "pointer"
-    viewIn3D.style.paddingTop = "3px"
-    viewIn3D.style.paddingBottom = "3px"
-    viewIn3D.title = t("objectPage.clickShowEmbedded3d")
+    const viewInViewer = document.createElement("span")
+    viewInViewer.classList.add(viewerConfig.linkClass, "btn", "btn-outline-primary")
+    viewInViewer.textContent = viewerConfig.buttonText
+    viewInViewer.style.cursor = "pointer"
+    viewInViewer.style.paddingTop = "3px"
+    viewInViewer.style.paddingBottom = "3px"
+    viewInViewer.title = t(viewerConfig.title)
 
     async function contextMenuHandler(e) {
         if (document.querySelector(".betterOsmContextMenu")) {
             document.querySelector(".betterOsmContextMenu").remove()
             return
         }
-        const buildingViewer = (await GM.getValue("3DViewer")) ?? "OSM Building Viewer"
+        const selectedViewer = (await GM.getValue(viewerConfig.storageKey)) ?? viewerConfig.defaultViewer
         e.preventDefault()
         e.stopPropagation()
 
@@ -16461,7 +16517,7 @@ function makeBuildingViewerValue(valueCell, key) {
             pageX: e.target.getBoundingClientRect().right,
             pageY: e.target.getBoundingClientRect().bottom,
         })
-        instancesOf3DViewers.forEach(i => {
+        viewerConfig.viewers.forEach(i => {
             const listItem = document.createElement("div")
             const a = document.createElement("a")
             const [x, y, z] = getCurrentXYZ()
@@ -16480,16 +16536,16 @@ function makeBuildingViewerValue(valueCell, key) {
             pinLabel.classList.add("pin-label")
             pinLabel.textContent = "📌"
             pinLabel.title = t("objectPage.setAsDefaultForClick")
-            if (i.name === buildingViewer) {
+            if (i.name === selectedViewer) {
                 pin.checked = true
                 pinLabel.title = t("objectPage.defaultViewer")
             }
             pin.onchange = async () => {
                 if (pin.checked) {
-                    await GM.setValue("3DViewer", i.name)
-                    if (viewIn3D.classList.contains("active")) {
-                        viewIn3D.click()
-                        viewIn3D.click()
+                    await GM.setValue(viewerConfig.storageKey, i.name)
+                    if (viewInViewer.classList.contains("active")) {
+                        viewInViewer.click()
+                        viewInViewer.click()
                     }
                 }
             }
@@ -16516,40 +16572,40 @@ function makeBuildingViewerValue(valueCell, key) {
         document.body.appendChild(menu)
     }
 
-    viewIn3D.addEventListener("contextmenu", contextMenuHandler)
+    viewInViewer.addEventListener("contextmenu", contextMenuHandler)
 
     async function clickHandler(e) {
-        if (buildingViewerIframe) {
-            buildingViewerIframe.remove()
-            buildingViewerIframe = null
-            viewIn3D.classList.toggle("active")
+        if (viewerIframe) {
+            viewerIframe.remove()
+            viewerIframe = null
+            viewInViewer.classList.toggle("active")
             return
         }
         const [x, y, z] = getCurrentXYZ()
-        const buildingViewer = (await GM.getValue("3DViewer")) ?? "OSM Building Viewer"
-        const viewer = instancesOf3DViewers.find(i => i.name === buildingViewer)
+        const selectedViewer = (await GM.getValue(viewerConfig.storageKey)) ?? viewerConfig.defaultViewer
+        const viewer = viewerConfig.viewers.find(i => i.name === selectedViewer)
         const url = viewer.makeURL({ x, y, z, type, id, osm_type_first_letter: type[0] })
-        if (isMobile || e.ctrlKey || e.metaKey || e.which === 2 || GM_config.get("3DViewerInNewTab")) {
+        if (isMobile || e.ctrlKey || e.metaKey || e.which === 2 || (viewerConfig.openInNewTabConfig && GM_config.get(viewerConfig.openInNewTabConfig))) {
             window.open(url, "_blank")
             return
         }
-        viewIn3D.classList.toggle("active")
+        viewInViewer.classList.toggle("active")
 
-        buildingViewerIframe = GM_addElement("iframe", {
+        viewerIframe = GM_addElement("iframe", {
             src: url,
             width: document.querySelector("#map").clientWidth,
             height: "100%",
-            id: "building-3d-view",
+            id: viewerConfig.iframeId,
         })
-        document.querySelector("#map").before(buildingViewerIframe)
+        document.querySelector("#map").before(viewerIframe)
     }
 
-    viewIn3D.addEventListener("click", clickHandler)
-    viewIn3D.addEventListener("auxclick", e => {
+    viewInViewer.addEventListener("click", clickHandler)
+    viewInViewer.addEventListener("auxclick", e => {
         if (e.which !== 2) return
         clickHandler(e)
     })
-    wrapper.appendChild(viewIn3D)
+    wrapper.appendChild(viewInViewer)
 
     const expand = document.createElement("span")
     expand.classList.add("dropdown-toggle", "dropdown-toggle-split", "btn", "btn-outline-primary")
@@ -16608,8 +16664,10 @@ function makeLinksInVersionTagClickable(row, objType) {
         makeConditionalValue(valueCell)
     } else if (needValidateOpeningHoursKey(key)) {
         makeOpeningHoursValue(valueCell, key, true)
+    } else if (key === "indoor" || (key === "shop" && value === "mall")) {
+        makeViewerValue(valueCell, key)
     } else if (["building", "building:part"].includes(key) || (key === "type" && valueCell.textContent === "building")) {
-        makeBuildingViewerValue(valueCell, key)
+        makeViewerValue(valueCell, key)
     } else if (
         // prettier-ignore
         (key === "route" || key === "superroute") &&
@@ -33606,8 +33664,8 @@ function actionCopyCurrentShortLink() {
 }
 
 function actionCloseUi() {
-    buildingViewerIframe?.remove()
-    buildingViewerIframe = null
+    viewerIframe?.remove()
+    viewerIframe = null
     if (document.querySelector("#osm_alert_modal")?.checkVisibility()) {
         document.querySelector("#osm_alert_modal .btn-close").click()
     } else {
@@ -36226,8 +36284,8 @@ function cleanupBeforeNewLocation(path) {
         setAttributionPrefix("")
         addSwipes()
         document.querySelector("#fixed-rss-feed")?.remove()
-        buildingViewerIframe?.remove()
-        buildingViewerIframe = null
+        viewerIframe?.remove()
+        viewerIframe = null
         historyPagePaginationDeletingObserver?.disconnect()
         historyPagePaginationDeletingObserver = null
         paginationInHistoryStepObserver?.disconnect()

@@ -435,6 +435,7 @@ _translations["de"] = {
         needRoofOrientation: "es sieht so aus, als müsste das zu roof:orientation geändert werden",
         clickShowEmbedded3d:
             "Klicken, um den eingebetteten 3D-Viewer anzuzeigen.\nIn den Skript-Einstellungen kannst du festlegen, dass er standardmäßig auf der OSM-Seite geöffnet wird",
+        clickShowEmbeddedIndoor: "Klicken, um den eingebetteten Indoor-Viewer anzuzeigen.",
         setAsDefaultForClick: "Als Standard für Klick setzen",
         defaultViewer: "Dies ist der Standard-Viewer",
         keyTooShort: "Der Schlüssel ist zu kurz",

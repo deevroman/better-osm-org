@@ -432,6 +432,7 @@ _translations["uk"] = {
         needRoofOrientation: "схоже, це потрібно змінити на roof:orientation",
         clickShowEmbedded3d:
             "Натисніть, щоб показати вбудований 3D-переглядач.\nУ налаштуваннях скрипта можна задати відкриття на сторінці OSM за замовчуванням",
+        clickShowEmbeddedIndoor: "Натисніть, щоб показати вбудований indoor-переглядач.",
         setAsDefaultForClick: "Установити за замовчуванням для кліку",
         defaultViewer: "Це переглядач за замовчуванням",
         keyTooShort: "Ключ надто короткий",

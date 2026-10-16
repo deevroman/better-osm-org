@@ -1177,8 +1177,8 @@ function actionCopyCurrentShortLink() {
 }
 
 function actionCloseUi() {
-    buildingViewerIframe?.remove()
-    buildingViewerIframe = null
+    viewerIframe?.remove()
+    viewerIframe = null
     if (document.querySelector("#osm_alert_modal")?.checkVisibility()) {
         document.querySelector("#osm_alert_modal .btn-close").click()
     } else {

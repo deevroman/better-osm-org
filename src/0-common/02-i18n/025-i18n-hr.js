@@ -431,6 +431,7 @@ _translations["hr"] = {
         needRoofOrientation: "izgleda da ovo treba promijeniti u roof:orientation",
         clickShowEmbedded3d:
             "Kliknite za prikaz ugrađenog 3D preglednika.\nU postavkama skripte možete postaviti otvaranje na OSM stranici kao zadano",
+        clickShowEmbeddedIndoor: "Kliknite za prikaz ugrađenog indoor preglednika.",
         setAsDefaultForClick: "Postavi kao zadano za klik",
         defaultViewer: "Ovo je zadani preglednik",
         keyTooShort: "Ključ je prekratak",

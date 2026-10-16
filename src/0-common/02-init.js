@@ -418,6 +418,31 @@ const instancesOf3DViewers = [
     // }
 ]
 
+/** @type {externalURL[]} */
+const instancesOfIndoorViewers = [
+    {
+        name: "indoor=",
+        url: "https://indoorequal.org/",
+        makeURL: function ({ x: x, y: y, z: z }) {
+            return `${this.url}#map=${z}/${x}/${y}`
+        },
+    },
+    {
+        name: "openlevelup",
+        url: "https://openlevelup.net/",
+        makeURL: function ({ x: x, y: y, z: z }) {
+            return `${this.url}#map=${z}/${x}/${y}`
+        },
+    },
+    {
+        name: "OSM Simple 3D editor",
+        url: "https://felispimeja.github.io/osm-simple3d-editor/",
+        makeURL: function ({ x: x, y: y, z: z, id: id, osm_type_first_letter: osm_type_first_letter }) {
+            return `${this.url}#${z}/${x}/${y}/0/60`
+        },
+    },
+]
+
 /** @type {externalURL} */
 const waymarkedtrailsLink = {
     name: "Waymarked Trails",
