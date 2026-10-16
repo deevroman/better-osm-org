@@ -437,7 +437,7 @@ const instancesOfIndoorViewers = [
         name: "openlevelup",
         url: "https://openlevelup.net/",
         makeURL: function ({ x: x, y: y, z: z }) {
-            return `${this.url}#map=${z}/${x}/${y}`
+            return `${this.url}#${z}/${x}/${y}`
         },
     },
     {
