@@ -12989,6 +12989,7 @@ async function editTagsHandler(e) {
     comment.style.marginLeft = "auto"
     comment.style.alignSelf = "center"
     comment.style.color = "gray"
+    comment.style.zoom = "1.5"
     comment.title = "Click to upload with custom comment\n\nbetter-osm-org implementation of tags editor"
 
     comment.onclick = async () => {
