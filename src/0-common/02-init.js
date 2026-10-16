@@ -434,10 +434,17 @@ const instancesOfIndoorViewers = [
         },
     },
     {
-        name: "openlevelup",
+        name: "OpenLevelUp",
         url: "https://openlevelup.net/",
         makeURL: function ({ x: x, y: y, z: z }) {
             return `${this.url}#${z}/${x}/${y}`
+        },
+    },
+    {
+        name: "OsmInEdit",
+        url: "https://osminedit.pavie.info/",
+        makeURL: function ({ x: x, y: y, z: z }) {
+            return `${this.url}#${z}/${x}/${y}/0`
         },
     },
     {
