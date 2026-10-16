@@ -16448,6 +16448,10 @@ function makeBuildingViewerValue(valueCell, key) {
     viewIn3D.title = t("objectPage.clickShowEmbedded3d")
 
     async function contextMenuHandler(e) {
+        if (document.querySelector(".betterOsmContextMenu")) {
+            document.querySelector(".betterOsmContextMenu").remove()
+            return
+        }
         const buildingViewer = (await GM.getValue("3DViewer")) ?? "OSM Building Viewer"
         e.preventDefault()
         e.stopPropagation()
