@@ -12761,6 +12761,9 @@ function makeComment(object_type, object_id, prevTags, newTags) {
         }
     }
 
+    if (tagsHint === "") {
+        throw "No changes"
+    }
     tagsHint = tagsHint.match(/(.*); /)[1]
 
     let mainTagsHint = ""
