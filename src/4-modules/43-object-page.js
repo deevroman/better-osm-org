@@ -693,6 +693,11 @@ let buildingViewerIframe = null
 let contextMenuCSSInjected = false
 
 const contextMenuCSS = `
+    #building-3d-view {
+        height: 120% !important;
+        z-index: 9999 !important;
+    }
+
     .betterOsmContextMenu {
         position: absolute;
         display: "block";
@@ -944,15 +949,7 @@ function makeLinksInVersionTagClickable(row, objType) {
                 }
             }
         }
-        injectCSSIntoOSMPage(
-            `
-                    #building-3d-view {
-                        /* position: absolute !important; */
-                        height: 120% !important;
-                        z-index: 9999 !important;
-                    }
-            ` + contextMenuCSS,
-        )
+        injectContextMenuCSS()
         const parent = document.querySelector(".browse-tag-list").parentElement.previousElementSibling
         parent.style.display = "flex"
 
