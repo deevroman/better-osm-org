@@ -220,6 +220,8 @@ function getFetchObjectPromise(type, id) {
     }
 }
 
+let changesUploadingLock = false
+
 async function editTagsHandler(e) {
     e.preventDefault()
     if (document.querySelector(".better-osm-org-tags-editor-wrapper")) {
@@ -273,11 +275,19 @@ async function editTagsHandler(e) {
     saveButton.classList.add("btn", "btn-primary")
     saveButton.textContent = "Save"
     saveButton.onclick = async () => {
+        if (changesUploadingLock) {
+            saveButton.style.cursor = "progress"
+            return
+        }
         try {
+            changesUploadingLock = true
             await uploadChanges(type, id, version, buildTags(ta.value), false)
             tryReloadSidebar()
         } catch (e) {
             errorPane.textContent = e
+        } finally {
+            changesUploadingLock = false
+            saveButton.style.removeProperty("cursor")
         }
     }
     btnWrapper.appendChild(saveButton)
