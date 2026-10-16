@@ -16502,10 +16502,13 @@ function makeViewerValue(valueCell, key) {
     const parent = document.querySelector(".browse-tag-list").parentElement.previousElementSibling
     parent.style.display = "flex"
 
-    const wrapper = document.createElement("span")
-    wrapper.classList.add("btn-group")
-    wrapper.style.marginLeft = "auto"
-    parent.appendChild(wrapper)
+    let wrapper = parent.querySelector(".btn-group")
+    if (!wrapper) {
+        wrapper = document.createElement("span")
+        wrapper.classList.add("btn-group")
+        wrapper.style.marginLeft = "auto"
+        parent.appendChild(wrapper)
+    }
 
     const viewInViewer = document.createElement("span")
     viewInViewer.classList.add(viewerConfig.linkClass, "btn", "btn-outline-primary")
@@ -16513,6 +16516,9 @@ function makeViewerValue(valueCell, key) {
     viewInViewer.style.cursor = "pointer"
     viewInViewer.style.paddingTop = "3px"
     viewInViewer.style.paddingBottom = "3px"
+    viewInViewer.style.marginLeft = "5px"
+    viewInViewer.style.borderTopLeftRadius = "var(--bs-border-radius)"
+    viewInViewer.style.borderBottomLeftRadius = "var(--bs-border-radius)"
     viewInViewer.title = t(viewerConfig.title)
 
     async function contextMenuHandler(e) {
