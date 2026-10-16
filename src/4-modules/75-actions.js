@@ -904,6 +904,11 @@ function zoomToCurrentObject(e) {
             [trackMetadata.min_lat, trackMetadata.min_lon],
             [trackMetadata.max_lat, trackMetadata.max_lon],
         ])
+    } else if (imagesLayerBbox) {
+        fitBounds([
+            [imagesLayerBbox.min_lat, imagesLayerBbox.min_lon],
+            [imagesLayerBbox.max_lat, imagesLayerBbox.max_lon],
+        ])
     }
 }
 

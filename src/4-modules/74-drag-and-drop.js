@@ -110,6 +110,8 @@ function displayJsonArray(json) {
     renderGeoJSONwrapper(geojson)
 }
 
+let imagesLayerBbox = null
+
 function handleDroppedFiles(files) {
     const mapWidth = getComputedStyle(document.querySelector("#map")).width
     const mapHeight = getComputedStyle(document.querySelector("#map")).height
@@ -132,6 +134,16 @@ function handleDroppedFiles(files) {
             if (metadata.GPSLongitudeRef === "W") {
                 lon = parseFloat(lon) * -1
             }
+
+            imagesLayerBbox = combineBBOXes([
+                imagesLayerBbox,
+                {
+                    min_lat: lat,
+                    min_lon: lon,
+                    max_lat: lat,
+                    max_lon: lon,
+                },
+            ])
 
             const marker = getWindow().L.circleMarker(
                 getWindow().L.latLng(lat, lon),
